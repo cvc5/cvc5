@@ -15,14 +15,14 @@ ANTLR_OPTS =
 noinst_LTLIBRARIES = libparsersmt.la
 
 ANTLR_TOKEN_STUFF = \
-	generated/Smt.tokens
+	@abs_builddir@/generated/Smt.tokens
 ANTLR_LEXER_STUFF = \
-	generated/SmtLexer.h \
-	generated/SmtLexer.c \
+	@abs_builddir@/generated/SmtLexer.h \
+	@abs_builddir@/generated/SmtLexer.c \
 	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-	generated/SmtParser.h \
-	generated/SmtParser.c
+	@abs_builddir@/generated/SmtParser.h \
+	@abs_builddir@/generated/SmtParser.c
 ANTLR_STUFF = \
 	$(ANTLR_LEXER_STUFF) \
 	$(ANTLR_PARSER_STUFF)
@@ -47,7 +47,7 @@ stamp-generated:
 	$(AM_V_at)touch stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-generated/SmtLexer.h: Smt.g stamp-generated
+@abs_builddir@/generated/SmtLexer.h: Smt.g stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
 	@if test -z "$(ANTLR)"; then echo "ERROR: antlr parser generator cannot be found, cannot generate the parser" >&2; exit 1; fi
 	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "generated" "@srcdir@/Smt.g"
@@ -56,4 +56,4 @@ generated/SmtLexer.h: Smt.g stamp-generated
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-generated/SmtLexer.c generated/SmtParser.h generated/SmtParser.c $(ANTLR_TOKEN_STUFF): generated/SmtLexer.h
+@abs_builddir@/generated/SmtLexer.c @abs_builddir@/generated/SmtParser.h @abs_builddir@/generated/SmtParser.c $(ANTLR_TOKEN_STUFF): @abs_builddir@/generated/SmtLexer.h
