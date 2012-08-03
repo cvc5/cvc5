@@ -44,4 +44,7 @@ typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
 
+# store operations that are ordered (by index) over a store-all are constant
+construle STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
+
 endtheory

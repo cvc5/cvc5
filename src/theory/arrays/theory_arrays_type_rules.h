@@ -65,6 +65,24 @@ struct ArrayStoreTypeRule {
     }
     return arrayType;
   }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException) {
+    Assert(n.getKind() == kind::STORE);
+    NodeManagerScope nms(nodeManager);
+
+    // TODO: test ordering of stores, and ultimate application to a store-all
+    // ALSO: ensure uniqueness of form (e.g. one constant of the array sort
+    // BOOL->INT can be represented as
+    //   [false->0, default=1]
+    // and also
+    //   [true->1, default=0]
+    // ..but by contract of isConst(), only one of these can be considered
+    // a "const" expression.
+
+    return false;
+  }
+
 };/* struct ArrayStoreTypeRule */
 
 struct ArrayTableFunTypeRule {
@@ -91,7 +109,7 @@ struct ArrayTableFunTypeRule {
     }
     return arrayType.getArrayIndexType();
   }
-};/* struct ArrayStoreTypeRule */
+};/* struct ArrayTableFunTypeRule */
 
 struct CardinalityComputer {
   inline static Cardinality computeCardinality(TypeNode type) {
