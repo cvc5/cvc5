@@ -15,14 +15,14 @@ ANTLR_OPTS =
 noinst_LTLIBRARIES = libparsercvc.la
 
 ANTLR_TOKEN_STUFF = \
-	@abs_builddir@/generated/Cvc.tokens
+	generated/Cvc.tokens
 ANTLR_LEXER_STUFF = \
-	@abs_builddir@/generated/CvcLexer.h \
-	@abs_builddir@/generated/CvcLexer.c \
+	generated/CvcLexer.h \
+	generated/CvcLexer.c \
 	$(ANTLR_TOKEN_STUFF)
 ANTLR_PARSER_STUFF = \
-	@abs_builddir@/generated/CvcParser.h \
-	@abs_builddir@/generated/CvcParser.c
+	generated/CvcParser.h \
+	generated/CvcParser.c
 ANTLR_STUFF = \
 	$(ANTLR_LEXER_STUFF) \
 	$(ANTLR_PARSER_STUFF)
@@ -33,7 +33,13 @@ libparsercvc_la_SOURCES = \
 	cvc_input.cpp \
 	$(ANTLR_STUFF)
 
-BUILT_SOURCES = $(ANTLR_STUFF) stamp-generated
+BUILT_SOURCES = \
+	generated/Cvc.tokens \
+	generated/CvcLexer.h \
+	generated/CvcLexer.c \
+	generated/CvcParser.h \
+	generated/CvcParser.c \
+	stamp-generated
 
 EXTRA_DIST = README
 
@@ -47,7 +53,7 @@ stamp-generated:
 	$(AM_V_at)touch stamp-generated
 
 # antlr doesn't overwrite output files, it just leaves them.  So we have to delete them first.
-@abs_builddir@/generated/CvcLexer.h: Cvc.g stamp-generated
+generated/CvcLexer.h: Cvc.g stamp-generated
 	-$(AM_V_at)rm -f $(ANTLR_STUFF)
 	@if test -z "$(ANTLR)"; then echo "ERROR: antlr parser generator cannot be found, cannot generate the parser" >&2; exit 1; fi
 	$(AM_V_GEN)$(ANTLR) $(ANTLR_OPTS) -fo "generated" "@srcdir@/Cvc.g"
@@ -56,4 +62,4 @@ stamp-generated:
 # make and the lexer needs to be rebuilt, we have to keep the rules
 # from running in parallel (since the token files will be deleted &
 # recreated)
-@abs_builddir@/generated/CvcLexer.c @abs_builddir@/generated/CvcParser.h @abs_builddir@/generated/CvcParser.c $(ANTLR_TOKEN_STUFF): @abs_builddir@/generated/CvcLexer.h
+generated/CvcLexer.c generated/CvcParser.h generated/CvcParser.c $(ANTLR_TOKEN_STUFF): generated/CvcLexer.h
