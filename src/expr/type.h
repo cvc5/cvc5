@@ -145,8 +145,7 @@ public:
   Cardinality getCardinality() const;
 
   /**
-   * Is this a well-founded type?  (I.e., do there exist ground
-   * terms?)
+   * Is this a well-founded type?
    */
   bool isWellFounded() const;
 
@@ -155,6 +154,17 @@ public:
    * exception if this type is not well-founded.
    */
   Expr mkGroundTerm() const;
+
+  /**
+   * Is this type a subtype of the given type?
+   */
+  bool isSubtypeOf(Type t) const;
+
+  /**
+   * Is this type comparable to the given type (i.e., do they share
+   * a common ancestor in the subtype tree)?
+   */
+  bool isComparableTo(Type t) const;
 
   /**
    * Substitution of Types.

@@ -29,11 +29,19 @@ operator SELECT 2 "array select"
 # store a i e  is  a[i] <= e
 operator STORE 3 "array store"
 
+# storeall t e  is  \all i in indexType(t) <= e
+constant STORE_ALL \
+    ::CVC4::ArrayStoreAll \
+    ::CVC4::ArrayStoreAllHashStrategy \
+    "util/array_store_all.h" \
+    "array store-all"
+
 # used internally by array theory
 operator ARR_TABLE_FUN 4 "array table function"
 
 typerule SELECT ::CVC4::theory::arrays::ArraySelectTypeRule
 typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
+typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
 
 endtheory

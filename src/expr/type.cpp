@@ -77,6 +77,16 @@ Expr Type::mkGroundTerm() const {
   return d_typeNode->mkGroundTerm().toExpr();
 }
 
+bool Type::isSubtypeOf(Type t) const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSubtypeOf(*t.d_typeNode);
+}
+
+bool Type::isComparableTo(Type t) const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isComparableTo(*t.d_typeNode);
+}
+
 Type& Type::operator=(const Type& t) {
   Assert(d_typeNode != NULL, "Unexpected NULL typenode pointer!");
   Assert(t.d_typeNode != NULL, "Unexpected NULL typenode pointer!");

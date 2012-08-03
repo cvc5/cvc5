@@ -270,6 +270,7 @@ constant UNINTERPRETED_CONSTANT \
     ::CVC4::UninterpretedConstantHashStrategy \
     "util/uninterpreted_constant.h" \
     "The kind of nodes representing uninterpreted constants"
+typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
     ::CVC4::theory::builtin::UninterpretedSortEnumerator \
     "theory/builtin/type_enumerator.h"

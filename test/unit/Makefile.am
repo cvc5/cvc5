@@ -36,6 +36,7 @@ UNIT_TESTS = \
 	context/cdvector_black \
 	context/stacking_map_black \
 	context/stacking_vector_black \
+	util/array_store_all_black \
 	util/assert_white \
 	util/bitvector_black \
 	util/datatype_black \

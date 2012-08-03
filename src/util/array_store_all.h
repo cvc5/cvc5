@@ -35,22 +35,26 @@ namespace CVC4 {
 namespace CVC4 {
 
 class CVC4_PUBLIC ArrayStoreAll {
-  const Type d_type;
+  const ArrayType d_type;
   const Expr d_expr;
 
 public:
 
-  ArrayStoreAll(Type type, Expr expr) throw(IllegalArgumentException) :
+  ArrayStoreAll(ArrayType type, Expr expr) throw(IllegalArgumentException) :
     d_type(type),
     d_expr(expr) {
+
+    // this check is stronger than the assertion check in the expr manager that ArrayTypes are actually array types
+    // because this check is done in production builds too
     CheckArgument(type.isArray(), type, "array store-all constants can only be created for array types, not `%s'", type.toString().c_str());
-    CheckArgument(expr.getType() == ArrayType(type).getConstituentType(), expr, "expr type `%s' does not match constituent type of array type `%s'", expr.getType().toString().c_str(), type.toString().c_str());
+
+    CheckArgument(expr.getType().isSubtypeOf(type.getConstituentType()), expr, "expr type `%s' does not match constituent type of array type `%s'", expr.getType().toString().c_str(), type.toString().c_str());
   }
 
   ~ArrayStoreAll() throw() {
   }
 
-  Type getType() const throw() {
+  ArrayType getType() const throw() {
     return d_type;
   }
   Expr getExpr() const throw() {

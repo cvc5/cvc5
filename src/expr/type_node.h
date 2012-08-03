@@ -430,8 +430,7 @@ public:
   Cardinality getCardinality() const;
 
   /**
-   * Returns whether this type is well-founded.  A type is
-   * well-founded if there exist ground terms.
+   * Returns whether this type is well-founded.
    *
    * @return true iff the type is well-founded
    */
@@ -445,7 +444,9 @@ public:
    */
   Node mkGroundTerm() const;
 
-  /** Is this type a subtype of the given type? */
+  /**
+   * Is this type a subtype of the given type?
+   */
   bool isSubtypeOf(TypeNode t) const;
 
   /**
