@@ -61,6 +61,20 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
   lock();
 }
 
+LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
+  d_logicString(""),
+  d_theories(),
+  d_sharingTheories(0),
+  d_integers(false),
+  d_reals(false),
+  d_linear(false),
+  d_differenceLogic(false),
+  d_locked(false) {
+
+  setLogicString(logicString);
+  lock();
+}
+
 std::string LogicInfo::getLogicString() const {
   Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
@@ -327,6 +341,10 @@ LogicInfo LogicInfo::getUnlockedCopy() const {
   } else {
     return *this;
   }
+}
+
+std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) {
+  return out << logic.getLogicString();
 }
 
 }/* CVC4 namespace */

@@ -87,6 +87,13 @@ public:
    */
   LogicInfo(std::string logicString) throw(IllegalArgumentException);
 
+  /**
+   * Construct a LogicInfo from an SMT-LIB-like logic string.
+   * Throws an IllegalArgumentException if the logic string cannot
+   * be interpreted.
+   */
+  LogicInfo(const char* logicString) throw(IllegalArgumentException);
+
   // ACCESSORS
 
   /**
@@ -224,7 +231,86 @@ public:
   /** Get a copy of this LogicInfo that is identical, but unlocked */
   LogicInfo getUnlockedCopy() const;
 
+  // COMPARISON
+
+  /** Are these two LogicInfos equal? */
+  bool operator==(const LogicInfo& other) const {
+    Assert(isLocked() && other.isLocked(), "This LogicInfo isn't locked yet, and cannot be queried");
+    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+      if(d_theories[id] != other.d_theories[id]) {
+        return false;
+      }
+    }
+    Assert(d_sharingTheories == other.d_sharingTheories, "LogicInfo internal inconsistency");
+    if(isTheoryEnabled(theory::THEORY_ARITH)) {
+      return
+        d_integers == other.d_integers &&
+        d_reals == other.d_reals &&
+        d_linear == other.d_linear &&
+        d_differenceLogic == other.d_differenceLogic;
+    } else {
+      return true;
+    }
+  }
+  /** Are these two LogicInfos disequal? */
+  bool operator!=(const LogicInfo& other) const {
+    return !(*this == other);
+  }
+  /** Is this LogicInfo "greater than" (does it contain everything and more) the other? */
+  bool operator>(const LogicInfo& other) const {
+    return *this >= other && *this != other;
+  }
+  /** Is this LogicInfo "less than" (does it contain strictly less) the other? */
+  bool operator<(const LogicInfo& other) const {
+    return *this <= other && *this != other;
+  }
+  /** Is this LogicInfo "less than or equal" the other? */
+  bool operator<=(const LogicInfo& other) const {
+    Assert(isLocked() && other.isLocked(), "This LogicInfo isn't locked yet, and cannot be queried");
+    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+      if(d_theories[id] && !other.d_theories[id]) {
+        return false;
+      }
+    }
+    Assert(d_sharingTheories <= other.d_sharingTheories, "LogicInfo internal inconsistency");
+    if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+      return
+        (!d_integers || other.d_integers) &&
+        (!d_reals || other.d_reals) &&
+        (d_linear || !other.d_linear) &&
+        (d_differenceLogic || !other.d_differenceLogic);
+    } else {
+      return true;
+    }
+  }
+  /** Is this LogicInfo "greater than or equal" the other? */
+  bool operator>=(const LogicInfo& other) const {
+    Assert(isLocked() && other.isLocked(), "This LogicInfo isn't locked yet, and cannot be queried");
+    for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+      if(!d_theories[id] && other.d_theories[id]) {
+        return false;
+      }
+    }
+    Assert(d_sharingTheories >= other.d_sharingTheories, "LogicInfo internal inconsistency");
+    if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+      return
+        (d_integers || !other.d_integers) &&
+        (d_reals || !other.d_reals) &&
+        (!d_linear || other.d_linear) &&
+        (!d_differenceLogic || other.d_differenceLogic);
+    } else {
+      return true;
+    }
+  }
+
+  /** Are two LogicInfos comparable?  That is, is one of <= or > true? */
+  bool isComparableTo(const LogicInfo& other) const {
+    return *this <= other || *this >= other;
+  }
+
 };/* class LogicInfo */
+
+std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
