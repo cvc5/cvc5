@@ -425,8 +425,8 @@ Node RewriteRule<MultDistribConst>::apply(TNode node) {
 template<> inline
 bool RewriteRule<SolveEq>::applies(TNode node) {
   if (node.getKind() != kind::EQUAL ||
-      (node[0].getMetaKind() == kind::metakind::VARIABLE && !node[1].hasSubterm(node[0])) ||
-      (node[1].getMetaKind() == kind::metakind::VARIABLE && !node[0].hasSubterm(node[1]))) {
+      (node[0].isVar() && !node[1].hasSubterm(node[0])) ||
+      (node[1].isVar() && !node[0].hasSubterm(node[1]))) {
     return false;
   }
   return true;

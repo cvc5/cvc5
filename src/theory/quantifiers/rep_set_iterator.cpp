@@ -380,7 +380,7 @@ Node RepSetEvaluator::evaluateTerm( Node n, int& depIndex ){
         //if not set already, rewrite and consult model for interpretation
         if( !setVal ){
           val = Rewriter::rewrite( val );
-          if( val.getMetaKind()!=kind::metakind::CONSTANT ){
+          if( !val.isConst() ){
             //FIXME: we cannot do this until we trust all theories collectModelInfo!
             //val = d_model->getInterpretedValue( val );
             //val = d_model->getRepresentative( val );

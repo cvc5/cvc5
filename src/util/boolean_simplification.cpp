@@ -37,7 +37,7 @@ BooleanSimplification::push_back_associative_commute_recursive
       }
     }else{
       if(negateNode){
-        if(child.getMetaKind() == kind::metakind::CONSTANT) {
+        if(child.isConst()) {
           if((k == kind::AND && child.getConst<bool>()) ||
              (k == kind::OR && !child.getConst<bool>())) {
             buffer.clear();
@@ -48,7 +48,7 @@ BooleanSimplification::push_back_associative_commute_recursive
           buffer.push_back(negate(child));
         }
       }else{
-        if(child.getMetaKind() == kind::metakind::CONSTANT) {
+        if(child.isConst()) {
           if((k == kind::OR && child.getConst<bool>()) ||
              (k == kind::AND && !child.getConst<bool>())) {
             buffer.clear();

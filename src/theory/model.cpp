@@ -157,16 +157,14 @@ void TheoryModel::toStream( std::ostream& out ){
 Node TheoryModel::getValue( TNode n ){
   Debug("model") << "TheoryModel::getValue " << n << std::endl;
 
-  kind::MetaKind metakind = n.getMetaKind();
-
   //// special case: prop engine handles boolean vars
-  //if(metakind == kind::metakind::VARIABLE && n.getType().isBoolean()) {
+  //if(n.isVar() && n.getType().isBoolean()) {
   //  Debug("model") << "-> Propositional variable." << std::endl;
   //  return d_te->getPropEngine()->getValue( n );
   //}
 
   // special case: value of a constant == itself
-  if(metakind == kind::metakind::CONSTANT) {
+  if(n.isConst()) {
     Debug("model") << "-> Constant." << std::endl;
     return n;
   }
@@ -174,7 +172,7 @@ Node TheoryModel::getValue( TNode n ){
   Node nn;
   if( n.getNumChildren()>0 ){
     std::vector< Node > children;
-    if( metakind == kind::metakind::PARAMETERIZED ){
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
       Debug("model-debug") << "get operator: " << n.getOperator() << std::endl;
       children.push_back( n.getOperator() );
     }
@@ -194,7 +192,7 @@ Node TheoryModel::getValue( TNode n ){
   nn = Rewriter::rewrite( nn );
 
   // special case: value of a constant == itself
-  if(metakind == kind::metakind::CONSTANT) {
+  if(n.isConst()) {
     Debug("model") << "-> Theory-interpreted term." << std::endl;
     return nn;
   }else{
@@ -444,7 +442,7 @@ void TheoryEngineModelBuilder::buildModel( Model* m ){
     while( !eqc_i.isFinished() ){
       Node n = *eqc_i;
       //check if this is constant, if so, we will use it as representative
-      if( n.getMetaKind()==kind::metakind::CONSTANT ){
+      if( n.isConst() ){
         const_rep = n;
       }
       //theory-specific information needed

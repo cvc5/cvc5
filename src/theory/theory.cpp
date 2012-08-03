@@ -66,7 +66,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
   switch(mode) {
   case THEORY_OF_TYPE_BASED:
     // Constants, variables, 0-ary constructors
-    if (node.getMetaKind() == kind::metakind::VARIABLE || node.getMetaKind() == kind::metakind::CONSTANT) {
+    if (node.isVar() || node.isConst()) {
       return theoryOf(node.getType());
     }
     // Equality is owned by the theory that owns the domain
@@ -78,7 +78,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
     break;
   case THEORY_OF_TERM_BASED:
     // Variables
-    if (node.getMetaKind() == kind::metakind::VARIABLE) {
+    if (node.isVar()) {
       if (theoryOf(node.getType()) != theory::THEORY_BOOL) {
         // We treat the varibables as uninterpreted
         return s_uninterpretedSortOwner;
@@ -88,7 +88,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
       }
     }
     // Constants
-    if (node.getMetaKind() == kind::metakind::CONSTANT) {
+    if (node.isConst()) {
       // Constants go to the theory of the type
       return theoryOf(node.getType());
     }

@@ -168,7 +168,7 @@ void FirstOrderModel::toStream(std::ostream& out){
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ){
       //do not print things that have interpretations in model
-      if( (*eqc_i).getMetaKind()!=kind::metakind::CONSTANT && !hasInterpretedValue( *eqc_i ) ){
+      if( !(*eqc_i).isConst() && !hasInterpretedValue( *eqc_i ) ){
         out << "(" << (*eqc_i) << " " << rep << ")" << std::endl;
       }
       ++eqc_i;

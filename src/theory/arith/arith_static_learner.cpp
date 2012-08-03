@@ -135,7 +135,7 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
   case IMPLIES:
     // == 3-FINITE VALUE SET : Collect information ==
     if(n[1].getKind() == EQUAL &&
-       n[1][0].getMetaKind() == metakind::VARIABLE &&
+       n[1][0].isVar() &&
        defTrue.find(n) != defTrue.end()){
       Node eqTo = n[1][1];
       Node rewriteEqTo = Rewriter::rewrite(eqTo);
@@ -166,12 +166,12 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
       break;
     }
     Node var, c1, c2;
-    if(n[0][0].getMetaKind() == metakind::VARIABLE &&
-       n[0][1].getMetaKind() == metakind::CONSTANT) {
+    if(n[0][0].isVar() &&
+       n[0][1].isConst()) {
       var = n[0][0];
       c1 = n[0][1];
-    } else if(n[0][1].getMetaKind() == metakind::VARIABLE &&
-              n[0][0].getMetaKind() == metakind::CONSTANT) {
+    } else if(n[0][1].isVar() &&
+              n[0][0].isConst()) {
       var = n[0][1];
       c1 = n[0][0];
     } else {

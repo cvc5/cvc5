@@ -54,8 +54,8 @@ class TypeChecker;
 // Definition of an attribute for the variable name.
 // TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
-  struct VarNameTag {};
-  struct SortArityTag {};
+  struct VarNameTag { };
+  struct SortArityTag { };
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
@@ -230,8 +230,8 @@ class NodeManager {
   };/* struct NodeManager::NVStorage<N> */
 
   // attribute tags
-  struct TypeTag {};
-  struct TypeCheckedTag;
+  struct TypeTag { };
+  struct TypeCheckedTag { };
 
   // NodeManager's attributes.  These aren't exposed outside of this
   // class; use the getters.

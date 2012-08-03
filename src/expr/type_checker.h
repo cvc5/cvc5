@@ -18,10 +18,11 @@
 
 #include "cvc4_private.h"
 
+// ordering dependence
+#include "expr/node.h"
+
 #ifndef __CVC4__EXPR__TYPE_CHECKER_H
 #define __CVC4__EXPR__TYPE_CHECKER_H
-
-#include "expr/node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -31,6 +32,9 @@ public:
 
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check = false)
     throw (TypeCheckingExceptionPrivate, AssertionException);
+
+  static bool computeIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException);
 
 };/* class TypeChecker */
 

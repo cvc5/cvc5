@@ -81,13 +81,13 @@ bool SymmetryBreaker::Template::matchRecursive(TNode t, TNode n) {
   }
 
   if(t.getNumChildren() == 0) {
-    if(t.getMetaKind() == kind::metakind::CONSTANT) {
-      Assert(n.getMetaKind() == kind::metakind::CONSTANT);
+    if(t.isConst()) {
+      Assert(n.isConst());
       Debug("ufsymm:match") << "UFSYMM we have constants, failing match" << endl;
       return false;
     }
-    Assert(t.getMetaKind() == kind::metakind::VARIABLE &&
-           n.getMetaKind() == kind::metakind::VARIABLE);
+    Assert(t.isVar() &&
+           n.isVar());
     t = find(t);
     n = find(n);
     Debug("ufsymm:match") << "UFSYMM variable match " << t << " , " << n << endl;
@@ -218,8 +218,8 @@ Node SymmetryBreaker::normInternal(TNode n) {
           } else if((*i).getKind() == kind::IFF ||
                     (*i).getKind() == kind::EQUAL) {
             kids.push_back(normInternal(*i));
-            if((*i)[0].getMetaKind() == kind::metakind::VARIABLE ||
-               (*i)[1].getMetaKind() == kind::metakind::VARIABLE) {
+            if((*i)[0].isVar() ||
+               (*i)[1].isVar()) {
               d_termEqs[(*i)[0]].insert((*i)[1]);
               d_termEqs[(*i)[1]].insert((*i)[0]);
               Debug("ufsymm:eq") << "UFSYMM " << (*i)[0] << " <==> " << (*i)[1] << endl;
@@ -237,8 +237,8 @@ Node SymmetryBreaker::normInternal(TNode n) {
 
   case kind::IFF:
   case kind::EQUAL:
-    if(n[0].getMetaKind() == kind::metakind::VARIABLE ||
-       n[1].getMetaKind() == kind::metakind::VARIABLE) {
+    if(n[0].isVar() ||
+       n[1].isVar()) {
       d_termEqs[n[0]].insert(n[1]);
       d_termEqs[n[1]].insert(n[0]);
       Debug("ufsymm:eq") << "UFSYMM " << n[0] << " <==> " << n[1] << endl;

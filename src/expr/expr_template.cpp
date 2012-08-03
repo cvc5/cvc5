@@ -114,9 +114,9 @@ namespace expr {
 static Node exportConstant(TNode n, NodeManager* to);
 
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap) {
-  if(n.getMetaKind() == kind::metakind::CONSTANT) {
+  if(n.isConst()) {
     return exportConstant(n, NodeManager::fromExprManager(to));
-  } else if(n.getMetaKind() == kind::metakind::VARIABLE) {
+  } else if(n.isVar()) {
     Expr from_e(from, new Node(n));
     Expr& to_e = vmap.d_typeMap[from_e];
     if(! to_e.isNull()) {
@@ -522,7 +522,7 @@ ${getConst_implementations}
 namespace expr {
 
 static Node exportConstant(TNode n, NodeManager* to) {
-  Assert(n.getMetaKind() == kind::metakind::CONSTANT);
+  Assert(n.isConst());
   switch(n.getKind()) {
 ${exportConstant_cases}
 

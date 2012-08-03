@@ -62,6 +62,9 @@ mkConst_instantiations=
 mkConst_implementations=
 exportConstant_cases=
 
+typerules=
+construles=
+
 seen_theory=false
 seen_theory_builtin=false
 
@@ -136,6 +139,16 @@ function typerule {
   case kind::$1:
     typeNode = $2::computeType(nodeManager, n, check);
     break;
+"
+}
+
+function construle {
+  # isconst OPERATOR isconst-checking-class
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+  construles="${construles}
+  case kind::$1:
+    return $2::computeIsConst(nodeManager, n);
 "
 }
 
@@ -262,6 +275,7 @@ for var in \
     exportConstant_cases \
     typechecker_includes \
     typerules \
+    construles \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done

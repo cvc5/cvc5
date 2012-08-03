@@ -583,15 +583,15 @@ public:
    */
   virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
     if (in.getKind() == kind::EQUAL) {
-      if (in[0].getMetaKind() == kind::metakind::VARIABLE && !in[1].hasSubterm(in[0])) {
+      if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].getMetaKind() == kind::metakind::VARIABLE && !in[0].hasSubterm(in[1])) {
+      if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[0].getMetaKind() == kind::metakind::CONSTANT && in[1].getMetaKind() == kind::metakind::CONSTANT) {
+      if (in[0].isConst() && in[1].isConst()) {
         if (in[0] != in[1]) {
           return PP_ASSERT_STATUS_CONFLICT;
         }

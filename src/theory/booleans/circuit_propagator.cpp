@@ -366,7 +366,7 @@ bool CircuitPropagator::propagate() {
     Debug("circuit-prop") << "CircuitPropagator::propagate(): assigned to " << (assignment ? "true" : "false") << std::endl;
 
     // Is this an atom
-    bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.getMetaKind() == kind::metakind::VARIABLE;
+    bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.isVar();
 
     // If an atom, add to the list for simplification
     if (atom) {

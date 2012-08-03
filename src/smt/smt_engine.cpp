@@ -1743,7 +1743,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
                      ( d_definedFunctions->find(n.getOperator()) !=
                        d_definedFunctions->end() ) &&
                      n.getNumChildren() == 0 ) ||
-                   n.getMetaKind() == kind::metakind::VARIABLE ), e,
+                   n.isVar() ), e,
                  "expected variable or defined-function application "
                  "in addToAssignment(),\ngot %s", e.toString().c_str() );
   if(!options::produceAssignments()) {
@@ -1809,7 +1809,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException)
       Assert((*i).getNumChildren() == 0);
       v.push_back((*i).getOperator().toString());
     } else {
-      Assert((*i).getMetaKind() == kind::metakind::VARIABLE);
+      Assert((*i).isVar());
       v.push_back((*i).toString());
     }
     v.push_back(resultNode.toString());

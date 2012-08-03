@@ -187,7 +187,7 @@ public:
       base = base[0];
       polarity = !polarity;
     }
-    if(n.getMetaKind() == kind::metakind::CONSTANT) {
+    if(n.isConst()) {
       return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
     }
     if(polarity){

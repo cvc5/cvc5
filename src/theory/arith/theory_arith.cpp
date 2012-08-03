@@ -741,7 +741,7 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
   case kind::LT:
   case kind::GEQ:
   case kind::GT:
-    if (in[0].getMetaKind() == kind::metakind::VARIABLE) {
+    if (in[0].isVar()) {
       d_learner.addBound(in);
     }
     break;

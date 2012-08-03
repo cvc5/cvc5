@@ -49,7 +49,7 @@ namespace arith {
  *
  * variable := n
  *   where
- *     n.getMetaKind() == metakind::VARIABLE or is foreign
+ *     n.isVar() or is foreign
  *     n.getType() \in {Integer, Real}
  *
  * constant := n
@@ -244,7 +244,7 @@ public:
   }
 
   bool isMetaKindVariable() const {
-    return getNode().getMetaKind() == kind::metakind::VARIABLE;
+    return getNode().isVar();
   }
 
   bool operator<(const Variable& v) const {

@@ -117,6 +117,12 @@ function typerule {
   check_theory_seen
 }
 
+function construle {
+  # construle OPERATOR isconst-checking-class
+  lineno=${BASH_LINENO[0]}
+  check_theory_seen
+}
+
 function rewriter {
   # rewriter class header
   lineno=${BASH_LINENO[0]}

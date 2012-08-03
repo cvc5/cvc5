@@ -442,10 +442,7 @@ public:
    * Returns true if this node represents a constant
    * @return true if const
    */
-  inline bool isConst() const {
-    assertTNodeNotExpired();
-    return getMetaKind() == kind::metakind::CONSTANT;
-  }
+  inline bool isConst() const;
 
   /**
    * Returns true if this node represents a constant
@@ -917,6 +914,7 @@ inline std::ostream& operator<<(std::ostream& out,
 
 #include "expr/attribute.h"
 #include "expr/node_manager.h"
+#include "expr/type_checker.h"
 
 namespace CVC4 {
 
@@ -1261,6 +1259,36 @@ TypeNode NodeTemplate<ref_count>::getType(bool check) const
   assertTNodeNotExpired();
 
   return NodeManager::currentNM()->getType(*this, check);
+}
+
+/** Is this node constant? (and has that been computed yet?) */
+struct IsConstTag { };
+struct IsConstComputedTag { };
+typedef expr::Attribute<IsConstTag, bool> IsConstAttr;
+typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
+
+template <bool ref_count>
+inline bool
+NodeTemplate<ref_count>::isConst() const {
+  assertTNodeNotExpired();
+  if(isNull()) {
+    return false;
+  }
+  switch(getMetaKind()) {
+  case kind::metakind::CONSTANT:
+    return true;
+  case kind::metakind::VARIABLE:
+    return false;
+  default:
+    if(getAttribute(IsConstComputedAttr())) {
+      return getAttribute(IsConstAttr());
+    } else {
+      bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
+      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
+      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
+      return bval;
+    }
+  }
 }
 
 template <bool ref_count>
