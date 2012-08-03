@@ -19,7 +19,7 @@
 #ifndef __CVC4__PROOF__PROOF_H
 #define __CVC4__PROOF__PROOF_H
 
-#include "options/options.h"
+#include "proof/options.h"
 
 #ifdef CVC4_PROOF
 #  define PROOF(x) if(options::proof()) { x; }
