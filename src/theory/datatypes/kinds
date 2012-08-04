@@ -81,4 +81,7 @@ typerule APPLY_SELECTOR ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
 typerule APPLY_TESTER ::CVC4::theory::datatypes::DatatypeTesterTypeRule
 typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionTypeRule
 
+# constructor applications are constant if they are applied only to constants
+construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
+
 endtheory

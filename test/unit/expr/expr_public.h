@@ -345,6 +345,8 @@ public:
   void testIsConst() {
     /* bool isConst() const; */
 
+    Debug.on("isConst");
+
     TS_ASSERT(!a_bool->isConst());
     TS_ASSERT(!b_bool->isConst());
     TS_ASSERT(!c_bool_and->isConst());
@@ -352,6 +354,25 @@ public:
     TS_ASSERT(plus_op->isConst());
     TS_ASSERT(!d_apply_fun_bool->isConst());
     TS_ASSERT(!null->isConst());
+
+    // more complicated "constants" exist in datatypes and arrays theories
+    Datatype list("list");
+    DatatypeConstructor consC("cons");
+    consC.addArg("car", d_em->integerType());
+    consC.addArg("cdr", DatatypeSelfType());
+    list.addConstructor(consC);
+    list.addConstructor(DatatypeConstructor("nil"));
+    DatatypeType listType = d_em->mkDatatypeType(list);
+    Expr cons = listType.getDatatype().getConstructor("cons");
+    Expr nil = listType.getDatatype().getConstructor("nil");
+    Expr x = d_em->mkVar("x", d_em->integerType());
+    Expr cons_x_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, x, d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
+    Expr cons_1_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil));
+    Expr cons_1_cons_2_nil = d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(1)), d_em->mkExpr(APPLY_CONSTRUCTOR, cons, d_em->mkConst(Rational(2)), d_em->mkExpr(APPLY_CONSTRUCTOR, nil)));
+    TS_ASSERT(d_em->mkExpr(APPLY_CONSTRUCTOR, nil).isConst());
+    TS_ASSERT(!cons_x_nil.isConst());
+    TS_ASSERT(cons_1_nil.isConst());
+    TS_ASSERT(cons_1_cons_2_nil.isConst());
   }
 
   void testGetConst() {
