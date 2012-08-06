@@ -16,6 +16,8 @@
  ** Implementation of the minisat for cvc4 (bitvectors).
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include "prop/sat_solver.h"
