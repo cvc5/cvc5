@@ -17,7 +17,6 @@
  **/
 
 #include "smt/smt_engine.h"
-#include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "util/sexpr.h"
 #include "util/dump.h"
@@ -30,14 +29,14 @@
 ${include_all_option_headers}
 ${option_handler_includes}
 
-#line 34 "${template}"
+#line 33 "${template}"
 
 using namespace std;
 
 namespace CVC4 {
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
-  throw(BadOptionException, ModalException) {
+  throw(OptionException, ModalException) {
 
   NodeManagerScope nms(d_nodeManager);
   SmtEngine* const smt = this;
@@ -51,13 +50,13 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 
   ${smt_setoption_handlers}
 
-#line 55 "${template}"
+#line 54 "${template}"
 
-  throw BadOptionException();
+  throw UnrecognizedOptionException();
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
-  throw(BadOptionException) {
+  throw(OptionException) {
 
   NodeManagerScope nms(d_nodeManager);
 
@@ -68,9 +67,9 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   ${smt_getoption_handlers}
 
-#line 72 "${template}"
+#line 71 "${template}"
 
-  throw BadOptionException();
+  throw UnrecognizedOptionException();
 }
 
 }/* CVC4 namespace */

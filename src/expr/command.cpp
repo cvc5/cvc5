@@ -25,7 +25,7 @@
 
 #include "expr/command.h"
 #include "smt/smt_engine.h"
-#include "smt/bad_option_exception.h"
+#include "options/options.h"
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/sexpr.h"
@@ -963,7 +963,7 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
     smtEngine->setInfo(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
-  } catch(BadOptionException&) {
+  } catch(UnrecognizedOptionException&) {
     d_commandStatus = new CommandUnsupported();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -997,7 +997,7 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
        << response;
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
-  } catch(BadOptionException&) {
+  } catch(UnrecognizedOptionException&) {
     d_commandStatus = new CommandUnsupported();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -1047,7 +1047,7 @@ void SetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
     smtEngine->setOption(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
-  } catch(BadOptionException&) {
+  } catch(UnrecognizedOptionException&) {
     d_commandStatus = new CommandUnsupported();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -1082,7 +1082,7 @@ void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
     ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
-  } catch(BadOptionException&) {
+  } catch(UnrecognizedOptionException&) {
     d_commandStatus = new CommandUnsupported();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());

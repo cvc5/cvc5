@@ -649,7 +649,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", value, smt);
+    $handler(\"$smtname\", optarg, smt);
 "
         done
       fi
@@ -665,7 +665,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       for handler in $handlers; do
         run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", value, smt);
+    $handler(\"$smtname\", optarg, smt);
 "
       done
       smt_setoption_handlers="${smt_setoption_handlers}

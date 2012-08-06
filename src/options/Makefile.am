@@ -28,7 +28,8 @@ noinst_LTLIBRARIES = liboptions.la
 
 liboptions_la_SOURCES = \
 	options.h \
-	base_options_handlers.h
+	base_options_handlers.h \
+	option_exception.h
 
 nodist_liboptions_la_SOURCES = \
 	options.cpp \
@@ -60,6 +61,7 @@ EXTRA_DIST = \
 	options_template.cpp \
 	options_holder_template.h \
 	options.i \
+	option_exception.i \
 	$(OPTIONS_FILES:%=../%)
 
 if CVC4_DEBUG

@@ -38,7 +38,6 @@
 #include "expr/metakind.h"
 #include "expr/node_builder.h"
 #include "prop/prop_engine.h"
-#include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "smt/smt_engine.h"
@@ -50,6 +49,7 @@
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "smt/options.h"
+#include "options/option_exception.h"
 #include "util/output.h"
 #include "util/hash.h"
 #include "theory/substitutions.h"
@@ -607,7 +607,7 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
-  throw(BadOptionException, ModalException) {
+  throw(OptionException, ModalException) {
 
   SmtScope smts(this);
 
@@ -631,7 +631,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       string cvc4key = key.substr(6);
       if(cvc4key == "logic") {
         if(! value.isAtom()) {
-          throw BadOptionException("argument to (set-info :cvc4-logic ..) must be a string");
+          throw OptionException("argument to (set-info :cvc4-logic ..) must be a string");
         }
         SmtScope smts(this);
         d_logic = value.getValue();
@@ -656,17 +656,17 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       s = value.getValue();
     }
     if(s != "sat" && s != "unsat" && s != "unknown") {
-      throw BadOptionException("argument to (set-info :status ..) must be "
-                               "`sat' or `unsat' or `unknown'");
+      throw OptionException("argument to (set-info :status ..) must be "
+                            "`sat' or `unsat' or `unknown'");
     }
     d_status = Result(s);
     return;
   }
-  throw BadOptionException();
+  throw UnrecognizedOptionException();
 }
 
 CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
-  throw(BadOptionException, ModalException) {
+  throw(OptionException, ModalException) {
 
   SmtScope smts(this);
 
@@ -721,7 +721,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
                            "last result wasn't unknown!");
     }
   } else {
-    throw BadOptionException();
+    throw UnrecognizedOptionException();
   }
 }
 

@@ -21,10 +21,46 @@
 #ifndef __CVC4__SMT__OPTIONS_HANDLERS_H
 #define __CVC4__SMT__OPTIONS_HANDLERS_H
 
+#include "cvc4autoconfig.h"
 #include "util/dump.h"
+
+#include <cerrno>
+#include <cstring>
+#include <sstream>
 
 namespace CVC4 {
 namespace smt {
+
+static inline std::string __cvc4_errno_failreason() {
+#if HAVE_STRERROR_R
+#if STRERROR_R_CHAR_P
+  if(errno != 0) {
+    // GNU version of strerror_r: *might* use the given buffer,
+    // or might not.  It returns a pointer to buf, or not.
+    char buf[80];
+    return std::string(strerror_r(errno, buf, sizeof buf));
+  } else {
+    return "unknown reason";
+  }
+#else /* STRERROR_R_CHAR_P */
+  if(errno != 0) {
+    // XSI version of strerror_r: always uses the given buffer.
+    // Returns an error code.
+    char buf[80];
+    if(strerror_r(errno, buf, sizeof buf) == 0) {
+      return std::string(buf);
+    } else {
+      // some error occurred while getting the error string
+      return "unknown reason";
+    }
+  } else {
+    return "unknown reason";
+  }
+#endif /* STRERROR_R_CHAR_P */
+#else /* HAVE_STRERROR_R */
+  return "unknown reason";
+#endif /* HAVE_STRERROR_R */
+}
 
 static const std::string dumpHelp = "\
 Dump modes currently supported by the --dump option:\n\
@@ -179,26 +215,6 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
 #endif /* CVC4_DUMPING */
 }
 
-inline void dumpToFile(std::string option, std::string optarg, SmtEngine* smt) {
-#ifdef CVC4_DUMPING
-  size_t dagSetting = expr::ExprDag::getDag(Dump.getStream());
-  if(optarg == "") {
-    throw OptionException(std::string("Bad file name for --dump-to"));
-  } else if(optarg == "-") {
-    Dump.setStream(DumpOutC::dump_cout);
-  } else {
-    std::ostream* dumpTo = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
-    if(!*dumpTo) {
-      throw OptionException(std::string("Cannot open dump-to file (maybe it exists): `") + optarg + "'");
-    }
-    Dump.setStream(*dumpTo);
-  }
-  expr::ExprDag::setDag(Dump.getStream(), dagSetting);
-#else /* CVC4_DUMPING */
-  throw OptionException("The dumping feature was disabled in this build of CVC4.");
-#endif /* CVC4_DUMPING */
-}
-
 inline SimplificationMode stringToSimplificationMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "batch") {
     return SIMPLIFICATION_MODE_BATCH;
@@ -214,6 +230,91 @@ inline SimplificationMode stringToSimplificationMode(std::string option, std::st
                           optarg + "'.  Try --simplification help.");
   }
 }
+
+// This macro is used for setting :regular-output-channel and :diagnostic-output-channel
+// to redirect a stream.  It maintains all attributes set on the stream.
+#define __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(__channel_get, __channel_set) \
+  { \
+    int dagSetting = expr::ExprDag::getDag(__channel_get); \
+    size_t exprDepthSetting = expr::ExprSetDepth::getDepth(__channel_get); \
+    bool printtypesSetting = expr::ExprPrintTypes::getPrintTypes(__channel_get); \
+    OutputLanguage languageSetting = expr::ExprSetLanguage::getLanguage(__channel_get); \
+    __channel_set; \
+    __channel_get << Expr::dag(dagSetting); \
+    __channel_get << Expr::setdepth(exprDepthSetting); \
+    __channel_get << Expr::printtypes(printtypesSetting); \
+    __channel_get << Expr::setlanguage(languageSetting); \
+  }
+
+inline void dumpToFile(std::string option, std::string optarg, SmtEngine* smt) {
+#ifdef CVC4_DUMPING
+  std::ostream* outStream = NULL;
+  if(optarg == "") {
+    throw OptionException(std::string("Bad file name for --dump-to"));
+  } else if(optarg == "-") {
+    outStream = &DumpOutC::dump_cout;
+  } else {
+    errno = 0;
+    outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
+    if(outStream == NULL || !*outStream) {
+      std::stringstream ss;
+      ss << "Cannot open dump-to file: `" << optarg << "': " << __cvc4_errno_failreason();
+      throw OptionException(ss.str());
+    }
+  }
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Dump.getStream(), Dump.setStream(*outStream));
+#else /* CVC4_DUMPING */
+  throw OptionException("The dumping feature was disabled in this build of CVC4.");
+#endif /* CVC4_DUMPING */
+}
+
+inline void setRegularOutputChannel(std::string option, std::string optarg, SmtEngine* smt) {
+  std::ostream* outStream = NULL;
+  if(optarg == "") {
+    throw OptionException(std::string("Bad file name setting for regular output channel"));
+  } else if(optarg == "stdout") {
+    outStream = &std::cout;
+  } else if(optarg == "stderr") {
+    outStream = &std::cerr;
+  } else {
+    errno = 0;
+    outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
+    if(outStream == NULL || !*outStream) {
+      std::stringstream ss;
+      ss << "Cannot open regular-output-channel file: `" << optarg << "': " << __cvc4_errno_failreason();
+      throw OptionException(ss.str());
+    }
+  }
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(*options::err(), options::err.set(outStream));
+}
+
+inline void setDiagnosticOutputChannel(std::string option, std::string optarg, SmtEngine* smt) {
+  std::ostream* outStream = NULL;
+  if(optarg == "") {
+    throw OptionException(std::string("Bad file name setting for diagnostic output channel"));
+  } else if(optarg == "stdout") {
+    outStream = &std::cout;
+  } else if(optarg == "stderr") {
+    outStream = &std::cerr;
+  } else {
+    errno = 0;
+    outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
+    if(outStream == NULL || !*outStream) {
+      std::stringstream ss;
+      ss << "Cannot open diagnostic-output-channel file: `" << optarg << "': " << __cvc4_errno_failreason();
+      throw OptionException(ss.str());
+    }
+  }
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Debug.getStream(), Debug.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Warning.getStream(), Warning.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Message.getStream(), Message.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Notice.getStream(), Notice.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Chat.getStream(), Chat.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(Trace.getStream(), Trace.setStream(*outStream));
+  __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM__(*options::err(), options::err.set(outStream));
+}
+
+#undef __CVC4__SMT__OUTPUTCHANNELS__SETSTREAM
 
 inline std::string checkReplayFilename(std::string option, std::string optarg, SmtEngine* smt) {
 #ifdef CVC4_REPLAY
@@ -234,9 +335,12 @@ inline std::ostream* checkReplayLogFilename(std::string option, std::string opta
   } else if(optarg == "-") {
     return &std::cout;
   } else {
+    errno = 0;
     std::ostream* replayLog = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
-    if(!*replayLog) {
-      throw OptionException(std::string("Cannot open replay-log file: `") + optarg + "'");
+    if(replayLog == NULL || !*replayLog) {
+      std::stringstream ss;
+      ss << "Cannot open replay-log file: `" << optarg << "': " << __cvc4_errno_failreason();
+      throw OptionException(ss.str());
     }
     return replayLog;
   }

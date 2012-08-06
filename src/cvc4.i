@@ -117,8 +117,10 @@ using namespace CVC4;
 %include "expr/expr_stream.i"
 
 %include "smt/smt_engine.i"
-%include "smt/bad_option_exception.i"
 %include "smt/no_such_function_exception.i"
 %include "smt/modal_exception.i"
+
+%include "options/options.i"
+%include "options/option_exception.i"
 
 %include "parser/cvc4parser.i"

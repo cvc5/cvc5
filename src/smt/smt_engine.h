@@ -30,7 +30,6 @@
 #include "expr/expr_manager.h"
 #include "util/proof.h"
 #include "util/model.h"
-#include "smt/bad_option_exception.h"
 #include "smt/modal_exception.h"
 #include "smt/no_such_function_exception.h"
 #include "util/hash.h"
@@ -303,25 +302,25 @@ public:
    * Set information about the script executing.
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value)
-    throw(BadOptionException, ModalException);
+    throw(OptionException, ModalException);
 
   /**
    * Query information about the SMT environment.
    */
   CVC4::SExpr getInfo(const std::string& key) const
-    throw(BadOptionException, ModalException);
+    throw(OptionException, ModalException);
 
   /**
    * Set an aspect of the current SMT execution environment.
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
-    throw(BadOptionException, ModalException);
+    throw(OptionException, ModalException);
 
   /**
    * Get an aspect of the current SMT execution environment.
    */
   CVC4::SExpr getOption(const std::string& key) const
-    throw(BadOptionException);
+    throw(OptionException);
 
   /**
    * Add a formula to the current context: preprocess, do per-theory

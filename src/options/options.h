@@ -25,7 +25,7 @@
 #include <fstream>
 #include <string>
 
-#include "util/exception.h"
+#include "options/option_exception.h"
 #include "util/language.h"
 #include "util/tls.h"
 
@@ -39,14 +39,6 @@ class ExprStream;
 class NodeManager;
 class NodeManagerScope;
 class SmtEngine;
-
-/** Class representing an option-parsing exception. */
-class CVC4_PUBLIC OptionException : public CVC4::Exception {
-public:
-  OptionException(const std::string& s) throw() :
-    CVC4::Exception("Error in option parsing: " + s) {
-  }
-};/* class OptionException */
 
 class CVC4_PUBLIC Options {
   /** The struct that holds all option values. */
