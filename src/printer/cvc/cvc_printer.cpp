@@ -102,7 +102,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
   }
 
   // constants
-  if(n.isConst()) {
+  if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
       out << "BITVECTOR(" << n.getConst<BitVectorSize>().size << ")";
