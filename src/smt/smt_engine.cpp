@@ -613,7 +613,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    if(key == ":status") {
+    if(key == "status") {
       std::string s = value.getValue();
       BenchmarkStatus status =
         (s == "sat") ? SMT_SATISFIABLE :
@@ -625,10 +625,10 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")
-  if(key.length() > 6) {
-    string prefix = key.substr(0, 6);
-    if(prefix == ":cvc4-" || prefix == ":cvc4_") {
-      string cvc4key = key.substr(6);
+  if(key.length() > 5) {
+    string prefix = key.substr(0, 5);
+    if(prefix == "cvc4-" || prefix == "cvc4_") {
+      string cvc4key = key.substr(5);
       if(cvc4key == "logic") {
         if(! value.isAtom()) {
           throw OptionException("argument to (set-info :cvc4-logic ..) must be a string");
