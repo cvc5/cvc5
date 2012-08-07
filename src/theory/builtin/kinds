@@ -122,7 +122,7 @@
 #     to define it.  Hasher is a hash functor type defined like this:
 #
 #       struct MyHashFcn {
-#         static size_t hash(const T& val);
+#         size_t operator()(const T& val) const;
 #       };
 #
 #     For consistency, constants taking a non-void payload should
@@ -267,7 +267,7 @@ well-founded SORT_TYPE \
 
 constant UNINTERPRETED_CONSTANT \
     ::CVC4::UninterpretedConstant \
-    ::CVC4::UninterpretedConstantHashStrategy \
+    ::CVC4::UninterpretedConstantHashFunction \
     "util/uninterpreted_constant.h" \
     "The kind of nodes representing uninterpreted constants"
 typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
@@ -281,7 +281,7 @@ enumerator SORT_TYPE \
 # you'll get a special, singleton (BUILTIN EQUAL) Node.
 constant BUILTIN \
     ::CVC4::Kind \
-    ::CVC4::kind::KindHashStrategy \
+    ::CVC4::kind::KindHashFunction \
     "expr/kind.h" \
     "The kind of nodes representing built-in operators"
 
@@ -296,7 +296,7 @@ operator TUPLE 2: "a tuple"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
-    ::CVC4::TypeConstantHashStrategy \
+    ::CVC4::TypeConstantHashFunction \
     "expr/kind.h" \
     "basic types"
 operator FUNCTION_TYPE 2: "function type"
@@ -325,7 +325,7 @@ sort STRING_TYPE \
     "String type"
 constant CONST_STRING \
     ::std::string \
-    ::CVC4::StringHashStrategy \
+    ::CVC4::StringHashFunction \
     "util/hash.h" \
     "a string of characters"
 typerule CONST_STRING ::CVC4::theory::builtin::StringConstantTypeRule
@@ -337,7 +337,7 @@ typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 
 constant SUBTYPE_TYPE \
     ::CVC4::Predicate \
-    ::CVC4::PredicateHashStrategy \
+    ::CVC4::PredicateHashFunction \
     "util/predicate.h" \
     "predicate subtype"
 cardinality SUBTYPE_TYPE \

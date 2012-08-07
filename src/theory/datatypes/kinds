@@ -44,7 +44,7 @@ parameterized APPLY_TESTER TESTER_TYPE 1: "tester application"
 
 constant DATATYPE_TYPE \
     ::CVC4::Datatype \
-    "::CVC4::DatatypeHashStrategy" \
+    "::CVC4::DatatypeHashFunction" \
     "util/datatype.h" \
     "datatype type"
 cardinality DATATYPE_TYPE \
@@ -72,7 +72,7 @@ parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
     "type ascription, for datatype constructor applications"
 constant ASCRIPTION_TYPE \
     ::CVC4::AscriptionType \
-    ::CVC4::AscriptionTypeHashStrategy \
+    ::CVC4::AscriptionTypeHashFunction \
     "util/ascription_type.h" \
     "a type parameter for type ascription"
 

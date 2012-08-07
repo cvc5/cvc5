@@ -20,8 +20,6 @@ libcontext_la_SOURCES = \
 	cdhashmap_forward.h \
 	cdhashset.h \
 	cdhashset_forward.h \
-	cdcirclist.h \
-	cdcirclist_forward.h \
 	cdvector.h \
 	cdmaybe.h \
 	stacking_map.h \

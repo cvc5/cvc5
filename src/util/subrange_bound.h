@@ -230,15 +230,15 @@ public:
 
 };/* class SubrangeBounds */
 
-struct CVC4_PUBLIC SubrangeBoundsHashStrategy {
-  static inline size_t hash(const SubrangeBounds& bounds) {
+struct CVC4_PUBLIC SubrangeBoundsHashFunction {
+  inline size_t operator()(const SubrangeBounds& bounds) const {
     // We use Integer::hash() rather than Integer::getUnsignedLong()
     // because the latter might overflow and throw an exception
     size_t l = bounds.lower.hasBound() ? bounds.lower.getBound().hash() : std::numeric_limits<size_t>::max();
     size_t u = bounds.upper.hasBound() ? bounds.upper.getBound().hash() : std::numeric_limits<size_t>::max();
     return l + 0x9e3779b9 + (u << 6) + (u >> 2);
   }
-};/* struct SubrangeBoundsHashStrategy */
+};/* struct SubrangeBoundsHashFunction */
 
 inline std::ostream&
 operator<<(std::ostream& out, const SubrangeBound& bound) throw() CVC4_PUBLIC;

@@ -112,7 +112,7 @@ using namespace CVC4;
 %include "expr/kind.i"
 %include "expr/expr.i"
 %include "expr/command.i"
-%include "expr/declaration_scope.i"
+%include "expr/symbol_table.i"
 %include "expr/expr_manager.i"
 %include "expr/expr_stream.i"
 

@@ -75,7 +75,7 @@ class NodeManager {
   };
 
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
-                              expr::NodeValuePoolHashFcn,
+                              expr::NodeValuePoolHashFunction,
                               expr::NodeValuePoolEq> NodeValuePool;
   typedef __gnu_cxx::hash_set<expr::NodeValue*,
                               expr::NodeValueIDHashFunction,

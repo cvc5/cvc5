@@ -38,7 +38,7 @@ sort INTEGER_TYPE \
 
 constant SUBRANGE_TYPE \
     ::CVC4::SubrangeBounds \
-    ::CVC4::SubrangeBoundsHashStrategy \
+    ::CVC4::SubrangeBoundsHashFunction \
     "util/subrange_bound.h" \
     "the type of an integer subrange"
 cardinality SUBRANGE_TYPE \
@@ -51,7 +51,7 @@ well-founded SUBRANGE_TYPE \
 
 constant CONST_RATIONAL \
     ::CVC4::Rational \
-    ::CVC4::RationalHashStrategy \
+    ::CVC4::RationalHashFunction \
     "util/rational.h" \
     "a multiple-precision rational constant"
 

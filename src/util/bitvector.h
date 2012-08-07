@@ -375,11 +375,11 @@ inline BitVector::BitVector(const std::string& num, unsigned base) {
 /**
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC BitVectorHashStrategy {
-  static inline size_t hash(const BitVector& bv) {
+struct CVC4_PUBLIC BitVectorHashFunction {
+  inline size_t operator()(const BitVector& bv) const {
     return bv.hash();
   }
-};/* struct BitVectorHashStrategy */
+};/* struct BitVectorHashFunction */
 
 /**
  * The structure representing the extraction operation for bit-vectors. The
@@ -403,14 +403,13 @@ struct CVC4_PUBLIC BitVectorExtract {
 /**
  * Hash function for the BitVectorExtract objects.
  */
-class CVC4_PUBLIC BitVectorExtractHashStrategy {
-public:
-  static size_t hash(const BitVectorExtract& extract) {
+struct CVC4_PUBLIC BitVectorExtractHashFunction {
+  size_t operator()(const BitVectorExtract& extract) const {
     size_t hash = extract.low;
     hash ^= extract.high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
     return hash;
   }
-};/* class BitVectorExtractHashStrategy */
+};/* struct BitVectorExtractHashFunction */
 
 
 /**
@@ -430,12 +429,11 @@ struct CVC4_PUBLIC BitVectorBitOf {
 /**
  * Hash function for the BitVectorBitOf objects.
  */
-class CVC4_PUBLIC BitVectorBitOfHashStrategy {
-public:
-  static size_t hash(const BitVectorBitOf& b) {
+struct CVC4_PUBLIC BitVectorBitOfHashFunction {
+  size_t operator()(const BitVectorBitOf& b) const {
     return b.bitIndex;
   }
-};/* class BitVectorBitOfHashStrategy */
+};/* struct BitVectorBitOfHashFunction */
 
 
 
@@ -482,11 +480,11 @@ struct CVC4_PUBLIC BitVectorRotateRight {
 };/* struct BitVectorRotateRight */
 
 template <typename T>
-struct CVC4_PUBLIC UnsignedHashStrategy {
-  static inline size_t hash(const T& x) {
+struct CVC4_PUBLIC UnsignedHashFunction {
+  inline size_t operator()(const T& x) const {
     return (size_t)x;
   }
-};/* struct UnsignedHashStrategy */
+};/* struct UnsignedHashFunction */
 
 inline std::ostream& operator <<(std::ostream& os, const BitVector& bv) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const BitVector& bv) {
@@ -502,8 +500,6 @@ inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) CVC
 inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) {
   return os << "[" << bv.bitIndex << "]";
 }
-
-
 
 }/* CVC4 namespace */
 

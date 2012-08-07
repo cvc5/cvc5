@@ -20,7 +20,7 @@ sort BOOLEAN_TYPE \
 
 constant CONST_BOOLEAN \
     bool \
-    ::CVC4::BoolHashStrategy \
+    ::CVC4::BoolHashFunction \
     "util/bool.h" \
     "truth and falsity"
 

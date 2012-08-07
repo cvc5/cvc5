@@ -87,9 +87,11 @@ inline std::string kindToString(::CVC4::Kind k) {
   return ss.str();
 }
 
-struct KindHashStrategy {
-  static inline size_t hash(::CVC4::Kind k) { return k; }
-};/* struct KindHashStrategy */
+struct KindHashFunction {
+  inline size_t operator()(::CVC4::Kind k) const {
+    return k;
+  }
+};/* struct KindHashFunction */
 
 }/* CVC4::kind namespace */
 
@@ -104,11 +106,11 @@ ${type_constant_list}
 /**
  * We hash the constants with their values.
  */
-struct TypeConstantHashStrategy {
-  static inline size_t hash(TypeConstant tc) {
+struct TypeConstantHashFunction {
+  inline size_t operator()(TypeConstant tc) const {
     return tc;
   }
-};/* struct BoolHashStrategy */
+};/* struct TypeConstantHashFunction */
 
 inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {

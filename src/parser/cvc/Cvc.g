@@ -1057,7 +1057,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
   std::string id;
   std::vector<Type> types;
   std::vector< std::pair<std::string, Type> > typeIds;
-  DeclarationScope* declScope;
+  //SymbolTable* symtab;
   Parser* parser;
   lhs = false;
 }
@@ -1097,11 +1097,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
      * declared in the outer context.  What follows isn't quite right,
      * though, since type aliases and function definitions should be
      * retained in the set of current declarations. */
-    { /*declScope = PARSER_STATE->getDeclarationScope();
-      PARSER_STATE->useDeclarationsFrom(new DeclarationScope());*/ }
+    { /*symtab = PARSER_STATE->getSymbolTable();
+      PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
-    { /*DeclarationScope* old = PARSER_STATE->getDeclarationScope();
-      PARSER_STATE->useDeclarationsFrom(declScope);
+    { /*SymbolTable* old = PARSER_STATE->getSymbolTable();
+      PARSER_STATE->useDeclarationsFrom(symtab);
       delete old;*/
       t = f2.isNull() ?
         EXPR_MANAGER->mkPredicateSubtype(f) :

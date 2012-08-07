@@ -17,7 +17,7 @@ UNIT_TESTS = \
 	expr/node_manager_white \
 	expr/attribute_white \
 	expr/attribute_black \
-	expr/declaration_scope_black \
+	expr/symbol_table_black \
 	expr/node_self_iterator_black \
 	expr/type_cardinality_public \
 	expr/type_node_white \
@@ -30,7 +30,6 @@ UNIT_TESTS = \
 	context/cdo_black \
 	context/cdlist_black \
 	context/cdlist_context_memory_black \
-	context/cdcirclist_white \
 	context/cdmap_black \
 	context/cdmap_white \
 	context/cdvector_black \

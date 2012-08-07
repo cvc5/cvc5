@@ -314,11 +314,11 @@ public:
 
 };/* class Rational */
 
-struct RationalHashStrategy {
-  static inline size_t hash(const CVC4::Rational& r) {
+struct RationalHashFunction {
+  inline size_t operator()(const CVC4::Rational& r) const {
     return r.hash();
   }
-};/* struct RationalHashStrategy */
+};/* struct RationalHashFunction */
 
 CVC4_PUBLIC std::ostream& operator<<(std::ostream& os, const Rational& n);
 

@@ -418,11 +418,11 @@ public:
   friend class CVC4::Rational;
 };/* class Integer */
 
-struct IntegerHashStrategy {
-  static inline size_t hash(const CVC4::Integer& i) {
+struct IntegerHashFunction {
+  inline size_t operator()(const CVC4::Integer& i) const {
     return i.hash();
   }
-};/* struct IntegerHashStrategy */
+};/* struct IntegerHashFunction */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n) {
   return os << n.toString();

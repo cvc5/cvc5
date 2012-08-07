@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file declaration_scope.h
+/*! \file symbol_table.h
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
- ** Minor contributors (to current version): ajreynol
+ ** Minor contributors (to current version): ajreynol, dejan, bobot
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__DECLARATION_SCOPE_H
-#define __CVC4__DECLARATION_SCOPE_H
+#ifndef __CVC4__SYMBOL_TABLE_H
+#define __CVC4__SYMBOL_TABLE_H
 
 #include <vector>
 #include <utility>
@@ -47,7 +47,7 @@ class CVC4_PUBLIC ScopeException : public Exception {
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_PUBLIC DeclarationScope {
+class CVC4_PUBLIC SymbolTable {
   /** The context manager for the scope maps. */
   context::Context* d_context;
 
@@ -62,10 +62,10 @@ class CVC4_PUBLIC DeclarationScope {
 
 public:
   /** Create a declaration scope. */
-  DeclarationScope();
+  SymbolTable();
 
   /** Destroy a declaration scope. */
-  ~DeclarationScope();
+  ~SymbolTable();
 
   /**
    * Bind an expression to a name in the current scope level.  If
@@ -188,7 +188,7 @@ public:
    * <code>pushScope</code>. Calls to <code>pushScope</code> and
    * <code>popScope</code> must be "properly nested." I.e., a call to
    * <code>popScope</code> is only legal if the number of prior calls to
-   * <code>pushScope</code> on this <code>DeclarationScope</code> is strictly
+   * <code>pushScope</code> on this <code>SymbolTable</code> is strictly
    * greater than then number of prior calls to <code>popScope</code>. */
   void popScope() throw(ScopeException);
 
@@ -198,8 +198,8 @@ public:
   /** Get the current level of this declaration scope. */
   size_t getLevel() const throw();
 
-};/* class DeclarationScope */
+};/* class SymbolTable */
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DECLARATION_SCOPE_H */
+#endif /* __CVC4__SYMBOL_TABLE_H */

@@ -48,11 +48,11 @@ public:
 /**
  * A hash strategy for type ascription operators.
  */
-struct CVC4_PUBLIC AscriptionTypeHashStrategy {
-  static inline size_t hash(const AscriptionType& at) {
+struct CVC4_PUBLIC AscriptionTypeHashFunction {
+  inline size_t operator()(const AscriptionType& at) const {
     return TypeHashFunction()(at.getType());
   }
-};/* struct AscriptionTypeHashStrategy */
+};/* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
 inline std::ostream& operator<<(std::ostream& out, AscriptionType at) {

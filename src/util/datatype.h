@@ -560,17 +560,6 @@ public:
 };/* class Datatype */
 
 /**
- * A hash strategy for Datatypes.  Needed because Datatypes are used
- * as the constant payload in CONSTANT-kinded TypeNodes (for
- * DATATYPE_TYPE expressions).
- */
-struct CVC4_PUBLIC DatatypeHashStrategy {
-  static inline size_t hash(const Datatype& dt) {
-    return StringHashFunction()(dt.getName());
-  }
-};/* struct DatatypeHashStrategy */
-
-/**
  * A hash function for Datatypes.  Needed to store them in hash sets
  * and hash maps.
  */

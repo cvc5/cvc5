@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file declaration_scope_black.h
+/*! \file symbol_table_black.h
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: none
@@ -11,9 +11,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Black box testing of CVC4::DeclarationScope.
+ ** \brief Black box testing of CVC4::SymbolTable
  **
- ** Black box testing of CVC4::DeclarationScope.
+ ** Black box testing of CVC4::SymbolTable.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -22,7 +22,7 @@
 #include <string>
 
 #include "context/context.h"
-#include "expr/declaration_scope.h"
+#include "expr/symbol_table.h"
 #include "expr/expr_manager.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -34,7 +34,7 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace std;
 
-class DeclarationScopeBlack : public CxxTest::TestSuite {
+class SymbolTableBlack : public CxxTest::TestSuite {
 private:
 
   ExprManager* d_exprManager;
@@ -60,104 +60,104 @@ public:
   }
 
   void testBind() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
-    declScope.bind("x",x);
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), x );
+    symtab.bind("x",x);
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), x );
   }
 
   void testBind2() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type booleanType = d_exprManager->booleanType();
     // var name attribute shouldn't matter
     Expr y = d_exprManager->mkVar("y", booleanType);
-    declScope.bind("x",y);
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), y );
+    symtab.bind("x",y);
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), y );
   }
 
   void testBind3() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
-    declScope.bind("x",x);
+    symtab.bind("x",x);
     Expr y = d_exprManager->mkVar(booleanType);
     // new binding covers old
-    declScope.bind("x",y);
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), y );
+    symtab.bind("x",y);
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), y );
   }
 
   void testBind4() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
-    declScope.bind("x",x);
+    symtab.bind("x",x);
 
     Type t = d_exprManager->mkSort("T");
     // duplicate binding for type is OK
-    declScope.bindType("x",t);
+    symtab.bindType("x",t);
 
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), x );
-    TS_ASSERT( declScope.isBoundType("x") );
-    TS_ASSERT_EQUALS( declScope.lookupType("x"), t );
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), x );
+    TS_ASSERT( symtab.isBoundType("x") );
+    TS_ASSERT_EQUALS( symtab.lookupType("x"), t );
   }
 
   void testBindType() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type s = d_exprManager->mkSort("S");
-    declScope.bindType("S",s);
-    TS_ASSERT( declScope.isBoundType("S") );
-    TS_ASSERT_EQUALS( declScope.lookupType("S"), s );
+    symtab.bindType("S",s);
+    TS_ASSERT( symtab.isBoundType("S") );
+    TS_ASSERT_EQUALS( symtab.lookupType("S"), s );
   }
 
   void testBindType2() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     // type name attribute shouldn't matter
     Type s = d_exprManager->mkSort("S");
-    declScope.bindType("T",s);
-    TS_ASSERT( declScope.isBoundType("T") );
-    TS_ASSERT_EQUALS( declScope.lookupType("T"), s );
+    symtab.bindType("T",s);
+    TS_ASSERT( symtab.isBoundType("T") );
+    TS_ASSERT_EQUALS( symtab.lookupType("T"), s );
   }
 
   void testBindType3() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type s = d_exprManager->mkSort("S");
-    declScope.bindType("S",s);
+    symtab.bindType("S",s);
     Type t = d_exprManager->mkSort("T");
     // new binding covers old
-    declScope.bindType("S",t);
-    TS_ASSERT( declScope.isBoundType("S") );
-    TS_ASSERT_EQUALS( declScope.lookupType("S"), t );
+    symtab.bindType("S",t);
+    TS_ASSERT( symtab.isBoundType("S") );
+    TS_ASSERT_EQUALS( symtab.lookupType("S"), t );
   }
 
   void testPushScope() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     Type booleanType = d_exprManager->booleanType();
     Expr x = d_exprManager->mkVar(booleanType);
-    declScope.bind("x",x);
-    declScope.pushScope();
+    symtab.bind("x",x);
+    symtab.pushScope();
 
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), x );
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), x );
 
     Expr y = d_exprManager->mkVar(booleanType);
-    declScope.bind("x",y);
+    symtab.bind("x",y);
 
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), y );
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), y );
 
-    declScope.popScope();
-    TS_ASSERT( declScope.isBound("x") );
-    TS_ASSERT_EQUALS( declScope.lookup("x"), x );
+    symtab.popScope();
+    TS_ASSERT( symtab.isBound("x") );
+    TS_ASSERT_EQUALS( symtab.lookup("x"), x );
   }
 
   void testBadPop() {
-    DeclarationScope declScope;
+    SymbolTable symtab;
     // TODO: What kind of exception gets thrown here?
-    TS_ASSERT_THROWS( declScope.popScope(), ScopeException );
+    TS_ASSERT_THROWS( symtab.popScope(), ScopeException );
   }
-};
+};/* class SymbolTableBlack */

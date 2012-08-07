@@ -40,23 +40,23 @@ namespace attr {
  * A hash function for attribute table keys.  Attribute table keys are
  * pairs, (unique-attribute-id, Node).
  */
-struct AttrHashStrategy {
+struct AttrHashFunction {
   enum { LARGE_PRIME = 32452843ul };
   std::size_t operator()(const std::pair<uint64_t, NodeValue*>& p) const {
     return p.first * LARGE_PRIME + p.second->getId();
   }
-};
+};/* struct AttrHashFunction */
 
 /**
  * A hash function for boolean-valued attribute table keys; here we
  * don't have to store a pair as the key, because we use a known bit
  * in [0..63] for each attribute
  */
-struct AttrHashBoolStrategy {
+struct AttrBoolHashFunction {
   std::size_t operator()(NodeValue* nv) const {
     return (size_t)nv->getId();
   }
-};
+};/* struct AttrBoolHashFunction */
 
 }/* CVC4::expr::attr namespace */
 
@@ -156,7 +156,7 @@ template <class value_type>
 class AttrHash :
     public __gnu_cxx::hash_map<std::pair<uint64_t, NodeValue*>,
                                value_type,
-                               AttrHashStrategy> {
+                               AttrHashFunction> {
 };/* class AttrHash<> */
 
 /**
@@ -167,10 +167,10 @@ template <>
 class AttrHash<bool> :
     protected __gnu_cxx::hash_map<NodeValue*,
                                   uint64_t,
-                                  AttrHashBoolStrategy> {
+                                  AttrBoolHashFunction> {
 
   /** A "super" type, like in Java, for easy reference below. */
-  typedef __gnu_cxx::hash_map<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
+  typedef __gnu_cxx::hash_map<NodeValue*, uint64_t, AttrBoolHashFunction> super;
 
   /**
    * BitAccessor allows us to return a bit "by reference."  Of course,
@@ -367,12 +367,12 @@ template <class value_type>
 class CDAttrHash :
     public context::CDHashMap<std::pair<uint64_t, NodeValue*>,
                           value_type,
-                          AttrHashStrategy> {
+                          AttrHashFunction> {
 public:
   CDAttrHash(context::Context* ctxt) :
     context::CDHashMap<std::pair<uint64_t, NodeValue*>,
                    value_type,
-                   AttrHashStrategy>(ctxt) {
+                   AttrHashFunction>(ctxt) {
   }
 };/* class CDAttrHash<> */
 
@@ -384,10 +384,10 @@ template <>
 class CDAttrHash<bool> :
     protected context::CDHashMap<NodeValue*,
                              uint64_t,
-                             AttrHashBoolStrategy> {
+                             AttrBoolHashFunction> {
 
   /** A "super" type, like in Java, for easy reference below. */
-  typedef context::CDHashMap<NodeValue*, uint64_t, AttrHashBoolStrategy> super;
+  typedef context::CDHashMap<NodeValue*, uint64_t, AttrBoolHashFunction> super;
 
   /**
    * BitAccessor allows us to return a bit "by reference."  Of course,

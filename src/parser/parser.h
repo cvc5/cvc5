@@ -28,7 +28,7 @@
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "expr/expr.h"
-#include "expr/declaration_scope.h"
+#include "expr/symbol_table.h"
 #include "expr/kind.h"
 #include "expr/expr_stream.h"
 
@@ -117,15 +117,15 @@ class CVC4_PUBLIC Parser {
    * The declaration scope that is "owned" by this parser.  May or
    * may not be the current declaration scope in use.
    */
-  DeclarationScope d_declScopeAllocated;
+  SymbolTable d_symtabAllocated;
 
   /**
    * This current symbol table used by this parser.  Initially points
-   * to d_declScopeAllocated, but can be changed (making this parser
+   * to d_symtabAllocated, but can be changed (making this parser
    * delegate its definitions and lookups to another parser).
    * See useDeclarationsFrom().
    */
-  DeclarationScope* d_declScope;
+  SymbolTable* d_symtab;
 
   /** How many anonymous functions we've created. */
   size_t d_anonymousFunctionCount;
@@ -493,8 +493,8 @@ public:
     }
   }
 
-  inline void pushScope() { d_declScope->pushScope(); }
-  inline void popScope() { d_declScope->popScope(); }
+  inline void pushScope() { d_symtab->pushScope(); }
+  inline void popScope() { d_symtab->popScope(); }
 
   /**
    * Set the current symbol table used by this parser.
@@ -523,25 +523,25 @@ public:
    */
   inline void useDeclarationsFrom(Parser* parser) {
     if(parser == NULL) {
-      d_declScope = &d_declScopeAllocated;
+      d_symtab = &d_symtabAllocated;
     } else {
-      d_declScope = parser->d_declScope;
+      d_symtab = parser->d_symtab;
     }
   }
 
-  inline void useDeclarationsFrom(DeclarationScope* scope) {
-    d_declScope = scope;
+  inline void useDeclarationsFrom(SymbolTable* symtab) {
+    d_symtab = symtab;
   }
 
-  inline DeclarationScope* getDeclarationScope() const {
-    return d_declScope;
+  inline SymbolTable* getSymbolTable() const {
+    return d_symtab;
   }
 
   /**
    * Gets the current declaration level.
    */
   inline size_t getDeclarationLevel() const throw() {
-    return d_declScope->getLevel();
+    return d_symtab->getLevel();
   }
 
   /**

@@ -69,7 +69,7 @@ class ITESimplifier {
       hash ^= 0x9e3779b9 + NodeHashFunction().operator()(pair.second) + (hash << 6) + (hash >> 2);
       return hash;
     }
-  };
+  };/* struct ITESimplifier::NodePairHashFunction */
 
   typedef std::hash_map<NodePair, Node, NodePairHashFunction> NodePairMap;
 

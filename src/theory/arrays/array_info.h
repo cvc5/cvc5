@@ -2,28 +2,10 @@
 /*! \file array_info.h
  ** \verbatim
  ** Original author: lianah
- ** Major contributors: none
- ** Minor contributors (to current version): mdeters
+ ** Major contributors: mdeters
+ ** Minor contributors (to current version): dejan, barrett
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
-
-/*! \file array_info.h
- ** \verbatim
- ** Original author: lianah
- ** Major contributors: none
- ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -31,14 +13,13 @@
  **
  ** \brief Contains additional classes to store context dependent information
  ** for each term of type array
- **
- **
  **/
 
 #include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #define __CVC4__THEORY__ARRAYS__ARRAY_INFO_H
+
 #include "util/backtrackable.h"
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
@@ -58,7 +39,7 @@ typedef context::CDList<TNode> CTNodeList;
 typedef quad<TNode, TNode, TNode, TNode> RowLemmaType;
 
 struct RowLemmaTypeHashFunction {
-  size_t operator()(const RowLemmaType& q ) const {
+  size_t operator()(const RowLemmaType& q) const {
     TNode n1 = q.first;
     TNode n2 = q.second;
     TNode n3 = q.third;
@@ -92,7 +73,6 @@ public:
     indices = new(true)CTNodeList(c);
     stores = new(true)CTNodeList(c);
     in_stores = new(true)CTNodeList(c);
-
   }
 
   ~Info() {
@@ -115,7 +95,7 @@ public:
     Trace("arrays-info")<<"  in_stores ";
     printList(in_stores);
   }
-};
+};/* class Info */
 
 
 typedef __gnu_cxx::hash_map<Node, Info*, NodeHashFunction> CNodeInfoMap;
@@ -202,7 +182,7 @@ public:
     StatisticsRegistry::registerStat(&d_tableSize);
   }
 
-  ~ArrayInfo(){
+  ~ArrayInfo() {
     CNodeInfoMap::iterator it = info_map.begin();
     for( ; it != info_map.end(); it++ ) {
       if((*it).second!= emptyInfo) {
@@ -255,8 +235,7 @@ public:
    *  a should be the canonical representative of b
    */
   void mergeInfo(const TNode a, const TNode b);
-};
-
+};/* class ArrayInfo */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */

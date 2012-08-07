@@ -49,7 +49,7 @@ operator<<(std::ostream& out, const Predicate& p) {
   return out;
 }
 
-size_t PredicateHashStrategy::hash(const Predicate& p) {
+size_t PredicateHashFunction::operator()(const Predicate& p) const {
   ExprHashFunction h;
   return h(p.d_witness) * 5039 + h(p.d_predicate);
 }

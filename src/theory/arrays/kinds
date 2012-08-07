@@ -32,7 +32,7 @@ operator STORE 3 "array store"
 # storeall t e  is  \all i in indexType(t) <= e
 constant STORE_ALL \
     ::CVC4::ArrayStoreAll \
-    ::CVC4::ArrayStoreAllHashStrategy \
+    ::CVC4::ArrayStoreAllHashFunction \
     "util/array_store_all.h" \
     "array store-all"
 

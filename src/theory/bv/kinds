@@ -14,7 +14,7 @@ rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
 constant BITVECTOR_TYPE \
 	::CVC4::BitVectorSize \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSize >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorSize >" \
 	"util/bitvector.h" \
 	"bit-vector type"
 cardinality BITVECTOR_TYPE \
@@ -23,7 +23,7 @@ cardinality BITVECTOR_TYPE \
 
 constant CONST_BITVECTOR \
     ::CVC4::BitVector \
-    ::CVC4::BitVectorHashStrategy \
+    ::CVC4::BitVectorHashFunction \
     "util/bitvector.h" \
     "a fixed-width bit-vector constant"
 
@@ -63,43 +63,43 @@ operator BITVECTOR_SGE 2 "signed greater than or equal"
 
 constant BITVECTOR_BITOF_OP \
 	::CVC4::BitVectorBitOf \
-	::CVC4::BitVectorBitOfHashStrategy \
+	::CVC4::BitVectorBitOfHashFunction \
 	"util/bitvector.h" \
 	"operator for the bit-vector boolean bit extract"
 
 constant BITVECTOR_EXTRACT_OP \
 	::CVC4::BitVectorExtract \
-	::CVC4::BitVectorExtractHashStrategy \
+	::CVC4::BitVectorExtractHashFunction \
 	"util/bitvector.h" \
 	"operator for the bit-vector extract"
 
 constant BITVECTOR_REPEAT_OP \
 	::CVC4::BitVectorRepeat \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRepeat >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRepeat >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector repeat"
 
 constant BITVECTOR_ZERO_EXTEND_OP \
 	::CVC4::BitVectorZeroExtend \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorZeroExtend >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorZeroExtend >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector zero-extend"
 
 constant BITVECTOR_SIGN_EXTEND_OP \
 	::CVC4::BitVectorSignExtend \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorSignExtend >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorSignExtend >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector sign-extend"
 
 constant BITVECTOR_ROTATE_LEFT_OP \
 	::CVC4::BitVectorRotateLeft \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRotateLeft >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRotateLeft >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector rotate left"
 
 constant BITVECTOR_ROTATE_RIGHT_OP \
 	::CVC4::BitVectorRotateRight \
-	"::CVC4::UnsignedHashStrategy< ::CVC4::BitVectorRotateRight >" \
+	"::CVC4::UnsignedHashFunction< ::CVC4::BitVectorRotateRight >" \
 	"util/bitvector.h" \
 	"operator for the bit-vector rotate right"
 

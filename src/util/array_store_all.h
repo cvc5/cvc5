@@ -88,12 +88,12 @@ public:
 std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) CVC4_PUBLIC;
 
 /**
- * Hash function for the BitVector constants.
+ * Hash function for the ArrayStoreAll constants.
  */
-struct CVC4_PUBLIC ArrayStoreAllHashStrategy {
-  static inline size_t hash(const ArrayStoreAll& asa) {
+struct CVC4_PUBLIC ArrayStoreAllHashFunction {
+  inline size_t operator()(const ArrayStoreAll& asa) const {
     return TypeHashFunction()(asa.getType()) * ExprHashFunction()(asa.getExpr());
   }
-};/* struct ArrayStoreAllHashStrategy */
+};/* struct ArrayStoreAllHashFunction */
 
 }/* CVC4 namespace */

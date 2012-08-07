@@ -29,11 +29,11 @@
 
 namespace CVC4 {
 
-struct BoolHashStrategy {
-  static inline size_t hash(bool b) {
+struct BoolHashFunction {
+  inline size_t operator()(bool b) const {
     return b;
   }
-};/* struct BoolHashStrategy */
+};/* struct BoolHashFunction */
 
 }/* CVC4 namespace */
 

@@ -358,11 +358,11 @@ operator+(NodeValue::iterator<NodeTemplate<false> >::difference_type p,
  * PERFORMING for other uses!  NodeValue::poolHash() will lead to
  * collisions for all VARIABLEs.
  */
-struct NodeValuePoolHashFcn {
+struct NodeValuePoolHashFunction {
   inline size_t operator()(const NodeValue* nv) const {
     return (size_t) nv->poolHash();
   }
-};/* struct NodeValuePoolHashFcn */
+};/* struct NodeValuePoolHashFunction */
 
 /**
  * For hash_maps, hash_sets, etc.
@@ -371,7 +371,7 @@ struct NodeValueIDHashFunction {
   inline size_t operator()(const NodeValue* nv) const {
     return (size_t) nv->getId();
   }
-};/* struct NodeValueIDHashFcn */
+};/* struct NodeValueIDHashFunction */
 
 inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 

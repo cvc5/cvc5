@@ -43,8 +43,8 @@ namespace parser {
 Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   d_exprManager(exprManager),
   d_input(input),
-  d_declScopeAllocated(),
-  d_declScope(&d_declScopeAllocated),
+  d_symtabAllocated(),
+  d_symtab(&d_symtabAllocated),
   d_anonymousFunctionCount(0),
   d_done(false),
   d_checksEnabled(true),
@@ -60,7 +60,7 @@ Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   switch( type ) {
 
   case SYM_VARIABLE: // Functions share var namespace
-    return d_declScope->lookup(name);
+    return d_symtab->lookup(name);
 
   default:
     Unhandled(type);
@@ -87,7 +87,7 @@ Type Parser::getType(const std::string& var_name,
 Type Parser::getSort(const std::string& name) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(name, SYM_SORT) );
-  Type t = d_declScope->lookupType(name);
+  Type t = d_symtab->lookupType(name);
   return t;
 }
 
@@ -95,14 +95,14 @@ Type Parser::getSort(const std::string& name,
                      const std::vector<Type>& params) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(name, SYM_SORT) );
-  Type t = d_declScope->lookupType(name, params);
+  Type t = d_symtab->lookupType(name, params);
   return t;
 }
 
 size_t Parser::getArity(const std::string& sort_name){
   checkDeclaration(sort_name, CHECK_DECLARED, SYM_SORT);
   Assert( isDeclared(sort_name, SYM_SORT) );
-  return d_declScope->lookupArity(sort_name);
+  return d_symtab->lookupArity(sort_name);
 }
 
 /* Returns true if name is bound to a boolean variable. */
@@ -125,14 +125,14 @@ bool Parser::isFunctionLike(const std::string& name) {
 bool Parser::isDefinedFunction(const std::string& name) {
   // more permissive in type than isFunction(), because defined
   // functions can be zero-ary and declared functions cannot.
-  return d_declScope->isBoundDefinedFunction(name);
+  return d_symtab->isBoundDefinedFunction(name);
 }
 
 /* Returns true if the Expr is a defined function. */
 bool Parser::isDefinedFunction(Expr func) {
   // more permissive in type than isFunction(), because defined
   // functions can be zero-ary and declared functions cannot.
-  return d_declScope->isBoundDefinedFunction(func);
+  return d_symtab->isBoundDefinedFunction(func);
 }
 
 /* Returns true if name is bound to a function returning boolean. */
@@ -179,20 +179,20 @@ Parser::mkVars(const std::vector<std::string> names,
 void
 Parser::defineVar(const std::string& name, const Expr& val,
                        bool levelZero) {
-  d_declScope->bind(name, val, levelZero);
+  d_symtab->bind(name, val, levelZero);
   Assert( isDeclared(name) );
 }
 
 void
 Parser::defineFunction(const std::string& name, const Expr& val,
                        bool levelZero) {
-  d_declScope->bindDefinedFunction(name, val, levelZero);
+  d_symtab->bindDefinedFunction(name, val, levelZero);
   Assert( isDeclared(name) );
 }
 
 void
 Parser::defineType(const std::string& name, const Type& type) {
-  d_declScope->bindType(name, type);
+  d_symtab->bindType(name, type);
   Assert( isDeclared(name, SYM_SORT) );
 }
 
@@ -200,7 +200,7 @@ void
 Parser::defineType(const std::string& name,
                    const std::vector<Type>& params,
                    const Type& type) {
-  d_declScope->bindType(name, params, type);
+  d_symtab->bindType(name, params, type);
   Assert( isDeclared(name, SYM_SORT) );
 }
 
@@ -369,9 +369,9 @@ DatatypeType Parser::mkTupleType(const std::vector<Type>& types) {
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_declScope->isBound(name);
+    return d_symtab->isBound(name);
   case SYM_SORT:
-    return d_declScope->isBoundType(name);
+    return d_symtab->isBoundType(name);
   default:
     Unhandled(type);
   }

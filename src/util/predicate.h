@@ -31,9 +31,9 @@ class Predicate;
 
 std::ostream& operator<<(std::ostream& out, const Predicate& p) CVC4_PUBLIC;
 
-struct CVC4_PUBLIC PredicateHashStrategy {
-  static size_t hash(const Predicate& p);
-};/* class PredicateHashStrategy */
+struct CVC4_PUBLIC PredicateHashFunction {
+  size_t operator()(const Predicate& p) const;
+};/* class PredicateHashFunction */
 
 }/* CVC4 namespace */
 
@@ -55,7 +55,7 @@ public:
   bool operator==(const Predicate& p) const;
 
   friend std::ostream& operator<<(std::ostream& out, const Predicate& p);
-  friend size_t PredicateHashStrategy::hash(const Predicate& p);
+  friend size_t PredicateHashFunction::operator()(const Predicate& p) const;
 
 };/* class Predicate */
 

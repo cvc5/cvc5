@@ -1,24 +1,24 @@
 /*********************                                                        */
-/*! \file declaration_scope.cpp
+/*! \file symbol_table.cpp
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan, ajreynol
+ ** Major contributors: bobot, mdeters
+ ** Minor contributors (to current version): ajreynol, dejan
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
  ** \brief Convenience class for scoping variable and type
- ** declarations (implementation).
+ ** declarations (implementation)
  **
  ** Convenience class for scoping variable and type declarations
  ** (implementation).
  **/
 
-#include "expr/declaration_scope.h"
+#include "expr/symbol_table.h"
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "expr/expr_manager_scope.h"
@@ -35,21 +35,21 @@ using namespace std;
 
 namespace CVC4 {
 
-DeclarationScope::DeclarationScope() :
+SymbolTable::SymbolTable() :
   d_context(new Context),
   d_exprMap(new(true) CDHashMap<std::string, Expr, StringHashFunction>(d_context)),
   d_typeMap(new(true) CDHashMap<std::string, pair<vector<Type>, Type>, StringHashFunction>(d_context)),
   d_functions(new(true) CDHashSet<Expr, ExprHashFunction>(d_context)) {
 }
 
-DeclarationScope::~DeclarationScope() {
+SymbolTable::~SymbolTable() {
   d_exprMap->deleteSelf();
   d_typeMap->deleteSelf();
   d_functions->deleteSelf();
   delete d_context;
 }
 
-void DeclarationScope::bind(const std::string& name, Expr obj,
+void SymbolTable::bind(const std::string& name, Expr obj,
                             bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
@@ -57,7 +57,7 @@ void DeclarationScope::bind(const std::string& name, Expr obj,
   else d_exprMap->insert(name, obj);
 }
 
-void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj,
+void SymbolTable::bindDefinedFunction(const std::string& name, Expr obj,
                             bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
@@ -70,25 +70,25 @@ void DeclarationScope::bindDefinedFunction(const std::string& name, Expr obj,
   }
 }
 
-bool DeclarationScope::isBound(const std::string& name) const throw() {
+bool SymbolTable::isBound(const std::string& name) const throw() {
   return d_exprMap->find(name) != d_exprMap->end();
 }
 
-bool DeclarationScope::isBoundDefinedFunction(const std::string& name) const throw() {
+bool SymbolTable::isBoundDefinedFunction(const std::string& name) const throw() {
   CDHashMap<std::string, Expr, StringHashFunction>::iterator found =
     d_exprMap->find(name);
   return found != d_exprMap->end() && d_functions->contains((*found).second);
 }
 
-bool DeclarationScope::isBoundDefinedFunction(Expr func) const throw() {
+bool SymbolTable::isBoundDefinedFunction(Expr func) const throw() {
   return d_functions->contains(func);
 }
 
-Expr DeclarationScope::lookup(const std::string& name) const throw(AssertionException) {
+Expr SymbolTable::lookup(const std::string& name) const throw(AssertionException) {
   return (*d_exprMap->find(name)).second;
 }
 
-void DeclarationScope::bindType(const std::string& name, Type t,
+void SymbolTable::bindType(const std::string& name, Type t,
                                 bool levelZero) throw() {
   if(levelZero){
     d_typeMap->insertAtContextLevelZero(name, make_pair(vector<Type>(), t));
@@ -97,7 +97,7 @@ void DeclarationScope::bindType(const std::string& name, Type t,
   }
 }
 
-void DeclarationScope::bindType(const std::string& name,
+void SymbolTable::bindType(const std::string& name,
                                 const std::vector<Type>& params,
                                 Type t,
                                 bool levelZero) throw() {
@@ -117,11 +117,11 @@ void DeclarationScope::bindType(const std::string& name,
   }
 }
 
-bool DeclarationScope::isBoundType(const std::string& name) const throw() {
+bool SymbolTable::isBoundType(const std::string& name) const throw() {
   return d_typeMap->find(name) != d_typeMap->end();
 }
 
-Type DeclarationScope::lookupType(const std::string& name) const throw(AssertionException) {
+Type SymbolTable::lookupType(const std::string& name) const throw(AssertionException) {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == 0,
          "type constructor arity is wrong: "
@@ -130,7 +130,7 @@ Type DeclarationScope::lookupType(const std::string& name) const throw(Assertion
   return p.second;
 }
 
-Type DeclarationScope::lookupType(const std::string& name,
+Type SymbolTable::lookupType(const std::string& name,
                                   const std::vector<Type>& params) const throw(AssertionException) {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == params.size(),
@@ -188,23 +188,23 @@ Type DeclarationScope::lookupType(const std::string& name,
   }
 }
 
-size_t DeclarationScope::lookupArity(const std::string& name) {
+size_t SymbolTable::lookupArity(const std::string& name) {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   return p.first.size();
 }
 
-void DeclarationScope::popScope() throw(ScopeException) {
+void SymbolTable::popScope() throw(ScopeException) {
   if( d_context->getLevel() == 0 ) {
     throw ScopeException();
   }
   d_context->pop();
 }
 
-void DeclarationScope::pushScope() throw() {
+void SymbolTable::pushScope() throw() {
   d_context->push();
 }
 
-size_t DeclarationScope::getLevel() const throw() {
+size_t SymbolTable::getLevel() const throw() {
   return d_context->getLevel();
 }
 

@@ -77,10 +77,10 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) CVC
 /**
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC UninterpretedConstantHashStrategy {
-  static inline size_t hash(const UninterpretedConstant& uc) {
-    return TypeHashFunction()(uc.getType()) * IntegerHashStrategy::hash(uc.getIndex());
+struct CVC4_PUBLIC UninterpretedConstantHashFunction {
+  inline size_t operator()(const UninterpretedConstant& uc) const {
+    return TypeHashFunction()(uc.getType()) * IntegerHashFunction()(uc.getIndex());
   }
-};/* struct UninterpretedConstantHashStrategy */
+};/* struct UninterpretedConstantHashFunction */
 
 }/* CVC4 namespace */
