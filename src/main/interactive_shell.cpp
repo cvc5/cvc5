@@ -57,27 +57,27 @@ const string InteractiveShell::INPUT_FILENAME = "<shell>";
 
 using __gnu_cxx::stdio_filebuf;
 
-//char** commandCompletion(const char* text, int start, int end);
+char** commandCompletion(const char* text, int start, int end);
 char* commandGenerator(const char* text, int state);
 
-static const char* const cvc_commands[] = {
+static const std::string cvc_commands[] = {
 #include "main/cvc_tokens.h"
 };/* cvc_commands */
 
-static const char* const smt_commands[] = {
+static const std::string smt_commands[] = {
 #include "main/smt_tokens.h"
 };/* smt_commands */
 
-static const char* const smt2_commands[] = {
+static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
 
-static const char* const tptp_commands[] = {
+static const std::string tptp_commands[] = {
 #include "main/tptp_tokens.h"
 };/* tptp_commands */
 
-static const char* const* commandsBegin;
-static const char* const* commandsEnd;
+static const std::string* commandsBegin;
+static const std::string* commandsEnd;
 
 static set<string> s_declarations;
 
@@ -114,12 +114,14 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib2";
       commandsBegin = smt2_commands;
       commandsEnd = smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
+      break;
     case output::LANG_TPTP:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";
       commandsBegin = tptp_commands;
       commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
-    default: Unhandled(lang);
+    default:
+      Unhandled(lang);
     }
     d_usingReadline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -311,43 +313,49 @@ Command* InteractiveShell::readCommand() {
 
 #if HAVE_LIBREADLINE
 
-/*char** commandCompletion(const char* text, int start, int end) {
+char** commandCompletion(const char* text, int start, int end) {
   Debug("rl") << "text: " << text << endl;
   Debug("rl") << "start: " << start << " end: " << end << endl;
   return rl_completion_matches(text, commandGenerator);
-}*/
+}
 
-// For some reason less<string> crashes on us; oh well,
-// we don't need to copy into string anyway.
-// Can't use less<const char*> because it compares pointers(?).
-struct stringLess {
-  bool operator()(const char* s1, const char* s2) {
-    size_t l1 = strlen(s1), l2 = strlen(s2);
-    return strncmp(s1, s2, l1 <= l2 ? l1 : l2) == -1;
+// Our peculiar versions of "less than" for strings
+struct StringPrefix1Less {
+  bool operator()(const std::string& s1, const std::string& s2) {
+    size_t l1 = s1.length(), l2 = s2.length();
+    size_t l = l1 <= l2 ? l1 : l2;
+    return s1.compare(0, l1, s2, 0, l) < 0;
   }
-};/* struct string_less */
+};/* struct StringPrefix1Less */
+struct StringPrefix2Less {
+  bool operator()(const std::string& s1, const std::string& s2) {
+    size_t l1 = s1.length(), l2 = s2.length();
+    size_t l = l1 <= l2 ? l1 : l2;
+    return s1.compare(0, l, s2, 0, l2) < 0;
+  }
+};/* struct StringPrefix2Less */
 
 char* commandGenerator(const char* text, int state) {
-  static CVC4_THREADLOCAL(const char* const*) rlPointer;
+  static CVC4_THREADLOCAL(const std::string*) rlCommand;
   static CVC4_THREADLOCAL(set<string>::const_iterator*) rlDeclaration;
 
-  const char* const* i = lower_bound(commandsBegin, commandsEnd, text, stringLess());
-  const char* const* j = upper_bound(commandsBegin, commandsEnd, text, stringLess());
+  const std::string* i = lower_bound(commandsBegin, commandsEnd, text, StringPrefix2Less());
+  const std::string* j = upper_bound(commandsBegin, commandsEnd, text, StringPrefix1Less());
 
-  set<string>::const_iterator ii = lower_bound(s_declarations.begin(), s_declarations.end(), text, less<string>());
-  set<string>::const_iterator jj = upper_bound(s_declarations.end(), s_declarations.end(), text, less<string>());
+  set<string>::const_iterator ii = lower_bound(s_declarations.begin(), s_declarations.end(), text, StringPrefix2Less());
+  set<string>::const_iterator jj = upper_bound(s_declarations.begin(), s_declarations.end(), text, StringPrefix1Less());
 
   if(rlDeclaration == NULL) {
     rlDeclaration = new set<string>::const_iterator();
   }
 
   if(state == 0) {
-    rlPointer = i;
+    rlCommand = i;
     *rlDeclaration = ii;
   }
 
-  if(rlPointer != j) {
-    return strdup(*rlPointer++);
+  if(rlCommand != j) {
+    return strdup((*rlCommand++).c_str());
   }
 
   return *rlDeclaration == jj ? NULL : strdup((*(*rlDeclaration)++).c_str());
