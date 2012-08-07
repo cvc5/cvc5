@@ -104,7 +104,7 @@ public:
     d_children() {
   }
 
-  SExpr(const std::vector<SExpr> children) :
+  SExpr(const std::vector<SExpr>& children) :
     d_sexprType(SEXPR_NOT_ATOM),
     d_integerValue(0),
     d_rationalValue(0),
@@ -124,14 +124,14 @@ public:
   /** Is this S-expression a string? */
   bool isString() const;
 
-  /** Is this S-expression a string? */
+  /** Is this S-expression a keyword? */
   bool isKeyword() const;
 
   /**
    * Get the string value of this S-expression. This will cause an
    * error if this S-expression is not an atom.
    */
-  const std::string getValue() const;
+  std::string getValue() const;
 
   /**
    * Get the integer value of this S-expression. This will cause an
@@ -173,7 +173,7 @@ inline bool SExpr::isKeyword() const {
   return d_sexprType == SEXPR_KEYWORD;
 }
 
-inline const std::string SExpr::getValue() const {
+inline std::string SExpr::getValue() const {
   AlwaysAssert( isAtom() );
   switch(d_sexprType) {
   case SEXPR_INTEGER:
