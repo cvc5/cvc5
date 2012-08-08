@@ -383,7 +383,7 @@ int Options::parseOptions(int argc, char* main_argv[]) throw(OptionException) {
       Debug("preemptGetopt") << "in preempt code, c == " << c << " (`" << char(c) << "') optind == " << optind << std::endl;
       if(optind >= extra_argc) {
         Debug("preemptGetopt") << "-- no more preempt args" << std::endl;
-        unsigned i = 0;
+        unsigned i = 1;
         while(extra_argv[i] != NULL && extra_argv[i][0] != '\0') {
           extra_argv[i][0] = '\0';
           ++i;
