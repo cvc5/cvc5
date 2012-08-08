@@ -36,6 +36,8 @@
 
 #include <memory>
 
+/// \cond internals
+
 namespace __gnu_cxx {
   template <class Key> struct hash;
 }/* __gnu_cxx namespace */
@@ -51,6 +53,8 @@ public:
 
 template <class T, class CleanUp = DefaultCleanUp<T>, class Allocator = std::allocator<T> >
 class CDList;
+
+/// \endcond
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */

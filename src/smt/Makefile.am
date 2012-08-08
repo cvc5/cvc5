@@ -11,7 +11,6 @@ libsmt_la_SOURCES = \
 	smt_engine_scope.cpp \
 	smt_engine_scope.h \
 	modal_exception.h \
-	no_such_function_exception.h \
 	simplification_mode.h \
 	simplification_mode.cpp
 
@@ -21,6 +20,5 @@ nodist_libsmt_la_SOURCES = \
 EXTRA_DIST = \
 	options_handlers.h \
 	smt_options_template.cpp \
-	no_such_function_exception.i \
 	modal_exception.i \
 	smt_engine.i

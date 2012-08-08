@@ -28,6 +28,8 @@
 #ifndef __CVC4__CONTEXT__CDMAP_FORWARD_H
 #define __CVC4__CONTEXT__CDMAP_FORWARD_H
 
+/// \cond internals
+
 namespace __gnu_cxx {
   template <class Key> struct hash;
 }/* __gnu_cxx namespace */
@@ -38,5 +40,7 @@ namespace CVC4 {
     class CDHashMap;
   }/* CVC4::context namespace */
 }/* CVC4 namespace */
+
+/// \endcond
 
 #endif /* __CVC4__CONTEXT__CDMAP_FORWARD_H */

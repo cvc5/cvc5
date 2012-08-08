@@ -39,7 +39,6 @@
 #include "expr/node_builder.h"
 #include "prop/prop_engine.h"
 #include "smt/modal_exception.h"
-#include "smt/no_such_function_exception.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_engine.h"
@@ -186,7 +185,7 @@ class SmtEnginePrivate {
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(NoSuchFunctionException, AssertionException);
+  bool simplifyAssertions() throw(TypeCheckingException, AssertionException);
 
 public:
 
@@ -226,13 +225,13 @@ public:
    * even be simplified.
    */
   void addFormula(TNode n)
-    throw(NoSuchFunctionException, AssertionException);
+    throw(TypeCheckingException, AssertionException);
 
   /**
    * Expand definitions in n.
    */
   Node expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHashFunction>& cache)
-    throw(NoSuchFunctionException, AssertionException);
+    throw(TypeCheckingException, AssertionException);
 
 };/* class SmtEnginePrivate */
 
@@ -785,7 +784,7 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHashFunction>& cache)
-  throw(NoSuchFunctionException, AssertionException) {
+  throw(TypeCheckingException, AssertionException) {
 
   if(n.getKind() != kind::APPLY && n.getNumChildren() == 0) {
     // don't bother putting in the cache
@@ -814,7 +813,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHas
       Debug("expand") << "     : \"" << name << "\"" << endl;
     }
     if(i == d_smt.d_definedFunctions->end()) {
-      throw NoSuchFunctionException(Expr(d_smt.d_exprManager, new Node(func)));
+      throw TypeCheckingException(n.toExpr(), std::string("Undefined function: `") + func.toString() + "'");
     }
     if(Debug.isOn("expand")) {
       Debug("expand") << " defn: " << def.getFunction() << endl
@@ -1234,7 +1233,7 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
 
 // returns false if simpflication led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(NoSuchFunctionException, AssertionException) {
+  throw(TypeCheckingException, AssertionException) {
   try {
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
@@ -1508,7 +1507,7 @@ void SmtEnginePrivate::processAssertions() {
 }
 
 void SmtEnginePrivate::addFormula(TNode n)
-  throw(NoSuchFunctionException, AssertionException) {
+  throw(TypeCheckingException, AssertionException) {
 
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
