@@ -102,7 +102,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   }
 
   // constant
-  if(n.isConst()) {
+  if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::TYPE_CONSTANT:
       switch(n.getConst<TypeConstant>()) {

@@ -54,11 +54,11 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   // for all subexpressions, so it isn't useful to traverse and
   // increment again (they'll be dagified anyway).
   return current.isVar() ||
-         current.isConst() ||
+         current.getMetaKind() == kind::metakind::CONSTANT ||
          ( ( current.getKind() == kind::NOT ||
              current.getKind() == kind::UMINUS ) &&
            ( current[0].isVar() ||
-             current[0].isConst() ) ) ||
+             current[0].getMetaKind() == kind::metakind::CONSTANT ) ) ||
          current.getKind() == kind::SORT_TYPE ||
          d_nodeCount[current] > d_threshold;
 }

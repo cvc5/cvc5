@@ -1271,7 +1271,7 @@ template <bool ref_count>
 inline bool
 NodeTemplate<ref_count>::isConst() const {
   assertTNodeNotExpired();
-  Debug("isConst") << "Node::isConst() for " << getKind() << " with " << getNumChildren() << " children" << std::endl;
+  Debug("isConst") << "Node::isConst() for: " << *this << std::endl;
   if(isNull()) {
     return false;
   }
@@ -1285,11 +1285,11 @@ NodeTemplate<ref_count>::isConst() const {
   default:
     if(getAttribute(IsConstComputedAttr())) {
       bool bval = getAttribute(IsConstAttr());
-      Debug("isConst") << "Node::isConst() returning cached value " << bval << std::endl;
+      Debug("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
       return bval;
     } else {
       bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-      Debug("isConst") << "Node::isConst() computed value " << bval << std::endl;
+      Debug("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
       const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
       const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
       return bval;
