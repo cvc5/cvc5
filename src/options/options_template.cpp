@@ -75,7 +75,7 @@ template <class T>
 struct OptionHandler<T, true, true> {
   static T handle(std::string option, std::string optarg) {
     try {
-      Integer i(optarg, 0);
+      Integer i(optarg, 10);
 
       if(! std::numeric_limits<T>::is_signed && i < 0) {
         // unsigned type but user gave negative argument
