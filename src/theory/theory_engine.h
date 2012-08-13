@@ -668,7 +668,7 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  inline theory::Theory* theoryOf(TNode node) {
+  inline theory::Theory* theoryOf(TNode node) const {
     return d_theoryTable[theory::Theory::theoryOf(node)];
   }
 
@@ -680,12 +680,12 @@ public:
    * @returns the theory, or NULL if the TNode is
    * of built-in type.
    */
-  inline theory::Theory* theoryOf(theory::TheoryId theoryId) {
+  inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
     return d_theoryTable[theoryId];
   }
 
   /** Get the theory for id */
-  theory::Theory* getTheory(theory::TheoryId theoryId) {
+  theory::Theory* getTheory(theory::TheoryId theoryId) const {
     return d_theoryTable[theoryId];
   }
 
