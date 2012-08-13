@@ -979,14 +979,11 @@ inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
   Assert(types.size() >= 2);
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0; i < types.size(); ++ i) {
-    /* FIXME when congruence closure no longer abuses tuples */
-#if 0
     CheckArgument(!types[i].isFunctionLike(), types,
                   "cannot put function-like types in tuples");
     if(types[i].isBoolean()) {
       WarningOnce() << "Warning: CVC4 does not yet support Boolean terms (you have created a tuple type with a Boolean argument)" << std::endl;
     }
-#endif /* 0 */
     typeNodes.push_back(types[i]);
   }
   return mkTypeNode(kind::TUPLE_TYPE, typeNodes);
