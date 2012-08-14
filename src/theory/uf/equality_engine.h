@@ -789,26 +789,26 @@ public:
 
 class EqClassesIterator {
 
-  eq::EqualityEngine* d_ee;
+  const eq::EqualityEngine* d_ee;
   size_t d_it;
 
 public:
 
   EqClassesIterator(): d_ee(NULL), d_it(0){ }
-  EqClassesIterator(eq::EqualityEngine* ee) : d_ee(ee) {
+  EqClassesIterator(const eq::EqualityEngine* ee) : d_ee(ee) {
     d_it = 0;
     if ( d_it < d_ee->d_nodesCount &&
          d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it] ) {
       ++*this;
     }
   }
-  Node operator*() {
+  Node operator*() const {
     return d_ee->d_nodes[d_it];
   }
-  bool operator==(const EqClassesIterator& i) {
+  bool operator==(const EqClassesIterator& i) const {
     return d_ee == i.d_ee && d_it == i.d_it;
   }
-  bool operator!=(const EqClassesIterator& i) {
+  bool operator!=(const EqClassesIterator& i) const {
     return !(*this == i);
   }
   EqClassesIterator& operator++() {
@@ -826,7 +826,7 @@ public:
     ++*this;
     return i;
   }
-  bool isFinished() {
+  bool isFinished() const {
     return d_it>=d_ee->d_nodesCount;
   }
 };/* class EqClassesIterator */
@@ -836,24 +836,24 @@ class EqClassIterator {
   Node d_rep;
   eq::EqualityNode d_curr;
   Node d_curr_node;
-  eq::EqualityEngine* d_ee;
+  const eq::EqualityEngine* d_ee;
 
 public:
 
   EqClassIterator(): d_ee(NULL){ }
-  EqClassIterator(Node eqc, eq::EqualityEngine* ee) : d_ee(ee) {
+  EqClassIterator(Node eqc, const eq::EqualityEngine* ee) : d_ee(ee) {
     Assert( d_ee->getRepresentative(eqc) == eqc );
     d_rep = eqc;
     d_curr_node = eqc;
     d_curr = d_ee->getEqualityNode(eqc);
   }
-  Node operator*() {
+  Node operator*() const {
     return d_curr_node;
   }
-  bool operator==(const EqClassIterator& i) {
+  bool operator==(const EqClassIterator& i) const {
     return d_ee == i.d_ee && d_curr_node == i.d_curr_node;
   }
-  bool operator!=(const EqClassIterator& i) {
+  bool operator!=(const EqClassIterator& i) const {
     return !(*this == i);
   }
   EqClassIterator& operator++() {
@@ -872,7 +872,7 @@ public:
     ++*this;
     return i;
   }
-  bool isFinished() {
+  bool isFinished() const {
     return d_curr_node == Node::null();
   }
 };/* class EqClassIterator */
