@@ -181,6 +181,10 @@ public:
 
   std::string toString() const;
 
+  Rational substituteDelta(const Rational& d) const{
+    return getNoninfinitesimalPart() + (d * getInfinitesimalPart());
+  }
+
 };
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& n);
