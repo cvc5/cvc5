@@ -256,7 +256,7 @@ void TheoryModel::assertPredicate( Node a, bool polarity ){
 }
 
 /** assert equality engine */
-void TheoryModel::assertEqualityEngine( eq::EqualityEngine* ee ){
+void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);

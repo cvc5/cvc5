@@ -123,7 +123,7 @@ public:
   /** assert predicate holds in the model */
   void assertPredicate( Node a, bool polarity );
   /** assert all equalities/predicates in equality engine hold in the model */
-  void assertEqualityEngine( eq::EqualityEngine* ee );
+  void assertEqualityEngine( const eq::EqualityEngine* ee );
 public:
   /** general queries */
   bool hasTerm( Node a );
