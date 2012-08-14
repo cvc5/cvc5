@@ -1926,7 +1926,35 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
 }
 
 void TheoryArith::collectModelInfo( TheoryModel* m ){
+  Assert(d_qflraStatus ==  Result::SAT);
 
+  Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;  
+
+  // Delta lasts at least the duration of the function call
+  const Rational& delta = d_partialModel.getDelta();
+
+  // TODO:
+  // This is not very good for user push/pop....
+  // Revisit when implementing push/pop 
+  for(ArithVar v = 0; v < d_variables.size(); ++v){
+    if(!isSlackVariable(v)){
+      Node term = d_arithvarNodeMap.asNode(v);
+
+      const DeltaRational& mod = d_partialModel.getAssignment(v);
+      Rational qmodel = mod.substituteDelta(delta);
+
+      Node qNode = mkRationalNode(qmodel);
+      Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
+
+      m->assertEquality(term, qNode, true);
+    }
+  }
+
+  // Iterate over equivalence classes in LinearEqualityModule
+  // const eq::EqualityEngine& ee = d_congruenceManager.getEqualityEngine();
+  // m->assertEqualityEngine(&ee);
+
+  Debug("arith::collectModelInfo") << "collectModelInfo() end " << endl;
 }
 
 bool TheoryArith::safeToReset() const {
