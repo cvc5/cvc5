@@ -39,7 +39,7 @@ public:
   }
 
   void testZero() {
-    SubrangeBound b1(0), b2(string("0")), b3(Integer("1"));
+    SubrangeBound b1(0), b2(Integer("0")), b3(Integer("1"));
     TS_ASSERT( b1.hasBound() && b2.hasBound() && b3.hasBound() );
     TS_ASSERT( b1.getBound() == 0 && b2.getBound() == 0 && b3.getBound() == 1 );
     TS_ASSERT( b1 == b2 ); TS_ASSERT( b2 == b1 );
@@ -57,7 +57,7 @@ public:
   }
 
   void testOne() {
-    SubrangeBound b(string("1"));
+    SubrangeBound b(Integer("1"));
     TS_ASSERT( b.hasBound() );
     TS_ASSERT( b.getBound() == 1 );
     ss.str(""); ss << b;

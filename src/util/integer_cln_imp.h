@@ -58,6 +58,42 @@ private:
   //Integer(const mpz_class& val) : d_value(val) {}
   Integer(const cln::cl_I& val) : d_value(val) {}
 
+  void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument) {
+    try {
+      d_value = read_integer(flags, s.c_str(), NULL, NULL);
+    } catch(...) {
+      std::stringstream ss;
+      ss << "Integer() failed to parse value \"" << s << "\" in base " << base;
+      throw std::invalid_argument(ss.str());
+    }
+  }
+
+  void parseInt(const std::string& s, unsigned base) throw(std::invalid_argument) {
+    cln::cl_read_flags flags;
+    flags.syntax = cln::syntax_integer;
+    flags.lsyntax = cln::lsyntax_standard;
+    flags.rational_base = base;
+    if(base == 0) {
+      // infer base in a manner consistent with GMP
+      if(s[0] == '0') {
+        flags.lsyntax = cln::lsyntax_commonlisp;
+        std::string st = s;
+        if(s[1] == 'X' || s[1] == 'x') {
+          st.replace(0, 2, "#x");
+        } else if(s[1] == 'B' || s[1] == 'b') {
+          st.replace(0, 2, "#b");
+        } else {
+          st.replace(0, 1, "#o");
+        }
+        readInt(flags, st, base);
+        return;
+      } else {
+        flags.rational_base = 10;
+      }
+    }
+    readInt(flags, s, base);
+  }
+
 public:
 
   /** Constructs a rational with the value 0. */
@@ -69,32 +105,12 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Integer(const char * s, int base = 10) throw (std::invalid_argument){
-    cln::cl_read_flags flags;
-    flags.syntax = cln::syntax_integer;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try{
-      d_value = read_integer(flags, s, NULL, NULL);
-    }catch(...){
-      std::stringstream ss;
-      ss << "Integer() failed to parse value \"" <<s << "\" in base=" <<base;
-      throw std::invalid_argument(ss.str());
-    }
+  explicit Integer(const char* sp, unsigned base = 10) throw (std::invalid_argument) {
+    parseInt(std::string(sp), base);
   }
 
-  Integer(const std::string& s, int base = 10) throw (std::invalid_argument) {
-    cln::cl_read_flags flags;
-    flags.syntax = cln::syntax_integer;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try{
-      d_value = read_integer(flags, s.c_str(), NULL, NULL);
-    }catch(...){
-      std::stringstream ss;
-      ss << "Integer() failed to parse value \"" <<s << "\" in base=" <<base;
-      throw std::invalid_argument(ss.str());
-    }
+  explicit Integer(const std::string& s, unsigned base = 10) throw (std::invalid_argument) {
+    parseInt(s, base);
   }
 
   Integer(const Integer& q) : d_value(q.d_value) {}
