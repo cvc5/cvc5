@@ -108,24 +108,6 @@ public:
   virtual bool propagate(TNode n) throw(AssertionException) = 0;
 
   /**
-   * Request that the core make a decision on this atom.  The decision
-   * will be "as soon as possible," but due to other propagation and
-   * conflict-detection work going on internally, the request is queued
-   * up and may be behind other such requests.  The request will be
-   * silently dropped if the atom has a definite value at the point the
-   * request would be serviced.  This request is also context-dependent
-   * on the search context, meaning that it will be dropped completely
-   * if a conflict is found before it is serviced.  Each request will only
-   * be serviced a single time, even though the atom may become undefined
-   * due to backtracking.
-   *
-   * @param atom the atom to decide upon (or the negation of an
-   * atom---the decision will be in the phase provided); must be
-   * associated to a SAT literal.
-   */
-  virtual void propagateAsDecision(TNode n) throw(AssertionException) = 0;
-
-  /**
    * Tell the core that a valid theory lemma at decision level 0 has
    * been detected.  (This requests a split.)
    *

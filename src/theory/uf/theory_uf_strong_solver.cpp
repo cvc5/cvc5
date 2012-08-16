@@ -941,7 +941,7 @@ void StrongSolverTheoryUf::ConflictFind::propagate( Theory::Effort level, Output
   Debug("uf-ss-prop-as-dec") << "Propagate as decision " << d_type << ", cardinality = " << d_cardinality << std::endl;
   Assert( !cn.isNull() );
   if( d_cardinality_assertions.find( cn )==d_cardinality_assertions.end() ){
-    out->propagateAsDecision( d_cardinality_literal[ d_cardinality ] );
+    //out->propagateAsDecision( d_cardinality_literal[ d_cardinality ] );
     Debug("uf-ss-prop-as-dec") << "Propagate as decision " << d_cardinality_literal[ d_cardinality ];
     Debug("uf-ss-prop-as-dec") << " " << d_cardinality_literal[ d_cardinality ][0].getType() << std::endl;
   }
@@ -990,7 +990,7 @@ void StrongSolverTheoryUf::ConflictFind::setCardinality( int c, OutputChannel* o
   //add the appropriate lemma
   Debug("uf-ss-fmf") << "Set cardinality " << d_type << " = " << c << std::endl;
   Debug("uf-ss-prop-as-dec") << "Propagate as decision " << lem[0] << std::endl;
-  out->propagateAsDecision( lem[0] );
+  //out->propagateAsDecision( lem[0] );
   d_is_cardinality_requested = true;
   d_is_cardinality_requested_c = true;
   //now, require old literal to be decided false

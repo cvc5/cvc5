@@ -560,6 +560,12 @@ public:
   }
 
   /**
+   * Return a decision request, if the theory has one, or the NULL node
+   * otherwise.
+   */
+  virtual Node getNextDecisionRequest() { return Node(); }
+
+  /**
    * Statically learn from assertion "in," which has been asserted
    * true at the top level.  The theory should only add (via
    * ::operator<< or ::append()) to the "learned" builder---it should

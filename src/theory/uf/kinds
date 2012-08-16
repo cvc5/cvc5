@@ -9,7 +9,7 @@ typechecker "theory/uf/theory_uf_type_rules.h"
 instantiator ::CVC4::theory::uf::InstantiatorTheoryUf "theory/uf/theory_uf_instantiator.h"
 
 properties stable-infinite parametric
-properties check propagate staticLearning presolve
+properties check propagate ppStaticLearn presolve
 
 rewriter ::CVC4::theory::uf::TheoryUfRewriter "theory/uf/theory_uf_rewriter.h"
 parameterized APPLY_UF VARIABLE 1: "uninterpreted function application"

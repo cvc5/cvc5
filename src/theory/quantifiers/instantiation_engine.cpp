@@ -381,7 +381,7 @@ void InstantiationEngine::propagate( Theory::Effort level ){
     bool value;
     if( !d_quantEngine->getValuation().hasSatValue( it->second, value ) ){
       //if not already set, propagate as decision
-      d_quantEngine->getOutputChannel().propagateAsDecision( it->second );
+      //d_quantEngine->getOutputChannel().propagateAsDecision( it->second );
       Debug("cbqi-prop-as-dec") << "CBQI: propagate as decision " << it->second << std::endl;
     }
   }

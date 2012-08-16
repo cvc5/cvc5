@@ -32,12 +32,15 @@
 #       finite            the theory is finite
 #       stable-infinite   the theory is stably infinite
 #       polite            the theory is polite
+#       parametric        the theory is parametric
 #
 #       check             the theory supports the check() function
 #       propagate         the theory supports propagate() (and explain())
-#       staticLearning    the theory supports staticLearning()
+#       ppStaticLearn     the theory supports ppStaticLearn()
 #       notifyRestart     the theory supports notifyRestart()
 #       presolve          the theory supports presolve()
+#       postsolve         the theory supports postsolve()
+#       getNextDecisionRequest the theory supports getNextDecisionRequest()
 #
 #     In the case of the "theory-supports-function" properties, you
 #     need to declare these for your theory or the functions will not

@@ -228,6 +228,8 @@ class TheoryArrays : public Theory {
   private:
   public:
 
+  Node getNextDecisionRequest();
+
   void presolve();
   void shutdown() { }
 
@@ -332,6 +334,9 @@ class TheoryArrays : public Theory {
   context::CDO<bool> d_sharedTerms;
   context::CDList<TNode> d_reads;
   std::hash_map<TNode, Node, TNodeHashFunction> d_diseqCache;
+
+  // The decision requests we have for the core
+  context::CDQueue<Node> d_decisionRequests;
 
   // List of nodes that need permanent references in this context
   context::CDList<Node> d_permRef;

@@ -9,7 +9,7 @@ typechecker "theory/arith/theory_arith_type_rules.h"
 instantiator ::CVC4::theory::arith::InstantiatorTheoryArith "theory/arith/theory_arith_instantiator.h"
 
 properties stable-infinite
-properties check propagate staticLearning presolve notifyRestart
+properties check propagate ppStaticLearn presolve notifyRestart
 
 rewriter ::CVC4::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 

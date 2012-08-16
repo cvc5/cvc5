@@ -172,20 +172,18 @@ class TheoryEngine {
 
   public:
 
-    IntStat conflicts, propagations, lemmas, propagationsAsDecisions, requirePhase, flipDecision;
+    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision;
 
     Statistics(theory::TheoryId theory):
       conflicts(mkName("theory<", theory, ">::conflicts"), 0),
       propagations(mkName("theory<", theory, ">::propagations"), 0),
       lemmas(mkName("theory<", theory, ">::lemmas"), 0),
-      propagationsAsDecisions(mkName("theory<", theory, ">::propagationsAsDecisions"), 0),
       requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
       flipDecision(mkName("theory<", theory, ">::flipDecision"), 0)
     {
       StatisticsRegistry::registerStat(&conflicts);
       StatisticsRegistry::registerStat(&propagations);
       StatisticsRegistry::registerStat(&lemmas);
-      StatisticsRegistry::registerStat(&propagationsAsDecisions);
       StatisticsRegistry::registerStat(&requirePhase);
       StatisticsRegistry::registerStat(&flipDecision);
     }
@@ -194,7 +192,6 @@ class TheoryEngine {
       StatisticsRegistry::unregisterStat(&conflicts);
       StatisticsRegistry::unregisterStat(&propagations);
       StatisticsRegistry::unregisterStat(&lemmas);
-      StatisticsRegistry::unregisterStat(&propagationsAsDecisions);
       StatisticsRegistry::unregisterStat(&requirePhase);
       StatisticsRegistry::unregisterStat(&flipDecision);
     }
@@ -245,13 +242,6 @@ class TheoryEngine {
       ++ d_statistics.propagations;
       d_engine->d_outputChannelUsed = true;
       return d_engine->propagate(literal, d_theory);
-    }
-
-    void propagateAsDecision(TNode literal) throw(AssertionException) {
-      Trace("theory::propagate") << "EngineOutputChannel<" << d_theory << ">::propagateAsDecision(" << literal << ")" << std::endl;
-      ++ d_statistics.propagationsAsDecisions;
-      d_engine->d_outputChannelUsed = true;
-      d_engine->propagateAsDecision(literal, d_theory);
     }
 
     theory::LemmaStatus lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
@@ -350,19 +340,6 @@ class TheoryEngine {
    * The index of the next literal to be propagated by a theory.
    */
   context::CDO<unsigned> d_propagatedLiteralsIndex;
-
-  /**
-   * Decisions that are requested via propagateAsDecision().  The theory
-   * can only request decisions on nodes that have an assigned litearl in
-   * the SAT solver and are hence referenced in the SAT solver (making the
-   * use of TNode safe).
-   */
-  context::CDList<TNode> d_decisionRequests;
-
-  /**
-   * The index of the next decision requested by a theory.
-   */
-  context::CDO<unsigned> d_decisionRequestsIndex;
 
   /**
    * Called by the output channel to propagate literals and facts
@@ -625,18 +602,7 @@ public:
     }
   }
 
-  TNode getNextDecisionRequest() {
-    if(d_decisionRequestsIndex < d_decisionRequests.size()) {
-      TNode req = d_decisionRequests[d_decisionRequestsIndex];
-      Debug("propagateAsDecision") << "TheoryEngine requesting decision["
-                                   << d_decisionRequestsIndex << "]: "
-                                   << req << std::endl;
-      d_decisionRequestsIndex = d_decisionRequestsIndex + 1;
-      return req;
-    } else {
-      return TNode::null();
-    }
-  }
+  Node getNextDecisionRequest();
 
   bool properConflict(TNode conflict) const;
   bool properPropagation(TNode lit) const;

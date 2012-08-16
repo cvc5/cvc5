@@ -144,7 +144,7 @@ public:
   }
 
   /**
-   * Returns the most recent item added to the list.
+   * Returns the most recent item added to the queue.
    */
   const T& back() const {
     Assert(!empty(), "CDQueue::back() called on empty list");
