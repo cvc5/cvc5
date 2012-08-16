@@ -47,7 +47,6 @@ public:
   void testStoreAll() {
     Type usort = d_em->mkSort("U");
     ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->realType()), d_em->mkConst(Rational(9, 2)));
-    ArrayStoreAll(d_em->mkArrayType(d_em->mkSort("U"), usort), d_em->mkVar(usort));
     ArrayStoreAll(d_em->mkArrayType(d_em->mkSort("U"), usort), d_em->mkConst(UninterpretedConstant(usort, 0)));
     ArrayStoreAll(d_em->mkArrayType(d_em->mkBitVectorType(8), d_em->realType()), d_em->mkConst(Rational(0)));
     ArrayStoreAll(d_em->mkArrayType(d_em->mkBitVectorType(8), d_em->integerType()), d_em->mkConst(Rational(0)));
@@ -61,6 +60,13 @@ public:
     TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->integerType()), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
     TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->mkSort("U")), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
     TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->realType(), d_em->integerType()), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
+  }
+
+  void testConstError() {
+    Type usort = d_em->mkSort("U");
+    TS_ASSERT_THROWS_ANYTHING( ArrayStoreAll(d_em->mkArrayType(d_em->mkSort("U"), usort), d_em->mkVar(usort)) );
+    TS_ASSERT_THROWS_ANYTHING( ArrayStoreAll(d_em->integerType(), d_em->mkVar("x", d_em->integerType())) );
+    TS_ASSERT_THROWS_ANYTHING( ArrayStoreAll(d_em->integerType(), d_em->mkExpr(kind::PLUS, d_em->mkConst(Rational(1)), d_em->mkConst(Rational(0)))) );
   }
 
 };/* class ArrayStoreAllBlack */
