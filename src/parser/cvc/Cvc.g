@@ -610,7 +610,12 @@ mainCommand[CVC4::Command*& cmd]
   | OPTION_TOK
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
     symbolicExpr[sexpr]
-    { cmd = new SetOptionCommand(s, sexpr); }
+    { if(s == "logic") {
+        cmd = new SetBenchmarkLogicCommand(sexpr.getValue());
+      } else {
+        cmd = new SetOptionCommand(s, sexpr);
+      }
+    }
 
     /* push / pop */
   | PUSH_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PushCommand()); }

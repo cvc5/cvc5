@@ -108,6 +108,7 @@ public:
     Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
     return d_sharingTheories > 1;
   }
+
   /** Is the given theory module active in this logic? */
   bool isTheoryEnabled(theory::TheoryId theory) const {
     Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
@@ -118,6 +119,22 @@ public:
   bool isQuantified() const {
     Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
     return isTheoryEnabled(theory::THEORY_QUANTIFIERS) || isTheoryEnabled(theory::THEORY_REWRITERULES);
+  }
+
+  /** Is this the all-inclusive logic? */
+  bool hasEverything() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    LogicInfo everything;
+    everything.lock();
+    return *this == everything;
+  }
+
+  /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
+  bool hasNothing() const {
+    Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+    LogicInfo nothing("");
+    nothing.lock();
+    return *this == nothing;
   }
 
   /**

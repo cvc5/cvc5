@@ -122,4 +122,4 @@ private:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT_INPUT_H */
+#endif /* __CVC4__PARSER__SMT_H */

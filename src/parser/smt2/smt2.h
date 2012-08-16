@@ -96,4 +96,4 @@ private:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT2_INPUT_H */
+#endif /* __CVC4__PARSER__SMT2_H */

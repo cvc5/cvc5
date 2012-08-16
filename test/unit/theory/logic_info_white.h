@@ -36,6 +36,8 @@ public:
     TS_ASSERT( !info.isSharingEnabled() );
     TS_ASSERT( info.isPure( THEORY_BOOL ) );
     TS_ASSERT( !info.isQuantified() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( info.hasNothing() );
 
     info = LogicInfo("AUFLIA");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -51,6 +53,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("AUFLIRA");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -66,6 +70,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("AUFNIRA");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -81,6 +87,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("LRA");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -97,6 +105,8 @@ public:
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_ABV");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -109,6 +119,8 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_AUFBV");
     TS_ASSERT( !info.isQuantified() );
@@ -120,6 +132,8 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_AUFLIA");
     TS_ASSERT( !info.isQuantified() );
@@ -135,6 +149,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_AX");
     TS_ASSERT( !info.isQuantified() );
@@ -146,6 +162,8 @@ public:
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_BV");
     TS_ASSERT( !info.isQuantified() );
@@ -157,6 +175,8 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_IDL");
     TS_ASSERT( !info.isQuantified() );
@@ -172,6 +192,8 @@ public:
     TS_ASSERT( info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_LIA");
     TS_ASSERT( !info.isQuantified() );
@@ -187,6 +209,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_LRA");
     TS_ASSERT( !info.isQuantified() );
@@ -202,6 +226,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_NIA");
     TS_ASSERT( !info.isQuantified() );
@@ -217,6 +243,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_NRA");
     TS_ASSERT( !info.isQuantified() );
@@ -232,6 +260,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_RDL");
     TS_ASSERT( !info.isQuantified() );
@@ -247,6 +277,8 @@ public:
     TS_ASSERT( info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UF");
     TS_ASSERT( !info.isPure( THEORY_BOOL ) );
@@ -259,6 +291,8 @@ public:
     TS_ASSERT( info.isPure( THEORY_UF ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UFBV");
     TS_ASSERT( !info.isQuantified() );
@@ -271,6 +305,8 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UFIDL");
     TS_ASSERT( !info.isQuantified() );
@@ -286,6 +322,8 @@ public:
     TS_ASSERT( info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UFLIA");
     TS_ASSERT( !info.isQuantified() );
@@ -301,6 +339,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UFLRA");
     TS_ASSERT( !info.isQuantified() );
@@ -315,6 +355,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_UFNRA");
     TS_ASSERT( !info.isQuantified() );
@@ -330,6 +372,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("UFLRA");
     TS_ASSERT( info.isQuantified() );
@@ -345,6 +389,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( !info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("UFNIA");
     TS_ASSERT( info.isQuantified() );
@@ -360,6 +406,8 @@ public:
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("QF_ALL_SUPPORTED");
     TS_ASSERT( info.isLocked() );
@@ -376,6 +424,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( !info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
 
     info = LogicInfo("ALL_SUPPORTED");
     TS_ASSERT( info.isLocked() );
@@ -392,6 +442,8 @@ public:
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( !info.isDifferenceLogic() );
     TS_ASSERT( info.areRealsUsed() );
+    TS_ASSERT( info.hasEverything() );
+    TS_ASSERT( !info.hasNothing() );
   }
 
   void testDefaultLogic() {

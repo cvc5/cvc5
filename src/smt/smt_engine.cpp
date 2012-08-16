@@ -351,6 +351,11 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
+  if(! d_logic.isLocked()) {
+    // ensure that our heuristics are properly set up
+    setLogicInternal();
+  }
+
   // finish initalization, creat the prop engine, etc.
   finishInit();
 
@@ -359,7 +364,7 @@ void SmtEngine::finalOptionsAreSet() {
                 "hasn't finished initializing!" );
 
   d_fullyInited = true;
-  d_logic.lock();
+  Assert(d_logic.isLocked());
 
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(true));
   d_propEngine->assertFormula(NodeManager::currentNM()->mkConst<bool>(false).notNode());
@@ -557,47 +562,55 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
   }
   // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
   // and also use it in stop-only mode for QF_AUFLIA, QF_LRA and Quantifiers
+  // BUT use neither in ALL_SUPPORTED mode (since it doesn't yet work well
+  // with incrementality)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
-      //QF_BV
-      (not d_logic.isQuantified() &&
-        d_logic.isPure(THEORY_BV)
-        ) ||
-      //QF_AUFBV
-      (not d_logic.isQuantified() &&
-       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-       d_logic.isTheoryEnabled(THEORY_UF) &&
-       d_logic.isTheoryEnabled(THEORY_BV)
-       ) ||
-      //QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
-      (not d_logic.isQuantified() &&
-       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-       d_logic.isTheoryEnabled(THEORY_UF) &&
-       d_logic.isTheoryEnabled(THEORY_ARITH)
-       ) ||
-      // QF_LRA
-      (not d_logic.isQuantified() &&
-       d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-       ) ||
-      // Quantifiers
-      d_logic.isQuantified()
-      ? decision::DECISION_STRATEGY_JUSTIFICATION
-      : decision::DECISION_STRATEGY_INTERNAL;
+      // ALL_SUPPORTED
+      d_logic.hasEverything() ? decision::DECISION_STRATEGY_INTERNAL :
+      ( // QF_BV
+        (not d_logic.isQuantified() &&
+          d_logic.isPure(THEORY_BV)
+          ) ||
+        // QF_AUFBV
+        (not d_logic.isQuantified() &&
+         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_UF) &&
+         d_logic.isTheoryEnabled(THEORY_BV)
+         ) ||
+        // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
+        (not d_logic.isQuantified() &&
+         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_UF) &&
+         d_logic.isTheoryEnabled(THEORY_ARITH)
+         ) ||
+        // QF_LRA
+        (not d_logic.isQuantified() &&
+         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
+         ) ||
+        // Quantifiers
+        d_logic.isQuantified()
+        ? decision::DECISION_STRATEGY_JUSTIFICATION
+        : decision::DECISION_STRATEGY_INTERNAL
+      );
 
     bool stoponly =
-      // QF_AUFLIA
-      (not d_logic.isQuantified() &&
-       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-       d_logic.isTheoryEnabled(THEORY_UF) &&
-       d_logic.isTheoryEnabled(THEORY_ARITH)
-       ) ||
-      // QF_LRA
-      (not d_logic.isQuantified() &&
-       d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-       ) ||
-      // Quantifiers
-      d_logic.isQuantified()
-      ? true : false;
+      // ALL_SUPPORTED
+      d_logic.hasEverything() ? false :
+      ( // QF_AUFLIA
+        (not d_logic.isQuantified() &&
+         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+         d_logic.isTheoryEnabled(THEORY_UF) &&
+         d_logic.isTheoryEnabled(THEORY_ARITH)
+         ) ||
+        // QF_LRA
+        (not d_logic.isQuantified() &&
+         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
+         ) ||
+        // Quantifiers
+        d_logic.isQuantified()
+        ? true : false
+      );
 
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     options::decisionMode.set(decMode);
