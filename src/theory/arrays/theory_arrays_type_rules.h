@@ -71,16 +71,82 @@ struct ArrayStoreTypeRule {
     Assert(n.getKind() == kind::STORE);
     NodeManagerScope nms(nodeManager);
 
-    // TODO: test ordering of stores, and ultimate application to a store-all
-    // ALSO: ensure uniqueness of form (e.g. one constant of the array sort
-    // BOOL->INT can be represented as
-    //   [false->0, default=1]
-    // and also
-    //   [true->1, default=0]
-    // ..but by contract of isConst(), only one of these can be considered
-    // a "const" expression.
+    TNode store = n[0];
+    TNode index = n[1];
+    TNode value = n[2];
 
-    return false;
+    // A constant must have only constant children and be in normal form
+    // If any child is non-const, this is not a constant
+    if (!store.isConst() || !index.isConst() || !value.isConst()) {
+      return false;
+    }
+
+    // If store indices are not in order, not in normal form
+    if (store.getKind() == kind::STORE && index < store[1]) {
+      return false;
+    }
+
+    // Compute the number of nested stores
+    Integer depth = 1;
+    while (store.getKind() == kind::STORE) {
+      store = store[0];
+      depth += 1;
+    }
+
+    // Get the default value in the STORE_ALL object at the bottom of the nested stores
+    Assert(store.getKind() == kind::STORE_ALL);
+    ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
+    TNode defaultValue /* = storeAll.getExpr().getTNode()*/ ;
+
+    // If writing to default value, not in normal form
+    if (defaultValue == value) {
+      return false;
+    }
+    
+    // Get the cardinality of the index type
+    Cardinality indexCard = index.getType().getCardinality();
+
+    // If cardinality is infinite, ok - in normal form
+    if (indexCard.isInfinite()) {
+      return true;
+    }
+    
+    /*
+    Assert(depth <= indexCard);
+
+    // If number of stores is equal to cardinality of index type,
+    // then the default value is overridden at all indices.  Our normal form
+    // requires that the most frequent value is the default value.
+    if (depth == indexCard) {
+       return false;
+    }
+
+    // If the number of stores is less than half of the cardinality, then we
+    // know the default value is the most frequent value, so in normal form
+    if (depth*2 < indexCard) {
+      return true;
+    }
+    Integer defaultCount = indexCard - depth;
+
+    // Have to compare number of occurrences of value with defaultValue
+    store = n[0];
+    depth = 1;
+    while (store.getKind() == kind::STORE) {
+      if (store[2] == value) {
+        depth += 1;
+      }
+      store = store[0];
+    }
+
+    // If value occurs more frequently than the default value or the same
+    // and is less than defaultValue, then this is not in normal form
+    if (depth > defaultCount ||
+        (depth == defaultCount && value < defaultValue)) {
+      return false;
+    }
+    */
+
+    return true;
   }
 
 };/* struct ArrayStoreTypeRule */
