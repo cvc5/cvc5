@@ -50,7 +50,7 @@ d_rel_domain( qe->getModel() ){
 void ModelEngine::check( Theory::Effort e ){
   if( e==Theory::EFFORT_LAST_CALL && !d_quantEngine->hasAddedLemma() ){
     //first, check if we can minimize the model further
-    if( !((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->getTheory( THEORY_UF ))->getStrongSolver()->minimize() ){
+    if( !((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
       return;
     }
     //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers

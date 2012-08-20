@@ -436,7 +436,7 @@ class OpMatcher: public Matcher{
     /** Keep only the one that have the good operator */
     AuxMatcher2 am2(am3,LegalOpTest(pat.getOperator()));
     /** Iter on the equivalence class of the given term */
-    uf::TheoryUF* uf = static_cast<uf::TheoryUF *>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF ));
+    uf::TheoryUF* uf = static_cast<uf::TheoryUF *>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ));
     eq::EqualityEngine* ee = static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
     CandidateGeneratorTheoryEeClass cdtUfEq(ee);
     /* Create a matcher from the candidate generator */
@@ -456,7 +456,7 @@ public:
   bool reset( TNode t, InstMatch& m, QuantifiersEngine* qe ){
     // size_t m_size = m.d_map.size();
     // if(m_size == d_num_var){
-    //   uf::EqualityEngine<uf::TheoryUF::NotifyClass>* ee = (static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF )))->getEqualityEngine();
+    //   uf::EqualityEngine<uf::TheoryUF::NotifyClass>* ee = (static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF )))->getEqualityEngine();
     //   std::cout << "!";
     //   return ee->areEqual(m.subst(d_pat),t);
     // }else{
@@ -483,7 +483,7 @@ class DatatypesMatcher: public Matcher{
     /** Keep only the one that have the good operator */
     AuxMatcher2 am2(am3,LegalOpTest(pat.getOperator()));
     /** Iter on the equivalence class of the given term */
-    datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes *>(qe->getTheoryEngine()->getTheory( theory::THEORY_DATATYPES ));
+    datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes *>(qe->getTheoryEngine()->theoryOf( theory::THEORY_DATATYPES ));
     eq::EqualityEngine* ee = static_cast<eq::EqualityEngine*>(dt->getEqualityEngine());
     CandidateGeneratorTheoryEeClass cdtDtEq(ee);
     /* Create a matcher from the candidate generator */
@@ -521,7 +521,7 @@ class ArrayMatcher: public Matcher{
     /** Keep only the one that have the good operator */
     AuxMatcher2 am2(am3, LegalKindTest(pat.getKind()));
     /** Iter on the equivalence class of the given term */
-    arrays::TheoryArrays* ar = static_cast<arrays::TheoryArrays *>(qe->getTheoryEngine()->getTheory( theory::THEORY_ARRAY ));
+    arrays::TheoryArrays* ar = static_cast<arrays::TheoryArrays *>(qe->getTheoryEngine()->theoryOf( theory::THEORY_ARRAY ));
     eq::EqualityEngine* ee =
       static_cast<eq::EqualityEngine*>(ar->getEqualityEngine());
     CandidateGeneratorTheoryEeClass cdtUfEq(ee);
@@ -542,7 +542,7 @@ public:
   bool reset( TNode t, InstMatch& m, QuantifiersEngine* qe ){
     // size_t m_size = m.d_map.size();
     // if(m_size == d_num_var){
-    //   uf::EqualityEngine<uf::TheoryUF::NotifyClass>* ee = (static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF )))->getEqualityEngine();
+    //   uf::EqualityEngine<uf::TheoryUF::NotifyClass>* ee = (static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF )))->getEqualityEngine();
     //   std::cout << "!";
     //   return ee->areEqual(m.subst(d_pat),t);
     // }else{
@@ -715,16 +715,16 @@ public:
     Debug("inst-match-gen") << "MetaCandidateGenerator for type: " << ty
                             << " Theory : " << Theory::theoryOf(ty) << std::endl;
     if( Theory::theoryOf(ty) == theory::THEORY_DATATYPES ){
-      // datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes *>(te->getTheory( theory::THEORY_DATATYPES ));
+      // datatypes::TheoryDatatypes* dt = static_cast<datatypes::TheoryDatatypes *>(te->theoryOf( theory::THEORY_DATATYPES ));
       // return new datatypes::rrinst::CandidateGeneratorTheoryClasses(dt);
       Unimplemented("MetaCandidateGeneratorClasses for THEORY_DATATYPES");
     }else if ( Theory::theoryOf(ty) == theory::THEORY_ARRAY ){
-      arrays::TheoryArrays* ar = static_cast<arrays::TheoryArrays *>(te->getTheory( theory::THEORY_ARRAY ));
+      arrays::TheoryArrays* ar = static_cast<arrays::TheoryArrays *>(te->theoryOf( theory::THEORY_ARRAY ));
       eq::EqualityEngine* ee =
         static_cast<eq::EqualityEngine*>(ar->getEqualityEngine());
       return new CandidateGeneratorTheoryEeClasses(ee);
     } else {
-      uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(te->getTheory( theory::THEORY_UF ));
+      uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(te->theoryOf( theory::THEORY_UF ));
       eq::EqualityEngine* ee =
         static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
       return new CandidateGeneratorTheoryEeClasses(ee);
@@ -860,7 +860,7 @@ private:
     /** Keep only the one that have the good type */
     AuxMatcher2 am2(am3,LegalTypeTest(ty));
     /** Generate one term by eq classes */
-    uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF ));
+    uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ));
     eq::EqualityEngine* ee =
       static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
     CandidateGeneratorTheoryEeClasses cdtUfEq(ee);
@@ -916,7 +916,7 @@ private:
     /** Keep only the one that have the good type */
     AuxMatcher2 am2(am3,EqTest(ty));
     /** Will generate all the terms of the eq class of false */
-    uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF ));
+    uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ));
     eq::EqualityEngine* ee =
       static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
     CandidateGeneratorTheoryEeClass cdtUfEq(ee);
@@ -927,7 +927,7 @@ private:
 public:
   UfDeqMatcher( Node pat, QuantifiersEngine* qe ):
     d_cgm(createCgm(pat, qe)),
-    false_term((static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF )))->getEqualityEngine()->
+    false_term((static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF )))->getEqualityEngine()->
                 getRepresentative(NodeManager::currentNM()->mkConst<bool>(false) )){};
   void resetInstantiationRound( QuantifiersEngine* qe ){
     d_cgm.resetInstantiationRound(qe);
@@ -970,7 +970,7 @@ Matcher* mkMatcher( Node pat, QuantifiersEngine* qe ){
       TestMatcher<ArithMatcher, LegalTypeTest>
         am2(am3,LegalTypeTest(pat.getType()));
       /* generator */
-      uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->getTheory( theory::THEORY_UF ));
+      uf::TheoryUF* uf = static_cast<uf::TheoryUF*>(qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ));
       eq::EqualityEngine* ee =
         static_cast<eq::EqualityEngine*> (uf->getEqualityEngine());
       CandidateGeneratorTheoryEeClass cdtUfEq(ee);
@@ -1402,7 +1402,7 @@ public:
         d_direct_patterns.push_back(new ApplyMatcher(pats[i],qe));
       }
     };
-    Theory* th_uf = qe->getTheoryEngine()->getTheory( theory::THEORY_UF );
+    Theory* th_uf = qe->getTheoryEngine()->theoryOf( theory::THEORY_UF );
     uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
     ith->registerEfficientHandler(d_eh, pats);
   };

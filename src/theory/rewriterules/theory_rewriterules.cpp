@@ -526,7 +526,7 @@ void TheoryRewriteRules::propagateRule(const RuleInst * inst, TCache cache){
 
   if ( compute_opt && !rule->body_match.empty() ){
 
-    uf::TheoryUF* uf = static_cast<uf::TheoryUF *>(getQuantifiersEngine()->getTheoryEngine()->getTheory( theory::THEORY_UF ));
+    uf::TheoryUF* uf = static_cast<uf::TheoryUF *>(getQuantifiersEngine()->getTheoryEngine()->theoryOf( theory::THEORY_UF ));
     eq::EqualityEngine* ee =
       static_cast<eq::EqualityEngine*>(uf->getEqualityEngine());
 

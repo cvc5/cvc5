@@ -97,7 +97,7 @@ d_quantEngine( qe ), d_f( f ){
   }
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
   if( options::eagerInstQuant() ){
-    Theory* th_uf = qe->getTheoryEngine()->getTheory( theory::THEORY_UF );
+    Theory* th_uf = qe->getTheoryEngine()->theoryOf( theory::THEORY_UF );
     uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
     for( int i=0; i<(int)d_nodes.size(); i++ ){
       ith->registerTrigger( this, d_nodes[i].getOperator() );

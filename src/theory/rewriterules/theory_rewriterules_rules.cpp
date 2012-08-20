@@ -371,7 +371,7 @@ bool TheoryRewriteRules::addRewritePattern(TNode pattern, TNode body,
   if (i == d_registeredRRPpRewrite.end()){
     p = new rewriter::RRPpRewrite();
     d_registeredRRPpRewrite.insert(std::make_pair(op,p));
-    ((uf::TheoryUF*)getQuantifiersEngine()->getTheoryEngine()->getTheory( THEORY_UF ))->
+    ((uf::TheoryUF*)getQuantifiersEngine()->getTheoryEngine()->theoryOf( THEORY_UF ))->
       registerPpRewrite(op,p);
   } else p = i->second;
 

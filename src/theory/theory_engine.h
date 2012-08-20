@@ -639,19 +639,11 @@ public:
   }
 
   /**
-   * Get the theory associated to a the given theory id. It will also mark the
-   * theory as currently active, we assume that theories are called only through
-   * theoryOf.
+   * Get the theory associated to a the given theory id.
    *
-   * @returns the theory, or NULL if the TNode is
-   * of built-in type.
+   * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
-    return d_theoryTable[theoryId];
-  }
-
-  /** Get the theory for id */
-  theory::Theory* getTheory(theory::TheoryId theoryId) const {
     return d_theoryTable[theoryId];
   }
 

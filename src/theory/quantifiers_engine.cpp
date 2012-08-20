@@ -101,19 +101,19 @@ QuantifiersEngine::~QuantifiersEngine(){
 }
 
 Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
-  return d_te->getTheory( id )->getInstantiator();
+  return d_te->theoryOf( id )->getInstantiator();
 }
 
 context::Context* QuantifiersEngine::getSatContext(){
-  return d_te->getTheory( THEORY_QUANTIFIERS )->getSatContext();
+  return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel(){
-  return d_te->getTheory( THEORY_QUANTIFIERS )->getOutputChannel();
+  return d_te->theoryOf( THEORY_QUANTIFIERS )->getOutputChannel();
 }
 /** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation(){
-  return d_te->getTheory( THEORY_QUANTIFIERS )->getValuation();
+  return d_te->theoryOf( THEORY_QUANTIFIERS )->getValuation();
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
@@ -211,7 +211,7 @@ void QuantifiersEngine::registerQuantifier( Node f ){
       generatePhaseReqs( quants[q], ceBody );
       //also register it with the strong solver
       if( options::finiteModelFind() ){
-        ((uf::TheoryUF*)d_te->getTheory( THEORY_UF ))->getStrongSolver()->registerQuantifier( quants[q] );
+        ((uf::TheoryUF*)d_te->theoryOf( THEORY_UF ))->getStrongSolver()->registerQuantifier( quants[q] );
       }
     }
   }
@@ -723,7 +723,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return ((uf::TheoryUF*)d_qe->getTheoryEngine()->getTheory( THEORY_UF ))->getEqualityEngine();
+  return ((uf::TheoryUF*)d_qe->getTheoryEngine()->theoryOf( THEORY_UF ))->getEqualityEngine();
 }
 
 void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
