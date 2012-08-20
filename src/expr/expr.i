@@ -30,3 +30,26 @@ namespace CVC4 {
 }/* CVC4 namespace */
 
 %include "expr/expr.h"
+
+%template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
+%template(getConstArrayStoreAll) CVC4::Expr::getConst<CVC4::ArrayStoreAll>;
+%template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
+%template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;
+%template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
+%template(getConstSubrangeBounds) CVC4::Expr::getConst<CVC4::SubrangeBounds>;
+%template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
+%template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
+%template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
+%template(getConstBitVectorSignExtend) CVC4::Expr::getConst<CVC4::BitVectorSignExtend>;
+%template(getConstBitVectorZeroExtend) CVC4::Expr::getConst<CVC4::BitVectorZeroExtend>;
+%template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
+%template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
+%template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
+%template(getConstDatatype) CVC4::Expr::getConst<CVC4::Datatype>;
+%template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
+%template(getConstBitVector) CVC4::Expr::getConst<CVC4::BitVector>;
+%template(getConstPredicate) CVC4::Expr::getConst<CVC4::Predicate>;
+%template(getConstString) CVC4::Expr::getConst<std::string>;
+%template(getConstBoolean) CVC4::Expr::getConst<bool>;
+
+%include "expr/expr.h"

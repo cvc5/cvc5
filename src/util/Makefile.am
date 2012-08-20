@@ -170,6 +170,7 @@ EXTRA_DIST = \
 	exception.i \
 	language.i \
 	array.i \
+	array_store_all.i \
 	ascription_type.i \
 	rational.i \
 	hash.i

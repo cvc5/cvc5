@@ -17,9 +17,6 @@
 
 %include "expr/expr_manager.h"
 
-%template(mkConst) CVC4::ExprManager::mkConst< CVC4::Rational >;
-
-
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::ArrayStoreAll>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVectorSize>;

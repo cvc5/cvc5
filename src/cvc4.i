@@ -103,6 +103,7 @@ using namespace CVC4;
 %include "util/bitvector.i"
 %include "util/subrange_bound.i"
 %include "util/array.i"
+%include "util/array_store_all.i"
 %include "util/hash.i"
 
 %include "expr/type.i"
