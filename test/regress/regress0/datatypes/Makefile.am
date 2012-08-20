@@ -32,7 +32,6 @@ TESTS =	\
 	typed_v3l20092.cvc \
 	typed_v5l30069.cvc \
 	v10l40099.cvc \
-	v1l20009.cvc \
 	v2l40025.cvc \
 	v3l60006.cvc \
 	v5l30058.cvc \
