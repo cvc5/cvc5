@@ -881,4 +881,6 @@ int InstMatchGeneratorSimple::addTerm( Node f, Node t, QuantifiersEngine* qe ){
   return qe->addInstantiation( f, m ) ? 1 : 0;
 }
 
-}}}
+}/* CVC4::theory::inst namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
