@@ -1,0 +1,4 @@
+% COMMAND-LINE: --incremental
+% EXPECT: sat
+% EXPECT: sat
+% EXIT: 10

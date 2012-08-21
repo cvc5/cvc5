@@ -1,0 +1,4 @@
+% COMMAND-LINE: --incremental
+% EXPECT: sat
+% EXPECT: unsat
+% EXIT: 20

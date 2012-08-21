@@ -84,7 +84,8 @@ CVC_TESTS = \
 	wiki.19.cvc \
 	wiki.20.cvc \
 	wiki.21.cvc \
-	simplification_bug3.cvc
+	simplification_bug3.cvc \
+	queries0.cvc
 
 # Regression tests for TPTP inputs
 TPTP_TESTS = \
@@ -108,6 +109,7 @@ BUG_TESTS = \
 	bug167.smt \
 	bug168.smt \
 	bug187.smt2 \
+	bug216.smt2 \
 	bug220.smt2 \
 	bug239.smt \
 	bug288.smt \
@@ -124,7 +126,8 @@ BUG_TESTS = \
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
-	simplification_bug4.smt2.expect
+	simplification_bug4.smt2.expect \
+	bug216.smt2.expect
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
