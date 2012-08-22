@@ -46,9 +46,9 @@ public:
   }
 
   void testTheBasics() {
-    TS_ASSERT( d_em->booleanType().getCardinality() == 2 );
-    TS_ASSERT( d_em->integerType().getCardinality() == Cardinality::INTEGERS );
-    TS_ASSERT( d_em->realType().getCardinality() == Cardinality::REALS );
+    TS_ASSERT( d_em->booleanType().getCardinality().compare(2) == Cardinality::EQUAL );
+    TS_ASSERT( d_em->integerType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
+    TS_ASSERT( d_em->realType().getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
   }
 
   void testArrays() {
@@ -62,16 +62,15 @@ public:
     Type boolToInt = d_em->mkArrayType(d_em->booleanType(), d_em->integerType());
     Type boolToBool = d_em->mkArrayType(d_em->booleanType(), d_em->booleanType());
 
-    TS_ASSERT( intToInt.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( realToReal.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( intToReal.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intToBool.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( realToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( boolToReal.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( boolToInt.getCardinality() == Cardinality::INTEGERS );
-cout << "boolToBool " << boolToBool.getCardinality() << endl;
-    TS_ASSERT( boolToBool.getCardinality() == 4 );
+    TS_ASSERT( intToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( realToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( intToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( realToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( boolToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( boolToInt.getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
+    TS_ASSERT( boolToBool.getCardinality().compare(4) == Cardinality::EQUAL );
   }
 
   void testUnaryFunctions() {
@@ -85,15 +84,15 @@ cout << "boolToBool " << boolToBool.getCardinality() << endl;
     Type boolToInt = d_em->mkFunctionType(d_em->booleanType(), d_em->integerType());
     Type boolToBool = d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType());
 
-    TS_ASSERT( intToInt.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( realToReal.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( intToReal.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intToBool.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( realToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( boolToReal.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( boolToInt.getCardinality() == Cardinality::INTEGERS );
-    TS_ASSERT( boolToBool.getCardinality() == 4 );
+    TS_ASSERT( intToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( realToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( intToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( realToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( boolToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( boolToInt.getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
+    TS_ASSERT( boolToBool.getCardinality().compare(4) == Cardinality::EQUAL );
   }
 
   void testBinaryFunctions() {
@@ -143,41 +142,41 @@ cout << "boolToBool " << boolToBool.getCardinality() << endl;
     Type boolrealToInt = d_em->mkFunctionType(boolreal, d_em->integerType());
     Type boolrealToReal = d_em->mkFunctionType(boolreal, d_em->realType());
 
-    TS_ASSERT( boolboolToBool.getCardinality() == 16 );
-    TS_ASSERT( boolboolToInt.getCardinality() == Cardinality::INTEGERS );
-    TS_ASSERT( boolboolToReal.getCardinality() == Cardinality::REALS );
+    TS_ASSERT( boolboolToBool.getCardinality().compare(16) == Cardinality::EQUAL );
+    TS_ASSERT( boolboolToInt.getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
+    TS_ASSERT( boolboolToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
 
-    TS_ASSERT( boolintToBool.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( boolintToInt.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( boolintToReal.getCardinality() == Cardinality::REALS );
+    TS_ASSERT( boolintToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( boolintToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( boolintToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
 
-    TS_ASSERT( intboolToBool.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intboolToInt.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intboolToReal.getCardinality() == Cardinality::REALS );
+    TS_ASSERT( intboolToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intboolToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intboolToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
 
-    TS_ASSERT( intintToBool.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intintToInt.getCardinality() == Cardinality::REALS );
-    TS_ASSERT( intintToReal.getCardinality() == Cardinality::REALS );
+    TS_ASSERT( intintToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intintToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+    TS_ASSERT( intintToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
 
-    TS_ASSERT( intrealToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( intrealToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( intrealToReal.getCardinality() > Cardinality::REALS );
+    TS_ASSERT( intrealToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( intrealToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( intrealToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
 
-    TS_ASSERT( realintToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realintToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realintToReal.getCardinality() > Cardinality::REALS );
+    TS_ASSERT( realintToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realintToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realintToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
 
-    TS_ASSERT( realrealToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realrealToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realrealToReal.getCardinality() > Cardinality::REALS );
+    TS_ASSERT( realrealToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realrealToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realrealToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
 
-    TS_ASSERT( realboolToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realboolToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( realboolToReal.getCardinality() > Cardinality::REALS );
+    TS_ASSERT( realboolToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realboolToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( realboolToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
 
-    TS_ASSERT( boolrealToBool.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( boolrealToInt.getCardinality() > Cardinality::REALS );
-    TS_ASSERT( boolrealToReal.getCardinality() > Cardinality::REALS );
+    TS_ASSERT( boolrealToBool.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( boolrealToInt.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
+    TS_ASSERT( boolrealToReal.getCardinality().compare(Cardinality::REALS) == Cardinality::GREATER );
   }
 
   void testTernaryFunctions() {
@@ -191,9 +190,9 @@ cout << "boolToBool " << boolToBool.getCardinality() << endl;
     Type boolboolToBoolbool = d_em->mkFunctionType(boolbool, boolboolTuple);
     Type boolToBoolboolbool = d_em->mkFunctionType(d_em->booleanType(), boolboolboolTuple);
 
-    TS_ASSERT( boolboolboolToBool.getCardinality() == /* 2 ^ 8 */ 1 << 8 );
-    TS_ASSERT( boolboolToBoolbool.getCardinality() == /* 4 ^ 4 */ 4 * 4 * 4 * 4 );
-    TS_ASSERT( boolToBoolboolbool.getCardinality() == /* 8 ^ 2 */ 8 * 8 );
+    TS_ASSERT( boolboolboolToBool.getCardinality().compare(/* 2 ^ 8 */ 1 << 8) == Cardinality::EQUAL );
+    TS_ASSERT( boolboolToBoolbool.getCardinality().compare(/* 4 ^ 4 */ 4 * 4 * 4 * 4) == Cardinality::EQUAL );
+    TS_ASSERT( boolToBoolboolbool.getCardinality().compare(/* 8 ^ 2 */ 8 * 8) == Cardinality::EQUAL );
   }
 
   void testUndefinedSorts() {
@@ -205,15 +204,24 @@ cout << "boolToBool " << boolToBool.getCardinality() << endl;
 
   void testBitvectors() {
     Debug.on("bvcard");
-    TS_ASSERT( d_em->mkBitVectorType(0).getCardinality() == 0 );
-    for(unsigned i = 1; i < 128; ++i) {
+    TS_ASSERT( d_em->mkBitVectorType(0).getCardinality().compare(0) == Cardinality::EQUAL );
+    Cardinality lastCard = 0;
+    for(unsigned i = 1; i <= 65; ++i) {
       try {
         Cardinality card = Cardinality(2) ^ i;
-        if( d_em->mkBitVectorType(i).getCardinality() != card ) {
-          stringstream ss;
-          ss << "test failed for bitvector(" << i << ")";
-          TS_FAIL(ss.str().c_str());
+        Cardinality typeCard = d_em->mkBitVectorType(i).getCardinality();
+        TS_ASSERT( typeCard.compare(lastCard) == Cardinality::GREATER ||
+                   (typeCard.isLargeFinite() && lastCard.isLargeFinite()) );
+        if( typeCard.compare(card) != Cardinality::EQUAL ) {
+          if( typeCard.isLargeFinite() ) {
+            cout << "test hit large finite card at bitvector(" << i << ")" << endl;
+          } else {
+            stringstream ss;
+            ss << "test failed for bitvector(" << i << ")";
+            TS_FAIL(ss.str().c_str());
+          }
         }
+        lastCard = typeCard;
       } catch(Exception& e) {
         cout << endl << e << endl;
         throw;
