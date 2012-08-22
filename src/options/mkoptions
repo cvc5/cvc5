@@ -2,7 +2,7 @@
 #
 # mkoptions
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2011  The CVC4 Project
+# Copyright (c) 2011-2012  The CVC4 Project
 #
 # The purpose of this script is to create options.{h,cpp}
 # from template files and a list of options.
@@ -12,7 +12,7 @@
 #   mkoptions (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+
 #
 
-copyright=2011
+copyright=2011-2012
 
 me=$(basename "$0")
 
@@ -1103,14 +1103,18 @@ EOF
 
   ) >"$output.tmp"
 
-  diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && echo "regenerated $output")
-  rm -f "$output.tmp"
+  if diff -q "$output" "$output.tmp" &>/dev/null; then
+    rm -f "$output.tmp"
+  else
+    mv -f "$output.tmp" "$output"
+    echo "regenerated $output"
+  fi
 }
 
 while [ $# -gt 0 ]; do
   kf="$1"; shift
   if [ $# -eq 0 ]; then
-    echo "$me: error: mismatched number of templates and output files (before -t)" >&2
+    echo "$me: error: mismatched number of templates and output files (after -t)" >&2
     usage
     exit 1
   fi

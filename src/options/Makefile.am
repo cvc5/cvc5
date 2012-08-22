@@ -1,23 +1,45 @@
+OPTIONS_FILES_SRCS = \
+	base_options.cpp \
+	base_options.h \
+	../expr/options.cpp \
+	../expr/options.h \
+	../theory/booleans/options.cpp \
+	../theory/booleans/options.h \
+	../theory/options.cpp \
+	../theory/options.h \
+	../theory/bv/options.cpp \
+	../theory/bv/options.h \
+	../theory/datatypes/options.cpp \
+	../theory/datatypes/options.h \
+	../theory/builtin/options.cpp \
+	../theory/builtin/options.h \
+	../theory/arith/options.cpp \
+	../theory/arith/options.h \
+	../theory/uf/options.cpp \
+	../theory/uf/options.h \
+	../theory/arrays/options.cpp \
+	../theory/arrays/options.h \
+	../theory/quantifiers/options.cpp \
+	../theory/quantifiers/options.h \
+	../theory/rewriterules/options.cpp \
+	../theory/rewriterules/options.h \
+	../prop/options.cpp \
+	../prop/options.h \
+	../proof/options.cpp \
+	../proof/options.h \
+	../printer/options.cpp \
+	../printer/options.h \
+	../smt/options.cpp \
+	../smt/options.h \
+	../decision/options.cpp \
+	../decision/options.h \
+	../main/options.cpp \
+	../main/options.h \
+	../parser/options.cpp \
+	../parser/options.h
+
 OPTIONS_FILES = \
-	options/base_options \
-	expr/options \
-	theory/booleans/options \
-	theory/options \
-	theory/bv/options \
-	theory/datatypes/options \
-	theory/builtin/options \
-	theory/arith/options \
-	theory/uf/options \
-	theory/arrays/options \
-	theory/quantifiers/options \
-	theory/rewriterules/options \
-	prop/options \
-	proof/options \
-	printer/options \
-	smt/options \
-	decision/options \
-	main/options \
-	parser/options
+	$(patsubst %.cpp,%,$(filter %.cpp,$(OPTIONS_FILES_SRCS)))
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
@@ -34,35 +56,65 @@ liboptions_la_SOURCES = \
 nodist_liboptions_la_SOURCES = \
 	options.cpp \
 	options_holder.h \
-	$(OPTIONS_FILES:%=../%.cpp) \
-	$(OPTIONS_FILES:%=../%.h)
-nodist_liboptions_la_OBJECTS = \
-	$(patsubst %.cpp,%.lo,$(filter %.cpp,$(nodist_liboptions_la_SOURCES)))
-
-BUILT_SOURCES = \
-	options.cpp \
-	options_holder.h \
 	base_options.cpp \
 	base_options.h \
+	../expr/options.cpp \
+	../expr/options.h \
+	../theory/booleans/options.cpp \
+	../theory/booleans/options.h \
+	../theory/options.cpp \
+	../theory/options.h \
+	../theory/bv/options.cpp \
+	../theory/bv/options.h \
+	../theory/datatypes/options.cpp \
+	../theory/datatypes/options.h \
+	../theory/builtin/options.cpp \
+	../theory/builtin/options.h \
+	../theory/arith/options.cpp \
+	../theory/arith/options.h \
+	../theory/uf/options.cpp \
+	../theory/uf/options.h \
+	../theory/arrays/options.cpp \
+	../theory/arrays/options.h \
+	../theory/quantifiers/options.cpp \
+	../theory/quantifiers/options.h \
+	../theory/rewriterules/options.cpp \
+	../theory/rewriterules/options.h \
+	../prop/options.cpp \
+	../prop/options.h \
+	../proof/options.cpp \
+	../proof/options.h \
+	../printer/options.cpp \
+	../printer/options.h \
+	../smt/options.cpp \
+	../smt/options.h \
+	../decision/options.cpp \
+	../decision/options.h \
+	../main/options.cpp \
+	../main/options.h \
+	../parser/options.cpp \
+	../parser/options.h
+
+BUILT_SOURCES = \
+	exprs-builts \
 	../smt/smt_options.cpp \
-	$(OPTIONS_FILES:%=../%.cpp) \
-	$(OPTIONS_FILES:%=../%.h) \
-	exprs-builts
+	options.cpp \
+	options_holder.h
 
 DISTCLEANFILES = \
+	$(OPTIONS_FILES_SRCS) \
 	$(BUILT_SOURCES) \
 	options-stamp
 
 EXTRA_DIST = \
 	mkoptions \
-	base_options \
 	base_options_template.h \
 	base_options_template.cpp \
 	options_template.cpp \
 	options_holder_template.h \
 	options.i \
 	option_exception.i \
-	$(OPTIONS_FILES:%=../%)
+	$(OPTIONS_FILES)
 
 if CVC4_DEBUG
 # listing Debug_tags too ensures that make doesn't auto-remove it
@@ -116,8 +168,8 @@ MOSTLYCLEANFILES = \
 	Debug_tags.h \
 	Trace_tags.h
 
-options_holder.h options.cpp ../smt/smt_options.cpp base_options.cpp base_options.h $(OPTIONS_FILES:%=../%.cpp) $(OPTIONS_FILES:%=../%.h): options-stamp
-options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILES:%=../%)
+options_holder.h options.cpp ../smt/smt_options.cpp $(OPTIONS_FILES_SRCS): options-stamp
+options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options_template.cpp base_options_template.h base_options_template.cpp mkoptions $(OPTIONS_FILES)
 	$(AM_V_at)chmod +x @srcdir@/mkoptions
 	$(AM_V_GEN)(@srcdir@/mkoptions \
 		@srcdir@/options_holder_template.h @builddir@/options_holder.h \
@@ -126,11 +178,11 @@ options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options
 		@top_builddir@/doc/cvc4.1_template @top_builddir@/doc/cvc4.1 \
 		-t \
 		@srcdir@/base_options_template.h @srcdir@/base_options_template.cpp \
-		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/../$(o)" "$(dir $(builddir)/../$(o))") \
+		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)" "$(dir $(builddir)/$(o))") \
 	)
 	touch "$@"
 
-base_options $(OPTIONS_FILES:%=../%):;
+$(OPTIONS_FILES):;
 
 .PHONY: exprs-builts
 exprs-builts:; $(AM_V_at)[ "$(FROM_EXPR)" != 1 ] && $(MAKE) -C ../expr builts || true
