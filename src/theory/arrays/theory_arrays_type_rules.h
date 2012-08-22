@@ -81,71 +81,63 @@ struct ArrayStoreTypeRule {
       return false;
     }
 
-    // If store indices are not in order, not in normal form
-    if (store.getKind() == kind::STORE && index < store[1]) {
+    // Normal form for nested stores is just ordering by index but also need to check that we are not writing
+    // to default value
+    if (store.getKind() == kind::STORE && (!(store[1] < index))) {
       return false;
     }
 
-    // Compute the number of nested stores
     Integer depth = 1;
+    Integer valCount = 1;
     while (store.getKind() == kind::STORE) {
-      store = store[0];
       depth += 1;
-    }
-
-    // Get the default value in the STORE_ALL object at the bottom of the nested stores
-    Assert(store.getKind() == kind::STORE_ALL);
-    ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-    TNode defaultValue /* = storeAll.getExpr().getTNode()*/ ;
-
-    // If writing to default value, not in normal form
-    if (defaultValue == value) {
-      return false;
-    }
-    
-    // Get the cardinality of the index type
-    Cardinality indexCard = index.getType().getCardinality();
-
-    // If cardinality is infinite, ok - in normal form
-    if (indexCard.isInfinite()) {
-      return true;
-    }
-    
-    /*
-    Assert(depth <= indexCard);
-
-    // If number of stores is equal to cardinality of index type,
-    // then the default value is overridden at all indices.  Our normal form
-    // requires that the most frequent value is the default value.
-    if (depth == indexCard) {
-       return false;
-    }
-
-    // If the number of stores is less than half of the cardinality, then we
-    // know the default value is the most frequent value, so in normal form
-    if (depth*2 < indexCard) {
-      return true;
-    }
-    Integer defaultCount = indexCard - depth;
-
-    // Have to compare number of occurrences of value with defaultValue
-    store = n[0];
-    depth = 1;
-    while (store.getKind() == kind::STORE) {
       if (store[2] == value) {
-        depth += 1;
+        valCount += 1;
       }
       store = store[0];
     }
-
-    // If value occurs more frequently than the default value or the same
-    // and is less than defaultValue, then this is not in normal form
-    if (depth > defaultCount ||
-        (depth == defaultCount && value < defaultValue)) {
+    Assert(store.getKind() == kind::STORE_ALL);
+    ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
+    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    if (value == defaultValue) {
       return false;
     }
-    */
 
+    // Get the cardinality of the index type
+    Cardinality indexCard = index.getType().getCardinality();
+
+    if (indexCard.isInfinite()) {
+      return true;
+    }
+
+    // When index sort is finite, we have to check whether there is any value
+    // that is written to more than the default value.  If so, it is not in
+    // normal form.
+
+    // Get the most frequently written value from n[0]
+    TNode mostFrequentValue;
+    Integer mostFrequentValueCount = 0;
+    store = n[0];
+    if (store.getKind() == kind::STORE) {
+      // TODO: look up most frequent value and count
+    }
+
+    // Compute the most frequently written value for n
+    if (valCount > mostFrequentValueCount ||
+        (valCount == mostFrequentValueCount && value < mostFrequentValue)) {
+      mostFrequentValue = value;
+      mostFrequentValueCount = valCount;
+    }
+
+    // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
+    int compare;// = indexCard.compare(mostFrequentValueCount + depth);
+    // Assert result of compare is not unknown
+    if (compare < 0 ||
+        (compare == 0 && (!(defaultValue < mostFrequentValue)))) {
+      return false;
+    }
+
+    // TODO: store mostFrequentValue and mostFrequentValueCount for this node
     return true;
   }
 
