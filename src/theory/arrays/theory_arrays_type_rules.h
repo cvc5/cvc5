@@ -87,8 +87,8 @@ struct ArrayStoreTypeRule {
       return false;
     }
 
-    Integer depth = 1;
-    Integer valCount = 1;
+    unsigned depth = 1;
+    unsigned valCount = 1;
     while (store.getKind() == kind::STORE) {
       depth += 1;
       if (store[2] == value) {
@@ -116,7 +116,7 @@ struct ArrayStoreTypeRule {
 
     // Get the most frequently written value from n[0]
     TNode mostFrequentValue;
-    Integer mostFrequentValueCount = 0;
+    unsigned mostFrequentValueCount = 0;
     store = n[0];
     if (store.getKind() == kind::STORE) {
       // TODO: look up most frequent value and count
@@ -130,10 +130,10 @@ struct ArrayStoreTypeRule {
     }
 
     // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
-    int compare;// = indexCard.compare(mostFrequentValueCount + depth);
-    // Assert result of compare is not unknown
-    if (compare < 0 ||
-        (compare == 0 && (!(defaultValue < mostFrequentValue)))) {
+    Cardinality::CardinalityComparison compare = indexCard.compare(mostFrequentValueCount + depth);
+    Assert(compare != Cardinality::UNKNOWN);
+    if (compare == Cardinality::LESS ||
+        (compare == Cardinality::EQUAL && (!(defaultValue < mostFrequentValue)))) {
       return false;
     }
 

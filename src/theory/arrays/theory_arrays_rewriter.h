@@ -23,6 +23,7 @@
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 
 #include "theory/rewriter.h"
+#include "type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -44,8 +45,8 @@ class TheoryArraysRewriter {
     // Go through nested stores looking for where to insert index
     // Also check whether we are replacing an existing store
     TNode replacedValue;
-    Integer depth = 1;
-    Integer valCount = 1;
+    unsigned depth = 1;
+    unsigned valCount = 1;
     while (store.getKind() == kind::STORE) {
       if (index == store[1]) {
         replacedValue = store[2];
@@ -108,7 +109,7 @@ class TheoryArraysRewriter {
     // the new default value
 
     TNode mostFrequentValue;
-    Integer mostFrequentValueCount = 0;
+    unsigned mostFrequentValueCount = 0;
     bool recompute = false;
     if (node[0].getKind() == kind::STORE) {
       // TODO: look up most frequent value and count
@@ -126,10 +127,10 @@ class TheoryArraysRewriter {
     }
 
     // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
-    int compare;// = indexCard.compare(mostFrequentValueCount + depth);
-    // Assert result of compare is not unknown
-    if (compare > 0 ||
-        (compare == 0 && (defaultValue < mostFrequentValue))) {
+    Cardinality::CardinalityComparison compare = indexCard.compare(mostFrequentValueCount + depth);
+    Assert(compare != Cardinality::UNKNOWN);
+    if (compare == Cardinality::GREATER ||
+        (compare == Cardinality::EQUAL && (defaultValue < mostFrequentValue))) {
       return n;
     }
 
@@ -164,25 +165,42 @@ class TheoryArraysRewriter {
     }
 
     Assert(depth == indices.size());
-    //compare = indexCard.compare(max + depth);
-    // Assert result of compare is not unknown
-    if (compare > 0 ||
-        (compare == 0 && (defaultValue < maxValue))) {
+    compare = indexCard.compare(max + depth);
+    Assert(compare != Cardinality::UNKNOWN);
+    if (compare == Cardinality::GREATER ||
+        (compare == Cardinality::EQUAL && (defaultValue < maxValue))) {
       Assert(recompute);
       return n;
     }
 
     // Out of luck: have to swap out default value
-    std::vector<Node> newIndices;
-    // Enumerate values from index type into newIndices and sort
 
-    //n = storeAll(maxValue)
-    while (!newIndices.empty() || !indices.empty()) {
-      if (!newIndices.empty() && (indices.empty() || newIndices.back() < indices.back())) {
-        n = nm->mkNode(kind::STORE, n, newIndices.back(), defaultValue);
-        newIndices.pop_back();
+    // Enumerate values from index type into newIndices and sort
+    std::vector<Node> newIndices;
+    TypeEnumerator te(index.getType());
+    bool needToSort = false;
+    while (!te.isFinished()) {
+      if (indexSet.find(*te) == indexSet.end()) {
+        if (!newIndices.empty() && (!(newIndices.back() < (*te)))) {
+          needToSort = true;
+        }
+        newIndices.push_back(*te);
       }
-      else if (newIndices.empty() || indices.back() < newIndices.back()) {
+      ++te;
+    }
+    Assert(indexCard.compare(newIndices.size() + depth) == Cardinality::EQUAL);
+    if (needToSort) {
+      std::sort(newIndices.begin(), newIndices.end());
+    }
+
+    n = nm->mkConst(ArrayStoreAll(node.getType().toType(), maxValue.toExpr()));
+    std::vector<Node>::iterator itNew = newIndices.begin(), it_end = newIndices.end();
+    while (itNew != it_end || !indices.empty()) {
+      if (itNew != it_end && (indices.empty() || (*itNew) < indices.back())) {
+        n = nm->mkNode(kind::STORE, n, (*itNew), defaultValue);
+        ++itNew;
+      }
+      else if (itNew == it_end || indices.back() < (*itNew)) {
         if (elements.back() != maxValue) {
           n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
         }
