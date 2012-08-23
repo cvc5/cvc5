@@ -21,6 +21,8 @@
 #ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_TYPE_RULES_H
 
+#include "theory/arrays/theory_arrays_rewriter.h" // for array-constant attributes
+
 namespace CVC4 {
 namespace theory {
 namespace arrays {
@@ -120,6 +122,8 @@ struct ArrayStoreTypeRule {
     store = n[0];
     if (store.getKind() == kind::STORE) {
       // TODO: look up most frequent value and count
+      mostFrequentValue = n.getAttribute(ArrayConstantMostFrequentValueAttr());
+      mostFrequentValueCount = n.getAttribute(ArrayConstantMostFrequentValueCountAttr());
     }
 
     // Compute the most frequently written value for n
@@ -138,6 +142,8 @@ struct ArrayStoreTypeRule {
     }
 
     // TODO: store mostFrequentValue and mostFrequentValueCount for this node
+    n.setAttribute(ArrayConstantMostFrequentValueAttr(), mostFrequentValue);
+    n.setAttribute(ArrayConstantMostFrequentValueCountAttr(), mostFrequentValueCount);
     return true;
   }
 

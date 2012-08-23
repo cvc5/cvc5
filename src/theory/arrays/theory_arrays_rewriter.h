@@ -23,11 +23,20 @@
 #define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_REWRITER_H
 
 #include "theory/rewriter.h"
-#include "type_enumerator.h"
+#include "theory/type_enumerator.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arrays {
+
+namespace attr {
+  struct ArrayConstantMostFrequentValueTag { };
+  struct ArrayConstantMostFrequentValueCountTag { };
+}/* CVC4::theory::arrays::attr namespace */
+
+typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
+typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
 
 class TheoryArraysRewriter {
 
@@ -113,6 +122,8 @@ class TheoryArraysRewriter {
     bool recompute = false;
     if (node[0].getKind() == kind::STORE) {
       // TODO: look up most frequent value and count
+      mostFrequentValue = node.getAttribute(ArrayConstantMostFrequentValueAttr());
+      mostFrequentValueCount = node.getAttribute(ArrayConstantMostFrequentValueCountAttr());
       if (!replacedValue.isNull() && mostFrequentValue == replacedValue) {
         recompute = true;
       }
