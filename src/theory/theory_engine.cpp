@@ -676,6 +676,16 @@ void TheoryEngine::shutdown() {
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
+
+  if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(atom)) &&
+     Theory::theoryOf(atom) != THEORY_SAT_SOLVER) {
+    stringstream ss;
+    ss << "The logic was specified as " << d_logicInfo.getLogicString()
+       << ", which doesn't include " << Theory::theoryOf(atom)
+       << ", but got an asserted fact to that theory";
+    throw Exception(ss.str());
+  }
+
   Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
@@ -753,6 +763,15 @@ Node TheoryEngine::preprocess(TNode assertion) {
     if (find != d_ppCache.end()) {
       toVisit.pop_back();
       continue;
+    }
+
+    if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(current)) &&
+       Theory::theoryOf(current) != THEORY_SAT_SOLVER) {
+      stringstream ss;
+      ss << "The logic was specified as " << d_logicInfo.getLogicString()
+         << ", which doesn't include " << Theory::theoryOf(current)
+         << ", but got an asserted fact to that theory";
+      throw Exception(ss.str());
     }
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
@@ -836,6 +855,14 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
   Trace("theory::assertToTheory") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << ")" << std::endl;
 
   Assert(toTheoryId != fromTheoryId);
+  if(! d_logicInfo.isTheoryEnabled(toTheoryId) &&
+     toTheoryId != THEORY_SAT_SOLVER) {
+    stringstream ss;
+    ss << "The logic was specified as " << d_logicInfo.getLogicString()
+       << ", which doesn't include " << toTheoryId
+       << ", but got an asserted fact to that theory";
+    throw Exception(ss.str());
+  }
 
   if (d_inConflict) {
     return;
