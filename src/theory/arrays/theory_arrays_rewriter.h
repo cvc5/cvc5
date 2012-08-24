@@ -119,7 +119,7 @@ class TheoryArraysRewriter {
 
     TNode mostFrequentValue;
     unsigned mostFrequentValueCount = 0;
-    bool recompute = false;
+    bool recompute CVC4_UNUSED = false;
     if (node[0].getKind() == kind::STORE) {
       // TODO: look up most frequent value and count
       mostFrequentValue = node.getAttribute(ArrayConstantMostFrequentValueAttr());
