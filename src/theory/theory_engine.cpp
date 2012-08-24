@@ -561,10 +561,11 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
 }
 
 void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
-  //consult each theory to get all relevant information concerning the model
-  for( int i=0; i<theory::THEORY_LAST; i++ ){
-    if( d_theoryTable[i] ){
-      d_theoryTable[i]->collectModelInfo( m );
+  // Consult each active theory to get all relevant information
+  // concerning the model.
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
+    if(d_logicInfo.isTheoryEnabled(theoryId)) {
+      d_theoryTable[theoryId]->collectModelInfo(m);
     }
   }
 }
