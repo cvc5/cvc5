@@ -438,12 +438,13 @@ public:
 
 class CVC4_PUBLIC GetValueCommand : public Command {
 protected:
-  Expr d_term;
+  std::vector<Expr> d_terms;
   Expr d_result;
 public:
   GetValueCommand(Expr term) throw();
+  GetValueCommand(const std::vector<Expr>& terms) throw();
   ~GetValueCommand() throw() {}
-  Expr getTerm() const throw();
+  const std::vector<Expr>& getTerms() const throw();
   void invoke(SmtEngine* smtEngine) throw();
   Expr getResult() const throw();
   void printResult(std::ostream& out) const throw();

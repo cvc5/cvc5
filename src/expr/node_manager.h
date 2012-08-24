@@ -976,7 +976,7 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
 }
 
 inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
-  Assert(types.size() >= 2);
+  Assert(types.size() >= 1);
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0; i < types.size(); ++ i) {
     CheckArgument(!types[i].isFunctionLike(), types,

@@ -283,19 +283,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     LPAREN_TOK termList[terms,expr] RPAREN_TOK
-    { if(terms.size() == 1) {
-        $cmd = new GetValueCommand(terms[0]);
-      } else {
-        CommandSequence* seq = new CommandSequence();
-        for(std::vector<Expr>::const_iterator i = terms.begin(),
-              iend = terms.end();
-            i != iend;
-            ++i) {
-          seq->addCommand(new GetValueCommand(*i));
-        }
-        $cmd = seq;
-      }
-    }
+    { $cmd = new GetValueCommand(terms); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd = new GetAssignmentCommand; }

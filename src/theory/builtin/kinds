@@ -295,7 +295,7 @@ operator EQUAL 2 "equality"
 operator DISTINCT 2: "disequality"
 variable SKOLEM "skolem var"
 variable VARIABLE "variable"
-operator TUPLE 2: "a tuple"
+operator TUPLE 1: "a tuple"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
@@ -307,7 +307,7 @@ cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 well-founded FUNCTION_TYPE false
-operator TUPLE_TYPE 2: "tuple type"
+operator TUPLE_TYPE 1: "tuple type"
 cardinality TUPLE_TYPE \
     "::CVC4::theory::builtin::TupleProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"

@@ -686,17 +686,29 @@ Command* SimplifyCommand::clone() const {
 /* class GetValueCommand */
 
 GetValueCommand::GetValueCommand(Expr term) throw() :
-  d_term(term) {
+  d_terms() {
+  d_terms.push_back(term);
 }
 
-Expr GetValueCommand::getTerm() const throw() {
-  return d_term;
+GetValueCommand::GetValueCommand(const std::vector<Expr>& terms) throw() :
+  d_terms(terms) {
+  CheckArgument(terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+}
+
+const std::vector<Expr>& GetValueCommand::getTerms() const throw() {
+  return d_terms;
 }
 
 void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    d_result = d_term.getExprManager()->mkExpr(kind::TUPLE, d_term,
-                                               smtEngine->getValue(d_term));
+    vector<Node> result;
+    NodeManager* nm = NodeManager::fromExprManager(smtEngine->getExprManager());
+    for(std::vector<Expr>::const_iterator i = d_terms.begin(); i != d_terms.end(); ++i) {
+      Assert(nm == NodeManager::fromExprManager((*i).getExprManager()));
+      result.push_back(nm->mkNode(kind::TUPLE, Node::fromExpr(*i), Node::fromExpr(smtEngine->getValue(*i))));
+    }
+    Node n = nm->mkNode(kind::TUPLE, result);
+    d_result = nm->toExpr(n);
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -711,18 +723,23 @@ void GetValueCommand::printResult(std::ostream& out) const throw() {
   if(! ok()) {
     this->Command::printResult(out);
   } else {
+    Expr::dag::Scope scope(out, false);
     out << d_result << endl;
   }
 }
 
 Command* GetValueCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  GetValueCommand* c = new GetValueCommand(d_term.exportTo(exprManager, variableMap));
+  vector<Expr> exportedTerms;
+  for(std::vector<Expr>::const_iterator i = d_terms.begin(); i != d_terms.end(); ++i) {
+    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
+  }
+  GetValueCommand* c = new GetValueCommand(exportedTerms);
   c->d_result = d_result.exportTo(exprManager, variableMap);
   return c;
 }
 
 Command* GetValueCommand::clone() const {
-  GetValueCommand* c = new GetValueCommand(d_term);
+  GetValueCommand* c = new GetValueCommand(d_terms);
   c->d_result = d_result;
   return c;
 }

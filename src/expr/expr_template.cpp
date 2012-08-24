@@ -168,7 +168,7 @@ Debug("export") << "+ child: " << *i << std::endl;
 
 }/* CVC4::expr namespace */
 
-Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) const {
   Assert(d_exprManager != exprManager,
          "No sense in cloning an Expr in the same ExprManager");
   ExprManagerScope ems(*this);

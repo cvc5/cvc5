@@ -461,7 +461,7 @@ public:
    * variableMap for the translation and extending it with any new
    * mappings.
    */
-  Expr exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Expr exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) const;
 
   /**
    * IOStream manipulator to set the maximum depth of Exprs when

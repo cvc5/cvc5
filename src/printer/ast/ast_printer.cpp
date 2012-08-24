@@ -288,7 +288,10 @@ static void toStream(std::ostream& out, const SimplifyCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
-  out << "GetValue( << " << c->getTerm() << " >> )";
+  out << "GetValue( << ";
+  const vector<Expr>& terms = c->getTerms();
+  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
+  out << " >> )";
 }
 
 static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
