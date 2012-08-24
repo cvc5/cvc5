@@ -93,7 +93,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  Node n = NodeManager::currentNM()->mkVar(t);
+  Node n = NodeManager::currentNM()->mkSkolem(t);
   Dump.declareVar(n.toExpr(), "a new var introduced because of unconstrained variable " + var.toString());
   return n;
 }

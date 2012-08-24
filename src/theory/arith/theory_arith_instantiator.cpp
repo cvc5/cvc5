@@ -412,7 +412,7 @@ Node InstantiatorTheoryArith::getDelta( Node n ){
   if( it==d_deltas.end() ){
     std::ostringstream os;
     os << "delta_" << d_deltas.size();
-    Node delta = NodeManager::currentNM()->mkVar( os.str(), n.getType() );
+    Node delta = NodeManager::currentNM()->mkSkolem( os.str(), n.getType() );
     d_deltas[ n.getType() ] = delta;
     Node gt = NodeManager::currentNM()->mkNode( GT, delta, NodeManager::currentNM()->mkConst( Rational(0) ) );
     //add split

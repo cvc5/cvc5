@@ -236,7 +236,7 @@ Node TheoryModel::getNewDomainValue( TypeNode tn ){
     }while( true );
   }else{
     //otherwise must make a variable  FIXME: how to make constants for other sorts?
-    //return NodeManager::currentNM()->mkVar( tn );
+    //return NodeManager::currentNM()->mkSkolem( tn );
     return Node::null();
   }
 }
@@ -374,7 +374,7 @@ Node DefaultModel::getInterpretedValue( TNode n ){
           default_v = v;
         }
         if( default_v.isNull() ){
-          default_v = getInterpretedValue( NodeManager::currentNM()->mkVar( type.getRangeType() ) );
+          default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( type.getRangeType() ) );
         }
         ufmt.setDefaultValue( this, default_v );
         ufmt.simplify();

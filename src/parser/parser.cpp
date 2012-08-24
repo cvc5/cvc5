@@ -150,6 +150,14 @@ Parser::mkVar(const std::string& name, const Type& type,
 }
 
 Expr
+Parser::mkBoundVar(const std::string& name, const Type& type) {
+  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
+  Expr expr = d_exprManager->mkBoundVar(name, type);
+  defineVar(name, expr, false);
+  return expr;
+}
+
+Expr
 Parser::mkFunction(const std::string& name, const Type& type,
                             bool levelZero) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
@@ -178,7 +186,8 @@ Parser::mkVars(const std::vector<std::string> names,
 
 void
 Parser::defineVar(const std::string& name, const Expr& val,
-                       bool levelZero) {
+                  bool levelZero) {
+  Debug("parser") << "defineVar( " << name << " := " << val << " , " << levelZero << ")" << std::endl;;
   d_symtab->bind(name, val, levelZero);
   Assert( isDeclared(name) );
 }
@@ -300,14 +309,14 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
       Expr::printtypes::Scope pts(Debug("parser-idt"), true);
       Expr constructor = ctor.getConstructor();
       Debug("parser-idt") << "+ define " << constructor << std::endl;
-      string constructorName = constructor.toString();
+      string constructorName = ctor.getName();
       if(isDeclared(constructorName, SYM_VARIABLE)) {
         throw ParserException(constructorName + " already declared");
       }
       defineVar(constructorName, constructor);
       Expr tester = ctor.getTester();
       Debug("parser-idt") << "+ define " << tester << std::endl;
-      string testerName = tester.toString();
+      string testerName = ctor.getTesterName();
       if(isDeclared(testerName, SYM_VARIABLE)) {
         throw ParserException(testerName + " already declared");
       }
@@ -318,7 +327,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
           ++k) {
         Expr selector = (*k).getSelector();
         Debug("parser-idt") << "+++ define " << selector << std::endl;
-        string selectorName = selector.toString();
+        string selectorName = (*k).getName();
         if(isDeclared(selectorName, SYM_VARIABLE)) {
           throw ParserException(selectorName + " already declared");
         }

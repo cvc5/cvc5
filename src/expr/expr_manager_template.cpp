@@ -44,16 +44,16 @@ ${includes}
     } \
     ++ *(d_exprStatistics[kind]); \
   }
-  #define INC_STAT_VAR(type) \
+  #define INC_STAT_VAR(type, bound_var) \
   { \
     TypeNode* typeNode = Type::getTypeNode(type); \
     TypeConstant type = typeNode->getKind() == kind::TYPE_CONSTANT ? typeNode->getConst<TypeConstant>() : LAST_TYPE; \
     if (d_exprStatisticsVars[type] == NULL) { \
       stringstream statName; \
       if (type == LAST_TYPE) { \
-        statName << "expr::ExprManager::VARIABLE:Parameterized type"; \
+        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":Parameterized type"; \
       } else { \
-        statName << "expr::ExprManager::VARIABLE:" << type; \
+        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":" << type; \
       } \
       d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
       d_nodeManager->getStatisticsRegistry()->registerStat_(d_exprStatisticsVars[type]); \
@@ -62,7 +62,7 @@ ${includes}
   }
 #else
   #define INC_STAT(kind)
-  #define INC_STAT_VAR(type)
+  #define INC_STAT_VAR(type, bound_var)
 #endif
 
 using namespace std;
@@ -791,17 +791,33 @@ Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
 }
 
 Expr ExprManager::mkVar(const std::string& name, Type type) {
+  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
-  INC_STAT_VAR(type);
+  INC_STAT_VAR(type, false);
   return Expr(this, n);
 }
 
 Expr ExprManager::mkVar(Type type) {
+  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
-  INC_STAT_VAR(type);
+  INC_STAT_VAR(type, false);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));
+}
+
+Expr ExprManager::mkBoundVar(const std::string& name, Type type) {
+  NodeManagerScope nms(d_nodeManager);
+  Node* n = d_nodeManager->mkBoundVarPtr(name, *type.d_typeNode);
+  Debug("nm") << "set " << name << " on " << *n << std::endl;
+  INC_STAT_VAR(type, true);
+  return Expr(this, n);
+}
+
+Expr ExprManager::mkBoundVar(Type type) {
+  NodeManagerScope nms(d_nodeManager);
+  INC_STAT_VAR(type, true);
+  return Expr(this, d_nodeManager->mkBoundVarPtr(*type.d_typeNode));
 }
 
 Expr ExprManager::mkAssociative(Kind kind,

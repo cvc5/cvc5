@@ -253,7 +253,7 @@ annotatedFormula[CVC4::Expr& expr]
     ( FORALL_TOK { kind = kind::FORALL; } | EXISTS_TOK { kind = kind::EXISTS; } )
     { PARSER_STATE->pushScope(); }
     ( LPAREN_TOK let_identifier[name,CHECK_NONE] t=sortSymbol RPAREN_TOK
-      { args.push_back(PARSER_STATE->mkVar(name, t)); }
+      { args.push_back(PARSER_STATE->mkBoundVar(name, t)); }
     )+
     annotatedFormula[expr] RPAREN_TOK
     { args2.push_back( MK_EXPR( kind::BOUND_VAR_LIST, args ) );

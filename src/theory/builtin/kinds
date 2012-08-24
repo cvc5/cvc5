@@ -293,8 +293,9 @@ parameterized APPLY FUNCTION 0: "defined function application"
 
 operator EQUAL 2 "equality"
 operator DISTINCT 2: "disequality"
-variable SKOLEM "skolem var"
 variable VARIABLE "variable"
+variable BOUND_VARIABLE "bound variable"
+variable SKOLEM "skolem var"
 operator TUPLE 1: "a tuple"
 
 constant TYPE_CONSTANT \

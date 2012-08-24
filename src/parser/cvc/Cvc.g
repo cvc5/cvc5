@@ -1254,14 +1254,14 @@ prefixFormula[CVC4::Expr& f]
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-        bvs.push_back(PARSER_STATE->mkVar(*i, t));
+        bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
       }
       ids.clear();
     }
     ( COMMA boundVarDecl[ids,t]
       {
         for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-          bvs.push_back(PARSER_STATE->mkVar(*i, t));
+          bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
         }
         ids.clear();
       }

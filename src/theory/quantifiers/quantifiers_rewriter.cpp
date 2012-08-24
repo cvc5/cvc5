@@ -384,7 +384,7 @@ Node QuantifiersRewriter::computeCNF( Node n, std::vector< Node >& args, NodeBui
       TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, NodeManager::currentNM()->booleanType() );
       std::stringstream ss;
       ss << "cnf_" << n.getKind() << "_" << n.getId();
-      Node op = NodeManager::currentNM()->mkVar( ss.str(), typ );
+      Node op = NodeManager::currentNM()->mkSkolem( ss.str(), typ );
       std::vector< Node > predArgs;
       predArgs.push_back( op );
       predArgs.insert( predArgs.end(), activeArgs.begin(), activeArgs.end() );
@@ -473,7 +473,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
         for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
           //if( std::find( args.begin(), args.end(), body[0][i] )!=args.end() ){
           terms.push_back( body[0][i] );
-          subs.push_back( NodeManager::currentNM()->mkVar( body[0][i].getType() ) );
+          subs.push_back( NodeManager::currentNM()->mkSkolem( body[0][i].getType() ) );
         }
         args.insert( args.end(), subs.begin(), subs.end() );
       }else{
@@ -486,7 +486,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
           terms.push_back( body[0][i] );
           //make the new function symbol
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, body[0][i].getType() );
-          Node op = NodeManager::currentNM()->mkVar( typ );
+          Node op = NodeManager::currentNM()->mkSkolem( typ );
           std::vector< Node > funcArgs;
           funcArgs.push_back( op );
           funcArgs.insert( funcArgs.end(), args.begin(), args.end() );

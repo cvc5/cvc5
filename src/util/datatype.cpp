@@ -392,6 +392,12 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                 "cannot resolve a Datatype constructor twice; "
                 "perhaps the same constructor was added twice, "
                 "or to two datatypes?");
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(*em);
+
+  NodeManager* nm = NodeManager::fromExprManager(em);
+  TypeNode selfTypeNode = TypeNode::fromType(self);
   size_t index = 0;
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     if((*i).d_selector.isNull()) {
@@ -399,7 +405,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
       string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
       (*i).d_name.resize((*i).d_name.find('\0'));
       if(typeName == "") {
-        (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, self));
+        (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, selfTypeNode)).toExpr();
       } else {
         map<string, DatatypeType>::const_iterator j = resolutions.find(typeName);
         if(j == resolutions.end()) {
@@ -409,7 +415,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
               << "of constructor \"" << d_name << "\"";
           throw DatatypeResolutionException(msg.str());
         } else {
-          (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, (*j).second));
+          (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType((*j).second))).toExpr();
         }
       }
     } else {
@@ -422,7 +428,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
       if(!paramTypes.empty() ) {
         range = doParametricSubstitution( range, paramTypes, paramReplacements );
       }
-      (*i).d_selector = em->mkVar((*i).d_name, em->mkSelectorType(self, range));
+      (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType(range))).toExpr();
     }
     Node::fromExpr((*i).d_selector).setAttribute(DatatypeIndexAttr(), index++);
     (*i).d_resolved = true;
@@ -435,9 +441,8 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   // fails above, we want Constuctor::isResolved() to remain "false".
   // Further, mkConstructorType() iterates over the selectors, so
   // should get the results of any resolutions we did above.
-  d_tester = em->mkVar(d_name.substr(d_name.find('\0') + 1), em->mkTesterType(self));
-  d_name.resize(d_name.find('\0'));
-  d_constructor = em->mkVar(d_name, em->mkConstructorType(*this, self));
+  d_tester = nm->mkSkolem(getTesterName(), nm->mkTesterType(selfTypeNode)).toExpr();
+  d_constructor = nm->mkSkolem(getName(), nm->mkConstructorType(*this, selfTypeNode)).toExpr();
   // associate constructor with all selectors
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     (*i).d_constructor = d_constructor;
@@ -503,7 +508,11 @@ void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // create the proper selector type)
   CheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
   CheckArgument(!selectorType.isNull(), selectorType, "cannot add a null selector type");
-  Expr type = selectorType.getExprManager()->mkVar(selectorType);
+
+  // we're using some internals, so we have to set up this library context
+  ExprManagerScope ems(selectorType);
+
+  Expr type = NodeManager::currentNM()->mkSkolem(TypeNode::fromType(selectorType)).toExpr();
   Debug("datatypes") << type << endl;
   d_args.push_back(DatatypeConstructorArg(selectorName, type));
 }
@@ -529,11 +538,11 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
 }
 
 std::string DatatypeConstructor::getName() const throw() {
-  string name = d_name;
-  if(!isResolved()) {
-    name.resize(name.find('\0'));
-  }
-  return name;
+  return d_name.substr(0, d_name.find('\0'));
+}
+
+std::string DatatypeConstructor::getTesterName() const throw() {
+  return d_name.substr(d_name.find('\0') + 1);
 }
 
 Expr DatatypeConstructor::getConstructor() const {

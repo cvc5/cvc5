@@ -330,7 +330,7 @@ bool Expr::isString() const {
 }
 
 bool Expr::isBoundVar() const {
-  Unimplemented();
+  return getKind() == CVC4::kind::BOUND_VARIABLE;
 }
 
 bool Expr::isLambda() const {
@@ -1857,7 +1857,7 @@ Expr ValidityChecker::datatypeTestExpr(const std::string& constructor, const Exp
 
 Expr ValidityChecker::boundVarExpr(const std::string& name, const std::string& uid,
                                    const Type& type) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  return d_em->mkBoundVar(name, type);
 }
 
 Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body) {

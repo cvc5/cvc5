@@ -407,7 +407,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
       }
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
@@ -448,7 +448,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
       }
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
@@ -597,7 +597,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        args.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
       }
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();

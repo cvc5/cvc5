@@ -450,6 +450,8 @@ public:
   // variables are special, because duplicates are permitted
   Expr mkVar(const std::string& name, Type type);
   Expr mkVar(Type type);
+  Expr mkBoundVar(const std::string& name, Type type);
+  Expr mkBoundVar(Type type);
 
   /** Get a reference to the statistics registry for this ExprManager */
   StatisticsRegistry* getStatisticsRegistry() const throw();

@@ -327,7 +327,7 @@ variable[CVC4::Expr & expr]
       if(!PARSER_STATE->cnf || PARSER_STATE->isDeclared(name)){
         expr = PARSER_STATE->getVariable(name);
       } else {
-        expr = PARSER_STATE->mkVar(name, PARSER_STATE->d_unsorted);
+        expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
         if(PARSER_STATE->cnf) PARSER_STATE->addFreeVar(expr);
       }
     }
@@ -402,7 +402,7 @@ bindvariable[CVC4::Expr & expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
-      expr = PARSER_STATE->mkVar(name, PARSER_STATE->d_unsorted);
+      expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
     }
     ;
 

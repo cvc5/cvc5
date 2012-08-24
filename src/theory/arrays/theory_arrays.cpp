@@ -694,7 +694,7 @@ void TheoryArrays::check(Effort e) {
             TNode k;
             std::hash_map<TNode, Node, TNodeHashFunction>::iterator it = d_diseqCache.find(fact);
             if (it == d_diseqCache.end()) {
-              Node newk = nm->mkVar(indexType);
+              Node newk = nm->mkSkolem(indexType);
 	      Dump.declareVar(newk.toExpr(),
                               "an extensional lemma index variable from the theory of arrays");
               d_diseqCache[fact] = newk;

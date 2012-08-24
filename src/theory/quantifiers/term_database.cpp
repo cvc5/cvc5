@@ -198,7 +198,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
-      mbt = NodeManager::currentNM()->mkVar( ss.str(), tn );
+      mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn );
     }else{
       mbt = d_type_map[ tn ][ 0 ];
     }
@@ -342,7 +342,7 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
       d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
     }else{
       if( d_type_map[ tn ].empty() ){
-        d_free_vars[tn] = NodeManager::currentNM()->mkVar( tn );
+        d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( tn );
       }else{
         d_free_vars[tn] = d_type_map[ tn ][ 0 ];
       }

@@ -233,6 +233,11 @@ public:
   Expr getTester() const;
 
   /**
+   * Get the tester name for this Datatype constructor.
+   */
+  std::string getTesterName() const throw();
+
+  /**
    * Get the number of arguments (so far) of this Datatype constructor.
    */
   inline size_t getNumArgs() const throw();

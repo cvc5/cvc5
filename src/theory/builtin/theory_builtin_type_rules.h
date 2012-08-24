@@ -152,7 +152,7 @@ public:
   }
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkVar( type );
+    return NodeManager::currentNM()->mkSkolem( type );
   }
 };/* class SortProperties */
 

@@ -68,7 +68,7 @@ inline Node mkFalse() {
 
 inline Node mkVar(unsigned size) {
   NodeManager* nm =  NodeManager::currentNM();
-  return nm->mkVar(nm->mkBitVectorType(size)); 
+  return nm->mkSkolem(nm->mkBitVectorType(size)); 
 }
 
 inline Node mkAnd(std::vector<TNode>& children) {

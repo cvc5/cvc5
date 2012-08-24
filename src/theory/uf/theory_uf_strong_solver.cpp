@@ -1048,7 +1048,7 @@ Node StrongSolverTheoryUf::ConflictFind::getCardinalityLemma(){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "t_" << d_type;
-      d_cardinality_lemma_term = NodeManager::currentNM()->mkVar( ss.str(), d_type );
+      d_cardinality_lemma_term = NodeManager::currentNM()->mkSkolem( ss.str(), d_type );
     }
     Node lem = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, d_cardinality_lemma_term,
                                   NodeManager::currentNM()->mkConst( Rational( d_cardinality ) ) );

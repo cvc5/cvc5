@@ -69,6 +69,10 @@ class NodeManager {
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
 
+  // friends so they can access mkVar() here, which is private
+  friend Expr ExprManager::mkVar(const std::string& name, Type type);
+  friend Expr ExprManager::mkVar(Type type);
+
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
@@ -257,6 +261,20 @@ class NodeManager {
 
   void init();
 
+  /**
+   * Create a variable with the given name and type.  NOTE that no
+   * lookup is done on the name.  If you mkVar("a", type) and then
+   * mkVar("a", type) again, you have two variables.  The NodeManager
+   * version of this is private to avoid internal uses of mkVar() from
+   * within CVC4.  Such uses should employ mkSkolem() instead.
+   */
+  Node mkVar(const std::string& name, const TypeNode& type);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type);
+
+  /** Create a variable with the given type. */
+  Node mkVar(const TypeNode& type);
+  Node* mkVarPtr(const TypeNode& type);
+
 public:
 
   explicit NodeManager(context::Context* ctxt, ExprManager* exprManager);
@@ -347,20 +365,15 @@ public:
   template <bool ref_count>
   Node* mkNodePtr(TNode opNode, const std::vector<NodeTemplate<ref_count> >& children);
 
-  /**
-   * Create a variable with the given name and type.  NOTE that no
-   * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.
-   */
-  Node mkVar(const std::string& name, const TypeNode& type);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type);
+  Node mkBoundVar(const std::string& name, const TypeNode& type);
+  Node* mkBoundVarPtr(const std::string& name, const TypeNode& type);
 
-  /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type);
-  Node* mkVarPtr(const TypeNode& type);
+  Node mkBoundVar(const TypeNode& type);
+  Node* mkBoundVarPtr(const TypeNode& type);
 
   /** Create a skolem constant with the given type. */
   Node mkSkolem(const TypeNode& type);
+  Node mkSkolem(const std::string& name, const TypeNode& type);
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
@@ -1356,7 +1369,6 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 
 inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   Node n = mkVar(type);
-  setAttribute(n, TypeAttr(), type);
   setAttribute(n, expr::VarNameAttr(), name);
   return n;
 }
@@ -1364,7 +1376,19 @@ inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
 inline Node* NodeManager::mkVarPtr(const std::string& name,
                                    const TypeNode& type) {
   Node* n = mkVarPtr(type);
-  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, expr::VarNameAttr(), name);
+  return n;
+}
+
+inline Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type) {
+  Node n = mkBoundVar(type);
+  setAttribute(n, expr::VarNameAttr(), name);
+  return n;
+}
+
+inline Node* NodeManager::mkBoundVarPtr(const std::string& name,
+                                        const TypeNode& type) {
+  Node* n = mkBoundVarPtr(type);
   setAttribute(*n, expr::VarNameAttr(), name);
   return n;
 }
@@ -1380,6 +1404,26 @@ inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
+  return n;
+}
+
+inline Node NodeManager::mkBoundVar(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::BOUND_VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  return n;
+}
+
+inline Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
+  Node* n = NodeBuilder<0>(this, kind::BOUND_VARIABLE).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
+  return n;
+}
+
+inline Node NodeManager::mkSkolem(const std::string& name, const TypeNode& type) {
+  Node n = mkSkolem(type);
+  setAttribute(n, expr::VarNameAttr(), name);
   return n;
 }
 

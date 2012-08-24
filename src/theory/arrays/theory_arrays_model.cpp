@@ -29,7 +29,7 @@ using namespace CVC4::theory::arrays;
 ArrayModel::ArrayModel( Node arr, quantifiers::FirstOrderModel* m ) : d_model( m ), d_arr( arr ){
   Assert( arr.getKind()!=STORE );
   //look at ground assertions
-  Node sel = NodeManager::currentNM()->mkNode( SELECT, arr, NodeManager::currentNM()->mkVar( arr.getType().getArrayIndexType() ) );
+  Node sel = NodeManager::currentNM()->mkNode( SELECT, arr, NodeManager::currentNM()->mkSkolem( arr.getType().getArrayIndexType() ) );
   Node sel_op = sel.getOperator();  //FIXME: easier way to do this?
   for( size_t i=0; i<d_model->getTermDatabase()->d_op_map[ sel_op ].size(); i++ ){
     Node n = d_model->getTermDatabase()->d_op_map[ sel_op ][i];

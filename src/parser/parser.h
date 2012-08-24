@@ -347,6 +347,9 @@ public:
     mkVars(const std::vector<std::string> names, const Type& type,
            bool levelZero = false);
 
+  /** Create a new CVC4 bound variable expression of the given type. */
+  Expr mkBoundVar(const std::string& name, const Type& type);
+
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type,
                   bool levelZero = false);
