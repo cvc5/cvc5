@@ -76,17 +76,17 @@ public:
     d_nm = new NodeManager(d_context, NULL);
     d_scope = new NodeManagerScope(d_nm);
 
-    a = d_nm->mkVar("a", d_nm->booleanType());
-    b = d_nm->mkVar("b", d_nm->booleanType());
-    c = d_nm->mkVar("c", d_nm->booleanType());
-    d = d_nm->mkVar("d", d_nm->booleanType());
-    e = d_nm->mkVar("e", d_nm->booleanType());
-    f = d_nm->mkVar("f", d_nm->mkFunctionType(d_nm->booleanType(),
-                                              d_nm->booleanType()));
-    g = d_nm->mkVar("g", d_nm->mkFunctionType(d_nm->booleanType(),
-                                              d_nm->booleanType()));
-    h = d_nm->mkVar("h", d_nm->mkFunctionType(d_nm->booleanType(),
-                                              d_nm->booleanType()));
+    a = d_nm->mkSkolem("a", d_nm->booleanType());
+    b = d_nm->mkSkolem("b", d_nm->booleanType());
+    c = d_nm->mkSkolem("c", d_nm->booleanType());
+    d = d_nm->mkSkolem("d", d_nm->booleanType());
+    e = d_nm->mkSkolem("e", d_nm->booleanType());
+    f = d_nm->mkSkolem("f", d_nm->mkFunctionType(d_nm->booleanType(),
+                                                 d_nm->booleanType()));
+    g = d_nm->mkSkolem("g", d_nm->mkFunctionType(d_nm->booleanType(),
+                                                 d_nm->booleanType()));
+    h = d_nm->mkSkolem("h", d_nm->mkFunctionType(d_nm->booleanType(),
+                                                 d_nm->booleanType()));
     fa = d_nm->mkNode(kind::APPLY_UF, f, a);
     fb = d_nm->mkNode(kind::APPLY_UF, f, b);
     fc = d_nm->mkNode(kind::APPLY_UF, f, c);

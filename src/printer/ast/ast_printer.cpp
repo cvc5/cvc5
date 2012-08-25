@@ -80,11 +80,6 @@ void AstPrinter::toStream(std::ostream& out, TNode n,
 
   // variable
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    if(n.getKind() != kind::VARIABLE &&
-       n.getKind() != kind::SORT_TYPE) {
-      out << n.getKind() << ':';
-    }
-
     string s;
     if(n.getAttribute(expr::VarNameAttr(), s)) {
       out << s;

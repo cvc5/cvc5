@@ -102,12 +102,12 @@ public:
   void testOperatorEquals() {
     Node a, b, c;
 
-    b = d_nodeManager->mkVar(*d_booleanType);
+    b = d_nodeManager->mkSkolem(*d_booleanType);
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkVar(*d_booleanType);
+    Node d = d_nodeManager->mkSkolem(*d_booleanType);
 
     TS_ASSERT(a==a);
     TS_ASSERT(a==b);
@@ -142,12 +142,12 @@ public:
 
     Node a, b, c;
 
-    b = d_nodeManager->mkVar(*d_booleanType);
+    b = d_nodeManager->mkSkolem(*d_booleanType);
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkVar(*d_booleanType);
+    Node d = d_nodeManager->mkSkolem(*d_booleanType);
 
     /*structed assuming operator == works */
     TS_ASSERT(iff(a!=a, !(a==a)));
@@ -204,7 +204,7 @@ public:
   /*tests:   Node& operator=(const Node&); */
   void testOperatorAssign() {
     Node a, b;
-    Node c = d_nodeManager->mkNode(NOT, d_nodeManager->mkVar(*d_booleanType));
+    Node c = d_nodeManager->mkNode(NOT, d_nodeManager->mkSkolem(*d_booleanType));
 
     b = c;
     TS_ASSERT(b==c);
@@ -220,8 +220,8 @@ public:
     /* We don't have access to the ids so we can't test the implementation
      * in the black box tests. */
 
-    Node a = d_nodeManager->mkVar("a", d_nodeManager->booleanType());
-    Node b = d_nodeManager->mkVar("b", d_nodeManager->booleanType());
+    Node a = d_nodeManager->mkSkolem("a", d_nodeManager->booleanType());
+    Node b = d_nodeManager->mkSkolem("b", d_nodeManager->booleanType());
 
     TS_ASSERT(a<b || b<a);
     TS_ASSERT(!(a<b && b<a));
@@ -268,8 +268,8 @@ public:
     /* Node eqNode(const Node& right) const; */
 
     TypeNode t = d_nodeManager->mkSort();
-    Node left = d_nodeManager->mkVar(t);
-    Node right = d_nodeManager->mkVar(t);
+    Node left = d_nodeManager->mkSkolem(t);
+    Node right = d_nodeManager->mkSkolem(t);
     Node eq = left.eqNode(right);
 
     TS_ASSERT(EQUAL == eq.getKind());
@@ -326,8 +326,8 @@ public:
   void testIteNode() {
     /*Node iteNode(const Node& thenpart, const Node& elsepart) const;*/
 
-    Node a = d_nodeManager->mkVar(*d_booleanType);
-    Node b = d_nodeManager->mkVar(*d_booleanType);
+    Node a = d_nodeManager->mkSkolem(*d_booleanType);
+    Node b = d_nodeManager->mkSkolem(*d_booleanType);
 
     Node cnd = d_nodeManager->mkNode(OR, a, b);
     Node thenBranch = d_nodeManager->mkConst(true);
@@ -389,8 +389,8 @@ public:
   void testGetKind() {
     /*inline Kind getKind() const; */
 
-    Node a = d_nodeManager->mkVar(*d_booleanType);
-    Node b = d_nodeManager->mkVar(*d_booleanType);
+    Node a = d_nodeManager->mkSkolem(*d_booleanType);
+    Node b = d_nodeManager->mkSkolem(*d_booleanType);
 
     Node n = d_nodeManager->mkNode(NOT, a);
     TS_ASSERT(NOT == n.getKind());
@@ -398,8 +398,8 @@ public:
     n = d_nodeManager->mkNode(IFF, a, b);
     TS_ASSERT(IFF == n.getKind());
 
-    Node x = d_nodeManager->mkVar(*d_realType);
-    Node y = d_nodeManager->mkVar(*d_realType);
+    Node x = d_nodeManager->mkSkolem(*d_realType);
+    Node y = d_nodeManager->mkSkolem(*d_realType);
 
     n = d_nodeManager->mkNode(PLUS, x, y);
     TS_ASSERT(PLUS == n.getKind());
@@ -413,8 +413,8 @@ public:
     TypeNode booleanType = d_nodeManager->booleanType();
     TypeNode predType = d_nodeManager->mkFunctionType(sort, booleanType);
 
-    Node f = d_nodeManager->mkVar(predType);
-    Node a = d_nodeManager->mkVar(sort);
+    Node f = d_nodeManager->mkSkolem(predType);
+    Node a = d_nodeManager->mkSkolem(sort);
     Node fa = d_nodeManager->mkNode(kind::APPLY_UF, f, a);
 
     TS_ASSERT( fa.hasOperator() );
@@ -476,9 +476,9 @@ public:
   // test iterators
   void testIterator() {
     NodeBuilder<> b;
-    Node x = d_nodeManager->mkVar(*d_booleanType);
-    Node y = d_nodeManager->mkVar(*d_booleanType);
-    Node z = d_nodeManager->mkVar(*d_booleanType);
+    Node x = d_nodeManager->mkSkolem(*d_booleanType);
+    Node y = d_nodeManager->mkSkolem(*d_booleanType);
+    Node z = d_nodeManager->mkSkolem(*d_booleanType);
     Node n = b << x << y << z << kind::AND;
 
     { // iterator
@@ -503,9 +503,9 @@ public:
   void testKindedIterator() {
     TypeNode integerType = d_nodeManager->integerType();
 
-    Node x = d_nodeManager->mkVar("x", integerType);
-    Node y = d_nodeManager->mkVar("y", integerType);
-    Node z = d_nodeManager->mkVar("z", integerType);
+    Node x = d_nodeManager->mkSkolem("x", integerType);
+    Node y = d_nodeManager->mkSkolem("y", integerType);
+    Node z = d_nodeManager->mkSkolem("z", integerType);
     Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
     Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
 
@@ -525,10 +525,10 @@ public:
   void testToString() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar("w", booleanType);
-    Node x = d_nodeManager->mkVar("x", booleanType);
-    Node y = d_nodeManager->mkVar("y", booleanType);
-    Node z = d_nodeManager->mkVar("z", booleanType);
+    Node w = d_nodeManager->mkSkolem("w", booleanType);
+    Node x = d_nodeManager->mkSkolem("x", booleanType);
+    Node y = d_nodeManager->mkSkolem("y", booleanType);
+    Node z = d_nodeManager->mkSkolem("z", booleanType);
     Node m = NodeBuilder<>() << w << x << kind::OR;
     Node n = NodeBuilder<>() << m << y << z << kind::AND;
 
@@ -538,10 +538,10 @@ public:
   void testToStream() {
     TypeNode booleanType = d_nodeManager->booleanType();
 
-    Node w = d_nodeManager->mkVar("w", booleanType);
-    Node x = d_nodeManager->mkVar("x", booleanType);
-    Node y = d_nodeManager->mkVar("y", booleanType);
-    Node z = d_nodeManager->mkVar("z", booleanType);
+    Node w = d_nodeManager->mkSkolem("w", booleanType);
+    Node x = d_nodeManager->mkSkolem("x", booleanType);
+    Node y = d_nodeManager->mkSkolem("y", booleanType);
+    Node z = d_nodeManager->mkSkolem("z", booleanType);
     Node m = NodeBuilder<>() << x << y << kind::OR;
     Node n = NodeBuilder<>() << w << m << z << kind::AND;
     Node o = NodeBuilder<>() << n << n << kind::XOR;
@@ -600,10 +600,10 @@ public:
     TypeNode intType = d_nodeManager->integerType();
     TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
-    Node x = d_nodeManager->mkVar("x", intType);
-    Node y = d_nodeManager->mkVar("y", intType);
-    Node f = d_nodeManager->mkVar("f", fnType);
-    Node g = d_nodeManager->mkVar("g", fnType);
+    Node x = d_nodeManager->mkSkolem("x", intType);
+    Node y = d_nodeManager->mkSkolem("y", intType);
+    Node f = d_nodeManager->mkSkolem("f", fnType);
+    Node g = d_nodeManager->mkSkolem("g", fnType);
     Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
     Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
     Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -644,7 +644,7 @@ public:
 //  This is for demonstrating what a certain type of user error looks like.
 //   Node level0(){
 //     NodeBuilder<> nb(kind::AND);
-//     Node x = d_nodeManager->mkVar(*d_booleanType);
+//     Node x = d_nodeManager->mkSkolem(*d_booleanType);
 //     nb << x;
 //     nb << x;
 //     return Node(nb.constructNode());

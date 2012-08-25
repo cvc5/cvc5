@@ -46,13 +46,13 @@ public:
     d_scope = new NodeManagerScope(d_nm);
     d_vectorPtr = new StackingVector<TNode>(d_ctxt);
 
-    a = d_nm->mkVar("a", d_nm->realType());
-    b = d_nm->mkVar("b", d_nm->realType());
-    c = d_nm->mkVar("c", d_nm->realType());
-    d = d_nm->mkVar("d", d_nm->realType());
-    e = d_nm->mkVar("e", d_nm->realType());
-    f = d_nm->mkVar("f", d_nm->realType());
-    g = d_nm->mkVar("g", d_nm->realType());
+    a = d_nm->mkSkolem("a", d_nm->realType());
+    b = d_nm->mkSkolem("b", d_nm->realType());
+    c = d_nm->mkSkolem("c", d_nm->realType());
+    d = d_nm->mkSkolem("d", d_nm->realType());
+    e = d_nm->mkSkolem("e", d_nm->realType());
+    f = d_nm->mkSkolem("f", d_nm->realType());
+    g = d_nm->mkSkolem("g", d_nm->realType());
   }
 
   void tearDown() {

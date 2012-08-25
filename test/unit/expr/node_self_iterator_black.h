@@ -57,8 +57,8 @@ public:
   }
 
   void testSelfIteration() {
-    Node x = d_nodeManager->mkVar("x", *d_booleanType);
-    Node y = d_nodeManager->mkVar("y", *d_booleanType);
+    Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
+    Node y = d_nodeManager->mkSkolem("y", *d_booleanType);
     Node x_and_y = x && y;
     NodeSelfIterator i = x_and_y, j = NodeSelfIterator::self(x_and_y);
     TS_ASSERT(i != x_and_y.end());
