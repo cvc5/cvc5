@@ -164,7 +164,12 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   Assert(desiredVal != SAT_VALUE_UNKNOWN, "expected known value");
 
   /* Good luck, hope you can get what you want */
-  Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN, 
+  // if(not (litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN)) {
+  //   Warning() << "WARNING: IMPORTANT: Please look into this. Sat solver is asking for a decision" << std::endl
+  //             << "when the assertion we are trying to justify is already unsat. OR there is a bug" << std::endl;
+  //   GiveUpException();
+  // }
+  Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN,
          "invariant violated");
 
   /* What type of node is this */

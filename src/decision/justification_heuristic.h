@@ -111,13 +111,18 @@ public:
     }
 
     for(unsigned i = d_prvsIndex; i < d_assertions.size(); ++i) {
-      Debug("decision") << d_assertions[i] << std::endl;
+      Debug("decision") << "---" << std::endl << d_assertions[i] << std::endl;
 
       // Sanity check: if it was false, aren't we inconsistent?
       Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
 
       SatValue desiredVal = SAT_VALUE_TRUE;
-      SatLiteral litDecision = findSplitter(d_assertions[i], desiredVal);
+      SatLiteral litDecision;
+      try {
+        litDecision = findSplitter(d_assertions[i], desiredVal);
+      }catch(GiveUpException &e) {
+        return prop::undefSatLiteral;
+      }
 
       if(litDecision != undefSatLiteral)
         return litDecision;
@@ -180,11 +185,7 @@ private:
   {
     bool ret;
     SatLiteral litDecision;
-    try {
-      ret = findSplitterRec(node, desiredVal, &litDecision);
-    }catch(GiveUpException &e) {
-      return prop::undefSatLiteral;
-    }
+    ret = findSplitterRec(node, desiredVal, &litDecision);
     if(ret == true) {
       Debug("decision") << "Yippee!!" << std::endl;
       //d_prvsIndex = i;
