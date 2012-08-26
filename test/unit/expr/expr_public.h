@@ -373,6 +373,41 @@ public:
     TS_ASSERT(!cons_x_nil.isConst());
     TS_ASSERT(cons_1_nil.isConst());
     TS_ASSERT(cons_1_cons_2_nil.isConst());
+
+    ArrayType arrType = d_em->mkArrayType(d_em->integerType(), d_em->integerType());
+    Expr zero = d_em->mkConst(Rational(0));
+    Expr one = d_em->mkConst(Rational(1));
+    Expr storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
+
+    Expr arr = d_em->mkExpr(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_em->mkExpr(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    Expr arr2 = d_em->mkExpr(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_em->mkExpr(STORE, arr, one, one);
+    TS_ASSERT(arr2.isConst());
+    arr2 = d_em->mkExpr(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
+
+    arrType = d_em->mkArrayType(d_em->mkBitVectorType(1), d_em->mkBitVectorType(1));
+    zero = d_em->mkConst(BitVector(1,unsigned(0)));
+    one = d_em->mkConst(BitVector(1,unsigned(1)));
+    storeAll = d_em->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
+
+    arr = d_em->mkExpr(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_em->mkExpr(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    arr2 = d_em->mkExpr(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_em->mkExpr(STORE, arr, one, one);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_em->mkExpr(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
+
   }
 
   void testGetConst() {

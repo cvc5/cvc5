@@ -48,24 +48,31 @@ struct ArraySelectTypeRule {
 struct ArrayStoreTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::STORE);
-    TypeNode arrayType = n[0].getType(check);
-    if( check ) {
-      if(!arrayType.isArray()) {
-        throw TypeCheckingExceptionPrivate(n, "array store operating on non-array");
+    if (n.getKind() == kind::STORE) {
+      TypeNode arrayType = n[0].getType(check);
+      if( check ) {
+        if(!arrayType.isArray()) {
+          throw TypeCheckingExceptionPrivate(n, "array store operating on non-array");
+        }
+        TypeNode indexType = n[1].getType(check);
+        TypeNode valueType = n[2].getType(check);
+        if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
+          throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
+        }
+        if(!valueType.isSubtypeOf(arrayType.getArrayConstituentType())){
+          Debug("array-types") << "array type: "<< arrayType.getArrayConstituentType() << std::endl;
+          Debug("array-types") << "value types: " << valueType << std::endl;
+          throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");
+        }
       }
-      TypeNode indexType = n[1].getType(check);
-      TypeNode valueType = n[2].getType(check);
-      if(!indexType.isSubtypeOf(arrayType.getArrayIndexType())){
-        throw TypeCheckingExceptionPrivate(n, "array store not indexed with correct type for array");
-      }
-      if(!valueType.isSubtypeOf(arrayType.getArrayConstituentType())){
-	Debug("array-types") << "array type: "<< arrayType.getArrayConstituentType() << std::endl;
-	Debug("array-types") << "value types: " << valueType << std::endl;
-        throw TypeCheckingExceptionPrivate(n, "array store not assigned with correct type for array");
-      }
+      return arrayType;
     }
-    return arrayType;
+    else {
+      Assert(n.getKind() == kind::STORE_ALL);
+      ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
+      ArrayType arrayType = storeAll.getType();
+      return TypeNode::fromType(arrayType);
+    }
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
@@ -116,14 +123,13 @@ struct ArrayStoreTypeRule {
     // that is written to more than the default value.  If so, it is not in
     // normal form.
 
-    // Get the most frequently written value from n[0]
+    // Get the most frequently written value for n[0]
     TNode mostFrequentValue;
     unsigned mostFrequentValueCount = 0;
     store = n[0];
     if (store.getKind() == kind::STORE) {
-      // TODO: look up most frequent value and count
-      mostFrequentValue = n.getAttribute(ArrayConstantMostFrequentValueAttr());
-      mostFrequentValueCount = n.getAttribute(ArrayConstantMostFrequentValueCountAttr());
+      mostFrequentValue = store.getAttribute(ArrayConstantMostFrequentValueAttr());
+      mostFrequentValueCount = store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
     }
 
     // Compute the most frequently written value for n
@@ -140,8 +146,6 @@ struct ArrayStoreTypeRule {
         (compare == Cardinality::EQUAL && (!(defaultValue < mostFrequentValue)))) {
       return false;
     }
-
-    // TODO: store mostFrequentValue and mostFrequentValueCount for this node
     n.setAttribute(ArrayConstantMostFrequentValueAttr(), mostFrequentValue);
     n.setAttribute(ArrayConstantMostFrequentValueCountAttr(), mostFrequentValueCount);
     return true;

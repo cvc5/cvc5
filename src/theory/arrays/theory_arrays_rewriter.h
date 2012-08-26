@@ -119,14 +119,10 @@ class TheoryArraysRewriter {
 
     TNode mostFrequentValue;
     unsigned mostFrequentValueCount = 0;
-    bool recompute CVC4_UNUSED = false;
-    if (node[0].getKind() == kind::STORE) {
-      // TODO: look up most frequent value and count
-      mostFrequentValue = node.getAttribute(ArrayConstantMostFrequentValueAttr());
-      mostFrequentValueCount = node.getAttribute(ArrayConstantMostFrequentValueCountAttr());
-      if (!replacedValue.isNull() && mostFrequentValue == replacedValue) {
-        recompute = true;
-      }
+    store = node[0];
+    if (store.getKind() == kind::STORE) {
+      mostFrequentValue = store.getAttribute(ArrayConstantMostFrequentValueAttr());
+      mostFrequentValueCount = store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
     }
 
     // Compute the most frequently written value for n
@@ -134,7 +130,6 @@ class TheoryArraysRewriter {
         (valCount == mostFrequentValueCount && value < mostFrequentValue)) {
       mostFrequentValue = value;
       mostFrequentValueCount = valCount;
-      recompute = false;
     }
 
     // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
@@ -180,7 +175,7 @@ class TheoryArraysRewriter {
     Assert(compare != Cardinality::UNKNOWN);
     if (compare == Cardinality::GREATER ||
         (compare == Cardinality::EQUAL && (defaultValue < maxValue))) {
-      Assert(recompute);
+      Assert(!replacedValue.isNull() && mostFrequentValue == replacedValue);
       return n;
     }
 
@@ -283,6 +278,7 @@ public:
         if (store.isConst() && index.isConst() && value.isConst()) {
           // normalize constant
           Node n = normalizeConstant(node);
+          Assert(n.isConst());
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
           return RewriteResponse(REWRITE_DONE, n);
         }

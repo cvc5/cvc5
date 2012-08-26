@@ -2,6 +2,7 @@
 UNIT_TESTS = \
 	theory/logic_info_white \
 	theory/theory_engine_white \
+	theory/theory_black \
 	theory/theory_white \
 	theory/theory_arith_white \
 	theory/theory_bv_white \
