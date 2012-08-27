@@ -60,7 +60,7 @@ public:
     }
     return nodeManager->booleanType();
   }
-};/* class RewriterulesTypeRule */
+};/* class RewriteRuleTypeRule */
 
 
 class RRRewriteTypeRule {

@@ -298,6 +298,8 @@ variable BOUND_VARIABLE "bound variable"
 variable SKOLEM "skolem var"
 operator TUPLE 1: "a tuple"
 
+operator LAMBDA 2 "lambda"
+
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
     ::CVC4::TypeConstantHashFunction \
@@ -338,6 +340,7 @@ typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
 typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
+typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 
 constant SUBTYPE_TYPE \
     ::CVC4::Predicate \

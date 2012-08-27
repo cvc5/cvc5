@@ -453,6 +453,14 @@ public:
     return getMetaKind() == kind::metakind::VARIABLE;
   }
 
+  inline bool isClosure() const {
+    assertTNodeNotExpired();
+    return getKind() == kind::LAMBDA ||
+           getKind() == kind::FORALL ||
+           getKind() == kind::EXISTS ||
+           getKind() == kind::REWRITE_RULE;
+  }
+
   /**
    * Returns the unique id of this node
    * @return the ud

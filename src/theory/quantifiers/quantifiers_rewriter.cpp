@@ -473,7 +473,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
         for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
           //if( std::find( args.begin(), args.end(), body[0][i] )!=args.end() ){
           terms.push_back( body[0][i] );
-          subs.push_back( NodeManager::currentNM()->mkSkolem( body[0][i].getType() ) );
+          subs.push_back( NodeManager::currentNM()->mkBoundVar( body[0][i].getType() ) );
         }
         args.insert( args.end(), subs.begin(), subs.end() );
       }else{
