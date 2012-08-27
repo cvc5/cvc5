@@ -424,11 +424,12 @@ SmtEngine::~SmtEngine() throw() {
     StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
 
     delete d_private;
-    delete d_userContext;
 
     delete d_theoryEngine;
     delete d_propEngine;
-    //delete d_decisionEngine;
+    delete d_decisionEngine;
+
+    delete d_userContext;
 
     delete d_statisticsRegistry;
 
