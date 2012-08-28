@@ -27,7 +27,7 @@ been generated already. To obtain ANTLR see <http://www.antlr.org/>.]
     )
     ANTLR_VERSION=
   else
-    ANTLR_VERSION="`$ANTLR -version 2>&1 | sed 's,.*\<Version  *\([[0-9.]]*\).*,\1,'`"
+    ANTLR_VERSION="`$ANTLR -version 2>&1 | sed 's,.*Version  *\([[0-9.]]*\).*,\1,'`"
     case "$ANTLR_VERSION" in
       3.2|3.2.*) ANTLR_VERSION=3.2 ;;
       3.4|3.4.*) ANTLR_VERSION=3.4 ;;

@@ -206,6 +206,19 @@ AC_MSG_RESULT([$with_build])
 AM_INIT_AUTOMAKE([1.11 no-define tar-pax parallel-tests color-tests subdir-objects])
 AC_CONFIG_HEADERS([cvc4autoconfig.h])
 
+# automake 1.12 changes the test driver mechanism in a way that is
+# completely incompatible with 1.11.  We figure out here which version
+# we're using in order to set up test makefiles correctly.
+# See http://lists.gnu.org/archive/html/automake/2012-04/msg00060.html
+if test -z "$am__api_version"; then
+  AC_MSG_ERROR([Cannot determine automake API version ?!])
+fi
+case "$am__api_version" in
+  1.11*) automake111=true ;;
+  *) automake111=false ;;
+esac
+AM_CONDITIONAL([AUTOMAKE_1_11], [$automake111])
+
 # Initialize libtool's configuration options.
 _LT_SET_OPTION([LT_INIT],[win32-dll])
 LT_INIT
@@ -749,6 +762,12 @@ else
   AC_CHECK_PROG(LFSC, "$LFSC", [], [])
 fi
 AM_CONDITIONAL([PROOF_REGRESSIONS], [test -n "$LFSC" -a "$enable_proof" = yes])
+if test -n "$LFSC" -a "$enable_proof" = yes; then
+  TESTS_ENVIRONMENT="${TESTS_ENVIRONMENT:+$TESTS_ENVIRONMENT }LFSC=\"$(LFSC) $(LFSCARGS)\""
+  RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
+fi
+AC_SUBST([TESTS_ENVIRONMENT])
+AC_SUBST([RUN_REGRESSION_ARGS])
 if test -z "$LFSC"; then
   support_proof_tests='no, lfsc proof checker unavailable'
 elif test "$enable_proof" = yes; then
