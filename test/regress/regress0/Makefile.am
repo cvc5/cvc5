@@ -2,10 +2,14 @@ SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes qua
 DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision
 
 BINARY = cvc4
-if PROOF_REGRESSIONS
-TESTS_ENVIRONMENT = LFSC="$(LFSC) $(LFSCARGS)" @srcdir@/../run_regression $(RUN_REGRESSION_ARGS) --proof @top_builddir@/src/main/$(BINARY)
-else
-TESTS_ENVIRONMENT = @srcdir@/../run_regression $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)
+LOG_COMPILER = @srcdir@/../run_regression
+AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)
+
+if AUTOMAKE_1_11
+# old-style (pre-automake 1.12) test harness
+TESTS_ENVIRONMENT = \
+	$(TESTS_ENVIRONMENT) $(LOG_COMPILER) \
+	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
 MAKEFLAGS = -k
