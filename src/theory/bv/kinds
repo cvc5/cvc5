@@ -31,6 +31,11 @@ enumerator BITVECTOR_TYPE \
     "::CVC4::theory::bv::BitVectorEnumerator" \
     "theory/bv/type_enumerator.h"
 
+well-founded BITVECTOR_TYPE \
+    true \
+    "(*CVC4::theory::TypeEnumerator(%TYPE%))" \
+    "theory/type_enumerator.h"
+
 operator BITVECTOR_CONCAT 2: "bit-vector concatenation"
 operator BITVECTOR_AND 2: "bitwise and"
 operator BITVECTOR_OR 2: "bitwise or"

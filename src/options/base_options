@@ -71,9 +71,9 @@ option in std::istream* :default &std::cin :include <iostream>
 option out std::ostream* :default &std::cout :include <iostream>
 option err std::ostream* :default &std::cerr :include <iostream>
 
-common-option inputLanguage -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "util/language.h" :default language::input::LANG_AUTO :read-write
+common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "util/language.h" :default language::input::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)
-common-option outputLanguage --output-lang=LANG OutputLanguage :handler CVC4::options::stringToOutputLanguage :include "util/language.h" :default language::output::LANG_AUTO :read-write
+common-option outputLanguage output-language --output-lang=LANG OutputLanguage :handler CVC4::options::stringToOutputLanguage :include "util/language.h" :default language::output::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)
 option languageHelp bool
 
@@ -84,7 +84,7 @@ common-option - -v --verbose void :handler CVC4::options::increaseVerbosity
 common-option - -q --quiet void :handler CVC4::options::decreaseVerbosity
  decrease verbosity (may be repeated)
 
-common-option statistics stats --stats bool
+common-option statistics statistics --stats bool
  give statistics on exit
 
 common-option parseOnly parse-only --parse-only bool :read-write

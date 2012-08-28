@@ -310,6 +310,16 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
+}
+
+void SmtEngine::finishInit() {
+  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
+  d_decisionEngine->init();   // enable appropriate strategies
+
+  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
+
+  d_theoryEngine->setPropEngine(d_propEngine);
+  d_theoryEngine->setDecisionEngine(d_decisionEngine);
 
   // [MGD 10/20/2011] keep around in incremental mode, due to a
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
@@ -334,16 +344,6 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   if(options::cumulativeMillisecondLimit() != 0) {
     setTimeLimit(options::cumulativeMillisecondLimit(), true);
   }
-}
-
-void SmtEngine::finishInit() {
-  d_decisionEngine = new DecisionEngine(d_context, d_userContext);
-  d_decisionEngine->init();   // enable appropriate strategies
-
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
-
-  d_theoryEngine->setPropEngine(d_propEngine);
-  d_theoryEngine->setDecisionEngine(d_decisionEngine);
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -1534,7 +1534,7 @@ void SmtEnginePrivate::addFormula(TNode n)
   }
 }
 
-void SmtEngine::ensureBoolean(const BoolExpr& e) {
+void SmtEngine::ensureBoolean(const BoolExpr& e) throw(TypeCheckingException) {
   Type type = e.getType(options::typeChecking());
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
@@ -1546,7 +1546,7 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) {
   }
 }
 
-Result SmtEngine::checkSat(const BoolExpr& e) {
+Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
 
   Assert(e.isNull() || e.getExprManager() == d_exprManager);
 
@@ -1608,7 +1608,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) {
   return r;
 }
 
-Result SmtEngine::query(const BoolExpr& e) {
+Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
 
   Assert(!e.isNull());
   Assert(e.getExprManager() == d_exprManager);
@@ -1667,7 +1667,7 @@ Result SmtEngine::query(const BoolExpr& e) {
   return r;
 }
 
-Result SmtEngine::assertFormula(const BoolExpr& e) {
+Result SmtEngine::assertFormula(const BoolExpr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1680,7 +1680,7 @@ Result SmtEngine::assertFormula(const BoolExpr& e) {
   return quickCheck().asValidityResult();
 }
 
-Expr SmtEngine::simplify(const Expr& e) {
+Expr SmtEngine::simplify(const Expr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1691,6 +1691,9 @@ Expr SmtEngine::simplify(const Expr& e) {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << SimplifyCommand(e);
   }
+  // Make sure we've done simple preprocessing, unit detection, etc.
+  Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
+  d_private->processAssertions();
   return d_private->applySubstitutions(e).toExpr();
 }
 
@@ -1912,6 +1915,7 @@ vector<Expr> SmtEngine::getAssertions()
     throw ModalException(msg);
   }
   Assert(d_assertionList != NULL);
+  // copy the result out
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 

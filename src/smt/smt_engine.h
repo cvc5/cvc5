@@ -234,7 +234,7 @@ class CVC4_PUBLIC SmtEngine {
    * Fully type-check the argument, and also type-check that it's
    * actually Boolean.
    */
-  void ensureBoolean(const BoolExpr& e);
+  void ensureBoolean(const BoolExpr& e) throw(TypeCheckingException);
 
   void internalPush();
 
@@ -337,20 +337,20 @@ public:
    * literals and conjunction of literals.  Returns false iff
    * inconsistent.
    */
-  Result assertFormula(const BoolExpr& e);
+  Result assertFormula(const BoolExpr& e) throw(TypeCheckingException);
 
   /**
    * Check validity of an expression with respect to the current set
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const BoolExpr& e);
+  Result query(const BoolExpr& e) throw(TypeCheckingException);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const BoolExpr& e = BoolExpr());
+  Result checkSat(const BoolExpr& e = BoolExpr()) throw(TypeCheckingException);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -361,7 +361,7 @@ public:
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e);
+  Expr simplify(const Expr& e) throw(TypeCheckingException);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded

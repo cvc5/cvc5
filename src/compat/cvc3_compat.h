@@ -526,8 +526,13 @@ class CVC4_PUBLIC ValidityChecker {
   CLFlags* d_clflags;
   CVC4::Options d_options;
   CVC3::ExprManager* d_em;
+  std::map<CVC4::ExprManager*, CVC4::ExprManagerMapCollection> d_emmc;
+  std::set<ValidityChecker*> d_reverseEmmc;
   CVC4::SmtEngine* d_smt;
   CVC4::parser::Parser* d_parserContext;
+  std::vector<Expr> d_exprTypeMapRemove;
+
+  friend class Type; // to reach in to d_exprTypeMapRemove
 
   typedef std::hash_map<std::string, const CVC4::Datatype*, CVC4::StringHashFunction> ConstructorMap;
   typedef std::hash_map<std::string, std::pair<const CVC4::Datatype*, std::string>, CVC4::StringHashFunction> SelectorMap;
@@ -538,6 +543,9 @@ class CVC4_PUBLIC ValidityChecker {
   ValidityChecker(const CLFlags& clflags);
 
   void setUpOptions(CVC4::Options& options, const CLFlags& clflags);
+
+  // helper function for bitvectors
+  Expr bvpad(int len, const Expr& e);
 
 public:
   //! Constructor

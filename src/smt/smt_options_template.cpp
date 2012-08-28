@@ -52,7 +52,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 
 #line 54 "${template}"
 
-  throw UnrecognizedOptionException();
+  throw UnrecognizedOptionException(key);
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
@@ -69,7 +69,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
 #line 71 "${template}"
 
-  throw UnrecognizedOptionException();
+  throw UnrecognizedOptionException(key);
 }
 
 }/* CVC4 namespace */

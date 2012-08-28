@@ -102,11 +102,12 @@ private:
 protected:
 
   TypeCheckingException() throw() : Exception() {}
-  TypeCheckingException(const Expr& expr, std::string message) throw();
   TypeCheckingException(ExprManager* em,
                         const TypeCheckingExceptionPrivate* exc) throw();
 
 public:
+
+  TypeCheckingException(const Expr& expr, std::string message) throw();
 
   /** Copy constructor */
   TypeCheckingException(const TypeCheckingException& t) throw();
@@ -299,8 +300,10 @@ public:
    * Iterator type for the children of an Expr.
    */
   class const_iterator : public std::iterator<std::input_iterator_tag, Expr> {
+    ExprManager* d_exprManager;
     void* d_iterator;
-    explicit const_iterator(void*);
+
+    explicit const_iterator(ExprManager*, void*);
 
     friend class Expr;// to access void* constructor
 
@@ -957,7 +960,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 961 "${template}"
+#line 964 "${template}"
 
 namespace expr {
 

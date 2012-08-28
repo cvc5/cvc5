@@ -49,7 +49,7 @@ public:
   }
 
   UnrecognizedOptionException(const std::string& msg) :
-    CVC4::OptionException(msg) {
+    CVC4::OptionException("Unrecognized informational or option key or setting: " + msg) {
   }
 };/* class UnrecognizedOptionException */
 

@@ -15,9 +15,12 @@ rewriter ::CVC4::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arra
 
 operator ARRAY_TYPE 2 "array type"
 cardinality ARRAY_TYPE \
-    "::CVC4::theory::arrays::CardinalityComputer::computeCardinality(%TYPE%)" \
+    "::CVC4::theory::arrays::ArraysProperties::computeCardinality(%TYPE%)" \
     "theory/arrays/theory_arrays_type_rules.h"
-well-founded ARRAY_TYPE false
+well-founded ARRAY_TYPE \
+    "::CVC4::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)" \
+    "theory/arrays/theory_arrays_type_rules.h"
 
 enumerator ARRAY_TYPE \
     "::CVC4::theory::arrays::ArrayEnumerator" \

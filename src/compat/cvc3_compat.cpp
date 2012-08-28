@@ -45,6 +45,11 @@ using namespace std;
 
 namespace CVC3 {
 
+// Connects ExprManagers to ValidityCheckers.  Needed to clean up the
+// emmcs on ValidityChecker destruction (which are used for
+// ExprManager-to-ExprManager import).
+static std::map<CVC4::ExprManager*, ValidityChecker*> s_validityCheckers;
+
 static std::hash_map<Type, Expr, CVC4::TypeHashFunction> s_typeToExpr;
 static std::hash_map<Expr, Type, CVC4::ExprHashFunction> s_exprToType;
 
@@ -174,6 +179,7 @@ Expr Type::getExpr() const {
   Expr e = getExprManager()->mkVar("compatibility-layer-expr-type", *this);
   s_typeToExpr[*this] = e;
   s_exprToType[e] = *this;
+  s_validityCheckers[e.getExprManager()]->d_exprTypeMapRemove.push_back(e);
   return e;
 }
 
@@ -198,7 +204,7 @@ Cardinality Type::card() const {
 }
 
 Expr Type::enumerateFinite(Unsigned n) const {
-  Unimplemented();
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 Unsigned Type::sizeFinite() const {
@@ -326,7 +332,7 @@ bool Expr::isVar() const {
 }
 
 bool Expr::isString() const {
-  return false;
+  return getType().isString();
 }
 
 bool Expr::isBoundVar() const {
@@ -334,15 +340,16 @@ bool Expr::isBoundVar() const {
 }
 
 bool Expr::isLambda() const {
-  Unimplemented();
+  // when implemented, also fix isClosure() below
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 bool Expr::isClosure() const {
-  Unimplemented();
+  return isQuantifier();
 }
 
 bool Expr::isQuantifier() const {
-  Unimplemented();
+  return getKind() == CVC4::kind::FORALL || getKind() == CVC4::kind::EXISTS;
 }
 
 bool Expr::isApply() const {
@@ -424,7 +431,22 @@ Expr Expr::getExpr() const {
 }
 
 std::vector< std::vector<Expr> > Expr::getTriggers() const {
-  return vector< vector<Expr> >();
+  CheckArgument(isClosure(), *this, __PRETTY_FUNCTION__, "getTriggers() called on non-closure expr");
+  if(getNumChildren() < 3) {
+    // no triggers for this quantifier
+    return vector< vector<Expr> >();
+  } else {
+    // get the triggers from the third child
+    Expr triggers = (*this)[2];
+    vector< vector<Expr> > v;
+    for(const_iterator i = triggers.begin(); i != triggers.end(); ++i) {
+      v.push_back(vector<Expr>());
+      for(const_iterator j = (*i).begin(); j != (*i).end(); ++j) {
+        v.back().push_back(*j);
+      }
+    }
+    return v;
+  }
 }
 
 ExprManager* Expr::getEM() const {
@@ -711,12 +733,14 @@ void CLFlags::setFlag(const std::string& name,
 
 void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflags) {
   // always incremental and model-producing in CVC3 compatibility mode
+  // also incrementally-simplifying and interactive
   d_smt->setOption("incremental", string("true"));
   d_smt->setOption("produce-models", string("true"));
+  d_smt->setOption("simplification-mode", string("incremental"));
+  d_smt->setOption("interactive-mode", string("true"));// support SmtEngine::getAssertions()
 
   d_smt->setOption("statistics", string(clflags["stats"].getBool() ? "true" : "false"));
   d_smt->setOption("random-seed", int2string(clflags["seed"].getInt()));
-  d_smt->setOption("interactive-mode", string(clflags["interactive"].getBool() ? "true" : "false"));
   d_smt->setOption("parse-only", string(clflags["parse-only"].getBool() ? "true" : "false"));
   d_smt->setOption("input-language", clflags["lang"].getString());
   if(clflags["output-lang"].getString() == "") {
@@ -730,24 +754,54 @@ void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflag
 
 ValidityChecker::ValidityChecker() :
   d_clflags(new CLFlags()),
-  d_options() {
-  setUpOptions(d_options, *d_clflags);
+  d_options(),
+  d_em(NULL),
+  d_emmc(),
+  d_reverseEmmc(),
+  d_smt(NULL),
+  d_parserContext(NULL),
+  d_exprTypeMapRemove(),
+  d_constructors(),
+  d_selectors() {
   d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
+  s_validityCheckers[d_em] = this;
   d_smt = new CVC4::SmtEngine(d_em);
+  setUpOptions(d_options, *d_clflags);
   d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
 }
 
 ValidityChecker::ValidityChecker(const CLFlags& clflags) :
   d_clflags(new CLFlags(clflags)),
-  d_options() {
-  setUpOptions(d_options, *d_clflags);
+  d_options(),
+  d_em(NULL),
+  d_emmc(),
+  d_reverseEmmc(),
+  d_smt(NULL),
+  d_parserContext(NULL),
+  d_exprTypeMapRemove(),
+  d_constructors(),
+  d_selectors() {
   d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
+  s_validityCheckers[d_em] = this;
   d_smt = new CVC4::SmtEngine(d_em);
+  setUpOptions(d_options, *d_clflags);
   d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
 }
 
 ValidityChecker::~ValidityChecker() {
+  for(vector<Expr>::iterator i = d_exprTypeMapRemove.begin(); i != d_exprTypeMapRemove.end(); ++i) {
+    s_typeToExpr.erase(s_exprToType[*i]);
+    s_exprToType.erase(*i);
+  }
   delete d_parserContext;
+  delete d_smt;
+  d_emmc.clear();
+  for(set<ValidityChecker*>::iterator i = d_reverseEmmc.begin(); i != d_reverseEmmc.end(); ++i) {
+    (*i)->d_emmc.erase(d_em);
+  }
+  d_reverseEmmc.clear();
+  s_validityCheckers.erase(d_em);
+  delete d_em;
   delete d_clflags;
 }
 
@@ -1067,7 +1121,7 @@ Type ValidityChecker::dataType(const std::string& name,
                                const std::string& constructor,
                                const std::vector<std::string>& selectors,
                                const std::vector<Expr>& types) {
-  AlwaysAssert(selectors.size() == types.size());
+  CheckArgument(selectors.size() == types.size(), types, "expected selectors and types vectors to be of equal length");
   vector<string> cv;
   vector< vector<string> > sv;
   vector< vector<Expr> > tv;
@@ -1081,8 +1135,8 @@ Type ValidityChecker::dataType(const std::string& name,
                                const std::vector<std::string>& constructors,
                                const std::vector<std::vector<std::string> >& selectors,
                                const std::vector<std::vector<Expr> >& types) {
-  AlwaysAssert(constructors.size() == selectors.size());
-  AlwaysAssert(constructors.size() == types.size());
+  CheckArgument(constructors.size() == selectors.size(), selectors, "expected constructors and selectors vectors to be of equal length");
+  CheckArgument(constructors.size() == types.size(), types, "expected constructors and types vectors to be of equal length");
   vector<string> nv;
   vector< vector<string> > cv;
   vector< vector< vector<string> > > sv;
@@ -1103,19 +1157,19 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
                                const std::vector<std::vector<std::vector<Expr> > >& types,
                                std::vector<Type>& returnTypes) {
 
-  AlwaysAssert(names.size() == constructors.size());
-  AlwaysAssert(names.size() == selectors.size());
-  AlwaysAssert(names.size() == types.size());
+  CheckArgument(names.size() == constructors.size(), constructors, "expected names and constructors vectors to be of equal length");
+  CheckArgument(names.size() == selectors.size(), selectors, "expected names and selectors vectors to be of equal length");
+  CheckArgument(names.size() == types.size(), types, "expected names and types vectors to be of equal length");
   vector<CVC4::Datatype> dv;
 
   // Set up the datatype specifications.
   for(unsigned i = 0; i < names.size(); ++i) {
     CVC4::Datatype dt(names[i]);
-    AlwaysAssert(constructors[i].size() == selectors[i].size());
-    AlwaysAssert(constructors[i].size() == types[i].size());
+    CheckArgument(constructors[i].size() == selectors[i].size(), "expected sub-vectors in constructors and selectors vectors to match in size");
+    CheckArgument(constructors[i].size() == types[i].size(), "expected sub-vectors in constructors and types vectors to match in size");
     for(unsigned j = 0; j < constructors[i].size(); ++j) {
       CVC4::DatatypeConstructor ctor(constructors[i][j]);
-      AlwaysAssert(selectors[i][j].size() == types[i][j].size());
+      CheckArgument(selectors[i][j].size() == types[i][j].size(), types, "expected sub-vectors in selectors and types vectors to match in size");
       for(unsigned k = 0; k < selectors[i][j].size(); ++k) {
         if(types[i][j][k].getType().isString()) {
           ctor.addArg(selectors[i][j][k], CVC4::DatatypeUnresolvedType(types[i][j][k].getConst<string>()));
@@ -1137,12 +1191,17 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
   for(vector<CVC4::DatatypeType>::iterator i = dtts.begin(); i != dtts.end(); ++i) {
     // For each datatype...
     const CVC4::Datatype& dt = (*i).getDatatype();
+    // ensure it's well-founded (the check is done here because
+    // that's how it is in CVC3)
+    if(!dt.isWellFounded()) {
+      throw TypecheckException(d_em->mkConst(dt), "datatype is not well-founded");
+    }
     for(CVC4::Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
       // For each constructor, register its name and its selectors names.
-      AlwaysAssert(d_constructors.find((*j).getName()) == d_constructors.end(), "cannot have two constructors with the same name in a ValidityChecker");
+      CheckArgument(d_constructors.find((*j).getName()) == d_constructors.end(), constructors, "cannot have two constructors with the same name in a ValidityChecker");
       d_constructors[(*j).getName()] = &dt;
       for(CVC4::DatatypeConstructor::const_iterator k = (*j).begin(); k != (*j).end(); ++k) {
-        AlwaysAssert(d_selectors.find((*k).getName()) == d_selectors.end(), "cannot have two selectors with the same name in a ValidityChecker");
+        CheckArgument(d_selectors.find((*k).getName()) == d_selectors.end(), selectors, "cannot have two selectors with the same name in a ValidityChecker");
         d_selectors[(*k).getName()] = make_pair(&dt, (*j).getName());
       }
     }
@@ -1306,11 +1365,21 @@ Type ValidityChecker::parseType(const Expr& e) {
 }
 
 Expr ValidityChecker::importExpr(const Expr& e) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  if(e.getExprManager() == d_em) {
+    return e;
+  }
+
+  s_validityCheckers[e.getExprManager()]->d_reverseEmmc.insert(this);
+  return e.exportTo(d_em, d_emmc[e.getExprManager()]);
 }
 
 Type ValidityChecker::importType(const Type& t) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  if(t.getExprManager() == d_em) {
+    return t;
+  }
+
+  s_validityCheckers[t.getExprManager()]->d_reverseEmmc.insert(this);
+  return t.exportTo(d_em, d_emmc[t.getExprManager()]);
 }
 
 void ValidityChecker::cmdsFromString(const std::string& s, InputLanguage lang) {
@@ -1355,9 +1424,9 @@ Expr ValidityChecker::andExpr(const Expr& left, const Expr& right) {
 }
 
 Expr ValidityChecker::andExpr(const std::vector<Expr>& children) {
-  const vector<CVC4::Expr>& v =
-    *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em->mkExpr(CVC4::kind::AND, v);
+  // AND must have at least 2 children
+  CheckArgument(children.size() > 0, children);
+  return (children.size() == 1) ? children[0] : Expr(d_em->mkExpr(CVC4::kind::AND, *reinterpret_cast<const vector<CVC4::Expr>*>(&children)));
 }
 
 Expr ValidityChecker::orExpr(const Expr& left, const Expr& right) {
@@ -1365,9 +1434,9 @@ Expr ValidityChecker::orExpr(const Expr& left, const Expr& right) {
 }
 
 Expr ValidityChecker::orExpr(const std::vector<Expr>& children) {
-  const vector<CVC4::Expr>& v =
-    *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em->mkExpr(CVC4::kind::OR, v);
+  // OR must have at least 2 children
+  CheckArgument(children.size() > 0, children);
+  return (children.size() == 1) ? children[0] : Expr(d_em->mkExpr(CVC4::kind::OR, *reinterpret_cast<const vector<CVC4::Expr>*>(&children)));
 }
 
 Expr ValidityChecker::impliesExpr(const Expr& hyp, const Expr& conc) {
@@ -1388,6 +1457,7 @@ Expr ValidityChecker::iteExpr(const Expr& ifpart, const Expr& thenpart,
 }
 
 Expr ValidityChecker::distinctExpr(const std::vector<Expr>& children) {
+  CheckArgument(children.size() > 1, children, "it makes no sense to create a `distinct' expression with only one child");
   const vector<CVC4::Expr>& v =
     *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
   return d_em->mkExpr(CVC4::kind::DISTINCT, v);
@@ -1446,7 +1516,12 @@ Expr ValidityChecker::ratExpr(const std::string& n, const std::string& d, int ba
 }
 
 Expr ValidityChecker::ratExpr(const std::string& n, int base) {
-  return d_em->mkConst(Rational(n, base));
+  if(n.find(".") == string::npos) {
+    return d_em->mkConst(Rational(n, base));
+  } else {
+    CheckArgument(base == 10, base, "unsupported base for decimal parsing");
+    return d_em->mkConst(Rational::fromDecimal(n));
+  }
 }
 
 Expr ValidityChecker::uminusExpr(const Expr& child) {
@@ -1458,9 +1533,9 @@ Expr ValidityChecker::plusExpr(const Expr& left, const Expr& right) {
 }
 
 Expr ValidityChecker::plusExpr(const std::vector<Expr>& children) {
-  const vector<CVC4::Expr>& v =
-    *reinterpret_cast<const vector<CVC4::Expr>*>(&children);
-  return d_em->mkExpr(CVC4::kind::PLUS, v);
+  // PLUS must have at least 2 children
+  CheckArgument(children.size() > 0, children);
+  return (children.size() == 1) ? children[0] : Expr(d_em->mkExpr(CVC4::kind::PLUS, *reinterpret_cast<const vector<CVC4::Expr>*>(&children)));
 }
 
 Expr ValidityChecker::minusExpr(const Expr& left, const Expr& right) {
@@ -1608,8 +1683,14 @@ Expr ValidityChecker::newBVAndExpr(const Expr& t1, const Expr& t2) {
 }
 
 Expr ValidityChecker::newBVAndExpr(const std::vector<Expr>& kids) {
-  // BVAND is not N-ary
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // BITVECTOR_AND is not N-ary in CVC4
+  CheckArgument(kids.size() > 1, kids, "BITVECTOR_AND must have at least 2 children");
+  std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
+  Expr e = *i++;
+  while(i != kids.rend()) {
+    e = d_em->mkExpr(CVC4::kind::BITVECTOR_AND, *i++, e);
+  }
+  return e;
 }
 
 Expr ValidityChecker::newBVOrExpr(const Expr& t1, const Expr& t2) {
@@ -1619,8 +1700,14 @@ Expr ValidityChecker::newBVOrExpr(const Expr& t1, const Expr& t2) {
 }
 
 Expr ValidityChecker::newBVOrExpr(const std::vector<Expr>& kids) {
-  // BVOR is not N-ary
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // BITVECTOR_OR is not N-ary in CVC4
+  CheckArgument(kids.size() > 1, kids, "BITVECTOR_OR must have at least 2 children");
+  std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
+  Expr e = *i++;
+  while(i != kids.rend()) {
+    e = d_em->mkExpr(CVC4::kind::BITVECTOR_OR, *i++, e);
+  }
+  return e;
 }
 
 Expr ValidityChecker::newBVXorExpr(const Expr& t1, const Expr& t2) {
@@ -1630,8 +1717,14 @@ Expr ValidityChecker::newBVXorExpr(const Expr& t1, const Expr& t2) {
 }
 
 Expr ValidityChecker::newBVXorExpr(const std::vector<Expr>& kids) {
-  // BVXOR is not N-ary
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // BITVECTOR_XOR is not N-ary in CVC4
+  CheckArgument(kids.size() > 1, kids, "BITVECTOR_XOR must have at least 2 children");
+  std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
+  Expr e = *i++;
+  while(i != kids.rend()) {
+    e = d_em->mkExpr(CVC4::kind::BITVECTOR_XOR, *i++, e);
+  }
+  return e;
 }
 
 Expr ValidityChecker::newBVXnorExpr(const Expr& t1, const Expr& t2) {
@@ -1641,8 +1734,14 @@ Expr ValidityChecker::newBVXnorExpr(const Expr& t1, const Expr& t2) {
 }
 
 Expr ValidityChecker::newBVXnorExpr(const std::vector<Expr>& kids) {
-  // BVXNOR is not N-ary
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // BITVECTOR_XNOR is not N-ary in CVC4
+  CheckArgument(kids.size() > 1, kids, "BITVECTOR_XNOR must have at least 2 children");
+  std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
+  Expr e = *i++;
+  while(i != kids.rend()) {
+    e = d_em->mkExpr(CVC4::kind::BITVECTOR_XNOR, *i++, e);
+  }
+  return e;
 }
 
 Expr ValidityChecker::newBVNandExpr(const Expr& t1, const Expr& t2) {
@@ -1707,18 +1806,48 @@ Expr ValidityChecker::newBVSubExpr(const Expr& t1, const Expr& t2) {
   return d_em->mkExpr(CVC4::kind::BITVECTOR_SUB, t1, t2);
 }
 
-Expr ValidityChecker::newBVPlusExpr(int numbits, const std::vector<Expr>& k) {
-  // BVPLUS is not N-ary
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+// Copied from CVC3's bitvector theory: makes bitvector expression "e"
+// into "len" bits, by zero-padding, or extracting least-significant bits.
+Expr ValidityChecker::bvpad(int len, const Expr& e) {
+  CheckArgument(len >= 0, len,
+                "padding length must be a non-negative integer, not %d", len);
+  CheckArgument(e.getType().isBitVector(), e,
+                "input to bitvector operation must be a bitvector");
+
+  unsigned size = CVC4::BitVectorType(e.getType()).getSize();
+  Expr res;
+  if(size == len) {
+    res = e;
+  } else if(len < size) {
+    res = d_em->mkExpr(d_em->mkConst(CVC4::BitVectorExtract(len - 1, 0)), e);
+  } else {
+    // size < len
+    Expr zero = d_em->mkConst(CVC4::BitVector(len - size, 0u));
+    res = d_em->mkExpr(CVC4::kind::BITVECTOR_CONCAT, zero, e);
+  }
+  return res;
+}
+
+Expr ValidityChecker::newBVPlusExpr(int numbits, const std::vector<Expr>& kids) {
+  // BITVECTOR_PLUS is not N-ary in CVC4
+  CheckArgument(kids.size() > 1, kids, "BITVECTOR_PLUS must have at least 2 children");
+  std::vector<Expr>::const_reverse_iterator i = kids.rbegin();
+  Expr e = *i++;
+  while(i != kids.rend()) {
+    e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, bvpad(numbits, *i++), e);
+  }
+  unsigned size = CVC4::BitVectorType(e.getType()).getSize();
+  CheckArgument(unsigned(numbits) == size, numbits,
+                "argument must match computed size of bitvector sum: "
+                "passed size == %u, computed size == %u", numbits, size);
+  return e;
 }
 
 Expr ValidityChecker::newBVPlusExpr(int numbits, const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvplus a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvplus a bitvector, not a `%s'", t2.getType().toString().c_str());
-  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, t1, t2);
+  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_PLUS, bvpad(numbits, t1), bvpad(numbits, t2));
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
-  CheckArgument(numbits > 0, numbits,
-                "argument must be positive integer, not %u", numbits);
   CheckArgument(unsigned(numbits) == size, numbits,
                 "argument must match computed size of bitvector sum: "
                 "passed size == %u, computed size == %u", numbits, size);
@@ -1728,10 +1857,8 @@ Expr ValidityChecker::newBVPlusExpr(int numbits, const Expr& t1, const Expr& t2)
 Expr ValidityChecker::newBVMultExpr(int numbits, const Expr& t1, const Expr& t2) {
   CheckArgument(t1.getType().isBitVector(), t1, "can only bvmult a bitvector, not a `%s'", t1.getType().toString().c_str());
   CheckArgument(t2.getType().isBitVector(), t2, "can only bvmult by a bitvector, not a `%s'", t2.getType().toString().c_str());
-  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_MULT, t1, t2);
+  Expr e = d_em->mkExpr(CVC4::kind::BITVECTOR_MULT, bvpad(numbits, t1), bvpad(numbits, t2));
   unsigned size = CVC4::BitVectorType(e.getType()).getSize();
-  CheckArgument(numbits > 0, numbits,
-                "argument must be positive integer, not %u", numbits);
   CheckArgument(unsigned(numbits) == size, numbits,
                 "argument must match computed size of bitvector product: "
                 "passed size == %u, computed size == %u", numbits, size);
@@ -1861,42 +1988,61 @@ Expr ValidityChecker::boundVarExpr(const std::string& name, const std::string& u
 }
 
 Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Expr boundVarList = d_em->mkExpr(CVC4::kind::BOUND_VAR_LIST, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&vars));
+  return d_em->mkExpr(CVC4::kind::FORALL, boundVarList, body);
 }
 
 Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body,
                                  const Expr& trigger) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  // trigger
+  Expr boundVarList = d_em->mkExpr(CVC4::kind::BOUND_VAR_LIST, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&vars));
+  Expr triggerList = d_em->mkExpr(CVC4::kind::INST_PATTERN_LIST, d_em->mkExpr(CVC4::kind::INST_PATTERN, trigger));
+  return d_em->mkExpr(CVC4::kind::FORALL, boundVarList, body, triggerList);
 }
 
 Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body,
                                  const std::vector<Expr>& triggers) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  // set of triggers
+  Expr boundVarList = d_em->mkExpr(CVC4::kind::BOUND_VAR_LIST, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&vars));
+  std::vector<CVC4::Expr> pats;
+  for(std::vector<Expr>::const_iterator i = triggers.begin(); i != triggers.end(); ++i) {
+    pats.push_back(d_em->mkExpr(CVC4::kind::INST_PATTERN, *i));
+  }
+  Expr triggerList = d_em->mkExpr(CVC4::kind::INST_PATTERN_LIST, pats);
+  return d_em->mkExpr(CVC4::kind::FORALL, boundVarList, body, triggerList);
 }
 
 Expr ValidityChecker::forallExpr(const std::vector<Expr>& vars, const Expr& body,
                                  const std::vector<std::vector<Expr> >& triggers) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  // set of multi-triggers
+  Expr boundVarList = d_em->mkExpr(CVC4::kind::BOUND_VAR_LIST, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&vars));
+  std::vector<CVC4::Expr> pats;
+  for(std::vector< std::vector<Expr> >::const_iterator i = triggers.begin(); i != triggers.end(); ++i) {
+    pats.push_back(d_em->mkExpr(CVC4::kind::INST_PATTERN, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&*i)));
+  }
+  Expr triggerList = d_em->mkExpr(CVC4::kind::INST_PATTERN_LIST, pats);
+  return d_em->mkExpr(CVC4::kind::FORALL, boundVarList, body, triggerList);
 }
 
 void ValidityChecker::setTriggers(const Expr& e, const std::vector<std::vector<Expr> > & triggers) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 void ValidityChecker::setTriggers(const Expr& e, const std::vector<Expr>& triggers) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 void ValidityChecker::setTrigger(const Expr& e, const Expr& trigger) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 void ValidityChecker::setMultiTrigger(const Expr& e, const std::vector<Expr>& multiTrigger) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 Expr ValidityChecker::existsExpr(const std::vector<Expr>& vars, const Expr& body) {
-  Unimplemented("Quantifiers not supported by CVC4 yet (sorry!)");
+  Expr boundVarList = d_em->mkExpr(CVC4::kind::BOUND_VAR_LIST, *reinterpret_cast<const std::vector<CVC4::Expr>*>(&vars));
+  return d_em->mkExpr(CVC4::kind::EXISTS, boundVarList, body);
 }
 
 Op ValidityChecker::lambdaExpr(const std::vector<Expr>& vars, const Expr& body) {
@@ -1914,11 +2060,16 @@ Expr ValidityChecker::simulateExpr(const Expr& f, const Expr& s0,
 }
 
 void ValidityChecker::setResourceLimit(unsigned limit) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // Set a resource limit for CVC4, cumulative (rather than
+  // per-query), starting from now.
+  d_smt->setResourceLimit(limit, true);
 }
 
 void ValidityChecker::setTimeLimit(unsigned limit) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  // Set a time limit for CVC4, cumulative (rather than per-query),
+  // starting from now.  Note that CVC3 uses tenths of a second,
+  // while CVC4 uses milliseconds.
+  d_smt->setTimeLimit(limit * 100, true);
 }
 
 void ValidityChecker::assertFormula(const Expr& e) {
@@ -2031,11 +2182,17 @@ Expr ValidityChecker::getValue(const Expr& e) {
 }
 
 bool ValidityChecker::inconsistent(std::vector<Expr>& assumptions) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  CheckArgument(assumptions.empty(), assumptions, "assumptions vector should be empty on entry");
+  if(d_smt->checkSat() == CVC4::Result::UNSAT) {
+    // supposed to be a minimal set, but CVC4 doesn't support that
+    d_smt->getAssertions().swap(*reinterpret_cast<std::vector<CVC4::Expr>*>(&assumptions));
+    return true;
+  }
+  return false;
 }
 
 bool ValidityChecker::inconsistent() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  return d_smt->checkSat() == CVC4::Result::UNSAT;
 }
 
 bool ValidityChecker::incomplete() {

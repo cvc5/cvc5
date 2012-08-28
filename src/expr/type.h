@@ -185,7 +185,7 @@ public:
   /**
    * Exports this type into a different ExprManager.
    */
-  Type exportTo(ExprManager* exprManager, ExprManagerMapCollection& vmap);
+  Type exportTo(ExprManager* exprManager, ExprManagerMapCollection& vmap) const;
 
   /**
    * Assignment operator.

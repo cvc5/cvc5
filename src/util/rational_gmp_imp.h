@@ -81,7 +81,7 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Rational(const char * s, int base = 10): d_value(s,base) {
+  explicit Rational(const char* s, unsigned base = 10): d_value(s, base) {
     d_value.canonicalize();
   }
   Rational(const std::string& s, unsigned base = 10) : d_value(s, base) {

@@ -120,7 +120,7 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
     Expr from_e(from, new Node(n));
     Expr& to_e = vmap.d_typeMap[from_e];
     if(! to_e.isNull()) {
-Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::endl;
+      Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::endl;
       return to_e.getNode();
     } else {
       // construct new variable in other manager:
@@ -128,11 +128,17 @@ Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::end
       std::string name;
       Type type = from->exportType(from_e.getType(), to, vmap);
       if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
+        // temporarily set the node manager to NULL; this gets around
+        // a check that mkVar isn't called internally
+        NodeManagerScope nullScope(NULL);
         to_e = to->mkVar(name, type);// FIXME thread safety
-Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
+        Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
       } else {
+        // temporarily set the node manager to NULL; this gets around
+        // a check that mkVar isn't called internally
+        NodeManagerScope nullScope(NULL);
         to_e = to->mkVar(type);// FIXME thread safety
-Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
+        Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
       }
       uint64_t to_int = (uint64_t)(to_e.getNode().d_nv);
       uint64_t from_int = (uint64_t)(from_e.getNode().d_nv);
@@ -143,16 +149,16 @@ Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << fr
     }
   } else {
     std::vector<Node> children;
-Debug("export") << "n: " << n << std::endl;
+    Debug("export") << "n: " << n << std::endl;
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-Debug("export") << "+ parameterized, op is " << n.getOperator() << std::endl;
+      Debug("export") << "+ parameterized, op is " << n.getOperator() << std::endl;
       children.reserve(n.getNumChildren() + 1);
       children.push_back(exportInternal(n.getOperator(), from, to, vmap));
     } else {
       children.reserve(n.getNumChildren());
     }
     for(TNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
-Debug("export") << "+ child: " << *i << std::endl;
+      Debug("export") << "+ child: " << *i << std::endl;
       children.push_back(exportInternal(*i, from, to, vmap));
     }
     if(Debug.isOn("export")) {
@@ -281,6 +287,7 @@ Type Expr::getType(bool check) const throw (TypeCheckingException) {
 }
 
 Expr Expr::substitute(Expr e, Expr replacement) const {
+  ExprManagerScope ems(*this);
   return Expr(d_exprManager, new Node(d_node->substitute(TNode(*e.d_node), TNode(*replacement.d_node))));
 }
 
@@ -304,6 +311,7 @@ static inline NodeIteratorAdaptor<Iterator> mkNodeIteratorAdaptor(Iterator i) {
 
 Expr Expr::substitute(const std::vector<Expr> exes,
                       const std::vector<Expr>& replacements) const {
+  ExprManagerScope ems(*this);
   return Expr(d_exprManager,
               new Node(d_node->substitute(mkNodeIteratorAdaptor(exes.begin()),
                                           mkNodeIteratorAdaptor(exes.end()),
@@ -330,31 +338,39 @@ static inline NodePairIteratorAdaptor<Iterator> mkNodePairIteratorAdaptor(Iterat
 }
 
 Expr Expr::substitute(const std::hash_map<Expr, Expr, ExprHashFunction> map) const {
+  ExprManagerScope ems(*this);
   return Expr(d_exprManager, new Node(d_node->substitute(mkNodePairIteratorAdaptor(map.begin()), mkNodePairIteratorAdaptor(map.end()))));
 }
 
 Expr::const_iterator::const_iterator() :
   d_iterator(NULL) {
 }
-Expr::const_iterator::const_iterator(void* v) :
+Expr::const_iterator::const_iterator(ExprManager* em, void* v) :
+  d_exprManager(em),
   d_iterator(v) {
 }
 Expr::const_iterator::const_iterator(const const_iterator& it) {
   if(it.d_iterator == NULL) {
     d_iterator = NULL;
   } else {
+    d_exprManager = it.d_exprManager;
+    ExprManagerScope ems(*d_exprManager);
     d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
   }
 }
 Expr::const_iterator& Expr::const_iterator::operator=(const const_iterator& it) {
   if(d_iterator != NULL) {
+    ExprManagerScope ems(*d_exprManager);
     delete reinterpret_cast<Node::iterator*>(d_iterator);
   }
+  d_exprManager = it.d_exprManager;
+  ExprManagerScope ems(*d_exprManager);
   d_iterator = new Node::iterator(*reinterpret_cast<Node::iterator*>(it.d_iterator));
   return *this;
 }
 Expr::const_iterator::~const_iterator() {
   if(d_iterator != NULL) {
+    ExprManagerScope ems(*d_exprManager);
     delete reinterpret_cast<Node::iterator*>(d_iterator);
   }
 }
@@ -367,26 +383,31 @@ bool Expr::const_iterator::operator==(const const_iterator& it) const {
 }
 Expr::const_iterator& Expr::const_iterator::operator++() {
   Assert(d_iterator != NULL);
+  ExprManagerScope ems(*d_exprManager);
   ++*reinterpret_cast<Node::iterator*>(d_iterator);
   return *this;
 }
 Expr::const_iterator Expr::const_iterator::operator++(int) {
   Assert(d_iterator != NULL);
+  ExprManagerScope ems(*d_exprManager);
   const_iterator it = *this;
   ++*reinterpret_cast<Node::iterator*>(d_iterator);
   return it;
 }
 Expr Expr::const_iterator::operator*() const {
   Assert(d_iterator != NULL);
+  ExprManagerScope ems(*d_exprManager);
   return (**reinterpret_cast<Node::iterator*>(d_iterator)).toExpr();
 }
 
 Expr::const_iterator Expr::begin() const {
-  return Expr::const_iterator(new Node::iterator(d_node->begin()));
+  ExprManagerScope ems(*d_exprManager);
+  return Expr::const_iterator(d_exprManager, new Node::iterator(d_node->begin()));
 }
 
 Expr::const_iterator Expr::end() const {
-  return Expr::const_iterator(new Node::iterator(d_node->end()));
+  ExprManagerScope ems(*d_exprManager);
+  return Expr::const_iterator(d_exprManager, new Node::iterator(d_node->end()));
 }
 
 std::string Expr::toString() const {

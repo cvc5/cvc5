@@ -239,7 +239,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       case kind::FUNCTION_TYPE:
         return TypeNode(); // Not sure if this is right
       case kind::TUPLE_TYPE:
-        Unimplemented();
+        Unimplemented("haven't implemented leastCommonType for tuples yet");
         return TypeNode(); // Not sure if this is right
       case kind::SUBTYPE_TYPE:
         if(t1.isPredicateSubtype()){
@@ -278,8 +278,11 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
           Assert(t1.isInteger());
           return TypeNode();
         }
+      case kind::DATATYPE_TYPE:
+        // two datatypes that aren't == have no common ancestors
+        return TypeNode();
       default:
-        Unimplemented();
+        Unimplemented("don't have a leastCommonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
         return TypeNode();
       }
     }

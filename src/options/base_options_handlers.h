@@ -38,22 +38,22 @@ inline void decreaseVerbosity(std::string option, SmtEngine* smt) {
 }
 
 inline OutputLanguage stringToOutputLanguage(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg == "cvc4" || optarg == "pl") {
+  if(optarg == "cvc4" || optarg == "pl" || optarg == "presentation" || optarg == "LANG_CVC4") {
     return language::output::LANG_CVC4;
-  } else if(optarg == "smtlib" || optarg == "smt") {
+  } else if(optarg == "smtlib" || optarg == "smt" || optarg == "LANG_SMTLIB") {
     return language::output::LANG_SMTLIB;
-  } else if(optarg == "smtlib2" || optarg == "smt2") {
+  } else if(optarg == "smtlib2" || optarg == "smt2" || optarg == "LANG_SMTLIB_V2") {
     return language::output::LANG_SMTLIB_V2;
-  } else if(optarg == "tptp") {
+  } else if(optarg == "tptp" || optarg == "LANG_TPTP") {
     return language::output::LANG_TPTP;
-  } else if(optarg == "ast") {
+  } else if(optarg == "ast" || optarg == "LANG_AST") {
     return language::output::LANG_AST;
-  } else if(optarg == "auto") {
+  } else if(optarg == "auto" || optarg == "LANG_AUTO") {
     return language::output::LANG_AUTO;
   }
 
   if(optarg != "help") {
-    throw OptionException(std::string("unknown language for --output-lang: `") +
+    throw OptionException(std::string("unknown language for ") + option + ": `" +
                           optarg + "'.  Try --output-lang help.");
   }
 
@@ -62,20 +62,20 @@ inline OutputLanguage stringToOutputLanguage(std::string option, std::string opt
 }
 
 inline InputLanguage stringToInputLanguage(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg == "cvc4" || optarg == "pl" || optarg == "presentation") {
+  if(optarg == "cvc4" || optarg == "pl" || optarg == "presentation" || optarg == "LANG_CVC4") {
     return language::input::LANG_CVC4;
-  } else if(optarg == "smtlib" || optarg == "smt") {
+  } else if(optarg == "smtlib" || optarg == "smt" || optarg == "LANG_SMTLIB") {
     return language::input::LANG_SMTLIB;
-  } else if(optarg == "smtlib2" || optarg == "smt2") {
+  } else if(optarg == "smtlib2" || optarg == "smt2" || optarg == "LANG_SMTLIB_V2") {
     return language::input::LANG_SMTLIB_V2;
-  } else if(optarg == "tptp") {
+  } else if(optarg == "tptp" || optarg == "LANG_TPTP") {
     return language::input::LANG_TPTP;
-  } else if(optarg == "auto") {
+  } else if(optarg == "auto" || optarg == "LANG_AUTO") {
     return language::input::LANG_AUTO;
   }
 
   if(optarg != "help") {
-    throw OptionException(std::string("unknown language for --lang: `") +
+    throw OptionException(std::string("unknown language for ") + option + ": `" +
                           optarg + "'.  Try --lang help.");
   }
 

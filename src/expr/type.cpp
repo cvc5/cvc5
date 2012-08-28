@@ -178,7 +178,7 @@ ExprManager* Type::getExprManager() const {
   return d_nodeManager->toExprManager();
 }
 
-Type Type::exportTo(ExprManager* exprManager, ExprManagerMapCollection& vmap) {
+Type Type::exportTo(ExprManager* exprManager, ExprManagerMapCollection& vmap) const {
   return ExprManager::exportType(*this, exprManager, vmap);
 }
 

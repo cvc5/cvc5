@@ -5,7 +5,11 @@ CPLUSPLUS_TESTS = \
 	ouroborous \
 	two_smt_engines \
 	smt2_compliance
-#	cvc3_main
+
+if CVC4_BUILD_LIBCOMPAT
+CPLUSPLUS_TESTS += \
+	cvc3_main
+endif
 
 TESTS = $(CPLUSPLUS_TESTS)
 
@@ -32,9 +36,13 @@ TEST_DEPS_DIST = \
 # changes made in the header files.
 TEST_DEPS_NODIST = \
 	$(abs_top_builddir)/src/libcvc4.la \
-	$(abs_top_builddir)/src/parser/libcvc4parser.la \
+	$(abs_top_builddir)/src/parser/libcvc4parser.la
+
+if CVC4_BUILD_LIBCOMPAT
+TEST_DEPS_NODIST += \
 	$(abs_top_builddir)/src/compat/libcvc4compat.la \
 	cvc3_george.lo
+endif
 
 TEST_DEPS = \
 	$(TEST_DEPS_DIST) \
@@ -63,8 +71,13 @@ AM_CPPFLAGS = \
 	-D __STDC_FORMAT_MACROS \
 	-D __BUILDING_CVC4_SYSTEM_TEST \
 	$(TEST_CPPFLAGS)
-LIBADD = \
-	@abs_top_builddir@/src/compat/libcvc4compat.la \
+
+LIBADD =
+if CVC4_BUILD_LIBCOMPAT
+LIBADD += \
+	@abs_top_builddir@/src/compat/libcvc4compat.la
+endif
+LIBADD += \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la
 
