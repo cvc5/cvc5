@@ -101,7 +101,7 @@ BUILT_SOURCES = \
 	options.cpp \
 	options_holder.h
 
-DISTCLEANFILES = \
+CLEANFILES = \
 	$(OPTIONS_FILES_SRCS) \
 	$(BUILT_SOURCES) \
 	options-stamp
@@ -178,11 +178,17 @@ options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options
 		@top_builddir@/doc/cvc4.1_template @top_builddir@/doc/cvc4.1 \
 		-t \
 		@srcdir@/base_options_template.h @srcdir@/base_options_template.cpp \
-		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)" "$(dir $(builddir)/$(o))") \
+		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)" "$(patsubst %/,%,$(dir $(o)))") \
 	)
 	touch "$@"
 
 $(OPTIONS_FILES):;
+
+# This rule is ugly.  It's needed to ensure that automake's dependence
+# includes are available during distclean, even though they come from
+# directories that are cleaned first.  Without this rule, "distclean"
+# fails.
+%.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
 
 .PHONY: exprs-builts
 exprs-builts:; $(AM_V_at)[ "$(FROM_EXPR)" != 1 ] && $(MAKE) -C ../expr builts || true
