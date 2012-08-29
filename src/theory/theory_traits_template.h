@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_traits_template.h
+/*! \file theory_traits.h
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters
@@ -27,7 +27,6 @@
 ${theory_includes}
 
 namespace CVC4 {
-
 namespace theory {
 
 template <TheoryId theoryId>
@@ -37,5 +36,5 @@ ${theory_traits}
 
 ${theory_for_each_macro}
 
-}/* theory namespace */
+}/* CVC4::theory namespace */
 }/* CVC4 namespace */

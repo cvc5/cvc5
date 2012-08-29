@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__SAT_MODULE_H
-#define __CVC4__PROP__SAT_MODULE_H
+#ifndef __CVC4__PROP__SAT_SOLVER_H
+#define __CVC4__PROP__SAT_SOLVER_H
 
 #include <string>
 #include <stdint.h>
@@ -30,21 +30,21 @@
 namespace CVC4 {
 namespace prop {
 
-class TheoryProxy; 
+class TheoryProxy;
 
 class SatSolver {
 
-public:  
+public:
 
   /** Virtual destructor */
   virtual ~SatSolver() { }
-  
+
   /** Assert a clause in the solver. */
   virtual void addClause(SatClause& clause, bool removable) = 0;
 
   /** Create a new boolean variable in the solver. */
   virtual SatVariable newVar(bool theoryAtom = false) = 0;
- 
+
   /** Create a new (or return an existing) boolean variable representing the constant true */
   virtual SatVariable trueVar() = 0;
 
@@ -56,7 +56,7 @@ public:
 
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
-  
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -67,12 +67,12 @@ public:
   virtual SatValue modelValue(SatLiteral l) = 0;
 
   virtual void unregisterVar(SatLiteral lit) = 0;
-  
+
   virtual void renewVar(SatLiteral lit, int level = -1) = 0;
 
   virtual unsigned getAssertionLevel() const = 0;
 
-};
+};/* class SatSolver */
 
 
 class BVSatSolverInterface: public SatSolver {
@@ -94,30 +94,31 @@ public:
      * Notify about a learnt clause.
      */
     virtual void notify(SatClause& clause) = 0;
-  };
+  };/* class BVSatSolverInterface::Notify */
 
-  virtual void setNotify(Notify* notify) = 0; 
-  
+  virtual void setNotify(Notify* notify) = 0;
+
   virtual void markUnremovable(SatLiteral lit) = 0;
 
-  virtual void getUnsatCore(SatClause& unsatCore) = 0; 
+  virtual void getUnsatCore(SatClause& unsatCore) = 0;
 
-  virtual void addMarkerLiteral(SatLiteral lit) = 0; 
+  virtual void addMarkerLiteral(SatLiteral lit) = 0;
 
   virtual SatValue propagate() = 0;
 
   virtual void explain(SatLiteral lit, std::vector<SatLiteral>& explanation) = 0;
 
-  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0; 
+  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0;
 
   virtual void popAssumption() = 0;
-}; 
+
+};/* class BVSatSolverInterface */
 
 
 class DPLLSatSolverInterface: public SatSolver {
 public:
-  virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0; 
-  
+  virtual void initialize(context::Context* context, prop::TheoryProxy* theoryProxy) = 0;
+
   virtual void push() = 0;
 
   virtual void pop() = 0;
@@ -130,9 +131,9 @@ public:
 
   virtual bool isDecision(SatVariable decn) const = 0;
 
-}; 
+};/* class DPLLSatSolverInterface */
 
-}/* prop namespace */
+}/* CVC4::prop namespace */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

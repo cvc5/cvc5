@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rewriter_tables_template.h
+/*! \file rewriter_tables.h
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters

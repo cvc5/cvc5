@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file kind_template.h
+/*! \file kind.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: dejan

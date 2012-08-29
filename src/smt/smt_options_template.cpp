@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt_options_template.cpp
+/*! \file smt_options.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

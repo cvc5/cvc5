@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file metakind_template.h
+/*! \file metakind.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

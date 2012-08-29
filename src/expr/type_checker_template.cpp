@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file type_checker_template.cpp
+/*! \file type_checker.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

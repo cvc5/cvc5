@@ -100,7 +100,7 @@ void inline makeZero(Bits& bits, unsigned width) {
  * 
  * @param a first term to be added
  * @param b second term to be added
- * @param sum the sum 
+ * @param res the result
  * @param carry the carry-in bit 
  * 
  * @return the carry-out

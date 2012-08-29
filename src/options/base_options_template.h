@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file base_options_template.h
+/*! \file base_options.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

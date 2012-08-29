@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file base_options_template.cpp
+/*! \file base_options.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

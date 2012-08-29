@@ -41,7 +41,6 @@ typedef std::vector<Node>    Bits;
  * Default Atom Bitblasting strategies: 
  * 
  * @param node the atom to be bitblasted
- * @param markerLit the marker literal corresponding to the atom
  * @param bb the bitblaster
  */
 
@@ -68,9 +67,8 @@ Node SleBB(TNode node, Bitblaster* bb);
  * Default Term Bitblasting strategies
  * 
  * @param node the term to be bitblasted
+ * @param bits [output parameter] bits representing the new term 
  * @param bb the bitblaster in which the clauses are added
- * 
- * @return the bits representing the new term 
  */
 
 void UndefinedTermBBStrategy(TNode node, Bits& bits, Bitblaster* bb); 

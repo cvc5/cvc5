@@ -12,7 +12,7 @@
  * License to use, copy, modify, sell and/or distribute this software
  * and its documentation for any purpose is hereby granted without
  * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
+ * COPYING file provided with this distribution.
  *
  * <hr>
  *
@@ -66,6 +66,8 @@ Type vc_subRangeType(VC vc, int lowerEnd, int upperEnd);
 
 //! Creates a subtype defined by the given predicate
 /*!
+ * \param vc the validity checker
+ *
  * \param pred is a predicate taking one argument of type T and returning
  * Boolean.  The resulting type is a subtype of T whose elements x are those
  * satisfying the predicate pred(x).
@@ -298,6 +300,7 @@ Expr vc_ratExprFromStr(VC vc, char* n, char* d, int base);
 
 //! Create a rational from a single string.
 /*!
+  \param vc the validity checker
   \param n can be a string containing an integer, a pair of integers
   "nnn/ddd", or a number in the fixed or floating point format.
   \param base is the base in which to interpret the string.
@@ -442,7 +445,8 @@ Expr vc_datatypeTestExpr(VC vc, char* constructor, Expr arg);
 // Quantifiers
 
 //! Create a bound variable.
-/*! \param name
+/*! \param vc the validity checker
+ * \param name
  * \param uid is a fresh unique string to distinguish this variable
  * from other bound variables with the same name
  * \param type

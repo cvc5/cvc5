@@ -165,7 +165,7 @@ public:
   /**
    * Returns true iff this cardinality is finite and large (i.e.,
    * at the ceiling of representable finite cardinalities).
- . */
+   */
   bool isLargeFinite() const throw() {
     return d_card >= s_largeFiniteCard;
   }

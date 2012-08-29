@@ -170,7 +170,7 @@ void Bitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
 /** 
  * Asserts the clauses corresponding to the atom to the Sat Solver
  * by turning on the marker literal (i.e. setting it to false)
- * @param node the atom to be aserted
+ * @param node the atom to be asserted
  * 
  */
  

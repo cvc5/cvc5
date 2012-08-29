@@ -118,6 +118,8 @@ public:
    * @param name an identifier
    * @param params the parameters to the type
    * @param t the type to bind to <code>name</code>
+   * @param levelZero true to bind it globally (default is to bind it
+   * locally within the current scope)
    */
   void bindType(const std::string& name,
                 const std::vector<Type>& params,

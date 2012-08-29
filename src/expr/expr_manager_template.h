@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file expr_manager_template.h
+/*! \file expr_manager.h
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters
@@ -210,7 +210,7 @@ public:
    *
    * @param kind the kind of expression to build
    * @param child1 the first subexpression
-   * @param children the remaining subexpressions
+   * @param otherChildren the remaining subexpressions
    * @return the n-ary expression
    */
   Expr mkExpr(Kind kind, Expr child1, const std::vector<Expr>& otherChildren);

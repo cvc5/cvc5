@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file type_properties_template.h
+/*! \file type_properties.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

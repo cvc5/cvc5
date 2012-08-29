@@ -1,6 +1,6 @@
 /*****************************************************************************/
 /*!
- *\file formulavalue.h
+ *\file formula_value.h
  *\brief enumerated type for value of formulas
  *
  * Author: Alexander Fuchs
@@ -13,7 +13,7 @@
  * and its documentation for any purpose is hereby granted without
  * royalty, subject to the terms and conditions defined in the \ref
  * LICENSE file provided with this distribution.
- * 
+ *
  * <hr>
  */
 /*****************************************************************************/
@@ -31,7 +31,7 @@ namespace CVC3 {
 typedef enum FormulaValue {
   TRUE_VAL,
   FALSE_VAL,
-  UNKNOWN_VAL 
+  UNKNOWN_VAL
 } FormulaValue;
 
 }

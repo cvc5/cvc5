@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file type_enumerator_template.cpp
+/*! \file type_enumerator.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -58,4 +58,3 @@ ${mk_type_enumerator_cases}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

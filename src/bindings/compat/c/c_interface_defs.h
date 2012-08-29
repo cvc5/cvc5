@@ -1,9 +1,9 @@
 /*****************************************************************************/
 /*!
  * \file c_interface_defs.h
- * 
+ *
  * Author: Clark Barrett
- * 
+ *
  * Created: Thu Jun  5 13:16:26 2003
  *
  * <hr>
@@ -11,10 +11,10 @@
  * License to use, copy, modify, sell and/or distribute this software
  * and its documentation for any purpose is hereby granted without
  * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
- * 
+ * COPYING file provided with this distribution.
+ *
  * <hr>
- * 
+ *
  */
 /*****************************************************************************/
 

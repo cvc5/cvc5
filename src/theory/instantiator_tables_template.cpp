@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file instantiator_tables_template.cpp
+/*! \file instantiator_tables.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

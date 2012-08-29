@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file expr_template.cpp
+/*! \file expr.cpp
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: mdeters

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file expr_manager_template.cpp
+/*! \file expr_manager.cpp
  ** \verbatim
  ** Original author: dejan
  ** Major contributors: cconway, mdeters

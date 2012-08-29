@@ -21,8 +21,8 @@
  **/
 /*****************************************************************************/
 /*!
- *\file search_sat.cpp
- *\brief Implementation of Search engine with generic external sat solver
+ * file search_sat.cpp
+ * brief Implementation of Search engine with generic external sat solver
  *
  * Author: Clark Barrett
  *

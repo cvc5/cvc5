@@ -5,7 +5,7 @@ This is a prerelease version of CVC4.
 To build, you'll need reasonably new automake, autoconf, and libtool
 installed (see below). Execute,
 
-    ./autogen.sh 
+    ./autogen.sh
     ./configure
     make
 
@@ -80,10 +80,10 @@ includes a diff of all changes made to cudd makefiles.
 *** Build dependencies
 
 The following tools and libraries are required to build CVC4 from
-scratch. 
+scratch.
 
 Automake v1.11
-Autoconf v2.61 
+Autoconf v2.61
 Libtool v2.2
 ANTLR3 v3.2
 
