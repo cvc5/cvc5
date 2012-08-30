@@ -666,7 +666,7 @@ class CVC4_PUBLIC ExprSetDepth {
    * The default depth to print, for ostreams that haven't yet had a
    * setdepth() applied to them.
    */
-  static const int s_defaultPrintDepth = 3;
+  static const int s_defaultPrintDepth = -1;
 
   /**
    * When this manipulator is used, the depth is stored here.
