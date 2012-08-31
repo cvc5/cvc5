@@ -27,11 +27,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::arith;
 
-#define ARITH_INSTANTIATOR_USE_DELTA
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
-#define ARITH_INSTANTIATOR_STRONG_DELTA_LEMMA
-
-#define USE_ARITH_INSTANTIATION
 
 InstStrategySimplex::InstStrategySimplex( InstantiatorTheoryArith* th, QuantifiersEngine* ie ) :
     InstStrategy( ie ), d_th( th ), d_counter( 0 ){
@@ -96,87 +92,6 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
   }
   return STATUS_UNKNOWN;
 }
-
-//void InstStrategySimplexUfMatch::resetInstantiationRound(){
-//
-//}
-//
-//int InstStrategySimplexUfMatch::process( Node f, int effort ){
-//  if( effort<2 ){
-//    return STATUS_UNFINISHED;
-//  }else if( effort==2 ){
-//    for( int j=0; j<(int)d_th->d_instRows[f].size(); j++ ){
-//      ArithVar x = d_th->d_instRows[f][j];
-//      if( !d_th->d_ceTableaux[x].empty() && !d_th->d_tableaux_ce_term[x].empty() ){
-//        if( d_tableaux_ce_term_trigger.find( x )==d_tableaux_ce_term_trigger.end() ){
-//          std::vector< Node > terms;
-//          for( std::map< Node, Node >::iterator it = d_th->d_tableaux_ce_term[x].begin(); it != d_th->d_tableaux_ce_term[x].end(); ++it ){
-//            terms.push_back( it->first );
-//          }
-//          d_tableaux_ce_term_trigger[x] = new Trigger( d_quantEngine, f, terms );
-//        }else{
-//          d_tableaux_ce_term_trigger[x]->resetInstantiationRound();
-//        }
-//        Node term;
-//        bool addedLemma = false;
-//        while( d_tableaux_ce_term_trigger[x]->getNextMatch() && !addedLemma ){
-//          InstMatch* m = d_tableaux_ce_term_trigger[x]->getCurrent();
-//          if( m->isComplete( f ) ){
-//            if( d_quantEngine->addInstantiation( f, m ) ){
-//              ++(d_th->d_statistics.d_instantiations_match_pure);
-//              ++(d_th->d_statistics.d_instantiations);
-//              addedLemma = true;
-//            }
-//          }else{
-//            NodeBuilder<> plus_term(kind::PLUS);
-//            plus_term << d_th->d_tableaux_term[x];
-//            //Debug("quant-arith") << "Produced this match for ce_term_tableaux: " << std::endl;
-//            //m->debugPrint("quant-arith");
-//            //Debug("quant-arith") << std::endl;
-//            std::vector< Node > vars;
-//            std::vector< Node > matches;
-//            for( int i=0; i<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); i++ ){
-//              Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i );
-//              if( m->d_map[ ic ]!=Node::null() ){
-//                vars.push_back( ic );
-//                matches.push_back( m->d_map[ ic ] );
-//              }
-//            }
-//            Node var;
-//            //otherwise try to find a variable that is not specified in m
-//            for( std::map< Node, Node >::iterator it = d_th->d_ceTableaux[x].begin(); it != d_th->d_ceTableaux[x].end(); ++it ){
-//              if( m->d_map[ it->first ]!=Node::null() ){
-//                plus_term << NodeManager::currentNM()->mkNode( MULT, it->second, d_th->getTableauxValue( m->d_map[ it->first ] ) );
-//              }else if( var==Node::null() ){
-//                var = it->first;
-//              }
-//            }
-//            for( std::map< Node, Node >::iterator it = d_th->d_tableaux_ce_term[x].begin(); it != d_th->d_tableaux_ce_term[x].end(); ++it ){
-//              Node n = it->first;
-//              //substitute in matches
-//              n = n.substitute( vars.begin(), vars.end(), matches.begin(), matches.end() );
-//              plus_term << NodeManager::currentNM()->mkNode( MULT, it->second, d_th->getTableauxValue( n ) );
-//            }
-//            term = plus_term.getNumChildren()==1 ? plus_term.getChild( 0 ) : plus_term;
-//            if( var!=Node::null() ){
-//              if( d_th->doInstantiation( f, term, x, m, var ) ){
-//                addedLemma = true;
-//                ++(d_th->d_statistics.d_instantiations_match_var);
-//              }
-//            }else{
-//              if( d_quantEngine->addInstantiation( f, m ) ){
-//                addedLemma = true;
-//                ++(d_th->d_statistics.d_instantiations_match_no_var);
-//                ++(d_th->d_statistics.d_instantiations);
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-//  }
-//  return STATUS_UNKNOWN;
-//}
 
 InstantiatorTheoryArith::InstantiatorTheoryArith(context::Context* c, QuantifiersEngine* ie, Theory* th) :
 Instantiator( c, ie, th ){
@@ -392,59 +307,21 @@ Node InstantiatorTheoryArith::getTableauxValue( Node n, bool minus_delta ){
 }
 
 Node InstantiatorTheoryArith::getTableauxValue( ArithVar v, bool minus_delta ){
+  const Rational& delta = ((TheoryArith*)getTheory())->d_partialModel.getDelta();
   DeltaRational drv = ((TheoryArith*)getTheory())->d_partialModel.getAssignment( v );
-  Node val = NodeManager::currentNM()->mkConst( drv.getNoninfinitesimalPart() );
-#ifdef ARITH_INSTANTIATOR_USE_DELTA
-  //the tableaux value for v may contain an infinitesemal part: getDelta( val ) will return a fresh variable "delta"
-  //  (one for each sort) for which the lemma ( delta > 0 ) is asserted.
-  if( drv.getInfinitesimalPart()!=0 ){
-    Node delta = NodeManager::currentNM()->mkNode( MULT, getDelta( val ),
-                                                    NodeManager::currentNM()->mkConst( drv.getInfinitesimalPart() ) );
-    // add (or subtract) this delta component from the value of v
-    val = NodeManager::currentNM()->mkNode( minus_delta ? MINUS : PLUS, val, delta );
-  }
-#endif
-  return val;
-}
-
-Node InstantiatorTheoryArith::getDelta( Node n ){
-  std::map< TypeNode, Node >::iterator it = d_deltas.find( n.getType() );
-  if( it==d_deltas.end() ){
-    std::ostringstream os;
-    os << "delta_" << d_deltas.size();
-    Node delta = NodeManager::currentNM()->mkSkolem( os.str(), n.getType() );
-    d_deltas[ n.getType() ] = delta;
-    Node gt = NodeManager::currentNM()->mkNode( GT, delta, NodeManager::currentNM()->mkConst( Rational(0) ) );
-    //add split
-#ifdef ARITH_INSTANTIATOR_STRONG_DELTA_LEMMA
-    d_quantEngine->addLemma( gt );
-#else
-    gt = Rewriter::rewrite( gt );
-    d_quantEngine->addSplit( gt, true, true );
-#endif
-    return delta;
-  }
-  return it->second;
+  Rational qmodel = drv.substituteDelta( minus_delta ? -delta : delta );
+  return mkRationalNode(qmodel);
 }
 
 InstantiatorTheoryArith::Statistics::Statistics():
   d_instantiations("InstantiatorTheoryArith::Instantiations_Total", 0),
-  d_instantiations_minus("InstantiatorTheoryArith::Instantiations_minus_delta", 0),
-  d_instantiations_match_pure("InstantiatorTheoryArith::Instantiations_via_pure_matching", 0),
-  d_instantiations_match_var("InstantiatorTheoryArith::Instantiations_via_matching_var", 0),
-  d_instantiations_match_no_var("InstantiatorTheoryArith::Instantiations_via_matching_no_var", 0)
+  d_instantiations_minus("InstantiatorTheoryArith::Instantiations_minus_delta", 0)
 {
   StatisticsRegistry::registerStat(&d_instantiations);
   StatisticsRegistry::registerStat(&d_instantiations_minus);
-  StatisticsRegistry::registerStat(&d_instantiations_match_pure);
-  StatisticsRegistry::registerStat(&d_instantiations_match_var);
-  StatisticsRegistry::registerStat(&d_instantiations_match_no_var);
 }
 
 InstantiatorTheoryArith::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations);
   StatisticsRegistry::unregisterStat(&d_instantiations_minus);
-  StatisticsRegistry::unregisterStat(&d_instantiations_match_pure);
-  StatisticsRegistry::unregisterStat(&d_instantiations_match_var);
-  StatisticsRegistry::unregisterStat(&d_instantiations_match_no_var);
 }

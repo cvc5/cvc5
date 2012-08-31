@@ -323,7 +323,7 @@ public:
   void propagate(Effort e);
   Node explain(TNode n);
 
-  void collectModelInfo( TheoryModel* m );
+  void collectModelInfo( TheoryModel* m, bool fullModel );
 
   void shutdown(){ }
 

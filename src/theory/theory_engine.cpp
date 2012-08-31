@@ -42,6 +42,11 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
+//hack
+#include "theory/arith/options.h"
+#include "theory/uf/options.h"
+
+
 using namespace std;
 
 using namespace CVC4;
@@ -85,7 +90,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_quantEngine = new QuantifiersEngine(context, this);
 
   //build model information if applicable
-  d_curr_model = new theory::DefaultModel( context, "DefaultModel", false );
+  d_curr_model = new theory::DefaultModel( context, "DefaultModel", true );
   d_curr_model_builder = new theory::TheoryEngineModelBuilder( this );
 
   Rewriter::init();
@@ -144,33 +149,57 @@ void TheoryEngine::preRegister(TNode preprocessed) {
   }
 }
 
+void collectGroundTerms( Node n, std::vector< Node >& defineFuns,
+                         std::vector< Node >& groundTerms ){
+  if( std::find( groundTerms.begin(), groundTerms.end(), n )==groundTerms.end() ){
+    groundTerms.push_back( n );
+    if( n.getKind()==kind::APPLY_UF ){
+      if( std::find( defineFuns.begin(), defineFuns.end(), n.getOperator() )==defineFuns.end() ){
+        defineFuns.push_back( n.getOperator() );
+      }
+    }else if( n.getNumChildren()==0 ){
+      if( std::find( defineFuns.begin(), defineFuns.end(), n )==defineFuns.end() ){
+        defineFuns.push_back( n );
+      }
+    }
+    if( n.getKind()==kind::FORALL ){
+      std::cout << "Bad ground assertion : " << n << std::endl;
+      std::cout << "...possible nested quantifiers?" << std::endl;
+      exit( -1 );
+    }
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      collectGroundTerms( n[i], defineFuns, groundTerms );
+    }
+  }
+}
+
 void TheoryEngine::printAssertions(const char* tag) {
-  if (Debug.isOn(tag)) {
+  if (Trace.isOn(tag)) {
+
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
       Theory* theory = d_theoryTable[theoryId];
       if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        Debug(tag) << "--------------------------------------------" << std::endl;
-        Debug(tag) << "Assertions of " << theory->getId() << ": " << std::endl;
+        Trace(tag) << "--------------------------------------------" << std::endl;
+        Trace(tag) << "Assertions of " << theory->getId() << ": " << std::endl;
         context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
         for (unsigned i = 0; it != it_end; ++ it, ++i) {
             if ((*it).isPreregistered) {
-              Debug(tag) << "[" << i << "]: ";
+              Trace(tag) << "[" << i << "]: ";
             } else {
-              Debug(tag) << "(" << i << "): ";
+              Trace(tag) << "(" << i << "): ";
             }
-            Debug(tag) << (*it).assertion << endl;
+            Trace(tag) << (*it).assertion << endl;
         }
 
         if (d_logicInfo.isSharingEnabled()) {
-          Debug(tag) << "Shared terms of " << theory->getId() << ": " << std::endl;
+          Trace(tag) << "Shared terms of " << theory->getId() << ": " << std::endl;
           context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
           for (unsigned i = 0; it != it_end; ++ it, ++i) {
-              Debug(tag) << "[" << i << "]: " << (*it) << endl;
+              Trace(tag) << "[" << i << "]: " << (*it) << endl;
           }
         }
       }
     }
-
   }
 }
 
@@ -312,7 +341,8 @@ void TheoryEngine::check(Theory::Effort effort) {
 
       Debug("theory") << "TheoryEngine::check(" << effort << "): running check" << std::endl;
 
-      if (Debug.isOn("theory::assertions")) {
+      Trace("theory::assertions") << std::endl;
+      if (Trace.isOn("theory::assertions")) {
         printAssertions("theory::assertions");
       }
 
@@ -346,7 +376,8 @@ void TheoryEngine::check(Theory::Effort effort) {
         ! d_inConflict &&
         ! d_lemmasAdded ) {
       if( d_logicInfo.isQuantified() ){
-        ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->performCheck(Theory::EFFORT_LAST_CALL);
+        //quantifiers engine must pass effort last call check
+        d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         // if we have given up, then possibly flip decision
         if(options::flipDecision()) {
           if(d_incomplete && !d_inConflict && !d_lemmasAdded) {
@@ -358,7 +389,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         //if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
       }else if( options::produceModels() ){
         //must build model at this point
-        d_curr_model_builder->buildModel( d_curr_model );
+        d_curr_model_builder->buildModel( d_curr_model, true );
       }
     }
 
@@ -436,6 +467,7 @@ void TheoryEngine::combineTheories() {
           d_factsAsserted = true;
           continue;
         } else {
+          Message() << "mark propagation fail: " << literal << " " << normalizedLiteral << " " << carePair.theory << std::endl;
           Unreachable();
         }
       }
@@ -560,12 +592,14 @@ bool TheoryEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
-void TheoryEngine::collectModelInfo( theory::TheoryModel* m ){
+void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
+  //have shared term engine collectModelInfo
+  d_sharedTerms.collectModelInfo( m, fullModel );
   // Consult each active theory to get all relevant information
   // concerning the model.
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
-      d_theoryTable[theoryId]->collectModelInfo(m);
+      d_theoryTable[theoryId]->collectModelInfo( m, fullModel );
     }
   }
 }
@@ -688,6 +722,16 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
   Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
+  //must add substitutions to model
+  theory::TheoryModel* m = getModel();
+  if( m ){
+    for( SubstitutionMap::iterator pos = substitutionOut.begin(); pos != substitutionOut.end(); ++pos) {
+      Node n = (*pos).first;
+      Node v = (*pos).second;
+      Trace("model") << "Add substitution : " << n << " " << v << std::endl;
+      m->addSubstitution( n, v );
+    }
+  }
   return solveStatus;
 }
 
@@ -1306,4 +1350,22 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
 void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
 {
   d_unconstrainedSimp.processAssertions(assertions);
+}
+
+
+void TheoryEngine::setUserAttribute( std::string& attr, Node n ){
+  Trace("te-attr") << "set user attribute " << attr << " " << n << std::endl;
+  if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
+    for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
+      d_attr_handle[attr][i]->setUserAttribute( attr, n );
+    }
+  }else{
+    //unhandled exception?
+  }
+}
+
+void TheoryEngine::handleUserAttribute( const char* attr, Theory* t ){
+  Trace("te-attr") << "Handle user attribute " << attr << " " << t << std::endl;
+  std::string str( attr );
+  d_attr_handle[ str ].push_back( t );
 }

@@ -118,7 +118,7 @@ private:
     EqcInfo( context::Context* c );
     ~EqcInfo(){}
     //whether we have instantiatied this eqc
-    context::CDO< Node > d_inst;
+    context::CDO< bool > d_inst;
     //constructor equal to this eqc
     context::CDO< Node > d_constructor;
     //all selectors whose argument is this eqc
@@ -139,6 +139,10 @@ private:
   eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
+  /** map from nodes to their instantiated equivalent for each constructor type */
+  std::map< Node, std::map< int, Node > > d_inst_map;
+  /** which instantiation lemmas we have sent */
+  std::map< Node, std::vector< Node > > d_inst_lemmas;
   /** labels for each equivalence class
    * for each eqc n, d_labels[n] is testers that hold for this equivalence class, either:
    * a list of equations of the form
@@ -162,10 +166,15 @@ private:
   void assertFact( Node fact, Node exp );
   /** flush pending facts */
   void flushPendingFacts();
+  /** do pending merged */
+  void doPendingMerges();
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
   /** has eqc info */
   bool hasEqcInfo( Node n ) { return d_labels.find( n )!=d_labels.end(); }
+protected:
+  /** compute care graph */
+  void computeCareGraph();
 public:
   TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation,
                   const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -192,9 +201,12 @@ public:
   void preRegisterTerm(TNode n);
   void presolve();
   void addSharedTerm(TNode t);
-  void collectModelInfo( TheoryModel* m );
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  void collectModelInfo( TheoryModel* m, bool fullModel );
   void shutdown() { }
   std::string identify() const { return std::string("TheoryDatatypes"); }
+  /** debug print */
+  void printModelDebug( const char* c );
 private:
   /** add tester to equivalence class info */
   void addTester( Node t, EqcInfo* eqc, Node n );
@@ -209,11 +221,17 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons( Node n, const Datatype& dt, int index );
+  /** process new term that was created internally */
+  void processNewTerm( Node n );
   /** check instantiate */
-  void checkInstantiate( EqcInfo* eqc, Node n );
-  /** debug print */
-  void printModelDebug();
-
+  void instantiate( EqcInfo* eqc, Node n );
+  /** must specify model
+    *  This returns true when the datatypes theory is expected to specify the constructor
+    *  type for all equivalence classes.
+    */
+  bool mustSpecifyModel();
+  /** must communicate fact */
+  bool mustCommunicateFact( Node n, Node exp );
 private:
   //equality queries
   bool hasTerm( Node a );

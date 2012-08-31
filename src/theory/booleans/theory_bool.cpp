@@ -32,10 +32,6 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-void TheoryBool::collectModelInfo( TheoryModel* m ){
-
-}
-
 Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 
   if (in.getKind() == kind::CONST_BOOLEAN && !in.getConst<bool>()) {

@@ -322,6 +322,7 @@ protected:
 public:
   DeclareFunctionCommand(const std::string& id, Expr func, Type type) throw();
   ~DeclareFunctionCommand() throw() {}
+  Expr getFunction() const throw();
   Type getType() const throw();
   void invoke(SmtEngine* smtEngine) throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
@@ -388,6 +389,27 @@ public:
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
 };/* class DefineNamedFunctionCommand */
+
+/**
+ * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
+ *  via the syntax (! expr :atrr)
+ */
+class CVC4_PUBLIC SetUserAttributeCommand : public Command {
+protected:
+  std::string d_attr;
+  Expr d_expr;
+  //std::vector<Expr> d_expr_values;
+  //std::string d_str_value;
+public:
+  SetUserAttributeCommand( const std::string& attr, Expr expr ) throw();
+  //SetUserAttributeCommand( const std::string& id, Expr expr, std::vector<Expr>& values ) throw();
+  //SetUserAttributeCommand( const std::string& id, Expr expr, std::string& value ) throw();
+  ~SetUserAttributeCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+};/* class SetUserAttributeCommand */
+
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:

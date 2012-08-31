@@ -24,11 +24,10 @@
 #include "theory/quantifiers/model_engine.h"
 #include "expr/kind.h"
 #include "util/Assert.h"
-#include <map>
-#include <time.h>
 #include "theory/quantifiers/theory_quantifiers_instantiator.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 
 using namespace std;
 using namespace CVC4;
@@ -42,6 +41,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   d_numRestarts(0){
   d_numInstantiations = 0;
   d_baseDecLevel = -1;
+  out.handleUserAttribute( "axiom", this );
+  out.handleUserAttribute( "conjecture", this );
 }
 
 
@@ -89,7 +90,7 @@ Node TheoryQuantifiers::getValue(TNode n) {
   }
 }
 
-void TheoryQuantifiers::collectModelInfo( TheoryModel* m ){
+void TheoryQuantifiers::collectModelInfo( TheoryModel* m, bool fullModel ){
 
 }
 
@@ -126,9 +127,12 @@ void TheoryQuantifiers::check(Effort e) {
 }
 
 void TheoryQuantifiers::propagate(Effort level){
-  CodeTimer codeTimer(d_theoryTime);
+  //CodeTimer codeTimer(d_theoryTime);
+  //getQuantifiersEngine()->propagate( level );
+}
 
-  getQuantifiersEngine()->propagate( level );
+Node TheoryQuantifiers::getNextDecisionRequest(){
+  return getQuantifiersEngine()->getNextDecisionRequest();
 }
 
 void TheoryQuantifiers::assertUniversal( Node n ){
@@ -186,6 +190,6 @@ bool TheoryQuantifiers::restart(){
   }
 }
 
-void TheoryQuantifiers::performCheck(Effort e){
-  getQuantifiersEngine()->check( e );
+void TheoryQuantifiers::setUserAttribute( std::string& attr, Node n ){
+  QuantifiersAttributes::setUserAttribute( attr, n );
 }

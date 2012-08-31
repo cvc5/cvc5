@@ -102,7 +102,8 @@ public:
   /* Called for new quantifiers */
   virtual void registerQuantifier( Node n ) = 0;
   virtual void assertNode( Node n ) = 0;
-  virtual void propagate( Theory::Effort level ) = 0;
+  virtual void propagate( Theory::Effort level ){}
+  virtual Node getNextDecisionRequest() { return TNode::null(); }
   virtual Node explain(TNode n) = 0;
 };/* class QuantifiersModule */
 
@@ -153,6 +154,8 @@ public:
   quantifiers::FirstOrderModel* d_model;
   /** has the model been set? */
   bool d_model_set;
+  /** has resetInstantiationRound() been called on this check(...) */
+  bool d_resetInstRound;
   /** universal quantifiers that have been rewritten */
   std::map< Node, std::vector< Node > > d_quant_rewritten;
   /** map from rewritten universal quantifiers to the quantifier they are the consequence of */
@@ -214,6 +217,8 @@ public:
   void assertNode( Node f );
   /** propagate */
   void propagate( Theory::Effort level );
+  /** get next decision request */
+  Node getNextDecisionRequest();
   /** reset instantiation round */
   void resetInstantiationRound( Theory::Effort level );
 
@@ -223,9 +228,9 @@ public:
   /** add lemma lem */
   bool addLemma( Node lem );
   /** instantiate f with arguments terms */
-  bool addInstantiation( Node f, std::vector< Node >& terms );
+  bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m );
+  bool addInstantiation( Node f, InstMatch& m, bool makeComplete = true );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */

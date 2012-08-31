@@ -462,13 +462,17 @@ DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id, Expr func,
   d_type(t) {
 }
 
+Expr DeclareFunctionCommand::getFunction() const throw() {
+  return d_func;
+}
+
 Type DeclareFunctionCommand::getType() const throw() {
   return d_type;
 }
 
 void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("declarations") << *this;
-  smtEngine->addToModelFunction( d_func );
+  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_FUN );
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -500,7 +504,7 @@ Type DeclareTypeCommand::getType() const throw() {
 
 void DeclareTypeCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("declarations") << *this;
-  smtEngine->addToModelType( d_type );
+  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_SORT );
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -642,6 +646,43 @@ Command* DefineNamedFunctionCommand::exportTo(ExprManager* exprManager, ExprMana
 
 Command* DefineNamedFunctionCommand::clone() const {
   return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+}
+
+/* class SetUserAttribute */
+
+SetUserAttributeCommand::SetUserAttributeCommand( const std::string& attr, Expr expr ) throw() :
+  d_attr( attr ), d_expr( expr ){
+}
+/*
+SetUserAttributeCommand::SetUserAttributeCommand( const std::string& id, Expr expr,
+                                                  std::vector<Expr>& values ) throw() :
+  d_id( id ), d_expr( expr ){
+  d_expr_values.insert( d_expr_values.begin(), values.begin(), values.end() );
+}
+
+SetUserAttributeCommand::SetUserAttributeCommand( const std::string& id, Expr expr,
+                                                  std::string& value ) throw() :
+  d_id( id ), d_expr( expr ), d_str_value( value ){
+}
+*/
+void SetUserAttributeCommand::invoke(SmtEngine* smtEngine) throw(){
+  try {
+    if(!d_expr.isNull()) {
+      smtEngine->setUserAttribute( d_attr, d_expr );
+    }
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* SetUserAttributeCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap){
+  Expr expr = d_expr.exportTo(exprManager, variableMap);
+  return new SetUserAttributeCommand( d_attr, expr );
+}
+
+Command* SetUserAttributeCommand::clone() const{
+  return new SetUserAttributeCommand( d_attr, d_expr );
 }
 
 /* class Simplify */
@@ -1095,7 +1136,7 @@ void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
     v.push_back(smtEngine->getOption(d_flag));
     stringstream ss;
-    
+
     ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
@@ -1148,6 +1189,7 @@ DatatypeDeclarationCommand::getDatatypes() const throw() {
 
 void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("declarations") << *this;
+  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_DATATYPES );
   d_commandStatus = CommandSuccess::instance();
 }
 

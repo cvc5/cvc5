@@ -75,6 +75,9 @@ class FakeOutputChannel : public OutputChannel {
   void setIncomplete() throw(AssertionException) {
     Unimplemented();
   }
+  void handleUserAttribute( const char* attr, Theory* t ){
+    Unimplemented();
+  }
 };/* class FakeOutputChannel */
 
 template<TheoryId theory>

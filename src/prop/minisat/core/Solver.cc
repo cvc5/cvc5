@@ -407,6 +407,7 @@ Lit Solver::pickBranchLit()
     if(stopSearch) {
       return lit_Undef;
     }
+    Debug("propagateAsDecision") << "propagateAsDecision(): decide on another literal" << std::endl;
 
     Var next = var_Undef;
 

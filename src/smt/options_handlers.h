@@ -150,6 +150,16 @@ none\n\
 + do not perform nonclausal simplification\n\
 ";
 
+static const std::string modelFormatHelp = "\
+Model format modes currently supported by the --model-format option:\n\
+\n\
+default \n\
++ Print model as expressions in the output language format.\n\
+\n\
+table\n\
++ Print functional expressions over finite domains in a table format.\n\
+";
+
 inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
 #ifdef CVC4_DUMPING
   char* optargPtr = strdup(optarg.c_str());
@@ -228,6 +238,20 @@ inline SimplificationMode stringToSimplificationMode(std::string option, std::st
   } else {
     throw OptionException(std::string("unknown option for --simplification: `") +
                           optarg + "'.  Try --simplification help.");
+  }
+}
+
+inline ModelFormatMode stringToModelFormatMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "default") {
+    return MODEL_FORMAT_MODE_DEFAULT;
+  } else if(optarg == "table") {
+    return MODEL_FORMAT_MODE_TABLE;
+  } else if(optarg == "help") {
+    puts(modelFormatHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --model-format: `") +
+                          optarg + "'.  Try --model-format help.");
   }
 }
 

@@ -70,7 +70,7 @@ d_active( c ){
   d_hasAddedLemma = false;
 
   //the model object
-  d_model = new quantifiers::FirstOrderModel( this, c, "FirstOrderModel" );
+  d_model = new quantifiers::FirstOrderModel( c, "FirstOrderModel" );
 
   //add quantifiers modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
@@ -81,7 +81,7 @@ d_active( c ){
     d_inst_engine = NULL;
   }
   if( options::finiteModelFind() ){
-    d_model_engine = new quantifiers::ModelEngine( this );
+    d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
   }else{
     d_model_engine = NULL;
@@ -121,10 +121,18 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   d_hasAddedLemma = false;
   d_model_set = false;
+  d_resetInstRound = false;
   if( e==Theory::EFFORT_LAST_CALL ){
     ++(d_statistics.d_instantiation_rounds_lc);
   }else if( e==Theory::EFFORT_FULL ){
     ++(d_statistics.d_instantiation_rounds);
+  }
+  //if effort is last call, try to minimize model first
+  if( e==Theory::EFFORT_LAST_CALL && options::finiteModelFind() ){
+    //first, check if we can minimize the model further
+    if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
+      return;
+    }
   }
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->check( e );
@@ -132,7 +140,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //build the model if not done so already
   //  this happens if no quantifiers are currently asserted and no model-building module is enabled
   if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model_set ){
-    d_te->getModelBuilder()->buildModel( d_model );
+    d_te->getModelBuilder()->buildModel( d_model, true );
   }
 }
 
@@ -227,7 +235,7 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 void QuantifiersEngine::assertNode( Node f ){
   Assert( f.getKind()==FORALL );
   for( int j=0; j<(int)d_quant_rewritten[f].size(); j++ ){
-    d_model->d_forall_asserts.push_back( d_quant_rewritten[f][j] );
+    d_model->assertQuantifier( d_quant_rewritten[f][j] );
     for( int i=0; i<(int)d_modules.size(); i++ ){
       d_modules[i]->assertNode( d_quant_rewritten[f][j] );
     }
@@ -242,13 +250,26 @@ void QuantifiersEngine::propagate( Theory::Effort level ){
   }
 }
 
+Node QuantifiersEngine::getNextDecisionRequest(){
+  for( int i=0; i<(int)d_modules.size(); i++ ){
+    Node n = d_modules[i]->getNextDecisionRequest();
+    if( !n.isNull() ){
+      return n;
+    }
+  }
+  return Node::null();
+}
+
 void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
+  //if( !d_resetInstRound ){
+  d_resetInstRound = true;
   for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
     if( getInstantiator( i ) ){
       getInstantiator( i )->resetInstantiationRound( level );
     }
   }
   getTermDatabase()->reset( level );
+  //}
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
@@ -286,30 +307,24 @@ bool QuantifiersEngine::addLemma( Node lem ){
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms )
+bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms )
 {
-    //Notice() << "***& Instantiate " << f << " with " << std::endl;
-    //for( int i=0; i<(int)terms.size(); i++ ){
-    //  Notice() << "   " << terms[i] << std::endl;
-    //}
   Assert( f.getKind()==FORALL );
   Assert( !f.hasAttribute(InstConstantAttribute()) );
-  Assert( d_term_db->d_vars[f].size()==terms.size() && d_term_db->d_vars[f].size()==f[0].getNumChildren() );
-  Node body = f[ 1 ].substitute( d_term_db->d_vars[f].begin(), d_term_db->d_vars[f].end(),
-                                 terms.begin(), terms.end() );
-  NodeBuilder<> nb(kind::OR);
-  nb << d_rewritten_quant[f].notNode() << body;
-  Node lem = nb;
+  Assert( vars.size()==terms.size() );
+  Node body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+  Node lem;
+  if( d_term_db->d_vars[f].size()==vars.size() ){
+    NodeBuilder<> nb(kind::OR);
+    nb << d_rewritten_quant[f].notNode() << body;
+    lem = nb;
+  }else{
+    //doing a partial instantiation, must add quantifier for all uninstantiated variables
+    Notice() << "Partial instantiation not implemented yet." << std::endl;
+    Unimplemented();
+  }
   if( addLemma( lem ) ){
-    //Notice() << "     Added lemma : " << body << std::endl;
-    //Notice() << "***& Instantiate " << f << " with " << std::endl;
-    //for( int i=0; i<(int)terms.size(); i++ ){
-    //  Notice() << "   " << terms[i] << std::endl;
-    //}
-
-    //Notice() << "**INST" << std::endl;
-    Debug("inst") << "*** Instantiate " << f << " with " << std::endl;
-    //Notice() << "*** Instantiate " << f << " with " << std::endl;
+    Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     uint64_t maxInstLevel = 0;
     for( int i=0; i<(int)terms.size(); i++ ){
       if( terms[i].hasAttribute(InstConstantAttribute()) ){
@@ -319,10 +334,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms )
         }
         Unreachable("Bad instantiation");
       }else{
-        Debug("inst") << "   " << terms[i];
-        //Notice() << "   " << terms[i] << std::endl;
+        Trace("inst") << "   " << terms[i];
         //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
-        Debug("inst") << std::endl;
+        Trace("inst") << std::endl;
         if( terms[i].hasAttribute(InstLevelAttribute()) ){
           if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
             maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
@@ -332,6 +346,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms )
         }
       }
     }
+    Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
     d_term_db->setInstantiationLevelAttr( body, maxInstLevel+1 );
     ++(d_statistics.d_instantiations);
     d_statistics.d_total_inst_var += (int)terms.size();
@@ -343,47 +358,46 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms )
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m ){
-  m.makeComplete( f, this );
+bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool makeComplete ){
+  //make sure there are values for each variable we are instantiating
+  if( makeComplete ){
+    m.makeComplete( f, this );
+  }
+  //make it representative, this is helpful for recognizing duplication
   m.makeRepresentative( this );
-  Debug("quant-duplicate") << "After make rep: " << m << std::endl;
+  Trace("inst-add") << "Add instantiation: " << m << std::endl;
+  //check for duplication modulo equality
   if( !d_inst_match_trie[f].addInstMatch( this, f, m, true ) ){
-    Debug("quant-duplicate") << " -> Already exists." << std::endl;
+    Trace("inst-add") << " -> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
-  Debug("quant-duplicate") << " -> Does not exist." << std::endl;
+  //compute the vector of terms for the instantiation
   std::vector< Node > match;
   m.computeTermVec( d_term_db->d_inst_constants[f], match );
-
-  //old....
-  //m.makeRepresentative( d_eq_query );
-  //std::vector< Node > match;
-  //m.computeTermVec( this, d_inst_constants[f], match );
-
-  //Notice() << "*** Instantiate " << m->getQuantifier() << " with " << std::endl;
-  //for( int i=0; i<(int)m->d_match.size(); i++ ){
-  //  Notice() << "   " << m->d_match[i] << std::endl;
-  //}
-
-  if( addInstantiation( f, match ) ){
-    //d_statistics.d_total_inst_var_unspec.setData( d_statistics.d_total_inst_var_unspec.getData() + (int)d_inst_constants[f].size() - m.d_map.size()/2 );
-    //if( d_inst_constants[f].size()!=m.d_map.size() ){
-    //  //Notice() << "Unspec. " << std::endl;
-    //  //Notice() << "*** Instantiate " << m->getQuantifier() << " with " << std::endl;
-    //  //for( int i=0; i<(int)m->d_match.size(); i++ ){
-    //  //  Notice() << "   " << m->d_match[i] << std::endl;
-    //  //}
-    //  ++(d_statistics.d_inst_unspec);
-    //}
-    //if( addSplits ){
-    //  for( std::map< Node, Node >::iterator it = m->d_splits.begin(); it != m->d_splits.end(); ++it ){
-    //    addSplitEquality( it->first, it->second, true, true );
-    //  }
-    //}
-    return true;
+  //add the instantiation
+  bool addedInst = false;
+  if( match.size()==d_term_db->d_vars[f].size() ){
+    addedInst = addInstantiation( f, d_term_db->d_vars[f], match );
+  }else{
+    //must compute the subset of variables we are instantiating
+    std::vector< Node > vars;
+    for( size_t i=0; i<d_term_db->d_vars[f].size(); i++ ){
+      Node val = m.get( getTermDatabase()->getInstantiationConstant( f, i ) );
+      if( !val.isNull() ){
+        vars.push_back( d_term_db->d_vars[f][i] );
+      }
+    }
+    addedInst = addInstantiation( f, vars, match );
   }
-  return false;
+  //report the result
+  if( addedInst ){
+    Trace("inst-add") << " -> Success." << std::endl;
+    return true;
+  }else{
+    Trace("inst-add") << " -> Lemma already exists." << std::endl;
+    return false;
+  }
 }
 
 bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){

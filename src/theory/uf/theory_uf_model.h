@@ -48,7 +48,9 @@ public:
   /** getConstant Value function */
   Node getConstantValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int argIndex );
   /** getFunctionValue */
-  Node getFunctionValue();
+  Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue );
+  /** update function */
+  void update( TheoryModel* m );
   /** simplify function */
   void simplify( Node op, Node defaultVal, int argIndex );
   /** is total ? */
@@ -123,12 +125,15 @@ public:
     return d_tree.getConstantValue( m, n, d_index_order, 0 );
   }
   /** getFunctionValue
-    *   Returns a compact representation of this function, of kind FUNCTION_MODEL.
-    *   See documentation in theory/uf/kinds
+    *   Returns a representation of this function.
     */
-  Node getFunctionValue(){
-    return d_tree.getFunctionValue();
-  }
+  Node getFunctionValue( std::vector< Node >& args ){ return d_tree.getFunctionValue( args, 0, Node::null() ); }
+  /** getFunctionValue for args with set prefix */
+  Node getFunctionValue( const char* argPrefix );
+  /** update
+    *   This will update all values in the tree to be representatives in m.
+    */
+  void update( TheoryModel* m ){ d_tree.update( m ); }
   /** simplify the tree */
   void simplify() { d_tree.simplify( d_op, Node::null(), 0 ); }
   /** is this tree total? */
@@ -147,6 +152,7 @@ private:
 public:
   /** to ITE function for function model nodes */
   static Node toIte( Node fm_node, std::vector< Node >& args ) { return toIte2( fm_node, args, 0, Node::null() ); }
+  static Node toIte( TypeNode type, Node fm_node, const char* argPrefix );
 };
 
 class UfModelTreeGenerator

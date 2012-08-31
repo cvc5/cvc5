@@ -25,7 +25,7 @@ option satRestartInc --restart-int-inc=F double :default 3.0 :predicate greater_
 option sat_refine_conflicts --refine-conflicts bool
  refine theory conflict clauses
 
-option minisatUseElim --minisat-elimination bool :default true
+option minisatUseElim --minisat-elimination bool :default true :read-write 
  use Minisat elimination
 
 endmodule

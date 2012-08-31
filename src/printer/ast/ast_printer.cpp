@@ -186,6 +186,10 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
+void AstPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+
+}
+
 static void toStream(std::ostream& out, const EmptyCommand* c)  throw() {
   out << "EmptyCommand(" << c->getName() << ")";
 }

@@ -136,32 +136,43 @@ Node UfModelTreeNode::getValue( TheoryModel* m, Node n, std::vector< int >& inde
   }
 }
 
-Node UfModelTreeNode::getFunctionValue(){
+Node UfModelTreeNode::getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue ){
   if( !d_data.empty() ){
-    Node defaultValue;
+    Node defaultValue = argDefaultValue;
+    if( d_data.find( Node::null() )!=d_data.end() ){
+      defaultValue = d_data[Node::null()].getFunctionValue( args, index+1, argDefaultValue );
+    }
     std::vector< Node > caseValues;
+    std::map< Node, Node > caseArg;
     for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-      if( it->first.isNull() ){
-        defaultValue = it->second.getFunctionValue();
-      }else{
-        caseValues.push_back( NodeManager::currentNM()->mkNode( FUNCTION_CASE, it->first, it->second.getFunctionValue() ) );
+      if( !it->first.isNull() ){
+        Node val = it->second.getFunctionValue( args, index+1, defaultValue );
+        caseValues.push_back( val );
+        caseArg[ val ] = it->first;
       }
     }
-    if( caseValues.empty() && defaultValue.getKind()!=FUNCTION_CASE_SPLIT && defaultValue.getKind()!=FUNCTION_MODEL ){
-      return defaultValue;
-    }else{
-      std::vector< Node > children;
-      if( !caseValues.empty() ){
-        children.push_back( NodeManager::currentNM()->mkNode( FUNCTION_CASE_SPLIT, caseValues ) );
-      }
-      if( !defaultValue.isNull() ){
-        children.push_back( defaultValue );
-      }
-      return NodeManager::currentNM()->mkNode( FUNCTION_MODEL, children );
+    Node retNode = defaultValue;
+    for( int i=((int)caseValues.size()-1); i>=0; i-- ){
+      retNode = NodeManager::currentNM()->mkNode( ITE, args[index].eqNode( caseArg[ caseValues[i] ] ), caseValues[i], retNode );
     }
+    return retNode;
   }else{
     Assert( !d_value.isNull() );
     return d_value;
+  }
+}
+
+//update function
+void UfModelTreeNode::update( TheoryModel* m ){
+  if( !d_value.isNull() ){
+    d_value = m->getRepresentative( d_value );
+  }
+  std::map< Node, UfModelTreeNode > old = d_data;
+  d_data.clear();
+  for( std::map< Node, UfModelTreeNode >::iterator it = old.begin(); it != old.end(); ++it ){
+    Node rep = m->getRepresentative( it->first );
+    d_data[ rep ] = it->second;
+    d_data[ rep ].update( m );
   }
 }
 
@@ -251,30 +262,16 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }
 }
 
-
-Node UfModelTree::toIte2( Node fm_node, std::vector< Node >& args, int index, Node defaultNode ){
-  if( fm_node.getKind()==FUNCTION_MODEL ){
-    if( fm_node[0].getKind()==FUNCTION_CASE_SPLIT ){
-      Node retNode;
-      Node childDefaultNode = defaultNode;
-      //get new default
-      if( fm_node.getNumChildren()==2 ){
-        childDefaultNode = toIte2( fm_node[1], args, index+1, defaultNode );
-      }
-      retNode = childDefaultNode;
-      for( int i=(int)fm_node[0].getNumChildren()-1; i>=0; i-- ){
-        Node childNode = toIte2( fm_node[0][1], args, index+1, childDefaultNode );
-        retNode = NodeManager::currentNM()->mkNode( ITE, args[index].eqNode( fm_node[0][0] ), childNode, retNode );
-      }
-      return retNode;
-    }else{
-      return toIte2( fm_node[0], args, index+1, defaultNode );
-    }
-  }else{
-    return fm_node;
+Node UfModelTree::getFunctionValue( const char* argPrefix ){
+  TypeNode type = d_op.getType();
+  std::vector< Node > vars;
+  for( size_t i=0; i<type.getNumChildren()-1; i++ ){
+    std::stringstream ss;
+    ss << argPrefix << (i+1);
+    vars.push_back( NodeManager::currentNM()->mkSkolem( ss.str(), type[i] ) );
   }
+  return getFunctionValue( vars );
 }
-
 
 Node UfModelTreeGenerator::getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround ){
   //Notice() << "Get intersection " << n1 << " " << n2 << std::endl;

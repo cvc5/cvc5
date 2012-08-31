@@ -219,7 +219,7 @@ class TheoryArrays : public Theory {
   private:
   public:
 
-  void collectModelInfo( TheoryModel* m );
+  void collectModelInfo( TheoryModel* m, bool fullModel );
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS

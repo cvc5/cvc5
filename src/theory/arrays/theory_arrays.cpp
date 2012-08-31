@@ -24,6 +24,7 @@
 #include "theory/rewriter.h"
 #include "expr/command.h"
 #include "theory/arrays/theory_arrays_instantiator.h"
+#include "theory/arrays/theory_arrays_model.h"
 #include "theory/model.h"
 
 using namespace std;
@@ -625,8 +626,50 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-void TheoryArrays::collectModelInfo( TheoryModel* m ){
+void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
+  //must determine proper representatives for all array equivalence classes
+  //first, we collect all select terms and array equivalence classes
+  std::map< Node, std::vector< Node > > selects;
+  std::vector< Node > arrays;
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  while( !eqcs_i.isFinished() ){
+    Node eqc = (*eqcs_i);
+    if( eqc.getType().isArray() ){
+      arrays.push_back( eqc );
+    }
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+    while( !eqc_i.isFinished() ){
+      Node n = *eqc_i;
+      if( n.getKind()==kind::SELECT ){
+        selects[ n[0] ].push_back( n );
+      }
+      ++eqc_i;
+    }
+    ++eqcs_i;
+  }
+  //for all array equivalence classes
+  for( size_t i=0; i<arrays.size(); i++ ){
+    ArrayModel am( arrays[i], m );
+    //set all values from existing select terms
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( arrays[i], &d_equalityEngine );
+    while( !eqc_i.isFinished() ){
+      for( int i=0; i<(int)selects[ *eqc_i ].size(); i++ ){
+        am.setValue( m, selects[ *eqc_i ][i][1], selects[ *eqc_i ][i] );
+      }
+      ++eqc_i;
+    }
+    if( fullModel ){
+      ////choose a representative as the default array
+      //am.setDefaultArray( ... );
+    }
+    //construct the representative
+    Node rep = am.getArrayValue();
+    Assert( !rep.isNull() );
+    m->assertEquality( arrays[i], rep, true );
+    //communicate to the model that it is the representative
+    m->assertRepresentative( rep );
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////

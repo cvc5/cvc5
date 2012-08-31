@@ -8,7 +8,7 @@ theory THEORY_DATATYPES ::CVC4::theory::datatypes::TheoryDatatypes "theory/datat
 typechecker "theory/datatypes/theory_datatypes_type_rules.h"
 instantiator ::CVC4::theory::datatypes::InstantiatorTheoryDatatypes "theory/datatypes/theory_datatypes_instantiator.h"
 
-properties check presolve parametric
+properties check presolve parametric propagate
 
 rewriter ::CVC4::theory::datatypes::DatatypesRewriter "theory/datatypes/datatypes_rewriter.h"
 

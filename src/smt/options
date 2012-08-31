@@ -34,6 +34,8 @@ common-option produceModels produce-models -m --produce-models bool :predicate C
  support the get-value and get-model commands
 common-option produceAssignments produce-assignments --produce-assignments bool
  support the get-assignment command
+option modelFormatMode --model-format=MODE ModelFormatMode :handler CVC4::smt::stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "smt/model_format_mode.h" :handler-include "smt/options_handlers.h"
+ print format mode for models, see --model-format=help
 
 # This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
 # is a mode in which the assertion list must be kept.  So it belongs here.

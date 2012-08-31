@@ -587,7 +587,7 @@ Node TheoryRewriteRules::explain(TNode n){
   return normalizeConjunction(explanation);
 }
 
-void TheoryRewriteRules::collectModelInfo( TheoryModel* m ){
+void TheoryRewriteRules::collectModelInfo( TheoryModel* m, bool fullModel ){
 
 }
 

@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file literal_match_mode.h
+/*! \file modes.h
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: ajreynol
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
@@ -19,14 +19,25 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__LITERAL_MATCH_MODE_H
-#define __CVC4__THEORY__QUANTIFIERS__LITERAL_MATCH_MODE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__MODEs_H
+#define __CVC4__THEORY__QUANTIFIERS__MODEs_H
 
 #include <iostream>
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+typedef enum {
+  /** Apply instantiation round before full effort (possibly at standard effort) */
+  INST_WHEN_PRE_FULL,
+  /** Apply instantiation round at full effort or above  */
+  INST_WHEN_FULL,
+  /** Apply instantiation round at full effort half the time, and last call always */
+  INST_WHEN_FULL_LAST_CALL,
+  /** Apply instantiation round at last call only */
+  INST_WHEN_LAST_CALL,
+} InstWhenMode;
 
 typedef enum {
   /** Do not consider polarity of patterns */
@@ -37,11 +48,21 @@ typedef enum {
   LITERAL_MATCH_EQUALITY,
 } LiteralMatchMode;
 
+typedef enum {
+  /** default, use all methods for axioms */
+  AXIOM_INST_MODE_DEFAULT,
+  /** only use heuristic methods for axioms, return unknown in the case no instantiations are produced */
+  AXIOM_INST_MODE_TRUST,
+  /** only use heuristic methods for axioms, resort to all methods when no instantiations are produced */
+  AXIOM_INST_MODE_PRIORITY,
+} AxiomInstMode;
+
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 
-std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__LITERAL_MATCH_MODE_H */
+#endif /* __CVC4__THEORY__QUANTIFIERS__INST_WHEN_MODE_H */

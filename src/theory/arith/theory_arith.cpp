@@ -1925,17 +1925,17 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
   }
 }
 
-void TheoryArith::collectModelInfo( TheoryModel* m ){
+void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(d_qflraStatus ==  Result::SAT);
 
-  Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;  
+  Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
 
   // TODO:
   // This is not very good for user push/pop....
-  // Revisit when implementing push/pop 
+  // Revisit when implementing push/pop
   for(ArithVar v = 0; v < d_variables.size(); ++v){
     if(!isSlackVariable(v)){
       Node term = d_arithvarNodeMap.asNode(v);

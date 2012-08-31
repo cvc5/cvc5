@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file literal_match_mode.cpp
+/*! \file model_format_mode.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -17,27 +17,25 @@
  ** \todo document this file
  **/
 
+#include "cvc4_public.h"
+
+#ifndef __CVC4__SMT__MODEL_FORMAT_MODE_H
+#define __CVC4__SMT__MODEL_FORMAT_MODE_H
+
 #include <iostream>
-#include "theory/quantifiers/literal_match_mode.h"
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMode mode) {
-  switch(mode) {
-  case theory::quantifiers::LITERAL_MATCH_NONE:
-    out << "LITERAL_MATCH_NONE";
-    break;
-  case theory::quantifiers::LITERAL_MATCH_PREDICATE:
-    out << "LITERAL_MATCH_PREDICATE";
-    break;
-  case theory::quantifiers::LITERAL_MATCH_EQUALITY:
-    out << "LITERAL_MATCH_EQUALITY";
-    break;
-  default:
-    out << "LiteralMatchMode!UNKNOWN";
-  }
+/** Enumeration of model_format modes (how to print models from get-model command). */
+typedef enum {
+  /** default mode (print expressions in the output language format) */
+  MODEL_FORMAT_MODE_DEFAULT,
+  /** print functional values in a table format */
+  MODEL_FORMAT_MODE_TABLE,
+} ModelFormatMode;
 
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
+
+#endif /* __CVC4__SMT__MODEL_FORMAT_H */

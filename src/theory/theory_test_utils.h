@@ -103,6 +103,8 @@ public:
 
   void setIncomplete() throw(AssertionException) {}
 
+  void handleUserAttribute( const char* attr, theory::Theory* t ){}
+
   void clear() {
     d_callHistory.clear();
   }

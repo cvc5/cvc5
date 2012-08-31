@@ -66,6 +66,7 @@ public:
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
   void propagate( Theory::Effort level );
+  Node getNextDecisionRequest();
 public:
   /** get the corresponding counterexample literal for quantified formula node n */
   Node getCounterexampleLiteralFor( Node f ) { return d_ce_lit.find( f )==d_ce_lit.end() ? Node::null() : d_ce_lit[ f ]; }

@@ -25,31 +25,29 @@
 namespace CVC4 {
 namespace theory {
 
-namespace quantifiers{
-  class FirstOrderModel;
-}
+class TheoryModel;
 
 namespace arrays {
 
 class ArrayModel{
 protected:
-  /** reference to model */
-  quantifiers::FirstOrderModel* d_model;
   /** the array this model is for */
   Node d_arr;
 public:
   ArrayModel(){}
-  ArrayModel( Node arr, quantifiers::FirstOrderModel* m );
+  ArrayModel( Node arr, TheoryModel* m );
   ~ArrayModel() {}
 public:
   /** pre-defined values */
   std::map< Node, Node > d_values;
-  /** default value */
-  Node d_default_value;
+  /** base array */
+  Node d_base_arr;
   /** get value, return arguments that the value depends on */
-  Node getValue( Node n );
+  Node getValue( TheoryModel* m, Node i );
+  /** set value */
+  void setValue( TheoryModel* m, Node i, Node e );
   /** set default */
-  void setDefaultValue( Node v );
+  void setDefaultArray( Node arr );
 public:
   /** get array value */
   Node getArrayValue();

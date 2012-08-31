@@ -148,7 +148,9 @@ void InstMatch::computeTermVec( QuantifiersEngine* qe, const std::vector< Node >
 }
 void InstMatch::computeTermVec( const std::vector< Node >& vars, std::vector< Node >& match ){
   for( int i=0; i<(int)vars.size(); i++ ){
-    match.push_back( d_map[ vars[i] ] );
+    if( d_map.find( vars[i] )!=d_map.end() && !d_map[ vars[i] ].isNull() ){
+      match.push_back( d_map[ vars[i] ] );
+    }
   }
 }
 
@@ -177,7 +179,7 @@ bool InstMatchTrie::existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m
     }
     if( modEq ){
       //check modulo equality if any other instantiation match exists
-      if( qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
+      if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
         eq::EqClassIterator eqc( qe->getEqualityQuery()->getEngine()->getRepresentative( n ),
                                  qe->getEqualityQuery()->getEngine() );
         while( !eqc.isFinished() ){
@@ -193,13 +195,6 @@ bool InstMatchTrie::existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m
           ++eqc;
         }
       }
-      //for( std::map< Node, InstMatchTrie >::iterator itc = d_data.begin(); itc != d_data.end(); ++itc ){
-      //  if( itc->first!=n && qe->getEqualityQuery()->areEqual( n, itc->first ) ){
-      //    if( itc->second.existsInstMatch( qe, f, m, modEq, index+1 ) ){
-      //      return true;
-      //    }
-      //  }
-      //}
     }
     return false;
   }

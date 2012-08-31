@@ -23,6 +23,7 @@
 
 #include "util/language.h"
 #include "util/sexpr.h"
+#include "util/model.h"
 #include "expr/node.h"
 #include "expr/command.h"
 
@@ -76,6 +77,13 @@ public:
    */
   virtual void toStream(std::ostream& out, const Result& r) const throw();
 
+  /** Write a Model out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, Model* m ) const throw();
+
+  //for models
+
+  /** write model response to command */
+  virtual void toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw() = 0;
 };/* class Printer */
 
 }/* CVC4 namespace */

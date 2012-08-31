@@ -389,16 +389,10 @@ public:
   CVC4::SExpr getAssignment() throw(ModalException, AssertionException);
 
   /**
-   * Add to Model Type.  This is used for recording which types should be reported
+   * Add to Model command.  This is used for recording a command that should be reported
    * during a get-model call.
    */
-  void addToModelType( Type& t );
-
-  /**
-   * Add to Model Function.  This is used for recording which functions should be reported
-   * during a get-model call.
-   */
-  void addToModelFunction( Expr& e );
+  void addToModelCommand( Command* c, int c_type );
 
   /**
    * Get the model (only if immediately preceded by a SAT
@@ -564,6 +558,12 @@ public:
    * print model function (need this?)
    */
   void printModel( std::ostream& out, Model* m );
+
+  /** Set user attribute
+    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
+    *  via the syntax (! expr :attr)
+    */
+  void setUserAttribute( std::string& attr, Expr expr );
 
 };/* class SmtEngine */
 

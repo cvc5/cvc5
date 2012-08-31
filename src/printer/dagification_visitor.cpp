@@ -55,6 +55,7 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   // increment again (they'll be dagified anyway).
   return current.isVar() ||
          current.getMetaKind() == kind::metakind::CONSTANT ||
+         current.getNumChildren()==0 ||
          ( ( current.getKind() == kind::NOT ||
              current.getKind() == kind::UMINUS ) &&
            ( current[0].isVar() ||

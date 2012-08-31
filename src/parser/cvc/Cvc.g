@@ -747,9 +747,9 @@ mainCommand[CVC4::Command*& cmd]
     { cmd = new GetAssertionsCommand(); }
 
   | COUNTEREXAMPLE_TOK
-    { UNSUPPORTED("COUNTEREXAMPLE command"); }
+    { cmd = new GetModelCommand; }
   | COUNTERMODEL_TOK
-    { UNSUPPORTED("COUNTERMODEL command"); }
+    { cmd = new GetModelCommand; }
 
   | ARITH_VAR_ORDER_TOK LPAREN formula[f] ( COMMA formula[f] )* RPAREN
     { UNSUPPORTED("ARITH_VAR_ORDER command"); }

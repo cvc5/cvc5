@@ -21,36 +21,13 @@
 
 #include "util/model.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/rep_set.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-
-/** this class stores a representative set */
-class RepSet {
-public:
-  RepSet(){}
-  ~RepSet(){}
-  std::map< TypeNode, std::vector< Node > > d_type_reps;
-  std::map< Node, int > d_tmap;
-  /** clear the set */
-  void clear();
-  /** has type */
-  bool hasType( TypeNode tn ) { return d_type_reps.find( tn )!=d_type_reps.end(); }
-  /** add representative for type */
-  void add( Node n );
-  /** set the representatives for type */
-  void set( TypeNode t, std::vector< Node >& reps );
-  /** returns index in d_type_reps for node n */
-  int getIndexFor( Node n ) { return d_tmap.find( n )!=d_tmap.end() ? d_tmap[n] : -1; }
-  /** debug print */
-  void toStream(std::ostream& out);
-};
-
-//representative domain
-typedef std::vector< int > RepDomain;
-
 class TheoryEngineModelBuilder;
 
 /** Theory Model class
@@ -66,18 +43,8 @@ protected:
     *   such as contraining the interpretation of uninterpretted functions.
     */
   virtual void addTerm( Node n ) {}
-private:
-  /** List of definitions that the user has given
-    *  This is necessary for supporting the get-model command.
-    */
-  std::vector< Node > d_define_funcs;
-  std::vector< TypeNode > d_define_types;
-  std::vector< int > d_defines;
-protected:
-  /** print the value of the function n to stream */
-  virtual void toStreamFunction( Node n, std::ostream& out );
-  /** print the value of the type tn to stream */
-  virtual void toStreamType( TypeNode tn, std::ostream& out );
+  /** substitution map for this model */
+  SubstitutionMap d_substitutions;
 public:
   TheoryModel( context::Context* c, std::string name );
   virtual ~TheoryModel(){}
@@ -90,7 +57,7 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
-public:
+protected:
   /** reset the model */
   virtual void reset();
   /** get interpreted value
@@ -98,11 +65,11 @@ public:
     *  This should function should return a representative in d_reps
     */
   virtual Node getInterpretedValue( TNode n ) = 0;
+  /**
+   * Get model value function.  This function is called by getValue
+   */
+  Node getModelValue( TNode n );
 public:
-  /** add defined function (for get-model) */
-  void addDefineFunction( Node n );
-  /** add defined type (for get-model) */
-  void addDefineType( TypeNode tn );
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
@@ -117,13 +84,28 @@ public:
     *   If it cannot find such a node, it returns null.
     */
   Node getNewDomainValue( TypeNode tn );
+  /** complete all values for type
+    *   Calling this function ensures that all terms of type tn exist in d_rep_set.d_type_reps[tn]
+    */
+  void completeDomainValues( TypeNode tn ){
+    d_rep_set.complete( tn );
+  }
 public:
+  /** Adds a substitution from x to t. */
+  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** assert equality holds in the model */
   void assertEquality( Node a, Node b, bool polarity );
   /** assert predicate holds in the model */
   void assertPredicate( Node a, bool polarity );
   /** assert all equalities/predicates in equality engine hold in the model */
   void assertEqualityEngine( const eq::EqualityEngine* ee );
+  /** assert representative
+    *  This function tells the model that n should be the representative of its equivalence class.
+    *  It should be called during model generation, before final representatives are chosen.  In the
+    *  case of TheoryEngineModelBuilder, it should be called during Theory's collectModelInfo( ... )
+    *  functions where fullModel = true.
+    */
+  void assertRepresentative( Node n );
 public:
   /** general queries */
   bool hasTerm( Node a );
@@ -170,19 +152,24 @@ class TheoryEngineModelBuilder : public ModelBuilder
 protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
-  /** choose representative for unresolved equivalence class */
-  void initializeType( TypeNode tn, std::map< TypeNode, bool >& unresolved_types );
   /** process build model */
-  virtual void processBuildModel( TheoryModel* m ){}
+  virtual void processBuildModel( TheoryModel* m, bool fullModel ){}
   /** choose representative for unconstrained equivalence class */
-  virtual Node chooseRepresentative( TheoryModel* m, Node eqc );
+  virtual Node chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel );
+  /** normalize representative */
+  Node normalizeRepresentative( TheoryModel* m, Node r, std::map< Node, Node >& reps,
+                                std::map< Node, bool >& normalized,
+                                std::map< Node, bool >& normalizing );
+  Node normalizeNode( TheoryModel* m, Node r, std::map< Node, Node >& reps,
+                      std::map< Node, bool >& normalized,
+                      std::map< Node, bool >& normalizing );
 public:
   TheoryEngineModelBuilder( TheoryEngine* te );
   virtual ~TheoryEngineModelBuilder(){}
   /** Build model function.
    *    Should be called only on TheoryModels m
    */
-  void buildModel( Model* m );
+  void buildModel( Model* m, bool fullModel );
 };
 
 }

@@ -82,7 +82,7 @@ public:
   virtual bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) = 0;
 
   /**
-   * Notifies about the merge of two constant terms. After this, all work is suspended and all you 
+   * Notifies about the merge of two constant terms. After this, all work is suspended and all you
    * can do is ask for explanations.
    *
    * @param t1 a constant term
@@ -384,7 +384,7 @@ private:
   std::vector<TriggerId> d_nodeTriggers;
 
   /**
-   * Map from ids to whether they are constants (constants are always 
+   * Map from ids to whether they are constants (constants are always
    * representatives of their class.
    */
   std::vector<bool> d_isConstant;
@@ -427,7 +427,7 @@ private:
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
-   * else. 
+   * else.
    */
   void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities) const;
 
@@ -440,7 +440,7 @@ private:
   Node d_true;
   /** True node id */
   EqualityNodeId d_trueId;
-  
+
   /** The false node */
   Node d_false;
   /** False node id */
@@ -484,12 +484,12 @@ private:
 
   /** Internal tags for creating a new set */
   Theory::Set d_newSetTags;
-  
+
   /** Internal triggers for creating a new set */
   EqualityNodeId d_newSetTriggers[THEORY_LAST];
-  
+
   /** Size of the internal triggers array */
-  unsigned d_newSetTriggersSize; 
+  unsigned d_newSetTriggersSize;
 
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;
@@ -524,7 +524,7 @@ private:
   struct TriggerSetUpdate {
     EqualityNodeId classId;
     TriggerTermSetRef oldValue;
-    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id) 
+    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id)
     : classId(classId), oldValue(oldValue) {}
   };/* struct EqualityEngine::TriggerSetUpdate */
 
@@ -591,7 +591,7 @@ private:
    * reasons should be pushed on the reasons vector.
    */
   void storePropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId);
-  
+
   /**
    * An equality tagged with a set of tags.
    */
@@ -599,10 +599,10 @@ private:
     /** Id of the equality */
     EqualityNodeId equalityId;
     /** TriggerSet reference for the class of one of the sides */
-    TriggerTermSetRef triggerSetRef;  
+    TriggerTermSetRef triggerSetRef;
     /** Is trigger equivalent to the lhs (rhs otherwise) */
     bool lhs;
-    
+
     TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
     : equalityId(equalityId), triggerSetRef(triggerSetRef), lhs(lhs) {}
   };
@@ -625,9 +625,9 @@ private:
 
   /**
    * Propagates the remembered disequalities with given tags the original triggers for those tags,
-   * and the set of disequalities produced by above. 
+   * and the set of disequalities produced by above.
    */
-  bool propagateTriggerTermDisequalities(Theory::Set tags, 
+  bool propagateTriggerTermDisequalities(Theory::Set tags,
     TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify);
 
   /** Name of the equality engine */
@@ -636,12 +636,12 @@ private:
 public:
 
   /**
-   * Initialize the equality engine, given the notification class. 
+   * Initialize the equality engine, given the notification class.
    */
   EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name);
 
   /**
-   * Initialize the equality engine with no notification class. 
+   * Initialize the equality engine with no notification class.
    */
   EqualityEngine(context::Context* context, std::string name);
 
@@ -791,7 +791,7 @@ class EqClassesIterator {
 
   const eq::EqualityEngine* d_ee;
   size_t d_it;
-
+  std::vector< Node > d_visited;
 public:
 
   EqClassesIterator(): d_ee(NULL), d_it(0){ }
@@ -812,11 +812,11 @@ public:
     return !(*this == i);
   }
   EqClassesIterator& operator++() {
-    Node orig = d_ee->d_nodes[d_it];
+    d_visited.push_back( d_ee->d_nodes[d_it] );
     ++d_it;
     while ( d_it<d_ee->d_nodesCount &&
-            ( d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it]
-              || d_ee->d_nodes[d_it] == orig ) ) { // this line is necessary for ignoring duplicates
+            ( d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it] ||
+              std::find( d_visited.begin(), d_visited.end(), d_ee->d_nodes[d_it] )!=d_visited.end() ) ) { // this line is necessary for ignoring duplicates
       ++d_it;
     }
     return *this;

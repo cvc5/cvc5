@@ -131,7 +131,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
      if( !it->second.empty() ){
-       if( it->second[0].getType()==NodeManager::currentNM()->booleanType() ){
+       if( it->second[0].getType().isBoolean() ){
          d_pred_map_trie[ 0 ][ it->first ].d_data.clear();
          d_pred_map_trie[ 1 ][ it->first ].d_data.clear();
        }else{
@@ -199,6 +199,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
       mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn );
+      Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
     }else{
       mbt = d_type_map[ tn ][ 0 ];
     }
@@ -337,12 +338,13 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
   TypeNode tn = n.getType();
   if( d_free_vars.find( tn )==d_free_vars.end() ){
     //if integer or real, make zero
-    if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
+    if( tn.isInteger() || tn.isReal() ){
       Rational z(0);
       d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
     }else{
       if( d_type_map[ tn ].empty() ){
         d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( tn );
+        Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }else{
         d_free_vars[tn] = d_type_map[ tn ][ 0 ];
       }

@@ -142,15 +142,6 @@ public:
    */
   void explain(TNode n) {}
 
-  /**
-   * Get model
-   *
-   * See theory/theory.h for more information about this method.
-   */
-  void collectModelInfo( TheoryModel* m ){
-    Unimplemented("TheoryUFTim doesn't support model generation");
-  }
-
   std::string identify() const { return std::string("TheoryUFTim"); }
 
 private:

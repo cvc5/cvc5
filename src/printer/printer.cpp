@@ -127,4 +127,10 @@ void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
   }
 }/* Printer::toStream() */
 
+void Printer::toStream(std::ostream& out, Model* m ) const throw(){
+  for( int i=0; i<m->getNumCommands(); i++ ){
+    toStream( out, m, m->getCommand( i ), m->getCommandType( i ) );
+  }
+}
+
 }/* CVC4 namespace */

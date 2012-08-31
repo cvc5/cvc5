@@ -23,6 +23,8 @@
 #include "expr/command.h"
 #include "theory/substitutions.h"
 
+#include "theory/model.h"
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -500,7 +502,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
       toStream(out, n[child], depth, types, false);
-      out << ',';        
+      out << ',';
       toStream(out, n[child+1], depth, types, false);
       while (child > 0) {
         out << ')';
@@ -537,7 +539,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
       toStream(out, n[child], depth, types, false);
-      out << ',';        
+      out << ',';
       toStream(out, n[child+1], depth, types, false);
       while (child > 0) {
         out << ')';
@@ -728,6 +730,83 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
       << typeid(*s).name() << endl;
 
 }/* CvcPrinter::toStream(CommandStatus*) */
+
+void CvcPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+  theory::TheoryModel* tm = (theory::TheoryModel*)m;
+  if( c_type==Model::COMMAND_DECLARE_SORT ){
+    TypeNode tn = TypeNode::fromType( ((DeclareTypeCommand*)c)->getType() );
+    if( tn.isSort() ){
+      //print the cardinality
+      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
+        out << "; cardinality of " << tn << " is " << tm->d_rep_set.d_type_reps[tn].size() << std::endl;
+      }
+    }
+    out << c << std::endl;
+    if( tn.isSort() ){
+      //print the representatives
+      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
+        for( size_t i=0; i<tm->d_rep_set.d_type_reps[tn].size(); i++ ){
+          if( tm->d_rep_set.d_type_reps[tn][i].isVar() ){
+            out << tm->d_rep_set.d_type_reps[tn][i] << " : " << tn << ";" << std::endl;
+          }else{
+            out << "% rep: " << tm->d_rep_set.d_type_reps[tn][i] << std::endl;
+          }
+        }
+      }
+    }
+  }else if( c_type==Model::COMMAND_DECLARE_FUN ){
+    Node n = Node::fromExpr( ((DeclareFunctionCommand*)c)->getFunction() );
+    TypeNode tn = n.getType();
+    out << n << " : ";
+    if( tn.isFunction() || tn.isPredicate() ){
+      out << "(";
+      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
+        if( i>0 ) out << ", ";
+        out << tn[i];
+      }
+      out << ") -> " << tn.getRangeType();
+    }else{
+      out << tn;
+    }
+    out << " = ";
+    if( tn.isFunction() || tn.isPredicate() ){
+      out << "LAMBDA (";
+      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
+        if( i>0 ) out << ", ";
+        out << "$x" << (i+1) << " : " << tn[i];
+      }
+      out << "): ";
+    }
+    out << tm->getValue( n );
+    out << ";" << std::endl;
+
+/*
+    //for table format (work in progress)
+    bool printedModel = false;
+    if( tn.isFunction() ){
+      if( options::modelFormatMode()==MODEL_FORMAT_MODE_TABLE ){
+        //specialized table format for functions
+        RepSetIterator riter( &d_rep_set );
+        riter.setFunctionDomain( n );
+        while( !riter.isFinished() ){
+          std::vector< Node > children;
+          children.push_back( n );
+          for( int i=0; i<riter.getNumTerms(); i++ ){
+            children.push_back( riter.getTerm( i ) );
+          }
+          Node nn = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+          Node val = getValue( nn );
+          out << val << " ";
+          riter.increment();
+        }
+        printedModel = true;
+      }
+    }
+*/
+  }else{
+    out << c << std::endl;
+  }
+}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "ASSERT " << c->getExpr() << ";";

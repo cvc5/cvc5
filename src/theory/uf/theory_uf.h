@@ -193,7 +193,7 @@ public:
   void preRegisterTerm(TNode term);
   Node explain(TNode n);
 
-  void collectModelInfo( TheoryModel* m );
+  void collectModelInfo( TheoryModel* m, bool fullModel );
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
   void presolve();
@@ -202,6 +202,7 @@ public:
   void computeCareGraph();
 
   void propagate(Effort effort);
+  Node getNextDecisionRequest();
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
@@ -226,7 +227,6 @@ public:
   void registerPpRewrite(TNode op, PpRewrite* callback) {
     d_registeredPpRewrites.insert(std::make_pair(op, callback));
   }
-
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

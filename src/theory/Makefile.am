@@ -39,7 +39,9 @@ libtheory_la_SOURCES = \
 	quantifiers_engine.h \
 	quantifiers_engine.cpp \
 	model.h \
-	model.cpp
+	model.cpp \
+	rep_set.h \
+	rep_set.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

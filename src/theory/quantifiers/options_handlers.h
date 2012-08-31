@@ -58,6 +58,23 @@ predicate\n\
 \n\
 ";
 
+static const std::string axiomInstModeHelp = "\
+Literal match modes currently supported by the --axiom-inst option:\n\
+\n\
+default \n\
++ Treat axioms the same as usual quantifiers, i.e. use all available methods for\n\
+  instantiating axioms.\n\
+\n\
+trust \n\
++ Treat axioms only using heuristic instantiation.  Return unknown if in the case\n\
+  that no instantiations are produced.\n\
+\n\
+priority \n\
++ Treat axioms only using heuristic instantiation.  Resort to using all methods\n\
+  in the case that no instantiations are produced.\n\
+\n\
+";
+
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
     return INST_WHEN_PRE_FULL;
@@ -101,6 +118,22 @@ inline LiteralMatchMode stringToLiteralMatchMode(std::string option, std::string
 inline void checkLiteralMatchMode(std::string option, LiteralMatchMode mode, SmtEngine* smt) throw(OptionException) {
   if(mode == LITERAL_MATCH_EQUALITY) {
     throw OptionException(std::string("Mode equality for ") + option + " is not supported in this release.");
+  }
+}
+
+inline AxiomInstMode stringToAxiomInstMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default") {
+    return AXIOM_INST_MODE_DEFAULT;
+  } else if(optarg ==  "trust") {
+    return AXIOM_INST_MODE_TRUST;
+  } else if(optarg ==  "priority") {
+    return AXIOM_INST_MODE_PRIORITY;
+  } else if(optarg ==  "help") {
+    puts(axiomInstModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --axiom-inst: `") +
+                          optarg + "'.  Try --axiom-inst help.");
   }
 }
 

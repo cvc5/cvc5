@@ -130,7 +130,7 @@ bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNod
     return false;
   }
 
-  // Propagate away 
+  // Propagate away
   Node equality = a.eqNode(b);
   if (value) {
     d_theoryEngine->assertToTheory(equality, theory, THEORY_BUILTIN);
@@ -156,20 +156,20 @@ void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
   if (newlyNotified == 0) {
     return;
   }
-  
+
   Debug("shared-terms-database") << "SharedTermsDatabase::markNotified(" << term << ")" << endl;
 
   // First update the set of notified theories for this term
   d_alreadyNotifiedMap[term] = Theory::setUnion(newlyNotified, alreadyNotified);
 
   // Mark the shared terms in the equality engine
-  theory::TheoryId currentTheory; 
+  theory::TheoryId currentTheory;
   while ((currentTheory = Theory::setPop(newlyNotified)) != THEORY_LAST) {
-    d_equalityEngine.addTriggerTerm(term, currentTheory);    
+    d_equalityEngine.addTriggerTerm(term, currentTheory);
   }
-  
+
   // Check for any conflits
-  checkForConflict();  
+  checkForConflict();
 }
 
 bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
@@ -181,7 +181,7 @@ bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
     // since one (or both) of them is a constant, and the other is in the equality engine, they are not same
     return false;
   }
-} 
+}
 
 bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
@@ -240,7 +240,7 @@ void SharedTermsDatabase::checkForConflict() {
     std::vector<TNode> assumptions;
     d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
     Node conflict = mkAnd(assumptions);
-    d_theoryEngine->conflict(conflict, THEORY_BUILTIN);    
+    d_theoryEngine->conflict(conflict, THEORY_BUILTIN);
     d_conflictLHS = d_conflictRHS = Node::null();
   }
 }
@@ -261,6 +261,9 @@ Node SharedTermsDatabase::explain(TNode literal) const {
   Assert(atom.getKind() == kind::EQUAL);
   std::vector<TNode> assumptions;
   d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
-  return mkAnd(assumptions);  
+  return mkAnd(assumptions);
 }
 
+void SharedTermsDatabase::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
+  m->assertEqualityEngine( &d_equalityEngine );
+}

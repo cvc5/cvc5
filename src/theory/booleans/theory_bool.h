@@ -35,8 +35,6 @@ public:
     Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, qe) {
   }
 
-  void collectModelInfo( TheoryModel* m );
-
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   std::string identify() const { return std::string("TheoryBool"); }

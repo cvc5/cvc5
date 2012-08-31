@@ -40,6 +40,8 @@ private:    //data maintained globally:
 private:    //analysis of current model:
   //relevant domain
   RelevantDomain d_rel_domain;
+  //is the exhaustive instantiation incomplete?
+  bool d_incomplete_check;
 private:
   //options
   bool optOneInstPerQuantRound();
@@ -48,6 +50,8 @@ private:
 private:
   //initialize quantifiers, return number of lemmas produced
   int initializeQuantifier( Node f );
+  //check model
+  void checkModel( int& addedLemmas );
   //exhaustively instantiate quantifier (possibly using mbqi), return number of lemmas produced
   int exhaustiveInstantiate( Node f, bool useRelInstDomain = false );
 private:
@@ -57,7 +61,7 @@ private:
   int d_totalLemmas;
   int d_relevantLemmas;
 public:
-  ModelEngine( QuantifiersEngine* qe );
+  ModelEngine( context::Context* c, QuantifiersEngine* qe );
   ~ModelEngine(){}
 public:
   void check( Theory::Effort e );

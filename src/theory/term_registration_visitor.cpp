@@ -17,6 +17,7 @@
 
 #include "theory/term_registration_visitor.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -37,7 +38,8 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
-        parent.getKind() == kind::REWRITE_RULE ) &&
+        parent.getKind() == kind::REWRITE_RULE /*||
+        parent.getKind() == kind::CARDINALITY_CONSTRAINT*/ ) &&
       current != parent ) {
     Debug("register::internal") << "quantifier:true" << std::endl;
     return true;
@@ -160,7 +162,8 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   if( ( parent.getKind() == kind::FORALL ||
         parent.getKind() == kind::EXISTS ||
-        parent.getKind() == kind::REWRITE_RULE) &&
+        parent.getKind() == kind::REWRITE_RULE /*||
+        parent.getKind() == kind::CARDINALITY_CONSTRAINT*/  ) &&
       current != parent ) {
     Debug("register::internal") << "quantifier:true" << std::endl;
     return true;
@@ -179,12 +182,40 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
   // Should we use the theory of the type
+#if 0
   bool useType = current != parent && currentTheoryId != parentTheoryId;
+#else
+  bool useType = false;
+  TheoryId typeTheoryId = THEORY_LAST;
+
+  if (current != parent) {
+    if (currentTheoryId != parentTheoryId) {
+      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
+      TypeNode type = current.getType();
+      useType = true;
+      typeTheoryId = Theory::theoryOf(type);
+    } else {
+      TypeNode type = current.getType();
+      typeTheoryId = Theory::theoryOf(type);
+      if (typeTheoryId != currentTheoryId) {
+        if (options::finiteModelFind() && type.isSort()) {
+          // We're looking for finite models
+          useType = true;
+        } else {
+          Cardinality card = type.getCardinality();
+          if (card.isFinite()) {
+            useType = true;
+          }
+        }
+      }
+    }
+  }
+#endif
 
   if (Theory::setContains(currentTheoryId, theories)) {
       if (Theory::setContains(parentTheoryId, theories)) {
         if (useType) {
-          TheoryId typeTheoryId = Theory::theoryOf(current.getType());
+          ////TheoryId typeTheoryId = Theory::theoryOf(current.getType());
           return Theory::setContains(typeTheoryId, theories);
         } else {
           return true;
@@ -208,7 +239,36 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
 
+#if 0
   bool useType = current != parent && currentTheoryId != parentTheoryId;
+#else
+  // Should we use the theory of the type
+  bool useType = false;
+  TheoryId typeTheoryId = THEORY_LAST;
+
+  if (current != parent) {
+    if (currentTheoryId != parentTheoryId) {
+      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
+      TypeNode type = current.getType();
+      useType = true;
+      typeTheoryId = Theory::theoryOf(type);
+    } else {
+      TypeNode type = current.getType();
+      typeTheoryId = Theory::theoryOf(type);
+      if (typeTheoryId != currentTheoryId) {
+        if (options::finiteModelFind() && type.isSort()) {
+          // We're looking for finite models
+          useType = true;
+        } else {
+          Cardinality card = type.getCardinality();
+          if (card.isFinite()) {
+            useType = true;
+          }
+        }
+      }
+    }
+  }
+#endif
 
   Theory::Set visitedTheories = d_visited[current];
   Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
@@ -221,7 +281,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
     Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   if (useType) {
-    TheoryId typeTheoryId = Theory::theoryOf(current.getType());
+    //////TheoryId typeTheoryId = Theory::theoryOf(current.getType());
     if (!Theory::setContains(typeTheoryId, visitedTheories)) {
       visitedTheories = Theory::setInsert(typeTheoryId, visitedTheories);
       Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): adding " << typeTheoryId << std::endl;

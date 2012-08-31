@@ -29,6 +29,8 @@
 #include "theory/substitutions.h"
 #include "util/language.h"
 
+#include "theory/model.h"
+
 using namespace std;
 
 namespace CVC4 {
@@ -306,14 +308,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // TODO user patterns
     break;
 
-  //function models
-  case kind::FUNCTION_MODEL:
-    break;
-  case kind::FUNCTION_CASE_SPLIT:
-    break;
-  case kind::FUNCTION_CASE:
-    out << "if ";
-    break;
   default:
     // fall back on however the kind prints itself; this probably
     // won't be SMT-LIB v2 compliant, but it will be clear from the
@@ -526,6 +520,76 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 
 }/* Smt2Printer::toStream(CommandStatus*) */
 
+
+void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+  theory::TheoryModel* tm = (theory::TheoryModel*)m;
+  if( c_type==Model::COMMAND_DECLARE_SORT ){
+    TypeNode tn = TypeNode::fromType( ((DeclareTypeCommand*)c)->getType() );
+    if( tn.isSort() ){
+      //print the cardinality
+      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
+        out << "; cardinality of " << tn << " is " << tm->d_rep_set.d_type_reps[tn].size() << std::endl;
+      }
+    }
+    out << c << std::endl;
+    if( tn.isSort() ){
+      //print the representatives
+      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
+        for( size_t i=0; i<tm->d_rep_set.d_type_reps[tn].size(); i++ ){
+          if( tm->d_rep_set.d_type_reps[tn][i].isVar() ){
+            out << "(declare-fun " << tm->d_rep_set.d_type_reps[tn][i] << " () " << tn << ")" << std::endl;
+          }else{
+            out << "; rep: " << tm->d_rep_set.d_type_reps[tn][i] << std::endl;
+          }
+        }
+      }
+    }
+  }else if( c_type==Model::COMMAND_DECLARE_FUN ){
+    Node n = Node::fromExpr( ((DeclareFunctionCommand*)c)->getFunction() );
+    TypeNode tn = n.getType();
+    out << "(define-fun " << n << " (";
+    if( tn.isFunction() || tn.isPredicate() ){
+      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
+        if( i>0 ) out << " ";
+        out << "($x" << (i+1) << " " << tn[i] << ")";
+      }
+      out << ") " << tn.getRangeType();
+    }else{
+      out << ") " << tn;
+    }
+    out << " ";
+    out << tm->getValue( n );
+    out << ")" << std::endl;
+
+/*
+    //for table format (work in progress)
+    bool printedModel = false;
+    if( tn.isFunction() ){
+      if( options::modelFormatMode()==MODEL_FORMAT_MODE_TABLE ){
+        //specialized table format for functions
+        RepSetIterator riter( &d_rep_set );
+        riter.setFunctionDomain( n );
+        while( !riter.isFinished() ){
+          std::vector< Node > children;
+          children.push_back( n );
+          for( int i=0; i<riter.getNumTerms(); i++ ){
+            children.push_back( riter.getTerm( i ) );
+          }
+          Node nn = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+          Node val = getValue( nn );
+          out << val << " ";
+          riter.increment();
+        }
+        printedModel = true;
+      }
+    }
+*/
+  }else{
+    out << c << std::endl;
+  }
+}
+
+
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";
 }
@@ -687,7 +751,7 @@ static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  out << "(declare-datatypes (";
+  out << "(declare-datatypes () (";
   for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
         i_end = datatypes.end();
       i != i_end;
@@ -698,14 +762,15 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
     out << "(" << d.getName() << "  ";
     for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
         ctor != ctor_end; ++ctor){
-      out << "(" << ctor->getName() << " ";
+      if( ctor!=d.begin() ) out << " ";
+      out << "(" << ctor->getName();
 
       for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
           arg != arg_end; ++arg){
-        out << "(" << arg->getSelector() << " "
+        out << " (" << arg->getSelector() << " "
             << static_cast<SelectorType>(arg->getType()).getRangeType() << ")";
       }
-      out << ") ";
+      out << ")";
     }
     out << ")" << endl;
   }

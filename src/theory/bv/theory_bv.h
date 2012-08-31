@@ -60,7 +60,7 @@ public:
 
   Node explain(TNode n);
 
-  void collectModelInfo( TheoryModel* m );
+  void collectModelInfo( TheoryModel* m, bool fullModel );
 
   std::string identify() const { return std::string("TheoryBV"); }
 

@@ -99,5 +99,9 @@ bool Valuation::isDecision(Node lit) const {
   return d_engine->getPropEngine()->isDecision(lit);
 }
 
+unsigned Valuation::getAssertionLevel() const{
+  return d_engine->getPropEngine()->getAssertionLevel();
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

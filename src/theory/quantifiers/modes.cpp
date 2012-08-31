@@ -2,7 +2,7 @@
 /*! \file inst_when_mode.cpp
  ** \verbatim
  ** Original author: mdeters
- ** Major contributors: none
+ ** Major contributors: ajreynol
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
@@ -18,7 +18,7 @@
  **/
 
 #include <iostream>
-#include "theory/quantifiers/inst_when_mode.h"
+#include "theory/quantifiers/modes.h"
 
 namespace CVC4 {
 
@@ -38,6 +38,42 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mo
     break;
   default:
     out << "InstWhenMode!UNKNOWN";
+  }
+
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMode mode) {
+  switch(mode) {
+  case theory::quantifiers::LITERAL_MATCH_NONE:
+    out << "LITERAL_MATCH_NONE";
+    break;
+  case theory::quantifiers::LITERAL_MATCH_PREDICATE:
+    out << "LITERAL_MATCH_PREDICATE";
+    break;
+  case theory::quantifiers::LITERAL_MATCH_EQUALITY:
+    out << "LITERAL_MATCH_EQUALITY";
+    break;
+  default:
+    out << "LiteralMatchMode!UNKNOWN";
+  }
+
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, theory::quantifiers::AxiomInstMode mode) {
+  switch(mode) {
+  case theory::quantifiers::AXIOM_INST_MODE_DEFAULT:
+    out << "AXIOM_INST_MODE_DEFAULT";
+    break;
+  case theory::quantifiers::AXIOM_INST_MODE_TRUST:
+    out << "AXIOM_INST_MODE_TRUST";
+    break;
+  case theory::quantifiers::AXIOM_INST_MODE_PRIORITY:
+    out << "AXIOM_INST_MODE_PRIORITY";
+    break;
+  default:
+    out << "AxiomInstMode!UNKNOWN";
   }
 
   return out;

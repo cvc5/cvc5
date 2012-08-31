@@ -274,7 +274,9 @@ class TheoryEngine {
     void spendResource() throw() {
       d_engine->spendResource();
     }
-
+    void handleUserAttribute( const char* attr, theory::Theory* t ){
+      d_engine->handleUserAttribute( attr, t );
+    }
   };/* class TheoryEngine::EngineOutputChannel */
 
   /**
@@ -616,7 +618,7 @@ public:
   /**
    * collect model info
    */
-  void collectModelInfo( theory::TheoryModel* m );
+  void collectModelInfo( theory::TheoryModel* m, bool fullModel );
 
   /**
    * Get the current model
@@ -679,6 +681,22 @@ public:
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
+
+private:
+  std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
+public:
+
+  /** Set user attribute
+    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
+    *  via the syntax (! n :attr)
+    */
+  void setUserAttribute( std::string& attr, Node n );
+
+  /** Handle user attribute
+    *   Associates theory t with the attribute attr.  Theory t will be
+    *   notifed whenever an attribute of name attr is set.
+    */
+  void handleUserAttribute( const char* attr, theory::Theory* t );
 
 };/* class TheoryEngine */
 

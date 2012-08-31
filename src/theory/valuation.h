@@ -117,6 +117,11 @@ public:
    */
   bool isDecision(Node lit) const;
 
+  /**
+   * Get the assertion level of the SAT solver.
+   */
+  unsigned getAssertionLevel() const;
+
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

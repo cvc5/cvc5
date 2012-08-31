@@ -61,17 +61,17 @@ public:
   void presolve();
   void check(Effort e);
   void propagate(Effort level);
+  Node getNextDecisionRequest();
   Node getValue(TNode n);
-  void collectModelInfo( TheoryModel* m );
+  void collectModelInfo( TheoryModel* m, bool fullModel );
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   bool flipDecision();
+  void setUserAttribute( std::string& attr, Node n );
 private:
   void assertUniversal( Node n );
   void assertExistential( Node n );
   bool restart();
-public:
-  void performCheck(Effort e);
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -28,6 +28,7 @@ namespace quantifiers {
 class RelevantDomain
 {
 private:
+  QuantifiersEngine* d_qe;
   FirstOrderModel* d_model;
 
   //the domain of the arguments for each operator
@@ -35,16 +36,17 @@ private:
   //the range for each operator
   std::map< Node, RepDomain > d_active_range;
   //for computing relevant instantiation domain, return true if changed
-  bool computeRelevantInstantiationDomain( Node n, Node parent, int arg, std::vector< RepDomain >& rd );
+  bool computeRelevantInstantiationDomain( Node n, Node parent, int arg, Node f );
   //for computing extended
   bool extendFunctionDomains( Node n, RepDomain& range );
 public:
-  RelevantDomain( FirstOrderModel* m );
+  RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
   //compute the relevant domain
   void compute();
   //relevant instantiation domain for each quantifier
   std::map< Node, std::vector< RepDomain > > d_quant_inst_domain;
+  std::map< Node, std::map< int, bool > > d_quant_inst_domain_complete;
 };/* class RelevantDomain */
 
 }/* CVC4::theory::quantifiers namespace */

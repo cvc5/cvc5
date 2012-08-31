@@ -60,6 +60,8 @@
 #include "theory/booleans/circuit_propagator.h"
 #include "util/ite_removal.h"
 #include "theory/model.h"
+#include "printer/printer.h"
+#include "prop/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -488,7 +490,9 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     bool quantifiers = d_logic.isQuantified();
     Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << std::endl;
-    options::simplificationMode.set(qf_sat || quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
+    //simplifaction=none works better for SMT LIB benchmarks with quantifiers, not others
+    //options::simplificationMode.set(qf_sat || quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
+    options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
   }
 
   // If in arrays, set the UF handler to arrays
@@ -616,6 +620,21 @@ void SmtEngine::setLogicInternal() throw(AssertionException) {
     Trace("smt") << "setting decision mode to " << decMode << std::endl;
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
+  }
+
+  //for finite model finding
+  if( ! options::instWhenMode.wasSetByUser()){
+    if( options::fmfInstEngine() ){
+      Trace("smt") << "setting inst when mode to LAST_CALL" << std::endl;
+      options::instWhenMode.set( INST_WHEN_LAST_CALL );
+    }
+  }
+
+  //until bug 371 is fixed
+  if( ! options::minisatUseElim.wasSetByUser()){
+    if( d_logic.isQuantified() ){
+      options::minisatUseElim.set( false );
+    }
   }
 }
 
@@ -1727,11 +1746,10 @@ Expr SmtEngine::getValue(const Expr& e)
     throw ModalException(msg);
   }
 
-  // Apply what was learned from preprocessing
-  Node n = d_private->applySubstitutions(e.getNode());
+  // do not need to apply preprocessing substitutions (should be recorded in model already)
 
   // Normalize for the theories
-  n = Rewriter::rewrite(n);
+  Node n = Rewriter::rewrite( e.getNode() );
 
   Trace("smt") << "--- getting value of " << n << endl;
   theory::TheoryModel* m = d_theoryEngine->getModel();
@@ -1835,34 +1853,19 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException)
 }
 
 
-void SmtEngine::addToModelType( Type& t ){
-  Trace("smt") << "SMT addToModelType(" << t << ")" << endl;
+void SmtEngine::addToModelCommand( Command* c, int c_type ){
+  Trace("smt") << "SMT addToModelCommand(" << c << ", " << c_type << ")" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
   if( options::produceModels() ) {
-    d_theoryEngine->getModel()->addDefineType( TypeNode::fromType( t ) );
+    d_theoryEngine->getModel()->addCommand( c, c_type );
   }
 }
-
-void SmtEngine::addToModelFunction( Expr& e ){
-  Trace("smt") << "SMT addToModelFunction(" << e << ")" << endl;
-  SmtScope smts(this);
-  finalOptionsAreSet();
-  if( options::produceModels() ) {
-    d_theoryEngine->getModel()->addDefineFunction( e.getNode() );
-  }
-}
-
 
 Model* SmtEngine::getModel() throw(ModalException, AssertionException){
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get model when produce-models options is off.";
-    throw ModalException(msg);
-  }
   if(d_status.isNull() ||
      d_status.asSatisfiabilityResult() == Result::UNSAT  ||
      d_problemExtended) {
@@ -1871,7 +1874,11 @@ Model* SmtEngine::getModel() throw(ModalException, AssertionException){
       "preceded by SAT/INVALID or UNKNOWN response.";
     throw ModalException(msg);
   }
-
+  if(!options::produceModels()) {
+    const char* msg =
+      "Cannot get model when produce-models options is off.";
+    throw ModalException(msg);
+  }
   return d_theoryEngine->getModel();
 }
 
@@ -2066,7 +2073,13 @@ StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {
 
 void SmtEngine::printModel( std::ostream& out, Model* m ){
   SmtScope smts(this);
-  m->toStream(out);
+  Printer::getPrinter(options::outputLanguage())->toStream( out, m );
+  //m->toStream(out);
+}
+
+void SmtEngine::setUserAttribute( std::string& attr, Expr expr ){
+  SmtScope smts(this);
+  d_theoryEngine->setUserAttribute( attr, expr.getNode() );
 }
 
 }/* CVC4 namespace */

@@ -48,22 +48,6 @@ public:
   /** identify */
   std::string identify() const { return std::string("Simplex"); }
 };
-//
-//class InstStrategySimplexUfMatch : public InstStrategy{
-//private:
-//  /** InstantiatorTheoryUf class */
-//  InstantiatorTheoryArith* d_th;
-//  /** trigger for instantiation rows */
-//  std::map< ArithVar, Trigger* > d_tableaux_ce_term_trigger;
-//public:
-//  InstStrategySimplexUfMatch( InstantiatorTheoryArith* th, QuantifiersEngine* ie ) :
-//      InstStrategy( ie ), d_th( th ){}
-//  ~InstStrategySimplexUfMatch(){}
-//  void resetInstantiationRound();
-//  int process( Node f, Theory::Effort effort, int e, int instLimit );
-//  /** identify */
-//  std::string identify() const { return std::string("SimplexUfMatch"); }
-//};
 
 class InstantiatorTheoryArith : public Instantiator{
   friend class QuantifiersEngine;
@@ -105,16 +89,11 @@ private:
   int process( Node f, Theory::Effort effort, int e );
   /** add term to row */
   void addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder<>& t );
-  /** get delta for node */
-  Node getDelta( Node n );
 
   class Statistics {
   public:
     IntStat d_instantiations;
     IntStat d_instantiations_minus;
-    IntStat d_instantiations_match_pure;
-    IntStat d_instantiations_match_var;
-    IntStat d_instantiations_match_no_var;
     Statistics();
     ~Statistics();
   };

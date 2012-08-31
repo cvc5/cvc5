@@ -27,10 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-void TheoryBuiltin::collectModelInfo( TheoryModel* m ){
-
-}
-
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory */
 }/* CVC4 namespace */

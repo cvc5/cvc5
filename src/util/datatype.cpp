@@ -379,6 +379,15 @@ Expr Datatype::getConstructor(std::string name) const {
   return (*this)[name].getConstructor();
 }
 
+bool Datatype::involvesExternalType() const{
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if( (*i).involvesExternalType() ){
+      return true;
+    }
+  }
+  return false;
+}
+
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                                   const std::map<std::string, DatatypeType>& resolutions,
                                   const std::vector<Type>& placeholders,
@@ -689,7 +698,7 @@ Expr DatatypeConstructor::mkGroundTerm( Type t ) const throw(AssertionException)
     }
     groundTerms.push_back(selType.mkGroundTerm());
   }
-  
+
   groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
   if( groundTerm.getType()!=t ){
     Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
@@ -720,6 +729,15 @@ const DatatypeConstructorArg& DatatypeConstructor::operator[](std::string name) 
 
 Expr DatatypeConstructor::getSelector(std::string name) const {
   return (*this)[name].getSelector();
+}
+
+bool DatatypeConstructor::involvesExternalType() const{
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if(! SelectorType((*i).getSelector().getType()).getRangeType().isDatatype()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
