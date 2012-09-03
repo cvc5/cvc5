@@ -42,10 +42,6 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
-//hack
-#include "theory/arith/options.h"
-#include "theory/uf/options.h"
-
 
 using namespace std;
 
@@ -146,30 +142,6 @@ void TheoryEngine::preRegister(TNode preprocessed) {
 
     // Leaving pre-register
     d_inPreregister = false;
-  }
-}
-
-void collectGroundTerms( Node n, std::vector< Node >& defineFuns,
-                         std::vector< Node >& groundTerms ){
-  if( std::find( groundTerms.begin(), groundTerms.end(), n )==groundTerms.end() ){
-    groundTerms.push_back( n );
-    if( n.getKind()==kind::APPLY_UF ){
-      if( std::find( defineFuns.begin(), defineFuns.end(), n.getOperator() )==defineFuns.end() ){
-        defineFuns.push_back( n.getOperator() );
-      }
-    }else if( n.getNumChildren()==0 ){
-      if( std::find( defineFuns.begin(), defineFuns.end(), n )==defineFuns.end() ){
-        defineFuns.push_back( n );
-      }
-    }
-    if( n.getKind()==kind::FORALL ){
-      std::cout << "Bad ground assertion : " << n << std::endl;
-      std::cout << "...possible nested quantifiers?" << std::endl;
-      exit( -1 );
-    }
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      collectGroundTerms( n[i], defineFuns, groundTerms );
-    }
   }
 }
 
