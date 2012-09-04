@@ -91,6 +91,10 @@ bool Command::ok() const throw() {
   return d_commandStatus == NULL || dynamic_cast<const CommandSuccess*>(d_commandStatus) != NULL;
 }
 
+bool Command::fail() const throw() {
+  return d_commandStatus != NULL && dynamic_cast<const CommandFailure*>(d_commandStatus) != NULL;
+}
+
 void Command::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
   invoke(smtEngine);
   printResult(out);
@@ -1048,11 +1052,11 @@ std::string GetInfoCommand::getFlag() const throw() {
 
 void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    SExpr response = smtEngine->getInfo(d_flag);
+    vector<SExpr> v;
+    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
+    v.push_back(smtEngine->getInfo(d_flag));
     stringstream ss;
-    ss << SExpr(SExpr::Keyword(d_flag))
-       << ' '
-       << response;
+    ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(UnrecognizedOptionException&) {
@@ -1136,7 +1140,6 @@ void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
     v.push_back(smtEngine->getOption(d_flag));
     stringstream ss;
-
     ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();

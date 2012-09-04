@@ -293,12 +293,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       // have the replay parser use the file's declarations
       replayParser->useDeclarationsFrom(parser);
     }
-    while((cmd = parser->nextCommand()) && status) {
+    while(status && (cmd = parser->nextCommand())) {
       if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
         delete cmd;
         break;
       }
-      status = doCommand(smt, cmd, opts) && status;
+      status = doCommand(smt, cmd, opts);
       delete cmd;
     }
     // Remove the parser
@@ -352,16 +352,18 @@ static bool doCommand(SmtEngine& smt, Command* cmd, Options& opts) {
     return true;
   }
 
-  // assume no error
-  bool status = true;
-
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
   if(seq != NULL) {
+    // assume no error
+    bool status = true;
+
     for(CommandSequence::iterator subcmd = seq->begin();
-        subcmd != seq->end();
+        status && subcmd != seq->end();
         ++subcmd) {
-      status = doCommand(smt, *subcmd, opts) && status;
+      status = doCommand(smt, *subcmd, opts);
     }
+
+    return status;
   } else {
     if(opts[options::verbosity] > 0) {
       *opts[options::out] << "Invoking: " << *cmd << endl;
@@ -372,8 +374,6 @@ static bool doCommand(SmtEngine& smt, Command* cmd, Options& opts) {
     } else {
       cmd->invoke(&smt);
     }
-    status = status && cmd->ok();
+    return !cmd->fail();
   }
-
-  return status;
 }

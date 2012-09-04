@@ -211,8 +211,17 @@ public:
 
   std::string toString() const throw();
 
-  /** Either the command hasn't run yet, or it completed successfully. */
+  /**
+   * Either the command hasn't run yet, or it completed successfully
+   * (CommandSuccess, not CommandUnsupported or CommandFailure).
+   */
   bool ok() const throw();
+
+  /**
+   * The command completed in a failure state (CommandFailure, not
+   * CommandSuccess or CommandUnsupported).
+   */
+  bool fail() const throw();
 
   /** Get the command status (it's NULL if we haven't run yet). */
   const CommandStatus* getCommandStatus() const throw() { return d_commandStatus; }
