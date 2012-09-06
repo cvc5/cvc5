@@ -104,7 +104,7 @@ option - -d --debug=TAG argument :handler CVC4::options::addDebugTag
 option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h"
  print the "success" output required of SMT-LIBv2
 
-alias --smtlib2 = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success
+alias --smtlib2 = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental
  SMT-LIBv2 compliance mode (implies other options)
 
 endmodule
