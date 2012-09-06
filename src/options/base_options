@@ -96,9 +96,9 @@ common-option preprocessOnly preprocess-only --preprocess-only bool
 option segvNoSpin --segv-nospin bool
  don't spin on segfault waiting for gdb
 
-option - -t --trace=TAG argument :handler CVC4::options::addTraceTag
+option - trace -t --trace=TAG argument :handler CVC4::options::addTraceTag
  trace something (e.g. -t pushpop), can repeat
-option - -d --debug=TAG argument :handler CVC4::options::addDebugTag
+option - debug -d --debug=TAG argument :handler CVC4::options::addDebugTag
  debug something (e.g. -d arith), can repeat
 
 option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h"
