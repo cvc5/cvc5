@@ -143,7 +143,8 @@ class SmtEnginePrivate {
    * holds the last substitution from d_topLevelSubstitutions
    * that was pushed out to SAT.
    * If d_lastSubstitutionPos == d_topLevelSubstitutions.end(),
-   * then nothing has been pushed out yet. */
+   * then nothing has been pushed out yet.
+   */
   context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPos;
 
   static const bool d_doConstantProp = true;
@@ -254,6 +255,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_assertionList(NULL),
   d_assignments(NULL),
   d_logic(),
+  d_pendingPops(0),
   d_fullyInited(false),
   d_problemExtended(false),
   d_queryMade(false),
@@ -377,6 +379,8 @@ void SmtEngine::shutdown() {
     Dump("benchmark") << QuitCommand();
   }
 
+  doPendingPops();
+
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
     d_theoryEngine->postsolve();
@@ -392,8 +396,10 @@ SmtEngine::~SmtEngine() throw() {
   SmtScope smts(this);
 
   try {
+    doPendingPops();
+
     while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
-      internalPop();
+      internalPop(true);
     }
 
     shutdown();
@@ -1267,6 +1273,7 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
 // returns false if simpflication led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
   throw(TypeCheckingException, AssertionException) {
+  Assert(d_smt.d_pendingPops == 0);
   try {
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
@@ -1348,6 +1355,7 @@ bool SmtEnginePrivate::simplifyAssertions()
 
 Result SmtEngine::check() {
   Assert(d_fullyInited);
+  Assert(d_pendingPops == 0);
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
@@ -1399,6 +1407,7 @@ Result SmtEngine::quickCheck() {
 
 void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_fullyInited);
+  Assert(d_smt.d_pendingPops == 0);
 
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
@@ -1572,6 +1581,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
   SmtScope smts(this);
 
   finalOptionsAreSet();
+  doPendingPops();
 
   Trace("smt") << "SmtEngine::checkSat(" << e << ")" << endl;
 
@@ -1635,6 +1645,7 @@ Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
   SmtScope smts(this);
 
   finalOptionsAreSet();
+  doPendingPops();
 
   Trace("smt") << "SMT query(" << e << ")" << endl;
 
@@ -1690,6 +1701,7 @@ Result SmtEngine::assertFormula(const BoolExpr& e) throw(TypeCheckingException) 
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   Trace("smt") << "SmtEngine::assertFormula(" << e << ")" << endl;
   ensureBoolean(e);
   if(d_assertionList != NULL) {
@@ -1703,6 +1715,7 @@ Expr SmtEngine::simplify(const Expr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   if( options::typeChecking() ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
@@ -1766,6 +1779,7 @@ Expr SmtEngine::getValue(const Expr& e)
 bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   Type type = e.getType(options::typeChecking());
   // must be Boolean
   CheckArgument( type.isBoolean(), e,
@@ -1857,6 +1871,7 @@ void SmtEngine::addToModelCommand( Command* c, int c_type ){
   Trace("smt") << "SMT addToModelCommand(" << c << ", " << c_type << ")" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   if( options::produceModels() ) {
     d_theoryEngine->getModel()->addCommand( c, c_type );
   }
@@ -1865,6 +1880,12 @@ void SmtEngine::addToModelCommand( Command* c, int c_type ){
 Model* SmtEngine::getModel() throw(ModalException, AssertionException){
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << GetModelCommand();
+  }
 
   if(d_status.isNull() ||
      d_status.asSatisfiabilityResult() == Result::UNSAT  ||
@@ -1911,6 +1932,7 @@ Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {
 
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
+  finalOptionsAreSet();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
   }
@@ -1926,15 +1948,10 @@ vector<Expr> SmtEngine::getAssertions()
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-size_t SmtEngine::getStackLevel() const {
-  SmtScope smts(this);
-  Trace("smt") << "SMT getStackLevel()" << endl;
-  return d_context->getLevel();
-}
-
 void SmtEngine::push() {
   SmtScope smts(this);
   finalOptionsAreSet();
+  doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_private->processAssertions();
   if(Dump.isOn("benchmark")) {
@@ -1978,7 +1995,7 @@ void SmtEngine::pop() {
 
   AlwaysAssert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
   while (d_userLevels.back() < d_userContext->getLevel()) {
-    internalPop();
+    internalPop(true);
   }
   d_userLevels.pop_back();
 
@@ -1996,6 +2013,7 @@ void SmtEngine::pop() {
 void SmtEngine::internalPush() {
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngine::internalPush()" << endl;
+  doPendingPops();
   if(options::incrementalSolving()) {
     d_private->processAssertions();
     d_userContext->push();
@@ -2004,13 +2022,24 @@ void SmtEngine::internalPush() {
   }
 }
 
-void SmtEngine::internalPop() {
+void SmtEngine::internalPop(bool immediate) {
   Assert(d_fullyInited);
   Trace("smt") << "SmtEngine::internalPop()" << endl;
   if(options::incrementalSolving()) {
+    ++d_pendingPops;
+  }
+  if(immediate) {
+    doPendingPops();
+  }
+}
+
+void SmtEngine::doPendingPops() {
+  Assert(d_pendingPops == 0 || options::incrementalSolving());
+  while(d_pendingPops > 0) {
     d_propEngine->pop();
     d_context->pop();
     d_userContext->pop();
+    --d_pendingPops;
   }
 }
 

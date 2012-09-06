@@ -2228,7 +2228,7 @@ Proof ValidityChecker::getProofClosure() {
 }
 
 int ValidityChecker::stackLevel() {
-  return d_smt->getStackLevel();
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 void ValidityChecker::push() {
@@ -2240,15 +2240,7 @@ void ValidityChecker::pop() {
 }
 
 void ValidityChecker::popto(int stackLevel) {
-  CheckArgument(stackLevel >= 0, stackLevel,
-                "Cannot pop to a negative stack level %u", stackLevel);
-  CheckArgument(unsigned(stackLevel) <= d_smt->getStackLevel(), stackLevel,
-                "Cannot pop to a level higher than the current one!  "
-                "At level %u, user requested level %d",
-                d_smt->getStackLevel(), stackLevel);
-  while(unsigned(stackLevel) < d_smt->getStackLevel()) {
-    pop();
-  }
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 int ValidityChecker::scopeLevel() {

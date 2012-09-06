@@ -135,6 +135,11 @@ class CVC4_PUBLIC SmtEngine {
   LogicInfo d_logic;
 
   /**
+   * Number of internal pops that have been deferred.
+   */
+  unsigned d_pendingPops;
+
+  /**
    * Whether or not this SmtEngine has been fully initialized (that is,
    * the ).  This post-construction initialization is automatically
    * triggered by the use of the SmtEngine; e.g. when setLogic() is
@@ -238,7 +243,9 @@ class CVC4_PUBLIC SmtEngine {
 
   void internalPush();
 
-  void internalPop();
+  void internalPop(bool immediate = false);
+
+  void doPendingPops();
 
   /**
    * Internally handle the setting of a logic.  This function should always
@@ -413,11 +420,6 @@ public:
    * SmtEngine is set to operate interactively.
    */
   std::vector<Expr> getAssertions() throw(ModalException, AssertionException);
-
-  /**
-   * Get the current context level.
-   */
-  size_t getStackLevel() const;
 
   /**
    * Push a user-level context.

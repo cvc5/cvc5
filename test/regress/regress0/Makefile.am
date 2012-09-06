@@ -48,7 +48,8 @@ SMT2_TESTS = \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
 	simplification_bug4.smt2 \
-	parallel-let.smt2
+	parallel-let.smt2 \
+	get-value-incremental.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = \
