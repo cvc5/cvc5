@@ -761,6 +761,7 @@ ValidityChecker::ValidityChecker() :
   d_smt(NULL),
   d_parserContext(NULL),
   d_exprTypeMapRemove(),
+  d_stackLevel(0),
   d_constructors(),
   d_selectors() {
   d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
@@ -779,6 +780,7 @@ ValidityChecker::ValidityChecker(const CLFlags& clflags) :
   d_smt(NULL),
   d_parserContext(NULL),
   d_exprTypeMapRemove(),
+  d_stackLevel(0),
   d_constructors(),
   d_selectors() {
   d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
@@ -2228,19 +2230,29 @@ Proof ValidityChecker::getProofClosure() {
 }
 
 int ValidityChecker::stackLevel() {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  return d_stackLevel;
 }
 
 void ValidityChecker::push() {
+  ++d_stackLevel;
   d_smt->push();
 }
 
 void ValidityChecker::pop() {
   d_smt->pop();
+  --d_stackLevel;
 }
 
 void ValidityChecker::popto(int stackLevel) {
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  CheckArgument(stackLevel >= 0, stackLevel,
+                "Cannot pop to a negative stack level %d", stackLevel);
+  CheckArgument(unsigned(stackLevel) <= d_stackLevel, stackLevel,
+                "Cannot pop to a stack level higher than the current one!  "
+                "At stack level %u, user requested stack level %d",
+                d_stackLevel, stackLevel);
+  while(unsigned(stackLevel) < d_stackLevel) {
+    pop();
+  }
 }
 
 int ValidityChecker::scopeLevel() {
@@ -2257,15 +2269,12 @@ void ValidityChecker::popScope() {
 
 void ValidityChecker::poptoScope(int scopeLevel) {
   CheckArgument(scopeLevel >= 0, scopeLevel,
-                "Cannot pop to a negative scope level %u", scopeLevel);
+                "Cannot pop to a negative scope level %d", scopeLevel);
   CheckArgument(unsigned(scopeLevel) <= d_parserContext->getDeclarationLevel(),
                 scopeLevel,
                 "Cannot pop to a scope level higher than the current one!  "
                 "At scope level %u, user requested scope level %d",
                 d_parserContext->getDeclarationLevel(), scopeLevel);
-  CheckArgument(scopeLevel <= d_parserContext->getDeclarationLevel(),
-                scopeLevel,
-                "Cannot pop to a higher scope level");
   while(unsigned(scopeLevel) < d_parserContext->getDeclarationLevel()) {
     popScope();
   }

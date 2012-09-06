@@ -96,10 +96,10 @@ const CVC4::Kind BVCONST = CVC4::kind::CONST_BITVECTOR;
 const CVC4::Kind EXTRACT = CVC4::kind::BITVECTOR_EXTRACT;
 const CVC4::Kind CONCAT = CVC4::kind::BITVECTOR_CONCAT;
 
-std::string int2string(int n);
+std::string int2string(int n) CVC4_PUBLIC;
 
 //! Different types of command line flags
-typedef enum {
+typedef enum CVC4_PUBLIC {
   CLFLAG_NULL,
   CLFLAG_BOOL,
   CLFLAG_INT,
@@ -107,7 +107,7 @@ typedef enum {
   CLFLAG_STRVEC //!< Vector of pair<string, bool>
 } CLFlagType;
 
-std::ostream& operator<<(std::ostream& out, CLFlagType clft);
+std::ostream& operator<<(std::ostream& out, CLFlagType clft) CVC4_PUBLIC;
 
 /*!
   Class CLFlag (for Command Line Flag)
@@ -119,7 +119,7 @@ std::ostream& operator<<(std::ostream& out, CLFlagType clft);
   This class implements a data structure to hold a value of a single
   command line flag.
 */
-class CLFlag {
+class CVC4_PUBLIC CLFlag {
   //! Type of the argument
   CLFlagType d_tp;
   //! The argument
@@ -207,7 +207,7 @@ public:
 // Database of command line flags.
 ///////////////////////////////////////////////////////////////////////
 
-class CLFlags {
+class CVC4_PUBLIC CLFlags {
   typedef std::map<std::string, CLFlag> FlagMap;
   FlagMap d_map;
 
@@ -241,10 +241,10 @@ public:
 
 };/* class CLFlags */
 
-class ExprManager;
-class Context;
-class Proof {};
-class Theorem {};
+class CVC4_PUBLIC ExprManager;
+class CVC4_PUBLIC Context;
+class CVC4_PUBLIC Proof {};
+class CVC4_PUBLIC Theorem {};
 
 using CVC4::InputLanguage;
 using CVC4::Integer;
@@ -263,32 +263,32 @@ static const int WRITE = ::CVC4::kind::STORE;
 // CVC4 has a more sophisticated Cardinality type;
 // but we can support comparison against CVC3's more
 // coarse-grained Cardinality.
-enum CVC3CardinalityKind {
+enum CVC4_PUBLIC CVC3CardinalityKind {
   CARD_FINITE,
   CARD_INFINITE,
   CARD_UNKNOWN
 };/* enum CVC3CardinalityKind */
 
-std::ostream& operator<<(std::ostream& out, CVC3CardinalityKind c);
+std::ostream& operator<<(std::ostream& out, CVC3CardinalityKind c) CVC4_PUBLIC;
 
-bool operator==(const Cardinality& c, CVC3CardinalityKind d);
-bool operator==(CVC3CardinalityKind d, const Cardinality& c);
-bool operator!=(const Cardinality& c, CVC3CardinalityKind d);
-bool operator!=(CVC3CardinalityKind d, const Cardinality& c);
+bool operator==(const Cardinality& c, CVC3CardinalityKind d) CVC4_PUBLIC;
+bool operator==(CVC3CardinalityKind d, const Cardinality& c) CVC4_PUBLIC;
+bool operator!=(const Cardinality& c, CVC3CardinalityKind d) CVC4_PUBLIC;
+bool operator!=(CVC3CardinalityKind d, const Cardinality& c) CVC4_PUBLIC;
 
-class Expr;
+class CVC4_PUBLIC Expr;
 
 template <class T>
-class ExprMap : public std::map<Expr, T> {
+class CVC4_PUBLIC ExprMap : public std::map<Expr, T> {
 };/* class ExprMap<T> */
 
 template <class T>
-class ExprHashMap : public std::hash_map<Expr, T, CVC4::ExprHashFunction> {
+class CVC4_PUBLIC ExprHashMap : public std::hash_map<Expr, T, CVC4::ExprHashFunction> {
 public:
   void insert(Expr a, Expr b);
 };/* class ExprHashMap<T> */
 
-class Type : public CVC4::Type {
+class CVC4_PUBLIC Type : public CVC4::Type {
 public:
   Type();
   Type(const CVC4::Type& type);
@@ -318,7 +318,7 @@ public:
 
 };/* class CVC3::Type */
 
-class Expr;
+class CVC4_PUBLIC Expr;
 typedef Expr Op;
 
 /**
@@ -328,7 +328,7 @@ typedef Expr Op;
  * except that a few additional functions are supported to provide
  * naming compatibility with CVC3.
  */
-class Expr : public CVC4::Expr {
+class CVC4_PUBLIC Expr : public CVC4::Expr {
 public:
   Expr();
   Expr(const Expr& e);
@@ -458,9 +458,9 @@ public:
 
 };/* class CVC3::Expr */
 
-bool isArrayLiteral(const Expr&);
+bool isArrayLiteral(const Expr&) CVC4_PUBLIC;
 
-class ExprManager : public CVC4::ExprManager {
+class CVC4_PUBLIC ExprManager : public CVC4::ExprManager {
 public:
   const std::string& getKindName(int kind);
   //! Get the input language for printing
@@ -483,7 +483,7 @@ typedef CVC4::StatisticsRegistry Statistics;
  * equivalent, as are SATISFIABLE and INVALID.
  */
 /*****************************************************************************/
-typedef enum QueryResult {
+typedef enum CVC4_PUBLIC QueryResult {
   SATISFIABLE = 0,
   INVALID = 0,
   VALID = 1,
@@ -500,13 +500,13 @@ std::string QueryResultToString(QueryResult query_result);
  * Type for truth value of formulas.
  */
 /*****************************************************************************/
-typedef enum FormulaValue {
+typedef enum CVC4_PUBLIC FormulaValue {
   TRUE_VAL,
   FALSE_VAL,
   UNKNOWN_VAL
 } FormulaValue;
 
-std::ostream& operator<<(std::ostream& out, FormulaValue fv);
+std::ostream& operator<<(std::ostream& out, FormulaValue fv) CVC4_PUBLIC;
 
 /*****************************************************************************/
 /*!
@@ -531,6 +531,7 @@ class CVC4_PUBLIC ValidityChecker {
   CVC4::SmtEngine* d_smt;
   CVC4::parser::Parser* d_parserContext;
   std::vector<Expr> d_exprTypeMapRemove;
+  unsigned d_stackLevel;
 
   friend class Type; // to reach in to d_exprTypeMapRemove
 
