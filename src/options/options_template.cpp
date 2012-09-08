@@ -226,6 +226,11 @@ Additional CVC4 options:${remaining_documentation}";
 
 #line 228 "${template}"
 
+static const std::string optionsFootnote = "\n\
+[*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
+    sense of the option.\n\
+";
+
 static const std::string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto           attempt to automatically determine the input language\n\
@@ -248,11 +253,13 @@ std::string Options::getDescription() const {
 }
 
 void Options::printUsage(const std::string msg, std::ostream& out) {
-  out << msg << optionsDescription << std::endl << std::flush;
+  out << msg << optionsDescription << std::endl
+      << optionsFootnote << std::endl << std::flush;
 }
 
 void Options::printShortUsage(const std::string msg, std::ostream& out) {
-  out << msg << mostCommonOptionsDescription << std::endl << std::endl
+  out << msg << mostCommonOptionsDescription << std::endl
+      << optionsFootnote << std::endl
       << "For full usage, please use --help." << std::endl << std::flush;
 }
 

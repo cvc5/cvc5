@@ -856,6 +856,10 @@ function doc {
       the_doc="$the_doc (EXPERTS only)"
     fi
 
+    if [ "$type" = bool -a -n "$long_option" -a "$long_option_alternate" = "no-$long_option" ]; then
+      the_doc="$the_doc [*]"
+    fi
+
     doc_line=
     while [ -n "$the_doc" ]; do
       remaining_doc="$(expr "$the_doc " : '.\{1,53\} \(.*\)')"
