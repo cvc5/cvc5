@@ -131,7 +131,19 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
         // temporarily set the node manager to NULL; this gets around
         // a check that mkVar isn't called internally
         NodeManagerScope nullScope(NULL);
-        to_e = to->mkVar(name, type);// FIXME thread safety
+
+        if(n.getKind() == kind::BOUND_VAR_LIST) {
+          to_e = to->mkBoundVar(name, type);// FIXME thread safety
+        } else if(n.getKind() == kind::VARIABLE) {
+          to_e = to->mkVar(name, type);// FIXME thread safety
+        } else if(n.getKind() == kind::SKOLEM) {
+          Assert(false, "Skolem exporting not yet supported properly.");
+          // to fix this, get the node manager and do the appropriate
+          to_e = to->mkVar(name, type);// FIXME thread safety
+        } else {
+          Unhandled();
+        }
+
         Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
       } else {
         // temporarily set the node manager to NULL; this gets around

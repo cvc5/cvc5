@@ -50,6 +50,14 @@ std::ostream& operator<<(std::ostream&, const Command*) throw() CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus&) throw() CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus*) throw() CVC4_PUBLIC;
 
+class ExportToUnsupportedException : public Exception {
+public:
+  ExportToUnsupportedException() throw() :
+    Exception("exportTo unsupported for command") {
+  }
+};/* class NoMoreValuesException */
+
+
 /** The status an SMT benchmark can have */
 enum BenchmarkStatus {
   /** Benchmark is satisfiable */
@@ -233,7 +241,8 @@ public:
    * variableMap for the translation and extending it with any new
    * mappings.
    */
-  virtual Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) = 0;
+  virtual Command* exportTo(ExprManager* exprManager,
+                            ExprManagerMapCollection& variableMap) = 0;
 
   /**
    * Clone this Command (make a shallow copy).

@@ -419,7 +419,9 @@ CommandSequence::const_iterator CommandSequence::begin() const throw() {
 Command* CommandSequence::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   CommandSequence* seq = new CommandSequence();
   for(iterator i = begin(); i != end(); ++i) {
-    seq->addCommand((*i)->exportTo(exprManager, variableMap));
+    Command* cmd_to_export = *i;
+    Command* cmd = cmd_to_export->exportTo(exprManager, variableMap);
+    seq->addCommand(cmd);
   }
   seq->d_index = d_index;
   return seq;
@@ -1197,8 +1199,12 @@ void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) throw() {
 }
 
 Command* DatatypeDeclarationCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  Warning() << "We currently do not support exportTo with Datatypes" << std::endl;
-  return NULL;
+  throw ExportToUnsupportedException();
+  // vector<DatatypeType> params;
+  // transform(d_datatypes.begin(), d_datatypes.end(), back_inserter(params),
+  //           ExportTransformer(exprManager, variableMap));
+  // DatatypeDeclarationCommand* c = new DatatypeDeclarationCommand(params);
+  // return c;
 }
 
 Command* DatatypeDeclarationCommand::clone() const {

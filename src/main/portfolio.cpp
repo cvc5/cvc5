@@ -11,10 +11,8 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Provides (somewhat) generic functionality to simulate a
+ ** (potentially cooperative) race
  **/
 
 #include <boost/function.hpp>
@@ -27,19 +25,18 @@
 #include "util/result.h"
 #include "options/options.h"
 
-using namespace boost;
-
 namespace CVC4 {
 
-mutex mutex_done;
-mutex mutex_main_wait;
-condition condition_var_main_wait;
+boost::mutex mutex_done;
+boost::mutex mutex_main_wait;
+boost::condition condition_var_main_wait;
 
 bool global_flag_done = false;
 int global_winner = -1;
 
 template<typename S>
-void runThread(int thread_id, function<S()> threadFn, S& returnValue) {
+void runThread(int thread_id, boost::function<S()> threadFn, S& returnValue)
+{
   returnValue = threadFn();
 
   if( mutex_done.try_lock() ) {
@@ -54,15 +51,17 @@ void runThread(int thread_id, function<S()> threadFn, S& returnValue) {
 
 template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads,
-                               function<T()> driverFn,
-                               function<S()> threadFns[],
+                               boost::function<T()> driverFn,
+                               boost::function<S()> threadFns[],
                                bool optionWaitToJoin) {
-  thread thread_driver;
-  thread threads[numThreads];
+  boost::thread thread_driver;
+  boost::thread threads[numThreads];
   S threads_returnValue[numThreads];
 
   for(int t = 0; t < numThreads; ++t) {
-    threads[t] = thread(bind(runThread<S>, t, threadFns[t], ref(threads_returnValue[t]) ));
+    threads[t] = 
+      boost::thread(boost::bind(runThread<S>, t, threadFns[t],
+                                boost::ref(threads_returnValue[t]) ) );
   }
 
   if(not driverFn.empty())
@@ -87,7 +86,10 @@ std::pair<int, S> runPortfolio(int numThreads,
 
 // instantiation
 template
-std::pair<int, Result>
-runPortfolio<void, Result>(int, boost::function<void()>, boost::function<Result()>*, bool);
+std::pair<int, bool>
+runPortfolio<void, bool>(int,
+                         boost::function<void()>, 
+                         boost::function<bool()>*,
+                         bool);
 
 }/* CVC4 namespace */
