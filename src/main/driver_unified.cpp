@@ -35,9 +35,9 @@
 #include "util/Assert.h"
 #include "util/configuration.h"
 #include "options/options.h"
-#include "main/command_executer.h"
+#include "main/command_executor.h"
 # ifdef PORTFOLIO_BUILD
-#    include "main/command_executer_portfolio.h"
+#    include "main/command_executor_portfolio.h"
 # endif
 #include "main/options.h"
 #include "smt/options.h"
@@ -226,11 +226,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   ExprManager exprMgr(threadOpts[0]);
 # endif
 
-  CommandExecuter* cmdExecuter = 
+  CommandExecutor* cmdExecutor = 
 # ifndef PORTFOLIO_BUILD
-    new CommandExecuter(exprMgr, opts);
+    new CommandExecutor(exprMgr, opts);
 # else
-    new CommandExecuterPortfolio(exprMgr, opts, threadOpts);
+    new CommandExecutorPortfolio(exprMgr, opts, threadOpts);
 #endif
 
   // Create the SmtEngine
@@ -280,7 +280,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       replayParser->useDeclarationsFrom(shell.getParser());
     }
     while((cmd = shell.readCommand())) {
-      status = cmdExecuter->doCommand(cmd) && status;
+      status = cmdExecutor->doCommand(cmd) && status;
       delete cmd;
     }
   } else {
@@ -304,7 +304,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
         break;
       }
-      status = cmdExecuter->doCommand(cmd);
+      status = cmdExecutor->doCommand(cmd);
       delete cmd;
     }
     // Remove the parser
@@ -320,7 +320,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   int returnValue;
   string result = "unknown";
   if(status) {
-    result = cmdExecuter->getSmtEngineStatus();
+    result = cmdExecutor->getSmtEngineStatus();
 
     if(result == "sat") {
       returnValue = 10;

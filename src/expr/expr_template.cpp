@@ -137,9 +137,11 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
         } else if(n.getKind() == kind::VARIABLE) {
           to_e = to->mkVar(name, type);// FIXME thread safety
         } else if(n.getKind() == kind::SKOLEM) {
-          Assert(false, "Skolem exporting not yet supported properly.");
-          // to fix this, get the node manager and do the appropriate
-          to_e = to->mkVar(name, type);// FIXME thread safety
+          // skolems are only available at the Node level (not the Expr level)
+          TypeNode typeNode = TypeNode::fromType(type);
+          NodeManager* to_nm = NodeManager::fromExprManager(to);
+          Node n = to_nm->mkSkolem(name, typeNode);// FIXME thread safety
+          to_e = n.toExpr();
         } else {
           Unhandled();
         }

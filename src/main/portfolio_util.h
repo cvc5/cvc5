@@ -14,8 +14,8 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
-#ifndef __CVC4_PORTFOLIO_UTIL_H
-#define __CVC4_PORTFOLIO_UTIL_H
+#ifndef __CVC4__PORTFOLIO_UTIL_H
+#define __CVC4__PORTFOLIO_UTIL_H
 
 #include <queue>
 
@@ -37,7 +37,7 @@ public:
   T pop() { return T(); }
   bool empty() { return true; }
   bool full() { return false; }
-};
+};/* class EmptySharedChannel */
 
 class PortfolioLemmaOutputChannel : public LemmaOutputChannel {
 private:
@@ -202,8 +202,8 @@ void sharingManager(unsigned numThreads,
   }
 
   Trace("sharing") << "sharing: Interrupted, exiting." << std::endl;
-}
+}/* sharingManager() */
 
-}/*CVC4 namespace*/
+}/* CVC4 namespace */
 
-#endif   /* __CVC4_PORTFOLIO_UTIL_H */
+#endif   /* __CVC4__PORTFOLIO_UTIL_H */

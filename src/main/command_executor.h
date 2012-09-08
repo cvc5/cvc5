@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file command_executer.cpp
+/*! \file command_executor.h
  ** \verbatim
  ** Original author: kshitij
- ** Major contributors: mdeters
- ** Minor contributors (to current version): 
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -14,17 +14,16 @@
  ** \brief An additional layer between commands and invoking them.
  **/
 
-#ifndef __CVC4__COMMAND_EXECUTER_H
-#define __CVC4__COMMAND_EXECUTER_H
+#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_H
+#define __CVC4__MAIN__COMMAND_EXECUTOR_H
 
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {
-
 namespace main {
 
-class CommandExecuter {
+class CommandExecutor {
 
 protected:
   ExprManager& d_exprMgr;
@@ -36,9 +35,9 @@ public:
   // used), the portfolio command executer currently parses them
   // during initalization, creating thread-specific options and
   // storing them
-  CommandExecuter(ExprManager &exprMgr, Options &options);
+  CommandExecutor(ExprManager &exprMgr, Options &options);
 
-  ~CommandExecuter() {}
+  ~CommandExecutor() {}
 
   /**
    * Executes a command. Recursively handles if cmd is a command
@@ -54,16 +53,15 @@ protected:
   virtual bool doCommandSingleton(CVC4::Command* cmd);
 
 private:
-  CommandExecuter();
+  CommandExecutor();
 
-};
+};/* class CommandExecutor */
 
 bool smtEngineInvoke(SmtEngine* smt,
                      Command* cmd,
                      std::ostream *out);
 
+}/* CVC4::main namespace */
+}/* CVC4 namespace */
 
-}/*main namespace*/
-}/*CVC4 namespace*/
-
-#endif  /* __CVC4__COMMAND_EXECUTER_H */
+#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_H */

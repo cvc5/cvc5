@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file command_executer.cpp
+/*! \file command_executor.cpp
  ** \verbatim
  ** Original author: kshitij
  ** Major contributors: none
- ** Minor contributors (to current version): 
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#include "main/command_executer.h"
+#include "main/command_executor.h"
 #include "expr/command.h"
 
 #include "main/main.h"
@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace main {
 
 
-CommandExecuter::CommandExecuter(ExprManager &exprMgr, Options &options):
+CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options):
   d_exprMgr(exprMgr),
   d_smtEngine(SmtEngine(&exprMgr)),
   d_options(options) {
@@ -36,7 +36,7 @@ CommandExecuter::CommandExecuter(ExprManager &exprMgr, Options &options):
   main::pStatistics->registerStat_(d_exprMgr.getStatisticsRegistry());
 }
 
-bool CommandExecuter::doCommand(Command* cmd)
+bool CommandExecutor::doCommand(Command* cmd)
 {
   if( d_options[options::parseOnly] ) {
     return true;
@@ -63,7 +63,7 @@ bool CommandExecuter::doCommand(Command* cmd)
   }
 }
 
-bool CommandExecuter::doCommandSingleton(Command *cmd)
+bool CommandExecutor::doCommandSingleton(Command *cmd)
 {
   bool status = true;
   if(d_options[options::verbosity] >= 0) {
@@ -74,7 +74,7 @@ bool CommandExecuter::doCommandSingleton(Command *cmd)
   return status;
 }
 
-std::string CommandExecuter::getSmtEngineStatus()
+std::string CommandExecutor::getSmtEngineStatus()
 {
   return d_smtEngine.getInfo("status").getValue();
 }

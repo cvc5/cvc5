@@ -272,8 +272,6 @@ bool PropEngine::isRunning() const {
 void PropEngine::interrupt() throw(ModalException) {
   if(! d_inCheckSat) {
     return;
-    throw ModalException("SAT solver is not currently solving anything; "
-                         "cannot interrupt it");
   }
 
   d_interrupted = true;

@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file command_executer_portfolio.cpp
+/*! \file command_executor_portfolio.cpp
  ** \verbatim
  ** Original author: kshitij
- ** Major contributors: mdeters, taking
- ** Minor contributors (to current version): 
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -24,7 +24,7 @@
 
 #include "expr/command.h"
 #include "expr/pickler.h"
-#include "main/command_executer_portfolio.h"
+#include "main/command_executor_portfolio.h"
 #include "main/main.h"
 #include "main/options.h"
 #include "main/portfolio.h"
@@ -36,9 +36,9 @@ using namespace std;
 namespace CVC4 {
 namespace main {
 
-CommandExecuterPortfolio::CommandExecuterPortfolio
+CommandExecutorPortfolio::CommandExecutorPortfolio
 (ExprManager &exprMgr, Options &options, vector<Options>& tOpts):
-  CommandExecuter(exprMgr, options),
+  CommandExecutor(exprMgr, options),
   d_numThreads(options[options::threads]),
   d_smts(),
   d_seq(new CommandSequence()),
@@ -85,7 +85,7 @@ CommandExecuterPortfolio::CommandExecuterPortfolio
 
 }
 
-CommandExecuterPortfolio::~CommandExecuterPortfolio()
+CommandExecutorPortfolio::~CommandExecutorPortfolio()
 {
   Assert(d_seq != NULL);
   delete d_seq;
@@ -101,7 +101,7 @@ CommandExecuterPortfolio::~CommandExecuterPortfolio()
   d_smts.clear();
 }
 
-void CommandExecuterPortfolio::lemmaSharingInit()
+void CommandExecutorPortfolio::lemmaSharingInit()
 {
   /* Sharing channels */
   Assert(d_channelsIn.size() == 0);
@@ -154,7 +154,7 @@ void CommandExecuterPortfolio::lemmaSharingInit()
   }
 }
 
-void CommandExecuterPortfolio::lemmaSharingCleanup()
+void CommandExecutorPortfolio::lemmaSharingCleanup()
 {
   Assert(d_numThreads == d_options[options::threads]);
 
@@ -182,7 +182,7 @@ void CommandExecuterPortfolio::lemmaSharingCleanup()
 
 }
 
-bool CommandExecuterPortfolio::doCommandSingleton(Command* cmd)
+bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 {
   /**
    * save the command and if check sat or query command, run a
@@ -203,7 +203,7 @@ bool CommandExecuterPortfolio::doCommandSingleton(Command* cmd)
   
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
-    return CommandExecuter::doCommandSingleton(cmd);
+    return CommandExecutor::doCommandSingleton(cmd);
   } else if(mode == 1) {               // portfolio
     d_seq->addCommand(cmd->clone());
 
@@ -228,7 +228,7 @@ bool CommandExecuterPortfolio::doCommandSingleton(Command* cmd)
       try {
         seqs[i] = d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
       }catch(ExportToUnsupportedException& e){
-        return CommandExecuter::doCommandSingleton(cmd);
+        return CommandExecutor::doCommandSingleton(cmd);
       }
     }
 
@@ -305,7 +305,7 @@ bool CommandExecuterPortfolio::doCommandSingleton(Command* cmd)
 
 }
 
-std::string CommandExecuterPortfolio::getSmtEngineStatus()
+std::string CommandExecutorPortfolio::getSmtEngineStatus()
 {
   return d_smts[d_lastWinner]->getInfo("status").getValue();
 }

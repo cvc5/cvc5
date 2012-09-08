@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file command_executer_portfolio.h
+/*! \file command_executor_portfolio.h
  ** \verbatim
  ** Original author: kshitij
  ** Major contributors: none
- ** Minor contributors (to current version): 
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -17,10 +17,10 @@
  ** threads.
  **/
 
-#ifndef __CVC4__COMMAND_EXECUTER_PORTFOLIO_H
-#define __CVC4__COMMAND_EXECUTER_PORTFOLIO_H
+#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
+#define __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
 
-#include "main/command_executer.h"
+#include "main/command_executor.h"
 #include "main/portfolio_util.h"
 
 namespace CVC4 {
@@ -29,7 +29,7 @@ class CommandSequence;
 
 namespace main {
 
-class CommandExecuterPortfolio : public CommandExecuter {
+class CommandExecutorPortfolio : public CommandExecutor {
 
   // These shall be created/deleted during initalization
   std::vector<ExprManager*> d_exprMgrs;
@@ -48,22 +48,22 @@ class CommandExecuterPortfolio : public CommandExecuter {
   std::vector<std::ostringstream*> d_ostringstreams;
 
 public:
-  CommandExecuterPortfolio(ExprManager &exprMgr,
+  CommandExecutorPortfolio(ExprManager &exprMgr,
                            Options &options,
                            std::vector<Options>& tOpts);
 
-  ~CommandExecuterPortfolio();
+  ~CommandExecutorPortfolio();
 
   std::string getSmtEngineStatus();
 protected:
   bool doCommandSingleton(Command* cmd);
 private:
-  CommandExecuterPortfolio();
+  CommandExecutorPortfolio();
   void lemmaSharingInit();
   void lemmaSharingCleanup();
-};
+};/* class CommandExecutorPortfolio */
 
-}/*main namespace*/
-}/*CVC4 namespace*/
+}/* CVC4::main namespace */
+}/* CVC4 namespace */
 
-#endif  /* __CVC4__COMMAND_EXECUTER_PORTFOLIO_H */
+#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H */

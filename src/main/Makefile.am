@@ -20,8 +20,10 @@ pcvc4_SOURCES = \
 	portfolio.cpp \
 	portfolio.h \
 	portfolio_util.cpp \
-	command_executer.cpp \
-	command_executer_portfolio.cpp \
+	command_executor.cpp \
+	command_executor_portfolio.cpp \
+	command_executor.h \
+	command_executor_portfolio.h \
 	driver_unified.cpp
 pcvc4_LDADD = \
 	libmain.a \
@@ -42,7 +44,7 @@ endif
 
 cvc4_SOURCES = \
 	main.cpp \
-	command_executer.cpp \
+	command_executor.cpp \
 	driver_unified.cpp
 cvc4_LDADD = \
 	libmain.a \
