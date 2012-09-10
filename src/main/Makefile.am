@@ -20,6 +20,7 @@ pcvc4_SOURCES = \
 	portfolio.cpp \
 	portfolio.h \
 	portfolio_util.cpp \
+	portfolio_util.h \
 	command_executor.cpp \
 	command_executor_portfolio.cpp \
 	command_executor.h \
