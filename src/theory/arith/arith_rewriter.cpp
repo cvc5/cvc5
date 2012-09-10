@@ -61,7 +61,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
     }
   }else{
     Polynomial minuend = Polynomial::parsePolynomial(t[0]);
-    Polynomial subtrahend = Polynomial::parsePolynomial(t[0]);
+    Polynomial subtrahend = Polynomial::parsePolynomial(t[1]);
     Polynomial diff = minuend - subtrahend;
     return RewriteResponse(REWRITE_DONE, diff.getNode());
   }
