@@ -274,7 +274,7 @@ Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
   if( !n.hasAttribute(InstConstantAttribute()) ){
     //if evaluating a ground term, just consult the standard getValue functionality
     depIndex = -1;
-    return getValue( n );
+    return getModelValue( n );
   }else{
     Node val;
     depIndex = ri->getNumTerms()-1;

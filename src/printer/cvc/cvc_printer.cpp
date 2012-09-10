@@ -777,7 +777,7 @@ void CvcPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) 
       }
       out << "): ";
     }
-    out << tm->getValue( n );
+    out << Node::fromExpr( tm->getValue( n.toExpr() ) );
     out << ";" << std::endl;
 
 /*

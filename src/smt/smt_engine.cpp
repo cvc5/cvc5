@@ -1768,7 +1768,7 @@ Expr SmtEngine::getValue(const Expr& e)
   theory::TheoryModel* m = d_theoryEngine->getModel();
   Node resultNode;
   if( m ){
-    resultNode = m->getValue( n );
+    resultNode = Node::fromExpr( m->getValue( n.toExpr() ) );
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   // type-check the result we got
@@ -1846,7 +1846,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException)
     theory::TheoryModel* m = d_theoryEngine->getModel();
     Node resultNode;
     if( m ){
-      resultNode = m->getValue( n );
+      resultNode = Node::fromExpr( m->getValue( n.toExpr() ) );
     }
 
     // type-check the result we got

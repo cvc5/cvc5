@@ -22,6 +22,8 @@
 #include <iostream>
 #include <vector>
 
+#include "expr/expr.h"
+
 namespace CVC4 {
 
 class Command;
@@ -52,6 +54,9 @@ public:
   /** get type of command */
   int getCommandType( int i ) { return d_command_types[i]; }
 public:
+  /** get value */
+  virtual Expr getValue( const Expr& expr ) = 0;
+  /** to stream function */
   virtual void toStream(std::ostream& out) = 0;
 };/* class Model */
 

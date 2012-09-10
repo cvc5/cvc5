@@ -46,6 +46,15 @@ void TheoryModel::reset(){
   d_rep_set.clear();
 }
 
+Expr TheoryModel::getValue( const Expr& expr ){
+  Node n = Node::fromExpr( expr );
+  //apply substitutions
+  Node nn = d_substitutions.apply( n );
+  //get value in model
+  Node ret = getModelValue( nn );
+  return ret.toExpr();
+}
+
 void TheoryModel::toStream( std::ostream& out ){
   /*//for debugging
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -112,13 +121,6 @@ Node TheoryModel::getModelValue( TNode n ){
     //otherwise, get the interpreted value in the model
     return getInterpretedValue( nn );
   }
-}
-
-Node TheoryModel::getValue( TNode n ){
-  //apply substitutions
-  Node nn = d_substitutions.apply( n );
-  //get value in model
-  return getModelValue( nn );
 }
 
 Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
