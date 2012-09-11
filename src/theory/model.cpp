@@ -59,6 +59,21 @@ Expr TheoryModel::getValue( const Expr& expr ){
   return ret.toExpr();
 }
 
+/** get cardinality for sort */
+Cardinality TheoryModel::getCardinality( const Type& t ){
+  TypeNode tn = TypeNode::fromType( t );
+  //for now, we only handle cardinalities for uninterpreted sorts
+  if( tn.isSort() ){
+    if( d_rep_set.hasType( tn ) ){
+      return Cardinality( d_rep_set.d_type_reps[tn].size() );
+    }else{
+      return Cardinality( CardinalityUnknown() );
+    }
+  }else{
+    return Cardinality( CardinalityUnknown() );
+  }
+}
+
 void TheoryModel::toStream( std::ostream& out ){
   /*//for debugging
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -76,7 +91,7 @@ void TheoryModel::toStream( std::ostream& out ){
     ++eqcs_i;
   }
   */
-  //need this function?
+  out << this;
 }
 
 Node TheoryModel::getModelValue( TNode n ){

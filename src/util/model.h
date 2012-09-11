@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/expr.h"
+#include "util/cardinality.h"
 
 namespace CVC4 {
 
@@ -54,8 +55,10 @@ public:
   /** get type of command */
   int getCommandType( int i ) { return d_command_types[i]; }
 public:
-  /** get value */
+  /** get value for expression */
   virtual Expr getValue( const Expr& expr ) = 0;
+  /** get cardinality for sort */
+  virtual Cardinality getCardinality( const Type& t ) = 0;
   /** to stream function */
   virtual void toStream(std::ostream& out) = 0;
 };/* class Model */
