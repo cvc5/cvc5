@@ -558,7 +558,7 @@ void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type )
       out << ") " << tn;
     }
     out << " ";
-    out << Node::fromExpr( tm->getValue( n.toExpr() ) );
+    out << tm->getValue( n );
     out << ")" << std::endl;
 
 /*

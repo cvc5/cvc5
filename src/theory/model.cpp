@@ -46,12 +46,16 @@ void TheoryModel::reset(){
   d_rep_set.clear();
 }
 
-Expr TheoryModel::getValue( const Expr& expr ){
-  Node n = Node::fromExpr( expr );
+Node TheoryModel::getValue( TNode n ){
   //apply substitutions
   Node nn = d_substitutions.apply( n );
   //get value in model
-  Node ret = getModelValue( nn );
+  return getModelValue( nn );
+}
+
+Expr TheoryModel::getValue( const Expr& expr ){
+  Node n = Node::fromExpr( expr );
+  Node ret = getValue( n );
   return ret.toExpr();
 }
 

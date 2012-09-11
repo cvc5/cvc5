@@ -70,6 +70,12 @@ protected:
    */
   Node getModelValue( TNode n );
 public:
+  /**
+   * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
+   * on this model.
+   */
+  Node getValue( TNode n );
+
   /** get existing domain value, with possible exclusions
     *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
     */
@@ -108,8 +114,10 @@ public:
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
 public:
-  /** get value function */
+  /** get value function for Exprs. */
   Expr getValue( const Expr& expr );
+
+
   /** to stream function */
   void toStream( std::ostream& out );
 public:
