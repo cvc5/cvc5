@@ -268,7 +268,7 @@ Node UfModelTree::getFunctionValue( const char* argPrefix ){
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){
     std::stringstream ss;
     ss << argPrefix << (i+1);
-    vars.push_back( NodeManager::currentNM()->mkSkolem( ss.str(), type[i] ) );
+    vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
   }
   return getFunctionValue( vars );
 }

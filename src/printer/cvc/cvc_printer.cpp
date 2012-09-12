@@ -98,7 +98,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, -1, false, language::output::LANG_CVC4);
+      n.getType().toStream(out, -1, false, false, language::output::LANG_CVC4);
     }
     return;
   }
@@ -164,10 +164,11 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     default:
-      Warning() << "Constant printing not implemented for the case of " << n.getKind() << endl;
-      out << n.getKind();
-      break;
+      // fall back on whatever operator<< does on underlying type; we
+      // might luck out and print something reasonable
+      kind::metakind::NodeValueConstPrinter::toStream(out, n);
     }
+
     return;
   }
 
@@ -213,6 +214,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::TUPLE:
       // no-op
       break;
+    case kind::LAMBDA:
+      op << "LAMBDA";
+      opType = PREFIX;
+      break;
     case kind::APPLY:
       toStream(op, n.getOperator(), depth, types, true);
       break;
@@ -225,6 +230,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       }
     }
     break;
+
     // BOOL
     case kind::AND:
       op << "AND";
@@ -691,6 +697,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
+     tryToStream<GetModelCommand>(out, c) ||
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
@@ -768,17 +775,7 @@ void CvcPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) 
     }else{
       out << tn;
     }
-    out << " = ";
-    if( tn.isFunction() || tn.isPredicate() ){
-      out << "LAMBDA (";
-      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
-        if( i>0 ) out << ", ";
-        out << "$x" << (i+1) << " : " << tn[i];
-      }
-      out << "): ";
-    }
-    out << tm->getValue( n );
-    out << ";" << std::endl;
+    out << " = " << tm->getValue( n ) << ";" << std::endl;
 
 /*
     //for table format (work in progress)
@@ -918,6 +915,10 @@ static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
   const vector<Expr>& terms = c->getTerms();
   copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
   out << " ))";
+}
+
+static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
+  out << "% (get-model)";
 }
 
 static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {

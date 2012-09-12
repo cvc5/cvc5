@@ -177,6 +177,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << n.getConst<Datatype>().getName();
       break;
 
+    case kind::UNINTERPRETED_CONSTANT: {
+      const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
+      out << '@' << uc;
+      break;
+    }
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -480,6 +486,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
+     tryToStream<GetModelCommand>(out, c) ||
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
@@ -546,21 +553,15 @@ void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type )
     }
   }else if( c_type==Model::COMMAND_DECLARE_FUN ){
     Node n = Node::fromExpr( ((DeclareFunctionCommand*)c)->getFunction() );
-    TypeNode tn = n.getType();
-    out << "(define-fun " << n << " (";
-    if( tn.isFunction() || tn.isPredicate() ){
-      for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
-        if( i>0 ) out << " ";
-        out << "($x" << (i+1) << " " << tn[i] << ")";
-      }
-      out << ") " << tn.getRangeType();
-    }else{
-      out << ") " << tn;
+    Node val = tm->getValue( n );
+    if(val.getKind() == kind::LAMBDA) {
+      out << "(define-fun " << n << " " << val[0]
+          << " " << n.getType().getRangeType()
+          << " " << val[1] << ")" << std::endl;
+    } else {
+      out << "(define-fun " << n << " () "
+          << n.getType() << " " << val << ")" << std::endl;
     }
-    out << " ";
-    out << tm->getValue( n );
-    out << ")" << std::endl;
-
 /*
     //for table format (work in progress)
     bool printedModel = false;
@@ -711,6 +712,10 @@ static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
   const vector<Expr>& terms = c->getTerms();
   copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
   out << " ))";
+}
+
+static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
+  out << "(get-model)";
 }
 
 static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {

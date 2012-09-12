@@ -195,31 +195,6 @@ Node TheoryUF::explain(TNode literal) {
 void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
   if( fullModel ){
-#if 1
-    std::map< TypeNode, int > type_count;
-    //must choose proper representatives
-    // for each equivalence class, specify the constructor as a representative
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-    while( !eqcs_i.isFinished() ){
-      Node eqc = (*eqcs_i);
-      TypeNode tn = eqc.getType();
-      if( tn.isSort() ){
-        if( type_count.find( tn )==type_count.end() ){
-          type_count[tn] = 0;
-        }
-        std::stringstream ss;
-        ss << Expr::setlanguage(options::outputLanguage());
-        ss << "$t_" << tn << (type_count[tn]+1);
-        type_count[tn]++;
-        Node rep = NodeManager::currentNM()->mkSkolem( ss.str(), tn );
-        Trace("mkVar") << "TheoryUF::collectModelInfo:  make variable " << rep << " : " << tn << std::endl;
-        //specify the constant as the representative
-        m->assertEquality( eqc, rep, true );
-        m->assertRepresentative( rep );
-      }
-      ++eqcs_i;
-    }
-#else
     std::map< TypeNode, TypeEnumerator* > type_enums;
     //must choose proper representatives
     // for each equivalence class, specify the constructor as a representative
@@ -239,7 +214,6 @@ void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
       }
       ++eqcs_i;
     }
- #endif
   }
 }
 

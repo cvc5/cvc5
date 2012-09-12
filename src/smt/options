@@ -32,6 +32,8 @@ option doStaticLearning static-learning /--no-static-learning bool :default true
 
 common-option produceModels produce-models -m --produce-models bool :predicate CVC4::SmtEngine::beforeSearch :predicate-include "smt/smt_engine.h"
  support the get-value and get-model commands
+option checkModels check-models --check-models bool :predicate CVC4::SmtEngine::beforeSearch :predicate-include "smt/smt_engine.h"
+ after SAT/INVALID, double-check that the generated model satisfies all user assertions
 common-option produceAssignments produce-assignments --produce-assignments bool
  support the get-assignment command
 option modelFormatMode --model-format=MODE ModelFormatMode :handler CVC4::smt::stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "smt/model_format_mode.h" :handler-include "smt/options_handlers.h"

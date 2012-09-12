@@ -127,7 +127,11 @@ public:
   /** getFunctionValue
     *   Returns a representation of this function.
     */
-  Node getFunctionValue( std::vector< Node >& args ){ return d_tree.getFunctionValue( args, 0, Node::null() ); }
+  Node getFunctionValue( std::vector< Node >& args ){
+    Node body = d_tree.getFunctionValue( args, 0, Node::null() );
+    Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
+    return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
+  }
   /** getFunctionValue for args with set prefix */
   Node getFunctionValue( const char* argPrefix );
   /** update

@@ -260,7 +260,7 @@ void Options::printUsage(const std::string msg, std::ostream& out) {
 void Options::printShortUsage(const std::string msg, std::ostream& out) {
   out << msg << mostCommonOptionsDescription << std::endl
       << optionsFootnote << std::endl
-      << "For full usage, please use --help." << std::endl << std::flush;
+      << "For full usage, please use --help." << std::endl << std::endl << std::flush;
 }
 
 void Options::printLanguageHelp(std::ostream& out) {
@@ -295,7 +295,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 292 "${template}"
+#line 299 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -422,7 +422,7 @@ int Options::parseOptions(int argc, char* main_argv[]) throw(OptionException) {
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 419 "${template}"
+#line 426 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the

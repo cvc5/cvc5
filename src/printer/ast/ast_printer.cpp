@@ -152,6 +152,7 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
+     tryToStream<GetModelCommand>(out, c) ||
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
@@ -187,7 +188,7 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 }/* AstPrinter::toStream(CommandStatus*) */
 
 void AstPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
-
+  out << "Model()";
 }
 
 static void toStream(std::ostream& out, const EmptyCommand* c)  throw() {
@@ -291,6 +292,10 @@ static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
   const vector<Expr>& terms = c->getTerms();
   copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
   out << " >> )";
+}
+
+static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
+  out << "GetModel()";
 }
 
 static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {

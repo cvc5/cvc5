@@ -341,6 +341,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 
 constant SUBTYPE_TYPE \
     ::CVC4::Predicate \

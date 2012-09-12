@@ -98,7 +98,7 @@ Node TheoryModel::getModelValue( TNode n ){
   Trace("model") << "TheoryModel::getModelValue " << n << std::endl;
 
   //// special case: prop engine handles boolean vars
-  //if(metakind == kind::metakind::VARIABLE && n.getType().isBoolean()) {
+  //if(n.isVar() && n.getType().isBoolean()) {
   //  Trace("model") << "-> Propositional variable." << std::endl;
   //  return d_te->getPropEngine()->getValue( n );
   //}

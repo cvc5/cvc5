@@ -110,7 +110,7 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
   d_context = context;
 
   if( options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL ) {
-    Notice() << "minisat: Incremental solving is disabled"
+    Notice() << "minisat: Incremental solving is forced on (to avoid variable elimination)"
              << " unless using internal decision strategy." << std::endl;
   }
 
@@ -118,12 +118,13 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
   d_minisat = new Minisat::SimpSolver(theoryProxy, d_context,
                                       options::incrementalSolving() ||
                                       options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL );
-  // Setup the verbosity
+  // Set up the verbosity
   d_minisat->verbosity = (options::verbosity() > 0) ? 1 : -1;
 
-  // Setup the random decision parameters
+  // Set up the random decision parameters
   d_minisat->random_var_freq = options::satRandomFreq();
   d_minisat->random_seed = options::satRandomSeed();
+
   // Give access to all possible options in the sat solver
   d_minisat->var_decay = options::satVarDecay();
   d_minisat->clause_decay = options::satClauseDecay();

@@ -75,7 +75,7 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
       // Children have been processed, so substitute
       NodeBuilder<> builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        builder << current.getOperator();
+        builder << Node(d_substitutionCache[current.getOperator()]);
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
         Assert(d_substitutionCache.find(current[i]) != d_substitutionCache.end());
@@ -105,8 +105,16 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
       toVisit.pop_back();
     } else {
       // Mark that we have added the children if any
-      if (current.getNumChildren() > 0) {
+      if (current.getNumChildren() > 0 || current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         stackHead.children_added = true;
+        // We need to add the operator, if any
+        if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          TNode opNode = current.getOperator();
+          NodeCache::iterator opFind = d_substitutionCache.find(opNode);
+          if (opFind == d_substitutionCache.end()) {
+            toVisit.push_back(opNode);
+          }
+        }
         // We need to add the children
         for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
           TNode childNode = *child_it;
@@ -254,6 +262,10 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << std::endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
+
+  // this causes a later assert-fail (the rhs != current one, above) anyway
+  // putting it here is easier to diagnose
+  Assert(x != t, "cannot substitute a term for itself");
 
   d_substitutions[x] = t;
 

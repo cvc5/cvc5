@@ -34,7 +34,7 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
   while((i = t.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", i)) != string::npos) {
     t.replace(i, 1, 1, '_');
   }
-  return out << "_uc_" << t << '_' << uc.getIndex();
+  return out << "uc_" << t << '_' << uc.getIndex();
 }
 
 }/* CVC4 namespace */

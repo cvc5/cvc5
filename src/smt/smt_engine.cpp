@@ -280,7 +280,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
   d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
   d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
-  d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0) {
+  d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
+  d_checkModelTime("smt::SmtEngine::checkModelTime") {
 
   SmtScope smts(this);
 
@@ -295,6 +296,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   StatisticsRegistry::registerStat(&d_cnfConversionTime);
   StatisticsRegistry::registerStat(&d_numAssertionsPre);
   StatisticsRegistry::registerStat(&d_numAssertionsPost);
+  StatisticsRegistry::registerStat(&d_checkModelTime);
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -353,6 +355,17 @@ void SmtEngine::finishInit() {
 void SmtEngine::finalOptionsAreSet() {
   if(d_fullyInited) {
     return;
+  }
+
+  if(options::checkModels()) {
+    if(! options::produceModels()) {
+      Notice() << "SmtEngine: turning on produce-models to support check-model" << std::endl;
+      setOption("produce-models", SExpr("true"));
+    }
+    if(! options::interactive()) {
+      Notice() << "SmtEngine: turning on interactive-mode to support check-model" << std::endl;
+      setOption("interactive-mode", SExpr("true"));
+    }
   }
 
   if(! d_logic.isLocked()) {
@@ -430,6 +443,7 @@ SmtEngine::~SmtEngine() throw() {
     StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
     StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
     StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
+    StatisticsRegistry::unregisterStat(&d_checkModelTime);
 
     delete d_private;
 
@@ -819,6 +833,7 @@ void SmtEngine::defineFunction(Expr func,
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
+  Debug("smt") << "definedFunctions insert " << funcNode << " " << formulaNode << std::endl;
   d_definedFunctions->insert(funcNode, def);
 }
 
@@ -1634,8 +1649,13 @@ Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
 
   Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
 
+  // Check that SAT results generate a model correctly.
+  if(options::checkModels() && r.asSatisfiabilityResult() == Result::SAT) {
+    checkModel();
+  }
+
   return r;
-}
+}/* SmtEngine::checkSat() */
 
 Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
 
@@ -1694,8 +1714,13 @@ Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
 
   Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
 
+  // Check that SAT results generate a model correctly.
+  if(options::checkModels() && r.asSatisfiabilityResult() == Result::SAT) {
+    checkModel();
+  }
+
   return r;
-}
+}/* SmtEngine::query() */
 
 Result SmtEngine::assertFormula(const BoolExpr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
@@ -1877,7 +1902,7 @@ void SmtEngine::addToModelCommand( Command* c, int c_type ){
   }
 }
 
-Model* SmtEngine::getModel() throw(ModalException, AssertionException){
+Model* SmtEngine::getModel() throw(ModalException, AssertionException) {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
@@ -1888,7 +1913,7 @@ Model* SmtEngine::getModel() throw(ModalException, AssertionException){
   }
 
   if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT  ||
+     d_status.asSatisfiabilityResult() == Result::UNSAT ||
      d_problemExtended) {
     const char* msg =
       "Cannot get the current model unless immediately "
@@ -1901,6 +1926,117 @@ Model* SmtEngine::getModel() throw(ModalException, AssertionException){
     throw ModalException(msg);
   }
   return d_theoryEngine->getModel();
+}
+
+void SmtEngine::checkModel() throw(InternalErrorException) {
+  // --check-model implies --interactive, which enables the assertion list,
+  // so we should be ok.
+  Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
+
+  TimerStat::CodeTimer checkModelTimer(d_checkModelTime);
+
+  // Throughout, we use Notice() to give diagnostic output.
+  //
+  // If this function is running, the user gave --check-model (or equivalent),
+  // and if Notice() is on, the user gave --verbose (or equivalent).
+
+  Notice() << "SmtEngine::checkModel(): generating model" << endl;
+  theory::TheoryModel* m = d_theoryEngine->getModel();
+  if(Notice.isOn()) {
+    printModel(Notice.getStream(), m);
+  }
+
+  // We have a "fake context" for the substitution map (we don't need it
+  // to be context-dependent)
+  context::Context fakeContext;
+  theory::SubstitutionMap substitutions(&fakeContext);
+
+  for(size_t k = 0; k < m->getNumCommands(); ++k) {
+    DeclareFunctionCommand* c = dynamic_cast<DeclareFunctionCommand*>(m->getCommand(k));
+    Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
+    if(c == NULL) {
+      // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
+      Notice() << "SmtEngine::checkModel(): skipping..." << endl;
+    } else {
+      // We have a DECLARE-FUN:
+      //
+      // We'll first do some checks, then add to our substitution map
+      // the mapping: function symbol |-> value
+
+      Expr func = c->getFunction();
+      Node val = m->getValue(func);
+
+      Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
+
+      // (1) check that the value is actually a value
+      if(!val.isConst()) {
+        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
+        stringstream ss;
+        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+           << "model value for " << func << endl
+           << "             is " << val << endl
+           << "and that is not a constant (.isConst() == false)." << endl
+           << "Run with `--check-models -v' for additional diagnostics.";
+        InternalError(ss.str());
+      }
+
+      // (2) if the value is a lambda, ensure the lambda doesn't contain the
+      // function symbol (since then the definition is recursive)
+      if(val.getKind() == kind::LAMBDA) {
+        // first apply the model substitutions we have so far
+        Node n = substitutions.apply(val[1]);
+        // now check if n contains func by doing a substitution
+        // [func->func2] and checking equality of the Nodes.
+        // (this just a way to check if func is in n.)
+        theory::SubstitutionMap subs(&fakeContext);
+        Node func2 = NodeManager::currentNM()->mkSkolem(TypeNode::fromType(func.getType()));
+        subs.addSubstitution(func, func2);
+        if(subs.apply(n) != n) {
+          Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
+          stringstream ss;
+          ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+             << "considering model value for " << func << endl
+             << "body of lambda is:   " << val << endl;
+          if(n != val[1]) {
+            ss << "body substitutes to: " << n << endl;
+          }
+          ss << "so " << func << " is defined in terms of itself." << endl
+             << "Run with `--check-models -v' for additional diagnostics.";
+          InternalError(ss.str());
+        }
+      }
+
+      // (3) checks complete, add the substitution
+      substitutions.addSubstitution(func, val);
+    }
+  }
+
+  // Now go through all our user assertions checking if they're satisfied.
+  for(AssertionList::const_iterator i = d_assertionList->begin(); i != d_assertionList->end(); ++i) {
+    Notice() << "SmtEngine::checkModel(): checking assertion " << *i << endl;
+    Node n = Node::fromExpr(*i);
+
+    // Apply our model value substitutions.
+    n = substitutions.apply(n);
+    Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
+
+    // Simplify the result.
+    n = Node::fromExpr(simplify(n.toExpr()));
+    Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
+
+    // The result should be == true.
+    if(n != NodeManager::currentNM()->mkConst(true)) {
+      Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***" << endl;
+      stringstream ss;
+      ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+         << "assertion:     " << *i << endl
+         << "simplifies to: " << n << endl
+         << "expected `true'." << endl
+         << "Run with `--check-models -v' for additional diagnostics.";
+      InternalError(ss.str());
+    }
+  }
+  Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
 Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {

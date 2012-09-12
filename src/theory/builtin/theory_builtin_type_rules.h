@@ -161,6 +161,11 @@ public:
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
   }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::LAMBDA);
+    return true;
+  }
 };/* class LambdaTypeRule */
 
 class SortProperties {

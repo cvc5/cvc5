@@ -198,6 +198,12 @@ class CVC4_PUBLIC SmtEngine {
   smt::SmtEnginePrivate* d_private;
 
   /**
+   * Check that a generated Model (via getModel()) actually satisfies
+   * all user assertions.
+   */
+  void checkModel() throw(InternalErrorException);
+
+  /**
    * This is something of an "init" procedure, but is idempotent; call
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
@@ -281,6 +287,8 @@ class CVC4_PUBLIC SmtEngine {
   IntStat d_numAssertionsPre;
   /** Num of assertions after ite removal */
   IntStat d_numAssertionsPost;
+  /** time spent in checkModel() */
+  TimerStat d_checkModelTime;
 
 public:
 
