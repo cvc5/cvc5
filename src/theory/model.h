@@ -37,12 +37,6 @@ class TheoryModel : public Model
 {
   friend class TheoryEngineModelBuilder;
 protected:
-  /** add term function
-    *   This should be called on all terms that exist in the model.
-    *   addTerm( n ) will do any model-specific processing necessary for n,
-    *   such as contraining the interpretation of uninterpretted functions.
-    */
-  virtual void addTerm( Node n ) {}
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
 public:
@@ -94,6 +88,12 @@ public:
 public:
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
+  /** add term function
+    *   addTerm( n ) will do any model-specific processing necessary for n,
+    *   such as contraining the interpretation of uninterpretted functions,
+    *   and adding n to the equality engine of this model
+    */
+  virtual void addTerm( Node n );
   /** assert equality holds in the model */
   void assertEquality( Node a, Node b, bool polarity );
   /** assert predicate holds in the model */

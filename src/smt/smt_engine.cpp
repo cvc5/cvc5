@@ -2238,6 +2238,7 @@ StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {
 
 void SmtEngine::printModel( std::ostream& out, Model* m ){
   SmtScope smts(this);
+  Expr::dag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream( out, m );
   //m->toStream(out);
 }

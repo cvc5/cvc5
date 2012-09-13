@@ -87,7 +87,6 @@ public:
   void initialize( bool considerAxioms = true );
   /** to stream function */
   void toStream( std::ostream& out );
-
 //the following functions are for evaluating quantifier bodies
 public:
   /** reset evaluation */

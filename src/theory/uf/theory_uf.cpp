@@ -197,7 +197,7 @@ void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
   if( fullModel ){
     std::map< TypeNode, TypeEnumerator* > type_enums;
     //must choose proper representatives
-    // for each equivalence class, specify the constructor as a representative
+    // for each equivalence class, specify fresh constant as representative
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);

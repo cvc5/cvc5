@@ -118,7 +118,7 @@ Node TheoryModel::getModelValue( TNode n ){
     }
     //evaluate the children
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      Node val = getModelValue( n[i] );
+      Node val = getValue( n[i] );
       Debug("model-debug") << i << " : " << n[i] << " -> " << val << std::endl;
       Assert( !val.isNull() );
       children.push_back( val );
@@ -213,6 +213,13 @@ Node TheoryModel::getNewDomainValue( TypeNode tn ){
 void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
   if( !d_substitutions.hasSubstitution( x ) ){
     d_substitutions.addSubstitution( x, t, invalidateCache );
+  }
+}
+
+/** add term */
+void TheoryModel::addTerm( Node n ){
+  if( !d_equalityEngine.hasTerm( n ) ){
+    d_equalityEngine.addTerm( n );
   }
 }
 
@@ -331,6 +338,7 @@ TheoryModel( c, name ), d_enableFuncModels( enableFuncModels ){
 }
 
 void DefaultModel::addTerm( Node n ){
+  TheoryModel::addTerm( n );
   //must collect UF terms
   if( d_enableFuncModels && n.getKind()==APPLY_UF ){
     Node op = n.getOperator();
@@ -347,11 +355,14 @@ void DefaultModel::reset(){
 }
 
 Node DefaultModel::getInterpretedValue( TNode n ){
+  Trace("model") << "Get interpreted value of " << n << std::endl;
   TypeNode type = n.getType();
   if( type.isFunction() || type.isPredicate() ){
     //for function models
     if( d_enableFuncModels ){
+      //create the function value for the model
       if( d_uf_models.find( n )==d_uf_models.end() ){
+        Trace("model") << "Creating function value..." << std::endl;
         uf::UfModelTree ufmt( n );
         Node default_v;
         for( size_t i=0; i<d_uf_terms[n].size(); i++ ){
@@ -368,41 +379,61 @@ Node DefaultModel::getInterpretedValue( TNode n ){
         ufmt.simplify();
         d_uf_models[n] = ufmt.getFunctionValue( "$x" );
       }
+      Trace("model") << "Return function value." << std::endl;
       return d_uf_models[n];
     }else{
       return n;
     }
   }else{
-    Trace("model") << "Get interpreted value of " << n << std::endl;
+    Node ret;
     //add term to equality engine, this will enforce a value if it exists
-    d_equalityEngine.addTerm( n );
-    //first, see if the representative is defined
+    //  for example, if a = b = c1, and f( a ) = c2, then adding f( b ) should force
+    //    f( b ) to be equal to c2.
+    addTerm( n );
+    //check if the representative is defined
     n = d_equalityEngine.getRepresentative( n );
-    //this check is required since d_equalityEngine.hasTerm( n )
-    // does not ensure that n is in an equivalence class in d_equalityEngine
     if( d_reps.find( n )!=d_reps.end() ){
+      Trace("model") << "Return value in equality engine."<< std::endl;
       return d_reps[n];
     }
-    //second, try to choose an existing term as value
-    Trace("model") << "Choose existing value..." << std::endl;
-    std::vector< Node > v_emp;
-    Node n2 = getDomainValue( type, v_emp );
-    if( !n2.isNull() ){
-      //store the equality??   this is dangerous since it may cause representatives to change
-      //assertEquality( n, n2, true );
-      return n2;
-    }else{
-      //otherwise, choose new value
-      Trace("model") << "Choose new value..." << std::endl;
-      n2 = getNewDomainValue( type );
-      if( !n2.isNull() ){
-        //store the equality??
-        //assertEquality( n, n2, true );
-        return n2;
-      }else{
-        //otherwise, just return itself (this usually should not happen)
-        return n;
+    //if it is APPLY_UF, we must consult the corresponding function if it exists
+    if( n.getKind()==APPLY_UF ){
+      Node op = n.getOperator();
+      if( d_uf_models.find( op )!=d_uf_models.end() ){
+        std::vector< Node > lam_children;
+        lam_children.push_back( d_uf_models[ op ] );
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          lam_children.push_back( n[i] );
+        }
+        Node app_lam = NodeManager::currentNM()->mkNode( APPLY_UF, lam_children );
+        ret = Rewriter::rewrite( app_lam );
+        Trace("model") << "Consult UF model." << std::endl;
       }
+    }
+    if( ret.isNull() ){
+      //second, try to choose an existing term as value
+      std::vector< Node > v_emp;
+      ret = getDomainValue( type, v_emp );
+      if( !ret.isNull() ){
+        Trace("model") << "Choose existing value." << std::endl;
+      }else{
+        //otherwise, choose new value
+        ret = getNewDomainValue( type );
+        if( !ret.isNull() ){
+          Trace("model") << "Choose new value." << std::endl;
+        }
+      }
+    }
+    if( !ret.isNull() ){
+      //store the equality
+      assertEquality( n, ret, true );
+      //this is dangerous since it may cause representatives to change
+      Assert( getRepresentative( ret )==ret );
+      return ret;
+    }else{
+      //otherwise, just return itself (this usually should not happen)
+      Trace("model") << "Return self." << std::endl;
+      return n;
     }
   }
 }

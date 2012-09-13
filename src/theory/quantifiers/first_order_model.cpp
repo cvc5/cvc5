@@ -94,33 +94,14 @@ void FirstOrderModel::initializeModelForTerm( Node n ){
 }
 
 Node FirstOrderModel::getInterpretedValue( TNode n ){
-  Debug("fo-model") << "get interpreted value " << n << std::endl;
+  Trace("fo-model") << "get interpreted value " << n << std::endl;
   TypeNode type = n.getType();
   if( type.isFunction() || type.isPredicate() ){
     if( d_uf_model_tree.find( n )!=d_uf_model_tree.end() ){
       if( d_uf_models.find( n )==d_uf_models.end() ){
-        //use the model tree to generate the model
         d_uf_models[n] = d_uf_model_tree[n].getFunctionValue( "$x" );
       }
-      return d_uf_models[n];
     }
-  /*
-  }else if( type.isArray() ){
-    if( d_array_model.find( n )!=d_array_model.end() ){
-      return d_array_model[n].getArrayValue();
-    }else{
-      //std::cout << "no array model generated for " << n << std::endl;
-    }
-  */
-  }else if( n.getKind()==APPLY_UF ){
-    Node op = n.getOperator();
-    if( d_uf_model_tree.find( op )!=d_uf_model_tree.end() ){
-      //consult the uf model
-      int depIndex;
-      return d_uf_model_tree[ op ].getValue( this, n, depIndex );
-    }
-  }else if( n.getKind()==SELECT ){
-
   }
   return DefaultModel::getInterpretedValue( n );
 }
@@ -274,7 +255,7 @@ Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
   if( !n.hasAttribute(InstConstantAttribute()) ){
     //if evaluating a ground term, just consult the standard getValue functionality
     depIndex = -1;
-    return getModelValue( n );
+    return getValue( n );
   }else{
     Node val;
     depIndex = ri->getNumTerms()-1;
