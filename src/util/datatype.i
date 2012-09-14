@@ -6,11 +6,15 @@
   /* These member functions have slightly different signatures in
    * different swig language packages.  The underlying issue is that
    * DatatypeConstructor doesn't have a default constructor */
+#ifdef SWIGOCAML
   %ignore vector(unsigned int size = 0);// ocaml
   %ignore set( int i, const CVC4::Datatype &x );// ocaml
   %ignore to_array();// ocaml
+#endif /* SWIGOCAML */
+#if defined(SWIGJAVA) || defined(SWIGPYTHON)
   %ignore vector(size_type);// java/python
   %ignore resize(size_type);// java/python
+#endif /* SWIGJAVA || SWIGPYTHON */
   %ignore set(int i, const CVC4::Datatype& x);
   %ignore to_array();
 };
@@ -20,11 +24,15 @@
   /* These member functions have slightly different signatures in
    * different swig language packages.  The underlying issue is that
    * DatatypeConstructor doesn't have a default constructor */
+#ifdef SWIGOCAML
   %ignore vector(unsigned int size = 0);// ocaml
   %ignore set( int i, const CVC4::DatatypeConstructor &x );// ocaml
   %ignore to_array();// ocaml
+#endif /* SWIGOCAML */
+#if defined(SWIGJAVA) || defined(SWIGPYTHON)
   %ignore vector(size_type);// java/python
   %ignore resize(size_type);// java/python
+#endif /* SWIGJAVA || SWIGPYTHON */
   %ignore set(int i, const CVC4::Datatype::Constructor& x);
   %ignore to_array();
 };
