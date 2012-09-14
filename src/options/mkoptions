@@ -62,6 +62,8 @@ common_documentation=
 remaining_documentation=
 common_manpage_documentation=
 remaining_manpage_documentation=
+common_manpage_smt_documentation=
+remaining_manpage_smt_documentation=
 
 seen_module=false
 seen_endmodule=false
@@ -121,6 +123,10 @@ function module {
 \"$module_name options:"
   remaining_manpage_documentation="${remaining_manpage_documentation}
 .SH `echo "$module_name" | tr a-z A-Z` OPTIONS
+"
+  remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
+.TP
+.I \"`echo "$module_name" | tr a-z A-Z` OPTIONS\"
 "
 }
 
@@ -831,73 +837,104 @@ function doc {
     return
   fi
 
+  the_opt=
+  if [ "$long_option" ]; then
+    the_opt="--$long_option"
+    if [ "$short_option" ]; then
+      shortoptarg=
+      if expr "$the_opt" : '.*=' &>/dev/null; then
+        shortoptarg="$(echo "$the_opt" | sed 's,[^=]*=, ,')"
+      fi
+      the_opt="$the_opt | -$short_option$shortoptarg"
+    fi
+  elif [ "$short_option" ]; then
+    the_opt="-$short_option"
+  elif [ -z "$smtname" ]; then
+    # nothing to document
+    return
+  fi
+
   if ! $options_already_documented; then
     options_already_documented=true
-    the_opt=
-    if [ "$long_option" ]; then
-      the_opt="--$long_option"
-      if [ "$short_option" ]; then
-        shortoptarg=
-        if expr "$the_opt" : '.*=' &>/dev/null; then
-          shortoptarg="$(echo "$the_opt" | sed 's,[^=]*=, ,')"
-        fi
-        the_opt="$the_opt | -$short_option$shortoptarg"
-      fi
-    elif [ "$short_option" ]; then
-      the_opt="-$short_option"
-    fi
-    if [ -z "$the_opt" ]; then
-      # nothing to document
-      return
-    fi
 
     the_doc="$@"
+    mandoc="$@"
+    mansmtdoc="$@"
     if [ "$category" = EXPERT ]; then
       the_doc="$the_doc (EXPERTS only)"
+      mandoc="$mandoc (EXPERTS only)"
+      mansmtdoc="$mansmtdoc (EXPERTS only)"
     fi
 
     if [ "$type" = bool -a -n "$long_option" -a "$long_option_alternate" = "no-$long_option" ]; then
       the_doc="$the_doc [*]"
+      mandoc="$mandoc [*]"
     fi
 
-    doc_line=
-    while [ -n "$the_doc" ]; do
-      remaining_doc="$(expr "$the_doc " : '.\{1,53\} \(.*\)')"
-      the_doc="$(expr "$the_doc " : '\(.\{1,53\}\) ')"
-      if [ -z "$doc_line" ]; then
-        if expr "$the_opt" : '.\{23\}' &>/dev/null; then
-          # break into two lines
-          doc_line="$(printf '  %s\\n\\\n%-24s %s' "$the_opt" "" "$the_doc")"
+    if [ "$the_opt" ]; then
+      doc_line=
+      while [ -n "$the_doc" ]; do
+        remaining_doc="$(expr "$the_doc " : '.\{1,53\} \(.*\)')"
+        the_doc="$(expr "$the_doc " : '\(.\{1,53\}\) ')"
+        if [ -z "$doc_line" ]; then
+          if expr "$the_opt" : '.\{23\}' &>/dev/null; then
+            # break into two lines
+            doc_line="$(printf '  %s\\n\\\n%-24s %s' "$the_opt" "" "$the_doc")"
+          else
+            doc_line="$(printf '  %-22s %s' "$the_opt" "$the_doc")"
+          fi
         else
-          doc_line="$(printf '  %-22s %s' "$the_opt" "$the_doc")"
+          doc_line="$doc_line\\n$(printf '%-24s %s' "" "$the_doc")"
         fi
-      else
-        doc_line="$doc_line\\n$(printf '%-24s %s' "" "$the_doc")"
-      fi
-      the_doc="$(expr "$remaining_doc" : '\(.*\) ')"
-    done
+        the_doc="$(expr "$remaining_doc" : '\(.*\) ')"
+      done
 
-    if [ "$category" = COMMON ]; then
-      common_documentation="${common_documentation}\\n\"
+      if [ "$category" = COMMON ]; then
+        common_documentation="${common_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
-      common_manpage_documentation="${common_manpage_documentation}
+        common_manpage_documentation="${common_manpage_documentation}
 .IP \"$the_opt\"
-$@"
-    else
-      remaining_documentation="${remaining_documentation}\\n\"
+$mandoc"
+      else
+        remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
-      remaining_manpage_documentation="${remaining_manpage_documentation}
+        remaining_manpage_documentation="${remaining_manpage_documentation}
 .IP \"$the_opt\"
-$@"
+$mandoc"
+      fi
+    fi
+
+    if [ "$smtname" ]; then
+      if [ "$category" = COMMON ]; then
+        common_manpage_smt_documentation="${common_manpage_smt_documentation}
+.TP
+.B \"$smtname\"
+($type) $mansmtdoc"
+      else
+        remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
+.TP
+.B \"$smtname\"
+($type) $mansmtdoc"
+      fi
     fi
   else
-    if [ "$category" = COMMON ]; then
-      common_manpage_documentation="${common_manpage_documentation}
+    if [ "$the_opt" ]; then
+      if [ "$category" = COMMON ]; then
+        common_manpage_documentation="${common_manpage_documentation}
+$@"
+      else
+        remaining_manpage_documentation="${remaining_manpage_documentation}
+$@"
+      fi
+    fi
+
+    if [ "$smtname" ]; then
+        common_manpage_smt_documentation="${common_manpage_smt_documentation}
 $@"
     else
-      remaining_manpage_documentation="${remaining_manpage_documentation}
+        remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
 $@"
     fi
   fi
@@ -1202,6 +1239,8 @@ for var in \
     remaining_documentation \
     common_manpage_documentation \
     remaining_manpage_documentation \
+    common_manpage_smt_documentation \
+    remaining_manpage_smt_documentation \
     smt_getoption_handlers \
     smt_setoption_handlers \
     long_option_value_begin \

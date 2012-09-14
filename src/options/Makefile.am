@@ -176,6 +176,7 @@ options-stamp: options_holder_template.h options_template.cpp ../smt/smt_options
 		@srcdir@/options_template.cpp @builddir@/options.cpp \
 		@srcdir@/../smt/smt_options_template.cpp @builddir@/../smt/smt_options.cpp \
 		@top_builddir@/doc/cvc4.1_template @top_builddir@/doc/cvc4.1 \
+		@top_builddir@/doc/libcvc4.3_template @top_builddir@/doc/libcvc4.3 \
 		-t \
 		@srcdir@/base_options_template.h @srcdir@/base_options_template.cpp \
 		$(foreach o,$(OPTIONS_FILES),"$(srcdir)/$(o)" "$(patsubst %/,%,$(dir $(o)))") \

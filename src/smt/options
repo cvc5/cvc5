@@ -80,8 +80,6 @@ option replayLog --replay-log=FILE std::ostream* :handler CVC4::smt::checkReplay
 option replayStream ExprStream*
 
 # portfolio options
-option threads --threads=N unsigned :default 2
- Total number of threads
 option lemmaInputChannel LemmaInputChannel* :default NULL :include "util/lemma_input_channel.h"
  The input channel to receive notfication events for new lemmas
 option lemmaOutputChannel LemmaOutputChannel* :default NULL :include "util/lemma_output_channel.h"

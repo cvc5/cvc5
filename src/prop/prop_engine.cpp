@@ -29,6 +29,7 @@
 #include "util/Assert.h"
 #include "options/options.h"
 #include "smt/options.h"
+#include "main/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "expr/expr.h"

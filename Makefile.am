@@ -106,7 +106,7 @@ EXTRA_DIST = \
 	config/doxygen.cfg \
 	doc/cvc4.1_template.in \
 	doc/cvc4.5.in \
-	doc/libcvc4.3.in \
+	doc/libcvc4.3_template.in \
 	doc/libcvc4parser.3.in \
 	doc/libcvc4compat.3.in
 man_MANS = \
@@ -133,5 +133,6 @@ DISTCLEANFILES = \
 	doc/cvc4.1_template \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
+	doc/libcvc4.3_template \
 	doc/libcvc4compat.3 \
 	doc/libcvc4parser.3

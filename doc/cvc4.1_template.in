@@ -45,9 +45,14 @@ is unspecified and
 is connected to a terminal, interactive mode is assumed.
 
 .SH COMMON OPTIONS
+
+.IP "Each option marked with [*] has a --no-OPTIONNAME variant, which reverses the sense of the option."
+
 ${common_manpage_documentation}
 
 ${remaining_manpage_documentation}
+
+.IP "Each option marked with [*] has a --no-OPTIONNAME variant, which reverses the sense of the option."
 
 .\".SH FILES
 .\".SH ENVIRONMENT

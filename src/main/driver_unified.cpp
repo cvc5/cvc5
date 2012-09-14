@@ -98,7 +98,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   progPath = argv[0];
 
   // Parse the options
-  int firstArgIndex = opts.parseOptions(argc, argv);
+  vector<string> filenames = opts.parseOptions(argc, argv);
+
+# ifndef PORTFOLIO_BUILD
+  if( opts.wasSetByUser(options::threads) ||
+      ! opts[options::threadArgv].empty() ) {
+    throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
+  }
+# endif
 
   progName = opts[options::binary_name].c_str();
 
@@ -121,13 +128,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_COMPETITION_MODE */
 
   // We only accept one input file
-  if(argc > firstArgIndex + 1) {
+  if(filenames.size() > 1) {
     throw Exception("Too many input files specified.");
   }
 
   // If no file supplied we will read from standard input
-  const bool inputFromStdin =
-    firstArgIndex >= argc || !strcmp("-", argv[firstArgIndex]);
+  const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
   if(!opts.wasSetByUser(options::interactive)) {
@@ -157,7 +163,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // Auto-detect input language by filename extension
-  const char* filename = inputFromStdin ? "<stdin>" : argv[firstArgIndex];
+  const char* filename = inputFromStdin ? "<stdin>" : filenames[0].c_str();
 
   if(opts[options::inputLanguage] == language::input::LANG_AUTO) {
     if( inputFromStdin ) {

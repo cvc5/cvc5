@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "options/option_exception.h"
 #include "util/language.h"
@@ -120,8 +121,10 @@ public:
 
   /**
    * Initialize the options based on the given command-line arguments.
+   * The return value is what's left of the command line (that is, the
+   * non-option arguments).
    */
-  int parseOptions(int argc, char* argv[]) throw(OptionException);
+  std::vector<std::string> parseOptions(int argc, char* argv[]) throw(OptionException);
 
   /**
    * Set the output language based on the given string.

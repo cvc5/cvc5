@@ -94,6 +94,9 @@ inline void showTraceTags(std::string option, SmtEngine* smt) {
   exit(0);
 }
 
+inline void threadN(std::string option, SmtEngine* smt) {
+  throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
+}
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

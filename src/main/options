@@ -22,10 +22,11 @@ option - --show-trace-tags void :handler CVC4::main::showTraceTags :handler-incl
 # portfolio options
 option printWinner bool
  enable printing the winning thread (pcvc4 only)
-option - --threadN=string void
+option threads --threads=N unsigned :default 2 :predicate greater(0)
+ Total number of threads
+option - --threadN=string void :handler CVC4::main::threadN :handler-include "main/options_handlers.h"
  configures thread N (0..#threads-1)
-option threadArgv std::vector<std::string>
-#:includes <vector> <string>
+option threadArgv std::vector<std::string> :include <vector> <string>
  Thread configuration (a string to be passed to parseOptions)
 option thread_id int :default -1
  Thread ID, for internal use in case of multi-threaded run
