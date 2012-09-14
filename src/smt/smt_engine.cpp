@@ -233,7 +233,7 @@ public:
   /**
    * Expand definitions in n.
    */
-  Node expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHashFunction>& cache)
+  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
     throw(TypeCheckingException, AssertionException);
 
 };/* class SmtEnginePrivate */
@@ -837,7 +837,7 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHashFunction>& cache)
+Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
   throw(TypeCheckingException, AssertionException) {
 
   if(n.getKind() != kind::APPLY && n.getNumChildren() == 0) {
@@ -846,7 +846,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<TNode, Node, TNodeHas
   }
 
   // maybe it's in the cache
-  hash_map<TNode, Node, TNodeHashFunction>::iterator cacheHit = cache.find(n);
+  hash_map<Node, Node, NodeHashFunction>::iterator cacheHit = cache.find(n);
   if(cacheHit != cache.end()) {
     TNode ret = (*cacheHit).second;
     return ret.isNull() ? n : ret;
@@ -1440,6 +1440,7 @@ void SmtEnginePrivate::processAssertions() {
   // d_assertionsToPreprocess, but we don't need to reprocess those.
   // We also can't use an iterator, because the vector may be moved in
   // memory during this loop.
+  Chat() << "constraining subtypes..." << endl;
   for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
     constrainSubtypes(d_assertionsToPreprocess[i], d_assertionsToPreprocess);
   }
@@ -1448,9 +1449,10 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   if(!options::lazyDefinitionExpansion()) {
+    Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
-    hash_map<TNode, Node, TNodeHashFunction> cache;
+    hash_map<Node, Node, NodeHashFunction> cache;
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       d_assertionsToPreprocess[i] =
         expandDefinitions(d_assertionsToPreprocess[i], cache);
@@ -1458,6 +1460,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // Apply the substitutions we already have, and normalize
+  Chat() << "applying substitutions..." << endl;
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "applying substitutions" << endl;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
@@ -1467,16 +1470,19 @@ void SmtEnginePrivate::processAssertions() {
     Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
   }
 
+  Chat() << "simplifying assertions..." << endl;
   bool noConflict = simplifyAssertions();
 
   if(options::doStaticLearning()) {
     // Perform static learning
+    Chat() << "doing static learning..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): "
                       << "performing static learning" << endl;
     staticLearning();
   }
 
   {
+    Chat() << "removing term ITEs..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_iteRemovalTime);
     // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_numAssertionsPre += d_assertionsToCheck.size();
@@ -1486,6 +1492,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if(options::repeatSimp()) {
     d_assertionsToCheck.swap(d_assertionsToPreprocess);
+    Chat() << "simplifying assertions..." << endl;
     noConflict &= simplifyAssertions();
     if (noConflict) {
       // Some skolem variables may have been solved for - which is a good thing -
@@ -1525,6 +1532,7 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   {
+    Chat() << "theory preprocessing..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_theoryPreprocessTime);
     // Call the theory preprocessors
     d_smt.d_theoryEngine->preprocessStart();
@@ -1543,6 +1551,7 @@ void SmtEnginePrivate::processAssertions() {
 
   // Push the formula to decision engine
   if(noConflict) {
+    Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());
     d_smt.d_decisionEngine->addAssertions
       (d_assertionsToCheck, d_realAssertionsEnd, d_iteSkolemMap);
@@ -1553,6 +1562,7 @@ void SmtEnginePrivate::processAssertions() {
 
   // Push the formula to SAT
   {
+    Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_cnfConversionTime);
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
@@ -2016,6 +2026,12 @@ void SmtEngine::checkModel() throw(InternalErrorException) {
     Notice() << "SmtEngine::checkModel(): checking assertion " << *i << endl;
     Node n = Node::fromExpr(*i);
 
+    // Apply any define-funs from the problem.
+    {
+      hash_map<Node, Node, NodeHashFunction> cache;
+      n = d_private->expandDefinitions(n, cache);
+    }
+
     // Apply our model value substitutions.
     n = substitutions.apply(n);
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
@@ -2240,7 +2256,6 @@ void SmtEngine::printModel( std::ostream& out, Model* m ){
   SmtScope smts(this);
   Expr::dag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream( out, m );
-  //m->toStream(out);
 }
 
 void SmtEngine::setUserAttribute( std::string& attr, Expr expr ){
