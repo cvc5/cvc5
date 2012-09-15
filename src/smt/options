@@ -3,23 +3,12 @@
 # See src/options/base_options for a description of this file format
 #
 
-# FIXME: need to add support for SMT-LIBv2-required options:
-#
-#   expand-definitions
-#   regular-output-channel
-#   diagnostic-output-channel
-#   produce-unsat-cores
-#
-
 module SMT "smt/options.h" SMT layer
 
 common-option - --dump=MODE argument :handler CVC4::smt::dumpMode :handler-include "smt/options_handlers.h"
  dump preprocessed assertions, etc., see --dump=help
 common-option - --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
  all dumping goes to FILE (instead of stdout)
-
-expert-option lazyDefinitionExpansion --lazy-definition-expansion bool
- expand define-funs/LAMBDAs lazily
 
 option simplificationMode simplification-mode --simplification=MODE SimplificationMode :handler CVC4::smt::stringToSimplificationMode :default SIMPLIFICATION_MODE_BATCH :read-write :include "smt/simplification_mode.h" :handler-include "smt/options_handlers.h"
  choose simplification mode, see --simplification=help
@@ -30,11 +19,18 @@ option doStaticLearning static-learning /--no-static-learning bool :default true
  use static learning (on by default)
 /turn off static learning (e.g. diamond-breaking)
 
-common-option produceModels produce-models -m --produce-models bool :predicate CVC4::SmtEngine::beforeSearch :predicate-include "smt/smt_engine.h"
+option expandDefinitions expand-definitions bool :default false
+ always expand symbol definitions in output
+common-option produceModels produce-models -m --produce-models bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  support the get-value and get-model commands
-option checkModels check-models --check-models bool :predicate CVC4::SmtEngine::beforeSearch :predicate-include "smt/smt_engine.h"
+option checkModels check-models --check-models bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID, double-check that the generated model satisfies all user assertions
-common-option produceAssignments produce-assignments --produce-assignments bool
+common-option proof produce-proofs --proof bool :default false :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ turn on proof generation
+# this is just a placeholder for later; it doesn't show up in command-line options listings
+common-option unsatCores produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ turn on unsat core generation (NOT YET SUPPORTED)
+common-option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  support the get-assignment command
 option modelFormatMode --model-format=MODE ModelFormatMode :handler CVC4::smt::stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "smt/model_format_mode.h" :handler-include "smt/options_handlers.h"
  print format mode for models, see --model-format=help

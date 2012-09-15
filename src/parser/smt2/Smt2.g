@@ -302,7 +302,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetProofCommand; }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { UNSUPPORTED("unsat cores not yet supported"); }
+    { cmd = new GetUnsatCoreCommand; }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL

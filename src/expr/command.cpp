@@ -26,6 +26,8 @@
 #include "expr/command.h"
 #include "smt/smt_engine.h"
 #include "options/options.h"
+#include "smt/options.h"
+#include "smt/smt_engine_scope.h"
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/sexpr.h"
@@ -691,7 +693,7 @@ Command* SetUserAttributeCommand::clone() const{
   return new SetUserAttributeCommand( d_attr, d_expr );
 }
 
-/* class Simplify */
+/* class SimplifyCommand */
 
 SimplifyCommand::SimplifyCommand(Expr term) throw() :
   d_term(term) {
@@ -730,6 +732,45 @@ Command* SimplifyCommand::clone() const {
   return c;
 }
 
+/* class ExpandDefinitionsCommand */
+
+ExpandDefinitionsCommand::ExpandDefinitionsCommand(Expr term) throw() :
+  d_term(term) {
+}
+
+Expr ExpandDefinitionsCommand::getTerm() const throw() {
+  return d_term;
+}
+
+void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine) throw() {
+  d_result = smtEngine->expandDefinitions(d_term);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Expr ExpandDefinitionsCommand::getResult() const throw() {
+  return d_result;
+}
+
+void ExpandDefinitionsCommand::printResult(std::ostream& out) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out);
+  } else {
+    out << d_result << endl;
+  }
+}
+
+Command* ExpandDefinitionsCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  ExpandDefinitionsCommand* c = new ExpandDefinitionsCommand(d_term.exportTo(exprManager, variableMap));
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  return c;
+}
+
+Command* ExpandDefinitionsCommand::clone() const {
+  ExpandDefinitionsCommand* c = new ExpandDefinitionsCommand(d_term);
+  c->d_result = d_result;
+  return c;
+}
+
 /* class GetValueCommand */
 
 GetValueCommand::GetValueCommand(Expr term) throw() :
@@ -752,7 +793,10 @@ void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
     NodeManager* nm = NodeManager::fromExprManager(smtEngine->getExprManager());
     for(std::vector<Expr>::const_iterator i = d_terms.begin(); i != d_terms.end(); ++i) {
       Assert(nm == NodeManager::fromExprManager((*i).getExprManager()));
-      result.push_back(nm->mkNode(kind::TUPLE, Node::fromExpr(*i), Node::fromExpr(smtEngine->getValue(*i))));
+      smt::SmtScope scope(smtEngine);
+      Node request = Node::fromExpr(options::expandDefinitions() ? smtEngine->expandDefinitions(*i) : *i);
+      Node value = Node::fromExpr(smtEngine->getValue(*i));
+      result.push_back(nm->mkNode(kind::TUPLE, request, value));
     }
     Node n = nm->mkNode(kind::TUPLE, result);
     d_result = nm->toExpr(n);
@@ -905,6 +949,44 @@ Command* GetProofCommand::exportTo(ExprManager* exprManager, ExprManagerMapColle
 Command* GetProofCommand::clone() const {
   GetProofCommand* c = new GetProofCommand();
   c->d_result = d_result;
+  return c;
+}
+
+/* class GetUnsatCoreCommand */
+
+GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
+}
+
+void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
+  /*
+  try {
+    d_result = smtEngine->getUnsatCore();
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+  */
+  d_commandStatus = new CommandFailure("unsat cores not supported yet");
+}
+
+void GetUnsatCoreCommand::printResult(std::ostream& out) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out);
+  } else {
+    //do nothing -- unsat cores not yet supported
+    // d_result->toStream(out);
+  }
+}
+
+Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
+  //c->d_result = d_result;
+  return c;
+}
+
+Command* GetUnsatCoreCommand::clone() const {
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
+  //c->d_result = d_result;
   return c;
 }
 

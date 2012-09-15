@@ -23,6 +23,8 @@
 
 #include "cvc4autoconfig.h"
 #include "util/dump.h"
+#include "smt/modal_exception.h"
+#include "smt/smt_engine.h"
 
 #include <cerrno>
 #include <cstring>
@@ -252,6 +254,32 @@ inline ModelFormatMode stringToModelFormatMode(std::string option, std::string o
   } else {
     throw OptionException(std::string("unknown option for --model-format: `") +
                           optarg + "'.  Try --model-format help.");
+  }
+}
+
+// ensure we haven't started search yet
+inline void beforeSearch(std::string option, bool value, SmtEngine* smt) throw(ModalException) {
+  if(smt != NULL && smt->d_fullyInited) {
+    std::stringstream ss;
+    ss << "cannot change option `" << option << "' after final initialization (i.e., after logic has been set)";
+    throw ModalException(ss.str());
+  }
+}
+
+// ensure we are a proof-enabled build of CVC4
+inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
+#ifndef CVC4_PROOF
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_PROOF */
+}
+
+inline void unsatCoresEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
+  if(value) {
+    throw OptionException("CVC4 does not yet have support for unsatisfiable cores");
   }
 }
 

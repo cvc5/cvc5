@@ -518,7 +518,7 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
       preemptGetopt(extra_argc, extra_argv, \"$link\");"
     done
   fi
-  if [ "$type" = bool -a -n "$cases" -o -n "$cases_alternate" ]; then
+  if [ "$type" = bool ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
     run_handlers=
     if [ -n "$handlers" ]; then
       echo "$kf:$lineno: error: bool-valued options cannot have handlers" >&2
@@ -713,7 +713,7 @@ template <> void Options::assignBool(options::${internal}__option_t, std::string
 #line $lineno \"$kf\"
   Trace(\"options\") << \"user assigned option $internal\" << std::endl;
 }"
-  elif [ -n "$expect_arg" -a "$internal" != - ] && [ -n "$cases" -o "$cases_alternate" -o "$smtname" ]; then
+  elif [ -n "$expect_arg" -a "$internal" != - ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
     all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
 template <> void Options::assign(options::${internal}__option_t, std::string option, std::string value, SmtEngine* smt) {

@@ -1448,7 +1448,7 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  if(!options::lazyDefinitionExpansion()) {
+  {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
@@ -1762,6 +1762,22 @@ Expr SmtEngine::simplify(const Expr& e) throw(TypeCheckingException) {
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
   return d_private->applySubstitutions(e).toExpr();
+}
+
+Expr SmtEngine::expandDefinitions(const Expr& e) throw(TypeCheckingException) {
+  Assert(e.getExprManager() == d_exprManager);
+  SmtScope smts(this);
+  finalOptionsAreSet();
+  doPendingPops();
+  if( options::typeChecking() ) {
+    e.getType(true);// ensure expr is type-checked at this point
+  }
+  Trace("smt") << "SMT expandDefinitions(" << e << ")" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << ExpandDefinitionsCommand(e);
+  }
+  hash_map<Node, Node, NodeHashFunction> cache;
+  return d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
 }
 
 Expr SmtEngine::getValue(const Expr& e)

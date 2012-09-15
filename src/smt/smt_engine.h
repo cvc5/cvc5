@@ -75,6 +75,8 @@ namespace smt {
 
   class SmtEnginePrivate;
   class SmtScope;
+
+  void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
 }/* CVC4::smt namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -261,6 +263,7 @@ class CVC4_PUBLIC SmtEngine {
 
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
+  friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -370,13 +373,19 @@ public:
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
-   * assertions and the current partial model, if one has been
-   * constructed.
+   * definitions, assertions, and the current partial model, if one
+   * has been constructed.  It also involves theory normalization.
    *
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
   Expr simplify(const Expr& e) throw(TypeCheckingException);
+
+  /**
+   * Expand the definitions in a term or formula.  No other
+   * simplification or normalization is done.
+   */
+  Expr expandDefinitions(const Expr& e) throw(TypeCheckingException);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded
@@ -551,17 +560,6 @@ public:
 
   Result getStatusOfLastCommand() const {
     return d_status;
-  }
-
-  /**
-   * Used as a predicate for options preprocessor.
-   */
-  static void beforeSearch(std::string option, bool value, SmtEngine* smt) throw(ModalException) {
-    if(smt != NULL && smt->d_fullyInited) {
-      std::stringstream ss;
-      ss << "cannot change option `" << option << "' after final initialization (i.e., after logic has been set)";
-      throw ModalException(ss.str());
-    }
   }
 
   /**
