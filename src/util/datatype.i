@@ -11,10 +11,8 @@
   %ignore set( int i, const CVC4::Datatype &x );// ocaml
   %ignore to_array();// ocaml
 #endif /* SWIGOCAML */
-#if defined(SWIGJAVA) || defined(SWIGPYTHON)
-  %ignore vector(size_type);// java/python
-  %ignore resize(size_type);// java/python
-#endif /* SWIGJAVA || SWIGPYTHON */
+  %ignore vector(size_type);// java/python/perl/others?
+  %ignore resize(size_type);// java/python/perl/others?
   %ignore set(int i, const CVC4::Datatype& x);
   %ignore to_array();
 };
@@ -29,10 +27,8 @@
   %ignore set( int i, const CVC4::DatatypeConstructor &x );// ocaml
   %ignore to_array();// ocaml
 #endif /* SWIGOCAML */
-#if defined(SWIGJAVA) || defined(SWIGPYTHON)
-  %ignore vector(size_type);// java/python
-  %ignore resize(size_type);// java/python
-#endif /* SWIGJAVA || SWIGPYTHON */
+  %ignore vector(size_type);// java/python/perl/others?
+  %ignore resize(size_type);// java/python/perl/others?
   %ignore set(int i, const CVC4::Datatype::Constructor& x);
   %ignore to_array();
 };
