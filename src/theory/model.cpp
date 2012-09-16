@@ -425,10 +425,17 @@ Node DefaultModel::getInterpretedValue( TNode n ){
       }
     }
     if( !ret.isNull() ){
+      Node prev = n;
       //store the equality
       assertEquality( n, ret, true );
-      //this is dangerous since it may cause representatives to change
-      Assert( getRepresentative( ret )==ret );
+      //add it to the map of representatives
+      n = d_equalityEngine.getRepresentative( n );
+      if( d_reps.find( n )==d_reps.end() ){
+        d_reps[n] = ret;
+      }
+      //TODO: make sure that this doesn't affect the representatives in the equality engine
+      //  in other words, we need to be sure that all representatives of the equality engine
+      //  are still representatives after this function, or else d_reps should be modified.
       return ret;
     }else{
       //otherwise, just return itself (this usually should not happen)
