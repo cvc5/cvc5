@@ -1227,13 +1227,18 @@ long_option_value_end=$n_long
 
 text=$(cat "$template")
 for var in \
+    smt_getoption_handlers \
+    smt_setoption_handlers \
+    long_option_value_begin \
+    long_option_value_end \
+    template \
+    option_handler_includes \
     all_modules_defaults \
     all_modules_short_options \
     all_modules_long_options \
     all_modules_option_handlers \
     include_all_option_headers \
     all_modules_contributions \
-    option_handler_includes \
     all_custom_handlers \
     common_documentation \
     remaining_documentation \
@@ -1241,11 +1246,6 @@ for var in \
     remaining_manpage_documentation \
     common_manpage_smt_documentation \
     remaining_manpage_smt_documentation \
-    smt_getoption_handlers \
-    smt_setoption_handlers \
-    long_option_value_begin \
-    long_option_value_end \
-    template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
