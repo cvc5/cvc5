@@ -1009,6 +1009,19 @@ void StrongSolverTheoryUf::SortRepModel::addCliqueLemma( std::vector< Node >& cl
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
+  if( options::ufssSimpleCliques() ){
+    //add as lemma
+    std::vector< Node > eqs;
+    for( int i=0; i<(int)clique.size(); i++ ){
+      for( int j=0; j<i; j++ ){
+        eqs.push_back( clique[i].eqNode( clique[j] ) );
+      }
+    }
+    eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
+    Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
+    out->lemma( lem );
+    return;
+  }
   if( options::ufssModelInference() || Trace.isOn("uf-ss-cliques") ){
     std::vector< Node > clique_vec;
     clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );

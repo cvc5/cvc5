@@ -25,6 +25,7 @@ option ufssSmartSplits --uf-ss-smart-split bool :default false
  use smart splitting heuristic for uf strong solver
 option ufssModelInference --uf-ss-model-infer bool :default false
  use model inference method for uf strong solver
-
+option ufssSimpleCliques --uf-ss-simple-cliques bool :default false
+ add simple clique lemmas for uf strong solver
 
 endmodule

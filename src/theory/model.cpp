@@ -432,6 +432,7 @@ Node DefaultModel::getInterpretedValue( TNode n ){
       n = d_equalityEngine.getRepresentative( n );
       if( d_reps.find( n )==d_reps.end() ){
         d_reps[n] = ret;
+        d_rep_set.add( ret );
       }
       //TODO: make sure that this doesn't affect the representatives in the equality engine
       //  in other words, we need to be sure that all representatives of the equality engine
