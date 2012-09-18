@@ -18,4 +18,5 @@
 (assert (not (= i1 i2)))
 (assert (not (= (store_uf (store_uf a1 i1 e1) i2 e2) (store_uf (store_uf a1 i2 e2) i1 e1))))
 (check-sat)
+(get-info :reason-unknown)
 (exit)

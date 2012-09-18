@@ -1,3 +1,4 @@
 % COMMAND-LINE: --decision=justification --disable-miniscope-quant-fv --disable-miniscope-quant
-% EXPECT: unknown (INCOMPLETE)
+% EXPECT: unknown
+% EXPECT: (:reason-unknown incomplete)
 % EXIT: 0

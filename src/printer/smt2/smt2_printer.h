@@ -37,6 +37,7 @@ public:
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   //for models
   void toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw();
+  void toStream(std::ostream& out, const Result& r) const throw();
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */

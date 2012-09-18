@@ -590,6 +590,13 @@ void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type )
   }
 }
 
+void Smt2Printer::toStream(std::ostream& out, const Result& r) const throw() {
+  if (r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
+    out << "unknown";
+  } else {
+    Printer::toStream(out, r);
+  }
+}
 
 static void toStream(std::ostream& out, const AssertCommand* c) throw() {
   out << "(assert " << c->getExpr() << ")";

@@ -1,2 +1,3 @@
-% EXPECT: unknown (INCOMPLETE)
+% EXPECT: unknown
+% EXPECT: (:reason-unknown incomplete)
 % EXIT: 0

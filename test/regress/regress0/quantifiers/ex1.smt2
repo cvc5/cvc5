@@ -9,4 +9,5 @@
 (declare-fun p () Bool)
 (assert (and (= a b) (forall ((x U)) (=> (and (= (f x) a) (not (= (f x) b))) p))))
 (check-sat)
+(get-info :reason-unknown)
 (exit)

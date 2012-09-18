@@ -9,4 +9,5 @@
 (declare-fun f (U) U)
 (assert (and (= a b) (forall ((x U)) (=> (or (= (f x) c) (= x a)) (= x b)))))
 (check-sat)
+(get-info :reason-unknown)
 (exit)
