@@ -176,6 +176,7 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   } else {
     // If it's there, we need to merge these two
     Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup exists, adding to queue" << std::endl;
+    Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup = " << d_nodes[find->second] << std::endl;
     enqueue(MergeCandidate(funId, find->second, MERGED_THROUGH_CONGRUENCE, TNode::null()));
   }
 
@@ -211,7 +212,7 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   // Mark the no-individual trigger
   d_nodeIndividualTrigger.push_back(+null_set_id);
   // Mark non-constant by default
-  d_isConstant.push_back(node.isConst());
+  d_isConstant.push_back(false);
   // Mark Boolean nodes
   d_isBoolean.push_back(false);
   // Mark the node as internal by default
@@ -266,10 +267,12 @@ void EqualityEngine::addTerm(TNode t) {
       result = newApplicationNode(t, result, getNodeId(t[i]), false);
     }
     d_isInternal[result] = false;
+    d_isConstant[result] = t.isConst();
   } else {
     // Otherwise we just create the new id
     result = newNode(t);
     d_isInternal[result] = false;
+    d_isConstant[result] = t.isConst();
   }
 
   if (t.getType().isBoolean()) {
@@ -1175,6 +1178,9 @@ void EqualityEngine::propagate() {
     if (t1classId == t2classId) {
       continue;
     }
+
+    Debug("equality::internal") << d_name << "::eq::propagate(): t1: " << (d_isInternal[t1classId] ? "internal" : "proper") << std::endl;
+    Debug("equality::internal") << d_name << "::eq::propagate(): t2: " << (d_isInternal[t2classId] ? "internal" : "proper") << std::endl;
 
     // Get the nodes of the representatives
     EqualityNode& node1 = getEqualityNode(t1classId);
