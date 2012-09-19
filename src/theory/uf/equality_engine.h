@@ -402,6 +402,12 @@ private:
   std::vector<bool> d_isBoolean;
 
   /**
+   * Map from ids to whether the nods is internal. An internal node is a node
+   * that corresponds to a partially currified node, for example.
+   */
+  std::vector<bool> d_isInternal;
+
+  /**
    * Adds the trigger with triggerId to the beginning of the trigger list of the node with id nodeId.
    */
   void addTriggerToList(EqualityNodeId nodeId, TriggerId triggerId);
@@ -791,14 +797,13 @@ class EqClassesIterator {
 
   const eq::EqualityEngine* d_ee;
   size_t d_it;
-  std::vector< Node > d_visited;
 public:
 
   EqClassesIterator(): d_ee(NULL), d_it(0){ }
   EqClassesIterator(const eq::EqualityEngine* ee) : d_ee(ee) {
     d_it = 0;
-    if ( d_it < d_ee->d_nodesCount &&
-         d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it] ) {
+    // Go to the first non-internal node that is it's own representative
+    if (d_it < d_ee->d_nodesCount && (d_ee->d_isInternal[d_it] || d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it])) {
       ++*this;
     }
   }
@@ -812,11 +817,8 @@ public:
     return !(*this == i);
   }
   EqClassesIterator& operator++() {
-    d_visited.push_back( d_ee->d_nodes[d_it] );
     ++d_it;
-    while ( d_it<d_ee->d_nodesCount &&
-            ( d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it] ||
-              std::find( d_visited.begin(), d_visited.end(), d_ee->d_nodes[d_it] )!=d_visited.end() ) ) { // this line is necessary for ignoring duplicates
+    while (d_it<d_ee->d_nodesCount && (d_ee->d_isInternal[d_it] || d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it])) {
       ++d_it;
     }
     return *this;

@@ -214,6 +214,8 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   d_isConstant.push_back(node.isConst());
   // Mark Boolean nodes
   d_isBoolean.push_back(false);
+  // Mark the node as internal by default
+  d_isInternal.push_back(true);
   // Add the equality node to the nodes
   d_equalityNodes.push_back(EqualityNode(newId));
 
@@ -249,7 +251,8 @@ void EqualityEngine::addTerm(TNode t) {
   if (t.getKind() == kind::EQUAL) {
     addTerm(t[0]);
     addTerm(t[1]);
-    result = newApplicationNode(t, getNodeId(t[0]), getNodeId(t[1]), true); 
+    result = newApplicationNode(t, getNodeId(t[0]), getNodeId(t[1]), true);
+    d_isInternal[result] = false;
   } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
     // Add the operator
     TNode tOp = t.getOperator();
@@ -262,9 +265,11 @@ void EqualityEngine::addTerm(TNode t) {
       // Add the application
       result = newApplicationNode(t, result, getNodeId(t[i]), false);
     }
+    d_isInternal[result] = false;
   } else {
     // Otherwise we just create the new id
     result = newNode(t);
+    d_isInternal[result] = false;
   }
 
   if (t.getType().isBoolean()) {
@@ -798,6 +803,7 @@ void EqualityEngine::backtrack() {
     d_nodeIndividualTrigger.resize(d_nodesCount);
     d_isConstant.resize(d_nodesCount);
     d_isBoolean.resize(d_nodesCount);
+    d_isInternal.resize(d_nodesCount);
     d_equalityGraph.resize(d_nodesCount);
     d_equalityNodes.resize(d_nodesCount);
   }
