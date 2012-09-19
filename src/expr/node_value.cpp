@@ -40,7 +40,7 @@ string NodeValue::toString() const {
   stringstream ss;
 
   OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AST : options::outputLanguage();
-  toStream(ss, -1, false,
+  toStream(ss, -1, false, false,
            outlang == language::output::LANG_AUTO ?
              language::output::LANG_AST :
              outlang);
