@@ -50,7 +50,7 @@ SymbolTable::~SymbolTable() {
 }
 
 void SymbolTable::bind(const std::string& name, Expr obj,
-                            bool levelZero) throw(AssertionException) {
+                       bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if(levelZero) d_exprMap->insertAtContextLevelZero(name, obj);
@@ -58,7 +58,7 @@ void SymbolTable::bind(const std::string& name, Expr obj,
 }
 
 void SymbolTable::bindDefinedFunction(const std::string& name, Expr obj,
-                            bool levelZero) throw(AssertionException) {
+                                      bool levelZero) throw(AssertionException) {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if(levelZero){
@@ -89,18 +89,18 @@ Expr SymbolTable::lookup(const std::string& name) const throw(AssertionException
 }
 
 void SymbolTable::bindType(const std::string& name, Type t,
-                                bool levelZero) throw() {
-  if(levelZero){
+                           bool levelZero) throw() {
+  if(levelZero) {
     d_typeMap->insertAtContextLevelZero(name, make_pair(vector<Type>(), t));
-  }else{
+  } else {
     d_typeMap->insert(name, make_pair(vector<Type>(), t));
   }
 }
 
 void SymbolTable::bindType(const std::string& name,
-                                const std::vector<Type>& params,
-                                Type t,
-                                bool levelZero) throw() {
+                           const std::vector<Type>& params,
+                           Type t,
+                           bool levelZero) throw() {
   if(Debug.isOn("sort")) {
     Debug("sort") << "bindType(" << name << ", [";
     if(params.size() > 0) {
@@ -110,7 +110,7 @@ void SymbolTable::bindType(const std::string& name,
     }
     Debug("sort") << "], " << t << ")" << endl;
   }
-  if(levelZero){
+  if(levelZero) {
     d_typeMap->insertAtContextLevelZero(name, make_pair(params, t));
   } else {
     d_typeMap->insert(name, make_pair(params, t));
@@ -131,7 +131,7 @@ Type SymbolTable::lookupType(const std::string& name) const throw(AssertionExcep
 }
 
 Type SymbolTable::lookupType(const std::string& name,
-                                  const std::vector<Type>& params) const throw(AssertionException) {
+                             const std::vector<Type>& params) const throw(AssertionException) {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == params.size(),
          "type constructor arity is wrong: "

@@ -175,7 +175,7 @@ public:
   }
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem( type );
+    return NodeManager::currentNM()->mkSkolem("groundTerm_$$", type, "a ground term created for type " + type.toString());
   }
 };/* class SortProperties */
 

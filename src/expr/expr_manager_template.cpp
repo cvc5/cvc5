@@ -646,6 +646,10 @@ ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes,
     checkResolvedDatatype(*i);
   }
 
+  for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewDatatypes(dtts);
+  }
+
   return dtts;
 }
 

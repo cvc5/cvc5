@@ -198,7 +198,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
-      mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn );
+      mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
       Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
     }else{
       mbt = d_type_map[ tn ][ 0 ];
@@ -307,7 +307,7 @@ Node TermDb::getSkolemizedBody( Node f ){
   if( d_skolem_body.find( f )==d_skolem_body.end() ){
     std::vector< Node > vars;
     for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-      Node skv = NodeManager::currentNM()->mkSkolem( f[0][i].getType() );
+      Node skv = NodeManager::currentNM()->mkSkolem( "skv_$$", f[0][i].getType(), "is a termdb-created skolemized body" );
       d_skolem_constants[ f ].push_back( skv );
       vars.push_back( f[0][i] );
     }
@@ -343,7 +343,7 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
       d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
     }else{
       if( d_type_map[ tn ].empty() ){
-        d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( tn );
+        d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
         Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }else{
         d_free_vars[tn] = d_type_map[ tn ][ 0 ];

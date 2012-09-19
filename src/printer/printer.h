@@ -83,7 +83,7 @@ public:
   //for models
 
   /** write model response to command */
-  virtual void toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw() = 0;
+  virtual void toStream(std::ostream& out, Model* m, const Command* c) const throw() = 0;
 };/* class Printer */
 
 }/* CVC4 namespace */

@@ -320,8 +320,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // output that support for the kind needs to be added here.
     out << n.getKind() << ' ';
   }
-  if(n.getMetaKind() == kind::metakind::PARAMETERIZED &&
-     stillNeedToPrintParams) {
+  if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
+      stillNeedToPrintParams ) {
     if(toDepth != 0) {
       toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types);
     } else {
@@ -528,10 +528,10 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+void Smt2Printer::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
   theory::TheoryModel* tm = (theory::TheoryModel*)m;
-  if( c_type==Model::COMMAND_DECLARE_SORT ){
-    TypeNode tn = TypeNode::fromType( ((DeclareTypeCommand*)c)->getType() );
+  if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
+    TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( tn.isSort() ){
       //print the cardinality
       if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
@@ -551,8 +551,8 @@ void Smt2Printer::toStream(std::ostream& out, Model* m, Command* c, int c_type )
         }
       }
     }
-  }else if( c_type==Model::COMMAND_DECLARE_FUN ){
-    Node n = Node::fromExpr( ((DeclareFunctionCommand*)c)->getFunction() );
+  } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
+    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
     Node val = tm->getValue( n );
     if(val.getKind() == kind::LAMBDA) {
       out << "(define-fun " << n << " " << val[0]

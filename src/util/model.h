@@ -2,10 +2,10 @@
 /*! \file model.h
  ** \verbatim
  ** Original author: ajreynol
- ** Major contributors: none
+ ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -27,41 +27,28 @@
 
 namespace CVC4 {
 
-class Command;
+class CVC4_PUBLIC Command;
+class CVC4_PUBLIC SmtEngine;
 
-class Model
-{
-public:
-  //types of commands that are recorded for get-model
-  enum {
-    COMMAND_DECLARE_SORT,       //DeclareTypeCommand
-    COMMAND_DECLARE_FUN,        //DeclareFunctionCommand
-    COMMAND_DECLARE_DATATYPES,  //DatatypeDeclarationCommand
-  };
+class CVC4_PUBLIC Model {
 private:
-  //list of commands that the model must report when calling get model
-  std::vector< Command* > d_commands;
-  std::vector< int > d_command_types;
+  /** The SmtEngine we're associated to */
+  const SmtEngine& d_smt;
 public:
+  /** construct the base class */
+  Model();
   /** virtual destructor */
-  virtual ~Model() {}
-  /** add command */
-  virtual void addCommand( Command* c, int c_type ){
-    d_commands.push_back( c );
-    d_command_types.push_back( c_type );
-  }
+  virtual ~Model() { }
   /** get number of commands to report */
-  size_t getNumCommands() { return d_commands.size(); }
+  size_t getNumCommands() const;
   /** get command */
-  Command* getCommand( int i ) { return d_commands[i]; }
-  /** get type of command */
-  int getCommandType( int i ) { return d_command_types[i]; }
+  const Command* getCommand(size_t i) const;
 public:
   /** get value for expression */
-  virtual Expr getValue( const Expr& expr ) = 0;
+  virtual Expr getValue(Expr expr) = 0;
   /** get cardinality for sort */
-  virtual Cardinality getCardinality( const Type& t ) = 0;
-  /** to stream function */
+  virtual Cardinality getCardinality(Type t) = 0;
+  /** write the model to a stream */
   virtual void toStream(std::ostream& out) = 0;
 };/* class Model */
 

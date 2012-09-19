@@ -63,9 +63,6 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_ARRAYS:
-    // FIXME: should define a paramterized type 'Array' with 2 arguments
-    mkSort("Array");
-
     addOperator(kind::SELECT);
     addOperator(kind::STORE);
     break;

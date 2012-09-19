@@ -226,9 +226,9 @@ public:
    * Main constructor: d_list starts as NULL, size is 0
    */
   CDList(Context* context,
-            bool callDestructor = true,
-            const CleanUp& cleanup = CleanUp(),
-            const Allocator& alloc = Allocator()) :
+         bool callDestructor = true,
+         const CleanUp& cleanup = CleanUp(),
+         const Allocator& alloc = Allocator()) :
     ContextObj(context),
     d_list(NULL),
     d_size(0),

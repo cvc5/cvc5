@@ -63,6 +63,21 @@ typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 
 }/* CVC4::expr namespace */
 
+/**
+ * An interface that an interested party can implement and then subscribe
+ * to NodeManager events via NodeManager::subscribeEvents(this).
+ */
+class NodeManagerListener {
+public:
+  virtual ~NodeManagerListener() { }
+  virtual void nmNotifyNewSort(TypeNode tn) { }
+  virtual void nmNotifyNewSortConstructor(TypeNode tn) { }
+  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort) { }
+  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
+  virtual void nmNotifyNewVar(TNode n) { }
+  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment) { }
+};/* class NodeManagerListener */
+
 class NodeManager {
   template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
   friend class NodeManagerScope;
@@ -70,8 +85,11 @@ class NodeManager {
   friend class expr::TypeChecker;
 
   // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string& name, Type type);
-  friend Expr ExprManager::mkVar(Type type);
+  friend Expr ExprManager::mkVar(const std::string&, Type);
+  friend Expr ExprManager::mkVar(Type);
+
+  // friend so it can access NodeManager's d_listeners and notify clients
+  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>&, const std::set<Type>&);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -136,6 +154,11 @@ class NodeManager {
    * plusOperator->getConst<CVC4::Kind>(), you get kind::PLUS back.
    */
   Node d_operators[kind::LAST_KIND];
+
+  /**
+   * A list of subscribers for NodeManager events.
+   */
+  std::vector<NodeManagerListener*> d_listeners;
 
   /**
    * Look up a NodeValue in the pool associated to this NodeManager.
@@ -299,6 +322,19 @@ public:
     return d_statisticsRegistry;
   }
 
+  /** Subscribe to NodeManager events */
+  void subscribeEvents(NodeManagerListener* listener) {
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end(), "listener already subscribed");
+    d_listeners.push_back(listener);
+  }
+
+  /** Unsubscribe from NodeManager events */
+  void unsubscribeEvents(NodeManagerListener* listener) {
+    std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
+    Assert(elt != d_listeners.end(), "listener not subscribed");
+    d_listeners.erase(elt);
+  }
+
   // general expression-builders
 
   /** Create a node with one child. */
@@ -371,9 +407,39 @@ public:
   Node mkBoundVar(const TypeNode& type);
   Node* mkBoundVarPtr(const TypeNode& type);
 
-  /** Create a skolem constant with the given type. */
-  Node mkSkolem(const TypeNode& type);
-  Node mkSkolem(const std::string& name, const TypeNode& type);
+  /**
+   * Optional flags used to control behavior of NodeManager::mkSkolem().
+   * They should be composed with a bitwise OR (e.g.,
+   * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
+   * cannot be composed in such a manner.
+   */
+  enum SkolemFlags {
+    SKOLEM_DEFAULT = 0,   /**< default behavior */
+    SKOLEM_NO_NOTIFY = 1, /**< do not notify subscribers */
+    SKOLEM_EXACT_NAME = 2 /**< do not make the name unique by adding the id */
+  };/* enum SkolemFlags */
+
+  /**
+   * Create a skolem constant with the given name, type, and comment.
+   *
+   * @param name the name of the new skolem variable.  This name can
+   * contain the special character sequence "$$", in which case the
+   * $$ is replaced with the Node ID.  That way a family of skolem
+   * variables can be made with unique identifiers, used in dump,
+   * tracing, and debugging output.  By convention, you should probably
+   * call mkSkolem() with a custom name appended with "_$$".
+   *
+   * @param type the type of the skolem variable to create
+   *
+   * @param comment a comment for dumping output; if declarations are
+   * being dumped, this is included in a comment before the declaration
+   * and can be quite useful for debugging
+   *
+   * @param flags an optional mask of bits from SkolemFlags to control
+   * mkSkolem() behavior
+   */
+  Node mkSkolem(const std::string& name, const TypeNode& type,
+                const std::string& comment = "", int flags = SKOLEM_DEFAULT);
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
@@ -1118,13 +1184,23 @@ inline TypeNode NodeManager::mkSort() {
   NodeBuilder<1> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
   nb << sortTag;
-  return nb.constructTypeNode();
+  TypeNode tn = nb.constructTypeNode();
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSort(tn);
+  }
+  return tn;
 }
 
 inline TypeNode NodeManager::mkSort(const std::string& name) {
-  TypeNode type = mkSort();
-  setAttribute(type, expr::VarNameAttr(), name);
-  return type;
+  NodeBuilder<1> nb(this, kind::SORT_TYPE);
+  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
+  nb << sortTag;
+  TypeNode tn = nb.constructTypeNode();
+  setAttribute(tn, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSort(tn);
+  }
+  return tn;
 }
 
 inline TypeNode NodeManager::mkSort(TypeNode constructor,
@@ -1145,6 +1221,9 @@ inline TypeNode NodeManager::mkSort(TypeNode constructor,
   nb.append(children);
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyInstantiateSortConstructor(constructor, type);
+  }
   return type;
 }
 
@@ -1157,6 +1236,9 @@ inline TypeNode NodeManager::mkSortConstructor(const std::string& name,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSortConstructor(type);
+  }
   return type;
 }
 
@@ -1368,15 +1450,25 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 
 
 inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
-  Node n = mkVar(type);
+  Node n = NodeBuilder<0>(this, kind::VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(n);
+  }
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const std::string& name,
                                    const TypeNode& type) {
-  Node* n = mkVarPtr(type);
+  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(*n);
+  }
   return n;
 }
 
@@ -1397,6 +1489,9 @@ inline Node NodeManager::mkVar(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(n);
+  }
   return n;
 }
 
@@ -1404,6 +1499,9 @@ inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(*n);
+  }
   return n;
 }
 
@@ -1418,19 +1516,6 @@ inline Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
   Node* n = NodeBuilder<0>(this, kind::BOUND_VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
-  return n;
-}
-
-inline Node NodeManager::mkSkolem(const std::string& name, const TypeNode& type) {
-  Node n = mkSkolem(type);
-  setAttribute(n, expr::VarNameAttr(), name);
-  return n;
-}
-
-inline Node NodeManager::mkSkolem(const TypeNode& type) {
-  Node n = NodeBuilder<0>(this, kind::SKOLEM);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
   return n;
 }
 

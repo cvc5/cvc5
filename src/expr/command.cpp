@@ -479,8 +479,6 @@ Type DeclareFunctionCommand::getType() const throw() {
 }
 
 void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
-  Dump("declarations") << *this;
-  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_FUN );
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -511,8 +509,6 @@ Type DeclareTypeCommand::getType() const throw() {
 }
 
 void DeclareTypeCommand::invoke(SmtEngine* smtEngine) throw() {
-  Dump("declarations") << *this;
-  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_SORT );
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -552,7 +548,6 @@ Type DefineTypeCommand::getType() const throw() {
 }
 
 void DefineTypeCommand::invoke(SmtEngine* smtEngine) throw() {
-  Dump("declarations") << *this;
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -602,7 +597,6 @@ Expr DefineFunctionCommand::getFormula() const throw() {
 }
 
 void DefineFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
-  //Dump("declarations") << *this; -- done by SmtEngine
   try {
     if(!d_func.isNull()) {
       smtEngine->defineFunction(d_func, d_formals, d_formula);
@@ -1275,8 +1269,6 @@ DatatypeDeclarationCommand::getDatatypes() const throw() {
 }
 
 void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) throw() {
-  Dump("declarations") << *this;
-  smtEngine->addToModelCommand( clone(), Model::COMMAND_DECLARE_DATATYPES );
   d_commandStatus = CommandSuccess::instance();
 }
 

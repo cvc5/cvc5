@@ -738,10 +738,10 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-void CvcPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+void CvcPrinter::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
   theory::TheoryModel* tm = (theory::TheoryModel*)m;
-  if( c_type==Model::COMMAND_DECLARE_SORT ){
-    TypeNode tn = TypeNode::fromType( ((DeclareTypeCommand*)c)->getType() );
+  if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
+    TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( tn.isSort() ){
       //print the cardinality
       if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
@@ -761,8 +761,8 @@ void CvcPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) 
         }
       }
     }
-  }else if( c_type==Model::COMMAND_DECLARE_FUN ){
-    Node n = Node::fromExpr( ((DeclareFunctionCommand*)c)->getFunction() );
+  } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
+    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
     TypeNode tn = n.getType();
     out << n << " : ";
     if( tn.isFunction() || tn.isPredicate() ){
@@ -959,12 +959,41 @@ static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {
 
 static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) throw() {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
+  out << "DATATYPE" << endl;
+  bool firstDatatype = true;
   for(vector<DatatypeType>::const_iterator i = datatypes.begin(),
         i_end = datatypes.end();
       i != i_end;
       ++i) {
-    out << *i;
+    if(! firstDatatype) {
+      out << ',' << endl;
+    }
+    const Datatype& dt = (*i).getDatatype();
+    out << "  " << dt.getName() << " = ";
+    bool firstConstructor = true;
+    for(Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
+      if(! firstConstructor) {
+        out << " | ";
+      }
+      firstConstructor = false;
+      const DatatypeConstructor& c = *j;
+      out << c.getName();
+      if(c.getNumArgs() > 0) {
+        out << '(';
+        bool firstSelector = true;
+        for(DatatypeConstructor::const_iterator k = c.begin(); k != c.end(); ++k) {
+          if(! firstSelector) {
+            out << ", ";
+          }
+          firstSelector = false;
+          const DatatypeConstructorArg& selector = *k;
+          out << selector.getName() << ": " << selector.getType();
+        }
+        out << ')';
+      }
+    }
   }
+  out << endl << "END;" << endl;
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c) throw() {

@@ -74,7 +74,7 @@ public:
 
   void testDeallocation() {
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
     MyData* data;
     MyData* data1;
     MyDataAttribute attr;
@@ -92,7 +92,7 @@ public:
   typedef expr::CDAttribute<CDPrimitiveIntAttributeId,uint64_t> CDPrimitiveIntAttribute;
   void testInts(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
     const uint64_t val = 63489;
     uint64_t data0 = 0;
     uint64_t data1 = 0;
@@ -120,9 +120,9 @@ public:
   typedef expr::CDAttribute<CDTNodeAttributeId, TNode> CDTNodeAttribute;
   void testTNodes(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
 
-    Node val(d_nodeManager->mkSkolem(booleanType));
+    Node val(d_nodeManager->mkSkolem("b", booleanType));
     TNode data0;
     TNode data1;
 
@@ -155,7 +155,7 @@ public:
   typedef expr::CDAttribute<CDPtrAttributeId, Foo*> CDPtrAttribute;
   void testPtrs(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
 
     Foo* val = new Foo(63489);
     Foo* data0 = NULL;
@@ -186,7 +186,7 @@ public:
   typedef expr::CDAttribute<CDConstPtrAttributeId, const Foo*> CDConstPtrAttribute;
   void testConstPtrs(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
 
     const Foo* val = new Foo(63489);
     const Foo* data0 = NULL;
@@ -216,7 +216,7 @@ public:
   typedef expr::CDAttribute<CDStringAttributeId, std::string> CDStringAttribute;
   void testStrings(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
 
     std::string val("63489");
     std::string data0;
@@ -245,7 +245,7 @@ public:
   typedef expr::CDAttribute<CDBoolAttributeId, bool> CDBoolAttribute;
   void testBools(){
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem(booleanType));
+    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
 
     bool val = true;
     bool data0 = false;

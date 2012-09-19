@@ -73,7 +73,7 @@ benchmark\n\
   modes.\n\
 \n\
 declarations\n\
-+ Dump declarations.  Implied by all following modes.\n\
++ Dump user declarations.  Implied by all following modes.\n\
 \n\
 assertions\n\
 + Output the assertions after non-clausal simplification and static\n\
@@ -81,6 +81,11 @@ assertions\n\
   non-clausal simplification and static learning are off\n\
   (--simplification=none --no-static-learning), the output\n\
   will closely resemble the input (with term-level ITEs removed).\n\
+\n\
+skolems\n\
++ Dump internally-created skolem variable declarations.  These can\n\
+  arise from preprocessing simplifications, existential elimination,\n\
+  and a number of other things.  Implied by all following modes.\n\
 \n\
 learned\n\
 + Output the assertions after non-clausal simplification, static\n\
@@ -172,6 +177,7 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
     if(!strcmp(optargPtr, "benchmark")) {
     } else if(!strcmp(optargPtr, "declarations")) {
     } else if(!strcmp(optargPtr, "assertions")) {
+    } else if(!strcmp(optargPtr, "skolems")) {
     } else if(!strcmp(optargPtr, "learned")) {
     } else if(!strcmp(optargPtr, "clauses")) {
     } else if(!strcmp(optargPtr, "t-conflicts") ||
@@ -219,6 +225,9 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
     Dump.on("benchmark");
     if(strcmp(optargPtr, "benchmark")) {
       Dump.on("declarations");
+      if(strcmp(optargPtr, "declarations") && strcmp(optargPtr, "assertions")) {
+        Dump.on("skolems");
+      }
     }
   }
   free(optargPtr);

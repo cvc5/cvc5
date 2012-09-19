@@ -36,7 +36,7 @@ public:
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   //for models
-  void toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw();
+  void toStream(std::ostream& out, Model* m, const Command* c) const throw();
   void toStream(std::ostream& out, const Result& r) const throw();
 };/* class Smt2Printer */
 

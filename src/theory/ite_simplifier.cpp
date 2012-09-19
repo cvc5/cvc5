@@ -148,7 +148,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
     return (*it).second;
   }
   else {
-    Node var = NodeManager::currentNM()->mkSkolem(t);
+    Node var = NodeManager::currentNM()->mkSkolem("iteSimp_$$", t, "is a variable resulting from ITE simplification");
     d_simpVars[t] = var;
     return var;
   }

@@ -68,7 +68,7 @@ inline Node mkFalse() {
 
 inline Node mkVar(unsigned size) {
   NodeManager* nm =  NodeManager::currentNM();
-  return nm->mkSkolem(nm->mkBitVectorType(size)); 
+  return nm->mkSkolem("bv_$$", nm->mkBitVectorType(size), "is a variable created by the theory of bitvectors"); 
 }
 
 inline Node mkAnd(std::vector<TNode>& children) {

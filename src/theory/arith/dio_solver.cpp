@@ -28,7 +28,7 @@ namespace arith {
 
 inline Node makeIntegerVariable(){
   NodeManager* curr = NodeManager::currentNM();
-  return curr->mkSkolem(curr->integerType());
+  return curr->mkSkolem("intvar", curr->integerType(), "is an integer variable created by the dio solver");
 }
 
 DioSolver::DioSolver(context::Context* ctxt) :

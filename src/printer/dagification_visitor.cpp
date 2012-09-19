@@ -136,7 +136,7 @@ void DagificationVisitor::done(TNode node) {
     // construct the let binder
     std::stringstream ss;
     ss << d_letVarPrefix << d_letVar++;
-    Node letvar = NodeManager::currentNM()->mkSkolem(ss.str(), (*i).getType());
+    Node letvar = NodeManager::currentNM()->mkSkolem(ss.str(), (*i).getType(), "dagification", NodeManager::SKOLEM_NO_NOTIFY | NodeManager::SKOLEM_EXACT_NAME);
 
     // apply previous substitutions to the rhs, enabling cascading LETs
     Node n = d_substitutions->apply(*i);

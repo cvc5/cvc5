@@ -434,7 +434,7 @@ Node skolemizeBody( Node f ){
   std::vector< Node > vars;
   std::vector< Node > csts;
   for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-    csts.push_back( NodeManager::currentNM()->mkSkolem( f[0][i].getType()) );
+    csts.push_back( NodeManager::currentNM()->mkSkolem( "skolem_$$", f[0][i].getType(), "is from skolemizing the body of a rewrite rule" ) );
     vars.push_back( f[0][i] );
   }
   return f[ 1 ].substitute( vars.begin(), vars.end(),

@@ -580,12 +580,12 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
 }
 
 /* get model */
-TheoryModel* TheoryEngine::getModel(){
+TheoryModel* TheoryEngine::getModel() {
   Debug("model") << "TheoryEngine::getModel()" << std::endl;
-  if( d_logicInfo.isQuantified() ){
+  if( d_logicInfo.isQuantified() ) {
     Debug("model") << "Get model from quantifiers engine." << std::endl;
     return d_quantEngine->getModel();
-  }else{
+  } else {
     Debug("model") << "Get default model." << std::endl;
     return d_curr_model;
   }

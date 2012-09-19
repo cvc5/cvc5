@@ -144,17 +144,9 @@ public:
     }
   }
 
-  void testMkVarWithNoName() {
-    TypeNode booleanType = d_nodeManager->booleanType();
-    Node x = d_nodeManager->mkSkolem(booleanType);
-    TS_ASSERT_EQUALS(x.getKind(),SKOLEM);
-    TS_ASSERT_EQUALS(x.getNumChildren(),0u);
-    TS_ASSERT_EQUALS(x.getType(),booleanType);
-  }
-
   void testMkVarWithName() {
     TypeNode booleanType = d_nodeManager->booleanType();
-    Node x = d_nodeManager->mkSkolem("x", booleanType);
+    Node x = d_nodeManager->mkSkolem("x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
     TS_ASSERT_EQUALS(x.getKind(),SKOLEM);
     TS_ASSERT_EQUALS(x.getNumChildren(),0u);
     TS_ASSERT_EQUALS(x.getAttribute(VarNameAttr()),"x");
@@ -337,7 +329,7 @@ public:
   /* This test is only valid if assertions are enabled. */
   void testMkNodeTooFew() {
 #ifdef CVC4_ASSERTIONS
-    Node x = d_nodeManager->mkSkolem( d_nodeManager->booleanType() );
+    Node x = d_nodeManager->mkSkolem( "x", d_nodeManager->booleanType() );
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, x), AssertionException );
 #endif
   }
@@ -349,7 +341,7 @@ public:
     const unsigned int max = metakind::getUpperBoundForKind(AND);
     TypeNode boolType = d_nodeManager->booleanType();
     for( unsigned int i = 0; i <= max; ++i ) {
-      vars.push_back( d_nodeManager->mkSkolem(boolType) );
+      vars.push_back( d_nodeManager->mkSkolem("i", boolType) );
     }
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, vars), AssertionException );
 #endif

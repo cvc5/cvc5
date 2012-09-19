@@ -96,17 +96,6 @@ public:
   void clear() { d_commands.clear(); }
   const CommandSequence& getCommands() const { return d_commands; }
 
-  void declareVar(Expr e, std::string comment) {
-    if(isOn("declarations")) {
-      std::stringstream ss;
-      ss << Expr::setlanguage(Expr::setlanguage::getLanguage(getStream())) << e;
-      std::string s = ss.str();
-      CVC4dumpstream(getStream(), d_commands)
-        << CommentCommand(s + " is " + comment)
-        << DeclareFunctionCommand(s, e, e.getType());
-    }
-  }
-
   bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
   bool on (std::string tag) { d_tags.insert(tag); return true; }
   bool off(const char* tag) { d_tags.erase (std::string(tag)); return false; }

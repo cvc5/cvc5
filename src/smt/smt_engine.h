@@ -44,11 +44,12 @@
 
 namespace CVC4 {
 
-
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
+
+class Command;
 
 class DecisionEngine;
 class TheoryEngine;
@@ -77,6 +78,9 @@ namespace smt {
   class SmtScope;
 
   void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
+
+  struct CommandCleanup;
+  typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -130,6 +134,12 @@ class CVC4_PUBLIC SmtEngine {
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
+
+  /**
+   * A list of commands that should be in the Model.  Only maintained
+   * if produce-models option is on.
+   */
+  smt::CommandList* d_modelCommands;
 
   /**
    * The logic we're in.
@@ -264,6 +274,9 @@ class CVC4_PUBLIC SmtEngine {
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
+  // to access d_modelCommands
+  friend size_t ::CVC4::Model::getNumCommands() const;
+  friend const Command* ::CVC4::Model::getCommand(size_t) const;
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -292,6 +305,12 @@ class CVC4_PUBLIC SmtEngine {
   IntStat d_numAssertionsPost;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
+
+  /**
+   * Add to Model command.  This is used for recording a command that should be reported
+   * during a get-model call.
+   */
+  void addToModelCommand(Command* c);
 
 public:
 
@@ -411,12 +430,6 @@ public:
    * operate interactively and produce-assignments is on.
    */
   CVC4::SExpr getAssignment() throw(ModalException, AssertionException);
-
-  /**
-   * Add to Model command.  This is used for recording a command that should be reported
-   * during a get-model call.
-   */
-  void addToModelCommand( Command* c, int c_type );
 
   /**
    * Get the model (only if immediately preceded by a SAT

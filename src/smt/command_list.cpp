@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file model.cpp
+/*! \file command_list.cpp
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: mdeters
+ ** Original author: mdeters
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
  ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
@@ -11,30 +11,23 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief implementation of Model class
+ ** \brief A context-sensitive list of Commands, and their cleanup
+ **
+ ** A context-sensitive list of Commands, and their cleanup.
  **/
 
-#include "util/model.h"
-#include "expr/command.h"
-#include "smt/smt_engine_scope.h"
+// we include both of these to make sure they agree on the typedef
 #include "smt/command_list.h"
+#include "smt/smt_engine.h"
 
-#include <vector>
-
-using namespace std;
+#include "expr/command.h"
 
 namespace CVC4 {
+namespace smt {
 
-Model::Model() :
-  d_smt(*smt::currentSmtEngine()) {
+void CommandCleanup::operator()(Command** c) {
+  delete *c;
 }
 
-size_t Model::getNumCommands() const {
-  return d_smt.d_modelCommands->size();
-}
-
-const Command* Model::getCommand(size_t i) const {
-  return (*d_smt.d_modelCommands)[i];
-}
-
+}/* CVC4::smt namespace */
 }/* CVC4 namespace */

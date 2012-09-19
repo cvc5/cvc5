@@ -55,9 +55,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
     TypeNode nodeType = node.getType();
     if(!nodeType.isBoolean()) {
       // Make the skolem to represent the ITE
-      Node skolem = nodeManager->mkSkolem(nodeType);
-
-      Dump.declareVar(skolem.toExpr(), "a variable introduced due to term-level ITE removal");
+      Node skolem = nodeManager->mkSkolem("termITE_$$", nodeType, "a variable introduced due to term-level ITE removal");
 
       // The new assertion
       Node newAssertion =

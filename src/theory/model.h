@@ -115,9 +115,9 @@ public:
   bool areDisequal( Node a, Node b );
 public:
   /** get value function for Exprs. */
-  Expr getValue( const Expr& expr );
+  Expr getValue( Expr expr );
   /** get cardinality for sort */
-  Cardinality getCardinality( const Type& t );
+  Cardinality getCardinality( Type t );
   /** to stream function */
   void toStream( std::ostream& out );
 public:

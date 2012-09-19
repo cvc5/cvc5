@@ -112,7 +112,7 @@ void RepSetIterator::initialize(){
     TypeNode tn = d_types[i];
     if( tn.isSort() ){
       if( !d_rep_set->hasType( tn ) ){
-        Node var = NodeManager::currentNM()->mkSkolem( tn );
+        Node var = NodeManager::currentNM()->mkSkolem( "repSet_$$", tn, "is a variable created by the RepSetIterator" );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( var );
       }

@@ -53,14 +53,14 @@ Node TheoryModel::getValue( TNode n ){
   return getModelValue( nn );
 }
 
-Expr TheoryModel::getValue( const Expr& expr ){
+Expr TheoryModel::getValue( Expr expr ){
   Node n = Node::fromExpr( expr );
   Node ret = getValue( n );
   return ret.toExpr();
 }
 
 /** get cardinality for sort */
-Cardinality TheoryModel::getCardinality( const Type& t ){
+Cardinality TheoryModel::getCardinality( Type t ){
   TypeNode tn = TypeNode::fromType( t );
   //for now, we only handle cardinalities for uninterpreted sorts
   if( tn.isSort() ){
@@ -373,7 +373,7 @@ Node DefaultModel::getInterpretedValue( TNode n ){
         }
         if( default_v.isNull() ){
           //choose default value from model if none exists
-          default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( type.getRangeType() ) );
+          default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( "defaultValue_$$", type.getRangeType(), "a default value term from model construction" ) );
         }
         ufmt.setDefaultValue( this, default_v );
         ufmt.simplify();

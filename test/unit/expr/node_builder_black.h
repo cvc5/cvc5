@@ -246,9 +246,9 @@ public:
 
   void testIterator() {
     NodeBuilder<> b;
-    Node x = d_nm->mkSkolem(*d_booleanType);
-    Node y = d_nm->mkSkolem(*d_booleanType);
-    Node z = d_nm->mkSkolem(*d_booleanType);
+    Node x = d_nm->mkSkolem("x", *d_booleanType);
+    Node y = d_nm->mkSkolem("z", *d_booleanType);
+    Node z = d_nm->mkSkolem("y", *d_booleanType);
     b << x << y << z << AND;
 
     {
@@ -274,7 +274,7 @@ public:
     NodeBuilder<> noKind;
     TS_ASSERT_EQUALS(noKind.getKind(), UNDEFINED_KIND);
 
-    Node x( d_nm->mkSkolem( *d_integerType ) );
+    Node x( d_nm->mkSkolem( "x", *d_integerType ) );
     noKind << x << x;
     //     push_back(noKind, K);
     TS_ASSERT_EQUALS(noKind.getKind(), UNDEFINED_KIND);
@@ -297,7 +297,7 @@ public:
 
   void testGetNumChildren() {
     /* unsigned getNumChildren() const; */
-    Node x( d_nm->mkSkolem( *d_integerType ) );
+    Node x( d_nm->mkSkolem( "x", *d_integerType ) );
 
     NodeBuilder<> nb;
 #ifdef CVC4_ASSERTIONS
@@ -515,16 +515,16 @@ public:
   }
 
   void testAppend() {
-    Node x = d_nm->mkSkolem(*d_booleanType);
-    Node y = d_nm->mkSkolem(*d_booleanType);
-    Node z = d_nm->mkSkolem(*d_booleanType);
+    Node x = d_nm->mkSkolem("x", *d_booleanType);
+    Node y = d_nm->mkSkolem("y", *d_booleanType);
+    Node z = d_nm->mkSkolem("z", *d_booleanType);
     Node m = d_nm->mkNode(AND, y, z, x);
     Node n = d_nm->mkNode(OR, d_nm->mkNode(NOT, x), y, z);
     Node o = d_nm->mkNode(XOR, y, x);
 
-    Node r = d_nm->mkSkolem(*d_realType);
-    Node s = d_nm->mkSkolem(*d_realType);
-    Node t = d_nm->mkSkolem(*d_realType);
+    Node r = d_nm->mkSkolem("r", *d_realType);
+    Node s = d_nm->mkSkolem("s", *d_realType);
+    Node t = d_nm->mkSkolem("t", *d_realType);
 
     Node p = d_nm->mkNode(EQUAL, d_nm->mkConst<Rational>(0),
                           d_nm->mkNode(PLUS, r, d_nm->mkNode(UMINUS, s), t));
@@ -599,13 +599,13 @@ public:
   void testLeftistBuilding() {
     NodeBuilder<> nb;
 
-    Node a = d_nm->mkSkolem(*d_booleanType);
+    Node a = d_nm->mkSkolem("a", *d_booleanType);
 
-    Node b = d_nm->mkSkolem(*d_booleanType);
-    Node c = d_nm->mkSkolem(*d_booleanType);
+    Node b = d_nm->mkSkolem("b", *d_booleanType);
+    Node c = d_nm->mkSkolem("c", *d_booleanType);
 
-    Node d = d_nm->mkSkolem(*d_realType);
-    Node e = d_nm->mkSkolem(*d_realType);
+    Node d = d_nm->mkSkolem("d", *d_realType);
+    Node e = d_nm->mkSkolem("e", *d_realType);
 
     nb << a << NOT
        << b << c << OR
@@ -628,14 +628,14 @@ public:
   }
 
   void testConvenienceBuilders() {
-    Node a = d_nm->mkSkolem(*d_booleanType);
+    Node a = d_nm->mkSkolem("a", *d_booleanType);
 
-    Node b = d_nm->mkSkolem(*d_booleanType);
-    Node c = d_nm->mkSkolem(*d_booleanType);
+    Node b = d_nm->mkSkolem("b", *d_booleanType);
+    Node c = d_nm->mkSkolem("c", *d_booleanType);
 
-    Node d = d_nm->mkSkolem(*d_realType);
-    Node e = d_nm->mkSkolem(*d_realType);
-    Node f = d_nm->mkSkolem(*d_realType);
+    Node d = d_nm->mkSkolem("d", *d_realType);
+    Node e = d_nm->mkSkolem("e", *d_realType);
+    Node f = d_nm->mkSkolem("f", *d_realType);
 
     Node m = a && b;
     TS_ASSERT_EQUALS(m, d_nm->mkNode(AND, a, b));

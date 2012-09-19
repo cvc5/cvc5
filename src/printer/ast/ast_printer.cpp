@@ -187,7 +187,7 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, Model* m, Command* c, int c_type ) const throw(){
+void AstPrinter::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
   out << "Model()";
 }
 

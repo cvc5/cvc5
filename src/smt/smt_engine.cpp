@@ -47,6 +47,7 @@
 #include "util/boolean_simplification.h"
 #include "util/configuration.h"
 #include "util/exception.h"
+#include "smt/command_list.h"
 #include "smt/options.h"
 #include "options/option_exception.h"
 #include "util/output.h"
@@ -110,7 +111,7 @@ public:
  * one) becomes an "interface shell" which simply acts as a forwarder
  * of method calls.
  */
-class SmtEnginePrivate {
+class SmtEnginePrivate : public NodeManagerListener {
   SmtEngine& d_smt;
 
   /** The assertions yet to be preprocessed */
@@ -198,6 +199,51 @@ public:
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_topLevelSubstitutions(smt.d_userContext),
     d_lastSubstitutionPos(smt.d_userContext, d_topLevelSubstitutions.end()) {
+    d_smt.d_nodeManager->subscribeEvents(this);
+  }
+
+  void nmNotifyNewSort(TypeNode tn) {
+    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
+                         0,
+                         tn.toType());
+    Dump("declarations") << c;
+    d_smt.addToModelCommand(c.clone());
+  }
+
+  void nmNotifyNewSortConstructor(TypeNode tn) {
+    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
+                         tn.getAttribute(expr::SortArityAttr()),
+                         tn.toType());
+    Dump("declarations") << c;
+    d_smt.addToModelCommand(c.clone());
+  }
+
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) {
+    DatatypeDeclarationCommand c(dtts);
+    Dump("declarations") << c;
+    d_smt.addToModelCommand(c.clone());
+  }
+
+  void nmNotifyNewVar(TNode n) {
+    DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
+                             n.toExpr(),
+                             n.getType().toType());
+    Dump("declarations") << c;
+    d_smt.addToModelCommand(c.clone());
+  }
+
+  void nmNotifyNewSkolem(TNode n, std::string comment) {
+    std::string id = n.getAttribute(expr::VarNameAttr());
+    DeclareFunctionCommand c(id,
+                             n.toExpr(),
+                             n.getType().toType());
+    if(Dump.isOn("skolems")) {
+      if(comment != "") {
+        Dump("skolems") << CommentCommand(id + " is " + comment);
+      }
+      Dump("skolems") << c;
+    }
+    d_smt.addToModelCommand(c.clone());
   }
 
   Node applySubstitutions(TNode node) const {
@@ -254,6 +300,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_definedFunctions(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
+  d_modelCommands(NULL),
   d_logic(),
   d_pendingPops(0),
   d_fullyInited(false),
@@ -316,6 +363,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_context->push();
 
   d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
+  d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
 
 void SmtEngine::finishInit() {
@@ -388,11 +436,11 @@ void SmtEngine::finalOptionsAreSet() {
 }
 
 void SmtEngine::shutdown() {
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << QuitCommand();
-  }
-
   doPendingPops();
+
+  while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
+    internalPop(true);
+  }
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
@@ -400,21 +448,21 @@ void SmtEngine::shutdown() {
     d_needPostsolve = false;
   }
 
-  if(d_propEngine != NULL) d_propEngine->shutdown();
-  if(d_theoryEngine != NULL) d_theoryEngine->shutdown();
-  if(d_decisionEngine != NULL) d_decisionEngine->shutdown();
+  if(d_propEngine != NULL) {
+    d_propEngine->shutdown();
+  }
+  if(d_theoryEngine != NULL) {
+    d_theoryEngine->shutdown();
+  }
+  if(d_decisionEngine != NULL) {
+    d_decisionEngine->shutdown();
+  }
 }
 
 SmtEngine::~SmtEngine() throw() {
   SmtScope smts(this);
 
   try {
-    doPendingPops();
-
-    while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
-      internalPop(true);
-    }
-
     shutdown();
 
     // global push/pop around everything, to ensure proper destruction
@@ -428,6 +476,10 @@ SmtEngine::~SmtEngine() throw() {
 
     if(d_assertionList != NULL) {
       d_assertionList->deleteSelf();
+    }
+
+    if(d_modelCommands != NULL) {
+      d_modelCommands->deleteSelf();
     }
 
     d_definedFunctions->deleteSelf();
@@ -1918,13 +1970,20 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException)
 }
 
 
-void SmtEngine::addToModelCommand( Command* c, int c_type ){
-  Trace("smt") << "SMT addToModelCommand(" << c << ", " << c_type << ")" << endl;
+void SmtEngine::addToModelCommand(Command* c) {
+  Trace("smt") << "SMT addToModelCommand(" << c << ")" << endl;
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
-  if( options::produceModels() ) {
-    d_theoryEngine->getModel()->addCommand( c, c_type );
+  // If we aren't yet fully inited, the user might still turn on
+  // produce-models.  So let's keep any commands around just in
+  // case.  This is useful in two cases: (1) SMT-LIBv1 auto-declares
+  // sort "U" in QF_UF before setLogic() is run and we still want to
+  // support finding card(U) with --finite-model-find, and (2) to
+  // decouple SmtEngine and ExprManager if the user does a few
+  // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
+  // and expects to find their cardinalities in the model.
+  if( ! d_fullyInited || options::produceModels() ) {
+    doPendingPops();
+    d_modelCommands->push_back(c);
   }
 }
 
@@ -1978,7 +2037,7 @@ void SmtEngine::checkModel() throw(InternalErrorException) {
   theory::SubstitutionMap substitutions(&fakeContext);
 
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
-    DeclareFunctionCommand* c = dynamic_cast<DeclareFunctionCommand*>(m->getCommand(k));
+    const DeclareFunctionCommand* c = dynamic_cast<const DeclareFunctionCommand*>(m->getCommand(k));
     Notice() << "SmtEngine::checkModel(): model command " << k << " : " << m->getCommand(k) << endl;
     if(c == NULL) {
       // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
@@ -2015,7 +2074,7 @@ void SmtEngine::checkModel() throw(InternalErrorException) {
         // [func->func2] and checking equality of the Nodes.
         // (this just a way to check if func is in n.)
         theory::SubstitutionMap subs(&fakeContext);
-        Node func2 = NodeManager::currentNM()->mkSkolem(TypeNode::fromType(func.getType()));
+        Node func2 = NodeManager::currentNM()->mkSkolem("", TypeNode::fromType(func.getType()), "", NodeManager::SKOLEM_NO_NOTIFY);
         subs.addSubstitution(func, func2);
         if(subs.apply(n) != n) {
           Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE DEFINED IN TERMS OF ITSELF ***" << endl;
