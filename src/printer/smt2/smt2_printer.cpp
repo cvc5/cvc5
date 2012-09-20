@@ -97,7 +97,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, -1, false, 0, language::output::LANG_SMTLIB_V2);
+      n.getType().toStream(out, language::output::LANG_SMTLIB_V2);
     }
 
     return;

@@ -126,16 +126,6 @@ public:
    */
   std::vector<std::string> parseOptions(int argc, char* argv[]) throw(OptionException);
 
-  /**
-   * Set the output language based on the given string.
-   */
-  void setOutputLanguage(const char* str) throw(OptionException);
-
-  /**
-   * Set the input language based on the given string.
-   */
-  void setInputLanguage(const char* str) throw(OptionException);
-
 };/* class Options */
 
 }/* CVC4 namespace */

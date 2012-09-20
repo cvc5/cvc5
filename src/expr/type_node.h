@@ -375,7 +375,13 @@ public:
    * @return the string representation of this type.
    */
   inline std::string toString() const {
-    return d_nv->toString();
+    std::stringstream ss;
+    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AST : options::outputLanguage();
+    d_nv->toStream(ss, -1, false, 0,
+                   outlang == language::output::LANG_AUTO ?
+                     language::output::LANG_AST :
+                     outlang);
+    return ss.str();
   }
 
   /**
@@ -383,15 +389,10 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
-   * @param toDepth the depth to which to print this expression, or -1 to
-   * print it fully
-   * @param types set to true to ascribe types to the output expressions
-   * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                       OutputLanguage language = language::output::LANG_AST) const {
-    d_nv->toStream(out, toDepth, types, dag, language);
+  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AST) const {
+    d_nv->toStream(out, -1, false, 0, language);
   }
 
   /**
@@ -634,11 +635,7 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::printtypes::getPrintTypes(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+  n.toStream(out, Node::setlanguage::getLanguage(out));
   return out;
 }
 

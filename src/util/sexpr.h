@@ -58,11 +58,11 @@ class CVC4_PUBLIC SExpr {
 
 public:
 
-  class Keyword : protected std::string {
+  class CVC4_PUBLIC Keyword : protected std::string {
   public:
     Keyword(const std::string& s) : std::string(s) {}
     const std::string& getString() const { return *this; }
-  };/* class Keyword */
+  };/* class SExpr::Keyword */
 
   SExpr() :
     d_sexprType(SEXPR_STRING),

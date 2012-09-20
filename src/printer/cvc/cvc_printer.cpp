@@ -98,7 +98,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, -1, false, false, language::output::LANG_CVC4);
+      n.getType().toStream(out, language::output::LANG_CVC4);
     }
     return;
   }
