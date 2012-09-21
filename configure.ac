@@ -852,7 +852,10 @@ fi
 # Checks for libraries.
 
 # Check for libreadline (defined in config/readline.m4)
+AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
 CVC4_CHECK_FOR_READLINE
+AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], $have_libreadline, [Define to 1 to use libreadline])
+AC_SUBST([READLINE_LIBS])
 
 AC_SEARCH_LIBS([clock_gettime], [rt],
                [AC_DEFINE([HAVE_CLOCK_GETTIME], [1],

@@ -584,6 +584,11 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = EXPR_MANAGER->mkAssociative(kind,args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
+      } else if( ( kind == CVC4::kind::IFF || kind == CVC4::kind::EQUAL ||
+                   kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
+                   kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
+                 args.size() > 2 ) {
+        expr = MK_EXPR(CVC4::kind::CHAIN, MK_CONST(kind), args);
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);

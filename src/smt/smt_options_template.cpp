@@ -46,7 +46,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
     Dump("benchmark") << SetOptionCommand(key, value);
   }
 
-  string optarg = value.getValue();
+  string optionarg = value.getValue();
 
   ${smt_setoption_handlers}
 

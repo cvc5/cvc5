@@ -300,6 +300,8 @@ operator TUPLE 1: "a tuple"
 
 operator LAMBDA 2 "lambda"
 
+parameterized CHAIN BUILTIN 2: "chain operator"
+
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
     ::CVC4::TypeConstantHashFunction \
@@ -342,6 +344,7 @@ typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 
 constant SUBTYPE_TYPE \
     ::CVC4::Predicate \

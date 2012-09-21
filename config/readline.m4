@@ -3,8 +3,9 @@
 # Look for readline and link it in, but allow user to disable.
 AC_DEFUN([CVC4_CHECK_FOR_READLINE], [
 AC_MSG_CHECKING([whether user requested readline support])
-AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
 LIBREADLINE=
+have_libreadline=0
+READLINE_LIBS=
 if test "$with_readline" = no; then
   AC_MSG_RESULT([no, readline disabled by user])
 else
@@ -13,16 +14,15 @@ else
   else
     AC_MSG_RESULT([yes, readline enabled by user])
   fi
-  AC_CHECK_LIB([readline], [readline],
-               [AC_CHECK_HEADER([readline/readline.h],
-                  [READLINE_LIBS="-lreadline -lncurses -ltermcap -ltinfo"],
-                  [if test "$with_readline" != check; then
-                     AC_MSG_FAILURE([cannot find libreadline!])
-                   fi])],
-               [if test "$with_readline" != check; then
-                  AC_MSG_FAILURE([cannot find libreadline!])
-                fi], [-lncurses -ltermcap -ltinfo])
+  READLINE_LIBS=
+  CVC4_TRY_READLINE_WITH([])
+  CVC4_TRY_READLINE_WITH([-ltinfo])
+  CVC4_TRY_READLINE_WITH([-lncurses -ltermcap])
+  CVC4_TRY_READLINE_WITH([-lncurses -ltermcap -ltinfo])
   if test -z "$READLINE_LIBS"; then
+    if test "$with_readline" != check; then
+      AC_MSG_FAILURE([cannot find libreadline! (or can't get it to work)])
+    fi
     with_readline=no
   else
     # make sure it works in static builds, too
@@ -34,7 +34,7 @@ else
       LDFLAGS="-static $LDFLAGS"
       LIBS="$READLINE_LIBS $LIBS"
       AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <readline/readline.h>],
-                                     [readline("")])],
+                                      [readline("")])],
         [ AC_MSG_RESULT([yes, it works])
           with_readline=yes ],
         [ AC_MSG_RESULT([no])
@@ -50,13 +50,23 @@ else
     fi
   fi
   if test "$with_readline" = yes; then
-    HAVE_LIBREADLINE=1
+    have_libreadline=1
   else
-    HAVE_LIBREADLINE=0
+    have_libreadline=0
     READLINE_LIBS=
   fi
-  AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], ${HAVE_LIBREADLINE}, [Define to 1 to use libreadline])
-  AC_SUBST([READLINE_LIBS])
 fi
 ])# CVC4_CHECK_FOR_READLINE
 
+# CVC4_TRY_READLINE_WITH(LIBS)
+# ----------------------------
+# Try AC_CHECK_LIB(readline) with the given linking libraries
+AC_DEFUN([CVC4_TRY_READLINE_WITH], [
+if test -z "$READLINE_LIBS"; then
+  AC_CHECK_LIB([readline], [readline],
+               [AC_CHECK_HEADER([readline/readline.h],
+                  [READLINE_LIBS="-lreadline $1"],
+                  [])],
+               [], [$1])
+fi
+])# CVC4_TRY_READLINE_WITH

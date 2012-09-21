@@ -40,19 +40,33 @@
 #                     | :read-write
 #                     | :link linked-options..
 #
-#   alias smt-option-name = (smt-option-name[=argument])+
-#   alias (-short-option | --long-option) = (-option[=argument] | --long-option[=argument])+
+#   common-alias ALIAS_SPECIFICATION
+#   alias ALIAS_SPECIFICATION
+#   expert-alias ALIAS_SPECIFICATION
+#   undocumented-alias ALIAS_SPECIFICATION
 #
-#     The alias command creates a new SmtEngine option name, or short option, or long option,
-#     and binds it to act the same way as if the options to the right of "=" were passed.
-#     For example, if there are options to --disable-warning-1 and --disable-warning-2, etc.,
-#     a useful alias might be:
+#       ALIAS_SPECIFICATION ::=   (-short-option | --long-option) = (-option[=argument] | --long-option[=argument])+
+#                               | (-short-option=ARG | --long-option=ARG) = (-option[=ARG|argument] | --long-option[=ARG|argument])+
+#
+#     The alias command creates a new short or long option, and binds it
+#     to act the same way as if the options to the right of "=" were passed.
+#     For example, if there are options to --disable-warning-1 and
+#     --disable-warning-2, etc., a useful alias might be:
 #
 #       alias --disable-all-warnings = --disable-warning-1 --disable-warning-2
 #
-#     Aliases cannot take arguments, and command-line aliases cannot set SmtEngine properties,
-#     and SmtEngine aliases cannot set command-line properties.  For these things, you need a
-#     custom handler.
+#     It's also possible to pass an argument through to another option.
+#     This alias makes "--output-language" synonymous with "--output-lang".
+#     Without the "=L" parts, --output-language would not take an argument,
+#     and option processing would fail (because --output-lang expects one).
+#
+#       alias --output-language=L = --output-lang=L
+#
+#     You can also ignore such an argument:
+#
+#       alias --some-option=VALUE = --other-option --option2=foo --option3=bar
+#
+#     or use it for multiple options on the right-hand side, etc.
 #
 #   warning message
 #
@@ -74,8 +88,13 @@ option err std::ostream* :default &std::cerr :include <iostream>
 common-option inputLanguage input-language -L --lang=LANG InputLanguage :handler CVC4::options::stringToInputLanguage :include "util/language.h" :default language::input::LANG_AUTO :read-write
  force input language (default is "auto"; see --lang help)
 common-option outputLanguage output-language --output-lang=LANG OutputLanguage :handler CVC4::options::stringToOutputLanguage :include "util/language.h" :default language::output::LANG_AUTO :read-write
- force input language (default is "auto"; see --lang help)
+ force output language (default is "auto"; see --output-lang help)
 option languageHelp bool
+
+# Allow also --language and --output-language, it's a common mistake to
+# type these, but no need to document it.
+undocumented-alias --language=L = --lang=L
+undocumented-alias --output-language=L = --output-lang=L
 
 option verbosity verbosity int :read-write :default 0 :predicate CVC4::options::setVerbosity :predicate-include "options/base_options_handlers.h"
  the verbosity level of CVC4
@@ -86,6 +105,8 @@ common-option - -q --quiet void :handler CVC4::options::decreaseVerbosity
 
 common-option statistics statistics --stats bool
  give statistics on exit
+undocumented-alias --statistics = --stats
+undocumented-alias --no-statistics = --no-stats
 
 common-option parseOnly parse-only --parse-only bool :read-write
  exit after parsing input
@@ -104,7 +125,7 @@ option - debug -d --debug=TAG argument :handler CVC4::options::addDebugTag
 option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h"
  print the "success" output required of SMT-LIBv2
 
-alias --smtlib2 = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental
+alias --smtlib2 = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental --no-interactive
  SMT-LIBv2 compliance mode (implies other options)
 
 endmodule

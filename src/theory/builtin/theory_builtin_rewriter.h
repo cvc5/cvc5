@@ -32,20 +32,27 @@ namespace builtin {
 class TheoryBuiltinRewriter {
 
   static Node blastDistinct(TNode node);
+  static Node blastChain(TNode node);
 
 public:
 
-  static inline RewriteResponse postRewrite(TNode node) {
-    return RewriteResponse(REWRITE_DONE, node);
-  }
-
-  static inline RewriteResponse preRewrite(TNode node) {
+  static inline RewriteResponse doRewrite(TNode node) {
     switch(node.getKind()) {
     case kind::DISTINCT:
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+    case kind::CHAIN:
+      return RewriteResponse(REWRITE_DONE, blastChain(node));
     default:
       return RewriteResponse(REWRITE_DONE, node);
     }
+  }
+
+  static inline RewriteResponse postRewrite(TNode node) {
+    return doRewrite(node);
+  }
+
+  static inline RewriteResponse preRewrite(TNode node) {
+    return doRewrite(node);
   }
 
   static inline void init() {}

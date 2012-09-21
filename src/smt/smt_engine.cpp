@@ -1656,7 +1656,6 @@ Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
   Assert(e.isNull() || e.getExprManager() == d_exprManager);
 
   SmtScope smts(this);
-
   finalOptionsAreSet();
   doPendingPops();
 
@@ -1725,7 +1724,6 @@ Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
 
   SmtScope smts(this);
-
   finalOptionsAreSet();
   doPendingPops();
 
@@ -2159,11 +2157,11 @@ Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {
 
 vector<Expr> SmtEngine::getAssertions()
   throw(ModalException, AssertionException) {
+  SmtScope smts(this);
   finalOptionsAreSet();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
   }
-  SmtScope smts(this);
   Trace("smt") << "SMT getAssertions()" << endl;
   if(!options::interactive()) {
     const char* msg =

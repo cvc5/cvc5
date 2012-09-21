@@ -543,7 +543,7 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, argv[old_optind == 0 ? 1 : old_optind], true, NULL);$run_links
+      assignBool(options::$internal, option, true, NULL);$run_links
       break;
 "
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -552,12 +552,12 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-  $handler(option, optarg, smt);"
+  $handler(option, optionarg, smt);"
         done
       else
         run_handlers="
 #line $lineno \"$kf\"
-  handleOption<$type>(option, optarg);"
+  handleOption<$type>(option, optionarg);"
       fi
       if [ -n "$predicates" ]; then
         for predicate in $predicates; do
@@ -568,7 +568,7 @@ template <> void runBoolPredicates(options::${internal}__option_t, std::string o
       fi
       all_custom_handlers="${all_custom_handlers}
 #line $lineno \"$kf\"
-template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optarg, SmtEngine* smt) {
+template <> options::${internal}__option_t::type runHandlerAndPredicates(options::${internal}__option_t, std::string option, std::string optionarg, SmtEngine* smt) {
 #line $lineno \"$kf\"
   options::${internal}__option_t::type retval = $run_handlers
 #line $lineno \"$kf\"
@@ -576,7 +576,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 }"
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
 #line $lineno \"$kf\"
-      assign(options::$internal, argv[old_optind == 0 ? 1 : old_optind], optarg, NULL);$run_links
+      assign(options::$internal, option, optionarg, NULL);$run_links
       break;
 "
     elif [ -n "$expect_arg" ]; then
@@ -589,7 +589,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-      $handler(argv[old_optind == 0 ? 1 : old_optind], optarg, smt);"
+      $handler(option, optionarg, smt);"
         done
       fi
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
@@ -607,7 +607,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-      $handler(argv[old_optind == 0 ? 1 : old_optind], smt);"
+      $handler(option, smt);"
         done
       fi
       all_modules_option_handlers="${all_modules_option_handlers}${cases}
@@ -621,7 +621,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     if [ "$type" = bool ]; then
       all_modules_option_handlers="${all_modules_option_handlers}${cases_alternate}
 #line $lineno \"$kf\"
-      assignBool(options::$internal, argv[old_optind == 0 ? 1 : old_optind], false, NULL);$run_links_alternate
+      assignBool(options::$internal, option, false, NULL);$run_links_alternate
       break;
 "
     else
@@ -646,7 +646,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assignBool(options::$internal, \"$smtname\", optarg == \"true\", smt);$run_links
+    Options::current().assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_links
     return;
   }"
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -655,7 +655,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
         for handler in $handlers; do
           run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", optarg, smt);
+    $handler(\"$smtname\", optionarg, smt);
 "
         done
       fi
@@ -663,7 +663,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assign(options::$internal, \"$smtname\", optarg, smt);$run_links
+    Options::current().assign(options::$internal, \"$smtname\", optionarg, smt);$run_links
     return;
   }"
     elif [ -n "$expect_arg" ]; then
@@ -671,7 +671,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       for handler in $handlers; do
         run_handlers="$run_handlers
 #line $lineno \"$kf\"
-    $handler(\"$smtname\", optarg, smt);
+    $handler(\"$smtname\", optionarg, smt);
 "
       done
       smt_setoption_handlers="${smt_setoption_handlers}
@@ -727,12 +727,34 @@ template <> void Options::assign(options::${internal}__option_t, std::string opt
   fi
 }
 
+function common-alias {
+  # common-alias -option[=arg] = (-option[=arg])+
+  handle_alias COMMON "$@"
+}
+
 function alias {
-  # alias (smtname | -option) = (smtname [arg] | -option [arg])+
+  # alias -option[=arg] = (-option[=arg])+
+  handle_alias STANDARD "$@"
+}
+
+function expert-alias {
+  # expert-alias -option[=arg] = (-option[=arg])+
+  handle_alias EXPERT "$@"
+}
+
+function undocumented-alias {
+  # undocumented-alias -option[=arg] = (-option[=arg])+
+  handle_alias UNDOCUMENTED "$@"
+}
+
+function handle_alias {
+  # handle_alias CATEGORY -option[=arg] = (-option[=arg])+
   check_module_seen
   check_doc
 
-  category=STANDARD
+  category="$1"
+  shift
+
   internal=-
   smtname=
   short_option=
@@ -752,16 +774,24 @@ function alias {
   options_already_documented=false
   alternate_options_already_documented=false
 
+  if [ "$category" = UNDOCUMENTED ]; then
+    expect_doc=false
+  else
+    expect_doc=true
+  fi
+  expect_doc_alternate=false
+
   if [ $# -lt 3 ]; then
     echo "$kf:$lineno: error: malformed \"alias\" command; expected more arguments" >&2
     exit 1
   fi
-  options=
-  while [ $# -gt 0 -a "$1" != = ]; do
-    options="$options $1"
-    shift
-  done
-  if [ $# -eq 0 ]; then
+  if [ "$1" = '=' ]; then
+    echo "$kf:$lineno: error: malformed \"alias\" command; expected option name" >&2
+    exit 1
+  fi
+  option="$1"
+  shift
+  if [ "$1" != '=' ]; then
     echo "$kf:$lineno: error: malformed \"alias\" command; expected \`='" >&2
     exit 1
   fi
@@ -771,42 +801,76 @@ function alias {
     exit 1
   fi
   cases=
-  for option in $options; do
-    if ! expr "$option" : - &>/dev/null; then
-      echo "$kf:$lineno: error: alias for SMT options not yet supported" >&2
-      exit 1
-    fi
-    if expr "$option" : -- &>/dev/null; then
+  if ! expr "$option" : - &>/dev/null; then
+    echo "$kf:$lineno: error: alias for SMT options not yet supported" >&2
+    exit 1
+  fi
+  if expr "$option" : -- &>/dev/null; then
+    if expr "$option" : '.*=' &>/dev/null; then
+      expect_arg_long=required_argument
+      arg="$(echo "$option" | sed 's,[^=]*=\(.*\),\1,')"
+      option="$(echo "$option" | sed 's,--,,;s,=.*,,')"
+      echo "warning: not yet handling long-option alias =$arg" >&2
+    else
+      expect_arg_long=no_argument
+      arg=
       option="$(echo "$option" | sed 's,--,,')"
-      all_modules_long_options="${all_modules_long_options}
-  { \"$(echo "$option" | sed 's,=.*,,')\", no_argument, NULL, $n_long },"
+    fi
+    all_modules_long_options="${all_modules_long_options}
+  { \"$(echo "$option" | sed 's,=.*,,')\", $expect_arg_long, NULL, $n_long },"
       cases="${cases}
     case $n_long:// --$option"
-      let ++n_long
-      long_option="${long_option:+$long_option | --}$option"
-    else
-      if ! expr "$option" : '-.$' &>/dev/null; then
+    let ++n_long
+    long_option="${long_option:+$long_option | --}$option"
+  else
+    if ! expr "$option" : '-.$' &>/dev/null; then
+      if ! expr "$option" : '-.=' &>/dev/null; then
         echo "$kf:$lineno: error: expected short option specification, got \`$option'" >&2
         exit 1
       fi
+      expect_arg=:
+      arg="$(echo "$option" | sed 's,[^=]*=,,')"
+      option="$(echo "$option" | sed 's,-\(.\)=.*,\1,')"
+      echo "warning: not yet handling short-option alias =$arg" >&2
+    else
+      expect_arg=
+      arg=
       option="$(echo "$option" | sed 's,-,,')"
-      all_modules_short_options="${all_modules_short_options}$option"
+    fi
+    all_modules_short_options="${all_modules_short_options}$option$expect_arg"
       cases="${cases}
     case '$option':"
-      short_option="${short_option:+$short_option | -}$option"
-    fi
-  done
+    short_option="${short_option:+$short_option | -}$option"
+  fi
+
   while [ $# -gt 0 ]; do
+    linkopt="$1"
+    # on the RHS, we're looking for =ARG, where "ARG" is *exactly* what
+    # was given on the LHS
+    if expr "$linkopt" : '.*=' &>/dev/null; then
+      linkarg="$(echo "$linkopt" | sed 's,[^=]*=,,')"
+      if [ "$linkarg" = "$arg" ]; then
+        # we found =ARG
+        linkopt="$(echo "$linkopt" | sed 's,=.*,,')"
+      else
+        # false positive: =SOMETHING, where SOMETHING != ARG
+        linkarg=
+      fi
+    fi
     links="$links
 #line $lineno \"$kf\"
-      preemptGetopt(extra_argc, extra_argv, \"$1\");"
+      preemptGetopt(extra_argc, extra_argv, \"$linkopt\");"
+    if [ "$linkarg" ]; then
+      # include also the arg
+      links="$links
+#line $lineno \"$kf\"
+      preemptGetopt(extra_argc, extra_argv, optionarg.c_str());"
+    fi
     shift
   done
   all_modules_option_handlers="$all_modules_option_handlers$cases$links
       break;
 "
-  expect_doc=true
-  expect_doc_alternate=false
 }
 
 function warning {

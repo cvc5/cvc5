@@ -73,7 +73,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
   if (depth == 0) {
     out << "(...)";
   } else {
-    depth --;
+    --depth;
   }
 
   // null
@@ -221,6 +221,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::APPLY:
       toStream(op, n.getOperator(), depth, types, true);
       break;
+    case kind::CHAIN:
+    case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
+      toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
+      return;
     case kind::SORT_TYPE:
     {
       string name;

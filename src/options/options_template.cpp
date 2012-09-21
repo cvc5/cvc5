@@ -67,15 +67,15 @@ CVC4_THREADLOCAL(Options*) Options::s_current = NULL;
  */
 template <class T, bool is_numeric, bool is_integer>
 struct OptionHandler {
-  static T handle(std::string option, std::string optarg);
+  static T handle(std::string option, std::string optionarg);
 };/* struct OptionHandler<> */
 
 /** Variant for integral C++ types */
 template <class T>
 struct OptionHandler<T, true, true> {
-  static T handle(std::string option, std::string optarg) {
+  static T handle(std::string option, std::string optionarg) {
     try {
-      Integer i(optarg, 10);
+      Integer i(optionarg, 10);
 
       if(! std::numeric_limits<T>::is_signed && i < 0) {
         // unsigned type but user gave negative argument
@@ -107,8 +107,8 @@ struct OptionHandler<T, true, true> {
 /** Variant for numeric but non-integral C++ types */
 template <class T>
 struct OptionHandler<T, true, false> {
-  static T handle(std::string option, std::string optarg) {
-    std::stringstream in(optarg);
+  static T handle(std::string option, std::string optionarg) {
+    std::stringstream in(optionarg);
     long double r;
     in >> r;
     if(! in.eof()) {
@@ -138,7 +138,7 @@ struct OptionHandler<T, true, false> {
 /** Variant for non-numeric C++ types */
 template <class T>
 struct OptionHandler<T, false, false> {
-  static T handle(std::string option, std::string optarg) {
+  static T handle(std::string option, std::string optionarg) {
     T::unsupported_handleOption_call___please_write_me;
     // The above line causes a compiler error if this version of the template
     // is ever instantiated (meaning that a specialization is missing).  So
@@ -151,14 +151,14 @@ struct OptionHandler<T, false, false> {
 
 /** Handle an option of type T in the default way. */
 template <class T>
-T handleOption(std::string option, std::string optarg) {
-  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, optarg);
+T handleOption(std::string option, std::string optionarg) {
+  return OptionHandler<T, std::numeric_limits<T>::is_specialized, std::numeric_limits<T>::is_integer>::handle(option, optionarg);
 }
 
 /** Handle an option of type std::string in the default way. */
 template <>
-std::string handleOption<std::string>(std::string option, std::string optarg) {
-  return optarg;
+std::string handleOption<std::string>(std::string option, std::string optionarg) {
+  return optionarg;
 }
 
 /**
@@ -166,12 +166,12 @@ std::string handleOption<std::string>(std::string option, std::string optarg) {
  * If a user specifies a :handler or :predicates, it overrides this.
  */
 template <class T>
-typename T::type runHandlerAndPredicates(T, std::string option, std::string optarg, SmtEngine* smt) {
+typename T::type runHandlerAndPredicates(T, std::string option, std::string optionarg, SmtEngine* smt) {
   // By default, parse the option argument in a way appropriate for its type.
   // E.g., for "unsigned int" options, ensure that the provided argument is
   // a nonnegative integer that fits in the unsigned int type.
 
-  return handleOption<typename T::type>(option, optarg);
+  return handleOption<typename T::type>(option, optionarg);
 }
 
 template <class T>
@@ -384,6 +384,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
   for(;;) {
     int c = -1;
     optopt = 0;
+    std::string option, optionarg;
     Debug("preemptGetopt") << "top of loop, extra_optind == " << extra_optind << ", extra_argc == " << extra_argc << std::endl;
     if((extra_optind == 0 ? 1 : extra_optind) < extra_argc) {
 #if HAVE_DECL_OPTRESET
@@ -400,6 +401,16 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
                       "+:${all_modules_short_options}",
                       cmdlineOptions, NULL);
       Debug("preemptGetopt") << "in preempt code, c == " << c << " (`" << char(c) << "') optind == " << optind << std::endl;
+      if(optopt == 0 ||
+         ( optopt >= ${long_option_value_begin} && optopt <= ${long_option_value_end} )) {
+        // long option
+        option = argv[old_optind == 0 ? 1 : old_optind];
+        optionarg = (optarg == NULL) ? "" : optarg;
+      } else {
+        // short option
+        option = std::string("-") + char(optopt);
+        optionarg = (optarg == NULL) ? "" : optarg;
+      }
       if(optind >= extra_argc) {
         Debug("preemptGetopt") << "-- no more preempt args" << std::endl;
         unsigned i = 1;
@@ -435,31 +446,25 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
                       cmdlineOptions, NULL);
       main_optind = optind;
       Debug("options") << "[ next option will be at pos: " << optind << " ]" << std::endl;
-      if(optind < argc) Debug("options") << "next is option: " << argv[optind] << std::endl;
       if(c == -1) {
         Debug("options") << "done with option parsing" << std::endl;
         break;
       }
+      option = argv[old_optind == 0 ? 1 : old_optind];
+      optionarg = (optarg == NULL) ? "" : optarg;
     }
 
-    Debug("preemptGetopt") << "processing option " << c << " (`" << char(c) << "')" << std::endl;
+    Debug("preemptGetopt") << "processing option " << c << " (`" << char(c) << "'), " << option << std::endl;
 
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 451 "${template}"
+#line 463 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
-      if(optopt == 0 ||
-         ( optopt >= ${long_option_value_begin} && optopt <= ${long_option_value_end} )) {
-        // was a long option
-        throw OptionException(std::string("option `") + argv[optind - 1] + "' missing its required argument");
-      } else {
-        // was a short option
-        throw OptionException(std::string("option `-") + char(optopt) + "' missing its required argument");
-      }
+      throw OptionException(std::string("option `") + option + "' missing its required argument");
 
     case '?':
     default:
@@ -467,13 +472,13 @@ ${all_modules_option_handlers}
           !strncmp(argv[optind - 1], "--thread", 8) &&
           strlen(argv[optind - 1]) > 8 ) {
         if(! isdigit(argv[optind - 1][8])) {
-          throw OptionException(std::string("can't understand option `") + argv[optind - 1] + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
+          throw OptionException(std::string("can't understand option `") + option + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
         }
         std::vector<std::string>& threadArgv = d_holder->threadArgv;
         char *end;
         long tnum = strtol(argv[optind - 1] + 8, &end, 10);
         if(tnum < 0 || (*end != '\0' && *end != '=')) {
-          throw OptionException(std::string("can't understand option `") + argv[optind - 1] + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
+          throw OptionException(std::string("can't understand option `") + option + "': expected something like --threadN=\"--option1 --option2\", where N is a nonnegative integer");
         }
         if(threadArgv.size() <= size_t(tnum)) {
           threadArgv.resize(tnum + 1);
@@ -483,13 +488,13 @@ ${all_modules_option_handlers}
         }
         if(*end == '\0') { // e.g., we have --thread0 "foo"
           if(argc <= optind) {
-            throw OptionException(std::string("option `") + argv[optind - 1] + "' missing its required argument");
+            throw OptionException(std::string("option `") + option + "' missing its required argument");
           }
           Debug("options") << "thread " << tnum << " gets option " << argv[optind] << std::endl;
           threadArgv[tnum] += argv[(*optind_ref)++];
         } else { // e.g., we have --thread0="foo"
           if(end[1] == '\0') {
-            throw OptionException(std::string("option `") + argv[optind - 1] + "' missing its required argument");
+            throw OptionException(std::string("option `") + option + "' missing its required argument");
           }
           Debug("options") << "thread " << tnum << " gets option " << (end + 1) << std::endl;
           threadArgv[tnum] += end + 1;
@@ -498,14 +503,7 @@ ${all_modules_option_handlers}
         break;
       }
 
-      // This can be a long or short option, and the way to get at the name of it is different.
-      if(optopt == 0 ||
-         ( optopt >= ${long_option_value_begin} && optopt <= ${long_option_value_end} )) {
-        // was a long option
-        throw OptionException(std::string("can't understand option `") + argv[optind - 1] + "'");
-      } else { // was a short option
-        throw OptionException(std::string("can't understand option `-") + char(optopt) + "'");
-      }
+      throw OptionException(std::string("can't understand option `") + option + "'");
     }
   }
 
