@@ -1,0 +1,20 @@
+% This regression is the same as datatype.cvc but tests the
+% dumping infrastructure.
+%
+% COMMAND-LINE: --dump assertions
+%
+% EXPECT: DATATYPE
+% EXPECT:   nat = succ(pred: nat) | zero
+% EXPECT: END;
+% EXPECT: x : nat;
+% EXPECT: ASSERT NOT(NOT(is_succ(x)) AND NOT(is_zero(x)));
+% EXPECT: CHECKSAT;
+% EXPECT: invalid
+%
+% EXIT: 10
+
+DATATYPE nat = succ(pred : nat) | zero END;
+
+x : nat;
+
+QUERY (NOT is_succ(x) AND NOT is_zero(x));

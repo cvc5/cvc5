@@ -414,7 +414,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
       string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
       (*i).d_name.resize((*i).d_name.find('\0'));
       if(typeName == "") {
-        (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, selfTypeNode), "is a selector").toExpr();
+        (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, selfTypeNode), "is a selector", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
       } else {
         map<string, DatatypeType>::const_iterator j = resolutions.find(typeName);
         if(j == resolutions.end()) {
@@ -424,7 +424,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
               << "of constructor \"" << d_name << "\"";
           throw DatatypeResolutionException(msg.str());
         } else {
-          (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType((*j).second)), "is a selector").toExpr();
+          (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType((*j).second)), "is a selector", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
         }
       }
     } else {
@@ -437,7 +437,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
       if(!paramTypes.empty() ) {
         range = doParametricSubstitution( range, paramTypes, paramReplacements );
       }
-      (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType(range)), "is a selector").toExpr();
+      (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType(range)), "is a selector", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
     }
     Node::fromExpr((*i).d_selector).setAttribute(DatatypeIndexAttr(), index++);
     (*i).d_resolved = true;
@@ -450,8 +450,8 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   // fails above, we want Constuctor::isResolved() to remain "false".
   // Further, mkConstructorType() iterates over the selectors, so
   // should get the results of any resolutions we did above.
-  d_tester = nm->mkSkolem(getTesterName(), nm->mkTesterType(selfTypeNode), "is a tester").toExpr();
-  d_constructor = nm->mkSkolem(getName(), nm->mkConstructorType(*this, selfTypeNode), "is a constructor").toExpr();
+  d_tester = nm->mkSkolem(getTesterName(), nm->mkTesterType(selfTypeNode), "is a tester", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
+  d_constructor = nm->mkSkolem(getName(), nm->mkConstructorType(*this, selfTypeNode), "is a constructor", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
   // associate constructor with all selectors
   for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
     (*i).d_constructor = d_constructor;
@@ -521,7 +521,7 @@ void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(selectorType);
 
-  Expr type = NodeManager::currentNM()->mkSkolem("unresolved_" + selectorName + "_$$", TypeNode::fromType(selectorType), "is an unresolved selector type placeholder").toExpr();
+  Expr type = NodeManager::currentNM()->mkSkolem("unresolved_" + selectorName, TypeNode::fromType(selectorType), "is an unresolved selector type placeholder", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
   Debug("datatypes") << type << endl;
   d_args.push_back(DatatypeConstructorArg(selectorName, type));
 }

@@ -991,13 +991,13 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
           }
           firstSelector = false;
           const DatatypeConstructorArg& selector = *k;
-          out << selector.getName() << ": " << selector.getType();
+          out << selector.getName() << ": " << SelectorType(selector.getType()).getRangeType();
         }
         out << ')';
       }
     }
   }
-  out << endl << "END;" << endl;
+  out << endl << "END;";
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c) throw() {

@@ -44,7 +44,8 @@ TESTS =	\
 
 FAILING_TESTS = \
 	rec2.cvc \
-	rec5.cvc
+	rec5.cvc \
+	datatype-dump.cvc
 
 EXTRA_DIST = $(TESTS)
 
