@@ -29,12 +29,43 @@
 namespace CVC4 {
 namespace options {
 
+inline void setVerbosity(std::string option, int value, SmtEngine* smt) throw(OptionException) {
+  if(Configuration::isMuzzledBuild()) {
+    DebugChannel.setStream(CVC4::null_os);
+    TraceChannel.setStream(CVC4::null_os);
+    NoticeChannel.setStream(CVC4::null_os);
+    ChatChannel.setStream(CVC4::null_os);
+    MessageChannel.setStream(CVC4::null_os);
+    WarningChannel.setStream(CVC4::null_os);
+  } else {
+    if(value < 2) {
+      ChatChannel.setStream(CVC4::null_os);
+    } else {
+      ChatChannel.setStream(std::cout);
+    }
+    if(value < 1) {
+      NoticeChannel.setStream(CVC4::null_os);
+    } else {
+      NoticeChannel.setStream(std::cout);
+    }
+    if(value < 0) {
+      MessageChannel.setStream(CVC4::null_os);
+      WarningChannel.setStream(CVC4::null_os);
+    } else {
+      MessageChannel.setStream(std::cout);
+      WarningChannel.setStream(std::cerr);
+    }
+  }
+}
+
 inline void increaseVerbosity(std::string option, SmtEngine* smt) {
   options::verbosity.set(options::verbosity() + 1);
+  setVerbosity(option, options::verbosity(), smt);
 }
 
 inline void decreaseVerbosity(std::string option, SmtEngine* smt) {
   options::verbosity.set(options::verbosity() - 1);
+  setVerbosity(option, options::verbosity(), smt);
 }
 
 inline OutputLanguage stringToOutputLanguage(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {

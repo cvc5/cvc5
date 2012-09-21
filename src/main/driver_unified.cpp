@@ -140,28 +140,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     opts.set(options::interactive, inputFromStdin && isatty(fileno(stdin)));
   }
 
-  // Determine which messages to show based on smtcomp_mode and verbosity
-  if(Configuration::isMuzzledBuild()) {
-    Debug.setStream(CVC4::null_os);
-    Trace.setStream(CVC4::null_os);
-    Notice.setStream(CVC4::null_os);
-    Chat.setStream(CVC4::null_os);
-    Message.setStream(CVC4::null_os);
-    Warning.setStream(CVC4::null_os);
-    Dump.setStream(CVC4::null_os);
-  } else {
-    if(opts[options::verbosity] < 2) {
-      Chat.setStream(CVC4::null_os);
-    }
-    if(opts[options::verbosity] < 1) {
-      Notice.setStream(CVC4::null_os);
-    }
-    if(opts[options::verbosity] < 0) {
-      Message.setStream(CVC4::null_os);
-      Warning.setStream(CVC4::null_os);
-    }
-  }
-
   // Auto-detect input language by filename extension
   const char* filename = inputFromStdin ? "<stdin>" : filenames[0].c_str();
 
@@ -191,34 +169,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Determine which messages to show based on smtcomp_mode and verbosity
   if(Configuration::isMuzzledBuild()) {
-    Debug.setStream(CVC4::null_os);
-    Trace.setStream(CVC4::null_os);
-    Notice.setStream(CVC4::null_os);
-    Chat.setStream(CVC4::null_os);
-    Message.setStream(CVC4::null_os);
-    Warning.setStream(CVC4::null_os);
-    Dump.setStream(CVC4::null_os);
-  } else {
-    if(opts[options::verbosity] < 2) {
-      Chat.setStream(CVC4::null_os);
-    }
-    if(opts[options::verbosity] < 1) {
-      Notice.setStream(CVC4::null_os);
-    }
-    if(opts[options::verbosity] < 0) {
-      Message.setStream(CVC4::null_os);
-      Warning.setStream(CVC4::null_os);
-    }
-
-    Debug.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Trace.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Notice.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Chat.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Message.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Warning.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
-    Dump.getStream() << Expr::setlanguage(opts[options::outputLanguage])
-                     << Expr::setdepth(-1)
-                     << Expr::printtypes(false);
+    DebugChannel.setStream(CVC4::null_os);
+    TraceChannel.setStream(CVC4::null_os);
+    NoticeChannel.setStream(CVC4::null_os);
+    ChatChannel.setStream(CVC4::null_os);
+    MessageChannel.setStream(CVC4::null_os);
+    WarningChannel.setStream(CVC4::null_os);
+    DumpChannel.setStream(CVC4::null_os);
   }
 
   // important even for muzzled builds (to get result output right)

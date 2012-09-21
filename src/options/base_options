@@ -77,7 +77,7 @@ common-option outputLanguage output-language --output-lang=LANG OutputLanguage :
  force input language (default is "auto"; see --lang help)
 option languageHelp bool
 
-option verbosity verbosity int :read-write :default 0
+option verbosity verbosity int :read-write :default 0 :predicate CVC4::options::setVerbosity :predicate-include "options/base_options_handlers.h"
  the verbosity level of CVC4
 common-option - -v --verbose void :handler CVC4::options::increaseVerbosity
  increase verbosity (may be repeated)
