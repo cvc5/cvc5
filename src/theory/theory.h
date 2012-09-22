@@ -33,7 +33,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "options/options.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/dump.h"
 
 #include <string>

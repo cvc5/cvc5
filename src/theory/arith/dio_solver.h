@@ -27,7 +27,7 @@
 #include "theory/arith/partial_model.h"
 #include "util/rational.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include <vector>
 #include <utility>

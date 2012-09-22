@@ -38,7 +38,7 @@
 #include "theory/arith/matrix.h"
 #include "theory/arith/constraint.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

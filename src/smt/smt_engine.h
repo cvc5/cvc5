@@ -35,7 +35,7 @@
 #include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
-#include "util/stats.h"
+#include "util/statistics.h"
 #include "theory/logic_info.h"
 
 // In terms of abstraction, this is below (and provides services to)
@@ -51,6 +51,7 @@ class NodeHashFunction;
 
 class Command;
 
+class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
@@ -74,6 +75,7 @@ namespace smt {
    */
   class DefinedFunction;
 
+  class SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
 
@@ -82,6 +84,10 @@ namespace smt {
   struct CommandCleanup;
   typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
+
+namespace stats {
+  StatisticsRegistry* getStatisticsRegistry(SmtEngine*);
+}/* CVC4::stats namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
 // hood): use a type parameter and have check() delegate, or subclass
@@ -273,6 +279,7 @@ class CVC4_PUBLIC SmtEngine {
 
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
+  friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   // to access d_modelCommands
   friend size_t ::CVC4::Model::getNumCommands() const;
@@ -280,31 +287,7 @@ class CVC4_PUBLIC SmtEngine {
 
   StatisticsRegistry* d_statisticsRegistry;
 
-  // === STATISTICS ===
-  /** time spent in definition-expansion */
-  TimerStat d_definitionExpansionTime;
-  /** time spent in non-clausal simplification */
-  TimerStat d_nonclausalSimplificationTime;
-  /** Num of constant propagations found during nonclausal simp */
-  IntStat d_numConstantProps;
-  /** time spent in static learning */
-  TimerStat d_staticLearningTime;
-  /** time spent in simplifying ITEs */
-  TimerStat d_simpITETime;
-  /** time spent in simplifying ITEs */
-  TimerStat d_unconstrainedSimpTime;
-  /** time spent removing ITEs */
-  TimerStat d_iteRemovalTime;
-  /** time spent in theory preprocessing */
-  TimerStat d_theoryPreprocessTime;
-  /** time spent converting to CNF */
-  TimerStat d_cnfConversionTime;
-  /** Num of assertions before ite removal */
-  IntStat d_numAssertionsPre;
-  /** Num of assertions after ite removal */
-  IntStat d_numAssertionsPost;
-  /** time spent in checkModel() */
-  TimerStat d_checkModelTime;
+  smt::SmtEngineStatistics* d_stats;
 
   /**
    * Add to Model command.  This is used for recording a command that should be reported
@@ -567,9 +550,14 @@ public:
   }
 
   /**
-   * Permit access to the underlying StatisticsRegistry.
+   * Export statistics from this SmtEngine.
    */
-  StatisticsRegistry* getStatisticsRegistry() const;
+  Statistics getStatistics() const throw();
+
+  /**
+   * Get the value of one named statistic from this SmtEngine.
+   */
+  SExpr getStatistic(std::string name) const throw();
 
   Result getStatusOfLastCommand() const {
     return d_status;

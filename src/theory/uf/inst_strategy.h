@@ -25,7 +25,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/uf/theory_uf.h"
 
 namespace CVC4 {

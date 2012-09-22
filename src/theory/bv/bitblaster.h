@@ -35,7 +35,7 @@
 
 #include "theory/theory.h"
 #include "theory_bv_utils.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "bitblast_strategies.h"
 
 #include "prop/sat_solver.h"

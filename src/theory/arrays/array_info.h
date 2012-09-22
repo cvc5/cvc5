@@ -24,7 +24,7 @@
 #include "context/cdlist.h"
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/ntuple.h"
 #include <ext/hash_set>
 #include <ext/hash_map>

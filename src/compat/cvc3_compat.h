@@ -469,7 +469,7 @@ public:
   InputLanguage getOutputLang() const;
 };/* class CVC3::ExprManager */
 
-typedef CVC4::StatisticsRegistry Statistics;
+typedef CVC4::Statistics Statistics;
 
 #define PRESENTATION_LANG ::CVC4::language::input::LANG_CVC4
 #define SMTLIB_LANG ::CVC4::language::input::LANG_SMTLIB
@@ -1553,7 +1553,7 @@ public:
   /***************************************************************************/
 
   //! Get statistics object
-  virtual Statistics& getStatistics();
+  virtual Statistics getStatistics();
 
   //! Print collected statistics to stdout
   virtual void printStatistics();

@@ -30,6 +30,7 @@ pcvc4_LDADD = \
 	libmain.a \
 	@builddir@/../parser/libcvc4parser.la \
 	@builddir@/../libcvc4.la \
+	@builddir@/../util/libstatistics.la \
 	@builddir@/../lib/libreplacements.la \
 	$(READLINE_LIBS)
 pcvc4_CPPFLAGS = $(AM_CPPFLAGS) $(BOOST_CPPFLAGS) -DPORTFOLIO_BUILD
@@ -51,6 +52,7 @@ cvc4_LDADD = \
 	libmain.a \
 	@builddir@/../parser/libcvc4parser.la \
 	@builddir@/../libcvc4.la \
+	@builddir@/../util/libstatistics.la \
 	@builddir@/../lib/libreplacements.la \
 	$(READLINE_LIBS)
 

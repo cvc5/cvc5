@@ -43,7 +43,7 @@
 
 #include "theory/arith/constraint.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/result.h"
 
 #include <vector>

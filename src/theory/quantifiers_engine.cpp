@@ -97,7 +97,11 @@ d_active( c ){
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
-  delete(d_term_db);
+  delete d_model_engine;
+  delete d_inst_engine;
+  delete d_model;
+  delete d_term_db;
+  delete d_eq_query;
 }
 
 Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){

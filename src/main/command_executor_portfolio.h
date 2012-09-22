@@ -23,6 +23,11 @@
 #include "main/command_executor.h"
 #include "main/portfolio_util.h"
 
+#include <vector>
+#include <string>
+#include <iostream>
+#include <sstream>
+
 namespace CVC4 {
 
 class CommandSequence;
@@ -55,6 +60,9 @@ public:
   ~CommandExecutorPortfolio();
 
   std::string getSmtEngineStatus();
+
+  void flushStatistics(std::ostream& out) const;
+
 protected:
   bool doCommandSingleton(Command* cmd);
 private:

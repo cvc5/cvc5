@@ -26,7 +26,7 @@
 #define __CVC4_USE_MINISAT
 
 #include "theory/theory.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include "context/cdqueue.h"
 

@@ -2,12 +2,13 @@ This is a prerelease version of CVC4.
 
 *** Quick-start instructions
 
-To build, you'll need reasonably new automake, autoconf, and libtool
-installed (see below). Execute,
-
-    ./autogen.sh
     ./configure
     make
+
+(To build from a Subversion checkout, you'll need reasonably new
+automake, autoconf, and libtool installed (see below).  The
+"configure" script isn't in the repository, so run "./autogen.sh"
+first to produce it.  Then proceed as above.)
 
 You can then "make install" to install in the prefix you gave to
 the configure script (/usr/local by default).  ** You should run
@@ -20,13 +21,13 @@ easily detects this problem (by showing a number of FAILed test cases).
 It is ok if the unit tests aren't run as part of "make check", but all
 system tests and regression tests should pass without incident.
 
+To build API documentation, use "make doc".  Documentation is produced
+under doc/ but is not installed by "make install".
+
 To build a source release, use "make dist"; this will include the
 configure script and all the bits of automake/autoconf/libtool that
 are necessary for an independent install.  You'll find the resulting
 tarball in builds/cvc4-${VERSION}.tar.gz.
-
-To build documentation, use "make doc".  Documentation is produced
-under doc/ but is not installed by "make install".
 
 *** Dependencies
 
@@ -37,7 +38,17 @@ GNU C and C++ (gcc and g++), reasonably recent versions
 GNU Make
 GNU Bash
 GMP v4.2 (GNU Multi-Precision arithmetic library)
-libantlr3c v3.2 (ANTLR parser generator)
+libantlr3c v3.2 or v3.4 (ANTLR parser generator)
+The Boost C++ base libraries
+
+For libantlr3c, you can use the convenience script in
+contrib/get-antlr-3.4 --this will download, patch, and install
+libantlr3c.  On a 32-bit machine, or if you have difficulty
+building libantlr3c (or difficulty getting CVC4 to link against
+it later), you may need to remove the --enable-64bit part in the
+script.  (If you're curious, the manual instructions are at
+http://church.cims.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
+
 Optional: CLN v1.3 (Class Library for Numbers)
 Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
 Optional: GNU Readline library (for an improved interactive experience)
@@ -80,7 +91,7 @@ includes a diff of all changes made to cudd makefiles.
 *** Build dependencies
 
 The following tools and libraries are required to build CVC4 from
-scratch.
+scratch (i.e., from the repository rather than from a source tarball).
 
 Automake v1.11
 Autoconf v2.61

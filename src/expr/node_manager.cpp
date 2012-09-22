@@ -22,7 +22,7 @@
 
 #include "util/Assert.h"
 #include "options/options.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/tls.h"
 
 #include "expr/type_checker.h"

@@ -25,7 +25,7 @@
 #include "context/context_mm.h"
 #include "context/cdchunk_list.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

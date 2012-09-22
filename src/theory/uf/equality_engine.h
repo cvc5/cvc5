@@ -30,7 +30,7 @@
 #include "expr/kind_map.h"
 #include "context/cdo.h"
 #include "util/output.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 

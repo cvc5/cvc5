@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file cvc4_private.h
+/*! \file cvc4_private_library.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -18,14 +18,14 @@
  ** warning when the file is included improperly.
  **/
 
-#ifndef __CVC4_PRIVATE_H
-#define __CVC4_PRIVATE_H
+#ifndef __CVC4_PRIVATE_LIBRARY_H
+#define __CVC4_PRIVATE_LIBRARY_H
 
-#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
-#  warning A private CVC4 header was included when not building the library or private unit test code.
-#endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
+#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST) || defined(__BUILDING_CVC4PARSERLIB) || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST) || defined(__BUILDING_CVC4DRIVER))
+#  warning A "private library" CVC4 header was included when not building the library, driver, or private unit test code.
+#endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST || __BUILDING_CVC4PARSERLIB || __BUILDING_CVC4PARSERLIB_UNIT_TEST || __BUILDING_CVC4DRIVER) */
 
 #include "cvc4_public.h"
 #include "cvc4autoconfig.h"
 
-#endif /* __CVC4_PRIVATE_H */
+#endif /* __CVC4_PRIVATE_LIBRARY_H */

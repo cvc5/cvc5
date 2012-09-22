@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iostream>
 #include <new>
+#include <unistd.h>
 
 #include <stdio.h>
 #include <unistd.h>
@@ -45,7 +46,6 @@
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/result.h"
-#include "util/stats.h"
 
 using namespace std;
 using namespace CVC4;
@@ -63,10 +63,11 @@ namespace CVC4 {
     /** Just the basename component of argv[0] */
     const char *progName;
 
-    /** A pointer to the StatisticsRegistry (the signal handlers need it) */
-    CVC4::StatisticsRegistry* pStatistics;
-  }
-}
+    /** A pointer to the CommandExecutor (the signal handlers need it) */
+    CVC4::main::CommandExecutor* pExecutor;
+
+  }/* CVC4::main namespace */
+}/* CVC4 namespace */
 
 
 void printUsage(Options& opts, bool full) {
@@ -185,20 +186,18 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 # ifndef PORTFOLIO_BUILD
   ExprManager exprMgr(opts);
 # else
-  vector<Options> threadOpts   = parseThreadSpecificOptions(opts);
+  vector<Options> threadOpts = parseThreadSpecificOptions(opts);
   ExprManager exprMgr(threadOpts[0]);
 # endif
 
-  CommandExecutor* cmdExecutor = 
 # ifndef PORTFOLIO_BUILD
-    new CommandExecutor(exprMgr, opts);
+  CommandExecutor cmdExecutor(exprMgr, opts);
 # else
-    new CommandExecutorPortfolio(exprMgr, opts, threadOpts);
-#endif
+  CommandExecutorPortfolio cmdExecutor(exprMgr, opts, threadOpts);
+# endif
 
-  // Create the SmtEngine
-  StatisticsRegistry driverStats("driver");
-  pStatistics->registerStat_(&driverStats);
+  // give access to the signal handlers for stats output
+  pExecutor = &cmdExecutor;
 
   Parser* replayParser = NULL;
   if( opts[options::replayFilename] != "" ) {
@@ -218,11 +217,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
   // Timer statistic
-  RegisterStatistic statTotalTime(&driverStats, &s_totalTime);
+  RegisterStatistic statTotalTime(&cmdExecutor.getStatisticsRegistry(), &s_totalTime);
 
   // Filename statistics
   ReferenceStat< const char* > s_statFilename("filename", filename);
-  RegisterStatistic statFilenameReg(&driverStats, &s_statFilename);
+  RegisterStatistic statFilenameReg(&cmdExecutor.getStatisticsRegistry(), &s_statFilename);
 
   // Parse and execute commands until we are done
   Command* cmd;
@@ -243,7 +242,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       replayParser->useDeclarationsFrom(shell.getParser());
     }
     while((cmd = shell.readCommand())) {
-      status = cmdExecutor->doCommand(cmd) && status;
+      status = cmdExecutor.doCommand(cmd) && status;
       delete cmd;
     }
   } else {
@@ -267,7 +266,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
         break;
       }
-      status = cmdExecutor->doCommand(cmd);
+      status = cmdExecutor.doCommand(cmd);
       delete cmd;
     }
     // Remove the parser
@@ -283,7 +282,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   int returnValue;
   string result = "unknown";
   if(status) {
-    result = cmdExecutor->getSmtEngineStatus();
+    result = cmdExecutor.getSmtEngineStatus();
 
     if(result == "sat") {
       returnValue = 10;
@@ -298,19 +297,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   }
 
 #ifdef CVC4_COMPETITION_MODE
-  // exit, don't return
-  // (don't want destructors to run)
-  exit(returnValue);
+  // exit, don't return (don't want destructors to run)
+  // _exit() from unistd.h doesn't run global destructors
+  // or other on_exit/atexit stuff.
+  _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
   ReferenceStat< Result > s_statSatResult("sat/unsat", result);
-  RegisterStatistic statSatResultReg(&driverStats, &s_statSatResult);
+  RegisterStatistic statSatResultReg(&cmdExecutor.getStatisticsRegistry(), &s_statSatResult);
 
   s_totalTime.stop();
 
   if(opts[options::statistics]) {
-    pStatistics->flushInformation(*opts[options::err]);
+    cmdExecutor.flushStatistics(*opts[options::err]);
   }
-  exit(returnValue);
+  pExecutor = NULL;
   return returnValue;
 }

@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file stats.h
+/*! \file statistics_registry.h
  ** \verbatim
  ** Original author: taking
- ** Major contributors: mdeters, kshitij
+ ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -18,16 +18,15 @@
  ** classes.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private_library.h"
 
-#ifndef __CVC4__STATS_H
-#define __CVC4__STATS_H
+#ifndef __CVC4__STATISTICS_REGISTRY_H
+#define __CVC4__STATISTICS_REGISTRY_H
 
-#include <string>
-#include <ostream>
+#include "util/statistics.h"
+
 #include <sstream>
 #include <iomanip>
-#include <set>
 #include <ctime>
 #include <vector>
 #include <stdint.h>
@@ -45,8 +44,6 @@ namespace CVC4 {
 class ExprManager;
 class SmtEngine;
 
-class CVC4_PUBLIC Stat;
-
 /**
  * The base class for all statistics.
  *
@@ -57,14 +54,7 @@ class CVC4_PUBLIC Stat;
  * This class also (statically) maintains the delimiter used to separate
  * the name and the value when statistics are output.
  */
-class CVC4_PUBLIC Stat {
-private:
-  /**
-   * The delimiter between name and value to use when outputting a
-   * statistic.
-   */
-  static std::string s_delim;
-
+class Stat {
 protected:
   /** The name of this statistic */
   std::string d_name;
@@ -82,7 +72,7 @@ public:
   Stat(const std::string& name) throw(CVC4::AssertionException) :
     d_name(name) {
     if(__CVC4_USE_STATISTICS) {
-      AlwaysAssert(d_name.find(s_delim) == std::string::npos);
+      AlwaysAssert(d_name.find(", ") == std::string::npos);
     }
   }
 
@@ -103,7 +93,7 @@ public:
    */
   virtual void flushStat(std::ostream& out) const {
     if(__CVC4_USE_STATISTICS) {
-      out << d_name << s_delim;
+      out << d_name << ", ";
       flushInformation(out);
     }
   }
@@ -114,13 +104,58 @@ public:
   }
 
   /** Get the value of this statistic as a string. */
-  std::string getValue() const {
+  virtual SExpr getValue() const {
     std::stringstream ss;
     flushInformation(ss);
     return ss.str();
   }
 
 };/* class Stat */
+
+// A generic way of making a SExpr from templated stats code.
+// for example, the uint64_t version ensures that we create
+// Integer-SExprs for ReadOnlyDataStats (like those inside
+// Minisat) without having to specialize the entire
+// ReadOnlyDataStat class template.
+template <class T>
+inline SExpr mkSExpr(const T& x) {
+  std::stringstream ss;
+  ss << x;
+  return ss.str();
+}
+
+template <>
+inline SExpr mkSExpr(const uint64_t& x) {
+  return Integer(x);
+}
+
+template <>
+inline SExpr mkSExpr(const int64_t& x) {
+  return Integer(x);
+}
+
+template <>
+inline SExpr mkSExpr(const int& x) {
+  return Integer(x);
+}
+
+template <>
+inline SExpr mkSExpr(const Integer& x) {
+  return x;
+}
+
+template <>
+inline SExpr mkSExpr(const double& x) {
+  // roundabout way to get a Rational from a double
+  std::stringstream ss;
+  ss << std::fixed << x;
+  return Rational::fromDecimal(ss.str());
+}
+
+template <>
+inline SExpr mkSExpr(const Rational& x) {
+  return x;
+}
 
 /**
  * A class to represent a "read-only" data statistic of type T.  Adds to
@@ -132,7 +167,7 @@ public:
  * std::ostream& operator<<(std::ostream&, const T&)
  */
 template <class T>
-class CVC4_PUBLIC ReadOnlyDataStat : public Stat {
+class ReadOnlyDataStat : public Stat {
 public:
   /** The "payload" type of this data statistic (that is, T). */
   typedef T payload_t;
@@ -152,6 +187,10 @@ public:
     }
   }
 
+  SExpr getValue() const {
+    return mkSExpr(getData());
+  }
+
 };/* class ReadOnlyDataStat<T> */
 
 
@@ -167,7 +206,7 @@ public:
  * std::ostream& operator<<(std::ostream&, const T&)
  */
 template <class T>
-class CVC4_PUBLIC DataStat : public ReadOnlyDataStat<T> {
+class DataStat : public ReadOnlyDataStat<T> {
 public:
 
   /** Construct a data statistic with the given name. */
@@ -197,7 +236,7 @@ public:
  * Template class T must have an assignment operator=().
  */
 template <class T>
-class CVC4_PUBLIC ReferenceStat : public DataStat<T> {
+class ReferenceStat : public DataStat<T> {
 private:
   /** The referenced data cell */
   const T* d_data;
@@ -247,7 +286,7 @@ public:
  * Template class T must have an operator=() and a copy constructor.
  */
 template <class T>
-class CVC4_PUBLIC BackedStat : public DataStat<T> {
+class BackedStat : public DataStat<T> {
 protected:
   /** The internally-kept statistic value */
   T d_data;
@@ -300,7 +339,7 @@ public:
  * giving it a globally unique name.
  */
 template <class Stat>
-class CVC4_PUBLIC WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
+class WrappedStat : public ReadOnlyDataStat<typename Stat::payload_t> {
   typedef typename Stat::payload_t T;
 
   const ReadOnlyDataStat<T>& d_stat;
@@ -330,6 +369,10 @@ public:
     }
   }
 
+  SExpr getValue() const {
+    return d_stat.getValue();
+  }
+
 };/* class WrappedStat<T> */
 
 /**
@@ -337,7 +380,7 @@ public:
  * This doesn't functionally differ from its base class BackedStat<int64_t>,
  * except for adding convenience functions for dealing with integers.
  */
-class CVC4_PUBLIC IntStat : public BackedStat<int64_t> {
+class IntStat : public BackedStat<int64_t> {
 public:
 
   /**
@@ -359,7 +402,7 @@ public:
   /** Increment the underlying integer statistic by the given amount. */
   IntStat& operator+=(int64_t val) {
     if(__CVC4_USE_STATISTICS) {
-      d_data+= val;
+      d_data += val;
     }
     return *this;
   }
@@ -382,6 +425,10 @@ public:
     }
   }
 
+  SExpr getValue() const {
+    return SExpr(Integer(d_data));
+  }
+
 };/* class IntStat */
 
 template <class T>
@@ -394,13 +441,13 @@ public:
   ~SizeStat() {}
 
   void flushInformation(std::ostream& out) const {
-    out<< d_sized.size();
+    out << d_sized.size();
   }
-  std::string getValue() const {
-    std::stringstream ss;
-    flushInformation(ss);
-    return ss.str();
+
+  SExpr getValue() const {
+    return SExpr(Integer(d_sized.size()));
   }
+
 };/* class SizeStat */
 
 /**
@@ -414,7 +461,7 @@ public:
  * running count, so should generally be avoided.  Call addEntry() to add
  * an entry to the average calculation.
  */
-class CVC4_PUBLIC AverageStat : public BackedStat<double> {
+class AverageStat : public BackedStat<double> {
 private:
   /**
    * The number of accumulations of the running average that we
@@ -438,10 +485,34 @@ public:
     }
   }
 
+  SExpr getValue() const {
+    std::stringstream ss;
+    ss << d_data;
+    return SExpr(Rational::fromDecimal(ss.str()));
+  }
+
 };/* class AverageStat */
 
+/** A statistic that contains a SExpr. */
+class SExprStat : public BackedStat<SExpr> {
+public:
+
+  /**
+   * Construct a SExpr-valued statistic with the given name and
+   * initial value.
+   */
+  SExprStat(const std::string& name, const SExpr& init) :
+    BackedStat<SExpr>(name, init) {
+  }
+
+  SExpr getValue() const {
+    return d_data;
+  }
+
+};/* class SExprStat */
+
 template <class T>
-class CVC4_PUBLIC ListStat : public Stat{
+class ListStat : public Stat {
 private:
   typedef std::vector<T> List;
   List d_list;
@@ -486,23 +557,12 @@ public:
  * The main statistics registry.  This registry maintains the list of
  * currently active statistics and is able to "flush" them all.
  */
-class CVC4_PUBLIC StatisticsRegistry : public Stat {
+class StatisticsRegistry : public StatisticsBase, public Stat {
 private:
-  /** A helper class for comparing two statistics */
-  struct StatCmp {
-    inline bool operator()(const Stat* s1, const Stat* s2) const;
-  };/* class StatisticsRegistry::StatCmp */
-
-  /** A type for a set of statistics */
-  typedef std::set< Stat*, StatCmp > StatSet;
-
-  /** The set of currently active statistics */
-  StatSet d_registeredStats;
 
   /** Private copy constructor undefined (no copy permitted). */
   StatisticsRegistry(const StatisticsRegistry&) CVC4_UNDEFINED;
 
-  static std::string s_regDelim;
 public:
 
   /** Construct an nameless statistics registry */
@@ -511,81 +571,56 @@ public:
   /** Construct a statistics registry */
   StatisticsRegistry(const std::string& name) throw(CVC4::AssertionException) :
     Stat(name) {
+    d_prefix = name;
     if(__CVC4_USE_STATISTICS) {
       AlwaysAssert(d_name.find(s_regDelim) == std::string::npos);
     }
   }
 
-  /** 
+  /**
    * Set the name of this statistic registry, used as prefix during
-   * output.
-   *
-   * TODO: Get rid of this function once we have ability to set the
-   * name of StatisticsRegistry at creation time.
+   * output.  (This version overrides StatisticsBase::setPrefix().)
    */
-  void setName(const std::string& name) {
-    d_name = name;
+  void setPrefix(const std::string& name) {
+    d_prefix = d_name = name;
   }
 
-  /** An iterator type over a set of statistics */
-  typedef StatSet::const_iterator const_iterator;
-
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
   /** Get a pointer to the current statistics registry */
   static StatisticsRegistry* current();
-
-  /** Flush all statistics to the given output stream. */
-  void flushInformation(std::ostream& out) const;
-
-  /** Obsolete flushStatistics -- use flushInformation */
-  //void flushStatistics(std::ostream& out) const;
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && ! __BUILDING_STATISTICS_FOR_EXPORT */
 
   /** Overridden to avoid the name being printed */
   void flushStat(std::ostream &out) const;
 
+  virtual void flushInformation(std::ostream& out) const;
+
+  SExpr getValue() const {
+    std::vector<SExpr> v;
+    for(StatSet::iterator i = d_stats.begin(); i != d_stats.end(); ++i) {
+      std::vector<SExpr> w;
+      w.push_back((*i)->getName());
+      w.push_back((*i)->getValue());
+      v.push_back(SExpr(w));
+    }
+    return SExpr(v);
+  }
+
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
   /** Register a new statistic, making it active. */
   static void registerStat(Stat* s) throw(AssertionException);
+
+  /** Unregister an active statistic, making it inactive. */
+  static void unregisterStat(Stat* s) throw(AssertionException);
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB) && ! __BUILDING_STATISTICS_FOR_EXPORT */
 
   /** Register a new statistic */
   void registerStat_(Stat* s) throw(AssertionException);
 
-  /** Unregister an active statistic, making it inactive. */
-  static void unregisterStat(Stat* s) throw(AssertionException);
-
   /** Unregister a new statistic */
   void unregisterStat_(Stat* s) throw(AssertionException);
 
-  /**
-   * Get an iterator to the beginning of the range of the set of active
-   * (registered) statistics.
-   */
-  const_iterator begin_() const;
-
-  /**
-   * Get an iterator to the beginning of the range of the set of active
-   * (registered) statistics.  This version uses the "current"
-   * statistics registry.
-   */
-  static const_iterator begin();
-
-  /**
-   * Get an iterator to the end of the range of the set of active
-   * (registered) statistics.
-   */
-  const_iterator end_() const;
-
-  /**
-   * Get an iterator to the end of the range of the set of active
-   * (registered) statistics.  This version uses the "current"
-   * statistics registry.
-   */
-  static const_iterator end();
-
 };/* class StatisticsRegistry */
-
-inline bool StatisticsRegistry::StatCmp::operator()(const Stat* s1,
-                                                    const Stat* s2) const {
-  return s1->getName() < s2->getName();
-}
 
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
@@ -685,21 +720,20 @@ inline bool operator>=(const timespec& a, const timespec& b) {
 }
 
 /** Output a timespec on an output stream. */
-inline std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const timespec& t) {
   // assumes t.tv_nsec is in range
   return os << t.tv_sec << "."
             << std::setfill('0') << std::setw(8) << std::right << t.tv_nsec;
 }
 
-class CVC4_PUBLIC CodeTimer;
+class CodeTimer;
 
 /**
  * A timer statistic.  The timer can be started and stopped
  * arbitrarily, like a stopwatch; the value of the statistic at the
  * end is the accumulated time over all (start,stop) pairs.
  */
-class CVC4_PUBLIC TimerStat : public BackedStat<timespec> {
+class TimerStat : public BackedStat<timespec> {
 
   // strange: timespec isn't placed in 'std' namespace ?!
   /** The last start time of this timer */
@@ -733,6 +767,12 @@ public:
    */
   void stop();
 
+  SExpr getValue() const {
+    std::stringstream ss;
+    ss << std::fixed << d_data;
+    return SExpr(Rational::fromDecimal(ss.str()));
+  }
+
 };/* class TimerStat */
 
 
@@ -741,7 +781,7 @@ public:
  * code block.  When constructed, it starts the timer.  When
  * destructed, it stops the timer.
  */
-class CVC4_PUBLIC CodeTimer {
+class CodeTimer {
   TimerStat& d_timer;
 
   /** Private copy constructor undefined (no copy permitted). */
@@ -796,16 +836,21 @@ public:
  * registration/unregistration.  This RAII class only does
  * registration and unregistration.
  */
-class CVC4_PUBLIC RegisterStatistic {
+class RegisterStatistic {
+
   StatisticsRegistry* d_reg;
   Stat* d_stat;
+
 public:
+
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && ! defined(__BUILDING_STATISTICS_FOR_EXPORT)
   RegisterStatistic(Stat* stat) :
       d_reg(StatisticsRegistry::current()),
       d_stat(stat) {
     Assert(d_reg != NULL, "There is no current statistics registry!");
     StatisticsRegistry::registerStat(d_stat);
   }
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && ! __BUILDING_STATISTICS_FOR_EXPORT */
 
   RegisterStatistic(StatisticsRegistry* reg, Stat* stat) :
     d_reg(reg),
@@ -830,4 +875,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__STATS_H */
+#endif /* __CVC4__STATISTICS_REGISTRY_H */

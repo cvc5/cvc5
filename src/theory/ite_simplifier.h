@@ -39,7 +39,7 @@
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/hash.h"
 #include "util/cache.h"
 #include "util/ite_removal.h"

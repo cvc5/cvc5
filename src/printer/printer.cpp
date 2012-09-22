@@ -95,7 +95,7 @@ void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
   if(sexpr.isInteger()) {
     out << sexpr.getIntegerValue();
   } else if(sexpr.isRational()) {
-    out << sexpr.getRationalValue();
+    out << fixed << sexpr.getRationalValue().getDouble();
   } else if(sexpr.isKeyword()) {
     out << sexpr.getValue();
   } else if(sexpr.isString()) {

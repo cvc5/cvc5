@@ -22,7 +22,7 @@
 #include "cvc4_private.h"
 #include "theory/theory.h"
 #include "context/context.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "expr/command.h"
 #include <sstream>

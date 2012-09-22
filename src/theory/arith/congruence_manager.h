@@ -33,7 +33,7 @@
 #include "context/cdtrail_queue.h"
 #include "context/cdmaybe.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/dense_map.h"
 
 namespace CVC4 {

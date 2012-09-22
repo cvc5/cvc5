@@ -27,7 +27,8 @@
 #include "expr/type.h"
 #include "expr/expr.h"
 #include "util/subrange_bound.h"
-#include "util/stats.h"
+#include "util/statistics.h"
+#include "util/sexpr.h"
 
 ${includes}
 
@@ -35,7 +36,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 39 "${template}"
+#line 40 "${template}"
 
 namespace CVC4 {
 
@@ -454,7 +455,10 @@ public:
   Expr mkBoundVar(Type type);
 
   /** Get a reference to the statistics registry for this ExprManager */
-  StatisticsRegistry* getStatisticsRegistry() const throw();
+  Statistics getStatistics() const throw();
+
+  /** Get a reference to the statistics registry for this ExprManager */
+  SExpr getStatistic(const std::string& name) const throw();
 
   /** Export an expr to a different ExprManager */
   //static Expr exportExpr(const Expr& e, ExprManager* em);

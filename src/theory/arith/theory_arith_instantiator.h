@@ -23,7 +23,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/arith/arithvar_node_map.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

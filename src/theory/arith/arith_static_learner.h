@@ -23,7 +23,7 @@
 #define __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/substitutions.h"
 #include <set>

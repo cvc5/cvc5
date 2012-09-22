@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "context/cdhashset.h"
 
 namespace CVC4 {

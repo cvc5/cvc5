@@ -20,8 +20,10 @@
 #include <string>
 
 #include "options/options.h"
+#include "expr/expr_manager.h"
+#include "smt/smt_engine.h"
 #include "util/exception.h"
-#include "util/stats.h"
+#include "util/statistics.h"
 #include "util/tls.h"
 #include "cvc4autoconfig.h"
 
@@ -31,14 +33,16 @@
 namespace CVC4 {
 namespace main {
 
+class CommandExecutor;
+
 /** Full argv[0] */
 extern const char* progPath;
 
 /** Just the basename component of argv[0] */
 extern const char* progName;
 
-/** A reference to the StatisticsRegistry for use by the signal handlers */
-extern CVC4::StatisticsRegistry* pStatistics;
+/** A reference for use by the signal handlers to print statistics */
+extern CVC4::main::CommandExecutor* pExecutor;
 
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.

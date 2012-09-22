@@ -21,7 +21,7 @@
 #include "expr/variable_type_map.h"
 #include "context/context.h"
 #include "options/options.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include <map>
 
@@ -906,8 +906,12 @@ Context* ExprManager::getContext() const {
   return d_ctxt;
 }
 
-StatisticsRegistry* ExprManager::getStatisticsRegistry() const throw() {
-  return d_nodeManager->getStatisticsRegistry();
+Statistics ExprManager::getStatistics() const throw() {
+  return Statistics(*d_nodeManager->getStatisticsRegistry());
+}
+
+SExpr ExprManager::getStatistic(const std::string& name) const throw() {
+  return d_nodeManager->getStatisticsRegistry()->getStatistic(name);
 }
 
 namespace expr {

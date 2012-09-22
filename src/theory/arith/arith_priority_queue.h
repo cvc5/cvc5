@@ -28,7 +28,7 @@
 #include "theory/arith/matrix.h"
 #include "theory/arith/partial_model.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include <vector>
 

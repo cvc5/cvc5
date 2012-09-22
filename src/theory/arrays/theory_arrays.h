@@ -23,7 +23,7 @@
 
 #include "theory/theory.h"
 #include "theory/arrays/array_info.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/uf/equality_engine.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"

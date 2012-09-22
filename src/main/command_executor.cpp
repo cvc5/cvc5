@@ -24,16 +24,11 @@
 namespace CVC4 {
 namespace main {
 
-
 CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options):
   d_exprMgr(exprMgr),
   d_smtEngine(SmtEngine(&exprMgr)),
-  d_options(options) {
-  
-  // signal handlers need access
-  main::pStatistics = d_smtEngine.getStatisticsRegistry();
-  d_exprMgr.getStatisticsRegistry()->setName("ExprManager");
-  main::pStatistics->registerStat_(d_exprMgr.getStatisticsRegistry());
+  d_options(options),
+  d_stats("driver") {
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -89,5 +84,5 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
   return !cmd->fail();
 }
 
-}/*main namespace*/
-}/*CVC4 namespace*/
+}/* CVC4::main namespace */
+}/* CVC4 namespace */

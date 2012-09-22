@@ -23,7 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "prop/bvminisat/mtl/Queue.h"
 #include "prop/bvminisat/core/Solver.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "context/context.h"
 
 namespace BVMinisat {

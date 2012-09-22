@@ -23,7 +23,7 @@
 #define __CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
 #include "theory/rewriter.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

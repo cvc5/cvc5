@@ -23,7 +23,7 @@
 
 #include "theory/theory.h"
 #include "util/hash.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include <ext/hash_set>
 #include <iostream>

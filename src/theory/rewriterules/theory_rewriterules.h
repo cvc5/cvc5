@@ -30,7 +30,7 @@
 #include "theory/rewriterules/rr_inst_match_impl.h"
 #include "theory/rewriterules/rr_trigger.h"
 #include "theory/rewriterules/rr_inst_match.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
 #include "theory/model.h"
 

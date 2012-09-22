@@ -24,7 +24,7 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/rewriterules/rr_inst_match.h"
 
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 #include <ext/hash_set>
 #include <iostream>

@@ -52,7 +52,7 @@
 
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

@@ -19,6 +19,12 @@
 
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
+#include "util/statistics_registry.h"
+#include "options/options.h"
+#include "expr/command.h"
+
+#include <string>
+#include <iostream>
 
 namespace CVC4 {
 namespace main {
@@ -29,6 +35,7 @@ protected:
   ExprManager& d_exprMgr;
   SmtEngine d_smtEngine;
   Options& d_options;
+  StatisticsRegistry d_stats;
 
 public:
   // Note: though the options are not cached (instead a reference is
@@ -47,6 +54,16 @@ public:
   bool doCommand(CVC4::Command* cmd);
 
   virtual std::string getSmtEngineStatus();
+
+  StatisticsRegistry& getStatisticsRegistry() {
+    return d_stats;
+  }
+
+  virtual void flushStatistics(std::ostream& out) const {
+    d_exprMgr.getStatistics().flushInformation(out);
+    d_smtEngine.getStatistics().flushInformation(out);
+    d_stats.flushInformation(out);
+  }
 
 protected:
   /** Executes treating cmd as a singleton */

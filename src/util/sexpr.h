@@ -23,6 +23,8 @@
 
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include "util/integer.h"
 #include "util/rational.h"
@@ -151,6 +153,12 @@ public:
    */
   const std::vector<SExpr>& getChildren() const;
 
+  /** Is this S-expression equal to another? */
+  bool operator==(const SExpr& s) const;
+
+  /** Is this S-expression different from another? */
+  bool operator!=(const SExpr& s) const;
+
 };/* class SExpr */
 
 inline bool SExpr::isAtom() const {
@@ -178,8 +186,15 @@ inline std::string SExpr::getValue() const {
   switch(d_sexprType) {
   case SEXPR_INTEGER:
     return d_integerValue.toString();
-  case SEXPR_RATIONAL:
-    return d_rationalValue.toString();
+  case SEXPR_RATIONAL: {
+    // We choose to represent rationals as decimal strings rather than
+    // "numerator/denominator."  Perhaps an additional SEXPR_DECIMAL
+    // could be added if we need both styles, even if it's backed by
+    // the same Rational object.
+    std::stringstream ss;
+    ss << std::fixed << d_rationalValue.getDouble();
+    return ss.str();
+  }
   case SEXPR_STRING:
   case SEXPR_KEYWORD:
     return d_stringValue;
@@ -202,6 +217,18 @@ inline const CVC4::Rational& SExpr::getRationalValue() const {
 inline const std::vector<SExpr>& SExpr::getChildren() const {
   AlwaysAssert( !isAtom() );
   return d_children;
+}
+
+inline bool SExpr::operator==(const SExpr& s) const {
+  return d_sexprType == s.d_sexprType &&
+         d_integerValue == s.d_integerValue &&
+         d_rationalValue == s.d_rationalValue &&
+         d_stringValue == s.d_stringValue &&
+         d_children == s.d_children;
+}
+
+inline bool SExpr::operator!=(const SExpr& s) const {
+  return !(*this == s);
 }
 
 std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_PUBLIC;

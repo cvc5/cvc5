@@ -67,6 +67,7 @@ CLEANFILES = \
 	svninfo
 
 EXTRA_DIST = \
+	include/cvc4_private_library.h \
 	include/cvc4parser_private.h \
 	include/cvc4parser_public.h \
 	include/cvc4_private.h \

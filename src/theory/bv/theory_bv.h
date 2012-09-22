@@ -26,7 +26,7 @@
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "context/cdqueue.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_subtheory_eq.h"

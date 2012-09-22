@@ -97,6 +97,76 @@ public:
   Node getFormula() const { return d_formula; }
 };/* class DefinedFunction */
 
+struct SmtEngineStatistics {
+  /** time spent in definition-expansion */
+  TimerStat d_definitionExpansionTime;
+  /** time spent in non-clausal simplification */
+  TimerStat d_nonclausalSimplificationTime;
+  /** Num of constant propagations found during nonclausal simp */
+  IntStat d_numConstantProps;
+  /** time spent in static learning */
+  TimerStat d_staticLearningTime;
+  /** time spent in simplifying ITEs */
+  TimerStat d_simpITETime;
+  /** time spent in simplifying ITEs */
+  TimerStat d_unconstrainedSimpTime;
+  /** time spent removing ITEs */
+  TimerStat d_iteRemovalTime;
+  /** time spent in theory preprocessing */
+  TimerStat d_theoryPreprocessTime;
+  /** time spent converting to CNF */
+  TimerStat d_cnfConversionTime;
+  /** Num of assertions before ite removal */
+  IntStat d_numAssertionsPre;
+  /** Num of assertions after ite removal */
+  IntStat d_numAssertionsPost;
+  /** time spent in checkModel() */
+  TimerStat d_checkModelTime;
+
+  SmtEngineStatistics() :
+    d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
+    d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
+    d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
+    d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
+    d_simpITETime("smt::SmtEngine::simpITETime"),
+    d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
+    d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
+    d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
+    d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
+    d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
+    d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
+    d_checkModelTime("smt::SmtEngine::checkModelTime") {
+
+    StatisticsRegistry::registerStat(&d_definitionExpansionTime);
+    StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
+    StatisticsRegistry::registerStat(&d_numConstantProps);
+    StatisticsRegistry::registerStat(&d_staticLearningTime);
+    StatisticsRegistry::registerStat(&d_simpITETime);
+    StatisticsRegistry::registerStat(&d_unconstrainedSimpTime);
+    StatisticsRegistry::registerStat(&d_iteRemovalTime);
+    StatisticsRegistry::registerStat(&d_theoryPreprocessTime);
+    StatisticsRegistry::registerStat(&d_cnfConversionTime);
+    StatisticsRegistry::registerStat(&d_numAssertionsPre);
+    StatisticsRegistry::registerStat(&d_numAssertionsPost);
+    StatisticsRegistry::registerStat(&d_checkModelTime);
+  }
+
+  ~SmtEngineStatistics() {
+    StatisticsRegistry::unregisterStat(&d_definitionExpansionTime);
+    StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
+    StatisticsRegistry::unregisterStat(&d_numConstantProps);
+    StatisticsRegistry::unregisterStat(&d_staticLearningTime);
+    StatisticsRegistry::unregisterStat(&d_simpITETime);
+    StatisticsRegistry::unregisterStat(&d_unconstrainedSimpTime);
+    StatisticsRegistry::unregisterStat(&d_iteRemovalTime);
+    StatisticsRegistry::unregisterStat(&d_theoryPreprocessTime);
+    StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
+    StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
+    StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
+    StatisticsRegistry::unregisterStat(&d_checkModelTime);
+  }
+};/* struct SmtEngineStatistics */
+
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -317,33 +387,10 @@ SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
   d_status(),
   d_private(new smt::SmtEnginePrivate(*this)),
   d_statisticsRegistry(new StatisticsRegistry()),
-  d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-  d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
-  d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-  d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
-  d_simpITETime("smt::SmtEngine::simpITETime"),
-  d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
-  d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
-  d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
-  d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
-  d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
-  d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-  d_checkModelTime("smt::SmtEngine::checkModelTime") {
+  d_stats(NULL) {
 
   SmtScope smts(this);
-
-  StatisticsRegistry::registerStat(&d_definitionExpansionTime);
-  StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
-  StatisticsRegistry::registerStat(&d_numConstantProps);
-  StatisticsRegistry::registerStat(&d_staticLearningTime);
-  StatisticsRegistry::registerStat(&d_simpITETime);
-  StatisticsRegistry::registerStat(&d_unconstrainedSimpTime);
-  StatisticsRegistry::registerStat(&d_iteRemovalTime);
-  StatisticsRegistry::registerStat(&d_theoryPreprocessTime);
-  StatisticsRegistry::registerStat(&d_cnfConversionTime);
-  StatisticsRegistry::registerStat(&d_numAssertionsPre);
-  StatisticsRegistry::registerStat(&d_numAssertionsPost);
-  StatisticsRegistry::registerStat(&d_checkModelTime);
+  d_stats = new SmtEngineStatistics();
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -484,18 +531,7 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
-    StatisticsRegistry::unregisterStat(&d_definitionExpansionTime);
-    StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
-    StatisticsRegistry::unregisterStat(&d_numConstantProps);
-    StatisticsRegistry::unregisterStat(&d_staticLearningTime);
-    StatisticsRegistry::unregisterStat(&d_simpITETime);
-    StatisticsRegistry::unregisterStat(&d_unconstrainedSimpTime);
-    StatisticsRegistry::unregisterStat(&d_iteRemovalTime);
-    StatisticsRegistry::unregisterStat(&d_theoryPreprocessTime);
-    StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
-    StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
-    StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
-    StatisticsRegistry::unregisterStat(&d_checkModelTime);
+    delete d_stats;
 
     delete d_private;
 
@@ -777,20 +813,20 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
   if(key == "all-statistics") {
     vector<SExpr> stats;
-    for(StatisticsRegistry::const_iterator i = d_exprManager->getStatisticsRegistry()->begin_();
-        i != d_exprManager->getStatisticsRegistry()->end_();
+    for(StatisticsRegistry::const_iterator i = NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->begin();
+        i != NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->end();
         ++i) {
       vector<SExpr> v;
-      v.push_back((*i)->getName());
-      v.push_back((*i)->getValue());
+      v.push_back((*i).first);
+      v.push_back((*i).second);
       stats.push_back(v);
     }
-    for(StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin_();
-        i != d_statisticsRegistry->end_();
+    for(StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
+        i != d_statisticsRegistry->end();
         ++i) {
       vector<SExpr> v;
-      v.push_back((*i)->getName());
-      v.push_back((*i)->getValue());
+      v.push_back((*i).first);
+      v.push_back((*i).second);
       stats.push_back(v);
     }
     return stats;
@@ -979,7 +1015,7 @@ void SmtEnginePrivate::removeITEs() {
 void SmtEnginePrivate::staticLearning() {
   d_smt.finalOptionsAreSet();
 
-  TimerStat::CodeTimer staticLearningTimer(d_smt.d_staticLearningTime);
+  TimerStat::CodeTimer staticLearningTimer(d_smt.d_stats->d_staticLearningTime);
 
   Trace("simplify") << "SmtEnginePrivate::staticLearning()" << endl;
 
@@ -1001,7 +1037,7 @@ void SmtEnginePrivate::staticLearning() {
 bool SmtEnginePrivate::nonClausalSimplify() {
   d_smt.finalOptionsAreSet();
 
-  TimerStat::CodeTimer nonclausalTimer(d_smt.d_nonclausalSimplificationTime);
+  TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
@@ -1044,7 +1080,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       if (learnedLiteralNew == learnedLiteral) {
         break;
       }
-      ++d_smt.d_numConstantProps;
+      ++d_smt.d_stats->d_numConstantProps;
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
     // It might just simplify to a constant
@@ -1174,7 +1210,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       if (assertionNew == assertion) {
         break;
       }
-      ++d_smt.d_numConstantProps;
+      ++d_smt.d_stats->d_numConstantProps;
       assertion = Rewriter::rewrite(assertionNew);
     }
     s.insert(assertion);
@@ -1222,7 +1258,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       if (learnedNew == learned) {
         break;
       }
-      ++d_smt.d_numConstantProps;
+      ++d_smt.d_stats->d_numConstantProps;
       learned = Rewriter::rewrite(learnedNew);
     }
     if (s.find(learned) != s.end()) {
@@ -1258,9 +1294,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 }
 
 
-void SmtEnginePrivate::simpITE()
-{
-  TimerStat::CodeTimer simpITETimer(d_smt.d_simpITETime);
+void SmtEnginePrivate::simpITE() {
+  TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
 
   Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
 
@@ -1271,9 +1306,8 @@ void SmtEnginePrivate::simpITE()
 }
 
 
-void SmtEnginePrivate::unconstrainedSimp()
-{
-  TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_unconstrainedSimpTime);
+void SmtEnginePrivate::unconstrainedSimp() {
+  TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
 
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
   d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertionsToCheck);
@@ -1362,7 +1396,7 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP) {
-      TimerStat::CodeTimer codeTimer(d_smt.d_theoryPreprocessTime);
+      TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
       // Call the theory preprocessors
       d_smt.d_theoryEngine->preprocessStart();
       for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
@@ -1503,7 +1537,7 @@ void SmtEnginePrivate::processAssertions() {
   {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_definitionExpansionTime);
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
     hash_map<Node, Node, NodeHashFunction> cache;
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       d_assertionsToPreprocess[i] =
@@ -1535,11 +1569,11 @@ void SmtEnginePrivate::processAssertions() {
 
   {
     Chat() << "removing term ITEs..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_iteRemovalTime);
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_iteRemovalTime);
     // Remove ITEs, updating d_iteSkolemMap
-    d_smt.d_numAssertionsPre += d_assertionsToCheck.size();
+    d_smt.d_stats->d_numAssertionsPre += d_assertionsToCheck.size();
     removeITEs();
-    d_smt.d_numAssertionsPost += d_assertionsToCheck.size();
+    d_smt.d_stats->d_numAssertionsPost += d_assertionsToCheck.size();
   }
 
   if(options::repeatSimp()) {
@@ -1585,7 +1619,7 @@ void SmtEnginePrivate::processAssertions() {
 
   {
     Chat() << "theory preprocessing..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_theoryPreprocessTime);
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
     // Call the theory preprocessors
     d_smt.d_theoryEngine->preprocessStart();
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
@@ -1615,7 +1649,7 @@ void SmtEnginePrivate::processAssertions() {
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_cnfConversionTime);
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
     }
@@ -2016,7 +2050,7 @@ void SmtEngine::checkModel() throw(InternalErrorException) {
   // so we should be ok.
   Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
 
-  TimerStat::CodeTimer checkModelTimer(d_checkModelTime);
+  TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
   // Throughout, we use Notice() to give diagnostic output.
   //
@@ -2321,8 +2355,12 @@ unsigned long SmtEngine::getTimeRemaining() const throw(ModalException) {
     d_timeBudgetCumulative - d_cumulativeTimeUsed;
 }
 
-StatisticsRegistry* SmtEngine::getStatisticsRegistry() const {
-  return d_statisticsRegistry;
+Statistics SmtEngine::getStatistics() const throw() {
+  return Statistics(*d_statisticsRegistry);
+}
+
+SExpr SmtEngine::getStatistic(std::string name) const throw() {
+  return d_statisticsRegistry->getStatistic(name);
 }
 
 void SmtEngine::printModel( std::ostream& out, Model* m ){

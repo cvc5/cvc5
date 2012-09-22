@@ -61,7 +61,7 @@
 
 #include "util/dense_map.h"
 #include "options/options.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/result.h"
 
 #include <queue>

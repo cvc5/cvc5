@@ -38,7 +38,7 @@
 #include "theory/valuation.h"
 #include "options/options.h"
 #include "smt/options.h"
-#include "util/stats.h"
+#include "util/statistics_registry.h"
 #include "util/hash.h"
 #include "util/cache.h"
 #include "theory/ite_simplifier.h"

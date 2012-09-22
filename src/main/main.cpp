@@ -26,6 +26,7 @@
 
 #include "main/main.h"
 #include "main/interactive_shell.h"
+#include "main/command_executor.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
@@ -38,7 +39,7 @@
 #include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
-#include "util/stats.h"
+#include "util/statistics.h"
 
 using namespace std;
 using namespace CVC4;
@@ -66,8 +67,8 @@ int main(int argc, char* argv[]) {
     *opts[options::out] << "unknown" << endl;
 #endif
     *opts[options::err] << "CVC4 Error:" << endl << e << endl;
-    if(opts[options::statistics] && pStatistics != NULL) {
-      pStatistics->flushInformation(*opts[options::err]);
+    if(opts[options::statistics] && pExecutor != NULL) {
+      pExecutor->flushStatistics(*opts[options::err]);
     }
   }
   exit(1);

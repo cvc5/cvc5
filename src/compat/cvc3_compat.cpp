@@ -2335,12 +2335,12 @@ void ValidityChecker::loadFile(std::istream& is,
   delete p;
 }
 
-Statistics& ValidityChecker::getStatistics() {
-  return *d_smt->getStatisticsRegistry();
+Statistics ValidityChecker::getStatistics() {
+  return d_smt->getStatistics();
 }
 
 void ValidityChecker::printStatistics() {
-  Message() << d_smt->getStatisticsRegistry();
+  d_smt->getStatistics().flushInformation(Message.getStream());
 }
 
 int compare(const Expr& e1, const Expr& e2) {
