@@ -260,6 +260,7 @@ void EqualityEngine::addTerm(TNode t) {
     addTerm(tOp);
     // Add all the children and Curryfy
     result = getNodeId(tOp);
+    d_isInternal[result] = true;
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
       // Add the child
       addTerm(t[i]);
