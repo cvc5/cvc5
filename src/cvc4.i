@@ -136,7 +136,7 @@ using namespace CVC4;
 
 %include "util/integer.i"
 %include "util/rational.i"
-%include "util/stats.i"
+%include "util/statistics.i"
 %include "util/exception.i"
 %include "util/language.i"
 %include "options/options.i"

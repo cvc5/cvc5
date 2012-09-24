@@ -810,7 +810,6 @@ function handle_alias {
       expect_arg_long=required_argument
       arg="$(echo "$option" | sed 's,[^=]*=\(.*\),\1,')"
       option="$(echo "$option" | sed 's,--,,;s,=.*,,')"
-      echo "warning: not yet handling long-option alias =$arg" >&2
     else
       expect_arg_long=no_argument
       arg=
@@ -831,7 +830,6 @@ function handle_alias {
       expect_arg=:
       arg="$(echo "$option" | sed 's,[^=]*=,,')"
       option="$(echo "$option" | sed 's,-\(.\)=.*,\1,')"
-      echo "warning: not yet handling short-option alias =$arg" >&2
     else
       expect_arg=
       arg=

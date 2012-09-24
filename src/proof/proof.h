@@ -16,6 +16,8 @@
  ** Proof manager
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__PROOF__PROOF_H
 #define __CVC4__PROOF__PROOF_H
 
@@ -30,7 +32,5 @@
 #  define NULLPROOF(x) NULL
 #  define PROOF_ON() false
 #endif /* CVC4_PROOF */
-
-
 
 #endif /* __CVC4__PROOF__PROOF_H */

@@ -30,6 +30,8 @@
  ** path from the root to the node go through a justified node.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__DECISION__RELEVANCY
 #define __CVC4__DECISION__RELEVANCY
 

@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__THEORY__REWRITERULES__THEORY_REWRITERULES_PARAMS_H
 #define __CVC4__THEORY__REWRITERULES__THEORY_REWRITERULES_PARAMS_H
 

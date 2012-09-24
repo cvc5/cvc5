@@ -148,7 +148,7 @@ template <>
 inline SExpr mkSExpr(const double& x) {
   // roundabout way to get a Rational from a double
   std::stringstream ss;
-  ss << std::fixed << x;
+  ss << std::fixed << std::setprecision(8) << x;
   return Rational::fromDecimal(ss.str());
 }
 
@@ -487,7 +487,7 @@ public:
 
   SExpr getValue() const {
     std::stringstream ss;
-    ss << d_data;
+    ss << std::fixed << std::setprecision(8) << d_data;
     return SExpr(Rational::fromDecimal(ss.str()));
   }
 
@@ -769,7 +769,7 @@ public:
 
   SExpr getValue() const {
     std::stringstream ss;
-    ss << std::fixed << d_data;
+    ss << std::fixed << std::setprecision(8) << d_data;
     return SExpr(Rational::fromDecimal(ss.str()));
   }
 

@@ -18,6 +18,8 @@
  ** 
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 

@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
+
 #include "smt/smt_engine.h"
 #include "util/tls.h"
 #include "util/Assert.h"

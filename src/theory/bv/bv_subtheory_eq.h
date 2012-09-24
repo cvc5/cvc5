@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "cvc4_private.h"
+
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {

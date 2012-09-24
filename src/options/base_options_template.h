@@ -16,17 +16,19 @@
  ** Contains code for handling command-line options
  **/
 
+#include "cvc4_public.h"
+
 #ifndef __CVC4__OPTIONS__${module_id}_H
 #define __CVC4__OPTIONS__${module_id}_H
 
 #include "options/options.h"
 ${module_includes}
 
-#line 26 "${template}"
+#line 28 "${template}"
 
 ${module_optionholder_spec}
 
-#line 30 "${template}"
+#line 32 "${template}"
 
 namespace CVC4 {
 
@@ -34,19 +36,19 @@ namespace options {
 
 ${module_decls}
 
-#line 38 "${template}"
+#line 40 "${template}"
 
 }/* CVC4::options namespace */
 
 ${module_specializations}
 
-#line 44 "${template}"
+#line 46 "${template}"
 
 namespace options {
 
 ${module_inlines}
 
-#line 50 "${template}"
+#line 52 "${template}"
 
 }/* CVC4::options namespace */
 

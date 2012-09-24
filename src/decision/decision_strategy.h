@@ -16,6 +16,8 @@
  ** Decision strategy
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__DECISION__DECISION_STRATEGY_H
 #define __CVC4__DECISION__DECISION_STRATEGY_H
 
@@ -34,7 +36,7 @@ namespace decision {
 
 class DecisionStrategy {
 protected:
-   DecisionEngine* d_decisionEngine;
+  DecisionEngine* d_decisionEngine;
 public:
   DecisionStrategy(DecisionEngine* de, context::Context *c) :
     d_decisionEngine(de) {

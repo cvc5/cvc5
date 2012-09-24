@@ -18,6 +18,8 @@
  ** 
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__PROOF_MANAGER_H
 #define __CVC4__PROOF_MANAGER_H
 
@@ -26,13 +28,15 @@
 
 // forward declarations
 namespace Minisat {
-class Solver;
+  class Solver;
 }
 
 namespace CVC4 {
+
 namespace prop {
-class CnfStream;
+  class CnfStream;
 }
+
 class Proof;
 class SatProof;
 class CnfProof;
@@ -41,7 +45,7 @@ class CnfProof;
 enum ProofFormat {
   LFSC,
   NATIVE
-};
+};/* enum ProofFormat */
 
 class ProofManager {
   SatProof*   d_satProof;
@@ -61,7 +65,8 @@ public:
   static SatProof* getSatProof();
   static CnfProof* getCnfProof();
 
-};
+};/* class ProofManager */
 
-} /* CVC4 namespace*/ 
+}/* CVC4 namespace */
+
 #endif /* __CVC4__PROOF_MANAGER_H */

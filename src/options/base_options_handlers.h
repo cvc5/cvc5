@@ -17,6 +17,8 @@
  ** \todo document this file
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__BASE_OPTIONS_HANDLERS_H
 #define __CVC4__BASE_OPTIONS_HANDLERS_H
 

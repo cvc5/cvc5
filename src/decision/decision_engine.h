@@ -16,6 +16,8 @@
  ** Decision engine
  **/
 
+#include "cvc4_private.h"
+
 #ifndef __CVC4__DECISION__DECISION_ENGINE_H
 #define __CVC4__DECISION__DECISION_ENGINE_H
 

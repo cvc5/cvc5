@@ -308,9 +308,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   s_totalTime.stop();
 
+  // Set the global executor pointer to NULL first.  If we get a
+  // signal while dumping statistics, we don't want to try again.
+  pExecutor = NULL;
   if(opts[options::statistics]) {
     cmdExecutor.flushStatistics(*opts[options::err]);
   }
-  pExecutor = NULL;
   return returnValue;
 }

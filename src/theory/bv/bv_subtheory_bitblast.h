@@ -16,6 +16,8 @@
  ** Algebraic solver.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
 #include "theory/bv/bv_subtheory.h"

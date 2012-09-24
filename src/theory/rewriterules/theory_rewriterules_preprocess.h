@@ -15,9 +15,10 @@
  **
  **/
 
+#include "cvc4_private.h"
 
-#ifndef __CVC4__REWRITERULES_H
-#define __CVC4__REWRITERULES_H
+#ifndef __CVC4__THEORY__REWRITERULES__THEORY_REWRITERULES_PREPROCESS_H
+#define __CVC4__THEORY__REWRITERULES__THEORY_REWRITERULES_PREPROCESS_H
 
 #include <vector>
 #include <ext/hash_set>
@@ -31,7 +32,7 @@ namespace CVC4 {
 namespace theory {
 namespace rewriterules {
 
-namespace rewriter{
+namespace rewriter {
 
   typedef Node TMPNode;
   typedef std::vector<Node> Subst;
@@ -43,7 +44,7 @@ namespace rewriter{
     /** match the node and add in Vars the found variables */
     virtual Node run(TMPNode node) = 0;
     virtual bool add(TMPNode pattern, TMPNode body, Subst & pvars, Subst & vars) = 0;
-  };
+  };/* struct Step */
 
   struct FinalStep : Step {
     Node body;
@@ -54,7 +55,7 @@ namespace rewriter{
                              subst.begin(), subst.end());
     }
 
-  };
+  };/* struct FinalStep */
 
   typedef std::hash_map< Node, int, NodeHashFunction > PVars;
 
@@ -106,7 +107,7 @@ namespace rewriter{
       return false;
     }
     
-  };
+  };/* struct Pattern */
 
 
   struct Args : Step {
@@ -144,7 +145,7 @@ namespace rewriter{
     void clear(){
       d_matches.clear();
     }
-  };
+  };/* struct Args */
 
 class RRPpRewrite : public uf::TheoryUF::PpRewrite {
   Args d_pattern;
@@ -164,13 +165,14 @@ public:
     return d_pattern.add(pattern,body,pvars,vars);
   }
 
-};
+};/* class RRPpRewrite */
 
 
 
-}
+}/* CVC4::theory::rewriterules::rewriter namespace */
 
-}
-}
-}
-#endif /* __CVC4__REWRITERULES_H */
+}/* CVC4::theory::rewriterules namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__THEORY__REWRITERULES__THEORY_REWRITERULES_PREPROCESS_H */
