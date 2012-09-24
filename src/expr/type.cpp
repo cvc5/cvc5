@@ -411,19 +411,6 @@ Type::operator SubrangeType() const throw(AssertionException) {
   return SubrangeType(*this);
 }
 
-/** Is this a kind type (i.e., the type of a type)? */
-bool Type::isKind() const {
-  NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isKind();
-}
-
-/** Cast to a kind type */
-Type::operator KindType() const throw(AssertionException) {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isNull() || isKind());
-  return KindType(*this);
-}
-
 vector<Type> FunctionType::getArgTypes() const {
   NodeManagerScope nms(d_nodeManager);
   vector<Type> args;
@@ -549,11 +536,6 @@ TupleType::TupleType(const Type& t) throw(AssertionException) :
 ArrayType::ArrayType(const Type& t) throw(AssertionException) :
   Type(t) {
   Assert(isNull() || isArray());
-}
-
-KindType::KindType(const Type& t) throw(AssertionException) :
-  Type(t) {
-  Assert(isNull() || isKind());
 }
 
 SortType::SortType(const Type& t) throw(AssertionException) :

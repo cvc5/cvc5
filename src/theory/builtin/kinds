@@ -251,13 +251,6 @@ sort BUILTIN_OPERATOR_TYPE \
     not-well-founded \
     "Built in type for built in operators"
 
-# Justified because we can have an unbounded-but-finite number of
-# sorts.  Assuming we have |Z| is probably ok for now..
-sort KIND_TYPE \
-    Cardinality::INTEGERS \
-    not-well-founded \
-    "Uninterpreted Sort"
-
 variable SORT_TAG "sort tag"
 parameterized SORT_TYPE SORT_TAG 0: "sort type"
 # This is really "unknown" cardinality, but maybe this will be good

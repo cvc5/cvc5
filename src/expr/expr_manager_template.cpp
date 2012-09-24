@@ -140,11 +140,6 @@ StringType ExprManager::stringType() const {
   return StringType(Type(d_nodeManager, new TypeNode(d_nodeManager->stringType())));
 }
 
-KindType ExprManager::kindType() const {
-  NodeManagerScope nms(d_nodeManager);
-  return KindType(Type(d_nodeManager, new TypeNode(d_nodeManager->kindType())));
-}
-
 RealType ExprManager::realType() const {
   NodeManagerScope nms(d_nodeManager);
   return RealType(Type(d_nodeManager, new TypeNode(d_nodeManager->realType())));

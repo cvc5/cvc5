@@ -436,10 +436,6 @@ bool Expr::isNull() const {
   return d_node->isNull();
 }
 
-Expr::operator bool() const {
-  return !isNull();
-}
-
 bool Expr::isVariable() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");

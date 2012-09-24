@@ -180,7 +180,6 @@ public:
     TypeNode t3 = d_nodeManager->mkSort("T");
     TS_ASSERT( t.isBoolean() );
     TS_ASSERT( !t.isFunction() );
-    TS_ASSERT( !t.isKind() );
     TS_ASSERT( !t.isNull() );
     TS_ASSERT( !t.isPredicate() );
     TS_ASSERT( !t.isSort() );
@@ -191,26 +190,6 @@ public:
     TS_ASSERT_EQUALS( bt, t);
   }
 
-  void testKindType() {
-    TypeNode t = d_nodeManager->kindType();
-    TypeNode t2 = d_nodeManager->kindType();
-    TypeNode t3 = d_nodeManager->mkSort("T");
-
-    TS_ASSERT( !t.isBoolean() );
-    TS_ASSERT( !t.isFunction() );
-    TS_ASSERT( t.isKind() );
-    TS_ASSERT( !t.isNull() );
-    TS_ASSERT( !t.isPredicate() );
-    TS_ASSERT( !t.isSort() );
-
-    TS_ASSERT_EQUALS(t, t2);
-    TS_ASSERT( t != t3);
-
-    TypeNode kt = t;
-    TS_ASSERT_EQUALS( kt, t );
-    // TODO: Is there a way to get the type of otherType (it should == t)?
-  }
-
   void testMkFunctionTypeBoolToBool() {
     TypeNode booleanType = d_nodeManager->booleanType();
     TypeNode t = d_nodeManager->mkFunctionType(booleanType,booleanType);
@@ -218,7 +197,6 @@ public:
 
     TS_ASSERT( !t.isBoolean() );
     TS_ASSERT( t.isFunction() );
-    TS_ASSERT( !t.isKind() );
     TS_ASSERT( !t.isNull() );
     TS_ASSERT( t.isPredicate() );
     TS_ASSERT( !t.isSort() );
@@ -247,7 +225,6 @@ public:
 
     TS_ASSERT( !t.isBoolean() );
     TS_ASSERT( t.isFunction() );
-    TS_ASSERT( !t.isKind() );
     TS_ASSERT( !t.isNull() );
     TS_ASSERT( !t.isPredicate() );
     TS_ASSERT( !t.isSort() );
@@ -278,7 +255,6 @@ public:
 
     TS_ASSERT( !t.isBoolean() );
     TS_ASSERT( t.isFunction() );
-    TS_ASSERT( !t.isKind() );
     TS_ASSERT( !t.isNull() );
     TS_ASSERT( !t.isPredicate() );
     TS_ASSERT( !t.isSort() );
@@ -309,7 +285,6 @@ public:
 
     TS_ASSERT( !t.isBoolean() );
     TS_ASSERT( t.isFunction() );
-    TS_ASSERT( !t.isKind() );
     TS_ASSERT( !t.isNull() );
     TS_ASSERT( t.isPredicate() );
     TS_ASSERT( !t.isSort() );

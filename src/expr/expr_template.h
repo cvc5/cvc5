@@ -148,12 +148,15 @@ struct ExprHashFunction {
   size_t operator()(CVC4::Expr e) const;
 };/* struct ExprHashFunction */
 
+class BoolExpr;
+
 /**
  * Class encapsulating CVC4 expressions and methods for constructing new
  * expressions.
  */
 class CVC4_PUBLIC Expr {
-protected:
+
+  friend class BoolExpr;
 
   /** The internal expression representation */
   NodeTemplate<true>* d_node;
@@ -417,13 +420,6 @@ public:
   bool isNull() const;
 
   /**
-   * Check if this is a null expression.
-   *
-   * @return true if NOT a null expression
-   */
-  operator bool() const;
-
-  /**
    * Check if this is an expression representing a variable.
    *
    * @return true if a variable expression
@@ -525,8 +521,6 @@ private:
    * the ostream.
    */
   void debugPrint();
-
-protected:
 
   /**
    * Returns the actual internal node.
@@ -961,7 +955,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 965 "${template}"
+#line 959 "${template}"
 
 namespace expr {
 

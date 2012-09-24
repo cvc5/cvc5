@@ -1888,7 +1888,7 @@ Expr SmtEngine::getValue(const Expr& e)
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw ModalException(msg);
   }
-  if(type.isKind() || type.isSortConstructor()) {
+  if(type.isSort() || type.isSortConstructor()) {
     const char* msg =
       "Cannot get value of a sort.";
     throw ModalException(msg);

@@ -658,9 +658,6 @@ public:
   /** Get the (singleton) type for strings. */
   inline TypeNode stringType();
 
-  /** Get the (singleton) type for sorts. */
-  inline TypeNode kindType();
-
   /** Get the bound var list type. */
   inline TypeNode boundVarListType();
 
@@ -981,11 +978,6 @@ inline TypeNode NodeManager::realType() {
 /** Get the (singleton) type for strings. */
 inline TypeNode NodeManager::stringType() {
   return TypeNode(mkTypeConst<TypeConstant>(STRING_TYPE));
-}
-
-/** Get the (singleton) type for sorts. */
-inline TypeNode NodeManager::kindType() {
-  return TypeNode(mkTypeConst<TypeConstant>(KIND_TYPE));
 }
 
 /** Get the bound var list type. */

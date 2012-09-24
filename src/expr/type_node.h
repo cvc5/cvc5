@@ -592,10 +592,6 @@ public:
   /** Get the bounds defining this subrange */
   const SubrangeBounds& getSubrangeBounds() const;
 
-  /** Is this a kind type (i.e., the type of a type)? */
-  bool isKind() const;
-
-
   /**
    * Returns the leastUpperBound in the extended type lattice of the two types.
    * If this is \top, i.e. there is no inhabited type that contains both,
@@ -897,12 +893,6 @@ inline bool TypeNode::isPredicateSubtype() const {
 inline bool TypeNode::isSubrange() const {
   return getKind() == kind::SUBRANGE_TYPE ||
     ( isPredicateSubtype() && getSubtypeBaseType().isSubrange() );
-}
-
-/** Is this a kind type (i.e., the type of a type)? */
-inline bool TypeNode::isKind() const {
-  return getKind() == kind::TYPE_CONSTANT &&
-    getConst<TypeConstant>() == KIND_TYPE;
 }
 
 /** Is this a bit-vector type */

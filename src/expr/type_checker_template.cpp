@@ -41,13 +41,10 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
   case kind::BUILTIN:
     typeNode = nodeManager->builtinOperatorType();
     break;
-  case kind::SORT_TYPE:
-    typeNode = nodeManager->kindType();
-    break;
 
 ${typerules}
 
-#line 51 "${template}"
+#line 48 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
@@ -70,7 +67,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 74 "${template}"
+#line 71 "${template}"
 
   default:;
   }

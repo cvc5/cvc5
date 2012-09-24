@@ -57,7 +57,6 @@ class SelectorType;
 class TesterType;
 class FunctionType;
 class TupleType;
-class KindType;
 class SortType;
 class SortConstructorType;
 class PredicateSubtype;
@@ -428,18 +427,6 @@ public:
   operator SubrangeType() const throw(AssertionException);
 
   /**
-   * Is this a kind type (i.e., the type of a type)?
-   * @return true if this is a kind type
-   */
-  bool isKind() const;
-
-  /**
-   * Cast to a kind type
-   * @return the kind type
-   */
-  operator KindType() const throw(AssertionException);
-
-  /**
    * Outputs a string representation of this type to the stream.
    * @param out the stream to output to
    */
@@ -617,17 +604,6 @@ public:
   SubrangeBounds getSubrangeBounds() const;
 
 };/* class SubrangeType */
-
-/**
- * Class encapsulating the kind type (the type of types).
- */
-class CVC4_PUBLIC KindType : public Type {
-
-public:
-
-  /** Construct from the base type */
-  KindType(const Type& type = Type()) throw(AssertionException);
-};/* class KindType */
 
 /**
  * Class encapsulating the bit-vector type.

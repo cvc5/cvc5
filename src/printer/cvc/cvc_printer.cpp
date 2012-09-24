@@ -150,9 +150,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       case BOOLEAN_TYPE:
         out << "BOOLEAN";
         break;
-      case KIND_TYPE:
-        out << "TYPE";
-        break;
       default:
         out << tc;
         break;

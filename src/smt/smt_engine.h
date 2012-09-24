@@ -559,7 +559,10 @@ public:
    */
   SExpr getStatistic(std::string name) const throw();
 
-  Result getStatusOfLastCommand() const {
+  /**
+   * Returns the most recent result of checkSat/query or (set-info :status).
+   */
+  Result getStatusOfLastCommand() const throw() {
     return d_status;
   }
 

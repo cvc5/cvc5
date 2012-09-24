@@ -40,10 +40,10 @@ TESTS =	\
 	v3l60006.cvc \
 	v5l30058.cvc \
 	bug286.cvc \
-	wrong-sel-simp.cvc
+	wrong-sel-simp.cvc \
+	rec2.cvc
 
 FAILING_TESTS = \
-	rec2.cvc \
 	rec5.cvc \
 	datatype-dump.cvc
 
