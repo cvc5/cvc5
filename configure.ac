@@ -721,8 +721,8 @@ AC_MSG_CHECKING([for the relationship between long and int64_t])
 AC_LANG_PUSH([C++])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <stdint.h>
-void foo(long);
-void foo(int64_t);])],
+void foo(long) {}
+void foo(int64_t) {}])],
                   [AC_MSG_RESULT([no relationship detected]); CVC4_NEED_INT64_T_OVERLOADS=1],
                   [AC_MSG_RESULT([typedef or similar]); CVC4_NEED_INT64_T_OVERLOADS=0])
 AC_LANG_POP([C++])
