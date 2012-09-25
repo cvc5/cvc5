@@ -29,13 +29,15 @@ SMT2_TESTS = \
 
 BUG_TESTS = \
 	bug216.smt2 \
-	bug233.cvc
+	bug233.cvc \
+	bug326.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
 	bug216.smt2.expect \
-	bug326.smt2
+	bug394.smt2 \
+	bug396.smt2
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

@@ -1,3 +1,6 @@
+; COMMAND-LINE: --incremental
+; EXIT: 10
+
 (set-logic AUFLIA)
 
 (declare-fun R (Int Int) Bool)

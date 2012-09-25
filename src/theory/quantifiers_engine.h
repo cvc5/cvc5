@@ -94,7 +94,7 @@ protected:
   QuantifiersEngine* d_quantEngine;
 public:
   QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
-  ~QuantifiersModule(){}
+  virtual ~QuantifiersModule(){}
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
   /* Call during check registerQuantifier has already been called */
