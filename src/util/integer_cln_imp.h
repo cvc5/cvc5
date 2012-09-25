@@ -120,8 +120,12 @@ public:
   Integer(  signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-  ~Integer() {}
+#ifdef CVC4_NEED_INT64_T_OVERLOADS
+  Integer( int64_t z) : d_value(static_cast<long>(z)) {}
+  Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
+#endif /* CVC4_NEED_INT64_T_OVERLOADS */
 
+  ~Integer() {}
 
   Integer& operator=(const Integer& x){
     if(this == &x) return *this;

@@ -1153,6 +1153,7 @@ function output_module {
       module_global_definitions \
       template \
       ; do
+    echo -n .
     eval text="\${text//\\\$\\{$var\\}/\${$var}}"
   done
   error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
@@ -1205,10 +1206,12 @@ EOF
 
   ) >"$output.tmp"
 
+  echo -n .
   if diff -q "$output" "$output.tmp" &>/dev/null; then
     rm -f "$output.tmp"
   else
     mv -f "$output.tmp" "$output"
+    echo
     echo "regenerated $output"
   fi
 }
@@ -1308,6 +1311,7 @@ for var in \
     common_manpage_smt_documentation \
     remaining_manpage_smt_documentation \
     ; do
+  echo -n .
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
@@ -1361,8 +1365,10 @@ echo "$text"
 
 ) >"$output.tmp"
 
-diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && echo "regenerated $output")
+echo -n .
+diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && echo && echo "regenerated $output")
 rm -f "$output.tmp"
 
 done
 
+echo

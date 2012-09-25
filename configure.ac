@@ -407,7 +407,7 @@ case "$with_build" in
     if test -z "${enable_muzzle+set}"       ; then enable_muzzle=no                 ; fi
     ;;
   debug) # unoptimized, debug symbols, assertions, tracing, dumping
-    CVC4CPPFLAGS=-DCVC4_DEBUG
+    CVC4CPPFLAGS='-DCVC4_DEBUG'
     CVC4CXXFLAGS='-fno-inline'
     CVC4CFLAGS='-fno-inline'
     CVC4LDFLAGS=
@@ -708,6 +708,25 @@ namespace __gnu_cxx { template<> struct hash<uint64_t> {}; }])],
                   [AC_MSG_RESULT([no]); CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_NEED_HASH_UINT64_T"],
                   [AC_MSG_RESULT([yes])])
 AC_LANG_POP([C++])
+
+# Check whether "long" and "int64_t" are distinct types w.r.t. overloading.
+# Even if they have the same size, they can be distinct, and some platforms
+# can have problems with ambiguous function calls when auto-converting
+# int64_t to long, and others will complain if you overload a function
+# that takes an int64_t with one that takes a long (giving a redefinition
+# error).  So we have to keep both happy.  Probably the same underlying
+# issue as the hash specialization above, but let's check separately
+# for flexibility.
+AC_MSG_CHECKING([for the relationship between long and int64_t])
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <stdint.h>
+void foo(long);
+void foo(int64_t);])],
+                  [AC_MSG_RESULT([no relationship detected]); CVC4_NEED_INT64_T_OVERLOADS=1],
+                  [AC_MSG_RESULT([typedef or similar]); CVC4_NEED_INT64_T_OVERLOADS=0])
+AC_LANG_POP([C++])
+AC_SUBST([CVC4_NEED_INT64_T_OVERLOADS])
 
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR

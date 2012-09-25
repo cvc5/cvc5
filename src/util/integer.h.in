@@ -5,18 +5,23 @@
  ** Major contributors: none
  ** Minor contributors (to current version): dejan, cconway, mdeters
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A multiprecision integer constant
+ ** \brief A multi-precision integer constant
  **
- ** A multiprecision integer constant.
+ ** A multi-precision integer constant.
  **/
 
-// this is used to avoid a public header dependence on cvc4autoconfig.h
+// these gestures are used to avoid a public header dependence on cvc4autoconfig.h
+
+#if @CVC4_NEED_INT64_T_OVERLOADS@
+#  define CVC4_NEED_INT64_T_OVERLOADS
+#endif
+
 #if /* use CLN */ @CVC4_USE_CLN_IMP@
 #  define CVC4_CLN_IMP
 #endif /* @CVC4_USE_CLN_IMP@ */
