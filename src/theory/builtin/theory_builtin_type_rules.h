@@ -50,7 +50,7 @@ class ApplyTypeRule {
         TNode::iterator argument_it_end = n.end();
         TypeNode::iterator argument_type_it = fType.begin();
         for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
-          if((*argument_it).getType() != *argument_type_it) {
+          if(!(*argument_it).getType().isComparableTo(*argument_type_it)) {
             std::stringstream ss;
             ss << "argument types do not match the function type:\n"
                << "argument:  " << *argument_it << "\n"

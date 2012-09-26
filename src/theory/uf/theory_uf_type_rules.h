@@ -44,7 +44,7 @@ public:
       for(; argument_it != argument_it_end; ++argument_it, ++argument_type_it) {
         TypeNode currentArgument = (*argument_it).getType();
         TypeNode currentArgumentType = *argument_type_it;
-        if(!currentArgument.isSubtypeOf(currentArgumentType)) {
+        if(!currentArgument.isComparableTo(currentArgumentType)) {
           std::stringstream ss;
           ss << "argument type is not a subtype of the function's argument type:\n"
              << "argument:  " << *argument_it << "\n"

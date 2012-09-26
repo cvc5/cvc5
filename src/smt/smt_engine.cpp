@@ -888,7 +888,7 @@ void SmtEngine::defineFunction(Expr func,
   // doesn't match the SMT-LIBv2 standard...
   if(formals.size() > 0) {
     Type rangeType = FunctionType(funcType).getRangeType();
-    if(formulaType != rangeType) {
+    if(! formulaType.isComparableTo(rangeType)) {
       stringstream ss;
       ss << "Type of defined function does not match its declaration\n"
          << "The function  : " << func << "\n"
@@ -898,7 +898,7 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   } else {
-    if(formulaType != funcType) {
+    if(! formulaType.isComparableTo(funcType)) {
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
          << "The constant   : " << func << "\n"
