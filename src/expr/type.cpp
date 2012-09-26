@@ -347,6 +347,19 @@ Type::operator TupleType() const throw(AssertionException) {
   return TupleType(*this);
 }
 
+/** Is this a symbolic expression type? */
+bool Type::isSExpr() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSExpr();
+}
+
+/** Cast to a symbolic expression type */
+Type::operator SExprType() const throw(AssertionException) {
+  NodeManagerScope nms(d_nodeManager);
+  Assert(isNull() || isSExpr());
+  return SExprType(*this);
+}
+
 /** Is this an array type? */
 bool Type::isArray() const {
   NodeManagerScope nms(d_nodeManager);
@@ -433,6 +446,18 @@ vector<Type> TupleType::getTypes() const {
   NodeManagerScope nms(d_nodeManager);
   vector<Type> types;
   vector<TypeNode> typeNodes = d_typeNode->getTupleTypes();
+  vector<TypeNode>::iterator it = typeNodes.begin();
+  vector<TypeNode>::iterator it_end = typeNodes.end();
+  for(; it != it_end; ++ it) {
+    types.push_back(makeType(*it));
+  }
+  return types;
+}
+
+vector<Type> SExprType::getTypes() const {
+  NodeManagerScope nms(d_nodeManager);
+  vector<Type> types;
+  vector<TypeNode> typeNodes = d_typeNode->getSExprTypes();
   vector<TypeNode>::iterator it = typeNodes.begin();
   vector<TypeNode>::iterator it_end = typeNodes.end();
   for(; it != it_end; ++ it) {
@@ -531,6 +556,11 @@ FunctionType::FunctionType(const Type& t) throw(AssertionException) :
 TupleType::TupleType(const Type& t) throw(AssertionException) :
   Type(t) {
   Assert(isNull() || isTuple());
+}
+
+SExprType::SExprType(const Type& t) throw(AssertionException) :
+  Type(t) {
+  Assert(isNull() || isSExpr());
 }
 
 ArrayType::ArrayType(const Type& t) throw(AssertionException) :

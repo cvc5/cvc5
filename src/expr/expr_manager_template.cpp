@@ -507,12 +507,21 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
 
 TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( types.size() >= 2 );
+  Assert( types.size() >= 1 );
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
      typeNodes.push_back(*types[i].d_typeNode);
   }
   return TupleType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
+}
+
+SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
+  NodeManagerScope nms(d_nodeManager);
+  std::vector<TypeNode> typeNodes;
+  for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
+     typeNodes.push_back(*types[i].d_typeNode);
+  }
+  return SExprType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSExprType(typeNodes))));
 }
 
 BitVectorType ExprManager::mkBitVectorType(unsigned size) const {

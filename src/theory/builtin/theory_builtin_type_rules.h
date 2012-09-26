@@ -117,7 +117,6 @@ public:
   }
 };/* class DistinctTypeRule */
 
-
 class TupleTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
@@ -130,6 +129,19 @@ public:
     return nodeManager->mkTupleType(types);
   }
 };/* class TupleTypeRule */
+
+class SExprTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    std::vector<TypeNode> types;
+    for(TNode::iterator child_it = n.begin(), child_it_end = n.end();
+        child_it != child_it_end;
+        ++child_it) {
+      types.push_back((*child_it).getType(check));
+    }
+    return nodeManager->mkSExprType(types);
+  }
+};/* class SExprTypeRule */
 
 class UninterpretedConstantTypeRule {
 public:
@@ -299,6 +311,58 @@ public:
     return NodeManager::currentNM()->mkNode(kind::TUPLE, children);
   }
 };/* class TupleProperties */
+
+class SExprProperties {
+public:
+  inline static Cardinality computeCardinality(TypeNode type) {
+    // Don't assert this; allow other theories to use this cardinality
+    // computation.
+    //
+    // Assert(type.getKind() == kind::SEXPR_TYPE);
+
+    Cardinality card(1);
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      card *= (*i).getCardinality();
+    }
+
+    return card;
+  }
+
+  inline static bool isWellFounded(TypeNode type) {
+    // Don't assert this; allow other theories to use this
+    // wellfoundedness computation.
+    //
+    // Assert(type.getKind() == kind::SEXPR_TYPE);
+
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      if(! (*i).isWellFounded()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  inline static Node mkGroundTerm(TypeNode type) {
+    Assert(type.getKind() == kind::SEXPR_TYPE);
+
+    std::vector<Node> children;
+    for(TypeNode::iterator i = type.begin(),
+          i_end = type.end();
+        i != i_end;
+        ++i) {
+      children.push_back((*i).mkGroundTerm());
+    }
+
+    return NodeManager::currentNM()->mkNode(kind::SEXPR, children);
+  }
+};/* class SExprProperties */
 
 class SubtypeProperties {
 public:

@@ -960,7 +960,7 @@ void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
     d_commandStatus = new CommandFailure(e.what());
   }
   */
-  d_commandStatus = new CommandFailure("unsat cores not supported yet");
+  d_commandStatus = new CommandUnsupported();
 }
 
 void GetUnsatCoreCommand::printResult(std::ostream& out) const throw() {

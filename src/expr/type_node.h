@@ -541,6 +541,12 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
+  /** Is this a symbolic expression type? */
+  bool isSExpr() const;
+
+  /** Get the constituent types of a symbolic expression type */
+  std::vector<TypeNode> getSExprTypes() const;
+
   /** Is this a bit-vector type */
   bool isBitVector() const;
 
@@ -871,6 +877,12 @@ inline TypeNode TypeNode::getRangeType() const {
 inline bool TypeNode::isTuple() const {
   return getKind() == kind::TUPLE_TYPE ||
     ( isPredicateSubtype() && getSubtypeBaseType().isTuple() );
+}
+
+/** Is this a symbolic expression type? */
+inline bool TypeNode::isSExpr() const {
+  return getKind() == kind::SEXPR_TYPE ||
+    ( isPredicateSubtype() && getSubtypeBaseType().isSExpr() );
 }
 
 /** Is this a sort kind */

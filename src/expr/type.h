@@ -57,6 +57,7 @@ class SelectorType;
 class TesterType;
 class FunctionType;
 class TupleType;
+class SExprType;
 class SortType;
 class SortConstructorType;
 class PredicateSubtype;
@@ -319,6 +320,18 @@ public:
   operator TupleType() const throw(AssertionException);
 
   /**
+   * Is this a symbolic expression type?
+   * @return true if the type is a symbolic expression type
+   */
+  bool isSExpr() const;
+
+  /**
+   * Cast this type to a symbolic expression type
+   * @return the SExprType
+   */
+  operator SExprType() const throw(AssertionException);
+
+  /**
    * Is this an array type?
    * @return true if the type is a array type
    */
@@ -512,6 +525,20 @@ public:
   /** Get the constituent types */
   std::vector<Type> getTypes() const;
 };/* class TupleType */
+
+/**
+ * Class encapsulating a tuple type.
+ */
+class CVC4_PUBLIC SExprType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  SExprType(const Type& type = Type()) throw(AssertionException);
+
+  /** Get the constituent types */
+  std::vector<Type> getTypes() const;
+};/* class SExprType */
 
 /**
  * Class encapsulating an array type.

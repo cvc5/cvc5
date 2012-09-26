@@ -302,11 +302,6 @@ function register_metakind {
     exit 1
   fi
 
-  if [ $mk = OPERATOR -a $lb = 0 ]; then
-    echo "$kf:$lineno: error in range \`$nc' for \`$k': $mk-kinded kinds must always take at least one child" >&2
-    exit 1
-  fi
-
   metakind_lbchildren="${metakind_lbchildren}
     $lb, /* $k */"
   metakind_ubchildren="${metakind_ubchildren}

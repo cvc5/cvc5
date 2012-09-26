@@ -144,9 +144,17 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
-/** Is this a tuple type? */
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
+  vector<TypeNode> types;
+  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
+    types.push_back((*this)[i]);
+  }
+  return types;
+}
+
+vector<TypeNode> TypeNode::getSExprTypes() const {
+  Assert(isSExpr());
   vector<TypeNode> types;
   for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
     types.push_back((*this)[i]);

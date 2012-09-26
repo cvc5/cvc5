@@ -314,5 +314,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   if(opts[options::statistics]) {
     cmdExecutor.flushStatistics(*opts[options::err]);
   }
+
+#ifdef CVC4_DEBUG
+  if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
+    _exit(returnValue);
+  }
+#else /* CVC4_DEBUG */
+  if(opts[options::earlyExit]) {
+    _exit(returnValue);
+  }
+#endif /* CVC4_DEBUG */
+
   return returnValue;
 }

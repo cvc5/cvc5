@@ -19,6 +19,9 @@ option - --show-debug-tags void :handler CVC4::main::showDebugTags :handler-incl
 option - --show-trace-tags void :handler CVC4::main::showTraceTags :handler-include "main/options_handlers.h"
  show all available tags for tracing
 
+expert-option earlyExit --early-exit bool :default true
+ do not run destructors at exit; default on except in debug mode
+
 # portfolio options
 option printWinner bool
  enable printing the winning thread (pcvc4 only)

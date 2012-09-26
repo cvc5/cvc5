@@ -711,13 +711,23 @@ public:
 
   /**
    * Make a tuple type with types from
-   * <code>types</code>. <code>types</code> must have at least two
-   * elements.
+   * <code>types</code>. <code>types</code> must have at least one
+   * element.
    *
    * @param types a vector of types
    * @returns the tuple type (types[0], ..., types[n])
    */
   inline TypeNode mkTupleType(const std::vector<TypeNode>& types);
+
+  /**
+   * Make a symbolic expression type with types from
+   * <code>types</code>. <code>types</code> may have any number of
+   * elements.
+   *
+   * @param types a vector of types
+   * @returns the symbolic expression type (types[0], ..., types[n])
+   */
+  inline TypeNode mkSExprType(const std::vector<TypeNode>& types);
 
   /** Make the type of bitvectors of size <code>size</code> */
   inline TypeNode mkBitVectorType(unsigned size);
@@ -1058,6 +1068,14 @@ inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
     typeNodes.push_back(types[i]);
   }
   return mkTypeNode(kind::TUPLE_TYPE, typeNodes);
+}
+
+inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
+  std::vector<TypeNode> typeNodes;
+  for (unsigned i = 0; i < types.size(); ++ i) {
+    typeNodes.push_back(types[i]);
+  }
+  return mkTypeNode(kind::SEXPR_TYPE, typeNodes);
 }
 
 inline TypeNode NodeManager::mkBitVectorType(unsigned size) {

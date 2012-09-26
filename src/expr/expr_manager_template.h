@@ -345,9 +345,16 @@ public:
   /**
    * Make a tuple type with types from
    * <code>types[0..types.size()-1]</code>.  <code>types</code> must
-   * have at least 2 elements.
+   * have at least one element.
    */
   TupleType mkTupleType(const std::vector<Type>& types);
+
+  /**
+   * Make a symbolic expressiontype with types from
+   * <code>types[0..types.size()-1]</code>.  <code>types</code> may
+   * have any number of elements.
+   */
+  SExprType mkSExprType(const std::vector<Type>& types);
 
   /** Make a type representing a bit-vector of the given size. */
   BitVectorType mkBitVectorType(unsigned size) const;

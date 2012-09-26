@@ -288,7 +288,7 @@ inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) th
 
 inline void unsatCoresEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
   if(value) {
-    throw OptionException("CVC4 does not yet have support for unsatisfiable cores");
+    throw UnrecognizedOptionException("CVC4 does not yet have support for unsatisfiable cores");
   }
 }
 
