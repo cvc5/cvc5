@@ -130,7 +130,7 @@ class TheoryEngine {
   /**
    * Default model object
    */
-  theory::DefaultModel* d_curr_model;
+  theory::TheoryModel* d_curr_model;
   /**
    * Model builder object
    */

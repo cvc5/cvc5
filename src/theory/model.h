@@ -40,7 +40,7 @@ protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
 public:
-  TheoryModel( context::Context* c, std::string name );
+  TheoryModel( context::Context* c, std::string name, bool enableFuncModels );
   virtual ~TheoryModel(){}
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine d_equalityEngine;
@@ -54,15 +54,15 @@ public:
 protected:
   /** reset the model */
   virtual void reset();
-  /** get interpreted value
-    *  This function is called when the value of the node cannot be determined by the theory rewriter
-    *  This should function should return a representative in d_reps
-    */
-  virtual Node getInterpretedValue( TNode n ) = 0;
   /**
    * Get model value function.  This function is called by getValue
    */
   Node getModelValue( TNode n );
+  /** get interpreted value
+    *  This function is called when the value of the node cannot be determined by the theory rewriter
+    *  This should function should return a representative in d_reps
+    */
+  virtual Node getInterpretedValue( TNode n );
 public:
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
@@ -125,28 +125,12 @@ public:
   void printRepresentativeDebug( const char* c, Node r );
   /** print representative function */
   void printRepresentative( std::ostream& out, Node r );
-};
-
-/** Default model class
-  *   The getInterpretedValue function will choose an existing value arbitrarily.
-  *   If none are found, then it will create a new value.
-  */
-class DefaultModel : public TheoryModel
-{
-protected:
+public:
   /** whether function models are enabled */
   bool d_enableFuncModels;
-  /** add term */
-  void addTerm( Node n );
-public:
-  DefaultModel( context::Context* c, std::string name, bool enableFuncModels );
-  virtual ~DefaultModel(){}
   //necessary information for function models
   std::map< Node, std::vector< Node > > d_uf_terms;
   std::map< Node, Node > d_uf_models;
-public:
-  void reset();
-  Node getInterpretedValue( TNode n );
 };
 
 /** TheoryEngineModelBuilder class
@@ -159,7 +143,7 @@ protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;
   /** process build model */
-  virtual void processBuildModel( TheoryModel* m, bool fullModel ){}
+  virtual void processBuildModel( TheoryModel* m, bool fullModel );
   /** choose representative for unconstrained equivalence class */
   virtual Node chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel );
   /** normalize representative */

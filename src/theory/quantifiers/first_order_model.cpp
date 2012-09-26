@@ -28,7 +28,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-FirstOrderModel::FirstOrderModel( context::Context* c, std::string name ) : DefaultModel( c, name, true ),
+FirstOrderModel::FirstOrderModel( context::Context* c, std::string name ) : TheoryModel( c, name, true ),
 d_axiom_asserted( c, false ), d_forall_asserts( c ){
 
 }
@@ -41,11 +41,11 @@ void FirstOrderModel::assertQuantifier( Node n ){
 }
 
 void FirstOrderModel::reset(){
-  DefaultModel::reset();
+  TheoryModel::reset();
 }
 
 void FirstOrderModel::addTerm( Node n ){
-  DefaultModel::addTerm( n );
+  TheoryModel::addTerm( n );
 }
 
 void FirstOrderModel::initialize( bool considerAxioms ){
@@ -94,16 +94,16 @@ void FirstOrderModel::initializeModelForTerm( Node n ){
 }
 
 Node FirstOrderModel::getInterpretedValue( TNode n ){
-  Trace("fo-model") << "get interpreted value " << n << std::endl;
-  TypeNode type = n.getType();
+  //Trace("fo-model") << "get interpreted value " << n << std::endl;
+  /*TypeNode type = n.getType();
   if( type.isFunction() || type.isPredicate() ){
     if( d_uf_model_tree.find( n )!=d_uf_model_tree.end() ){
       if( d_uf_models.find( n )==d_uf_models.end() ){
         d_uf_models[n] = d_uf_model_tree[n].getFunctionValue( "$x" );
       }
     }
-  }
-  return DefaultModel::getInterpretedValue( n );
+  }*/
+  return TheoryModel::getInterpretedValue( n );
 }
 
 void FirstOrderModel::toStream(std::ostream& out){

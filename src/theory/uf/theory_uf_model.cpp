@@ -262,6 +262,13 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }
 }
 
+Node UfModelTree::getFunctionValue( std::vector< Node >& args ){
+  Node body = d_tree.getFunctionValue( args, 0, Node::null() );
+  body = Rewriter::rewrite( body );
+  Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
+  return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
+}
+
 Node UfModelTree::getFunctionValue( const char* argPrefix ){
   TypeNode type = d_op.getType();
   std::vector< Node > vars;

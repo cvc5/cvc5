@@ -39,7 +39,7 @@ namespace quantifiers{
 
 class TermDb;
 
-class FirstOrderModel : public DefaultModel
+class FirstOrderModel : public TheoryModel
 {
 private:
   //add term function

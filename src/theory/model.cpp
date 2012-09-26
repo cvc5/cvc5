@@ -28,8 +28,8 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
-TheoryModel::TheoryModel( context::Context* c, std::string name ) :
-d_substitutions( c ), d_equalityEngine( c, name ){
+TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels ) :
+d_substitutions( c ), d_equalityEngine( c, name ), d_enableFuncModels( enableFuncModels ){
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   // The kinds we are treating as function application in congruence
@@ -44,6 +44,8 @@ d_substitutions( c ), d_equalityEngine( c, name ){
 void TheoryModel::reset(){
   d_reps.clear();
   d_rep_set.clear();
+  d_uf_terms.clear();
+  d_uf_models.clear();
 }
 
 Node TheoryModel::getValue( TNode n ){
@@ -142,6 +144,80 @@ Node TheoryModel::getModelValue( TNode n ){
   }
 }
 
+Node TheoryModel::getInterpretedValue( TNode n ){
+  Trace("model") << "Get interpreted value of " << n << std::endl;
+  TypeNode type = n.getType();
+  if( type.isFunction() || type.isPredicate() ){
+    //for function models
+    if( d_enableFuncModels ){
+      if( d_uf_models.find( n )!=d_uf_models.end() ){
+        //pre-existing function model
+        Trace("model") << "Return function value." << std::endl;
+        return d_uf_models[n];
+      }else{
+        Trace("model") << "Return arbitrary function value." << std::endl;
+        //otherwise, choose the constant default value
+        uf::UfModelTree ufmt( n );
+        Node default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( "defaultValueQueryVar_$$", type.getRangeType(),
+                                              "a placeholder variable to query for a default value in model construction" ) );
+        ufmt.setDefaultValue( this, default_v );
+        return ufmt.getFunctionValue( "$x" );
+      }
+    }else{
+      return n;
+    }
+  }else{
+    Trace("model-debug") << "check rep..." << std::endl;
+    Node ret;
+    //check if the representative is defined
+    n = d_equalityEngine.hasTerm( n ) ? d_equalityEngine.getRepresentative( n ) : n;
+    Trace("model-debug") << "rep is..." << n << std::endl;
+    if( d_reps.find( n )!=d_reps.end() ){
+      Trace("model") << "Return value in equality engine."<< std::endl;
+      return d_reps[n];
+    }
+    Trace("model-debug") << "check apply uf models..." << std::endl;
+    //if it is APPLY_UF, we must consult the corresponding function if it exists
+    if( n.getKind()==APPLY_UF ){
+      Node op = n.getOperator();
+      if( d_uf_models.find( op )!=d_uf_models.end() ){
+        std::vector< Node > lam_children;
+        lam_children.push_back( d_uf_models[ op ] );
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          lam_children.push_back( n[i] );
+        }
+        Node app_lam = NodeManager::currentNM()->mkNode( APPLY_UF, lam_children );
+        ret = Rewriter::rewrite( app_lam );
+        Trace("model") << "Consult UF model." << std::endl;
+      }
+    }
+    Trace("model-debug") << "check existing..." << std::endl;
+    if( ret.isNull() ){
+      //second, try to choose an existing term as value
+      std::vector< Node > v_emp;
+      ret = getDomainValue( type, v_emp );
+      if( !ret.isNull() ){
+        Trace("model") << "Choose existing value." << std::endl;
+      }
+    }
+    Trace("model-debug") << "check new..." << std::endl;
+    if( ret.isNull() ){
+      //otherwise, choose new value
+      ret = getNewDomainValue( type );
+      if( !ret.isNull() ){
+        Trace("model") << "Choose new value." << std::endl;
+      }
+    }
+    if( !ret.isNull() ){
+      return ret;
+    }else{
+      //otherwise, just return itself (this usually should not happen)
+      Trace("model") << "Return self." << std::endl;
+      return n;
+    }
+  }
+}
+
 Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
   if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() ){
     //try to find a pre-existing arbitrary element
@@ -156,7 +232,7 @@ Node TheoryModel::getDomainValue( TypeNode tn, std::vector< Node >& exclude ){
 
 //FIXME: need to ensure that theory enumerators exist for each sort
 Node TheoryModel::getNewDomainValue( TypeNode tn ){
-#if 1
+#if 0
   if( tn==NodeManager::currentNM()->booleanType() ){
     if( d_rep_set.d_type_reps[tn].empty() ){
       return d_false;
@@ -220,6 +296,14 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 void TheoryModel::addTerm( Node n ){
   if( !d_equalityEngine.hasTerm( n ) ){
     d_equalityEngine.addTerm( n );
+  }
+  //must collect UF terms
+  if( d_enableFuncModels && n.getKind()==APPLY_UF ){
+    Node op = n.getOperator();
+    if( std::find( d_uf_terms[ op ].begin(), d_uf_terms[ op ].end(), n )==d_uf_terms[ op ].end() ){
+      d_uf_terms[ op ].push_back( n );
+      Trace("model-add-term-uf") << "Add term " << n << std::endl;
+    }
   }
 }
 
@@ -332,120 +416,6 @@ void TheoryModel::printRepresentative( std::ostream& out, Node r ){
   }
 }
 
-DefaultModel::DefaultModel( context::Context* c, std::string name, bool enableFuncModels ) :
-TheoryModel( c, name ), d_enableFuncModels( enableFuncModels ){
-
-}
-
-void DefaultModel::addTerm( Node n ){
-  TheoryModel::addTerm( n );
-  //must collect UF terms
-  if( d_enableFuncModels && n.getKind()==APPLY_UF ){
-    Node op = n.getOperator();
-    if( std::find( d_uf_terms[ op ].begin(), d_uf_terms[ op ].end(), n )==d_uf_terms[ op ].end() ){
-      d_uf_terms[ op ].push_back( n );
-    }
-  }
-}
-
-void DefaultModel::reset(){
-  d_uf_terms.clear();
-  d_uf_models.clear();
-  TheoryModel::reset();
-}
-
-Node DefaultModel::getInterpretedValue( TNode n ){
-  Trace("model") << "Get interpreted value of " << n << std::endl;
-  TypeNode type = n.getType();
-  if( type.isFunction() || type.isPredicate() ){
-    //for function models
-    if( d_enableFuncModels ){
-      //create the function value for the model
-      if( d_uf_models.find( n )==d_uf_models.end() ){
-        Trace("model") << "Creating function value..." << std::endl;
-        uf::UfModelTree ufmt( n );
-        Node default_v;
-        for( size_t i=0; i<d_uf_terms[n].size(); i++ ){
-          Node un = d_uf_terms[n][i];
-          Node v = getRepresentative( un );
-          ufmt.setValue( this, un, v );
-          default_v = v;
-        }
-        if( default_v.isNull() ){
-          //choose default value from model if none exists
-          default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( "defaultValue_$$", type.getRangeType(), "a default value term from model construction" ) );
-        }
-        ufmt.setDefaultValue( this, default_v );
-        ufmt.simplify();
-        d_uf_models[n] = ufmt.getFunctionValue( "$x" );
-      }
-      Trace("model") << "Return function value." << std::endl;
-      return d_uf_models[n];
-    }else{
-      return n;
-    }
-  }else{
-    Node ret;
-    //add term to equality engine, this will enforce a value if it exists
-    //  for example, if a = b = c1, and f( a ) = c2, then adding f( b ) should force
-    //    f( b ) to be equal to c2.
-    addTerm( n );
-    //check if the representative is defined
-    n = d_equalityEngine.getRepresentative( n );
-    if( d_reps.find( n )!=d_reps.end() ){
-      Trace("model") << "Return value in equality engine."<< std::endl;
-      return d_reps[n];
-    }
-    //if it is APPLY_UF, we must consult the corresponding function if it exists
-    if( n.getKind()==APPLY_UF ){
-      Node op = n.getOperator();
-      if( d_uf_models.find( op )!=d_uf_models.end() ){
-        std::vector< Node > lam_children;
-        lam_children.push_back( d_uf_models[ op ] );
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          lam_children.push_back( n[i] );
-        }
-        Node app_lam = NodeManager::currentNM()->mkNode( APPLY_UF, lam_children );
-        ret = Rewriter::rewrite( app_lam );
-        Trace("model") << "Consult UF model." << std::endl;
-      }
-    }
-    if( ret.isNull() ){
-      //second, try to choose an existing term as value
-      std::vector< Node > v_emp;
-      ret = getDomainValue( type, v_emp );
-      if( !ret.isNull() ){
-        Trace("model") << "Choose existing value." << std::endl;
-      }else{
-        //otherwise, choose new value
-        ret = getNewDomainValue( type );
-        if( !ret.isNull() ){
-          Trace("model") << "Choose new value." << std::endl;
-        }
-      }
-    }
-    if( !ret.isNull() ){
-      Node prev = n;
-      //store the equality
-      assertEquality( n, ret, true );
-      //add it to the map of representatives
-      n = d_equalityEngine.getRepresentative( n );
-      if( d_reps.find( n )==d_reps.end() ){
-        d_reps[n] = ret;
-        d_rep_set.add( ret );
-      }
-      //TODO: make sure that this doesn't affect the representatives in the equality engine
-      //  in other words, we need to be sure that all representatives of the equality engine
-      //  are still representatives after this function, or else d_reps should be modified.
-      return ret;
-    }else{
-      //otherwise, just return itself (this usually should not happen)
-      Trace("model") << "Return self." << std::endl;
-      return n;
-    }
-  }
-}
-
 TheoryEngineModelBuilder::TheoryEngineModelBuilder( TheoryEngine* te ) : d_te( te ){
 
 }
@@ -502,9 +472,10 @@ void TheoryEngineModelBuilder::buildModel( Model* m, bool fullModel ){
           assertedReps[ eqc ] = const_rep;
         }else{
           if( fullModel ){
-            //assertion failure?
             Trace("model-warn") << "No representative specified for equivalence class " << eqc << std::endl;
             Trace("model-warn") << "  Type : " << eqc.getType() << std::endl;
+            //TODO: select proper representative
+            //Unimplemented("No representative specified for equivalence class");
           }
           //assertedReps[ eqc ] = chooseRepresentative( tm, eqc, fullModel );
           assertedReps[ eqc ] = eqc;
@@ -533,6 +504,35 @@ void TheoryEngineModelBuilder::buildModel( Model* m, bool fullModel ){
   processBuildModel( tm, fullModel );
 }
 
+void TheoryEngineModelBuilder::processBuildModel( TheoryModel* m, bool fullModel ){
+  if( fullModel ){
+    //construct function values
+    for( std::map< Node, std::vector< Node > >::iterator it = m->d_uf_terms.begin(); it != m->d_uf_terms.end(); ++it ){
+      Trace("model-func") << "Creating function value..." << it->first << std::endl;
+      Node n = it->first;
+      if( m->d_uf_models.find( n )==m->d_uf_models.end() ){
+        TypeNode type = n.getType();
+        uf::UfModelTree ufmt( n );
+        Node default_v;
+        for( size_t i=0; i<it->second.size(); i++ ){
+          Node un = it->second[i];
+          Node v = m->getRepresentative( un );
+          ufmt.setValue( m, un, v );
+          default_v = v;
+        }
+        if( default_v.isNull() ){
+          //choose default value from model if none exists
+          default_v = m->getInterpretedValue( NodeManager::currentNM()->mkSkolem( "defaultValueQueryVar_$$", type.getRangeType(),
+                                              "a placeholder variable to query for a default value in model construction" ) );
+        }
+        ufmt.setDefaultValue( m, default_v );
+        ufmt.simplify();
+        m->d_uf_models[n] = ufmt.getFunctionValue( "$x" );
+      }
+    }
+  }
+}
+
 Node TheoryEngineModelBuilder::chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel ){
   //try to get a new domain value
   Node rep = m->getNewDomainValue( eqc.getType() );
@@ -550,12 +550,12 @@ Node TheoryEngineModelBuilder::normalizeRepresentative( TheoryModel* m, Node r, 
                                                         std::map< Node, bool >& normalizing ){
   Trace("temb-normalize") << r << std::endl;
   if( normalized.find( r )!=normalized.end() ){
-    //Message() << " -> already normalized, return " << reps[r] << std::endl;
+    Trace("temb-normalize") << " -> already normalized, return " << reps[r] << std::endl;
     return reps[r];
   }else if( normalizing.find( r )!=normalizing.end() && normalizing[r] ){
     //this case is to handle things like when store( A, e, i ) is given
     //       as a representative for array A.
-    //Message() << " -> currently normalizing, give up : " << r << std::endl;
+    Trace("temb-normalize") << " -> currently normalizing, give up : " << r << std::endl;
     return r;
   }else if( reps.find( r )!=reps.end() ){
     normalizing[ r ] = true;
@@ -563,13 +563,13 @@ Node TheoryEngineModelBuilder::normalizeRepresentative( TheoryModel* m, Node r, 
     normalizing[ r ] = false;
     normalized[ r ] = true;
     reps[ r ] = retNode;
-    //Message() << " --> returned " << retNode << " for " << r << std::endl;
+    Trace("temb-normalize") << " --> returned " << retNode << " for " << r << std::endl;
     return retNode;
   }else if( m->d_equalityEngine.hasTerm( r ) ){
     normalizing[ r ] = true;
     //return the normalized representative from the model
     r = m->d_equalityEngine.getRepresentative( r );
-    //Message() << " -> it is the representative " << r << std::endl;
+    Trace("temb-normalize") << " -> it is the representative " << r << std::endl;
     Node retNode = normalizeRepresentative( m, r, reps, normalized, normalizing );
     normalizing[ r ] = false;
     return retNode;
@@ -582,7 +582,7 @@ Node TheoryEngineModelBuilder::normalizeRepresentative( TheoryModel* m, Node r, 
       r = normalizeNode( m, r, reps, normalized, normalizing );
       normalizing[ r ] = false;
     }
-    //Message() << " -> unknown, return " << r << std::endl;
+    Trace("temb-normalize") << " -> unknown, return " << r << std::endl;
     return r;
   }
 }
@@ -591,7 +591,7 @@ Node TheoryEngineModelBuilder::normalizeNode( TheoryModel* m, Node r, std::map< 
                                               std::map< Node, bool >& normalized,
                                               std::map< Node, bool >& normalizing ){
   if( r.getNumChildren()>0 ){
-    //Message() << " ---> normalize " << r << " " << r.getNumChildren() << " " << r.getKind() << std::endl;
+    Trace("temb-normalize") << " ---> normalize " << r << " " << r.getNumChildren() << " " << r.getKind() << std::endl;
     //non-leaf case: construct representative from children
     std::vector< Node > children;
     if( r.getMetaKind() == kind::metakind::PARAMETERIZED ){
@@ -603,10 +603,10 @@ Node TheoryEngineModelBuilder::normalizeNode( TheoryModel* m, Node r, std::map< 
     }
     Node retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     retNode = Rewriter::rewrite( retNode );
-    if( retNode!=r ){
+    //if( retNode!=r ){
       //assure that it is made equal in the model
-      m->assertEquality( r, retNode, true );
-    }
+      //m->assertEquality( r, retNode, true );
+    //}
     return retNode;
   }else{
     return r;
