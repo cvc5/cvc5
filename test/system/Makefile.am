@@ -25,9 +25,9 @@ CLASS_LOG_COMPILER = @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_buildd
 TEST_DEPS_DIST = \
 	cvc3_main.cpp \
 	cvc3_george.h \
-	cvc3_george.cpp \
 	CVC4JavaTest.java \
 	run_java_test
+#	cvc3_george.cpp
 
 # Make-level dependencies; these don't go in the source distribution
 # but should trigger a re-compile of all unit tests.  Libraries are
@@ -87,7 +87,8 @@ $(filter-out %.class.lo,$(TESTS:%=%.lo)): %.lo: %.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
 $(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $<
-cvc3_main: cvc3_george.lo $(LIBADD)
+#cvc3_main: cvc3_george.lo $(LIBADD)
+cvc3_main: $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $+
 CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/CVC4.jar @abs_top_builddir@/src/bindings/java/CVC4.la
 	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/CVC4.jar -d $(builddir) $<
