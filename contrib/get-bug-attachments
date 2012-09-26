@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# get-bug-attachments
+# Morgan Deters <mdeters@cs.nyu.edu>
+# Wed, 26 Sep 2012 09:40:10 -0400
+#
+
+if [ $# -lt 1 ]; then
+  echo "usage: `basename $0` bugids.." >&2
+  exit 1
+fi
+
+while [ $# -gt 0 ]; do
+
+bugid="$1"
+shift
+
+function webcat {
+  if which wget &>/dev/null; then
+    wget -O - "$1"
+  elif which curl &>/dev/null; then
+    curl "$1"
+  else
+    echo "Please install wget or curl." >&2;
+    exit 1
+  fi
+}
+
+function webget {
+  if which wget &>/dev/null; then
+    tmpfile="$(mktemp)"
+    filename="$(wget -qS -O "$tmpfile" "$1" 2>&1 | grep 'Content-disposition: attachment' | sed 's,.*filename="\(.*\)".*,\1,')"
+    ext="$(echo "$filename" | sed 's,.*\.\(.*\),\1,')"
+    if [ -e "$2.$ext" ] && ! diff -q "$tmpfile" "$2.$ext" &>/dev/null; then
+      c=a
+      while [ -e "$2$c.$ext" ] && ! diff -q "$tmpfile" "$2$c.$ext" &>/dev/null; do
+        c=$(echo $c | tr a-y b-z)
+      done
+      mkdir -p "$(dirname "$2")"
+      mv "$tmpfile" "$2$c.$ext"
+      echo "$2$c.$ext"
+    else
+      mkdir -p "$(dirname "$2")"
+      mv "$tmpfile" "$2.$ext"
+      echo "$2.$ext"
+    fi
+  elif which curl &>/dev/null; then
+    mkdir -p "$(dirname "$2")"
+    curl "$1" >"$2"
+  else
+    echo "Please install wget or curl." >&2;
+    exit 1
+  fi
+}
+
+count=0
+for attachment in $(\
+  webcat "http://church.cims.nyu.edu/bugs/show_bug.cgi?id=$bugid" 2>/dev/null \
+  | grep ' href="attachment.cgi?id=[0-9][0-9]*' \
+  | sed 's,.* href="attachment.cgi?id=\([0-9][0-9]*\).*,\1,' \
+  | sort -nu); do
+
+  let count++
+  echo -n "Downloading attachment $attachment..."
+  webget "http://church.cims.nyu.edu/bugs/attachment.cgi?id=$attachment" "test/regress/regress0/bug$bugid"
+
+done
+
+if [ $count -eq 0 ]; then
+  echo "There are no bug testcase attachments for bug #$bugid."
+else
+  echo "Downloaded $count bug testcases for bug #$bugid."
+fi
+
+done
