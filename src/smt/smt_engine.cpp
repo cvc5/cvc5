@@ -1888,11 +1888,6 @@ Expr SmtEngine::getValue(const Expr& e)
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw ModalException(msg);
   }
-  if(type.isSort() || type.isSortConstructor()) {
-    const char* msg =
-      "Cannot get value of a sort.";
-    throw ModalException(msg);
-  }
 
   // do not need to apply preprocessing substitutions (should be recorded in model already)
 

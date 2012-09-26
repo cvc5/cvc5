@@ -790,9 +790,9 @@ void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
       smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(options::expandDefinitions() ? smtEngine->expandDefinitions(*i) : *i);
       Node value = Node::fromExpr(smtEngine->getValue(*i));
-      result.push_back(nm->mkNode(kind::TUPLE, request, value));
+      result.push_back(nm->mkNode(kind::SEXPR, request, value));
     }
-    Node n = nm->mkNode(kind::TUPLE, result);
+    Node n = nm->mkNode(kind::SEXPR, result);
     d_result = nm->toExpr(n);
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {

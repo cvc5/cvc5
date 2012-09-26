@@ -246,6 +246,9 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         }
       case kind::FUNCTION_TYPE:
         return TypeNode(); // Not sure if this is right
+      case kind::SEXPR_TYPE:
+        Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
+        return TypeNode(); // Not sure if this is right
       case kind::TUPLE_TYPE:
         Unimplemented("haven't implemented leastCommonType for tuples yet");
         return TypeNode(); // Not sure if this is right

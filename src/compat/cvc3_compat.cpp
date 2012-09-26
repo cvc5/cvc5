@@ -1304,47 +1304,38 @@ Expr ValidityChecker::idExpr(const std::string& name) {
 }
 
 Expr ValidityChecker::listExpr(const std::vector<Expr>& kids) {
-  // list exprs aren't supported by CVC4; make a tuple if two or more
-  CheckArgument(kids.size() > 0, kids);
-  return (kids.size() == 1) ? kids[0] : Expr(d_em->mkExpr(CVC4::kind::TUPLE, vector<CVC4::Expr>(kids.begin(), kids.end())));
+  return d_em->mkExpr(CVC4::kind::SEXPR, vector<CVC4::Expr>(kids.begin(), kids.end()));
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1) {
-  // list exprs aren't supported by CVC4; just return e1
-  return e1;
+  return d_em->mkExpr(CVC4::kind::SEXPR, e1);
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1, const Expr& e2) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, e1, e2);
+  return d_em->mkExpr(CVC4::kind::SEXPR, e1, e2);
 }
 
 Expr ValidityChecker::listExpr(const Expr& e1, const Expr& e2, const Expr& e3) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, e1, e2, e3);
+  return d_em->mkExpr(CVC4::kind::SEXPR, e1, e2, e3);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op,
                                const std::vector<Expr>& kids) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), vector<CVC4::Expr>(kids.begin(), kids.end()));
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), vector<CVC4::Expr>(kids.begin(), kids.end()));
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1, e2);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1, e2);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2, const Expr& e3) {
-  // list exprs aren't supported by CVC4; just return a tuple
-  return d_em->mkExpr(CVC4::kind::TUPLE, d_em->mkConst(op), e1, e2, e3);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1, e2, e3);
 }
 
 void ValidityChecker::printExpr(const Expr& e) {

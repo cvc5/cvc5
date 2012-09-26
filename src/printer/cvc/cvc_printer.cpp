@@ -198,6 +198,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       return;
       break;
     case kind::TUPLE_TYPE:
+    case kind::SEXPR_TYPE:
       out << '[';
       for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
         if (i > 0) {
@@ -209,6 +210,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       return;
       break;
     case kind::TUPLE:
+    case kind::SEXPR:
       // no-op
       break;
     case kind::LAMBDA:

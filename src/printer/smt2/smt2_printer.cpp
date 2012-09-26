@@ -210,6 +210,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::DISTINCT: out << smtKindString(k) << " "; break;
   case kind::CHAIN: break;
   case kind::TUPLE: break;
+  case kind::SEXPR: break;
 
     // bool theory
   case kind::NOT:
@@ -355,7 +356,9 @@ static string smtKindString(Kind k) throw() {
   case kind::APPLY: break;
   case kind::EQUAL: return "=";
   case kind::DISTINCT: return "distinct";
+  case kind::CHAIN: break;
   case kind::TUPLE: break;
+  case kind::SEXPR: break;
 
     // bool theory
   case kind::NOT: return "not";
