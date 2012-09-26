@@ -847,7 +847,7 @@ vc->loadFile(fileName, toCppInputLanguage(env, lang), false);
 
 DEFINITION: Java_cvc3_ValidityChecker_jniGetStatistics
 jobject m ValidityChecker vc
-return embed_mut_ref(env, &vc->getStatistics());
+return embed_copy(env, vc->getStatistics());
 
 DEFINITION: Java_cvc3_ValidityChecker_jniPrintStatistics
 void m ValidityChecker vc

@@ -63,6 +63,7 @@ namespace Java_cvc3_JniUtils {
     }
     
     DebugAssert(false, "JniUtils::toJava(QueryResult): unreachable");
+    return toJava(env, ""); // to avoid compiler warning
   }
 
   jstring toJava(JNIEnv* env, CVC3::FormulaValue result) {

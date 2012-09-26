@@ -169,7 +169,7 @@ namespace Java_cvc3_JniUtils {
 	env->FindClass("java/lang/Object"),
 	NULL);
 
-    for (int i = 0; i < v.size(); ++i) {
+    for (size_t i = 0; i < v.size(); ++i) {
       env->SetObjectArrayElement(jarray, i, embed_copy<T>(env, v[i]));
     }
 
@@ -183,7 +183,7 @@ namespace Java_cvc3_JniUtils {
 	env->FindClass("java/lang/Object"),
 	NULL);
 
-    for (int i = 0; i < v.size(); ++i) {
+    for (size_t i = 0; i < v.size(); ++i) {
       env->SetObjectArrayElement(jarray, i, embed_const_ref<T>(env, &v[i]));
     }
 
@@ -196,7 +196,7 @@ namespace Java_cvc3_JniUtils {
     {
       jobjectArray jarray = (jobjectArray) env->NewObjectArray(v.size(),
           env->FindClass("[Ljava/lang/Object;"), NULL);
-      for (int i = 0; i < v.size(); ++i)
+      for (size_t i = 0; i < v.size(); ++i)
         {
           env->SetObjectArrayElement(jarray, i, toJavaVConstRef(env, v[i]));
         }

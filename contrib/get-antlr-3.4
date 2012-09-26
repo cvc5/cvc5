@@ -14,13 +14,24 @@ if ! [ -e src/parser/cvc/Cvc.g ]; then
   exit 1
 fi
 
+function webget {
+  if which wget &>/dev/null; then
+    wget -c -O "$2" "$1"
+  elif which curl &>/dev/null; then
+    curl "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
 set -x
 mkdir -p antlr-3.4/share/java
 mkdir -p antlr-3.4/bin
 mkdir -p antlr-3.4/src
 cd antlr-3.4
-wget -c -O share/java/antlr-3.4-complete.jar http://antlr.org/download/antlr-3.4-complete.jar
-wget -c -O src/libantlr3c-3.4.tar.gz http://antlr.org/download/C/libantlr3c-3.4.tar.gz
+webget http://antlr.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
+webget http://antlr.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
 tee bin/antlr3 <<EOF
 #!/bin/sh
 export CLASSPATH=/usr/share/java/stringtemplate.jar:`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
@@ -32,7 +43,7 @@ tar xfzv libantlr3c-3.4.tar.gz
 cd libantlr3c-3.4
 ./configure --enable-64bit --prefix=`pwd`/../..
 cp Makefile Makefile.orig
-sed 's,^CFLAGS = .*,\0 -fexceptions,' Makefile.orig > Makefile
+sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make
 make install
 set +x

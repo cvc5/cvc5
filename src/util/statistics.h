@@ -68,6 +68,8 @@ public:
     friend class StatisticsBase;
 
   public:
+    iterator() : d_it() { }
+    iterator(const iterator& it) : d_it(it.d_it) { }
     value_type operator*() const;
     iterator& operator++() { ++d_it; return *this; }
     iterator operator++(int) { iterator old = *this; ++d_it; return old; }
