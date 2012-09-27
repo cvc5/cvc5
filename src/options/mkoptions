@@ -20,6 +20,14 @@ function usage {
   echo "usage: $me (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+" >&2
 }
 
+progress_char=/
+function progress {
+  file="$(expr "$1" : '.*\(.................................................................\)')"
+  if [ -z "$file" ]; then file="$1"; else file="[...]$file"; fi
+  printf "\r%c %-70s (%3d%%)" "$progress_char" "$file" "$(($2*100/$3))"
+  progress_char="`echo "$progress_char" | tr -- '-\\\\|/' '\\\\|/-'`"
+}
+
 declare -a templates
 declare -a outputs
 
@@ -1153,7 +1161,7 @@ function output_module {
       module_global_definitions \
       template \
       ; do
-    echo -n .
+    progress "$output" $count $total
     eval text="\${text//\\\$\\{$var\\}/\${$var}}"
   done
   error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
@@ -1206,16 +1214,16 @@ EOF
 
   ) >"$output.tmp"
 
-  echo -n .
   if diff -q "$output" "$output.tmp" &>/dev/null; then
     rm -f "$output.tmp"
   else
     mv -f "$output.tmp" "$output"
-    echo
-    echo "regenerated $output"
+    printf "\rregenerated %-60s\n" "$output"
   fi
 }
 
+total=$(($#/2+19*${#templates[@]}))
+count=0
 while [ $# -gt 0 ]; do
   kf="$1"; shift
   if [ $# -eq 0 ]; then
@@ -1226,6 +1234,8 @@ while [ $# -gt 0 ]; do
   outdir="$1"; shift
 
   #echo "scanning $kf"
+  let ++count
+  progress "$kf" $count $total
 
   seen_module=false
   seen_endmodule=false
@@ -1311,7 +1321,8 @@ for var in \
     common_manpage_smt_documentation \
     remaining_manpage_smt_documentation \
     ; do
-  echo -n .
+  let ++count
+  progress "$output" $count $total
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done
 error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
@@ -1320,6 +1331,8 @@ if [ -n "$error" ]; then
   echo "$template:0: error: undefined replacement \${$error}" >&2
   exit 1
 fi
+
+progress "$output" $count $total
 
 (
 
@@ -1365,9 +1378,9 @@ echo "$text"
 
 ) >"$output.tmp"
 
-echo -n .
-diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && echo && echo "regenerated $output")
+diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && printf "\rregenerated %-60s\n" "$output")
 rm -f "$output.tmp"
+progress "$output" $count $total
 
 done
 
