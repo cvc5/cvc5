@@ -1148,7 +1148,8 @@ function output_module {
   nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
     awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
 
-  text=$(cat "$template")
+  cp "$template" "$output.working"
+  echo -n > "$output.sed"
   for var in \
       module_id \
       module_name \
@@ -1162,12 +1163,25 @@ function output_module {
       template \
       ; do
     progress "$output" $count $total
-    eval text="\${text//\\\$\\{$var\\}/\${$var}}"
+    repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
+    # a little nasty; for multi-line replacements, bash can eat a final
+    # (blank) newline, and so we get a final \ on the final line, leading
+    # to malformed replacements in the sed script
+    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    while [ "$repl" != "$repl2" ]; do
+      repl="$repl2"
+      repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+    done
+    repl="$repl2"
+    echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
   done
-  error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
+  sed -f "$output.sed" -i "" "$output.working"
+  error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
   if [ -n "$error" ]; then
     error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
     echo "$template:0: error: undefined replacement \${$error}" >&2
+    rm -f "$output.working"
+    rm -f "$output.sed"
     exit 1
   fi
 
@@ -1210,10 +1224,12 @@ function output_module {
 EOF
   fi
 
-  echo "$text"
+  cat "$output.working"
 
   ) >"$output.tmp"
 
+  rm -f "$output.working"
+  rm -f "$output.sed"
   if diff -q "$output" "$output.tmp" &>/dev/null; then
     rm -f "$output.tmp"
   else
@@ -1299,7 +1315,8 @@ nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
 
 long_option_value_end=$n_long
 
-text=$(cat "$template")
+cp "$template" "$output.working"
+echo -n > "$output.sed"
 for var in \
     smt_getoption_handlers \
     smt_setoption_handlers \
@@ -1323,12 +1340,25 @@ for var in \
     ; do
   let ++count
   progress "$output" $count $total
-  eval text="\${text//\\\$\\{$var\\}/\${$var}}"
+  repl="$(eval "echo \"\${$var}\"" | sed 's,\\,\\\\,g;s/,/\\,/g;s,&,\\\&,g;$!s,$,\\,g')"
+  # a little nasty; for multi-line replacements, bash can eat a final
+  # (blank) newline, and so we get a final \ on the final line, leading
+  # to malformed replacements in the sed script
+  repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+  while [ "$repl" != "$repl2" ]; do
+    repl="$repl2"
+    repl2="$(echo "$repl" | sed '$s,\\*$,,')"
+  done
+  repl="$repl2"
+  echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
 done
-error="$(echo "$text" | grep '.*\${[^}]*}.*' | head -n 1)"
+sed -f "$output.sed" -i "" "$output.working"
+error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
 if [ -n "$error" ]; then
   error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
   echo "$template:0: error: undefined replacement \${$error}" >&2
+  rm -f "$output.working"
+  rm -f "$output.sed"
   exit 1
 fi
 
@@ -1374,10 +1404,12 @@ cat <<EOF
 EOF
 fi
 
-echo "$text"
+cat "$output.working"
 
 ) >"$output.tmp"
 
+rm -f "$output.working"
+rm -f "$output.sed"
 diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && printf "\rregenerated %-60s\n" "$output")
 rm -f "$output.tmp"
 progress "$output" $count $total
