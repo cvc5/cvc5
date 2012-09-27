@@ -1175,7 +1175,7 @@ function output_module {
     repl="$repl2"
     echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
   done
-  sed -f "$output.sed" -i "" "$output.working"
+  sed -f "$output.sed" -i "$output.working"
   error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
   if [ -n "$error" ]; then
     error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
@@ -1352,7 +1352,7 @@ for var in \
   repl="$repl2"
   echo -n ";s,$(eval echo "\$\{$var\}"),$repl,g" >>"$output.sed"
 done
-sed -f "$output.sed" -i "" "$output.working"
+sed -f "$output.sed" -i "$output.working"
 error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
 if [ -n "$error" ]; then
   error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
