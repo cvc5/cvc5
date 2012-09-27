@@ -44,8 +44,8 @@ enum CVC4_PUBLIC Language {
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB input language */
-  LANG_SMTLIB = 0,
+  /** The SMTLIB v1 input language */
+  LANG_SMTLIB_V1 = 0,
   /** The SMTLIB v2 input language */
   LANG_SMTLIB_V2,
   /** The TPTP input language */
@@ -66,8 +66,8 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_AUTO:
     out << "LANG_AUTO";
     break;
-  case LANG_SMTLIB:
-    out << "LANG_SMTLIB";
+  case LANG_SMTLIB_V1:
+    out << "LANG_SMTLIB_V1";
     break;
   case LANG_SMTLIB_V2:
     out << "LANG_SMTLIB_V2";
@@ -101,8 +101,8 @@ enum CVC4_PUBLIC Language {
   // OUTPUT LANGUAGE, IF IT IS "IN PRINCIPLE" A COMMON LANGUAGE,
   // INCLUDE IT HERE
 
-  /** The SMTLIB output language */
-  LANG_SMTLIB = input::LANG_SMTLIB,
+  /** The SMTLIB v1 output language */
+  LANG_SMTLIB_V1 = input::LANG_SMTLIB_V1,
   /** The SMTLIB v2 output language */
   LANG_SMTLIB_V2 = input::LANG_SMTLIB_V2,
   /** The TPTP output language */
@@ -123,8 +123,8 @@ enum CVC4_PUBLIC Language {
 inline std::ostream& operator<<(std::ostream& out, Language lang) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, Language lang) {
   switch(lang) {
-  case LANG_SMTLIB:
-    out << "LANG_SMTLIB";
+  case LANG_SMTLIB_V1:
+    out << "LANG_SMTLIB_V1";
     break;
   case LANG_SMTLIB_V2:
     out << "LANG_SMTLIB_V2";

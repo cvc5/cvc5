@@ -20,7 +20,7 @@
 
 #include "util/language.h"
 
-#include "printer/smt/smt_printer.h"
+#include "printer/smt1/smt1_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/cvc/cvc_printer.h"
 #include "printer/ast/ast_printer.h"
@@ -37,8 +37,8 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB:
-    return new printer::smt::SmtPrinter();
+  case LANG_SMTLIB_V1:
+    return new printer::smt1::Smt1Printer();
 
   case LANG_SMTLIB_V2:
     return new printer::smt2::Smt2Printer();

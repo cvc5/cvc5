@@ -21,7 +21,7 @@
 #include "parser/parser_builder.h"
 #include "parser/input.h"
 #include "parser/parser.h"
-#include "smt/smt.h"
+#include "smt1/smt1.h"
 #include "smt2/smt2.h"
 #include "tptp/tptp.h"
 
@@ -86,8 +86,8 @@ Parser* ParserBuilder::build()
 
   Parser* parser = NULL;
   switch(d_lang) {
-  case language::input::LANG_SMTLIB:
-    parser = new Smt(d_exprManager, input, d_strictMode, d_parseOnly);
+  case language::input::LANG_SMTLIB_V1:
+    parser = new Smt1(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   case language::input::LANG_SMTLIB_V2:
     parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);

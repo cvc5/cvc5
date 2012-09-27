@@ -282,11 +282,11 @@ public:
   }
 };/* class Cvc4ParserTest */
 
-class SmtParserTest : public CxxTest::TestSuite, public ParserBlack {
+class Smt1ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;
 
 public:
-  SmtParserTest() : ParserBlack(LANG_SMTLIB) { }
+  Smt1ParserTest() : ParserBlack(LANG_SMTLIB_V1) { }
 
   void setUp() {
     super::setUp();
@@ -296,7 +296,7 @@ public:
     super::tearDown();
   }
 
-  void testGoodSmtInputs() {
+  void testGoodSmt1Inputs() {
     tryGoodInput(""); // empty string is OK
     tryGoodInput("(benchmark foo :assumption true)");
     tryGoodInput("(benchmark bar :formula true)");
@@ -309,7 +309,7 @@ public:
     tryGoodInput("; a comment\n(benchmark foo ; hello\n  :formula true; goodbye\n)");
   }
 
-  void testBadSmtInputs() {
+  void testBadSmt1Inputs() {
 // competition builds don't do any checking
 #ifndef CVC4_COMPETITION_MODE
     tryBadInput("(benchmark foo)"); // empty benchmark is not OK
@@ -320,7 +320,7 @@ public:
 #endif /* ! CVC4_COMPETITION_MODE */
   }
 
-  void testGoodSmtExprs() {
+  void testGoodSmt1Exprs() {
     tryGoodExpr("(and a b)");
     tryGoodExpr("(or (and a b) c)");
     tryGoodExpr("(implies (and (implies a b) a) b)");
@@ -333,7 +333,7 @@ public:
     tryGoodExpr("1.5");
   }
 
-  void testBadSmtExprs() {
+  void testBadSmt1Exprs() {
 // competition builds don't do any checking
 #ifndef CVC4_COMPETITION_MODE
     tryBadExpr("(and)"); // wrong arity
@@ -349,7 +349,7 @@ public:
     tryBadExpr("1."); // rational constants must have fractional suffix
 #endif /* ! CVC4_COMPETITION_MODE */
   }
-};/* class SmtParserTest */
+};/* class Smt1ParserTest */
 
 class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
   typedef ParserBlack super;

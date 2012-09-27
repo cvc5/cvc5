@@ -1,5 +1,5 @@
 /* *******************                                                        */
-/*! \file Smt.g
+/*! \file Smt1.g
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: dejan, mdeters
@@ -16,7 +16,7 @@
  ** Parser for SMT-LIB input language.
  **/
 
-grammar Smt;
+grammar Smt1;
 
 options {
   // C output for antlr
@@ -27,7 +27,7 @@ options {
 
   // Only lookahead of <= k requested (disable for LL* parsing)
   // Note that CVC4's BoundedTokenBuffer requires a fixed k !
-  // If you change this k, change it also in smt_input.cpp !
+  // If you change this k, change it also in smt1_input.cpp !
   k = 2;
 }/* options */
 
@@ -75,7 +75,7 @@ namespace CVC4 {
   class Expr;
 
   namespace parser {
-    namespace smt {
+    namespace smt1 {
       /**
        * Just exists to provide the uintptr_t constructor that ANTLR
        * requires.
@@ -97,7 +97,7 @@ namespace CVC4 {
         myType(const Type& t) : CVC4::Type(t) {}
         myType(const myType& t) : CVC4::Type(t) {}
       };/* struct myType */
-    }/* CVC4::parser::smt namespace */
+    }/* CVC4::parser::smt1 namespace */
   }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
@@ -110,7 +110,7 @@ namespace CVC4 {
 #include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-#include "parser/smt/smt.h"
+#include "parser/smt1/smt1.h"
 #include "util/integer.h"
 #include "util/output.h"
 #include "util/rational.h"
@@ -122,7 +122,7 @@ using namespace CVC4::parser;
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
 #undef PARSER_STATE
-#define PARSER_STATE ((Smt*)PARSER->super)
+#define PARSER_STATE ((Smt1*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
 #undef MK_EXPR
@@ -137,7 +137,7 @@ using namespace CVC4::parser;
  * Parses an expression.
  * @return the parsed expression
  */
-parseExpr returns [CVC4::parser::smt::myExpr expr]
+parseExpr returns [CVC4::parser::smt1::myExpr expr]
   : annotatedFormula[expr]
   | EOF
   ;
@@ -148,6 +148,14 @@ parseExpr returns [CVC4::parser::smt::myExpr expr]
  */
 parseCommand returns [CVC4::Command* cmd = NULL]
   : b = benchmark { $cmd = b; }
+  | LPAREN_TOK c=IDENTIFIER
+    { std::string s = AntlrInput::tokenText($c);
+      if(s == "set" || s == "get") {
+        PARSER_STATE->parseError(std::string("In SMT-LIBv1 mode, expected keyword `benchmark', but it looks like you're writing SMT-LIBv2.  Use --lang smt for SMT-LIBv2."));
+      } else {
+        PARSER_STATE->parseError(std::string("expected keyword `benchmark', got `" + s + "'"));
+      }
+    }
   ;
 
 /**
@@ -521,7 +529,7 @@ sortName[std::string& name, CVC4::parser::DeclarationCheck check]
   : identifier[name,check,SYM_SORT]
   ;
 
-sortSymbol returns [CVC4::parser::smt::myType t]
+sortSymbol returns [CVC4::parser::smt1::myType t]
 @declarations {
   std::string name;
 }

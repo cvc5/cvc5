@@ -31,8 +31,6 @@
 #include "util/output.h"
 #include "options/options.h"
 #include "util/Assert.h"
-#include "parser/cvc/cvc_input.h"
-#include "parser/smt/smt_input.h"
 
 using namespace std;
 using namespace CVC4::kind;

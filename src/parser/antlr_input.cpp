@@ -32,7 +32,7 @@
 #include "expr/command.h"
 #include "expr/type.h"
 #include "parser/cvc/cvc_input.h"
-#include "parser/smt/smt_input.h"
+#include "parser/smt1/smt1_input.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/tptp/tptp_input.h"
 #include "util/output.h"
@@ -194,8 +194,8 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new CvcInput(inputStream);
     break;
   }
-  case LANG_SMTLIB:
-    input = new SmtInput(inputStream);
+  case LANG_SMTLIB_V1:
+    input = new Smt1Input(inputStream);
     break;
 
   case LANG_SMTLIB_V2:

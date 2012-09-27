@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt_printer.cpp
+/*! \file smt1_printer.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -16,7 +16,7 @@
  ** The pretty-printer interface for the SMT output language.
  **/
 
-#include "printer/smt/smt_printer.h"
+#include "printer/smt1/smt1_printer.h"
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "util/language.h" // for LANG_AST
 #include "expr/node_manager.h" // for VarNameAttr
@@ -31,31 +31,31 @@ using namespace std;
 
 namespace CVC4 {
 namespace printer {
-namespace smt {
+namespace smt1 {
 
-void SmtPrinter::toStream(std::ostream& out, TNode n,
-                          int toDepth, bool types, size_t dag) const throw() {
+void Smt1Printer::toStream(std::ostream& out, TNode n,
+                           int toDepth, bool types, size_t dag) const throw() {
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
-}/* SmtPrinter::toStream() */
+}/* Smt1Printer::toStream() */
 
-void SmtPrinter::toStream(std::ostream& out, const Command* c,
-                          int toDepth, bool types, size_t dag) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const Command* c,
+                           int toDepth, bool types, size_t dag) const throw() {
   c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
-}/* SmtPrinter::toStream() */
+}/* Smt1Printer::toStream() */
 
-void SmtPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
   s->toStream(out, language::output::LANG_SMTLIB_V2);
-}/* SmtPrinter::toStream() */
+}/* Smt1Printer::toStream() */
 
-void SmtPrinter::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
-}/* SmtPrinter::toStream() */
+}/* Smt1Printer::toStream() */
 
-void SmtPrinter::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
+void Smt1Printer::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, m, c);
 }
 
-}/* CVC4::printer::smt namespace */
+}/* CVC4::printer::smt1 namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 

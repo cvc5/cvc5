@@ -20,7 +20,7 @@ option - --show-trace-tags void :handler CVC4::main::showTraceTags :handler-incl
  show all available tags for tracing
 
 expert-option earlyExit --early-exit bool :default true
- do not run destructors at exit; default on except in debug mode
+ do not run destructors at exit; default on except in debug builds
 
 # portfolio options
 option printWinner bool

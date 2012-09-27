@@ -57,7 +57,7 @@ function gettemp {
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1
-  lang=smt
+  lang=smt1
   if test -e "$benchmark.expect"; then
     expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`

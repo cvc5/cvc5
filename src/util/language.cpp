@@ -23,7 +23,7 @@ namespace language {
 
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
-  case output::LANG_SMTLIB:
+  case output::LANG_SMTLIB_V1:
   case output::LANG_SMTLIB_V2:
   case output::LANG_TPTP:
   case output::LANG_CVC4:
@@ -41,7 +41,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
-  case input::LANG_SMTLIB:
+  case input::LANG_SMTLIB_V1:
   case input::LANG_SMTLIB_V2:
   case input::LANG_CVC4:
   case input::LANG_TPTP:

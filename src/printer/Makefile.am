@@ -12,8 +12,8 @@ libprinter_la_SOURCES = \
 	dagification_visitor.cpp \
 	ast/ast_printer.h \
 	ast/ast_printer.cpp \
-	smt/smt_printer.h \
-	smt/smt_printer.cpp \
+	smt1/smt1_printer.h \
+	smt1/smt1_printer.cpp \
 	smt2/smt2_printer.h \
 	smt2/smt2_printer.cpp \
 	cvc/cvc_printer.h \

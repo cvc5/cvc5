@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt.h
+/*! \file smt1.h
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT_H
-#define __CVC4__PARSER__SMT_H
+#ifndef __CVC4__PARSER__SMT1_H
+#define __CVC4__PARSER__SMT1_H
 
 #include <ext/hash_map>
 namespace std { using namespace __gnu_cxx; }
@@ -31,7 +31,7 @@ class SExpr;
 
 namespace parser {
 
-class Smt : public Parser {
+class Smt1 : public Parser {
   friend class ParserBuilder;
 
 public:
@@ -92,7 +92,7 @@ private:
   Logic d_logic;
 
 protected:
-  Smt(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+  Smt1(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
 
 public:
   /**
@@ -117,9 +117,9 @@ private:
 
   void addArithmeticOperators();
   static std::hash_map<const std::string, Logic, CVC4::StringHashFunction> newLogicMap();
-};/* class Smt */
+};/* class Smt1 */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT_H */
+#endif /* __CVC4__PARSER__SMT1_H */

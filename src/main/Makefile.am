@@ -61,13 +61,13 @@ BUILT_SOURCES = \
 
 TOKENS_FILES = \
 	cvc_tokens.h \
-	smt_tokens.h \
+	smt1_tokens.h \
 	smt2_tokens.h \
 	tptp_tokens.h
 
 cvc_tokens.h: @srcdir@/../parser/cvc/Cvc.g
 	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9_-][a-zA-Z0-9_-]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9_-]*\)'\''.*/"\1",/' | sort -u >$@
-smt_tokens.h: @srcdir@/../parser/smt/Smt.g
+smt1_tokens.h: @srcdir@/../parser/smt1/Smt1.g
 	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9_-][a-zA-Z0-9_-]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9_-]*\)'\''.*/"\1",/' | sort -u >$@
 smt2_tokens.h: @srcdir@/../parser/smt2/Smt2.g
 	$(AM_V_GEN)grep "'[a-zA-Z][a-zA-Z0-9_-][a-zA-Z0-9_-]*'" $^ | sed 's/.*'\''\([a-zA-Z0-9_-]*\)'\''.*/"\1",/' | sort -u >$@

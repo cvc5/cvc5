@@ -233,19 +233,19 @@ static const std::string optionsFootnote = "\n\
 
 static const std::string languageDescription = "\
 Languages currently supported as arguments to the -L / --lang option:\n\
-  auto           attempt to automatically determine the input language\n\
-  pl | cvc4      CVC4 presentation language\n\
-  smt | smtlib   SMT-LIB format 1.2\n\
-  smt2 | smtlib2 SMT-LIB format 2.0\n\
-  tptp           TPTP format (cnf and fof)\n\
+  auto                           attempt to automatically determine language\n\
+  cvc4 | presentation | pl       CVC4 presentation language\n\
+  smt1 | smtlib1                 SMT-LIB format 1.2\n\
+  smt | smtlib | smt2 | smtlib2  SMT-LIB format 2.0\n\
+  tptp                           TPTP format (cnf and fof)\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
-  auto           match the output language to the input language\n\
-  pl | cvc4      CVC4 presentation language\n\
-  smt | smtlib   SMT-LIB format 1.2\n\
-  smt2 | smtlib2 SMT-LIB format 2.0\n\
-  tptp           TPTP format\n\
-  ast            internal format (simple syntax-tree language)\n\
+  auto                           match output language to input language\n\
+  cvc4 | presentation | pl       CVC4 presentation language\n\
+  smt1 | smtlib1                 SMT-LIB format 1.2\n\
+  smt | smtlib | smt2 | smtlib2  SMT-LIB format 2.0\n\
+  tptp                           TPTP format\n\
+  ast                            internal format (simple syntax trees)\n\
 ";
 
 std::string Options::getDescription() const {

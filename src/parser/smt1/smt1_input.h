@@ -18,14 +18,14 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT_INPUT_H
-#define __CVC4__PARSER__SMT_INPUT_H
+#ifndef __CVC4__PARSER__SMT1_INPUT_H
+#define __CVC4__PARSER__SMT1_INPUT_H
 
 #include "parser/antlr_input.h"
-#include "parser/smt/generated/SmtLexer.h"
-#include "parser/smt/generated/SmtParser.h"
+#include "parser/smt1/generated/Smt1Lexer.h"
+#include "parser/smt1/generated/Smt1Parser.h"
 
-// extern void SmtParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
+// extern void Smt1ParserSetAntlrParser(CVC4::parser::AntlrParser* newAntlrParser);
 
 namespace CVC4 {
 
@@ -35,13 +35,13 @@ class ExprManager;
 
 namespace parser {
 
-class SmtInput : public AntlrInput {
+class Smt1Input : public AntlrInput {
 
   /** The ANTLR3 SMT lexer for the input. */
-  pSmtLexer d_pSmtLexer;
+  pSmt1Lexer d_pSmt1Lexer;
 
   /** The ANTLR3 CVC parser for the input. */
-  pSmtParser d_pSmtParser;
+  pSmt1Parser d_pSmt1Parser;
 
 public:
 
@@ -50,14 +50,14 @@ public:
    *
    * @param inputStream the input stream to use
    */
-  SmtInput(AntlrInputStream& inputStream);
+  Smt1Input(AntlrInputStream& inputStream);
 
   /** Destructor. Frees the lexer and the parser. */
-  virtual ~SmtInput();
+  virtual ~Smt1Input();
 
   /** Get the language that this Input is reading. */
   InputLanguage getLanguage() const throw() {
-    return language::input::LANG_SMTLIB;
+    return language::input::LANG_SMTLIB_V1;
   }
 
 protected:
@@ -88,9 +88,9 @@ private:
    */
   void init();
 
-};/* class SmtInput */
+};/* class Smt1Input */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT_INPUT_H */
+#endif /* __CVC4__PARSER__SMT1_INPUT_H */

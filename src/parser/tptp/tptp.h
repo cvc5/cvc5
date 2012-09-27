@@ -22,7 +22,6 @@
 #define __CVC4__PARSER__TPTP_H
 
 #include "parser/parser.h"
-#include "parser/smt/smt.h"
 #include "expr/command.h"
 #include <ext/hash_set>
 

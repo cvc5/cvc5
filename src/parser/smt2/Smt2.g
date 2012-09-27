@@ -355,6 +355,16 @@ command returns [CVC4::Command* cmd = NULL]
         PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
       }
     }
+
+    /* error handling */
+  | SIMPLE_SYMBOL
+    { std::string id = AntlrInput::tokenText($SIMPLE_SYMBOL);
+      if(id == "benchmark") {
+        PARSER_STATE->parseError("In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1.  Use --lang smt1 for SMT-LIBv1.");
+      } else {
+        PARSER_STATE->parseError("expected SMT-LIBv2 command, got `" + id + "'.");
+      }
+    }
   ;
 
 extendedCommand[CVC4::Command*& cmd]

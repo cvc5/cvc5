@@ -561,6 +561,16 @@ parseExpr returns [CVC4::Expr expr = CVC4::Expr()]
  */
 parseCommand returns [CVC4::Command* cmd = NULL]
   : c=command { $cmd = c; }
+  | LPAREN IDENTIFIER
+    { std::string s = AntlrInput::tokenText($IDENTIFIER);
+      if(s == "benchmark") {
+        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIBv1 format detected.  Use --lang smt1 for SMT-LIBv1 support.");
+      } else if(s == "set" || s == "get") {
+        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIBv2 format detected.  Use --lang smt2 for SMT-LIBv2 support.");
+      } else {
+        PARSER_STATE->parseError("A CVC4 presentation language command cannot begin with a parenthesis; expected command name.");
+      }
+    }
   | EOF { $cmd = NULL; }
   ;
 

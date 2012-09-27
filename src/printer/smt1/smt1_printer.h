@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt_printer.h
+/*! \file smt1_printer.h
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none
@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PRINTER__SMT_PRINTER_H
-#define __CVC4__PRINTER__SMT_PRINTER_H
+#ifndef __CVC4__PRINTER__SMT1_PRINTER_H
+#define __CVC4__PRINTER__SMT1_PRINTER_H
 
 #include <iostream>
 
@@ -27,9 +27,9 @@
 
 namespace CVC4 {
 namespace printer {
-namespace smt {
+namespace smt1 {
 
-class SmtPrinter : public CVC4::Printer {
+class Smt1Printer : public CVC4::Printer {
 public:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
@@ -37,11 +37,11 @@ public:
   void toStream(std::ostream& out, const SExpr& sexpr) const throw();
   //for models
   void toStream(std::ostream& out, Model* m, const Command* c) const throw();
-};/* class SmtPrinter */
+};/* class Smt1Printer */
 
-}/* CVC4::printer::smt namespace */
+}/* CVC4::printer::smt1 namespace */
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__SMT_PRINTER_H */
+#endif /* __CVC4__PRINTER__SMT1_PRINTER_H */
 

@@ -18,7 +18,6 @@
 
 #include "expr/type.h"
 #include "parser/parser.h"
-#include "parser/smt/smt.h"
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"
 

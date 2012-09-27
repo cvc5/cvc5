@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt_input.cpp
+/*! \file smt1_input.cpp
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
@@ -18,55 +18,55 @@
 
 #include <antlr3.h>
 
-#include "parser/smt/smt_input.h"
+#include "parser/smt1/smt1_input.h"
 #include "expr/expr_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt/generated/SmtLexer.h"
-#include "parser/smt/generated/SmtParser.h"
+#include "parser/smt1/generated/Smt1Lexer.h"
+#include "parser/smt1/generated/Smt1Parser.h"
 
 namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-SmtInput::SmtInput(AntlrInputStream& inputStream) :
+Smt1Input::Smt1Input(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
   AlwaysAssert( input != NULL );
 
-  d_pSmtLexer = SmtLexerNew(input);
-  if( d_pSmtLexer == NULL ) {
+  d_pSmt1Lexer = Smt1LexerNew(input);
+  if( d_pSmt1Lexer == NULL ) {
     throw ParserException("Failed to create SMT lexer.");
   }
 
-  setAntlr3Lexer( d_pSmtLexer->pLexer );
+  setAntlr3Lexer( d_pSmt1Lexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
   AlwaysAssert( tokenStream != NULL );
 
-  d_pSmtParser = SmtParserNew(tokenStream);
-  if( d_pSmtParser == NULL ) {
+  d_pSmt1Parser = Smt1ParserNew(tokenStream);
+  if( d_pSmt1Parser == NULL ) {
     throw ParserException("Failed to create SMT parser.");
   }
 
-  setAntlr3Parser(d_pSmtParser->pParser);
+  setAntlr3Parser(d_pSmt1Parser->pParser);
 }
 
 
-SmtInput::~SmtInput() {
-  d_pSmtLexer->free(d_pSmtLexer);
-  d_pSmtParser->free(d_pSmtParser);
+Smt1Input::~Smt1Input() {
+  d_pSmt1Lexer->free(d_pSmt1Lexer);
+  d_pSmt1Parser->free(d_pSmt1Parser);
 }
 
-Command* SmtInput::parseCommand()
+Command* Smt1Input::parseCommand()
   throw (ParserException, TypeCheckingException, AssertionException) {
-  return d_pSmtParser->parseCommand(d_pSmtParser);
+  return d_pSmt1Parser->parseCommand(d_pSmt1Parser);
 }
 
-Expr SmtInput::parseExpr()
+Expr Smt1Input::parseExpr()
   throw (ParserException, TypeCheckingException, AssertionException) {
-  return d_pSmtParser->parseExpr(d_pSmtParser);
+  return d_pSmt1Parser->parseExpr(d_pSmt1Parser);
 }
 
 }/* CVC4::parser namespace */

@@ -17,7 +17,7 @@ AM_CPPFLAGS = \
 	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = smt smt2 cvc tptp
+SUBDIRS = smt1 smt2 cvc tptp
 
 lib_LTLIBRARIES = libcvc4parser.la
 if HAVE_CXXTESTGEN
@@ -29,14 +29,14 @@ libcvc4parser_la_LDFLAGS = $(ANTLR_LDFLAGS) \
 libcvc4parser_noinst_la_LDFLAGS = $(ANTLR_LDFLAGS)
 
 libcvc4parser_la_LIBADD = \
-	@builddir@/smt/libparsersmt.la \
+	@builddir@/smt1/libparsersmt1.la \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/tptp/libparsertptp.la \
 	@builddir@/cvc/libparsercvc.la \
 	@builddir@/../lib/libreplacements.la \
 	-L@builddir@/.. -lcvc4
 libcvc4parser_noinst_la_LIBADD = \
-	@builddir@/smt/libparsersmt.la \
+	@builddir@/smt1/libparsersmt1.la \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/tptp/libparsertptp.la \
 	@builddir@/cvc/libparsercvc.la \

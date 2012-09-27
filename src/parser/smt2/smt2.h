@@ -22,7 +22,7 @@
 #define __CVC4__PARSER__SMT2_H
 
 #include "parser/parser.h"
-#include "parser/smt/smt.h"
+#include "parser/smt1/smt1.h"
 
 #include <sstream>
 
@@ -48,7 +48,7 @@ public:
 
 private:
   bool d_logicSet;
-  Smt::Logic d_logic;
+  Smt1::Logic d_logic;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);

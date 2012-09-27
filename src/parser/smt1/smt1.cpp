@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt.cpp
+/*! \file smt1.cpp
  ** \verbatim
  ** Original author: cconway
  ** Major contributors: mdeters
@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** Definitions of SMT constants.
+ ** Definitions of SMT-LIB (v1) constants.
  **/
 
 #include <ext/hash_map>
@@ -22,13 +22,13 @@ namespace std {
 #include "expr/type.h"
 #include "expr/command.h"
 #include "parser/parser.h"
-#include "parser/smt/smt.h"
+#include "parser/smt1/smt1.h"
 
 namespace CVC4 {
 namespace parser {
 
-std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newLogicMap() {
-  std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> logicMap;
+std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> Smt1::newLogicMap() {
+  std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> logicMap;
   logicMap["AUFLIA"] = AUFLIA;
   logicMap["AUFLIRA"] = AUFLIRA;
   logicMap["AUFNIRA"] = AUFNIRA;
@@ -66,12 +66,12 @@ std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> Smt::newL
   return logicMap;
 }
 
-Smt::Logic Smt::toLogic(const std::string& name) {
-  static std::hash_map<const std::string, Smt::Logic, CVC4::StringHashFunction> logicMap = newLogicMap();
+Smt1::Logic Smt1::toLogic(const std::string& name) {
+  static std::hash_map<const std::string, Smt1::Logic, CVC4::StringHashFunction> logicMap = newLogicMap();
   return logicMap[name];
 }
 
-Smt::Smt(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
+Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
 
@@ -87,7 +87,7 @@ Smt::Smt(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly
 
 }
 
-void Smt::addArithmeticOperators() {
+void Smt1::addArithmeticOperators() {
   addOperator(kind::PLUS);
   addOperator(kind::MINUS);
   addOperator(kind::UMINUS);
@@ -98,7 +98,7 @@ void Smt::addArithmeticOperators() {
   addOperator(kind::GEQ);
 }
 
-void Smt::addTheory(Theory theory) {
+void Smt1::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_ARRAYS:
   case THEORY_ARRAYS_EX: {
@@ -171,11 +171,11 @@ void Smt::addTheory(Theory theory) {
   }
 }
 
-bool Smt::logicIsSet() {
+bool Smt1::logicIsSet() {
   return d_logicSet;
 }
 
-void Smt::setLogic(const std::string& name) {
+void Smt1::setLogic(const std::string& name) {
   d_logicSet = true;
   d_logic = toLogic(name);
 
@@ -322,7 +322,7 @@ void Smt::setLogic(const std::string& name) {
     addTheory(THEORY_QUANTIFIERS);
     break;
   }
-}/* Smt::setLogic() */
+}/* Smt1::setLogic() */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
