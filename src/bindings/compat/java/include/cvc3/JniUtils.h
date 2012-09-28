@@ -10,6 +10,8 @@
 //#include "hash_map.h"
 //#include "exception.h"
 
+#define DebugAssert(cond, str) assert(cond)
+
 namespace Java_cvc3_JniUtils {
 
   /// Embedding of c++ objects in java objects
