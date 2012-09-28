@@ -472,7 +472,7 @@ public:
 typedef CVC4::Statistics Statistics;
 
 #define PRESENTATION_LANG ::CVC4::language::input::LANG_CVC4
-#define SMTLIB_LANG ::CVC4::language::input::LANG_SMTLIB
+#define SMTLIB_LANG ::CVC4::language::input::LANG_SMTLIB_V1
 #define SMTLIB_V2_LANG ::CVC4::language::input::LANG_SMTLIB_V2
 #define TPTP_LANG ::CVC4::language::input::LANG_TPTP
 #define AST_LANG ::CVC4::language::input::LANG_AST

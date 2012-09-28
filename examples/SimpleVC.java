@@ -37,7 +37,7 @@ import edu.nyu.acsys.CVC4.*;
 
 public class SimpleVC {
   public static void main(String[] args) {
-    System.loadLibrary("CVC4");
+    System.loadLibrary("cvc4jni");
 
     ExprManager em = new ExprManager();
     SmtEngine smt = new SmtEngine(em);

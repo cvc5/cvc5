@@ -17,7 +17,7 @@ import edu.nyu.acsys.CVC4.ParserBuilder;
 public class CVC4JavaTest {
   public static void main(String[] args) {
     try {
-      System.loadLibrary("CVC4");
+      System.loadLibrary("cvc4jni");
 
       //CVC4.getDebugChannel().on("current");
 
@@ -42,7 +42,7 @@ public class CVC4JavaTest {
       Result r = smt.checkSat(e);
       boolean correct = r.isSat() == Result.Sat.UNSAT;
 
-      System.out.println(smt.getStatisticsRegistry());
+      System.out.println(smt.getStatistics());
 
       System.exit(correct ? 0 : 1);
     } catch(Exception e) {

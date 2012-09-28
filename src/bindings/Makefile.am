@@ -55,12 +55,12 @@ csharplib_LTLIBRARIES =
 rubylib_LTLIBRARIES =
 tcllib_LTLIBRARIES =
 if CVC4_LANGUAGE_BINDING_JAVA
-javalib_LTLIBRARIES += java/CVC4.la
+javalib_LTLIBRARIES += java/libcvc4jni.la
 javadata_DATA += CVC4.jar
-java_CVC4_la_LDFLAGS = \
+java_libcvc4jni_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
-java_CVC4_la_LIBADD = \
+java_libcvc4jni_la_LIBADD = \
 	-L@builddir@/.. -lcvc4 \
 	-L@builddir@/../parser -lcvc4parser
 endif
@@ -137,8 +137,8 @@ tcl_CVC4_la_LIBADD = \
 	-L@builddir@/../parser -lcvc4parser
 endif
 
-nodist_java_CVC4_la_SOURCES = java.cpp
-java_CVC4_la_CXXFLAGS = -fno-strict-aliasing
+nodist_java_libcvc4jni_la_SOURCES = java.cpp
+java_libcvc4jni_la_CXXFLAGS = -fno-strict-aliasing
 nodist_csharp_CVC4_la_SOURCES = csharp.cpp
 nodist_perl_CVC4_la_SOURCES = perl.cpp
 nodist_php_CVC4_la_SOURCES = php.cpp
@@ -164,7 +164,7 @@ MOSTLYCLEANFILES = \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
 	CVC4.jar
 
-java_CVC4_la-java.lo java.lo: java.cpp
+java_libcvc4jni_la-java.lo java.lo: java.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) -o $@ $<
 CVC4.jar: java.cpp
 	$(AM_V_GEN) \
