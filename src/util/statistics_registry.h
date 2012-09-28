@@ -24,6 +24,7 @@
 #define __CVC4__STATISTICS_REGISTRY_H
 
 #include "util/statistics.h"
+#include "util/exception.h"
 
 #include <sstream>
 #include <iomanip>
@@ -838,7 +839,9 @@ public:
   RegisterStatistic(Stat* stat) :
       d_reg(StatisticsRegistry::current()),
       d_stat(stat) {
-    Assert(d_reg != NULL, "There is no current statistics registry!");
+    if(d_reg != NULL) {
+      throw CVC4::Exception("There is no current statistics registry!");
+    }
     StatisticsRegistry::registerStat(d_stat);
   }
 #endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && ! __BUILDING_STATISTICS_FOR_EXPORT */
