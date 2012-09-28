@@ -129,7 +129,7 @@ Pickler::~Pickler() {
 }
 
 void Pickler::toPickle(Expr e, Pickle& p)
-  throw(AssertionException, PicklingException) {
+  throw(PicklingException) {
   Assert(NodeManager::fromExprManager(e.getExprManager()) == d_private->d_nm);
   Assert(d_private->atDefaultState());
 
@@ -469,6 +469,13 @@ Pickle& Pickle::operator = (const Pickle& other) {
 
 Pickle::~Pickle() {
   delete d_data;
+}
+
+uint64_t MapPickler::variableFromMap(uint64_t x) const 
+{
+  VarMap::const_iterator i = d_fromMap.find(x);
+  Assert(i != d_fromMap.end());
+  return i->second;
 }
 
 }/* CVC4::expr::pickle namespace */

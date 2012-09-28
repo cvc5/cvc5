@@ -132,6 +132,19 @@ public:
   friend class ExprManager;
 };/* class TypeCheckingException */
 
+/**
+ * Exception thrown in case of failure to export
+ */
+class CVC4_PUBLIC ExportUnsupportedException : public Exception {
+public:
+  ExportUnsupportedException() throw():
+    Exception("export unsupported") {
+  }
+  ExportUnsupportedException(const char* msg) throw():
+    Exception(msg) {
+  }
+};/* class DatatypeExportUnsupportedException */
+
 std::ostream& operator<<(std::ostream& out,
                          const TypeCheckingException& e) CVC4_PUBLIC;
 

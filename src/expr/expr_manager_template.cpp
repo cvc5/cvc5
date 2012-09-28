@@ -928,13 +928,21 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
 
 TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, ExprManagerMapCollection& vmap) {
   Debug("export") << "type: " << n << std::endl;
-  Assert(n.getKind() == kind::SORT_TYPE ||
-         n.getMetaKind() != kind::metakind::PARAMETERIZED,
-         "PARAMETERIZED-kinded types (other than SORT_KIND) not supported");
+  if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
+    throw ExportUnsupportedException
+      ("export of types belonging to theory of DATATYPES kinds unsupported");
+  }
+  if(n.getMetaKind() == kind::metakind::PARAMETERIZED &&
+     n.getKind() != kind::SORT_TYPE) { 
+    throw ExportUnsupportedException
+      ("export of PARAMETERIZED-kinded types (other than SORT_KIND) not supported");
+  }
   if(n.getKind() == kind::TYPE_CONSTANT) {
     return to->mkTypeConst(n.getConst<TypeConstant>());
   } else if(n.getKind() == kind::BITVECTOR_TYPE) {
     return to->mkBitVectorType(n.getConst<BitVectorSize>());
+  } else if(n.getKind() == kind::SUBRANGE_TYPE) {
+    return to->mkSubrangeType(n.getSubrangeBounds());
   }
   Type from_t = from->toType(n);
   Type& to_t = vmap.d_typeMap[from_t];

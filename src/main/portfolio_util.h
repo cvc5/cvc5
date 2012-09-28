@@ -155,7 +155,7 @@ void sharingManager(unsigned numThreads,
 
       /* Alert if channel full, so that we increase sharingChannelSize
          or decrease sharingBroadcastInterval */
-      Assert(not channelsOut[t]->full());
+      assert(not channelsOut[t]->full());
 
       T data = channelsOut[t]->pop();
 
@@ -177,7 +177,7 @@ void sharingManager(unsigned numThreads,
     for(unsigned t = 0; t < numThreads; ++t){
       /* Alert if channel full, so that we increase sharingChannelSize
          or decrease sharingBroadcastInterval */
-      Assert(not channelsIn[t]->full());
+      assert(not channelsIn[t]->full());
 
       while(!queues[t].empty() && !channelsIn[t]->full()){
         Trace("sharing") << "sharing: pushing on channel " << t << std::endl;

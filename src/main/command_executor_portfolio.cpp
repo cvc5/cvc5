@@ -48,9 +48,13 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   d_lastWinner(0),
   d_channelsOut(),
   d_channelsIn(),
-  d_ostringstreams()
+  d_ostringstreams(),
+  d_statLastWinner("portfolio::lastWinner")
 {
-  Assert(d_threadOptions.size() == d_numThreads);
+  assert(d_threadOptions.size() == d_numThreads);
+
+  d_statLastWinner.setData(d_lastWinner);
+  d_stats.registerStat_(&d_statLastWinner);
 
   /* Duplication, Individualisation */
   d_exprMgrs.push_back(&d_exprMgr);
@@ -64,7 +68,7 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
     d_smts.push_back(new SmtEngine(d_exprMgrs[i]));
   }
 
-  Assert(d_vmaps.size() == 0);
+  assert(d_vmaps.size() == 0);
   for(unsigned i = 0; i < d_numThreads; ++i) {
     d_vmaps.push_back(new ExprManagerMapCollection());
   }
@@ -72,15 +76,15 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
 
 CommandExecutorPortfolio::~CommandExecutorPortfolio()
 {
-  Assert(d_seq != NULL);
+  assert(d_seq != NULL);
   delete d_seq;
 
-  Assert(d_smts.size() == d_numThreads);
+  assert(d_smts.size() == d_numThreads);
   for(unsigned i = 1; i < d_numThreads; ++i) {
     // the 0-th one is responsibility of parent class
 
-    delete d_exprMgrs[i];
     delete d_smts[i];
+    delete d_exprMgrs[i];
   }
   d_exprMgrs.clear();
   d_smts.clear();
@@ -89,8 +93,8 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
 void CommandExecutorPortfolio::lemmaSharingInit()
 {
   /* Sharing channels */
-  Assert(d_channelsIn.size() == 0);
-  Assert(d_channelsOut.size() == 0);
+  assert(d_channelsIn.size() == 0);
+  assert(d_channelsOut.size() == 0);
 
   if(d_numThreads == 1) {
     // Disable sharing
@@ -130,10 +134,14 @@ void CommandExecutorPortfolio::lemmaSharingInit()
     /* Output to string stream  */
     if(d_options[options::verbosity] == 0
        || d_options[options::separateOutput]) {
-      Assert(d_ostringstreams.size() == 0);
+      assert(d_ostringstreams.size() == 0);
       for(unsigned i = 0; i < d_numThreads; ++i) {
         d_ostringstreams.push_back(new ostringstream);
         d_threadOptions[i].set(options::out, d_ostringstreams[i]);
+
+        // important even for muzzled builds (to get result output right)
+        *d_threadOptions[i][options::out]
+          << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
       }
     }
   }
@@ -141,11 +149,11 @@ void CommandExecutorPortfolio::lemmaSharingInit()
 
 void CommandExecutorPortfolio::lemmaSharingCleanup()
 {
-  Assert(d_numThreads == d_options[options::threads]);
+  assert(d_numThreads == d_options[options::threads]);
 
   // Channel cleanup
-  Assert(d_channelsIn.size() == d_numThreads);
-  Assert(d_channelsOut.size() == d_numThreads);
+  assert(d_channelsIn.size() == d_numThreads);
+  assert(d_channelsOut.size() == d_numThreads);
   for(unsigned i = 0; i < d_numThreads; ++i) {
     delete d_channelsIn[i];
     delete d_channelsOut[i];
@@ -157,7 +165,7 @@ void CommandExecutorPortfolio::lemmaSharingCleanup()
 
   // sstreams cleanup (if used)
   if(d_ostringstreams.size() != 0) {
-    Assert(d_ostringstreams.size() == d_numThreads);
+    assert(d_ostringstreams.size() == d_numThreads);
     for(unsigned i = 0; i < d_numThreads; ++i) {
       d_threadOptions[i].set(options::out, d_options[options::out]);
       delete d_ostringstreams[i];
@@ -180,12 +188,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // mode = 1 : run a porfolio
   // mode = 2 : run the last winner
 
-  // if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-  //    dynamic_cast<QueryCommand*>(cmd) != NULL) {
-  //   mode = 1;
-  // } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL) {
-  //   mode = 2;
-  // }
+  if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
+    dynamic_cast<QueryCommand*>(cmd) != NULL) {
+    mode = 1;
+  } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL) {
+    mode = 2;
+  }
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
@@ -213,7 +221,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
        */
       try {
         seqs[i] = d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
-      }catch(ExportToUnsupportedException& e){
+      }catch(ExportUnsupportedException& e){
         return CommandExecutor::doCommandSingleton(cmd);
       }
     }
@@ -244,9 +252,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                            );
     }
 
-    Assert(d_channelsIn.size() == d_numThreads);
-    Assert(d_channelsOut.size() == d_numThreads);
-    Assert(d_smts.size() == d_numThreads);
+    assert(d_channelsIn.size() == d_numThreads);
+    assert(d_channelsOut.size() == d_numThreads);
+    assert(d_smts.size() == d_numThreads);
     boost::function<void()>
       smFn = boost::bind(sharingManager<ChannelFormat>,
                          d_numThreads,
@@ -269,9 +277,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     //   << std::endl;
 
     if(d_ostringstreams.size() != 0) {
-      Assert(d_numThreads == d_options[options::threads]);
-      Assert(portfolioReturn.first >= 0);
-      Assert(unsigned(portfolioReturn.first) < d_numThreads);
+      assert(d_numThreads == d_options[options::threads]);
+      assert(portfolioReturn.first >= 0);
+      assert(unsigned(portfolioReturn.first) < d_numThreads);
 
       *d_options[options::out]
         << d_ostringstreams[portfolioReturn.first]->str();
@@ -286,7 +294,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                            cmd,
                            d_threadOptions[d_lastWinner][options::out]);
   } else {
-    Unreachable();
+    // Unreachable();
+    assert(false);
   }
 
 }/* CommandExecutorPortfolio::doCommandSingleton() */
@@ -297,15 +306,15 @@ std::string CommandExecutorPortfolio::getSmtEngineStatus()
 }
 
 void CommandExecutorPortfolio::flushStatistics(std::ostream& out) const {
-  Assert(d_numThreads == d_exprMgrs.size() && d_exprMgrs.size() == d_smts.size());
+  assert(d_numThreads == d_exprMgrs.size() && d_exprMgrs.size() == d_smts.size());
   for(size_t i = 0; i < d_numThreads; ++i) {
-    string emTag = "ExprManager thread #"
+    string emTag = "thread#"
       + boost::lexical_cast<string>(d_threadOptions[i][options::thread_id]);
     Statistics stats = d_exprMgrs[i]->getStatistics();
     stats.setPrefix(emTag);
     stats.flushInformation(out);
 
-    string smtTag = "SmtEngine thread #"
+    string smtTag = "thread#"
       + boost::lexical_cast<string>(d_threadOptions[i][options::thread_id]);
     stats = d_smts[i]->getStatistics();
     stats.setPrefix(smtTag);

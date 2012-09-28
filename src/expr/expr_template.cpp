@@ -114,7 +114,12 @@ namespace expr {
 static Node exportConstant(TNode n, NodeManager* to);
 
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap) {
-  if(n.isConst()) {
+  if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
+    throw ExportUnsupportedException
+       ("export of node belonging to theory of DATATYPES kinds unsupported");
+  }
+
+  if(n.getMetaKind() == metakind::CONSTANT) {
     return exportConstant(n, NodeManager::fromExprManager(to));
   } else if(n.isVar()) {
     Expr from_e(from, new Node(n));
@@ -132,7 +137,7 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
         // a check that mkVar isn't called internally
         NodeManagerScope nullScope(NULL);
 
-        if(n.getKind() == kind::BOUND_VAR_LIST) {
+        if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
           to_e = to->mkBoundVar(name, type);// FIXME thread safety
         } else if(n.getKind() == kind::VARIABLE) {
           to_e = to->mkVar(name, type);// FIXME thread safety

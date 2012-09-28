@@ -14,6 +14,7 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
+#include <cassert>
 #include <vector>
 #include <unistd.h>
 #include "options/options.h"
@@ -97,7 +98,7 @@ vector<Options> parseThreadSpecificOptions(Options opts)
     }
   }
 
-  Assert(numThreads >= 1);      //do we need this?
+  assert(numThreads >= 1);      //do we need this?
 
   return threadOptions;
 }

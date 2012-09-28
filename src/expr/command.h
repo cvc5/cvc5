@@ -50,13 +50,6 @@ std::ostream& operator<<(std::ostream&, const Command*) throw() CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus&) throw() CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const CommandStatus*) throw() CVC4_PUBLIC;
 
-class CVC4_PUBLIC ExportToUnsupportedException : public Exception {
-public:
-  ExportToUnsupportedException() throw() :
-    Exception("exportTo unsupported for command") {
-  }
-};/* class ExportToUnsupportedException */
-
 /** The status an SMT benchmark can have */
 enum BenchmarkStatus {
   /** Benchmark is satisfiable */

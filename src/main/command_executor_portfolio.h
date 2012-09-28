@@ -52,6 +52,9 @@ class CommandExecutorPortfolio : public CommandExecutor {
   std::vector< SharedChannel<ChannelFormat>* > d_channelsIn;
   std::vector<std::ostringstream*> d_ostringstreams;
 
+  // Stats
+  ReferenceStat<int> d_statLastWinner;
+
 public:
   CommandExecutorPortfolio(ExprManager &exprMgr,
                            Options &options,

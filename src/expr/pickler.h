@@ -67,7 +67,7 @@ class CVC4_PUBLIC Pickler {
 
 protected:
   virtual uint64_t variableToMap(uint64_t x) const
-    throw(AssertionException, PicklingException) {
+    throw(PicklingException) {
     return x;
   }
   virtual uint64_t variableFromMap(uint64_t x) const {
@@ -87,7 +87,7 @@ public:
    *
    * @return the pickle, which should be dispose()'d when you're done with it
    */
-  void toPickle(Expr e, Pickle& p) throw(AssertionException, PicklingException);
+  void toPickle(Expr e, Pickle& p) throw(PicklingException);
 
   /**
    * Constructs a node from a Pickle.
@@ -116,7 +116,7 @@ public:
 protected:
 
   virtual uint64_t variableToMap(uint64_t x) const
-    throw(AssertionException, PicklingException) {
+    throw(PicklingException) {
     VarMap::const_iterator i = d_toMap.find(x);
     if(i != d_toMap.end()) {
       return i->second;
@@ -125,11 +125,7 @@ protected:
     }
   }
 
-  virtual uint64_t variableFromMap(uint64_t x) const {
-    VarMap::const_iterator i = d_fromMap.find(x);
-    Assert(i != d_fromMap.end());
-    return i->second;
-  }
+  virtual uint64_t variableFromMap(uint64_t x) const; 
 };/* class MapPickler */
 
 }/* CVC4::expr::pickle namespace */

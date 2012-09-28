@@ -38,13 +38,7 @@ protected:
   StatisticsRegistry d_stats;
 
 public:
-  // Note: though the options are not cached (instead a reference is
-  // used), the portfolio command executer currently parses them
-  // during initalization, creating thread-specific options and
-  // storing them
   CommandExecutor(ExprManager &exprMgr, Options &options);
-
-  ~CommandExecutor() {}
 
   /**
    * Executes a command. Recursively handles if cmd is a command

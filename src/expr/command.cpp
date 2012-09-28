@@ -1273,12 +1273,8 @@ void DatatypeDeclarationCommand::invoke(SmtEngine* smtEngine) throw() {
 }
 
 Command* DatatypeDeclarationCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  throw ExportToUnsupportedException();
-  // vector<DatatypeType> params;
-  // transform(d_datatypes.begin(), d_datatypes.end(), back_inserter(params),
-  //           ExportTransformer(exprManager, variableMap));
-  // DatatypeDeclarationCommand* c = new DatatypeDeclarationCommand(params);
-  // return c;
+  throw ExportUnsupportedException
+          ("export of DatatypeDeclarationCommand unsupported");
 }
 
 Command* DatatypeDeclarationCommand::clone() const {
