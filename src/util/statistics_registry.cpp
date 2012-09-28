@@ -18,12 +18,13 @@
  **/
 
 #include "util/statistics_registry.h"
-#include "expr/node_manager.h"
-#include "expr/expr_manager_scope.h"
 #include "expr/expr_manager.h"
 #include "lib/clock_gettime.h"
-#include "smt/smt_engine_scope.h"
 #include "smt/smt_engine.h"
+
+#ifndef __BUILDING_STATISTICS_FOR_EXPORT
+#  include "smt/smt_engine_scope.h"
+#endif /* ! __BUILDING_STATISTICS_FOR_EXPORT */
 
 #ifdef CVC4_STATISTICS_ON
 #  define __CVC4_USE_STATISTICS true
@@ -40,6 +41,10 @@ namespace stats {
 // dependence.
 inline StatisticsRegistry* getStatisticsRegistry(SmtEngine* smt) {
   return smt->d_statisticsRegistry;
+}
+
+inline StatisticsRegistry* getStatisticsRegistry(ExprManager* em) {
+  return em->getStatisticsRegistry();
 }
 
 }/* CVC4::stats namespace */
@@ -117,7 +122,7 @@ void TimerStat::stop() {
 }/* TimerStat::stop() */
 
 RegisterStatistic::RegisterStatistic(ExprManager& em, Stat* stat) :
-  d_reg(NodeManager::fromExprManager(&em)->getStatisticsRegistry()),
+  d_reg(stats::getStatisticsRegistry(&em)),
   d_stat(stat) {
   d_reg->registerStat_(d_stat);
 }

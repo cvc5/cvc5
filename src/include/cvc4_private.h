@@ -25,6 +25,10 @@
 #  warning A private CVC4 header was included when not building the library or private unit test code.
 #endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) */
 
+#ifdef __BUILDING_STATISTICS_FOR_EXPORT
+#  warning A private CVC4 header was included when building a library for export.
+#endif /* __BUILDING_STATISTICS_FOR_EXPORT */
+
 #include "cvc4_public.h"
 #include "cvc4autoconfig.h"
 

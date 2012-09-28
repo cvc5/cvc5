@@ -28,6 +28,19 @@ function progress {
   progress_char="`echo "$progress_char" | tr -- '-\\\\|/' '\\\\|/-'`"
 }
 
+function NOTE {
+  printf "\r%-80s\n" "$kf:$lineno: note: $@"
+}
+
+function WARN {
+  printf "\r%-80s\n" "$kf:$lineno: warning: $@"
+}
+
+function ERR {
+  printf "\r%-80s\n" "$kf:$lineno: error: $@"
+  exit 1
+}
+
 declare -a templates
 declare -a outputs
 
@@ -115,9 +128,7 @@ function module {
 
   seen_module=true
   if [ $# -lt 3 -o -z "$1" -o -z "$2" -o -z "$3" ]; then
-    echo >&2
-    echo "$kf:$lineno: error: \"module\" directive requires exactly three arguments" >&2
-    exit 1
+    ERR "\"module\" directive requires exactly three arguments"
   fi
 
   module_id="$1"; shift
@@ -152,9 +163,7 @@ function endmodule {
   check_doc
   seen_endmodule=true
   if [ $# -ne 0 ]; then
-    echo >&2
-    echo "$kf:$lineno: error: endmodule takes no arguments" >&2
-    exit 1
+    ERR "endmodule takes no arguments"
   fi
 }
 
@@ -233,16 +242,12 @@ function handle_option {
     while [ $i -lt $type_pos ]; do
       if expr "${args[$i]}" : '--' &>/dev/null || expr "${args[$i]}" : '/--' &>/dev/null; then
         if [ -n "$long_option" -o -n "$long_option_alternate" ]; then
-          echo >&2
-          echo "$kf:$lineno: error: malformed option line for \`$internal': unexpected \`${args[$i]}'" >&2
-          exit 1
+          ERR "malformed option line for \`$internal': unexpected \`${args[$i]}'"
         fi
         long_option="$(echo "${args[$i]}" | sed 's,/.*,,')"
         if [ -n "$long_option" ]; then
           if ! expr "$long_option" : '--.' &>/dev/null; then
-            echo >&2
-            echo "$kf:$option: bad long option \`$long_option': expected something like \`--foo'" >&2
-            exit 1
+            ERR "bad long option \`$long_option': expected something like \`--foo'"
           fi
           long_option="$(echo "$long_option" | sed 's,^--,,')"
         fi
@@ -251,25 +256,19 @@ function handle_option {
           long_option_alternate_set=set
           if [ -n "$long_option_alternate" ]; then
             if ! expr "$long_option_alternate" : '--.' &>/dev/null; then
-              echo >&2
-              echo "$kf:$option: bad alternate long option \`$long_option_alternate': expected something like \`--foo'" >&2
-              exit 1
+              ERR "bad alternate long option \`$long_option_alternate': expected something like \`--foo'"
             fi
             long_option_alternate="$(echo "$long_option_alternate" | sed 's,^--,,')"
           fi
         fi
       elif expr "${args[$i]}" : '-' &>/dev/null || expr "${args[$i]}" : '/-' &>/dev/null; then
         if [ -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o -n "$long_option_alternate" ]; then
-          echo >&2
-          echo "$kf:$lineno: error: malformed option line for \`$internal': unexpected \`${args[$i]}'" >&2
-          exit 1
+          ERR "malformed option line for \`$internal': unexpected \`${args[$i]}'"
         fi
         short_option="$(echo "${args[$i]}" | sed 's,/.*,,')"
         if [ -n "$short_option" ]; then
           if ! expr "$short_option" : '-.$' &>/dev/null; then
-            echo >&2
-            echo "$kf:$option: bad short option \`$short_option': expected something like \`-x'" >&2
-            exit 1
+            ERR "bad short option \`$short_option': expected something like \`-x'"
           fi
           short_option="$(echo "$short_option" | sed 's,^-,,')"
         fi
@@ -277,18 +276,14 @@ function handle_option {
           short_option_alternate="$(echo "${args[$i]}" | sed 's,[^/]*/,,')"
           if expr "$short_option_alternate" : - &>/dev/null; then
             if ! expr "$short_option_alternate" : '-.$' &>/dev/null; then
-              echo >&2
-              echo "$kf:$option: bad alternate short option \`$short_option_alternate': expected something like \`-x'" >&2
-              exit 1
+              ERR "bad alternate short option \`$short_option_alternate': expected something like \`-x'"
             fi
             short_option_alternate="$(echo "$short_option_alternate" | sed 's,^-,,')"
           fi
         fi
       else
         if [ -n "$smtname" -o -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o -n "$long_option_alternate" ]; then
-          echo >&2
-          echo "$kf:$lineno: error: malformed option line for \`$internal': unexpected \`${args[$i]}'" >&2
-          exit 1
+          ERR "malformed option line for \`$internal': unexpected \`${args[$i]}'"
         fi
         smtname="${args[$i]}"
       fi
@@ -297,13 +292,9 @@ function handle_option {
   fi
 
   if [ "$type" = void -a "$internal" != - ]; then
-    echo >&2
-    echo "$kf:$lineno: error: $internal cannot be void-typed; use \`-' as the name if its to be void" >&2
-    exit 1
+    ERR "$internal cannot be void-typed; use \`-' as the name if its to be void"
   elif [ "$type" != void -a "$internal" = - ]; then
-    echo >&2
-    echo "$kf:$lineno: error: cannot use an unnamed option if its type is not void" >&2
-    exit 1
+    ERR "cannot use an unnamed option if its type is not void"
   fi
 
   if [ "$type" = bool -a -n "$long_option$short_option" -a "$category" != UNDOCUMENTED ]; then
@@ -315,61 +306,45 @@ function handle_option {
     long_option_alternate="no-$(echo "$long_option" | sed 's,^--,,')"
   fi
   if [ "$type" != bool -a -n "$short_option_alternate" ]; then
-    echo >&2
-    echo "$kf:$lineno: error: cannot use alternate short option -$short_option_alternate for \`$internal' because it's not of bool type" >&2
-    exit 1
+    ERR "cannot use alternate short option -$short_option_alternate for \`$internal' because it's not of bool type"
   elif [ "$type" != bool -a -n "$long_option_alternate" ]; then
-    echo >&2
-    echo "$kf:$lineno: error: cannot use alternate long option --$long_option_alternate for \`$internal' because it's not of bool type" >&2
-    exit 1
+    ERR "cannot use alternate long option --$long_option_alternate for \`$internal' because it's not of bool type"
   fi
 
   # check for duplicates
   if [ "$internal" != - ]; then
     if echo " $all_declared_internal_options " | grep -q " $internal "; then
-      echo >&2
-      echo "$kf:$lineno: error: internal option name \`$internal' previously declared" >&2
-      exit 1
+      ERR "internal option name \`$internal' previously declared"
     fi
     all_declared_internal_options="$all_declared_internal_options $internal"
   fi
   if [ -n "$long_option" ]; then
     if echo " $all_declared_long_options " | grep -q " $long_option "; then
-      echo >&2
-      echo "$kf:$lineno: error: long option name \`--$long_option' previously declared" >&2
-      exit 1
+      ERR "long option name \`--$long_option' previously declared"
     fi
     all_declared_long_options="$all_declared_long_options $long_option"
   fi
   if [ -n "$long_option_alternate" ]; then
     if echo " $all_declared_long_options " | grep -q " $long_option_alternate "; then
-      echo >&2
-      echo "$kf:$lineno: error: long option name \`--$long_option_alternate' previously declared" >&2
-      exit 1
+      ERR "long option name \`--$long_option_alternate' previously declared"
     fi
     all_declared_long_options="$all_declared_long_options $long_option_alternate"
   fi
   if [ -n "$short_option" ]; then
     if echo " $all_declared_short_options " | grep -q " $short_option "; then
-      echo >&2
-      echo "$kf:$lineno: error: short option name \`-$short_option' previously declared" >&2
-      exit 1
+      ERR "short option name \`-$short_option' previously declared"
     fi
     all_declared_short_options="$all_declared_short_options $short_option"
   fi
   if [ -n "$short_option_alternate" ]; then
     if echo " $all_declared_short_options " | grep -q " $short_option_alternate "; then
-      echo >&2
-      echo "$kf:$lineno: error: short option name \`-$short_option_alternate' previously declared" >&2
-      exit 1
+      ERR "short option name \`-$short_option_alternate' previously declared"
     fi
     all_declared_short_options="$all_declared_short_options $short_option_alternate"
   fi
   if [ -n "$smtname" ]; then
     if echo " $all_declared_smt_options " | grep -q " $smtname "; then
-      echo >&2
-      echo "$kf:$lineno: error: SMT option name \`$smtname' previously declared" >&2
-      exit 1
+      ERR "SMT option name \`$smtname' previously declared"
     fi
     all_declared_smt_options="$all_declared_smt_options $smtname"
   fi
@@ -386,9 +361,7 @@ function handle_option {
     :handler)
        let ++i
        if [ -n "$handlers" ]; then
-         echo >&2
-         echo "$kf:$lineno: error: cannot specify more than one handler; maybe you want a :handler and a :predicate" >&2
-         exit 1
+         ERR "cannot specify more than one handler; maybe you want a :handler and a :predicate"
        fi
        handlers="${args[$i]}"
        ;;
@@ -434,9 +407,7 @@ function handle_option {
        readOnly=true
        ;;
     *)
-       echo >&2
-       echo "$kf:$lineno: error in option \`$internal': bad attribute \`$attribute'" >&2
-       exit 1
+       ERR "error in option \`$internal': bad attribute \`$attribute'"
     esac
     let ++i
   done
@@ -558,9 +529,7 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
   if [ "$type" = bool ] && [ -n "$cases" -o -n "$cases_alternate" -o -n "$smtname" ]; then
     run_handlers=
     if [ -n "$handlers" ]; then
-      echo >&2
-      echo "$kf:$lineno: error: bool-valued options cannot have handlers" >&2
-      exit 1
+      ERR "bool-valued options cannot have handlers"
     fi
     if [ -n "$predicates" ]; then
       for predicate in $predicates; do
@@ -620,9 +589,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     elif [ -n "$expect_arg" ]; then
       run_handlers=
       if [ -n "$predicates" ]; then
-        echo >&2
-        echo "$kf:$lineno: error: void-valued options cannot have predicates" >&2
-        exit 1
+        ERR "void-valued options cannot have predicates"
       fi
       if [ -n "$handlers" ]; then
         for handler in $handlers; do
@@ -639,9 +606,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     else
       run_handlers=
       if [ -n "$predicates" ]; then
-        echo >&2
-        echo "$kf:$lineno: error: void-valued options cannot have predicates" >&2
-        exit 1
+        ERR "void-valued options cannot have predicates"
       fi
       if [ -n "$handlers" ]; then
         for handler in $handlers; do
@@ -665,9 +630,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
       break;
 "
     else
-      echo >&2
-      echo "$kf:$lineno: internal error: expected BOOL-typed option in alternate handler" >&2
-      exit 1
+      ERR "internal error: expected BOOL-typed option in alternate handler"
     fi
   fi
 
@@ -823,33 +786,23 @@ function handle_alias {
   expect_doc_alternate=false
 
   if [ $# -lt 3 ]; then
-    echo >&2
-    echo "$kf:$lineno: error: malformed \"alias\" command; expected more arguments" >&2
-    exit 1
+    ERR "malformed \"alias\" command; expected more arguments"
   fi
   if [ "$1" = '=' ]; then
-    echo >&2
-    echo "$kf:$lineno: error: malformed \"alias\" command; expected option name" >&2
-    exit 1
+    ERR "malformed \"alias\" command; expected option name"
   fi
   option="$1"
   shift
   if [ "$1" != '=' ]; then
-    echo >&2
-    echo "$kf:$lineno: error: malformed \"alias\" command; expected \`='" >&2
-    exit 1
+    ERR "malformed \"alias\" command; expected \`='"
   fi
   shift
   if [ $# -eq 0 ]; then
-    echo >&2
-    echo "$kf:$lineno: error: malformed \"alias\" command; expected more arguments" >&2
-    exit 1
+    ERR "malformed \"alias\" command; expected more arguments"
   fi
   cases=
   if ! expr "$option" : - &>/dev/null; then
-    echo >&2
-    echo "$kf:$lineno: error: alias for SMT options not yet supported" >&2
-    exit 1
+    ERR "alias for SMT options not yet supported"
   fi
   if expr "$option" : -- &>/dev/null; then
     if expr "$option" : '.*=' &>/dev/null; then
@@ -870,9 +823,7 @@ function handle_alias {
   else
     if ! expr "$option" : '-.$' &>/dev/null; then
       if ! expr "$option" : '-.=' &>/dev/null; then
-        echo >&2
-        echo "$kf:$lineno: error: expected short option specification, got \`$option'" >&2
-        exit 1
+        ERR "expected short option specification, got \`$option'"
       fi
       expect_arg=:
       arg="$(echo "$option" | sed 's,[^=]*=,,')"
@@ -923,8 +874,7 @@ function warning {
   check_module_seen
   check_doc
 
-  echo >&2
-  echo "$kf:$lineno: warning: $@" >&2
+  WARN "$*"
 }
 
 function doc {
@@ -938,6 +888,53 @@ function doc {
       if [ -n "$smtname" ]; then
         expect_doc_alternate=true
       else
+        if [ "$internal" != - ]; then
+          if ! $alternate_options_already_documented; then
+            if [ "$short_option_alternate" ]; then
+              if [ "$long_option_alternate" ]; then
+                altopt="s -$short_option_alternate and --$long_option_alternate, each of"
+              else
+                altopt=" -$short_option_alternate,"
+              fi
+            else
+              altopt=" --$long_option_alternate,"
+            fi
+            if [ -z "$default_value" ]; then
+              typedefault="($type)"
+            else
+              typedefault="($type, default = $default_value)"
+            fi
+            mansmtdoc="$@"
+            if [ "$category" = EXPERT ]; then
+              mansmtdoc="$mansmtdoc (EXPERTS only)"
+            fi
+            if [ "$category" = COMMON ]; then
+              common_manpage_internals_documentation="${common_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+$mansmtdoc"
+            else
+              remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+$mansmtdoc"
+            fi
+          else
+            if [ "$category" = COMMON ]; then
+              common_manpage_internals_documentation="${common_manpage_internals_documentation}
+$@"
+            else
+              remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
+$@"
+            fi
+          fi
+        fi
         doc-alternate "$@"
         return
       fi
@@ -1084,15 +1081,11 @@ function doc-alternate {
   expect_doc_alternate=false
 
   if $expect_doc; then
-    echo >&2
-    echo "$kf:$lineno: error: must provide documentation before alternate documentation" >&2
-    exit 1
+    ERR "must provide documentation before alternate documentation"
   fi
 
   if [ -z "$short_option_alternate" -a -z "$long_option_alternate" ]; then
-    echo >&2
-    echo "$kf:$lineno: cannot document an alternative for option \`$internal'; one does not exist" >&2
-    exit 1
+    ERR "cannot document an alternative for option \`$internal'; one does not exist"
   fi
 
   if [ "$category" = UNDOCUMENTED ]; then
@@ -1170,17 +1163,13 @@ $@"
 function check_doc {
   if $expect_doc; then
     if [ "$internal" != - ]; then
-      echo >&2
-      echo "$kf:$lineno: warning: $internal is lacking documentation" >&2
+      WARN "$internal is lacking documentation"
     elif [ -n "$long_option" ]; then
-      echo >&2
-      echo "$kf:$lineno: warning: option --$long_option is lacking documentation" >&2
+      WARN "option --$long_option is lacking documentation"
     elif [ -n "$short_option" ]; then
-      echo >&2
-      echo "$kf:$lineno: warning: option -$short_option is lacking documentation" >&2
+      WARN "option -$short_option is lacking documentation"
     elif [ -n "$smtname" ]; then
-      echo >&2
-      echo "$kf:$lineno: warning: SMT option $smtname is lacking documentation" >&2
+      WARN "SMT option $smtname is lacking documentation"
     fi
     expect_doc=false
   elif ! $seen_doc; then
@@ -1209,22 +1198,17 @@ $typedefault
   fi
 
   if $expect_doc_alternate; then
-    echo >&2
-    echo "$kf:$lineno: warning: $internal is lacking documentation for the alternative option(s): $short_option_alternate $long_option_alternate" >&2
+    WARN "$internal is lacking documentation for the alternative option(s): $short_option_alternate $long_option_alternate"
     expect_doc_alternate=false
   fi
 }
 
 function check_module_seen {
   if $seen_endmodule; then
-    echo >&2
-    echo "$kf:$lineno: error: command after \"endmodule\" declaration (endmodule has to be last)" >&2
-    exit 1
+    ERR "command after \"endmodule\" declaration (endmodule has to be last)"
   fi
   if ! $seen_module; then
-    echo >&2
-    echo "$kf:$lineno: error: no \"module\" declaration found (it has to be first)" >&2
-    exit 1
+    ERR "no \"module\" declaration found (it has to be first)"
   fi
 }
 
@@ -1280,10 +1264,11 @@ function output_module {
   error="$(grep '.*\${[^}]*}.*' "$output.working" | head -n 1)"
   if [ -n "$error" ]; then
     error="$(echo "$error" | sed 's,.*\${\([^}]*\)}.*,\1,')"
-    echo "$template:0: error: undefined replacement \${$error}" >&2
     rm -f "$output.working"
     rm -f "$output.sed"
-    exit 1
+    kf="$template"
+    lineno=0
+    ERR "undefined replacement \${$error}"
   fi
 
   (
@@ -1372,29 +1357,22 @@ while [ $# -gt 0 ]; do
     elif expr "$line" : '\.[ 	]*$' &>/dev/null; then
       doc ""
     elif expr "$line" : '\.' &>/dev/null; then
-      echo >&2
-      echo "$kf:$lineno: error: malformed line during processing of option \`$internal': continuation lines should not have content" >&2
-      exit 1
+      ERR "malformed line during processing of option \`$internal': continuation lines should not have content"
     elif expr "$line" : '/.*' &>/dev/null; then
       doc-alternate "$(echo "$line" | sed 's,^/,,')"
     else
       line="$(echo "$line" | sed 's,\([<>&()!?*]\),\\\1,g')"
+      progress "$kf" $count $total
       if ! eval "$line"; then
-        echo >&2
-        echo "$kf:$lineno: error was due to evaluation of this line" >&2
-        exit 1
+        ERR "error was due to evaluation of this line"
       fi
     fi
   done < "$kf"
   if ! $seen_module; then
-    echo >&2
-    echo "$kf: error: no module content found in file!" >&2
-    exit 1
+    ERR "no module content found in file!"
   fi
   if ! $seen_endmodule; then
-    echo >&2
-    echo "$kf:$lineno: error: no \"endmodule\" declaration found (it is required at the end)" >&2
-    exit 1
+    ERR "no \"endmodule\" declaration found (it is required at the end)"
   fi
 
   output_module "$options_h_template" "$outdir/$(basename "$kf").h"
@@ -1403,10 +1381,13 @@ done
 
 ## final outputs
 
+regenerated=false
 i=0; while [ $i -lt ${#templates[@]} ]; do
 
 template="${templates[$i]}"
 output="${outputs[$i]}"
+
+progress "$output" $count $total
 
 let ++i
 
@@ -1518,10 +1499,17 @@ cat "$output.working"
 
 rm -f "$output.working"
 rm -f "$output.sed"
-diff -q "$output" "$output.tmp" &>/dev/null || (mv -f "$output.tmp" "$output" && printf "\rregenerated %-68s\n" "$output")
+if diff -q "$output" "$output.tmp" &>/dev/null; then
+  regenerated=false
+else
+  mv -f "$output.tmp" "$output"
+  printf "\rregenerated %-68s\n" "$output"
+  regenerated=true
+fi
 rm -f "$output.tmp"
-progress "$output" $count $total
 
 done
 
-echo
+if ! $regenerated; then
+  printf "\r%-80s\r" ""
+fi

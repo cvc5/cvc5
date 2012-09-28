@@ -46,6 +46,7 @@ class NodeManager;
 class Options;
 class IntStat;
 class ExprManagerMapCollection;
+class StatisticsRegistry;
 
 namespace expr {
   namespace pickle {
@@ -56,6 +57,10 @@ namespace expr {
 namespace context {
   class Context;
 }/* CVC4::context namespace */
+
+namespace stats {
+  StatisticsRegistry* getStatisticsRegistry(ExprManager*);
+}/* CVC4::stats namespace */
 
 class CVC4_PUBLIC ExprManager {
 private:
@@ -97,6 +102,12 @@ private:
 
   /** NodeManager reaches in to get the NodeManager */
   friend class NodeManager;
+
+  /** Statistics reach in to get the StatisticsRegistry */
+  friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(ExprManager*);
+
+  /** Get the underlying statistics registry. */
+  StatisticsRegistry* getStatisticsRegistry() throw();
 
   // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) CVC4_UNDEFINED;

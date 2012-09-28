@@ -126,6 +126,10 @@ ExprManager::~ExprManager() throw() {
   }
 }
 
+StatisticsRegistry* ExprManager::getStatisticsRegistry() throw() {
+  return d_nodeManager->getStatisticsRegistry();
+}
+
 const Options& ExprManager::getOptions() const {
   return d_nodeManager->getOptions();
 }

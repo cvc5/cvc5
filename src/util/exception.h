@@ -130,9 +130,9 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() {
 
 }/* CVC4 namespace */
 
-#if defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)
+#if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
 #  include "util/Assert.h"
-#endif /* __BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST */
+#endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST) && !__BUILDING_STATISTICS_FOR_EXPORT */
 
 namespace CVC4 {
 
