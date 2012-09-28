@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 

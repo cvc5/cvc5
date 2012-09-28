@@ -19,7 +19,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "context/cdhashmap.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace std;
 using namespace CVC4;

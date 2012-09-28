@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "util/sexpr.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "printer/printer.h"
 #include "expr/expr.h"
 

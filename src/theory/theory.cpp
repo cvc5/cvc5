@@ -17,7 +17,7 @@
  **/
 
 #include "theory/theory.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/instantiator_default.h"
 

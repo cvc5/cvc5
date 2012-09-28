@@ -25,7 +25,7 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "context/context.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

@@ -20,8 +20,8 @@ libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_F
 # configured at the time of the "make dist", which (1) may not be the
 # configuration that the user wants, and (2) might cause link errors.
 libutil_la_SOURCES = \
-	Assert.h \
-	Assert.cpp \
+	cvc4_assert.h \
+	cvc4_assert.cpp \
 	backtrackable.h \
 	Makefile.am \
 	Makefile.in \

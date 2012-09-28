@@ -24,7 +24,7 @@
 #include <iostream>
 
 #include "expr/kind.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 

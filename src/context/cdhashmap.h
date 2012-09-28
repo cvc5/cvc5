@@ -97,7 +97,7 @@
 #include <ext/hash_map>
 
 #include "context/context.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "context/cdhashmap_forward.h"
 
 namespace CVC4 {

@@ -23,7 +23,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory.h"
 #include "expr/node.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "util/output.h"
 #include "expr/command.h"
 #include "expr/expr.h"

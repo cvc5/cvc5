@@ -20,7 +20,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace std;
 

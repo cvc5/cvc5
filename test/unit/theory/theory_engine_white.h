@@ -39,7 +39,7 @@
 #include "util/rational.h"
 #include "util/integer.h"
 #include "options/options.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

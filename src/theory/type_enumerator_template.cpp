@@ -21,7 +21,7 @@
 #include "theory/type_enumerator.h"
 
 #include "expr/kind.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 ${type_enumerator_includes}
 #line 28 "${template}"

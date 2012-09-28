@@ -24,7 +24,7 @@
 #line 25 "${template}"
 
 #include "expr/type_node.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/kind.h"
 #include "expr/expr.h"
 #include "util/language.h"

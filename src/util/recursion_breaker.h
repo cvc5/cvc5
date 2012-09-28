@@ -77,7 +77,7 @@
 #include <ext/hash_set>
 #include "util/hash.h"
 #include "util/tls.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 

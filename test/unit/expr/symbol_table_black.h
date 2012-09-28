@@ -26,7 +26,7 @@
 #include "expr/expr_manager.h"
 #include "expr/expr.h"
 #include "expr/type.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "util/exception.h"
 
 using namespace CVC4;

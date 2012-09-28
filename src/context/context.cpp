@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "context/context.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace context {

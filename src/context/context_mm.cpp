@@ -22,7 +22,7 @@
 #include <deque>
 #include <new>
 #include "context/context_mm.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "util/output.h"
 
 namespace CVC4 {

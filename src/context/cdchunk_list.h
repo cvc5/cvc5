@@ -28,7 +28,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace context {

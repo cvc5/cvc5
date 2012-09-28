@@ -21,7 +21,7 @@
 #include <iostream>
 
 #include "theory/arrays/static_fact_manager.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node.h"
 
 using namespace std;

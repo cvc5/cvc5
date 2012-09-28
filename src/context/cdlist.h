@@ -30,7 +30,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 #include "context/cdlist_forward.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 #include <boost/static_assert.hpp>
 

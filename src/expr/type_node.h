@@ -31,7 +31,7 @@
 
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "util/cardinality.h"
 
 namespace CVC4 {

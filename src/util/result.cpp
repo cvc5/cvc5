@@ -22,7 +22,7 @@
 #include <cctype>
 
 #include "util/result.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "printer/printer.h"
 
 using namespace std;

@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "util/recursion_breaker.h"
 #include "util/matcher.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace std;
 

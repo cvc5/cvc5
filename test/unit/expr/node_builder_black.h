@@ -28,7 +28,7 @@
 #include "expr/node.h"
 #include "expr/kind.h"
 #include "context/context.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "util/rational.h"
 
 using namespace CVC4;

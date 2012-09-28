@@ -21,7 +21,7 @@
 #include <iostream>
 
 #include "theory/arrays/union_find.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node.h"
 
 using namespace std;

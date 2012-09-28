@@ -20,7 +20,7 @@
 
 #include "expr/expr.h"
 #include "util/predicate.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace std;
 

@@ -24,7 +24,7 @@
 
 #include "context/context.h"
 #include "context/cdlist.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include <vector>
 
 

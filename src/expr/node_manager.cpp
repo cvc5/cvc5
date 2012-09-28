@@ -20,7 +20,7 @@
 
 #include "expr/node_manager.h"
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
 #include "util/tls.h"

@@ -21,7 +21,7 @@
 #include "theory/valuation.h"
 #include "expr/kind.h"
 #include "util/datatype.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "theory/datatypes/theory_datatypes_instantiator.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/model.h"

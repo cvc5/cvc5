@@ -25,7 +25,7 @@
 #include <algorithm>
 
 #include "expr/node.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 

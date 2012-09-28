@@ -173,7 +173,7 @@ namespace CVC4 {
 
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node_value.h"
 #include "util/output.h"
 

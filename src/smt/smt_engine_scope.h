@@ -21,7 +21,7 @@
 
 #include "smt/smt_engine.h"
 #include "util/tls.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node_manager.h"
 #include "util/output.h"
 

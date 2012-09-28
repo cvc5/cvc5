@@ -29,7 +29,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

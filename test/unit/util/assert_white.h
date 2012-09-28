@@ -21,7 +21,7 @@
 #include <string>
 #include <cstring>
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace std;

@@ -20,7 +20,7 @@
 /* #include <gmock/gmock.h> */
 /* #include <gtest/gtest.h> */
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"

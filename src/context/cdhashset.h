@@ -24,7 +24,7 @@
 #include "context/context.h"
 #include "context/cdhashset_forward.h"
 #include "context/cdhashmap.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace context {

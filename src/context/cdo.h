@@ -22,7 +22,7 @@
 #define __CVC4__CONTEXT__CDO_H
 
 #include "context/context.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace context {

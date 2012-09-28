@@ -21,7 +21,7 @@
 #ifndef __CVC4__THEORY__OUTPUT_CHANNEL_H
 #define __CVC4__THEORY__OUTPUT_CHANNEL_H
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "theory/interrupted.h"
 
 namespace CVC4 {

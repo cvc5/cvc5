@@ -24,7 +24,7 @@
 #include "util/exception.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace theory {

@@ -21,7 +21,7 @@
 #ifndef __CVC4__THEORY__THEORY_TEST_UTILS_H
 #define __CVC4__THEORY__THEORY_TEST_UTILS_H
 
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/interrupted.h"

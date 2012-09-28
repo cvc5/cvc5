@@ -146,7 +146,6 @@ using namespace CVC4;
 %include "util/output.i"
 %include "util/result.i"
 %include "util/configuration.i"
-%include "util/Assert.i"
 %include "util/bitvector.i"
 %include "util/subrange_bound.i"
 %include "util/array.i"

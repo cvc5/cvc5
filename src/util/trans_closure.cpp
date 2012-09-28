@@ -18,7 +18,7 @@
 
 
 #include "util/trans_closure.h"
-#include "util/Assert.h"
+#include "util/cvc4_assert.h"
 
 
 using namespace std;
