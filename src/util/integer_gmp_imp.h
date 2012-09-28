@@ -25,8 +25,8 @@
 #include <string>
 #include <iostream>
 
-#include "util/Assert.h"
 #include "util/gmp_util.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 
@@ -178,7 +178,7 @@ public:
    */
   Integer oneExtend(uint32_t size, uint32_t amount) const {
     // check that the size is accurate
-    Assert ((*this) < Integer(1).multiplyByPow2(size));
+    DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
     mpz_class res = d_value;
 
     for (unsigned i = size; i < size + amount; ++i) {
@@ -251,7 +251,7 @@ public:
    * If y divides *this, then exactQuotient returns (this/y)
    */
   Integer exactQuotient(const Integer& y) const {
-    Assert(y.divides(*this));
+    DebugCheckArgument(y.divides(*this), y);
     mpz_class q;
     mpz_divexact(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
     return Integer( q );
@@ -346,15 +346,15 @@ public:
   long getLong() const {
     long si = d_value.get_si();
     // ensure there wasn't overflow
-    AlwaysAssert(mpz_cmp_si(d_value.get_mpz_t(), si) == 0,
+    CheckArgument(mpz_cmp_si(d_value.get_mpz_t(), si) == 0, this,
                  "Overflow detected in Integer::getLong()");
     return si;
   }
   unsigned long getUnsignedLong() const {
     unsigned long ui = d_value.get_ui();
     // ensure there wasn't overflow
-    AlwaysAssert(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0,
-                 "Overflow detected in Integer::getUnsignedLong()");
+    CheckArgument(mpz_cmp_ui(d_value.get_mpz_t(), ui) == 0, this,
+                  "Overflow detected in Integer::getUnsignedLong()");
     return ui;
   }
 

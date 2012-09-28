@@ -250,7 +250,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * to be in that type.
    */
   void constrainSubtypes(TNode n, std::vector<Node>& assertions)
-    throw(AssertionException);
+    throw();
 
   /**
    * Perform non-clausal simplification of a Node.  This involves
@@ -259,7 +259,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException, AssertionException);
+  bool simplifyAssertions() throw(TypeCheckingException);
 
 public:
 
@@ -344,13 +344,13 @@ public:
    * even be simplified.
    */
   void addFormula(TNode n)
-    throw(TypeCheckingException, AssertionException);
+    throw(TypeCheckingException);
 
   /**
    * Expand definitions in n.
    */
   Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
-    throw(TypeCheckingException, AssertionException);
+    throw(TypeCheckingException);
 
 };/* class SmtEnginePrivate */
 
@@ -358,7 +358,7 @@ public:
 
 using namespace CVC4::smt;
 
-SmtEngine::SmtEngine(ExprManager* em) throw(AssertionException) :
+SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_context(em->getContext()),
   d_userLevels(),
   d_userContext(new UserContext()),
@@ -571,7 +571,7 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
 // tempt people in the code to use the (potentially unlocked)
 // version that's passed in, leading to assert-fails in certain
 // uses of the CVC4 library.
-void SmtEngine::setLogicInternal() throw(AssertionException) {
+void SmtEngine::setLogicInternal() throw() {
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already finished initializing for this run");
 
   d_logic.lock();
@@ -926,7 +926,7 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
-  throw(TypeCheckingException, AssertionException) {
+  throw(TypeCheckingException) {
 
   if(n.getKind() != kind::APPLY && n.getNumChildren() == 0) {
     // don't bother putting in the cache
@@ -1315,7 +1315,7 @@ void SmtEnginePrivate::unconstrainedSimp() {
 
 
 void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertions)
-  throw(AssertionException) {
+  throw() {
 
   Trace("constrainSubtypes") << "constrainSubtypes(): looking at " << top << endl;
 
@@ -1373,7 +1373,7 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
 
 // returns false if simpflication led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(TypeCheckingException, AssertionException) {
+  throw(TypeCheckingException) {
   Assert(d_smt.d_pendingPops == 0);
   try {
 
@@ -1660,7 +1660,7 @@ void SmtEnginePrivate::processAssertions() {
 }
 
 void SmtEnginePrivate::addFormula(TNode n)
-  throw(TypeCheckingException, AssertionException) {
+  throw(TypeCheckingException) {
 
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
@@ -1865,7 +1865,7 @@ Expr SmtEngine::expandDefinitions(const Expr& e) throw(TypeCheckingException) {
 }
 
 Expr SmtEngine::getValue(const Expr& e)
-  throw(ModalException, AssertionException) {
+  throw(ModalException) {
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -1906,7 +1906,7 @@ Expr SmtEngine::getValue(const Expr& e)
   return Expr(d_exprManager, new Node(resultNode));
 }
 
-bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
+bool SmtEngine::addToAssignment(const Expr& e) throw() {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -1935,7 +1935,7 @@ bool SmtEngine::addToAssignment(const Expr& e) throw(AssertionException) {
   return true;
 }
 
-CVC4::SExpr SmtEngine::getAssignment() throw(ModalException, AssertionException) {
+CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2014,7 +2014,7 @@ void SmtEngine::addToModelCommand(Command* c) {
   }
 }
 
-Model* SmtEngine::getModel() throw(ModalException, AssertionException) {
+Model* SmtEngine::getModel() throw(ModalException) {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
@@ -2040,7 +2040,7 @@ Model* SmtEngine::getModel() throw(ModalException, AssertionException) {
   return d_theoryEngine->getModel();
 }
 
-void SmtEngine::checkModel() throw(InternalErrorException) {
+void SmtEngine::checkModel() {
   // --check-model implies --interactive, which enables the assertion list,
   // so we should be ok.
   Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
@@ -2157,7 +2157,7 @@ void SmtEngine::checkModel() throw(InternalErrorException) {
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
 }
 
-Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {
+Proof* SmtEngine::getProof() throw(ModalException) {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2185,7 +2185,7 @@ Proof* SmtEngine::getProof() throw(ModalException, AssertionException) {
 }
 
 vector<Expr> SmtEngine::getAssertions()
-  throw(ModalException, AssertionException) {
+  throw(ModalException) {
   SmtScope smts(this);
   finalOptionsAreSet();
   if(Dump.isOn("benchmark")) {

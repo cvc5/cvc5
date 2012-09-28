@@ -24,15 +24,9 @@
 #include <iostream>
 #include <string>
 
-#include "util/Assert.h"
+#include "util/exception.h"
 
 namespace CVC4 {
-
-// TODO: either templatize Result on its Kind (Sat/Validity) or subclass.
-// TODO: INVALID/SAT provide models, etc?---perhaps just by linking back
-// into the SmtEngine that produced the Result?
-// TODO: make unconstructible except by SmtEngine?  That would ensure that
-// any Result in the system is bona fide.
 
 class Result;
 
@@ -137,9 +131,9 @@ public:
     return d_which == TYPE_NONE;
   }
   enum UnknownExplanation whyUnknown() const {
-    AlwaysAssert( isUnknown(),
-                  "This result is not unknown, so the reason for "
-                  "being unknown cannot be inquired of it" );
+    CheckArgument( isUnknown(), this,
+                   "This result is not unknown, so the reason for "
+                   "being unknown cannot be inquired of it" );
     return d_unknownExplanation;
   }
 

@@ -107,6 +107,8 @@ EXTRA_DIST = \
 	doc/cvc4.1_template.in \
 	doc/cvc4.5.in \
 	doc/libcvc4.3_template.in \
+	doc/SmtEngine.3cvc4_template.in \
+	doc/options.3cvc4_template.in \
 	doc/libcvc4parser.3.in \
 	doc/libcvc4compat.3.in
 man_MANS = \
@@ -114,6 +116,8 @@ man_MANS = \
 	doc/pcvc4.1 \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
+	doc/SmtEngine.3cvc4 \
+	doc/options.3cvc4 \
 	doc/libcvc4parser.3 \
 	doc/libcvc4compat.3
 

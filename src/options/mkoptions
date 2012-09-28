@@ -72,11 +72,14 @@ common_manpage_documentation=
 remaining_manpage_documentation=
 common_manpage_smt_documentation=
 remaining_manpage_smt_documentation=
+common_manpage_internals_documentation=
+remaining_manpage_internals_documentation=
 
 seen_module=false
 seen_endmodule=false
 expect_doc=false
 expect_doc_alternate=false
+seen_doc=false
 n_long=256
 
 internal=
@@ -134,6 +137,10 @@ function module {
 .SH `echo "$module_name" | tr a-z A-Z` OPTIONS
 "
   remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
+.TP
+.I \"`echo "$module_name" | tr a-z A-Z` OPTIONS\"
+"
+  remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
 .TP
 .I \"`echo "$module_name" | tr a-z A-Z` OPTIONS\"
 "
@@ -203,6 +210,7 @@ function handle_option {
     expect_doc=true
   fi
   expect_doc_alternate=false
+  seen_doc=false
 
   # scan ahead to see where the type is
   type_pos=2
@@ -923,6 +931,7 @@ function doc {
   # doc text...
   check_module_seen
   expect_doc=false
+  seen_doc=true
 
   if [ -z "$short_option" -a -z "$long_option" ]; then
     if [ -n "$short_option_alternate" -o -n "$long_option_alternate" ]; then
@@ -933,10 +942,6 @@ function doc {
         return
       fi
     fi
-  fi
-
-  if [ "$category" = UNDOCUMENTED ]; then
-    return
   fi
 
   the_opt=
@@ -951,9 +956,6 @@ function doc {
     fi
   elif [ "$short_option" ]; then
     the_opt="-$short_option"
-  elif [ -z "$smtname" ]; then
-    # nothing to document
-    return
   fi
 
   if ! $options_already_documented; then
@@ -998,7 +1000,7 @@ function doc {
         common_manpage_documentation="${common_manpage_documentation}
 .IP \"$the_opt\"
 $mandoc"
-      else
+      elif [ "$category" != UNDOCUMENTED ]; then
         remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
@@ -1008,7 +1010,7 @@ $mandoc"
       fi
     fi
 
-    if [ "$smtname" ]; then
+    if [ "$smtname" -a "$category" != UNDOCUMENTED ]; then
       if [ "$category" = COMMON ]; then
         common_manpage_smt_documentation="${common_manpage_smt_documentation}
 .TP
@@ -1021,8 +1023,30 @@ $mandoc"
 ($type) $mansmtdoc"
       fi
     fi
+    if [ "$internal" != - ]; then
+      if [ -z "$default_value" ]; then
+        typedefault="($type)"
+      else
+        typedefault="($type, default = $default_value)"
+      fi
+      if [ "$category" = COMMON ]; then
+        common_manpage_internals_documentation="${common_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+$mansmtdoc"
+      else
+        remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+$mansmtdoc"
+      fi
+    fi
   else
-    if [ "$the_opt" ]; then
+    if [ "$the_opt" -a "$category" != UNDOCUMENTED ]; then
       if [ "$category" = COMMON ]; then
         common_manpage_documentation="${common_manpage_documentation}
 $@"
@@ -1032,12 +1056,24 @@ $@"
       fi
     fi
 
-    if [ "$smtname" ]; then
+    if [ "$smtname" -a "$category" != UNDOCUMENTED ]; then
+      if [ "$category" = COMMON ]; then
         common_manpage_smt_documentation="${common_manpage_smt_documentation}
 $@"
-    else
+      else
         remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
 $@"
+      fi
+    fi
+
+    if [ "$internal" != - ]; then
+      if [ "$category" = COMMON ]; then
+        common_manpage_internals_documentation="${common_manpage_internals_documentation}
+$@"
+      else
+        remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
+$@"
+      fi
     fi
   fi
 }
@@ -1147,6 +1183,29 @@ function check_doc {
       echo "$kf:$lineno: warning: SMT option $smtname is lacking documentation" >&2
     fi
     expect_doc=false
+  elif ! $seen_doc; then
+    if [ -n "$internal" -a "$internal" != - ]; then
+      if [ -z "$default_value" ]; then
+        typedefault="($type)"
+      else
+        typedefault="($type, default = $default_value)"
+      fi
+      if [ "$category" = COMMON ]; then
+        common_manpage_internals_documentation="${common_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+[undocumented]"
+      else
+        remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
+.TP
+.B \"$internal\"
+$typedefault
+.br
+[undocumented]"
+      fi
+    fi
   fi
 
   if $expect_doc_alternate; then
@@ -1280,7 +1339,7 @@ EOF
   fi
 }
 
-total=$(($#/2+19*${#templates[@]}))
+total=$(($#/2+21*${#templates[@]}))
 count=0
 while [ $# -gt 0 ]; do
   kf="$1"; shift
@@ -1383,6 +1442,8 @@ for var in \
     remaining_manpage_documentation \
     common_manpage_smt_documentation \
     remaining_manpage_smt_documentation \
+    common_manpage_internals_documentation \
+    remaining_manpage_internals_documentation \
     ; do
   let ++count
   progress "$output" $count $total

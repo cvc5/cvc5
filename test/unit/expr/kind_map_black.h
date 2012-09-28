@@ -102,7 +102,7 @@ public:
     TS_ASSERT(!(AND ^ AND ^ AND).isEmpty());
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(~LAST_KIND, IllegalArgumentException);
+    TS_ASSERT_THROWS(~LAST_KIND, AssertArgumentException);
 #endif /* CVC4_ASSERTIONS */
   }
 

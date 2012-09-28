@@ -50,7 +50,7 @@ SymbolTable::~SymbolTable() {
 }
 
 void SymbolTable::bind(const std::string& name, Expr obj,
-                       bool levelZero) throw(AssertionException) {
+                       bool levelZero) throw() {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if(levelZero) d_exprMap->insertAtContextLevelZero(name, obj);
@@ -58,7 +58,7 @@ void SymbolTable::bind(const std::string& name, Expr obj,
 }
 
 void SymbolTable::bindDefinedFunction(const std::string& name, Expr obj,
-                                      bool levelZero) throw(AssertionException) {
+                                      bool levelZero) throw() {
   CheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
   ExprManagerScope ems(obj);
   if(levelZero){
@@ -84,7 +84,7 @@ bool SymbolTable::isBoundDefinedFunction(Expr func) const throw() {
   return d_functions->contains(func);
 }
 
-Expr SymbolTable::lookup(const std::string& name) const throw(AssertionException) {
+Expr SymbolTable::lookup(const std::string& name) const throw() {
   return (*d_exprMap->find(name)).second;
 }
 
@@ -121,7 +121,7 @@ bool SymbolTable::isBoundType(const std::string& name) const throw() {
   return d_typeMap->find(name) != d_typeMap->end();
 }
 
-Type SymbolTable::lookupType(const std::string& name) const throw(AssertionException) {
+Type SymbolTable::lookupType(const std::string& name) const throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == 0,
          "type constructor arity is wrong: "
@@ -131,7 +131,7 @@ Type SymbolTable::lookupType(const std::string& name) const throw(AssertionExcep
 }
 
 Type SymbolTable::lookupType(const std::string& name,
-                             const std::vector<Type>& params) const throw(AssertionException) {
+                             const std::vector<Type>& params) const throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
   Assert(p.first.size() == params.size(),
          "type constructor arity is wrong: "

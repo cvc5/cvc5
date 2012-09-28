@@ -28,7 +28,7 @@
 
 #include "util/integer.h"
 #include "util/rational.h"
-#include "util/Assert.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 
@@ -182,7 +182,7 @@ inline bool SExpr::isKeyword() const {
 }
 
 inline std::string SExpr::getValue() const {
-  AlwaysAssert( isAtom() );
+  CheckArgument( isAtom(), this );
   switch(d_sexprType) {
   case SEXPR_INTEGER:
     return d_integerValue.toString();
@@ -198,24 +198,24 @@ inline std::string SExpr::getValue() const {
   case SEXPR_STRING:
   case SEXPR_KEYWORD:
     return d_stringValue;
-  default:
-    Unhandled(d_sexprType);
+  case SEXPR_NOT_ATOM:
+    return std::string();
   }
-  return d_stringValue;
+  return std::string();
 }
 
 inline const CVC4::Integer& SExpr::getIntegerValue() const {
-  AlwaysAssert( isInteger() );
+  CheckArgument( isInteger(), this );
   return d_integerValue;
 }
 
 inline const CVC4::Rational& SExpr::getRationalValue() const {
-  AlwaysAssert( isRational() );
+  CheckArgument( isRational(), this );
   return d_rationalValue;
 }
 
 inline const std::vector<SExpr>& SExpr::getChildren() const {
-  AlwaysAssert( !isAtom() );
+  CheckArgument( !isAtom(), this );
   return d_children;
 }
 

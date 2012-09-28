@@ -33,7 +33,6 @@
 #include "parser/parser_exception.h"
 #include "expr/expr_manager.h"
 #include "expr/command.h"
-#include "util/Assert.h"
 #include "util/configuration.h"
 #include "options/options.h"
 #include "main/command_executor.h"

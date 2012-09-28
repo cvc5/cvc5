@@ -25,10 +25,10 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "util/Assert.h"
 #include "util/exception.h"
 #include "options/options.h"
 #include "util/statistics.h"
+#include "util/tls.h"
 #include "smt/smt_engine.h"
 
 #include "cvc4autoconfig.h"
@@ -39,6 +39,11 @@ using CVC4::Exception;
 using namespace std;
 
 namespace CVC4 {
+
+#ifdef CVC4_DEBUG
+  extern CVC4_THREADLOCAL(const char*) s_debugLastException;
+#endif /* CVC4_DEBUG */
+
 namespace main {
 
 size_t cvc4StackSize;

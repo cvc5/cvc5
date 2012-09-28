@@ -39,7 +39,7 @@ DagificationVisitor::DagificationVisitor(unsigned threshold, std::string letVarP
   d_substNodes() {
 
   // 0 doesn't make sense
-  CheckArgument(threshold > 0, threshold);
+  AlwaysAssertArgument(threshold > 0, threshold);
 }
 
 DagificationVisitor::~DagificationVisitor() {

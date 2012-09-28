@@ -135,7 +135,7 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = Node();
-    TS_ASSERT_THROWS( BooleanSimplification::negate(in), IllegalArgumentException );
+    TS_ASSERT_THROWS( BooleanSimplification::negate(in), AssertArgumentException );
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -170,7 +170,7 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::AND, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyClause(in), IllegalArgumentException );
+    TS_ASSERT_THROWS( BooleanSimplification::simplifyClause(in), AssertArgumentException );
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -195,7 +195,7 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::OR, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyHornClause(in), IllegalArgumentException );
+    TS_ASSERT_THROWS( BooleanSimplification::simplifyHornClause(in), AssertArgumentException );
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -216,7 +216,7 @@ public:
 
 #ifdef CVC4_ASSERTIONS
     in = d_nm->mkNode(kind::OR, a, b);
-    TS_ASSERT_THROWS( BooleanSimplification::simplifyConflict(in), IllegalArgumentException );
+    TS_ASSERT_THROWS( BooleanSimplification::simplifyConflict(in), AssertArgumentException );
 #endif /* CVC4_ASSERTIONS */
   }
 

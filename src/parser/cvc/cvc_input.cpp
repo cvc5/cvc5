@@ -32,7 +32,7 @@ namespace parser {
 CvcInput::CvcInput(AntlrInputStream& inputStream) :
   AntlrInput(inputStream,6) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  AlwaysAssert( input != NULL );
+  assert( input != NULL );
 
   d_pCvcLexer = CvcLexerNew(input);
   if( d_pCvcLexer == NULL ) {
@@ -42,7 +42,7 @@ CvcInput::CvcInput(AntlrInputStream& inputStream) :
   setAntlr3Lexer( d_pCvcLexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  AlwaysAssert( tokenStream != NULL );
+  assert( tokenStream != NULL );
 
   d_pCvcParser = CvcParserNew(tokenStream);
   if( d_pCvcParser == NULL ) {
@@ -59,12 +59,12 @@ CvcInput::~CvcInput() {
 }
 
 Command* CvcInput::parseCommand()
-  throw (ParserException, TypeCheckingException, AssertionException) {
+  throw (ParserException, TypeCheckingException) {
   return d_pCvcParser->parseCommand(d_pCvcParser);
 }
 
 Expr CvcInput::parseExpr()
-  throw (ParserException, TypeCheckingException, AssertionException) {
+  throw (ParserException, TypeCheckingException) {
   return d_pCvcParser->parseExpr(d_pCvcParser);
 }
 

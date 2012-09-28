@@ -587,7 +587,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
-        Assert( expr == args[0] );
+        assert( expr == args[0] );
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
@@ -778,12 +778,12 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
 
   | HEX_LITERAL
-    { Assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
+    { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       expr = MK_CONST( BitVector(hexString, 16) ); }
 
   | BINARY_LITERAL
-    { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
+    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
 
@@ -1055,7 +1055,9 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         }
         t = EXPR_MANAGER->mkBitVectorType(numerals.front());
       } else {
-        Unhandled(name);
+        std::stringstream ss;
+        ss << "unknown indexed symbol `" << name << "'";
+        PARSER_STATE->parseError(ss.str());
       }
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK

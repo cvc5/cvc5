@@ -23,7 +23,7 @@
 #define __CVC4__SUBRANGE_BOUND_H
 
 #include "util/integer.h"
-#include "util/Assert.h"
+#include "util/exception.h"
 
 #include <limits>
 
@@ -222,7 +222,7 @@ public:
    * precondition: joinIsBounded(a,b) is true
    */
   static SubrangeBounds join(const SubrangeBounds& a, const SubrangeBounds& b){
-    Assert(joinIsBounded(a,b));
+    DebugCheckArgument(joinIsBounded(a,b), a);
     SubrangeBound newLower = SubrangeBound::min(a.lower, b.lower);
     SubrangeBound newUpper = SubrangeBound::max(a.upper, b.upper);
     return SubrangeBounds(newLower, newUpper);

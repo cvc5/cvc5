@@ -37,6 +37,7 @@
 #include "util/language.h"
 
 #include <string.h>
+#include <cassert>
 
 #if HAVE_LIBREADLINE
 #  include <readline/readline.h>
@@ -121,7 +122,9 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
       commandsEnd = tptp_commands + sizeof(tptp_commands) / sizeof(*tptp_commands);
       break;
     default:
-      Unhandled(lang);
+      std::stringstream ss;
+      ss << "internal error: unhandled language " << lang;
+      throw Exception(ss.str());
     }
     d_usingReadline = true;
     int err = ::read_history(d_historyFilename.c_str());
@@ -195,12 +198,12 @@ Command* InteractiveShell::readCommand() {
   while(true) {
     Debug("interactive") << "Input now '" << input << line << "'" << endl << flush;
 
-    Assert( !(d_in.fail() && !d_in.eof()) || line.empty() );
+    assert( !(d_in.fail() && !d_in.eof()) || line.empty() );
 
     /* Check for failure. */
     if(d_in.fail() && !d_in.eof()) {
       /* This should only happen if the input line was empty. */
-      Assert( line.empty() );
+      assert( line.empty() );
       d_in.clear();
     }
 
@@ -229,7 +232,7 @@ Command* InteractiveShell::readCommand() {
     if(!d_usingReadline) {
       /* Extract the newline delimiter from the stream too */
       int c CVC4_UNUSED = d_in.get();
-      Assert( c == '\n' );
+      assert( c == '\n' );
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl << flush;
     }
 

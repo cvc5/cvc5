@@ -24,6 +24,7 @@
 #include <string>
 #include <set>
 #include <list>
+#include <cassert>
 
 #include "parser/input.h"
 #include "parser/parser_exception.h"

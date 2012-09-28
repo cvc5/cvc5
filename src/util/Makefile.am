@@ -27,6 +27,7 @@ libutil_la_SOURCES = \
 	Makefile.in \
 	debug.h \
 	exception.h \
+	exception.cpp \
 	hash.h \
 	bool.h \
 	proof.h \

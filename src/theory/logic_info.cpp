@@ -76,7 +76,7 @@ LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
 }
 
 std::string LogicInfo::getLogicString() const {
-  Assert(d_locked, "This LogicInfo isn't locked yet, and cannot be queried");
+  CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
     size_t seen = 0; // make sure we support all the active theories
 
@@ -129,7 +129,7 @@ std::string LogicInfo::getLogicString() const {
 }
 
 void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentException) {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
     d_theories[id] = false;// ensure it's cleared
   }
@@ -244,17 +244,17 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
 }
 
 void LogicInfo::enableEverything() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
 }
 
 void LogicInfo::disableEverything() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo("");
 }
 
 void LogicInfo::enableTheory(theory::TheoryId theory) {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   if(!d_theories[theory]) {
     if(isTrueTheory(theory)) {
       ++d_sharingTheories;
@@ -265,7 +265,7 @@ void LogicInfo::enableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::disableTheory(theory::TheoryId theory) {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   if(d_theories[theory]) {
     if(isTrueTheory(theory)) {
       Assert(d_sharingTheories > 0);
@@ -281,14 +281,14 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
 }
 
 void LogicInfo::enableIntegers() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_integers = true;
 }
 
 void LogicInfo::disableIntegers() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_integers = false;
   if(!d_reals) {
@@ -297,14 +297,14 @@ void LogicInfo::disableIntegers() {
 }
 
 void LogicInfo::enableReals() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_reals = true;
 }
 
 void LogicInfo::disableReals() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_reals = false;
   if(!d_integers) {
@@ -313,21 +313,21 @@ void LogicInfo::disableReals() {
 }
 
 void LogicInfo::arithOnlyDifference() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = true;
 }
 
 void LogicInfo::arithOnlyLinear() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = false;
 }
 
 void LogicInfo::arithNonLinear() {
-  Assert(!d_locked, "This LogicInfo is locked, and cannot be modified");
+  CheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = false;
   d_differenceLogic = false;

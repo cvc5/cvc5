@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief CVC4's exception base class and some associated utilities.
+ ** \brief CVC4's exception base class and some associated utilities
  **
  ** CVC4's exception base class and some associated utilities.
  **/
@@ -25,6 +25,8 @@
 #include <string>
 #include <sstream>
 #include <exception>
+#include <cstdlib>
+#include <cstdarg>
 
 namespace CVC4 {
 
@@ -75,11 +77,94 @@ public:
 
 };/* class Exception */
 
+class CVC4_PUBLIC IllegalArgumentException : public Exception {
+protected:
+  IllegalArgumentException() : Exception() {}
+
+  void construct(const char* header, const char* extra,
+                 const char* function, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    construct(header, extra, function, fmt, args);
+    va_end(args);
+  }
+
+  void construct(const char* header, const char* extra,
+                 const char* function, const char* fmt, va_list args);
+
+  void construct(const char* header, const char* extra,
+                 const char* function);
+
+public:
+  IllegalArgumentException(const char* condStr, const char* argDesc,
+                           const char* function, const char* fmt, ...) :
+    Exception() {
+    va_list args;
+    va_start(args, fmt);
+    construct("Illegal argument detected",
+              ( std::string("`") + argDesc + "' is a bad argument"
+                + (*condStr == '\0' ? std::string() :
+                    ( std::string("; expected ") +
+                        condStr + " to hold" )) ).c_str(),
+              function, fmt, args);
+    va_end(args);
+  }
+
+  IllegalArgumentException(const char* condStr, const char* argDesc,
+                           const char* function) :
+    Exception() {
+    construct("Illegal argument detected",
+              ( std::string("`") + argDesc + "' is a bad argument"
+                + (*condStr == '\0' ? std::string() :
+                    ( std::string("; expected ") +
+                        condStr + " to hold" )) ).c_str(),
+              function);
+  }
+};/* class IllegalArgumentException */
+
 inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const Exception& e) throw() {
   e.toStream(os);
   return os;
 }
+
+}/* CVC4 namespace */
+
+#if defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)
+#  include "util/Assert.h"
+#endif /* __BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST */
+
+namespace CVC4 {
+
+#ifndef CheckArgument
+template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
+template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) {
+  if(EXPECT_FALSE( !cond )) { \
+    throw ::CVC4::IllegalArgumentException("", "", ""); \
+  } \
+}
+template <class T> inline void CheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
+template <class T> inline void CheckArgument(bool cond, const T& arg) {
+  if(EXPECT_FALSE( !cond )) { \
+    throw ::CVC4::IllegalArgumentException("", "", ""); \
+  } \
+}
+#endif /* CheckArgument */
+
+#ifndef DebugCheckArgument
+template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
+template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) {
+  if(EXPECT_FALSE( !cond )) { \
+    throw ::CVC4::IllegalArgumentException("", "", ""); \
+  } \
+}
+template <class T> inline void DebugCheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
+template <class T> inline void DebugCheckArgument(bool cond, const T& arg) {
+  if(EXPECT_FALSE( !cond )) { \
+    throw ::CVC4::IllegalArgumentException("", "", ""); \
+  } \
+}
+#endif /* DebugCheckArgument */
 
 }/* CVC4 namespace */
 

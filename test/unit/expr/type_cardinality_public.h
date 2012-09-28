@@ -26,7 +26,6 @@
 #include "expr/type.h"
 #include "expr/expr_manager.h"
 #include "util/cardinality.h"
-#include "util/Assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

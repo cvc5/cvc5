@@ -241,7 +241,7 @@ annotatedFormula[CVC4::Expr& expr]
     { if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
 	       It just so happens expr should already by the only argument. */
-        Assert( expr == args[0] );
+        assert( expr == args[0] );
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
@@ -474,7 +474,7 @@ functionDeclaration[CVC4::Command*& smt_command]
     { sorts.push_back(t); }
       sortList[sorts] RPAREN_TOK
     { if( sorts.size() == 1 ) {
-        Assert( t == sorts[0] );
+        assert( t == sorts[0] );
       } else {
         t = EXPR_MANAGER->mkFunctionType(sorts);
       }
@@ -566,8 +566,8 @@ annotation[CVC4::Command*& smt_command]
   : attribute[key]
     ( USER_VALUE
       { std::string value = AntlrInput::tokenText($USER_VALUE);
-        Assert(*value.begin() == '{');
-        Assert(*value.rbegin() == '}');
+        assert(*value.begin() == '{');
+        assert(*value.rbegin() == '}');
         // trim whitespace
         value.erase(value.begin(), value.begin() + 1);
         value.erase(value.begin(), std::find_if(value.begin(), value.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));

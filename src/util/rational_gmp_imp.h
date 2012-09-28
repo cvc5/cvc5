@@ -26,6 +26,7 @@
 #include <string>
 
 #include "util/integer.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 

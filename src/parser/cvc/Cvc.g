@@ -288,7 +288,9 @@ int getOperatorPrecedence(int type) {
   case IN_TOK: return 33;
 
   default:
-    Unhandled(CvcParserTokenNames[type]);
+    std::stringstream ss;
+    ss << "internal error: no entry in precedence table for operator " << CvcParserTokenNames[type];
+    throw ParserException(ss.str());
   }
 }/* getOperatorPrecedence() */
 
@@ -318,16 +320,18 @@ Kind getOperatorKind(int type, bool& negate) {
   case INTDIV_TOK: return kind::INTS_DIVISION;
   case MOD_TOK: return kind::INTS_MODULUS;
   case DIV_TOK: return kind::DIVISION;
-  case EXP_TOK: Unhandled(CvcParserTokenNames[type]);
+  case EXP_TOK: break;
 
     // bvBinop
   case CONCAT_TOK: return kind::BITVECTOR_CONCAT;
   case BAR: return kind::BITVECTOR_OR;
   case BVAND_TOK: return kind::BITVECTOR_AND;
-
-  default:
-    Unhandled(CvcParserTokenNames[type]);
   }
+
+  std::stringstream ss;
+  ss << "internal error: no entry in operator-kind table for operator " << CvcParserTokenNames[type];
+  throw ParserException(ss.str());
+
 }/* getOperatorKind() */
 
 unsigned findPivot(const std::vector<unsigned>& operators,
@@ -355,10 +359,10 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
                           const std::vector<CVC4::Expr>& expressions,
                           const std::vector<unsigned>& operators,
                           unsigned startIndex, unsigned stopIndex) {
-  Assert(expressions.size() == operators.size() + 1);
-  Assert(startIndex < expressions.size());
-  Assert(stopIndex < expressions.size());
-  Assert(startIndex <= stopIndex);
+  assert(expressions.size() == operators.size() + 1);
+  assert(startIndex < expressions.size());
+  assert(stopIndex < expressions.size());
+  assert(startIndex <= stopIndex);
 
   if(stopIndex == startIndex) {
     return expressions[startIndex];
@@ -450,6 +454,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 @parser::includes {
 
 #include <stdint.h>
+#include <cassert>
 #include "expr/command.h"
 #include "parser/parser.h"
 #include "util/subrange_bound.h"
@@ -1016,7 +1021,7 @@ type[CVC4::Type& t,
     /* a type, possibly a function */
   : restrictedTypePossiblyFunctionLHS[t,check,lhs]
     { if(lhs) {
-        Assert(t.isTuple());
+        assert(t.isTuple());
         args = TupleType(t).getTypes();
       } else {
         args.push_back(t);
@@ -1430,7 +1435,7 @@ arrayStore[CVC4::Expr& f]
 }
   : ( LBRACKET formula[f2] { dims.push_back(f2); } RBRACKET )+
     ASSIGN_TOK uminusTerm[f3]
-    { Assert(dims.size() >= 1);
+    { assert(dims.size() >= 1);
       // these loops are a bit complicated; they're only used for the
       // multidimensional ...WITH [a][b] :=... syntax
       for(unsigned i = 0; i < dims.size() - 1; ++i) {
@@ -1630,7 +1635,7 @@ postfixTerm[CVC4::Expr& f]
         } else if(t.isTester()) {
           f = MK_EXPR(CVC4::kind::APPLY_TESTER, args);
         } else {
-          Unhandled(t);
+          PARSER_STATE->parseError("internal error: unhandled function application kind");
         }
       }
 
@@ -1864,18 +1869,18 @@ simpleTerm[CVC4::Expr& f]
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
     /* bitvector literals */
   | HEX_LITERAL
-    { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
+    { assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
       f = MK_CONST( BitVector(hexString, 16) ); }
   | BINARY_LITERAL
-    { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
+    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
       f = MK_CONST( BitVector(binString, 2) ); }
     /* record literals */
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
     ( COMMA recordEntry[name,e] { names.push_back(name); args.push_back(e); } )* HASHPAREN
     { std::vector< std::pair<std::string, Type> > typeIds;
-      Assert(names.size() == args.size());
+      assert(names.size() == args.size());
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getType()));
       }

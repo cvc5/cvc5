@@ -72,8 +72,8 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
   Expr e = psr->nextExpression();
   stringstream ss;
   ss << Expr::setlanguage(outlang) << Expr::setdepth(-1) << e;
-  AlwaysAssert(psr->nextExpression().isNull(), "next expr should be null");
-  AlwaysAssert(psr->done(), "parser should be done");
+  assert(psr->nextExpression().isNull());// next expr should be null
+  assert(psr->done());// parser should be done
   string s = ss.str();
   cout << "got this:" << endl
        << s << endl
@@ -81,7 +81,7 @@ string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
 
   psr->setInput(Input::newStringInput(toInputLanguage(outlang), s, "internal-buffer"));
   Expr f = psr->nextExpression();
-  AlwaysAssert(e == f);
+  assert(e == f);
   cout << "got same expressions " << e.getId() << " and " << f.getId() << endl
        << "==============================================" << endl;
 
@@ -103,7 +103,7 @@ void runTestString(std::string instr, InputLanguage instrlang = input::LANG_SMTL
   string out = translate(cvc, input::LANG_CVC4, output::LANG_SMTLIB_V2);
   cout << "back to SMT2 : " << out << endl << endl;
 
-  AlwaysAssert(out == smt2, "differences in output");
+  assert(out == smt2);// differences in output
 }
 
 
@@ -121,7 +121,7 @@ int runTest() {
     delete c;
   }
 
-  AlwaysAssert(psr->done(), "parser should be done");
+  assert(psr->done());// parser should be done
 
   cout << Expr::setdepth(-1);
 

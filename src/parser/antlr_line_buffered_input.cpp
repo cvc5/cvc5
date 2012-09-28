@@ -20,9 +20,9 @@
 #include <antlr3.h>
 #include <iostream>
 #include <string>
+#include <cassert>
 
 #include "util/output.h"
-#include "util/Assert.h"
 
 namespace CVC4 {
 namespace parser {
@@ -242,7 +242,7 @@ myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
         in.getline((((char*)input->data) + input->sizeBuf), 1024);
       }
       input->sizeBuf += strlen(((char*)input->data) + input->sizeBuf);
-      Assert(*(((char*)input->data) + input->sizeBuf) == '\0');
+      assert(*(((char*)input->data) + input->sizeBuf) == '\0');
       Debug("pipe") << "SIZEBUF now " << input->sizeBuf << std::endl;
       *(((char*)input->data) + input->sizeBuf) = '\n';
       ++input->sizeBuf;

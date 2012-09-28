@@ -20,6 +20,7 @@
 #include <fstream>
 #include <iterator>
 #include <stdint.h>
+#include <cassert>
 
 #include "parser/input.h"
 #include "parser/parser.h"
@@ -30,7 +31,6 @@
 #include "expr/type.h"
 #include "util/output.h"
 #include "options/options.h"
-#include "util/Assert.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -53,16 +53,15 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
 
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
-  Assert( isDeclared(name, type) );
+  assert( isDeclared(name, type) );
 
-  switch( type ) {
-
-  case SYM_VARIABLE: // Functions share var namespace
+  if(type == SYM_VARIABLE) {
+    // Functions share var namespace
     return d_symtab->lookup(name);
-
-  default:
-    Unhandled(type);
   }
+
+  assert(false);//Unhandled(type);
+  return Expr();
 }
 
 
@@ -77,14 +76,14 @@ Expr Parser::getFunction(const std::string& name) {
 Type Parser::getType(const std::string& var_name,
                      SymbolType type) {
   checkDeclaration(var_name, CHECK_DECLARED, type);
-  Assert( isDeclared(var_name, type) );
+  assert( isDeclared(var_name, type) );
   Type t = getSymbol(var_name, type).getType();
   return t;
 }
 
 Type Parser::getSort(const std::string& name) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert( isDeclared(name, SYM_SORT) );
+  assert( isDeclared(name, SYM_SORT) );
   Type t = d_symtab->lookupType(name);
   return t;
 }
@@ -92,14 +91,14 @@ Type Parser::getSort(const std::string& name) {
 Type Parser::getSort(const std::string& name,
                      const std::vector<Type>& params) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  Assert( isDeclared(name, SYM_SORT) );
+  assert( isDeclared(name, SYM_SORT) );
   Type t = d_symtab->lookupType(name, params);
   return t;
 }
 
 size_t Parser::getArity(const std::string& sort_name){
   checkDeclaration(sort_name, CHECK_DECLARED, SYM_SORT);
-  Assert( isDeclared(sort_name, SYM_SORT) );
+  assert( isDeclared(sort_name, SYM_SORT) );
   return d_symtab->lookupArity(sort_name);
 }
 
@@ -187,20 +186,20 @@ Parser::defineVar(const std::string& name, const Expr& val,
                   bool levelZero) {
   Debug("parser") << "defineVar( " << name << " := " << val << " , " << levelZero << ")" << std::endl;;
   d_symtab->bind(name, val, levelZero);
-  Assert( isDeclared(name) );
+  assert( isDeclared(name) );
 }
 
 void
 Parser::defineFunction(const std::string& name, const Expr& val,
                        bool levelZero) {
   d_symtab->bindDefinedFunction(name, val, levelZero);
-  Assert( isDeclared(name) );
+  assert( isDeclared(name) );
 }
 
 void
 Parser::defineType(const std::string& name, const Type& type) {
   d_symtab->bindType(name, type);
-  Assert( isDeclared(name, SYM_SORT) );
+  assert( isDeclared(name, SYM_SORT) );
 }
 
 void
@@ -208,7 +207,7 @@ Parser::defineType(const std::string& name,
                    const std::vector<Type>& params,
                    const Type& type) {
   d_symtab->bindType(name, params, type);
-  Assert( isDeclared(name, SYM_SORT) );
+  assert( isDeclared(name, SYM_SORT) );
 }
 
 void
@@ -283,7 +282,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
   std::vector<DatatypeType> types =
     d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
 
-  Assert(datatypes.size() == types.size());
+  assert(datatypes.size() == types.size());
 
   for(unsigned i = 0; i < datatypes.size(); ++i) {
     DatatypeType t = types[i];
@@ -379,9 +378,9 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     return d_symtab->isBound(name);
   case SYM_SORT:
     return d_symtab->isBoundType(name);
-  default:
-    Unhandled(type);
   }
+  assert(false);//Unhandled(type);
+  return false;
 }
 
 void Parser::checkDeclaration(const std::string& varName,
@@ -411,7 +410,7 @@ void Parser::checkDeclaration(const std::string& varName,
     break;
 
   default:
-    Unhandled(check);
+    assert(false);//Unhandled(check);
   }
 }
 

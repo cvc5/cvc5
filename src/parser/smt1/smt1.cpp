@@ -117,9 +117,10 @@ void Smt1::addTheory(Theory theory) {
   }
 
   case THEORY_BITVECTOR_ARRAYS_EX: {
-    Unimplemented("Cannot yet handle SMT-LIBv1 bitvector arrays (i.e., the BitVector_ArraysEx theory)");
-    //addOperator(kind::SELECT);
-    //addOperator(kind::STORE);
+    // We don't define the "Array" symbol in this case;
+    // the parser creates the Array[m:n] types on the fly.
+    addOperator(kind::SELECT);
+    addOperator(kind::STORE);
     break;
   }
 
@@ -134,7 +135,6 @@ void Smt1::addTheory(Theory theory) {
   case THEORY_INT_ARRAYS:
   case THEORY_INT_ARRAYS_EX: {
     defineType("Array", getExprManager()->mkArrayType(getExprManager()->integerType(), getExprManager()->integerType()));
-
     addOperator(kind::SELECT);
     addOperator(kind::STORE);
     break;
@@ -167,7 +167,9 @@ void Smt1::addTheory(Theory theory) {
     break;
 
   default:
-    Unhandled(theory);
+    std::stringstream ss;
+    ss << "internal error: unsupported theory " << theory;
+    throw ParserException(ss.str());
   }
 }
 
@@ -229,8 +231,8 @@ void Smt1::setLogic(const std::string& name) {
     addTheory(THEORY_BITVECTORS);
     break;
 
-  case QF_ABV:
-    addTheory(THEORY_ARRAYS_EX);
+  case QF_ABV:// nonstandard logic
+    addTheory(THEORY_BITVECTOR_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     break;
 
@@ -241,18 +243,18 @@ void Smt1::setLogic(const std::string& name) {
 
   case QF_AUFBV:
     addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS_EX);
+    addTheory(THEORY_BITVECTOR_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     break;
 
-  case QF_AUFBVLIA:
+  case QF_AUFBVLIA:// nonstandard logic
     addOperator(kind::APPLY_UF);
     addTheory(THEORY_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
     addTheory(THEORY_INTS);
     break;
 
-  case QF_AUFBVLRA:
+  case QF_AUFBVLRA:// nonstandard logic
     addOperator(kind::APPLY_UF);
     addTheory(THEORY_ARRAYS_EX);
     addTheory(THEORY_BITVECTORS);
@@ -260,22 +262,22 @@ void Smt1::setLogic(const std::string& name) {
     break;
 
   case QF_AUFLIA:
-    addTheory(THEORY_INT_ARRAYS_EX);
+    addTheory(THEORY_INT_ARRAYS_EX);// nonstandard logic
     addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     break;
 
-  case QF_AUFLIRA:
+  case QF_AUFLIRA:// nonstandard logic
     addTheory(THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX);
     addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     break;
 
-  case ALL_SUPPORTED:
+  case ALL_SUPPORTED:// nonstandard logic
     addTheory(THEORY_QUANTIFIERS);
     /* fall through */
-  case QF_ALL_SUPPORTED:
+  case QF_ALL_SUPPORTED:// nonstandard logic
     addTheory(THEORY_ARRAYS_EX);
     addOperator(kind::APPLY_UF);
     addTheory(THEORY_INTS);

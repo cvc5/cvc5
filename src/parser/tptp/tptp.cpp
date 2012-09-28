@@ -83,7 +83,9 @@ void Tptp::addTheory(Theory theory) {
     break;
 
   default:
-    Unhandled(theory);
+    std::stringstream ss;
+    ss << "internal error: Tptp::addTheory(): unhandled theory " << theory;
+    throw ParserException(ss.str());
   }
 }
 

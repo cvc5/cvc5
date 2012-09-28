@@ -1136,6 +1136,8 @@ CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc4_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc4_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4compat.3])
 

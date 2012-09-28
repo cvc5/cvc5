@@ -427,8 +427,8 @@ public:
 
     TS_ASSERT( f == fa.getOperator() );
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( f.getOperator(), AssertionException );
-    TS_ASSERT_THROWS( a.getOperator(), AssertionException );
+    TS_ASSERT_THROWS( f.getOperator(), IllegalArgumentException );
+    TS_ASSERT_THROWS( a.getOperator(), IllegalArgumentException );
 #endif /* CVC4_ASSERTIONS */
   }
 

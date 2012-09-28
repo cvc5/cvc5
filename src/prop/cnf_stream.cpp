@@ -134,12 +134,12 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
     return;
   }
 
-  CheckArgument(n.getType().isBoolean(), n,
-                "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
-                "got node: %s\n"
-                "its type: %s\n",
-                n.toString().c_str(),
-                n.getType().toString().c_str());
+  AlwaysAssertArgument(n.getType().isBoolean(), n,
+                       "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
+                       "got node: %s\n"
+                       "its type: %s\n",
+                       n.toString().c_str(),
+                       n.getType().toString().c_str());
 
   bool negated CVC4_UNUSED = false;
   SatLiteral lit;

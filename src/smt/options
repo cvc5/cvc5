@@ -81,4 +81,7 @@ option lemmaInputChannel LemmaInputChannel* :default NULL :include "util/lemma_i
 option lemmaOutputChannel LemmaOutputChannel* :default NULL :include "util/lemma_output_channel.h"
  The output channel to receive notfication events for new lemmas
 
+option optionWithOnlyAlternate /--optionWithOnlyAlternate bool
+ option with only an alternate
+
 endmodule

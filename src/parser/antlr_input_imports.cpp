@@ -57,7 +57,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "util/Assert.h"
 
 using namespace std;
 
@@ -92,11 +91,11 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
 
   // Dig the CVC4 objects out of the ANTLR3 mess
   pANTLR3_PARSER antlr3Parser = (pANTLR3_PARSER)(recognizer->super);
-  AlwaysAssert(antlr3Parser!=NULL);
+  assert(antlr3Parser!=NULL);
   Parser *parser = (Parser*)(antlr3Parser->super);
-  AlwaysAssert(parser!=NULL);
+  assert(parser!=NULL);
   AntlrInput *input = (AntlrInput*) parser->getInput() ;
-  AlwaysAssert(input!=NULL);
+  assert(input!=NULL);
 
   // Signal we are in error recovery now
   recognizer->state->errorRecovery = ANTLR3_TRUE;
@@ -235,7 +234,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
         }
       }
     } else {
-      Unreachable("Parse error with empty set of expected tokens.");
+      assert(false);//("Parse error with empty set of expected tokens.");
     }
   }
     break;
@@ -257,7 +256,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     // then we are just going to report what we know about the
     // token.
     //
-    Unhandled("Unexpected exception in parser.");
+    assert(false);//("Unexpected exception in parser.");
     break;
   }
 

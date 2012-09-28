@@ -30,8 +30,7 @@
 #include <ctime>
 #include <vector>
 #include <stdint.h>
-
-#include "util/Assert.h"
+#include <cassert>
 
 namespace CVC4 {
 
@@ -69,10 +68,11 @@ public:
    * will throw an assertion exception if the given name contains the
    * statistic delimiter string.
    */
-  Stat(const std::string& name) throw(CVC4::AssertionException) :
+  Stat(const std::string& name) throw(CVC4::IllegalArgumentException) :
     d_name(name) {
     if(__CVC4_USE_STATISTICS) {
-      AlwaysAssert(d_name.find(", ") == std::string::npos);
+      CheckArgument(d_name.find(", ") == std::string::npos, name,
+                    "Statistics names cannot include a comma (',')");
     }
   }
 
@@ -270,11 +270,7 @@ public:
 
   /** Get the value of the referenced data cell. */
   const T& getData() const {
-    if(__CVC4_USE_STATISTICS) {
-      return *d_data;
-    } else {
-      Unreachable();
-    }
+    return *d_data;
   }
 
 };/* class ReferenceStat<T> */
@@ -316,11 +312,7 @@ public:
 
   /** Get the underlying data value. */
   const T& getData() const {
-    if(__CVC4_USE_STATISTICS) {
-      return d_data;
-    } else {
-      Unreachable();
-    }
+    return d_data;
   }
 
 };/* class BackedStat<T> */
@@ -362,11 +354,7 @@ public:
 
   /** Get the data of the underlying (wrapped) statistic. */
   const T& getData() const {
-    if(__CVC4_USE_STATISTICS) {
-      return d_stat.getData();
-    } else {
-      Unreachable();
-    }
+    return d_stat.getData();
   }
 
   SExpr getValue() const {
@@ -569,11 +557,14 @@ public:
   StatisticsRegistry() {}
 
   /** Construct a statistics registry */
-  StatisticsRegistry(const std::string& name) throw(CVC4::AssertionException) :
+  StatisticsRegistry(const std::string& name)
+      throw(CVC4::IllegalArgumentException) :
     Stat(name) {
     d_prefix = name;
     if(__CVC4_USE_STATISTICS) {
-      AlwaysAssert(d_name.find(s_regDelim) == std::string::npos);
+      CheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
+                    "StatisticsRegistry names cannot contain the string \"%s\"",
+                    s_regDelim.c_str());
     }
   }
 
@@ -608,17 +599,17 @@ public:
 
 #if (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST)) && !defined(__BUILDING_STATISTICS_FOR_EXPORT)
   /** Register a new statistic, making it active. */
-  static void registerStat(Stat* s) throw(AssertionException);
+  static void registerStat(Stat* s) throw(CVC4::IllegalArgumentException);
 
   /** Unregister an active statistic, making it inactive. */
-  static void unregisterStat(Stat* s) throw(AssertionException);
+  static void unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException);
 #endif /* (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB) && ! __BUILDING_STATISTICS_FOR_EXPORT */
 
   /** Register a new statistic */
-  void registerStat_(Stat* s) throw(AssertionException);
+  void registerStat_(Stat* s) throw(CVC4::IllegalArgumentException);
 
   /** Unregister a new statistic */
-  void unregisterStat_(Stat* s) throw(AssertionException);
+  void unregisterStat_(Stat* s) throw(CVC4::IllegalArgumentException);
 
 };/* class StatisticsRegistry */
 
@@ -630,11 +621,11 @@ public:
 inline timespec& operator+=(timespec& a, const timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
-  Assert(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec);
-  Assert(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec);
+  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
+  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
   a.tv_sec += b.tv_sec;
   long nsec = a.tv_nsec + b.tv_nsec;
-  Assert(nsec >= 0);
+  assert(nsec >= 0);
   if(nsec < 0) {
     nsec += nsec_per_sec;
     --a.tv_sec;
@@ -643,7 +634,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  Assert(nsec >= 0 && nsec < nsec_per_sec);
+  assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -652,8 +643,8 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
 inline timespec& operator-=(timespec& a, const timespec& b) {
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
-  Assert(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec);
-  Assert(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec);
+  CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
+  CheckArgument(b.tv_nsec >= 0 && b.tv_nsec < nsec_per_sec, b);
   a.tv_sec -= b.tv_sec;
   long nsec = a.tv_nsec - b.tv_nsec;
   if(nsec < 0) {
@@ -664,7 +655,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  Assert(nsec >= 0 && nsec < nsec_per_sec);
+  assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -855,9 +846,9 @@ public:
   RegisterStatistic(StatisticsRegistry* reg, Stat* stat) :
     d_reg(reg),
     d_stat(stat) {
-    Assert(d_reg != NULL,
-           "You need to specify a statistics registry"
-           "on which to set the statistic");
+    CheckArgument(reg != NULL, reg,
+                  "You need to specify a statistics registry"
+                  "on which to set the statistic");
     d_reg->registerStat_(d_stat);
   }
 

@@ -46,7 +46,7 @@ public:
 };/* class AscriptionType */
 
 /**
- * A hash strategy for type ascription operators.
+ * A hash function for type ascription operators.
  */
 struct CVC4_PUBLIC AscriptionTypeHashFunction {
   inline size_t operator()(const AscriptionType& at) const {

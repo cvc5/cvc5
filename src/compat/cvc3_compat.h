@@ -68,16 +68,6 @@
 #include <map>
 #include <utility>
 
-// some #defines that CVC3 exported to userspace :(
-#ifdef CVC4_DEBUG
-#  define DebugAssert(cond, str) Assert((cond), "CVC3-style assertion failed: %s", std::string(str).c_str());
-#  define IF_DEBUG(x) x
-#else
-#  define DebugAssert(...)
-#  define IF_DEBUG(x)
-#endif
-#define FatalAssert(cond, str) AlwaysAssert((cond), "CVC3-style assertion failed: %s", std::string(str).c_str());
-
 //class CInterface;
 
 namespace CVC3 {

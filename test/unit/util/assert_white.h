@@ -32,7 +32,7 @@ public:
   void testAssert() {
 #ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS( Assert(false), AssertionException );
-    TS_ASSERT_THROWS( AssertArgument(false, "x"), IllegalArgumentException );
+    TS_ASSERT_THROWS( AssertArgument(false, "x"), AssertArgumentException );
 #else /* CVC4_ASSERTIONS */
     TS_ASSERT_THROWS_NOTHING( Assert(false) );
     TS_ASSERT_THROWS_NOTHING( AssertArgument(false, "x") );
@@ -46,7 +46,7 @@ public:
     TS_ASSERT_THROWS( IllegalArgument("x"), IllegalArgumentException );
     TS_ASSERT_THROWS( CheckArgument(false, "x"), IllegalArgumentException );
     TS_ASSERT_THROWS( AlwaysAssertArgument(false, "x"),
-                      IllegalArgumentException );
+                      AssertArgumentException );
     TS_ASSERT_THROWS_NOTHING( AssertArgument(true, "x") );
     TS_ASSERT_THROWS_NOTHING( AssertArgument(true, "x") );
   }

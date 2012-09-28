@@ -34,7 +34,7 @@ namespace parser {
 Smt2Input::Smt2Input(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  AlwaysAssert( input != NULL );
+  assert( input != NULL );
 
   d_pSmt2Lexer = Smt2LexerNew(input);
   if( d_pSmt2Lexer == NULL ) {
@@ -44,7 +44,7 @@ Smt2Input::Smt2Input(AntlrInputStream& inputStream) :
   setAntlr3Lexer( d_pSmt2Lexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  AlwaysAssert( tokenStream != NULL );
+  assert( tokenStream != NULL );
 
   d_pSmt2Parser = Smt2ParserNew(tokenStream);
   if( d_pSmt2Parser == NULL ) {
@@ -61,12 +61,12 @@ Smt2Input::~Smt2Input() {
 }
 
 Command* Smt2Input::parseCommand()
-  throw (ParserException, TypeCheckingException, AssertionException) {
+  throw (ParserException, TypeCheckingException) {
   return d_pSmt2Parser->parseCommand(d_pSmt2Parser);
 }
 
 Expr Smt2Input::parseExpr()
-  throw (ParserException, TypeCheckingException, AssertionException) {
+  throw (ParserException, TypeCheckingException) {
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 

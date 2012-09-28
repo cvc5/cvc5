@@ -88,7 +88,9 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   default:
-    Unhandled(theory);
+    std::stringstream ss;
+    ss << "internal error: unsupported theory " << theory;
+    throw ParserException(ss.str());
   }
 }
 

@@ -61,28 +61,26 @@ void ParserBuilder::init(ExprManager* exprManager,
 }
 
 Parser* ParserBuilder::build()
-  throw (InputStreamException, AssertionException) {
+  throw (InputStreamException) {
   Input* input = NULL;
   switch( d_inputType ) {
   case FILE_INPUT:
     input = Input::newFileInput(d_lang, d_filename, d_mmap);
     break;
   case LINE_BUFFERED_STREAM_INPUT:
-    AlwaysAssert( d_streamInput != NULL,
-                  "Uninitialized stream input in ParserBuilder::build()" );
+    assert( d_streamInput != NULL );
     input = Input::newStreamInput(d_lang, *d_streamInput, d_filename, true);
     break;
   case STREAM_INPUT:
-    AlwaysAssert( d_streamInput != NULL,
-                  "Uninitialized stream input in ParserBuilder::build()" );
+    assert( d_streamInput != NULL );
     input = Input::newStreamInput(d_lang, *d_streamInput, d_filename);
     break;
   case STRING_INPUT:
     input = Input::newStringInput(d_lang, d_stringInput, d_filename);
     break;
-  default:
-    Unreachable();
   }
+
+  assert(input != NULL);
 
   Parser* parser = NULL;
   switch(d_lang) {

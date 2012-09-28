@@ -24,7 +24,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "util/Assert.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 namespace kind {
@@ -100,6 +100,7 @@ struct KindHashFunction {
  */
 enum TypeConstant {
 ${type_constant_list}
+#line 104 "${template}"
   LAST_TYPE
 };/* enum TypeConstant */
 
@@ -115,6 +116,7 @@ struct TypeConstantHashFunction {
 inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
+#line 120 "${template}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -126,8 +128,9 @@ namespace theory {
 
 enum TheoryId {
 ${theory_enum}
+#line 132 "${template}"
   THEORY_LAST
-};
+};/* enum TheoryId */
 
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
 const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
@@ -139,6 +142,7 @@ inline TheoryId& operator ++ (TheoryId& id) {
 inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
   switch(theoryId) {
 ${theory_descriptions}
+#line 146 "${template}"
   default:
     out << "UNKNOWN_THEORY";
     break;
@@ -148,23 +152,28 @@ ${theory_descriptions}
 
 inline TheoryId kindToTheoryId(::CVC4::Kind k) {
   switch(k) {
+  case kind::UNDEFINED_KIND:
+  case kind::NULL_EXPR:
+    break;
 ${kind_to_theory_id}
-  default:
-    Unhandled(k);
+#line 160 "${template}"
+  case kind::LAST_KIND:
+    break;
   }
+  throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
 
 inline TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_to_theory_id}
-  default:
-    Unhandled(typeConstant);
+#line 170 "${template}"
+  case LAST_TYPE:
+    break;
   }
+  throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad type constant");
 }
 
-}/* theory namespace */
-
-
+}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__KIND_H */

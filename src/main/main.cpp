@@ -33,7 +33,6 @@
 #include "expr/expr_manager.h"
 #include "smt/smt_engine.h"
 #include "expr/command.h"
-#include "util/Assert.h"
 #include "util/configuration.h"
 #include "main/options.h"
 #include "theory/uf/options.h"

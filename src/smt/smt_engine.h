@@ -219,7 +219,7 @@ class CVC4_PUBLIC SmtEngine {
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
    */
-  void checkModel() throw(InternalErrorException);
+  void checkModel();
 
   /**
    * This is something of an "init" procedure, but is idempotent; call
@@ -275,7 +275,7 @@ class CVC4_PUBLIC SmtEngine {
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
-  void setLogicInternal() throw(AssertionException);
+  void setLogicInternal() throw();
 
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
@@ -300,7 +300,7 @@ public:
   /**
    * Construct an SmtEngine with the given expression manager.
    */
-  SmtEngine(ExprManager* em) throw(AssertionException);
+  SmtEngine(ExprManager* em) throw();
 
   /**
    * Destruct the SMT engine.
@@ -394,7 +394,7 @@ public:
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) throw(ModalException, AssertionException);
+  Expr getValue(const Expr& e) throw(ModalException);
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -405,34 +405,34 @@ public:
    * this function returns true if the expression was added and false
    * if this request was ignored.
    */
-  bool addToAssignment(const Expr& e) throw(AssertionException);
+  bool addToAssignment(const Expr& e) throw();
 
   /**
    * Get the assignment (only if immediately preceded by a SAT or
    * INVALID query).  Only permitted if the SmtEngine is set to
    * operate interactively and produce-assignments is on.
    */
-  CVC4::SExpr getAssignment() throw(ModalException, AssertionException);
+  CVC4::SExpr getAssignment() throw(ModalException);
 
   /**
    * Get the model (only if immediately preceded by a SAT
    * or INVALID query).  Only permitted if CVC4 was built with model
    * support and produce-models is on.
    */
-  Model* getModel() throw(ModalException, AssertionException);
+  Model* getModel() throw(ModalException);
 
   /**
    * Get the last proof (only if immediately preceded by an UNSAT
    * or VALID query).  Only permitted if CVC4 was built with proof
    * support and produce-proofs is on.
    */
-  Proof* getProof() throw(ModalException, AssertionException);
+  Proof* getProof() throw(ModalException);
 
   /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */
-  std::vector<Expr> getAssertions() throw(ModalException, AssertionException);
+  std::vector<Expr> getAssertions() throw(ModalException);
 
   /**
    * Push a user-level context.

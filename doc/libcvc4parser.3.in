@@ -12,4 +12,4 @@ libcvc4parser \- a parser library interface for the CVC4 theorem prover
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at
-.BR http://goedel.cs.nyu.edu/wiki/ .
+.BR http://church.cims.nyu.edu/wiki/ .

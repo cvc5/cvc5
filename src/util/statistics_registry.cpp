@@ -50,36 +50,38 @@ StatisticsRegistry* StatisticsRegistry::current() {
   return stats::getStatisticsRegistry(smt::currentSmtEngine());
 }
 
-void StatisticsRegistry::registerStat(Stat* s) throw(AssertionException) {
+void StatisticsRegistry::registerStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& stats = current()->d_stats;
-  AlwaysAssert(stats.find(s) == stats.end(),
-               "Statistic `%s' was already registered with this registry.", s->getName().c_str());
+  CheckArgument(stats.find(s) == stats.end(), s,
+                "Statistic `%s' was already registered with this registry.",
+                s->getName().c_str());
   stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat() */
 
-void StatisticsRegistry::unregisterStat(Stat* s) throw(AssertionException) {
+void StatisticsRegistry::unregisterStat(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
   StatSet& stats = current()->d_stats;
-  AlwaysAssert(stats.find(s) != stats.end(),
-               "Statistic `%s' was not registered with this registry.", s->getName().c_str());
+  CheckArgument(stats.find(s) != stats.end(), s,
+                "Statistic `%s' was not registered with this registry.",
+                s->getName().c_str());
   stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat() */
 
 #endif /* ! __BUILDING_STATISTICS_FOR_EXPORT */
 
-void StatisticsRegistry::registerStat_(Stat* s) throw(AssertionException) {
+void StatisticsRegistry::registerStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  AlwaysAssert(d_stats.find(s) == d_stats.end());
+  CheckArgument(d_stats.find(s) == d_stats.end(), s);
   d_stats.insert(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::registerStat_() */
 
-void StatisticsRegistry::unregisterStat_(Stat* s) throw(AssertionException) {
+void StatisticsRegistry::unregisterStat_(Stat* s) throw(CVC4::IllegalArgumentException) {
 #ifdef CVC4_STATISTICS_ON
-  AlwaysAssert(d_stats.find(s) != d_stats.end());
+  CheckArgument(d_stats.find(s) != d_stats.end(), s);
   d_stats.erase(s);
 #endif /* CVC4_STATISTICS_ON */
 }/* StatisticsRegistry::unregisterStat_() */
@@ -98,7 +100,7 @@ void StatisticsRegistry::flushInformation(std::ostream &out) const {
 
 void TimerStat::start() {
   if(__CVC4_USE_STATISTICS) {
-    AlwaysAssert(!d_running);
+    CheckArgument(!d_running, *this, "timer already running");
     clock_gettime(CLOCK_MONOTONIC, &d_start);
     d_running = true;
   }
@@ -106,7 +108,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(__CVC4_USE_STATISTICS) {
-    AlwaysAssert(d_running);
+    CheckArgument(d_running, *this, "timer not running");
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

@@ -25,6 +25,7 @@
 #include <gmp.h>
 #include <string>
 #include <sstream>
+#include <cassert>
 #include <cln/rational.h>
 #include <cln/input.h>
 #include <cln/io.h>
@@ -32,7 +33,7 @@
 #include <cln/rational_io.h>
 #include <cln/number_io.h>
 
-#include "util/Assert.h"
+#include "util/exception.h"
 #include "util/integer.h"
 
 namespace CVC4 {
@@ -213,7 +214,7 @@ public:
     }else if(cln::minusp(d_value)){
        return -1;
     }else{
-      Assert(cln::plusp(d_value));
+      assert(cln::plusp(d_value));
       return 1;
     }
   }

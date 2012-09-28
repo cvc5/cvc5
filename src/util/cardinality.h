@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "util/integer.h"
-#include "util/Assert.h"
+#include "util/exception.h"
 
 namespace CVC4 {
 
@@ -118,7 +118,6 @@ public:
     CheckArgument(card >= 0, card,
                   "Cardinality must be a nonnegative integer, not %ld.", card);
     d_card += 1;
-    Assert(isFinite());
   }
 
   /**
@@ -130,14 +129,12 @@ public:
                   "Cardinality must be a nonnegative integer, not %s.",
                   card.toString().c_str());
     d_card += 1;
-    Assert(isFinite());
   }
 
   /**
    * Construct an infinite cardinality equal to the given Beth number.
    */
   Cardinality(CardinalityBeth beth) : d_card(-beth.getNumber() - 1) {
-    Assert(!isFinite());
   }
 
   /**

@@ -55,21 +55,6 @@ is used to build up expressions and types, and the
 .I SmtEngine
 is used primarily to make assertions, check satisfiability/validity, and extract models and proofs.
 
-The SmtEngine is also in charge of setting and getting information and options.
-.I SmtEngine::setOption()
-and
-.I SmtEngine::getOption()
-use the following option keys.
-
-.RS
-.TP 10
-.I "COMMON OPTIONS"
-${common_manpage_smt_documentation}
-
-${remaining_manpage_smt_documentation}
-.PD
-.RE
-
 .SH "SEE ALSO"
 .BR cvc4 (1),
 .BR libcvc4parser (3),

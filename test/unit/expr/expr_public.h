@@ -23,7 +23,6 @@
 
 #include "expr/expr_manager.h"
 #include "expr/expr.h"
-#include "util/Assert.h"
 #include "util/exception.h"
 
 using namespace CVC4;

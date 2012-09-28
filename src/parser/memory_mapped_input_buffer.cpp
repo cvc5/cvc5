@@ -26,7 +26,6 @@
 #include <antlr3input.h>
 
 #include "parser/memory_mapped_input_buffer.h"
-#include "util/Assert.h"
 #include "util/exception.h"
 
 namespace CVC4 {

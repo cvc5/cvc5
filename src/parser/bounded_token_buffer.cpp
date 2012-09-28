@@ -56,7 +56,7 @@
 #include <antlr3tokenstream.h>
 
 #include "parser/bounded_token_buffer.h"
-#include "util/Assert.h"
+#include <cassert>
 
 namespace CVC4 {
 namespace parser {
@@ -142,7 +142,7 @@ BoundedTokenBufferSourceNew(ANTLR3_UINT32 k, pANTLR3_TOKEN_SOURCE source)
     pANTLR3_COMMON_TOKEN_STREAM	stream;
 
 
-    AlwaysAssert( k > 0 );
+    assert( k > 0 );
 
     /* Memory for the interface structure
      */
@@ -235,7 +235,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
   buffer = (pBOUNDED_TOKEN_BUFFER) cts->super;
 
   /* k must be in the range [-buffer->k..buffer->k] */
-  AlwaysAssert( k <= (ANTLR3_INT32)buffer->k 
+  assert( k <= (ANTLR3_INT32)buffer->k 
                 && -k <= (ANTLR3_INT32)buffer->k );
 
   if(k == 0) {
@@ -244,7 +244,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
 
   /* Initialize the buffer on our first call. */
   if( EXPECT_FALSE(buffer->empty == ANTLR3_TRUE) ) {
-    AlwaysAssert( buffer->tokenBuffer != NULL );
+    assert( buffer->tokenBuffer != NULL );
     buffer->tokenBuffer[ 0 ] = nextToken(buffer);
     buffer->maxIndex = 0;
     buffer->currentIndex = 0;
@@ -257,7 +257,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
     kIndex = buffer->currentIndex + k - 1;
   } else {
     /* Can't look behind more tokens than we've consumed. */
-    AlwaysAssert( -k <= (ANTLR3_INT32)buffer->currentIndex );
+    assert( -k <= (ANTLR3_INT32)buffer->currentIndex );
     /* look-behind token k is at offset -k */
     kIndex = buffer->currentIndex + k;
   }
@@ -289,7 +289,8 @@ dbgTokLT  (pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k)
 static pANTLR3_COMMON_TOKEN 
 get (pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 i)
 {
-  Unreachable();
+    assert(false);// unimplemented
+    return NULL;
 }
 
 static pANTLR3_TOKEN_SOURCE 
@@ -308,19 +309,22 @@ setTokenSource	(   pANTLR3_TOKEN_STREAM ts,
 static pANTLR3_STRING	    
 toString    (pANTLR3_TOKEN_STREAM ts)
 {
-  Unimplemented("toString(ts)");
+  assert(false);// unimplemented
+  return NULL;
 }
 
 static pANTLR3_STRING
 toStringSS(pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
 {
-  Unimplemented("toStringSS(ts, %u, %u)", start, stop);
+  assert(false);// unimplemented
+  return NULL;
 }
 
 static pANTLR3_STRING	    
 toStringTT  (pANTLR3_TOKEN_STREAM ts, pANTLR3_COMMON_TOKEN start, pANTLR3_COMMON_TOKEN stop)
 {
-  Unimplemented("toStringTT(ts, %u, %u)", start, stop);
+  assert(false);// unimplemented
+  return NULL;
 }
 
 /** Move the input pointer to the next incoming token.  The stream
@@ -379,7 +383,8 @@ _LA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 static ANTLR3_UINT32	    
 dbgLA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 {
-  Unreachable();
+  assert(false);
+  return 0;
 }
 
 static ANTLR3_MARKER
@@ -394,7 +399,8 @@ mark	(pANTLR3_INT_STREAM is)
 static ANTLR3_MARKER
 dbgMark	(pANTLR3_INT_STREAM is)
 {
-  Unreachable();
+  assert(false);
+  return 0;
 }
 
 static void		    
@@ -406,7 +412,8 @@ release	(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark)
 static ANTLR3_UINT32	    
 size	(pANTLR3_INT_STREAM is)
 {
-  Unreachable();
+  assert(false);
+  return 0;
 }
 
 static ANTLR3_MARKER   
@@ -426,12 +433,12 @@ tindex	(pANTLR3_INT_STREAM is)
 static void		    
 dbgRewindLast	(pANTLR3_INT_STREAM is)
 {
-  Unreachable();
+  assert(false);
 }
 static void		    
 rewindLast	(pANTLR3_INT_STREAM is)
 {
-  Unreachable();
+  assert(false);
 }
 static void		    
 rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
@@ -441,7 +448,7 @@ rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 static void		    
 dbgRewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
-   Unreachable();
+   assert(false);
 }
 
 static void		    
@@ -458,7 +465,7 @@ seek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 static void		    
 dbgSeek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 {
-  Unreachable();
+  assert(false);
 }
 
 static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {
