@@ -128,7 +128,7 @@ EXTRA_DIST = \
 	cardinality.i \
 	result.i \
 	configuration.i \
-	Assert.i \
+	cvc4_assert.i \
 	bitvector.i \
 	subrange_bound.i \
 	exception.i \
