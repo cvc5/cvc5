@@ -64,7 +64,9 @@ class InstantiatorTheoryArith;
 class TheoryArith : public Theory {
   friend class InstantiatorTheoryArith;
 private:
-  context::CDO<bool> d_nlIncomplete;
+  bool d_nlIncomplete;
+  // TODO A better would be:
+  //context::CDO<bool> d_nlIncomplete;
 
   enum Result::Sat d_qflraStatus;
   // check()

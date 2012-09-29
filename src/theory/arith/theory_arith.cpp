@@ -58,7 +58,7 @@ const uint32_t RESET_START = 2;
 
 TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
   Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, qe),
-  d_nlIncomplete(u, false),
+  d_nlIncomplete( false),
   d_qflraStatus(Result::SAT_UNKNOWN),
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
@@ -1707,6 +1707,10 @@ void TheoryArith::check(Effort effortLevel){
       }
     }
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
+  if(fullEffort(effortLevel) && d_nlIncomplete){
+    // TODO this is total paranoia
+    d_out->setIncomplete();
+  }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
   if(Debug.isOn("arith::print_model")) { debugPrintModel(); }
