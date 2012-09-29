@@ -139,4 +139,8 @@ DISTCLEANFILES = \
 	doc/libcvc4.3 \
 	doc/libcvc4.3_template \
 	doc/libcvc4compat.3 \
-	doc/libcvc4parser.3
+	doc/libcvc4parser.3 \
+	doc/SmtEngine.3cvc4 \
+	doc/SmtEngine.3cvc4_template \
+	doc/options.3cvc4 \
+	doc/options.3cvc4_template
