@@ -63,7 +63,7 @@ namespace CVC4 {
     const char *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor;
+    CVC4::main::CommandExecutor* pExecutor = NULL;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -185,24 +185,21 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Create the expression manager using appropriate options
 # ifndef PORTFOLIO_BUILD
-  ExprManager exprMgr(opts);
+  ExprManager* exprMgr = new ExprManager(opts);
 # else
   vector<Options> threadOpts = parseThreadSpecificOptions(opts);
-  ExprManager exprMgr(threadOpts[0]);
+  ExprManager* exprMgr = new ExprManager(threadOpts[0]);
 # endif
 
 # ifndef PORTFOLIO_BUILD
-  CommandExecutor cmdExecutor(exprMgr, opts);
+  pExecutor = new CommandExecutor(*exprMgr, opts);
 # else
-  CommandExecutorPortfolio cmdExecutor(exprMgr, opts, threadOpts);
+  pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
 # endif
-
-  // give access to the signal handlers for stats output
-  pExecutor = &cmdExecutor;
 
   Parser* replayParser = NULL;
   if( opts[options::replayFilename] != "" ) {
-    ParserBuilder replayParserBuilder(&exprMgr, opts[options::replayFilename], opts);
+    ParserBuilder replayParserBuilder(exprMgr, opts[options::replayFilename], opts);
 
     if( opts[options::replayFilename] == "-") {
       if( inputFromStdin ) {
@@ -217,114 +214,122 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     *opts[options::replayLog] << Expr::setlanguage(opts[options::outputLanguage]) << Expr::setdepth(-1);
   }
 
-  // Timer statistic
-  RegisterStatistic statTotalTime(&cmdExecutor.getStatisticsRegistry(), &s_totalTime);
+  int returnValue = 0;
+  {
+    // Timer statistic
+    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(), &s_totalTime);
 
-  // Filename statistics
-  ReferenceStat< const char* > s_statFilename("filename", filename);
-  RegisterStatistic statFilenameReg(&cmdExecutor.getStatisticsRegistry(), &s_statFilename);
+    // Filename statistics
+    ReferenceStat< const char* > s_statFilename("filename", filename);
+    RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(), &s_statFilename);
 
-  // Parse and execute commands until we are done
-  Command* cmd;
-  bool status = true;
-  if( opts[options::interactive] ) {
-    InteractiveShell shell(exprMgr, opts);
-    Message() << Configuration::getPackageName()
-              << " " << Configuration::getVersionString();
-    if(Configuration::isSubversionBuild()) {
-      Message() << " [" << Configuration::getSubversionId() << "]";
-    }
-    Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-              << " assertions:"
-              << (Configuration::isAssertionBuild() ? "on" : "off")
-              << endl;
-    if(replayParser != NULL) {
-      // have the replay parser use the declarations input interactively
-      replayParser->useDeclarationsFrom(shell.getParser());
-    }
-    while((cmd = shell.readCommand())) {
-      status = cmdExecutor.doCommand(cmd) && status;
-      delete cmd;
-    }
-  } else {
-    ParserBuilder parserBuilder(&exprMgr, filename, opts);
-
-    if( inputFromStdin ) {
-#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
-      parserBuilder.withStreamInput(cin);
-#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
-      parserBuilder.withLineBufferedStreamInput(cin);
-#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
-    }
-
-    Parser *parser = parserBuilder.build();
-    if(replayParser != NULL) {
-      // have the replay parser use the file's declarations
-      replayParser->useDeclarationsFrom(parser);
-    }
-    while(status && (cmd = parser->nextCommand())) {
-      if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-        delete cmd;
-        break;
+    // Parse and execute commands until we are done
+    Command* cmd;
+    bool status = true;
+    if( opts[options::interactive] ) {
+      InteractiveShell shell(*exprMgr, opts);
+      Message() << Configuration::getPackageName()
+                << " " << Configuration::getVersionString();
+      if(Configuration::isSubversionBuild()) {
+        Message() << " [" << Configuration::getSubversionId() << "]";
       }
-      status = cmdExecutor.doCommand(cmd);
-      delete cmd;
-    }
-    // Remove the parser
-    delete parser;
-  }
-
-  if( opts[options::replayStream] != NULL ) {
-    // this deletes the expression parser too
-    delete opts[options::replayStream];
-    opts.set(options::replayStream, NULL);
-  }
-
-  int returnValue;
-  string result = "unknown";
-  if(status) {
-    result = cmdExecutor.getSmtEngineStatus();
-
-    if(result == "sat") {
-      returnValue = 10;
-    } else if(result == "unsat") {
-      returnValue = 20;
+      Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                << " assertions:"
+                << (Configuration::isAssertionBuild() ? "on" : "off")
+                << endl;
+      if(replayParser != NULL) {
+        // have the replay parser use the declarations input interactively
+        replayParser->useDeclarationsFrom(shell.getParser());
+      }
+      while((cmd = shell.readCommand())) {
+        status = pExecutor->doCommand(cmd) && status;
+        delete cmd;
+      }
     } else {
-      returnValue = 0;
+      ParserBuilder parserBuilder(exprMgr, filename, opts);
+
+      if( inputFromStdin ) {
+#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+        parserBuilder.withStreamInput(cin);
+#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+        parserBuilder.withLineBufferedStreamInput(cin);
+#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+      }
+
+      Parser *parser = parserBuilder.build();
+      if(replayParser != NULL) {
+        // have the replay parser use the file's declarations
+        replayParser->useDeclarationsFrom(parser);
+      }
+      while(status && (cmd = parser->nextCommand())) {
+        if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
+          delete cmd;
+          break;
+        }
+        status = pExecutor->doCommand(cmd);
+        delete cmd;
+      }
+      // Remove the parser
+      delete parser;
     }
-  } else {
-    // there was some kind of error
-    returnValue = 1;
-  }
+
+    if( opts[options::replayStream] != NULL ) {
+      // this deletes the expression parser too
+      delete opts[options::replayStream];
+      opts.set(options::replayStream, NULL);
+    }
+
+    string result = "unknown";
+    if(status) {
+      result = pExecutor->getSmtEngineStatus();
+
+      if(result == "sat") {
+        returnValue = 10;
+      } else if(result == "unsat") {
+        returnValue = 20;
+      } else {
+        returnValue = 0;
+      }
+    } else {
+      // there was some kind of error
+      returnValue = 1;
+    }
 
 #ifdef CVC4_COMPETITION_MODE
-  // exit, don't return (don't want destructors to run)
-  // _exit() from unistd.h doesn't run global destructors
-  // or other on_exit/atexit stuff.
-  _exit(returnValue);
+    // exit, don't return (don't want destructors to run)
+    // _exit() from unistd.h doesn't run global destructors
+    // or other on_exit/atexit stuff.
+    _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-  ReferenceStat< Result > s_statSatResult("sat/unsat", result);
-  RegisterStatistic statSatResultReg(&cmdExecutor.getStatisticsRegistry(), &s_statSatResult);
+    ReferenceStat< Result > s_statSatResult("sat/unsat", result);
+    RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(), &s_statSatResult);
 
-  s_totalTime.stop();
+    s_totalTime.stop();
 
-  // Set the global executor pointer to NULL first.  If we get a
-  // signal while dumping statistics, we don't want to try again.
-  pExecutor = NULL;
-  if(opts[options::statistics]) {
-    cmdExecutor.flushStatistics(*opts[options::err]);
-  }
+    // Set the global executor pointer to NULL first.  If we get a
+    // signal while dumping statistics, we don't want to try again.
+    if(opts[options::statistics]) {
+      pExecutor->flushStatistics(*opts[options::err]);
+    }
 
 #ifdef CVC4_DEBUG
-  if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
-    _exit(returnValue);
-  }
+    if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
+      _exit(returnValue);
+    }
 #else /* CVC4_DEBUG */
-  if(opts[options::earlyExit]) {
-    _exit(returnValue);
-  }
+    if(opts[options::earlyExit]) {
+      _exit(returnValue);
+    }
 #endif /* CVC4_DEBUG */
+  }
+
+  // On exceptional exit, these are leaked, but that's okay... they
+  // need to be around in that case for main() to print statistics.
+  delete pExecutor;
+  delete exprMgr;
+
+  pExecutor = NULL;
 
   return returnValue;
 }

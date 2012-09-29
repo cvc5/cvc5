@@ -40,6 +40,8 @@ protected:
 public:
   CommandExecutor(ExprManager &exprMgr, Options &options);
 
+  virtual ~CommandExecutor() {}
+
   /**
    * Executes a command. Recursively handles if cmd is a command
    * sequence.  Eventually uses doCommandSingleton (which can be

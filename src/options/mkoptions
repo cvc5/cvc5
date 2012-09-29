@@ -852,6 +852,8 @@ function handle_alias {
         # false positive: =SOMETHING, where SOMETHING != ARG
         linkarg=
       fi
+    else
+      linkarg=
     fi
     links="$links
 #line $lineno \"$kf\"

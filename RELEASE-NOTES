@@ -5,8 +5,8 @@ Release Notes for CVC4 1.0, October 2012
 If you run CVC4 without arguments, you will find yourself in an interactive
 CVC4 session, which expects commands in CVC4's native language (the so-called
 "presentation" language).  To use SMT-LIB, use the "--lang smt" option on the
-command line.  For stricter adherence to the standard, use "--smtlib2"
-(see below).
+command line.  For stricter adherence to the standard, use "--smtlib"
+(see below regarding SMT-LIB compliance).
 
 When a filename is given on the command line, the file's extension determines
 the language parser that's used (e.g., file.smt is SMT-LIB 1.2, file.smt2
@@ -69,7 +69,7 @@ Every effort has been made to make CVC4 compliant with the SMT-LIB 2.0
 standard (http://smtlib.org/).  However, when parsing SMT-LIB input,
 certain default settings don't match what is stated in the official
 standard.  To make CVC4 adhere more strictly to the standard, use the
-"--smtlib2" command-line option.  Even with this setting, CVC4 is
+"--smtlib" command-line option.  Even with this setting, CVC4 is
 somewhat lenient; some non-conforming input may still be parsed and
 processed.
 
