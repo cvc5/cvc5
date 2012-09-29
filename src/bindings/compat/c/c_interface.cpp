@@ -29,9 +29,17 @@
 //#include "vc_cmd.h"
 //#include "theory_bitvector.h"
 //#include "fdstream.h"
-#include <string.h>
-#include <assert.h>
+#include <string>
+#include <cassert>
+#include <unistd.h>
 
+#ifdef CVC4_DEBUG
+#  define DebugAssert(cond, str) assert(cond)
+#  define IF_DEBUG(x) x
+#else
+#  define DebugAssert(...)
+#  define IF_DEBUG(x)
+#endif
 
 using namespace std;
 
