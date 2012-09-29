@@ -211,7 +211,6 @@ namespace arith {
  *      | (+ [monomial]) -> [monomial]
  */
 
-
 /**
  * A NodeWrapper is a class that is a thinly veiled container of a Node object.
  */
@@ -232,9 +231,17 @@ public:
 
   // TODO: check if it's a theory leaf also
   static bool isMember(Node n) {
-    if (n.getKind() == kind::CONST_RATIONAL) return false;
-    if (isRelationOperator(n.getKind())) return false;
-    return Theory::isLeafOf(n, theory::THEORY_ARITH);
+    Kind k = n.getKind();
+    if (k == kind::CONST_RATIONAL) return false;
+    if (isRelationOperator(k)) return false;
+    if (Theory::isLeafOf(n, theory::THEORY_ARITH)) return true;
+    if (k == kind::INTS_DIVISION || k == kind::INTS_MODULUS || k == kind::DIVISION) return isDivMember(n);
+    return false;
+  }
+
+  static bool isDivMember(Node n);
+  bool isDivLike() const{
+    return isDivMember(getNode());
   }
 
   bool isNormalForm() { return isMember(getNode()); }

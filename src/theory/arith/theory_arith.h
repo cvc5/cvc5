@@ -64,6 +64,8 @@ class InstantiatorTheoryArith;
 class TheoryArith : public Theory {
   friend class InstantiatorTheoryArith;
 private:
+  context::CDO<bool> d_nlIncomplete;
+
   enum Result::Sat d_qflraStatus;
   // check()
   //   !done() -> d_qflraStatus = Unknown
@@ -104,6 +106,8 @@ private:
     Assert(!isSetup(n));
     d_setupNodes.insert(n);
   }
+
+  void interpretDivLike(const Variable& x);
 
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
@@ -309,6 +313,9 @@ private:
 
   /** Internal model value for the node */
   DeltaRational getDeltaValue(TNode n);
+
+  /** TODO : get rid of this. */ 
+  DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed);
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);

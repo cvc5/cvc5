@@ -27,6 +27,17 @@ namespace CVC4 {
 namespace theory{
 namespace arith {
 
+bool Variable::isDivMember(Node n){
+  switch(n.getKind()){
+  case kind::DIVISION:
+  case kind::INTS_DIVISION:
+  case kind::INTS_MODULUS:
+    return Polynomial::isMember(n[0]) && Polynomial::isMember(n[1]);
+  default:
+    return false;
+  }
+}
+
 bool VarList::isSorted(iterator start, iterator end) {
   return __gnu_cxx::is_sorted(start, end);
 }
