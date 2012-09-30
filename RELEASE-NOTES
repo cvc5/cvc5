@@ -114,8 +114,6 @@ release).
 
 CVC4 1.0 has a state-of-the-art linear arithmetic solver.  However, there
 is extremely limited support for nonlinear arithmetic in this release.
-Nontrivial nonlinear input will most likely result in an "unknown" answer
-from the solver.
 
 ** Portfolio solving
 
