@@ -1949,8 +1949,8 @@ bool TheoryArith::getDeltaAtomValue(TNode n) {
 
 
 DeltaRational TheoryArith::getDeltaValue(TNode n) {
-  Assert(d_qflraStatus != Result::SAT_UNKNOWN);
-  Assert(!d_nlIncomplete);
+  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
+  AlwaysAssert(!d_nlIncomplete);
   Debug("arith::value") << n << std::endl;
 
   switch(n.getKind()) {
@@ -2007,8 +2007,8 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
 }
 
 DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
-  Assert(d_qflraStatus != Result::SAT_UNKNOWN);
-  Assert(d_nlIncomplete);
+  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
+  AlwaysAssert(d_nlIncomplete);
 
   Debug("arith::value") << n << std::endl;
 
@@ -2074,8 +2074,8 @@ DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
 }
 
 void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
-  Assert(d_qflraStatus ==  Result::SAT);
-  Assert(!d_nlIncomplete);
+  AlwaysAssert(d_qflraStatus ==  Result::SAT);
+  AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
