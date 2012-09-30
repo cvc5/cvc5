@@ -101,7 +101,7 @@ public:
 
 };/* class Pickler */
 
-class MapPickler : public Pickler {
+class CVC4_PUBLIC MapPickler : public Pickler {
 private:
   const VarMap& d_toMap;
   const VarMap& d_fromMap;
@@ -112,6 +112,8 @@ public:
     d_toMap(to),
     d_fromMap(from) {
   }
+
+  virtual ~MapPickler() throw() {}
 
 protected:
 
