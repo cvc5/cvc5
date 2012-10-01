@@ -43,7 +43,7 @@ namespace CVC4 {
  * (e.g., for communicating to the SmtEngine which theories should be used,
  * rather than having to provide an SMT-LIB string).
  */
-class LogicInfo {
+class CVC4_PUBLIC LogicInfo {
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
   bool d_theories[theory::THEORY_LAST]; /**< set of active theories */
   size_t d_sharingTheories; /**< count of theories that need sharing */
