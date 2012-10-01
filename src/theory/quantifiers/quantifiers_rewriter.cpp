@@ -134,7 +134,7 @@ bool QuantifiersRewriter::hasArg( std::vector< Node >& args, Node n ){
 
 void QuantifiersRewriter::setNestedQuantifiers( Node n, Node q ){
   if( n.getKind()==FORALL || n.getKind()==EXISTS ){
-    Debug("quantifiers-rewrite-debug") << "Set nested quant attribute " << n << std::endl;
+    Trace("quantifiers-rewrite-debug") << "Set nested quant attribute " << n << std::endl;
     NestedQuantAttribute nqai;
     n.setAttribute(nqai,q);
   }
@@ -144,7 +144,7 @@ void QuantifiersRewriter::setNestedQuantifiers( Node n, Node q ){
 }
 
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
-  Debug("quantifiers-rewrite-debug") << "pre-rewriting " << in << " " << in.hasAttribute(NestedQuantAttribute()) << std::endl;
+  Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << " " << in.hasAttribute(NestedQuantAttribute()) << std::endl;
   if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
     if( !in.hasAttribute(NestedQuantAttribute()) ){
       setNestedQuantifiers( in[ 1 ], in );
@@ -174,9 +174,9 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
         if( in.hasAttribute(NestedQuantAttribute()) ){
           setNestedQuantifiers( n, in.getAttribute(NestedQuantAttribute()) );
         }
-        Debug("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
-        Debug("quantifiers-pre-rewrite") << " to " << std::endl;
-        Debug("quantifiers-pre-rewrite") << n << std::endl;
+        Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
+        Trace("quantifiers-pre-rewrite") << " to " << std::endl;
+        Trace("quantifiers-pre-rewrite") << n << std::endl;
       }
       return RewriteResponse(REWRITE_DONE, n);
     }
@@ -185,7 +185,7 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
 }
 
 RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
-  Debug("quantifiers-rewrite-debug") << "post-rewriting " << in << " " << in.hasAttribute(NestedQuantAttribute()) << std::endl;
+  Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << " " << in.hasAttribute(NestedQuantAttribute()) << std::endl;
   if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
     //get the arguments
     std::vector< Node > args;
@@ -200,7 +200,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
     //get the instantiation pattern list
     Node ipl;
     if( in.getNumChildren()==3 ){
-      ipl = in[2];  
+      ipl = in[2];
     }
     bool isNested = in.hasAttribute(NestedQuantAttribute());
     //compute miniscoping first
@@ -219,9 +219,9 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       if( in.hasAttribute(NestedQuantAttribute()) ){
         setNestedQuantifiers( n, in.getAttribute(NestedQuantAttribute()) );
       }
-      Debug("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
-      Debug("quantifiers-rewrite") << " to " << std::endl;
-      Debug("quantifiers-rewrite") << n << std::endl;
+      Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
+      Trace("quantifiers-rewrite") << " to " << std::endl;
+      Trace("quantifiers-rewrite") << n << std::endl;
       if( in.hasAttribute(InstConstantAttribute()) ){
         InstConstantAttribute ica;
         n.setAttribute(ica,in.getAttribute(InstConstantAttribute()) );
@@ -389,7 +389,7 @@ Node QuantifiersRewriter::computeCNF( Node n, std::vector< Node >& args, NodeBui
       predArgs.push_back( op );
       predArgs.insert( predArgs.end(), activeArgs.begin(), activeArgs.end() );
       Node pred = NodeManager::currentNM()->mkNode( APPLY_UF, predArgs );
-      Debug("quantifiers-rewrite-cnf-debug") << "Made predicate " << pred << " for " << nt << std::endl;
+      Trace("quantifiers-rewrite-cnf-debug") << "Made predicate " << pred << " for " << nt << std::endl;
       //create the bound var list
       Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, activeArgs );
       //now, look at the structure of nt
@@ -676,9 +676,9 @@ Node QuantifiersRewriter::rewriteQuant( Node n, bool isNested, bool duringRewrit
       Node prev2 = n;
       n = computeOperation( n, op );
       if( prev2!=n ){
-        Debug("quantifiers-rewrite-op") << "Rewrite op " << op << ": rewrite " << prev2 << std::endl;
-        Debug("quantifiers-rewrite-op") << " to " << std::endl;
-        Debug("quantifiers-rewrite-op") << n << std::endl;
+        Trace("quantifiers-rewrite-op") << "Rewrite op " << op << ": rewrite " << prev2 << std::endl;
+        Trace("quantifiers-rewrite-op") << " to " << std::endl;
+        Trace("quantifiers-rewrite-op") << n << std::endl;
       }
     }
   }
@@ -710,7 +710,7 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption,
   if( computeOption==COMPUTE_NNF ){
     return false;//TODO: compute NNF (current bad idea since arithmetic rewrites equalities)
   }else if( computeOption==COMPUTE_PRE_SKOLEM ){
-    return options::preSkolemQuant() && !duringRewrite;
+    return false;//options::preSkolemQuant() && !duringRewrite;
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){

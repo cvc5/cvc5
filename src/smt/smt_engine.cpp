@@ -261,6 +261,11 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   bool simplifyAssertions() throw(TypeCheckingException);
 
+  /**
+   * contains quantifiers
+   */
+  bool containsQuantifiers( Node n );
+
 public:
 
   SmtEnginePrivate(SmtEngine& smt) :
@@ -351,6 +356,11 @@ public:
    */
   Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
     throw(TypeCheckingException);
+
+  /**
+   * pre-skolemize quantifiers
+   */
+  Node preSkolemizeQuantifiers( Node n, bool polarity, std::vector< Node >& fvs );
 
 };/* class SmtEnginePrivate */
 
@@ -999,6 +1009,104 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   }
 }
 
+Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vector< Node >& fvs ){
+  Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size() << std::endl;
+  if( n.getKind()==kind::NOT ){
+    Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvs );
+    return nn.negate();
+  }else if( n.getKind()==kind::FORALL ){
+    if( polarity ){
+      std::vector< Node > children;
+      children.push_back( n[0] );
+      //add children to current scope
+      std::vector< Node > fvss;
+      fvss.insert( fvss.begin(), fvs.begin(), fvs.end() );
+      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
+        fvss.push_back( n[0][i] );
+      }
+      //process body
+      children.push_back( preSkolemizeQuantifiers( n[1], polarity, fvss ) );
+      if( n.getNumChildren()==3 ){
+        children.push_back( n[2] );
+      }
+      //return processed quantifier
+      return NodeManager::currentNM()->mkNode( kind::FORALL, children );
+    }else{
+      //process body
+      Node nn = preSkolemizeQuantifiers( n[1], polarity, fvs );
+      //now, substitute skolems for the variables
+      std::vector< TypeNode > argTypes;
+      for( int i=0; i<(int)fvs.size(); i++ ){
+        argTypes.push_back( fvs[i].getType() );
+      }
+      //calculate the variables and substitution
+      std::vector< Node > vars;
+      std::vector< Node > subs;
+      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
+        vars.push_back( n[0][i] );
+      }
+      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
+        //make the new function symbol
+        if( argTypes.empty() ){
+          Node s = NodeManager::currentNM()->mkSkolem( "sk_$$", n[0][i].getType(), "created during pre-skolemization" );
+          subs.push_back( s );
+        }else{
+          TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
+          Node op = NodeManager::currentNM()->mkSkolem( "skop_$$", typ, "op created during pre-skolemization" );
+          NoMatchAttribute nma;
+          op.setAttribute(nma,true);
+          std::vector< Node > funcArgs;
+          funcArgs.push_back( op );
+          funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
+          subs.push_back( NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs ) );
+        }
+      }
+      //apply substitution
+      nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+      return nn;
+    }
+  }else{
+    //check if it contains a quantifier as a subterm
+    bool containsQuant = false;
+    if( n.getType().isBoolean() ){
+      for( int i=0; i<(int)n.getNumChildren(); i++ ){
+        if( containsQuantifiers( n[i] ) ){
+          containsQuant = true;
+          break;
+        }
+      }
+    }
+    //if so, we will write this node
+    if( containsQuant ){
+      if( n.getKind()==kind::ITE || n.getKind()==kind::IFF || n.getKind()==kind::XOR || n.getKind()==kind::IMPLIES ){
+        Node nn;
+        //must remove structure
+        if( n.getKind()==kind::ITE ){
+          nn = NodeManager::currentNM()->mkNode( kind::AND,
+                 NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
+                 NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
+        }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
+          nn = NodeManager::currentNM()->mkNode( kind::AND,
+                 NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
+                 NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
+        }else if( n.getKind()==kind::IMPLIES ){
+          nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
+        }
+        return preSkolemizeQuantifiers( nn, polarity, fvs );
+      }else{
+        Assert( n.getKind()==AND || n.getKind()==OR );
+        std::vector< Node > children;
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
+        }
+        return NodeManager::currentNM()->mkNode( n.getKind(), children );
+      }
+    }else{
+      return n;
+    }
+  }
+}
+
 void SmtEnginePrivate::removeITEs() {
   d_smt.finalOptionsAreSet();
 
@@ -1454,6 +1562,20 @@ bool SmtEnginePrivate::simplifyAssertions()
   return true;
 }
 
+
+bool SmtEnginePrivate::containsQuantifiers( Node n ){
+  if( n.getKind()==kind::FORALL ){
+    return true;
+  }else{
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      if( containsQuantifiers( n[i] ) ){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 Result SmtEngine::check() {
   Assert(d_fullyInited);
   Assert(d_pendingPops == 0);
@@ -1554,6 +1676,19 @@ void SmtEnginePrivate::processAssertions() {
     d_assertionsToPreprocess[i] =
       Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
     Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
+  }
+
+  if( options::preSkolemQuant() ){
+    //apply pre-skolemization to existential quantifiers
+    for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+      Node prev = d_assertionsToPreprocess[i];
+      std::vector< Node > fvs;
+      d_assertionsToPreprocess[i] = Rewriter::rewrite( preSkolemizeQuantifiers( d_assertionsToPreprocess[i], true, fvs ) );
+      if( prev!=d_assertionsToPreprocess[i] ){
+        Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << std::endl;
+        Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << std::endl;
+      }
+    }
   }
 
   Chat() << "simplifying assertions..." << endl;

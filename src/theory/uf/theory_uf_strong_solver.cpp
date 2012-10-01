@@ -1009,7 +1009,7 @@ void StrongSolverTheoryUf::SortRepModel::addCliqueLemma( std::vector< Node >& cl
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
-  if( options::ufssSimpleCliques() ){
+  if( !options::ufssExplainedCliques() ){
     //add as lemma
     std::vector< Node > eqs;
     for( int i=0; i<(int)clique.size(); i++ ){
