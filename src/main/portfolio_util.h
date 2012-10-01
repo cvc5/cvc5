@@ -29,16 +29,6 @@ namespace CVC4 {
 
 typedef expr::pickle::Pickle ChannelFormat;
 
-template <typename T>
-class EmptySharedChannel: public SharedChannel<T> {
-public:
-  EmptySharedChannel(int) {}
-  bool push(const T&) { return true; }
-  T pop() { return T(); }
-  bool empty() { return true; }
-  bool full() { return false; }
-};/* class EmptySharedChannel */
-
 class PortfolioLemmaOutputChannel : public LemmaOutputChannel {
 private:
   std::string d_tag;
@@ -59,14 +49,8 @@ public:
   {}
 
   void notifyNewLemma(Expr lemma) {
-    if(Debug.isOn("disable-lemma-sharing")) {
+    if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
       return;
-    }
-    if(options::sharingFilterByLength() >= 0) {
-      // 0 would mean no-sharing effectively
-      if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
-        return;
-      }
     }
     ++cnt;
     Trace("sharing") << d_tag << ": " << lemma << std::endl;

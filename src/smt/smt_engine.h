@@ -318,6 +318,11 @@ public:
   void setLogic(const LogicInfo& logic) throw(ModalException);
 
   /**
+   * Get the logic information currently set
+   */
+  LogicInfo getLogicInfo() const;
+
+  /**
    * Set information about the script executing.
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value)

@@ -104,13 +104,6 @@ void CommandExecutorPortfolio::lemmaSharingInit()
     const unsigned int sharingChannelSize = 1000000;
 
     for(unsigned i = 0; i < d_numThreads; ++i){
-      if(Debug.isOn("channel-empty")) {
-        d_channelsOut.push_back
-          (new EmptySharedChannel<ChannelFormat>(sharingChannelSize));
-        d_channelsIn.push_back
-          (new EmptySharedChannel<ChannelFormat>(sharingChannelSize));
-        continue;
-      }
       d_channelsOut.push_back
         (new SynchronizedSharedChannel<ChannelFormat>(sharingChannelSize));
       d_channelsIn.push_back
@@ -199,6 +192,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     d_seq->addCommand(cmd->clone());
     return CommandExecutor::doCommandSingleton(cmd);
   } else if(mode == 1) {               // portfolio
+
+    // If quantified, stay sequential
+    if(d_smts[0]->getLogicInfo().isQuantified()) {
+      return CommandExecutor::doCommandSingleton(cmd);
+    }
+
     d_seq->addCommand(cmd->clone());
 
     // We currently don't support changing number of threads for each
@@ -270,11 +269,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     d_seq = new CommandSequence();
 
     d_lastWinner = portfolioReturn.first;
-
-    // *d_options[options::out]
-    //   << "Winner = "
-    //   << portfolioReturn.first
-    //   << std::endl;
 
     if(d_ostringstreams.size() != 0) {
       assert(d_numThreads == d_options[options::threads]);

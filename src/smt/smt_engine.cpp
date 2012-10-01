@@ -576,6 +576,10 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
   setLogic(LogicInfo(s));
 }
 
+LogicInfo SmtEngine::getLogicInfo() const {
+  return d_logic;
+}
+
 // This function is called when d_logic has just been changed.
 // The LogicInfo isn't passed in explicitly, because that might
 // tempt people in the code to use the (potentially unlocked)
@@ -1094,7 +1098,7 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
         }
         return preSkolemizeQuantifiers( nn, polarity, fvs );
       }else{
-        Assert( n.getKind()==AND || n.getKind()==OR );
+        Assert( n.getKind() == kind::AND || n.getKind() == kind::OR );
         std::vector< Node > children;
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
