@@ -307,7 +307,7 @@ public:
     d_smt.addToModelCommand(c.clone());
   }
 
-  void nmNotifyNewSkolem(TNode n, std::string comment) {
+  void nmNotifyNewSkolem(TNode n, const std::string& comment) {
     std::string id = n.getAttribute(expr::VarNameAttr());
     DeclareFunctionCommand c(id,
                              n.toExpr(),
