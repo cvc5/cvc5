@@ -60,7 +60,12 @@ private:
 
   void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument) {
     try {
-      d_value = read_integer(flags, s.c_str(), NULL, NULL);
+      if(s.find_first_not_of('0') == std::string::npos) {
+        // string of all zeroes, CLN has a bug for these inputs
+        d_value = read_integer(flags, "0", NULL, NULL);
+      } else {
+        d_value = read_integer(flags, s.c_str(), NULL, NULL);
+      }
     } catch(...) {
       std::stringstream ss;
       ss << "Integer() failed to parse value \"" << s << "\" in base " << base;
