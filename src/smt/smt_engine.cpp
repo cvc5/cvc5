@@ -1884,8 +1884,8 @@ Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
   Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels() && r.asSatisfiabilityResult() == Result::SAT) {
-    checkModel();
+  if(options::checkModels() && r.asSatisfiabilityResult() != Result::UNSAT) {
+    checkModel(/* hard failure iff */ ! r.isUnknown());
   }
 
   return r;
@@ -1948,8 +1948,8 @@ Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
   Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels() && r.asSatisfiabilityResult() == Result::SAT) {
-    checkModel();
+  if(options::checkModels() && r.asSatisfiabilityResult() != Result::UNSAT) {
+    checkModel(/* hard failure iff */ ! r.isUnknown());
   }
 
   return r;
@@ -2179,7 +2179,7 @@ Model* SmtEngine::getModel() throw(ModalException) {
   return d_theoryEngine->getModel();
 }
 
-void SmtEngine::checkModel() {
+void SmtEngine::checkModel(bool hardFailure) {
   // --check-model implies --interactive, which enables the assertion list,
   // so we should be ok.
   Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
@@ -2285,12 +2285,17 @@ void SmtEngine::checkModel() {
     if(n != NodeManager::currentNM()->mkConst(true)) {
       Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***" << endl;
       stringstream ss;
-      ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+      ss << "SmtEngine::checkModel(): "
+         << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
          << "assertion:     " << *i << endl
          << "simplifies to: " << n << endl
          << "expected `true'." << endl
          << "Run with `--check-models -v' for additional diagnostics.";
-      InternalError(ss.str());
+      if(hardFailure) {
+        InternalError(ss.str());
+      } else {
+        Warning() << ss.str() << endl;
+      }
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;

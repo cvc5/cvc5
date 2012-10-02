@@ -28,8 +28,9 @@ but may produce strange results.  For example:
   COUNTEREXAMPLE;
   % f : (INT) -> INT = LAMBDA(x1:INT) : 0;
 
-CVC3 can be used to produce TCCs for this input (with the +dump-tcc option),
-and the TCC can be checked with CVC4.
+CVC3 can be used to produce TCCs for this input (with the +dump-tcc option).
+The TCC can be checked by CVC3 or another solver.  (CVC3 can also check
+TCCs while solving with +tcc.)
 
 ** Changes in CVC's Presentation Language
 
@@ -75,7 +76,8 @@ processed.
 
 ** Getting statistics
 
-Statistics can be dumped on exit (both normal and abnormal exits)
+Statistics can be dumped on exit (both normal and abnormal exits) with
+the --statistics command line option.
 
 ** Time and resource limits
 

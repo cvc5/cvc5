@@ -375,7 +375,9 @@ extendedCommand[CVC4::Command*& cmd]
   SExpr sexpr;
   std::string name;
   std::vector<std::string> names;
+  std::vector<Expr> terms;
   std::vector<Type> sorts;
+  std::vector<std::pair<std::string, Type> > sortedVarNames;
 }
     /* Extended SMT-LIBv2 set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
@@ -388,7 +390,7 @@ extendedCommand[CVC4::Command*& cmd]
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | /* get model */
     GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetModelCommand; }      
+    { cmd = new GetModelCommand; }
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
       { std::stringstream ss;
@@ -398,6 +400,107 @@ extendedCommand[CVC4::Command*& cmd]
     | { cmd = new EchoCommand(); }
     )
   | rewriterulesCommand[cmd]
+
+    /* Support some of Z3's extended SMT-LIBv2 commands */
+
+  | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    { Expr c = PARSER_STATE->mkVar(name, t);
+      $cmd = new DeclareFunctionCommand(name, c, t); }
+
+  | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { $cmd = new CommandSequence(); }
+    LPAREN_TOK
+    ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
+      { PARSER_STATE->checkUserSymbol(name);
+        Type type = PARSER_STATE->mkSort(name);
+        static_cast<CommandSequence*>($cmd)->addCommand(new DeclareTypeCommand(name, 0, type));
+      }
+    )+
+    RPAREN_TOK
+
+  | DECLARE_FUNS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { $cmd = new CommandSequence(); }
+    LPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(name); }
+      nonemptySortList[sorts] RPAREN_TOK
+      { Type t;
+        if(sorts.size() > 1) {
+          t = EXPR_MANAGER->mkFunctionType(sorts);
+        } else {
+          t = sorts[0];
+        }
+        Expr func = PARSER_STATE->mkVar(name, t);
+        static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(name, func, t));
+      }
+    )+
+    RPAREN_TOK
+
+  | DECLARE_PREDS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { $cmd = new CommandSequence(); }
+    LPAREN_TOK
+    ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(name); }
+      sortList[sorts] RPAREN_TOK
+      { Type t = EXPR_MANAGER->booleanType();
+        if(sorts.size() > 0) {
+          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        }
+        Expr func = PARSER_STATE->mkVar(name, t);
+        static_cast<CommandSequence*>($cmd)->addCommand(new DeclareFunctionCommand(name, func, t));
+      }
+    )+
+    RPAREN_TOK
+
+  | DEFINE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(name); }
+      term[e,e2]
+      { Expr func = PARSER_STATE->mkFunction(name, e.getType());
+        $cmd = new DefineFunctionCommand(name, func, e);
+      }
+    | LPAREN_TOK
+      symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+      { PARSER_STATE->checkUserSymbol(name); }
+      sortedVarList[sortedVarNames] RPAREN_TOK
+      { /* add variables to parser state before parsing term */
+        Debug("parser") << "define fun: '" << name << "'" << std::endl;
+        PARSER_STATE->pushScope();
+        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+              sortedVarNames.begin(), iend = sortedVarNames.end();
+            i != iend;
+            ++i) {
+          terms.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+        }
+      }
+      term[e,e2]
+      { PARSER_STATE->popScope();
+        // declare the name down here (while parsing term, signature
+        // must not be extended with the name itself; no recursion
+        // permitted)
+        Type t = e.getType();
+        if( sortedVarNames.size() > 0 ) {
+          std::vector<CVC4::Type> sorts;
+          sorts.reserve(sortedVarNames.size());
+          for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+                sortedVarNames.begin(), iend = sortedVarNames.end();
+              i != iend;
+              ++i) {
+            sorts.push_back((*i).second);
+          }
+          t = EXPR_MANAGER->mkFunctionType(sorts, t);
+        }
+        Expr func = PARSER_STATE->mkFunction(name, t);
+        $cmd = new DefineFunctionCommand(name, func, terms, e);
+      }
+    )
+
+  | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    term[e,e2]
+    { cmd = new SimplifyCommand(e); }
   ;
 
 rewriterulesCommand[CVC4::Command*& cmd]
@@ -801,7 +904,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
   Expr e2;
 }
 : KEYWORD
-  {   
+  {
     attr = AntlrInput::tokenText($KEYWORD);
     //EXPR_MANAGER->setNamedAttribute( expr, attr );
     if( attr==":rewrite-rule" ){
@@ -823,7 +926,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
-    { 
+    {
       attr = std::string(":named");
       std::string name = sexpr.getValue();
       // FIXME ensure expr is a closed subterm
@@ -1160,7 +1263,7 @@ constructorDef[CVC4::Datatype& type]
 }
   : symbol[id,CHECK_UNDECLARED,SYM_SORT]
     { // make the tester
-      std::string testerId("is_");
+      std::string testerId("is-");
       testerId.append(id);
       PARSER_STATE->checkDeclaration(testerId, CHECK_UNDECLARED, SYM_SORT);
       ctor = new CVC4::DatatypeConstructor(id, testerId);
@@ -1218,6 +1321,12 @@ ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';
 REDUCTION_RULE_TOK : 'assert-reduction';
 PROPAGATION_RULE_TOK : 'assert-propagation';
+DECLARE_SORTS_TOK : 'declare-sorts';
+DECLARE_FUNS_TOK : 'declare-funs';
+DECLARE_PREDS_TOK : 'declare-preds';
+DEFINE_TOK : 'define';
+DECLARE_CONST_TOK : 'declare-const';
+SIMPLIFY_TOK : 'simplify';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';

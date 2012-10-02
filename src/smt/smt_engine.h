@@ -219,7 +219,7 @@ class CVC4_PUBLIC SmtEngine {
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
    */
-  void checkModel();
+  void checkModel(bool hardFailure = true);
 
   /**
    * This is something of an "init" procedure, but is idempotent; call

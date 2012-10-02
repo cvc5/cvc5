@@ -2075,7 +2075,7 @@ DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
 
 void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
-  AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
+  //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 

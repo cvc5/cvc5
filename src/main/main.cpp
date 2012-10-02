@@ -59,8 +59,9 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts[options::out] << "unknown" << endl;
 #endif
-    cerr << "CVC4 Error:" << endl << e << endl;
-    printUsage(opts);
+    cerr << "CVC4 Error:" << endl << e << endl << endl
+         << "Please use --help to get help on command-line options."
+         << endl;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
     *opts[options::out] << "unknown" << endl;
