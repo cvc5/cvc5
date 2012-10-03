@@ -302,32 +302,6 @@ int ModelEngineBuilder::doInstGen( FirstOrderModel* fm, Node f ){
   //This step is advantageous over exhaustive instantiation, since we are adding instantiations that involve model basis terms,
   //  effectively acting as partial instantiations instead of pointwise instantiations.
   if( !d_quant_selection_lit[f].isNull() ){
-#if 0
-    bool phase = d_quant_selection_lit[f].getKind()!=NOT;
-    Node lit = d_quant_selection_lit[f].getKind()==NOT ? d_quant_selection_lit[f][0] : d_quant_selection_lit[f];
-    Assert( lit.hasAttribute(InstConstantAttribute()) );
-    for( size_t i=0; i<d_quant_selection_lit_terms[f].size(); i++ ){
-      Node n1 = d_quant_selection_lit_terms[f][i];
-      Node op = d_quant_selection_lit_terms[f][i].getOperator();
-      //check all other selection literals involving "op"
-      for( size_t i=0; i<d_op_selection_terms[op].size(); i++ ){
-        Node n2 = d_op_selection_terms[op][i];
-        Node n2_lit = d_term_selection_lit[ n2 ];
-        if( n2_lit!=d_quant_selection_lit[f] ){
-          //match n1 and n2
-        }
-      }
-      if( addedLemmas==0 ){
-        //check all ground terms involving "op"
-        for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
-          Node n2 = fm->d_uf_terms[op][i];
-          if( n1!=n2 ){
-            //match n1 and n2
-          }
-        }
-      }
-    }
-#else
     Trace("inst-gen") << "Do Inst-Gen for " << f << std::endl;
     for( size_t i=0; i<d_quant_selection_lit_candidates[f].size(); i++ ){
       bool phase = d_quant_selection_lit_candidates[f][i].getKind()!=NOT;
@@ -369,7 +343,6 @@ int ModelEngineBuilder::doInstGen( FirstOrderModel* fm, Node f ){
         addedLemmas += tr->addInstantiations( d_quant_basis_match[f] );
       }
     }
-#endif
   }
   return addedLemmas;
 }

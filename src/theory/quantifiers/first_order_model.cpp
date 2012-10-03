@@ -252,124 +252,118 @@ int FirstOrderModel::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
 
 Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
   //Message() << "Eval term " << n << std::endl;
-  if( !n.hasAttribute(InstConstantAttribute()) ){
-    //if evaluating a ground term, just consult the standard getValue functionality
-    depIndex = -1;
-    return getValue( n );
-  }else{
-    Node val;
-    depIndex = ri->getNumTerms()-1;
-    //check the type of n
-    if( n.getKind()==INST_CONSTANT ){
-      int v = n.getAttribute(InstVarNumAttribute());
-      depIndex = ri->d_var_order[ v ];
-      val = ri->getTerm( v );
-    }else if( n.getKind()==ITE ){
-      int depIndex1, depIndex2;
-      int eval = evaluate( n[0], depIndex1, ri );
-      if( eval==0 ){
-        //evaluate children to see if they are the same
-        Node val1 = evaluateTerm( n[ 1 ], depIndex1, ri );
-        Node val2 = evaluateTerm( n[ 2 ], depIndex2, ri );
-        if( val1==val2 ){
-          val = val1;
-          depIndex = depIndex1>depIndex2 ? depIndex1 : depIndex2;
-        }else{
-          return Node::null();
-        }
-      }else{
-        val = evaluateTerm( n[ eval==1 ? 1 : 2 ], depIndex2, ri );
+  Node val;
+  depIndex = ri->getNumTerms()-1;
+  //check the type of n
+  if( n.getKind()==INST_CONSTANT ){
+    int v = n.getAttribute(InstVarNumAttribute());
+    depIndex = ri->d_var_order[ v ];
+    val = ri->getTerm( v );
+  }else if( n.getKind()==ITE ){
+    int depIndex1, depIndex2;
+    int eval = evaluate( n[0], depIndex1, ri );
+    if( eval==0 ){
+      //evaluate children to see if they are the same
+      Node val1 = evaluateTerm( n[ 1 ], depIndex1, ri );
+      Node val2 = evaluateTerm( n[ 2 ], depIndex2, ri );
+      if( val1==val2 ){
+        val = val1;
         depIndex = depIndex1>depIndex2 ? depIndex1 : depIndex2;
+      }else{
+        return Node::null();
       }
     }else{
-      std::vector< int > children_depIndex;
-      //for select, pre-process read over writes
-      if( n.getKind()==SELECT ){
-#if 0
-        //std::cout << "Evaluate " << n << std::endl;
-        Node sel = evaluateTerm( n[1], depIndex, ri );
-        if( sel.isNull() ){
-          depIndex = ri->getNumTerms()-1;
-          return Node::null();
-        }
-        Node arr = getRepresentative( n[0] );
-        //if( n[0]!=getRepresentative( n[0] ) ){
-        //  std::cout << n[0] << " is " << getRepresentative( n[0] ) << std::endl;
-        //}
-        int tempIndex;
-        int eval = 1;
-        while( arr.getKind()==STORE && eval!=0 ){
-          eval = evaluate( sel.eqNode( arr[1] ), tempIndex, ri );
-          depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-          if( eval==1 ){
-            val = evaluateTerm( arr[2], tempIndex, ri );
-            depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-            return val;
-          }else if( eval==-1 ){
-            arr = arr[0];
-          }
-        }
-        arr = evaluateTerm( arr, tempIndex, ri );
-        depIndex = tempIndex > depIndex ? tempIndex : depIndex;
-        val = NodeManager::currentNM()->mkNode( SELECT, arr, sel );
-#else
-        val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
-#endif
-      }else{
-        //default term evaluate : evaluate all children, recreate the value
-        val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
-      }
-      if( !val.isNull() ){
-        bool setVal = false;
-        //custom ways of evaluating terms
-        if( n.getKind()==APPLY_UF ){
-          Node op = n.getOperator();
-          //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
-          //if it is a defined UF, then consult the interpretation
-          if( d_uf_model_tree.find( op )!=d_uf_model_tree.end() ){
-            ++d_eval_uf_terms;
-            int argDepIndex = 0;
-            //make the term model specifically for n
-            makeEvalUfModel( n );
-            //now, consult the model
-            if( d_eval_uf_use_default[n] ){
-              val = d_uf_model_tree[ op ].getValue( this, val, argDepIndex );
-            }else{
-              val = d_eval_uf_model[ n ].getValue( this, val, argDepIndex );
-            }
-            //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
-            //d_eval_uf_model[ n ].debugPrint("fmf-eval-debug", d_qe );
-            Assert( !val.isNull() );
-            //recalculate the depIndex
-            depIndex = -1;
-            for( int i=0; i<argDepIndex; i++ ){
-              int index = d_eval_uf_use_default[n] ? i : d_eval_term_index_order[n][i];
-              Debug("fmf-eval-debug") << "Add variables from " << index << "..." << std::endl;
-              if( children_depIndex[index]>depIndex ){
-                depIndex = children_depIndex[index];
-              }
-            }
-            setVal = true;
-          }
-        }else if( n.getKind()==SELECT ){
-          //we are free to interpret this term however we want
-        }
-        //if not set already, rewrite and consult model for interpretation
-        if( !setVal ){
-          val = Rewriter::rewrite( val );
-          if( val.getMetaKind()!=kind::metakind::CONSTANT ){
-            //FIXME: we cannot do this until we trust all theories collectModelInfo!
-            //val = getInterpretedValue( val );
-            //val = getRepresentative( val );
-          }
-        }
-        Debug("fmf-eval-debug") << "Evaluate term " << n << " = ";
-        printRepresentativeDebug( "fmf-eval-debug", val );
-        Debug("fmf-eval-debug") << ", depIndex = " << depIndex << std::endl;
-      }
+      val = evaluateTerm( n[ eval==1 ? 1 : 2 ], depIndex2, ri );
+      depIndex = depIndex1>depIndex2 ? depIndex1 : depIndex2;
     }
-    return val;
+  }else{
+    std::vector< int > children_depIndex;
+    //for select, pre-process read over writes
+    if( n.getKind()==SELECT ){
+#if 0
+      //std::cout << "Evaluate " << n << std::endl;
+      Node sel = evaluateTerm( n[1], depIndex, ri );
+      if( sel.isNull() ){
+        depIndex = ri->getNumTerms()-1;
+        return Node::null();
+      }
+      Node arr = getRepresentative( n[0] );
+      //if( n[0]!=getRepresentative( n[0] ) ){
+      //  std::cout << n[0] << " is " << getRepresentative( n[0] ) << std::endl;
+      //}
+      int tempIndex;
+      int eval = 1;
+      while( arr.getKind()==STORE && eval!=0 ){
+        eval = evaluate( sel.eqNode( arr[1] ), tempIndex, ri );
+        depIndex = tempIndex > depIndex ? tempIndex : depIndex;
+        if( eval==1 ){
+          val = evaluateTerm( arr[2], tempIndex, ri );
+          depIndex = tempIndex > depIndex ? tempIndex : depIndex;
+          return val;
+        }else if( eval==-1 ){
+          arr = arr[0];
+        }
+      }
+      arr = evaluateTerm( arr, tempIndex, ri );
+      depIndex = tempIndex > depIndex ? tempIndex : depIndex;
+      val = NodeManager::currentNM()->mkNode( SELECT, arr, sel );
+#else
+      val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
+#endif
+    }else{
+      //default term evaluate : evaluate all children, recreate the value
+      val = evaluateTermDefault( n, depIndex, children_depIndex, ri );
+    }
+    if( !val.isNull() ){
+      bool setVal = false;
+      //custom ways of evaluating terms
+      if( n.getKind()==APPLY_UF ){
+        Node op = n.getOperator();
+        //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
+        //if it is a defined UF, then consult the interpretation
+        if( d_uf_model_tree.find( op )!=d_uf_model_tree.end() ){
+          ++d_eval_uf_terms;
+          int argDepIndex = 0;
+          //make the term model specifically for n
+          makeEvalUfModel( n );
+          //now, consult the model
+          if( d_eval_uf_use_default[n] ){
+            val = d_uf_model_tree[ op ].getValue( this, val, argDepIndex );
+          }else{
+            val = d_eval_uf_model[ n ].getValue( this, val, argDepIndex );
+          }
+          //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
+          //d_eval_uf_model[ n ].debugPrint("fmf-eval-debug", d_qe );
+          Assert( !val.isNull() );
+          //recalculate the depIndex
+          depIndex = -1;
+          for( int i=0; i<argDepIndex; i++ ){
+            int index = d_eval_uf_use_default[n] ? i : d_eval_term_index_order[n][i];
+            Debug("fmf-eval-debug") << "Add variables from " << index << "..." << std::endl;
+            if( children_depIndex[index]>depIndex ){
+              depIndex = children_depIndex[index];
+            }
+          }
+          setVal = true;
+        }
+      }else if( n.getKind()==SELECT ){
+        //we are free to interpret this term however we want
+      }
+      //if not set already, rewrite and consult model for interpretation
+      if( !setVal ){
+        val = Rewriter::rewrite( val );
+        if( val.getMetaKind()!=kind::metakind::CONSTANT ){
+          //FIXME: we cannot do this until we trust all theories collectModelInfo!
+          //val = getInterpretedValue( val );
+          //val = getRepresentative( val );
+        }
+      }
+      Debug("fmf-eval-debug") << "Evaluate term " << n << " = ";
+      printRepresentativeDebug( "fmf-eval-debug", val );
+      Debug("fmf-eval-debug") << ", depIndex = " << depIndex << std::endl;
+    }
   }
+  return val;
 }
 
 Node FirstOrderModel::evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri ){

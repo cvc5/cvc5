@@ -26,8 +26,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-//#define ME_PRINT_WARNINGS
-
 #define EVAL_FAIL_SKIP_MULTIPLE
 
 using namespace std;
@@ -157,6 +155,14 @@ bool ModelEngine::optOneQuantPerRound(){
   return options::fmfOneQuantPerRound();
 }
 
+bool ModelEngine::optExhInstEvalSkipMultiple(){
+#ifdef EVAL_FAIL_SKIP_MULTIPLE
+  return true;
+#else
+  return false;
+#endif
+}
+
 int ModelEngine::initializeQuantifier( Node f ){
   if( d_quant_init.find( f )==d_quant_init.end() ){
     d_quant_init[f] = true;
@@ -233,13 +239,13 @@ void ModelEngine::checkModel( int& addedLemmas ){
   for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
     Node f = fm->getAssertedQuantifier( i );
     addedLemmas += exhaustiveInstantiate( f, optUseRelevantDomain() );
-#ifdef ME_PRINT_WARNINGS
-    if( addedLemmas>10000 ){
-      Debug("fmf-exit") << std::endl;
-      debugPrint("fmf-exit");
-      exit( 0 );
+    if( Trace.isOn("model-engine-warn") ){
+      if( addedLemmas>10000 ){
+        Debug("fmf-exit") << std::endl;
+        debugPrint("fmf-exit");
+        exit( 0 );
+      }
     }
-#endif
     if( optOneQuantPerRound() && addedLemmas>0 ){
       break;
     }
@@ -261,6 +267,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
   d_totalLemmas += totalInst;
   //if we need to consider this quantifier on this iteration
   if( d_builder.isQuantifierActive( f ) ){
+    //debug printing
     Trace("rel-dom") << "Exhaustive instantiate " << f << std::endl;
     if( useRelInstDomain ){
       Trace("rel-dom") << "Relevant domain : " << std::endl;
@@ -272,14 +279,14 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
         Trace("rel-dom") << std::endl;
       }
     }
-    int tests = 0;
-    int triedLemmas = 0;
     Debug("inst-fmf-ei") << "Add matches for " << f << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
     for( size_t i=0; i<f[0].getNumChildren(); i++ ){
       Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
     }
     Debug("inst-fmf-ei") << std::endl;
+
+    //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( &(d_quantEngine->getModel()->d_rep_set) );
     riter.setQuantifier( f );
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
@@ -289,6 +296,8 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
       riter.setDomain( d_rel_domain.d_quant_inst_domain[f] );
     }
     d_quantEngine->getModel()->resetEvaluate();
+    int tests = 0;
+    int triedLemmas = 0;
     while( !riter.isFinished() && ( addedLemmas==0 || !optOneInstPerQuantRound() ) ){
       d_testLemmas++;
       int eval = 0;
@@ -324,21 +333,19 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
         //add as instantiation
         if( d_quantEngine->addInstantiation( f, m ) ){
           addedLemmas++;
-#ifdef EVAL_FAIL_SKIP_MULTIPLE
-          if( eval==-1 ){
+          //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
+          if( eval==-1 && optExhInstEvalSkipMultiple() ){
             riter.increment2( depIndex );
           }else{
             riter.increment();
           }
-#else
-          riter.increment();
-#endif
         }else{
-          Debug("ajr-temp") << "* Failed Add instantiation " << m << std::endl;
+          Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
           riter.increment();
         }
       }
     }
+    //print debugging information
     d_statistics.d_eval_formulas += d_quantEngine->getModel()->d_eval_formulas;
     d_statistics.d_eval_uf_terms += d_quantEngine->getModel()->d_eval_uf_terms;
     d_statistics.d_eval_lits += d_quantEngine->getModel()->d_eval_lits;
@@ -354,17 +361,15 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
     Debug("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
     Debug("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
     Debug("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
-#ifdef ME_PRINT_WARNINGS
     if( addedLemmas>1000 ){
-      Notice() << "WARNING: many instantiations produced for " << f << ": " << std::endl;
-      Notice() << "   Inst Total: " << totalInst << std::endl;
-      Notice() << "   Inst Relevant: " << totalRelevant << std::endl;
-      Notice() << "   Inst Tried: " << triedLemmas << std::endl;
-      Notice() << "   Inst Added: " << addedLemmas << std::endl;
-      Notice() << "   # Tests: " << tests << std::endl;
-      Notice() << std::endl;
+      Trace("model-engine-warn") << "WARNING: many instantiations produced for " << f << ": " << std::endl;
+      Trace("model-engine-warn") << "   Inst Total: " << totalInst << std::endl;
+      Trace("model-engine-warn") << "   Inst Relevant: " << relevantInst << std::endl;
+      Trace("model-engine-warn") << "   Inst Tried: " << triedLemmas << std::endl;
+      Trace("model-engine-warn") << "   Inst Added: " << addedLemmas << std::endl;
+      Trace("model-engine-warn") << "   # Tests: " << tests << std::endl;
+      Trace("model-engine-warn") << std::endl;
     }
-#endif
   }
   return addedLemmas;
 }

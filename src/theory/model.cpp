@@ -604,6 +604,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 
 Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node, Node >& constantReps)
 {
+  Trace("tembn") << "Normalize " << r << std::endl;
   std::map<Node, Node>::iterator itMap = constantReps.find(r);
   if (itMap != constantReps.end()) {
     return (*itMap).second;
