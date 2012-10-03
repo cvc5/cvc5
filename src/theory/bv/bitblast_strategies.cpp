@@ -338,9 +338,7 @@ void UndefinedTermBBStrategy(TNode node, Bits& bits, Bitblaster* bb) {
 }
 
 void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
-  //  Assert (node.getKind() == kind::VARIABLE);
   Assert(bits.size() == 0);
-  
   for (unsigned i = 0; i < utils::getSize(node); ++i) {
     bits.push_back(utils::mkBitOf(node, i));
   }
@@ -349,6 +347,10 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     BVDebug("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
     BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
+  // this is not necessairily a variable, but it is a term the theory of bitvectors treads as one
+  // e.g. a select over a bv array 
+  bb->storeVariable(node); 
+
 }
 
 void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {

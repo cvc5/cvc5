@@ -23,7 +23,7 @@
 #include "theory/bv/bitblaster.h"
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
-
+#include "theory/model.h"
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
@@ -126,7 +126,11 @@ void TheoryBV::check(Effort e)
 }
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
-
+  Assert(!inConflict());
+  Assert (fullModel); // can only query full model
+  d_equalitySolver.collectModelInfo(m); 
+  d_bitblastSolver.collectModelInfo(m); 
+  
 }
 
 void TheoryBV::propagate(Effort e) {

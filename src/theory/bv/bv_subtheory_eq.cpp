@@ -19,7 +19,7 @@
 #include "theory/bv/bv_subtheory_eq.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-
+#include "theory/model.h"
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
@@ -165,3 +165,6 @@ void EqualitySolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(mkAnd(assumptions));
 }
 
+void EqualitySolver::collectModelInfo(TheoryModel* m) {
+  m->assertEqualityEngine(&d_equalityEngine);
+}

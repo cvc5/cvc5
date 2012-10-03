@@ -28,6 +28,9 @@
 
 namespace CVC4 {
 namespace theory {
+
+class TheoryModel;
+
 namespace bv {
 
 enum SubTheory {
@@ -82,7 +85,7 @@ public:
   virtual bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) = 0;
   virtual void  explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void  preRegister(TNode node) {}
-
+  virtual void  collectModelInfo(TheoryModel* m) = 0; 
 }; 
 
 }

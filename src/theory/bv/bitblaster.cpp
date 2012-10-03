@@ -26,6 +26,7 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/options.h"
+#include "theory/model.h"
 
 using namespace std;
 
@@ -395,6 +396,35 @@ EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
 
   } else {
     return EQUALITY_UNKNOWN;
+  }
+}
+
+Node Bitblaster::getVarValue(TNode a) {
+  Assert (d_termCache.find(a) != d_termCache.end()); 
+  Bits bits = d_termCache[a];
+  Integer value(0); 
+  for (int i = bits.size() -1; i >= 0; --i) {
+    SatValue bit_value;
+    if (d_cnfStream->hasLiteral(bits[i])) { 
+      SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
+      bit_value = d_satSolver->value(bit);
+      Assert (bit_value != SAT_VALUE_UNKNOWN);
+    } else {
+      // the bit is unconstrainted so we can give it an arbitrary value 
+      bit_value = SAT_VALUE_FALSE;
+    }
+    Integer bit_int = bit_value == SAT_VALUE_TRUE ? Integer(1) : Integer(0); 
+    value = value * 2 + bit_int;  
+  }
+  return utils::mkConst(BitVector(bits.size(), value));  
+}
+
+void Bitblaster::collectModelInfo(TheoryModel* m) {
+  __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
+  for (; it!= d_variables.end(); ++it) {
+    TNode var = *it;
+    Node const_value = getVarValue(var);
+    m->assertEquality(var, const_value, true); 
   }
 }
 

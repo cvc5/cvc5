@@ -47,6 +47,7 @@ public:
   bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
+  void collectModelInfo(TheoryModel* m); 
 };
 
 }

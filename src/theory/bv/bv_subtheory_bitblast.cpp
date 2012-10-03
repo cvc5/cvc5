@@ -125,3 +125,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
 EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
+
+void BitblastSolver::collectModelInfo(TheoryModel* m) {
+  return d_bitblaster->collectModelInfo(m); 
+}

@@ -19,7 +19,6 @@
 #pragma once
 
 #include "cvc4_private.h"
-
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
@@ -68,6 +67,7 @@ public:
   void  preRegister(TNode node);
   bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
+  void  collectModelInfo(TheoryModel* m);
   void  addSharedTerm(TNode t) {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }
