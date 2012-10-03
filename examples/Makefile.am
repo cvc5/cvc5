@@ -72,6 +72,10 @@ simple_vc_compat_cxx_LINK = $(CXXLINK)
 simple_vc_compat_c_LINK = $(LINK)
 endif
 
+# for installation
+examplesdir = $(docdir)/$(subdir)
+examples_DATA = $(DIST_SOURCES) $(EXTRA_DIST)
+
 MOSTLYCLEANFILES = $(noinst_DATA)
 
 # for silent automake rules

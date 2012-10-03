@@ -11,6 +11,22 @@
 # column, are then used.  If there are no matching lines, an error
 # is raised and the configure script is not generated.
 #
+# The library version numbers are in the form current:revision:age
+# and are passed to libtool with -version-info
+#
+#   current -
+#     increment if interfaces have been added, removed or changed
+#   revision -
+#     increment if source code has changed
+#     set to zero if current is incremented
+#   age -
+#     increment if interfaces have been added
+#     set to zero if interfaces have been removed
+#     or changed
+#
+# A good description of what all this means is here:
+# http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+#
 # When a new CVC4 release is cut, this library_versions file should
 # be extended to provide library version information for that
 # release.  PLEASE DON'T REMOVE LINES (or edit historical lines)

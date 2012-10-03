@@ -55,3 +55,7 @@ normalize_SOURCES = \
 normalize_LDADD = \
 	@builddir@/../../src/parser/libcvc4parser.la \
 	@builddir@/../../src/libcvc4.la
+
+# for installation
+examplesdir = $(docdir)/$(subdir)
+examples_DATA = $(DIST_SOURCES) $(EXTRA_DIST)

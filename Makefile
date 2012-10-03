@@ -7,8 +7,8 @@
 #
 builddir = builds
 
-.PHONY: all
-all .DEFAULT:
+.PHONY: all install
+all install .DEFAULT:
 	@if test -d $(builddir); then \
 		echo cd $(builddir); \
 		cd $(builddir); \
@@ -41,6 +41,10 @@ doc-internals: doc-internals-builds
 .PHONY: examples
 examples: all
 	(cd examples && $(MAKE) $(AM_MAKEFLAGS))
+
+.PHONY: install-examples
+install-examples:
+	(cd examples && $(MAKE) $(AM_MAKEFLAGS) install-data)
 
 YEAR := $(shell date +%Y)
 submission submission-main:

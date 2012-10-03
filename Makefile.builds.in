@@ -186,6 +186,7 @@ endif
 #	set up builds/bin and builds/lib
 	$(AM_V_at)test -e lib || ln -sfv ".$(libdir)" lib
 	$(AM_V_at)test -e bin || ln -sfv ".$(bindir)" bin
+	rm -f doc; ln -sf "$(CURRENT_BUILD)/doc" doc
 	rm -f examples; ln -sf "$(CURRENT_BUILD)/examples" examples
 
 # The descent into "src" with target "check" is to build check

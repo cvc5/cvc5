@@ -5,7 +5,7 @@
 #
 # This script applies the patch, builds cudd, and, assuming there are no
 # errors, reverses the patch.
-# 
+#
 # -- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 13 Jul 2011 18:03:11 -0400
 #
 
