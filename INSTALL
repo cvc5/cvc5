@@ -1,0 +1,161 @@
+This is CVC4 release version 1.0.
+
+*** Quick-start instructions
+
+    ./configure
+    make
+    make check   [optional but a good idea!]
+
+(To build from a repository checkout, see below.)
+
+You can then "make install" to install in the prefix you gave to
+the configure script (/usr/local by default).  ** You should run
+"make check" ** before installation to ensure that CVC4 has been
+built correctly.  In particular, GCC version 4.5.1 seems to have a
+bug in the optimizer that results in incorrect behavior (and wrong
+results) in many builds.  This is a known problem for Minisat, and
+since Minisat is at the core of CVC4, a problem for CVC4.  "make check"
+easily detects this problem (by showing a number of FAILed test cases).
+It is ok if the unit tests aren't run as part of "make check", but all
+system tests and regression tests should pass without incident.
+
+To build API documentation, use "make doc".  Documentation is produced
+under doc/ but is not installed by "make install".
+
+Examples/tutorials are not installed with "make install."  See below.
+
+*** Build dependences
+
+The following tools and libraries are required to run CVC4. Versions
+given are minimum versions; more recent versions should be compatible.
+
+  GNU C and C++ (gcc and g++), reasonably recent versions
+  GNU Make
+  GNU Bash
+  GMP v4.2 (GNU Multi-Precision arithmetic library)
+  MacPorts   [only if on a Mac; see below]
+  libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)
+  The Boost C++ base libraries
+
+The hardest to obtain and install is the libantlr3c requirement, so
+that one is explained next.
+
+On a Mac, you need to additionally install MacPorts (see
+http://www.macports.org/).  Doing so is easy.  Then, simply run the
+script contrib/mac-build, which installs a few ports from the MacPorts
+repository, then compiles and installs antlr3c using the get-antlr-3.4
+script (as described next).  The mac-build script should set you up
+with all requirements, and will tell you how to configure CVC4 when it
+completes successfully.
+
+If "make" is non-GNU on your system, make sure to invoke "gmake" (or
+whatever GNU Make is installed as).  If your usual shell is not Bash,
+the configure script should auto-correct this.  If it does not, you'll
+see strange shell syntax errors, and you may need to explicitly set
+SHELL or CONFIG_SHELL to the location of bash on your system.
+
+*** Installing libantlr3c: ANTLR parser generator C support library
+
+For libantlr3c, you can use the convenience script in
+contrib/get-antlr-3.4 --this will download, patch, and install
+libantlr3c.  On a 32-bit machine, or if you have difficulty building
+libantlr3c (or difficulty getting CVC4 to link against it later), you
+may need to remove the --enable-64bit part in the script.  (If you're
+curious, the manual instructions are at
+http://church.cims.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
+
+*** Installing the Boost C++ base libraries
+
+A Boost package is available on most Linux distributions; check yours
+for a package named something like libboost-dev or boost-devel.  There
+are a number of additional Boost packages in some distributions, but
+this "basic" one should be sufficient for building CVC4.
+
+Should you want to install Boost manually, or to learn more about the
+Boost project, please visit http://www.boost.org/.
+
+*** Optional requirements
+
+None of these is required, but can improve CVC4 as described below:
+
+  Optional: CLN v1.3 or newer (Class Library for Numbers)
+  Optional: CUDD v2.4.2 or newer (Colorado University Decision Diagram package)
+  Optional: GNU Readline library (for an improved interactive experience)
+  Optional: The Boost C++ threading library (libboost_thread)
+
+CLN is an alternative multiprecision arithmetic package that can offer
+better performance and memory footprint than GMP.  CLN is covered by
+the GNU General Public License, version 3; so if you choose to use
+CVC4 with CLN support, you are licensing CVC4 under that same license.
+(Usually CVC4's license is more permissive than GPL is; see the file
+COPYING in the CVC4 source distribution for details.)  Please visit
+http://www.ginac.de/CLN/ for more details about CLN.
+
+CUDD is a decision diagram package that changes the behavior of the
+CVC4 arithmetic solver in some cases; it may or may not improve the
+arithmetic solver's performance.  See below for instructions on
+obtaining and building CUDD.
+
+The GNU Readline library is optionally used to provide command
+editing, tab completion, and history functionality at the CVC prompt
+(when running in interactive mode).  Check your distribution for a
+package named "libreadline-dev" or "readline-devel" or similar.
+
+The Boost C++ threading library (often packaged independently of the
+Boost base library) is needed to run CVC4 in "portfolio"
+(multithreaded) mode.  Check your distribution for a package named
+"libboost-thread-dev" or similar.
+
+*** Building with CUDD (optional)
+
+CUDD, if desired, must be installed delicately.  The CVC4 configure
+script attempts to auto-detect the locations and names of CUDD headers
+and libraries the way that the Fedora RPMs install them, the way that
+our NYU-provided Debian packages install them, and the way they exist
+when you download and build the CUDD sources directly.  If you install
+from Fedora RPMs or our Debian packages, the process should be
+completely automatic, since the libraries and headers are installed in
+a standard location.  If you download the sources yourself, you need
+to build them in a special way.  Fortunately, the
+"contrib/build-cudd-with-libtool.sh" script in the CVC4 source tree
+does exactly what you need: it patches the CUDD makefiles to use
+libtool, builds the libtool libraries, then reverses the patch to
+leave the makefiles as they were.  Once you run this script on an
+unpacked CUDD 2.4.2 source distribution, then CVC4's configure script
+should pick up the libraries if you provide
+--with-cudd-dir=/PATH/TO/CUDD/SOURCES.
+
+If you want to force linking to CUDD, provide --with-cudd to the
+configure script; this makes it a hard requirement rather than an
+optional add-on.
+
+The NYU-provided Debian packaging of CUDD 2.4.2 and CUDD 2.5.0 are
+here:
+
+  deb http://goedel.cims.nyu.edu/cvc4-builds/debian unstable/
+
+The Debian source package "cudd", available from the same repository,
+includes a diff of all changes made to cudd makefiles.
+
+*** Building CVC4 from a repository checkout
+
+The following tools and libraries are additionally required to build
+CVC4 from from a repository checkout rather than from a prepared
+source tarball.
+
+  Automake v1.11
+  Autoconf v2.61
+  Libtool v2.2
+  ANTLR3 v3.2 or v3.4
+
+First, use "./autogen.sh" to create the configure script.  Then
+proceed as normal for any distribution tarball.  The parsers are
+pre-generated for the tarballs; hence the extra ANTLR3 requirement to
+generate the source code for the parsers, when building from the
+repository.
+
+*** Examples/tutorials are not built or installed
+
+Examples are not built by "make" or "make install".  See
+examples/README for information on what to find in the examples/
+directory, as well as information about building and installing them.

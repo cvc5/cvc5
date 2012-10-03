@@ -1,106 +1,68 @@
-This is a prerelease version of CVC4.
+This is CVC4 release version 1.0.  For build and installation notes,
+please see the INSTALL file included with this distribution.
 
-*** Quick-start instructions
+This first official release of CVC4 is the result of more than three
+years of efforts by researchers at New York University and the
+University of Iowa.  The project leaders are Clark Barrett (New York
+University) and Cesare Tinelli (University of Iowa).  For a full list
+of authors, please refer to the AUTHORS file in the source
+distribution.
 
-    ./configure
-    make
+CVC4 is a tool for determining the satisfiability of a first order
+formula modulo a first order theory (or a combination of such
+theories). It is the fourth in the Cooperating Validity Checker family
+of tools (CVC, CVC Lite, CVC3) but does not directly incorporate code
+from any previous version.
 
-(To build from a Subversion checkout, you'll need reasonably new
-automake, autoconf, and libtool installed (see below).  The
-"configure" script isn't in the repository, so run "./autogen.sh"
-first to produce it.  Then proceed as above.)
+CVC4 is intended to be an open and extensible SMT engine.  It can be
+used as a stand-alone tool or as a library.  It has been designed to
+increase the performance and reduce the memory overhead of its
+predecessors.  It is written entirely in C++ and is released under a
+free software license (see the file COPYING in the source
+distribution).
 
-You can then "make install" to install in the prefix you gave to
-the configure script (/usr/local by default).  ** You should run
-"make check" ** before installation to ensure that CVC4 has been
-built correctly.  In particular, GCC version 4.5.1 seems to have a
-bug in the optimizer that results in incorrect behavior (and wrong
-results) in many builds.  This is a known problem for Minisat, and
-since Minisat is at the core of CVC4, a problem for CVC4.  "make check"
-easily detects this problem (by showing a number of FAILed test cases).
-It is ok if the unit tests aren't run as part of "make check", but all
-system tests and regression tests should pass without incident.
+*** The History of CVC4
 
-To build API documentation, use "make doc".  Documentation is produced
-under doc/ but is not installed by "make install".
+The Cooperating Validity Checker series has a long history.  The
+Stanford Validity Checker (SVC) came first in 1996, incorporating
+theories and its own SAT solver.  Its successor, the Cooperating
+Validity Checker (CVC), had a more optimized internal design, produced
+proofs, used the Chaff SAT solver, and featured a number of usability
+enhancements.  Its name comes from the cooperative nature of decision
+procedures in Nelson-Oppen theory combination, which share amongst
+each other equalities between shared terms.  CVC Lite, first made
+available in 2003, was a rewrite of CVC that attempted to make CVC
+more flexible (hence the "lite") while extending the feature set: CVC
+Lite supported quantifiers where its predecessors did not.  CVC3 was a
+major overhaul of portions of CVC Lite: it added better decision
+procedure implementations, added support for using MiniSat in the
+core, and had generally better performance.
 
-To build a source release, use "make dist"; this will include the
-configure script and all the bits of automake/autoconf/libtool that
-are necessary for an independent install.  You'll find the resulting
-tarball in builds/cvc4-${VERSION}.tar.gz.
+CVC4 is the new version, the fifth generation of this validity checker
+line that is now celebrating sixteen years of heritage.  It represents
+a complete re-evaluation of the core architecture to be both
+performant and to serve as a cutting-edge research vehicle for the
+next several years.  Rather than taking CVC3 and redesigning problem
+parts, we've taken a clean-room approach, starting from scratch.
+Before using any designs from CVC3, we have thoroughly scrutinized,
+vetted, and updated them.  Many parts of CVC4 bear only a superficial
+resemblance, if any, to their correspondent in CVC3.
 
-*** Dependencies
+However, CVC4 is fundamentally similar to CVC3 and many other modern
+SMT solvers: it is a DPLL(T) solver, with a SAT solver at its core and
+a delegation path to different decision procedure implementations,
+each in charge of solving formulas in some background theory.
 
-The following tools and libraries are required to run CVC4. Versions
-given are minimum versions; more recent versions should be compatible.
+The re-evaluation and ground-up rewrite was necessitated, we felt, by
+the performance characteristics of CVC3.  CVC3 has many useful
+features, but some core aspects of the design led to high memory use,
+and the use of heavyweight computation (where more nimble engineering
+approaches could suffice) makes CVC3 a much slower prover than other
+tools.  As these designs are central to CVC3, a new version was
+preferable to a selective re-engineering, which would have ballooned
+in short order.  Some specific deficiencies of CVC3 are mentioned in
+this article.
 
-GNU C and C++ (gcc and g++), reasonably recent versions
-GNU Make
-GNU Bash
-GMP v4.2 (GNU Multi-Precision arithmetic library)
-libantlr3c v3.2 or v3.4 (ANTLR parser generator)
-The Boost C++ base libraries
+*** For more information
 
-For libantlr3c, you can use the convenience script in
-contrib/get-antlr-3.4 --this will download, patch, and install
-libantlr3c.  On a 32-bit machine, or if you have difficulty
-building libantlr3c (or difficulty getting CVC4 to link against
-it later), you may need to remove the --enable-64bit part in the
-script.  (If you're curious, the manual instructions are at
-http://church.cims.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
-
-Optional: CLN v1.3 (Class Library for Numbers)
-Optional: CUDD v2.4.2 (Colorado University Decision Diagram package)
-Optional: GNU Readline library (for an improved interactive experience)
-Optional: The Boost C++ threading library (libboost_thread)
-
-If "make" is non-GNU on your system, make sure to invoke "gmake" (or
-whatever GNU Make is installed as).  If your usual shell is not
-Bash, the configure script should auto-correct this.  If it does not,
-you'll see strange shell syntax errors, and you may need to explicitly
-set SHELL or CONFIG_SHELL to the location of bash on your system.
-
-CUDD, if desired, must be installed delicately.  The CVC4 configure
-script attempts to auto-detect the locations and names of CUDD headers
-and libraries the way that the Fedora RPMs install them, the way that
-our NYU-provided Debian packages install them, and the way they exist
-when you download and build the CUDD sources directly.  If you install
-from Fedora RPMs or our Debian packages (remember, you need the C++
-development package for CVC4), the process should be completely
-automatic, since the libraries and headers are installed in a standard
-location.  If you download the sources yourself, you need to build
-them in a special way.  Fortunately, the "contrib/build-cudd-with-libtool.sh"
-script in the CVC4 source tree does exactly what you need: it patches
-the CUDD makefiles to use libtool, builds the libtool libraries, then
-reverses the patch to leave the makefiles as they were.  Once you
-run this script on an unpacked CUDD 2.4.2 source distribution, then
-CVC4's configure script should pick up the libraries if you provide
---with-cudd-dir=/PATH/TO/CUDD/SOURCES.
-
-If you want to force linking to CUDD, provide --with-cudd to the
-configure script; this makes it a hard requirement rather than an
-optional add-on.
-
-The NYU-provided Debian packaging of CUDD 2.4.2 is here:
-
-  deb http://goedel.cims.nyu.edu/cvc4-builds/debian unstable/
-
-The Debian source package "cudd", available from the same repository,
-includes a diff of all changes made to cudd makefiles.
-
-*** Build dependencies
-
-The following tools and libraries are required to build CVC4 from
-scratch (i.e., from the repository rather than from a source tarball).
-
-Automake v1.11
-Autoconf v2.61
-Libtool v2.2
-ANTLR3 v3.2
-
-*** Emacs support
-
-For a suggestion of editing CVC4 source code with emacs, see the file
-contrib/editing-with-emacs.  For a CVC language mode (the native input
-language for CVC4), see contrib/cvc-mode.el.
-
+More information about CVC4 is available at: http://cs.nyu.edu/acsys/cvc4
