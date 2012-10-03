@@ -628,47 +628,70 @@ void TheoryArrays::computeCareGraph()
 
 void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
-  //must determine proper representatives for all array equivalence classes
-  //first, we collect all select terms and array equivalence classes
-  std::map< Node, std::vector< Node > > selects;
-  std::vector< Node > arrays;
+
+  std::map<Node, std::vector<Node> > selects;
+  std::vector<Node> arrays;
+
+  // Go through all equivalence classes
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  bool isArray, computeRep;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    if( eqc.getType().isArray() ){
-      arrays.push_back( eqc );
-    }
+    isArray = eqc.getType().isArray();
+    computeRep = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ){
       Node n = *eqc_i;
-      if( n.getKind()==kind::SELECT ){
-        selects[ n[0] ].push_back( n );
+      // If this EC is an array type and it contains something other than STORE nodes, we have to compute a representative explicitly
+      if (isArray && n.getKind() != kind::STORE) {
+        arrays.push_back(eqc);
+        computeRep = true;
+      }
+      // If this term is a select, record that the EC rep of its store parameter is being read from using this term
+      if (n.getKind()==kind::SELECT) {
+        selects[d_equalityEngine.getRepresentative(n[0])].push_back(n);
       }
       ++eqc_i;
+    }
+    // If this is an array EC but it only contains STORE nodes, then the value of this EC is derived from the others -
+    // no need to do extra work to compute it
+    if (isArray && !computeRep) {
+      m->assertRepresentative(eqc);
     }
     ++eqcs_i;
   }
-  //for all array equivalence classes
-  for( size_t i=0; i<arrays.size(); i++ ){
-    ArrayModel am( arrays[i], m );
-    //set all values from existing select terms
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( arrays[i], &d_equalityEngine );
-    while( !eqc_i.isFinished() ){
-      for( int i=0; i<(int)selects[ *eqc_i ].size(); i++ ){
-        am.setValue( m, selects[ *eqc_i ][i][1], selects[ *eqc_i ][i] );
-      }
-      ++eqc_i;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node rep;
+  map<Node, Node> defValues;
+  map<Node, Node>::iterator it;
+  TypeSet defaultValuesSet;
+
+  // Loop through all array equivalence classes that need a representative computed
+  for (size_t i=0; i<arrays.size(); ++i) {
+    TNode n = arrays[i];
+
+    // Compute default value for this array - there is one default value for every mayEqual equivalence class
+    TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(n);
+    it = defValues.find(mayRep);
+    // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
+    if (it == defValues.end()) {
+      TypeNode valueType = n.getType().getArrayConstituentType();
+      rep = defaultValuesSet.nextTypeEnum(valueType);
+      defValues[mayRep] = rep;
     }
-    if( fullModel ){
-      ////choose a representative as the default array
-      //am.setDefaultArray( ... );
+    else {
+      rep = (*it).second;
     }
-    //construct the representative
-    Node rep = am.getArrayValue();
-    Assert( !rep.isNull() );
-    m->assertEquality( arrays[i], rep, true );
-    //communicate to the model that it is the representative
-    m->assertRepresentative( rep );
+    // Build the STORE_ALL term with the default value
+    rep = nm->mkConst(ArrayStoreAll(n.getType().toType(), rep.toExpr()));
+    // For each read, require that the rep stores the right value
+    vector<Node>& reads = selects[n];
+    for (unsigned j = 0; j < reads.size(); ++j) {
+      rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
+    }
+    m->assertEquality(n, rep, true);
+    m->assertRepresentative(rep);
   }
 }
 

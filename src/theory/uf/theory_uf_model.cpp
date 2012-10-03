@@ -142,18 +142,18 @@ Node UfModelTreeNode::getFunctionValue( std::vector< Node >& args, int index, No
     if( d_data.find( Node::null() )!=d_data.end() ){
       defaultValue = d_data[Node::null()].getFunctionValue( args, index+1, argDefaultValue );
     }
-    std::vector< Node > caseValues;
-    std::map< Node, Node > caseArg;
+    std::vector< Node > caseArgs;
+    std::map< Node, Node > caseValues;
     for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
       if( !it->first.isNull() ){
         Node val = it->second.getFunctionValue( args, index+1, defaultValue );
-        caseValues.push_back( val );
-        caseArg[ val ] = it->first;
+        caseArgs.push_back( it->first );
+        caseValues[ it->first ] = val;
       }
     }
     Node retNode = defaultValue;
-    for( int i=((int)caseValues.size()-1); i>=0; i-- ){
-      retNode = NodeManager::currentNM()->mkNode( ITE, args[index].eqNode( caseArg[ caseValues[i] ] ), caseValues[i], retNode );
+    for( int i=((int)caseArgs.size()-1); i>=0; i-- ){
+      retNode = NodeManager::currentNM()->mkNode( ITE, args[index].eqNode( caseArgs[ i ] ), caseValues[ caseArgs[ i ] ], retNode );
     }
     return retNode;
   }else{

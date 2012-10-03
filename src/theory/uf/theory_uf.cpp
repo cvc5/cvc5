@@ -194,27 +194,27 @@ Node TheoryUF::explain(TNode literal) {
 
 void TheoryUF::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
-  if( fullModel ){
-    std::map< TypeNode, TypeEnumerator* > type_enums;
-    //must choose proper representatives
-    // for each equivalence class, specify fresh constant as representative
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-    while( !eqcs_i.isFinished() ){
-      Node eqc = (*eqcs_i);
-      TypeNode tn = eqc.getType();
-      if( tn.isSort() ){
-        if( type_enums.find( tn )==type_enums.end() ){
-          type_enums[tn] = new TypeEnumerator( tn );
-        }
-        Node rep = *(*type_enums[tn]);
-        ++(*type_enums[tn]);
-        //specify the constant as the representative
-        m->assertEquality( eqc, rep, true );
-        m->assertRepresentative( rep );
-      }
-      ++eqcs_i;
-    }
-  }
+  // if( fullModel ){
+  //   std::map< TypeNode, TypeEnumerator* > type_enums;
+  //   //must choose proper representatives
+  //   // for each equivalence class, specify fresh constant as representative
+  //   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  //   while( !eqcs_i.isFinished() ){
+  //     Node eqc = (*eqcs_i);
+  //     TypeNode tn = eqc.getType();
+  //     if( tn.isSort() ){
+  //       if( type_enums.find( tn )==type_enums.end() ){
+  //         type_enums[tn] = new TypeEnumerator( tn );
+  //       }
+  //       Node rep = *(*type_enums[tn]);
+  //       ++(*type_enums[tn]);
+  //       //specify the constant as the representative
+  //       m->assertEquality( eqc, rep, true );
+  //       m->assertRepresentative( rep );
+  //     }
+  //     ++eqcs_i;
+  //   }
+  // }
 }
 
 void TheoryUF::presolve() {

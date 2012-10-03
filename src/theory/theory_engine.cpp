@@ -590,6 +590,17 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
       d_theoryTable[theoryId]->collectModelInfo( m, fullModel );
     }
   }
+  // Get the Boolean variables
+  vector<TNode> boolVars;
+  d_propEngine->getBooleanVariables(boolVars);
+  vector<TNode>::iterator it, iend = boolVars.end();
+  bool hasValue, value;
+  for (it = boolVars.begin(); it != iend; ++it) {
+    TNode var = *it;
+    hasValue = d_propEngine->hasValue(var, value);
+    // TODO: Assert that hasValue is true?
+    m->assertPredicate(var, hasValue ? value : false);
+  }
 }
 
 /* get model */
