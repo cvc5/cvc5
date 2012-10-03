@@ -20,6 +20,10 @@ if [ ! -r "$patch" ]; then
   echo "error: can't read patch at \`$patch'" >&2
   exit 1
 fi
+if ! expr "$1" : / &>/dev/null; then
+  echo "error: must specify an absolute path to cudd sources" >&2
+  exit 1
+fi
 cudd_dir="$1"
 
 arch=$(../config/config.guess | cut -f1 -d-)
@@ -33,7 +37,7 @@ set -ex
 
 XCFLAGS="$XCFLAGS"
 
-version_info=0:0:0
+version_info=1:0:0
 
 prefix="$cudd_dir"
 eprefix="$prefix"
@@ -57,9 +61,9 @@ exit
 
 # patch follows
 
---- a/Makefile
-+++ b/Makefile
-@@ -221,11 +221,16 @@
+--- cudd-2.5.0.orig/Makefile
++++ cudd-2.5.0/Makefile
+@@ -220,11 +220,16 @@ DIRS	= $(BDIRS) nanotrav
  
  build:
  	sh ./setup.sh
@@ -78,140 +82,16 @@ exit
  
  nanotrav: build
  
-@@ -319,4 +324,6 @@
+@@ -318,4 +323,6 @@ distclean:
  	     echo Cleaning $$dir ...; \
  	     make -s EXE="$(EXE)" distclean	) \
  	done
 +	rm -f libcudd* libdddmp*
 +	rm -fr .libs
  	sh ./shutdown.sh
---- a/cudd/Makefile
-+++ b/cudd/Makefile
-@@ -59,7 +59,7 @@
- 	  cuddZddPort.c cuddZddReord.c cuddZddSetop.c cuddZddSymm.c \
- 	  cuddZddUtil.c
- PHDR    = cudd.h cuddInt.h
--POBJ	= $(PSRC:.c=.o)
-+POBJ	= $(PSRC:.c=.lo)
- PUBJ	= $(PSRC:.c=.u)
- TARGET	= test$(P)$(EXE)
- TARGETu = test$(P)-u
-@@ -71,12 +71,11 @@
- 
- #------------------------------------------------------
- 
--lib$(P).a: $(POBJ)
--	ar rv $@ $?
--	$(RANLIB) $@
-+lib$(P).la: $(POBJ)
-+	libtool --mode=link gcc -o $@ $?
- 
--.c.o: $(PSRC) $(PHDR)
--	$(CC) -c  $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG) 
-+%.lo: %.c
-+	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
- 
- optimize_dec: lib$(P).b
- 
-@@ -116,9 +115,10 @@
- programs: $(TARGET) $(TARGETu) lintpgm
- 
- clean:
--	rm -f *.o *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
-+	rm -f *.o *.lo *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
- 	.pure core *.warnings
- 
- distclean: clean
--	rm -f $(TARGET) $(TARGETu) lib*.a lib$(P).b llib-l$(P).ln \
-+	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
- 	*.bak *~ tags .gdb_history *.qv *.qx
-+	rm -fr .libs
---- a/dddmp/Makefile
-+++ b/dddmp/Makefile
-@@ -148,7 +148,7 @@
- 	  dddmpStoreMisc.c dddmpUtil.c dddmpBinary.c dddmpConvert.c \
-           dddmpDbg.c 
- PHDR    = dddmp.h dddmpInt.h $(INCLUDE)/cudd.h $(INCLUDE)/cuddInt.h
--POBJ	= $(PSRC:.c=.o)
-+POBJ	= $(PSRC:.c=.lo)
- PUBJ	= $(PSRC:.c=.u)
- TARGET	= test$(P)$(EXE)
- TARGETu = test$(P)-u
-@@ -182,12 +182,11 @@
- 	$(WHERE)/mtr/llib-lmtr.ln $(WHERE)/st/llib-lst.ln \
- 	$(WHERE)/util/llib-lutil.ln
- 
--lib$(P).a: $(POBJ)
--	ar rv $@ $?
--	$(RANLIB) $@
-+lib$(P).la: $(POBJ)
-+	libtool --mode=link gcc -o $@ $?
- 
--.c.o: $(PHDR)
--	$(CC) -c $< -I$(INCLUDE) $(ICFLAGS) $(XCFLAGS) $(DDDEBUG) $(MTRDEBUG) $(DDDMPDEBUG) $(LDFLAGS)
-+%.lo: %.c
-+	$(CC) -c -o $@ $< -I$(INCLUDE) $(ICFLAGS) $(XCFLAGS) $(DDDEBUG) $(MTRDEBUG) $(DDDMPDEBUG) $(LDFLAGS)
- 
- optimize_dec: lib$(P).b
- 
-@@ -231,12 +230,13 @@
- #----------------------------------------------------------------------------#
- 
- clean:
--	rm -f *.o *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
-+	rm -f *.o *.lo *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
- 	.pure core *.warnings
- 
- distclean: clean
--	rm -f $(TARGET) $(TARGETu) lib*.a lib$(P).b llib-l$(P).ln \
-+	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
- 	*.bak *~ tags .gdb_history *.qv *.qx
-+	rm -fr .libs
- 
- 
- 
---- a/epd/Makefile
-+++ b/epd/Makefile
-@@ -19,7 +19,7 @@
- P	= epd
- PSRC	= epd.c
- PHDR	= epd.h
--POBJ	= $(PSRC:.c=.o)
-+POBJ	= $(PSRC:.c=.lo)
- PUBJ	= $(PSRC:.c=.u)
- 
- WHERE	= ..
-@@ -27,12 +27,11 @@
- 
- #---------------------------
- 
--lib$(P).a: $(POBJ)
--	ar rv $@ $?
--	$(RANLIB) $@
-+lib$(P).la: $(POBJ)
-+	libtool --mode=link gcc -o $@ $?
- 
--.c.o: $(PSRC) $(PHDR)
--	$(CC) -c $< -I$(INCLUDE) $(CFLAGS)
-+%.lo: %.c
-+	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS)
- 
- optimize_dec: lib$(P).b
- 
-@@ -58,7 +57,8 @@
- all: lib$(P).a lib$(P).b llib-l$(P).ln tags
- 
- clean:
--	rm -f *.o *.u .pure *.warnings
-+	rm -f *.o *.lo *.u .pure *.warnings
- 
- distclean: clean
--	rm -f lib*.a lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
-+	rm -f lib*.a lib*.la lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
-+	rm -fr .libs
---- a/mtr/Makefile
-+++ b/mtr/Makefile
-@@ -30,7 +30,7 @@
+--- cudd-2.5.0.orig/mtr/Makefile
++++ cudd-2.5.0/mtr/Makefile
+@@ -30,7 +30,7 @@ INCLUDE = $(WHERE)/include
  P	= mtr
  PSRC    = mtrBasic.c mtrGroup.c
  PHDR    = mtr.h
@@ -220,7 +100,7 @@ exit
  PUBJ	= $(PSRC:.c=.u)
  SRC	= test$(P).c
  HDR	=
-@@ -49,12 +49,11 @@
+@@ -49,12 +49,11 @@ LINTLIBS = llib-l$(P).ln
  
  #---------------------------
  
@@ -237,7 +117,7 @@ exit
  
  optimize_dec: lib$(P).b
  
-@@ -88,9 +87,10 @@
+@@ -88,9 +87,10 @@ $(TARGETu): $(SRC) $(PSRC) $(PHDR) $(UBJ
  	cc -O3 $(XCFLAGS) $(LDFLAGS) -o $@ $(UBJ) $(BLIBS) -lm
  
  clean:
@@ -250,9 +130,9 @@ exit
 +	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
  	*.bak *~ tags *.qv *.qx
 +	rm -fr .libs
---- a/nanotrav/Makefile
-+++ b/nanotrav/Makefile
-@@ -19,9 +19,7 @@
+--- cudd-2.5.0.orig/nanotrav/Makefile
++++ cudd-2.5.0/nanotrav/Makefile
+@@ -19,9 +19,7 @@ WHERE	= ..
  
  INCLUDE = $(WHERE)/include
  
@@ -263,7 +143,7 @@ exit
  
  MNEMLIB =
  #MNEMLIB	= $(WHERE)/mnemosyne/libmnem.a
-@@ -39,7 +37,7 @@
+@@ -39,7 +37,7 @@ SRC	= main.c bnet.c ntr.c ntrHeap.c ntrB
  HDR	= bnet.h ntr.h $(WHERE)/include/dddmp.h $(WHERE)/include/cudd.h \
  	$(WHERE)/include/cuddInt.h
  
@@ -272,7 +152,7 @@ exit
  UBJ	= $(SRC:.c=.u)
  
  MFLAG	=
-@@ -61,10 +59,10 @@
+@@ -61,10 +59,10 @@ LINTFLAGS = -u -n -DDD_STATS -DDD_CACHE_
  #------------------------------------------------------
  
  $(TARGET): $(SRC) $(OBJ) $(HDR) $(LIBS) $(MNEMLIB)
@@ -286,7 +166,7 @@ exit
  
  # if the header files change, recompile
  $(OBJ): $(HDR)
-@@ -91,8 +89,9 @@
+@@ -91,8 +89,9 @@ pixie: $(TARGETu)
  	pixie $(TARGETu)
  
  clean:
@@ -297,36 +177,36 @@ exit
  distclean: clean
  	rm -f $(TARGET) $(TARGETu) *.bak *~ .gdb_history *.qv *.qx
 +	rm -fr .libs
---- a/obj/Makefile
-+++ b/obj/Makefile
-@@ -45,7 +45,7 @@
- P	= obj
- PSRC	= cuddObj.cc
- PHDR	= cuddObj.hh $(INCLUDE)/cudd.h
--POBJ	= $(PSRC:.cc=.o)
-+POBJ	= $(PSRC:.cc=.lo)
- PUBJ	= $(PSRC:.cc=.u)
+--- cudd-2.5.0.orig/dddmp/Makefile
++++ cudd-2.5.0/dddmp/Makefile
+@@ -148,7 +148,7 @@ PSRC    = dddmpStoreBdd.c dddmpStoreAdd.
+ 	  dddmpStoreMisc.c dddmpUtil.c dddmpBinary.c dddmpConvert.c \
+           dddmpDbg.c 
+ PHDR    = dddmp.h dddmpInt.h $(INCLUDE)/cudd.h $(INCLUDE)/cuddInt.h
+-POBJ	= $(PSRC:.c=.o)
++POBJ	= $(PSRC:.c=.lo)
+ PUBJ	= $(PSRC:.c=.u)
  TARGET	= test$(P)$(EXE)
  TARGETu = test$(P)-u
-@@ -57,12 +57,11 @@
- 
- #------------------------------------------------------
+@@ -182,12 +182,11 @@ LINTLIBS = ./llib-ldddmp.ln $(WHERE)/cud
+ 	$(WHERE)/mtr/llib-lmtr.ln $(WHERE)/st/llib-lst.ln \
+ 	$(WHERE)/util/llib-lutil.ln
  
 -lib$(P).a: $(POBJ)
 -	ar rv $@ $?
 -	$(RANLIB) $@
 +lib$(P).la: $(POBJ)
-+	libtool --mode=link g++ -o $@ $?
++	libtool --mode=link gcc -o $@ $?
  
--.cc.o: $(PHDR)
--	$(CPP) -c $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
-+%.lo: %.cc
-+	$(CPP) -c -o $@ $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
+-.c.o: $(PHDR)
+-	$(CC) -c $< -I$(INCLUDE) $(ICFLAGS) $(XCFLAGS) $(DDDEBUG) $(MTRDEBUG) $(DDDMPDEBUG) $(LDFLAGS)
++%.lo: %.c
++	$(CC) -c -o $@ $< -I$(INCLUDE) $(ICFLAGS) $(XCFLAGS) $(DDDEBUG) $(MTRDEBUG) $(DDDMPDEBUG) $(LDFLAGS)
  
  optimize_dec: lib$(P).b
  
-@@ -102,9 +101,10 @@
- programs: $(TARGET) $(TARGETu) lintpgm
+@@ -231,12 +230,13 @@ programs: $(TARGET) $(TARGETu) lintpgm
+ #----------------------------------------------------------------------------#
  
  clean:
 -	rm -f *.o *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
@@ -338,51 +218,15 @@ exit
 +	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
  	*.bak *~ tags .gdb_history *.qv *.qx
 +	rm -fr .libs
---- a/st/Makefile
-+++ b/st/Makefile
-@@ -19,7 +19,7 @@
- P	= st
- PSRC	= st.c
- PHDR	= st.h
--POBJ	= $(PSRC:.c=.o)
-+POBJ	= $(PSRC:.c=.lo)
- PUBJ	= $(PSRC:.c=.u)
  
- WHERE	= ..
-@@ -27,12 +27,11 @@
  
- #---------------------------
  
--lib$(P).a: $(POBJ)
--	ar rv $@ $?
--	$(RANLIB) $@
-+lib$(P).la: $(POBJ)
-+	libtool --mode=link gcc -o $@ $?
- 
--.c.o: $(PHDR)
--	$(CC) -c $< -I$(INCLUDE) $(CFLAGS)
-+%.lo: %.c
-+	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS)
- 
- optimize_dec: lib$(P).b
- 
-@@ -58,7 +57,8 @@
- all: lib$(P).a lib$(P).b llib-l$(P).ln tags
- 
- clean:
--	rm -f *.o *.u .pure *.warnings
-+	rm -f *.o *.lo *.u .pure *.warnings
- 
- distclean: clean
--	rm -f lib*.a lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
-+	rm -f lib*.a lib*.la lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
-+	rm -fr .libs
---- a/util/Makefile
-+++ b/util/Makefile
-@@ -21,19 +21,18 @@
- PSRC	= cpu_time.c cpu_stats.c getopt.c safe_mem.c strsav.c texpand.c \
- 	  ptime.c prtime.c pipefork.c pathsearch.c stub.c \
- 	  tmpfile.c datalimit.c
+--- cudd-2.5.0.orig/util/Makefile
++++ cudd-2.5.0/util/Makefile
+@@ -20,19 +20,18 @@ LINTSWITCH = -o
+ P	= util
+ PSRC	= cpu_time.c cpu_stats.c safe_mem.c strsav.c texpand.c \
+ 	  ptime.c prtime.c pipefork.c pathsearch.c stub.c datalimit.c
 -POBJ	= $(PSRC:.c=.o)
 +POBJ	= $(PSRC:.c=.lo)
  PUBJ	= $(PSRC:.c=.u)
@@ -404,7 +248,7 @@ exit
  
  optimize_dec: lib$(P).b
  
-@@ -59,7 +58,8 @@
+@@ -58,7 +57,8 @@ tags: $(PSRC) $(PHDR)
  all: lib$(P).a lib$(P).b llib-l$(P).ln tags
  
  clean:
@@ -414,4 +258,173 @@ exit
  distclean: clean
 -	rm -f lib$(P).a lib$(P).b llib-l$(P).ln tags *.bak *~ .pure
 +	rm -f lib$(P).a lib$(P).la lib$(P).b llib-l$(P).ln tags *.bak *~ .pure
++	rm -fr .libs
+--- cudd-2.5.0.orig/epd/Makefile
++++ cudd-2.5.0/epd/Makefile
+@@ -19,7 +19,7 @@ LINTSWITCH = -o
+ P	= epd
+ PSRC	= epd.c
+ PHDR	= epd.h
+-POBJ	= $(PSRC:.c=.o)
++POBJ	= $(PSRC:.c=.lo)
+ PUBJ	= $(PSRC:.c=.u)
+ 
+ WHERE	= ..
+@@ -27,12 +27,11 @@ INCLUDE = $(WHERE)/include
+ 
+ #---------------------------
+ 
+-lib$(P).a: $(POBJ)
+-	ar rv $@ $?
+-	$(RANLIB) $@
++lib$(P).la: $(POBJ)
++	libtool --mode=link gcc -o $@ $?
+ 
+-.c.o: $(PSRC) $(PHDR)
+-	$(CC) -c $< -I$(INCLUDE) $(CFLAGS)
++%.lo: %.c
++	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS)
+ 
+ optimize_dec: lib$(P).b
+ 
+@@ -58,7 +57,8 @@ tags: $(PSRC) $(PHDR)
+ all: lib$(P).a lib$(P).b llib-l$(P).ln tags
+ 
+ clean:
+-	rm -f *.o *.u .pure *.warnings
++	rm -f *.o *.lo *.u .pure *.warnings
+ 
+ distclean: clean
+-	rm -f lib*.a lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
++	rm -f lib*.a lib*.la lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
++	rm -fr .libs
+--- cudd-2.5.0.orig/obj/Makefile
++++ cudd-2.5.0/obj/Makefile
+@@ -45,7 +45,7 @@ LDFLAGS =
+ P	= obj
+ PSRC	= cuddObj.cc
+ PHDR	= cuddObj.hh $(INCLUDE)/cudd.h
+-POBJ	= $(PSRC:.cc=.o)
++POBJ	= $(PSRC:.cc=.lo)
+ PUBJ	= $(PSRC:.cc=.u)
+ TARGET	= test$(P)$(EXE)
+ TARGETu = test$(P)-u
+@@ -57,12 +57,11 @@ UBJ	= $(SRC:.cc=.u)
+ 
+ #------------------------------------------------------
+ 
+-lib$(P).a: $(POBJ)
+-	ar rv $@ $?
+-	$(RANLIB) $@
++lib$(P).la: $(POBJ)
++	libtool --mode=link g++ -o $@ $?
+ 
+-.cc.o: $(PHDR)
+-	$(CXX) -c $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
++%.lo: %.cc
++	libtool --mode=compile $(CXX) -c -o $@ $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
+ 
+ optimize_dec: lib$(P).b
+ 
+@@ -80,7 +79,7 @@ $(OBJ): $(PHDR)
+ $(UBJ): $(PHDR)
+ 
+ $(TARGET): $(SRC) $(OBJ) $(HDR) $(LIBS) $(MNEMLIB)
+-	$(PURE) $(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS) $(MNEMLIB) -lm
++	libtool --mode=compile $(PURE) $(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS) $(MNEMLIB) -lm
+ 
+ # optimize (DECstations and Alphas only: uses u-code)
+ $(TARGETu): $(SRC) $(UBJ) $(HDR) $(LIBS:.a=.b)
+@@ -102,9 +101,10 @@ all: lib$(P).a lib$(P).b llib-l$(P).ln t
+ programs: $(TARGET) $(TARGETu) lintpgm
+ 
+ clean:
+-	rm -f *.o *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
++	rm -f *.o *.lo *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
+ 	.pure core *.warnings
+ 
+ distclean: clean
+-	rm -f $(TARGET) $(TARGETu) lib*.a lib$(P).b llib-l$(P).ln \
++	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
+ 	*.bak *~ tags .gdb_history *.qv *.qx
++	rm -fr .libs
+--- cudd-2.5.0.orig/st/Makefile
++++ cudd-2.5.0/st/Makefile
+@@ -19,7 +19,7 @@ LINTSWITCH = -o
+ P	= st
+ PSRC	= st.c
+ PHDR	= st.h
+-POBJ	= $(PSRC:.c=.o)
++POBJ	= $(PSRC:.c=.lo)
+ PUBJ	= $(PSRC:.c=.u)
+ 
+ WHERE	= ..
+@@ -27,12 +27,11 @@ INCLUDE = $(WHERE)/include
+ 
+ #---------------------------
+ 
+-lib$(P).a: $(POBJ)
+-	ar rv $@ $?
+-	$(RANLIB) $@
++lib$(P).la: $(POBJ)
++	libtool --mode=link gcc -o $@ $?
+ 
+-.c.o: $(PHDR)
+-	$(CC) -c $< -I$(INCLUDE) $(CFLAGS)
++%.lo: %.c
++	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS)
+ 
+ optimize_dec: lib$(P).b
+ 
+@@ -58,7 +57,8 @@ tags: $(PSRC) $(PHDR)
+ all: lib$(P).a lib$(P).b llib-l$(P).ln tags
+ 
+ clean:
+-	rm -f *.o *.u .pure *.warnings
++	rm -f *.o *.lo *.u .pure *.warnings
+ 
+ distclean: clean
+-	rm -f lib*.a lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
++	rm -f lib*.a lib*.la lib$(P).b llib-l$(P).ln tags *~ *.bak *.qv *.qx
++	rm -fr .libs
+--- cudd-2.5.0.orig/cudd/Makefile
++++ cudd-2.5.0/cudd/Makefile
+@@ -59,7 +59,7 @@ PSRC	= cuddAPI.c cuddAddAbs.c cuddAddApp
+ 	  cuddZddPort.c cuddZddReord.c cuddZddSetop.c cuddZddSymm.c \
+ 	  cuddZddUtil.c
+ PHDR    = cudd.h cuddInt.h
+-POBJ	= $(PSRC:.c=.o)
++POBJ	= $(PSRC:.c=.lo)
+ PUBJ	= $(PSRC:.c=.u)
+ TARGET	= test$(P)$(EXE)
+ TARGETu = test$(P)-u
+@@ -71,12 +71,11 @@ UBJ	= $(SRC:.c=.u)
+ 
+ #------------------------------------------------------
+ 
+-lib$(P).a: $(POBJ)
+-	ar rv $@ $?
+-	$(RANLIB) $@
++lib$(P).la: $(POBJ)
++	libtool --mode=link gcc -o $@ $?
+ 
+-.c.o: $(PSRC) $(PHDR)
+-	$(CC) -c  $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG) 
++%.lo: %.c
++	$(CC) -c -o $@ $< -I$(INCLUDE) $(CFLAGS) $(DDDEBUG)
+ 
+ optimize_dec: lib$(P).b
+ 
+@@ -116,9 +115,10 @@ all: lib$(P).a lib$(P).b llib-l$(P).ln t
+ programs: $(TARGET) $(TARGETu) lintpgm
+ 
+ clean:
+-	rm -f *.o *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
++	rm -f *.o *.lo *.u mon.out gmon.out *.pixie *.Addrs *.Counts mnem.* \
+ 	.pure core *.warnings
+ 
+ distclean: clean
+-	rm -f $(TARGET) $(TARGETu) lib*.a lib$(P).b llib-l$(P).ln \
++	rm -f $(TARGET) $(TARGETu) lib*.a lib*.la lib$(P).b llib-l$(P).ln \
+ 	*.bak *~ tags .gdb_history *.qv *.qx
 +	rm -fr .libs
