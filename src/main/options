@@ -38,4 +38,7 @@ option separateOutput bool :default false
 option sharingFilterByLength --filter-lemma-length=N int :default -1 :read-write
  don't share lemmas strictly longer than N
 
+expert-option waitToJoin --wait-to-join bool :default true
+ wait for other threads to join before quitting
+
 endmodule

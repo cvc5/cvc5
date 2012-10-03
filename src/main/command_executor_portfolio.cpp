@@ -262,7 +262,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                          &d_smts[0]);
 
     pair<int, bool> portfolioReturn =
-        runPortfolio(d_numThreads, smFn, fns, true);
+        runPortfolio(d_numThreads, smFn, fns,
+                     d_options[options::waitToJoin]);
 
     d_seq = NULL;
     delete d_seq;
@@ -290,6 +291,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   } else {
     // Unreachable();
     assert(false);
+    return false;
   }
 
 }/* CommandExecutorPortfolio::doCommandSingleton() */
