@@ -156,7 +156,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_theoryEngine = d_smt->d_theoryEngine;
 
     d_satSolver = new FakeSatSolver();
-    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, new theory::TheoryRegistrar(d_theoryEngine));
+    d_cnfStream = new CVC4::prop::TseitinCnfStream(d_satSolver, new theory::TheoryRegistrar(d_theoryEngine), new context::Context());
   }
 
   void tearDown() {

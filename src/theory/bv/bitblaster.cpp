@@ -61,7 +61,7 @@ Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
     d_statistics()
   {
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
-    d_cnfStream = new TseitinCnfStream(d_satSolver, new NullRegistrar());
+    d_cnfStream = new TseitinCnfStream(d_satSolver, new NullRegistrar(), new Context());
 
     MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
     d_satSolver->setNotify(notify); 

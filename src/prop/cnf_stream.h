@@ -67,6 +67,9 @@ protected:
   /** The SAT solver we will be using */
   SatSolver *d_satSolver;
 
+  /** Boolean variables that we translated */
+  context::CDList<TNode> d_booleanVariables;
+
   TranslationCache d_translationCache;
   NodeCache d_nodeCache;
 
@@ -187,10 +190,11 @@ public:
    * set of clauses and sends them to the given sat solver.
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of preregistration of Nodes
+   * @param context the context that the CNF should respect
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  CnfStream(SatSolver* satSolver, Registrar* registrar, bool fullLitToNodeMap = false);
+  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -245,6 +249,11 @@ public:
    */
   SatLiteral getLiteral(TNode node);
 
+  /**
+   * Returns the Boolean variables from the input problem.
+   */
+  void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
   const TranslationCache& getTranslationCache() const {
     return d_translationCache;
   }
@@ -290,7 +299,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, bool fullLitToNodeMap = false);
+  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
 
 private:
 

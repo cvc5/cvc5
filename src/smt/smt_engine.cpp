@@ -427,7 +427,7 @@ void SmtEngine::finishInit() {
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
-  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context);
+  d_propEngine = new PropEngine(d_theoryEngine, d_decisionEngine, d_context, d_userContext);
 
   d_theoryEngine->setPropEngine(d_propEngine);
   d_theoryEngine->setDecisionEngine(d_decisionEngine);

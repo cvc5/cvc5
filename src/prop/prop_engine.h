@@ -157,7 +157,7 @@ public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine*, DecisionEngine*, context::Context*);
+  PropEngine(TheoryEngine*, DecisionEngine*, context::Context* satContext, context::Context* userContext);
 
   /**
    * Destructor.
@@ -258,6 +258,11 @@ public:
    * Check if the node has a value and return it if yes.
    */
   bool hasValue(TNode node, bool& value) const;
+
+  /**
+   * Returns the Boolean variables known to the SAT solver.
+   */
+  void getBooleanVariables(std::vector<TNode>& outputVariables) const;
 
   /**
    * Ensure that the given node will have a designated SAT literal

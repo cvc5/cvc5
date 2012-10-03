@@ -65,11 +65,11 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* context) :
+PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext, Context* userContext) :
   d_inCheckSat(false),
   d_theoryEngine(te),
   d_decisionEngine(de),
-  d_context(context),
+  d_context(satContext),
   d_satSolver(NULL),
   d_cnfStream(NULL),
   d_satTimer(*this),
@@ -82,6 +82,7 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* context) :
   theory::TheoryRegistrar* registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream
     (d_satSolver, registrar, 
+     userContext,
      // fullLitToNode Map = 
      options::threads() > 1 || 
      options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY);
@@ -244,6 +245,10 @@ bool PropEngine::hasValue(TNode node, bool& value) const {
     Assert(v == SAT_VALUE_UNKNOWN);
     return false;
   }
+}
+
+void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+  d_cnfStream->getBooleanVariables(outputVariables);
 }
 
 void PropEngine::ensureLiteral(TNode n) {

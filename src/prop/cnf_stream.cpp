@@ -44,8 +44,9 @@ namespace CVC4 {
 namespace prop {
 
 
-CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, bool fullLitToNodeMap) :
+CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
   d_satSolver(satSolver),
+  d_booleanVariables(context),
   d_fullLitToNodeMap(fullLitToNodeMap),
   d_registrar(registrar) {
 }
@@ -66,8 +67,8 @@ void CnfStream::recordTranslation(TNode node, bool alwaysRecord) {
   }
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, bool fullLitToNodeMap) :
-  CnfStream(satSolver, registrar, fullLitToNodeMap) {
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
+  CnfStream(satSolver, registrar, context, fullLitToNodeMap) {
 }
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -230,21 +231,25 @@ TNode CnfStream::getNode(const SatLiteral& literal) {
   return find->second;
 }
 
+void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+  context::CDList<TNode>::const_iterator it, it_end;
+  for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
+    outputVariables.push_back(*it);
+  }
+}
+
 SatLiteral CnfStream::convertAtom(TNode node) {
   Debug("cnf") << "convertAtom(" << node << ")" << endl;
 
   Assert(!isTranslated(node), "atom already mapped!");
-  // boolean variables are not theory literals
-  bool theoryLiteral = node.getKind() != kind::VARIABLE;
-  SatLiteral lit = newLiteral(node, theoryLiteral);
 
-  if(node.getKind() == kind::CONST_BOOLEAN) {
-    if(node.getConst<bool>()) {
-      assertClause(node, lit);
-    } else {
-      assertClause(node, ~lit);
-    }
+  // Is this a variable add it to the list
+  if (node.isVar()) {
+    d_booleanVariables.push_back(node);
   }
+
+  // Make a new literal (variables are not considered theory literals)
+  SatLiteral lit = newLiteral(node, !node.isVar());
 
   // We have a literal, so it has to be recorded.  The definitional clauses
   // go away on user-pop, so this literal will have to be re-vivified if it's
