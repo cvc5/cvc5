@@ -46,6 +46,10 @@ private:
       toSatClause(clause, satClause);
       d_notify->notify(satClause);
     }
+
+    void safePoint() {
+      d_notify->safePoint(); 
+    }
   };
 
   BVMinisat::SimpSolver* d_minisat;

@@ -71,6 +71,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
   d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
+  d_interrupted(false),
   d_inPreregister(false),
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
@@ -111,6 +112,10 @@ TheoryEngine::~TheoryEngine() {
   delete d_quantEngine;
 
   StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
+}
+
+void TheoryEngine::interrupt() throw(ModalException) {
+  d_interrupted = true;
 }
 
 void TheoryEngine::preRegister(TNode preprocessed) {
@@ -282,6 +287,9 @@ void TheoryEngine::check(Theory::Effort effort) {
 
   d_propEngine->checkTime();
 
+  // Reset the interrupt flag
+  d_interrupted = false; 
+
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
@@ -292,7 +300,6 @@ void TheoryEngine::check(Theory::Effort effort) {
          break; \
        } \
     }
-
 
   // Do the checking
   try {
@@ -455,6 +462,9 @@ void TheoryEngine::combineTheories() {
 }
 
 void TheoryEngine::propagate(Theory::Effort effort) {
+  // Reset the interrupt flag
+  d_interrupted = false; 
+
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -463,6 +473,9 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   if (theory::TheoryTraits<THEORY>::hasPropagate && d_logicInfo.isTheoryEnabled(THEORY)) { \
     theoryOf(THEORY)->propagate(effort); \
   }
+
+  // Reset the interrupt flag
+  d_interrupted = false; 
 
   // Propagate for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
@@ -592,6 +605,8 @@ TheoryModel* TheoryEngine::getModel() {
 }
 
 bool TheoryEngine::presolve() {
+  // Reset the interrupt flag
+  d_interrupted = false; 
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -599,7 +614,7 @@ bool TheoryEngine::presolve() {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    if (theory::TheoryTraits<THEORY>::hasPresolve) { \
+    if (theory::TheoryTraits<THEORY>::hasPresolve) {    \
       theoryOf(THEORY)->presolve(); \
       if(d_inConflict) { \
         return true; \
@@ -616,6 +631,8 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
+  // Reset the interrupt flag
+  d_interrupted = false; 
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -637,6 +654,9 @@ void TheoryEngine::postsolve() {
 
 
 void TheoryEngine::notifyRestart() {
+  // Reset the interrupt flag
+  d_interrupted = false; 
+
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -651,6 +671,8 @@ void TheoryEngine::notifyRestart() {
 }
 
 void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+  // Reset the interrupt flag
+  d_interrupted = false; 
 
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -683,6 +705,9 @@ void TheoryEngine::shutdown() {
 }
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
+  // Reset the interrupt flag
+  d_interrupted = false; 
+
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 

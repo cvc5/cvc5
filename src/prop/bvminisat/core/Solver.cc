@@ -27,9 +27,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "util/output.h"
 #include "util/utility.h"
-
+#include "util/exception.h"
 #include "theory/bv/options.h"
-
+#include "theory/interrupted.h"
 using namespace BVMinisat;
 
 namespace CVC4 {
@@ -794,13 +794,25 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
         }else{
             // NO CONFLICT
-            if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts || !withinBudget()){
+            bool isWithinBudget;
+            try {
+              isWithinBudget = withinBudget(); 
+            }
+            catch (const CVC4::theory::Interrupted& e) {
+              // do some clean-up and rethrow 
+              cancelUntil(assumptions.size()); 
+              throw e; 
+            }
+            
+            if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts ||
+                !isWithinBudget) {
                 // Reached bound on number of conflicts:
                 Debug("bvminisat::search") << OUTPUT_TAG << " restarting " << std::endl;
                 progress_estimate = progressEstimate();
                 cancelUntil(assumptions.size());
-                return l_Undef; }
-
+                return l_Undef;
+            }
+ 
             // Simplify the set of problem clauses:
             if (decisionLevel() == 0 && !simplify()) {
                 Debug("bvminisat::search") << OUTPUT_TAG << " base level conflict, we're unsat" << std::endl;

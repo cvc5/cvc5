@@ -36,11 +36,13 @@
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
+#include "theory/interrupted.h"
 #include "options/options.h"
 #include "smt/options.h"
 #include "util/statistics_registry.h"
 #include "util/hash.h"
 #include "util/cache.h"
+#include "util/cvc4_assert.h"
 #include "theory/ite_simplifier.h"
 #include "theory/unconstrained_simplifier.h"
 #include "theory/model.h"
@@ -230,6 +232,11 @@ class TheoryEngine {
     {
     }
 
+    void safePoint() throw(theory::Interrupted, AssertionException) {
+      if (d_engine->d_interrupted)
+        throw theory::Interrupted(); 
+   }
+
     void conflict(TNode conflictNode) throw(AssertionException) {
       Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
       ++ d_statistics.conflicts;
@@ -386,6 +393,9 @@ class TheoryEngine {
   Node d_true;
   Node d_false;
 
+  /** Whether we were just interrupted (or not) */
+  bool d_interrupted; 
+  
 public:
 
   /** Constructs a theory engine */
@@ -394,6 +404,8 @@ public:
   /** Destroys a theory engine */
   ~TheoryEngine();
 
+  void interrupt() throw(ModalException); 
+  
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.

@@ -356,6 +356,10 @@ void Bitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 };
 
+void Bitblaster::MinisatNotify::safePoint() {
+  d_bv->d_out->safePoint(); 
+}
+
 EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
 
   // We don't want to bit-blast every possibly expensive term for the sake of equality checking

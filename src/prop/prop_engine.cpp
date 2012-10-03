@@ -282,6 +282,7 @@ void PropEngine::interrupt() throw(ModalException) {
 
   d_interrupted = true;
   d_satSolver->interrupt();
+  d_theoryEngine->interrupt(); 
   Debug("prop") << "interrupt()" << endl;
 }
 

@@ -78,6 +78,7 @@ class Bitblaster {
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
+    void safePoint();
   };
   
   typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction >              TermDefMap;

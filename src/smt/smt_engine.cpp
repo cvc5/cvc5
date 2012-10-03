@@ -2446,6 +2446,7 @@ void SmtEngine::interrupt() throw(ModalException) {
     return;
   }
   d_propEngine->interrupt();
+  d_theoryEngine->interrupt();
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
