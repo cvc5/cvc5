@@ -738,7 +738,9 @@ void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflag
   // always incremental and model-producing in CVC3 compatibility mode
   // also incrementally-simplifying and interactive
   d_smt->setOption("incremental", string("true"));
-  d_smt->setOption("produce-models", string("true"));
+  // disable this option by default for now, because datatype models
+  // are broken [MGD 10/4/2012]
+  //d_smt->setOption("produce-models", string("true"));
   d_smt->setOption("simplification-mode", string("incremental"));
   d_smt->setOption("interactive-mode", string("true"));// support SmtEngine::getAssertions()
 
