@@ -6,4 +6,6 @@
 %ignore CVC4::Exception::Exception(const char*) throw();
 %typemap(javabase) CVC4::Exception "java.lang.RuntimeException";
 
+%rename(CVC4IllegalArgumentException) CVC4::IllegalArgumentException;
+
 %include "util/exception.h"
