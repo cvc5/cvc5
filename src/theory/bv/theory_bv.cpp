@@ -127,7 +127,7 @@ void TheoryBV::check(Effort e)
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
-  Assert (fullModel); // can only query full model
+  //  Assert (fullModel); // can only query full model
   d_equalitySolver.collectModelInfo(m); 
   d_bitblastSolver.collectModelInfo(m); 
   

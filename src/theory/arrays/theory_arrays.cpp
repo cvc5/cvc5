@@ -565,9 +565,15 @@ void TheoryArrays::computeCareGraph()
           // If arrays are known to be disequal, or cannot become equal, we can continue
           Assert(d_mayEqualEqualityEngine.hasTerm(r1[0]) && d_mayEqualEqualityEngine.hasTerm(r2[0]));
           if (r1[0].getType() != r2[0].getType() ||
-              (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0])) ||
               d_equalityEngine.areDisequal(r1[0], r2[0], false)) {
             Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
+            continue;
+          }
+          else if (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0])) {
+            if (r2.getType().getCardinality().isInfinite()) {
+              continue;
+            }
+            // TODO: add a disequality split for these two arrays
             continue;
           }
         }
@@ -678,11 +684,17 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
     if (it == defValues.end()) {
       TypeNode valueType = n.getType().getArrayConstituentType();
       rep = defaultValuesSet.nextTypeEnum(valueType);
+      if (rep.isNull()) {
+        Assert(defaultValuesSet.getSet(valueType)->begin() != defaultValuesSet.getSet(valueType)->end());
+        rep = *(defaultValuesSet.getSet(valueType)->begin());
+      }
+      Trace("arrays-models") << "New default value = " << rep << endl;
       defValues[mayRep] = rep;
     }
     else {
       rep = (*it).second;
     }
+
     // Build the STORE_ALL term with the default value
     rep = nm->mkConst(ArrayStoreAll(n.getType().toType(), rep.toExpr()));
     // For each read, require that the rep stores the right value

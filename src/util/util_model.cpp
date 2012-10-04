@@ -14,7 +14,7 @@
  ** \brief implementation of Model class
  **/
 
-#include "util/model.h"
+#include "util/util_model.h"
 #include "expr/command.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/command_list.h"

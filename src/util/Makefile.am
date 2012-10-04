@@ -81,8 +81,8 @@ libutil_la_SOURCES = \
 	uninterpreted_constant.cpp \
 	array_store_all.h \
 	array_store_all.cpp \
-	model.h \
-	model.cpp
+	util_model.h \
+	util_model.cpp
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

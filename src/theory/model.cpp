@@ -486,7 +486,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, &tm->d_equalityEngine);
         for ( ; !eqc_i.isFinished(); ++eqc_i) {
           Node n = *eqc_i;
-          Node normalized = normalize(tm, n, constantReps);
+          Node normalized = normalize(tm, n, constantReps, true);
           if (normalized.isConst()) {
             typeConstSet.add(t, normalized);
             constantReps[*i2] = normalized;
@@ -529,7 +529,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       for (i = repSet.begin(); i != repSet.end(); ) {
         Assert(assertedReps.find(*i) != assertedReps.end());
         Node rep = assertedReps[*i];
-        Node normalized = normalize(tm, rep, constantReps);
+        Node normalized = normalize(tm, rep, constantReps, false);
         Trace("model-builder") << "  Normalizing rep (" << rep << "), normalized to (" << normalized << ")" << endl;
         if (normalized.isConst()) {
           changed = true;
@@ -602,9 +602,8 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 }
 
 
-Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node, Node >& constantReps)
+Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node, Node >& constantReps, bool evalOnly)
 {
-  Trace("tembn") << "Normalize " << r << std::endl;
   std::map<Node, Node>::iterator itMap = constantReps.find(r);
   if (itMap != constantReps.end()) {
     return (*itMap).second;
@@ -625,8 +624,17 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
       if (!ri.isConst()) {
         if (m->d_equalityEngine.hasTerm(ri)) {
           ri = m->d_equalityEngine.getRepresentative(ri);
+          itMap = constantReps.find(ri);
+          if (itMap != constantReps.end()) {
+            ri = (*itMap).second;
+          }
+          else if (evalOnly) {
+            ri = normalize(m, r[i], constantReps, evalOnly);
+          }
         }
-        ri = normalize(m, ri, constantReps);
+        else {
+          ri = normalize(m, ri, constantReps, evalOnly);
+        }
         if (!ri.isConst()) {
           childrenConst = false;
         }

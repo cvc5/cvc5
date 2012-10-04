@@ -29,7 +29,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/proof.h"
-#include "util/model.h"
+#include "util/util_model.h"
 #include "smt/modal_exception.h"
 #include "util/hash.h"
 #include "options/options.h"

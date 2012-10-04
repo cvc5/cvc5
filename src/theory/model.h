@@ -19,7 +19,7 @@
 #ifndef __CVC4__THEORY_MODEL_H
 #define __CVC4__THEORY_MODEL_H
 
-#include "util/model.h"
+#include "util/util_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
@@ -193,7 +193,9 @@ private:
     else {
       te = (*it).second;
     }
-    Assert(!te->isFinished());
+    if (te->isFinished()) {
+      return Node();
+    }
 
     iterator itSet = d_typeSet.find(t);
     std::set<Node>* s;
@@ -206,7 +208,9 @@ private:
     }
     Node n = **te;
     while (s->find(n) != s->end()) {
-      Assert(!te->isFinished());
+      if (te->isFinished()) {
+        return Node();
+      }
       ++(*te);
       n = **te;
     }
@@ -254,7 +258,7 @@ protected:
   /** choose representative for unconstrained equivalence class */
   virtual Node chooseRepresentative(TheoryModel* m, Node eqc, bool fullModel);
   /** normalize representative */
-  Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps);
+  Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}

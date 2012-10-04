@@ -358,6 +358,10 @@ public:
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning true" << std::endl;
           return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
         }
+        else if (node[0].isConst() && node[1].isConst()) {
+          Trace("arrays-postrewrite") << "Arrays::postRewrite returning false" << std::endl;
+          return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+        }
         if (node[0] > node[1]) {
           Node newNode = NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << newNode << std::endl;

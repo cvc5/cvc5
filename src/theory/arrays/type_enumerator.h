@@ -24,6 +24,7 @@
 #include "theory/type_enumerator.h"
 #include "expr/type_node.h"
 #include "expr/kind.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,27 +32,94 @@ namespace arrays {
 
 class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
   TypeEnumerator d_index;
-  TypeEnumerator d_constituent;
+  TypeNode d_constituentType;
+  NodeManager* d_nm;
+  std::vector<Node> d_indexVec;
+  std::vector<TypeEnumerator*> d_constituentVec;
+  bool d_finished;
+  Node d_arrayConst;
 
 public:
 
   ArrayEnumerator(TypeNode type) throw(AssertionException) :
     TypeEnumeratorBase<ArrayEnumerator>(type),
-    d_index(TypeEnumerator(type.getArrayIndexType())),
-    d_constituent(TypeEnumerator(type.getArrayConstituentType())) {
+    d_index(type.getArrayIndexType()),
+    d_constituentType(type.getArrayConstituentType()),
+    d_nm(NodeManager::currentNM()),
+    d_finished(false)
+  {
+    d_indexVec.push_back(*d_index);
+    d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+    d_arrayConst = d_nm->mkConst(ArrayStoreAll(type.toType(), (*(*d_constituentVec.back())).toExpr()));
+  }
+
+  ~ArrayEnumerator() {
+    while (!d_constituentVec.empty()) {
+      delete d_constituentVec.back();
+      d_constituentVec.pop_back();
+    }
   }
 
   Node operator*() throw(NoMoreValuesException) {
-    return Node::null();
-    //return NodeManager::currentNM()->mkConst(Array(d_size, d_bits));
+    if (d_finished) {
+      throw NoMoreValuesException(getType());
+    }
+    Node n = d_arrayConst;
+    for (unsigned i = 0; i < d_indexVec.size(); ++i) {
+      n = d_nm->mkNode(kind::STORE, n, d_indexVec[d_indexVec.size() - 1 - i], *(*(d_constituentVec[i])));
+    }
+    Trace("array-type-enum") << "operator * prerewrite: " << n << std::endl;
+    n = Rewriter::rewrite(n);
+    Trace("array-type-enum") << "operator * returning: " << n << std::endl;
+    return n;
   }
 
   ArrayEnumerator& operator++() throw() {
+    Trace("array-type-enum") << "operator++ called, **this = " << **this << std::endl;
+
+    if (d_finished) {
+      Trace("array-type-enum") << "operator++ finished!" << std::endl;
+      return *this;
+    }
+    while (!d_constituentVec.empty()) {
+      ++(*d_constituentVec.back());
+      if (d_constituentVec.back()->isFinished()) {
+        delete d_constituentVec.back();
+        d_constituentVec.pop_back();
+      }
+      else {
+        break;
+      }
+    }
+
+    if (d_constituentVec.empty()) {
+      ++d_index;
+      if (d_index.isFinished()) {
+        Trace("array-type-enum") << "operator++ finished!" << std::endl;
+        d_finished = true;
+        return *this;
+      }
+      d_indexVec.push_back(*d_index);
+      d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+      ++(*d_constituentVec.back());
+      if (d_constituentVec.back()->isFinished()) {
+        Trace("array-type-enum") << "operator++ finished!" << std::endl;
+        d_finished = true;
+        return *this;
+      }
+    }
+
+    while (d_constituentVec.size() < d_indexVec.size()) {
+      d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
+    }
+
+    Trace("array-type-enum") << "operator++ returning, **this = " << **this << std::endl;
     return *this;
   }
 
   bool isFinished() throw() {
-    Unimplemented();
+    Trace("array-type-enum") << "isFinished returning: " << d_finished << std::endl;
+    return d_finished;
   }
 
 };/* class ArrayEnumerator */
