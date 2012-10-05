@@ -110,9 +110,7 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
-  if(!d_inCheckSat && Dump.isOn("learned")) {
-    Dump("learned") << AssertCommand(node.toExpr());
-  } else if(Dump.isOn("lemmas")) {
+  if(Dump.isOn("lemmas")) {
     Dump("lemmas") << AssertCommand(node.toExpr());
   }
 

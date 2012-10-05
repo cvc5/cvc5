@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -116,8 +116,6 @@ public:
   Expr getValue( Expr expr );
   /** get cardinality for sort */
   Cardinality getCardinality( Type t );
-  /** to stream function */
-  void toStream( std::ostream& out );
 public:
   /** print representative debug function */
   void printRepresentativeDebug( const char* c, Node r );
@@ -139,6 +137,7 @@ public:
   typedef std::hash_map<TypeNode, std::set<Node>*, TypeNodeHashFunction> TypeSetMap;
   typedef std::hash_map<TypeNode, TypeEnumerator*, TypeNodeHashFunction> TypeToTypeEnumMap;
   typedef TypeSetMap::iterator iterator;
+  typedef TypeSetMap::const_iterator const_iterator;
 private:
   TypeSetMap d_typeSet;
   TypeToTypeEnumMap d_teMap;
@@ -173,9 +172,9 @@ private:
     s->insert(n);
   }
 
-  std::set<Node>* getSet(TypeNode t)
+  std::set<Node>* getSet(TypeNode t) const
   {
-    iterator it = d_typeSet.find(t);
+    const_iterator it = d_typeSet.find(t);
     if (it == d_typeSet.end()) {
       return NULL;
     }

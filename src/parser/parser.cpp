@@ -156,7 +156,7 @@ Parser::mkBoundVar(const std::string& name, const Type& type) {
 
 Expr
 Parser::mkFunction(const std::string& name, const Type& type,
-                            bool levelZero) {
+                   bool levelZero) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = d_exprManager->mkVar(name, type);
   defineFunction(name, expr, levelZero);

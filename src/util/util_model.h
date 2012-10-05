@@ -29,14 +29,21 @@ namespace CVC4 {
 
 class CVC4_PUBLIC Command;
 class CVC4_PUBLIC SmtEngine;
+class CVC4_PUBLIC Model;
+
+std::ostream& operator<<(std::ostream&, Model&) CVC4_PUBLIC;
 
 class CVC4_PUBLIC Model {
-private:
+  friend std::ostream& operator<<(std::ostream&, Model&);
+
+protected:
   /** The SmtEngine we're associated to */
   const SmtEngine& d_smt;
-public:
-  /** construct the base class */
+
+  /** construct the base class; users cannot do this, only CVC4 internals */
   Model();
+
+public:
   /** virtual destructor */
   virtual ~Model() { }
   /** get number of commands to report */
@@ -48,8 +55,6 @@ public:
   virtual Expr getValue(Expr expr) = 0;
   /** get cardinality for sort */
   virtual Cardinality getCardinality(Type t) = 0;
-  /** write the model to a stream */
-  virtual void toStream(std::ostream& out) = 0;
 };/* class Model */
 
 class ModelBuilder

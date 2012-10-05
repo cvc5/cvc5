@@ -21,23 +21,24 @@ function usage {
 }
 
 progress_char=/
+if [ -t 1 ]; then r="\r"; else r=""; fi
 function progress {
   file="$(expr "$1" : '.*\(.................................................................\)')"
   if [ -z "$file" ]; then file="$1"; else file="[...]$file"; fi
-  printf "\r%c %-70s (%3d%%)" "$progress_char" "$file" "$(($2*100/$3))"
+  [ -t 1 ] && printf "$r%c %-70s (%3d%%)" "$progress_char" "$file" "$(($2*100/$3))"
   progress_char="`echo "$progress_char" | tr -- '-\\\\|/' '\\\\|/-'`"
 }
 
 function NOTE {
-  printf "\r%-80s\n" "$kf:$lineno: note: $@"
+  printf "$r%-80s\n" "$kf:$lineno: note: $@"
 }
 
 function WARN {
-  printf "\r%-80s\n" "$kf:$lineno: warning: $@"
+  printf "$r%-80s\n" "$kf:$lineno: warning: $@"
 }
 
 function ERR {
-  printf "\r%-80s\n" "$kf:$lineno: error: $@"
+  printf "$r%-80s\n" "$kf:$lineno: error: $@"
   exit 1
 }
 
@@ -1322,7 +1323,7 @@ EOF
     rm -f "$output.tmp"
   else
     mv -f "$output.tmp" "$output"
-    printf "\rregenerated %-68s\n" "$output"
+    printf "${r}regenerated %-68s\n" "$output"
   fi
 }
 
@@ -1505,7 +1506,7 @@ if diff -q "$output" "$output.tmp" &>/dev/null; then
   regenerated=false
 else
   mv -f "$output.tmp" "$output"
-  printf "\rregenerated %-68s\n" "$output"
+  printf "${r}regenerated %-68s\n" "$output"
   regenerated=true
 fi
 rm -f "$output.tmp"
@@ -1513,5 +1514,5 @@ rm -f "$output.tmp"
 done
 
 if ! $regenerated; then
-  printf "\r%-80s\r" ""
+  [ -t 1 ] && printf "$r%-80s$r" ""
 fi

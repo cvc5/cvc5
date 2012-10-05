@@ -47,7 +47,7 @@ twox_plus_y = em.mkExpr(PLUS, twox, y)
 three = em.mkConst(CVC4::Integer.new(3))
 twox_plus_y_geq_3 = em.mkExpr(GEQ, twox_plus_y, three)
 
-formula = BoolExpr.new(em.mkExpr(AND, x_positive, y_positive)).impExpr(BoolExpr.new(twox_plus_y_geq_3))
+formula = Expr.new(em.mkExpr(AND, x_positive, y_positive)).impExpr(Expr.new(twox_plus_y_geq_3))
 
 puts "Checking validity of formula " + formula.toString + " with CVC4."
 puts "CVC4 should report VALID."

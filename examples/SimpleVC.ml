@@ -72,12 +72,12 @@ let twox_plus_y_geq_3 = em->mkExpr(geq, twox_plus_y, three)
 let lhs = em->mkExpr(and_kind, x_positive, y_positive)
 
 (* This fails for some reason. *)
-(* let rhs = new_BoolExpr(twox_plus_y_geq_3)
-   let formula = new_BoolExpr(lhs)->impExpr(rhs) *)
+(* let rhs = new_Expr(twox_plus_y_geq_3)
+   let formula = new_Expr(lhs)->impExpr(rhs) *)
 
 let formula = em->mkExpr(implies, lhs, twox_plus_y_geq_3)
 
-let bformula = new_BoolExpr(formula) in
+let bformula = new_Expr(formula) in
 
 print_string "Checking validity of formula " ;
 print_string (get_string (formula->toString ())) ;

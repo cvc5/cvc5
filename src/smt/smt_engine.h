@@ -290,8 +290,8 @@ class CVC4_PUBLIC SmtEngine {
   smt::SmtEngineStatistics* d_stats;
 
   /**
-   * Add to Model command.  This is used for recording a command that should be reported
-   * during a get-model call.
+   * Add to Model command.  This is used for recording a command
+   * that should be reported during a get-model call.
    */
   void addToModelCommand(Command* c);
 
@@ -369,13 +369,13 @@ public:
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e) throw(TypeCheckingException);
+  Result query(const Expr& e) throw(TypeCheckingException, ModalException);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr()) throw(TypeCheckingException);
+  Result checkSat(const Expr& e = Expr()) throw(TypeCheckingException, ModalException);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -442,12 +442,12 @@ public:
   /**
    * Push a user-level context.
    */
-  void push();
+  void push() throw(ModalException);
 
   /**
    * Pop a user-level context.  Throws an exception if nothing to pop.
    */
-  void pop();
+  void pop() throw(ModalException);
 
   /**
    * Interrupt a running query.  This can be called from another thread
@@ -572,14 +572,10 @@ public:
   }
 
   /**
-   * print model function (need this?)
+   * Set user attribute.
+   * This function is called when an attribute is set by a user.
+   * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void printModel( std::ostream& out, Model* m );
-
-  /** Set user attribute
-    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-    *  via the syntax (! expr :attr)
-    */
   void setUserAttribute( std::string& attr, Expr expr );
 
 };/* class SmtEngine */

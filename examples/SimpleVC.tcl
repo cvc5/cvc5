@@ -46,7 +46,7 @@ set twox_plus_y [ExprManager_mkExpr em $PLUS $twox $y]
 set three [ExprManager_mkConst em [Integer _ 3]]
 set twox_plus_y_geq_3 [ExprManager_mkExpr em $GEQ $twox_plus_y $three]
 
-set formula [BoolExpr_impExpr [BoolExpr _1 [ExprManager_mkExpr em $AND $x_positive $y_positive]] [BoolExpr _2 $twox_plus_y_geq_3]]
+set formula [Expr_impExpr [Expr _1 [ExprManager_mkExpr em $AND $x_positive $y_positive]] [Expr _2 $twox_plus_y_geq_3]]
 
 puts "Checking validity of formula [Expr_toString $formula] with CVC4."
 puts "CVC4 should report VALID."

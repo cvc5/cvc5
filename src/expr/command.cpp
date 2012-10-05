@@ -890,7 +890,7 @@ void GetModelCommand::printResult(std::ostream& out) const throw() {
   if(! ok()) {
     this->Command::printResult(out);
   } else {
-    d_smtEngine->printModel( out, d_result );
+    out << *d_result;
   }
 }
 

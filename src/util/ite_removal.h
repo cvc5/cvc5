@@ -23,14 +23,22 @@
 #include <vector>
 #include "expr/node.h"
 #include "util/dump.h"
+#include "context/context.h"
+#include "context/cdhashmap.h"
 
 namespace CVC4 {
 
 typedef std::hash_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveITE {
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> ITECache;
+  ITECache d_iteCache;
 
 public:
+
+  RemoveITE(context::UserContext* u) :
+    d_iteCache(u) {
+  }
 
   /**
    * Removes the ITE nodes by introducing skolem variables. All
@@ -39,7 +47,7 @@ public:
    * assertions containing the new Boolean ite created in conjunction
    * with that skolem variable.
    */
-  static void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap);
+  void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap);
 
   /**
    * Removes the ITE from the node by introducing skolem
@@ -48,8 +56,8 @@ public:
    * variables to the index in assertions containing the new Boolean
    * ite created in conjunction with that skolem variable.
    */
-  static Node run(TNode node, std::vector<Node>& additionalAssertions,
-                  IteSkolemMap& iteSkolemMap);
+  Node run(TNode node, std::vector<Node>& additionalAssertions,
+           IteSkolemMap& iteSkolemMap);
 
 };/* class RemoveTTE */
 

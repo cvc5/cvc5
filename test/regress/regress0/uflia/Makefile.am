@@ -40,14 +40,12 @@ SMT2_TESTS = \
 	FIREFLY_luke_1b_e2_3049_e7_1173.ec.minimized.smt2 \
 	stalmark_e7_27_e7_31.ec.minimized.smt2 \
 	stalmark_e7_27_e7_31.ec.smt2 \
-	tiny.smt2
+	tiny.smt2 \
+	speed2_e8_449_e8_517.ec.smt2 \
+	microwave21.ec.minimized.smt2
 #	simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
 #	javafe.ast.StandardPrettyPrint.319_no_forall.smt2
 #	javafe.ast.WhileStmt.447_no_forall.smt2
-
-# CURRENTLY FAILING:
-#	speed2_e8_449_e8_517.ec.smt2
-#	microwave21.ec.minimized.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = 

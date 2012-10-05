@@ -106,10 +106,6 @@ Node FirstOrderModel::getInterpretedValue( TNode n ){
   return TheoryModel::getInterpretedValue( n );
 }
 
-void FirstOrderModel::toStream(std::ostream& out){
-
-}
-
 
 //for evaluation of quantifier bodies
 

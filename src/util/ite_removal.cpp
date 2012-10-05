@@ -27,9 +27,6 @@ using namespace std;
 
 namespace CVC4 {
 
-struct IteRewriteAttrTag {};
-typedef expr::Attribute<IteRewriteAttrTag, Node> IteRewriteAttr;
-
 void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
 {
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
@@ -43,9 +40,10 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   Debug("ite") << "removeITEs(" << node << ")" << endl;
 
   // The result may be cached already
-  Node cachedRewrite;
   NodeManager *nodeManager = NodeManager::currentNM();
-  if(nodeManager->getAttribute(node, IteRewriteAttr(), cachedRewrite)) {
+  ITECache::iterator i = d_iteCache.find(node);
+  if(i != d_iteCache.end()) {
+    Node cachedRewrite = (*i).second;
     Debug("ite") << "removeITEs: in-cache: " << cachedRewrite << endl;
     return cachedRewrite.isNull() ? Node(node) : cachedRewrite;
   }
@@ -64,7 +62,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
       Debug("ite") << "removeITEs(" << node << ") => " << newAssertion << endl;
 
       // Attach the skolem
-      nodeManager->setAttribute(node, IteRewriteAttr(), skolem);
+      d_iteCache[node] = skolem;
 
       // Remove ITEs from the new assertion, rewrite it and push it to the output
       newAssertion = run(newAssertion, output, iteSkolemMap);
@@ -94,15 +92,15 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
 
     // If changes, we rewrite
     if(somethingChanged) {
-      cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
-      nodeManager->setAttribute(node, IteRewriteAttr(), cachedRewrite);
+      Node cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
+      d_iteCache[node] = cachedRewrite;
       return cachedRewrite;
     } else {
-      nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
+      d_iteCache[node] = Node::null();
       return node;
     }
   } else {
-    nodeManager->setAttribute(node, IteRewriteAttr(), Node::null());
+    d_iteCache[node] = Node::null();
     return node;
   }
 }

@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -75,23 +75,20 @@ benchmark\n\
 declarations\n\
 + Dump user declarations.  Implied by all following modes.\n\
 \n\
-assertions\n\
-+ Output the assertions after non-clausal simplification and static\n\
-  learning phases, but before presolve-time T-lemmas arrive.  If\n\
-  non-clausal simplification and static learning are off\n\
-  (--simplification=none --no-static-learning), the output\n\
-  will closely resemble the input (with term-level ITEs removed).\n\
-\n\
 skolems\n\
 + Dump internally-created skolem variable declarations.  These can\n\
   arise from preprocessing simplifications, existential elimination,\n\
   and a number of other things.  Implied by all following modes.\n\
 \n\
-learned\n\
-+ Output the assertions after non-clausal simplification, static\n\
-  learning, and presolve-time T-lemmas.  This should include all eager\n\
-  T-lemmas (in the form provided by the theory, which my or may not be\n\
-  clausal).  Also includes level-0 BCP done by Minisat.\n\
+assertions\n\
++ Output the assertions after preprocessing and before clausification.\n\
+  Can also specify \"assertions:pre-PASS\" or \"assertions:post-PASS\",\n\
+  where PASS is one of the preprocessing passes: skolem-quant simplify\n\
+  static-learning ite-removal repeat-simplify theory-preprocessing.\n\
+  PASS can also be the special value \"everything\", in which case the\n\
+  assertions are printed before any preprocessing (with\n\
+  \"assertions:pre-everything\") or after all preprocessing completes\n\
+  (with \"assertions:post-everything\").\n\
 \n\
 clauses\n\
 + Do all the preprocessing outlined above, and dump the CNF-converted\n\
@@ -127,7 +124,7 @@ theory::fullcheck [non-stateful]\n\
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
 Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
-one from the assertions category (either assertions, learned, or clauses), and\n\
+one from the assertions category (either assertions or clauses), and\n\
 perhaps one or more stateful or non-stateful modes for checking correctness\n\
 and completeness of decision procedure implementations.  Stateful modes dump\n\
 the contextual assertions made by the core solver (all decisions and\n\
@@ -177,8 +174,30 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
     if(!strcmp(optargPtr, "benchmark")) {
     } else if(!strcmp(optargPtr, "declarations")) {
     } else if(!strcmp(optargPtr, "assertions")) {
+      Dump.on("assertions:post-everything");
+    } else if(!strncmp(optargPtr, "assertions:", 11)) {
+      const char* p = optargPtr + 11;
+      if(!strncmp(p, "pre-", 4)) {
+        p += 4;
+      } else if(!strncmp(p, "post-", 5)) {
+        p += 5;
+      } else {
+        throw OptionException(std::string("don't know how to dump `") +
+                              optargPtr + "'.  Please consult --dump help.");
+      }
+      if(!strcmp(p, "everything")) {
+      } else if(!strcmp(p, "skolem-quant")) {
+      } else if(!strcmp(p, "simplify")) {
+      } else if(!strcmp(p, "static-learning")) {
+      } else if(!strcmp(p, "ite-removal")) {
+      } else if(!strcmp(p, "repeat-simplify")) {
+      } else if(!strcmp(p, "theory-preprocessing")) {
+      } else {
+        throw OptionException(std::string("don't know how to dump `") +
+                              optargPtr + "'.  Please consult --dump help.");
+      }
+      Dump.on("assertions");
     } else if(!strcmp(optargPtr, "skolems")) {
-    } else if(!strcmp(optargPtr, "learned")) {
     } else if(!strcmp(optargPtr, "clauses")) {
     } else if(!strcmp(optargPtr, "t-conflicts") ||
               !strcmp(optargPtr, "t-lemmas") ||
@@ -225,7 +244,7 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
     Dump.on("benchmark");
     if(strcmp(optargPtr, "benchmark")) {
       Dump.on("declarations");
-      if(strcmp(optargPtr, "declarations") && strcmp(optargPtr, "assertions")) {
+      if(strcmp(optargPtr, "declarations")) {
         Dump.on("skolems");
       }
     }

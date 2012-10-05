@@ -137,7 +137,8 @@ EXTRA_DIST = \
 	array_store_all.i \
 	ascription_type.i \
 	rational.i \
-	hash.i
+	hash.i \
+	util_model.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

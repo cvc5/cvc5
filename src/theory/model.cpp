@@ -77,11 +77,6 @@ Cardinality TheoryModel::getCardinality( Type t ){
   }
 }
 
-void TheoryModel::toStream( std::ostream& out )
-{
-  out << this;
-}
-
 Node TheoryModel::getModelValue( TNode n )
 {
   if( n.isConst() ) {
@@ -550,6 +545,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     }
   } while (changed);
 
+#ifdef CVC4_ASSERTIONS
   if (fullModel) {
     // Assert that all representatives have been converted to constants
     for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it) {
@@ -557,6 +553,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       Assert(repSet.empty());
     }
   }
+#endif /* CVC4_ASSERTIONS */
 
   Trace("model-builder") << "Copy representatives to model..." << std::endl;
   tm->d_reps.clear();

@@ -18,12 +18,20 @@
 #include "expr/command.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/command_list.h"
+#include "printer/printer.h"
 
 #include <vector>
 
 using namespace std;
 
 namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& out, Model& m) {
+  smt::SmtScope smts(&m.d_smt);
+  Expr::dag::Scope scope(out, false);
+  Printer::getPrinter(options::outputLanguage())->toStream(out, m);
+  return out;
+}
 
 Model::Model() :
   d_smt(*smt::currentSmtEngine()) {

@@ -1,7 +1,7 @@
 ; initialize_defs
 ; PROPERTY DEFGEN
 (set-logic QF_UFNIA)
-(set-info :status sat)
+(set-info :status unsat)
 (declare-fun _base () Int)
 (declare-fun _n () Int)
 (assert (>= _n 0))

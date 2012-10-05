@@ -4,7 +4,6 @@ import edu.nyu.acsys.CVC4.SmtEngine;
 import edu.nyu.acsys.CVC4.ExprManager;
 import edu.nyu.acsys.CVC4.Expr;
 import edu.nyu.acsys.CVC4.Type;
-import edu.nyu.acsys.CVC4.BoolExpr;
 import edu.nyu.acsys.CVC4.Kind;
 import edu.nyu.acsys.CVC4.Result;
 import edu.nyu.acsys.CVC4.Configuration;
@@ -36,7 +35,7 @@ public class CVC4JavaTest {
       Type t = em.booleanType();
       Expr a = em.mkVar("a", em.booleanType());
       Expr b = em.mkVar("b", em.booleanType());
-      BoolExpr e = new BoolExpr(em.mkExpr(Kind.AND, a, b, new BoolExpr(a).notExpr()));
+      Expr e = new Expr(em.mkExpr(Kind.AND, a, b, new Expr(a).notExpr()));
       System.out.println("==> " + e);
 
       Result r = smt.checkSat(e);

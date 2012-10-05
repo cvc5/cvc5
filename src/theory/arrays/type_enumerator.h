@@ -46,11 +46,35 @@ public:
     d_index(type.getArrayIndexType()),
     d_constituentType(type.getArrayConstituentType()),
     d_nm(NodeManager::currentNM()),
-    d_finished(false)
+    d_indexVec(),
+    d_constituentVec(),
+    d_finished(false),
+    d_arrayConst()
   {
     d_indexVec.push_back(*d_index);
     d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
     d_arrayConst = d_nm->mkConst(ArrayStoreAll(type.toType(), (*(*d_constituentVec.back())).toExpr()));
+  }
+
+  // An array enumerator could be large, and generally you don't want to
+  // go around copying these things; but a copy ctor is presently required
+  // by the TypeEnumerator framework.
+  ArrayEnumerator(const ArrayEnumerator& ae) throw() :
+    TypeEnumeratorBase<ArrayEnumerator>(ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+    d_index(ae.d_index),
+    d_constituentType(ae.d_constituentType),
+    d_nm(ae.d_nm),
+    d_indexVec(ae.d_indexVec),
+    d_constituentVec(),// copied below
+    d_finished(ae.d_finished),
+    d_arrayConst(ae.d_arrayConst)
+  {
+    for(std::vector<TypeEnumerator*>::const_iterator i =
+          ae.d_constituentVec.begin(), i_end = ae.d_constituentVec.end();
+        i != i_end;
+        ++i) {
+      d_constituentVec.push_back(new TypeEnumerator(**i));
+    }
   }
 
   ~ArrayEnumerator() {

@@ -108,10 +108,10 @@ common-option statistics statistics --stats bool
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
 
-common-option parseOnly parse-only --parse-only bool :read-write
+option parseOnly parse-only --parse-only bool :read-write
  exit after parsing input
 
-common-option preprocessOnly preprocess-only --preprocess-only bool
+option preprocessOnly preprocess-only --preprocess-only bool
  exit after preprocessing input
 
 option segvNoSpin --segv-nospin bool

@@ -634,7 +634,7 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
   | str[s]
     { sexpr = SExpr(s); }
   | symbol[s,CHECK_NONE,SYM_SORT]
-    { sexpr = SExpr(s); }
+    { sexpr = SExpr(SExpr::Keyword(s)); }
   | builtinOp[k]
     { std::stringstream ss;
       ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);

@@ -48,7 +48,7 @@ my $twox_plus_y = $em->mkExpr($CVC4::PLUS, $twox, $y);
 my $three = $em->mkConst(new CVC4::Integer(3));
 my $twox_plus_y_geq_3 = $em->mkExpr($CVC4::GEQ, $twox_plus_y, $three);
 
-my $formula = new CVC4::BoolExpr($em->mkExpr($CVC4::AND, $x_positive, $y_positive))->impExpr(new CVC4::BoolExpr($twox_plus_y_geq_3));
+my $formula = new CVC4::Expr($em->mkExpr($CVC4::AND, $x_positive, $y_positive))->impExpr(new CVC4::Expr($twox_plus_y_geq_3));
 
 print "Checking validity of formula " . $formula->toString() . " with CVC4.\n";
 print "CVC4 should report VALID.\n";

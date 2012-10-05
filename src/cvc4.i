@@ -151,6 +151,7 @@ using namespace CVC4;
 %include "util/array.i"
 %include "util/array_store_all.i"
 %include "util/hash.i"
+%include "util/util_model.i"
 
 %include "expr/type.i"
 %include "util/ascription_type.i"

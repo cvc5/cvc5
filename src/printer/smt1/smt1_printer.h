@@ -30,13 +30,13 @@ namespace printer {
 namespace smt1 {
 
 class Smt1Printer : public CVC4::Printer {
+  void toStream(std::ostream& out, Model& m, const Command* c) const throw();
 public:
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   void toStream(std::ostream& out, const SExpr& sexpr) const throw();
-  //for models
-  void toStream(std::ostream& out, Model* m, const Command* c) const throw();
+  void toStream(std::ostream& out, Model& m) const throw();
 };/* class Smt1Printer */
 
 }/* CVC4::printer::smt1 namespace */

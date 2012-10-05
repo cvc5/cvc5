@@ -24,7 +24,7 @@
 ####
 
 import CVC4
-from CVC4 import ExprManager, SmtEngine, Integer, BoolExpr
+from CVC4 import ExprManager, SmtEngine, Integer, Expr
 
 import sys
 
@@ -51,7 +51,7 @@ def main():
   three = em.mkConst(Integer(3))
   twox_plus_y_geq_3 = em.mkExpr(CVC4.GEQ, twox_plus_y, three)
 
-  formula = BoolExpr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(BoolExpr(twox_plus_y_geq_3))
+  formula = Expr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(Expr(twox_plus_y_geq_3))
 
   print "Checking validity of formula " + formula.toString() + " with CVC4."
   print "CVC4 should report VALID."

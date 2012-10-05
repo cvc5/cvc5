@@ -50,6 +50,7 @@ using namespace CVC4::theory;
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
+                           RemoveITE& iteRemover,
                            const LogicInfo& logicInfo)
 : d_propEngine(NULL),
   d_decisionEngine(NULL),
@@ -70,7 +71,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_propagationMapTimestamp(context, 0),
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
+  d_iteRemover(iteRemover),
   d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
+  d_true(),
+  d_false(),
   d_interrupted(false),
   d_inPreregister(false),
   d_factsAsserted(context, false),
@@ -1175,7 +1179,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   std::vector<Node> additionalLemmas;
   IteSkolemMap iteSkolemMap;
   additionalLemmas.push_back(node);
-  RemoveITE::run(additionalLemmas, iteSkolemMap);
+  d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
   // assert to prop engine

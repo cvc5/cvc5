@@ -127,9 +127,9 @@ void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
   }
 }/* Printer::toStream(SExpr) */
 
-void Printer::toStream(std::ostream& out, Model* m) const throw() {
-  for(size_t i = 0; i < m->getNumCommands(); ++i) {
-    toStream(out, m, m->getCommand(i));
+void Printer::toStream(std::ostream& out, Model& m) const throw() {
+  for(size_t i = 0; i < m.getNumCommands(); ++i) {
+    toStream(out, m, m.getCommand(i));
   }
 }/* Printer::toStream(Model) */
 

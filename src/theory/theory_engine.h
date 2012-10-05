@@ -387,6 +387,8 @@ class TheoryEngine {
    */
   theory::LemmaStatus lemma(TNode node, bool negated, bool removable);
 
+  RemoveITE& d_iteRemover;
+
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
 
@@ -399,7 +401,7 @@ class TheoryEngine {
 public:
 
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext, const LogicInfo& logic);
+  TheoryEngine(context::Context* context, context::UserContext* userContext, RemoveITE& iteRemover, const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

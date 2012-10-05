@@ -1410,7 +1410,7 @@ void Solver::push()
   trail_user_lim.push(trail.size());
   assert(trail_user_lim.size() == assertionLevel);
 
-  context->push();
+  context->push(); // SAT context for CVC4
 
   Debug("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
 }
@@ -1476,7 +1476,7 @@ void Solver::pop()
 
   Debug("minisat") << "about to removeClausesAboveLevel(" << assertionLevel << ") in CNF" << std::endl;
 
-  context->pop();
+  context->pop(); // SAT context for CVC4
 
   // Notify the cnf
   proxy->removeClausesAboveLevel(assertionLevel);

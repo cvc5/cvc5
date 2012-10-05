@@ -532,32 +532,32 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, Model* m, const Command* c) const throw() {
-  theory::TheoryModel* tm = (theory::TheoryModel*)m;
+void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
+  theory::TheoryModel& tm = (theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( tn.isSort() ){
       //print the cardinality
-      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
-        out << "; cardinality of " << tn << " is " << tm->d_rep_set.d_type_reps[tn].size() << std::endl;
+      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+        out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
       }
     }
     out << c << std::endl;
     if( tn.isSort() ){
       //print the representatives
-      if( tm->d_rep_set.d_type_reps.find( tn )!=tm->d_rep_set.d_type_reps.end() ){
-        for( size_t i=0; i<tm->d_rep_set.d_type_reps[tn].size(); i++ ){
-          if( tm->d_rep_set.d_type_reps[tn][i].isVar() ){
-            out << "(declare-fun " << tm->d_rep_set.d_type_reps[tn][i] << " () " << tn << ")" << std::endl;
+      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+        for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
+          if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
+            out << "(declare-fun " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " () " << tn << ")" << std::endl;
           }else{
-            out << "; rep: " << tm->d_rep_set.d_type_reps[tn][i] << std::endl;
+            out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
           }
         }
       }
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
     Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
-    Node val = tm->getValue( n );
+    Node val = tm.getValue( n );
     if(val.getKind() == kind::LAMBDA) {
       out << "(define-fun " << n << " " << val[0]
           << " " << n.getType().getRangeType()
