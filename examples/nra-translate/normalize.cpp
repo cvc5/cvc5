@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
   SmtEngine engine(&exprManager);
 
   // Variables and assertions
-  vector<BoolExpr> assertions;
+  vector<Expr> assertions;
 
   Command* cmd;
   while ((cmd = parser->nextCommand())) {

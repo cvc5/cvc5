@@ -290,11 +290,11 @@ public:
 
 class CVC4_PUBLIC AssertCommand : public Command {
 protected:
-  BoolExpr d_expr;
+  Expr d_expr;
 public:
-  AssertCommand(const BoolExpr& e) throw();
+  AssertCommand(const Expr& e) throw();
   ~AssertCommand() throw() {}
-  BoolExpr getExpr() const throw();
+  Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
@@ -423,13 +423,13 @@ public:
 
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
-  BoolExpr d_expr;
+  Expr d_expr;
   Result d_result;
 public:
   CheckSatCommand() throw();
-  CheckSatCommand(const BoolExpr& expr) throw();
+  CheckSatCommand(const Expr& expr) throw();
   ~CheckSatCommand() throw() {}
-  BoolExpr getExpr() const throw();
+  Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
   Result getResult() const throw();
   void printResult(std::ostream& out) const throw();
@@ -439,12 +439,12 @@ public:
 
 class CVC4_PUBLIC QueryCommand : public Command {
 protected:
-  BoolExpr d_expr;
+  Expr d_expr;
   Result d_result;
 public:
-  QueryCommand(const BoolExpr& e) throw();
+  QueryCommand(const Expr& e) throw();
   ~QueryCommand() throw() {}
-  BoolExpr getExpr() const throw();
+  Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
   Result getResult() const throw();
   void printResult(std::ostream& out) const throw();

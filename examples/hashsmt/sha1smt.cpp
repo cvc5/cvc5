@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
       output << DeclareFunctionCommand(ss.str(), cvc4input[i].getExpr(), cvc4input[i].getExpr().getType()) << endl;
 
       // Ouput the solution also
-      BoolExpr solution = (cvc4input[i] == hashsmt::cvc4_uchar8(msg.c_str()[i]));
+      Expr solution = (cvc4input[i] == hashsmt::cvc4_uchar8(msg.c_str()[i]));
       output << "; " << AssertCommand(solution) << endl;
     }
 
@@ -65,9 +65,9 @@ int main(int argc, char* argv[]) {
     sha1encoder.get_digest(sha1digest);
                 
     // Create the assertion
-    BoolExpr assertion;
+    Expr assertion;
     for (unsigned i = 0; i < 5; ++ i) {
-      BoolExpr conjunct = (cvc4digest[i] == hashsmt::cvc4_uint32(sha1digest[i]));
+      Expr conjunct = (cvc4digest[i] == hashsmt::cvc4_uint32(sha1digest[i]));
       if (i > 0) {
         assertion = assertion.andExpr(conjunct);
       } else {

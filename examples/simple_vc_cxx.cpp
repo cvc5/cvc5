@@ -49,9 +49,9 @@ int main() {
   Expr three = em.mkConst(Rational(3));
   Expr twox_plus_y_geq_3 = em.mkExpr(kind::GEQ, twox_plus_y, three);
 
-  BoolExpr formula =
-    BoolExpr(em.mkExpr(kind::AND, x_positive, y_positive)).
-    impExpr(BoolExpr(twox_plus_y_geq_3));
+  Expr formula =
+    em.mkExpr(kind::AND, x_positive, y_positive).
+    impExpr(twox_plus_y_geq_3);
 
   cout << "Checking validity of formula " << formula << " with CVC4." << endl;
   cout << "CVC4 should report VALID." << endl;

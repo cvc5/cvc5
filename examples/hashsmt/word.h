@@ -61,7 +61,7 @@ public:
   }
 
   /** Returns the comparison expression */  
-  CVC4::BoolExpr operator == (const Word& b) const;
+  CVC4::Expr operator == (const Word& b) const;
 };
 
 inline std::ostream& operator << (std::ostream& out, const Word& word) {

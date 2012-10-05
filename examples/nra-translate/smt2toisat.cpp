@@ -23,7 +23,7 @@ void translate_to_isat(
         const vector<string>& info_tags,
         const vector<string>& info_data,
 	const map<Expr, unsigned>& variables, 
-	const vector<BoolExpr>& assertions);
+	const vector<Expr>& assertions);
 
 int main(int argc, char* argv[]) 
 {
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   std::map<Expr, unsigned> variables;
   vector<string> info_tags;
   vector<string> info_data;
-  vector<BoolExpr> assertions;
+  vector<Expr> assertions;
 
   Command* cmd;
   while ((cmd = parser->nextCommand())) {
@@ -148,7 +148,7 @@ void translate_to_isat_term(const map<Expr, unsigned>& variables, const Expr& te
   }  
 }
 
-void translate_to_isat(const map<Expr, unsigned>& variables, const BoolExpr& assertion) {
+void translate_to_isat(const map<Expr, unsigned>& variables, const Expr& assertion) {
   bool first;
   
   unsigned n = assertion.getNumChildren();
@@ -260,7 +260,7 @@ void translate_to_isat(
         const vector<string>& info_tags,
         const vector<string>& info_data,
         const std::map<Expr, unsigned>& variables,
-	const vector<BoolExpr>& assertions) 
+	const vector<Expr>& assertions)
 {
   bool first;
 

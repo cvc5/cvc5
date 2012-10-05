@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     vector<string> variables;
     vector<string> info_tags;
     vector<string> info_data;
-    vector<BoolExpr> assertions;
+    vector<Expr> assertions;
   
     Command* cmd;
     while ((cmd = parser->nextCommand())) {

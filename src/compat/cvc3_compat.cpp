@@ -2071,7 +2071,7 @@ void ValidityChecker::setTimeLimit(unsigned limit) {
 }
 
 void ValidityChecker::assertFormula(const Expr& e) {
-  d_smt->assertFormula(CVC4::BoolExpr(e));
+  d_smt->assertFormula(e);
 }
 
 void ValidityChecker::registerAtom(const Expr& e) {
@@ -2107,11 +2107,11 @@ static QueryResult cvc4resultToCvc3result(CVC4::Result r) {
 }
 
 QueryResult ValidityChecker::query(const Expr& e) {
-  return cvc4resultToCvc3result(d_smt->query(CVC4::BoolExpr(e)));
+  return cvc4resultToCvc3result(d_smt->query(e));
 }
 
 QueryResult ValidityChecker::checkUnsat(const Expr& e) {
-  return cvc4resultToCvc3result(d_smt->checkSat(CVC4::BoolExpr(e)));
+  return cvc4resultToCvc3result(d_smt->checkSat(e));
 }
 
 QueryResult ValidityChecker::checkContinue() {

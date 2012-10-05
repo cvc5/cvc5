@@ -211,52 +211,14 @@ void TheoryEngine::dumpAssertions(const char* tag) {
           Node assertionNode = (*it).assertion;
           // Purify all the terms
 
-          BoolExpr assertionExpr(assertionNode.toExpr());
           if ((*it).isPreregistered) {
             Dump(tag) << CommentCommand("Preregistered");
           } else {
             Dump(tag) << CommentCommand("Shared assertion");
           }
-          Dump(tag) << AssertCommand(assertionExpr);
+          Dump(tag) << AssertCommand(assertionNode.toExpr());
         }
         Dump(tag) << CheckSatCommand();
-
-        // Check for any missed propagations of shared terms
-        if (d_logicInfo.isSharingEnabled()) {
-          Dump(tag) << CommentCommand("Shared term equalities");
-          context::CDList<TNode>::const_iterator it = theory->shared_terms_begin(), it_end = theory->shared_terms_end();
-          for (; it != it_end; ++ it) {
-            TNode t1 = (*it);
-            context::CDList<TNode>::const_iterator it2 = it;
-            for (++ it2; it2 != it_end; ++ it2) {
-              TNode t2 = (*it2);
-              if (t1.getType() == t2.getType()) {
-                Node equality = t1.eqNode(t2);
-                if (d_sharedTerms.isKnown(equality)) {
-                  continue;
-                }
-                Node disequality = equality.notNode();
-                if (d_sharedTerms.isKnown(disequality)) {
-                  continue;
-                }
-
-                // Check equality
-                Dump(tag) << PushCommand();
-                BoolExpr eqExpr(equality.toExpr());
-                Dump(tag) << AssertCommand(eqExpr);
-                Dump(tag) << CheckSatCommand();
-                Dump(tag) << PopCommand();
-
-                // Check disequality
-                Dump(tag) << PushCommand();
-                BoolExpr diseqExpr(disequality.toExpr());
-                Dump(tag) << AssertCommand(diseqExpr);
-                Dump(tag) << CheckSatCommand();
-                Dump(tag) << PopCommand();
-              }
-            }
-          }
-        }
 
         Dump(tag) << PopCommand();
       }

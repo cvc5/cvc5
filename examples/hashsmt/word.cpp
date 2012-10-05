@@ -34,7 +34,7 @@ ExprManager* Word::em() {
   return s_manager;
 }
 
-BoolExpr Word::operator == (const Word& b) const {
+Expr Word::operator == (const Word& b) const {
   return em()->mkExpr(kind::EQUAL, d_expr, b.getExpr());
 }
 

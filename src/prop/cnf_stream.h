@@ -30,6 +30,7 @@
 #include "expr/node.h"
 #include "prop/theory_proxy.h"
 #include "prop/registrar.h"
+#include "context/cdlist.h"
 
 #include <ext/hash_map>
 

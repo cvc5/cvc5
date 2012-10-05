@@ -177,11 +177,11 @@ Command* EchoCommand::clone() const {
 
 /* class AssertCommand */
 
-AssertCommand::AssertCommand(const BoolExpr& e) throw() :
+AssertCommand::AssertCommand(const Expr& e) throw() :
   d_expr(e) {
 }
 
-BoolExpr AssertCommand::getExpr() const throw() {
+Expr AssertCommand::getExpr() const throw() {
   return d_expr;
 }
 
@@ -248,11 +248,11 @@ Command* PopCommand::clone() const {
 
 /* class CheckSatCommand */
 
-CheckSatCommand::CheckSatCommand(const BoolExpr& expr) throw() :
+CheckSatCommand::CheckSatCommand(const Expr& expr) throw() :
   d_expr(expr) {
 }
 
-BoolExpr CheckSatCommand::getExpr() const throw() {
+Expr CheckSatCommand::getExpr() const throw() {
   return d_expr;
 }
 
@@ -291,11 +291,11 @@ Command* CheckSatCommand::clone() const {
 
 /* class QueryCommand */
 
-QueryCommand::QueryCommand(const BoolExpr& e) throw() :
+QueryCommand::QueryCommand(const Expr& e) throw() :
   d_expr(e) {
 }
 
-BoolExpr QueryCommand::getExpr() const throw() {
+Expr QueryCommand::getExpr() const throw() {
   return d_expr;
 }
 

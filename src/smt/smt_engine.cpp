@@ -1770,7 +1770,7 @@ void SmtEnginePrivate::processAssertions() {
     // Push the simplified assertions to the dump output stream
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
       Dump("assertions")
-        << AssertCommand(BoolExpr(d_assertionsToCheck[i].toExpr()));
+        << AssertCommand(d_assertionsToCheck[i].toExpr());
     }
   }
 
@@ -1812,7 +1812,7 @@ void SmtEnginePrivate::addFormula(TNode n)
   }
 }
 
-void SmtEngine::ensureBoolean(const BoolExpr& e) throw(TypeCheckingException) {
+void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   Type type = e.getType(options::typeChecking());
   Type boolType = d_exprManager->booleanType();
   if(type != boolType) {
@@ -1824,7 +1824,7 @@ void SmtEngine::ensureBoolean(const BoolExpr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
+Result SmtEngine::checkSat(const Expr& e) throw(TypeCheckingException) {
 
   Assert(e.isNull() || e.getExprManager() == d_exprManager);
 
@@ -1891,7 +1891,7 @@ Result SmtEngine::checkSat(const BoolExpr& e) throw(TypeCheckingException) {
   return r;
 }/* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
+Result SmtEngine::query(const Expr& e) throw(TypeCheckingException) {
 
   Assert(!e.isNull());
   Assert(e.getExprManager() == d_exprManager);
@@ -1955,7 +1955,7 @@ Result SmtEngine::query(const BoolExpr& e) throw(TypeCheckingException) {
   return r;
 }/* SmtEngine::query() */
 
-Result SmtEngine::assertFormula(const BoolExpr& e) throw(TypeCheckingException) {
+Result SmtEngine::assertFormula(const Expr& e) throw(TypeCheckingException) {
   Assert(e.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();

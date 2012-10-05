@@ -349,11 +349,11 @@ void Solver::cancelUntil(int level) {
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
+            assigns [x] = l_Undef;
+            vardata[x].trail_index = -1;
+            if ((phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last()) && (polarity[x] & 0x2) == 0)
+              polarity[x] = sign(trail[c]);
             if(intro_level(x) != -1) {// might be unregistered
-              assigns [x] = l_Undef;
-              vardata[x].trail_index = -1;
-              if ((phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last()) && (polarity[x] & 0x2) == 0)
-                polarity[x] = sign(trail[c]);
               insertVarOrder(x);
             }
         }
@@ -1409,6 +1409,9 @@ void Solver::push()
   trail_ok.push(ok);
   trail_user_lim.push(trail.size());
   assert(trail_user_lim.size() == assertionLevel);
+
+  context->push();
+
   Debug("minisat") << "MINISAT PUSH assertionLevel is " << assertionLevel << ", trail.size is " << trail.size() << std::endl;
 }
 
@@ -1438,10 +1441,10 @@ void Solver::pop()
   while(downto < trail.size()) {
     Debug("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());
+    assigns [x] = l_Undef;
+    vardata[x].trail_index = -1;
+    polarity[x] = sign(trail.last());
     if(intro_level(x) != -1) {// might be unregistered
-      assigns [x] = l_Undef;
-      vardata[x].trail_index = -1;
-      polarity[x] = sign(trail.last());
       insertVarOrder(x);
     }
     trail.pop();
@@ -1458,9 +1461,12 @@ void Solver::pop()
     Debug("minisat") << "== unassigning " << l << std::endl;
     Var      x  = var(l);
     assigns [x] = l_Undef;
+    vardata[x].trail_index = -1;
     if (phase_saving >= 1 && (polarity[x] & 0x2) == 0)
       polarity[x] = sign(l);
-    insertVarOrder(x);
+    if(intro_level(x) != -1) {// might be unregistered
+      insertVarOrder(x);
+    }
     trail_user.pop();
   }
   trail_user.pop();
@@ -1469,6 +1475,8 @@ void Solver::pop()
   Debug("minisat") << "in user pop, done unsetting level units" << std::endl;
 
   Debug("minisat") << "about to removeClausesAboveLevel(" << assertionLevel << ") in CNF" << std::endl;
+
+  context->pop();
 
   // Notify the cnf
   proxy->removeClausesAboveLevel(assertionLevel);
