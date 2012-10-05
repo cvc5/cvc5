@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inst_when_mode.cpp
+/*! \file modes.cpp
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: ajreynol
