@@ -11,7 +11,7 @@ AC_MSG_CHECKING([whether user requested CUDD support])
 AC_ARG_WITH([cudd],
   [AS_HELP_STRING([--with-cudd], [force linking/not linking against CUDD])],
   [with_cudd_set=yes],
-  [with_cudd=check; with_cudd_set=no])
+  [with_cudd=no; with_cudd_set=no])
 AC_ARG_WITH([cudd-dir],
   [AS_HELP_STRING([--with-cudd-dir=DIR], [path to cudd installation])],
   [CUDD_DIR="$withval"],
@@ -26,7 +26,11 @@ if test -n "$CUDD_DIR" -a "$with_cudd_set" = no; then
   with_cudd=yes
 fi
 if test "$with_cudd" = no; then
-  AC_MSG_RESULT([no, CUDD disabled by user])
+  if test "$with_cudd_set" = no; then
+    AC_MSG_RESULT([no (enable with --with-cudd)])
+  else
+    AC_MSG_RESULT([no, CUDD disabled by user])
+  fi
 else
   if test "$with_cudd" = check; then
     AC_MSG_RESULT([no preference by user, will auto-detect])
