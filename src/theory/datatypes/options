@@ -9,7 +9,7 @@ module DATATYPES "theory/datatypes/options.h" Datatypes theory
 # then we do not rewrite such a selector term to an arbitrary ground term.  
 # For example, by default cvc4 considers cdr( nil ) = nil.  If this option is set, then
 # cdr( nil ) has no set value.
-option dtRewriteErrorSel /--disable-dt-rewrite-error-sel bool :default true
+expert-option dtRewriteErrorSel /--disable-dt-rewrite-error-sel bool :default true
  disable rewriting incorrectly applied selectors to arbitrary ground term
  
 endmodule

@@ -5,9 +5,8 @@
 
 module UF "theory/uf/options.h" Uninterpreted functions theory
 
-option ufSymmetryBreaker uf-symmetry-breaker --enable-symmetry-breaker/--disable-symmetry-breaker bool :read-write :default true
+option ufSymmetryBreaker uf-symmetry-breaker --symmetry-breaker bool :read-write :default true
  use UF symmetry breaker (Deharbe et al., CADE 2011)
-/turns off UF symmetry breaker (Deharbe et al., CADE 2011)
 
 option ufssRegions /--disable-uf-ss-regions bool :default true
  disable region-based method for discovering cliques and splits in uf strong solver

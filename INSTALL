@@ -136,8 +136,8 @@ from Fedora RPMs or our Debian packages, the process should be
 completely automatic, since the libraries and headers are installed in
 a standard location.  If you download the sources yourself, you need
 to build them in a special way.  Fortunately, the
-"contrib/build-cudd-with-libtool.sh" script in the CVC4 source tree
-does exactly what you need: it patches the CUDD makefiles to use
+"contrib/build-cudd-2.4.2-with-libtool.sh" script in the CVC4 source
+tree does exactly what you need: it patches the CUDD makefiles to use
 libtool, builds the libtool libraries, then reverses the patch to
 leave the makefiles as they were.  Once you run this script on an
 unpacked CUDD 2.4.2 source distribution, then CVC4's configure script
@@ -149,9 +149,9 @@ configure script; this makes it a hard requirement rather than an
 optional add-on.
 
 The NYU-provided Debian packaging of CUDD 2.4.2 and CUDD 2.5.0 are
-here:
+here (along with the CVC4 Debian packages):
 
-  deb http://goedel.cims.nyu.edu/cvc4-builds/debian unstable/
+  deb http://cvc4.cs.nyu.edu/debian/ unstable/
 
 The Debian source package "cudd", available from the same repository,
 includes a diff of all changes made to cudd makefiles.

@@ -15,9 +15,8 @@ option simplificationMode simplification-mode --simplification=MODE Simplificati
 alias --no-simplification = --simplification=none
  turn off all simplification (same as --simplification=none)
 
-option doStaticLearning static-learning /--no-static-learning bool :default true
+option doStaticLearning static-learning --static-learning bool :default true
  use static learning (on by default)
-/turn off static learning (e.g. diamond-breaking)
 
 option expandDefinitions expand-definitions bool :default false
  always expand symbol definitions in output
@@ -25,15 +24,13 @@ common-option produceModels produce-models -m --produce-models bool :default fal
  support the get-value and get-model commands
 option checkModels check-models --check-models bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID, double-check that the generated model satisfies all user assertions
-common-option proof produce-proofs --proof bool :default false :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+option proof produce-proofs --proof bool :default false :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on proof generation
 # this is just a placeholder for later; it doesn't show up in command-line options listings
-common-option unsatCores produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on unsat core generation (NOT YET SUPPORTED)
-common-option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  support the get-assignment command
-option modelFormatMode --model-format=MODE ModelFormatMode :handler CVC4::smt::stringToModelFormatMode :default MODEL_FORMAT_MODE_DEFAULT :read-write :include "smt/model_format_mode.h" :handler-include "smt/options_handlers.h"
- print format mode for models, see --model-format=help
 
 # This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
 # is a mode in which the assertion list must be kept.  So it belongs here.
@@ -42,15 +39,12 @@ common-option interactive interactive-mode --interactive bool :read-write
 
 option doITESimp --ite-simp bool :read-write
  turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)
-/turn off ite simplification (Kim (and Somenzi) et al., SAT 2009)
 
 option unconstrainedSimp --unconstrained-simp bool :default false :read-write
  turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)
-/turn off unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)
 
 option repeatSimp --repeat-simp bool :read-write
  make multiple passes with nonclausal simplifier
-/do not make multiple passes with nonclausal simplifier
 
 common-option incrementalSolving incremental -i --incremental bool
  enable incremental solving
@@ -69,9 +63,10 @@ common-option cumulativeResourceLimit --rlimit=N "unsigned long"
 common-option perCallResourceLimit --rlimit-per=N "unsigned long"
  enable resource limiting per query
 
-option replayFilename --replay=FILE std::string :handler CVC4::smt::checkReplayFilename :handler-include "smt/options_handlers.h"
+# --replay is currently broken; don't document it for 1.0
+undocumented-option replayFilename --replay=FILE std::string :handler CVC4::smt::checkReplayFilename :handler-include "smt/options_handlers.h"
  replay decisions from file
-option replayLog --replay-log=FILE std::ostream* :handler CVC4::smt::checkReplayLogFilename :handler-include "smt/options_handlers.h"
+undocumented-option replayLog --replay-log=FILE std::ostream* :handler CVC4::smt::checkReplayLogFilename :handler-include "smt/options_handlers.h"
  log decisions and propagations to file
 option replayStream ExprStream*
 

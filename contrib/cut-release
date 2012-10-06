@@ -4,7 +4,11 @@
 #
 
 function isthatright {
-  echo -n "Does that look right? [y/n] "
+  if [ -z "$1" ]; then
+    echo -n "Does that look right? [y/n] "
+  else
+    echo -n "$1? [y/n] "
+  fi
   while read yn; do
     if [ "$yn" = y -o "$yn" = Y -o "$yn" = yes -o "$yn" = YES -o "$yn" = Yes ]; then
       break
@@ -111,6 +115,20 @@ if [ -n "$suspect_files" ]; then
   $dryrun || exit 1
 fi
 
+echo "Checking NEWS file for recent updates..."
+if [ -n "$(svn status -q NEWS)" ]; then
+  echo "+ It's locally modified."
+else
+  echo -n "+ "
+  svn info NEWS | grep '^Last Changed Date: '
+  echo
+  echo "You should probably make sure to put some notes in the NEWS file"
+  echo "for this release, indicating the most important changes from the"
+  echo "last release."
+  echo
+  isthatright "Continue without updating NEWS"
+fi
+
 echo "Adjusting version info lines in configure.ac..."
 if ! grep '^m4_define(_CVC4_MAJOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
    ! grep '^m4_define(_CVC4_MINOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
@@ -152,11 +170,11 @@ if ! $SHELL -c '\
 	./autogen.sh || echo "autoconf failed; does library_versions have something to match $version?"; \
 	mkdir "release-$version"; \
 	cd "release-$version"; \
-	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-gmp --without-cudd --with-readline --with-portfolio; \
+	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
 	make dist "$@"; \
 	tar xf "cvc4-$version.tar.gz"; \
 	cd "cvc4-$version"; \
-	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --with-gmp --without-cudd --with-readline --with-portfolio; \
+	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
 	make check "$@"; \
 	make distcheck "$@"; \
 '; then
@@ -210,6 +228,23 @@ echo
 echo "About to run: svn copy -m \"Cutting release $version.\" \"$root\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version\""
 isthatright
 $dryrun || svn copy -m "Cutting release $version." "$root" "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version"
+
+echo
+if [ "$(svn info | grep '^URL: https://subversive.cims.nyu.edu/cvc4/cvc4/trunk$')" ]; then
+  if [ "$release" = 0 ]; then
+    echo "About to run: svn copy -m \"Branching release $version for bugfixes.\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/branches/releases/$version.x\""
+    isthatright
+    $dryrun || svn copy -m "Branching release $version for bugfixes." "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version" "https://subversive.cims.nyu.edu/cvc4/cvc4/branches/releases/$version.x"
+  else
+    echo "Not branching, because this is a minor release (i.e., not a \"dot-oh\""
+    echo "release), so I'm guessing you have a devel repository outside of trunk"
+    echo "somewhere?  You can still make a branch manually, of course."
+  fi
+else
+  echo "Not branching, because it appears there already is a branch"
+  echo "to work with for version $version ..?  (You're not on trunk.)"
+  echo "You can still make a branch manually, of course."
+fi
 
 trap '' EXIT
 

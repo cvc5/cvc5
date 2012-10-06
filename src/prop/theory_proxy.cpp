@@ -28,6 +28,7 @@
 #include "decision/options.h"
 #include "util/lemma_input_channel.h"
 #include "util/lemma_output_channel.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {
@@ -170,11 +171,11 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
     Expr e = options::replayStream()->nextExpr();
     if(!e.isNull()) { // we get null node when out of decisions to replay
       // convert & return
+      ++d_replayedDecisions;
       return d_cnfStream->getLiteral(e);
     }
   }
 #endif /* CVC4_REPLAY */
-  //FIXME!
   return undefSatLiteral;
 }
 

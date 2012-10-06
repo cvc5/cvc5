@@ -71,6 +71,12 @@ class TheoryProxy {
    */
   std::hash_set<Node, NodeHashFunction> d_shared;
 
+  /**
+   * Statistic: the number of replayed decisions (via --replay).
+   */
+  KEEP_STATISTIC(IntStat, d_replayedDecisions,
+                 "prop::theoryproxy::replayedDecisions", 0);
+
 public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,

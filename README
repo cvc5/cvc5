@@ -21,6 +21,17 @@ predecessors.  It is written entirely in C++ and is released under a
 free software license (see the file COPYING in the source
 distribution).
 
+*** Getting started with CVC4
+
+For help installing CVC4, see the INSTALL file that comes with this
+distribution.
+
+We recommend that you visit our CVC4 tutorials online at:
+
+  http://cvc4.cs.nyu.edu/wiki/Tutorials
+
+for help getting started using CVC4.
+
 *** The History of CVC4
 
 The Cooperating Validity Checker series has a long history.  The

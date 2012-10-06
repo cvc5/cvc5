@@ -19,8 +19,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__MODEL_FORMAT_MODE_H
-#define __CVC4__SMT__MODEL_FORMAT_MODE_H
+#ifndef __CVC4__PRINTER__MODEL_FORMAT_MODE_H
+#define __CVC4__PRINTER__MODEL_FORMAT_MODE_H
 
 #include <iostream>
 
@@ -38,4 +38,4 @@ std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__MODEL_FORMAT_H */
+#endif /* __CVC4__PRINTER__MODEL_FORMAT_H */

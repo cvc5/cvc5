@@ -10,6 +10,8 @@ libprinter_la_SOURCES = \
 	printer.cpp \
 	dagification_visitor.h \
 	dagification_visitor.cpp \
+	model_format_mode.h \
+	model_format_mode.cpp \
 	ast/ast_printer.h \
 	ast/ast_printer.cpp \
 	smt1/smt1_printer.h \
@@ -19,4 +21,5 @@ libprinter_la_SOURCES = \
 	cvc/cvc_printer.h \
 	cvc/cvc_printer.cpp
 
-EXTRA_DIST =
+EXTRA_DIST = \
+	options_handlers.h

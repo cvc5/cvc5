@@ -1,7 +1,7 @@
 .\" Process this file with
-.\" groff -man -Tascii SmtEngine.3cvc4
+.\" groff -man -Tascii SmtEngine.3cvc
 .\"
-.TH SMTENGINE 3cvc4 "@MAN_DATE@" "CVC4 release @VERSION@" "CVC4 Library Interfaces"
+.TH SMTENGINE 3cvc "@MAN_DATE@" "CVC4 release @VERSION@" "CVC4 Library Interfaces"
 .SH NAME
 SmtEngine \- the primary interface to CVC4's theorem-proving capabilities
 .SH DESCRIPTION

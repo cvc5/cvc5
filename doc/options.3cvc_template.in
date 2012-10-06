@@ -1,7 +1,7 @@
 .\" Process this file with
-.\" groff -man -Tascii options.3cvc4
+.\" groff -man -Tascii options.3cvc
 .\"
-.TH OPTIONS 3cvc4 "@MAN_DATE@" "CVC4 release @VERSION@" "CVC4 Internals Documentation"
+.TH OPTIONS 3cvc "@MAN_DATE@" "CVC4 release @VERSION@" "CVC4 Internals Documentation"
 .SH NAME
 options \- the options infrastructure
 

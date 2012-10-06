@@ -17,7 +17,7 @@
  ** \todo document this file
  **/
 
-#include "smt/model_format_mode.h"
+#include "printer/model_format_mode.h"
 
 namespace CVC4 {
 

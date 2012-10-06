@@ -43,8 +43,7 @@ option arithPropagateMaxLength --prop-row-length=N uint16_t :default 16
  sets the maximum row length to be used in propagation
 
 option arithDioSolver /--disable-dio-solver bool :default true
- use Linear Diophantine Equation solver (Griggio, JSAT 2012)
-/turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)
+ turns off Linear Diophantine Equation solver (Griggio, JSAT 2012)
 
 # Whether to split (= x y) into (and (<= x y) (>= x y)) in
 # arithmetic preprocessing.

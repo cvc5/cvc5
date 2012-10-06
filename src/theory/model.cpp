@@ -18,7 +18,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/type_enumerator.h"
-#include "smt/model_format_mode.h"
 #include "smt/options.h"
 #include "theory/uf/theory_uf_model.h"
 

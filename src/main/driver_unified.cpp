@@ -313,6 +313,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       pExecutor->flushStatistics(*opts[options::err]);
     }
 
+    // make sure to flush replay output log before early-exit
+    if( opts[options::replayLog] != NULL ) {
+      *opts[options::replayLog] << flush;
+    }
+
 #ifdef CVC4_DEBUG
     if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
       _exit(returnValue);

@@ -142,20 +142,31 @@ function module {
   CVC4_OPTIONS__${module_id}__FOR_OPTION_HOLDER"
   module_optionholder_spec="#define CVC4_OPTIONS__${module_id}__FOR_OPTION_HOLDER"
 
+  previous_remaining_documentation="${remaining_documentation}"
   remaining_documentation="${remaining_documentation}\\n\\n\"
 #line $lineno \"$kf\"
-\"$module_name options:"
+\"From the $module_name module:"
+  remaining_documentation_at_start_of_module="${remaining_documentation}"
+
+  previous_remaining_manpage_documentation="${remaining_manpage_documentation}"
   remaining_manpage_documentation="${remaining_manpage_documentation}
 .SH `echo "$module_name" | tr a-z A-Z` OPTIONS
 "
+  remaining_manpage_documentation_at_start_of_module="${remaining_manpage_documentation}"
+
+  previous_remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}"
   remaining_manpage_smt_documentation="${remaining_manpage_smt_documentation}
 .TP
 .I \"`echo "$module_name" | tr a-z A-Z` OPTIONS\"
 "
+  remaining_manpage_smt_documentation_at_start_of_module="${remaining_manpage_smt_documentation}"
+
+  previous_remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}"
   remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
 .TP
 .I \"`echo "$module_name" | tr a-z A-Z` OPTIONS\"
 "
+  remaining_manpage_internals_documentation_at_start_of_module="${remaining_manpage_internals_documentation}"
 }
 
 function endmodule {
@@ -165,6 +176,24 @@ function endmodule {
   seen_endmodule=true
   if [ $# -ne 0 ]; then
     ERR "endmodule takes no arguments"
+  fi
+
+  # check, and if no documented options, remove the headers
+
+  if [ "$remaining_documentation" = "$remaining_documentation_at_start_of_module" ]; then
+    remaining_documentation="$previous_remaining_documentation"
+  fi
+
+  if [ "$remaining_manpage_documentation" = "$remaining_manpage_documentation_at_start_of_module" ]; then
+    remaining_manpage_documentation="$previous_remaining_manpage_documentation"
+  fi
+
+  if [ "$remaining_manpage_smt_documentation" = "$remaining_manpage_smt_documentation_at_start_of_module" ]; then
+    remaining_manpage_smt_documentation="$previous_remaining_manpage_smt_documentation"
+  fi
+
+  if [ "$remaining_manpage_internals_documentation" = "$remaining_manpage_internals_documentation_at_start_of_module" ]; then
+    remaining_manpage_internals_documentation="$previous_remaining_manpage_internals_documentation"
   fi
 }
 
