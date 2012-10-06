@@ -39,8 +39,6 @@ import cvc3.*;
 
 public class SimpleVCCompat {
   public static void main(String[] args) {
-    //System.loadLibrary("cvc4bindings_java_compat");
-
     ValidityChecker vc = ValidityChecker.create();
 
     // Prove that for integers x and y:

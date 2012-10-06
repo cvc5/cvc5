@@ -54,7 +54,8 @@ csharpdata_DATA =
 csharplib_LTLIBRARIES =
 rubylib_LTLIBRARIES =
 tcllib_LTLIBRARIES =
-if CVC4_LANGUAGE_BINDING_JAVA
+if CVC4_HAS_SWIG
+if CVC4_LANGUAGE_BINDING_JAVA 
 javalib_LTLIBRARIES += java/libcvc4jni.la
 javadata_DATA += CVC4.jar
 java_libcvc4jni_la_LDFLAGS = \
@@ -136,6 +137,8 @@ tcl_CVC4_la_LIBADD = \
 	-L@builddir@/.. -lcvc4 \
 	-L@builddir@/../parser -lcvc4parser
 endif
+# this endif matches the "if CVC4_HAS_SWIG" above
+endif
 
 nodist_java_libcvc4jni_la_SOURCES = java.cpp
 java_libcvc4jni_la_CXXFLAGS = -fno-strict-aliasing
@@ -206,6 +209,9 @@ ruby.lo: ruby.cpp
 tcl.lo: tcl.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(TCL_CPPFLAGS) -o $@ $<
 #tcl.cpp:;
+
+if CVC4_HAS_SWIG
+
 $(patsubst %,%.cpp,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.cpp: @srcdir@/../cvc4.i
 	$(AM_V_at)mkdir -p $(patsubst %.cpp,%,$@)
 	$(AM_V_GEN)$(SWIG) -Wall -I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) $($(subst .,_,$@)_SWIGFLAGS) -o $@ $<
@@ -217,5 +223,7 @@ $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/.
 .swig_deps: $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
 	$(AM_V_GEN)cat $+ </dev/null >$@
 @mk_include@ .swig_deps
+
+endif
 
 clean-local:; rm -fr $(patsubst %.cpp,%,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))

@@ -14,7 +14,7 @@ public abstract class Embedded {
     static {
         System.loadLibrary("cvc4");
         System.loadLibrary("cvc4parser");
-        System.loadLibrary("cvc4bindings_java_compat");
+        System.loadLibrary("cvc4compatjni");
 
 	/*
 	// for debugging: stop here by waiting for a key press,

@@ -1208,6 +1208,14 @@ if test -z "$CVC4_LANGUAGE_BINDINGS"; then
   CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild="N/A"
 fi
 
+bindings_to_be_built=none
+if test -n "$CVC4_LANGUAGE_BINDINGS"; then
+  bindings_to_be_built="$CVC4_LANGUAGE_BINDINGS"
+  if test -z "$SWIG"; then
+    bindings_to_be_built="$bindings_to_be_built (for CVC3 compatibility layer only; SWIG not found)"
+  fi
+fi
+
 cat <<EOF
 
 CVC4 $VERSION
@@ -1235,7 +1243,7 @@ Static libs  : $enable_static
 Shared libs  : $enable_shared
 Static binary: $enable_static_binary
 Compat lib   : $CVC4_BUILD_LIBCOMPAT
-Bindings     : ${CVC4_LANGUAGE_BINDINGS:-none}
+Bindings     : $bindings_to_be_built
 
 Multithreaded: $support_multithreaded
 TLS support  : $CVC4_TLS_explanation

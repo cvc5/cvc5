@@ -25,11 +25,11 @@ BUILT_SOURCES =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 
-lib_LTLIBRARIES += libcvc4bindings_java_compat.la
+lib_LTLIBRARIES += libcvc4compatjni.la
 javadata_DATA += CVC4compat.jar
-libcvc4bindings_java_compat_la_LDFLAGS = \
+libcvc4compatjni_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
-libcvc4bindings_java_compat_la_LIBADD = \
+libcvc4compatjni_la_LIBADD = \
 	-L@builddir@/../../.. -lcvc4 \
 	-L@builddir@/../../../parser -lcvc4parser \
 	-L@builddir@/../../../compat -lcvc4compat
@@ -112,8 +112,8 @@ SRC_CPP_FILES = src/cvc3/JniUtils.cpp
 # all cpp files (to compile)
 CPP_FILES = $(SRC_CPP_FILES) $(JNI_CPP_FILES)
 
-dist_libcvc4bindings_java_compat_la_SOURCES = $(SRC_CPP_FILES) include/cvc3/JniUtils.h
-nodist_libcvc4bindings_java_compat_la_SOURCES = $(JNI_CPP_FILES)
+dist_libcvc4compatjni_la_SOURCES = $(SRC_CPP_FILES) include/cvc3/JniUtils.h
+nodist_libcvc4compatjni_la_SOURCES = $(JNI_CPP_FILES)
 
 EXTRA_DIST = \
 	formula_value.h \
