@@ -117,9 +117,11 @@ BUG_TESTS = \
 	bug216.smt2 \
 	bug220.smt2 \
 	bug239.smt \
+	bug274.cvc \
 	bug288.smt \
 	bug288b.smt \
 	bug288c.smt \
+	bug296.smt2 \
 	buggy-ite.smt2 \
 	bug303.smt2 \
 	bug310.cvc \

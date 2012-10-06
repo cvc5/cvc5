@@ -2447,7 +2447,7 @@ void SmtEngine::pop() throw(ModalException) {
   if(!options::incrementalSolving()) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
   }
-  if(d_userContext->getLevel() == 0) {
+  if(d_userLevels.size() == 0) {
     throw ModalException("Cannot pop beyond the first user frame");
   }
 
@@ -2457,7 +2457,8 @@ void SmtEngine::pop() throw(ModalException) {
     d_needPostsolve = false;
   }
 
-  AlwaysAssert(d_userLevels.size() > 0 && d_userLevels.back() < d_userContext->getLevel());
+  AlwaysAssert(d_userContext->getLevel() > 0);
+  AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
   while (d_userLevels.back() < d_userContext->getLevel()) {
     internalPop(true);
   }
