@@ -26,9 +26,9 @@ expert-option earlyExit --early-exit bool :default true
 option printWinner bool
  enable printing the winning thread (pcvc4 only)
 option threads --threads=N unsigned :default 2 :predicate greater(0)
- Total number of threads
+ Total number of threads for portfolio
 option - --threadN=string void :handler CVC4::main::threadN :handler-include "main/options_handlers.h"
- configures thread N (0..#threads-1)
+ configures portfolio thread N (0..#threads-1)
 option threadArgv std::vector<std::string> :include <vector> <string>
  Thread configuration (a string to be passed to parseOptions)
 option thread_id int :default -1
@@ -36,7 +36,7 @@ option thread_id int :default -1
 option separateOutput bool :default false
  In multi-threaded setting print output of each thread at the end of run, separated by a divider ("----").
 option sharingFilterByLength --filter-lemma-length=N int :default -1 :read-write
- don't share lemmas strictly longer than N
+ don't share (among portfolio threads) lemmas strictly longer than N
 
 expert-option waitToJoin --wait-to-join bool :default true
  wait for other threads to join before quitting

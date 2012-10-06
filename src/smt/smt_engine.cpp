@@ -252,7 +252,7 @@ private:
   void unconstrainedSimp();
 
   /**
-   * Any variable in a assertion that is declared as a subtype type
+   * Any variable in an assertion that is declared as a subtype type
    * (predicate subtype or integer subrange type) must be constrained
    * to be in that type.
    */
@@ -1529,7 +1529,7 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
   } while(! worklist.empty());
 }
 
-// returns false if simpflication led to "false"
+// returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
   throw(TypeCheckingException) {
   Assert(d_smt.d_pendingPops == 0);
@@ -1689,19 +1689,7 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
-  // Any variables of subtype types need to be constrained properly.
-  // Careful, here: constrainSubtypes() adds to the back of
-  // d_assertionsToPreprocess, but we don't need to reprocess those.
-  // We also can't use an iterator, because the vector may be moved in
-  // memory during this loop.
-  Chat() << "constraining subtypes..." << endl;
-  for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
-    constrainSubtypes(d_assertionsToPreprocess[i], d_assertionsToPreprocess);
-  }
-
-  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-
+  dumpAssertions("pre-definition-expansion", d_assertionsToPreprocess);
   {
     Chat() << "expanding definitions..." << endl;
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
@@ -1712,7 +1700,29 @@ void SmtEnginePrivate::processAssertions() {
         expandDefinitions(d_assertionsToPreprocess[i], cache);
     }
   }
+  dumpAssertions("post-definition-expansion", d_assertionsToPreprocess);
 
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
+  dumpAssertions("pre-constrain-subtypes", d_assertionsToPreprocess);
+  {
+    // Any variables of subtype types need to be constrained properly.
+    // Careful, here: constrainSubtypes() adds to the back of
+    // d_assertionsToPreprocess, but we don't need to reprocess those.
+    // We also can't use an iterator, because the vector may be moved in
+    // memory during this loop.
+    Chat() << "constraining subtypes..." << endl;
+    for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
+      constrainSubtypes(d_assertionsToPreprocess[i], d_assertionsToPreprocess);
+    }
+  }
+  dumpAssertions("post-constrain-subtypes", d_assertionsToPreprocess);
+
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
+  dumpAssertions("pre-substitution", d_assertionsToPreprocess);
   // Apply the substitutions we already have, and normalize
   Chat() << "applying substitutions..." << endl;
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
@@ -1723,6 +1733,7 @@ void SmtEnginePrivate::processAssertions() {
       Rewriter::rewrite(d_topLevelSubstitutions.apply(d_assertionsToPreprocess[i]));
     Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
   }
+  dumpAssertions("post-substitution", d_assertionsToPreprocess);
 
   dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
   if( options::preSkolemQuant() ){
