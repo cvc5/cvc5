@@ -5,7 +5,7 @@
  ** Major contributors: barrett, dejan
  ** Minor contributors (to current version): cconway, taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -94,7 +94,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_curr_model = new theory::TheoryModel( context, "DefaultModel", true );
   d_curr_model_builder = new theory::TheoryEngineModelBuilder( this );
 
-  Rewriter::init();
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -677,7 +676,6 @@ void TheoryEngine::shutdown() {
     }
   }
 
-  theory::Rewriter::shutdown();
   d_ppCache.clear();
 }
 

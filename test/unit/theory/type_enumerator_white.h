@@ -238,7 +238,6 @@ public:
     for(size_t i = 0; i < 1000; ++i) {
       TS_ASSERT( ! te.isFinished() );
       Node elt = *te++;
-      std::cout << elt << std::endl;
       // ensure no duplicates
       TS_ASSERT( elts.find(elt) == elts.end() );
       elts.insert(elt);
@@ -269,34 +268,6 @@ public:
     //TS_ASSERT( elts.find( d_nm->mkNode(STORE, d_nm->mkNode(STORE, d_nm->mkNode(STORE, fours, eleven, two), two, one), zero, two) ) != elts.end() );
     //TS_ASSERT( elts.find( threes ) != elts.end() );
     //TS_ASSERT( elts.find( d_nm->mkNode(STORE, d_nm->mkNode(STORE, d_nm->mkNode(STORE, d_nm->mkNode(STORE, twos, three, zero), two, zero), one, zero), zero, zero) ) != elts.end() );
-  }
-
-  void testArraysFinite() {
-    ArrayType arrType(d_em->mkArrayType(d_em->mkBitVectorType(2), d_em->booleanType()));
-    TypeEnumerator te(TypeNode::fromType(arrType));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(false))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(true))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(false))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(true))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(false))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(true))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(false))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_EQUALS(*++te, d_nm->mkConst(ArrayStoreAll(arrType, d_em->mkConst(true))));
-    TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT( te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT( te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT( te.isFinished() );
   }
 
   void testBV() {

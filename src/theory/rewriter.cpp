@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -33,6 +33,18 @@ static TheoryId theoryOf(TNode node) {
 #ifdef CVC4_ASSERTIONS
 static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack = NULL;
 #endif /* CVC4_ASSERTIONS */
+
+class RewriterInitializer {
+  static RewriterInitializer s_rewriterInitializer;
+  RewriterInitializer() { Rewriter::init(); }
+  ~RewriterInitializer() { Rewriter::shutdown(); }
+};/* class RewriterInitializer */
+
+/**
+ * This causes initialization of the rewriter before first use,
+ * and tear-down at exit time.
+ */
+RewriterInitializer RewriterInitializer::s_rewriterInitializer;
 
 /**
  * TheoryEngine::rewrite() keeps a stack of things that are being pre-
@@ -220,8 +232,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
   Unreachable();
   return Node::null();
-}
+}/* Rewriter::rewriteTo() */
 
-
-}
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */

@@ -1,7 +1,19 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: unsat
+; EXPECT: unsat
+; EXPECT: unsat
+; EXIT: 20
 ;(set-option :produce-unsat-cores true)
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)
-(set-option :produce-models true)
+;(set-option :produce-models true)
 (set-logic ALL_SUPPORTED)
 ; done setting options
 

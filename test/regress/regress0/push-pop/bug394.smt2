@@ -1,3 +1,17 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+; EXPECT: unsat
+; EXPECT: unsat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXIT: 10
 ;(set-option :produce-unsat-cores true)
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)
@@ -1448,7 +1462,7 @@ p1$2@1) (= $width$1 $width$2))) (and
 (= (ControlFlow 0 11167) 4117)) $entry_correct@@0))))))
 PreconditionGeneratedEntry_correct@@0)))))))))))))))))))))))))))))))))))))))
 (push 1)
-(set-info :boogie-vc-id $getIdx)
+;(set-info :boogie-vc-id $getIdx)
 (assert (not
 (=> (and
 true
@@ -1507,7 +1521,7 @@ _b45) $getIdx)
 (check-sat)
 (pop 1)
 (push 1)
-(set-info :boogie-vc-id $getIdx)
+;(set-info :boogie-vc-id $getIdx)
 (assert (not
 (=> (and
 true
@@ -1561,7 +1575,7 @@ _b45) $getIdx)
 (check-sat)
 (pop 1)
 (push 1)
-(set-info :boogie-vc-id $DCT)
+;(set-info :boogie-vc-id $DCT)
 (assert (not
 (=> (and
 true
@@ -1643,7 +1657,7 @@ _b45) $DCT)
 ;(get-value ((ControlFlow 0 4199)))
 (pop 1)
 (push 1)
-(set-info :boogie-vc-id $DCT)
+;(set-info :boogie-vc-id $DCT)
 (assert (not
 (=> (and
 true

@@ -217,8 +217,7 @@ command returns [CVC4::Command* cmd = NULL]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope();
+    { PARSER_STATE->pushScope();
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
           i != iend;
@@ -308,13 +307,15 @@ command returns [CVC4::Command* cmd = NULL]
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n == 0) {
-          cmd = new EmptyCommand;
+          cmd = new EmptyCommand();
         } else if(n == 1) {
-          cmd = new PushCommand;
+          PARSER_STATE->pushScope();
+          cmd = new PushCommand();
         } else {
-          CommandSequence* seq = new CommandSequence;
+          CommandSequence* seq = new CommandSequence();
           do {
-            seq->addCommand(new PushCommand);
+            PARSER_STATE->pushScope();
+            seq->addCommand(new PushCommand());
           } while(--n > 0);
           cmd = seq;
         }
@@ -329,13 +330,15 @@ command returns [CVC4::Command* cmd = NULL]
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
         if(n == 0) {
-          cmd = new EmptyCommand;
+          cmd = new EmptyCommand();
         } else if(n == 1) {
-          cmd = new PopCommand;
+          PARSER_STATE->popScope();
+          cmd = new PopCommand();
         } else {
-          CommandSequence* seq = new CommandSequence;
+          CommandSequence* seq = new CommandSequence();
           do {
-            seq->addCommand(new PopCommand);
+            PARSER_STATE->popScope();
+            seq->addCommand(new PopCommand());
           } while(--n > 0);
           cmd = seq;
         }
