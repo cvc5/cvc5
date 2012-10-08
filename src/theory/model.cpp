@@ -298,18 +298,27 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     bool predicate = false;
-    bool predPolarity = false;
-    if( eqc.getType().isBoolean() ){
+    bool predTrue = false;
+    bool predFalse = false;
+    if (eqc.getType().isBoolean()) {
       predicate = true;
-      predPolarity = ee->areEqual( eqc, d_true );
-      //FIXME: do we guarentee that all boolean equivalence classes contain either d_true or d_false?
+      predTrue = ee->areEqual(eqc, d_true);
+      predFalse = ee->areEqual(eqc, d_false);
     }
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
-    while( !eqc_i.isFinished() ){
-      if( predicate ){
-        assertPredicate( *eqc_i, predPolarity );
-      }else{
-        assertEquality( *eqc_i, eqc, true );
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+    while(!eqc_i.isFinished()) {
+      if (predicate) {
+        if (predTrue) {
+          assertPredicate(*eqc_i, true);
+        }
+        else if (predFalse) {
+          assertPredicate(*eqc_i, false);
+        }
+        else {
+          d_equalityEngine.addTerm(*eqc_i);
+        }
+      } else {
+        assertEquality(*eqc_i, eqc, true);
       }
       ++eqc_i;
     }
