@@ -61,6 +61,9 @@ enumerator REAL_TYPE \
 enumerator INTEGER_TYPE \
     "::CVC4::theory::arith::IntegerEnumerator" \
     "theory/arith/type_enumerator.h"
+enumerator SUBRANGE_TYPE \
+    "::CVC4::theory::arith::SubrangeEnumerator" \
+    "theory/arith/type_enumerator.h"
 
 operator LT 2 "less than, x < y"
 operator LEQ 2 "less than or equal, x <= y"

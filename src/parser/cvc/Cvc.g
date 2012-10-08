@@ -619,18 +619,22 @@ mainCommand[CVC4::Command*& cmd]
 
   | QUERY_TOK formula[f] { cmd = new QueryCommand(f); }
   | CHECKSAT_TOK formula[f] { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
+  | CHECKSAT_TOK { cmd = new CheckSatCommand(); }
 
     /* options */
   | OPTION_TOK
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-    symbolicExpr[sexpr]
-    { if(s == "logic") {
-        cmd = new SetBenchmarkLogicCommand(sexpr.getValue());
-      } else {
-        cmd = new SetOptionCommand(s, sexpr);
+    ( symbolicExpr[sexpr]
+      { if(s == "logic") {
+          cmd = new SetBenchmarkLogicCommand(sexpr.getValue());
+        } else {
+          cmd = new SetOptionCommand(s, sexpr);
+        }
       }
-    }
+    | TRUE_TOK { cmd = new SetOptionCommand(s, SExpr("true")); }
+    | FALSE_TOK { cmd = new SetOptionCommand(s, SExpr("false")); }
+    | { cmd = new SetOptionCommand(s, SExpr("true")); }
+    )
 
     /* push / pop */
   | PUSH_TOK ( k=numeral { cmd = REPEAT_COMMAND(k, PushCommand()); }

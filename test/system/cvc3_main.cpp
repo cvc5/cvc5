@@ -2140,10 +2140,10 @@ int main(int argc, char** argv)
     test3();
     cout << "\n}\n\ntest4(): {" << endl;
     test4();
-    //if (regressLevel > 0) {
-    //  cout << "\n}\n\ntest5(): {" << endl;
-    //  test5();
-    //}
+    if (regressLevel > 0) {
+      cout << "\n}\n\ntest5(): {" << endl;
+      test5();
+    }
     //cout << "\n}\n\ntest6(): {" << endl;
     //test6();
     cout << "\n}\n\ntest7(): {" << endl;

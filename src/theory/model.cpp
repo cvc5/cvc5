@@ -514,6 +514,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     Node n;
     for (i = noRepSet.begin(); i != noRepSet.end(); ++i) {
       n = typeConstSet.nextTypeEnum(t);
+      Assert(!n.isNull(), "out of values for finite type enumeration while building model");
       constantReps[*i] = n;
       Trace("model-builder") << "  New Const: Setting constant rep of " << (*i) << " to " << n << endl;
     }

@@ -246,5 +246,9 @@ else
   echo "You can still make a branch manually, of course."
 fi
 
+echo
+echo "Done.  Next steps are to upload and advertise these packages and to add"
+echo "a $version release to Bugzilla."
+
 trap '' EXIT
 

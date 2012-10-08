@@ -54,6 +54,13 @@ struct StringHashFunction {
   }
 };/* struct StringHashFunction */
 
+template <class T, class U, class HashT = std::hash<T>, class HashU = std::hash<U> >
+struct PairHashFunction {
+  size_t operator()(const std::pair<T, U>& pr) const {
+    return HashT()(pr.first) ^ HashU()(pr.second);
+  }
+};/* struct PairHashFunction */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__HASH_H */
