@@ -91,6 +91,8 @@ private:
 
   void addArithmeticOperators();
 
+  void addBitvectorOperators();
+
 };/* class Smt2 */
 
 }/* CVC4::parser namespace */
