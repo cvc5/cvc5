@@ -19,15 +19,17 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall
 
 javadatadir = $(datadir)/java
-lib_LTLIBRARIES =
+javalibdir = $(libdir)/jni
 javadata_DATA =
+javalib_LTLIBRARIES=
 BUILT_SOURCES =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 
-lib_LTLIBRARIES += libcvc4compatjni.la
+javalib_LTLIBRARIES += libcvc4compatjni.la
 javadata_DATA += CVC4compat.jar
 libcvc4compatjni_la_LDFLAGS = \
+	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4compatjni_la_LIBADD = \
 	-L@builddir@/../../.. -lcvc4 \
