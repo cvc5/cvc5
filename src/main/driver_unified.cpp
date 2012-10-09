@@ -318,13 +318,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       *opts[options::replayLog] << flush;
     }
 
+    // make sure out and err streams are flushed too
+    *opts[options::out] << flush;
+    *opts[options::err] << flush;
+ 
 #ifdef CVC4_DEBUG
     if(opts[options::earlyExit] && opts.wasSetByUser(options::earlyExit)) {
       _exit(returnValue);
     }
 #else /* CVC4_DEBUG */
     if(opts[options::earlyExit]) {
-      _exit(returnValue);
+     _exit(returnValue);
     }
 #endif /* CVC4_DEBUG */
   }

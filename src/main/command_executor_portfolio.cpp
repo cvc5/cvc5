@@ -194,7 +194,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   } else if(mode == 1) {               // portfolio
 
     // If quantified, stay sequential
-    if(d_smts[0]->getLogicInfo().isQuantified()) {
+    LogicInfo logicInfo = d_smts[0]->getLogicInfo();
+    logicInfo.lock();
+    if(logicInfo.isQuantified()) {
       return CommandExecutor::doCommandSingleton(cmd);
     }
 
