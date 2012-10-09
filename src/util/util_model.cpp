@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model.cpp
+/*! \file util_model.cpp
  ** \verbatim
  ** Original author: ajreynol
  ** Major contributors: mdeters

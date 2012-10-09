@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model.h
+/*! \file util_model.h
  ** \verbatim
  ** Original author: ajreynol
  ** Major contributors: mdeters

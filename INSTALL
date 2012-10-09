@@ -1,4 +1,4 @@
-This is CVC4 release version 1.0.
+ is CVC4 release version 1.0.
 
 *** Quick-start instructions
 
@@ -22,7 +22,8 @@ system tests and regression tests should pass without incident.
 To build API documentation, use "make doc".  Documentation is produced
 under doc/ but is not installed by "make install".
 
-Examples/tutorials are not installed with "make install."  See below.
+Examples and tutorials are not installed with "make install."  See
+below.
 
 For more information about the build system itself (probably not
 necessary for casual users), see the Appendix at the bottom of this
@@ -121,7 +122,7 @@ Boost base library) is needed to run CVC4 in "portfolio"
 CxxTest is necessary to run CVC4's unit tests (included with the
 distribution).  Running these is not really required for users of
 CVC4; "make check" will skip unit tests if CxxTest isn't available,
-and go on to run the extensive system- and regresion-tests in the
+and go on to run the extensive system- and regression-tests in the
 source tree.  However, if you're interested, you can download CxxTest
 at http://cxxtest.com/ .
 
@@ -152,6 +153,10 @@ The NYU-provided Debian packaging of CUDD 2.4.2 and CUDD 2.5.0 are
 here (along with the CVC4 Debian packages):
 
   deb http://cvc4.cs.nyu.edu/debian/ unstable/
+
+On Debian (and Debian-derived distributions like Ubuntu), you only
+need to drop that one line in your /etc/apt/sources.list file, and
+then install with your favorite package manager.
 
 The Debian source package "cudd", available from the same repository,
 includes a diff of all changes made to cudd makefiles.
@@ -210,11 +215,11 @@ source tarball.
 
 First, use "./autogen.sh" to create the configure script.  Then
 proceed as normal for any distribution tarball.  The parsers are
-pre-generated for the tarballs; hence the extra ANTLR3 requirement to
-generate the source code for the parsers, when building from the
-repository.
+pre-generated for the tarballs, but don't exist in the repository;
+hence the extra ANTLR3 requirement to generate the source code for the
+parsers, when building from the repository.
 
-*** Examples/tutorials are not built or installed
+*** Examples and tutorials are not built or installed
 
 Examples are not built by "make" or "make install".  See
 examples/README for information on what to find in the examples/
