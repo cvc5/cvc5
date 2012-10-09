@@ -328,7 +328,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     }
 #else /* CVC4_DEBUG */
     if(opts[options::earlyExit]) {
-     _exit(returnValue);
+      _exit(returnValue);
     }
 #endif /* CVC4_DEBUG */
   }
