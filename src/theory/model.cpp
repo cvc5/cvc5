@@ -260,6 +260,19 @@ Node TheoryModel::getNewDomainValue( TypeNode tn ){
 void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
   if( !d_substitutions.hasSubstitution( x ) ){
     d_substitutions.addSubstitution( x, t, invalidateCache );
+  } else {
+#ifdef CVC4_ASSERTIONS
+    Node oldX = d_substitutions.getSubstitution(x);
+    // check that either the old substitution is the same, or it now maps to the new substitution
+    if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
+      stringstream ss;
+      ss << "Two incompatible substitutions added to TheoryModel:\n"
+         << "the term:    " << x << "\n"
+         << "old mapping: " << d_substitutions.apply(oldX) << "\n"
+         << "new mapping: " << d_substitutions.apply(t);
+      InternalError(ss.str());
+    }
+#endif /* CVC4_ASSERTIONS */
   }
 }
 

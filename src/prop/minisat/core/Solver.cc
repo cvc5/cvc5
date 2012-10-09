@@ -1443,7 +1443,8 @@ void Solver::pop()
     Var      x  = var(trail.last());
     assigns [x] = l_Undef;
     vardata[x].trail_index = -1;
-    polarity[x] = sign(trail.last());
+    if(phase_saving >= 1 && (polarity[x] & 0x2) == 0)
+      polarity[x] = sign(trail.last());
     if(intro_level(x) != -1) {// might be unregistered
       insertVarOrder(x);
     }

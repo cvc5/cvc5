@@ -108,14 +108,27 @@ public:
   /**
    * Adds a substitution from x to t.
    */
-  void addSubstitution(TNode x, TNode t,
-                       bool invalidateCache = true);
+  void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
 
   /**
    * Returns true iff x is in the substitution map
    */
-  bool hasSubstitution(TNode x)
-    { return d_substitutions.find(x) != d_substitutions.end(); }
+  bool hasSubstitution(TNode x) const {
+    return d_substitutions.find(x) != d_substitutions.end();
+  }
+
+  /**
+   * Returns the substitution mapping that was given for x via
+   * addSubstitution().  Note that the returned value might itself
+   * be in the map; for the actual substitution that would be
+   * performed for x, use .apply(x).  This getSubstitution() function
+   * is mainly intended for constructing assertions about what has
+   * already been put in the map.
+   */
+  TNode getSubstitution(TNode x) const {
+    AssertArgument(hasSubstitution(x), x, "element not in this substitution map");
+    return (*d_substitutions.find(x)).second;
+  }
 
   /**
    * Apply the substitutions to the node.
