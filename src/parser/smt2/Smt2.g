@@ -5,7 +5,7 @@
  ** Major contributors: mdeters
  ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -34,7 +34,7 @@ options {
 @header {
 /**
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -124,8 +124,9 @@ namespace CVC4 {
 using namespace CVC4;
 using namespace CVC4::parser;
 
-/* These need to be macros so they can refer to the PARSER macro, which will be defined
- * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
+/* These need to be macros so they can refer to the PARSER macro, which
+ * will be defined by ANTLR *after* this section. (If they were functions,
+ * PARSER would be undefined.) */
 #undef PARSER_STATE
 #define PARSER_STATE ((Smt2*)PARSER->super)
 #undef EXPR_MANAGER
@@ -140,7 +141,8 @@ using namespace CVC4::parser;
 
 /**
  * Parses an expression.
- * @return the parsed expression, or the Null Expr if we've reached the end of the input
+ * @return the parsed expression, or the Null Expr if we've reached the
+ * end of the input
  */
 parseExpr returns [CVC4::parser::smt2::myExpr expr]
 @declarations {
@@ -160,7 +162,8 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   ;
 
 /**
- * Parse the internal portion of the command, ignoring the surrounding parentheses.
+ * Parse the internal portion of the command, ignoring the surrounding
+ * parentheses.
  */
 command returns [CVC4::Command* cmd = NULL]
 @declarations {
@@ -631,7 +634,7 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
   std::string s;
 }
   : INTEGER_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
+    { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
   | DECIMAL_LITERAL
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]

@@ -37,13 +37,13 @@
 #include "util/sexpr.h"
 #include "util/datatype.h"
 #include "util/proof.h"
-#include "util/util_model.h"
 
 namespace CVC4 {
 
 class SmtEngine;
 class Command;
 class CommandStatus;
+class Model;
 
 std::ostream& operator<<(std::ostream&, const Command&) throw() CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const Command*) throw() CVC4_PUBLIC;
@@ -520,7 +520,8 @@ public:
   GetModelCommand() throw();
   ~GetModelCommand() throw() {}
   void invoke(SmtEngine* smtEngine) throw();
-  Model* getResult() const throw();
+  // Model is private to the library -- for now
+  //Model* getResult() const throw();
   void printResult(std::ostream& out) const throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;

@@ -31,6 +31,7 @@
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/sexpr.h"
+#include "util/util_model.h"
 #include "expr/node.h"
 #include "printer/printer.h"
 
@@ -882,9 +883,11 @@ void GetModelCommand::invoke(SmtEngine* smtEngine) throw() {
   }
 }
 
+/* Model is private to the library -- for now
 Model* GetModelCommand::getResult() const throw() {
   return d_result;
 }
+*/
 
 void GetModelCommand::printResult(std::ostream& out) const throw() {
   if(! ok()) {

@@ -29,7 +29,6 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/proof.h"
-#include "util/util_model.h"
 #include "smt/modal_exception.h"
 #include "util/hash.h"
 #include "options/options.h"
@@ -50,11 +49,13 @@ typedef NodeTemplate<false> TNode;
 class NodeHashFunction;
 
 class Command;
+class GetModelCommand;
 
 class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
+class Model;
 class StatisticsRegistry;
 
 namespace context {
@@ -282,8 +283,9 @@ class CVC4_PUBLIC SmtEngine {
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   // to access d_modelCommands
-  friend size_t ::CVC4::Model::getNumCommands() const;
-  friend const Command* ::CVC4::Model::getCommand(size_t) const;
+  friend class ::CVC4::Model;
+  // to access getModel(), which is private (for now)
+  friend class GetModelCommand;
 
   StatisticsRegistry* d_statisticsRegistry;
 
@@ -294,6 +296,13 @@ class CVC4_PUBLIC SmtEngine {
    * that should be reported during a get-model call.
    */
   void addToModelCommand(Command* c);
+
+  /**
+   * Get the model (only if immediately preceded by a SAT
+   * or INVALID query).  Only permitted if CVC4 was built with model
+   * support and produce-models is on.
+   */
+  Model* getModel() throw(ModalException);
 
 public:
 
@@ -418,13 +427,6 @@ public:
    * operate interactively and produce-assignments is on.
    */
   CVC4::SExpr getAssignment() throw(ModalException);
-
-  /**
-   * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if CVC4 was built with model
-   * support and produce-models is on.
-   */
-  Model* getModel() throw(ModalException);
 
   /**
    * Get the last proof (only if immediately preceded by an UNSAT

@@ -320,7 +320,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case INTDIV_TOK: return kind::INTS_DIVISION;
   case MOD_TOK: return kind::INTS_MODULUS;
   case DIV_TOK: return kind::DIVISION;
-  case EXP_TOK: break;
+  case EXP_TOK: return kind::POW;
 
     // bvBinop
   case CONCAT_TOK: return kind::BITVECTOR_CONCAT;
@@ -570,8 +570,9 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     { std::string s = AntlrInput::tokenText($IDENTIFIER);
       if(s == "benchmark") {
         PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIBv1 format detected.  Use --lang smt1 for SMT-LIBv1 support.");
-      } else if(s == "set" || s == "get") {
-        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIBv2 format detected.  Use --lang smt2 for SMT-LIBv2 support.");
+      } else if(s == "set" || s == "get" || s == "declare" ||
+                s == "define" || s == "assert") {
+        PARSER_STATE->parseError("In CVC4 presentation language mode, but SMT-LIB format detected.  Use --lang smt for SMT-LIB support.");
       } else {
         PARSER_STATE->parseError("A CVC4 presentation language command cannot begin with a parenthesis; expected command name.");
       }
@@ -782,7 +783,9 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
   CVC4::Rational r;
 }
   : INTEGER_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
+    { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+  | MINUS_TOK INTEGER_LITERAL
+    { sexpr = SExpr(-Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
   | DECIMAL_LITERAL
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | HEX_LITERAL
@@ -1784,15 +1787,15 @@ bvTerm[CVC4::Expr& f]
     /* BV sign extension */
   | SX_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { unsigned n = BitVectorType(f.getType()).getSize();
-      // Sign extension in TheoryBitVector is defined as in SMT-LIBv2
+      // Sign extension in TheoryBitVector is defined as in SMT-LIB
       // which is different than in the CVC language
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
-      // In SMT-LIBv2, such a thing expands to k + n bits
+      // In SMT-LIB, such a thing expands to k + n bits
       f = MK_EXPR(MK_CONST(BitVectorSignExtend(k - n)), f); }
     /* BV zero extension */
   | BVZEROEXTEND_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { unsigned n = BitVectorType(f.getType()).getSize();
-      // Zero extension in TheoryBitVector is defined as in SMT-LIBv2
+      // Zero extension in TheoryBitVector is defined as in SMT-LIB
       // which is the same as in CVC3, but different than SX!
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
       // BVZEROEXTEND(BITVECTOR(k), n) in CVC language extends to k + n bits

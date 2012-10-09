@@ -14,10 +14,10 @@
  ** \brief Model class
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
-#ifndef __CVC4__MODEL_H
-#define __CVC4__MODEL_H
+#ifndef __CVC4__UTIL_MODEL_H
+#define __CVC4__UTIL_MODEL_H
 
 #include <iostream>
 #include <vector>
@@ -27,13 +27,13 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC Command;
-class CVC4_PUBLIC SmtEngine;
-class CVC4_PUBLIC Model;
+class Command;
+class SmtEngine;
+class Model;
 
-std::ostream& operator<<(std::ostream&, Model&) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream&, Model&);
 
-class CVC4_PUBLIC Model {
+class Model {
   friend std::ostream& operator<<(std::ostream&, Model&);
 
 protected:
@@ -50,6 +50,7 @@ public:
   size_t getNumCommands() const;
   /** get command */
   const Command* getCommand(size_t i) const;
+
 public:
   /** get value for expression */
   virtual Expr getValue(Expr expr) = 0;
@@ -57,14 +58,13 @@ public:
   virtual Cardinality getCardinality(Type t) = 0;
 };/* class Model */
 
-class ModelBuilder
-{
+class ModelBuilder {
 public:
-  ModelBuilder(){}
-  virtual ~ModelBuilder(){}
-  virtual void buildModel( Model* m, bool fullModel ) = 0;
+  ModelBuilder() { }
+  virtual ~ModelBuilder() { }
+  virtual void buildModel(Model* m, bool fullModel) = 0;
 };/* class ModelBuilder */
 
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MODEL_H */
+#endif  /* __CVC4__UTIL_MODEL_H */

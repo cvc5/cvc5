@@ -1,6 +1,5 @@
-% COMMAND-LINE: --parse-only
-% EXPECT: 
-% EXIT: 0
+% EXPECT: valid
+% EXIT: 20
 
 A : [0..0];
 B : [ -5 .. 8];
@@ -12,6 +11,6 @@ G : [-100 ..1];
 H : [-1 ..1];
 I : [0..10];
 J : [-10..-9];
-J : [-10..-10];
+K : [-10..-10];
 
 QUERY TRUE;
