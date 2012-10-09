@@ -386,7 +386,6 @@ RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool preregister){
 
 RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool preregister) {
   Node resultNode = node;
-  return RewriteResponse(REWRITE_DONE, resultNode); 
 
   if(RewriteRule<UremPow2>::applies(node)) {
     resultNode = RewriteRule<UremPow2>::run <false> (node);
