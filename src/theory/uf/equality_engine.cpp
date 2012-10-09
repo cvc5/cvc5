@@ -353,6 +353,14 @@ void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason) {
   propagate();
 }
 
+void EqualityEngine::mergePredicates(TNode p, TNode q, TNode reason) {
+  Debug("equality") << d_name << "::eq::mergePredicats(" << p << "," << q << ")" << std::endl;
+  Assert(p.getKind() != kind::EQUAL, "Use assertEquality instead");
+  Assert(q.getKind() != kind::EQUAL, "Use assertEquality instead");
+  assertEqualityInternal(p, q, reason);
+  propagate();
+}
+
 void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
   Debug("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity) {
