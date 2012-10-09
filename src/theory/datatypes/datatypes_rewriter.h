@@ -22,6 +22,7 @@
 #define __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
 #include "theory/rewriter.h"
+#include "theory/datatypes/options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -74,21 +75,22 @@ public:
                                    << "Rewrite trivial selector " << in
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
-      }
-        /*
-        Node gt = in.getType().mkGroundTerm();
-        TypeNode gtt = gt.getType();
-        //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-        if( !gtt.isInstantiatedDatatype() ){
-          gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+      }else{
+        if( options::dtRewriteErrorSel() ){
+          Node gt = in.getType().mkGroundTerm();
+          TypeNode gtt = gt.getType();
+          //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
+          if( !gtt.isInstantiatedDatatype() ){
+            gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                                  NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+          }
+          Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                     << "Rewrite trivial selector " << in
+                                     << " to distinguished ground term "
+                                     << in.getType().mkGroundTerm() << std::endl;
+          return RewriteResponse(REWRITE_DONE,gt );
         }
-        Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                   << "Rewrite trivial selector " << in
-                                   << " to distinguished ground term "
-                                   << in.getType().mkGroundTerm() << std::endl;
-        return RewriteResponse(REWRITE_DONE,gt );
-        */
+      }
     }
 
     if(in.getKind() == kind::EQUAL && in[0] == in[1]) {

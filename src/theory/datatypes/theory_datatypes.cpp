@@ -93,6 +93,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_infer_exp(c),
   d_notify( *this ),
   d_equalityEngine(d_notify, c, "theory::datatypes::TheoryDatatypes"),
+  d_selector_apps( c ),
   d_labels( c ),
   d_conflict( c, false ){
 
@@ -211,9 +212,15 @@ void TheoryDatatypes::check(Effort e) {
       ++eqcs_i;
     }
     flushPendingFacts();
-    //if( !d_conflict ){
-    //  printModelDebug();
-    //}
+    if( !d_conflict ){
+      if( options::dtRewriteErrorSel() ){
+        collapseSelectors();
+        flushPendingFacts();
+      }
+    }
+    if( !d_conflict ){
+      //  printModelDebug();
+    }
   }
 
   if( Debug.isOn("datatypes") || Debug.isOn("datatypes-split") ) {
@@ -710,18 +717,21 @@ void TheoryDatatypes::collectTerms( Node n ) {
       d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
     }
   }else if( n.getKind() == APPLY_SELECTOR ){
-    //we must also record which selectors exist
-    Debug("datatypes") << "  Found selector " << n << endl;
-    if (n.getType().isBoolean()) {
-      d_equalityEngine.addTriggerPredicate( n );
-    }else{
-      d_equalityEngine.addTerm( n );
-    }
-    Node rep = getRepresentative( n[0] );
-    EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
-    if( !eqc->d_selectors ){
-      eqc->d_selectors = true;
-      instantiate( eqc, rep );
+    if( d_selector_apps.find( n )==d_selector_apps.end() ){
+      d_selector_apps[n] = false;
+      //we must also record which selectors exist
+      Debug("datatypes") << "  Found selector " << n << endl;
+      if (n.getType().isBoolean()) {
+        d_equalityEngine.addTriggerPredicate( n );
+      }else{
+        d_equalityEngine.addTerm( n );
+      }
+      Node rep = getRepresentative( n[0] );
+      EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
+      if( !eqc->d_selectors ){
+        eqc->d_selectors = true;
+        instantiate( eqc, rep );
+      }
     }
   }
 }
@@ -768,6 +778,32 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
     //d_inst_map[n][index] = n_ic;
     return n_ic;
   //}
+}
+
+void TheoryDatatypes::collapseSelectors(){
+  //must check incorrect applications of selectors
+  for( BoolMap::iterator it = d_selector_apps.begin(); it != d_selector_apps.end(); ++it ){
+    if( !(*it).second ){
+      Node n = (*it).first[0];
+      EqcInfo* ei = getOrMakeEqcInfo( n );
+      if( ei ){
+        if( !ei->d_constructor.get().isNull() ){
+          Node op = (*it).first.getOperator();
+          Node cons = ei->d_constructor;
+          Node sn = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, op, cons );
+          Node s = Rewriter::rewrite( sn );
+          if( sn!=s ){
+            Node eq = s.eqNode( sn );
+            d_pending.push_back( eq );
+            d_pending_exp[ eq ] = NodeManager::currentNM()->mkConst( true );
+            Trace("datatypes-infer") << "DtInfer : " << eq << ", by rewrite" << std::endl;
+            d_infer.push_back( eq );
+          }
+          d_selector_apps[ (*it).first ] = true;
+        }
+      }
+    }
+  }
 }
 
 void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){

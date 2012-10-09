@@ -139,6 +139,8 @@ private:
   eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
+  /** selector applications */
+  BoolMap d_selector_apps;
   /** map from nodes to their instantiated equivalent for each constructor type */
   std::map< Node, std::map< int, Node > > d_inst_map;
   /** which instantiation lemmas we have sent */
@@ -225,6 +227,8 @@ private:
   void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
+  /** collapse selectors */
+  void collapseSelectors();
   /** must specify model
     *  This returns true when the datatypes theory is expected to specify the constructor
     *  type for all equivalence classes.
