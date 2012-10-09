@@ -207,10 +207,10 @@ private:
     }
     Node n = **te;
     while (s->find(n) != s->end()) {
+      ++(*te);
       if (te->isFinished()) {
         return Node();
       }
-      ++(*te);
       n = **te;
     }
     s->insert(n);

@@ -328,7 +328,7 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
           assertPredicate(*eqc_i, false);
         }
         else {
-          d_equalityEngine.addTerm(*eqc_i);
+          d_equalityEngine.mergePredicates(*eqc_i, eqc, Node::null());
         }
       } else {
         assertEquality(*eqc_i, eqc, true);
@@ -663,6 +663,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
     retNode = NodeManager::currentNM()->mkNode( r.getKind(), children );
     if (childrenConst) {
       retNode = Rewriter::rewrite(retNode);
+      Assert(retNode.getKind() == kind::APPLY_UF || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
