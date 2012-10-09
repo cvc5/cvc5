@@ -93,20 +93,6 @@ void FirstOrderModel::initializeModelForTerm( Node n ){
   }
 }
 
-Node FirstOrderModel::getInterpretedValue( TNode n ){
-  //Trace("fo-model") << "get interpreted value " << n << std::endl;
-  /*TypeNode type = n.getType();
-  if( type.isFunction() || type.isPredicate() ){
-    if( d_uf_model_tree.find( n )!=d_uf_model_tree.end() ){
-      if( d_uf_models.find( n )==d_uf_models.end() ){
-        d_uf_models[n] = d_uf_model_tree[n].getFunctionValue( "$x" );
-      }
-    }
-  }*/
-  return TheoryModel::getInterpretedValue( n );
-}
-
-
 //for evaluation of quantifier bodies
 
 void FirstOrderModel::resetEvaluate(){

@@ -55,18 +55,13 @@ protected:
   /**
    * Get model value function.  This function is called by getValue
    */
-  Node getModelValue( TNode n );
-  /** get interpreted value
-    *  This function is called when the value of the node cannot be determined by the theory rewriter
-    *  This should function should return a representative in d_reps
-    */
-  virtual Node getInterpretedValue( TNode n );
+  Node getModelValue( TNode n ) const;
 public:
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)
    * on this model.
    */
-  Node getValue( TNode n );
+  Node getValue( TNode n ) const;
 
   /** get existing domain value, with possible exclusions
     *   This function returns a term in d_rep_set.d_type_reps[tn] but not in exclude
@@ -113,9 +108,9 @@ public:
   bool areDisequal( Node a, Node b );
 public:
   /** get value function for Exprs. */
-  Expr getValue( Expr expr );
+  Expr getValue( Expr expr ) const;
   /** get cardinality for sort */
-  Cardinality getCardinality( Type t );
+  Cardinality getCardinality( Type t ) const;
 public:
   /** print representative debug function */
   void printRepresentativeDebug( const char* c, Node r );
@@ -238,7 +233,7 @@ private:
     return *(*it).second;
   }
 
-};    
+};
 
 /** TheoryEngineModelBuilder class
   *    This model builder will consult all theories in a theory engine for
@@ -254,8 +249,6 @@ protected:
 
   /** process build model */
   virtual void processBuildModel(TheoryModel* m, bool fullModel);
-  /** choose representative for unconstrained equivalence class */
-  virtual Node chooseRepresentative(TheoryModel* m, Node eqc, bool fullModel);
   /** normalize representative */
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
 public:

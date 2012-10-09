@@ -29,10 +29,28 @@ void RepSet::clear(){
   d_tmap.clear();
 }
 
+int RepSet::getNumRepresentatives( TypeNode tn ) const{
+  std::map< TypeNode, std::vector< Node > >::const_iterator it = d_type_reps.find( tn );
+  if( it!=d_type_reps.end() ){
+    return (int)it->second.size();
+  }else{
+    return 0;
+  }
+}
+
 void RepSet::add( Node n ){
   TypeNode t = n.getType();
   d_tmap[ n ] = (int)d_type_reps[t].size();
   d_type_reps[t].push_back( n );
+}
+
+int RepSet::getIndexFor( Node n ) const {
+  std::map< Node, int >::const_iterator it = d_tmap.find( n );
+  if( it!=d_tmap.end() ){
+    return it->second;
+  }else{
+    return -1;
+  }
 }
 
 void RepSet::complete( TypeNode t ){

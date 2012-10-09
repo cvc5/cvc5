@@ -53,9 +53,9 @@ public:
 
 public:
   /** get value for expression */
-  virtual Expr getValue(Expr expr) = 0;
+  virtual Expr getValue(Expr expr) const = 0;
   /** get cardinality for sort */
-  virtual Cardinality getCardinality(Type t) = 0;
+  virtual Cardinality getCardinality(Type t) const = 0;
 };/* class Model */
 
 class ModelBuilder {

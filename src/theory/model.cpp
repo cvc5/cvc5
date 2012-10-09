@@ -48,26 +48,26 @@ void TheoryModel::reset(){
   d_uf_models.clear();
 }
 
-Node TheoryModel::getValue( TNode n ){
+Node TheoryModel::getValue( TNode n ) const{
   //apply substitutions
   Node nn = d_substitutions.apply( n );
   //get value in model
   return getModelValue( nn );
 }
 
-Expr TheoryModel::getValue( Expr expr ){
+Expr TheoryModel::getValue( Expr expr ) const{
   Node n = Node::fromExpr( expr );
   Node ret = getValue( n );
   return ret.toExpr();
 }
 
 /** get cardinality for sort */
-Cardinality TheoryModel::getCardinality( Type t ){
+Cardinality TheoryModel::getCardinality( Type t ) const{
   TypeNode tn = TypeNode::fromType( t );
   //for now, we only handle cardinalities for uninterpreted sorts
   if( tn.isSort() ){
     if( d_rep_set.hasType( tn ) ){
-      return Cardinality( d_rep_set.d_type_reps[tn].size() );
+      return Cardinality( d_rep_set.getNumRepresentatives( tn ) );
     }else{
       return Cardinality( CardinalityUnknown() );
     }
@@ -76,8 +76,7 @@ Cardinality TheoryModel::getCardinality( Type t ){
   }
 }
 
-Node TheoryModel::getModelValue( TNode n )
-{
+Node TheoryModel::getModelValue( TNode n ) const{
   if( n.isConst() ) {
     return n;
   }
@@ -85,9 +84,10 @@ Node TheoryModel::getModelValue( TNode n )
   TypeNode t = n.getType();
   if (t.isFunction() || t.isPredicate()) {
     if (d_enableFuncModels) {
-      if (d_uf_models.find(n) != d_uf_models.end()) {
+      std::map< Node, Node >::const_iterator it = d_uf_models.find(n);
+      if (it != d_uf_models.end()) {
         // Existing function
-        return d_uf_models[n];
+        return it->second;
       }
       // Unknown function symbol: return LAMBDA x. c, where c is the first constant in the enumeration of the range type
       vector<TypeNode> argTypes = t.getArgTypes();
@@ -108,13 +108,15 @@ Node TheoryModel::getModelValue( TNode n )
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF) {
       Node op = n.getOperator();
-      if (d_uf_models.find(op) == d_uf_models.end()) {
+      std::map< Node, Node >::const_iterator it = d_uf_models.find(op);
+      if (it == d_uf_models.end()) {
         // Unknown term - return first enumerated value for this type
         TypeEnumerator te(n.getType());
         return *te;
+      }else{
+        // Plug in uninterpreted function model
+        children.push_back(it->second);
       }
-      // Plug in uninterpreted function model
-      children.push_back(d_uf_models[op]);
     }
     else if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       children.push_back(n.getOperator());
@@ -136,82 +138,11 @@ Node TheoryModel::getModelValue( TNode n )
   }
   Node val = d_equalityEngine.getRepresentative(n);
   Assert(d_reps.find(val) != d_reps.end());
-  val = d_reps[val];
-  return val;
-}
-
-
-Node TheoryModel::getInterpretedValue( TNode n ){
-  Trace("model") << "Get interpreted value of " << n << std::endl;
-  TypeNode type = n.getType();
-  if( type.isFunction() || type.isPredicate() ){
-    //for function models
-    if( d_enableFuncModels ){
-      if( d_uf_models.find( n )!=d_uf_models.end() ){
-        //pre-existing function model
-        Trace("model") << "Return function value." << std::endl;
-        return d_uf_models[n];
-      }else{
-        Trace("model") << "Return arbitrary function value." << std::endl;
-        //otherwise, choose the constant default value
-        uf::UfModelTree ufmt( n );
-        Node default_v = getInterpretedValue( NodeManager::currentNM()->mkSkolem( "defaultValueQueryVar_$$", type.getRangeType(),
-                                              "a placeholder variable to query for a default value in model construction" ) );
-        ufmt.setDefaultValue( this, default_v );
-        return ufmt.getFunctionValue( "$x" );
-      }
-    }else{
-      return n;
-    }
-  } else{
-    Trace("model-debug") << "check rep..." << std::endl;
-    Node ret;
-    //check if the representative is defined
-    n = d_equalityEngine.hasTerm( n ) ? d_equalityEngine.getRepresentative( n ) : n;
-    Trace("model-debug") << "rep is..." << n << std::endl;
-    if( d_reps.find( n )!=d_reps.end() ){
-      Trace("model") << "Return value in equality engine."<< std::endl;
-      return d_reps[n];
-    }
-    Trace("model-debug") << "check apply uf models..." << std::endl;
-    //if it is APPLY_UF, we must consult the corresponding function if it exists
-    if( n.getKind()==APPLY_UF ){
-      Node op = n.getOperator();
-      if( d_uf_models.find( op )!=d_uf_models.end() ){
-        std::vector< Node > lam_children;
-        lam_children.push_back( d_uf_models[ op ] );
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          lam_children.push_back( n[i] );
-        }
-        Node app_lam = NodeManager::currentNM()->mkNode( APPLY_UF, lam_children );
-        ret = Rewriter::rewrite( app_lam );
-        Trace("model") << "Consult UF model." << std::endl;
-      }
-    }
-    Trace("model-debug") << "check existing..." << std::endl;
-    if( ret.isNull() ){
-      //second, try to choose an existing term as value
-      std::vector< Node > v_emp;
-      ret = getDomainValue( type, v_emp );
-      if( !ret.isNull() ){
-        Trace("model") << "Choose existing value." << std::endl;
-      }
-    }
-    Trace("model-debug") << "check new..." << std::endl;
-    if( ret.isNull() ){
-      //otherwise, choose new value
-      ret = getNewDomainValue( type );
-      if( !ret.isNull() ){
-        Trace("model") << "Choose new value." << std::endl;
-      }
-    }
-    if( !ret.isNull() ){
-      return ret;
-    }else{
-      //otherwise, just return itself (this usually should not happen)
-      Trace("model") << "Return self." << std::endl;
-      return n;
-    }
+  std::map< Node, Node >::const_iterator it = d_reps.find( val );
+  if( it!=d_reps.end() ){
+    return it->second;
+  }else{
+    return Node::null();
   }
 }
 
@@ -708,18 +639,5 @@ void TheoryEngineModelBuilder::processBuildModel(TheoryModel* m, bool fullModel)
         //ufmt.debugPrint( std::cout, m );
       }
     }
-  }
-}
-
-
-Node TheoryEngineModelBuilder::chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel ){
-  //try to get a new domain value
-  Node rep = m->getNewDomainValue( eqc.getType() );
-  if( !rep.isNull() ){
-    return rep;
-  }else{
-    //if we can't get new domain value, just return eqc itself (this typically should not happen)
-    //FIXME: Assertion failure here?
-    return eqc;
   }
 }

@@ -42,33 +42,6 @@ d_qe( qe ), d_curr_model( c, NULL ){
   d_considerAxioms = true;
 }
 
-Node ModelEngineBuilder::chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel ){
-  if( fullModel ){
-    return TheoryEngineModelBuilder::chooseRepresentative( m, eqc, fullModel );
-  }else{
-    Assert( m->d_equalityEngine.hasTerm( eqc ) );
-    Assert( m->d_equalityEngine.getRepresentative( eqc )==eqc );
-    //avoid bad representatives
-    if( isBadRepresentative( eqc ) ){
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &m->d_equalityEngine );
-      while( !eqc_i.isFinished() ){
-        if( !isBadRepresentative( *eqc_i ) ){
-          return *eqc_i;
-        }
-        ++eqc_i;
-      }
-      //otherwise, make new value?
-      //Message() << "Warning: Bad rep " << eqc << std::endl;
-    }
-    return eqc;
-  }
-}
-
-bool ModelEngineBuilder::isBadRepresentative( Node n ){
-  //avoid interpreted symbols
-  return n.getKind()==SELECT || n.getKind()==APPLY_SELECTOR;
-}
-
 void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* fm = (FirstOrderModel*)m;
   if( fullModel ){

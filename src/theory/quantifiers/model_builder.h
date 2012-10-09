@@ -45,13 +45,8 @@ protected:
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
-protected:
   /** process build model */
   void processBuildModel( TheoryModel* m, bool fullModel );
-  /** choose representative for unconstrained equivalence class */
-  Node chooseRepresentative( TheoryModel* m, Node eqc, bool fullModel );
-  /** bad representative */
-  bool isBadRepresentative( Node n );
 protected:
   //analyze model
   void analyzeModel( FirstOrderModel* fm );

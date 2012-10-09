@@ -80,8 +80,6 @@ public:
   virtual ~FirstOrderModel(){}
   // reset the model
   void reset();
-  /** get interpreted value */
-  Node getInterpretedValue( TNode n );
 public:
   // initialize the model
   void initialize( bool considerAxioms = true );

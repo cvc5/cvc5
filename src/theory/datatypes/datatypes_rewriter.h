@@ -126,6 +126,13 @@ public:
           }
         }
       }
+    }else if( !n1.getType().isDatatype() ){
+      //also check for clashes between non-datatypes
+      Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
+      eq = Rewriter::rewrite( eq );
+      if( eq==NodeManager::currentNM()->mkConst(false) ){
+        return true;
+      }
     }
     return false;
   }

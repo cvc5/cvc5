@@ -36,11 +36,13 @@ public:
   /** clear the set */
   void clear();
   /** has type */
-  bool hasType( TypeNode tn ) { return d_type_reps.find( tn )!=d_type_reps.end(); }
+  bool hasType( TypeNode tn ) const { return d_type_reps.find( tn )!=d_type_reps.end(); }
+  /** get cardinality for type */
+  int getNumRepresentatives( TypeNode tn ) const;
   /** add representative for type */
   void add( Node n );
   /** returns index in d_type_reps for node n */
-  int getIndexFor( Node n ) { return d_tmap.find( n )!=d_tmap.end() ? d_tmap[n] : -1; }
+  int getIndexFor( Node n ) const;
   /** complete all values */
   void complete( TypeNode t );
   /** debug print */
