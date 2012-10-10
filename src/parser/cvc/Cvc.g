@@ -549,6 +549,16 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
+#define ENSURE_BV_SIZE(k, f)                                   \
+{                                                              \
+  unsigned size = BitVectorType(f.getType()).getSize();        \
+  if(k > size) {                                               \
+    f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k - size)), f);   \
+  } else if (k < size) {                                       \
+    f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);      \
+  }                                                            \
+}                                            
+
 }/* @parser::postinclude */
 
 /**
@@ -1705,6 +1715,7 @@ postfixTerm[CVC4::Expr& f]
 bvTerm[CVC4::Expr& f]
 @init {
   Expr f2;
+  std::vector<Expr> args;
 }
     /* BV xor */
   : BVXOR_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
@@ -1722,43 +1733,36 @@ bvTerm[CVC4::Expr& f]
   | BVUMINUS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NEG, f); }
     /* BV addition */
-  | BVPLUS_TOK LPAREN k=numeral COMMA formula[f]
-    ( COMMA formula[f2] { f = MK_EXPR(CVC4::kind::BITVECTOR_PLUS, f, f2); } )+ RPAREN
-    { unsigned size = BitVectorType(f.getType()).getSize();
-      if(k == 0) {
-        PARSER_STATE->parseError("BVPLUS(k,_,_,...) must have k > 0");
+  | BVPLUS_TOK LPAREN k=numeral COMMA formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN 
+    {
+      if (k <= 0) {
+        PARSER_STATE->parseError("BVPLUS(k,_,_) must have k > 0");
+      }      
+      for (unsigned i = 0; i < args.size(); ++ i) {
+        ENSURE_BV_SIZE(k, args[i]);
       }
-      if(k > size) {
-        f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
-      } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
-      }
+      f = MK_EXPR(CVC4::kind::BITVECTOR_PLUS, args);
     }
     /* BV subtraction */
   | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
-    { f = MK_EXPR(CVC4::kind::BITVECTOR_SUB, f, f2);
-      if(k == 0) {
+    {       
+      if (k <= 0) {
         PARSER_STATE->parseError("BVSUB(k,_,_) must have k > 0");
-      }
-      unsigned size = BitVectorType(f.getType()).getSize();
-      if(k > size) {
-        f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
-      } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
-      }
+      }      
+      ENSURE_BV_SIZE(k, f);
+      ENSURE_BV_SIZE(k, f2);
+      f = MK_EXPR(CVC4::kind::BITVECTOR_SUB, f, f2);
     }
     /* BV multiplication */
   | BVMULT_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
-    { f = MK_EXPR(CVC4::kind::BITVECTOR_MULT, f, f2);
-      if(k == 0) {
+    { 
+      if (k <= 0) {
         PARSER_STATE->parseError("BVMULT(k,_,_) must have k > 0");
       }
-      unsigned size = BitVectorType(f.getType()).getSize();
-      if(k > size) {
-        f = MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f);
-      } else if(k < size) {
-        f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);
-      }
+      ENSURE_BV_SIZE(k, f);
+      ENSURE_BV_SIZE(k, f2);
+      f = MK_EXPR(CVC4::kind::BITVECTOR_MULT, f, f2);
     }
     /* BV unsigned division */
   | BVUDIV_TOK LPAREN formula[f] COMMA formula[f2] RPAREN

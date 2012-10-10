@@ -92,7 +92,7 @@ SMT_TESTS = \
 SMT2_TESTS =
 
 # Regression tests for PL inputs
-CVC_TESTS = bvsimple.cvc
+CVC_TESTS = bvsimple.cvc sizecheck.cvc
 
 # Regression tests derived from bug reports
 BUG_TESTS = \

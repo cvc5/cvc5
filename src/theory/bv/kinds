@@ -128,10 +128,10 @@ typerule BITVECTOR_XNOR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
 typerule BITVECTOR_COMP ::CVC4::theory::bv::BitVectorCompRule
 
-typerule BITVECTOR_MULT ::CVC4::theory::bv::BitVectorArithRule
-typerule BITVECTOR_PLUS ::CVC4::theory::bv::BitVectorArithRule
-typerule BITVECTOR_SUB ::CVC4::theory::bv::BitVectorArithRule
-typerule BITVECTOR_NEG ::CVC4::theory::bv::BitVectorArithRule
+typerule BITVECTOR_MULT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_PLUS ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SUB ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_NEG ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
 typerule BITVECTOR_UDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_UREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule

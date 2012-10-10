@@ -72,25 +72,6 @@ public:
   }
 };
 
-class BitVectorArithRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-      throw (TypeCheckingExceptionPrivate, AssertionException) {
-    unsigned maxWidth = 0;
-    TNode::iterator it = n.begin();
-    TNode::iterator it_end = n.end();
-    // TODO: optimize unary neg
-    for (; it != it_end; ++ it) {
-      TypeNode t = (*it).getType(check);
-      if (check && !t.isBitVector()) {
-        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
-      }
-      maxWidth = std::max( maxWidth, t.getBitVectorSize() );
-    }
-    return nodeManager->mkBitVectorType(maxWidth);
-  }
-};
-
 class BitVectorFixedWidthTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
