@@ -100,6 +100,13 @@ public:
 
 };/* class TypeCheckingExceptionPrivate */
 
+class UnknownTypeException : public TypeCheckingExceptionPrivate {
+public:
+
+  UnknownTypeException(NodeTemplate<false> node) throw();
+
+};/* class UnknownTypeException */
+
 /**
  * \typedef NodeTemplate<true> Node;
  *

@@ -11,7 +11,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Parser for SMT-LIB v2 input language.
+ ** \brief Parser for SMT-LIB v2 input language
  **
  ** Parser for SMT-LIB v2 input language.
  **/
@@ -355,7 +355,7 @@ command returns [CVC4::Command* cmd = NULL]
   | EXIT_TOK
     { cmd = new QuitCommand; }
 
-    /* CVC4-extended SMT-LIBv2 commands */
+    /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
     { if(PARSER_STATE->strictModeEnabled()) {
         PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
@@ -385,7 +385,7 @@ extendedCommand[CVC4::Command*& cmd]
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
 }
-    /* Extended SMT-LIBv2 set of commands syntax, not permitted in
+    /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { /* open a scope to keep the UnresolvedTypes contained */
@@ -407,7 +407,7 @@ extendedCommand[CVC4::Command*& cmd]
     )
   | rewriterulesCommand[cmd]
 
-    /* Support some of Z3's extended SMT-LIBv2 commands */
+    /* Support some of Z3's extended SMT-LIB commands */
 
   | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -624,7 +624,6 @@ pattern[CVC4::Expr& expr]
   : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
     {
       expr = MK_EXPR(kind::INST_PATTERN, patexpr);
-      //std::cout << "parsed pattern expr " << retExpr << std::endl;
     }
   ;
 
@@ -811,7 +810,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
     { const bool isDefinedFunction =
         PARSER_STATE->isDefinedFunction(name);
-      if(isDefinedFunction) {
+      if(PARSER_STATE->isAbstractValue(name)) {
+        expr = PARSER_STATE->mkAbstractValue(name);
+      } else if(isDefinedFunction) {
         expr = MK_EXPR(CVC4::kind::APPLY,
                        PARSER_STATE->getFunction(name));
       } else {
@@ -1206,13 +1207,19 @@ symbol[std::string& id,
        CVC4::parser::SymbolType type]
   : SIMPLE_SYMBOL
     { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
-      PARSER_STATE->checkDeclaration(id, check, type);
+      if(!PARSER_STATE->isAbstractValue(id)) {
+        // if an abstract value, SmtEngine handles declaration
+        PARSER_STATE->checkDeclaration(id, check, type);
+      }
     }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
       /* strip off the quotes */
       id = id.substr(1, id.size() - 2);
-      PARSER_STATE->checkDeclaration(id, check, type);
+      if(!PARSER_STATE->isAbstractValue(id)) {
+        // if an abstract value, SmtEngine handles declaration
+        PARSER_STATE->checkDeclaration(id, check, type);
+      }
     }
   ;
 
@@ -1521,7 +1528,7 @@ fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
 /**
  * Matches the characters that may appear as a one-character "symbol"
- * (which excludes _ and !, which are reserved words in SMT-LIBv2).
+ * (which excludes _ and !, which are reserved words in SMT-LIB).
  */
 fragment SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
   : '+' | '-' | '/' | '*' | '=' | '%' | '?' | '.' | '$' | '~'

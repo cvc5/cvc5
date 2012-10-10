@@ -150,6 +150,17 @@ public:
   }
 };/* class UninterpretedConstantTypeRule */
 
+class AbstractValueTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    // An UnknownTypeException means that this node has no type.  For now,
+    // only abstract values are like this.  Assigning them a type in all
+    // cases is difficult, since then the parser and the SmtEngine must be
+    // more tightly coupled.
+    throw UnknownTypeException(n);
+  }
+};/* class AbstractValueTypeRule */
+
 class StringConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {

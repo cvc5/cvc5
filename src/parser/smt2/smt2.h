@@ -23,6 +23,7 @@
 
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "util/abstract_value.h"
 
 #include <sstream>
 
@@ -78,13 +79,21 @@ public:
   void checkThatLogicIsSet();
 
   void checkUserSymbol(const std::string& name) {
-    if( strictModeEnabled() &&
-        name.length() > 0 &&
-        ( name[0] == '.' || name[0] == '@' ) ) {
+    if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
       std::stringstream ss;
-      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIBv2";
+      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
       parseError(ss.str());
     }
+  }
+
+  bool isAbstractValue(const std::string& name) {
+    return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
+      name.find_first_not_of("0123456789", 1) == std::string::npos;
+  }
+
+  Expr mkAbstractValue(const std::string& name) {
+    assert(isAbstractValue(name));
+    return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
 private:

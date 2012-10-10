@@ -265,11 +265,18 @@ constant UNINTERPRETED_CONSTANT \
     ::CVC4::UninterpretedConstant \
     ::CVC4::UninterpretedConstantHashFunction \
     "util/uninterpreted_constant.h" \
-    "The kind of nodes representing uninterpreted constants"
+    "The kind of expressions representing uninterpreted constants"
 typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
     ::CVC4::theory::builtin::UninterpretedSortEnumerator \
     "theory/builtin/type_enumerator.h"
+
+constant ABSTRACT_VALUE \
+    ::CVC4::AbstractValue \
+    ::CVC4::AbstractValueHashFunction \
+    "util/abstract_value.h" \
+    "The kind of expressions representing abstract values (other than uninterpreted sort constants)"
+typerule ABSTRACT_VALUE ::CVC4::theory::builtin::AbstractValueTypeRule
 
 # A kind representing "inlined" operators defined with OPERATOR
 # Conceptually, (EQUAL a b) is actually an (APPLY EQUAL a b), but it's
@@ -279,7 +286,7 @@ constant BUILTIN \
     ::CVC4::Kind \
     ::CVC4::kind::KindHashFunction \
     "expr/kind.h" \
-    "The kind of nodes representing built-in operators"
+    "The kind of expressions representing built-in operators"
 
 variable FUNCTION "function"
 parameterized APPLY FUNCTION 0: "defined function application"

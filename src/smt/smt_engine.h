@@ -34,6 +34,7 @@
 #include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
+#include "util/hash.h"
 #include "util/statistics.h"
 #include "theory/logic_info.h"
 

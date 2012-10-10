@@ -43,4 +43,9 @@ NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const throw() {
   return *d_node;
 }
 
+UnknownTypeException::UnknownTypeException(TNode n) throw() :
+  TypeCheckingExceptionPrivate(n, "this expression contains an element of unknown type (such as an abstract value);"
+                               " its type cannot be computed until it is substituted away") {
+}
+
 }/* CVC4 namespace */

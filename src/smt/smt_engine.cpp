@@ -37,6 +37,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_builder.h"
+#include "expr/node.h"
 #include "prop/prop_engine.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
@@ -200,12 +201,33 @@ class SmtEnginePrivate : public NodeManagerListener {
   vector<Node> d_assertionsToCheck;
 
   /**
+   * A context that never pushes/pops, for use by CD structures (like
+   * SubstitutionMaps) that should be "global".
+   */
+  context::Context d_fakeContext;
+
+  /**
+   * A map of AbsractValues to their actual constants.  Only used if
+   * options::abstractValues() is on.
+   */
+  theory::SubstitutionMap d_abstractValueMap;
+
+  /**
+   * A mapping of all abstract values (actual value |-> abstract) that
+   * we've handed out.  This is necessary to ensure that we give the
+   * same AbstractValues for the same real constants.  Only used if
+   * options::abstractValues() is on.
+   */
+  hash_map<Node, Node, NodeHashFunction> d_abstractValues;
+
+  /**
    * Map from skolem variables to index in d_assertionsToCheck containing
    * corresponding introduced Boolean ite
    */
   IteSkolemMap d_iteSkolemMap;
 
 public:
+
   /** Instance of the ITE remover */
   RemoveITE d_iteRemover;
 
@@ -277,6 +299,9 @@ public:
     d_realAssertionsEnd(0),
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_assertionsToCheck(),
+    d_fakeContext(),
+    d_abstractValueMap(&d_fakeContext),
+    d_abstractValues(),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_topLevelSubstitutions(smt.d_userContext),
@@ -369,7 +394,31 @@ public:
   /**
    * pre-skolemize quantifiers
    */
-  Node preSkolemizeQuantifiers( Node n, bool polarity, std::vector< Node >& fvs );
+  Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector<Node>& fvs);
+
+  /**
+   * Substitute away all AbstractValues in a node.
+   */
+  Node substituteAbstractValues(TNode n) {
+    // We need to do this even if options::abstractValues() is off,
+    // since the setting might have changed after we already gave out
+    // some abstract values.
+    return d_abstractValueMap.apply(n);
+  }
+
+  /**
+   * Make a new (or return an existing) abstract value for a node.
+   * Can only use this if options::abstractValues() is on.
+   */
+  Node mkAbstractValue(TNode n) {
+    Assert(options::abstractValues());
+    Node& val = d_abstractValues[n];
+    if(val.isNull()) {
+      val = d_smt.d_nodeManager->mkConst(AbstractValue(d_abstractValues.size()));
+      d_abstractValueMap.addSubstitution(val, n);
+    }
+    return val;
+  }
 
 };/* class SmtEnginePrivate */
 
@@ -910,8 +959,11 @@ void SmtEngine::defineFunction(Expr func,
   }
   SmtScope smts(this);
 
+  // Substitute out any abstract values in formula
+  Expr form = d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+
   // type check body
-  Type formulaType = formula.getType(options::typeChecking());
+  Type formulaType = form.getType(options::typeChecking());
 
   Type funcType = func.getType();
   // We distinguish here between definitions of constants and functions,
@@ -949,12 +1001,12 @@ void SmtEngine::defineFunction(Expr func,
       ++i) {
     formalsNodes.push_back((*i).getNode());
   }
-  TNode formulaNode = formula.getTNode();
-  DefinedFunction def(funcNode, formalsNodes, formulaNode);
+  TNode formNode = form.getTNode();
+  DefinedFunction def(funcNode, formalsNodes, formNode);
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
-  Debug("smt") << "definedFunctions insert " << funcNode << " " << formulaNode << std::endl;
+  Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << std::endl;
   d_definedFunctions->insert(funcNode, def);
 }
 
@@ -1582,7 +1634,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       unconstrainedSimp();
     }
 
-    Trace("smt") << "POST unconstraintedSimp" << std::endl;
+    Trace("smt") << "POST unconstrainedSimp" << std::endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -1884,15 +1936,12 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& e) throw(TypeCheckingException, ModalException) {
-
-  Assert(e.isNull() || e.getExprManager() == d_exprManager);
-
+Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException) {
+  Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-
-  Trace("smt") << "SmtEngine::checkSat(" << e << ")" << endl;
+  Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
 
   if(d_queryMade && !options::incrementalSolving()) {
     throw ModalException("Cannot make multiple queries unless "
@@ -1900,8 +1949,11 @@ Result SmtEngine::checkSat(const Expr& e) throw(TypeCheckingException, ModalExce
                          "(try --incremental)");
   }
 
-  // Ensure that the expression is type-checked at this point, and Boolean
-  if(!e.isNull()) {
+  Expr e;
+  if(!ex.isNull()) {
+    // Substitute out any abstract values in ex.
+    e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+    // Ensure expr is type-checked at this point.
     ensureBoolean(e);
   }
 
@@ -1951,22 +2003,22 @@ Result SmtEngine::checkSat(const Expr& e) throw(TypeCheckingException, ModalExce
   return r;
 }/* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& e) throw(TypeCheckingException, ModalException) {
-
-  Assert(!e.isNull());
-  Assert(e.getExprManager() == d_exprManager);
-
+Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalException) {
+  Assert(!ex.isNull());
+  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-
-  Trace("smt") << "SMT query(" << e << ")" << endl;
+  Trace("smt") << "SMT query(" << ex << ")" << endl;
 
   if(d_queryMade && !options::incrementalSolving()) {
     throw ModalException("Cannot make multiple queries unless "
                          "incremental solving is enabled "
                          "(try --incremental)");
   }
+
+  // Substitute out any abstract values in ex
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
   // Ensure that the expression is type-checked at this point, and Boolean
   ensureBoolean(e);
@@ -2015,12 +2067,16 @@ Result SmtEngine::query(const Expr& e) throw(TypeCheckingException, ModalExcepti
   return r;
 }/* SmtEngine::query() */
 
-Result SmtEngine::assertFormula(const Expr& e) throw(TypeCheckingException) {
-  Assert(e.getExprManager() == d_exprManager);
+Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException) {
+  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  Trace("smt") << "SmtEngine::assertFormula(" << e << ")" << endl;
+  Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
+
+  // Substitute out any abstract values in ex
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+
   ensureBoolean(e);
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
@@ -2029,33 +2085,44 @@ Result SmtEngine::assertFormula(const Expr& e) throw(TypeCheckingException) {
   return quickCheck().asValidityResult();
 }
 
-Expr SmtEngine::simplify(const Expr& e) throw(TypeCheckingException) {
-  Assert(e.getExprManager() == d_exprManager);
+Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException) {
+  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+  Trace("smt") << "SMT simplify(" << ex << ")" << endl;
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << SimplifyCommand(ex);
+  }
+
+  // Substitute out any abstract values in ex.
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   if( options::typeChecking() ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
-  Trace("smt") << "SMT simplify(" << e << ")" << endl;
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SimplifyCommand(e);
-  }
+  // Expand definitions.
+  hash_map<Node, Node, NodeHashFunction> cache;
+  e = d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
   // Make sure we've done simple preprocessing, unit detection, etc.
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
   return d_private->applySubstitutions(e).toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& e) throw(TypeCheckingException) {
-  Assert(e.getExprManager() == d_exprManager);
+Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException) {
+  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  if( options::typeChecking() ) {
-    e.getType(true);// ensure expr is type-checked at this point
+  Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
+
+  // Substitute out any abstract values in ex.
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  if(options::typeChecking()) {
+    // Ensure expr is type-checked at this point.
+    e.getType(true);
   }
-  Trace("smt") << "SMT expandDefinitions(" << e << ")" << endl;
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
@@ -2063,17 +2130,15 @@ Expr SmtEngine::expandDefinitions(const Expr& e) throw(TypeCheckingException) {
   return d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
 }
 
-Expr SmtEngine::getValue(const Expr& e) throw(ModalException) {
-  Assert(e.getExprManager() == d_exprManager);
+Expr SmtEngine::getValue(const Expr& ex) throw(ModalException) {
+  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
-  // ensure expr is type-checked at this point
-  Type type = e.getType(options::typeChecking());
-
-  Trace("smt") << "SMT getValue(" << e << ")" << endl;
+  Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetValueCommand(e);
+    Dump("benchmark") << GetValueCommand(ex);
   }
+
   if(!options::produceModels()) {
     const char* msg =
       "Cannot get value when produce-models options is off.";
@@ -2087,11 +2152,18 @@ Expr SmtEngine::getValue(const Expr& e) throw(ModalException) {
     throw ModalException(msg);
   }
 
+  // Substitute out any abstract values in ex.
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+
+  // Ensure expr is type-checked at this point.
+  e.getType(options::typeChecking());
+
   // do not need to apply preprocessing substitutions (should be recorded
   // in model already)
 
   // Expand, then normalize
-  Node n = expandDefinitions(e).getNode();
+  hash_map<Node, Node, NodeHashFunction> cache;
+  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
   n = Rewriter::rewrite(n);
 
   Trace("smt") << "--- getting value of " << n << endl;
@@ -2101,15 +2173,26 @@ Expr SmtEngine::getValue(const Expr& e) throw(ModalException) {
     resultNode = m->getValue( n );
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
+
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf( n.getType() ));
-  return Expr(d_exprManager, new Node(resultNode));
+  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(n.getType()));
+
+  // ensure it's a constant
+  Assert(resultNode.isConst());
+
+  if(options::abstractValues() && resultNode.getType().isArray()) {
+    resultNode = d_private->mkAbstractValue(resultNode);
+  }
+
+  return resultNode.toExpr();
 }
 
-bool SmtEngine::addToAssignment(const Expr& e) throw() {
+bool SmtEngine::addToAssignment(const Expr& ex) throw() {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+  // Substitute out any abstract values in ex
+  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   Type type = e.getType(options::typeChecking());
   // must be Boolean
   CheckArgument( type.isBoolean(), e,
