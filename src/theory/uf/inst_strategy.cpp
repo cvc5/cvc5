@@ -236,7 +236,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     d_quantEngine->getPhaseReqTerms( f, patTermsF );
     //sort into single/multi triggers
     std::map< Node, std::vector< Node > > varContains;
-    Trigger::getVarContains( f, patTermsF, varContains );
+    d_quantEngine->getTermDatabase()->getVarContains( f, patTermsF, varContains );
     for( std::map< Node, std::vector< Node > >::iterator it = varContains.begin(); it != varContains.end(); ++it ){
       if( it->second.size()==f[0].getNumChildren() ){
         d_patTerms[0][f].push_back( it->first );

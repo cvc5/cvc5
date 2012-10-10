@@ -30,7 +30,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_setIncomplete( setIncomplete ){
+QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ){
 
 }
 
@@ -144,25 +144,23 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   }
 }
 
-static int ierCounter = 0;
-
 void InstantiationEngine::check( Theory::Effort e ){
   if( e==Theory::EFFORT_FULL ){
-    ierCounter++;
+    d_ierCounter++;
   }
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
   if( options::instWhenMode()==INST_WHEN_FULL ){
     performCheck = ( e >= Theory::EFFORT_FULL );
   }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL  && ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{
     performCheck = true;
   }
   if( performCheck ){
-    Debug("inst-engine") << "IE: Check " << e << " " << ierCounter << std::endl;
+    Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);

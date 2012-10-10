@@ -610,7 +610,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti( Node f, std::vector< Node >& p
 d_f( f ){
   Debug("smart-multi-trigger") << "Making smart multi-trigger for " << f << std::endl;
   std::map< Node, std::vector< Node > > var_contains;
-  Trigger::getVarContains( f, pats, var_contains );
+  qe->getTermDatabase()->getVarContains( f, pats, var_contains );
   //convert to indicies
   for( std::map< Node, std::vector< Node > >::iterator it = var_contains.begin(); it != var_contains.end(); ++it ){
     Debug("smart-multi-trigger") << "Pattern " << it->first << " contains: ";

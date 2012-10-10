@@ -28,26 +28,54 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 using namespace CVC4::theory::inst;
- bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
-   if( argIndex<(int)n.getNumChildren() ){
-     Node r = qe->getEqualityQuery()->getRepresentative( n[ argIndex ] );
-     std::map< Node, TermArgTrie >::iterator it = d_data.find( r );
-     if( it==d_data.end() ){
-       d_data[r].addTerm2( qe, n, argIndex+1 );
-       return true;
-     }else{
-       return it->second.addTerm2( qe, n, argIndex+1 );
-     }
-   }else{
-     //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
-     d_data[n].d_data.clear();
-     return false;
-   }
- }
+
+bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
+  if( argIndex<(int)n.getNumChildren() ){
+    Node r = qe->getEqualityQuery()->getRepresentative( n[ argIndex ] );
+    std::map< Node, TermArgTrie >::iterator it = d_data.find( r );
+    if( it==d_data.end() ){
+      d_data[r].addTerm2( qe, n, argIndex+1 );
+      return true;
+    }else{
+      return it->second.addTerm2( qe, n, argIndex+1 );
+    }
+  }else{
+    //store n in d_data (this should be interpretted as the "data" and not as a reference to a child)
+    d_data[n].d_data.clear();
+    return false;
+  }
+}
+
+Trigger* TrTrie::getTrigger2( std::vector< Node >& nodes ){
+  if( nodes.empty() ){
+    return d_tr;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )!=d_children.end() ){
+      return d_children[n]->getTrigger2( nodes );
+    }else{
+      return NULL;
+    }
+  }
+}
+
+void TrTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
+  if( nodes.empty() ){
+    d_tr = t;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )==d_children.end() ){
+      d_children[n] = new TrTrie;
+    }
+    d_children[n]->addTrigger2( nodes, t );
+  }
+}
 
 void TermDb::addTermEfficient( Node n, std::set< Node >& added){
   static AvailableInTermDb aitdi;
-  if (Trigger::isAtomicTrigger( n ) && !n.getAttribute(aitdi)){
+  if (inst::Trigger::isAtomicTrigger( n ) && !n.getAttribute(aitdi)){
     //Already processed but new in this branch
     n.setAttribute(aitdi,true);
     added.insert( n );
@@ -71,7 +99,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     n.setAttribute(AvailableInTermDb(),true);
     //if this is an atomic trigger, consider adding it
     //Call the children?
-    if( Trigger::isAtomicTrigger( n ) ){
+    if( inst::Trigger::isAtomicTrigger( n ) ){
       if( !n.hasAttribute(InstConstantAttribute()) ){
         Debug("term-db") << "register trigger term " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
@@ -369,4 +397,62 @@ const std::vector<Node> & TermDb::getParents(TNode n, TNode f, int arg){
   }
   static std::vector<Node> empty;
   return empty;
+}
+
+void TermDb::computeVarContains( Node n ) {
+  if( d_var_contains.find( n )==d_var_contains.end() ){
+    d_var_contains[n].clear();
+    computeVarContains2( n, n );
+  }
+}
+
+void TermDb::computeVarContains2( Node n, Node parent ){
+  if( n.getKind()==INST_CONSTANT ){
+    if( std::find( d_var_contains[parent].begin(), d_var_contains[parent].end(), n )==d_var_contains[parent].end() ){
+      d_var_contains[parent].push_back( n );
+    }
+  }else{
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      computeVarContains2( n[i], parent );
+    }
+  }
+}
+
+bool TermDb::isVariableSubsume( Node n1, Node n2 ){
+  if( n1==n2 ){
+    return true;
+  }else{
+    //Notice() << "is variable subsume ? " << n1 << " " << n2 << std::endl;
+    computeVarContains( n1 );
+    computeVarContains( n2 );
+    for( int i=0; i<(int)d_var_contains[n2].size(); i++ ){
+      if( std::find( d_var_contains[n1].begin(), d_var_contains[n1].end(), d_var_contains[n2][i] )==d_var_contains[n1].end() ){
+        //Notice() << "no" << std::endl;
+        return false;
+      }
+    }
+    //Notice() << "yes" << std::endl;
+    return true;
+  }
+}
+
+void TermDb::getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains ){
+  for( int i=0; i<(int)pats.size(); i++ ){
+    computeVarContains( pats[i] );
+    varContains[ pats[i] ].clear();
+    for( int j=0; j<(int)d_var_contains[pats[i]].size(); j++ ){
+      if( d_var_contains[pats[i]][j].getAttribute(InstConstantAttribute())==f ){
+        varContains[ pats[i] ].push_back( d_var_contains[pats[i]][j] );
+      }
+    }
+  }
+}
+
+void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContains ){
+  computeVarContains( n );
+  for( int j=0; j<(int)d_var_contains[n].size(); j++ ){
+    if( d_var_contains[n][j].getAttribute(InstConstantAttribute())==f ){
+      varContains.push_back( d_var_contains[n][j] );
+    }
+  }
 }

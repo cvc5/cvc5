@@ -36,6 +36,8 @@ private:
   std::map< Node, Node > d_ce_lit;
   /** whether the instantiation engine should set incomplete if it cannot answer SAT */
   bool d_setIncomplete;
+  /** inst round counter */
+  int d_ierCounter;
 private:
   bool hasAddedCbqiLemma( Node f );
   void addCbqiLemma( Node f );

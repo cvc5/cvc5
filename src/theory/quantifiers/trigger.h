@@ -28,42 +28,12 @@ namespace inst {
 //a collect of nodes representing a trigger
 class Trigger {
 private:
-  /** computation of variable contains */
-  static std::map< TNode, std::vector< TNode > > d_var_contains;
-  static void computeVarContains( Node n );
-  static void computeVarContains2( Node n, Node parent );
-private:
   /** the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
   /** the quantifier this trigger is for */
   Node d_f;
   /** match generators */
   IMGenerator* d_mg;
-private:
-  /** a trie of triggers */
-  class TrTrie {
-  private:
-    Trigger* getTrigger2( std::vector< Node >& nodes );
-    void addTrigger2( std::vector< Node >& nodes, Trigger* t );
-  public:
-    TrTrie() : d_tr( NULL ){}
-    Trigger* d_tr;
-    std::map< TNode, TrTrie* > d_children;
-    Trigger* getTrigger( std::vector< Node >& nodes ){
-      std::vector< Node > temp;
-      temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-      std::sort( temp.begin(), temp.end() );
-      return getTrigger2( temp );
-    }
-    void addTrigger( std::vector< Node >& nodes, Trigger* t ){
-      std::vector< Node > temp;
-      temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-      std::sort( temp.begin(), temp.end() );
-      return addTrigger2( temp, t );
-    }
-  };/* class Trigger::TrTrie */
-  /** all triggers will be stored in this trie */
-  static TrTrie d_tr_trie;
 private:
   /** trigger constructor */
   Trigger( QuantifiersEngine* ie, Node f, std::vector< Node >& nodes, int matchOption = 0, bool smartTriggers = false );
@@ -138,14 +108,9 @@ public:
   static bool isAtomicTrigger( Node n );
   static bool isSimpleTrigger( Node n );
   /** filter all nodes that have instances */
-  static void filterInstances( std::vector< Node >& nodes );
+  static void filterInstances( QuantifiersEngine* qe, std::vector< Node >& nodes );
   /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf( Node n1, Node n2 );
-  /** variables subsume, return true if n1 contains all free variables in n2 */
-  static bool isVariableSubsume( Node n1, Node n2 );
-  /** get var contains */
-  static void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
-  static void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  static int isInstanceOf( QuantifiersEngine* qe, Node n1, Node n2 );
   /** get pattern arithmetic */
   static bool getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coeffs );
 

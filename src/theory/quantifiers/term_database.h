@@ -28,6 +28,10 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace inst{
+  class Trigger;
+}
+
 namespace quantifiers {
 
 class TermArgTrie {
@@ -40,8 +44,34 @@ public:
   bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
 };/* class TermArgTrie */
 
+
+/** a trie of triggers */
+class TrTrie {
+private:
+  inst::Trigger* getTrigger2( std::vector< Node >& nodes );
+  void addTrigger2( std::vector< Node >& nodes, inst::Trigger* t );
+public:
+  TrTrie() : d_tr( NULL ){}
+  inst::Trigger* d_tr;
+  std::map< TNode, TrTrie* > d_children;
+  inst::Trigger* getTrigger( std::vector< Node >& nodes ){
+    std::vector< Node > temp;
+    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+    std::sort( temp.begin(), temp.end() );
+    return getTrigger2( temp );
+  }
+  void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
+    std::vector< Node > temp;
+    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+    std::sort( temp.begin(), temp.end() );
+    return addTrigger2( temp, t );
+  }
+};/* class inst::Trigger::TrTrie */
+
+
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
+  friend class ::CVC4::theory::inst::Trigger;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -147,6 +177,28 @@ public:
                              const std::vector<Node> & nvars);
   /** get free variable for instantiation constant */
   Node getFreeVariableForInstConstant( Node n );
+
+//for triggers
+private:
+  /** helper function for compute var contains */
+  void computeVarContains2( Node n, Node parent );
+  /** all triggers will be stored in this trie */
+  TrTrie d_tr_trie;
+  /** var contains */
+  std::map< TNode, std::vector< TNode > > d_var_contains;
+public:
+  /** compute var contains */
+  void computeVarContains( Node n );
+  /** variables subsume, return true if n1 contains all free variables in n2 */
+  bool isVariableSubsume( Node n1, Node n2 );
+  /** get var contains for each of the patterns in pats */
+  void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
+  /** get var contains for node n */
+  void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  /** get trigger */
+  inst::Trigger* getTrigger( std::vector< Node >& nodes ){ return d_tr_trie.getTrigger( nodes ); }
+  /** add trigger */
+  void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){ d_tr_trie.addTrigger( nodes, t ); }
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */
