@@ -74,6 +74,14 @@ standard.  To make CVC4 adhere more strictly to the standard, use the
 somewhat lenient; some non-conforming input may still be parsed and
 processed.
 
+For the latest news on SMT-LIB compliance, please check:
+
+  http://church.cims.nyu.edu/wiki/SMT-LIB_Compliance
+
+However, please note that that page may refer to a more recent version
+(and possibly an unreleased, development version) than the one you are
+looking at.
+
 ** Getting statistics
 
 Statistics can be dumped on exit (both normal and abnormal exits) with
