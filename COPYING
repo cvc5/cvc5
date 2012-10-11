@@ -238,10 +238,10 @@ for Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-Please be advised that as this class library is covered under the GPL, the
-combined work, CVC4+CLN, is also covered under the GPL and cannot be used
-by proprietary software projects.  For the full text of the GPL, please
-consult the CLN website.  CVC4 does not require CLN; it can be built against
-libgmp, the GNU Multiple Precision Arithmetic Library, which is covered by
-the more permissive LGPL.  To ensure that CLN is not used in the build,
-configure CVC4 with "--without-cln".
+Please be advised that as this class library is covered under the GPLv3, if
+you choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
+then it is also covered under the GPLv3.  If you want to make sure you build
+a version of CVC4 that uses libgmp, the GNU Multiple Precision Arithmetic
+Library, configure CVC4 with "--with-gmp" before building (though that is the
+default).  It can then be used in contexts where you want to license CVC4
+under the (modified) BSD license.

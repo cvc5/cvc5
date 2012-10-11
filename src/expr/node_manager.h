@@ -39,7 +39,6 @@
 #include "expr/node_value.h"
 #include "context/context.h"
 #include "util/subrange_bound.h"
-#include "util/configuration_private.h"
 #include "util/tls.h"
 #include "options/options.h"
 

@@ -131,10 +131,10 @@ Copyright (C) 2009, 2010, 2011, 2012\n\
     ( IS_CLN_BUILD ? "\
 This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\
-However, CLN, the Class Library for Numbers, is covered by the GPL.  Thus\n\
-this CVC4 library cannot be used in proprietary applications.  Please\n\
-consult the CVC4 documentation for instructions about building a version\n\
-of CVC4 that links against GMP, and can be used in such applications.\n" : \
+However, CLN, the Class Library for Numbers, is covered by the GPLv3,\n\
+and so this \"combined\" work, CVC4+CLN, is covered by the GPLv3 as well\n\
+Please consult the CVC4 documentation for instructions about building\n\
+without CLN if you want to license CVC4 under the (modified) BSD license.\n" : \
 "This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\n\
 THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE IT AT YOUR OWN RISK.\n" ) )
