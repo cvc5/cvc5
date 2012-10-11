@@ -5,9 +5,7 @@
  ** Major contributors: acsys
  ** Minor contributors (to current version): lianah, cconway
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** Copyright (c) 2009-2012  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -124,10 +122,7 @@ This is CVC4 version " CVC4_RELEASE_STRING ) + \
 compiled with " + ::CVC4::Configuration::getCompiler() + "\n\
 on " + ::CVC4::Configuration::getCompiledDateTime() + "\n\n\
 Copyright (C) 2009, 2010, 2011, 2012\n\
-  The ACSys Group\n\
-  Courant Institute of Mathematical Sciences\n\
-  New York University\n\
-  New York, NY  10012  USA\n\n" + \
+  New York University and The University of Iowa\n\n" + \
     ( IS_CLN_BUILD ? "\
 This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\

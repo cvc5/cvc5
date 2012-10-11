@@ -1,6 +1,5 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012 the ACSys research group at
-the Courant Institute for Mathematical Sciences, New York University.
-All rights reserved.
+CVC4 is copyright (C) 2009, 2010, 2011, 2012 New York University and
+The University of Iowa.  All rights reserved.
 
 CVC4 is open-source; distribution is under the terms of the modified BSD
 license.  However, certain builds of CVC4 link against GPLed libraries,

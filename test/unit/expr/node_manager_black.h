@@ -2,12 +2,10 @@
 /*! \file node_manager_black.h
  ** \verbatim
  ** Original author: cconway
- ** Major contributors: dejan
- ** Minor contributors (to current version): taking, mdeters
+ ** Major contributors: mdeters, dejan
+ ** Minor contributors (to current version): taking
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** Copyright (c) 2009-2012  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

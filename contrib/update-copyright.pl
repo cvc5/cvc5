@@ -32,7 +32,7 @@
 # the license.)
 #
 
-my $excluded_directories = '^(minisat|CVS|generated)$';
+my $excluded_directories = '^(minisat|bvminisat|cryptominisat|CVS|generated)$';
 my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*)$';
 
 # Years of copyright for the template.  E.g., the string
@@ -41,18 +41,14 @@ my $years = '2009-2012';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) $years  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** Copyright (c) $years  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\\endverbatim
 EOF
 
 my $public_template = <<EOF;
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) $years  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** Copyright (c) $years  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\\endverbatim
 EOF

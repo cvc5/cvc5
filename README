@@ -2,10 +2,10 @@ This is CVC4 release version 1.0.  For build and installation notes,
 please see the INSTALL file included with this distribution.
 
 This first official release of CVC4 is the result of more than three
-years of efforts by researchers at New York University and the
+years of efforts by researchers at New York University and The
 University of Iowa.  The project leaders are Clark Barrett (New York
-University) and Cesare Tinelli (University of Iowa).  For a full list
-of authors, please refer to the AUTHORS file in the source
+University) and Cesare Tinelli (The University of Iowa).  For a full
+list of authors, please refer to the AUTHORS file in the source
 distribution.
 
 CVC4 is a tool for determining the satisfiability of a first order
