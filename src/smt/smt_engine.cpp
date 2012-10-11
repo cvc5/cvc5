@@ -390,7 +390,21 @@ public:
     throw(TypeCheckingException);
 
   /**
-   * pre-skolemize quantifiers
+   * Simplify node "in" by expanding definitions and applying any
+   * substitutions learned from preprocessing.
+   */
+  Node simplify(TNode in) {
+    // Substitute out any abstract values in ex.
+    // Expand definitions.
+    hash_map<Node, Node, NodeHashFunction> cache;
+    Node n = expandDefinitions(in, cache).toExpr();
+    // Make sure we've done all preprocessing, etc.
+    Assert(d_assertionsToCheck.size() == 0 && d_assertionsToPreprocess.size() == 0);
+    return applySubstitutions(n).toExpr();
+  }
+
+  /**
+   * Pre-skolemize quantifiers.
    */
   Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector<Node>& fvs);
 
@@ -2094,18 +2108,14 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException) {
     Dump("benchmark") << SimplifyCommand(ex);
   }
 
-  // Substitute out any abstract values in ex.
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   if( options::typeChecking() ) {
     e.getType(true);// ensure expr is type-checked at this point
   }
-  // Expand definitions.
-  hash_map<Node, Node, NodeHashFunction> cache;
-  e = d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
-  // Make sure we've done simple preprocessing, unit detection, etc.
-  Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
+
+  // Make sure all preprocessing is done
   d_private->processAssertions();
-  return d_private->applySubstitutions(e).toExpr();
+  return d_private->simplify(Node::fromExpr(e)).toExpr();
 }
 
 Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException) {
@@ -2424,7 +2434,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
     // Simplify the result.
-    n = Node::fromExpr(simplify(n.toExpr()));
+    n = d_private->simplify(n);
     Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
 
     TheoryId thy = Theory::theoryOf(n);
