@@ -223,6 +223,8 @@ void TheoryModel::addTerm( Node n ){
 /** assert equality */
 void TheoryModel::assertEquality( Node a, Node b, bool polarity ){
   d_equalityEngine.assertEquality( a.eqNode(b), polarity, Node::null() );
+  Trace("model-builder-assertions") << "  Asserting " << (polarity ? "equality: " : "disequality: ") << a << " = " << b << endl;
+  Assert(d_equalityEngine.consistent());
 }
 
 /** assert predicate */
@@ -231,6 +233,8 @@ void TheoryModel::assertPredicate( Node a, bool polarity ){
     d_equalityEngine.assertEquality( a, polarity, Node::null() );
   }else{
     d_equalityEngine.assertPredicate( a, polarity, Node::null() );
+    Trace("model-builder-assertions") << "  Asserting predicate " << (polarity ? "true" : "false") << ": " << a << endl;
+    Assert(d_equalityEngine.consistent());
   }
 }
 
@@ -257,7 +261,9 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
           assertPredicate(*eqc_i, false);
         }
         else {
+          Trace("model-builder-assertions") << "  Merging predicates: " << *eqc_i << " and " << eqc << endl;
           d_equalityEngine.mergePredicates(*eqc_i, eqc, Node::null());
+          Assert(d_equalityEngine.consistent());
         }
       } else {
         assertEquality(*eqc_i, eqc, true);
