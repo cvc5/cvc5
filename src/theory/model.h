@@ -249,6 +249,8 @@ protected:
   virtual void processBuildModel(TheoryModel* m, bool fullModel);
   /** normalize representative */
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
+  bool isAssignable(TNode n);
+
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder(){}
