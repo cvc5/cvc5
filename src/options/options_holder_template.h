@@ -21,7 +21,7 @@
 
 ${include_all_option_headers}
 
-#line 27 "${template}"
+#line 25 "${template}"
 
 namespace CVC4 {
 namespace options {
@@ -30,7 +30,7 @@ struct OptionsHolder {
   OptionsHolder();
 ${all_modules_contributions}
 
-#line 36 "${template}"
+#line 34 "${template}"
 
 };/* struct OptionsHolder */
 

@@ -60,7 +60,7 @@ ${kind_printers}
   return out;
 }
 
-#line 66 "${template}"
+#line 64 "${template}"
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
@@ -98,7 +98,7 @@ struct KindHashFunction {
  */
 enum TypeConstant {
 ${type_constant_list}
-#line 104 "${template}"
+#line 102 "${template}"
   LAST_TYPE
 };/* enum TypeConstant */
 
@@ -114,7 +114,7 @@ struct TypeConstantHashFunction {
 inline std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
-#line 120 "${template}"
+#line 118 "${template}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -126,7 +126,7 @@ namespace theory {
 
 enum TheoryId {
 ${theory_enum}
-#line 132 "${template}"
+#line 130 "${template}"
   THEORY_LAST
 };/* enum TheoryId */
 
@@ -140,7 +140,7 @@ inline TheoryId& operator ++ (TheoryId& id) {
 inline std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
   switch(theoryId) {
 ${theory_descriptions}
-#line 146 "${template}"
+#line 144 "${template}"
   default:
     out << "UNKNOWN_THEORY";
     break;
@@ -154,7 +154,7 @@ inline TheoryId kindToTheoryId(::CVC4::Kind k) {
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 160 "${template}"
+#line 158 "${template}"
   case kind::LAST_KIND:
     break;
   }
@@ -164,7 +164,7 @@ ${kind_to_theory_id}
 inline TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_to_theory_id}
-#line 170 "${template}"
+#line 168 "${template}"
   case LAST_TYPE:
     break;
   }

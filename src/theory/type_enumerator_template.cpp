@@ -22,7 +22,7 @@
 #include "util/cvc4_assert.h"
 
 ${type_enumerator_includes}
-#line 28 "${template}"
+#line 26 "${template}"
 
 using namespace std;
 
@@ -43,7 +43,7 @@ ${mk_type_enumerator_type_constant_cases}
     }
     Unreachable();
 ${mk_type_enumerator_cases}
-#line 49 "${template}"
+#line 47 "${template}"
   default:
     {
       stringstream ss;

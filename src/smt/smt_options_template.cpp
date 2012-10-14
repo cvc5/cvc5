@@ -27,7 +27,7 @@
 ${include_all_option_headers}
 ${option_handler_includes}
 
-#line 33 "${template}"
+#line 31 "${template}"
 
 using namespace std;
 
@@ -48,7 +48,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 
   ${smt_setoption_handlers}
 
-#line 54 "${template}"
+#line 52 "${template}"
 
   throw UnrecognizedOptionException(key);
 }
@@ -65,7 +65,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   ${smt_getoption_handlers}
 
-#line 71 "${template}"
+#line 69 "${template}"
 
   throw UnrecognizedOptionException(key);
 }

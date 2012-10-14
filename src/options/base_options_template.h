@@ -22,11 +22,11 @@
 #include "options/options.h"
 ${module_includes}
 
-#line 28 "${template}"
+#line 26 "${template}"
 
 ${module_optionholder_spec}
 
-#line 32 "${template}"
+#line 30 "${template}"
 
 namespace CVC4 {
 
@@ -34,19 +34,19 @@ namespace options {
 
 ${module_decls}
 
-#line 40 "${template}"
+#line 38 "${template}"
 
 }/* CVC4::options namespace */
 
 ${module_specializations}
 
-#line 46 "${template}"
+#line 44 "${template}"
 
 namespace options {
 
 ${module_inlines}
 
-#line 52 "${template}"
+#line 50 "${template}"
 
 }/* CVC4::options namespace */
 

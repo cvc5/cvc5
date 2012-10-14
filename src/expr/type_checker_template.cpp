@@ -14,14 +14,14 @@
  ** TypeChecker implementation.
  **/
 
-#line 20 "${template}"
+#line 18 "${template}"
 
 #include "expr/type_checker.h"
 #include "expr/node_manager.h"
 
 ${typechecker_includes}
 
-#line 27 "${template}"
+#line 25 "${template}"
 
 namespace CVC4 {
 namespace expr {
@@ -42,7 +42,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 ${typerules}
 
-#line 48 "${template}"
+#line 46 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
@@ -65,7 +65,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 71 "${template}"
+#line 69 "${template}"
 
   default:;
   }

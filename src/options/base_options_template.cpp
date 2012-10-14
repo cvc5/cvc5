@@ -20,13 +20,13 @@ namespace CVC4 {
 
 ${module_accessors}
 
-#line 26 "${template}"
+#line 24 "${template}"
 
 namespace options {
 
 ${module_global_definitions}
 
-#line 32 "${template}"
+#line 30 "${template}"
 
 }/* CVC4::options namespace */
 

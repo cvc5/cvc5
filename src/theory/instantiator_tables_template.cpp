@@ -20,7 +20,7 @@
 
 ${instantiator_includes}
 
-#line 26 "${template}"
+#line 24 "${template}"
 
 namespace CVC4 {
 namespace theory {
@@ -28,7 +28,7 @@ namespace theory {
 Instantiator* Theory::makeInstantiator(context::Context* c, theory::QuantifiersEngine* qe) {
   switch(d_id) {
 ${make_instantiator_cases}
-#line 34 "${template}"
+#line 32 "${template}"
   default:
     Unhandled(d_id);
   }
