@@ -30,16 +30,17 @@ private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** status of instantiation round (one of InstStrategy::STATUS_*) */
   int d_inst_round_status;
-  /** map from universal quantifiers to their counterexample literals */
-  std::map< Node, Node > d_ce_lit;
   /** whether the instantiation engine should set incomplete if it cannot answer SAT */
   bool d_setIncomplete;
   /** inst round counter */
   int d_ierCounter;
+  /** whether each quantifier is active */
+  std::map< Node, bool > d_quant_active;
+  /** whether we have added cbqi lemma */
+  std::map< Node, bool > d_added_cbqi_lemma;
 private:
-  bool hasAddedCbqiLemma( Node f );
-  void addCbqiLemma( Node f );
-private:
+  /** has added cbqi lemma */
+  bool hasAddedCbqiLemma( Node f ) { return d_added_cbqi_lemma.find( f )!=d_added_cbqi_lemma.end(); }
   /** helper functions */
   bool hasNonArithmeticVariable( Node f );
   bool hasApplyUf( Node f );
@@ -65,11 +66,7 @@ public:
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
-  void propagate( Theory::Effort level );
   Node getNextDecisionRequest();
-public:
-  /** get the corresponding counterexample literal for quantified formula node n */
-  Node getCounterexampleLiteralFor( Node f ) { return d_ce_lit.find( f )==d_ce_lit.end() ? Node::null() : d_ce_lit[ f ]; }
 };/* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

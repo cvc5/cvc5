@@ -281,11 +281,10 @@ Node QuantifiersRewriter::computeNNF( Node body ){
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
   //Notice() << "Compute var elimination for " << f << std::endl;
-  std::map< Node, bool > litPhaseReq;
-  QuantifiersEngine::computePhaseReqs( body, false, litPhaseReq );
+  QuantPhaseReq qpr( body );
   std::vector< Node > vars;
   std::vector< Node > subs;
-  for( std::map< Node, bool >::iterator it = litPhaseReq.begin(); it != litPhaseReq.end(); ++it ){
+  for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
     //Notice() << "   " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
     if( it->first.getKind()==EQUAL ){
       if( it->second ){

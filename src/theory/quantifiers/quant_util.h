@@ -1,0 +1,77 @@
+/*********************                                                        */
+/*! \file quant_util.h
+ ** \verbatim
+ ** Original author: ajreynol
+ ** Major contributors: none
+ ** Minor contributors (to current version): mdeters, bobot
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief quantifier util
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__QUANT_UTIL_H
+#define __CVC4__THEORY__QUANT_UTIL_H
+
+#include "theory/theory.h"
+
+#include <ext/hash_set>
+#include <iostream>
+#include <map>
+
+namespace CVC4 {
+namespace theory {
+
+
+class QuantRelevance
+{
+private:
+  /** for computing relavance */
+  bool d_computeRel;
+  /** map from quantifiers to symbols they contain */
+  std::map< Node, std::vector< Node > > d_syms;
+  /** map from symbols to quantifiers */
+  std::map< Node, std::vector< Node > > d_syms_quants;
+  /** relevance for quantifiers and symbols */
+  std::map< Node, int > d_relevance;
+  /** compute symbols */
+  void computeSymbols( Node n, std::vector< Node >& syms );
+public:
+  QuantRelevance( bool cr ) : d_computeRel( cr ){}
+  ~QuantRelevance(){}
+  /** register quantifier */
+  void registerQuantifier( Node f );
+  /** set relevance */
+  void setRelevance( Node s, int r );
+  /** get relevance */
+  int getRelevance( Node s ) { return d_relevance.find( s )==d_relevance.end() ? -1 : d_relevance[s]; }
+  /** get number of quantifiers for symbol s */
+  int getNumQuantifiersForSymbol( Node s ) { return (int)d_syms_quants[s].size(); }
+};
+
+class QuantPhaseReq
+{
+private:
+  /** helper functions compute phase requirements */
+  void computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs );
+public:
+  QuantPhaseReq( Node n, bool computeEq = false );
+  ~QuantPhaseReq(){}
+  /** is phase required */
+  bool isPhaseReq( Node lit ) { return d_phase_reqs.find( lit )!=d_phase_reqs.end(); }
+  /** get phase requirement */
+  bool getPhaseReq( Node lit ) { return d_phase_reqs.find( lit )==d_phase_reqs.end() ? false : d_phase_reqs[ lit ]; }
+  /** phase requirements for each quantifier for each instantiation literal */
+  std::map< Node, bool > d_phase_reqs;
+  std::map< Node, bool > d_phase_reqs_equality;
+  std::map< Node, Node > d_phase_reqs_equality_term;
+};
+
+}
+}
+
+#endif

@@ -115,7 +115,6 @@ void ModelEngine::check( Theory::Effort e ){
       if( options::produceModels() ){
         // finish building the model in the standard way
         d_builder->buildModel( fm, true );
-        d_quantEngine->d_model_set = true;
       }
       //if the check was incomplete, we must set incomplete flag
       if( d_incomplete_check ){
@@ -256,7 +255,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
-        eval = d_quantEngine->getModel()->evaluate( d_quantEngine->getTermDatabase()->getCounterexampleBody( f ), depIndex, &riter );
+        eval = d_quantEngine->getModel()->evaluate( d_quantEngine->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{

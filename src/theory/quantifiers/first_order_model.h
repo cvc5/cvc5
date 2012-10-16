@@ -48,6 +48,8 @@ private:
   context::CDO< bool > d_axiom_asserted;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
+  /** is model set */
+  context::CDO< bool > d_isModelSet;
 public: //for Theory UF:
   //models for each UF operator
   std::map< Node, uf::UfModelTree > d_uf_model_tree;
@@ -78,9 +80,12 @@ public:
   virtual ~FirstOrderModel(){}
   // reset the model
   void reset();
-public:
   // initialize the model
   void initialize( bool considerAxioms = true );
+  /** mark model set */
+  void markModelSet() { d_isModelSet = true; }
+  /** is model set */
+  bool isModelSet() { return d_isModelSet; }
 //the following functions are for evaluating quantifier bodies
 public:
   /** reset evaluation */

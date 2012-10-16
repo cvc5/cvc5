@@ -122,10 +122,6 @@ public:
   void makeInternal( QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
-  /** compute d_match */
-  //void computeTermVec( QuantifiersEngine* qe, const std::vector< Node >& vars, std::vector< Node >& match );
-  /** compute d_match */
-  //void computeTermVec( const std::vector< Node >& vars, std::vector< Node >& match );
   /** get value */
   Node getValue( Node var );
   /** clear */
@@ -191,7 +187,7 @@ private:
   /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
   void addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio );
   /** exists match */
-  bool existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, int index, ImtIndexOrder* imtio, bool modInst );
+  bool existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, int index, ImtIndexOrder* imtio );
 public:
   /** the data */
   std::map< Node, InstMatchTrie > d_data;
@@ -204,16 +200,16 @@ public:
         modInst is if we return true if m is an instance of a match that exists
    */
   bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                        ImtIndexOrder* imtio = NULL, bool modInst = false );
+                        bool modInst = false, ImtIndexOrder* imtio = NULL );
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                     ImtIndexOrder* imtio = NULL, bool modInst = false );
+                     bool modInst = false, ImtIndexOrder* imtio = NULL );
 };/* class InstMatchTrie */
 
-class InstMatchTrieOrdered {
+class InstMatchTrieOrdered{
 private:
   InstMatchTrie::ImtIndexOrder* d_imtio;
   InstMatchTrie d_imt;
@@ -226,8 +222,11 @@ public:
   InstMatchTrie* getTrie() { return &d_imt; }
 public:
   /** add match m, return true if successful */
-  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false ){
-    return d_imt.addInstMatch( qe, f, m, modEq, d_imtio );
+  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
+    return d_imt.addInstMatch( qe, f, m, modEq, modInst, d_imtio );
+  }
+  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, bool modInst = false ){
+    return d_imt.existsInstMatch( qe, f, m, modEq, modInst, d_imtio );
   }
 };/* class InstMatchTrieOrdered */
 

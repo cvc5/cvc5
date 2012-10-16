@@ -259,7 +259,7 @@ Node TermDb::getModelBasis( Node f, Node n ){
 
 Node TermDb::getModelBasisBody( Node f ){
   if( d_model_basis_body.find( f )==d_model_basis_body.end() ){
-    Node n = getCounterexampleBody( f );
+    Node n = getInstConstantBody( f );
     d_model_basis_body[f] = getModelBasis( f, n );
   }
   return d_model_basis_body[f];
@@ -301,17 +301,6 @@ void TermDb::makeInstantiationConstantsFor( Node f ){
   }
 }
 
-void TermDb::setInstantiationLevelAttr( Node n, uint64_t level ){
-  if( !n.hasAttribute(InstLevelAttribute()) ){
-    InstLevelAttribute ila;
-    n.setAttribute(ila,level);
-  }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
-  }
-}
-
-
 void TermDb::setInstantiationConstantAttr( Node n, Node f ){
   if( !n.hasAttribute(InstConstantAttribute()) ){
     bool setAttr = false;
@@ -336,17 +325,48 @@ void TermDb::setInstantiationConstantAttr( Node n, Node f ){
 }
 
 
-Node TermDb::getCounterexampleBody( Node f ){
-  std::map< Node, Node >::iterator it = d_counterexample_body.find( f );
-  if( it==d_counterexample_body.end() ){
+Node TermDb::getInstConstantBody( Node f ){
+  std::map< Node, Node >::iterator it = d_inst_const_body.find( f );
+  if( it==d_inst_const_body.end() ){
     makeInstantiationConstantsFor( f );
-    Node n = getSubstitutedNode( f[1], f );
-    d_counterexample_body[ f ] = n;
+    Node n = getInstConstantNode( f[1], f );
+    d_inst_const_body[ f ] = n;
     return n;
   }else{
     return it->second;
   }
 }
+
+Node TermDb::getCounterexampleLiteral( Node f ){
+  if( d_ce_lit.find( f )==d_ce_lit.end() ){
+    Node ceBody = getInstConstantBody( f );
+    Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
+    d_ce_lit[ f ] = ceLit;
+    setInstantiationConstantAttr( ceLit, f );
+  }
+  return d_ce_lit[ f ];
+}
+
+Node TermDb::getInstConstantNode( Node n, Node f ){
+  return convertNodeToPattern(n,f,d_vars[f],d_inst_constants[ f ]);
+}
+
+Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & vars,
+                                              const std::vector<Node> & inst_constants){
+  Node n2 = n.substitute( vars.begin(), vars.end(),
+                          inst_constants.begin(),
+                          inst_constants.end() );
+  setInstantiationConstantAttr( n2, f );
+  return n2;
+}
+
+Node TermDb::mkNodeInstConstant( Kind k, std::vector< Node >& children, Node f ){
+  Node n = NodeManager::currentNM()->mkNode( k, children );
+  setInstantiationConstantAttr( n, f );
+  return n;
+}
+
+
 
 Node TermDb::getSkolemizedBody( Node f ){
   Assert( f.getKind()==FORALL );
@@ -367,17 +387,14 @@ Node TermDb::getSkolemizedBody( Node f ){
 }
 
 
-Node TermDb::getSubstitutedNode( Node n, Node f ){
-  return convertNodeToPattern(n,f,d_vars[f],d_inst_constants[ f ]);
-}
-
-Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & vars,
-                                              const std::vector<Node> & inst_constants){
-  Node n2 = n.substitute( vars.begin(), vars.end(),
-                          inst_constants.begin(),
-                          inst_constants.end() );
-  setInstantiationConstantAttr( n2, f );
-  return n2;
+void TermDb::setInstantiationLevelAttr( Node n, uint64_t level ){
+  if( !n.hasAttribute(InstLevelAttribute()) ){
+    InstLevelAttribute ila;
+    n.setAttribute(ila,level);
+  }
+  for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    setInstantiationLevelAttr( n[i], level );
+  }
 }
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){

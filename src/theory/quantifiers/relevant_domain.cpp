@@ -72,12 +72,12 @@ void RelevantDomain::compute(){
     for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
       Node f = d_model->getAssertedQuantifier( i );
       //compute the domain of relevant instantiations (rule 3 of complete instantiation, essentially uf fragment)
-      if( computeRelevantInstantiationDomain( d_qe->getTermDatabase()->getCounterexampleBody( f ), Node::null(), -1, f ) ){
+      if( computeRelevantInstantiationDomain( d_qe->getTermDatabase()->getInstConstantBody( f ), Node::null(), -1, f ) ){
         success = false;
       }
       //extend the possible domain for functions (rule 2 of complete instantiation, essentially uf fragment)
       RepDomain range;
-      if( extendFunctionDomains( d_qe->getTermDatabase()->getCounterexampleBody( f ), range ) ){
+      if( extendFunctionDomains( d_qe->getTermDatabase()->getInstConstantBody( f ), range ) ){
         success = false;
       }
     }

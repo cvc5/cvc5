@@ -36,9 +36,9 @@ void InstantiatorTheoryDatatypes::assertNode( Node assertion ){
   d_quantEngine->addTermToDatabase( assertion );
   if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
-      setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );
+      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
     }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
-      setHasConstraintsFrom( assertion[0].getAttribute(InstConstantAttribute()) );
+      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
     }
   }
 }

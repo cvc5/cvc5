@@ -109,6 +109,8 @@ public:
   /* Todo replace int by size_t */
   std::hash_map< Node, std::hash_map< Node, std::hash_map< int, std::vector< Node >  >, NodeHashFunction  > , NodeHashFunction > d_parents;
   const std::vector<Node> & getParents(TNode n, TNode f, int arg);
+
+//for model basis
 private:
   //map from types to model basis terms
   std::map< TypeNode, Node > d_model_basis_term;
@@ -116,6 +118,8 @@ private:
   std::map< Node, Node > d_model_basis_op_term;
   //map from instantiation terms to their model basis equivalent
   std::map< Node, Node > d_model_basis_body;
+  /** map from universal quantifiers to model basis terms */
+  std::map< Node, std::vector< Node > > d_model_basis_terms;
   // compute model basis arg
   void computeModelBasisArgAttribute( Node n );
 public:
@@ -127,46 +131,37 @@ public:
   Node getModelBasis( Node f, Node n );
   //get model basis body
   Node getModelBasisBody( Node f );
+
+//for inst constant
 private:
-  /** map from universal quantifiers to the list of variables */
-  std::map< Node, std::vector< Node > > d_vars;
-  /** map from universal quantifiers to the list of skolem constants */
-  std::map< Node, std::vector< Node > > d_skolem_constants;
-  /** model basis terms */
-  std::map< Node, std::vector< Node > > d_model_basis_terms;
-  /** map from universal quantifiers to their skolemized body */
-  std::map< Node, Node > d_skolem_body;
-  /** instantiation constants to universal quantifiers */
-  std::map< Node, Node > d_inst_constants_map;
-  /** map from universal quantifiers to their counterexample body */
-  std::map< Node, Node > d_counterexample_body;
-  /** free variable for instantiation constant type */
-  std::map< TypeNode, Node > d_free_vars;
-private:
-  /** make instantiation constants for */
-  void makeInstantiationConstantsFor( Node f );
-public:
   /** map from universal quantifiers to the list of instantiation constants */
   std::map< Node, std::vector< Node > > d_inst_constants;
-  /** set instantiation level attr */
-  void setInstantiationLevelAttr( Node n, uint64_t level );
+  /** map from universal quantifiers to their inst constant body */
+  std::map< Node, Node > d_inst_const_body;
+  /** map from universal quantifiers to their counterexample literals */
+  std::map< Node, Node > d_ce_lit;
+  /** instantiation constants to universal quantifiers */
+  std::map< Node, Node > d_inst_constants_map;
+  /** make instantiation constants for */
+  void makeInstantiationConstantsFor( Node f );
   /** set instantiation constant attr */
   void setInstantiationConstantAttr( Node n, Node f );
+public:
   /** get the i^th instantiation constant of f */
   Node getInstantiationConstant( Node f, int i ) { return d_inst_constants[f][i]; }
   /** get number of instantiation constants for f */
   int getNumInstantiationConstants( Node f ) { return (int)d_inst_constants[f].size(); }
   /** get the ce body f[e/x] */
-  Node getCounterexampleBody( Node f );
-  /** get the skolemized body f[e/x] */
-  Node getSkolemizedBody( Node f );
+  Node getInstConstantBody( Node f );
+  /** get counterexample literal (for cbqi) */
+  Node getCounterexampleLiteral( Node f );
   /** returns node n with bound vars of f replaced by instantiation constants of f
       node n : is the futur pattern
       node f : is the quantifier containing which bind the variable
       return a pattern where the variable are replaced by variable for
       instantiation.
    */
-  Node getSubstitutedNode( Node n, Node f );
+  Node getInstConstantNode( Node n, Node f );
   /** same as before but node f is just linked to the new pattern by the
       applied attribute
       vars the bind variable
@@ -175,15 +170,37 @@ public:
   Node convertNodeToPattern( Node n, Node f,
                              const std::vector<Node> & vars,
                              const std::vector<Node> & nvars);
+  /** get iff term */
+  Node getInstConstantIffTerm( Node n, bool pol );
+  /** make node, validating the inst constant attribute */
+  Node mkNodeInstConstant( Kind k, std::vector< Node >& children, Node f );
+
+//for skolem
+private:
+  /** map from universal quantifiers to the list of skolem constants */
+  std::map< Node, std::vector< Node > > d_skolem_constants;
+  /** map from universal quantifiers to their skolemized body */
+  std::map< Node, Node > d_skolem_body;
+public:
+  /** get the skolemized body f[e/x] */
+  Node getSkolemizedBody( Node f );
+
+//miscellaneous
+private:
+  /** map from universal quantifiers to the list of variables */
+  std::map< Node, std::vector< Node > > d_vars;
+  /** free variable for instantiation constant type */
+  std::map< TypeNode, Node > d_free_vars;
+public:
   /** get free variable for instantiation constant */
   Node getFreeVariableForInstConstant( Node n );
+  /** set instantiation level attr */
+  void setInstantiationLevelAttr( Node n, uint64_t level );
 
 //for triggers
 private:
   /** helper function for compute var contains */
   void computeVarContains2( Node n, Node parent );
-  /** all triggers will be stored in this trie */
-  TrTrie d_tr_trie;
   /** var contains */
   std::map< TNode, std::vector< TNode > > d_var_contains;
 public:
@@ -195,6 +212,10 @@ public:
   void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
   void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+private:
+  /** all triggers will be stored in this trie */
+  TrTrie d_tr_trie;
+public:
   /** get trigger */
   inst::Trigger* getTrigger( std::vector< Node >& nodes ){ return d_tr_trie.getTrigger( nodes ); }
   /** add trigger */

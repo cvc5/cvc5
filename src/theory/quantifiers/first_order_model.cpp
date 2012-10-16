@@ -27,7 +27,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 FirstOrderModel::FirstOrderModel( context::Context* c, std::string name ) : TheoryModel( c, name, true ),
-d_axiom_asserted( c, false ), d_forall_asserts( c ){
+d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c, false ){
 
 }
 

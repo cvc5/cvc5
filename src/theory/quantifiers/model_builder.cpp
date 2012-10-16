@@ -51,6 +51,8 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
       fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
     }
     TheoryEngineModelBuilder::processBuildModel( m, fullModel );
+    //mark that the model has been set
+    fm->markModelSet();
   }else{
     d_curr_model = fm;
     //build model for relevant symbols contained in quantified formulas
@@ -338,8 +340,8 @@ void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f )
   //for each asserted quantifier f,
   // - determine selection literals
   // - check which function/predicates have good and bad definitions for satisfying f
-  for( std::map< Node, bool >::iterator it = d_qe->d_phase_reqs[f].begin();
-       it != d_qe->d_phase_reqs[f].end(); ++it ){
+  QuantPhaseReq* qpr = d_qe->getPhaseRequirements( f );
+  for( std::map< Node, bool >::iterator it = qpr->d_phase_reqs.begin(); it != qpr->d_phase_reqs.end(); ++it ){
     //the literal n is phase-required for quantifier f
     Node n = it->first;
     Node gn = d_qe->getTermDatabase()->getModelBasis( f, n );
@@ -465,8 +467,10 @@ int ModelEngineBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
-        Node eq = NodeManager::currentNM()->mkNode( IFF, lit, !phase ? fm->d_true : fm->d_false );
-        d_qe->getTermDatabase()->setInstantiationConstantAttr( eq, f );
+        std::vector< Node > children;
+        children.push_back( lit );
+        children.push_back( !phase ? fm->d_true : fm->d_false );
+        Node eq = d_qe->getTermDatabase()->mkNodeInstConstant( IFF, children, f );
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
@@ -532,7 +536,7 @@ void ModelEngineBuilderInstGen::analyzeQuantifiers( FirstOrderModel* fm ){
 
 void ModelEngineBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //determine selection formula, set terms in selection formula as being selected
-  Node s = getSelectionFormula( d_qe->getTermDatabase()->getCounterexampleBody( f ),
+  Node s = getSelectionFormula( d_qe->getTermDatabase()->getInstConstantBody( f ),
                                 d_qe->getTermDatabase()->getModelBasisBody( f ), true, 0 );
   Trace("sel-form") << "Selection formula for " << f << " is " << s << std::endl;
   if( !s.isNull() ){
@@ -580,7 +584,7 @@ int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
             if( !m.isComplete( f ) ){
               Trace("inst-gen-debug") << "- partial inst" << std::endl;
               //if the instantiation does not yet exist
-              if( d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, mp, true, NULL ) ){
+              if( d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, mp, true ) ){
                 //get the partial instantiation pf
                 Node pf = d_qe->getInstantiation( fp, mp );
                 Trace("inst-gen-pi") << "Partial instantiation of " << f << std::endl;
@@ -732,10 +736,10 @@ bool ModelEngineBuilderInstGen::isUsableSelectionLiteral( Node n, int useOption 
 
 Node ModelEngineBuilderInstGen::getParentQuantifier( Node f ){
   std::map< Node, Node >::iterator it = d_sub_quant_parent.find( f );
-  if( it==d_sub_quant_parent.end() ){
+  if( it==d_sub_quant_parent.end() || it->second.isNull() ){
     return f;
   }else{
-    return getParentQuantifier( it->second );
+    return it->second;
   }
 }
 

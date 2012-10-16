@@ -107,9 +107,9 @@ void InstantiatorTheoryArith::assertNode( Node assertion ){
   d_quantEngine->addTermToDatabase( assertion );
   if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
-      setHasConstraintsFrom( assertion.getAttribute(InstConstantAttribute()) );
+      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
     }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
-      setHasConstraintsFrom( assertion[0].getAttribute(InstConstantAttribute()) );
+      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
     }
   }
 }
@@ -140,7 +140,7 @@ void InstantiatorTheoryArith::processResetInstantiationRound( Theory::Effort eff
           d_instRows[f].push_back( x );
           //this theory has constraints from f
           Debug("quant-arith") << "Has constraints from " << f << std::endl;
-          setHasConstraintsFrom( f );
+          setQuantifierActive( f );
           //set tableaux term
           if( t.getNumChildren()==0 ){
             d_tableaux_term[x] = NodeManager::currentNM()->mkConst( Rational(0) );

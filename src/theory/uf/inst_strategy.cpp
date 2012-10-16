@@ -36,8 +36,8 @@ using namespace CVC4::theory::inst;
 struct sortQuantifiersForSymbol {
   QuantifiersEngine* d_qe;
   bool operator() (Node i, Node j) {
-    int nqfsi = d_qe->getNumQuantifiersForSymbol( i.getOperator() );
-    int nqfsj = d_qe->getNumQuantifiersForSymbol( j.getOperator() );
+    int nqfsi = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( i.getOperator() );
+    int nqfsj = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( j.getOperator() );
     if( nqfsi<nqfsj ){
       return true;
     }else if( nqfsi>nqfsj ){
@@ -223,14 +223,14 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
-    Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getCounterexampleBody( f ), patTermsF, d_tr_strategy, true );
-    Debug("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getCounterexampleBody( f ) << std::endl;
+    Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, true );
+    Debug("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << std::endl;
     Debug("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){
       Debug("auto-gen-trigger") << patTermsF[i] << " ";
     }
     Debug("auto-gen-trigger") << std::endl;
-    //extend to literal matching
+    //extend to literal matching (if applicable)
     d_quantEngine->getPhaseReqTerms( f, patTermsF );
     //sort into single/multi triggers
     std::map< Node, std::vector< Node > > varContains;
@@ -288,7 +288,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
       for( int i=0; i<(int)patTerms.size(); i++ ){
         Debug("relevant-trigger") << "   " << patTerms[i] << " (";
-        Debug("relevant-trigger") << d_quantEngine->getNumQuantifiersForSymbol( patTerms[i].getOperator() ) << ")" << std::endl;
+        Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[i].getOperator() ) << ")" << std::endl;
       }
       //Notice() << "Terms based on relevance: " << std::endl;
       //for( int i=0; i<(int)patTerms.size(); i++ ){
@@ -338,12 +338,12 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         if( index<(int)patTerms.size() ){
           //Notice() << "check add additional" << std::endl;
           //check if similar patterns exist, and if so, add them additionally
-          int nqfs_curr = d_quantEngine->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
+          int nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
           index++;
           bool success = true;
           while( success && index<(int)patTerms.size() && d_is_single_trigger[ patTerms[index] ] ){
             success = false;
-            if( d_quantEngine->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
+            if( d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
               d_single_trigger_gen[ patTerms[index] ] = true;
               Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL,
                                                  options::smartTriggers() );

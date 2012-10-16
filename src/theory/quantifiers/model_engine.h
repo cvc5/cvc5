@@ -64,7 +64,6 @@ public:
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
-  void propagate( Theory::Effort level ){}
   void debugPrint( const char* c );
 public:
   /** statistics class */

@@ -44,8 +44,8 @@ InstGenProcess::InstGenProcess( Node n ) : d_node( n ){
 }
 
 void InstGenProcess::addMatchValue( QuantifiersEngine* qe, Node f, Node val, InstMatch& m ){
-  if( !qe->existsInstantiation( f, m, true, true ) ){
-    //if( d_inst_trie[val].addInstMatch( qe, f, m, true, NULL, true ) ){
+  if( !qe->existsInstantiation( f, m, true ) ){
+    //if( d_inst_trie[val].addInstMatch( qe, f, m, true ) ){
       d_match_values.push_back( val );
       d_matches.push_back( InstMatch( &m ) );
     //}

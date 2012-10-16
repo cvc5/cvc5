@@ -46,7 +46,6 @@ class TheoryEngine;
 namespace theory {
 
 class Instantiator;
-class InstStrategy;
 class QuantifiersEngine;
 class TheoryModel;
 
@@ -794,6 +793,40 @@ namespace eq{
   class EqualityEngine;
 }
 
+/** instantiation strategy class */
+class InstStrategy {
+public:
+  enum Status {
+    STATUS_UNFINISHED,
+    STATUS_UNKNOWN,
+    STATUS_SAT,
+  };/* enum Status */
+protected:
+  /** reference to the instantiation engine */
+  QuantifiersEngine* d_quantEngine;
+public:
+  InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  virtual ~InstStrategy(){}
+
+  /** reset instantiation */
+  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
+  /** process method, returns a status */
+  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
+  /** update status */
+  static void updateStatus( int& currStatus, int addStatus ){
+    if( addStatus==STATUS_UNFINISHED ){
+      currStatus = STATUS_UNFINISHED;
+    }else if( addStatus==STATUS_UNKNOWN ){
+      if( currStatus==STATUS_SAT ){
+        currStatus = STATUS_UNKNOWN;
+      }
+    }
+  }
+  /** identify */
+  virtual std::string identify() const { return std::string("Unknown"); }
+};/* class InstStrategy */
+
+/** instantiator class */
 class Instantiator {
   friend class QuantifiersEngine;
 protected:
@@ -806,7 +839,7 @@ protected:
   /** instantiation strategies active */
   std::map< InstStrategy*, bool > d_instStrategyActive;
   /** has constraints from quantifier */
-  std::map< Node, bool > d_hasConstraints;
+  std::map< Node, bool > d_quantActive;
   /** is instantiation strategy active */
   bool isActiveStrategy( InstStrategy* is ) {
     return d_instStrategyActive.find( is )!=d_instStrategyActive.end() && d_instStrategyActive[is];
@@ -820,13 +853,6 @@ protected:
   virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
   /** process quantifier */
   virtual int process( Node f, Theory::Effort effort, int e ) = 0;
-public:
-  /** set has constraints from quantifier f */
-  void setHasConstraintsFrom( Node f );
-  /** has constraints from */
-  bool hasConstraintsFrom( Node f );
-  /** is full owner of quantifier f? */
-  bool isOwnerOf( Node f );
 public:
   Instantiator(context::Context* c, QuantifiersEngine* qe, Theory* th);
   virtual ~Instantiator();
@@ -844,6 +870,10 @@ public:
   /** print debug information */
   virtual void debugPrint( const char* c ) {}
 public:
+  /** set has constraints from quantifier f */
+  void setQuantifierActive( Node f ) { d_quantActive[f] = true; }
+  /** has constraints from */
+  bool getQuantifierActive( Node f ) { return d_quantActive.find(f) != d_quantActive.end() && d_quantActive[f]; }
   /** reset instantiation round */
   void resetInstantiationRound( Theory::Effort effort );
   /** do instantiation method*/

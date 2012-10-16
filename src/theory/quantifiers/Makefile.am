@@ -38,7 +38,9 @@ libquantifiers_la_SOURCES = \
 	quantifiers_attributes.h \
 	quantifiers_attributes.cpp \
 	inst_gen.h \
-	inst_gen.cpp
+	inst_gen.cpp \
+	quant_util.h \
+	quant_util.cpp
 
 EXTRA_DIST = \
 	kinds \

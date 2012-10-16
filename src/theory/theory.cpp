@@ -186,14 +186,14 @@ Instantiator::~Instantiator() {
 void Instantiator::resetInstantiationRound(Theory::Effort effort) {
   for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
     if(isActiveStrategy(d_instStrategies[i])) {
-      d_instStrategies[i]->resetInstantiationRound(effort);
+      d_instStrategies[i]->processResetInstantiationRound(effort);
     }
   }
   processResetInstantiationRound(effort);
 }
 
 int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
-  if(hasConstraintsFrom(f)) {
+  if( getQuantifierActive(f) ) {
     int status = process(f, effort, e );
     if(d_instStrategies.empty()) {
       Debug("inst-engine-inst") << "There are no instantiation strategies allocated." << endl;
@@ -202,7 +202,7 @@ int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
         if(isActiveStrategy(d_instStrategies[i])) {
           Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " process " << effort << endl;
           //call the instantiation strategy's process method
-          int s_status = d_instStrategies[i]->doInstantiation( f, effort, e );
+          int s_status = d_instStrategies[i]->process( f, effort, e );
           Debug("inst-engine-inst") << "  -> status is " << s_status << endl;
           InstStrategy::updateStatus(status, s_status);
         } else {
@@ -237,22 +237,6 @@ int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
 //  }
 //}
 
-void Instantiator::setHasConstraintsFrom(Node f) {
-  d_hasConstraints[f] = true;
-  if(! d_quantEngine->hasOwner(f)) {
-    d_quantEngine->setOwner(f, getTheory());
-  } else if(d_quantEngine->getOwner(f) != getTheory()) {
-    d_quantEngine->setOwner(f, NULL);
-  }
-}
-
-bool Instantiator::hasConstraintsFrom(Node f) {
-  return d_hasConstraints.find(f) != d_hasConstraints.end() && d_hasConstraints[f];
-}
-
-bool Instantiator::isOwnerOf(Node f) {
-  return d_quantEngine->hasOwner(f) && d_quantEngine->getOwner(f) == getTheory();
-}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
