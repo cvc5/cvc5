@@ -78,6 +78,8 @@ option fmfInstEngine --fmf-inst-engine bool :default false
  use instantiation engine in conjunction with finite model finding
 option fmfRelevantDomain --fmf-relevant-domain bool :default false
  use relevant domain computation, similar to complete instantiation (Ge, deMoura 09)
+option fmfNewInstGen --fmf-new-inst-gen bool :default false
+ use new inst gen technique for answering sat without exhaustive instantiation
 option fmfInstGen /--disable-fmf-inst-gen bool :default true
  disable Inst-Gen instantiation techniques for finite model finding
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false

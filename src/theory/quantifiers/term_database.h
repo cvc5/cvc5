@@ -115,23 +115,25 @@ private:
   //map from ops to model basis terms
   std::map< Node, Node > d_model_basis_op_term;
   //map from instantiation terms to their model basis equivalent
-  std::map< Node, Node > d_model_basis;
+  std::map< Node, Node > d_model_basis_body;
+  // compute model basis arg
+  void computeModelBasisArgAttribute( Node n );
 public:
   //get model basis term
   Node getModelBasisTerm( TypeNode tn, int i = 0 );
   //get model basis term for op
   Node getModelBasisOpTerm( Node op );
-  // compute model basis arg
-  void computeModelBasisArgAttribute( Node n );
-  //register instantiation terms with their corresponding model basis terms
-  void registerModelBasis( Node n, Node gn );
   //get model basis
-  Node getModelBasis( Node n ) { return d_model_basis[n]; }
+  Node getModelBasis( Node f, Node n );
+  //get model basis body
+  Node getModelBasisBody( Node f );
 private:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
   /** map from universal quantifiers to the list of skolem constants */
   std::map< Node, std::vector< Node > > d_skolem_constants;
+  /** model basis terms */
+  std::map< Node, std::vector< Node > > d_model_basis_terms;
   /** map from universal quantifiers to their skolemized body */
   std::map< Node, Node > d_skolem_body;
   /** instantiation constants to universal quantifiers */

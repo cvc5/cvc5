@@ -51,8 +51,10 @@ bool UfModelTreeNode::hasConcreteArgumentDefinition(){
 //set value function
 void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex ){
   if( d_data.empty() ){
+    //overwrite value if either at leaf or this is a fresh tree
     d_value = v;
   }else if( !d_value.isNull() && d_value!=v ){
+    //value is no longer constant
     d_value = Node::null();
   }
   if( argIndex<(int)indexOrder.size() ){

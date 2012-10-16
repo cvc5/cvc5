@@ -31,10 +31,7 @@ class ModelEngine : public QuantifiersModule
   friend class RepSetIterator;
 private:
   /** builder class */
-  ModelEngineBuilder d_builder;
-private:    //data maintained globally:
-  //which quantifiers have been initialized
-  std::map< Node, bool > d_quant_init;
+  ModelEngineBuilder* d_builder;
 private:    //analysis of current model:
   //relevant domain
   RelevantDomain d_rel_domain;
@@ -47,8 +44,6 @@ private:
   bool optOneQuantPerRound();
   bool optExhInstEvalSkipMultiple();
 private:
-  //initialize quantifiers, return number of lemmas produced
-  int initializeQuantifier( Node f );
   //check model
   void checkModel( int& addedLemmas );
   //exhaustively instantiate quantifier (possibly using mbqi), return number of lemmas produced
@@ -62,6 +57,8 @@ private:
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
   ~ModelEngine(){}
+  //get the builder
+  ModelEngineBuilder* getModelBuilder() { return d_builder; }
 public:
   void check( Theory::Effort e );
   void registerQuantifier( Node f );
@@ -78,8 +75,6 @@ public:
     IntStat d_eval_uf_terms;
     IntStat d_eval_lits;
     IntStat d_eval_lits_unknown;
-    IntStat d_num_quants_init;
-    IntStat d_num_quants_init_fail;
     Statistics();
     ~Statistics();
   };

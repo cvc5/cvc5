@@ -152,7 +152,12 @@ void TheoryRewriteRules::addMatchRuleTrigger(const RewriteRule * r,
     ++r->nb_applied;
     ++d_statistics.d_cache_miss;
     std::vector<Node> subst;
-    im.computeTermVec(getQuantifiersEngine(), r->inst_vars , subst);
+    //AJR: replaced computeTermVec with this
+    for( size_t i=0; i<r->inst_vars.size(); i++ ){
+      Node n = im.getValue( r->inst_vars[i] );
+      Assert( !n.isNull() );
+      subst.push_back( n );
+    }
     RuleInst * ri = new RuleInst(*this,r,subst,
                                  r->directrr ? im.d_matched : Node::null());
     Debug("rewriterules::matching") << "One matching found"

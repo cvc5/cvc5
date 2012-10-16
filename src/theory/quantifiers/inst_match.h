@@ -114,47 +114,24 @@ public:
   bool merge( EqualityQuery* q, InstMatch& m );
   /** debug print method */
   void debugPrint( const char* c );
+  /** is complete? */
+  bool isComplete( Node f ) { return d_map.size()==f[0].getNumChildren(); }
   /** make complete */
   void makeComplete( Node f, QuantifiersEngine* qe );
   /** make internal: ensure that no term in d_map contains instantiation constants */
   void makeInternal( QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
-  /** apply rewrite */
-  void applyRewrite();
   /** compute d_match */
-  void computeTermVec( QuantifiersEngine* qe, const std::vector< Node >& vars, std::vector< Node >& match );
+  //void computeTermVec( QuantifiersEngine* qe, const std::vector< Node >& vars, std::vector< Node >& match );
   /** compute d_match */
-  void computeTermVec( const std::vector< Node >& vars, std::vector< Node >& match );
+  //void computeTermVec( const std::vector< Node >& vars, std::vector< Node >& match );
+  /** get value */
+  Node getValue( Node var );
   /** clear */
   void clear(){ d_map.clear(); }
-  /** erase */
-  template<class Iterator>
-  void erase(Iterator begin, Iterator end){
-    for(Iterator i = begin; i != end; ++i){
-      d_map.erase(*i);
-    };
-  }
-  void erase(Node node){ d_map.erase(node); }
   /** is_empty */
   bool empty(){ return d_map.empty(); }
-  /** set */
-  void set(TNode var, TNode n){
-    //std::cout << "var.getType() " << var.getType() << "n.getType() " << n.getType() << std::endl ;
-    Assert( !var.isNull() );
-    Assert( n.isNull() ||// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
-            var.getType() == n.getType() );
-    d_map[var] = n;
-  }
-  Node get(TNode var){ return d_map[var]; }
-  size_t size(){ return d_map.size(); }
-  /* iterator */
-  std::map< Node, Node >::iterator begin(){ return d_map.begin(); };
-  std::map< Node, Node >::iterator end(){ return d_map.end(); };
-  std::map< Node, Node >::iterator find(Node var){ return d_map.find(var); };
-  /* Node used for matching the trigger only for mono-trigger (just for
-     efficiency because I need only that) */
-  Node d_matched;
   /** to stream */
   inline void toStream(std::ostream& out) const {
     out << "INST_MATCH( ";
@@ -164,6 +141,38 @@ public:
     }
     out << " )";
   }
+
+
+  //for rewrite rules
+
+  /** apply rewrite */
+  void applyRewrite();
+  /** erase */
+  template<class Iterator>
+  void erase(Iterator begin, Iterator end){
+    for(Iterator i = begin; i != end; ++i){
+      d_map.erase(*i);
+    };
+  }
+  void erase(Node node){ d_map.erase(node); }
+  /** get */
+  Node get( TNode var ) { return d_map[var]; }
+  /** set */
+  void set(TNode var, TNode n){
+    //std::cout << "var.getType() " << var.getType() << "n.getType() " << n.getType() << std::endl ;
+    Assert( !var.isNull() );
+    Assert( n.isNull() ||// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
+            var.getType() == n.getType() );
+    d_map[var] = n;
+  }
+  size_t size(){ return d_map.size(); }
+  /* iterator */
+  std::map< Node, Node >::iterator begin(){ return d_map.begin(); };
+  std::map< Node, Node >::iterator end(){ return d_map.end(); };
+  std::map< Node, Node >::iterator find(Node var){ return d_map.find(var); };
+  /* Node used for matching the trigger only for mono-trigger (just for
+     efficiency because I need only that) */
+  Node d_matched;
 };/* class InstMatch */
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
@@ -182,7 +191,7 @@ private:
   /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
   void addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio );
   /** exists match */
-  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, int index, ImtIndexOrder* imtio );
+  bool existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, int index, ImtIndexOrder* imtio, bool modInst );
 public:
   /** the data */
   std::map< Node, InstMatchTrie > d_data;
@@ -190,11 +199,18 @@ public:
   InstMatchTrie(){}
   ~InstMatchTrie(){}
 public:
+  /** return true if m exists in this trie
+        modEq is if we check modulo equality
+        modInst is if we return true if m is an instance of a match that exists
+   */
+  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
+                        ImtIndexOrder* imtio = NULL, bool modInst = false );
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
-  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false, ImtIndexOrder* imtio = NULL );
+  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
+                     ImtIndexOrder* imtio = NULL, bool modInst = false );
 };/* class InstMatchTrie */
 
 class InstMatchTrieOrdered {

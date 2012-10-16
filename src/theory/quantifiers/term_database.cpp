@@ -17,6 +17,7 @@
 #include "theory/uf/theory_uf_instantiator.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -164,8 +165,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
          d_func_map_trie[ it->first ].d_data.clear();
          for( int i=0; i<(int)it->second.size(); i++ ){
            Node n = it->second[i];
+           computeModelBasisArgAttribute( n );
            if( !n.getAttribute(NoMatchAttribute()) ){
              if( !d_func_map_trie[ it->first ].addTerm( d_quantEngine, n ) ){
+               //only set no match if not a model basis argument term
                NoMatchAttribute nma;
                n.setAttribute(nma,true);
                congruentCount++;
@@ -186,10 +189,12 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                               d_quantEngine->getEqualityQuery()->getEngine() );
      while( !eqc.isFinished() ){
        Node en = (*eqc);
+       computeModelBasisArgAttribute( en );
        if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
          if( !en.getAttribute(NoMatchAttribute()) ){
            Node op = en.getOperator();
            if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
+             //only set no match if not a model basis argument term
              NoMatchAttribute nma;
              en.setAttribute(nma,true);
              congruentCount++;
@@ -208,19 +213,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    Debug("term-db-cong") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << std::endl;
 }
 
-void TermDb::registerModelBasis( Node n, Node gn ){
-  if( d_model_basis.find( n )==d_model_basis.end() ){
-    d_model_basis[n] = gn;
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      registerModelBasis( n[i], gn[i] );
-    }
-  }
-}
-
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( d_type_map[ tn ].empty() ){
+    if( d_type_map[ tn ].empty() || options::fmfNewInstGen() ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
@@ -249,8 +245,32 @@ Node TermDb::getModelBasisOpTerm( Node op ){
   return d_model_basis_op_term[op];
 }
 
+Node TermDb::getModelBasis( Node f, Node n ){
+  //make model basis
+  if( d_model_basis_terms.find( f )==d_model_basis_terms.end() ){
+    for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
+      d_model_basis_terms[f].push_back( getModelBasisTerm( f[0][j].getType() ) );
+    }
+  }
+  Node gn = n.substitute( d_inst_constants[f].begin(), d_inst_constants[f].end(),
+                          d_model_basis_terms[f].begin(), d_model_basis_terms[f].end() );
+  return gn;
+}
+
+Node TermDb::getModelBasisBody( Node f ){
+  if( d_model_basis_body.find( f )==d_model_basis_body.end() ){
+    Node n = getCounterexampleBody( f );
+    d_model_basis_body[f] = getModelBasis( f, n );
+  }
+  return d_model_basis_body[f];
+}
+
 void TermDb::computeModelBasisArgAttribute( Node n ){
   if( !n.hasAttribute(ModelBasisArgAttribute()) ){
+    //ensure that the model basis terms have been defined
+    if( n.getKind()==APPLY_UF ){
+      getModelBasisOpTerm( n.getOperator() );
+    }
     uint64_t val = 0;
     //determine if it has model basis attribute
     for( int j=0; j<(int)n.getNumChildren(); j++ ){

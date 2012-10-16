@@ -37,8 +37,13 @@ using namespace CVC4::theory::inst;
 //Model Engine constructor
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ),
-d_builder( c, qe ),
 d_rel_domain( qe, qe->getModel() ){
+
+  if( options::fmfNewInstGen() ){
+    d_builder = new ModelEngineBuilderInstGen( c, qe );
+  }else{
+    d_builder = new ModelEngineBuilderDefault( c, qe );
+  }
 
 }
 
@@ -48,16 +53,6 @@ void ModelEngine::check( Theory::Effort e ){
     //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
     int addedLemmas = 0;
     Trace("model-engine") << "---Model Engine Round---" << std::endl;
-    if( d_builder.optUseModel() ){
-      //check if any quantifiers are un-initialized
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-        Node f = fm->getAssertedQuantifier( i );
-        addedLemmas += initializeQuantifier( f );
-      }
-    }
-    if( addedLemmas>0 ){
-      Trace("model-engine") << "Initialize, Added Lemmas = " << addedLemmas << std::endl;
-    }
     //two effort levels: first try exhaustive instantiation without axioms, then with.
     int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
     for( int effort=startEffort; effort<2; effort++ ){
@@ -74,11 +69,11 @@ void ModelEngine::check( Theory::Effort e ){
         d_quantEngine->resetInstantiationRound( e );
         //initialize the model
         Trace("model-engine-debug") << "Build model..." << std::endl;
-        d_builder.setEffort( effort );
-        d_builder.buildModel( fm, false );
+        d_builder->setEffort( effort );
+        d_builder->buildModel( fm, false );
         //if builder has lemmas, add and return
-        if( d_builder.d_addedLemmas>0 ){
-          addedLemmas += (int)d_builder.d_addedLemmas;
+        if( d_builder->d_addedLemmas>0 ){
+          addedLemmas += (int)d_builder->d_addedLemmas;
         }else{
           Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
           //let the strong solver verify that the model is minimal
@@ -93,7 +88,7 @@ void ModelEngine::check( Theory::Effort e ){
           checkModel( addedLemmas );
           //print debug information
           if( Trace.isOn("model-engine") ){
-            Trace("model-engine") << "Instantiate axioms : " << ( d_builder.d_considerAxioms ? "yes" : "no" ) << std::endl;
+            Trace("model-engine") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
             Trace("model-engine") << "Added Lemmas = " << addedLemmas << " / " << d_triedLemmas << " / ";
             Trace("model-engine") << d_testLemmas << " / " << d_relevantLemmas << " / " << d_totalLemmas << std::endl;
             double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -119,7 +114,7 @@ void ModelEngine::check( Theory::Effort e ){
       debugPrint("fmf-consistent");
       if( options::produceModels() ){
         // finish building the model in the standard way
-        d_builder.buildModel( fm, true );
+        d_builder->buildModel( fm, true );
         d_quantEngine->d_model_set = true;
       }
       //if the check was incomplete, we must set incomplete flag
@@ -159,54 +154,6 @@ bool ModelEngine::optExhInstEvalSkipMultiple(){
 #else
   return false;
 #endif
-}
-
-int ModelEngine::initializeQuantifier( Node f ){
-  if( d_quant_init.find( f )==d_quant_init.end() ){
-    d_quant_init[f] = true;
-    Debug("inst-fmf-init") << "Initialize " << f << std::endl;
-    //add the model basis instantiation
-    // This will help produce the necessary information for model completion.
-    // We do this by extending distinguish ground assertions (those
-    //   containing terms with "model basis" attribute) to hold for all cases.
-
-    ////first, check if any variables are required to be equal
-    //for( std::map< Node, bool >::iterator it = d_quantEngine->d_phase_reqs[f].begin();
-    //    it != d_quantEngine->d_phase_reqs[f].end(); ++it ){
-    //  Node n = it->first;
-    //  if( n.getKind()==EQUAL && n[0].getKind()==INST_CONSTANT && n[1].getKind()==INST_CONSTANT ){
-    //    Notice() << "Unhandled phase req: " << n << std::endl;
-    //  }
-    //}
-    std::vector< Node > vars;
-    std::vector< Node > ics;
-    std::vector< Node > terms;
-    for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-      Node ic = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
-      Node t = d_quantEngine->getTermDatabase()->getModelBasisTerm( ic.getType() );
-      vars.push_back( f[0][j] );
-      ics.push_back( ic );
-      terms.push_back( t );
-      //calculate the basis match for f
-      d_builder.d_quant_basis_match[f].set( ic, t);
-    }
-    ++(d_statistics.d_num_quants_init);
-    //register model basis body
-    Node n = d_quantEngine->getTermDatabase()->getCounterexampleBody( f );
-    Node gn = n.substitute( ics.begin(), ics.end(), terms.begin(), terms.end() );
-    d_quantEngine->getTermDatabase()->registerModelBasis( n, gn );
-    if( d_builder.optInstGen() ){
-      //add model basis instantiation
-      if( d_quantEngine->addInstantiation( f, vars, terms ) ){
-        return 1;
-      }else{
-        //shouldn't happen usually, but will occur if x != y is a required literal for f.
-        //Notice() << "No model basis for " << f << std::endl;
-        ++(d_statistics.d_num_quants_init_fail);
-      }
-    }
-  }
-  return 0;
 }
 
 void ModelEngine::checkModel( int& addedLemmas ){
@@ -264,7 +211,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
   }
   d_totalLemmas += totalInst;
   //if we need to consider this quantifier on this iteration
-  if( d_builder.isQuantifierActive( f ) ){
+  if( d_builder->isQuantifierActive( f ) ){
     //debug printing
     Trace("rel-dom") << "Exhaustive instantiate " << f << std::endl;
     if( useRelInstDomain ){
@@ -300,7 +247,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
       d_testLemmas++;
       int eval = 0;
       int depIndex;
-      if( d_builder.optUseModel() ){
+      if( d_builder->optUseModel() ){
         //see if instantiation is already true in current model
         Debug("fmf-model-eval") << "Evaluating ";
         riter.debugPrintSmall("fmf-model-eval");
@@ -377,7 +324,7 @@ void ModelEngine::debugPrint( const char* c ){
   for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Trace( c ) << "   ";
-    if( !d_builder.isQuantifierActive( f ) ){
+    if( !d_builder->isQuantifierActive( f ) ){
       Trace( c ) << "*Inactive* ";
     }else{
       Trace( c ) << "           ";
@@ -392,17 +339,13 @@ ModelEngine::Statistics::Statistics():
   d_eval_formulas("ModelEngine::Eval_Formulas", 0 ),
   d_eval_uf_terms("ModelEngine::Eval_Uf_Terms", 0 ),
   d_eval_lits("ModelEngine::Eval_Lits", 0 ),
-  d_eval_lits_unknown("ModelEngine::Eval_Lits_Unknown", 0 ),
-  d_num_quants_init("ModelEngine::Num_Quants", 0 ),
-  d_num_quants_init_fail("ModelEngine::Num_Quants_No_Basis", 0 )
+  d_eval_lits_unknown("ModelEngine::Eval_Lits_Unknown", 0 )
 {
   StatisticsRegistry::registerStat(&d_inst_rounds);
   StatisticsRegistry::registerStat(&d_eval_formulas);
   StatisticsRegistry::registerStat(&d_eval_uf_terms);
   StatisticsRegistry::registerStat(&d_eval_lits);
   StatisticsRegistry::registerStat(&d_eval_lits_unknown);
-  StatisticsRegistry::registerStat(&d_num_quants_init);
-  StatisticsRegistry::registerStat(&d_num_quants_init_fail);
 }
 
 ModelEngine::Statistics::~Statistics(){
@@ -411,8 +354,6 @@ ModelEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_eval_uf_terms);
   StatisticsRegistry::unregisterStat(&d_eval_lits);
   StatisticsRegistry::unregisterStat(&d_eval_lits_unknown);
-  StatisticsRegistry::unregisterStat(&d_num_quants_init);
-  StatisticsRegistry::unregisterStat(&d_num_quants_init_fail);
 }
 
 

@@ -46,16 +46,27 @@ protected:
   /** process build model */
   void processBuildModel( TheoryModel* m, bool fullModel );
 protected:
+  //initialize quantifiers, return number of lemmas produced
+  int initializeQuantifier( Node f );
   //analyze model
   void analyzeModel( FirstOrderModel* fm );
   //analyze quantifiers
-  void analyzeQuantifiers( FirstOrderModel* fm );
+  virtual void analyzeQuantifiers( FirstOrderModel* fm ) = 0;
   //build model
   void constructModel( FirstOrderModel* fm );
   //theory-specific build models
   void constructModelUf( FirstOrderModel* fm, Node op );
+  /** set default value */
+  virtual bool shouldSetDefaultValue( Node n ) = 0;
   //do InstGen techniques for quantifier, return number of lemmas produced
-  int doInstGen( FirstOrderModel* fm, Node f );
+  virtual int doInstGen( FirstOrderModel* fm, Node f ) = 0;
+protected:
+  //map from quantifiers to if are SAT
+  std::map< Node, bool > d_quant_sat;
+  //which quantifiers have been initialized
+  std::map< Node, bool > d_quant_init;
+  //map from quantifiers to model basis match
+  std::map< Node, InstMatch > d_quant_basis_match;
 public:
   ModelEngineBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~ModelEngineBuilder(){}
@@ -63,9 +74,35 @@ public:
   int d_addedLemmas;
   //consider axioms
   bool d_considerAxioms;
-private:    ///information for InstGen
-  //map from quantifiers to if are constant SAT
-  std::map< Node, bool > d_quant_sat;
+  // set effort
+  void setEffort( int effort );
+public:
+  //options
+  virtual bool optUseModel();
+  virtual bool optInstGen();
+  virtual bool optOneQuantPerRoundInstGen();
+  virtual bool optReconsiderFuncConstants();
+  /** statistics class */
+  class Statistics {
+  public:
+    IntStat d_pre_sat_quant;
+    IntStat d_pre_nsat_quant;
+    IntStat d_num_quants_init;
+    IntStat d_num_quants_init_fail;
+    Statistics();
+    ~Statistics();
+  };
+  Statistics d_statistics;
+  // is quantifier active?
+  bool isQuantifierActive( Node f );
+  // is term selected
+  virtual bool isTermSelected( Node n ) { return false; }
+};/* class ModelEngineBuilder */
+
+
+class ModelEngineBuilderDefault : public ModelEngineBuilder
+{
+private:    ///information for (old) InstGen
   //map from quantifiers to their selection literals
   std::map< Node, Node > d_quant_selection_lit;
   std::map< Node, std::vector< Node > > d_quant_selection_lit_candidates;
@@ -75,27 +112,64 @@ private:    ///information for InstGen
   std::map< Node, Node > d_term_selection_lit;
   //map from operators to terms that appear in selection literals
   std::map< Node, std::vector< Node > > d_op_selection_terms;
+protected:
+  //analyze quantifiers
+  void analyzeQuantifiers( FirstOrderModel* fm );
+  //do InstGen techniques for quantifier, return number of lemmas produced
+  int doInstGen( FirstOrderModel* fm, Node f );
+  /** set default value */
+  bool shouldSetDefaultValue( Node n );
+private:
+  //analyze quantifier
+  void analyzeQuantifier( FirstOrderModel* fm, Node f );
 public:
-  //map from quantifiers to model basis match
-  std::map< Node, InstMatch > d_quant_basis_match;
+  ModelEngineBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
+  ~ModelEngineBuilderDefault(){}
   //options
-  bool optUseModel();
-  bool optInstGen();
-  bool optOneQuantPerRoundInstGen();
-  // set effort
-  void setEffort( int effort );
-  /** statistics class */
-  class Statistics {
-  public:
-    IntStat d_pre_sat_quant;
-    IntStat d_pre_nsat_quant;
-    Statistics();
-    ~Statistics();
-  };
-  Statistics d_statistics;
-  // is quantifier active?
-  bool isQuantifierActive( Node f );
-};/* class ModelEngineBuilder */
+  bool optReconsiderFuncConstants() { return true; }
+};
+
+class ModelEngineBuilderInstGen : public ModelEngineBuilder
+{
+private:    ///information for (new) InstGen
+  //map from quantifiers to their selection literals
+  std::map< Node, Node > d_quant_selection_formula;
+  //map of terms that are selected
+  std::map< Node, bool > d_term_selected;
+  //a collection of InstMatch structures produced for each quantifier
+  std::map< Node, inst::InstMatchTrie > d_sub_quant_inst_trie;
+  //children quantifiers for each quantifier, each is an instance
+  std::map< Node, std::vector< Node > > d_sub_quants;
+  //instances of each partial instantiation with respect to the root
+  std::map< Node, InstMatch > d_sub_quant_inst;
+  //*root* parent of each partial instantiation
+  std::map< Node, Node > d_sub_quant_parent;
+protected:
+  //analyze quantifiers
+  void analyzeQuantifiers( FirstOrderModel* fm );
+  //do InstGen techniques for quantifier, return number of lemmas produced
+  int doInstGen( FirstOrderModel* fm, Node f );
+  /** set default value */
+  bool shouldSetDefaultValue( Node n );
+private:
+  //analyze quantifier
+  void analyzeQuantifier( FirstOrderModel* fm, Node f );
+  //get selection formula for quantifier body
+  Node getSelectionFormula( Node fn, Node n, bool polarity, int useOption );
+  //set selected terms in term
+  void setSelectedTerms( Node s );
+  //is usable selection literal
+  bool isUsableSelectionLiteral( Node n, int useOption );
+  // get parent quantifier
+  Node getParentQuantifier( Node f );
+  //get parent quantifier match
+  void getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f );
+public:
+  ModelEngineBuilderInstGen( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
+  ~ModelEngineBuilderInstGen(){}
+  // is term selected
+  bool isTermSelected( Node n ) { return d_term_selected.find( n )!=d_term_selected.end(); }
+};
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

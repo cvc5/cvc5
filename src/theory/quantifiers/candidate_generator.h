@@ -71,33 +71,6 @@ public:
 
 class CandidateGeneratorQEDisequal;
 
-#if 0
-
-class CandidateGeneratorQE : public CandidateGenerator
-{
-  friend class CandidateGeneratorQEDisequal;
-private:
-  //operator you are looking for
-  Node d_op;
-  //instantiator pointer
-  QuantifiersEngine* d_qe;
-  //the equality class iterator
-  eq::EqClassIterator d_eqc;
-  int d_term_iter;
-  int d_term_iter_limit;
-private:
-  Node d_retNode;
-public:
-  CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
-  ~CandidateGeneratorQE(){}
-
-  void resetInstantiationRound();
-  void reset( Node eqc );
-  Node getNextCandidate();
-};
-
-#else
-
 class CandidateGeneratorQE : public CandidateGenerator
 {
   friend class CandidateGeneratorQEDisequal;
@@ -120,7 +93,6 @@ public:
   Node getNextCandidate();
 };
 
-#endif
 
 //class CandidateGeneratorQEDisequal : public CandidateGenerator
 //{

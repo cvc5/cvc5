@@ -275,26 +275,65 @@ void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
-    std::set< Node > added;
-    getTermDatabase()->addTerm( n, added, withinQuant );
-    if( options::efficientEMatching() ){
-      uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)getInstantiator( THEORY_UF );
-      d_ith->newTerms(added);
-    }
+  std::set< Node > added;
+  getTermDatabase()->addTerm( n, added, withinQuant );
+  if( options::efficientEMatching() ){
+    uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)getInstantiator( THEORY_UF );
+    d_ith->newTerms(added);
+  }
 #ifdef COMPUTE_RELEVANCE
-    //added contains also the Node that just have been asserted in this branch
-    for( std::set< Node >::iterator i=added.begin(), end=added.end();
-         i!=end; i++ ){
-      if( !withinQuant ){
-        setRelevance( i->getOperator(), 0 );
-      }
+  //added contains also the Node that just have been asserted in this branch
+  for( std::set< Node >::iterator i=added.begin(), end=added.end();
+       i!=end; i++ ){
+    if( !withinQuant ){
+      setRelevance( i->getOperator(), 0 );
+    }
   }
 #endif
 
 }
 
+void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms ){
+  for( size_t i=0; i<d_term_db->d_inst_constants[f].size(); i++ ){
+    Node n = m.getValue( d_term_db->d_inst_constants[f][i] );
+    if( !n.isNull() ){
+      vars.push_back( f[0][i] );
+      terms.push_back( n );
+    }
+  }
+}
+
+Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
+  Node body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+  //process partial instantiation if necessary
+  if( d_term_db->d_vars[f].size()!=vars.size() ){
+    std::vector< Node > uninst_vars;
+    //doing a partial instantiation, must add quantifier for all uninstantiated variables
+    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
+      if( std::find( vars.begin(), vars.end(), f[0][i] )==vars.end() ){
+        uninst_vars.push_back( f[0][i] );
+      }
+    }
+    Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, uninst_vars );
+    body = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
+    Trace("partial-inst") << "Partial instantiation : " << d_rewritten_quant[f] << std::endl;
+    Trace("partial-inst") << "                      : " << body << std::endl;
+  }
+  return body;
+}
+
+Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
+  std::vector< Node > vars;
+  std::vector< Node > terms;
+  computeTermVector( f, m, vars, terms );
+  return getInstantiation( f, vars, terms );
+}
+
+bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
+  return d_inst_match_trie[f].existsInstMatch( this, f, m, modEq, NULL, modInst );
+}
+
 bool QuantifiersEngine::addLemma( Node lem ){
-  //AJR: the following check is necessary until FULL_CHECK is guarenteed after d_out->lemma(...)
   Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
   if( d_lemmas_produced.find( lem )==d_lemmas_produced.end() ){
@@ -309,22 +348,16 @@ bool QuantifiersEngine::addLemma( Node lem ){
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms )
-{
+bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
   Assert( f.getKind()==FORALL );
   Assert( !f.hasAttribute(InstConstantAttribute()) );
   Assert( vars.size()==terms.size() );
-  Node body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
-  Node lem;
-  if( d_term_db->d_vars[f].size()==vars.size() ){
-    NodeBuilder<> nb(kind::OR);
-    nb << d_rewritten_quant[f].notNode() << body;
-    lem = nb;
-  }else{
-    //doing a partial instantiation, must add quantifier for all uninstantiated variables
-    Notice() << "Partial instantiation not implemented yet." << std::endl;
-    Unimplemented();
-  }
+  Node body = getInstantiation( f, vars, terms );
+  //make the lemma
+  NodeBuilder<> nb(kind::OR);
+  nb << d_rewritten_quant[f].notNode() << body;
+  Node lem = nb;
+  //check for duplication
   if( addLemma( lem ) ){
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     uint64_t maxInstLevel = 0;
@@ -360,11 +393,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool makeComplete ){
+bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m ){
   //make sure there are values for each variable we are instantiating
-  if( makeComplete ){
-    m.makeComplete( f, this );
-  }
+  m.makeComplete( f, this );
   //make it representative, this is helpful for recognizing duplication
   m.makeRepresentative( this );
   Trace("inst-add") << "Add instantiation: " << m << std::endl;
@@ -375,23 +406,14 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool makeComplet
     return false;
   }
   //compute the vector of terms for the instantiation
-  std::vector< Node > match;
-  m.computeTermVec( d_term_db->d_inst_constants[f], match );
-  //add the instantiation
-  bool addedInst = false;
-  if( match.size()==d_term_db->d_vars[f].size() ){
-    addedInst = addInstantiation( f, d_term_db->d_vars[f], match );
-  }else{
-    //must compute the subset of variables we are instantiating
-    std::vector< Node > vars;
-    for( size_t i=0; i<d_term_db->d_vars[f].size(); i++ ){
-      Node val = m.get( getTermDatabase()->getInstantiationConstant( f, i ) );
-      if( !val.isNull() ){
-        vars.push_back( d_term_db->d_vars[f][i] );
-      }
-    }
-    addedInst = addInstantiation( f, vars, match );
+  std::vector< Node > terms;
+  for( size_t i=0; i<d_term_db->d_inst_constants[f].size(); i++ ){
+    Node n = m.getValue( d_term_db->d_inst_constants[f][i] );
+    Assert( !n.isNull() );
+    terms.push_back( n );
   }
+  //add the instantiation
+  bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );
   //report the result
   if( addedInst ){
     Trace("inst-add") << " -> Success." << std::endl;

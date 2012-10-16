@@ -57,69 +57,6 @@ Node CandidateGeneratorQueue::getNextCandidate(){
   }
 }
 
-#if 0
-
-CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
-  d_op( op ), d_qe( qe ), d_term_iter( -2 ){
-  Assert( !d_op.isNull() );
-}
-void CandidateGeneratorQE::resetInstantiationRound(){
-  d_term_iter_limit = d_qe->getTermDatabase()->d_op_map[d_op].size();
-}
-
-void CandidateGeneratorQE::reset( Node eqc ){
-  if( eqc.isNull() ){
-    d_term_iter = 0;
-  }else{
-    //create an equivalence class iterator in eq class eqc
-    if( d_qe->getEqualityQuery()->getEngine()->hasTerm( eqc ) ){
-      eqc = d_qe->getEqualityQuery()->getEngine()->getRepresentative( eqc );
-      d_eqc = eq::EqClassIterator( eqc, d_qe->getEqualityQuery()->getEngine() );
-      d_retNode = Node::null();
-    }else{
-      d_retNode = eqc;
-    }
-    d_term_iter = -1;
-  }
-}
-
-Node CandidateGeneratorQE::getNextCandidate(){
-  if( d_term_iter>=0 ){
-    //get next candidate term in the uf term database
-    while( d_term_iter<d_term_iter_limit ){
-      Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
-      d_term_iter++;
-      if( isLegalCandidate( n ) ){
-        return n;
-      }
-    }
-  }else if( d_term_iter==-1 ){
-    if( d_retNode.isNull() ){
-      //get next candidate term in equivalence class
-      while( !d_eqc.isFinished() ){
-        Node n = (*d_eqc);
-        ++d_eqc;
-        if( n.hasOperator() && n.getOperator()==d_op ){
-          if( isLegalCandidate( n ) ){
-            return n;
-          }
-        }
-      }
-    }else{
-      Node ret;
-      if( d_retNode.hasOperator() && d_retNode.getOperator()==d_op ){
-        ret = d_retNode;
-      }
-      d_term_iter = -2; //done returning matches
-      return ret;
-    }
-  }
-  return Node::null();
-}
-
-#else
-
-
 CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
   d_op( op ), d_qe( qe ), d_term_iter( -1 ){
   Assert( !d_op.isNull() );
@@ -165,8 +102,6 @@ Node CandidateGeneratorQE::getNextCandidate(){
   }
   return Node::null();
 }
-
-#endif
 
 //CandidateGeneratorQEDisequal::CandidateGeneratorQEDisequal( QuantifiersEngine* qe, Node eqc ) :
 //  d_qe( qe ), d_eq_class( eqc ){
