@@ -97,16 +97,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   d_hasAddedLemma = false;
   if( e==Theory::EFFORT_LAST_CALL ){
+    //if effort is last call, try to minimize model first
+    if( options::finiteModelFind() ){
+      //first, check if we can minimize the model further
+      if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
+        return;
+      }
+    }
     ++(d_statistics.d_instantiation_rounds_lc);
   }else if( e==Theory::EFFORT_FULL ){
     ++(d_statistics.d_instantiation_rounds);
-  }
-  //if effort is last call, try to minimize model first
-  if( e==Theory::EFFORT_LAST_CALL && options::finiteModelFind() ){
-    //first, check if we can minimize the model further
-    if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
-      return;
-    }
   }
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->check( e );

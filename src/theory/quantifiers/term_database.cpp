@@ -216,7 +216,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( d_type_map[ tn ].empty() || options::fmfNewInstGen() ){
+    if( d_type_map[ tn ].empty() ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;

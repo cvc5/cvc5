@@ -45,10 +45,11 @@ InstGenProcess::InstGenProcess( Node n ) : d_node( n ){
 
 void InstGenProcess::addMatchValue( QuantifiersEngine* qe, Node f, Node val, InstMatch& m ){
   if( !qe->existsInstantiation( f, m, true ) ){
-    //if( d_inst_trie[val].addInstMatch( qe, f, m, true ) ){
+    //make sure no duplicates are produced
+    if( d_inst_trie[val].addInstMatch( qe, f, m, true ) ){
       d_match_values.push_back( val );
       d_matches.push_back( InstMatch( &m ) );
-    //}
+    }
   }
 }
 
@@ -110,6 +111,8 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
     calculateMatchesInterpreted( qe, f, curr, terms, 0 );
   }
   Trace("cm") << "done calculate matches" << std::endl;
+  //can clear information used for finding duplicates
+  d_inst_trie.clear();
 }
 
 bool InstGenProcess::getMatch( EqualityQuery* q, int i, InstMatch& m ){

@@ -144,8 +144,6 @@ private:
   std::map< Node, Node > d_inst_constants_map;
   /** make instantiation constants for */
   void makeInstantiationConstantsFor( Node f );
-  /** set instantiation constant attr */
-  void setInstantiationConstantAttr( Node n, Node f );
 public:
   /** get the i^th instantiation constant of f */
   Node getInstantiationConstant( Node f, int i ) { return d_inst_constants[f][i]; }
@@ -174,6 +172,8 @@ public:
   Node getInstConstantIffTerm( Node n, bool pol );
   /** make node, validating the inst constant attribute */
   Node mkNodeInstConstant( Kind k, std::vector< Node >& children, Node f );
+  /** set instantiation constant attr */
+  void setInstantiationConstantAttr( Node n, Node f );
 
 //for skolem
 private:

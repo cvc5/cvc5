@@ -1154,8 +1154,6 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
         }else{
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
           Node op = NodeManager::currentNM()->mkSkolem( "skop_$$", typ, "op created during pre-skolemization" );
-          NoMatchAttribute nma;
-          op.setAttribute(nma,true);
           std::vector< Node > funcArgs;
           funcArgs.push_back( op );
           funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );

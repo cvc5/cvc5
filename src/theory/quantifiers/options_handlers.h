@@ -57,7 +57,7 @@ predicate\n\
 ";
 
 static const std::string axiomInstModeHelp = "\
-Literal match modes currently supported by the --axiom-inst option:\n\
+Axiom instantiation modes currently supported by the --axiom-inst option:\n\
 \n\
 default \n\
 + Treat axioms the same as usual quantifiers, i.e. use all available methods for\n\
