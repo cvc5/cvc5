@@ -53,6 +53,7 @@ std::string toString(Bits&  bits) {
 /////// Bitblaster 
 
 Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
+    d_bv(bv),
     d_bvOutput(bv->d_out),
     d_termCache(),
     d_bitblastedAtoms(),
@@ -395,6 +396,11 @@ EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
   } else {
     return EQUALITY_UNKNOWN;
   }
+}
+
+
+bool Bitblaster::isSharedTerm(TNode node) {
+  return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end(); 
 }
 
 Node Bitblaster::getVarValue(TNode a) {

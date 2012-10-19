@@ -345,9 +345,11 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     BVDebug("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
     BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
-  // this is not necessairily a variable, but it is a term the theory of bitvectors treads as one
-  // e.g. a select over a bv array 
-  bb->storeVariable(node); 
+
+    if (Theory::theoryOf(node) == theory::THEORY_BV ||
+        bb->isSharedTerm(node)) {
+    bb->storeVariable(node);
+    }
 
 }
 

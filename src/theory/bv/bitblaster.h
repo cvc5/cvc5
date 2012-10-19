@@ -80,6 +80,7 @@ class Bitblaster {
     void safePoint();
   };
   
+  
   typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction >              TermDefMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      AtomSet;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      VarSet; 
@@ -87,6 +88,8 @@ class Bitblaster {
   typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*); 
   typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*); 
 
+  TheoryBV *d_bv;
+  
   // sat solver used for bitblasting and associated CnfStream
   theory::OutputChannel*             d_bvOutput;
   prop::BVSatSolverInterface*        d_satSolver; 
@@ -158,7 +161,9 @@ public:
    */
   void storeVariable(TNode var) {
     d_variables.insert(var); 
-  } 
+  }
+
+  bool isSharedTerm(TNode node);
 private:
 
   
