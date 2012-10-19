@@ -38,6 +38,7 @@
 #include <iostream>
 
 #include <strings.h>
+#include <ext/hash_set>
 
 namespace CVC4 {
 
@@ -785,6 +786,12 @@ public:
     return d_sharedTerms.end();
   }
 
+
+  /**
+   * This is a utility function for constructing a copy of the currently shared terms
+   * in a queriable form.  As this is 
+   */
+  std::hash_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level);
@@ -804,6 +811,8 @@ public:
 protected:
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;
+
+
 public:
   InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   virtual ~InstStrategy(){}

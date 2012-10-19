@@ -237,6 +237,13 @@ int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
 //  }
 //}
 
+std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
+  std::hash_set<TNode, TNodeHashFunction> currentlyShared;
+  for(shared_terms_iterator i = shared_terms_begin(), i_end = shared_terms_end(); i != i_end; ++i){
+    currentlyShared.insert (*i);
+  }
+  return currentlyShared;
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -2079,6 +2079,7 @@ void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
+  std::hash_set<TNode, TNodeHashFunction> shared = currentlySharedTerms();
 
   // TODO:
   // This is not very good for user push/pop....
@@ -2087,13 +2088,18 @@ void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
     if(!isSlackVariable(v)){
       Node term = d_arithvarNodeMap.asNode(v);
 
-      const DeltaRational& mod = d_partialModel.getAssignment(v);
-      Rational qmodel = mod.substituteDelta(delta);
+      if(theoryOf(term) == THEORY_ARITH || shared.find(term) != shared.end()){
+        const DeltaRational& mod = d_partialModel.getAssignment(v);
+        Rational qmodel = mod.substituteDelta(delta);
 
-      Node qNode = mkRationalNode(qmodel);
-      Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
+        Node qNode = mkRationalNode(qmodel);
+        Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
 
-      m->assertEquality(term, qNode, true);
+        m->assertEquality(term, qNode, true);
+      }else{
+        Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
+
+      }
     }
   }
 
