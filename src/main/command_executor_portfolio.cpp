@@ -195,7 +195,11 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     LogicInfo logicInfo = d_smts[0]->getLogicInfo();
     logicInfo.lock();
     if(logicInfo.isQuantified()) {
-      return CommandExecutor::doCommandSingleton(cmd);
+      if(d_options[options::fallbackSequential])
+        return CommandExecutor::doCommandSingleton(cmd);
+      else
+        throw Exception("Quantified formulas are (currenltly) unsupported in portfolio mode.\n"
+                        "Please see option --fallback-sequential to make this a soft error.");
     }
 
     d_seq->addCommand(cmd->clone());
@@ -221,7 +225,11 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       try {
         seqs[i] = d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
       }catch(ExportUnsupportedException& e){
-        return CommandExecutor::doCommandSingleton(cmd);
+        if(d_options[options::fallbackSequential])
+          return CommandExecutor::doCommandSingleton(cmd);
+        else
+          throw Exception("Certain theories (e.g., datatypes) are (currently) unsupported in portfolio\n"
+                          "mode. Please see option --fallback-sequential to make this a soft error.");
       }
     }
 
@@ -285,9 +293,14 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     return portfolioReturn.second;
   } else if(mode == 2) {
-    return smtEngineInvoke(d_smts[d_lastWinner],
-                           cmd,
-                           d_threadOptions[d_lastWinner][options::out]);
+    Command* cmdExported = 
+      d_lastWinner == 0 ?
+      cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
+    int ret = smtEngineInvoke(d_smts[d_lastWinner],
+                              cmdExported,
+                              d_threadOptions[d_lastWinner][options::out]);
+    if(d_lastWinner != 0) delete cmdExported;
+    return ret;
   } else {
     // Unreachable();
     assert(false);

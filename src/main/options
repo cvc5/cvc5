@@ -23,8 +23,6 @@ expert-option earlyExit --early-exit bool :default true
  do not run destructors at exit; default on except in debug builds
 
 # portfolio options
-option printWinner bool
- enable printing the winning thread (pcvc4 only)
 option threads --threads=N unsigned :default 2 :predicate greater(0)
  Total number of threads for portfolio
 option - --threadN=string void :handler CVC4::main::threadN :handler-include "main/options_handlers.h"
@@ -37,6 +35,8 @@ option separateOutput bool :default false
  In multi-threaded setting print output of each thread at the end of run, separated by a divider ("----").
 option sharingFilterByLength --filter-lemma-length=N int :default -1 :read-write
  don't share (among portfolio threads) lemmas strictly longer than N
+option fallbackSequential  --fallback-sequential bool :default false
+ Switch to sequential mode (instead of printing an error) if it can't be solved in portfolio mode
 
 expert-option waitToJoin --wait-to-join bool :default true
  wait for other threads to join before quitting

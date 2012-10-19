@@ -763,7 +763,7 @@ void ModelEngineBuilderInstGen::getParentQuantifierMatch( InstMatch& mp, Node fp
     int counter = 0;
     for( size_t i=0; i<fp[0].getNumChildren(); i++ ){
       Node icp = d_qe->getTermDatabase()->getInstantiationConstant( fp, i );
-      if( counter<f[0].getNumChildren() ){
+      if( (int)counter< (int)f[0].getNumChildren() ){
         if( fp[0][i]==f[0][counter] ){
           Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, counter );
           Node n = m.getValue( ic );
