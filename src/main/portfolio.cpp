@@ -29,8 +29,8 @@ boost::mutex mutex_done;
 boost::mutex mutex_main_wait;
 boost::condition condition_var_main_wait;
 
-bool global_flag_done = false;
-int global_winner = -1;
+bool global_flag_done;
+int global_winner;
 
 template<typename S>
 void runThread(int thread_id, boost::function<S()> threadFn, S& returnValue)
@@ -55,6 +55,9 @@ std::pair<int, S> runPortfolio(int numThreads,
   boost::thread thread_driver;
   boost::thread threads[numThreads];
   S threads_returnValue[numThreads];
+
+  global_flag_done = false;
+  global_winner = -1;
 
   for(int t = 0; t < numThreads; ++t) {
     threads[t] = 
