@@ -41,7 +41,9 @@ BUILT_SOURCES = \
 	generated/CvcParser.c \
 	stamp-generated
 
-EXTRA_DIST = README
+EXTRA_DIST = \
+	README \
+	stamp-generated
 
 DISTCLEANFILES = $(ANTLR_STUFF)
 distclean-local:

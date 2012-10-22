@@ -43,6 +43,9 @@ BUILT_SOURCES = \
 	generated/Smt1Parser.c \
 	stamp-generated
 
+EXTRA_DIST = \
+	stamp-generated
+
 DISTCLEANFILES = $(ANTLR_STUFF)
 distclean-local:
 	-$(AM_V_at)rmdir generated
