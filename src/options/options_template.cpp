@@ -181,7 +181,7 @@ void runBoolPredicates(T, std::string option, bool b, SmtEngine* smt) {
 
 ${all_custom_handlers}
 
-#line 220 "${template}"
+#line 185 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
