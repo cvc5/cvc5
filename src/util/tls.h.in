@@ -24,8 +24,6 @@
 #ifndef __CVC4__TLS_H
 #define __CVC4__TLS_H
 
-#line 28 "@srcdir@/tls.h.in"
-
 // A bit obnoxious: we have to take varargs to support multi-argument
 // template types in the threadlocals.
 // E.g. "CVC4_THREADLOCAL(hash_set<type, hasher>*)" fails otherwise,
