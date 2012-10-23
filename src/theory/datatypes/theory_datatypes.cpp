@@ -844,9 +844,14 @@ void TheoryDatatypes::checkCycles() {
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     map< Node, bool > visited;
-    NodeBuilder<> explanation(kind::AND);
-    if( searchForCycle( eqc, eqc, visited, explanation ) ) {
-      d_conflictNode = explanation.getNumChildren() == 1 ? explanation.getChild( 0 ) : explanation;
+    std::vector< TNode > expl;
+    if( searchForCycle( eqc, eqc, visited, expl ) ) {
+      Assert( expl.size()>0 );
+      if( expl.size() == 1 ){
+        d_conflictNode = expl[ 0 ];
+      }else{
+        d_conflictNode = NodeManager::currentNM()->mkNode( AND, expl );
+      }
       Debug("datatypes-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
       d_out->conflict( d_conflictNode );
       d_conflict = true;
@@ -859,26 +864,35 @@ void TheoryDatatypes::checkCycles() {
 //postcondition: if cycle detected, explanation is why n is a subterm of on
 bool TheoryDatatypes::searchForCycle( Node n, Node on,
                                       map< Node, bool >& visited,
-                                      NodeBuilder<>& explanation ) {
+                                      std::vector< TNode >& explanation, bool firstTime ) {
   Debug("datatypes-cycle-check") << "Search for cycle " << n << " " << on << endl;
   Node ncons;
-  EqcInfo* eqc = getOrMakeEqcInfo( n );
-  if( eqc ){
-    Node ncons = eqc->d_constructor.get();
-    if( !ncons.isNull() ) {
-      for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
-        Node nn = getRepresentative( ncons[i] );
-        if( visited.find( nn ) == visited.end() ) {
-          visited[nn] = true;
-          if( nn == on || searchForCycle( nn, on, visited, explanation ) ) {
+  Node nn;
+  if( !firstTime ){
+    nn = getRepresentative( n );
+    if( nn==on ){
+      Node lit = NodeManager::currentNM()->mkNode( EQUAL, n, nn );
+      explain( lit, explanation );
+      return true;
+    }
+  }else{
+    nn = n;
+  }
+  if( visited.find( nn ) == visited.end() ) {
+    visited[nn] = true;
+    EqcInfo* eqc = getOrMakeEqcInfo( nn );
+    if( eqc ){
+      Node ncons = eqc->d_constructor.get();
+      if( !ncons.isNull() ) {
+        for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
+          if( searchForCycle( ncons[i], on, visited, explanation, false ) ) {
             if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
               Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
             }
-            if( nn != ncons[i] ) {
-              if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( ncons[i], nn ) ){
-                Debug("datatypes-cycles") << "Cycle equality: " << ncons[i] << " is not -> " << nn << "!!!!" << std::endl;
-              }
-              explanation << NodeManager::currentNM()->mkNode( EQUAL, nn, ncons[i] );
+            //add explanation for why the constructor is connected
+            if( n != ncons ) {
+              Node lit = NodeManager::currentNM()->mkNode( EQUAL, n, ncons );
+              explain( lit, explanation );
             }
             return true;
           }

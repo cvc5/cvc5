@@ -216,7 +216,7 @@ private:
   void checkCycles();
   bool searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
-                       NodeBuilder<>& explanation );
+                       std::vector< TNode >& explanation, bool firstTime = true );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
