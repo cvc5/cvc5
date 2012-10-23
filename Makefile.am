@@ -12,6 +12,10 @@ DIST_SUBDIRS = $(SUBDIRS) examples
 examples: all
 	(cd examples && $(MAKE) $(AM_MAKEFLAGS))
 
+.PHONY: install-examples
+install-examples:
+	(cd examples && $(MAKE) $(AM_MAKEFLAGS) install-data)
+
 .PHONY: units systemtests regress regress0 regress1 regress2 regress3
 systemtests regress regress0 regress1 regress2 regress3: all
 	+(cd test && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1
