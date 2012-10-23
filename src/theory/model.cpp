@@ -317,15 +317,15 @@ bool TheoryModel::areDisequal( Node a, Node b ){
 //for debugging
 void TheoryModel::printRepresentativeDebug( const char* c, Node r ){
   if( r.isNull() ){
-    Debug( c ) << "null";
+    Trace( c ) << "null";
   }else if( r.getType().isBoolean() ){
     if( areEqual( r, d_true ) ){
-      Debug( c ) << "true";
+      Trace( c ) << "true";
     }else{
-      Debug( c ) << "false";
+      Trace( c ) << "false";
     }
   }else{
-    Debug( c ) << getRepresentative( r );
+    Trace( c ) << getRepresentative( r );
   }
 }
 

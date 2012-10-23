@@ -23,6 +23,27 @@
 
 namespace CVC4 {
 namespace theory {
+
+/** Attribute true for nodes that should not be used when considered for inst-gen basis */
+struct BasisNoMatchAttributeId {};
+/** use the special for boolean flag */
+typedef expr::Attribute< BasisNoMatchAttributeId,
+                         bool,
+                         expr::attr::NullCleanupStrategy,
+                         true // context dependent
+                       > BasisNoMatchAttribute;
+
+class TermArgBasisTrie {
+private:
+  bool addTerm2( QuantifiersEngine* qe, Node n, int argIndex );
+public:
+  /** the data */
+  std::map< Node, TermArgBasisTrie > d_data;
+public:
+  bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
+};/* class TermArgBasisTrie */
+
+
 namespace quantifiers {
 
 /** model builder class
@@ -44,27 +65,25 @@ protected:
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
   /** process build model */
-  void processBuildModel( TheoryModel* m, bool fullModel );
+  virtual void processBuildModel( TheoryModel* m, bool fullModel );
 protected:
-  //initialize quantifiers, return number of lemmas produced
-  int initializeQuantifier( Node f );
+  //reset
+  virtual void reset( FirstOrderModel* fm ) = 0;
+  //initialize quantifiers, return number of lemmas produced, fp is the parent of quantifier f
+  virtual int initializeQuantifier( Node f, Node fp );
   //analyze model
-  void analyzeModel( FirstOrderModel* fm );
+  virtual void analyzeModel( FirstOrderModel* fm );
   //analyze quantifiers
-  virtual void analyzeQuantifiers( FirstOrderModel* fm ) = 0;
-  //build model
-  void constructModel( FirstOrderModel* fm );
-  //theory-specific build models
-  void constructModelUf( FirstOrderModel* fm, Node op );
-  /** set default value */
-  virtual bool shouldSetDefaultValue( Node n ) = 0;
+  virtual void analyzeQuantifier( FirstOrderModel* fm, Node f ) = 0;
   //do InstGen techniques for quantifier, return number of lemmas produced
   virtual int doInstGen( FirstOrderModel* fm, Node f ) = 0;
+  //theory-specific build models
+  virtual void constructModelUf( FirstOrderModel* fm, Node op ) = 0;
 protected:
   //map from quantifiers to if are SAT
   std::map< Node, bool > d_quant_sat;
   //which quantifiers have been initialized
-  std::map< Node, bool > d_quant_init;
+  std::map< Node, bool > d_quant_basis_match_added;
   //map from quantifiers to model basis match
   std::map< Node, InstMatch > d_quant_basis_match;
 public:
@@ -81,20 +100,21 @@ public:
   virtual bool optUseModel();
   virtual bool optInstGen();
   virtual bool optOneQuantPerRoundInstGen();
-  virtual bool optReconsiderFuncConstants();
   /** statistics class */
   class Statistics {
   public:
     IntStat d_pre_sat_quant;
     IntStat d_pre_nsat_quant;
     IntStat d_num_quants_init;
-    IntStat d_num_quants_init_fail;
+    IntStat d_num_quants_init_success;
     Statistics();
     ~Statistics();
   };
   Statistics d_statistics;
   // is quantifier active?
   bool isQuantifierActive( Node f );
+  // is term active
+  bool isTermActive( Node n );
   // is term selected
   virtual bool isTermSelected( Node n ) { return false; }
 };/* class ModelEngineBuilder */
@@ -113,15 +133,14 @@ private:    ///information for (old) InstGen
   //map from operators to terms that appear in selection literals
   std::map< Node, std::vector< Node > > d_op_selection_terms;
 protected:
-  //analyze quantifiers
-  void analyzeQuantifiers( FirstOrderModel* fm );
-  //do InstGen techniques for quantifier, return number of lemmas produced
-  int doInstGen( FirstOrderModel* fm, Node f );
-  /** set default value */
-  bool shouldSetDefaultValue( Node n );
-private:
+  //reset
+  void reset( FirstOrderModel* fm );
   //analyze quantifier
   void analyzeQuantifier( FirstOrderModel* fm, Node f );
+  //do InstGen techniques for quantifier, return number of lemmas produced
+  int doInstGen( FirstOrderModel* fm, Node f );
+  //theory-specific build models
+  void constructModelUf( FirstOrderModel* fm, Node op );
 public:
   ModelEngineBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
   ~ModelEngineBuilderDefault(){}
@@ -145,23 +164,23 @@ private:    ///information for (new) InstGen
   //*root* parent of each partial instantiation
   std::map< Node, Node > d_sub_quant_parent;
 protected:
-  //analyze quantifiers
-  void analyzeQuantifiers( FirstOrderModel* fm );
-  //do InstGen techniques for quantifier, return number of lemmas produced
-  int doInstGen( FirstOrderModel* fm, Node f );
-  /** set default value */
-  bool shouldSetDefaultValue( Node n );
-private:
+  //reset
+  void reset( FirstOrderModel* fm );
+  //initialize quantifiers, return number of lemmas produced, fp is the parent of quantifier f
+  int initializeQuantifier( Node f, Node fp );
   //analyze quantifier
   void analyzeQuantifier( FirstOrderModel* fm, Node f );
+  //do InstGen techniques for quantifier, return number of lemmas produced
+  int doInstGen( FirstOrderModel* fm, Node f );
+  //theory-specific build models
+  void constructModelUf( FirstOrderModel* fm, Node op );
+private:
   //get selection formula for quantifier body
   Node getSelectionFormula( Node fn, Node n, bool polarity, int useOption );
   //set selected terms in term
   void setSelectedTerms( Node s );
   //is usable selection literal
   bool isUsableSelectionLiteral( Node n, int useOption );
-  // get parent quantifier
-  Node getParentQuantifier( Node f );
   //get parent quantifier match
   void getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f );
 public:

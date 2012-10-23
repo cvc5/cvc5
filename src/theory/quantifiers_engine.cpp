@@ -94,6 +94,9 @@ Valuation& QuantifiersEngine::getValuation(){
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
+  if( e>=Theory::EFFORT_FULL ){
+    Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
+  }
 
   d_hasAddedLemma = false;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -115,6 +118,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //  this happens if no quantifiers are currently asserted and no model-building module is enabled
   if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model->isModelSet() ){
     d_te->getModelBuilder()->buildModel( d_model, true );
+  }
+  if( e>=Theory::EFFORT_FULL ){
+    Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }
 }
 
@@ -311,14 +317,16 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m ){
+bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool modInst, bool mkRep ){
   //make sure there are values for each variable we are instantiating
   m.makeComplete( f, this );
   //make it representative, this is helpful for recognizing duplication
-  m.makeRepresentative( this );
+  if( mkRep ){
+    m.makeRepresentative( this );
+  }
   Trace("inst-add") << "Add instantiation: " << m << std::endl;
   //check for duplication modulo equality
-  if( !d_inst_match_trie[f].addInstMatch( this, f, m, true ) ){
+  if( !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst ) ){
     Trace("inst-add") << " -> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;

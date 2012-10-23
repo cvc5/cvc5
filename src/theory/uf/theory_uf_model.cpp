@@ -386,9 +386,9 @@ Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* 
   for( size_t i=0; i<d_values.size(); i++ ){
     Node v = d_values[i];
     double score = ( 1.0 + (double)d_value_pro_con[0][v].size() )/( 1.0 + (double)d_value_pro_con[1][v].size() );
-    Debug("fmf-model-cons") << "  - score( ";
-    m->printRepresentativeDebug( "fmf-model-cons", v );
-    Debug("fmf-model-cons") << " ) = " << score << std::endl;
+    Debug("fmf-model-cons-debug") << "  - score( ";
+    m->printRepresentativeDebug( "fmf-model-cons-debug", v );
+    Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
     if( score>maxScore ){
       defaultVal = v;
       maxScore = score;
@@ -416,10 +416,10 @@ Node UfModelPreferenceData::getBestDefaultValue( Node defaultTerm, TheoryModel* 
   }
 #endif
   //get the default term (this term must be defined non-ground in model)
-  Debug("fmf-model-cons") << "  Choose ";
-  m->printRepresentativeDebug("fmf-model-cons", defaultVal );
-  Debug("fmf-model-cons") << " as default value (" << defaultTerm << ")" << std::endl;
-  Debug("fmf-model-cons") << "     # quantifiers pro = " << d_value_pro_con[0][defaultVal].size() << std::endl;
-  Debug("fmf-model-cons") << "     # quantifiers con = " << d_value_pro_con[1][defaultVal].size() << std::endl;
+  Debug("fmf-model-cons-debug") << "  Choose ";
+  m->printRepresentativeDebug("fmf-model-cons-debug", defaultVal );
+  Debug("fmf-model-cons-debug") << " as default value (" << defaultTerm << ")" << std::endl;
+  Debug("fmf-model-cons-debug") << "     # quantifiers pro = " << d_value_pro_con[0][defaultVal].size() << std::endl;
+  Debug("fmf-model-cons-debug") << "     # quantifiers con = " << d_value_pro_con[1][defaultVal].size() << std::endl;
   return defaultVal;
 }

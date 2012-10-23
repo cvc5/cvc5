@@ -338,9 +338,9 @@ Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
           //val = getRepresentative( val );
         }
       }
-      Debug("fmf-eval-debug") << "Evaluate term " << n << " = ";
+      Trace("fmf-eval-debug") << "Evaluate term " << n << " = ";
       printRepresentativeDebug( "fmf-eval-debug", val );
-      Debug("fmf-eval-debug") << ", depIndex = " << depIndex << std::endl;
+      Trace("fmf-eval-debug") << ", depIndex = " << depIndex << std::endl;
     }
   }
   return val;

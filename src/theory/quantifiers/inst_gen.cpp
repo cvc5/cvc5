@@ -61,7 +61,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
       return;
     }
   }
-  Trace("cm") << "calculate matches " << d_node << std::endl;
+  Trace("inst-gen-cm") << "* Calculate matches " << d_node << std::endl;
   //get the model
   FirstOrderModel* fm = qe->getModel();
   if( d_node.getKind()==APPLY_UF ){
@@ -74,7 +74,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         //do not consider ground case if it is already congruent to another ground term
         if( t==0 || !n.getAttribute(NoMatchAttribute()) ){
-          Trace("cm") << "calculate for " << n << ", selected = " << (t==0) << std::endl;
+          Trace("inst-gen-cm") << "calculate for " << n << ", selected = " << (t==0) << std::endl;
           bool success = true;
           InstMatch curr;
           for( size_t j=0; j<d_node.getNumChildren(); j++ ){
@@ -83,13 +83,13 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
                 if( d_node[j].getKind()==INST_CONSTANT ){
                   //FIXME: is this correct?
                   if( !curr.setMatch( qe->getEqualityQuery(), d_node[j], n[j] ) ){
-                    Trace("cm") << "fail match: " << n[j] << " is not equal to " << curr.get( d_node[j] ) << std::endl;
-                    Trace("cm") << "  are equal : " << qe->getEqualityQuery()->areEqual( n[j], curr.get( d_node[j] ) ) << std::endl;
+                    Trace("inst-gen-cm") << "fail match: " << n[j] << " is not equal to " << curr.get( d_node[j] ) << std::endl;
+                    Trace("inst-gen-cm") << "  are equal : " << qe->getEqualityQuery()->areEqual( n[j], curr.get( d_node[j] ) ) << std::endl;
                     success = false;
                     break;
                   }
                 }else if( !qe->getEqualityQuery()->areEqual( d_node[j], n[j] ) ){
-                  Trace("cm") << "fail arg: " << n[j] << " is not equal to " << d_node[j] << std::endl;
+                  Trace("inst-gen-cm") << "fail arg: " << n[j] << " is not equal to " << d_node[j] << std::endl;
                   success = false;
                   break;
                 }
@@ -110,7 +110,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
     std::vector< Node > terms;
     calculateMatchesInterpreted( qe, f, curr, terms, 0 );
   }
-  Trace("cm") << "done calculate matches" << std::endl;
+  Trace("inst-gen-cm") << "done calculate matches" << std::endl;
   //can clear information used for finding duplicates
   d_inst_trie.clear();
 }
@@ -123,11 +123,11 @@ bool InstGenProcess::getMatch( EqualityQuery* q, int i, InstMatch& m ){
 void InstGenProcess::calculateMatchesUninterpreted( QuantifiersEngine* qe, Node f, InstMatch& curr, Node n, int childIndex, bool isSelected ){
   if( childIndex==(int)d_children.size() ){
     Node val = qe->getModel()->getRepresentative( n );  //FIXME: is this correct?
-    Trace("cm") << "  - u-match : " << val << std::endl;
-    Trace("cm") << "            : " << curr << std::endl;
+    Trace("inst-gen-cm") << "  - u-match : " << val << std::endl;
+    Trace("inst-gen-cm") << "            : " << curr << std::endl;
     addMatchValue( qe, f, val, curr );
   }else{
-    Trace("cm") << "Consider child index = " << childIndex << ", against ground term argument " << d_children_index[childIndex] << " ... " << n[d_children_index[childIndex]] << std::endl;
+    Trace("inst-gen-cm") << "Consider child index = " << childIndex << ", against ground term argument " << d_children_index[childIndex] << " ... " << n[d_children_index[childIndex]] << std::endl;
     bool sel = ( isSelected && n[d_children_index[childIndex]].getAttribute(ModelBasisAttribute()) );
     for( int i=0; i<(int)d_children[ childIndex ].getNumMatches(); i++ ){
       //FIXME: is this correct?
@@ -136,11 +136,11 @@ void InstGenProcess::calculateMatchesUninterpreted( QuantifiersEngine* qe, Node 
         if( d_children[ childIndex ].getMatch( qe->getEqualityQuery(), i, next ) ){
           calculateMatchesUninterpreted( qe, f, next, n, childIndex+1, isSelected );
         }else{
-          Trace("cm") << curr << " not equal to " << d_children[ childIndex ].d_matches[i] << std::endl;
-          Trace("cm") << childIndex << " match " << i << " not equal subs." << std::endl;
+          Trace("inst-gen-cm") << curr << " not equal to " << d_children[ childIndex ].d_matches[i] << std::endl;
+          Trace("inst-gen-cm") << childIndex << " match " << i << " not equal subs." << std::endl;
         }
       }else{
-        Trace("cm") << childIndex << " match " << i << " not equal value." << std::endl;
+        Trace("inst-gen-cm") << childIndex << " match " << i << " not equal value." << std::endl;
       }
     }
   }
@@ -158,8 +158,8 @@ void InstGenProcess::calculateMatchesInterpreted( QuantifiersEngine* qe, Node f,
       val = NodeManager::currentNM()->mkNode( d_node.getKind(), terms );
       val = Rewriter::rewrite( val );
     }
-    Trace("cm") << "  - i-match : " << val << std::endl;
-    Trace("cm") << "            : " << curr << std::endl;
+    Trace("inst-gen-cm") << "  - i-match : " << val << std::endl;
+    Trace("inst-gen-cm") << "            : " << curr << std::endl;
     addMatchValue( qe, f, val, curr );
   }else{
     if( d_children_map.find( argIndex )==d_children_map.end() ){
