@@ -346,11 +346,7 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
 
-    if (Theory::theoryOf(node) == theory::THEORY_BV ||
-        bb->isSharedTerm(node)) {
-    bb->storeVariable(node);
-    }
-
+   bb->storeVariable(node);
 }
 
 void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {

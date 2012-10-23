@@ -427,8 +427,10 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
   __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    Node const_value = getVarValue(var);
-    m->assertEquality(var, const_value, true); 
+    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) {
+      Node const_value = getVarValue(var);
+      m->assertEquality(var, const_value, true); 
+    }
   }
 }
 
