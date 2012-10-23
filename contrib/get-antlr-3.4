@@ -25,6 +25,10 @@ function webget {
   fi
 }
 
+if [[ -z "${MACHINE_TYPE}" ]]; then
+  MACHINE_TYPE=`uname -m`
+fi
+
 set -x
 mkdir -p antlr-3.4/share/java
 mkdir -p antlr-3.4/bin
@@ -33,15 +37,24 @@ cd antlr-3.4
 webget http://antlr.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
 webget http://antlr.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
 tee bin/antlr3 <<EOF
-#!/bin/sh
-export CLASSPATH=/usr/share/java/stringtemplate.jar:`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
+#!/bin/bash
+export CLASSPATH=`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
 exec java org.antlr.Tool "\$@"
 EOF
 chmod a+x bin/antlr3
 cd src
-tar xfzv libantlr3c-3.4.tar.gz
+gunzip -f libantlr3c-3.4.tar.gz
+tar xfv libantlr3c-3.4.tar
 cd libantlr3c-3.4
-./configure --enable-64bit --prefix=`pwd`/../..
+
+if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+  # 64-bit stuff here
+  ./configure --enable-64bit --prefix=`pwd`/../..
+else
+  # 32-bit stuff here
+  ./configure --prefix=`pwd`/../..
+fi
+
 cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make
@@ -52,6 +65,23 @@ cd ../../..
 echo
 echo Invalidating generated parsers..
 touch src/parser/*/*.g
+
+if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+  # 64-bit stuff here
+  echo ============== WARNING ====================
+  echo The script guessed that this machine is 64 bit.
+  echo If antlr should be built as 32 bit \(i.e. -m32\),
+  echo please rerun the script as
+  echo     MACHINE_TYPE=\"x86\" ./get-antlr3.4
+
+else
+  # 32-bit stuff here
+  echo ============== WARNING ==================== 
+  echo The script guessed that this machine is 32 bit.
+  echo If antlr should be built as 64 bit \(i.e. -m64\),
+  echo please rerun the script as
+  echo     MACHINE_TYPE=\"x86_64\" ./get-antlr3.4
+fi
 
 echo
 echo ===================== Now configure CVC4 with =====================
