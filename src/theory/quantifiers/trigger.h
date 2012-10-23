@@ -18,10 +18,18 @@
 #define __CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
 #include "theory/quantifiers/inst_match.h"
+#include "expr/node.h"
+#include "util/hash.h"
+#include <map>
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace inst {
+
+class IMGenerator;
 
 //a collect of nodes representing a trigger
 class Trigger {
@@ -56,11 +64,6 @@ public:
   bool getMatch( Node t, InstMatch& m);
   /** add ground term t, called when t is added to the TermDb */
   int addTerm( Node t );
-  /** return true if whatever Node is subsituted for the variables the
-      given Node can't match the pattern */
-  bool nonunifiable( TNode t, const std::vector<Node> & vars){
-    return d_mg->nonunifiable(t,vars);
-  }
   /** return whether this is a multi-trigger */
   bool isMultiTrigger() { return d_nodes.size()>1; }
 public:
@@ -126,6 +129,30 @@ inline std::ostream& operator<<(std::ostream& out, const Trigger & tr) {
   tr.toStream(out);
   return out;
 }
+
+
+/** a trie of triggers */
+class TriggerTrie {
+private:
+  inst::Trigger* getTrigger2( std::vector< Node >& nodes );
+  void addTrigger2( std::vector< Node >& nodes, inst::Trigger* t );
+public:
+  TriggerTrie() : d_tr( NULL ){}
+  inst::Trigger* d_tr;
+  std::map< TNode, TriggerTrie* > d_children;
+  inst::Trigger* getTrigger( std::vector< Node >& nodes ){
+    std::vector< Node > temp;
+    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+    std::sort( temp.begin(), temp.end() );
+    return getTrigger2( temp );
+  }
+  void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
+    std::vector< Node > temp;
+    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
+    std::sort( temp.begin(), temp.end() );
+    return addTrigger2( temp, t );
+  }
+};/* class inst::Trigger::Trigger */
 
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */

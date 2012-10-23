@@ -26,6 +26,7 @@
 #include "util/statistics_registry.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/inst_match_generator.h"
 #include "util/ntuple.h"
 #include "context/cdqueue.h"
 

@@ -24,6 +24,42 @@
 namespace CVC4 {
 namespace theory {
 
+/** Attribute true for nodes that should not be used for matching */
+struct NoMatchAttributeId {};
+/** use the special for boolean flag */
+typedef expr::Attribute< NoMatchAttributeId,
+                         bool,
+                         expr::attr::NullCleanupStrategy,
+                         true // context dependent
+                       > NoMatchAttribute;
+
+// attribute for "contains instantiation constants from"
+struct InstConstantAttributeId {};
+typedef expr::Attribute<InstConstantAttributeId, Node> InstConstantAttribute;
+
+struct InstLevelAttributeId {};
+typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
+
+struct InstVarNumAttributeId {};
+typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
+
+// Attribute that tell if a node have been asserted in this branch
+struct AvailableInTermDbId {};
+/** use the special for boolean flag */
+typedef expr::Attribute<AvailableInTermDbId,
+                        bool,
+                        expr::attr::NullCleanupStrategy,
+                        true  // context dependent
+                        > AvailableInTermDb;
+
+struct ModelBasisAttributeId {};
+typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
+//for APPLY_UF terms, 1 : term has direct child with model basis attribute,
+//                    0 : term has no direct child with model basis attribute.
+struct ModelBasisArgAttributeId {};
+typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
+
+
 class QuantifiersEngine;
 
 namespace inst{
@@ -43,45 +79,21 @@ public:
 };/* class TermArgTrie */
 
 
-/** a trie of triggers */
-class TrTrie {
-private:
-  inst::Trigger* getTrigger2( std::vector< Node >& nodes );
-  void addTrigger2( std::vector< Node >& nodes, inst::Trigger* t );
-public:
-  TrTrie() : d_tr( NULL ){}
-  inst::Trigger* d_tr;
-  std::map< TNode, TrTrie* > d_children;
-  inst::Trigger* getTrigger( std::vector< Node >& nodes ){
-    std::vector< Node > temp;
-    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-    std::sort( temp.begin(), temp.end() );
-    return getTrigger2( temp );
-  }
-  void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){
-    std::vector< Node > temp;
-    temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-    std::sort( temp.begin(), temp.end() );
-    return addTrigger2( temp, t );
-  }
-};/* class inst::Trigger::TrTrie */
-
-
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
-  /** calculated no match terms */
-  bool d_matching_active;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_processed;
 public:
-  TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ), d_matching_active( true ){}
+  TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   ~TermDb(){}
   /** map from APPLY_UF operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
+  /** count number of APPLY_UF terms per operator */
+  std::map< Node, int > d_op_count;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   /** map from APPLY_UF predicates to trie */
@@ -92,10 +104,6 @@ public:
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
-  /** set active */
-  void setMatchingActive( bool a ) { d_matching_active = a; }
-  /** get active */
-  bool getMatchingActive() { return d_matching_active; }
 private:
   /** for efficient e-matching */
   void addTermEfficient( Node n, std::set< Node >& added);
@@ -168,10 +176,6 @@ public:
   Node convertNodeToPattern( Node n, Node f,
                              const std::vector<Node> & vars,
                              const std::vector<Node> & nvars);
-  /** get iff term */
-  Node getInstConstantIffTerm( Node n, bool pol );
-  /** make node, validating the inst constant attribute */
-  Node mkNodeInstConstant( Kind k, std::vector< Node >& children, Node f );
   /** set instantiation constant attr */
   void setInstantiationConstantAttr( Node n, Node f );
 
@@ -194,8 +198,6 @@ private:
 public:
   /** get free variable for instantiation constant */
   Node getFreeVariableForInstConstant( Node n );
-  /** set instantiation level attr */
-  void setInstantiationLevelAttr( Node n, uint64_t level );
 
 //for triggers
 private:
@@ -212,14 +214,6 @@ public:
   void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
   void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
-private:
-  /** all triggers will be stored in this trie */
-  TrTrie d_tr_trie;
-public:
-  /** get trigger */
-  inst::Trigger* getTrigger( std::vector< Node >& nodes ){ return d_tr_trie.getTrigger( nodes ); }
-  /** add trigger */
-  void addTrigger( std::vector< Node >& nodes, inst::Trigger* t ){ d_tr_trie.addTrigger( nodes, t ); }
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

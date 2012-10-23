@@ -30,6 +30,7 @@
 #include "context/cdlist.h"
 
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/term_database.h"
 #include "expr/node_manager.h"
 #include "expr/node_builder.h"
 
@@ -55,7 +56,7 @@ public:
         Node cand = cg->getNextCandidate();
         //.......
       }while( !cand.isNull() );
-      
+
       eqc is the equivalence class you are searching in
   */
   virtual void reset( TNode eqc ) = 0;

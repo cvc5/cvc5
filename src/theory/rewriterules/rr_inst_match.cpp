@@ -23,6 +23,7 @@
 #include "theory/rewriterules/rr_trigger.h"
 #include "theory/rewriterules/rr_inst_match_impl.h"
 #include "theory/rewriterules/rr_candidate_generator.h"
+#include "theory/quantifiers/candidate_generator.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -140,7 +141,8 @@ ApplyMatcher::ApplyMatcher( Node pat, QuantifiersEngine* qe): d_pattern(pat){
 
   //set-up d_variables, d_constants, d_childrens
   for( size_t i=0; i< d_pattern.getNumChildren(); ++i ){
-    EqualityQuery* q = qe->getEqualityQuery(d_pattern[i].getType());
+    //EqualityQuery* q = qe->getEqualityQuery(d_pattern[i].getType());
+    EqualityQuery* q = qe->getEqualityQuery();
     Assert( q != NULL );
     if( d_pattern[i].hasAttribute(InstConstantAttribute()) ){
       if( d_pattern[i].getKind()==INST_CONSTANT ){
@@ -327,7 +329,8 @@ class VarMatcher: public Matcher{
   EqualityQuery* d_q;
 public:
   VarMatcher(Node var, QuantifiersEngine* qe): d_var(var), d_binded(false){
-    d_q = qe->getEqualityQuery(var.getType());
+    //d_q = qe->getEqualityQuery(var.getType());
+    d_q = qe->getEqualityQuery();
   }
   void resetInstantiationRound( QuantifiersEngine* qe ){};
   bool reset( TNode n, InstMatch& m, QuantifiersEngine* qe ){
@@ -600,9 +603,9 @@ private:
 public:
   void mkCandidateGenerator(){
     if(classes)
-      d_cg = d_qe->getRRCanGenClasses();
+      d_cg = new GenericCandidateGeneratorClasses(d_qe);
     else
-     d_cg = d_qe->getRRCanGenClass();
+      d_cg = new GenericCandidateGeneratorClass(d_qe);
   }
 
   GenericCandidateGeneratorClasses(QuantifiersEngine* qe):

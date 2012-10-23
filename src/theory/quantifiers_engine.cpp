@@ -25,7 +25,6 @@
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/rewriterules/rr_candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -39,6 +38,7 @@ d_te( te ),
 d_quant_rel( false ){ //currently do not care about relevance
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
+  d_tr_trie = new inst::TriggerTrie;
   d_hasAddedLemma = false;
 
   //the model object
@@ -122,18 +122,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( e>=Theory::EFFORT_FULL ){
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }
-}
-
-std::vector<Node> QuantifiersEngine::createInstVariable( std::vector<Node> & vars ){
-  std::vector<Node> inst_constant;
-  inst_constant.reserve(vars.size());
-  for( std::vector<Node>::const_iterator v = vars.begin();
-       v != vars.end(); ++v ){
-    //make instantiation constants
-    Node ic = NodeManager::currentNM()->mkInstConstant( (*v).getType() );
-    inst_constant.push_back( ic );
-  };
-  return inst_constant;
 }
 
 void QuantifiersEngine::registerQuantifier( Node f ){
@@ -227,6 +215,61 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
   }
 }
 
+bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
+  Assert( f.getKind()==FORALL );
+  Assert( !f.hasAttribute(InstConstantAttribute()) );
+  Assert( vars.size()==terms.size() );
+  Node body = getInstantiation( f, vars, terms );
+  //make the lemma
+  NodeBuilder<> nb(kind::OR);
+  nb << f.notNode() << body;
+  Node lem = nb;
+  //check for duplication
+  if( addLemma( lem ) ){
+    Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
+    uint64_t maxInstLevel = 0;
+    for( int i=0; i<(int)terms.size(); i++ ){
+      if( terms[i].hasAttribute(InstConstantAttribute()) ){
+        Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
+        for( int i=0; i<(int)terms.size(); i++ ){
+          Debug("inst") << "   " << terms[i] << std::endl;
+        }
+        Unreachable("Bad instantiation");
+      }else{
+        Trace("inst") << "   " << terms[i];
+        //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
+        Trace("inst") << std::endl;
+        if( terms[i].hasAttribute(InstLevelAttribute()) ){
+          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
+            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+          }
+        }else{
+          setInstantiationLevelAttr( terms[i], 0 );
+        }
+      }
+    }
+    Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
+    setInstantiationLevelAttr( body, maxInstLevel+1 );
+    ++(d_statistics.d_instantiations);
+    d_statistics.d_total_inst_var += (int)terms.size();
+    d_statistics.d_max_instantiation_level.maxAssign( maxInstLevel+1 );
+    return true;
+  }else{
+    ++(d_statistics.d_inst_duplicate);
+    return false;
+  }
+}
+
+void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
+  if( !n.hasAttribute(InstLevelAttribute()) ){
+    InstLevelAttribute ila;
+    n.setAttribute(ila,level);
+  }
+  for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    setInstantiationLevelAttr( n[i], level );
+  }
+}
+
 Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
   Node body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
   //process partial instantiation if necessary
@@ -268,51 +311,6 @@ bool QuantifiersEngine::addLemma( Node lem ){
     return true;
   }else{
     Debug("inst-engine-debug") << "Duplicate." << std::endl;
-    return false;
-  }
-}
-
-bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
-  Assert( f.getKind()==FORALL );
-  Assert( !f.hasAttribute(InstConstantAttribute()) );
-  Assert( vars.size()==terms.size() );
-  Node body = getInstantiation( f, vars, terms );
-  //make the lemma
-  NodeBuilder<> nb(kind::OR);
-  nb << f.notNode() << body;
-  Node lem = nb;
-  //check for duplication
-  if( addLemma( lem ) ){
-    Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
-    uint64_t maxInstLevel = 0;
-    for( int i=0; i<(int)terms.size(); i++ ){
-      if( terms[i].hasAttribute(InstConstantAttribute()) ){
-        Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
-        for( int i=0; i<(int)terms.size(); i++ ){
-          Debug("inst") << "   " << terms[i] << std::endl;
-        }
-        Unreachable("Bad instantiation");
-      }else{
-        Trace("inst") << "   " << terms[i];
-        //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
-        Trace("inst") << std::endl;
-        if( terms[i].hasAttribute(InstLevelAttribute()) ){
-          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
-            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
-          }
-        }else{
-          d_term_db->setInstantiationLevelAttr( terms[i], 0 );
-        }
-      }
-    }
-    Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
-    d_term_db->setInstantiationLevelAttr( body, maxInstLevel+1 );
-    ++(d_statistics.d_instantiations);
-    d_statistics.d_total_inst_var += (int)terms.size();
-    d_statistics.d_max_instantiation_level.maxAssign( maxInstLevel+1 );
-    return true;
-  }else{
-    ++(d_statistics.d_inst_duplicate);
     return false;
   }
 }
@@ -395,10 +393,8 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
       bool nodeChanged = false;
       if( d_phase_reqs[f]->isPhaseReq( nodes[i] ) ){
         bool preq = d_phase_reqs[f]->getPhaseReq( nodes[i] );
-        std::vector< Node > children;
-        children.push_back( nodes[i] );
-        children.push_back( NodeManager::currentNM()->mkConst<bool>(preq) );
-        nodes[i] = d_term_db->mkNodeInstConstant( IFF, children, f );
+        nodes[i] = NodeManager::currentNM()->mkNode( IFF, nodes[i], NodeManager::currentNM()->mkConst<bool>(preq) );
+        d_term_db->setInstantiationConstantAttr( nodes[i], f );
         nodeChanged = true;
       }
       //else if( qe->isPhaseReqEquality( f, trNodes[i] ) ){
@@ -416,6 +412,56 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
     d_statistics.d_lit_phase_nreq += (int)nodes.size();
   }
 }
+/*
+EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
+  // Should use skeleton (in order to have the type and the kind
+  //  or any needed other information) instead of only the type
+
+  // TheoryId id = Theory::theoryOf(t);
+  // inst::EqualityQuery* eq = d_eq_query_arr[id];
+  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
+  // else return eq;
+
+  // hack because the generic one is too slow
+  // TheoryId id = Theory::theoryOf(t);
+  // if( true || id == theory::THEORY_UF){
+  //   uf::InstantiatorTheoryUf* ith = static_cast<uf::InstantiatorTheoryUf*>( getInstantiator( theory::THEORY_UF ));
+  //   return new uf::EqualityQueryInstantiatorTheoryUf(ith);
+  // }
+  // inst::EqualityQuery* eq = d_eq_query_arr[id];
+  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
+  // else return eq;
+
+
+  //Currently we use the generic EqualityQuery
+  return getEqualityQuery();
+}
+
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses() {
+  return new GenericCandidateGeneratorClasses(this);
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass() {
+  return new GenericCandidateGeneratorClass(this);
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses(TypeNode t) {
+  // TheoryId id = Theory::theoryOf(t);
+  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClasses();
+  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClasses();
+  // else return eq;
+  return getRRCanGenClasses();
+}
+
+rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass(TypeNode t) {
+  // TheoryId id = Theory::theoryOf(t);
+  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClass();
+  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClass();
+  // else return eq;
+  return getRRCanGenClass();
+}
+*/
 
 QuantifiersEngine::Statistics::Statistics():
   d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
@@ -601,53 +647,4 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
   if( eqc.empty() ){
     eqc.push_back( a );
   }
-}
-
-inst::EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
-  /** Should use skeleton (in order to have the type and the kind
-      or any needed other information) instead of only the type */
-
-  // TheoryId id = Theory::theoryOf(t);
-  // inst::EqualityQuery* eq = d_eq_query_arr[id];
-  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
-  // else return eq;
-
-  /** hack because the generic one is too slow */
-  // TheoryId id = Theory::theoryOf(t);
-  // if( true || id == theory::THEORY_UF){
-  //   uf::InstantiatorTheoryUf* ith = static_cast<uf::InstantiatorTheoryUf*>( getInstantiator( theory::THEORY_UF ));
-  //   return new uf::EqualityQueryInstantiatorTheoryUf(ith);
-  // }
-  // inst::EqualityQuery* eq = d_eq_query_arr[id];
-  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
-  // else return eq;
-
-
-  //Currently we use the generic EqualityQuery
-  return getEqualityQuery();
-}
-
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses() {
-  return new GenericCandidateGeneratorClasses(this);
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass() {
-  return new GenericCandidateGeneratorClass(this);
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses(TypeNode t) {
-  // TheoryId id = Theory::theoryOf(t);
-  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClasses();
-  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClasses();
-  // else return eq;
-  return getRRCanGenClasses();
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass(TypeNode t) {
-  // TheoryId id = Theory::theoryOf(t);
-  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClass();
-  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClass();
-  // else return eq;
-  return getRRCanGenClass();
 }

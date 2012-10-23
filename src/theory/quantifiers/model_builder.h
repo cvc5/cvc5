@@ -95,6 +95,9 @@ public:
   bool d_considerAxioms;
   // set effort
   void setEffort( int effort );
+protected:  //helper functions
+  /** term has constant definition */
+  bool hasConstantDefinition( Node n );
 public:
   //options
   virtual bool optUseModel();
@@ -177,6 +180,8 @@ protected:
 private:
   //get selection formula for quantifier body
   Node getSelectionFormula( Node fn, Node n, bool polarity, int useOption );
+  //get a heuristic score for a selection formula
+  int getSelectionFormulaScore( Node fn );
   //set selected terms in term
   void setSelectedTerms( Node s );
   //is usable selection literal

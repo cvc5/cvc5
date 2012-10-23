@@ -45,33 +45,6 @@ bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
   }
 }
 
-Trigger* TrTrie::getTrigger2( std::vector< Node >& nodes ){
-  if( nodes.empty() ){
-    return d_tr;
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )!=d_children.end() ){
-      return d_children[n]->getTrigger2( nodes );
-    }else{
-      return NULL;
-    }
-  }
-}
-
-void TrTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
-  if( nodes.empty() ){
-    d_tr = t;
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )==d_children.end() ){
-      d_children[n] = new TrTrie;
-    }
-    d_children[n]->addTrigger2( nodes, t );
-  }
-}
-
 void TermDb::addTermEfficient( Node n, std::set< Node >& added){
   static AvailableInTermDb aitdi;
   if (inst::Trigger::isAtomicTrigger( n ) && !n.getAttribute(aitdi)){
@@ -106,14 +79,14 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         d_op_map[op].push_back( n );
         added.insert( n );
 
-        uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           addTerm( n[i], added, withinQuant );
           if( options::efficientEMatching() ){
+            uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
             if( d_parents[n[i]][op].empty() ){
               //must add parent to equivalence class info
-              Node nir = d_ith->getRepresentative( n[i] );
-              uf::EqClassInfo* eci_nir = d_ith->getEquivalenceClassInfo( nir );
+              Node nir = ith->getRepresentative( n[i] );
+              uf::EqClassInfo* eci_nir = ith->getEquivalenceClassInfo( nir );
               if( eci_nir ){
                 eci_nir->d_pfuns[ op ] = true;
               }
@@ -126,9 +99,10 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
           }
           if( options::eagerInstQuant() ){
             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
+              uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
               int addedLemmas = 0;
-              for( int i=0; i<(int)d_ith->d_op_triggers[op].size(); i++ ){
-                addedLemmas += d_ith->d_op_triggers[op][i]->addTerm( n );
+              for( int i=0; i<(int)ith->d_op_triggers[op].size(); i++ ){
+                addedLemmas += ith->d_op_triggers[op][i]->addTerm( n );
               }
               //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
               d_quantEngine->flushLemmas( &d_quantEngine->getTheoryEngine()->theoryOf( THEORY_QUANTIFIERS )->getOutputChannel() );
@@ -157,6 +131,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    int alreadyCongruentCount = 0;
    //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+     d_op_count[ it->first ] = 0;
      if( !it->second.empty() ){
        if( it->second[0].getType().isBoolean() ){
          d_pred_map_trie[ 0 ][ it->first ].d_data.clear();
@@ -174,6 +149,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                congruentCount++;
              }else{
                nonCongruentCount++;
+               d_op_count[ it->first ]++;
              }
            }else{
              congruentCount++;
@@ -200,6 +176,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
              congruentCount++;
            }else{
              nonCongruentCount++;
+             d_op_count[ op ]++;
            }
          }else{
            alreadyCongruentCount++;
@@ -360,12 +337,6 @@ Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & var
   return n2;
 }
 
-Node TermDb::mkNodeInstConstant( Kind k, std::vector< Node >& children, Node f ){
-  Node n = NodeManager::currentNM()->mkNode( k, children );
-  setInstantiationConstantAttr( n, f );
-  return n;
-}
-
 
 
 Node TermDb::getSkolemizedBody( Node f ){
@@ -379,22 +350,8 @@ Node TermDb::getSkolemizedBody( Node f ){
     }
     d_skolem_body[ f ] = f[ 1 ].substitute( vars.begin(), vars.end(),
                                             d_skolem_constants[ f ].begin(), d_skolem_constants[ f ].end() );
-    if( f.hasAttribute(InstLevelAttribute()) ){
-      setInstantiationLevelAttr( d_skolem_body[ f ], f.getAttribute(InstLevelAttribute()) );
-    }
   }
   return d_skolem_body[ f ];
-}
-
-
-void TermDb::setInstantiationLevelAttr( Node n, uint64_t level ){
-  if( !n.hasAttribute(InstLevelAttribute()) ){
-    InstLevelAttribute ila;
-    n.setAttribute(ila,level);
-  }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
-  }
 }
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){

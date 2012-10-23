@@ -20,6 +20,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/inst_match_generator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -96,6 +97,10 @@ bool Trigger::getMatch( Node t, InstMatch& m ){
 int Trigger::addTerm( Node t ){
   return d_mg->addTerm( d_f, t, d_quantEngine );
 }
+
+//bool Trigger::nonunifiable( TNode t, const std::vector<Node> & vars){
+//  return d_mg->nonunifiable(t,vars);
+//}
 
 int Trigger::addInstantiations( InstMatch& baseMatch ){
   int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine );
@@ -183,7 +188,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     //  Notice() << "Trigger new old = " << trNew << " " << trOld << std::endl;
     //}
   }else{
-    Trigger* t = qe->getTermDatabase()->getTrigger( trNodes );
+    Trigger* t = qe->getTriggerDatabase()->getTrigger( trNodes );
     if( t ){
       if( trOption==TR_GET_OLD ){
         //just return old trigger
@@ -194,7 +199,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     }
   }
   Trigger* t = new Trigger( qe, f, trNodes, matchOption, smartTriggers );
-  qe->getTermDatabase()->addTrigger( trNodes, t );
+  qe->getTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
 Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOption, bool keepAll, int trOption, bool smartTriggers ){
@@ -469,4 +474,31 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     }
   }
   return false;
+}
+
+Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
+  if( nodes.empty() ){
+    return d_tr;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )!=d_children.end() ){
+      return d_children[n]->getTrigger2( nodes );
+    }else{
+      return NULL;
+    }
+  }
+}
+
+void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
+  if( nodes.empty() ){
+    d_tr = t;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )==d_children.end() ){
+      d_children[n] = new TriggerTrie;
+    }
+    d_children[n]->addTrigger2( nodes, t );
+  }
 }

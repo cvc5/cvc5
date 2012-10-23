@@ -263,6 +263,9 @@ private:
                          rewriter::Subst & pvars,
                          rewriter::Subst & vars);
 
+  //create inst variable
+  std::vector<Node> createInstVariable( std::vector<Node> & vars );
+
     /** statistics class */
   class Statistics {
   public:

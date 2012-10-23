@@ -20,6 +20,7 @@
 #include "theory/quantifiers/options.h"
 #include "theory/rewriterules/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/candidate_generator.h"
 
 using namespace std;
 using namespace CVC4;
@@ -771,7 +772,7 @@ void InstantiatorTheoryUf::registerEfficientHandler( EfficientHandler& handler,
   //take all terms from the uf term db and add to candidate generator
   if( pats[0].getKind() == kind::INST_CONSTANT ){
     TypeNode ty = pats[0].getType();
-    rrinst::CandidateGenerator* cg = d_quantEngine->getRRCanGenClasses(ty);
+    rrinst::CandidateGenerator* cg = new GenericCandidateGeneratorClasses(d_quantEngine);
     cg->reset(Node::null());
     TNode c;
     SetNode ele;

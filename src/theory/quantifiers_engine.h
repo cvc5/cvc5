@@ -62,6 +62,9 @@ namespace quantifiers {
   class FirstOrderModel;
 }/* CVC4::theory::quantifiers */
 
+namespace inst {
+  class TriggerTrie;
+}/* CVC4::theory::inst */
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
@@ -84,20 +87,20 @@ private:
   /** phase requirements for each quantifier for each instantiation literal */
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
 private:
-  /** list of all quantifiers (pre-rewrite) */
+  /** list of all quantifiers seen */
   std::vector< Node > d_quants;
-  /** lemmas produced */
+  /** list of all lemmas produced */
   std::map< Node, bool > d_lemmas_produced;
   /** lemmas waiting */
   std::vector< Node > d_lemmas_waiting;
   /** has added lemma this round */
   bool d_hasAddedLemma;
-  /** inst matches produced for each quantifier */
+  /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
-  /** owner of quantifiers */
-  std::map< Node, Theory* > d_owner;
   /** term database */
   quantifiers::TermDb* d_term_db;
+  /** all triggers will be stored in this trie */
+  inst::TriggerTrie* d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
 private:
@@ -111,15 +114,7 @@ public:
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object for the given type. The default is the
       generic one */
-  inst::EqualityQuery* getEqualityQuery(TypeNode t);
-  inst::EqualityQuery* getEqualityQuery() { return d_eq_query; }
-  /** get equality query object for the given type. The default is the
-      one of UF */
-  rrinst::CandidateGenerator* getRRCanGenClasses(TypeNode t);
-  rrinst::CandidateGenerator* getRRCanGenClass(TypeNode t);
-  /* generic candidate generator */
-  rrinst::CandidateGenerator* getRRCanGenClasses();
-  rrinst::CandidateGenerator* getRRCanGenClass();
+  EqualityQuery* getEqualityQuery() { return d_eq_query; }
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
@@ -151,14 +146,13 @@ public:
   Node getNextDecisionRequest();
   /** reset instantiation round */
   void resetInstantiationRound( Theory::Effort level );
-
-  //create inst variable
-  std::vector<Node> createInstVariable( std::vector<Node> & vars );
 private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
   /** instantiate f with arguments terms */
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
+  /** set instantiation level attr */
+  void setInstantiationLevelAttr( Node n, uint64_t level );
 public:
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
@@ -190,6 +184,8 @@ public:
   quantifiers::FirstOrderModel* getModel() { return d_model; }
   /** get term database */
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
+  /** get trigger database */
+  inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false );
 public:

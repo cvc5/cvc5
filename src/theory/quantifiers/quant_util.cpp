@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;

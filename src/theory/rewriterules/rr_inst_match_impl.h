@@ -31,7 +31,7 @@ template<bool modEq>
 InstMatchTrie2Gen<modEq>::InstMatchTrie2Gen(context::Context* c,  QuantifiersEngine* qe):
   d_context(c), d_mods(c) {
   d_eQ = qe->getEqualityQuery();
-  d_cG = qe->getRRCanGenClass();
+  d_cG = new GenericCandidateGeneratorClass(qe);
 };
 
 /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */

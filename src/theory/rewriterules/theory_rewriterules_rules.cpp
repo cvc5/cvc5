@@ -151,8 +151,7 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
     vars.push_back(*v);
   };
   /* Instantiation version */
-  std::vector<Node> inst_constants =
-    getQuantifiersEngine()->createInstVariable(vars);
+  std::vector<Node> inst_constants = createInstVariable(vars);
   /* Body/Remove_term/Guards/Triggers */
   Node body = r[2][1];
   TNode new_terms = r[2][1];
@@ -375,6 +374,18 @@ bool TheoryRewriteRules::addRewritePattern(TNode pattern, TNode body,
 
   return p->addRewritePattern(pattern,body,pvars,vars);
 
+}
+
+std::vector<Node> TheoryRewriteRules::createInstVariable( std::vector<Node> & vars ){
+  std::vector<Node> inst_constant;
+  inst_constant.reserve(vars.size());
+  for( std::vector<Node>::const_iterator v = vars.begin();
+       v != vars.end(); ++v ){
+    //make instantiation constants
+    Node ic = NodeManager::currentNM()->mkInstConstant( (*v).getType() );
+    inst_constant.push_back( ic );
+  };
+  return inst_constant;
 }
 
 
