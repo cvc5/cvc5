@@ -33,7 +33,7 @@ TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFunc
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
   d_equalityEngine.addFunctionKind(kind::SELECT);
-  //  d_equalityEngine.addFunctionKind(kind::STORE);
+  // d_equalityEngine.addFunctionKind(kind::STORE);
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
@@ -222,18 +222,25 @@ void TheoryModel::addTerm( Node n ){
 
 /** assert equality */
 void TheoryModel::assertEquality( Node a, Node b, bool polarity ){
+  if (a == b && polarity) {
+    return;
+  }
   d_equalityEngine.assertEquality( a.eqNode(b), polarity, Node::null() );
-  Trace("model-builder-assertions") << "  Asserting " << (polarity ? "equality: " : "disequality: ") << a << " = " << b << endl;
+  Trace("model-builder-assertions") << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b << (polarity ? "));" : ")));") << endl;
   Assert(d_equalityEngine.consistent());
 }
 
 /** assert predicate */
 void TheoryModel::assertPredicate( Node a, bool polarity ){
+  if ((a == d_true && polarity) ||
+      (a == d_false && (!polarity))) {
+    return;
+  }
   if( a.getKind()==EQUAL ){
     d_equalityEngine.assertEquality( a, polarity, Node::null() );
   }else{
     d_equalityEngine.assertPredicate( a, polarity, Node::null() );
-    Trace("model-builder-assertions") << "  Asserting predicate " << (polarity ? "true" : "false") << ": " << a << endl;
+    Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
     Assert(d_equalityEngine.consistent());
   }
 }
@@ -260,8 +267,8 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
         else if (predFalse) {
           assertPredicate(*eqc_i, false);
         }
-        else {
-          Trace("model-builder-assertions") << "  Merging predicates: " << *eqc_i << " and " << eqc << endl;
+        else if (eqc != (*eqc_i)) {
+          Trace("model-builder-assertions") << "(assert (iff " << *eqc_i << " " << eqc << "));" << endl;
           d_equalityEngine.mergePredicates(*eqc_i, eqc, Node::null());
           Assert(d_equalityEngine.consistent());
         }
@@ -473,6 +480,12 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
                 constantReps[*i2] = normalized;
                 Trace("model-builder") << "  Eval: Setting constant rep of " << (*i2) << " to " << normalized << endl;
                 changed = true;
+                // if (t.isBoolean()) {
+                //   tm->assertPredicate(*i2, normalized == tm->d_true);
+                // }
+                // else {
+                //   tm->assertEquality(*i2, normalized, true);
+                // }
                 noRepSet.erase(i2);
                 break;
               }
@@ -494,6 +507,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
               constantReps[*i2] = n;
               Trace("model-builder") << "  New Const: Setting constant rep of " << (*i2) << " to " << n << endl;
               changed = true;
+              // tm->assertEquality(*i2, n, true);
               noRepSet.erase(i2);
             }
             else {

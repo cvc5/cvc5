@@ -550,6 +550,7 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
   // concerning the model.
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST; ++theoryId) {
     if(d_logicInfo.isTheoryEnabled(theoryId)) {
+      Trace("model-builder") << "  CollectModelInfo on theory: " << theoryId << endl;
       d_theoryTable[theoryId]->collectModelInfo( m, fullModel );
     }
   }
