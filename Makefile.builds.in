@@ -60,11 +60,11 @@ AM_V_mkdir = $(am__v_mkdir_$(V))
 am__v_mkdir_ = $(am__v_mkdir_$(AM_DEFAULT_VERBOSITY))
 am__v_mkdir_0 = @$(am__v_mkdir_noat_0)
 am__v_mkdir_1 = $(am__v_mkdir_noat_1)
-# libtool --mode=install install
+# libtool --mode=install $(install_sh)
 AM_V_ltinstall = $(am__v_ltinstall_$(V))
 am__v_ltinstall_ = $(am__v_ltinstall_$(AM_DEFAULT_VERBOSITY))
-am__v_ltinstall_0 = @$(SHELL) -c 'echo "   LTINS $$1"; $(LIBTOOL) --silent --mode=install install "$$@"' bash
-am__v_ltinstall_1 = $(LIBTOOL) --mode=install install
+am__v_ltinstall_0 = @$(SHELL) -c 'echo "   LTINS $$1"; $(LIBTOOL) --silent --mode=install $(install_sh) "$$@"' bash
+am__v_ltinstall_1 = $(LIBTOOL) --mode=install $(install_sh)
 # install_sh (never prefix with @)
 AM_V_install_sh_noat = $(am__v_install_sh_noat_$(V))
 am__v_install_sh_noat_ = $(am__v_install_sh_noat_$(AM_DEFAULT_VERBOSITY))
@@ -98,7 +98,7 @@ all:
 		"$(abs_builddir)$(libdir)"
 ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 #	install libcvc4compat
-	$(CURRENT_BUILD)/libtool --mode=install install -v \
+	$(CURRENT_BUILD)/libtool --mode=install $(install_sh) \
 		$(CURRENT_BUILD)/src/compat/libcvc4compat.la \
 		"$(abs_builddir)$(libdir)"
 endif
@@ -148,7 +148,7 @@ endif
 	$(AM_V_ltinstall) $(CURRENT_BUILD)/src/parser/libcvc4parser.la "`pwd`$(libdir)"
 ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 #	install libcvc4compat
-	$(CURRENT_BUILD)/libtool --mode=install install -v $(CURRENT_BUILD)/src/compat/libcvc4compat.la "`pwd`$(libdir)"
+	$(CURRENT_BUILD)/libtool --mode=install $(install_sh) $(CURRENT_BUILD)/src/compat/libcvc4compat.la "`pwd`$(libdir)"
 endif
 ifeq ($(BUILDING_SHARED)$(STATIC_BINARY),10)
 #	if we're building shared libs and the binary is not static, relink

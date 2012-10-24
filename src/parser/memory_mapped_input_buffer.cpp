@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include <sys/errno.h>
+#include <cerrno>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <antlr3input.h>
@@ -95,14 +95,7 @@ static ANTLR3_UINT32 MemoryMapFile(pANTLR3_INPUT_STREAM input,
     return ANTLR3_ERR_NOFILE;
   }
 
-
-#ifndef MAP_FILE
-  //Tim: This is required for SunOS
   input->data = mmap(0, input->sizeBuf, PROT_READ, MAP_PRIVATE, fd, 0);
-#else
-  input->data = mmap(0, input->sizeBuf, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
-#endif
-
   errno = 0;
   if(intptr_t(input->data) == -1) {
     return ANTLR3_ERR_NOMEM;

@@ -70,6 +70,7 @@ fi
 # Try AC_CHECK_LIB(readline) with the given linking libraries
 AC_DEFUN([CVC4_TRY_READLINE_WITH], [
 if test -z "$READLINE_LIBS"; then
+  unset ac_cv_lib_readline_readline
   AC_CHECK_LIB([readline], [readline],
                [AC_CHECK_HEADER([readline/readline.h],
                   [READLINE_LIBS="-lreadline $1"],

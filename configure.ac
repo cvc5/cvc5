@@ -379,6 +379,7 @@ echo ./config.status "\$@"
 EOF
     chmod +x config.reconfig
   fi
+  ln -sf "builds/$target/$build_type/config.log" "config.log"
   exit $exitval
 else
   AC_MSG_RESULT([this one (user-specified)])
@@ -929,7 +930,7 @@ if test "$enable_thread_support" = no; then
   fi
 else
   BOOST_THREADS([], [AC_MSG_WARN([disabling multithreaded support])
-                   cvc4_has_threads=no])
+                     cvc4_has_threads=no])
 fi
 LDFLAGS="$cvc4_save_LDFLAGS"
 if test $cvc4_has_threads = no; then
@@ -1128,6 +1129,8 @@ else
   AM_CONDITIONAL([CVC4_HAS_THREADS], [false])
   AC_SUBST([CVC4_HAS_THREADS], 0)
 fi
+
+AM_CONDITIONAL([CVC4_NEEDS_REPLACEMENT_FUNCTIONS], [test -n "$LTLIBOBJS"])
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])

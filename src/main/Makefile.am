@@ -31,8 +31,11 @@ pcvc4_LDADD = \
 	@builddir@/../parser/libcvc4parser.la \
 	@builddir@/../libcvc4.la \
 	@builddir@/../util/libstatistics.la \
-	@builddir@/../lib/libreplacements.la \
 	$(READLINE_LIBS)
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
+pcvc4_LDADD += \
+	@builddir@/../lib/libreplacements.la
+endif
 pcvc4_CPPFLAGS = $(AM_CPPFLAGS) $(BOOST_CPPFLAGS) -DPORTFOLIO_BUILD
 pcvc4_LDADD += $(BOOST_THREAD_LIBS) -lpthread
 pcvc4_LDADD += $(BOOST_THREAD_LDFLAGS)
@@ -53,8 +56,11 @@ cvc4_LDADD = \
 	@builddir@/../parser/libcvc4parser.la \
 	@builddir@/../libcvc4.la \
 	@builddir@/../util/libstatistics.la \
-	@builddir@/../lib/libreplacements.la \
 	$(READLINE_LIBS)
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
+cvc4_LDADD += \
+	@builddir@/../lib/libreplacements.la
+endif
 
 BUILT_SOURCES = \
 	$(TOKENS_FILES)

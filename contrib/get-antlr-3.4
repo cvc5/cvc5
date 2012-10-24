@@ -49,10 +49,10 @@ cd libantlr3c-3.4
 
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --prefix=`pwd`/../..
+  ./configure --enable-64bit --disable-antlrdebug --prefix=`pwd`/../..
 else
   # 32-bit stuff here
-  ./configure --prefix=`pwd`/../..
+  ./configure --disable-antlrdebug --prefix=`pwd`/../..
 fi
 
 cp Makefile Makefile.orig

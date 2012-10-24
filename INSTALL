@@ -2,33 +2,6 @@ CVC4 release version 1.0.
 
 *** Quick-start instructions
 
-    ./configure
-    make
-    make check   [optional but a good idea!]
-
-(To build from a repository checkout, see below.)
-
-You can then "make install" to install in the prefix you gave to
-the configure script (/usr/local by default).  ** You should run
-"make check" ** before installation to ensure that CVC4 has been
-built correctly.  In particular, GCC version 4.5.1 seems to have a
-bug in the optimizer that results in incorrect behavior (and wrong
-results) in many builds.  This is a known problem for Minisat, and
-since Minisat is at the core of CVC4, a problem for CVC4.  "make check"
-easily detects this problem (by showing a number of FAILed test cases).
-It is ok if the unit tests aren't run as part of "make check", but all
-system tests and regression tests should pass without incident.
-
-To build API documentation, use "make doc".  Documentation is produced
-under doc/ but is not installed by "make install".
-
-Examples and tutorials are not installed with "make install."  See
-below.
-
-For more information about the build system itself (probably not
-necessary for casual users), see the Appendix at the bottom of this
-file.
-
 *** Build dependences
 
 The following tools and libraries are required to run CVC4. Versions
@@ -68,6 +41,43 @@ libantlr3c (or difficulty getting CVC4 to link against it later), you
 may need to remove the --enable-64bit part in the script.  (If you're
 curious, the manual instructions are at
 http://church.cims.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
+
+*** Building CVC4
+
+The hardest build dependence to satisfy is libantlr3c; that's why it
+is explained above.  Problems in satisfying other build dependences are
+explained below.
+
+Once the build dependences are satisfied, you should be able to
+configure, make, make check, and make install without incident:
+
+    ./configure   [use --prefix to specify a prefix; default /usr/local]
+    make
+    make check    [optional but a good idea!]
+
+To build from a repository checkout (rather than a distributed CVC4
+tarball), there are additional dependences; see below.
+
+You can then "make install" to install in the prefix you gave to
+the configure script (/usr/local by default).  ** You should run
+"make check" ** before installation to ensure that CVC4 has been
+built correctly.  In particular, GCC version 4.5.1 seems to have a
+bug in the optimizer that results in incorrect behavior (and wrong
+results) in many builds.  This is a known problem for Minisat, and
+since Minisat is at the core of CVC4, a problem for CVC4.  "make check"
+easily detects this problem (by showing a number of FAILed test cases).
+It is ok if the unit tests aren't run as part of "make check", but all
+system tests and regression tests should pass without incident.
+
+To build API documentation, use "make doc".  Documentation is produced
+under doc/ but is not installed by "make install".
+
+Examples and tutorials are not installed with "make install."  You may
+want to "make install-examples".  See below.
+
+For more information about the build system itself (probably not
+necessary for casual users), see the Appendix at the bottom of this
+file.
 
 *** Installing the Boost C++ base libraries
 

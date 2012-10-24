@@ -253,7 +253,7 @@ function handle_option {
 
   # scan ahead to see where the type is
   type_pos=2
-  while [ $(($type_pos+1)) -lt ${#args[@]} ] && ! expr "${args[$(($type_pos+1))]}" : ":" &>/dev/null; do
+  while [ $(($type_pos+1)) -lt ${#args[@]} ] && ! expr "${args[$(($type_pos+1))]}" : '\:' &>/dev/null; do
     let ++type_pos
   done
 
@@ -270,13 +270,13 @@ function handle_option {
   else
     i=2
     while [ $i -lt $type_pos ]; do
-      if expr "${args[$i]}" : '--' &>/dev/null || expr "${args[$i]}" : '/--' &>/dev/null; then
+      if expr "${args[$i]}" : '\--' &>/dev/null || expr "${args[$i]}" : '/--' &>/dev/null; then
         if [ -n "$long_option" -o -n "$long_option_alternate" ]; then
           ERR "malformed option line for \`$internal': unexpected \`${args[$i]}'"
         fi
         long_option="$(echo "${args[$i]}" | sed 's,/.*,,')"
         if [ -n "$long_option" ]; then
-          if ! expr "$long_option" : '--.' &>/dev/null; then
+          if ! expr "$long_option" : '\--.' &>/dev/null; then
             ERR "bad long option \`$long_option': expected something like \`--foo'"
           fi
           long_option="$(echo "$long_option" | sed 's,^--,,')"
@@ -285,27 +285,27 @@ function handle_option {
           long_option_alternate="$(echo "${args[$i]}" | sed 's,[^/]*/,,')"
           long_option_alternate_set=set
           if [ -n "$long_option_alternate" ]; then
-            if ! expr "$long_option_alternate" : '--.' &>/dev/null; then
+            if ! expr "$long_option_alternate" : '\--.' &>/dev/null; then
               ERR "bad alternate long option \`$long_option_alternate': expected something like \`--foo'"
             fi
             long_option_alternate="$(echo "$long_option_alternate" | sed 's,^--,,')"
           fi
         fi
-      elif expr "${args[$i]}" : '-' &>/dev/null || expr "${args[$i]}" : '/-' &>/dev/null; then
+      elif expr "${args[$i]}" : '\-' &>/dev/null || expr "${args[$i]}" : '/-' &>/dev/null; then
         if [ -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o -n "$long_option_alternate" ]; then
           ERR "malformed option line for \`$internal': unexpected \`${args[$i]}'"
         fi
         short_option="$(echo "${args[$i]}" | sed 's,/.*,,')"
         if [ -n "$short_option" ]; then
-          if ! expr "$short_option" : '-.$' &>/dev/null; then
+          if ! expr "$short_option" : '\-.$' &>/dev/null; then
             ERR "bad short option \`$short_option': expected something like \`-x'"
           fi
           short_option="$(echo "$short_option" | sed 's,^-,,')"
         fi
         if expr "${args[$i]}" : '.*/' &>/dev/null; then
           short_option_alternate="$(echo "${args[$i]}" | sed 's,[^/]*/,,')"
-          if expr "$short_option_alternate" : - &>/dev/null; then
-            if ! expr "$short_option_alternate" : '-.$' &>/dev/null; then
+          if expr "$short_option_alternate" : '\-' &>/dev/null; then
+            if ! expr "$short_option_alternate" : '\-.$' &>/dev/null; then
               ERR "bad alternate short option \`$short_option_alternate': expected something like \`-x'"
             fi
             short_option_alternate="$(echo "$short_option_alternate" | sed 's,^-,,')"
@@ -396,13 +396,13 @@ function handle_option {
        handlers="${args[$i]}"
        ;;
     :predicate)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : ":" &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
          let ++i
          predicates="${predicates} ${args[$i]}"
        done
        ;;
     :link)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : ":" &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
          let ++i
          link="${args[$i]}"
          if expr "${args[$i]}" : '.*/' &>/dev/null; then
@@ -415,7 +415,7 @@ function handle_option {
        done
        ;;
     :include)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : ":" &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
          let ++i
          module_includes="${module_includes}
 #line $lineno \"$kf\"
@@ -423,7 +423,7 @@ function handle_option {
        done
        ;;
     :handler-include|:predicate-include)
-       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : ":" &>/dev/null; do
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
          let ++i
          option_handler_includes="${option_handler_includes}
 #line $lineno \"$kf\"
@@ -831,10 +831,10 @@ function handle_alias {
     ERR "malformed \"alias\" command; expected more arguments"
   fi
   cases=
-  if ! expr "$option" : - &>/dev/null; then
+  if ! expr "$option" : '\-' &>/dev/null; then
     ERR "alias for SMT options not yet supported"
   fi
-  if expr "$option" : -- &>/dev/null; then
+  if expr "$option" : '\--' &>/dev/null; then
     if expr "$option" : '.*=' &>/dev/null; then
       expect_arg_long=required_argument
       arg="$(echo "$option" | sed 's,[^=]*=\(.*\),\1,')"
@@ -851,8 +851,8 @@ function handle_alias {
     let ++n_long
     long_option="${long_option:+$long_option | --}$option"
   else
-    if ! expr "$option" : '-.$' &>/dev/null; then
-      if ! expr "$option" : '-.=' &>/dev/null; then
+    if ! expr "$option" : '\-.$' &>/dev/null; then
+      if ! expr "$option" : '\-.=' &>/dev/null; then
         ERR "expected short option specification, got \`$option'"
       fi
       expect_arg=:
