@@ -66,6 +66,8 @@ namespace inst {
   class TriggerTrie;
 }/* CVC4::theory::inst */
 
+class EfficientEMatcher;
+
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
@@ -86,6 +88,8 @@ private:
   QuantRelevance d_quant_rel;
   /** phase requirements for each quantifier for each instantiation literal */
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
+  /** efficient e-matcher */
+  EfficientEMatcher* d_eem;
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;
@@ -131,6 +135,8 @@ public:
   QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
   /** get phase requirement terms */
   void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
+  /** get efficient e-matching utility */
+  EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
 public:
   /** check at level */
   void check( Theory::Effort e );

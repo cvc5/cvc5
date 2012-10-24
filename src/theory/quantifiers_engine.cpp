@@ -25,6 +25,7 @@
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rewriterules/efficient_e_matching.h"
 
 using namespace std;
 using namespace CVC4;
@@ -39,6 +40,7 @@ d_quant_rel( false ){ //currently do not care about relevance
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
   d_tr_trie = new inst::TriggerTrie;
+  d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
 
   //the model object
@@ -194,8 +196,7 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
   std::set< Node > added;
   getTermDatabase()->addTerm( n, added, withinQuant );
   if( options::efficientEMatching() ){
-    uf::InstantiatorTheoryUf* d_ith = (uf::InstantiatorTheoryUf*)getInstantiator( THEORY_UF );
-    d_ith->newTerms(added);
+    d_eem->newTerms( added );
   }
   //added contains also the Node that just have been asserted in this branch
   for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){

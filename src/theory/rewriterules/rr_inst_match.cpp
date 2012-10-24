@@ -24,6 +24,7 @@
 #include "theory/rewriterules/rr_inst_match_impl.h"
 #include "theory/rewriterules/rr_candidate_generator.h"
 #include "theory/quantifiers/candidate_generator.h"
+#include "theory/rewriterules/efficient_e_matching.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -1225,8 +1226,8 @@ private:
   std::vector< PatMatcher* > d_patterns;
   std::vector< Matcher* > d_direct_patterns;
   InstMatch d_im;
-  uf::EfficientHandler d_eh;
-  uf::EfficientHandler::MultiCandidate d_mc;
+  EfficientHandler d_eh;
+  EfficientHandler::MultiCandidate d_mc;
   InstMatchTrie2Pairs<true> d_cache;
   std::vector<Node> d_pats;
   // bool indexDone( size_t i){
@@ -1403,9 +1404,8 @@ public:
         d_direct_patterns.push_back(new ApplyMatcher(pats[i],qe));
       }
     };
-    Theory* th_uf = qe->getTheoryEngine()->theoryOf( theory::THEORY_UF );
-    uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)th_uf->getInstantiator();
-    ith->registerEfficientHandler(d_eh, pats);
+    EfficientEMatcher* eem = qe->getEfficientEMatcher();
+    eem->registerEfficientHandler(d_eh, pats);
   };
   void resetInstantiationRound( QuantifiersEngine* qe ){
     Assert(d_step == ES_START || d_step == ES_STOP);

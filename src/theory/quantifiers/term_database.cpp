@@ -18,6 +18,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
+#include "theory/rewriterules/efficient_e_matching.h"
 
 using namespace std;
 using namespace CVC4;
@@ -82,11 +83,11 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           addTerm( n[i], added, withinQuant );
           if( options::efficientEMatching() ){
-            uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
+            EfficientEMatcher* eem = d_quantEngine->getEfficientEMatcher();
             if( d_parents[n[i]][op].empty() ){
               //must add parent to equivalence class info
-              Node nir = ith->getRepresentative( n[i] );
-              uf::EqClassInfo* eci_nir = ith->getEquivalenceClassInfo( nir );
+              Node nir = d_quantEngine->getEqualityQuery()->getRepresentative( n[i] );
+              EqClassInfo* eci_nir = eem->getEquivalenceClassInfo( nir );
               if( eci_nir ){
                 eci_nir->d_pfuns[ op ] = true;
               }

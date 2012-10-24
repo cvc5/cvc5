@@ -20,7 +20,9 @@ librewriterules_la_SOURCES = \
 	rr_trigger.h \
 	rr_trigger.cpp \
 	rr_candidate_generator.h \
-	rr_candidate_generator.cpp
+	rr_candidate_generator.cpp \
+	efficient_e_matching.h \
+	efficient_e_matching.cpp
 
 EXTRA_DIST = \
 	kinds
