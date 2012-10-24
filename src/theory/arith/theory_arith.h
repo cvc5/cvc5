@@ -228,18 +228,6 @@ private:
    */
   DioSolver d_diosolver;
 
-  /**
-   * Some integer variables can be replaced with pseudoboolean
-   * variables internally.  This map is built up at static learning
-   * time for top-level asserted expressions of the shape "x = 0 OR x
-   * = 1".  This substitution map is then applied in preprocess().
-   *
-   * Note that expressions of the shape "x >= 0 AND x <= 1" are
-   * already substituted for PB versions at solve() time and won't
-   * appear here.
-   */
-  SubstitutionMap d_pbSubstitutions;
-
   /** Counts the number of notifyRestart() calls to the theory. */
   uint32_t d_restartsCounter;
 

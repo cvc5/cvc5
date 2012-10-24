@@ -60,7 +60,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_qflraStatus(Result::SAT_UNKNOWN),
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
-  d_learner(d_pbSubstitutions),
+  d_learner(u),
   d_setupLiteralCallback(this),
   d_assertionsThatDoNotMatchTheirLiterals(c),
   d_nextIntegerCheckVar(0),
@@ -72,7 +72,6 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_tableau(),
   d_linEq(d_partialModel, d_tableau, d_basicVarModelUpdateCallBack),
   d_diosolver(c),
-  d_pbSubstitutions(u),
   d_restartsCounter(0),
   d_tableauSizeHasBeenModified(false),
   d_tableauResetDensity(1.6),
@@ -633,36 +632,19 @@ void TheoryArith::addSharedTerm(TNode n){
 }
 
 Node TheoryArith::ppRewrite(TNode atom) {
-
-  if (!atom.getType().isBoolean()) {
-    return atom;
-  }
-
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  Node a = d_pbSubstitutions.apply(atom);
 
-  if (a != atom) {
-    Debug("pb") << "arith::preprocess() : after pb substitutions: " << a << endl;
-    a = Rewriter::rewrite(a);
-    Debug("pb") << "arith::preprocess() : after pb substitutions and rewriting: "
-                << a << endl;
-    Debug("arith::preprocess") << "arith::preprocess() :"
-                               << "after pb substitutions and rewriting: "
-                               << a << endl;
-  }
-
-
-  if (a.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
-    Node leq = NodeBuilder<2>(kind::LEQ) << a[0] << a[1];
-    Node geq = NodeBuilder<2>(kind::GEQ) << a[0] << a[1];
+  if (atom.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
+    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
     Node rewritten = Rewriter::rewrite(leq.andNode(geq));
     Debug("arith::preprocess") << "arith::preprocess() : returning "
                                << rewritten << endl;
     return rewritten;
+  } else {
+    return atom;
   }
-
-  return a;
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -2256,8 +2238,6 @@ void TheoryArith::presolve(){
   //     d_out->lemma(lem);
   //   }
   // }
-
-  d_learner.clear();
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {

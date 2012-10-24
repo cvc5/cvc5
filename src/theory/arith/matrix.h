@@ -20,7 +20,6 @@
 #pragma once
 
 #include "expr/node.h"
-#include "expr/attribute.h"
 
 #include "util/index.h"
 #include "util/dense_map.h"

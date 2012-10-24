@@ -33,6 +33,7 @@ namespace arith {
 
 //Sets of Nodes
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
 
 inline Node mkRationalNode(const Rational& q){

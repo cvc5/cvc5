@@ -24,8 +24,11 @@
 #include "util/statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/substitutions.h"
+
+#include "context/context.h"
+#include "context/cdlist.h"
+#include "context/cdhashmap.h"
 #include <set>
-#include <list>
 
 namespace CVC4 {
 namespace theory {
@@ -33,43 +36,30 @@ namespace arith {
 
 class ArithStaticLearner {
 private:
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
   /* Maps a variable, x, to the set of defTrue nodes of the form
    *  (=> _ (= x c))
    * where c is a constant.
    */
-  typedef __gnu_cxx::hash_map<Node, std::set<Node>, NodeHashFunction> VarToNodeSetMap;
-  VarToNodeSetMap d_miplibTrick;
-  std::list<TNode> d_miplibTrickKeys;
-
-  /**
-   * Some integer variables are eligible to be replaced by
-   * pseudoboolean variables.  This map collects those eligible
-   * substitutions.
-   *
-   * This is a reference to the substitution map in TheoryArith; as
-   * it's not "owned" by this static learner, it isn't cleared on
-   * clear().  This makes sense, as the static learner only
-   * accumulates information in the substitution map, it never uses it
-   * (i.e., it's write-only).
-   */
-  SubstitutionMap& d_pbSubstitutions;
+  //typedef __gnu_cxx::hash_map<Node, std::set<Node>, NodeHashFunction> VarToNodeSetMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> CDNodeToNodeListMap;
+  // The domain is an implicit list OR(x, OR(y, ..., FALSE ))
+  // or FALSE
+  CDNodeToNodeListMap d_miplibTrick;
 
   /**
    * Map from a node to it's minimum and maximum.
    */
-  typedef __gnu_cxx::hash_map<Node, DeltaRational, NodeHashFunction> NodeToMinMaxMap;
-  NodeToMinMaxMap d_minMap;
-  NodeToMinMaxMap d_maxMap;
+  //typedef __gnu_cxx::hash_map<Node, DeltaRational, NodeHashFunction> NodeToMinMaxMap;
+  typedef context::CDHashMap<Node, DeltaRational, NodeHashFunction> CDNodeToMinMaxMap;
+  CDNodeToMinMaxMap d_minMap;
+  CDNodeToMinMaxMap d_maxMap;
 
 public:
-  ArithStaticLearner(SubstitutionMap& pbSubstitutions);
+  ArithStaticLearner(context::Context* userContext);
   void staticLearning(TNode n, NodeBuilder<>& learned);
 
   void addBound(TNode n);
-
-  void clear();
 
 private:
   void process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue);
