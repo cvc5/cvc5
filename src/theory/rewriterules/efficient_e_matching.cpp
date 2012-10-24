@@ -193,7 +193,7 @@ EqClassInfo* EfficientEMatcher::getEquivalenceClassInfo( Node n ) {
   return d_eqc_ops.find( n )==d_eqc_ops.end() ? NULL : d_eqc_ops[n];
 }
 EqClassInfo* EfficientEMatcher::getOrCreateEquivalenceClassInfo( Node n ){
-  Assert( n==d_quantEngine->getEqualityQuery()->getRepresentative( n ) );
+  Assert( n==d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative( n ) );
   if( d_eqc_ops.find( n )==d_eqc_ops.end() ){
     EqClassInfo* eci = new EqClassInfo( d_quantEngine->getSatContext() );
     eci->setMember( n, d_quantEngine->getTermDatabase() );
@@ -319,7 +319,7 @@ void EfficientEMatcher::computeCandidatesConstants( Node a, EqClassInfo* eci_a, 
        itc != end; ++itc ) {
       //The constant
       Debug("efficient-e-match") << "    Checking constant " << a << std::endl;
-      if(d_quantEngine->getEqualityQuery()->getRepresentative(itc->first) != a) continue;
+      if(d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative(itc->first) != a) continue;
       SetNode s;
       eq::EqClassIterator eqc_iter( b, d_quantEngine->getEqualityQuery()->getEngine() );
       while( !eqc_iter.isFinished() ){
@@ -376,7 +376,7 @@ bool EfficientEMatcher::collectParentsTermsIps( Node n, Node f, int arg, SetNode
   bool addedTerm = false;
 
   if( modEq && d_quantEngine->getEqualityQuery()->getEngine()->hasTerm( n )){
-    Assert( d_quantEngine->getEqualityQuery()->getRepresentative( n )==n );
+    Assert( d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative( n )==n );
     //collect modulo equality
     //DO_THIS: this should (if necessary) compute a current set of (f, arg) parents for n and cache it
     eq::EqClassIterator eqc_iter( n, d_quantEngine->getEqualityQuery()->getEngine() );
@@ -399,7 +399,7 @@ bool EfficientEMatcher::collectParentsTermsIps( Node n, Node f, int arg, SetNode
     for( size_t i=0; i<parents.size(); ++i ){
       TNode t = parents[i];
       if(!CandidateGenerator::isLegalCandidate(t)) continue;
-      if( addRep ) t = d_quantEngine->getEqualityQuery()->getRepresentative( t );
+      if( addRep ) t = d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative( t );
       terms.insert(t);
       addedTerm = true;
     }
@@ -617,7 +617,7 @@ void EfficientEMatcher::registerEfficientHandler( EfficientHandler& handler,
   } else if( pats[0].getKind() == kind::NOT && pats[0][0].getKind() == kind::EQUAL){
     Node cst = NodeManager::currentNM()->mkConst<bool>(false);
     TNode op = pats[0][0].getOperator();
-    cst = d_quantEngine->getEqualityQuery()->getRepresentative(cst);
+    cst = d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative(cst);
     SetNode ele;
     eq::EqClassIterator eqc_iter( cst, d_quantEngine->getEqualityQuery()->getEngine() );
     while( !eqc_iter.isFinished() ){
@@ -653,7 +653,7 @@ void EfficientEMatcher::registerEfficientHandler( EfficientHandler& handler,
 
 void EfficientEMatcher::outputEqClass( const char* c, Node n ){
   if( d_quantEngine->getEqualityQuery()->getEngine()->hasTerm( n ) ){
-    eq::EqClassIterator eqc_iter( d_quantEngine->getEqualityQuery()->getRepresentative( n ),
+    eq::EqClassIterator eqc_iter( d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative( n ),
                                   d_quantEngine->getEqualityQuery()->getEngine() );
     bool firstTime = true;
     while( !eqc_iter.isFinished() ){
