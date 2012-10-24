@@ -265,11 +265,6 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
           
           PROOF( ProofManager::getSatProof()->registerUnitClause(ps[0], true); )
 
-          if(assertionLevel > 0) {
-            // remember to unset it on user pop
-            Debug("minisat") << "got new unit " << ps[0] << " at assertion level " << assertionLevel << std::endl;
-            trail_user.push(ps[0]);
-          }
           return ok = (propagate(CHECK_WITHOUTH_THEORY) == CRef_Undef);
         } else return ok;
       } else {
@@ -685,6 +680,11 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     if (theory[var(p)]) {
       // Enqueue to the theory
       proxy->enqueueTheoryLiteral(MinisatSatSolver::toSatLiteral(p));
+    }
+    if (from == CRef_Undef) {
+      if (assertionLevel > 0) {
+        trail_user.push(p);
+      }
     }
 }
 
@@ -1620,12 +1620,6 @@ CRef Solver::updateLemmas() {
         } else {
           Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
           uncheckedEnqueue(lemma[0], lemma_ref);
-          if(lemma.size() == 1 && assertionLevel > 0) {
-            assert(decisionLevel() == 0);
-            // remember to unset it on user pop
-            Debug("minisat") << "got new unit (survived downward during updateLemmas()) " << lemma[0] << " at assertion level " << assertionLevel << std::endl;
-            trail_user.push(lemma[0]);
-          }
         }
       }
     }

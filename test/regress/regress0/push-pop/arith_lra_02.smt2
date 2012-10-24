@@ -1,3 +1,23 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: sat
+; EXPECT: unsat
+; EXPECT: unsat
+; EXPECT: sat
+; EXIT: 10
 (set-logic QF_LRA)
 (declare-fun x0 () Real)
 (declare-fun x1 () Real)
