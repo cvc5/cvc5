@@ -480,9 +480,14 @@ if test -z "${enable_static_binary+set}"; then
   enable_static_binary=no
 fi
 AC_MSG_RESULT([$enable_static_binary])
-if test "$enable_static_binary" = yes -a "$enable_static" != yes; then
-  enable_static=yes
-  AC_MSG_WARN([forcing static-library building, --enable-static-binary given])
+if test "$nable_static_binary" = yes; then
+  if test "$target_os" = darwin; then
+    AC_MSG_ERROR([Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html])
+  fi
+  if test "$enable_static" != yes; then
+    enable_static=yes
+    AC_MSG_WARN([forcing static-library building, --enable-static-binary given])
+  fi
 fi
 
 AC_MSG_CHECKING([whether to support proof in libcvc4])

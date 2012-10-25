@@ -201,9 +201,9 @@ ocaml/swig.ml:; $(AM_V_GEN)cd ocaml && $(SWIG) -ocaml -co swig.ml
 ocaml/swig.mli:; $(AM_V_GEN)cd ocaml && $(SWIG) -ocaml -co swig.mli
 ocaml/swigp4.ml:; $(AM_V_GEN)cd ocaml && $(SWIG) -ocaml -co swigp4.ml
 #ocaml.cpp:;
-cvc4_ocaml_top: ocaml/CVC4.la ocaml/swig.cmo ocaml/swig.cmi ocaml/swigp4.cmo ocaml/CVC4.cmo ocaml/CVC4.cmi
+cvc4_ocaml_top$(EXEEXT): ocaml/CVC4.la ocaml/swig.cmo ocaml/swig.cmi ocaml/swigp4.cmo ocaml/CVC4.cmo ocaml/CVC4.cmi
 	$(AM_V_GEN)\
-	$(OCAMLFIND) ocamlmktop -I $(ocamldatadir) -custom -o cvc4_ocaml_top -package camlp4 dynlink.cma camlp4o.cma ocaml/swig.cmo ocaml/swigp4.cmo ocaml/CVC4.cmo -cclib ocaml/.libs/CVC4.so -cclib -lstdc++
+	$(OCAMLFIND) ocamlmktop -I $(ocamldatadir) -custom -o cvc4_ocaml_top$(EXEEXT) -package camlp4 dynlink.cma camlp4o.cma ocaml/swig.cmo ocaml/swigp4.cmo ocaml/CVC4.cmo -cclib ocaml/.libs/CVC4.so -cclib -lstdc++
 ruby.lo: ruby.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(RUBY_CPPFLAGS) -o $@ $<
 tcl.lo: tcl.cpp
