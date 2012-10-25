@@ -482,7 +482,7 @@ fi
 AC_MSG_RESULT([$enable_static_binary])
 if test "$nable_static_binary" = yes; then
   if test "$target_os" = darwin; then
-    AC_MSG_ERROR([Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html])
+    AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html]])
   fi
   if test "$enable_static" != yes; then
     enable_static=yes
