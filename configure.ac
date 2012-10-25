@@ -379,7 +379,7 @@ echo ./config.status "\$@"
 EOF
     chmod +x config.reconfig
   fi
-  ln -sf "builds/$target/$build_type/config.log" "config.log"
+  ln -sf "$target/$build_type/config.log" "builds/config.log"
   exit $exitval
 else
   AC_MSG_RESULT([this one (user-specified)])
