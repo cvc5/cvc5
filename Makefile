@@ -7,7 +7,7 @@
 #
 builddir = builds
 
-.PHONY: all install
+.PHONY: all install examples install-examples
 all install examples install-examples .DEFAULT:
 	@if test -d $(builddir); then \
 		echo cd $(builddir); \
