@@ -121,22 +121,22 @@ bool SymbolTable::isBoundType(const std::string& name) const throw() {
 
 Type SymbolTable::lookupType(const std::string& name) const throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
-  Assert(p.first.size() == 0,
-         "type constructor arity is wrong: "
-         "`%s' requires %u parameters but was provided 0",
-         name.c_str(), p.first.size());
+  CheckArgument(p.first.size() == 0, name,
+                "type constructor arity is wrong: "
+                "`%s' requires %u parameters but was provided 0",
+                name.c_str(), p.first.size());
   return p.second;
 }
 
 Type SymbolTable::lookupType(const std::string& name,
                              const std::vector<Type>& params) const throw() {
   pair<vector<Type>, Type> p = (*d_typeMap->find(name)).second;
-  Assert(p.first.size() == params.size(),
-         "type constructor arity is wrong: "
-         "`%s' requires %u parameters but was provided %u",
+  CheckArgument(p.first.size() == params.size(), params,
+                "type constructor arity is wrong: "
+                "`%s' requires %u parameters but was provided %u",
          name.c_str(), p.first.size(), params.size());
   if(p.first.size() == 0) {
-    Assert(p.second.isSort());
+    CheckArgument(p.second.isSort(), name);
     return p.second;
   }
   if(p.second.isSortConstructor()) {
@@ -161,7 +161,7 @@ Type SymbolTable::lookupType(const std::string& name,
 
     return instantiation;
   } else if(p.second.isDatatype()) {
-    Assert( DatatypeType(p.second).isParametric() );
+    CheckArgument(DatatypeType(p.second).isParametric(), name, "expected parametric datatype");
     return DatatypeType(p.second).instantiate(params);
   } else {
     if(Debug.isOn("sort")) {

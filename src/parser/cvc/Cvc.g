@@ -1104,6 +1104,13 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
          PARSER_STATE->isDeclared(id, SYM_SORT)) {
         Debug("parser-param") << "param: getSort " << id << " " << types.size() << " " << PARSER_STATE->getArity( id )
                               << " " << PARSER_STATE->isDeclared(id, SYM_SORT) << std::endl;
+        if(types.size() != PARSER_STATE->getArity(id)) {
+          std::stringstream ss;
+          ss << "incorrect arity for symbol `" << id << "': expected "
+             << PARSER_STATE->getArity( id ) << " type arguments, got "
+             << types.size();
+          PARSER_STATE->parseError(ss.str());
+        }
         if(types.size() > 0) {
           t = PARSER_STATE->getSort(id, types);
         }else{
