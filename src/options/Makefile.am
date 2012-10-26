@@ -114,7 +114,12 @@ EXTRA_DIST = \
 	options_holder_template.h \
 	options.i \
 	option_exception.i \
-	$(OPTIONS_FILES)
+	$(OPTIONS_FILES) \
+	options-stamp \
+	../smt/smt_options.cpp \
+	options.cpp \
+	options_holder.h \
+	$(OPTIONS_FILES_SRCS)
 
 if CVC4_DEBUG
 # listing Debug_tags too ensures that make doesn't auto-remove it
