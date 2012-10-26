@@ -129,7 +129,7 @@ public:
     Assert(d_direction || !d_bounds.lower.hasBound());
   }
 
-  Node operator*() throw() {
+  Node operator*() throw(NoMoreValuesException) {
     if(isFinished()) {
       throw NoMoreValuesException(getType());
     }
@@ -145,19 +145,14 @@ public:
       // if we're counting down, there's no lower bound
       d_int -= 1;
     }
-    // sequence is 0, 1, -1, 2, -2, 3, -3, ...
-    if(d_int <= 0) {
-      d_int = -d_int + 1;
-    } else {
-      d_int = -d_int;
-    }
     return *this;
   }
 
   bool isFinished() throw() {
     // if we're counting down, there's no lower bound
     return d_direction &&
-      (!d_bounds.upper.hasBound() || d_int <= d_bounds.upper.getBound());
+      d_bounds.upper.hasBound() &&
+      d_int > d_bounds.upper.getBound();
   }
 
 };/* class SubrangeEnumerator */
