@@ -710,6 +710,11 @@ public:
     */
   void handleUserAttribute( const char* attr, theory::Theory* t );
 
+  /** Check that the theory assertions are satisfied in the model
+   *  This function is called from the smt engine's checkModel routine
+   */
+  void checkTheoryAssertionsWithModel();
+
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */
