@@ -420,17 +420,19 @@ done
 done
 rm -f conftest.$ac_objext
 ])
-case $Boost_lib in #(
+case $Boost_lib in #((
   no) _AC_MSG_LOG_CONFTEST
     m4_if([$6], [], [AC_MSG_ERROR([cannot find the flags to link with Boost $1])],
                     [AC_MSG_NOTICE([cannot find the flags to link with Boost $1])])
     $6
     ;;
+  *)
+    AC_SUBST(AS_TR_CPP([BOOST_$1_LDFLAGS]), [$Boost_lib_LDFLAGS])dnl
+    AC_SUBST(AS_TR_CPP([BOOST_$1_LDPATH]), [$Boost_lib_LDPATH])dnl
+    AC_SUBST([BOOST_LDPATH], [$Boost_lib_LDPATH])dnl
+    AC_SUBST(AS_TR_CPP([BOOST_$1_LIBS]), [$Boost_lib_LIBS])dnl
+    ;;
 esac
-AC_SUBST(AS_TR_CPP([BOOST_$1_LDFLAGS]), [$Boost_lib_LDFLAGS])dnl
-AC_SUBST(AS_TR_CPP([BOOST_$1_LDPATH]), [$Boost_lib_LDPATH])dnl
-AC_SUBST([BOOST_LDPATH], [$Boost_lib_LDPATH])dnl
-AC_SUBST(AS_TR_CPP([BOOST_$1_LIBS]), [$Boost_lib_LIBS])dnl
 CPPFLAGS=$boost_save_CPPFLAGS
 AS_VAR_POPDEF([Boost_lib])dnl
 AS_VAR_POPDEF([Boost_lib_LDFLAGS])dnl
@@ -804,15 +806,16 @@ BOOST_DEFUN([String_Algo],
 ])
 
 
-# BOOST_SYSTEM([PREFERRED-RT-OPT])
-# --------------------------------
+# BOOST_SYSTEM([PREFERRED-RT-OPT], [ACTION-IF-NOT-FOUND])
+# -------------------------------------------------------
 # Look for Boost.System.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.  This library was introduced in Boost
 # 1.35.0.
 BOOST_DEFUN([System],
 [BOOST_FIND_LIB([system], [$1],
                 [boost/system/error_code.hpp],
-                [boost::system::error_code e; e.clear();])
+                [boost::system::error_code e; e.clear();],
+                [], [$2])
 ])# BOOST_SYSTEM
 
 
@@ -846,7 +849,7 @@ boost_threads_save_LDFLAGS=$LDFLAGS
 boost_threads_save_CPPFLAGS=$CPPFLAGS
 # Link-time dependency from thread to system was added as of 1.49.0.
 if test $boost_major_version -ge 149; then
-BOOST_SYSTEM([$1])
+BOOST_SYSTEM([$1], [AC_MSG_WARN([[Boost system library (libboost-system) not installed or unusable; this may lead to problems with using threads.  It is recommended that you install your distribution's libboost-system development package (probably named libboost-system###-dev, or boost-system-devel, or something like that).]])])
 fi # end of the Boost.System check.
 m4_pattern_allow([^BOOST_SYSTEM_(LIBS|LDFLAGS)$])dnl
 LIBS="$LIBS $BOOST_SYSTEM_LIBS $boost_cv_pthread_flag"
