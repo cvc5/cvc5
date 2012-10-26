@@ -31,12 +31,12 @@ class DatatypesRewriter {
 public:
 
   static RewriteResponse postRewrite(TNode in) {
-    Debug("datatypes-rewrite") << "post-rewriting " << in << std::endl;
+    Trace("datatypes-rewrite") << "post-rewriting " << in << std::endl;
 
     if(in.getKind() == kind::APPLY_TESTER) {
       if(in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
         bool result = Datatype::indexOf(in.getOperator().toExpr()) == Datatype::indexOf(in[0].getOperator().toExpr());
-        Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial tester " << in
                                    << " " << result << std::endl;
         return RewriteResponse(REWRITE_DONE,
@@ -45,7 +45,7 @@ public:
         const Datatype& dt = DatatypeType(in[0].getType().toType()).getDatatype();
         if(dt.getNumConstructors() == 1) {
           // only one constructor, so it must be
-          Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                      << "only one ctor for " << dt.getName()
                                      << " and that is " << dt[0].getName()
                                      << std::endl;
@@ -69,7 +69,7 @@ public:
       const DatatypeConstructor& c = dt[constructorIndex];
       if(c.getNumArgs() > selectorIndex &&
          c[selectorIndex].getSelector() == selectorExpr) {
-        Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                    << "Rewrite trivial selector " << in
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
@@ -82,7 +82,7 @@ public:
             gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
                                                   NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
           }
-          Debug("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                      << "Rewrite trivial selector " << in
                                      << " to distinguished ground term "
                                      << in.getType().mkGroundTerm() << std::endl;
@@ -105,7 +105,7 @@ public:
   }
 
   static RewriteResponse preRewrite(TNode in) {
-    Debug("datatypes-rewrite") << "pre-rewriting " << in << std::endl;
+    Trace("datatypes-rewrite") << "pre-rewriting " << in << std::endl;
     return RewriteResponse(REWRITE_DONE, in);
   }
 
@@ -124,7 +124,7 @@ public:
           }
         }
       }
-    }else if( !n1.getType().isDatatype() ){
+    }else if( !isTermDatatype( n1 ) ){
       //also check for clashes between non-datatypes
       Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
       eq = Rewriter::rewrite( eq );
@@ -134,7 +134,11 @@ public:
     }
     return false;
   }
-
+  /** is this term a datatype */
+  static bool isTermDatatype( Node n ){
+    TypeNode tn = n.getType();
+    return tn.isDatatype() || tn.isParametricDatatype();
+  }
 
 };/* class DatatypesRewriter */
 

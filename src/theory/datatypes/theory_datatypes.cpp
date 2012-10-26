@@ -34,54 +34,6 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
-void TheoryDatatypes::printModelDebug( const char* c ){
-  Trace( c ) << "Datatypes model : " << std::endl;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ){
-    Node eqc = (*eqcs_i);
-    if( eqc.getType().isDatatype()){
-      Trace( c ) << "DATATYPE : ";
-    }
-    Trace( c ) << eqc << " : " << eqc.getType() << " : " << std::endl;
-    Trace( c ) << "   { ";
-    //add terms to model
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-    while( !eqc_i.isFinished() ){
-      Trace( c ) << (*eqc_i) << " ";
-      ++eqc_i;
-    }
-    Trace( c ) << "}" << std::endl;
-    if( eqc.getType().isDatatype() ){
-      EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( ei ){
-        Trace( c ) << "   Instantiated : " << ei->d_inst.get() << std::endl;
-        if( ei->d_constructor.get().isNull() ){
-          Trace("model-warn") << eqc << " has no constructor in equivalence class!" << std::endl;
-          Trace("model-warn") << "  Type : " << eqc.getType() << std::endl;
-          Trace( c ) << "   Constructor : " << std::endl;
-          Trace( c ) << "   Labels : ";
-          if( hasLabel( ei, eqc ) ){
-            Trace( c ) << getLabel( eqc );
-          }else{
-            NodeListMap::iterator lbl_i = d_labels.find( eqc );
-            if( lbl_i != d_labels.end() ){
-              NodeList* lbl = (*lbl_i).second;
-              for( NodeList::const_iterator j = lbl->begin(); j != lbl->end(); j++ ){
-                Trace( c ) << *j << " ";
-              }
-            }
-          }
-          Trace( c ) << std::endl;
-        }else{
-          Trace( c ) << "   Constructor : " << ei->d_constructor.get() << std::endl;
-        }
-        Trace( c ) << "   Selectors : " << ( ei->d_selectors ? "yes" : "no" ) << std::endl;
-      }
-    }
-    ++eqcs_i;
-  }
-}
-
 
 TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
   Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, qe),
@@ -148,7 +100,7 @@ void TheoryDatatypes::check(Effort e) {
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node n = (*eqcs_i);
-      if( n.getType().isDatatype() ){
+      if( DatatypesRewriter::isTermDatatype( n ) ){
         EqcInfo* eqc = getOrMakeEqcInfo( n, true );
         //if there are more than 1 possible constructors for eqc
         if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
@@ -184,6 +136,7 @@ void TheoryDatatypes::check(Effort e) {
             if( !needSplit && mustSpecifyModel() ){
               //for the sake of termination, we must choose the constructor of a ground term
               //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
+              //** TODO: this is probably not good enough, actually need fair enumeration strategy
               Node groundTerm = n.getType().mkGroundTerm();
               int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
               if( pcons[index] ){
@@ -396,7 +349,7 @@ void TheoryDatatypes::eqNotifyPreMerge(TNode t1, TNode t2){
 
 /** called when two equivalance classes have merged */
 void TheoryDatatypes::eqNotifyPostMerge(TNode t1, TNode t2){
-  if( t1.getType().isDatatype() ){
+  if( DatatypesRewriter::isTermDatatype( t1 ) ){
     d_pending_merge.push_back( t1.eqNode( t2 ) );
   }
 }
@@ -683,7 +636,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
     //for all equivalence classes that are datatypes
-    if( eqc.getType().isDatatype() ){
+    if( DatatypesRewriter::isTermDatatype( eqc ) ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei ){
         if( !ei->d_constructor.get().isNull() ){
@@ -928,7 +881,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
     addLemma = dt.involvesExternalType();
 #else
     for( int j=0; j<(int)n[1].getNumChildren(); j++ ){
-      if( !n[1][j].getType().isDatatype() ){
+      if( !DatatypesRewriter::isTermDatatype( n[1][j] ) ){
         addLemma = true;
         break;
       }
@@ -977,5 +930,54 @@ Node TheoryDatatypes::getRepresentative( Node a ){
     return d_equalityEngine.getRepresentative( a );
   }else{
     return a;
+  }
+}
+
+
+void TheoryDatatypes::printModelDebug( const char* c ){
+  Trace( c ) << "Datatypes model : " << std::endl;
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  while( !eqcs_i.isFinished() ){
+    Node eqc = (*eqcs_i);
+    if( DatatypesRewriter::isTermDatatype( eqc ) ){
+      Trace( c ) << "DATATYPE : ";
+    }
+    Trace( c ) << eqc << " : " << eqc.getType() << " : " << std::endl;
+    Trace( c ) << "   { ";
+    //add terms to model
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+    while( !eqc_i.isFinished() ){
+      Trace( c ) << (*eqc_i) << " ";
+      ++eqc_i;
+    }
+    Trace( c ) << "}" << std::endl;
+    if( DatatypesRewriter::isTermDatatype( eqc ) ){
+      EqcInfo* ei = getOrMakeEqcInfo( eqc );
+      if( ei ){
+        Trace( c ) << "   Instantiated : " << ei->d_inst.get() << std::endl;
+        if( ei->d_constructor.get().isNull() ){
+          Trace("model-warn") << eqc << " has no constructor in equivalence class!" << std::endl;
+          Trace("model-warn") << "  Type : " << eqc.getType() << std::endl;
+          Trace( c ) << "   Constructor : " << std::endl;
+          Trace( c ) << "   Labels : ";
+          if( hasLabel( ei, eqc ) ){
+            Trace( c ) << getLabel( eqc );
+          }else{
+            NodeListMap::iterator lbl_i = d_labels.find( eqc );
+            if( lbl_i != d_labels.end() ){
+              NodeList* lbl = (*lbl_i).second;
+              for( NodeList::const_iterator j = lbl->begin(); j != lbl->end(); j++ ){
+                Trace( c ) << *j << " ";
+              }
+            }
+          }
+          Trace( c ) << std::endl;
+        }else{
+          Trace( c ) << "   Constructor : " << ei->d_constructor.get() << std::endl;
+        }
+        Trace( c ) << "   Selectors : " << ( ei->d_selectors ? "yes" : "no" ) << std::endl;
+      }
+    }
+    ++eqcs_i;
   }
 }
