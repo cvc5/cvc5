@@ -782,8 +782,9 @@ void TheoryDatatypes::collapseSelectors(){
   //must check incorrect applications of selectors
   for( BoolMap::iterator it = d_selector_apps.begin(); it != d_selector_apps.end(); ++it ){
     if( !(*it).second ){
-      Node n = (*it).first[0];
-      EqcInfo* ei = getOrMakeEqcInfo( n );
+      Node n = getRepresentative( (*it).first[0] );
+      Trace("datatypes-collapse") << "Datatypes collapse selector? : " << n << std::endl;
+      EqcInfo* ei = getOrMakeEqcInfo( n, true );
       if( ei ){
         if( !ei->d_constructor.get().isNull() ){
           Node op = (*it).first.getOperator();
@@ -798,7 +799,11 @@ void TheoryDatatypes::collapseSelectors(){
             d_infer.push_back( eq );
           }
           d_selector_apps[ (*it).first ] = true;
+        }else{
+          Trace("datatypes-collapse") << "No constructor." << std::endl;
         }
+      }else{
+        Trace("datatypes-collapse") << "No e info." << std::endl;
       }
     }
   }
