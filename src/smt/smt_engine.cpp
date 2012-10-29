@@ -62,6 +62,7 @@
 #include "theory/model.h"
 #include "printer/printer.h"
 #include "prop/options.h"
+#include "theory/arrays/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -833,11 +834,27 @@ void SmtEngine::setLogicInternal() throw() {
     }
   }
 
-  //until bug 371 is fixed
+  //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    if( d_logic.isQuantified() ){
+    if( d_logic.isQuantified() || options::produceModels() ){
       options::minisatUseElim.set( false );
     }
+  }
+  else if (options::minisatUseElim()) {
+    if (options::produceModels()) {
+      Notice() << "SmtEngine: turning off produce-models to support minisatUseElim" << std::endl;
+      setOption("produce-models", SExpr("false"));
+    }
+    if (options::checkModels()) {
+      Notice() << "SmtEngine: turning off check-models to support minisatUseElim" << std::endl;
+      setOption("check-models", SExpr("false"));
+    }
+  }
+
+  // For now, these array theory optimizations do not support model-building
+  if (options::produceModels()) {
+    options::arraysOptimizeLinear.set(false);
+    options::arraysLazyRIntro1.set(false);
   }
 }
 
