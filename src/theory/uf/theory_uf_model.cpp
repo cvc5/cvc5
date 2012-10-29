@@ -12,13 +12,10 @@
  ** \brief Implementation of Theory UF Model
  **/
 
-#include "theory/quantifiers/model_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/uf/theory_uf_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/uf/theory_uf_instantiator.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 
 #define RECONSIDER_FUNC_DEFAULT_VALUE

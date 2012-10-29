@@ -83,6 +83,20 @@ void RelevantDomain::compute(){
     }
   }while( !success );
   Trace("rel-dom") << "done compute relevant domain" << std::endl;
+  /*
+  //debug printing
+  Trace("rel-dom") << "Exhaustive instantiate " << f << std::endl;
+  if( useRelInstDomain ){
+    Trace("rel-dom") << "Relevant domain : " << std::endl;
+    for( size_t i=0; i<d_rel_domain.d_quant_inst_domain[f].size(); i++ ){
+      Trace("rel-dom") << "   " << i << " : ";
+      for( size_t j=0; j<d_rel_domain.d_quant_inst_domain[f][i].size(); j++ ){
+        Trace("rel-dom") << d_rel_domain.d_quant_inst_domain[f][i][j] << " ";
+      }
+      Trace("rel-dom") << std::endl;
+    }
+  }
+  */
 }
 
 bool RelevantDomain::computeRelevantInstantiationDomain( Node n, Node parent, int arg, Node f ){

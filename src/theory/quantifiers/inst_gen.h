@@ -48,7 +48,7 @@ public:
   InstGenProcess( Node n );
   virtual ~InstGenProcess(){}
 
-  void calculateMatches( QuantifiersEngine* qe, Node f );
+  void calculateMatches( QuantifiersEngine* qe, Node f, std::vector< Node >& considerVal, bool useConsider );
   int getNumMatches() { return d_matches.size(); }
   bool getMatch( EqualityQuery* q, int i, InstMatch& m );
   Node getMatchValue( int i ) { return d_match_values[i]; }

@@ -49,27 +49,90 @@ void InstGenProcess::addMatchValue( QuantifiersEngine* qe, Node f, Node val, Ins
     if( d_inst_trie[val].addInstMatch( qe, f, m, true ) ){
       d_match_values.push_back( val );
       d_matches.push_back( InstMatch( &m ) );
+      qe->getModelEngine()->getModelBuilder()->d_instGenMatches++;
     }
   }
 }
 
-void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
+void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vector< Node >& considerVal, bool useConsider ){
+  //whether we are doing a product or sum or matches
+  bool doProduct = true;
+  //get the model
+  FirstOrderModel* fm = qe->getModel();
+
+  //calculate terms we will consider
+  std::vector< Node > considerTerms;
+  std::vector< std::vector< Node > > newConsiderVal;
+  std::vector< bool > newUseConsider;
+  newConsiderVal.resize( d_children.size() );
+  newUseConsider.resize( d_children.size(), false );
+  if( d_node.getKind()==APPLY_UF ){
+    Node op = d_node.getOperator();
+    if( useConsider ){
+      for( size_t i=0; i<considerVal.size(); i++ ){
+        eq::EqClassIterator eqc( qe->getEqualityQuery()->getEngine()->getRepresentative( considerVal[i] ),
+                                 qe->getEqualityQuery()->getEngine() );
+        while( !eqc.isFinished() ){
+          Node en = (*eqc);
+          if( en.getKind()==APPLY_UF && en.getOperator()==op ){
+            bool isSelected = qe->getModelEngine()->getModelBuilder()->isTermSelected( en );
+            bool isActive = !en.getAttribute(NoMatchAttribute());
+            //check if we need to consider it
+            if( isSelected || isActive ){
+              considerTerms.push_back( en );
+#if 0
+              for( int i=0; i<(int)d_children.size(); i++ ){
+                int childIndex = d_children_index[i];
+                Node n = qe->getModel()->getRepresentative( n );
+                if( std::find( newConsiderVal[i].begin(), newConsiderVal[i].end(), n )==newConsiderVal[i].end() ){
+                  newConsiderVal[i].push_back( n );
+                }
+              }
+#endif
+            }
+          }
+          ++eqc;
+        }
+      }
+    }else{
+      considerTerms.insert( considerTerms.begin(), fm->d_uf_terms[op].begin(), fm->d_uf_terms[op].end() );
+    }
+  }else if( d_node.getType().isBoolean() ){
+    if( useConsider ){
+      Assert( considerVal.size()==1 );
+      bool reqPol = considerVal[0]==fm->d_true;
+      if( d_node.getKind()==NOT ){
+        if( !newConsiderVal.empty() ){
+          newConsiderVal[0].push_back( reqPol ? fm->d_false : fm->d_true );
+          newUseConsider[0] = true;
+        }
+      }else if( d_node.getKind()==AND || d_node.getKind()==OR ){
+        for( size_t i=0; i<newConsiderVal.size(); i++ ){
+          newConsiderVal[i].push_back( considerVal[0] );
+          newUseConsider[i] = true;
+        }
+        //instead we will do a sum
+        if( ( d_node.getKind()==AND && !reqPol ) || ( d_node.getKind()==OR && reqPol )  ){
+          doProduct = false;
+        }
+      }
+    }
+  }
+
   //calculate all matches for children
   for( int i=0; i<(int)d_children.size(); i++ ){
-    d_children[i].calculateMatches( qe, f );
-    if( d_children[i].getNumMatches()==0 ){
+    d_children[i].calculateMatches( qe, f, newConsiderVal[i], newUseConsider[i] );
+    if( doProduct && d_children[i].getNumMatches()==0 ){
       return;
     }
   }
   Trace("inst-gen-cm") << "* Calculate matches " << d_node << std::endl;
-  //get the model
-  FirstOrderModel* fm = qe->getModel();
   if( d_node.getKind()==APPLY_UF ){
     //if this is an uninterpreted function
     Node op = d_node.getOperator();
     //process all values
-    for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
-      Node n = fm->d_uf_terms[op][i];
+    for( size_t i=0; i<considerTerms.size(); i++ ){
+      Node n = considerTerms[i];
       bool isSelected = qe->getModelEngine()->getModelBuilder()->isTermSelected( n );
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         //do not consider ground case if it is already congruent to another ground term
@@ -105,10 +168,24 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f ){
     }
 
   }else{
-    InstMatch curr;
     //if this is an interpreted function
-    std::vector< Node > terms;
-    calculateMatchesInterpreted( qe, f, curr, terms, 0 );
+    if( doProduct ){
+      //combining children matches
+      InstMatch curr;
+      std::vector< Node > terms;
+      calculateMatchesInterpreted( qe, f, curr, terms, 0 );
+    }else{
+      //summing children matches
+      Assert( considerVal.size()==1 );
+      for( int i=0; i<(int)d_children.size(); i++ ){
+        for( int j=0; j<(int)d_children[ i ].getNumMatches(); j++ ){
+          InstMatch m;
+          if( d_children[ i ].getMatch( qe->getEqualityQuery(), j, m ) ){
+            addMatchValue( qe, f, considerVal[0], m );
+          }
+        }
+      }
+    }
   }
   Trace("inst-gen-cm") << "done calculate matches" << std::endl;
   //can clear information used for finding duplicates
@@ -158,7 +235,8 @@ void InstGenProcess::calculateMatchesInterpreted( QuantifiersEngine* qe, Node f,
       val = NodeManager::currentNM()->mkNode( d_node.getKind(), terms );
       val = Rewriter::rewrite( val );
     }
-    Trace("inst-gen-cm") << "  - i-match : " << val << std::endl;
+    Trace("inst-gen-cm") << "  - i-match : " << d_node << std::endl;
+    Trace("inst-gen-cm") << "            : " << val << std::endl;
     Trace("inst-gen-cm") << "            : " << curr << std::endl;
     addMatchValue( qe, f, val, curr );
   }else{

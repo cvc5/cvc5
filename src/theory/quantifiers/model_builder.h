@@ -64,6 +64,8 @@ protected:
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
+  //whether inst gen was done
+  bool d_didInstGen;
   /** process build model */
   virtual void processBuildModel( TheoryModel* m, bool fullModel );
 protected:
@@ -86,6 +88,9 @@ protected:
   std::map< Node, bool > d_quant_basis_match_added;
   //map from quantifiers to model basis match
   std::map< Node, InstMatch > d_quant_basis_match;
+protected:  //helper functions
+  /** term has constant definition */
+  bool hasConstantDefinition( Node n );
 public:
   ModelEngineBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~ModelEngineBuilder(){}
@@ -95,14 +100,15 @@ public:
   bool d_considerAxioms;
   // set effort
   void setEffort( int effort );
-protected:  //helper functions
-  /** term has constant definition */
-  bool hasConstantDefinition( Node n );
 public:
-  //options
+  //whether to construct model
   virtual bool optUseModel();
+  //whether to add inst-gen lemmas
   virtual bool optInstGen();
+  //whether to only consider only quantifier per round of inst-gen
   virtual bool optOneQuantPerRoundInstGen();
+  //whether we should exhaustively instantiate quantifiers where inst-gen is not working
+  virtual bool optExhInstNonInstGenQuant();
   /** statistics class */
   class Statistics {
   public:
@@ -120,6 +126,20 @@ public:
   bool isTermActive( Node n );
   // is term selected
   virtual bool isTermSelected( Node n ) { return false; }
+  /** exist instantiation ? */
+  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
+  /** quantifier has inst-gen definition */
+  virtual bool hasInstGen( Node f ) = 0;
+  /** did inst gen this round? */
+  bool didInstGen() { return d_didInstGen; }
+
+  //temporary stats
+  int d_numQuantSat;
+  int d_numQuantInstGen;
+  int d_numQuantNoInstGen;
+  int d_numQuantNoSelForm;
+  //temporary stat
+  int d_instGenMatches;
 };/* class ModelEngineBuilder */
 
 
@@ -149,17 +169,21 @@ public:
   ~ModelEngineBuilderDefault(){}
   //options
   bool optReconsiderFuncConstants() { return true; }
+  //has inst gen
+  bool hasInstGen( Node f ) { return !d_quant_selection_lit[f].isNull(); }
 };
 
 class ModelEngineBuilderInstGen : public ModelEngineBuilder
 {
 private:    ///information for (new) InstGen
-  //map from quantifiers to their selection literals
+  //map from quantifiers to their selection formulas
   std::map< Node, Node > d_quant_selection_formula;
   //map of terms that are selected
   std::map< Node, bool > d_term_selected;
-  //a collection of InstMatch structures produced for each quantifier
+  //a collection of (complete) InstMatch structures produced for each root quantifier
   std::map< Node, inst::InstMatchTrie > d_sub_quant_inst_trie;
+  //a collection of InstMatch structures, representing the children for each quantifier
+  std::map< Node, inst::InstMatchTrie > d_child_sub_quant_inst_trie;
   //children quantifiers for each quantifier, each is an instance
   std::map< Node, std::vector< Node > > d_sub_quants;
   //instances of each partial instantiation with respect to the root
@@ -188,11 +212,17 @@ private:
   bool isUsableSelectionLiteral( Node n, int useOption );
   //get parent quantifier match
   void getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f );
+  //get parent quantifier
+  Node getParentQuantifier( Node f ) { return d_sub_quant_parent.find( f )==d_sub_quant_parent.end() ? f : d_sub_quant_parent[f]; }
 public:
   ModelEngineBuilderInstGen( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
   ~ModelEngineBuilderInstGen(){}
   // is term selected
   bool isTermSelected( Node n ) { return d_term_selected.find( n )!=d_term_selected.end(); }
+  /** exist instantiation ? */
+  bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
+  //has inst gen
+  bool hasInstGen( Node f ) { return !d_quant_selection_formula[f].isNull(); }
 };
 
 }/* CVC4::theory::quantifiers namespace */

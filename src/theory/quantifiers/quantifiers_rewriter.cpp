@@ -280,7 +280,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
-  //Notice() << "Compute var elimination for " << f << std::endl;
+  Trace("var-elim-quant") << "Compute var elimination for " << body << std::endl;
   QuantPhaseReq qpr( body );
   std::vector< Node > vars;
   std::vector< Node > subs;
@@ -309,13 +309,14 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     }
   }
   if( !vars.empty() ){
-    //Notice() << "VE " << vars.size() << "/" << n[0].getNumChildren() << std::endl;
+    Trace("var-elim-quant") << "VE " << vars.size() << "/" << args.size() << std::endl;
     //remake with eliminated nodes
     body = body.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     body = Rewriter::rewrite( body );
     if( !ipl.isNull() ){
       ipl = ipl.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     }
+    Trace("var-elim-quant") << "Return " << body << std::endl;
   }
   return body;
 }
@@ -524,46 +525,52 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
 
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
-  std::vector< Node > args;
-  for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-    args.push_back( f[0][i] );
-  }
-  NodeBuilder<> defs(kind::AND);
-  Node n = f[1];
-  Node ipl;
-  if( f.getNumChildren()==3 ){
-    ipl = f[2];
-  }
-  if( computeOption==COMPUTE_NNF ){
-    n = computeNNF( n );
-  }else if( computeOption==COMPUTE_PRENEX || computeOption==COMPUTE_PRE_SKOLEM ){
-    n = computePrenex( n, args, true, computeOption==COMPUTE_PRENEX );
-  }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    Node prev;
-    do{
-      prev = n;
-      n = computeVarElimination( n, args, ipl );
-    }while( prev!=n && !args.empty() );
-  }else if( computeOption==COMPUTE_CNF ){
-    //n = computeNNF( n );
-    n = computeCNF( n, args, defs, false );
-    ipl = Node::null();
-  }
-  if( f[1]==n && args.size()==f[0].getNumChildren() ){
-    return f;
-  }else{
-    if( args.empty() ){
-      defs << n;
-    }else{
-      std::vector< Node > children;
-      children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
-      children.push_back( n );
-      if( !ipl.isNull() ){
-        children.push_back( ipl );
-      }
-      defs << NodeManager::currentNM()->mkNode(kind::FORALL, children );
+  if( f.getKind()==FORALL ){
+    Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << std::endl;
+    std::vector< Node > args;
+    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
+      args.push_back( f[0][i] );
     }
-    return defs.getNumChildren()==1 ? defs.getChild( 0 ) : defs.constructNode();
+    NodeBuilder<> defs(kind::AND);
+    Node n = f[1];
+    Node ipl;
+    if( f.getNumChildren()==3 ){
+      ipl = f[2];
+    }
+    if( computeOption==COMPUTE_NNF ){
+      n = computeNNF( n );
+    }else if( computeOption==COMPUTE_PRENEX || computeOption==COMPUTE_PRE_SKOLEM ){
+      n = computePrenex( n, args, true, computeOption==COMPUTE_PRENEX );
+    }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
+      Node prev;
+      do{
+        prev = n;
+        n = computeVarElimination( n, args, ipl );
+      }while( prev!=n && !args.empty() );
+    }else if( computeOption==COMPUTE_CNF ){
+      //n = computeNNF( n );
+      n = computeCNF( n, args, defs, false );
+      ipl = Node::null();
+    }
+    Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
+    if( f[1]==n && args.size()==f[0].getNumChildren() ){
+      return f;
+    }else{
+      if( args.empty() ){
+        defs << n;
+      }else{
+        std::vector< Node > children;
+        children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args ) );
+        children.push_back( n );
+        if( !ipl.isNull() ){
+          children.push_back( ipl );
+        }
+        defs << NodeManager::currentNM()->mkNode(kind::FORALL, children );
+      }
+      return defs.getNumChildren()==1 ? defs.getChild( 0 ) : defs.constructNode();
+    }
+  }else{
+    return f;
   }
 }
 

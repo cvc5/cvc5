@@ -298,7 +298,16 @@ Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
 }
 
 bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
-  return d_inst_match_trie[f].existsInstMatch( this, f, m, modEq, modInst );
+  if( d_inst_match_trie.find( f )!=d_inst_match_trie.end() ){
+    if( d_inst_match_trie[f].existsInstMatch( this, f, m, modEq, modInst ) ){
+      return true;
+    }
+  }
+  //also check model engine (it may contain instantiations internally)
+  if( d_model_engine->getModelBuilder()->existsInstantiation( f, m, modEq, modInst ) ){
+    return true;
+  }
+  return false;
 }
 
 bool QuantifiersEngine::addLemma( Node lem ){
