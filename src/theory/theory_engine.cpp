@@ -563,7 +563,11 @@ void TheoryEngine::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
     TNode var = *it;
     hasValue = d_propEngine->hasValue(var, value);
     // TODO: Assert that hasValue is true?
-    m->assertPredicate(var, hasValue ? value : false);
+    if (!hasValue) {
+      value = false;
+    }
+    Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
+    m->assertPredicate(var, value);
   }
 }
 

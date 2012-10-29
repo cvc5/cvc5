@@ -226,8 +226,8 @@ void TheoryModel::assertEquality( Node a, Node b, bool polarity ){
   if (a == b && polarity) {
     return;
   }
-  d_equalityEngine.assertEquality( a.eqNode(b), polarity, Node::null() );
   Trace("model-builder-assertions") << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b << (polarity ? "));" : ")));") << endl;
+  d_equalityEngine.assertEquality( a.eqNode(b), polarity, Node::null() );
   Assert(d_equalityEngine.consistent());
 }
 
@@ -240,8 +240,8 @@ void TheoryModel::assertPredicate( Node a, bool polarity ){
   if( a.getKind()==EQUAL ){
     d_equalityEngine.assertEquality( a, polarity, Node::null() );
   }else{
-    d_equalityEngine.assertPredicate( a, polarity, Node::null() );
     Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
+    d_equalityEngine.assertPredicate( a, polarity, Node::null() );
     Assert(d_equalityEngine.consistent());
   }
 }
@@ -269,7 +269,7 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
           assertPredicate(*eqc_i, false);
         }
         else if (eqc != (*eqc_i)) {
-          Trace("model-builder-assertions") << "(assert (iff " << *eqc_i << " " << eqc << "));" << endl;
+          Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << eqc << "));" << endl;
           d_equalityEngine.mergePredicates(*eqc_i, eqc, Node::null());
           Assert(d_equalityEngine.consistent());
         }
@@ -451,9 +451,6 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
         TypeNode t = TypeSet::getType(it);
         Trace("model-builder") << "  Working on type: " << t << endl;
-        // This assertion may be too strong, but hopefully not: we expect that for every type, either all of its EC's have asserted reps (or constants)
-        // or none of its EC's have asserted reps.
-        Assert(!fullModel || typeRepSet.getSet(t) == NULL);
         set<Node>& noRepSet = TypeSet::getSet(it);
         if (noRepSet.empty()) {
           continue;
