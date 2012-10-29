@@ -836,7 +836,7 @@ void SmtEngine::setLogicInternal() throw() {
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    if( d_logic.isQuantified() || options::produceModels() ){
+    if( d_logic.isQuantified() || options::produceModels() || options::checkModels() ){
       options::minisatUseElim.set( false );
     }
   }
