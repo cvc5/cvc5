@@ -33,6 +33,8 @@ SMT_TESTS = \
 	pb_real_10_0200_10_29.smt \
 	incorrect2.smt \
 	incorrect1.smt \
+	incorrect1.delta01.smt \
+	incorrect1.delta02.smt 
 	error1.smt
 
 # Regression tests for SMT2 inputs
