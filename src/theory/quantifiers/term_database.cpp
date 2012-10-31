@@ -144,7 +144,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
            computeModelBasisArgAttribute( n );
            if( !n.getAttribute(NoMatchAttribute()) ){
              if( !d_func_map_trie[ it->first ].addTerm( d_quantEngine, n ) ){
-               //only set no match if not a model basis argument term
                NoMatchAttribute nma;
                n.setAttribute(nma,true);
                congruentCount++;
@@ -171,7 +170,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
          if( !en.getAttribute(NoMatchAttribute()) ){
            Node op = en.getOperator();
            if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
-             //only set no match if not a model basis argument term
              NoMatchAttribute nma;
              en.setAttribute(nma,true);
              congruentCount++;

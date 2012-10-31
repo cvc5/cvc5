@@ -34,25 +34,6 @@ class InstantiatorTheoryUf;
 
 //instantiation strategies
 
-class InstStrategyCheckCESolved : public InstStrategy{
-private:
-  /** InstantiatorTheoryUf class */
-  InstantiatorTheoryUf* d_th;
-  /** is solved? */
-  std::map< Node, bool > d_solved;
-  /** calc if f is solved */
-  void calcSolved( Node f );
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
-public:
-  InstStrategyCheckCESolved( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
-      InstStrategy( ie ), d_th( th ){}
-  ~InstStrategyCheckCESolved(){}
-  /** identify */
-  std::string identify() const { return std::string("CheckCESolved"); }
-};/* class InstStrategyCheckCESolved */
-
 class InstStrategyUserPatterns : public InstStrategy{
 private:
   /** InstantiatorTheoryUf class */

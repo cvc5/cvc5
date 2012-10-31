@@ -78,6 +78,10 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_eq_query;
 }
 
+EqualityQuery* QuantifiersEngine::getEqualityQuery() {
+  return d_eq_query;
+}
+
 Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
   return d_te->theoryOf( id )->getInstantiator();
 }
@@ -96,32 +100,39 @@ Valuation& QuantifiersEngine::getValuation(){
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
-  if( e>=Theory::EFFORT_FULL ){
-    Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
-  }
-
-  d_hasAddedLemma = false;
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //if effort is last call, try to minimize model first
-    if( options::finiteModelFind() ){
-      //first, check if we can minimize the model further
-      if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
-        return;
-      }
-    }
-    ++(d_statistics.d_instantiation_rounds_lc);
-  }else if( e==Theory::EFFORT_FULL ){
-    ++(d_statistics.d_instantiation_rounds);
-  }
+  bool needsCheck = e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
   for( int i=0; i<(int)d_modules.size(); i++ ){
-    d_modules[i]->check( e );
+    if( d_modules[i]->needsCheck( e ) ){
+      needsCheck = true;
+    }
   }
-  //build the model if not done so already
-  //  this happens if no quantifiers are currently asserted and no model-building module is enabled
-  if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model->isModelSet() ){
-    d_te->getModelBuilder()->buildModel( d_model, true );
-  }
-  if( e>=Theory::EFFORT_FULL ){
+  if( needsCheck ){
+    Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
+    //reset relevant information
+    d_hasAddedLemma = false;
+    d_term_db->reset( e );
+    d_eq_query->reset();
+    if( e==Theory::EFFORT_LAST_CALL ){
+      //if effort is last call, try to minimize model first
+      if( options::finiteModelFind() ){
+        //first, check if we can minimize the model further
+        if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
+          return;
+        }
+      }
+      ++(d_statistics.d_instantiation_rounds_lc);
+    }else if( e==Theory::EFFORT_FULL ){
+      ++(d_statistics.d_instantiation_rounds);
+    }
+    for( int i=0; i<(int)d_modules.size(); i++ ){
+      d_modules[i]->check( e );
+    }
+    //build the model if not done so already
+    //  this happens if no quantifiers are currently asserted and no model-building module is enabled
+    if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model->isModelSet() ){
+      d_te->getModelBuilder()->buildModel( d_model, true );
+    }
+
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }
 }
@@ -181,15 +192,6 @@ Node QuantifiersEngine::getNextDecisionRequest(){
     }
   }
   return Node::null();
-}
-
-void QuantifiersEngine::resetInstantiationRound( Theory::Effort level ){
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( getInstantiator( i ) ){
-      getInstantiator( i )->resetInstantiationRound( level );
-    }
-  }
-  getTermDatabase()->reset( level );
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
@@ -326,13 +328,24 @@ bool QuantifiersEngine::addLemma( Node lem ){
 }
 
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool modInst, bool mkRep ){
-  //make sure there are values for each variable we are instantiating
-  m.makeComplete( f, this );
-  //make it representative, this is helpful for recognizing duplication
-  if( mkRep ){
-    m.makeRepresentative( this );
-  }
   Trace("inst-add") << "Add instantiation: " << m << std::endl;
+  //make sure there are values for each variable we are instantiating
+  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+    Node ic = d_term_db->getInstantiationConstant( f, i );
+    Node val = m.getValue( ic );
+    if( val.isNull() ){
+      val = d_term_db->getFreeVariableForInstConstant( ic );
+      Trace("inst-add-debug") << "mkComplete " << val << std::endl;
+      m.set( ic, val );
+    }
+    //make it representative, this is helpful for recognizing duplication
+    if( mkRep ){
+      //pick the best possible representative for instantiation, based on past use and simplicity of term
+      Node r = d_eq_query->getInternalRepresentative( val );
+      Trace("inst-add-debug") << "mkRep " << r << " " << val << std::endl;
+      m.set( ic, r );
+    }
+  }
   //check for duplication modulo equality
   if( !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst ) ){
     Trace("inst-add") << " -> Already exists." << std::endl;
@@ -552,6 +565,10 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_miss);
 }
 
+void EqualityQueryQuantifiersEngine::reset(){
+  d_int_rep.clear();
+  d_reset_count++;
+}
 
 bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
   eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
@@ -624,15 +641,40 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
-  //for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-  //  if( d_qe->getInstantiator( i ) ){
-  //    if( d_qe->getInstantiator( i )->hasTerm( a ) ){
-  //      return d_qe->getInstantiator( i )->getInternalRepresentative( a );
-  //    }
-  //  }
-  //}
-  //return a;
-  return d_qe->getInstantiator( THEORY_UF )->getInternalRepresentative( a );
+  if( !options::internalReps() ){
+    return d_qe->getInstantiator( THEORY_UF )->getRepresentative( a );
+  }else{
+    Node r = d_qe->getInstantiator( THEORY_UF )->getRepresentative( a );
+    if( d_int_rep.find( r )==d_int_rep.end() ){
+      std::vector< Node > eqc;
+      getEquivalenceClass( r, eqc );
+      //find best selection for representative
+      Node r_best = r;
+      int r_best_score = getRepScore( r );
+      for( size_t i=0; i<eqc.size(); i++ ){
+        int score = getRepScore( eqc[i] );
+        //score prefers earliest use of this term as a representative
+        if( score>=0 && ( r_best_score<0 || score<r_best_score ) ){
+          r_best = eqc[i];
+          r_best_score = score;
+        }
+      }
+      //now, make sure that no other member of the class is an instance
+      r_best = getInstance( r_best, eqc );
+      //store that this representative was chosen at this point
+      if( d_rep_score.find( r_best )==d_rep_score.end() ){
+        d_rep_score[ r_best ] = d_reset_count;
+      }
+      d_int_rep[r] = r_best;
+      if( r_best!=a ){
+        Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
+        Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
+      }
+      return r_best;
+    }else{
+      return d_int_rep[r];
+    }
+  }
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
@@ -657,4 +699,26 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
   if( eqc.empty() ){
     eqc.push_back( a );
   }
+  //a should be in its equivalence class
+  Assert( std::find( eqc.begin(), eqc.end(), a )!=eqc.end() );
+}
+
+//helper functions
+
+Node EqualityQueryQuantifiersEngine::getInstance( Node n, std::vector< Node >& eqc ){
+  for( size_t i=0; i<n.getNumChildren(); i++ ){
+    Node nn = getInstance( n[i], eqc );
+    if( !nn.isNull() ){
+      return nn;
+    }
+  }
+  if( std::find( eqc.begin(), eqc.end(), n )!=eqc.end() ){
+    return n;
+  }else{
+    return Node::null();
+  }
+}
+
+int EqualityQueryQuantifiersEngine::getRepScore( Node n ){
+  return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
 }

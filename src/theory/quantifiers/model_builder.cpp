@@ -33,20 +33,20 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-bool TermArgBasisTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
+bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
   if( argIndex<(int)n.getNumChildren() ){
     Node r;
     if( n[ argIndex ].getAttribute(ModelBasisAttribute()) ){
       r = n[ argIndex ];
     }else{
-      r = qe->getEqualityQuery()->getRepresentative( n[ argIndex ] );
+      r = fm->getRepresentative( n[ argIndex ] );
     }
     std::map< Node, TermArgBasisTrie >::iterator it = d_data.find( r );
     if( it==d_data.end() ){
-      d_data[r].addTerm2( qe, n, argIndex+1 );
+      d_data[r].addTerm2( fm, n, argIndex+1 );
       return true;
     }else{
-      return it->second.addTerm2( qe, n, argIndex+1 );
+      return it->second.addTerm2( fm, n, argIndex+1 );
     }
   }else{
     return false;
@@ -99,6 +99,7 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
         }
       }
     }
+    //END FOR DEBUGGING
   }else{
     d_curr_model = fm;
     d_addedLemmas = 0;
@@ -162,6 +163,8 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
               if( optOneQuantPerRoundInstGen() && addedLemmas>0 ){
                 break;
               }
+            }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
+              d_numQuantSat++;
             }
           }
           Trace("model-engine-debug") << "Quantifiers sat/ig/n-ig/null " << d_numQuantSat << " / " << d_numQuantInstGen << " / ";
@@ -267,7 +270,7 @@ void ModelEngineBuilder::analyzeModel( FirstOrderModel* fm ){
       if( !n.getAttribute(NoMatchAttribute()) || n.getAttribute(ModelBasisArgAttribute())==1 ){
         if( !n.getAttribute(BasisNoMatchAttribute()) ){
           //need to consider if it is not congruent modulo model basis
-          if( !tabt.addTerm( d_qe, n ) ){
+          if( !tabt.addTerm( fm, n ) ){
              BasisNoMatchAttribute bnma;
              n.setAttribute(bnma,true);
           }
@@ -311,7 +314,7 @@ bool ModelEngineBuilder::optOneQuantPerRoundInstGen(){
 }
 
 bool ModelEngineBuilder::optExhInstNonInstGenQuant(){
-  return true;
+  return options::fmfNewInstGen();
 }
 
 void ModelEngineBuilder::setEffort( int effort ){

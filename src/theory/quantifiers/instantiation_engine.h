@@ -34,6 +34,7 @@ private:
   bool d_setIncomplete;
   /** inst round counter */
   int d_ierCounter;
+  bool d_performCheck;
   /** whether each quantifier is active */
   std::map< Node, bool > d_quant_active;
   /** whether we have added cbqi lemma */
@@ -62,6 +63,7 @@ public:
   InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete = true );
   ~InstantiationEngine(){}
 
+  bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e );
   void registerQuantifier( Node f );
   void assertNode( Node f );

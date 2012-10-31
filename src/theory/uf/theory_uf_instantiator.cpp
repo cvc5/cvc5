@@ -38,9 +38,9 @@ InstantiatorTheoryUf::InstantiatorTheoryUf(context::Context* c, CVC4::theory::Qu
 Instantiator( c, qe, th )
 {
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    if( options::cbqi() ){
-      addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
-    }
+    //if( options::cbqi() ){
+    //  addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
+    //}
     if( options::userPatternsQuant() ){
       d_isup = new InstStrategyUserPatterns( this, qe );
       addInstStrategy( d_isup );
@@ -88,7 +88,7 @@ void InstantiatorTheoryUf::addUserPattern( Node f, Node pat ){
 
 
 void InstantiatorTheoryUf::processResetInstantiationRound( Theory::Effort effort ){
-  d_ground_reps.clear();
+  //d_ground_reps.clear();
 }
 
 int InstantiatorTheoryUf::process( Node f, Theory::Effort effort, int e ){
@@ -132,7 +132,7 @@ Node InstantiatorTheoryUf::getRepresentative( Node a ){
     return a;
   }
 }
-
+/*
 Node InstantiatorTheoryUf::getInternalRepresentative( Node a ){
   if( d_ground_reps.find( a )==d_ground_reps.end() ){
     if( !hasTerm( a ) ){
@@ -160,7 +160,7 @@ Node InstantiatorTheoryUf::getInternalRepresentative( Node a ){
   }
   return d_ground_reps[a];
 }
-
+*/
 eq::EqualityEngine* InstantiatorTheoryUf::getEqualityEngine(){
   return &((TheoryUF*)d_th)->d_equalityEngine;
 }

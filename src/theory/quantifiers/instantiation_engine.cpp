@@ -28,7 +28,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ){
+QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
 
 }
 
@@ -67,7 +67,12 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   Debug("inst-engine-ctrl") << "IE: Instantiation Round." << std::endl;
   //reset the quantifiers engine
   Debug("inst-engine-ctrl") << "Reset IE" << std::endl;
-  d_quantEngine->resetInstantiationRound( effort );
+  //reset the instantiators
+  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
+    if( d_quantEngine->getInstantiator( i ) ){
+      d_quantEngine->getInstantiator( i )->resetInstantiationRound( effort );
+    }
+  }
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -125,22 +130,26 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   }
 }
 
-void InstantiationEngine::check( Theory::Effort e ){
+bool InstantiationEngine::needsCheck( Theory::Effort e ){
   if( e==Theory::EFFORT_FULL ){
     d_ierCounter++;
   }
   //determine if we should perform check, based on instWhenMode
-  bool performCheck = false;
+  d_performCheck = false;
   if( options::instWhenMode()==INST_WHEN_FULL ){
-    performCheck = ( e >= Theory::EFFORT_FULL );
+    d_performCheck = ( e >= Theory::EFFORT_FULL );
   }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
-    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    d_performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
-    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
+    d_performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{
-    performCheck = true;
+    d_performCheck = true;
   }
-  if( performCheck ){
+  return d_performCheck;
+}
+
+void InstantiationEngine::check( Theory::Effort e ){
+  if( d_performCheck ){
     Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){

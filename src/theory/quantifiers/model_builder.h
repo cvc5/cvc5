@@ -23,6 +23,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 
 /** Attribute true for nodes that should not be used when considered for inst-gen basis */
 struct BasisNoMatchAttributeId {};
@@ -35,16 +36,13 @@ typedef expr::Attribute< BasisNoMatchAttributeId,
 
 class TermArgBasisTrie {
 private:
-  bool addTerm2( QuantifiersEngine* qe, Node n, int argIndex );
+  bool addTerm2( FirstOrderModel* fm, Node n, int argIndex );
 public:
   /** the data */
   std::map< Node, TermArgBasisTrie > d_data;
 public:
-  bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
+  bool addTerm( FirstOrderModel* fm, Node n ) { return addTerm2( fm, n, 0 ); }
 };/* class TermArgBasisTrie */
-
-
-namespace quantifiers {
 
 /** model builder class
   *  This class is capable of building candidate models based on the current quantified formulas

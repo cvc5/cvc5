@@ -52,21 +52,19 @@ void ModelEngine::check( Theory::Effort e ){
     FirstOrderModel* fm = d_quantEngine->getModel();
     //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
     int addedLemmas = 0;
-    Trace("model-engine") << "---Model Engine Round---" << std::endl;
+    //quantifiers are initialized, we begin an instantiation round
+    double clSet = 0;
+    if( Trace.isOn("model-engine") ){
+      clSet = double(clock())/double(CLOCKS_PER_SEC);
+    }
+    ++(d_statistics.d_inst_rounds);
     //two effort levels: first try exhaustive instantiation without axioms, then with.
     int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
     for( int effort=startEffort; effort<2; effort++ ){
       // for effort = 0, we only instantiate non-axioms
       // for effort = 1, we instantiate everything
       if( addedLemmas==0 ){
-        //quantifiers are initialized, we begin an instantiation round
-        double clSet = 0;
-        if( Trace.isOn("model-engine") ){
-          clSet = double(clock())/double(CLOCKS_PER_SEC);
-        }
-        ++(d_statistics.d_inst_rounds);
-        //reset the quantifiers engine
-        d_quantEngine->resetInstantiationRound( e );
+        Trace("model-engine") << "---Model Engine Round---" << std::endl;
         //initialize the model
         Trace("model-engine-debug") << "Build model..." << std::endl;
         d_builder->setEffort( effort );
@@ -91,10 +89,6 @@ void ModelEngine::check( Theory::Effort e ){
           //check quantifiers that inst-gen didn't apply to
           addedLemmas += checkModel( check_model_no_inst_gen );
         }
-        if( Trace.isOn("model-engine") ){
-          double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-          Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
-        }
       }
       if( addedLemmas==0 ){
         //if we have not added lemmas yet and axiomInstMode=trust, then we are done
@@ -106,6 +100,10 @@ void ModelEngine::check( Theory::Effort e ){
           break;
         }
       }
+    }
+    if( Trace.isOn("model-engine") ){
+      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
     }
     if( addedLemmas==0 ){
       Trace("model-engine-debug") << "No lemmas added, incomplete = " << d_incomplete_check << std::endl;
@@ -155,6 +153,19 @@ bool ModelEngine::optExhInstEvalSkipMultiple(){
 #endif
 }
 
+bool containsNN( Node n, Node nc ){
+  if( n==nc ){
+    return true;
+  }else{
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      if( containsNN( n[i], nc ) ){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 int ModelEngine::checkModel( int checkOption ){
   int addedLemmas = 0;
   FirstOrderModel* fm = d_quantEngine->getModel();
@@ -169,6 +180,17 @@ int ModelEngine::checkModel( int checkOption ){
           Trace("model-engine-debug") << it->second[i] << "  ";
         }
         Trace("model-engine-debug") << std::endl;
+        for( size_t i=0; i<it->second.size(); i++ ){
+          std::vector< Node > eqc;
+          d_quantEngine->getEqualityQuery()->getEquivalenceClass( it->second[i], eqc );
+          Trace("model-engine-debug-eqc") << "      " << it->second[i] << " : { ";
+          for( size_t j=0; j<eqc.size(); j++ ){
+            if( it->second[i]!=eqc[j] && containsNN( it->second[i], eqc[j] ) ){
+              Trace("model-engine-debug-eqc") << eqc[j] << " ";
+            }
+          }
+          Trace("model-engine-debug-eqc") << "}" << std::endl;
+        }
       }
     }
   }

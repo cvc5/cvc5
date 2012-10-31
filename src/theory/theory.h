@@ -789,7 +789,7 @@ public:
 
   /**
    * This is a utility function for constructing a copy of the currently shared terms
-   * in a queriable form.  As this is 
+   * in a queriable form.  As this is
    */
   std::hash_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
 };/* class Theory */
@@ -893,7 +893,6 @@ public:
   virtual bool areEqual( Node a, Node b ) { return false; }
   virtual bool areDisequal( Node a, Node b ) { return false; }
   virtual Node getRepresentative( Node a ) { return a; }
-  virtual Node getInternalRepresentative( Node a ) { return getRepresentative( a ); }
   virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) {}
 public:

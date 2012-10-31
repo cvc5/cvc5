@@ -45,7 +45,9 @@ public:
   virtual ~QuantifiersModule(){}
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /* Call during check registerQuantifier has already been called */
+  /* whether this module needs to check this round */
+  virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
+  /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
   virtual void registerQuantifier( Node n ) = 0;
@@ -67,6 +69,7 @@ namespace inst {
 }/* CVC4::theory::inst */
 
 class EfficientEMatcher;
+class EqualityQueryQuantifiersEngine;
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
@@ -83,7 +86,7 @@ private:
   /** model engine */
   quantifiers::ModelEngine* d_model_engine;
   /** equality query class */
-  EqualityQuery* d_eq_query;
+  EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
   QuantRelevance d_quant_rel;
   /** phase requirements for each quantifier for each instantiation literal */
@@ -118,7 +121,7 @@ public:
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object for the given type. The default is the
       generic one */
-  EqualityQuery* getEqualityQuery() { return d_eq_query; }
+  EqualityQuery* getEqualityQuery();
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
@@ -150,8 +153,6 @@ public:
   void propagate( Theory::Effort level );
   /** get next decision request */
   Node getNextDecisionRequest();
-  /** reset instantiation round */
-  void resetInstantiationRound( Theory::Effort level );
 private:
   /** compute term vector */
   void computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms );
@@ -244,17 +245,34 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
 private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
+  /** internal representatives */
+  std::map< Node, Node > d_int_rep;
+  /** rep score */
+  std::map< Node, int > d_rep_score;
+  /** reset count */
+  int d_reset_count;
+private:
+  /** node contains */
+  Node getInstance( Node n, std::vector< Node >& eqc );
+  /** get score */
+  int getRepScore( Node n );
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ){}
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
   ~EqualityQueryQuantifiersEngine(){}
+  /** reset */
+  void reset();
   /** general queries about equality */
   bool hasTerm( Node a );
   Node getRepresentative( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
-  Node getInternalRepresentative( Node a );
   eq::EqualityEngine* getEngine();
   void getEquivalenceClass( Node a, std::vector< Node >& eqc );
+  /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
+      If cbqi is active, this will return a term in the equivalence class of "a" that does
+      not contain instantiation constants, if such a term exists.
+   */
+  Node getInternalRepresentative( Node a );
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

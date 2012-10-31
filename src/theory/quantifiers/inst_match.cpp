@@ -91,7 +91,7 @@ void InstMatch::debugPrint( const char* c ){
   //  Debug( c ) << std::endl;
   //}
 }
-
+/*
 void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
@@ -113,13 +113,15 @@ void InstMatch::makeInternal( QuantifiersEngine* qe ){
     }
   }
 }
-
+*/
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
   for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-    d_map[ it->first ] = qe->getEqualityQuery()->getInternalRepresentative( it->second );
-    if( options::cbqi() && it->second.hasAttribute(InstConstantAttribute()) ){
-      d_map[ it->first ] = qe->getTermDatabase()->getFreeVariableForInstConstant( it->first );
+    if( qe->getEqualityQuery()->getEngine()->hasTerm( it->second ) ){
+      d_map[ it->first ] = qe->getEqualityQuery()->getEngine()->getRepresentative( it->second );
     }
+    //if( options::cbqi() && it->second.hasAttribute(InstConstantAttribute()) ){
+    //  d_map[ it->first ] = qe->getTermDatabase()->getFreeVariableForInstConstant( it->first );
+    //}
   }
 }
 

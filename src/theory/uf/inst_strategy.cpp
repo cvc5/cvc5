@@ -48,48 +48,6 @@ struct sortQuantifiersForSymbol {
   }
 };
 
-
-void InstStrategyCheckCESolved::processResetInstantiationRound( Theory::Effort effort ){
-  for( std::map< Node, bool >::iterator it = d_solved.begin(); it != d_solved.end(); ++it ){
-    calcSolved( it->first );
-  }
-}
-
-int InstStrategyCheckCESolved::process( Node f, Theory::Effort effort, int e ){
-  if( e==0 ){
-    //calc solved if not done so already
-    if( d_solved.find( f )==d_solved.end() ){
-      calcSolved( f );
-    }
-    //check if f is counterexample-solved
-    Debug("quant-uf-strategy") << "Try CE-solved.." << std::endl;
-    if( d_solved[ f ] ){
-      if( d_quantEngine->addInstantiation( f, d_th->d_baseMatch[f] ) ){
-        ++(d_th->d_statistics.d_instantiations_ce_solved);
-        //d_quantEngine->d_hasInstantiated[f] = true;
-      }
-      d_solved[f] = false;
-    }
-    Debug("quant-uf-strategy") << "done." << std::endl;
-  }
-  return STATUS_UNKNOWN;
-}
-
-void InstStrategyCheckCESolved::calcSolved( Node f ){
-  d_th->d_baseMatch[f].clear();
-  d_solved[ f ]= true;
-  //check if instantiation constants are solved for
-  for( int j = 0; j<d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
-    Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
-    Node rep = d_th->getInternalRepresentative( i );
-    if( !rep.hasAttribute(InstConstantAttribute()) ){
-      d_th->d_baseMatch[f].set(i,rep);
-    }else{
-      d_solved[ f ] = false;
-    }
-  }
-}
-
 void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers
   for( std::map< Node, std::vector< Trigger* > >::iterator it = d_user_gen.begin(); it != d_user_gen.end(); ++it ){

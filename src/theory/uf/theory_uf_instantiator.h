@@ -48,7 +48,7 @@ protected:
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeLists;
   /** map to representatives used */
-  std::map< Node, Node > d_ground_reps;
+  //std::map< Node, Node > d_ground_reps;
 protected:
   /** instantiation strategies */
   InstStrategyUserPatterns* d_isup;
@@ -132,7 +132,6 @@ public:
   Node getRepresentative( Node a ) { return d_ith->getRepresentative( a ); }
   bool areEqual( Node a, Node b ) { return d_ith->areEqual( a, b ); }
   bool areDisequal( Node a, Node b ) { return d_ith->areDisequal( a, b ); }
-  Node getInternalRepresentative( Node a ) { return d_ith->getInternalRepresentative( a ); }
   eq::EqualityEngine* getEngine() { return d_ith->getEqualityEngine(); }
   void getEquivalenceClass( Node a, std::vector< Node >& eqc ) { d_ith->getEquivalenceClass( a, eqc ); }
 }; /* EqualityQueryInstantiatorTheoryUf */

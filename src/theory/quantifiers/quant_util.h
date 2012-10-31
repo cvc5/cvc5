@@ -77,6 +77,8 @@ class EqualityQuery {
 public:
   EqualityQuery(){}
   virtual ~EqualityQuery(){};
+  /** reset */
+  virtual void reset() = 0;
   /** contains term */
   virtual bool hasTerm( Node a ) = 0;
   /** get the representative of the equivalence class of a */
@@ -85,11 +87,6 @@ public:
   virtual bool areEqual( Node a, Node b ) = 0;
   /** returns true is a and b are disequal in the current context */
   virtual bool areDisequal( Node a, Node b ) = 0;
-  /** getInternalRepresentative gets the current best representative in the equivalence class of a, based on some criteria.
-      If cbqi is active, this will return a term in the equivalence class of "a" that does
-      not contain instantiation constants, if such a term exists.
-   */
-  virtual Node getInternalRepresentative( Node a ) = 0;
   /** get the equality engine associated with this query */
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */

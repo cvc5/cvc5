@@ -61,8 +61,11 @@ option cbqi --enable-cbqi/--disable-cbqi bool :default false
 option userPatternsQuant /--ignore-user-patterns bool :default true
  ignore user-provided patterns for quantifier instantiation
 
-option flipDecision --enable-flip-decision/ bool :default false
+option flipDecision --flip-decision/ bool :default false
  turns on flip decision heuristic
+
+option internalReps --disable-quant-internal-reps/ bool :default true
+ disables instantiating with representatives chosen by quantifiers engine
 
 option finiteModelFind --finite-model-find bool :default false
  use finite model finding heuristic for quantifier instantiation
