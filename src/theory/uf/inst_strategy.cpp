@@ -322,34 +322,6 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
   }
 }
 
-#if 0
-
-void InstStrategyAddFailSplits::processResetInstantiationRound( Theory::Effort effort ){
-}
-
-int InstStrategyAddFailSplits::process( Node f, Theory::Effort effort, int e ){
-  if( e<4 ){
-    return STATUS_UNFINISHED;
-  }else{
-    for( std::map< Node, std::map< Node, std::vector< InstMatchGenerator* > > >::iterator it = InstMatchGenerator::d_match_fails.begin();
-         it != InstMatchGenerator::d_match_fails.end(); ++it ){
-      for( std::map< Node, std::vector< InstMatchGenerator* > >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        if( !it2->second.empty() ){
-          Node n1 = it->first;
-          Node n2 = it2->first;
-          if( !d_quantEngine->getEqualityQuery()->areEqual( n1, n2 ) && !d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 ) ){
-            d_quantEngine->addSplitEquality( n1, n2, true );
-          }
-          it2->second.clear();
-        }
-      }
-    }
-    return STATUS_UNKNOWN;
-  }
-}
-
-#endif /* 0 */
-
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
 }
 

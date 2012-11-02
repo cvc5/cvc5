@@ -719,6 +719,22 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, std::vector< Node >& e
   }
 }
 
+int getDepth( Node n ){
+  if( n.getNumChildren()==0 ){
+    return 0;
+  }else{
+    int maxDepth = -1;
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      int depth = getDepth( n[i] );
+      if( depth>maxDepth ){
+        maxDepth = depth;
+      }
+    }
+    return maxDepth;
+  }
+}
+
 int EqualityQueryQuantifiersEngine::getRepScore( Node n ){
-  return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+  return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];          //initial
+  //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }

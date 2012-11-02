@@ -59,6 +59,35 @@ d_qe( qe ), d_curr_model( c, NULL ){
   d_considerAxioms = true;
 }
 
+void ModelEngineBuilder::debugModel( FirstOrderModel* fm ){
+  //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
+  if( Trace.isOn("quant-model-warn") ){
+    for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+      Node f = fm->getAssertedQuantifier( i );
+      std::vector< Node > vars;
+      for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
+        vars.push_back( f[0][j] );
+      }
+      RepSetIterator riter( &(fm->d_rep_set) );
+      riter.setQuantifier( f );
+      while( !riter.isFinished() ){
+        std::vector< Node > terms;
+        for( int i=0; i<riter.getNumTerms(); i++ ){
+          terms.push_back( riter.getTerm( i ) );
+        }
+        Node n = d_qe->getInstantiation( f, vars, terms );
+        Node val = fm->getValue( n );
+        if( val!=fm->d_true ){
+          Trace("quant-model-warn") << "*******  Instantiation " << n << " for " << std::endl;
+          Trace("quant-model-warn") << "         " << f << std::endl;
+          Trace("quant-model-warn") << "         Evaluates to " << val << std::endl;
+        }
+        riter.increment();
+      }
+    }
+  }
+}
+
 void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* fm = (FirstOrderModel*)m;
   if( fullModel ){
@@ -73,33 +102,8 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
     TheoryEngineModelBuilder::processBuildModel( m, fullModel );
     //mark that the model has been set
     fm->markModelSet();
-    //FOR DEBUGGING
-    if( Trace.isOn("quant-model-warn") ){
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-        Node f = fm->getAssertedQuantifier( i );
-        std::vector< Node > vars;
-        for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-          vars.push_back( f[0][j] );
-        }
-        RepSetIterator riter( &(fm->d_rep_set) );
-        riter.setQuantifier( f );
-        while( !riter.isFinished() ){
-          std::vector< Node > terms;
-          for( int i=0; i<riter.getNumTerms(); i++ ){
-            terms.push_back( riter.getTerm( i ) );
-          }
-          Node n = d_qe->getInstantiation( f, vars, terms );
-          Node val = fm->getValue( n );
-          if( val!=fm->d_true ){
-            Trace("quant-model-warn") << "*******  Instantiation " << n << " for " << std::endl;
-            Trace("quant-model-warn") << "         " << f << std::endl;
-            Trace("quant-model-warn") << "         Evaluates to " << val << std::endl;
-          }
-          riter.increment();
-        }
-      }
-    }
-    //END FOR DEBUGGING
+    //debug the model
+    debugModel( fm );
   }else{
     d_curr_model = fm;
     d_addedLemmas = 0;
@@ -113,7 +117,9 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node f = fm->getAssertedQuantifier( i );
         if( isQuantifierActive( f ) ){
-          d_addedLemmas += initializeQuantifier( f, f );
+          int lems = initializeQuantifier( f, f );
+          d_statistics.d_init_inst_gen_lemmas += lems;
+          d_addedLemmas += lems;
         }
       }
       if( d_addedLemmas>0 ){
@@ -128,14 +134,14 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
         Trace("model-engine-debug") << "Analyzing quantifiers..." << std::endl;
         d_quant_sat.clear();
         d_uf_prefs.clear();
-
         for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
           Node f = fm->getAssertedQuantifier( i );
           if( isQuantifierActive( f ) ){
             analyzeQuantifier( fm, f );
           }
         }
-        //if applicable, find exceptions
+
+        //if applicable, find exceptions to model via inst-gen
         if( optInstGen() ){
           d_didInstGen = true;
           d_instGenMatches = 0;
@@ -148,10 +154,11 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
           for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
             Node f = fm->getAssertedQuantifier( i );
             if( isQuantifierActive( f ) ){
-              int addedLemmas = doInstGen( fm, f );
-              d_addedLemmas += addedLemmas;
+              int lems = doInstGen( fm, f );
+              d_statistics.d_inst_gen_lemmas += lems;
+              d_addedLemmas += lems;
               //temporary
-              if( addedLemmas>0 ){
+              if( lems>0 ){
                 d_numQuantInstGen++;
               }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
                 d_numQuantSat++;
@@ -160,7 +167,7 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
               }else{
                 d_numQuantNoSelForm++;
               }
-              if( optOneQuantPerRoundInstGen() && addedLemmas>0 ){
+              if( optOneQuantPerRoundInstGen() && lems>0 ){
                 break;
               }
             }else if( d_quant_sat.find( f )!=d_quant_sat.end() ){
@@ -208,7 +215,7 @@ int ModelEngineBuilder::initializeQuantifier( Node f, Node fp ){
   if( d_quant_basis_match_added.find( f )==d_quant_basis_match_added.end() ){
     //create the basis match if necessary
     if( d_quant_basis_match.find( f )==d_quant_basis_match.end() ){
-      Trace("inst-fmf-init") << "Initialize " << f << ", parent = " << fp << std::endl;
+      Trace("inst-fmf-init") << "Initialize " << f << std::endl;
       //add the model basis instantiation
       // This will help produce the necessary information for model completion.
       // We do this by extending distinguish ground assertions (those
@@ -236,7 +243,6 @@ int ModelEngineBuilder::initializeQuantifier( Node f, Node fp ){
       //add model basis instantiation
       if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
         d_quant_basis_match_added[f] = true;
-        ++(d_statistics.d_num_quants_init_success);
         return 1;
       }else{
         //shouldn't happen usually, but will occur if x != y is a required literal for f.
@@ -322,22 +328,22 @@ void ModelEngineBuilder::setEffort( int effort ){
 }
 
 ModelEngineBuilder::Statistics::Statistics():
-  d_pre_sat_quant("ModelEngineBuilder::Status_quant_pre_sat", 0),
-  d_pre_nsat_quant("ModelEngineBuilder::Status_quant_pre_non_sat", 0),
-  d_num_quants_init("ModelEngine::Num_Quants", 0 ),
-  d_num_quants_init_success("ModelEngine::Num_Quants_Inst_Gen_Success", 0 )
+  d_num_quants_init("ModelEngineBuilder::Number_Quantifiers", 0),
+  d_num_partial_quants_init("ModelEngineBuilder::Number_Partial_Quantifiers", 0),
+  d_init_inst_gen_lemmas("ModelEngineBuilder::Initialize_Inst_Gen_Lemmas", 0 ),
+  d_inst_gen_lemmas("ModelEngineBuilder::Inst_Gen_Lemmas", 0 )
 {
-  StatisticsRegistry::registerStat(&d_pre_sat_quant);
-  StatisticsRegistry::registerStat(&d_pre_nsat_quant);
   StatisticsRegistry::registerStat(&d_num_quants_init);
-  StatisticsRegistry::registerStat(&d_num_quants_init_success);
+  StatisticsRegistry::registerStat(&d_num_partial_quants_init);
+  StatisticsRegistry::registerStat(&d_init_inst_gen_lemmas);
+  StatisticsRegistry::registerStat(&d_inst_gen_lemmas);
 }
 
 ModelEngineBuilder::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_pre_sat_quant);
-  StatisticsRegistry::unregisterStat(&d_pre_nsat_quant);
   StatisticsRegistry::unregisterStat(&d_num_quants_init);
-  StatisticsRegistry::unregisterStat(&d_num_quants_init_success);
+  StatisticsRegistry::unregisterStat(&d_num_partial_quants_init);
+  StatisticsRegistry::unregisterStat(&d_init_inst_gen_lemmas);
+  StatisticsRegistry::unregisterStat(&d_inst_gen_lemmas);
 }
 
 bool ModelEngineBuilder::isQuantifierActive( Node f ){
@@ -470,9 +476,7 @@ void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f )
       d_uf_prefs[ selectionLitTerms[i].getOperator() ].d_reconsiderModel = false;
     }
     Debug("fmf-model-prefs") << std::endl;
-    ++(d_statistics.d_pre_sat_quant);
   }else{
-    ++(d_statistics.d_pre_nsat_quant);
     //note quantifier's value preferences to models
     for( int k=0; k<2; k++ ){
       for( int j=0; j<(int)pro_con[k].size(); j++ ){
@@ -604,12 +608,14 @@ void ModelEngineBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op )
 
 
 
-
+//////////////////////  Inst-Gen style Model Builder ///////////
 
 void ModelEngineBuilderInstGen::reset( FirstOrderModel* fm ){
   //for new inst gen
   d_quant_selection_formula.clear();
   d_term_selected.clear();
+
+  //d_sub_quant_inst_trie.clear();//*
 }
 
 int ModelEngineBuilderInstGen::initializeQuantifier( Node f, Node fp ){
@@ -621,6 +627,9 @@ int ModelEngineBuilderInstGen::initializeQuantifier( Node f, Node fp ){
 }
 
 void ModelEngineBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f ){
+  //Node fp = getParentQuantifier( f );//*
+  //bool quantRedundant = ( f!=fp && d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, d_sub_quant_inst[ f ], true ) );
+  //if( f==fp || d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, d_sub_quant_inst[ f ], true ) ){//*
   Trace("sel-form-debug") << "* Analyze " << f << std::endl;
   //determine selection formula, set terms in selection formula as being selected
   Node s = getSelectionFormula( d_qe->getTermDatabase()->getInstConstantBody( f ),
@@ -659,9 +668,7 @@ int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
     Trace("inst-gen") << "Do Inst-Gen for " << f << std::endl;
     if( fp!=f ) Trace("inst-gen") << "   ";
     Trace("inst-gen") << "Sel Form :      " << d_quant_selection_formula[f] << std::endl;
-    //we wish to add all known exceptions to our selection literal for f. this will help to refine our current model.
-    //This step is advantageous over exhaustive instantiation, since we are adding instantiations that involve model basis terms,
-    //  effectively acting as partial instantiations instead of pointwise instantiations.
+    //we wish to add all known exceptions to our selection formula for f. this will help to refine our current model.
     if( !d_quant_selection_formula[f].isNull() ){
       //first, try on sub quantifiers
       bool subQuantSat = true;
@@ -688,6 +695,7 @@ int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
           if( igp.getMatchValue( i )!=fm->d_true ){
             InstMatch m;
             igp.getMatch( d_qe->getEqualityQuery(), i, m );
+            //Trace("inst-gen-debug") << "Inst Gen : " << m << std::endl;
             //we only consider matches that are non-empty
             //  matches that are empty should trigger other instances that are non-empty
             if( !m.empty() ){
@@ -695,9 +703,12 @@ int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
               //translate to be in terms match in terms of fp
               InstMatch mp;
               getParentQuantifierMatch( mp, fp, m, f );
-
               //if this is a partial instantion
               if( !m.isComplete( f ) ){
+                //need to make it internal here
+                //Trace("mkInternal") << "Make internal representative " << mp << std::endl;
+                //mp.makeInternalRepresentative( d_qe );
+                //Trace("mkInternal") << "Got " << mp << std::endl;
                 //if the instantiation does not yet exist
                 if( d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, mp, true ) ){
                   //also add it to children
@@ -709,9 +720,11 @@ int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
                   d_sub_quants[ f ].push_back( pf );
                   d_sub_quant_inst[ pf ] = InstMatch( &mp );
                   d_sub_quant_parent[ pf ] = fp;
-                  //now make the match mp complete
+                  //now make mp a complete match
                   mp.add( d_quant_basis_match[ fp ] );
                   d_quant_basis_match[ pf ] = InstMatch( &mp );
+                  ++(d_statistics.d_num_quants_init);
+                  ++(d_statistics.d_num_partial_quants_init);
                   addedLemmas += initializeQuantifier( pf, fp );
                   Trace("inst-gen-pi") << "Done adding partial instantiation" << std::endl;
                   subQuantSat = false;
@@ -979,5 +992,5 @@ void ModelEngineBuilderInstGen::constructModelUf( FirstOrderModel* fm, Node op )
 }
 
 bool ModelEngineBuilderInstGen::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
-  return d_child_sub_quant_inst_trie[f].existsInstMatch( d_qe, f, m, modEq, modInst );
+  return d_child_sub_quant_inst_trie[f].existsInstMatch( d_qe, f, m, modEq, true );
 }

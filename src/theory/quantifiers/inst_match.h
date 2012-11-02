@@ -55,13 +55,13 @@ public:
   /** is complete? */
   bool isComplete( Node f ) { return d_map.size()==f[0].getNumChildren(); }
   /** make complete */
-  //void makeComplete( Node f, QuantifiersEngine* qe );
-  /** make internal: ensure that no term in d_map contains instantiation constants */
-  //void makeInternal( QuantifiersEngine* qe );
+  void makeComplete( Node f, QuantifiersEngine* qe );
+  /** make internal representative */
+  void makeInternalRepresentative( QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
   /** get value */
-  Node getValue( Node var );
+  Node getValue( Node var ) const;
   /** clear */
   void clear(){ d_map.clear(); }
   /** is_empty */

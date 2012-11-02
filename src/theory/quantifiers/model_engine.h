@@ -78,6 +78,7 @@ public:
     IntStat d_eval_uf_terms;
     IntStat d_eval_lits;
     IntStat d_eval_lits_unknown;
+    IntStat d_exh_inst_lemmas;
     Statistics();
     ~Statistics();
   };

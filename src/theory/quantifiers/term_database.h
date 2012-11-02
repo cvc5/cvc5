@@ -154,9 +154,9 @@ private:
   void makeInstantiationConstantsFor( Node f );
 public:
   /** get the i^th instantiation constant of f */
-  Node getInstantiationConstant( Node f, int i ) { return d_inst_constants[f][i]; }
+  Node getInstantiationConstant( Node f, int i ) const;
   /** get number of instantiation constants for f */
-  int getNumInstantiationConstants( Node f ) { return (int)d_inst_constants[f].size(); }
+  int getNumInstantiationConstants( Node f ) const;
   /** get the ce body f[e/x] */
   Node getInstConstantBody( Node f );
   /** get counterexample literal (for cbqi) */

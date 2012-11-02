@@ -54,9 +54,11 @@ bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m ){
 
 bool InstMatch::add( InstMatch& m ){
   for( std::map< Node, Node >::iterator it = m.d_map.begin(); it != m.d_map.end(); ++it ){
-    std::map< Node, Node >::iterator itf = d_map.find( it->first );
-    if( itf==d_map.end() || itf->second.isNull() ){
-      d_map[it->first] = it->second;
+    if( !it->second.isNull() ){
+      std::map< Node, Node >::iterator itf = d_map.find( it->first );
+      if( itf==d_map.end() || itf->second.isNull() ){
+        d_map[it->first] = it->second;
+      }
     }
   }
   return true;
@@ -91,7 +93,7 @@ void InstMatch::debugPrint( const char* c ){
   //  Debug( c ) << std::endl;
   //}
 }
-/*
+
 void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
@@ -101,27 +103,18 @@ void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
   }
 }
 
-void InstMatch::makeInternal( QuantifiersEngine* qe ){
-  if( options::cbqi() ){
-    for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-      if( it->second.hasAttribute(InstConstantAttribute()) ){
-        d_map[ it->first ] = qe->getEqualityQuery()->getInternalRepresentative( it->second );
-        if( it->second.hasAttribute(InstConstantAttribute()) ){
-          d_map[ it->first ] = qe->getTermDatabase()->getFreeVariableForInstConstant( it->first );
-        }
-      }
-    }
+void InstMatch::makeInternalRepresentative( QuantifiersEngine* qe ){
+  EqualityQueryQuantifiersEngine* eqqe = (EqualityQueryQuantifiersEngine*)qe->getEqualityQuery();
+  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+    d_map[ it->first ] = eqqe->getInternalRepresentative( it->second );
   }
 }
-*/
+
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
   for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
     if( qe->getEqualityQuery()->getEngine()->hasTerm( it->second ) ){
       d_map[ it->first ] = qe->getEqualityQuery()->getEngine()->getRepresentative( it->second );
     }
-    //if( options::cbqi() && it->second.hasAttribute(InstConstantAttribute()) ){
-    //  d_map[ it->first ] = qe->getTermDatabase()->getFreeVariableForInstConstant( it->first );
-    //}
   }
 }
 
@@ -132,8 +125,8 @@ void InstMatch::applyRewrite(){
 }
 
 /** get value */
-Node InstMatch::getValue( Node var ){
-  std::map< Node, Node >::iterator it = d_map.find( var );
+Node InstMatch::getValue( Node var ) const{
+  std::map< Node, Node >::const_iterator it = d_map.find( var );
   if( it!=d_map.end() ){
     return it->second;
   }else{
@@ -145,7 +138,7 @@ Node InstMatch::getValue( Node var ){
 void InstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio ){
   if( long(index)<long(f[0].getNumChildren()) && ( !imtio || long(index)<long(imtio->d_order.size()) ) ){
     int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.get( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
+    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
     d_data[n].addInstMatch2( qe, f, m, index+1, imtio );
   }
 }
@@ -156,7 +149,7 @@ bool InstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& 
     return true;
   }else{
     int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.get( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
+    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
     std::map< Node, InstMatchTrie >::iterator it = d_data.find( n );
     if( it!=d_data.end() ){
       if( it->second.existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){

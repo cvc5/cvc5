@@ -85,7 +85,6 @@ void Trigger::reset( Node eqc ){
 
 bool Trigger::getNextMatch( InstMatch& m ){
   bool retVal = d_mg->getNextMatch( m, d_quantEngine );
-  //m.makeInternal( d_quantEngine->getEqualityQuery() );
   return retVal;
 }
 
@@ -97,10 +96,6 @@ bool Trigger::getMatch( Node t, InstMatch& m ){
 int Trigger::addTerm( Node t ){
   return d_mg->addTerm( d_f, t, d_quantEngine );
 }
-
-//bool Trigger::nonunifiable( TNode t, const std::vector<Node> & vars){
-//  return d_mg->nonunifiable(t,vars);
-//}
 
 int Trigger::addInstantiations( InstMatch& baseMatch ){
   int addedLemmas = d_mg->addInstantiations( d_f, baseMatch, d_quantEngine );

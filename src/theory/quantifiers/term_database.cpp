@@ -161,27 +161,29 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    }
    for( int i=0; i<2; i++ ){
      Node n = NodeManager::currentNM()->mkConst( i==1 );
-     eq::EqClassIterator eqc( d_quantEngine->getEqualityQuery()->getRepresentative( n ),
-                              d_quantEngine->getEqualityQuery()->getEngine() );
-     while( !eqc.isFinished() ){
-       Node en = (*eqc);
-       computeModelBasisArgAttribute( en );
-       if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
-         if( !en.getAttribute(NoMatchAttribute()) ){
-           Node op = en.getOperator();
-           if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
-             NoMatchAttribute nma;
-             en.setAttribute(nma,true);
-             congruentCount++;
+     if( d_quantEngine->getEqualityQuery()->getEngine()->hasTerm( n ) ){
+       eq::EqClassIterator eqc( d_quantEngine->getEqualityQuery()->getEngine()->getRepresentative( n ),
+                                d_quantEngine->getEqualityQuery()->getEngine() );
+       while( !eqc.isFinished() ){
+         Node en = (*eqc);
+         computeModelBasisArgAttribute( en );
+         if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
+           if( !en.getAttribute(NoMatchAttribute()) ){
+             Node op = en.getOperator();
+             if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
+               NoMatchAttribute nma;
+               en.setAttribute(nma,true);
+               congruentCount++;
+             }else{
+               nonCongruentCount++;
+               d_op_count[ op ]++;
+             }
            }else{
-             nonCongruentCount++;
-             d_op_count[ op ]++;
+             alreadyCongruentCount++;
            }
-         }else{
-           alreadyCongruentCount++;
          }
+         ++eqc;
        }
-       ++eqc;
      }
    }
    Debug("term-db-cong") << "TermDb: Reset" << std::endl;
@@ -300,6 +302,25 @@ void TermDb::setInstantiationConstantAttr( Node n, Node f ){
   }
 }
 
+/** get the i^th instantiation constant of f */
+Node TermDb::getInstantiationConstant( Node f, int i ) const {
+  std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( f );
+  if( it!=d_inst_constants.end() ){
+    return it->second[i];
+  }else{
+    return Node::null();
+  }
+}
+
+/** get number of instantiation constants for f */
+int TermDb::getNumInstantiationConstants( Node f ) const {
+  std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( f );
+  if( it!=d_inst_constants.end() ){
+    return (int)it->second.size();
+  }else{
+    return 0;
+  }
+}
 
 Node TermDb::getInstConstantBody( Node f ){
   std::map< Node, Node >::iterator it = d_inst_const_body.find( f );

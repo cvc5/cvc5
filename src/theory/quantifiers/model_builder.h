@@ -69,7 +69,7 @@ protected:
 protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;
-  //initialize quantifiers, return number of lemmas produced, fp is the parent of quantifier f
+  //initialize quantifiers, return number of lemmas produced
   virtual int initializeQuantifier( Node f, Node fp );
   //analyze model
   virtual void analyzeModel( FirstOrderModel* fm );
@@ -98,6 +98,8 @@ public:
   bool d_considerAxioms;
   // set effort
   void setEffort( int effort );
+  //debug model
+  void debugModel( FirstOrderModel* fm );
 public:
   //whether to construct model
   virtual bool optUseModel();
@@ -110,10 +112,10 @@ public:
   /** statistics class */
   class Statistics {
   public:
-    IntStat d_pre_sat_quant;
-    IntStat d_pre_nsat_quant;
     IntStat d_num_quants_init;
-    IntStat d_num_quants_init_success;
+    IntStat d_num_partial_quants_init;
+    IntStat d_init_inst_gen_lemmas;
+    IntStat d_inst_gen_lemmas;
     Statistics();
     ~Statistics();
   };
@@ -180,7 +182,7 @@ private:    ///information for (new) InstGen
   std::map< Node, bool > d_term_selected;
   //a collection of (complete) InstMatch structures produced for each root quantifier
   std::map< Node, inst::InstMatchTrie > d_sub_quant_inst_trie;
-  //a collection of InstMatch structures, representing the children for each quantifier
+  //for each quantifier, a collection of InstMatch structures, representing the children
   std::map< Node, inst::InstMatchTrie > d_child_sub_quant_inst_trie;
   //children quantifiers for each quantifier, each is an instance
   std::map< Node, std::vector< Node > > d_sub_quants;

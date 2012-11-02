@@ -116,25 +116,6 @@ public:
   void setGenerateAdditional( bool val ) { d_generate_additional = val; }
 };/* class InstStrategyAutoGenTriggers */
 
-#if 0
-
-class InstStrategyAddFailSplits : public InstStrategy{
-private:
-  /** InstantiatorTheoryUf class */
-  InstantiatorTheoryUf* d_th;
-  /** process functions */
-  void processResetInstantiationRound( Theory::Effort effort );
-  int process( Node f, Theory::Effort effort, int e );
-public:
-  InstStrategyAddFailSplits( InstantiatorTheoryUf* th, QuantifiersEngine* ie ) :
-      InstStrategy( ie ), d_th( th ){}
-  ~InstStrategyAddFailSplits(){}
-  /** identify */
-  std::string identify() const { return std::string("AddFailSplits"); }
-};/* class InstStrategyAddFailSplits */
-
-#endif /* 0 */
-
 class InstStrategyFreeVariable : public InstStrategy{
 private:
   /** InstantiatorTheoryUf class */

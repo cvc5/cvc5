@@ -153,19 +153,6 @@ bool ModelEngine::optExhInstEvalSkipMultiple(){
 #endif
 }
 
-bool containsNN( Node n, Node nc ){
-  if( n==nc ){
-    return true;
-  }else{
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( containsNN( n[i], nc ) ){
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
 int ModelEngine::checkModel( int checkOption ){
   int addedLemmas = 0;
   FirstOrderModel* fm = d_quantEngine->getModel();
@@ -177,20 +164,11 @@ int ModelEngine::checkModel( int checkOption ){
         Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
         Trace("model-engine-debug") << "   ";
         for( size_t i=0; i<it->second.size(); i++ ){
-          Trace("model-engine-debug") << it->second[i] << "  ";
+          //Trace("model-engine-debug") << it->second[i] << "  ";
+          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getInternalRepresentative( it->second[i] );
+          Trace("model-engine-debug") << r << " ";
         }
         Trace("model-engine-debug") << std::endl;
-        for( size_t i=0; i<it->second.size(); i++ ){
-          std::vector< Node > eqc;
-          d_quantEngine->getEqualityQuery()->getEquivalenceClass( it->second[i], eqc );
-          Trace("model-engine-debug-eqc") << "      " << it->second[i] << " : { ";
-          for( size_t j=0; j<eqc.size(); j++ ){
-            if( it->second[i]!=eqc[j] && containsNN( it->second[i], eqc[j] ) ){
-              Trace("model-engine-debug-eqc") << eqc[j] << " ";
-            }
-          }
-          Trace("model-engine-debug-eqc") << "}" << std::endl;
-        }
       }
     }
   }
@@ -242,6 +220,7 @@ int ModelEngine::checkModel( int checkOption ){
     Trace("model-engine") << "Added Lemmas = " << addedLemmas << " / " << d_triedLemmas << " / ";
     Trace("model-engine") << d_testLemmas << " / " << d_relevantLemmas << " / " << d_totalLemmas << std::endl;
   }
+  d_statistics.d_exh_inst_lemmas += addedLemmas;
   return addedLemmas;
 }
 
@@ -361,13 +340,15 @@ ModelEngine::Statistics::Statistics():
   d_eval_formulas("ModelEngine::Eval_Formulas", 0 ),
   d_eval_uf_terms("ModelEngine::Eval_Uf_Terms", 0 ),
   d_eval_lits("ModelEngine::Eval_Lits", 0 ),
-  d_eval_lits_unknown("ModelEngine::Eval_Lits_Unknown", 0 )
+  d_eval_lits_unknown("ModelEngine::Eval_Lits_Unknown", 0 ),
+  d_exh_inst_lemmas("ModelEngine::Exhaustive_Instantiation_Lemmas", 0 )
 {
   StatisticsRegistry::registerStat(&d_inst_rounds);
   StatisticsRegistry::registerStat(&d_eval_formulas);
   StatisticsRegistry::registerStat(&d_eval_uf_terms);
   StatisticsRegistry::registerStat(&d_eval_lits);
   StatisticsRegistry::registerStat(&d_eval_lits_unknown);
+  StatisticsRegistry::registerStat(&d_exh_inst_lemmas);
 }
 
 ModelEngine::Statistics::~Statistics(){
@@ -376,6 +357,7 @@ ModelEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_eval_uf_terms);
   StatisticsRegistry::unregisterStat(&d_eval_lits);
   StatisticsRegistry::unregisterStat(&d_eval_lits_unknown);
+  StatisticsRegistry::unregisterStat(&d_exh_inst_lemmas);
 }
 
 
