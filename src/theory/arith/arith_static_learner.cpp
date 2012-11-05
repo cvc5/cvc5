@@ -262,8 +262,8 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
   }
 
   if (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end()) {
-    const DeltaRational& first = d_minMap[n[1]];
-    const DeltaRational& second = d_minMap[n[2]];
+    const DeltaRational& first = d_maxMap[n[1]];
+    const DeltaRational& second = d_maxMap[n[2]];
     DeltaRational max = std::max(first, second);
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
