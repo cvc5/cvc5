@@ -482,7 +482,12 @@ fi
 AC_MSG_RESULT([$enable_static_binary])
 if test "$enable_static_binary" = yes; then
   if test "$target_vendor" = apple; then
-    AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html]])
+    if test -z "$MAC_STATIC_BINARY_MANUAL_OVERRIDE"; then
+      AC_MSG_ERROR([[Statically-linked binaries are not supported on Mac OS.  See https://developer.apple.com/library/mac/#qa/qa2001/qa1118.html .  (If you ABSOLUTELY insist on this going forward and you know what you are doing, set MAC_STATIC_BINARY_MANUAL_OVERRIDE=1)]])
+    else
+      AC_MSG_WARN([MAC_STATIC_BINARY_MANUAL_OVERRIDE was set!])
+      AC_MSG_WARN([Will make a static binary during this build.  Note that it may fail!])
+    fi
   fi
   if test "$enable_static" != yes; then
     enable_static=yes
@@ -1135,7 +1140,7 @@ else
   AC_SUBST([CVC4_HAS_THREADS], 0)
 fi
 
-AM_CONDITIONAL([CVC4_NEEDS_REPLACEMENT_FUNCTIONS], [test -n "$LTLIBOBJS"])
+AM_CONDITIONAL([CVC4_NEEDS_REPLACEMENT_FUNCTIONS], [test -n "$LIBOBJS"])
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
