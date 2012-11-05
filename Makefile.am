@@ -130,7 +130,19 @@ doc/pcvc4.1:
 	rm -f doc/pcvc4.1
 	$(LN_S) cvc4.1 doc/pcvc4.1
 
+# Can't put the first several in EXTRA_DIST because those are processed
+# *before* recursive "make dist", and these files are generated in a
+# subdirectory invocation of "make dist".
+#
+# The Makefile also can't go in EXTRA_DIST, because then automake thinks
+# it's the one in the builddir and we want the one from the srcdir.
 dist-hook:
+	cp -p \
+		doc/cvc4.1 \
+		doc/libcvc4.3 \
+		doc/SmtEngine.3cvc \
+		doc/options.3cvc \
+		"$(distdir)/doc"
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"
 
 distclean-local:
