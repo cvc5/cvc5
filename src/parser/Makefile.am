@@ -33,15 +33,20 @@ libcvc4parser_la_LIBADD = \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/tptp/libparsertptp.la \
 	@builddir@/cvc/libparsercvc.la \
-	@builddir@/../lib/libreplacements.la \
 	-L@builddir@/.. -lcvc4
 libcvc4parser_noinst_la_LIBADD = \
 	@builddir@/smt1/libparsersmt1.la \
 	@builddir@/smt2/libparsersmt2.la \
 	@builddir@/tptp/libparsertptp.la \
 	@builddir@/cvc/libparsercvc.la \
-	@builddir@/../lib/libreplacements.la \
 	@builddir@/../libcvc4_noinst.la
+
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
+libcvc4parser_la_LIBADD += \
+	@builddir@/../lib/libreplacements.la
+libcvc4parser_noinst_la_LIBADD += \
+	@builddir@/../lib/libreplacements.la
+endif
 
 libcvc4parser_la_SOURCES = \
 	antlr_input.h \

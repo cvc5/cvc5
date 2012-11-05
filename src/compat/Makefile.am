@@ -29,13 +29,18 @@ libcvc4compat_la_LDFLAGS = \
 libcvc4compat_noinst_la_LDFLAGS =
 
 libcvc4compat_la_LIBADD = \
-	@builddir@/../lib/libreplacements.la \
 	-L@builddir@/.. -lcvc4 \
 	-L@builddir@/../parser -lcvc4parser
 libcvc4compat_noinst_la_LIBADD = \
-	@builddir@/../lib/libreplacements.la \
 	-L@builddir@/.. -lcvc4 \
 	-L@builddir@/../parser -lcvc4parser
+
+if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
+libcvc4compat_la_LIBADD += \
+	@builddir@/../lib/libreplacements.la
+libcvc4compat_noinst_la_LIBADD += \
+	@builddir@/../lib/libreplacements.la
+endif
 
 libcvc4compat_la_SOURCES = \
 	cvc3_compat.h \
