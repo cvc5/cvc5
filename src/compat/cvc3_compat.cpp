@@ -798,6 +798,7 @@ ValidityChecker::~ValidityChecker() {
     s_typeToExpr.erase(s_exprToType[*i]);
     s_exprToType.erase(*i);
   }
+  d_exprTypeMapRemove.clear();
   delete d_parserContext;
   delete d_smt;
   d_emmc.clear();
