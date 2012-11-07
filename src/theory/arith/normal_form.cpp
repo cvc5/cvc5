@@ -1047,6 +1047,19 @@ Kind Comparison::comparisonKind(TNode literal){
   }
 }
 
+
+Node Polynomial::makeAbsCondition(Variable v, Polynomial p){
+  Polynomial zerop = Polynomial::mkZero();
+
+  Polynomial varp = Polynomial::mkPolynomial(v);
+  Comparison pLeq0 = Comparison::mkComparison(kind::LEQ, p, zerop);
+  Comparison negP = Comparison::mkComparison(kind::EQUAL, varp, -p);
+  Comparison posP = Comparison::mkComparison(kind::EQUAL, varp, p);
+
+  Node absCnd = (pLeq0.getNode()).iteNode(negP.getNode(), posP.getNode());
+  return absCnd;
+}
+
 } //namespace arith
 } //namespace theory
 } //namespace CVC4

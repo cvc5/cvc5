@@ -819,63 +819,62 @@ void TheoryArith::interpretDivLike(const Variable& v){
   Assert(v.isDivLike());
   Node vnode = v.getNode();
   Assert(isSetup(vnode)); // Otherwise there is some invariant breaking recursion
-    Polynomial m = Polynomial::parsePolynomial(vnode[0]);
-    Polynomial n = Polynomial::parsePolynomial(vnode[1]);
-	    
-    NodeManager* currNM = NodeManager::currentNM();
-	      
-    Node nNeq0 = currNM->mkNode(EQUAL, n.getNode(), mkRationalNode(0)).notNode();
-    if(vnode.getKind() == INTS_DIVISION || vnode.getKind() == INTS_MODULUS){
-      // (for all ((m Int) (n Int))
-      //   (=> (distinct n 0)
-      //       (let ((q (div m n)) (r (mod m n)))
-      //         (and (= m (+ (* n q) r))
-      //              (<= 0 r (- (abs n) 1))))))
+  Polynomial m = Polynomial::parsePolynomial(vnode[0]);
+  Polynomial n = Polynomial::parsePolynomial(vnode[1]);
 
-      Node q = (vnode.getKind() == INTS_DIVISION) ? vnode : currNM->mkNode(INTS_DIVISION, m.getNode(), n.getNode());
-      Node r = (vnode.getKind() == INTS_MODULUS) ? vnode : currNM->mkNode(INTS_MODULUS, m.getNode(), n.getNode());
+  NodeManager* currNM = NodeManager::currentNM();
+  Node nNeq0 = currNM->mkNode(EQUAL, n.getNode(), mkRationalNode(0)).notNode();
+  if(vnode.getKind() == INTS_DIVISION || vnode.getKind() == INTS_MODULUS){
+    // (for all ((m Int) (n Int))
+    //   (=> (distinct n 0)
+    //       (let ((q (div m n)) (r (mod m n)))
+    //         (and (= m (+ (* n q) r))
+    //              (<= 0 r (- (abs n) 1))))))
+
+    // Updated for div 0 functions
+    // (for all ((m Int) (n Int))
+    //   (let ((q (div m n)) (r (mod m n)))
+    //     (ite (= n 0)
+    //          (and (= q (div_0_func m)) (= r (mod_0_func m)))
+    //          (and (= m (+ (* n q) r))
+    //               (<= 0 r (- (abs n) 1)))))))
+
+    Node q = (vnode.getKind() == INTS_DIVISION) ? vnode : currNM->mkNode(INTS_DIVISION, m.getNode(), n.getNode());
+    Node r = (vnode.getKind() == INTS_MODULUS) ? vnode : currNM->mkNode(INTS_MODULUS, m.getNode(), n.getNode());
 
 
-      Polynomial rp = Polynomial::parsePolynomial(r);
-      Polynomial qp = Polynomial::parsePolynomial(q);
+    Polynomial rp = Polynomial::parsePolynomial(r);
+    Polynomial qp = Polynomial::parsePolynomial(q);
 
-      Node abs_n;
-      Node zero = mkRationalNode(0);
+    Node abs_n;
+    Node zero = mkRationalNode(0);
 
-      if(n.isConstant()){
-	abs_n = n.getHead().getConstant().abs().getNode();
-      }else{
-	abs_n = mkIntSkolem("abs_$$");
-	Polynomial abs_np = Polynomial::parsePolynomial(abs_n);
-	Node absCnd = currNM->mkNode(ITE, 
-				currNM->mkNode(LEQ, n.getNode(), zero),
-				Comparison::mkComparison(EQUAL, abs_np, -rp).getNode(),
-				Comparison::mkComparison(EQUAL, abs_np, rp).getNode());
-	
-	d_out->lemma(absCnd);
-      }
-
-      Node eq = Comparison::mkComparison(EQUAL, m, n * qp + rp).getNode();
-      Node leq0 = currNM->mkNode(LEQ,  zero, r);
-      Node leq1 = currNM->mkNode(LT, r, abs_n);
-
-      Node andE = currNM->mkNode(AND, eq, leq0, leq1);
-      Node nNeq0ImpliesandE = currNM->mkNode(IMPLIES, nNeq0, andE);
-
-      d_out->lemma(nNeq0ImpliesandE);
+    if(n.isConstant()){
+      abs_n = n.getHead().getConstant().abs().getNode();
     }else{
-      // DIVISION (/ q r)
-      // (=> (distinct 0 n) (= m (* d n)))
-	      
-      Assert(vnode.getKind() == DIVISION);
-      Node d = mkRealSkolem("division_$$");
-	      
-      Node eq = Comparison::mkComparison(EQUAL, m, n * Polynomial::parsePolynomial(d)).getNode();
-      Node nNeq0ImpliesEq = currNM->mkNode(IMPLIES, nNeq0, eq);
-	      
-      d_out->lemma(nNeq0ImpliesEq);
+      abs_n = mkIntSkolem("abs_$$");
+      Node absCnd = n.makeAbsCondition(Variable(abs_n));
+      d_out->lemma(absCnd);
     }
-  
+
+    Node eq = Comparison::mkComparison(EQUAL, m, n * qp + rp).getNode();
+    Node leq0 = currNM->mkNode(LEQ,  zero, r);
+    Node leq1 = currNM->mkNode(LT, r, abs_n);
+
+    Node andE = currNM->mkNode(AND, eq, leq0, leq1);
+    Node nNeq0ImpliesandE = currNM->mkNode(IMPLIES, nNeq0, andE);
+
+    d_out->lemma(nNeq0ImpliesandE);
+  }else{
+    // DIVISION (/ q r)
+    // (=> (distinct 0 n) (= m (* d n)))
+    Assert(vnode.getKind() == DIVISION);
+    Node d = mkRealSkolem("division_$$");
+    Node eq = Comparison::mkComparison(EQUAL, m, n * Polynomial::parsePolynomial(d)).getNode();
+    Node nNeq0ImpliesEq = currNM->mkNode(IMPLIES, nNeq0, eq);
+    d_out->lemma(nNeq0ImpliesEq);
+  }
+
 }
 
 void TheoryArith::setupPolynomial(const Polynomial& poly) {

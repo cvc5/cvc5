@@ -992,7 +992,7 @@ public:
     }else{
       uint32_t max = (*i).coefficientLength();
       ++i;
-      for(; i!=e; ++i){      
+      for(; i!=e; ++i){
         uint32_t curr = (*i).coefficientLength();
         if(curr > max){
           max = curr;
@@ -1032,7 +1032,15 @@ public:
   }
 
   friend class SumPair;
-  friend class Comparison;;
+  friend class Comparison;
+
+  /** Returns a node that if asserted ensures v is the abs of this polynomial.*/
+  Node makeAbsCondition(Variable v){
+    return makeAbsCondition(v, *this);
+  }
+
+  /** Returns a node that if asserted ensures v is the abs of p.*/
+  static Node makeAbsCondition(Variable v, Polynomial p);
 
 };/* class Polynomial */
 
