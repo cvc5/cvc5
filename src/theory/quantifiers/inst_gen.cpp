@@ -95,7 +95,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
     for( size_t i=0; i<considerTerms.size(); i++ ){
       Node n = considerTerms[i];
       bool isSelected = qe->getModelEngine()->getModelBuilder()->isTermSelected( n );
-      bool hadSuccess = false;
+      bool hadSuccess CVC4_UNUSED = false;
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         if( t==0 || !n.getAttribute(NoMatchAttribute()) ){
           considerTermsMatch[t][n] = InstMatch();

@@ -675,7 +675,7 @@ DatatypeType DatatypeType::instantiate(const std::vector<Type>& params) const {
       ++i) {
     paramsNodes.push_back(*getTypeNode(*i));
   }
-  return DatatypeType(makeType(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE,paramsNodes)));
+  return DatatypeType(makeType(d_nodeManager->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes)));
 }
 
 DatatypeType SelectorType::getDomain() const {

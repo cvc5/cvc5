@@ -273,7 +273,7 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
 
 DatatypeType Datatype::getDatatypeType() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
-  CheckArgument(!d_self.isNull() && !DatatypeType(d_self).isParametric(), this);
+  CheckArgument(!d_self.isNull(), *this);
   return DatatypeType(d_self);
 }
 
@@ -559,7 +559,7 @@ Expr DatatypeConstructor::getConstructor() const {
 Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
-  CheckArgument(dt.isParametric(), this, "this datatype constructor is not yet resolved");
+  CheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
   DatatypeType dtt = dt.getDatatypeType();
   Matcher m(dtt);
   m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );

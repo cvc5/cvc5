@@ -126,9 +126,9 @@ man_MANS = \
 	doc/libcvc4parser.3 \
 	doc/libcvc4compat.3
 
-doc/pcvc4.1:
+doc/pcvc4.1: doc/cvc4.1
 	rm -f doc/pcvc4.1
-	$(LN_S) cvc4.1 doc/pcvc4.1
+	cp -p "$<" "$@"
 
 # Can't put the first several in EXTRA_DIST because those are processed
 # *before* recursive "make dist", and these files are generated in a
