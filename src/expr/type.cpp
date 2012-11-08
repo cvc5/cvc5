@@ -85,6 +85,11 @@ bool Type::isComparableTo(Type t) const {
   return d_typeNode->isComparableTo(*t.d_typeNode);
 }
 
+Type Type::getBaseType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->getBaseType().toType();
+}
+
 Type& Type::operator=(const Type& t) {
   CheckArgument(d_typeNode != NULL, this, "Unexpected NULL typenode pointer!");
   CheckArgument(t.d_typeNode != NULL, t, "Unexpected NULL typenode pointer!");
@@ -699,9 +704,9 @@ Expr PredicateSubtype::getPredicate() const {
   return d_typeNode->getSubtypePredicate().toExpr();
 }
 
-Type PredicateSubtype::getBaseType() const {
+Type PredicateSubtype::getParentType() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getSubtypeBaseType().toType();
+  return d_typeNode->getSubtypeParentType().toType();
 }
 
 SubrangeBounds SubrangeType::getSubrangeBounds() const {

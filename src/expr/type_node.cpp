@@ -91,7 +91,7 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     }
   }
   if(isPredicateSubtype()) {
-    return getSubtypeBaseType().isSubtypeOf(t);
+    return getSubtypeParentType().isSubtypeOf(t);
   }
   return false;
 }
@@ -104,7 +104,7 @@ bool TypeNode::isComparableTo(TypeNode t) const {
     return t.isSubtypeOf(NodeManager::currentNM()->realType());
   }
   if(isPredicateSubtype()) {
-    return t.isComparableTo(getSubtypeBaseType());
+    return t.isComparableTo(getSubtypeParentType());
   }
   return false;
 }
@@ -114,7 +114,7 @@ Node TypeNode::getSubtypePredicate() const {
   return Node::fromExpr(getConst<Predicate>());
 }
 
-TypeNode TypeNode::getSubtypeBaseType() const {
+TypeNode TypeNode::getSubtypeParentType() const {
   Assert(isPredicateSubtype());
   return getSubtypePredicate().getType().getArgTypes()[0];
 }
@@ -123,9 +123,8 @@ TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
     return realt;
-  }
-  else if (isPredicateSubtype()) {
-    return getSubtypeBaseType();
+  } else if (isPredicateSubtype()) {
+    return getSubtypeParentType().getBaseType();
   }
   return *this;
 }
@@ -228,7 +227,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
           return TypeNode(); // null type
         }
       default:
-        if(t1.isPredicateSubtype() && t1.getSubtypeBaseType().isSubtypeOf(t0)){
+        if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)){
           return t0; // t0 is a constant type
         }else{
           return TypeNode(); // null type
@@ -248,7 +247,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       case kind::CONSTRUCTOR_TYPE:
       case kind::SELECTOR_TYPE:
       case kind::TESTER_TYPE:
-        if(t1.isPredicateSubtype() && t1.getSubtypeBaseType().isSubtypeOf(t0)){
+        if(t1.isPredicateSubtype() && t1.getSubtypeParentType().isSubtypeOf(t0)){
           return t0;
         }else{
           return TypeNode();
@@ -316,12 +315,12 @@ TypeNode TypeNode::leastCommonPredicateSubtype(TypeNode t0, TypeNode t1){
   std::vector<TypeNode> t0stack;
   t0stack.push_back(t0);
   while(t0stack.back().isPredicateSubtype()){
-    t0stack.push_back(t0stack.back().getSubtypeBaseType());
+    t0stack.push_back(t0stack.back().getSubtypeParentType());
   }
   std::vector<TypeNode> t1stack;
   t1stack.push_back(t1);
   while(t1stack.back().isPredicateSubtype()){
-    t1stack.push_back(t1stack.back().getSubtypeBaseType());
+    t1stack.push_back(t1stack.back().getSubtypeParentType());
   }
 
   Assert(!t0stack.empty());
