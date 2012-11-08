@@ -119,6 +119,17 @@ TypeNode TypeNode::getSubtypeBaseType() const {
   return getSubtypePredicate().getType().getArgTypes()[0];
 }
 
+TypeNode TypeNode::getBaseType() const {
+  TypeNode realt = NodeManager::currentNM()->realType();
+  if (isSubtypeOf(realt)) {
+    return realt;
+  }
+  else if (isPredicateSubtype()) {
+    return getSubtypeBaseType();
+  }
+  return *this;
+}
+
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
   if(isTester()) {

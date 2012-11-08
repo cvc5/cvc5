@@ -590,6 +590,9 @@ public:
   /** Get the base type of this subtype */
   TypeNode getSubtypeBaseType() const;
 
+  /** Get the most general base type of the type */
+  TypeNode getBaseType() const;
+
   /** Is this a subrange */
   bool isSubrange() const;
 
