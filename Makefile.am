@@ -136,13 +136,8 @@ doc/pcvc4.1: doc/cvc4.1
 #
 # The Makefile also can't go in EXTRA_DIST, because then automake thinks
 # it's the one in the builddir and we want the one from the srcdir.
-dist-hook:
-	cp -p \
-		doc/cvc4.1 \
-		doc/libcvc4.3 \
-		doc/SmtEngine.3cvc \
-		doc/options.3cvc \
-		"$(distdir)/doc"
+dist-hook: doc/cvc4.1 doc/libcvc4.3 doc/SmtEngine.3cvc doc/options.3cvc
+	cp -p $^ "$(distdir)/doc"
 	cp -p "$(srcdir)/Makefile" "$(distdir)/Makefile"
 
 distclean-local:
