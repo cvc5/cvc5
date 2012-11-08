@@ -1008,7 +1008,7 @@ Node TheoryArith::axiomIteForTotalIntDivision(Node int_div_like){
   Polynomial rp = Polynomial::parsePolynomial(r);
   Polynomial qp = Polynomial::parsePolynomial(q);
 
-  Node abs_d = (n.isConstant()) ? 
+  Node abs_d = (n.isConstant()) ?
     d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs_$$");
 
   Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
@@ -1016,9 +1016,7 @@ Node TheoryArith::axiomIteForTotalIntDivision(Node int_div_like){
   Node leq1 = currNM->mkNode(LT, r, abs_d);
 
   Node andE = currNM->mkNode(AND, eq, leq0, leq1);
-    
   Node defDivMode = dEq0.iteNode(qEq0.andNode(rEq0), andE);
-    
   Node lem = abs_d.getMetaKind () == metakind::VARIABLE ?
     defDivMode.andNode(d.makeAbsCondition(Variable(abs_d))) : defDivMode;
 
@@ -1469,130 +1467,6 @@ bool TheoryArith::assertionCases(Constraint constraint){
     return false;
   }
 }
-// Node TheoryArith::assertionCases(TNode assertion){
-//   Constraint constraint = d_constraintDatabase.lookup(assertion);
-
-//   Kind simpleKind = Comparison::comparisonKind(assertion);
-//   Assert(simpleKind != UNDEFINED_KIND);
-//   Assert(constraint != NullConstraint ||
-//          simpleKind == EQUAL ||
-//          simpleKind == DISTINCT );
-//   if(simpleKind == EQUAL || simpleKind == DISTINCT){
-//     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
-
-//     if(!isSetup(eq)){
-//       //The previous code was equivalent to:
-//       setupAtom(eq);
-//       constraint = d_constraintDatabase.lookup(assertion);
-//     }
-//   }
-//   Assert(constraint != NullConstraint);
-
-//   if(constraint->negationHasProof()){
-//     Constraint negation = constraint->getNegation();
-//     if(negation->isSelfExplaining()){
-//       if(Debug.isOn("whytheoryenginewhy")){
-//         debugPrintFacts();
-//       }
-// //      Warning() << "arith: Theory engine is sending me both a literal and its negation?"
-// //                << "BOOOOOOOOOOOOOOOOOOOOOO!!!!"<< endl;
-//     }
-//     Debug("arith::eq") << constraint << endl;
-//     Debug("arith::eq") << negation << endl;
-
-//     NodeBuilder<> nb(kind::AND);
-//     nb << assertion;
-//     negation->explainForConflict(nb);
-//     Node conflict = nb;
-//     Debug("arith::eq") << "conflict" << conflict << endl;
-//     return conflict;
-//   }
-//   Assert(!constraint->negationHasProof());
-
-//   if(constraint->assertedToTheTheory()){
-//     //Do nothing
-//     return Node::null();
-//   }
-//   Assert(!constraint->assertedToTheTheory());
-//   constraint->setAssertedToTheTheory();
-
-//   ArithVar x_i = constraint->getVariable();
-//   //DeltaRational c_i = determineRightConstant(assertion, simpleKind);
-
-//   //Assert(constraint->getVariable() == determineLeftVariable(assertion, simpleKind));
-//   //Assert(constraint->getValue() == determineRightConstant(assertion, simpleKind));
-//   Assert(!constraint->hasLiteral() || constraint->getLiteral() == assertion);
-
-//   Debug("arith::assertions")  << "arith assertion @" << getSatContext()->getLevel()
-//                               <<"(" << assertion
-//                               << " \\-> "
-//     //<< determineLeftVariable(assertion, simpleKind)
-//                               <<" "<< simpleKind <<" "
-//     //<< determineRightConstant(assertion, simpleKind)
-//                               << ")" << std::endl;
-
-
-//   Debug("arith::constraint") << "arith constraint " << constraint << std::endl;
-
-//   if(!constraint->hasProof()){
-//     Debug("arith::constraint") << "marking as constraint as self explaining " << endl;
-//     constraint->selfExplaining();
-//   }else{
-//     Debug("arith::constraint") << "already has proof: " << constraint->explainForConflict() << endl;
-//   }
-
-//   Assert(!isInteger(x_i) ||
-//          simpleKind == EQUAL ||
-//          simpleKind == DISTINCT ||
-//          simpleKind == GEQ ||
-//          simpleKind == LT);
-
-//   switch(constraint->getType()){
-//   case UpperBound:
-//     if(simpleKind == LT && isInteger(x_i)){
-//       Constraint floorConstraint = constraint->getFloor();
-//       if(!floorConstraint->isTrue()){
-//         if(floorConstraint->negationHasProof()){
-//           return ConstraintValue::explainConflict(constraint, floorConstraint->getNegation());
-//         }else{
-//           floorConstraint->impliedBy(constraint);
-//         }
-//       }
-//       //c_i = DeltaRational(c_i.floor());
-//       //return AssertUpper(x_i, c_i, assertion, floorConstraint);
-//       return AssertUpper(floorConstraint);
-//     }else{
-//       return AssertUpper(constraint);
-//     }
-//     //return AssertUpper(x_i, c_i, assertion, constraint);
-//   case LowerBound:
-//     if(simpleKind == LT && isInteger(x_i)){
-//       Constraint ceilingConstraint = constraint->getCeiling();
-//       if(!ceilingConstraint->isTrue()){
-//         if(ceilingConstraint->negationHasProof()){
-
-//           return ConstraintValue::explainConflict(constraint, ceilingConstraint->getNegation());
-//         }
-//         ceilingConstraint->impliedBy(constraint);
-//       }
-//       //c_i = DeltaRational(c_i.ceiling());
-//       //return AssertLower(x_i, c_i, assertion, ceilingConstraint);
-//       return AssertLower(ceilingConstraint);
-//     }else{
-//       return AssertLower(constraint);
-//     }
-//     //return AssertLower(x_i, c_i, assertion, constraint);
-//   case Equality:
-//     return AssertEquality(constraint);
-//     //return AssertEquality(x_i, c_i, assertion, constraint);
-//   case Disequality:
-//     return AssertDisequality(constraint);
-//     //return AssertDisequality(x_i, c_i, assertion, constraint);
-//   default:
-//     Unreachable();
-//     return Node::null();
-//   }
-// }
 
 /**
  * Looks for the next integer variable without an integer assignment in a round robin fashion.
@@ -2281,11 +2155,11 @@ void TheoryArith::notifyRestart(){
     }else if(d_tableauResetDensity * copySize <=  currSize){
       d_simplex.reduceQueue();
       if(safeToReset()){
-	Debug("arith::reset") << "resetting " << d_restartsCounter << endl;
-	++d_statistics.d_currSetToSmaller;
-	d_tableau = d_smallTableauCopy;
+        Debug("arith::reset") << "resetting " << d_restartsCounter << endl;
+        ++d_statistics.d_currSetToSmaller;
+        d_tableau = d_smallTableauCopy;
       }else{
-	Debug("arith::reset") << "not safe to reset at the moment " << d_restartsCounter << endl;
+        Debug("arith::reset") << "not safe to reset at the moment " << d_restartsCounter << endl;
       }
     }
   }

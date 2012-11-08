@@ -25,7 +25,17 @@ TESTS =	\
 	leq.01.smt \
 	miplibtrick.smt \
 	DTP_k2_n35_c175_s15.smt2 \
-	mod.01.smt2
+	mod.01.smt2 \
+	mod.02.smt2 \
+	mod.03.smt2 \
+	div.01.smt2 \
+	div.02.smt2 \
+	div.03.smt2 \
+	div.04.smt2 \
+	div.05.smt2 \
+	div.06.smt2 \
+	div.07.smt2 \
+	div.08.smt2
 #	problem__003.smt2
 
 EXTRA_DIST = $(TESTS)
