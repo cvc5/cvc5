@@ -388,8 +388,12 @@ extendedCommand[CVC4::Command*& cmd]
   : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { /* open a scope to keep the UnresolvedTypes contained */
       PARSER_STATE->pushScope(); }
-    LPAREN_TOK RPAREN_TOK  //TODO: parametric datatypes
-    LPAREN_TOK ( LPAREN_TOK datatypeDef[dts] RPAREN_TOK )+ RPAREN_TOK
+    LPAREN_TOK 	/* parametric sorts */
+      ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
+        sorts.push_back( PARSER_STATE->mkSort(name) ); }
+      )*
+    RPAREN_TOK
+    LPAREN_TOK ( LPAREN_TOK datatypeDef[dts, sorts] RPAREN_TOK )+ RPAREN_TOK
     { PARSER_STATE->popScope();
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | /* get model */
@@ -677,6 +681,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> patexprs;
   std::hash_set<std::string, StringHashFunction> names;
   std::vector< std::pair<std::string, Expr> > binders;
+  Type type;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -708,6 +713,22 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);
+      }
+    }
+  | LPAREN_TOK AS_TOK term[f, f2] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK 
+    {     
+      if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
+        std::vector<CVC4::Expr> v;
+        Expr e = f.getOperator();
+        const DatatypeConstructor& dtc = Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+        v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                             MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+        v.insert(v.end(), f.begin(), f.end());
+        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+      } else {
+        if(f.getType() != type) {
+          PARSER_STATE->parseError("Type ascription not satisfied.");
+        }
       }
     }
   | LPAREN_TOK quantOp[kind]
@@ -1170,13 +1191,26 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
-      if( name == "Array" ) {
-        if( args.size() != 2 ) {
-          PARSER_STATE->parseError("Illegal array type.");
+      if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT)) {
+        if( name == "Array" ) {
+          if( args.size() != 2 ) {
+            PARSER_STATE->parseError("Illegal array type.");
+          }
+          t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
+        } else {
+          t = PARSER_STATE->getSort(name, args);
         }
-        t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
-      } else {
-        t = PARSER_STATE->getSort(name, args);
+      }else{
+        //make unresolved type
+        if(args.empty()) {
+          t = PARSER_STATE->mkUnresolvedType(name);
+          Debug("parser-param") << "param: make unres type " << name << std::endl;
+        }else{
+          t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
+          t = SortConstructorType(t).instantiate( args );
+          Debug("parser-param") << "param: make unres param type " << name << " " << args.size() << " "
+                                << PARSER_STATE->getArity( name ) << std::endl;
+        }
       }
     }
   ;
@@ -1234,18 +1268,16 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype>& datatypes]
+datatypeDef[std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& params]
 @init {
-  std::string id, id2;
-  Type t;
-  std::vector< Type > params;
+  std::string id;
 }
     /* This really needs to be CHECK_NONE, or mutually-recursive
      * datatypes won't work, because this type will already be
      * "defined" as an unresolved type; don't worry, we check
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
-    ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
+   /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
         t = PARSER_STATE->mkSort(id2);
         params.push_back( t );
       }
@@ -1253,7 +1285,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
         t = PARSER_STATE->mkSort(id2);
         params.push_back( t ); }
       )* ']'
-    )?
+    )?*/ //AJR: this isn't necessary if we use z3's style
     { datatypes.push_back(Datatype(id,params));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
@@ -1324,6 +1356,7 @@ SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
+AS_TOK : 'as';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
