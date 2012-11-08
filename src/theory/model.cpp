@@ -418,7 +418,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       // Theories should not specify a rep if there is already a constant in the EC
       Assert(rep.isNull() || rep == const_rep);
       constantReps[eqc] = const_rep;
-      typeConstSet.add(eqct, const_rep);
+      typeConstSet.add(eqct.getBaseType(), const_rep);
     }
     else if (!rep.isNull()) {
       assertedReps[eqc] = rep;
@@ -474,16 +474,10 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
               evaluable = true;
               Node normalized = normalize(tm, n, constantReps, true);
               if (normalized.isConst()) {
-                typeConstSet.add(t, normalized);
+                typeConstSet.add(t.getBaseType(), normalized);
                 constantReps[*i2] = normalized;
                 Trace("model-builder") << "  Eval: Setting constant rep of " << (*i2) << " to " << normalized << endl;
                 changed = true;
-                // if (t.isBoolean()) {
-                //   tm->assertPredicate(*i2, normalized == tm->d_true);
-                // }
-                // else {
-                //   tm->assertEquality(*i2, normalized, true);
-                // }
                 noRepSet.erase(i2);
                 break;
               }
@@ -495,7 +489,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
               Assert(!t.isBoolean());
               Node n;
               if (t.getCardinality().isInfinite()) {
-                n = typeConstSet.nextTypeEnum(t);
+                n = typeConstSet.nextTypeEnum(t, true);
               }
               else {
                 TypeEnumerator te(t);
@@ -505,7 +499,6 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
               constantReps[*i2] = n;
               Trace("model-builder") << "  New Const: Setting constant rep of " << (*i2) << " to " << n << endl;
               changed = true;
-              // tm->assertEquality(*i2, n, true);
               noRepSet.erase(i2);
             }
             else {
@@ -521,7 +514,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     // Corner case - I'm not sure this can even happen - but it's theoretically possible to have a cyclical dependency
     // in EC assignment/evaluation, e.g. EC1 = {a, b + 1}; EC2 = {b, a - 1}.  In this case, neither one will get assigned because we are waiting
     // to be able to evaluate.  But we will never be able to evaluate because the variables that need to be assigned are in
-    // the same EC's.  In this case, repeat the whole fixed-point computation with the difference that the first EC
+    // these same EC's.  In this case, repeat the whole fixed-point computation with the difference that the first EC
     // that has both assignable and evaluable expressions will get assigned.
     assignOne = true;
   }

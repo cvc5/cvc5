@@ -174,7 +174,7 @@ private:
     return (*it).second;
   }
 
-  Node nextTypeEnum(TypeNode t)
+  Node nextTypeEnum(TypeNode t, bool useBaseType = false)
   {
     TypeEnumerator* te;
     TypeToTypeEnumMap::iterator it = d_teMap.find(t);
@@ -189,6 +189,9 @@ private:
       return Node();
     }
 
+    if (useBaseType) {
+      t = t.getBaseType();
+    }
     iterator itSet = d_typeSet.find(t);
     std::set<Node>* s;
     if (itSet == d_typeSet.end()) {

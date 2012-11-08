@@ -684,6 +684,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
     TNode n = arrays[i];
 
     // Compute default value for this array - there is one default value for every mayEqual equivalence class
+    d_mayEqualEqualityEngine.addTerm(n); // add the term in case it isn't there already
     TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(n);
     it = defValues.find(mayRep);
     // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
