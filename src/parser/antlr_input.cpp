@@ -206,7 +206,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
   default:
     std::stringstream ss;
     ss << "internal error: unhandled language " << lang << " in AntlrInput::newInput";
-    throw ParserException(ss.str());
+    throw InputStreamException(ss.str());
   }
 
   return input;
@@ -302,13 +302,13 @@ void AntlrInput::setAntlr3Lexer(pANTLR3_LEXER pLexer) {
   /* 2*lookahead should be sufficient, but we give ourselves some breathing room. */
   pTokenFactory = BoundedTokenFactoryNew(d_antlr3InputStream, 2*d_lookahead);
   if( pTokenFactory == NULL ) {
-    throw ParserException("Couldn't create token factory.");
+    throw InputStreamException("Couldn't create token factory.");
   }
   d_lexer->rec->state->tokFactory = pTokenFactory;
 
   pBOUNDED_TOKEN_BUFFER buffer = BoundedTokenBufferSourceNew(d_lookahead, d_lexer->rec->state->tokSource);
   if( buffer == NULL ) {
-    throw ParserException("Couldn't create token buffer.");
+    throw InputStreamException("Couldn't create token buffer.");
   }
 
   d_tokenBuffer = buffer;
