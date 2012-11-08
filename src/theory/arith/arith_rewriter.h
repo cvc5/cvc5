@@ -49,7 +49,7 @@ private:
   static RewriteResponse rewriteConstant(TNode t);
   static RewriteResponse rewriteMinus(TNode t, bool pre);
   static RewriteResponse rewriteUMinus(TNode t, bool pre);
-  static RewriteResponse rewriteDivByConstant(TNode t, bool pre);
+  static RewriteResponse rewriteDiv(TNode t, bool pre);
 
   static RewriteResponse preRewritePlus(TNode t);
   static RewriteResponse postRewritePlus(TNode t);

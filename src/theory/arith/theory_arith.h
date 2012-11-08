@@ -107,12 +107,14 @@ private:
     d_setupNodes.insert(n);
   }
 
-  void interpretDivLike(const Variable& x);
+  void setupDivLike(const Variable& x);
 
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
   void setupPolynomial(const Polynomial& poly);
   void setupAtom(TNode atom);
+
+  void cautiousSetupPolynomial(const Polynomial& p);
 
   class SetupLiteralCallBack : public TNodeCallBack {
   private:
@@ -304,6 +306,21 @@ private:
 
   /** TODO : get rid of this. */ 
   DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed);
+
+  /** Uninterpretted function symbol for use when interpreting
+   * division by zero.
+   */
+  Node d_realDivideBy0Func;
+  Node d_intDivideBy0Func;
+  Node d_intModulusBy0Func;
+  Node getRealDivideBy0Func();
+  Node getIntDivideBy0Func();
+  Node getIntModulusBy0Func();
+
+  Node definingIteForDivLike(Node divLike);
+  Node axiomIteForTotalDivision(Node div_tot);
+  Node axiomIteForTotalIntDivision(Node int_div_like);
+
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);

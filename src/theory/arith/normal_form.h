@@ -230,11 +230,20 @@ public:
   // TODO: check if it's a theory leaf also
   static bool isMember(Node n) {
     Kind k = n.getKind();
-    if (k == kind::CONST_RATIONAL) return false;
-    if (isRelationOperator(k)) return false;
-    if (Theory::isLeafOf(n, theory::THEORY_ARITH)) return true;
-    if (k == kind::INTS_DIVISION || k == kind::INTS_MODULUS || k == kind::DIVISION) return isDivMember(n);
-    return false;
+    switch(k){
+    case kind::CONST_RATIONAL:
+      return false;
+    case kind::INTS_DIVISION:
+    case kind::INTS_MODULUS:
+    case kind::DIVISION:
+    case kind::INTS_DIVISION_TOTAL:
+    case kind::INTS_MODULUS_TOTAL:
+    case kind::DIVISION_TOTAL:
+      return isDivMember(n);
+    default:
+      return (!isRelationOperator(k)) &&
+        (Theory::isLeafOf(n, theory::THEORY_ARITH));
+    }
   }
 
   static bool isDivMember(Node n);

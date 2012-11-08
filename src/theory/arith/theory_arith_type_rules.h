@@ -62,7 +62,8 @@ public:
         }
       }
     }
-    bool isDivision = n.getKind() == kind::DIVISION;
+    Kind k = n.getKind();
+    bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
     return (isInteger && !isDivision ? integerType : realType);
   }
 };/* class ArithOperatorTypeRule */

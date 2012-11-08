@@ -86,25 +86,50 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     return rewriteUMinus(t, true);
   }else if(t.getKind() == kind::DIVISION){
     return RewriteResponse(REWRITE_DONE, t); // wait until t[1] is rewritten
+  }else if(t.getKind() == kind::DIVISION_TOTAL){
+    if(t[1].getKind()== kind::CONST_RATIONAL &&
+       t[1].getConst<Rational>().isZero()){
+      return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+    }else{
+      return RewriteResponse(REWRITE_DONE, t); // wait until t[1] is rewritten
+    }
   }else if(t.getKind() == kind::PLUS){
     return preRewritePlus(t);
   }else if(t.getKind() == kind::MULT){
     return preRewriteMult(t);
   }else if(t.getKind() == kind::INTS_DIVISION){
     Rational intOne(1);
-    if(t[1].getKind()== kind::CONST_RATIONAL && t[1].getConst<Rational>() == intOne){
+    if(t[1].getKind()== kind::CONST_RATIONAL &&
+       t[1].getConst<Rational>().isOne()){
       return RewriteResponse(REWRITE_AGAIN, t[0]);
     }else{
       return RewriteResponse(REWRITE_DONE, t);
     }
+  }else if(t.getKind() == kind::INTS_DIVISION_TOTAL){
+    if(t[1].getKind()== kind::CONST_RATIONAL){
+      Rational intOne(1), intZero(0);
+      if(t[1].getConst<Rational>().isOne()){
+        return RewriteResponse(REWRITE_AGAIN, t[0]);
+      } else if(t[1].getConst<Rational>().isZero()){
+        return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+      }
+    }
+    return RewriteResponse(REWRITE_DONE, t);
   }else if(t.getKind() == kind::INTS_MODULUS){
     Rational intOne(1);
-    if(t[1].getKind()== kind::CONST_RATIONAL && t[1].getConst<Rational>() == intOne){
-      Rational intZero(0);
-      return RewriteResponse(REWRITE_AGAIN, mkRationalNode(intZero));
+    if(t[1].getKind()== kind::CONST_RATIONAL &&
+       t[1].getConst<Rational>().isOne()){
+      return RewriteResponse(REWRITE_AGAIN, mkRationalNode(0));
     }else{
       return RewriteResponse(REWRITE_DONE, t);
     }
+  }else if(t.getKind() == kind::INTS_MODULUS_TOTAL){
+    if(t[1].getKind()== kind::CONST_RATIONAL){
+      if(t[1].getConst<Rational>().isOne() || t[1].getConst<Rational>().isZero()){
+        return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+      }
+    }
+    return RewriteResponse(REWRITE_DONE, t);
   }else{
     Unreachable();
   }
@@ -118,16 +143,24 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     return rewriteMinus(t, false);
   }else if(t.getKind() == kind::UMINUS){
     return rewriteUMinus(t, false);
-  }else if(t.getKind() == kind::DIVISION){
-    return rewriteDivByConstant(t, false);
+  }else if(t.getKind() == kind::DIVISION ||
+           t.getKind() == kind::DIVISION_TOTAL){
+    return rewriteDiv(t, false);
   }else if(t.getKind() == kind::PLUS){
     return postRewritePlus(t);
   }else if(t.getKind() == kind::MULT){
     return postRewriteMult(t);
-  }else if(t.getKind() == kind::INTS_DIVISION){
+  }else if(t.getKind() == kind::INTS_DIVISION ||
+           t.getKind() == kind::INTS_MODULUS){
     return RewriteResponse(REWRITE_DONE, t);
-  }else if(t.getKind() == kind::INTS_MODULUS){
-    return RewriteResponse(REWRITE_DONE, t);
+  }else if(t.getKind() == kind::INTS_DIVISION_TOTAL ||
+           t.getKind() == kind::INTS_MODULUS_TOTAL){
+    if(t[1].getKind() == kind::CONST_RATIONAL &&
+       t[1].getConst<Rational>().isZero()){
+      return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+    }else{
+      return RewriteResponse(REWRITE_DONE, t);
+    }
   }else{
     Unreachable();
   }
@@ -272,27 +305,35 @@ Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
   return diff;
 }
 
-RewriteResponse ArithRewriter::rewriteDivByConstant(TNode t, bool pre){
-  Assert(t.getKind()== kind::DIVISION);
+RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
+  Assert(t.getKind()== kind::DIVISION || t.getKind() == kind::DIVISION_TOTAL);
 
   Node left = t[0];
   Node right = t[1];
-  Assert(right.getKind()== kind::CONST_RATIONAL);
+  if(right.getKind() == kind::CONST_RATIONAL){
+    const Rational& den = right.getConst<Rational>();
 
+    if(den.isZero()){
+      if(t.getKind() == kind::DIVISION_TOTAL){
+        return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+      }else{
+        return RewriteResponse(REWRITE_DONE, t);
+      }
+    }
+    Assert(den != Rational(0));
 
-  const Rational& den = right.getConst<Rational>();
+    Rational div = den.inverse();
 
-  Assert(den != Rational(0));
+    Node result = mkRationalNode(div);
 
-  Rational div = den.inverse();
-
-  Node result = mkRationalNode(div);
-
-  Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
-  if(pre){
-    return RewriteResponse(REWRITE_DONE, mult);
+    Node mult = NodeManager::currentNM()->mkNode(kind::MULT,left,result);
+    if(pre){
+      return RewriteResponse(REWRITE_DONE, mult);
+    }else{
+      return RewriteResponse(REWRITE_AGAIN, mult);
+    }
   }else{
-    return RewriteResponse(REWRITE_AGAIN, mult);
+    return RewriteResponse(REWRITE_DONE, t);
   }
 }
 

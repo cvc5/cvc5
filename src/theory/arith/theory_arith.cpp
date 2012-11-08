@@ -84,9 +84,63 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_basicVarModelUpdateCallBack(d_simplex),
   d_DELTA_ZERO(0),
   d_statistics()
-{}
+{
+  // if(!logicInfo.isLinear()){ // If non-linear
+  //   NodeManager* currNM = NodeManager::currentNM();
+  //   if(logicInfo.areRealsUsed()){ // If reals are enabled, create this symbol
+  //     TypeNode realType = currNM->realType();
+  //     TypeNode realToRealFunctionType = currNM->mkFunctionType(realType, realType);
+  //     d_realDivideBy0Func = currNM->mkSkolem("/by0_$$", realToRealFunctionType);
+  //   }
+  //   if(logicInfo.areIntegersUsed()){  // If integers are enabled, create these symbols
+  //     TypeNode intType = currNM->integerType();
+  //     TypeNode intToIntFunctionType = currNM->mkFunctionType(intType, intType);
+  //     d_intDivideBy0Func = currNM->mkSkolem("divby0_$$", intToIntFunctionType);
+  //     d_intModulusBy0Func = currNM->mkSkolem("modby0_$$", intToIntFunctionType);
+  //   }
+  // }
+}
 
 TheoryArith::~TheoryArith(){}
+
+Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
+  NodeManager* currNM = NodeManager::currentNM();
+  TypeNode functionType = currNM->mkFunctionType(dom, range);
+  return currNM->mkSkolem(name, functionType);
+}
+
+Node TheoryArith::getRealDivideBy0Func(){
+  Assert(!getLogicInfo().isLinear());
+  Assert(getLogicInfo().areRealsUsed());
+
+  if(d_realDivideBy0Func.isNull()){
+    TypeNode realType = NodeManager::currentNM()->realType();
+    d_realDivideBy0Func = skolemFunction("/by0_$$", realType, realType);
+  }
+  return d_realDivideBy0Func;
+}
+
+Node TheoryArith::getIntDivideBy0Func(){
+  Assert(!getLogicInfo().isLinear());
+  Assert(getLogicInfo().areIntegersUsed());
+
+  if(d_intDivideBy0Func.isNull()){
+    TypeNode intType = NodeManager::currentNM()->integerType();
+    d_intDivideBy0Func = skolemFunction("divby0_$$", intType, intType);
+  }
+  return d_intDivideBy0Func;
+}
+
+Node TheoryArith::getIntModulusBy0Func(){
+  Assert(!getLogicInfo().isLinear());
+  Assert(getLogicInfo().areIntegersUsed());
+
+  if(d_intModulusBy0Func.isNull()){
+    TypeNode intType = NodeManager::currentNM()->integerType();
+    d_intModulusBy0Func = skolemFunction("modby0_$$", intType, intType);
+  }
+  return d_intModulusBy0Func;
+}
 
 TheoryArith::Statistics::Statistics():
   d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
@@ -777,7 +831,7 @@ void TheoryArith::setupVariable(const Variable& x){
 
 
   if(x.isDivLike()){
-    interpretDivLike(x);
+    setupDivLike(x);
   }
 
 }
@@ -815,67 +869,162 @@ void TheoryArith::setupVariableList(const VarList& vl){
    * See the comment in setupPolynomail for more.
    */
 }
-void TheoryArith::interpretDivLike(const Variable& v){
+
+void TheoryArith::cautiousSetupPolynomial(const Polynomial& p){
+  if(p.containsConstant()){
+    if(!p.isConstant()){
+      Polynomial noConstant = p.getTail();
+      if(!isSetup(noConstant.getNode())){
+        setupPolynomial(noConstant);
+      }
+    }
+  }else if(!isSetup(p.getNode())){
+    setupPolynomial(p);
+  }
+}
+
+void TheoryArith::setupDivLike(const Variable& v){
   Assert(v.isDivLike());
   Node vnode = v.getNode();
   Assert(isSetup(vnode)); // Otherwise there is some invariant breaking recursion
   Polynomial m = Polynomial::parsePolynomial(vnode[0]);
   Polynomial n = Polynomial::parsePolynomial(vnode[1]);
 
-  NodeManager* currNM = NodeManager::currentNM();
-  Node nNeq0 = currNM->mkNode(EQUAL, n.getNode(), mkRationalNode(0)).notNode();
-  if(vnode.getKind() == INTS_DIVISION || vnode.getKind() == INTS_MODULUS){
-    // (for all ((m Int) (n Int))
-    //   (=> (distinct n 0)
-    //       (let ((q (div m n)) (r (mod m n)))
-    //         (and (= m (+ (* n q) r))
-    //              (<= 0 r (- (abs n) 1))))))
+  cautiousSetupPolynomial(m);
+  cautiousSetupPolynomial(n);
 
-    // Updated for div 0 functions
-    // (for all ((m Int) (n Int))
-    //   (let ((q (div m n)) (r (mod m n)))
-    //     (ite (= n 0)
-    //          (and (= q (div_0_func m)) (= r (mod_0_func m)))
-    //          (and (= m (+ (* n q) r))
-    //               (<= 0 r (- (abs n) 1)))))))
-
-    Node q = (vnode.getKind() == INTS_DIVISION) ? vnode : currNM->mkNode(INTS_DIVISION, m.getNode(), n.getNode());
-    Node r = (vnode.getKind() == INTS_MODULUS) ? vnode : currNM->mkNode(INTS_MODULUS, m.getNode(), n.getNode());
-
-
-    Polynomial rp = Polynomial::parsePolynomial(r);
-    Polynomial qp = Polynomial::parsePolynomial(q);
-
-    Node abs_n;
-    Node zero = mkRationalNode(0);
-
-    if(n.isConstant()){
-      abs_n = n.getHead().getConstant().abs().getNode();
-    }else{
-      abs_n = mkIntSkolem("abs_$$");
-      Node absCnd = n.makeAbsCondition(Variable(abs_n));
-      d_out->lemma(absCnd);
-    }
-
-    Node eq = Comparison::mkComparison(EQUAL, m, n * qp + rp).getNode();
-    Node leq0 = currNM->mkNode(LEQ,  zero, r);
-    Node leq1 = currNM->mkNode(LT, r, abs_n);
-
-    Node andE = currNM->mkNode(AND, eq, leq0, leq1);
-    Node nNeq0ImpliesandE = currNM->mkNode(IMPLIES, nNeq0, andE);
-
-    d_out->lemma(nNeq0ImpliesandE);
-  }else{
-    // DIVISION (/ q r)
-    // (=> (distinct 0 n) (= m (* d n)))
-    Assert(vnode.getKind() == DIVISION);
-    Node d = mkRealSkolem("division_$$");
-    Node eq = Comparison::mkComparison(EQUAL, m, n * Polynomial::parsePolynomial(d)).getNode();
-    Node nNeq0ImpliesEq = currNM->mkNode(IMPLIES, nNeq0, eq);
-    d_out->lemma(nNeq0ImpliesEq);
+  Node lem;
+  switch(vnode.getKind()){
+  case DIVISION:
+  case INTS_DIVISION:
+  case INTS_MODULUS:
+    lem = definingIteForDivLike(vnode);
+    break;
+  case DIVISION_TOTAL:
+    lem = axiomIteForTotalDivision(vnode);
+    break;
+  case INTS_DIVISION_TOTAL:
+  case INTS_MODULUS_TOTAL:
+    lem = axiomIteForTotalIntDivision(vnode);
+    break;
+  default:
+    /* intentionally blank */
+    break;
   }
 
+  if(!lem.isNull()){
+    Debug("arith::div") << lem << endl;
+    d_out->lemma(lem);
+  }
 }
+
+Node TheoryArith::definingIteForDivLike(Node divLike){
+  Kind k = divLike.getKind();
+  Assert(k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS);
+  // (for all ((n Real) (d Real))
+  //  (=
+  //   (DIVISION n d)
+  //   (ite (= d 0)
+  //    (APPLY [div_0_skolem_function] n)
+  //    (DIVISION_TOTAL x y))))
+
+  Polynomial n = Polynomial::parsePolynomial(divLike[0]);
+  Polynomial d = Polynomial::parsePolynomial(divLike[1]);
+
+  NodeManager* currNM = NodeManager::currentNM();
+  Node dEq0 = currNM->mkNode(EQUAL, d.getNode(), mkRationalNode(0));
+
+  Kind kTotal = (k == DIVISION) ? DIVISION_TOTAL :
+    (k == INTS_DIVISION) ? INTS_DIVISION_TOTAL : INTS_MODULUS_TOTAL;
+
+  Node by0Func = (k == DIVISION) ?  getRealDivideBy0Func():
+    (k == INTS_DIVISION) ? getIntDivideBy0Func() : getIntModulusBy0Func();
+
+
+  Debug("arith::div") << divLike << endl;
+  Debug("arith::div") << by0Func << endl;
+
+  Node divTotal = currNM->mkNode(kTotal, n.getNode(), d.getNode());
+  Node divZero = currNM->mkNode(APPLY_UF, by0Func, n.getNode());
+
+  Node defining = divLike.eqNode(dEq0.iteNode( divZero, divTotal));
+
+  return defining;
+}
+
+Node TheoryArith::axiomIteForTotalDivision(Node div_tot){
+  Assert(div_tot.getKind() == DIVISION_TOTAL);
+
+  // Inverse of multiplication axiom:
+  //   (for all ((n Real) (d Real))
+  //    (ite (= d 0)
+  //     (= (DIVISION_TOTAL n d) 0)
+  //     (= (* d (DIVISION_TOTAL n d)) n)))
+
+
+  Polynomial n = Polynomial::parsePolynomial(div_tot[0]);
+  Polynomial d = Polynomial::parsePolynomial(div_tot[1]);
+  Polynomial div_tot_p = Polynomial::parsePolynomial(div_tot);
+
+  Comparison invEq = Comparison::mkComparison(EQUAL, n, d * div_tot_p);
+  Comparison zeroEq = Comparison::mkComparison(EQUAL, div_tot_p, Polynomial::mkZero());
+  Node dEq0 = (d.getNode()).eqNode(mkRationalNode(0));
+  Node ite = dEq0.iteNode(zeroEq.getNode(), invEq.getNode()); 
+
+  return ite;
+}
+
+Node TheoryArith::axiomIteForTotalIntDivision(Node int_div_like){
+  Kind k = int_div_like.getKind();
+  Assert(k == INTS_DIVISION_TOTAL || k == INTS_MODULUS_TOTAL);
+
+  // (for all ((m Int) (n Int))
+  //   (=> (distinct n 0)
+  //       (let ((q (div m n)) (r (mod m n)))
+  //         (and (= m (+ (* n q) r))
+  //              (<= 0 r (- (abs n) 1))))))
+
+  // Updated for div 0 functions
+  // (for all ((m Int) (n Int))
+  //   (let ((q (div m n)) (r (mod m n)))
+  //     (ite (= n 0)
+  //          (and (= q (div_0_func m)) (= r (mod_0_func m)))
+  //          (and (= m (+ (* n q) r))
+  //               (<= 0 r (- (abs n) 1)))))))
+
+  Polynomial n = Polynomial::parsePolynomial(int_div_like[0]);
+  Polynomial d = Polynomial::parsePolynomial(int_div_like[1]);
+
+  NodeManager* currNM = NodeManager::currentNM();
+  Node zero = mkRationalNode(0);
+
+  Node q = (k == INTS_DIVISION_TOTAL) ? int_div_like : currNM->mkNode(INTS_DIVISION_TOTAL, n.getNode(), d.getNode());
+  Node r = (k == INTS_MODULUS_TOTAL) ? int_div_like : currNM->mkNode(INTS_MODULUS_TOTAL, n.getNode(), d.getNode());
+
+  Node dEq0 = (d.getNode()).eqNode(zero);
+  Node qEq0 = q.eqNode(zero);
+  Node rEq0 = r.eqNode(zero);
+
+  Polynomial rp = Polynomial::parsePolynomial(r);
+  Polynomial qp = Polynomial::parsePolynomial(q);
+
+  Node abs_d = (n.isConstant()) ? 
+    d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs_$$");
+
+  Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
+  Node leq0 = currNM->mkNode(LEQ, zero, r);
+  Node leq1 = currNM->mkNode(LT, r, abs_d);
+
+  Node andE = currNM->mkNode(AND, eq, leq0, leq1);
+    
+  Node defDivMode = dEq0.iteNode(qEq0.andNode(rEq0), andE);
+    
+  Node lem = abs_d.getMetaKind () == metakind::VARIABLE ?
+    defDivMode.andNode(d.makeAbsCondition(Variable(abs_d))) : defDivMode;
+
+  return lem;
+}
+
 
 void TheoryArith::setupPolynomial(const Polynomial& poly) {
   Assert(!poly.containsConstant());
