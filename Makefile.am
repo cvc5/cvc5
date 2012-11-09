@@ -147,6 +147,7 @@ distclean-local:
 DISTCLEANFILES = \
 	doc/cvc4.1 \
 	doc/cvc4.1_template \
+	doc/pcvc4.1 \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
 	doc/libcvc4.3_template \
