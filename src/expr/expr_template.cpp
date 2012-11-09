@@ -112,6 +112,7 @@ namespace expr {
 static Node exportConstant(TNode n, NodeManager* to);
 
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap) {
+  if(n.isNull()) return Node::null();
   if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
     throw ExportUnsupportedException
        ("export of node belonging to theory of DATATYPES kinds unsupported");
