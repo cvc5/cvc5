@@ -232,7 +232,7 @@ class TheoryEngine {
 
     void safePoint() throw(theory::Interrupted, AssertionException) {
       if (d_engine->d_interrupted)
-        throw theory::Interrupted(); 
+        throw theory::Interrupted();
    }
 
     void conflict(TNode conflictNode) throw(AssertionException) {
@@ -394,8 +394,8 @@ class TheoryEngine {
   Node d_false;
 
   /** Whether we were just interrupted (or not) */
-  bool d_interrupted; 
-  
+  bool d_interrupted;
+
 public:
 
   /** Constructs a theory engine */
@@ -404,8 +404,8 @@ public:
   /** Destroys a theory engine */
   ~TheoryEngine();
 
-  void interrupt() throw(ModalException); 
-  
+  void interrupt() throw(ModalException);
+
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.

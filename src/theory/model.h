@@ -47,6 +47,8 @@ public:
   /** true/false nodes */
   Node d_true;
   Node d_false;
+  context::CDO<bool> d_modelBuilt;
+
 protected:
   /** reset the model */
   virtual void reset();

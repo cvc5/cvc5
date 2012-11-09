@@ -9,7 +9,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief The theory engine.
+ ** \brief The theory engine
  **
  ** The theory engine.
  **/
@@ -253,7 +253,7 @@ void TheoryEngine::check(Theory::Effort effort) {
   d_propEngine->checkTime();
 
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -319,24 +319,22 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
-    if( effort == Theory::EFFORT_FULL &&
-        ! d_inConflict &&
-        ! d_lemmasAdded ) {
-      if( d_logicInfo.isQuantified() ){
-        //quantifiers engine must pass effort last call check
+    if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
+      if(d_logicInfo.isQuantified()) {
+        // quantifiers engine must pass effort last call check
         d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         // if we have given up, then possibly flip decision
         if(options::flipDecision()) {
-          if(d_incomplete && !d_inConflict && !d_lemmasAdded) {
+          if(d_incomplete && !d_inConflict && !needCheck()) {
             if( ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision() ) {
               d_incomplete = false;
             }
           }
         }
-        //if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
-      }else if( options::produceModels() ){
-        //must build model at this point
-        d_curr_model_builder->buildModel( d_curr_model, true );
+        // if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
+      } else if(options::produceModels()) {
+        // must build model at this point
+        d_curr_model_builder->buildModel(d_curr_model, true);
       }
     }
 
@@ -348,7 +346,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
   // If fulleffort, check all theories
   if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
-    if (!d_inConflict && !d_lemmasAdded) {
+    if (!d_inConflict && !needCheck()) {
       dumpAssertions("theory::fullcheck");
     }
   }
@@ -428,7 +426,7 @@ void TheoryEngine::combineTheories() {
 
 void TheoryEngine::propagate(Theory::Effort effort) {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -440,7 +438,7 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   }
 
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   // Propagate for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
@@ -587,7 +585,7 @@ TheoryModel* TheoryEngine::getModel() {
 
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -613,7 +611,7 @@ bool TheoryEngine::presolve() {
 
 void TheoryEngine::postsolve() {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -636,7 +634,7 @@ void TheoryEngine::postsolve() {
 
 void TheoryEngine::notifyRestart() {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -653,7 +651,7 @@ void TheoryEngine::notifyRestart() {
 
 void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT

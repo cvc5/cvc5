@@ -26,7 +26,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels ) :
-  d_substitutions(c), d_equalityEngine(c, name), d_enableFuncModels(enableFuncModels)
+  d_substitutions(c), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -235,9 +235,10 @@ void TheoryModel::assertPredicate( Node a, bool polarity ){
       (a == d_false && (!polarity))) {
     return;
   }
-  if( a.getKind()==EQUAL ){
+  if (a.getKind() == EQUAL) {
+    Trace("model-builder-assertions") << "(assert " << (polarity ? " " : "(not ") << a << (polarity ? ");" : "));") << endl;
     d_equalityEngine.assertEquality( a, polarity, Node::null() );
-  }else{
+  } else {
     Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
     d_equalityEngine.assertPredicate( a, polarity, Node::null() );
     Assert(d_equalityEngine.consistent());
@@ -381,6 +382,10 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
   TheoryModel* tm = (TheoryModel*)m;
+
+  // buildModel with fullModel = true should only be called once in any context
+  Assert(!tm->d_modelBuilt);
+  tm->d_modelBuilt = fullModel;
 
   // Reset model
   tm->reset();
