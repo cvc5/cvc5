@@ -208,9 +208,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 
 /** add term */
 void TheoryModel::addTerm( Node n ){
-  if( !d_equalityEngine.hasTerm( n ) ){
-    d_equalityEngine.addTerm( n );
-  }
+  Assert(d_equalityEngine.hasTerm(n));
   //must collect UF terms
   if (n.getKind()==APPLY_UF) {
     Node op = n.getOperator();
@@ -364,6 +362,22 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
 }
 
 
+void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cache)
+{
+  NodeSet::iterator it = cache.find(n);
+  if (it != cache.end()) {
+    return;
+  }
+  if (isAssignable(n)) {
+    tm->d_equalityEngine.addTerm(n);
+  }
+  for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
+    checkTerms(*child_it, tm, cache);
+  }
+  cache.insert(n);
+}
+
+
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
   TheoryModel* tm = (TheoryModel*)m;
@@ -375,13 +389,25 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   Trace("model-builder") << "TheoryEngineModelBuilder: Collect model info..." << std::endl;
   d_te->collectModelInfo(tm, fullModel);
 
+  // Loop through all terms and make sure that assignable sub-terms are in the equality engine
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &tm->d_equalityEngine );
+  {
+    NodeSet cache;
+    for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
+      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), &tm->d_equalityEngine);
+      for ( ; !eqc_i.isFinished(); ++eqc_i) {
+        checkTerms(*eqc_i, tm, cache);
+      }
+    }
+  }
+
   Trace("model-builder") << "Collect representatives..." << std::endl;
+
   // Process all terms in the equality engine, store representatives for each EC
   std::map< Node, Node > assertedReps, constantReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &tm->d_equalityEngine );
+  eqcs_i = eq::EqClassesIterator(&tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
-
     // eqc is the equivalence class representative
     Node eqc = (*eqcs_i);
     Trace("model-builder") << "Processing EC: " << eqc << endl;

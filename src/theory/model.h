@@ -247,12 +247,14 @@ protected:
   TheoryEngine* d_te;
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_normalizedCache;
+  typedef std::hash_set<Node, NodeHashFunction> NodeSet;
 
   /** process build model */
   virtual void processBuildModel(TheoryModel* m, bool fullModel);
   /** normalize representative */
   Node normalize(TheoryModel* m, TNode r, std::map<Node, Node>& constantReps, bool evalOnly);
   bool isAssignable(TNode n);
+  void checkTerms(TNode n, TheoryModel* tm, NodeSet& cache);
 
 public:
   TheoryEngineModelBuilder(TheoryEngine* te);

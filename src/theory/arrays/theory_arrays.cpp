@@ -707,8 +707,6 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
     // For each read, require that the rep stores the right value
     vector<Node>& reads = selects[n];
     for (unsigned j = 0; j < reads.size(); ++j) {
-      m->addTerm(reads[j]);
-      m->addTerm(reads[j][1]);
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
     m->assertEquality(n, rep, true);
