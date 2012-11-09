@@ -220,6 +220,25 @@ class SmtEnginePrivate : public NodeManagerListener {
   hash_map<Node, Node, NodeHashFunction> d_abstractValues;
 
   /**
+   * Function symbol used to implement uninterpreted division-by-zero
+   * semantics.  Needed to deal with partial division function ("/").
+   */
+  Node d_divByZero;
+
+  /**
+   * Function symbol used to implement uninterpreted
+   * int-division-by-zero semantics.  Needed to deal with partial
+   * function "div".
+   */
+  Node d_intDivByZero;
+
+  /**
+   * Function symbol used to implement uninterpreted mod-zero
+   * semantics.  Needed to deal with partial function "mod".
+   */
+  Node d_modZero;
+
+  /**
    * Map from skolem variables to index in d_assertionsToCheck containing
    * corresponding introduced Boolean ite
    */
@@ -301,6 +320,9 @@ public:
     d_fakeContext(),
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
+    d_divByZero(),
+    d_intDivByZero(),
+    d_modZero(),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_topLevelSubstitutions(smt.d_userContext),
@@ -1062,7 +1084,9 @@ void SmtEngine::defineFunction(Expr func,
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
   throw(TypeCheckingException) {
 
-  if(n.getKind() != kind::APPLY && n.getNumChildren() == 0) {
+  Kind k = n.getKind();
+
+  if(k != kind::APPLY && n.getNumChildren() == 0) {
     // don't bother putting in the cache
     return n;
   }
@@ -1075,7 +1099,67 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   }
 
   // otherwise expand it
-  if(n.getKind() == kind::APPLY) {
+
+  Node node;
+  NodeManager* nm = d_smt.d_nodeManager;
+
+  switch(k) {
+  case kind::DIVISION: {
+    // partial function: division
+    if(d_smt.d_logic.isLinear()) {
+      node = n;
+      break;
+    }
+    if(d_divByZero.isNull()) {
+      d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
+                                 "partial real division", NodeManager::SKOLEM_EXACT_NAME);
+    }
+    TNode num = n[0], den = n[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
+    Node divTotalNumDen = nm->mkNode(kind::DIVISION_TOTAL, num, den);
+    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    break;
+  }
+
+  case kind::INTS_DIVISION: {
+    // partial function: integer div
+    if(d_smt.d_logic.isLinear()) {
+      node = n;
+      break;
+    }
+    if(d_intDivByZero.isNull()) {
+      d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
+                                    "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
+    }
+    TNode num = n[0], den = n[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
+    Node intDivTotalNumDen = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
+    node = nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, intDivTotalNumDen);
+    break;
+  }
+
+  case kind::INTS_MODULUS: {
+    // partial function: mod
+    if(d_smt.d_logic.isLinear()) {
+      node = n;
+      break;
+    }
+    if(d_modZero.isNull()) {
+      d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
+                               "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
+    }
+    TNode num = n[0], den = n[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
+    Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
+    node = nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
+    break;
+  }
+
+  case kind::APPLY: {
+    // application of a user-defined symbol
     TNode func = n.getOperator();
     SmtEngine::DefinedFunctionMap::const_iterator i =
       d_smt.d_definedFunctions->find(func);
@@ -1112,25 +1196,35 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     Node expanded = expandDefinitions(instance, cache);
     cache[n] = (n == expanded ? Node::null() : expanded);
     return expanded;
-  } else {
-    Debug("expand") << "cons : " << n << endl;
-    NodeBuilder<> nb(n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      Debug("expand") << "op   : " << n.getOperator() << endl;
-      nb << n.getOperator();
-    }
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
-        i != iend;
-        ++i) {
-      Node expanded = expandDefinitions(*i, cache);
-      Debug("expand") << "exchld: " << expanded << endl;
-      nb << expanded;
-    }
-    Node node = nb;
-    cache[n] = n == node ? Node::null() : node;
-    return node;
   }
+
+  default:
+    // unknown kind for expansion, just iterate over the children
+    node = n;
+  }
+
+  // there should be children here, otherwise we short-circuited a return, above
+  Assert(node.getNumChildren() > 0);
+
+  // the partial functions can fall through, in which case we still
+  // consider their children
+  Debug("expand") << "cons : " << node << endl;
+  NodeBuilder<> nb(node.getKind());
+  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    Debug("expand") << "op   : " << node.getOperator() << endl;
+    nb << node.getOperator();
+  }
+  for(Node::iterator i = node.begin(),
+        iend = node.end();
+      i != iend;
+      ++i) {
+    Node expanded = expandDefinitions(*i, cache);
+    Debug("expand") << "exchld: " << expanded << endl;
+    nb << expanded;
+  }
+  node = nb;
+  cache[n] = n == node ? Node::null() : node;
+  return node;
 }
 
 // check if the given node contains a universal quantifier
