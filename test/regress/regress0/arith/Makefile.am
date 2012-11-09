@@ -35,7 +35,8 @@ TESTS =	\
 	div.05.smt2 \
 	div.06.smt2 \
 	div.07.smt2 \
-	div.08.smt2
+	div.08.smt2 \
+	mult.01.smt2
 #	problem__003.smt2
 
 EXTRA_DIST = $(TESTS)
