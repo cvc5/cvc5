@@ -30,6 +30,8 @@
 #include "theory/rewriter.h"
 #include "theory/theory_traits.h"
 
+#include "smt/logic_exception.h"
+
 #include "util/node_visitor.h"
 #include "util/ite_removal.h"
 
@@ -684,7 +686,7 @@ void TheoryEngine::shutdown() {
 
 theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMap& substitutionOut) {
   // Reset the interrupt flag
-  d_interrupted = false; 
+  d_interrupted = false;
 
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
@@ -695,7 +697,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
        << ", which doesn't include " << Theory::theoryOf(atom)
        << ", but got an asserted fact to that theory";
-    throw Exception(ss.str());
+    throw LogicException(ss.str());
   }
 
   Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
@@ -793,7 +795,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
          << ", which doesn't include " << Theory::theoryOf(current)
          << ", but got an asserted fact to that theory";
-      throw Exception(ss.str());
+      throw LogicException(ss.str());
     }
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
@@ -883,7 +885,7 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
        << ", which doesn't include " << toTheoryId
        << ", but got an asserted fact to that theory";
-    throw Exception(ss.str());
+    throw LogicException(ss.str());
   }
 
   if (d_inConflict) {

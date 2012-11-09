@@ -306,7 +306,7 @@ private:
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions() throw(TypeCheckingException);
+  bool simplifyAssertions() throw(TypeCheckingException, LogicException);
 
 public:
 
@@ -404,13 +404,13 @@ public:
    * even be simplified.
    */
   void addFormula(TNode n)
-    throw(TypeCheckingException);
+    throw(TypeCheckingException, LogicException);
 
   /**
    * Expand definitions in n.
    */
   Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
-    throw(TypeCheckingException);
+    throw(TypeCheckingException, LogicException);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -1082,7 +1082,7 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
-  throw(TypeCheckingException) {
+  throw(TypeCheckingException, LogicException) {
 
   Kind k = n.getKind();
 
@@ -1729,7 +1729,7 @@ void SmtEnginePrivate::constrainSubtypes(TNode top, std::vector<Node>& assertion
 
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
-  throw(TypeCheckingException) {
+  throw(TypeCheckingException, LogicException) {
   Assert(d_smt.d_pendingPops == 0);
   try {
 
@@ -2057,7 +2057,7 @@ void SmtEnginePrivate::processAssertions() {
 }
 
 void SmtEnginePrivate::addFormula(TNode n)
-  throw(TypeCheckingException) {
+  throw(TypeCheckingException, LogicException) {
 
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
@@ -2082,7 +2082,7 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
   }
 }
 
-Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException) {
+Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException, LogicException) {
   Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2149,7 +2149,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   return r;
 }/* SmtEngine::checkSat() */
 
-Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalException) {
+Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalException, LogicException) {
   Assert(!ex.isNull());
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -2213,7 +2213,7 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
   return r;
 }/* SmtEngine::query() */
 
-Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException) {
+Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2231,7 +2231,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException) {
   return quickCheck().asValidityResult();
 }
 
-Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException) {
+Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2252,7 +2252,7 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException) {
   return d_private->simplify(Node::fromExpr(e)).toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException) {
+Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -2272,7 +2272,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException) {
   return d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
 }
 
-Expr SmtEngine::getValue(const Expr& ex) throw(ModalException) {
+Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -2652,7 +2652,7 @@ vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-void SmtEngine::push() throw(ModalException) {
+void SmtEngine::push() throw(ModalException, LogicException) {
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();

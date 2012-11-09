@@ -166,6 +166,7 @@ using namespace CVC4;
 
 %include "smt/smt_engine.i"
 %include "smt/modal_exception.i"
+%include "smt/logic_exception.i"
 
 %include "options/options.i"
 %include "options/option_exception.i"
