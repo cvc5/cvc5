@@ -224,8 +224,12 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
         InstConstantAttribute ica;
         n.setAttribute(ica,in.getAttribute(InstConstantAttribute()) );
       }
+
+      // This is required if substitute in computePrenex() is used.
+      return RewriteResponse(REWRITE_AGAIN_FULL, n );
+    }else{
+      return RewriteResponse(REWRITE_DONE, n );
     }
-    return RewriteResponse(REWRITE_DONE, n );
   }
   return RewriteResponse(REWRITE_DONE, in);
 }
@@ -493,6 +497,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
       }
       Node newBody = body[1];
       newBody = newBody.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
+      Debug("quantifiers-substitute-debug") << "Did substitute have an effect" << (body[1] != newBody) << body[1] << " became " << newBody << endl;
       return newBody;
     }else{
       return body;
