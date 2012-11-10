@@ -79,6 +79,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_sharedOther(c),
   d_sharedTerms(c, false),
   d_reads(c),
+  d_readsInternal(c),
   d_decisionRequests(c),
   d_permRef(c)
 {
@@ -362,7 +363,7 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
  * Note: completeness depends on having pre-register called on all the input
  *       terms before starting to instantiate lemmas.
  */
-void TheoryArrays::preRegisterTerm(TNode node)
+void TheoryArrays::preRegisterTermInternal(TNode node, bool internalAssert)
 {
   if (d_conflict) {
     return;
@@ -398,7 +399,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
           Assert(s.getKind()==kind::STORE);
           Node ni = nm->mkNode(kind::SELECT, s, s[1]);
           if (ni != node) {
-            preRegisterTerm(ni);
+            preRegisterTermInternal(ni);
           }
           d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
           Assert(++it == stores->end());
@@ -421,6 +422,9 @@ void TheoryArrays::preRegisterTerm(TNode node)
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
+    if (internalAssert) {
+      d_readsInternal.push_back(node);
+    }
     d_reads.push_back(node);
     Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
@@ -441,7 +445,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
       NodeManager* nm = NodeManager::currentNM();
       Node ni = nm->mkNode(kind::SELECT, node, i);
       if (!d_equalityEngine.hasTerm(ni)) {
-        preRegisterTerm(ni);
+        preRegisterTermInternal(ni);
       }
 
       // Apply RIntro1 Rule
@@ -468,6 +472,12 @@ void TheoryArrays::preRegisterTerm(TNode node)
   // Invariant: preregistered terms are exactly the terms in the equality engine
   // Disabled, see comment above for kind::EQUAL
   // Assert(d_equalityEngine.hasTerm(node) || !d_equalityEngine.consistent());
+}
+
+
+void TheoryArrays::preRegisterTerm(TNode node)
+{
+  preRegisterTermInternal(node, false);
 }
 
 
@@ -638,13 +648,49 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
+
+void TheoryArrays::collectReads(TNode n, set<Node>& readSet, set<Node>& cache)
+{
+  if (cache.find(n) != cache.end()) {
+    return;
+  }
+  if (n.getKind() == kind::SELECT) {
+    readSet.insert(n);
+  }
+  for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
+    collectReads(*child_it, readSet, cache);
+  }
+  cache.insert(n);
+}
+
+
 void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
 
   std::map<Node, std::vector<Node> > selects;
-  std::vector<Node> arrays;
 
-  // Go through all equivalence classes
+  set<Node> readSet;
+  set<Node> cache;
+  // Collect all selects appearing in assertions
+  context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
+  for (; assert_it != assert_it_end; ++assert_it) {
+    collectReads(*assert_it, readSet, cache);
+  }
+
+  // Add selects that are shared terms
+  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
+  for (; shared_it != shared_it_end; ++ shared_it) {
+    collectReads(*shared_it, readSet, cache);
+  }
+
+  // Add selects that were generated internally
+  unsigned size = d_readsInternal.size();
+  for (unsigned i = 0; i < size; ++i) {
+    readSet.insert(d_readsInternal[i]);
+  }
+
+  // Go through all equivalence classes and collect relevant arrays and reads
+  std::vector<Node> arrays;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   bool isArray, computeRep;
   while( !eqcs_i.isFinished() ){
@@ -659,8 +705,9 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
         arrays.push_back(eqc);
         computeRep = true;
       }
-      // If this term is a select, record that the EC rep of its store parameter is being read from using this term
-      if (n.getKind()==kind::SELECT) {
+      // If this term is a select, and it appears in an assertion or was generated internally,
+      // record that the EC rep of its store parameter is being read from using this term
+      if (n.getKind() == kind::SELECT && readSet.find(n) != readSet.end()) {
         selects[d_equalityEngine.getRepresentative(n[0])].push_back(n);
       }
       ++eqc_i;
@@ -966,7 +1013,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     NodeManager* nm = NodeManager::currentNM();
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
-    preRegisterTerm(ni);
+    preRegisterTermInternal(ni);
     d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
   }
 }
@@ -1202,10 +1249,10 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
       d_permRef.push_back(reason);
       if (!ajExists) {
-        preRegisterTerm(aj);
+        preRegisterTermInternal(aj);
       }
       if (!bjExists) {
-        preRegisterTerm(bj);
+        preRegisterTermInternal(bj);
       }
       d_equalityEngine.assertEquality(aj_eq_bj, true, reason);
       ++d_numProp;
@@ -1244,20 +1291,20 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
       if (!ajExists) {
-        preRegisterTerm(aj);
+        preRegisterTermInternal(aj);
       }
       if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTerm(aj2);
+        preRegisterTermInternal(aj2);
       }
       d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
       if (!bjExists) {
-        preRegisterTerm(bj);
+        preRegisterTermInternal(bj);
       }
       if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTerm(bj2);
+        preRegisterTermInternal(bj2);
       }
       d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
     }
@@ -1270,10 +1317,10 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
       if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTerm(aj2);
+        preRegisterTermInternal(aj2);
       }
       if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTerm(bj2);
+        preRegisterTermInternal(bj2);
       }
       d_equalityEngine.assertEquality(eq1, true, d_true);
       return;
@@ -1344,20 +1391,20 @@ void TheoryArrays::dischargeLemmas()
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
       if (!ajExists) {
-        preRegisterTerm(aj);
+        preRegisterTermInternal(aj);
       }
       if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTerm(aj2);
+        preRegisterTermInternal(aj2);
       }
       d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
       if (!bjExists) {
-        preRegisterTerm(bj);
+        preRegisterTermInternal(bj);
       }
       if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTerm(bj2);
+        preRegisterTermInternal(bj2);
       }
       d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
     }
@@ -1370,10 +1417,10 @@ void TheoryArrays::dischargeLemmas()
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
       if (!d_equalityEngine.hasTerm(aj2)) {
-        preRegisterTerm(aj2);
+        preRegisterTermInternal(aj2);
       }
       if (!d_equalityEngine.hasTerm(bj2)) {
-        preRegisterTerm(bj2);
+        preRegisterTermInternal(bj2);
       }
       d_equalityEngine.assertEquality(eq1, true, d_true);
       continue;

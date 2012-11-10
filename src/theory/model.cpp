@@ -365,8 +365,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
 
 void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cache)
 {
-  NodeSet::iterator it = cache.find(n);
-  if (it != cache.end()) {
+  if (cache.find(n) != cache.end()) {
     return;
   }
   if (isAssignable(n)) {
