@@ -744,7 +744,7 @@ void SmtEngine::setLogicInternal() throw() {
   if(! options::unconstrainedSimp.wasSetByUser() || options::incrementalSolving()) {
     //    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     //    bool uncSimp = false && !qf_sat && !options::incrementalSolving();
-    bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() &&
+    bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() && !options::checkModels() &&
       (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << std::endl;
     options::unconstrainedSimp.set(uncSimp);
@@ -883,9 +883,22 @@ void SmtEngine::setLogicInternal() throw() {
   }
 
   // For now, these array theory optimizations do not support model-building
-  if (options::produceModels()) {
+  if (options::produceModels() || options::checkModels()) {
     options::arraysOptimizeLinear.set(false);
     options::arraysLazyRIntro1.set(false);
+  }
+
+  // Non-linear arithmetic does not support models
+  if (d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+      !d_logic.isLinear()) {
+    if (options::produceModels()) {
+      Notice() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << std::endl;
+      setOption("produce-models", SExpr("false"));
+    }
+    if (options::checkModels()) {
+      Notice() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
+      setOption("check-models", SExpr("false"));
+    }    
   }
 }
 
