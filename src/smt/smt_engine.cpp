@@ -892,11 +892,11 @@ void SmtEngine::setLogicInternal() throw() {
   if (d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
       !d_logic.isLinear()) {
     if (options::produceModels()) {
-      Notice() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << std::endl;
+      Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << std::endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::checkModels()) {
-      Notice() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
+      Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
       setOption("check-models", SExpr("false"));
     }    
   }
