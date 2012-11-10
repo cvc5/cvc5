@@ -28,7 +28,8 @@ elif [ $1 = --dump ]; then
 fi
 
 cvc4=$1
-benchmark=$2
+benchmark_orig=$2
+benchmark="$benchmark_orig"
 
 function error {
   echo "$prog: error: $*"
@@ -59,7 +60,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
   proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1
   lang=smt1
   if test -e "$benchmark.expect"; then
-    expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
+    expected_proof=`grep '^% PROOF' "$benchmark.expect" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -67,8 +68,8 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
-    expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
+  elif grep '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
+    expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -98,7 +99,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   proof_command='(get-proof)'
   lang=smt2
   if test -e "$benchmark.expect"; then
-    expected_proof=`grep -q '^% PROOF' "$benchmark.expect" && echo yes`
+    expected_proof=`grep '^% PROOF' "$benchmark.expect" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -106,8 +107,8 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
     fi
-  elif grep -q '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark"; then
-    expected_proof=`grep -q '^[%;] PROOF' "$benchmark" && echo yes`
+  elif grep '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
+    expected_proof=`grep '^[%;] PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=`grep '^[%;] EXPECT: ' "$benchmark" | sed 's,^[%;] EXPECT: ,,'`
     expected_error=`grep '^[%;] EXPECT-ERROR: ' "$benchmark" | sed 's,^[%;] EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^[%;] EXIT: ' "$benchmark" | perl -pe 's,^[%;] EXIT: ,,;s,\r,,'`
@@ -136,7 +137,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   proof_command='DUMP_PROOF;'
   lang=cvc4
-  expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
+  expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -152,7 +153,7 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
 elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
   proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1;
   lang=tptp
-  expected_proof=`grep -q '^% PROOF' "$benchmark" && echo yes`
+  expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -183,6 +184,14 @@ if [ -z "$expected_output" ]; then
   touch "$expoutfile"
 else
   echo "$expected_output" >"$expoutfile"
+fi
+check_models=false
+if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models' &>/dev/null; then
+    # later on, we'll run another test with --check-models on
+    check_models=true
+  fi
 fi
 if [ -z "$expected_error" ]; then
   # in case expected stderr output is empty, make sure we don't differ
@@ -262,6 +271,13 @@ if [ "$proof" = yes -a "$expected_proof" = yes ]; then
       cat "$errfile"
       exitcode=1
     fi
+  fi
+fi
+
+if $check_models; then
+  # at least one sat/invalid response: run an extra model-checking pass
+  if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS --check-models" "$0" "$cvc4" "$benchmark_orig"; then
+    exitcode=1
   fi
 fi
 
