@@ -1900,6 +1900,8 @@ void SmtEnginePrivate::processAssertions() {
     return;
   }
 
+  // Assertions are NOT guaranteed to be rewritten by this point
+
   dumpAssertions("pre-definition-expansion", d_assertionsToPreprocess);
   {
     Chat() << "expanding definitions..." << endl;
@@ -1945,6 +1947,8 @@ void SmtEnginePrivate::processAssertions() {
     Trace("simplify") << "  got " << d_assertionsToPreprocess[i] << endl;
   }
   dumpAssertions("post-substitution", d_assertionsToPreprocess);
+
+  // Assertions ARE guaranteed to be rewritten by this point
 
   dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
   if( options::preSkolemQuant() ){
@@ -2075,7 +2079,8 @@ void SmtEnginePrivate::addFormula(TNode n)
   Trace("smt") << "SmtEnginePrivate::addFormula(" << n << ")" << endl;
 
   // Add the normalized formula to the queue
-  d_assertionsToPreprocess.push_back(Rewriter::rewrite(n));
+  d_assertionsToPreprocess.push_back(n);
+  //d_assertionsToPreprocess.push_back(Rewriter::rewrite(n));
 
   // If the mode of processing is incremental prepreocess and assert immediately
   if (options::simplificationMode() == SIMPLIFICATION_MODE_INCREMENTAL) {
