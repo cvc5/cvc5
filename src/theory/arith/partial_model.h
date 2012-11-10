@@ -175,16 +175,19 @@ public:
     return d_ubc[x] != NullConstraint;
   }
 
-  const Rational& getDelta(){
+  const Rational& getDelta(const Rational& init = Rational(1)){
+    Assert(init.sgn() > 0);
     if(!d_deltaIsSafe){
-      computeDelta();
+      computeDelta(init);
+    }else if(init < d_delta){
+      d_delta = init;
     }
     return d_delta;
   }
 
 private:
 
-  void computeDelta();
+  void computeDelta(const Rational& init);
   void deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u);
 
   /**

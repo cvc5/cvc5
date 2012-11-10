@@ -2075,14 +2075,57 @@ DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
   }
 }
 
+Rational TheoryArith::safeDeltaValueForDisequality(){
+  Rational min(2);
+  context::CDQueue<Constraint>::const_iterator iter = d_diseqQueue.begin();
+  context::CDQueue<Constraint>::const_iterator iter_end = d_diseqQueue.end(); 
+
+  for(; iter != iter_end; ++iter){
+    Constraint curr = *iter;
+    
+    ArithVar lhsVar = curr->getVariable();
+
+    const DeltaRational& lhsValue = d_partialModel.getAssignment(lhsVar);
+    const DeltaRational& rhsValue = curr->getValue();
+    DeltaRational diff = lhsValue - rhsValue;
+    Assert(diff.sgn() != 0);
+
+    // diff != 0
+    // dinf * delta + dmajor != 0
+    // dinf * delta != -dmajor
+    const Rational& dinf = diff.getInfinitesimalPart();
+    const Rational& dmaj = diff.getNoninfinitesimalPart();
+    if(dinf.isZero()){
+      Assert(!dmaj.isZero());
+    }else if(dmaj.isZero()){
+      Assert(!dinf.isZero());
+    }else{
+      // delta != - dmajor / dinf
+      // if 0 < delta < abs(dmajor/dinf), then 
+      Rational d = (dmaj/dinf).abs();
+      Assert(d.sgn() > 0);
+
+      if(d < min){
+        min = d;
+      }
+    }
+  }
+
+  Assert(min.sgn() > 0);
+  Rational belowMin = min/Rational(2);  
+  return belowMin;
+}
+
 void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
+
   // Delta lasts at least the duration of the function call
-  const Rational& delta = d_partialModel.getDelta();
+  const Rational init = safeDeltaValueForDisequality();
+  const Rational& delta = d_partialModel.getDelta(init);
   std::hash_set<TNode, TNodeHashFunction> shared = currentlySharedTerms();
 
   // TODO:

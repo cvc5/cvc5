@@ -35,8 +35,8 @@ SMT_TESTS = \
 	incorrect1.smt \
 	incorrect1.delta01.smt \
 	incorrect1.delta02.smt 
-	error1.smt
-
+	error1.smt \
+	neq-deltacomp.smt
 # Regression tests for SMT2 inputs
 SMT2_TESTS =
 

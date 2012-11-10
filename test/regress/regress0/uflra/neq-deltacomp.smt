@@ -3,7 +3,7 @@
 :extrafuns ((v2 Real))
 :extrafuns ((v1 Real))
 :extrafuns ((v0 Real))
-:status unknown
+:status sat
 :formula
 (let (?n1 (~ v1))
 (flet ($n2 (>= ?n1 v0))

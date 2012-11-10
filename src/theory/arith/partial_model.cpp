@@ -289,9 +289,9 @@ void ArithPartialModel::deltaIsSmallerThan(const DeltaRational& l, const DeltaRa
   }
 }
 
-void ArithPartialModel::computeDelta(){
+void ArithPartialModel::computeDelta(const Rational& init){
   Assert(!d_deltaIsSafe);
-  d_delta = 1;
+  d_delta = init;
 
   for(ArithVar x = 0; x < d_mapSize; ++x){
     const DeltaRational& a = getAssignment(x);

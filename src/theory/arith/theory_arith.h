@@ -335,6 +335,7 @@ public:
   void propagate(Effort e);
   Node explain(TNode n);
 
+  Rational safeDeltaValueForDisequality();
   void collectModelInfo( TheoryModel* m, bool fullModel );
 
   void shutdown(){ }
