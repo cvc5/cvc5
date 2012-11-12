@@ -97,11 +97,6 @@ public:
     return d_value != y.d_value;
   }
 
-  BitVector equals(const BitVector& y) const {
-    CheckArgument(d_size == y.d_size, y);
-    return d_value == y.d_value; 
-  }
-
   BitVector concat (const BitVector& other) const {
     return BitVector(d_size + other.d_size, (d_value.multiplyByPow2(other.d_size)) + other.d_value);
   }

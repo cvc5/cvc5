@@ -21,6 +21,7 @@
 %rename(toBitVectorType) CVC4::Type::operator BitVectorType() const;
 %rename(toFunctionType) CVC4::Type::operator FunctionType() const;
 %rename(toTupleType) CVC4::Type::operator TupleType() const;
+%rename(toSExprType) CVC4::Type::operator SExprType() const;
 %rename(toArrayType) CVC4::Type::operator ArrayType() const;
 %rename(toDatatypeType) CVC4::Type::operator DatatypeType() const;
 %rename(toConstructorType) CVC4::Type::operator ConstructorType() const;
@@ -28,7 +29,8 @@
 %rename(toTesterType) CVC4::Type::operator TesterType() const;
 %rename(toSortType) CVC4::Type::operator SortType() const;
 %rename(toSortConstructorType) CVC4::Type::operator SortConstructorType() const;
-%rename(toKindType) CVC4::Type::operator KindType() const;
+%rename(toPredicateSubtype) CVC4::Type::operator PredicateSubtype() const;
+%rename(toSubrangeType) CVC4::Type::operator SubrangeType() const;
 
 namespace CVC4 {
   namespace expr {

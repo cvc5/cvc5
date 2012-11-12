@@ -320,6 +320,7 @@ protected:
 public:
   DeclarationDefinitionCommand(const std::string& id) throw();
   ~DeclarationDefinitionCommand() throw() {}
+  virtual void invoke(SmtEngine* smtEngine) throw() = 0;
   std::string getSymbol() const throw();
 };/* class DeclarationDefinitionCommand */
 

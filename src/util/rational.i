@@ -7,6 +7,7 @@
 %ignore CVC4::Rational::Rational(int, int);
 %ignore CVC4::Rational::Rational(unsigned int, unsigned int);
 %ignore CVC4::Rational::Rational(const std::string&);
+%ignore CVC4::Rational::Rational(const std::string&, unsigned int);
 
 %rename(assign) CVC4::Rational::operator=(const Rational&);
 %rename(equals) CVC4::Rational::operator==(const Rational&) const;
@@ -24,6 +25,8 @@
 %rename(lessEqual) CVC4::Rational::operator<=(const Rational&) const;
 %rename(greater) CVC4::Rational::operator>(const Rational&) const;
 %rename(greaterEqual) CVC4::Rational::operator>=(const Rational&) const;
+
+%rename(apply) CVC4::RationalHashFunction::operator()(const CVC4::Rational&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Rational&);
 

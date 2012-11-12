@@ -5,6 +5,7 @@
 %ignore CVC4::Integer::Integer(int);
 %ignore CVC4::Integer::Integer(unsigned int);
 %ignore CVC4::Integer::Integer(const std::string&);
+%ignore CVC4::Integer::Integer(const std::string&, unsigned int);
 
 %rename(assign) CVC4::Integer::operator=(const Integer&);
 %rename(equals) CVC4::Integer::operator==(const Integer&) const;
@@ -24,6 +25,8 @@
 %rename(lessEqual) CVC4::Integer::operator<=(const Integer&) const;
 %rename(greater) CVC4::Integer::operator>(const Integer&) const;
 %rename(greaterEqual) CVC4::Integer::operator>=(const Integer&) const;
+
+%rename(apply) CVC4::IntegerHashFunction::operator()(const CVC4::Integer&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Integer&);
 

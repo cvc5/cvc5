@@ -41,6 +41,7 @@
 %rename(endConst) CVC4::Datatype::end() const;
 
 %rename(getConstructor) CVC4::Datatype::operator[](size_t) const;
+%ignore CVC4::Datatype::operator[](std::string) const;
 
 %rename(apply) CVC4::DatatypeHashFunction::operator()(const Datatype&) const;
 %ignore CVC4::DatatypeHashFunction::operator()(const Datatype*) const;
@@ -51,6 +52,7 @@
 %rename(endConst) CVC4::DatatypeConstructor::end() const;
 
 %rename(getArg) CVC4::DatatypeConstructor::operator[](size_t) const;
+%rename(getArg) CVC4::DatatypeConstructor::operator[](std::string) const;
 
 %ignore CVC4::operator<<(std::ostream&, const Datatype&);
 %ignore CVC4::operator<<(std::ostream&, const DatatypeConstructor&);
