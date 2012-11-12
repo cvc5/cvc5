@@ -28,6 +28,7 @@
 #include "util/boolean_simplification.h"
 #include "util/dense_map.h"
 
+#include "smt/logic_exception.h"
 
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
@@ -68,7 +69,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_diseqQueue(c, false),
   d_currentPropagationList(),
   d_learnedBounds(c),
-  d_partialModel(c),
+  d_partialModel(c, d_deltaComputeCallback),
   d_tableau(),
   d_linEq(d_partialModel, d_tableau, d_basicVarModelUpdateCallBack),
   d_diosolver(c),
@@ -81,6 +82,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_congruenceManager(c, d_constraintDatabase, d_setupLiteralCallback, d_arithvarNodeMap, d_raiseConflict),
   d_simplex(d_linEq, d_raiseConflict),
   d_constraintDatabase(c, u, d_arithvarNodeMap, d_congruenceManager, d_raiseConflict),
+  d_deltaComputeCallback(this),
   d_basicVarModelUpdateCallBack(d_simplex),
   d_DELTA_ZERO(0),
   d_statistics()
@@ -664,6 +666,7 @@ bool TheoryArith::AssertDisequality(Constraint constraint){
   }else{
     Debug("eq") << "push back" << constraint << endl;
     d_diseqQueue.push(constraint);
+    d_partialModel.invalidateDelta();
   }
   return false;
 
@@ -854,6 +857,10 @@ void TheoryArith::setupVariableList(const VarList& vl){
   if(!vl.singleton()){
     // vl is the product of at least 2 variables
     // vl : (* v1 v2 ...)
+    if(getLogicInfo().isLinear()){
+      throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+    }
+
     d_out->setIncomplete();
     d_nlIncomplete = true;
 
@@ -885,6 +892,11 @@ void TheoryArith::cautiousSetupPolynomial(const Polynomial& p){
 
 void TheoryArith::setupDivLike(const Variable& v){
   Assert(v.isDivLike());
+
+  if(getLogicInfo().isLinear()){
+    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+  }
+
   Node vnode = v.getNode();
   Assert(isSetup(vnode)); // Otherwise there is some invariant breaking recursion
   Polynomial m = Polynomial::parsePolynomial(vnode[0]);
@@ -2075,44 +2087,74 @@ DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
   }
 }
 
-Rational TheoryArith::safeDeltaValueForDisequality(){
+Rational TheoryArith::deltaValueForTotalOrder() const{
   Rational min(2);
-  context::CDQueue<Constraint>::const_iterator iter = d_diseqQueue.begin();
-  context::CDQueue<Constraint>::const_iterator iter_end = d_diseqQueue.end(); 
+  std::set<DeltaRational> relevantDeltaValues;
+  context::CDQueue<Constraint>::const_iterator qiter = d_diseqQueue.begin();
+  context::CDQueue<Constraint>::const_iterator qiter_end = d_diseqQueue.end();
 
-  for(; iter != iter_end; ++iter){
-    Constraint curr = *iter;
-    
-    ArithVar lhsVar = curr->getVariable();
+  for(; qiter != qiter_end; ++qiter){
+    Constraint curr = *qiter;
 
-    const DeltaRational& lhsValue = d_partialModel.getAssignment(lhsVar);
     const DeltaRational& rhsValue = curr->getValue();
-    DeltaRational diff = lhsValue - rhsValue;
-    Assert(diff.sgn() != 0);
+    relevantDeltaValues.insert(rhsValue);
+  }
 
-    // diff != 0
-    // dinf * delta + dmajor != 0
-    // dinf * delta != -dmajor
-    const Rational& dinf = diff.getInfinitesimalPart();
-    const Rational& dmaj = diff.getNoninfinitesimalPart();
-    if(dinf.isZero()){
-      Assert(!dmaj.isZero());
-    }else if(dmaj.isZero()){
-      Assert(!dinf.isZero());
-    }else{
-      // delta != - dmajor / dinf
-      // if 0 < delta < abs(dmajor/dinf), then 
-      Rational d = (dmaj/dinf).abs();
-      Assert(d.sgn() > 0);
+  for(ArithVar v = 0; v < d_variables.size(); ++v){
+    const DeltaRational& value = d_partialModel.getAssignment(v);
+    relevantDeltaValues.insert(value);
+    if( d_partialModel.hasLowerBound(v)){
+      const DeltaRational& lb = d_partialModel.getLowerBound(v);
+      relevantDeltaValues.insert(lb);
+    }
+    if( d_partialModel.hasUpperBound(v)){
+      const DeltaRational& ub = d_partialModel.getUpperBound(v);
+      relevantDeltaValues.insert(ub);
+    }
+  }
 
-      if(d < min){
-        min = d;
+  if(relevantDeltaValues.size() >= 2){
+    std::set<DeltaRational>::const_iterator iter = relevantDeltaValues.begin();
+    std::set<DeltaRational>::const_iterator iter_end = relevantDeltaValues.end();
+    DeltaRational prev = *iter;
+    ++iter;
+    for(; iter != iter_end; ++iter){
+      const DeltaRational& curr = *iter;
+
+      Assert(prev < curr);
+
+      const Rational& pinf = prev.getInfinitesimalPart();
+      const Rational& cinf = curr.getInfinitesimalPart();
+
+      const Rational& pmaj = prev.getNoninfinitesimalPart();
+      const Rational& cmaj = curr.getNoninfinitesimalPart();
+
+      if(pmaj == cmaj){
+        Assert(pinf < cinf);
+        // any value of delta preserves the order
+      }else if(pinf == cinf){
+        Assert(pmaj < cmaj);
+        // any value of delta preserves the order
+      }else{
+        Assert(pinf != cinf && pmaj != cmaj);
+        Rational denDiffAbs = (cinf - pinf).abs();
+
+        Rational numDiff = (cmaj - pmaj);
+        Assert(numDiff.sgn() >= 0);
+        Assert(denDiffAbs.sgn() > 0);
+        Rational ratio = numDiff / denDiffAbs;
+        Assert(ratio.sgn() > 0);
+
+        if(ratio < min){
+          min = ratio;
+        }
       }
+      prev = curr;
     }
   }
 
   Assert(min.sgn() > 0);
-  Rational belowMin = min/Rational(2);  
+  Rational belowMin = min/Rational(2);
   return belowMin;
 }
 
@@ -2124,8 +2166,7 @@ void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
 
 
   // Delta lasts at least the duration of the function call
-  const Rational init = safeDeltaValueForDisequality();
-  const Rational& delta = d_partialModel.getDelta(init);
+  const Rational& delta = d_partialModel.getDelta();
   std::hash_set<TNode, TNodeHashFunction> shared = currentlySharedTerms();
 
   // TODO:

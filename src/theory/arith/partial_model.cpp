@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithPartialModel::ArithPartialModel(context::Context* c)
+ArithPartialModel::ArithPartialModel(context::Context* c, RationalCallBack& deltaComputingFunc)
  : d_mapSize(0),
    d_hasSafeAssignment(),
    d_assignment(),
@@ -35,8 +35,19 @@ ArithPartialModel::ArithPartialModel(context::Context* c)
    d_lbc(c),
    d_deltaIsSafe(false),
    d_delta(-1,1),
+   d_deltaComputingFunc(deltaComputingFunc),
    d_history()
 { }
+
+
+const Rational& ArithPartialModel::getDelta(){
+  if(!d_deltaIsSafe){
+    Rational nextDelta = d_deltaComputingFunc();
+    setDelta(nextDelta);
+  }
+  Assert(d_deltaIsSafe);
+  return d_delta;
+}
 
 bool ArithPartialModel::boundsAreEqual(ArithVar x) const{
   if(hasLowerBound(x) && hasUpperBound(x)){
@@ -54,8 +65,7 @@ void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& r){
     d_hasSafeAssignment[x] = true;
     d_history.push_back(x);
   }
-
-  d_deltaIsSafe = false;
+  invalidateDelta();
   d_assignment[x] = r;
 }
 void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& safe, const DeltaRational& r){
@@ -72,7 +82,7 @@ void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& safe, con
     }
   }
 
-  d_deltaIsSafe = false;
+  invalidateDelta();
   d_assignment[x] = r;
 }
 
@@ -93,7 +103,7 @@ void ArithPartialModel::initialize(ArithVar x, const DeltaRational& r){
   d_hasSafeAssignment.push_back( false );
   // Is wirth mentioning that this is not strictly necessary, but this maintains the internal invariant
   // that when d_assignment is set this gets set.
-  d_deltaIsSafe = false;
+  invalidateDelta();
   d_assignment.push_back( r );
   d_safeAssignment.push_back( DeltaRational(0) );
 
@@ -149,7 +159,7 @@ void ArithPartialModel::setLowerBoundConstraint(Constraint c){
   Assert(inMaps(x));
   Assert(greaterThanLowerBound(x, c->getValue()));
 
-  d_deltaIsSafe = false;
+  invalidateDelta();
   d_lbc.set(x, c);
 }
 
@@ -163,7 +173,7 @@ void ArithPartialModel::setUpperBoundConstraint(Constraint c){
   Assert(inMaps(x));
   Assert(lessThanUpperBound(x, c->getValue()));
 
-  d_deltaIsSafe = false;
+  invalidateDelta();
   d_ubc.set(x, c);
 }
 
@@ -245,7 +255,7 @@ void ArithPartialModel::clearSafeAssignments(bool revert){
   }
 
   if(revert && !d_history.empty()){
-    d_deltaIsSafe = false;
+    invalidateDelta();
   }
 
   d_history.clear();
@@ -275,37 +285,37 @@ void ArithPartialModel::printModel(ArithVar x){
   Debug("model") << endl;
 }
 
-void ArithPartialModel::deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u){
-  const Rational& c = l.getNoninfinitesimalPart();
-  const Rational& k = l.getInfinitesimalPart();
-  const Rational& d = u.getNoninfinitesimalPart();
-  const Rational& h = u.getInfinitesimalPart();
+// void ArithPartialModel::deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u){
+//   const Rational& c = l.getNoninfinitesimalPart();
+//   const Rational& k = l.getInfinitesimalPart();
+//   const Rational& d = u.getNoninfinitesimalPart();
+//   const Rational& h = u.getInfinitesimalPart();
 
-  if(c < d && k > h){
-    Rational ep = (d-c)/(k-h);
-    if(ep < d_delta){
-      d_delta = ep;
-    }
-  }
-}
+//   if(c < d && k > h){
+//     Rational ep = (d-c)/(k-h);
+//     if(ep < d_delta){
+//       d_delta = ep;
+//     }
+//   }
+// }
 
-void ArithPartialModel::computeDelta(const Rational& init){
-  Assert(!d_deltaIsSafe);
-  d_delta = init;
+// void ArithPartialModel::computeDelta(const Rational& init){
+//   Assert(!d_deltaIsSafe);
+//   d_delta = init;
 
-  for(ArithVar x = 0; x < d_mapSize; ++x){
-    const DeltaRational& a = getAssignment(x);
-    if(hasLowerBound(x)){
-      const DeltaRational& l = getLowerBound(x);
-      deltaIsSmallerThan(l,a);
-    }
-    if(hasUpperBound(x)){
-      const DeltaRational& u = getUpperBound(x);
-      deltaIsSmallerThan(a,u);
-    }
-  }
-  d_deltaIsSafe = true;
-}
+//   for(ArithVar x = 0; x < d_mapSize; ++x){
+//     const DeltaRational& a = getAssignment(x);
+//     if(hasLowerBound(x)){
+//       const DeltaRational& l = getLowerBound(x);
+//       deltaIsSmallerThan(l,a);
+//     }
+//     if(hasUpperBound(x)){
+//       const DeltaRational& u = getUpperBound(x);
+//       deltaIsSmallerThan(a,u);
+//     }
+//   }
+//   d_deltaIsSafe = true;
+// }
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

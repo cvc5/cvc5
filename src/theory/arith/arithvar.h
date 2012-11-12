@@ -60,6 +60,11 @@ public:
   virtual void operator()(Node n) = 0;
 };
 
+class RationalCallBack {
+public:
+  virtual Rational operator()() const = 0;
+};
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

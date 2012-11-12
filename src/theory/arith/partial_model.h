@@ -50,8 +50,12 @@ private:
   context::CDVector<Constraint> d_ubc;
   context::CDVector<Constraint> d_lbc;
 
+  // This is true when setDelta() is called, until invalidateDelta is called
   bool d_deltaIsSafe;
+  // Cache of a value of delta to ensure a total order.
   Rational d_delta;
+  // Function to call if the value of delta needs to be recomputed.
+  RationalCallBack& d_deltaComputingFunc;
 
   /**
    * List contains all of the variables that have an unsafe assignment.
@@ -62,7 +66,7 @@ private:
 
 public:
 
-  ArithPartialModel(context::Context* c);
+  ArithPartialModel(context::Context* c, RationalCallBack& deltaComputation);
 
   void setLowerBoundConstraint(Constraint lb);
   void setUpperBoundConstraint(Constraint ub);
@@ -175,20 +179,19 @@ public:
     return d_ubc[x] != NullConstraint;
   }
 
-  const Rational& getDelta(const Rational& init = Rational(1)){
-    Assert(init.sgn() > 0);
-    if(!d_deltaIsSafe){
-      computeDelta(init);
-    }else if(init < d_delta){
-      d_delta = init;
-    }
-    return d_delta;
+  const Rational& getDelta();
+
+  inline void invalidateDelta() {
+    d_deltaIsSafe = false;
   }
 
-private:
+  void setDelta(const Rational& d){
+    d_delta = d;
+    d_deltaIsSafe = true;
+  }
 
-  void computeDelta(const Rational& init);
-  void deltaIsSmallerThan(const DeltaRational& l, const DeltaRational& u);
+
+private:
 
   /**
    * This function implements the mostly identical:

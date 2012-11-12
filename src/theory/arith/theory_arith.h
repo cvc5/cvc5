@@ -322,6 +322,17 @@ private:
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
 
+  class DeltaComputeCallback : public RationalCallBack {
+  private:
+    const TheoryArith* d_ta;
+  public:
+    DeltaComputeCallback(const TheoryArith* ta) : d_ta(ta){}
+
+    Rational operator()() const{
+      return d_ta->deltaValueForTotalOrder();
+    }
+  } d_deltaComputeCallback;
+
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   virtual ~TheoryArith();
@@ -335,7 +346,7 @@ public:
   void propagate(Effort e);
   Node explain(TNode n);
 
-  Rational safeDeltaValueForDisequality();
+  Rational deltaValueForTotalOrder() const;
   void collectModelInfo( TheoryModel* m, bool fullModel );
 
   void shutdown(){ }
