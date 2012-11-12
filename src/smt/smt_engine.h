@@ -149,6 +149,14 @@ class CVC4_PUBLIC SmtEngine {
   smt::CommandList* d_modelCommands;
 
   /**
+   * A vector of declaration commands waiting to be dumped out.
+   * Once the SmtEngine is fully initialized, we'll dump them.
+   * This ensures the declarations come after the set-logic and
+   * any necessary set-option commands are dumped.
+   */
+  std::vector<Command*> d_dumpCommands;
+
+  /**
    * The logic we're in.
    */
   LogicInfo d_logic;
@@ -295,7 +303,7 @@ class CVC4_PUBLIC SmtEngine {
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
-  void addToModelCommand(Command* c);
+  void addToModelCommandAndDump(const Command& c, const char* dumpTag = "declarations");
 
   /**
    * Get the model (only if immediately preceded by a SAT

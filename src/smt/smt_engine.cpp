@@ -335,30 +335,26 @@ public:
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
-    Dump("declarations") << c;
-    d_smt.addToModelCommand(c.clone());
+    d_smt.addToModelCommandAndDump(c);
   }
 
   void nmNotifyNewSortConstructor(TypeNode tn) {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          tn.getAttribute(expr::SortArityAttr()),
                          tn.toType());
-    Dump("declarations") << c;
-    d_smt.addToModelCommand(c.clone());
+    d_smt.addToModelCommandAndDump(c);
   }
 
   void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) {
     DatatypeDeclarationCommand c(dtts);
-    Dump("declarations") << c;
-    d_smt.addToModelCommand(c.clone());
+    d_smt.addToModelCommandAndDump(c);
   }
 
   void nmNotifyNewVar(TNode n) {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());
-    Dump("declarations") << c;
-    d_smt.addToModelCommand(c.clone());
+    d_smt.addToModelCommandAndDump(c);
   }
 
   void nmNotifyNewSkolem(TNode n, const std::string& comment) {
@@ -366,13 +362,10 @@ public:
     DeclareFunctionCommand c(id,
                              n.toExpr(),
                              n.getType().toType());
-    if(Dump.isOn("skolems")) {
-      if(comment != "") {
-        Dump("skolems") << CommentCommand(id + " is " + comment);
-      }
-      Dump("skolems") << c;
+    if(Dump.isOn("skolems") && comment != "") {
+      Dump("skolems") << CommentCommand(id + " is " + comment);
     }
-    d_smt.addToModelCommand(c.clone());
+    d_smt.addToModelCommandAndDump(c, "skolems");
   }
 
   Node applySubstitutions(TNode node) const {
@@ -475,6 +468,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_assertionList(NULL),
   d_assignments(NULL),
   d_modelCommands(NULL),
+  d_dumpCommands(),
   d_logic(),
   d_pendingPops(0),
   d_fullyInited(false),
@@ -536,6 +530,13 @@ void SmtEngine::finishInit() {
     // ensure the relevant Nodes remain live.
     d_assertionList = new(true) AssertionList(d_userContext);
   }
+
+  // dump out any pending declaration commands
+  for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
+    Dump("declarations") << *d_dumpCommands[i];
+    delete d_dumpCommands[i];
+  }
+  d_dumpCommands.clear();
 
   if(options::perCallResourceLimit() != 0) {
     setResourceLimit(options::perCallResourceLimit(), false);
@@ -628,6 +629,11 @@ SmtEngine::~SmtEngine() throw() {
     if(d_assertionList != NULL) {
       d_assertionList->deleteSelf();
     }
+
+    for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
+      delete d_dumpCommands[i];
+    }
+    d_dumpCommands.clear();
 
     if(d_modelCommands != NULL) {
       d_modelCommands->deleteSelf();
@@ -2448,8 +2454,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   return SExpr(sexprs);
 }
 
-
-void SmtEngine::addToModelCommand(Command* c) {
+void SmtEngine::addToModelCommandAndDump(const Command& c, const char* dumpTag) {
   Trace("smt") << "SMT addToModelCommand(" << c << ")" << endl;
   SmtScope smts(this);
   // If we aren't yet fully inited, the user might still turn on
@@ -2460,9 +2465,16 @@ void SmtEngine::addToModelCommand(Command* c) {
   // decouple SmtEngine and ExprManager if the user does a few
   // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
   // and expects to find their cardinalities in the model.
-  if( ! d_fullyInited || options::produceModels() ) {
+  if( !d_fullyInited || options::produceModels() ) {
     doPendingPops();
-    d_modelCommands->push_back(c);
+    d_modelCommands->push_back(c.clone());
+  }
+  if(Dump.isOn(dumpTag)) {
+    if(d_fullyInited) {
+      Dump(dumpTag) << c;
+    } else {
+      d_dumpCommands.push_back(c.clone());
+    }
   }
 }
 
