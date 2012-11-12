@@ -46,6 +46,9 @@ option unconstrainedSimp --unconstrained-simp bool :default false :read-write
 option repeatSimp --repeat-simp bool :read-write
  make multiple passes with nonclausal simplifier
 
+option sortInference --sort-inference bool :default false
+ apply sort inference to input problem
+
 common-option incrementalSolving incremental -i --incremental bool
  enable incremental solving
 

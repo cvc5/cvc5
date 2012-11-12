@@ -561,19 +561,8 @@ void StrongSolverTheoryUf::SortRepModel::check( Theory::Effort level, OutputChan
       }
       return;
     }else{
-      if( applyTotality( d_cardinality ) ){
-        //if we are applying totality to this cardinality
-        if( options::ufssTotalityLazy() ){
-          //add totality axioms for all nodes that have not yet been equated to cardinality terms
-          if( level==Theory::EFFORT_FULL ){
-            for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it ){
-              if( !options::ufssTotality() || d_regions_map[ (*it).first ]!=-1 ){
-                addTotalityAxiom( (*it).first, d_cardinality, &d_th->getOutputChannel() );
-              }
-            }
-          }
-        }
-      }else{
+      //first check if we can generate a clique conflict
+      if( !options::ufssTotality() ){
         //do a check within each region
         for( int i=0; i<(int)d_regions_index; i++ ){
           if( d_regions[i]->d_valid ){
@@ -587,8 +576,21 @@ void StrongSolverTheoryUf::SortRepModel::check( Theory::Effort level, OutputChan
             }
           }
         }
-        bool addedLemma = false;
+      }
+      if( applyTotality( d_cardinality ) ){
+        //add totality axioms for all nodes that have not yet been equated to cardinality terms
+        if( options::ufssTotalityLazy() ){    //this should always be true
+          if( level==Theory::EFFORT_FULL ){
+            for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it ){
+              if( !options::ufssTotality() || d_regions_map[ (*it).first ]!=-1 ){
+                addTotalityAxiom( (*it).first, d_cardinality, &d_th->getOutputChannel() );
+              }
+            }
+          }
+        }
+      }else{
         //do splitting on demand
+        bool addedLemma = false;
         if( level==Theory::EFFORT_FULL || options::ufssEagerSplits() ){
           Trace("uf-ss-debug") << "Add splits?" << std::endl;
           //see if we have any recommended splits from large regions
@@ -768,6 +770,7 @@ void StrongSolverTheoryUf::SortRepModel::assertCardinality( OutputChannel* out, 
         }
       }
     }else{
+      /*
       if( options::ufssModelInference() ){
         //check if we are at decision level 0
         if( d_th->d_valuation.getAssertionLevel()==0 ){
@@ -781,6 +784,7 @@ void StrongSolverTheoryUf::SortRepModel::assertCardinality( OutputChannel* out, 
           }
         }
       }
+      */
       //see if we need to request a new cardinality
       if( !d_hasCard ){
         bool needsCard = true;
@@ -915,15 +919,15 @@ void StrongSolverTheoryUf::SortRepModel::allocateCardinality( OutputChannel* out
     Message() << "Maximum cardinality reached." << std::endl;
     exit( 0 );
   }else{
-    if( options::ufssTotality() ){
+    if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
-      std::stringstream ss;
-      ss << "_c_" << d_aloc_cardinality;
       Node var;
-      if( d_totality_terms[0].empty() ){
+      if( d_aloc_cardinality==1 ){
         //get arbitrary ground term
         var = d_cardinality_term;
       }else{
+        std::stringstream ss;
+        ss << "_c_" << d_aloc_cardinality;
         var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
       }
       d_totality_terms[0].push_back( var );
@@ -1026,7 +1030,8 @@ void StrongSolverTheoryUf::SortRepModel::addCliqueLemma( std::vector< Node >& cl
     out->lemma( lem );
     return;
   }
-  if( options::ufssModelInference() || Trace.isOn("uf-ss-cliques") ){
+  //if( options::ufssModelInference() ||
+  if( Trace.isOn("uf-ss-cliques") ){
     std::vector< Node > clique_vec;
     clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
     d_cliques[ d_cardinality ].push_back( clique_vec );
@@ -1141,16 +1146,16 @@ void StrongSolverTheoryUf::SortRepModel::addTotalityAxiom( Node n, int cardinali
 
 /** apply totality */
 bool StrongSolverTheoryUf::SortRepModel::applyTotality( int cardinality ){
-  return options::ufssTotality() || ( options::ufssModelInference() && !d_totality_terms[cardinality].empty() );
+  return options::ufssTotality() || cardinality<=options::ufssTotalityLimited();
+  // || ( options::ufssModelInference() && !d_totality_terms[cardinality].empty() );
 }
 
 /** get totality lemma terms */
 Node StrongSolverTheoryUf::SortRepModel::getTotalityLemmaTerm( int cardinality, int i ){
-  if( options::ufssTotality() ){
-    return d_totality_terms[0][i];
-  }else{
-    return d_totality_terms[cardinality][i];
-  }
+  return d_totality_terms[0][i];
+  //}else{
+  //  return d_totality_terms[cardinality][i];
+  //}
 }
 
 void StrongSolverTheoryUf::SortRepModel::debugPrint( const char* c ){
@@ -1467,12 +1472,13 @@ Node StrongSolverTheoryUf::getNextDecisionRequest(){
 }
 
 void StrongSolverTheoryUf::preRegisterTerm( TNode n ){
+  Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
   //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
   TypeNode tn = n.getType();
   if( d_rep_model.find( tn )==d_rep_model.end() ){
     RepModel* rm = NULL;
     if( tn.isSort() ){
-      Debug("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
+      Trace("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
       rm  = new SortRepModel( n, d_th->getSatContext(), d_th );
     }else if( tn.isInteger() ){
       //rm = new InfRepModel( tn, d_th->getSatContext(), d_th );
@@ -1497,6 +1503,8 @@ void StrongSolverTheoryUf::preRegisterTerm( TNode n ){
       d_rep_model[tn] = rm;
       d_rep_model_init[tn] = true;
     }
+  }else{
+    Trace("uf-ss-register") << "Already preregistered sort " << tn << "." << std::endl;
   }
 }
 

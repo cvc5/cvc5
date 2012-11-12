@@ -99,25 +99,25 @@ RepSetIterator::RepSetIterator( RepSet* rs ) : d_rep_set( rs ){
 
 }
 
-void RepSetIterator::setQuantifier( Node f ){
+bool RepSetIterator::setQuantifier( Node f ){
   Assert( d_types.empty() );
   //store indicies
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     d_types.push_back( f[0][i].getType() );
   }
-  initialize();
+  return initialize();
 }
 
-void RepSetIterator::setFunctionDomain( Node op ){
+bool RepSetIterator::setFunctionDomain( Node op ){
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
   }
-  initialize();
+  return initialize();
 }
 
-void RepSetIterator::initialize(){
+bool RepSetIterator::initialize(){
   for( size_t i=0; i<d_types.size(); i++ ){
     d_index.push_back( 0 );
     //store default index order
@@ -146,7 +146,7 @@ void RepSetIterator::initialize(){
         d_incomplete = true;
       }
     }else{
-      Trace("fmf-incomplete") << "Incomplete because of type " << tn << std::endl;
+      Trace("fmf-incomplete") << "Incomplete because of unknown type " << tn << std::endl;
       d_incomplete = true;
     }
     if( d_rep_set->hasType( tn ) ){
@@ -154,11 +154,10 @@ void RepSetIterator::initialize(){
         d_domain[i].push_back( j );
       }
     }else{
-      Trace("fmf-incomplete") << "Incomplete, unknown type " << tn << std::endl;
-      d_incomplete = true;
-      Unimplemented("Cannot create representative set iterator for unknown type quantifier");
+      return false;
     }
   }
+  return true;
 }
 
 void RepSetIterator::setIndexOrder( std::vector< int >& indexOrder ){

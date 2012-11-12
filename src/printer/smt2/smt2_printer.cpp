@@ -295,8 +295,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
           iend = n.end();
         i != iend; ) {
       out << '(';
-      (*i).toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-                    types, language::output::LANG_SMTLIB_V2);
+      toStream(out, (*i), toDepth < 0 ? toDepth : toDepth - 1, types);
       out << ' ';
       out << (*i).getType();
       // The following code do stange things

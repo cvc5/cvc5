@@ -54,14 +54,14 @@ typedef std::vector< int > RepDomain;
 class RepSetIterator {
 private:
   //initialize function
-  void initialize();
+  bool initialize();
 public:
   RepSetIterator( RepSet* rs );
   ~RepSetIterator(){}
   //set that this iterator will be iterating over instantiations for a quantifier
-  void setQuantifier( Node f );
+  bool setQuantifier( Node f );
   //set that this iterator will be iterating over the domain of a function
-  void setFunctionDomain( Node op );
+  bool setFunctionDomain( Node op );
 public:
   //pointer to model
   RepSet* d_rep_set;

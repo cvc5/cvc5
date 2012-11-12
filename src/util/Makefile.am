@@ -84,7 +84,9 @@ libutil_la_SOURCES = \
 	array_store_all.h \
 	array_store_all.cpp \
 	util_model.h \
-	util_model.cpp
+	util_model.cpp \
+	sort_inference.h \
+	sort_inference.cpp
 
 libutil_la_LIBADD = \
 	@builddir@/libutilcudd.la

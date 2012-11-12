@@ -157,7 +157,7 @@ int ModelEngine::checkModel( int checkOption ){
   int addedLemmas = 0;
   FirstOrderModel* fm = d_quantEngine->getModel();
   //for debugging
-  if( Trace.isOn("model-engine") ){
+  if( Trace.isOn("model-engine") || Trace.isOn("model-engine-debug") ){
     for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
          it != fm->d_rep_set.d_type_reps.end(); ++it ){
       if( it->first.isSort() ){
@@ -180,7 +180,7 @@ int ModelEngine::checkModel( int checkOption ){
   d_testLemmas = 0;
   d_relevantLemmas = 0;
   d_totalLemmas = 0;
-  Debug("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
+  Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
     Node f = fm->getAssertedQuantifier( i );
     //keep track of total instantiations for statistics
@@ -235,88 +235,89 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
 
   //create a rep set iterator and iterate over the (relevant) domain of the quantifier
   RepSetIterator riter( &(d_quantEngine->getModel()->d_rep_set) );
-  riter.setQuantifier( f );
-  //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
-  d_incomplete_check = d_incomplete_check || riter.d_incomplete;
-  //set the domain for the iterator (the sufficient set of instantiations to try)
-  if( useRelInstDomain ){
-    riter.setDomain( d_rel_domain.d_quant_inst_domain[f] );
-  }
-  d_quantEngine->getModel()->resetEvaluate();
-  int tests = 0;
-  int triedLemmas = 0;
-  while( !riter.isFinished() && ( addedLemmas==0 || !optOneInstPerQuantRound() ) ){
-    d_testLemmas++;
-    int eval = 0;
-    int depIndex;
-    if( d_builder->optUseModel() ){
-      //see if instantiation is already true in current model
-      Debug("fmf-model-eval") << "Evaluating ";
-      riter.debugPrintSmall("fmf-model-eval");
-      Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
-      tests++;
-      //if evaluate(...)==1, then the instantiation is already true in the model
-      //  depIndex is the index of the least significant variable that this evaluation relies upon
-      depIndex = riter.getNumTerms()-1;
-      eval = d_quantEngine->getModel()->evaluate( d_quantEngine->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
-      if( eval==1 ){
-        Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
-      }else{
-        Debug("fmf-model-eval") << "  Returned " << (eval==-1 ? "failure" : "unknown") << ", depIndex = " << depIndex << std::endl;
-      }
+  if( riter.setQuantifier( f ) ){
+    //set the domain for the iterator (the sufficient set of instantiations to try)
+    if( useRelInstDomain ){
+      riter.setDomain( d_rel_domain.d_quant_inst_domain[f] );
     }
-    if( eval==1 ){
-      //instantiation is already true -> skip
-      riter.increment2( depIndex );
-    }else{
-      //instantiation was not shown to be true, construct the match
-      InstMatch m;
-      for( int i=0; i<riter.getNumTerms(); i++ ){
-        m.set( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, riter.d_index_order[i] ), riter.getTerm( i ) );
-      }
-      Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
-      triedLemmas++;
-      d_triedLemmas++;
-      //add as instantiation
-      if( d_quantEngine->addInstantiation( f, m ) ){
-        addedLemmas++;
-        //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
-        if( eval==-1 && optExhInstEvalSkipMultiple() ){
-          riter.increment2( depIndex );
+    d_quantEngine->getModel()->resetEvaluate();
+    int tests = 0;
+    int triedLemmas = 0;
+    while( !riter.isFinished() && ( addedLemmas==0 || !optOneInstPerQuantRound() ) ){
+      d_testLemmas++;
+      int eval = 0;
+      int depIndex;
+      if( d_builder->optUseModel() ){
+        //see if instantiation is already true in current model
+        Debug("fmf-model-eval") << "Evaluating ";
+        riter.debugPrintSmall("fmf-model-eval");
+        Debug("fmf-model-eval") << "Done calculating terms." << std::endl;
+        tests++;
+        //if evaluate(...)==1, then the instantiation is already true in the model
+        //  depIndex is the index of the least significant variable that this evaluation relies upon
+        depIndex = riter.getNumTerms()-1;
+        eval = d_quantEngine->getModel()->evaluate( d_quantEngine->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
+        if( eval==1 ){
+          Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
         }else{
+          Debug("fmf-model-eval") << "  Returned " << (eval==-1 ? "failure" : "unknown") << ", depIndex = " << depIndex << std::endl;
+        }
+      }
+      if( eval==1 ){
+        //instantiation is already true -> skip
+        riter.increment2( depIndex );
+      }else{
+        //instantiation was not shown to be true, construct the match
+        InstMatch m;
+        for( int i=0; i<riter.getNumTerms(); i++ ){
+          m.set( d_quantEngine->getTermDatabase()->getInstantiationConstant( f, riter.d_index_order[i] ), riter.getTerm( i ) );
+        }
+        Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
+        triedLemmas++;
+        d_triedLemmas++;
+        //add as instantiation
+        if( d_quantEngine->addInstantiation( f, m ) ){
+          addedLemmas++;
+          //if the instantiation is show to be false, and we wish to skip multiple instantiations at once
+          if( eval==-1 && optExhInstEvalSkipMultiple() ){
+            riter.increment2( depIndex );
+          }else{
+            riter.increment();
+          }
+        }else{
+          Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
           riter.increment();
         }
-      }else{
-        Debug("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
-        riter.increment();
       }
     }
+    //print debugging information
+    d_statistics.d_eval_formulas += d_quantEngine->getModel()->d_eval_formulas;
+    d_statistics.d_eval_uf_terms += d_quantEngine->getModel()->d_eval_uf_terms;
+    d_statistics.d_eval_lits += d_quantEngine->getModel()->d_eval_lits;
+    d_statistics.d_eval_lits_unknown += d_quantEngine->getModel()->d_eval_lits_unknown;
+    int relevantInst = 1;
+    for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+      relevantInst = relevantInst * (int)riter.d_domain[i].size();
+    }
+    d_relevantLemmas += relevantInst;
+    Debug("inst-fmf-ei") << "Finished: " << std::endl;
+    //Debug("inst-fmf-ei") << "   Inst Total: " << totalInst << std::endl;
+    Debug("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
+    Debug("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
+    Debug("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
+    Debug("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
+    if( addedLemmas>1000 ){
+      Trace("model-engine-warn") << "WARNING: many instantiations produced for " << f << ": " << std::endl;
+      //Trace("model-engine-warn") << "   Inst Total: " << totalInst << std::endl;
+      Trace("model-engine-warn") << "   Inst Relevant: " << relevantInst << std::endl;
+      Trace("model-engine-warn") << "   Inst Tried: " << triedLemmas << std::endl;
+      Trace("model-engine-warn") << "   Inst Added: " << addedLemmas << std::endl;
+      Trace("model-engine-warn") << "   # Tests: " << tests << std::endl;
+      Trace("model-engine-warn") << std::endl;
+    }
   }
-  //print debugging information
-  d_statistics.d_eval_formulas += d_quantEngine->getModel()->d_eval_formulas;
-  d_statistics.d_eval_uf_terms += d_quantEngine->getModel()->d_eval_uf_terms;
-  d_statistics.d_eval_lits += d_quantEngine->getModel()->d_eval_lits;
-  d_statistics.d_eval_lits_unknown += d_quantEngine->getModel()->d_eval_lits_unknown;
-  int relevantInst = 1;
-  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    relevantInst = relevantInst * (int)riter.d_domain[i].size();
-  }
-  d_relevantLemmas += relevantInst;
-  Debug("inst-fmf-ei") << "Finished: " << std::endl;
-  //Debug("inst-fmf-ei") << "   Inst Total: " << totalInst << std::endl;
-  Debug("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
-  Debug("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
-  Debug("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
-  Debug("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
-  if( addedLemmas>1000 ){
-    Trace("model-engine-warn") << "WARNING: many instantiations produced for " << f << ": " << std::endl;
-    //Trace("model-engine-warn") << "   Inst Total: " << totalInst << std::endl;
-    Trace("model-engine-warn") << "   Inst Relevant: " << relevantInst << std::endl;
-    Trace("model-engine-warn") << "   Inst Tried: " << triedLemmas << std::endl;
-    Trace("model-engine-warn") << "   Inst Added: " << addedLemmas << std::endl;
-    Trace("model-engine-warn") << "   # Tests: " << tests << std::endl;
-    Trace("model-engine-warn") << std::endl;
-  }
+   //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
+  d_incomplete_check = d_incomplete_check || riter.d_incomplete;
   return addedLemmas;
 }
 

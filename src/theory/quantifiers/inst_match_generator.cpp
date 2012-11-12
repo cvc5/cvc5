@@ -122,7 +122,7 @@ void InstMatchGenerator::initializePattern( Node pat, QuantifiersEngine* qe ){
     d_cg = new CandidateGeneratorQueue;
     if( !Trigger::getPatternArithmetic( d_match_pattern.getAttribute(InstConstantAttribute()), d_match_pattern, d_arith_coeffs ) ){
       Debug("inst-match-gen") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
-      Warning() << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
+      //Warning() << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
       d_matchPolicy = MATCH_GEN_INTERNAL_ERROR;
     }else{
       Debug("matching-arith") << "Generated arithmetic pattern for " << d_match_pattern << ": " << std::endl;

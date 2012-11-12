@@ -63,6 +63,7 @@
 #include "printer/printer.h"
 #include "prop/options.h"
 #include "theory/arrays/options.h"
+#include "util/sort_inference.h"
 
 using namespace std;
 using namespace CVC4;
@@ -898,7 +899,7 @@ void SmtEngine::setLogicInternal() throw() {
     if (options::checkModels()) {
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
       setOption("check-models", SExpr("false"));
-    }    
+    }
   }
 }
 
@@ -1298,6 +1299,7 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
         }else{
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
           Node op = NodeManager::currentNM()->mkSkolem( "skop_$$", typ, "op created during pre-skolemization" );
+          //DOTHIS: set attribute on op, marking that it should not be selected as trigger
           std::vector< Node > funcArgs;
           funcArgs.push_back( op );
           funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
@@ -1964,6 +1966,13 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
   dumpAssertions("post-skolem-quant", d_assertionsToPreprocess);
+
+  if( options::sortInference() ){
+    //sort inference technique
+    //TODO: use this as a rewrite technique here?
+    SortInference si;
+    si.simplify( d_assertionsToPreprocess );
+  }
 
   dumpAssertions("pre-simplify", d_assertionsToPreprocess);
   Chat() << "simplifying assertions..." << endl;

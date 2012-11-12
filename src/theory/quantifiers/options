@@ -91,4 +91,5 @@ option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :defau
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms
 
+
 endmodule

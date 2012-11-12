@@ -459,13 +459,15 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     return true;
   }else if( n.getKind()==MULT ){
     if( n[0].getKind()==INST_CONSTANT && n[0].getAttribute(InstConstantAttribute())==f ){
-      Assert( !n[1].hasAttribute(InstConstantAttribute()) );
-      coeffs[ n[0] ] = n[1];
-      return true;
+      if( !n[1].hasAttribute(InstConstantAttribute()) ){
+        coeffs[ n[0] ] = n[1];
+        return true;
+      }
     }else if( n[1].getKind()==INST_CONSTANT && n[1].getAttribute(InstConstantAttribute())==f ){
-      Assert( !n[0].hasAttribute(InstConstantAttribute()) );
-      coeffs[ n[1] ] = n[0];
-      return true;
+      if( !n[0].hasAttribute(InstConstantAttribute()) ){
+        coeffs[ n[1] ] = n[0];
+        return true;
+      }
     }
   }
   return false;
