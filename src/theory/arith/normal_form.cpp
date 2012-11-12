@@ -27,7 +27,7 @@ namespace arith {
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
-    //case kind::DIVISION:
+  case kind::DIVISION:
     //case kind::INTS_DIVISION:
     //case kind::INTS_MODULUS:
   case kind::DIVISION_TOTAL:

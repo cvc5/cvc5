@@ -36,6 +36,7 @@ TESTS =	\
 	div.06.smt2 \
 	div.07.smt2 \
 	div.08.smt2 \
+	div.09.smt2 \
 	mult.01.smt2 \
 	mult.02.smt2 \
 	bug443.delta01.smt

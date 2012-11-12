@@ -50,7 +50,6 @@ private:
   static RewriteResponse rewriteMinus(TNode t, bool pre);
   static RewriteResponse rewriteUMinus(TNode t, bool pre);
   static RewriteResponse rewriteDiv(TNode t, bool pre);
-  static RewriteResponse rewriteDivTotal(TNode t, bool pre);
   static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
 
   static RewriteResponse preRewritePlus(TNode t);

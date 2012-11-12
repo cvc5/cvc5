@@ -1134,7 +1134,9 @@ void TheoryArith::preRegisterTerm(TNode n) {
 ArithVar TheoryArith::requestArithVar(TNode x, bool slack){
   //TODO : The VarList trick is good enough?
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS);
-  Assert(!Variable::isDivMember(x) || !getLogicInfo().isLinear());
+  if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
+    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+  }
   Assert(!d_arithvarNodeMap.hasArithVar(x));
   Assert(x.getType().isReal());// real or integer
 
