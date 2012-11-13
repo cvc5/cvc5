@@ -281,6 +281,14 @@ TypeNode SortInference::getTypeForId( int t ){
 Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   if( tn==old.getType() ){
     return old;
+  }else if( old.isConst() ){
+    //must make constant of type tn
+    if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
+      std::stringstream ss;
+      ss << "ic_" << tn << "_" << old;
+      d_const_map[tn][ old ] = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "constant created during sort inference" );  //use mkConst???
+    }
+    return d_const_map[tn][ old ];
   }else{
     std::stringstream ss;
     ss << "i_$$_" << old;
@@ -323,6 +331,19 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
       var_bound.erase( n[0][i] );
     }
     return NodeManager::currentNM()->mkNode( n.getKind(), children );
+  }else if( n.getKind()==kind::EQUAL ){
+    if( children[0].getType()!=children[1].getType() ){
+      if( children[0].isConst() ){
+        children[0] = getNewSymbol( children[0], children[1].getType() );
+      }else if( children[1].isConst() ){
+        children[1] = getNewSymbol( children[1], children[0].getType() );
+      }else{
+        Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
+        Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
+        Assert( false );
+      }
+    }
+    return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
   }else if( n.getKind()==kind::APPLY_UF ){
     Node op = n.getOperator();
     if( d_symbol_map.find( op )==d_symbol_map.end() ){
@@ -356,13 +377,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
       TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
       if( tn!=tna ){
         if( n[i].isConst() ){
-          //must make constant of type tna
-          if( d_const_map[tna].find( n[i] )==d_const_map[tna].end() ){
-            std::stringstream ss;
-            ss << "ic_" << tna << "_" << n[i];
-            d_const_map[tna][ n[i] ] = NodeManager::currentNM()->mkSkolem( ss.str(), tna, "constant created during sort inference" );  //use mkConst???
-          }
-          children[i+1] = d_const_map[tna][ n[i] ];
+          children[i+1] = getNewSymbol( n[i], tna );
         }else{
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n[i] << " " << tn << " " << tna << std::endl;
           Assert( false );

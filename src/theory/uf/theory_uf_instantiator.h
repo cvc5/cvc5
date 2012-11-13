@@ -107,12 +107,6 @@ public:
   void merge( TNode a, TNode b );
   /** assert terms are disequal */
   void assertDisequal( TNode a, TNode b, TNode reason );
-private:
-  /** triggers */
-  std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
-public:
-  /** register trigger (for eager quantifier instantiation) */
-  void registerTrigger( inst::Trigger* tr, Node op );
 public:
   /** output eq class */
   void outputEqClass( const char* c, Node n );

@@ -52,7 +52,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class InstantiatorTheoryArith;
+class InstStrategySimplex;
 
 /**
  * Implementation of QF_LRA.
@@ -60,7 +60,7 @@ class InstantiatorTheoryArith;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class InstantiatorTheoryArith;
+  friend class InstStrategySimplex;
 private:
   bool d_nlIncomplete;
   // TODO A better would be:
@@ -304,7 +304,7 @@ private:
   /** Internal model value for the node */
   DeltaRational getDeltaValue(TNode n);
 
-  /** TODO : get rid of this. */ 
+  /** TODO : get rid of this. */
   DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed);
 
   /** Uninterpretted function symbol for use when interpreting

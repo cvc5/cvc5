@@ -205,6 +205,8 @@ private:
   void computeVarContains2( Node n, Node parent );
   /** var contains */
   std::map< TNode, std::vector< TNode > > d_var_contains;
+  /** triggers for each operator */
+  std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
 public:
   /** compute var contains */
   void computeVarContains( Node n );
@@ -214,6 +216,8 @@ public:
   void getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains );
   /** get var contains for node n */
   void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
+  /** register trigger (for eager quantifier instantiation) */
+  void registerTrigger( inst::Trigger* tr, Node op );
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

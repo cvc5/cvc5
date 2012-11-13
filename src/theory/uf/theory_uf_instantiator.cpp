@@ -132,35 +132,7 @@ Node InstantiatorTheoryUf::getRepresentative( Node a ){
     return a;
   }
 }
-/*
-Node InstantiatorTheoryUf::getInternalRepresentative( Node a ){
-  if( d_ground_reps.find( a )==d_ground_reps.end() ){
-    if( !hasTerm( a ) ){
-      return a;
-    }else{
-      Node rep = getRepresentative( a );
-      if( !rep.hasAttribute(InstConstantAttribute()) ){
-        //return the representative of a
-        d_ground_reps[a] = rep;
-        return rep;
-      }else{
-        //otherwise, must search eq class
-        eq::EqClassIterator eqc_iter( rep, getEqualityEngine() );
-        rep = Node::null();
-        while( !eqc_iter.isFinished() ){
-          if( !(*eqc_iter).hasAttribute(InstConstantAttribute()) ){
-            d_ground_reps[ a ] = *eqc_iter;
-            return *eqc_iter;
-          }
-          eqc_iter++;
-        }
-        d_ground_reps[ a ] = a;
-      }
-    }
-  }
-  return d_ground_reps[a];
-}
-*/
+
 eq::EqualityEngine* InstantiatorTheoryUf::getEqualityEngine(){
   return &((TheoryUF*)d_th)->d_equalityEngine;
 }
@@ -222,12 +194,6 @@ void InstantiatorTheoryUf::merge( TNode a, TNode b ){
 /** assert terms are disequal */
 void InstantiatorTheoryUf::assertDisequal( TNode a, TNode b, TNode reason ){
 
-}
-
-void InstantiatorTheoryUf::registerTrigger( theory::inst::Trigger* tr, Node op ){
-  if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
-    d_op_triggers[op].push_back( tr );
-  }
 }
 
 void InstantiatorTheoryUf::outputEqClass( const char* c, Node n ){

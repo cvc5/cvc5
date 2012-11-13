@@ -26,50 +26,34 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
-
-InstantiatorTheoryDatatypes::InstantiatorTheoryDatatypes(context::Context* c, QuantifiersEngine* ie, TheoryDatatypes* th) :
-Instantiator( c, ie, th ){
-}
-
-void InstantiatorTheoryDatatypes::assertNode( Node assertion ){
-  Debug("quant-datatypes-assert") << "InstantiatorTheoryDatatypes::check: " << assertion << std::endl;
-  d_quantEngine->addTermToDatabase( assertion );
-  if( options::cbqi() ){
-    if( assertion.hasAttribute(InstConstantAttribute()) ){
-      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
-    }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
-      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
-    }
-  }
-}
-
-void InstantiatorTheoryDatatypes::processResetInstantiationRound( Theory::Effort effort ){
+InstStrategyDatatypesValue::InstStrategyDatatypesValue( QuantifiersEngine* qe ) : InstStrategy( qe ){
 
 }
 
+void InstStrategyDatatypesValue::processResetInstantiationRound( Theory::Effort effort ){
 
-int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e ){
+}
+
+int InstStrategyDatatypesValue::process( Node f, Theory::Effort effort, int e ){
   Debug("quant-datatypes") << "Datatypes: Try to solve (" << e << ") for " << f << "... " << std::endl;
-  if( options::cbqi() ){
-    if( e<2 ){
-      return InstStrategy::STATUS_UNFINISHED;
-    }else if( e==2 ){
-      InstMatch m;
-      for( int j = 0; j<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
-        Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
-        if( i.getType().isDatatype() ){
-          Node n = getValueFor( i );
-          Debug("quant-datatypes-debug") << "Value for " << i << " is " << n << std::endl;
-          m.set(i,n);
-        }
+  if( e<2 ){
+    return InstStrategy::STATUS_UNFINISHED;
+  }else if( e==2 ){
+    InstMatch m;
+    for( int j = 0; j<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
+      Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
+      if( i.getType().isDatatype() ){
+        Node n = getValueFor( i );
+        Debug("quant-datatypes-debug") << "Value for " << i << " is " << n << std::endl;
+        m.set(i,n);
       }
-      //d_quantEngine->addInstantiation( f, m );
     }
+    //d_quantEngine->addInstantiation( f, m );
   }
   return InstStrategy::STATUS_UNKNOWN;
 }
 
-Node InstantiatorTheoryDatatypes::getValueFor( Node n ){
+Node InstStrategyDatatypesValue::getValueFor( Node n ){
   //simply get the ground value for n in the current model, if it exists,
   //  or return an arbitrary ground term otherwise
   if( !n.hasAttribute(InstConstantAttribute()) ){
@@ -151,14 +135,43 @@ Node InstantiatorTheoryDatatypes::getValueFor( Node n ){
   */
 }
 
-InstantiatorTheoryDatatypes::Statistics::Statistics():
-  d_instantiations("InstantiatorTheoryDatatypes::Instantiations_Total", 0)
+InstStrategyDatatypesValue::Statistics::Statistics():
+  d_instantiations("InstStrategyDatatypesValue::Instantiations_Total", 0)
 {
   StatisticsRegistry::registerStat(&d_instantiations);
 }
 
-InstantiatorTheoryDatatypes::Statistics::~Statistics(){
+InstStrategyDatatypesValue::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations);
+}
+
+
+
+InstantiatorTheoryDatatypes::InstantiatorTheoryDatatypes(context::Context* c, QuantifiersEngine* ie, TheoryDatatypes* th) :
+Instantiator( c, ie, th ){
+  if( options::cbqi() ){
+    addInstStrategy( new InstStrategyDatatypesValue( ie ) );
+  }
+}
+
+void InstantiatorTheoryDatatypes::assertNode( Node assertion ){
+  Debug("quant-datatypes-assert") << "InstantiatorTheoryDatatypes::check: " << assertion << std::endl;
+  d_quantEngine->addTermToDatabase( assertion );
+  if( options::cbqi() ){
+    if( assertion.hasAttribute(InstConstantAttribute()) ){
+      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
+    }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
+      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
+    }
+  }
+}
+
+void InstantiatorTheoryDatatypes::processResetInstantiationRound( Theory::Effort effort ){
+
+}
+
+int InstantiatorTheoryDatatypes::process( Node f, Theory::Effort effort, int e ){
+  return InstStrategy::STATUS_UNKNOWN;
 }
 
 bool InstantiatorTheoryDatatypes::hasTerm( Node a ){

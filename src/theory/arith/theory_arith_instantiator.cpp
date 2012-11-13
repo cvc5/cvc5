@@ -32,7 +32,49 @@ InstStrategySimplex::InstStrategySimplex( InstantiatorTheoryArith* th, Quantifie
   d_negOne = NodeManager::currentNM()->mkConst( Rational(-1) );
 }
 
+TheoryArith* InstStrategySimplex::getTheoryArith(){
+  return (TheoryArith*)d_th->getTheory();
+}
+
 void InstStrategySimplex::processResetInstantiationRound( Theory::Effort effort ){
+  Debug("quant-arith") << "Setting up simplex for instantiator... " << std::endl;
+  d_instRows.clear();
+  d_tableaux_term.clear();
+  d_tableaux.clear();
+  d_ceTableaux.clear();
+  //search for instantiation rows in simplex tableaux
+  ArithVarToNodeMap avtnm = getTheoryArith()->d_arithvarNodeMap.getArithVarToNodeMap();
+  for( ArithVarToNodeMap::iterator it = avtnm.begin(); it != avtnm.end(); ++it ){
+    ArithVar x = (*it).first;
+    if( getTheoryArith()->d_partialModel.hasEitherBound( x ) ){
+      Node n = (*it).second;
+      Node f;
+      NodeBuilder<> t(kind::PLUS);
+      if( n.getKind()==PLUS ){
+        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+          addTermToRow( x, n[i], f, t );
+        }
+      }else{
+        addTermToRow( x, n, f, t );
+      }
+      if( f!=Node::null() ){
+        d_instRows[f].push_back( x );
+        //this theory has constraints from f
+        Debug("quant-arith") << "Has constraints from " << f << std::endl;
+        d_th->setQuantifierActive( f );
+        //set tableaux term
+        if( t.getNumChildren()==0 ){
+          d_tableaux_term[x] = NodeManager::currentNM()->mkConst( Rational(0) );
+        }else if( t.getNumChildren()==1 ){
+          d_tableaux_term[x] = t.getChild( 0 );
+        }else{
+          d_tableaux_term[x] = t;
+        }
+      }
+    }
+  }
+  //print debug
+  debugPrint( "quant-arith-debug" );
   d_counter++;
 }
 
@@ -43,10 +85,10 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
     //Notice() << f << std::endl;
     //Notice() << "Num inst rows = " << d_th->d_instRows[f].size() << std::endl;
     //Notice() << "Num inst constants = " << d_quantEngine->getNumInstantiationConstants( f ) << std::endl;
-    Debug("quant-arith-simplex") << "InstStrategySimplex check " << f << ", rows = " << d_th->d_instRows[f].size() << std::endl;
-    for( int j=0; j<(int)d_th->d_instRows[f].size(); j++ ){
-      ArithVar x = d_th->d_instRows[f][j];
-      if( !d_th->d_ceTableaux[x].empty() ){
+    Debug("quant-arith-simplex") << "InstStrategySimplex check " << f << ", rows = " << d_instRows[f].size() << std::endl;
+    for( int j=0; j<(int)d_instRows[f].size(); j++ ){
+      ArithVar x = d_instRows[f][j];
+      if( !d_ceTableaux[x].empty() ){
         Debug("quant-arith-simplex") << "Check row " << x << std::endl;
         //instantiation row will be A*e + B*t = beta,
         // where e is a vector of terms , and t is vector of ground terms.
@@ -54,13 +96,13 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
         // We will construct the term ( beta - B*t)/coeff to use for e_i.
         InstMatch m;
         //By default, choose the first instantiation constant to be e_i.
-        Node var = d_th->d_ceTableaux[x].begin()->first;
+        Node var = d_ceTableaux[x].begin()->first;
         if( var.getType().isInteger() ){
-          std::map< Node, Node >::iterator it = d_th->d_ceTableaux[x].begin();
+          std::map< Node, Node >::iterator it = d_ceTableaux[x].begin();
           //try to find coefficent that is +/- 1
-          while( !var.isNull() && !d_th->d_ceTableaux[x][var].isNull() && d_th->d_ceTableaux[x][var]!=d_negOne ){
+          while( !var.isNull() && !d_ceTableaux[x][var].isNull() && d_ceTableaux[x][var]!=d_negOne ){
             ++it;
-            if( it==d_th->d_ceTableaux[x].end() ){
+            if( it==d_ceTableaux[x].end() ){
               var = Node::null();
             }else{
               var = it->first;
@@ -70,7 +112,7 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
         }
         if( !var.isNull() ){
           Debug("quant-arith-simplex") << "Instantiate with var " << var << std::endl;
-          d_th->doInstantiation( f, d_th->d_tableaux_term[x], x, m, var );
+          doInstantiation( f, d_tableaux_term[x], x, m, var );
         }else{
           Debug("quant-arith-simplex") << "Could not find var." << std::endl;
         }
@@ -91,78 +133,8 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
   return STATUS_UNKNOWN;
 }
 
-InstantiatorTheoryArith::InstantiatorTheoryArith(context::Context* c, QuantifiersEngine* ie, Theory* th) :
-Instantiator( c, ie, th ){
-  if( options::cbqi() ){
-    addInstStrategy( new InstStrategySimplex( this, d_quantEngine ) );
-  }
-}
 
-void InstantiatorTheoryArith::preRegisterTerm( Node t ){
-
-}
-
-void InstantiatorTheoryArith::assertNode( Node assertion ){
-  Debug("quant-arith-assert") << "InstantiatorTheoryArith::check: " << assertion << std::endl;
-  d_quantEngine->addTermToDatabase( assertion );
-  if( options::cbqi() ){
-    if( assertion.hasAttribute(InstConstantAttribute()) ){
-      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
-    }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
-      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
-    }
-  }
-}
-
-void InstantiatorTheoryArith::processResetInstantiationRound( Theory::Effort effort ){
-  if( options::cbqi() ){
-    Debug("quant-arith") << "Setting up simplex for instantiator... " << std::endl;
-    d_instRows.clear();
-    d_tableaux_term.clear();
-    d_tableaux.clear();
-    d_ceTableaux.clear();
-    //search for instantiation rows in simplex tableaux
-    ArithVarToNodeMap avtnm = ((TheoryArith*)getTheory())->d_arithvarNodeMap.getArithVarToNodeMap();
-    for( ArithVarToNodeMap::iterator it = avtnm.begin(); it != avtnm.end(); ++it ){
-      ArithVar x = (*it).first;
-      if( ((TheoryArith*)getTheory())->d_partialModel.hasEitherBound( x ) ){
-        Node n = (*it).second;
-        Node f;
-        NodeBuilder<> t(kind::PLUS);
-        if( n.getKind()==PLUS ){
-          for( int i=0; i<(int)n.getNumChildren(); i++ ){
-            addTermToRow( x, n[i], f, t );
-          }
-        }else{
-          addTermToRow( x, n, f, t );
-        }
-        if( f!=Node::null() ){
-          d_instRows[f].push_back( x );
-          //this theory has constraints from f
-          Debug("quant-arith") << "Has constraints from " << f << std::endl;
-          setQuantifierActive( f );
-          //set tableaux term
-          if( t.getNumChildren()==0 ){
-            d_tableaux_term[x] = NodeManager::currentNM()->mkConst( Rational(0) );
-          }else if( t.getNumChildren()==1 ){
-            d_tableaux_term[x] = t.getChild( 0 );
-          }else{
-            d_tableaux_term[x] = t;
-          }
-        }
-      }
-    }
-    //print debug
-    debugPrint( "quant-arith-debug" );
-  }
-}
-
-int InstantiatorTheoryArith::process( Node f, Theory::Effort effort, int e ){
-  Debug("quant-arith") << "Arith: Try to solve (" << effort << ") for " << f << "... " << std::endl;
-  return InstStrategy::STATUS_UNKNOWN;
-}
-
-void InstantiatorTheoryArith::addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder<>& t ){
+void InstStrategySimplex::addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder<>& t ){
   if( n.getKind()==MULT ){
     if( n[1].hasAttribute(InstConstantAttribute()) ){
       f = n[1].getAttribute(InstConstantAttribute());
@@ -190,23 +162,23 @@ void InstantiatorTheoryArith::addTermToRow( ArithVar x, Node n, Node& f, NodeBui
   }
 }
 
-void InstantiatorTheoryArith::debugPrint( const char* c ){
-  ArithVarToNodeMap avtnm = ((TheoryArith*)getTheory())->d_arithvarNodeMap.getArithVarToNodeMap();
+void InstStrategySimplex::debugPrint( const char* c ){
+  ArithVarToNodeMap avtnm = getTheoryArith()->d_arithvarNodeMap.getArithVarToNodeMap();
   for( ArithVarToNodeMap::iterator it = avtnm.begin(); it != avtnm.end(); ++it ){
     ArithVar x = (*it).first;
     Node n = (*it).second;
     //if( ((TheoryArith*)getTheory())->d_partialModel.hasEitherBound( x ) ){
       Debug(c) << x << " : " << n << ", bounds = ";
-      if( ((TheoryArith*)getTheory())->d_partialModel.hasLowerBound( x ) ){
-        Debug(c) << ((TheoryArith*)getTheory())->d_partialModel.getLowerBound( x );
+      if( getTheoryArith()->d_partialModel.hasLowerBound( x ) ){
+        Debug(c) << getTheoryArith()->d_partialModel.getLowerBound( x );
       }else{
         Debug(c) << "-infty";
       }
       Debug(c) << " <= ";
-      Debug(c) << ((TheoryArith*)getTheory())->d_partialModel.getAssignment( x );
+      Debug(c) << getTheoryArith()->d_partialModel.getAssignment( x );
       Debug(c) << " <= ";
-      if( ((TheoryArith*)getTheory())->d_partialModel.hasUpperBound( x ) ){
-        Debug(c) << ((TheoryArith*)getTheory())->d_partialModel.getUpperBound( x );
+      if( getTheoryArith()->d_partialModel.hasUpperBound( x ) ){
+        Debug(c) << getTheoryArith()->d_partialModel.getUpperBound( x );
       }else{
         Debug(c) << "+infty";
       }
@@ -254,7 +226,7 @@ void InstantiatorTheoryArith::debugPrint( const char* c ){
 // t[e] is a vector of terms containing instantiation constants from f,
 // and term is a ground term (c1*t1 + ... + cn*tn).
 // We construct the term ( beta - term )/coeff to use as an instantiation for var.
-bool InstantiatorTheoryArith::doInstantiation( Node f, Node term, ArithVar x, InstMatch& m, Node var ){
+bool InstStrategySimplex::doInstantiation( Node f, Node term, ArithVar x, InstMatch& m, Node var ){
   //first try +delta
   if( doInstantiation2( f, term, x, m, var ) ){
     ++(d_statistics.d_instantiations);
@@ -275,7 +247,7 @@ bool InstantiatorTheoryArith::doInstantiation( Node f, Node term, ArithVar x, In
   }
 }
 
-bool InstantiatorTheoryArith::doInstantiation2( Node f, Node term, ArithVar x, InstMatch& m, Node var, bool minus_delta ){
+bool InstStrategySimplex::doInstantiation2( Node f, Node term, ArithVar x, InstMatch& m, Node var, bool minus_delta ){
   // make term ( beta - term )/coeff
   Node beta = getTableauxValue( x, minus_delta );
   Node instVal = NodeManager::currentNM()->mkNode( MINUS, beta, term );
@@ -295,31 +267,71 @@ bool InstantiatorTheoryArith::doInstantiation2( Node f, Node term, ArithVar x, I
   return d_quantEngine->addInstantiation( f, m );
 }
 
-Node InstantiatorTheoryArith::getTableauxValue( Node n, bool minus_delta ){
-  if( ((TheoryArith*)getTheory())->d_arithvarNodeMap.hasArithVar(n) ){
-    ArithVar v = ((TheoryArith*)getTheory())->d_arithvarNodeMap.asArithVar( n );
+Node InstStrategySimplex::getTableauxValue( Node n, bool minus_delta ){
+  if( getTheoryArith()->d_arithvarNodeMap.hasArithVar(n) ){
+    ArithVar v = getTheoryArith()->d_arithvarNodeMap.asArithVar( n );
     return getTableauxValue( v, minus_delta );
   }else{
     return NodeManager::currentNM()->mkConst( Rational(0) );
   }
 }
 
-Node InstantiatorTheoryArith::getTableauxValue( ArithVar v, bool minus_delta ){
-  const Rational& delta = ((TheoryArith*)getTheory())->d_partialModel.getDelta();
-  DeltaRational drv = ((TheoryArith*)getTheory())->d_partialModel.getAssignment( v );
+Node InstStrategySimplex::getTableauxValue( ArithVar v, bool minus_delta ){
+  const Rational& delta = getTheoryArith()->d_partialModel.getDelta();
+  DeltaRational drv = getTheoryArith()->d_partialModel.getAssignment( v );
   Rational qmodel = drv.substituteDelta( minus_delta ? -delta : delta );
   return mkRationalNode(qmodel);
 }
 
-InstantiatorTheoryArith::Statistics::Statistics():
-  d_instantiations("InstantiatorTheoryArith::Instantiations_Total", 0),
-  d_instantiations_minus("InstantiatorTheoryArith::Instantiations_minus_delta", 0)
+
+
+InstStrategySimplex::Statistics::Statistics():
+  d_instantiations("InstStrategySimplex::Instantiations_Total", 0),
+  d_instantiations_minus("InstStrategySimplex::Instantiations_minus_delta", 0)
 {
   StatisticsRegistry::registerStat(&d_instantiations);
   StatisticsRegistry::registerStat(&d_instantiations_minus);
 }
 
-InstantiatorTheoryArith::Statistics::~Statistics(){
+InstStrategySimplex::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations);
   StatisticsRegistry::unregisterStat(&d_instantiations_minus);
+}
+
+
+
+
+
+
+
+InstantiatorTheoryArith::InstantiatorTheoryArith(context::Context* c, QuantifiersEngine* ie, Theory* th) :
+Instantiator( c, ie, th ){
+  if( options::cbqi() ){
+    addInstStrategy( new InstStrategySimplex( this, d_quantEngine ) );
+  }
+}
+
+void InstantiatorTheoryArith::preRegisterTerm( Node t ){
+
+}
+
+void InstantiatorTheoryArith::assertNode( Node assertion ){
+  Debug("quant-arith-assert") << "InstantiatorTheoryArith::check: " << assertion << std::endl;
+  d_quantEngine->addTermToDatabase( assertion );
+  if( options::cbqi() ){
+    if( assertion.hasAttribute(InstConstantAttribute()) ){
+      setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
+    }else if( assertion.getKind()==NOT && assertion[0].hasAttribute(InstConstantAttribute()) ){
+      setQuantifierActive( assertion[0].getAttribute(InstConstantAttribute()) );
+    }
+  }
+}
+
+void InstantiatorTheoryArith::processResetInstantiationRound( Theory::Effort effort ){
+
+}
+
+int InstantiatorTheoryArith::process( Node f, Theory::Effort effort, int e ){
+  Debug("quant-arith") << "Arith: Try to solve (" << effort << ") for " << f << "... " << std::endl;
+  return InstStrategy::STATUS_UNKNOWN;
 }

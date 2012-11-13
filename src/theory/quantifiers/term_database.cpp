@@ -14,7 +14,7 @@
 
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/uf/theory_uf_instantiator.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
@@ -80,7 +80,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         d_op_map[op].push_back( n );
         added.insert( n );
 
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
+        for( size_t i=0; i<n.getNumChildren(); i++ ){
           addTerm( n[i], added, withinQuant );
           if( options::efficientEMatching() ){
             EfficientEMatcher* eem = d_quantEngine->getEfficientEMatcher();
@@ -100,10 +100,9 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
           }
           if( options::eagerInstQuant() ){
             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
-              uf::InstantiatorTheoryUf* ith = (uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( THEORY_UF );
               int addedLemmas = 0;
-              for( int i=0; i<(int)ith->d_op_triggers[op].size(); i++ ){
-                addedLemmas += ith->d_op_triggers[op][i]->addTerm( n );
+              for( size_t i=0; i<d_op_triggers[op].size(); i++ ){
+                addedLemmas += d_op_triggers[op][i]->addTerm( n );
               }
               //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
               d_quantEngine->flushLemmas( &d_quantEngine->getTheoryEngine()->theoryOf( THEORY_QUANTIFIERS )->getOutputChannel() );
@@ -466,5 +465,11 @@ void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContain
     if( d_var_contains[n][j].getAttribute(InstConstantAttribute())==f ){
       varContains.push_back( d_var_contains[n][j] );
     }
+  }
+}
+
+void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
+  if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
+    d_op_triggers[op].push_back( tr );
   }
 }
