@@ -214,6 +214,13 @@ bool Bitblaster::assertToSat(TNode lit, bool propagate) {
  */
  
 bool Bitblaster::solve(bool quick_solve) {
+  if (Trace.isOn("bitvector")) {
+    Trace("bitvector") << "Bitblaster::solve() asserted atoms ";
+    context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms.begin();
+    for (; it != d_assertedAtoms.end(); ++it) {
+      Trace("bitvector") << "     " << d_cnfStream->getNode(*it) << "\n";
+    }
+  }
   BVDebug("bitvector") << "Bitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n"; 
   return SAT_VALUE_TRUE == d_satSolver->solve(); 
 }
@@ -280,11 +287,13 @@ void Bitblaster::initTermBBStrategies() {
   d_termBBStrategies [ kind::BITVECTOR_PLUS ]         = DefaultPlusBB;
   d_termBBStrategies [ kind::BITVECTOR_SUB ]          = DefaultSubBB;
   d_termBBStrategies [ kind::BITVECTOR_NEG ]          = DefaultNegBB;
-  d_termBBStrategies [ kind::BITVECTOR_UDIV ]         = DefaultUdivBB;
-  d_termBBStrategies [ kind::BITVECTOR_UREM ]         = DefaultUremBB;
-  d_termBBStrategies [ kind::BITVECTOR_SDIV ]         = DefaultSdivBB;
-  d_termBBStrategies [ kind::BITVECTOR_SREM ]         = DefaultSremBB;
-  d_termBBStrategies [ kind::BITVECTOR_SMOD ]         = DefaultSmodBB;
+  d_termBBStrategies [ kind::BITVECTOR_UDIV ]         = UndefinedTermBBStrategy; 
+  d_termBBStrategies [ kind::BITVECTOR_UREM ]         = UndefinedTermBBStrategy; 
+  d_termBBStrategies [ kind::BITVECTOR_UDIV_TOTAL ]   = DefaultUdivBB;
+  d_termBBStrategies [ kind::BITVECTOR_UREM_TOTAL ]   = DefaultUremBB;
+  d_termBBStrategies [ kind::BITVECTOR_SDIV ]         = UndefinedTermBBStrategy; 
+  d_termBBStrategies [ kind::BITVECTOR_SREM ]         = UndefinedTermBBStrategy; 
+  d_termBBStrategies [ kind::BITVECTOR_SMOD ]         = UndefinedTermBBStrategy; 
   d_termBBStrategies [ kind::BITVECTOR_SHL ]          = DefaultShlBB;
   d_termBBStrategies [ kind::BITVECTOR_LSHR ]         = DefaultLshrBB;
   d_termBBStrategies [ kind::BITVECTOR_ASHR ]         = DefaultAshrBB;
@@ -429,6 +438,9 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
     TNode var = *it;
     if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) {
       Node const_value = getVarValue(var);
+      Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
+                                << var << " "
+                                << const_value << "))\n";
       m->assertEquality(var, const_value, true); 
     }
   }

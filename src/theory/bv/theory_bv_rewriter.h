@@ -39,7 +39,7 @@ class TheoryBVRewriter {
 
   static void initializeRewrites();
   
- static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUlt(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSlt(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUle(TNode node, bool prerewrite = false);
@@ -63,6 +63,8 @@ class TheoryBVRewriter {
   static RewriteResponse RewriteNeg(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUdiv(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUrem(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUdivTotal(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUremTotal(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSmod(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSdiv(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSrem(TNode node, bool prerewrite = false);

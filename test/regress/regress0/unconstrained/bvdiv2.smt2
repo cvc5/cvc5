@@ -18,9 +18,9 @@
 (declare-fun v4 () (_ BitVec 1024))
 (declare-fun v5 () (_ BitVec 1024))
 (assert
- (not
-  (= (bvudiv x0 x0) (_ bv1 10))
- )
-)
+ (and
+ (not (= x0 (_ bv0 10)))
+ (not (= (bvudiv x0 x0) (_ bv1 10)))
+))
 (check-sat)
 (exit)

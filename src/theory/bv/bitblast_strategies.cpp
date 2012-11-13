@@ -640,7 +640,7 @@ void uDivModRec(const Bits& a, const Bits& b, Bits& q, Bits& r, unsigned rec_wid
 
 void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
   BVDebug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV &&  q.size() == 0);
+  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&  q.size() == 0);
 
   Bits a, b;
   bb->bbTerm(node[0], a);
@@ -650,13 +650,13 @@ void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
   uDivModRec(a, b, q, r, getSize(node)); 
 
   // cache the remainder in case we need it later
-  Node remainder = mkNode(kind::BITVECTOR_UREM, node[0], node[1]);
+  Node remainder = mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]);
   bb->cacheTermDef(remainder, r);
 }
 
 void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
   BVDebug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM &&  rem.size() == 0);
+  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL &&  rem.size() == 0);
 
   Bits a, b;
   bb->bbTerm(node[0], a);
@@ -666,7 +666,7 @@ void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
   uDivModRec(a, b, q, rem, getSize(node)); 
 
   // cache the quotient in case we need it later
-  Node quotient = mkNode(kind::BITVECTOR_UDIV, node[0], node[1]);
+  Node quotient = mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]);
   bb->cacheTermDef(quotient, q);
 }
 

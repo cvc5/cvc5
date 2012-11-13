@@ -54,6 +54,10 @@ operator BITVECTOR_UREM 2 "bit-vector unsigned remainder from truncating divisio
 operator BITVECTOR_SDIV 2 "bit-vector 2's complement signed division"
 operator BITVECTOR_SREM 2 "bit-vector 2's complement signed remainder (sign follows dividend)"
 operator BITVECTOR_SMOD 2 "bit-vector 2's complement signed remainder (sign follows divisor)"
+# total division kinds 
+operator BITVECTOR_UDIV_TOTAL 2 "bit-vector total unsigned division, truncating towards 0 (undefined if divisor is 0)"
+operator BITVECTOR_UREM_TOTAL 2 "bit-vector total unsigned remainder from truncating division (undefined if divisor is 0)"
+
 operator BITVECTOR_SHL 2 "bit-vector left shift"
 operator BITVECTOR_LSHR 2 "bit-vector logical shift right"
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right"
@@ -135,6 +139,8 @@ typerule BITVECTOR_NEG ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
 typerule BITVECTOR_UDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_UREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_UDIV_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_UREM_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SMOD ::CVC4::theory::bv::BitVectorFixedWidthTypeRule

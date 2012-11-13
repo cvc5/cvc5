@@ -41,6 +41,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_engine.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
 #include "util/boolean_simplification.h"
@@ -226,6 +227,14 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   Node d_divByZero;
 
+  /** 
+   * Maps from bit-vector width to divison-by-zero uninterpreted
+   * function symbols.  
+   */
+  hash_map<unsigned, Node> d_BVDivByZero;
+  hash_map<unsigned, Node> d_BVRemByZero;
+  
+
   /**
    * Function symbol used to implement uninterpreted
    * int-division-by-zero semantics.  Needed to deal with partial
@@ -400,6 +409,23 @@ public:
   void addFormula(TNode n)
     throw(TypeCheckingException, LogicException);
 
+  /** 
+   * Return the uinterpreted function symbol corresponding to division-by-zero
+   * for this particular bit-wdith 
+   * @param k should be UREM or UDIV
+   * @param width 
+   * 
+   * @return 
+   */
+  Node getBVDivByZero(Kind k, unsigned width);
+  /** 
+   * Returns the node modeling the division-by-zero semantics of node n. 
+   * 
+   * @param n 
+   * 
+   * @return 
+   */
+  Node expandBVDivByZero(TNode n);
   /**
    * Expand definitions in n.
    */
@@ -691,8 +717,8 @@ void SmtEngine::setLogicInternal() throw() {
   d_logic.lock();
 
   // may need to force uninterpreted functions to be on for non-linear
-  if(d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
-     !d_logic.isLinear() &&
+  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) ||
+       d_logic.isTheoryEnabled(theory::THEORY_BV)) &&
      !d_logic.isTheoryEnabled(theory::THEORY_UF)){
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(theory::THEORY_UF);
@@ -1101,6 +1127,53 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
+
+Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
+  NodeManager* nm = d_smt.d_nodeManager; 
+  if (k == kind::BITVECTOR_UDIV) {
+    if (d_BVDivByZero.find(width) == d_BVDivByZero.end()) {
+      // lazily create the function symbols
+      std::ostringstream os;
+      os << "BVUDivByZero_" << width; 
+      Node divByZero = nm->mkSkolem(os.str(),
+                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
+                                    "partial bvudiv", NodeManager::SKOLEM_EXACT_NAME);
+      d_BVDivByZero[width] = divByZero; 
+    }
+    return d_BVDivByZero[width]; 
+  }
+  else if (k == kind::BITVECTOR_UREM) {
+    if (d_BVRemByZero.find(width) == d_BVRemByZero.end()) {
+      std::ostringstream os;
+      os << "BVURemByZero_" << width; 
+      Node divByZero = nm->mkSkolem(os.str(),
+                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
+                                    "partial bvurem", NodeManager::SKOLEM_EXACT_NAME);
+      d_BVRemByZero[width] = divByZero;
+    }
+    return d_BVRemByZero[width]; 
+  } 
+
+  Unreachable(); 
+}
+
+
+Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
+  // we only deal wioth the unsigned division operators as the signed ones should have been
+  // expanded in terms of the unsigned operators
+  NodeManager* nm = d_smt.d_nodeManager;
+  unsigned width = n.getType().getBitVectorSize(); 
+  Node divByZero = getBVDivByZero(n.getKind(), width);
+  TNode num = n[0], den = n[1];
+  Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0)))); 
+  Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
+  Node divTotalNumDen = nm->mkNode(n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
+                                   kind::BITVECTOR_UREM_TOTAL, num, den);
+  Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen); 
+  return node; 
+}
+
+
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
   throw(TypeCheckingException, LogicException) {
 
@@ -1120,10 +1193,26 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   // otherwise expand it
 
-  Node node;
+  Node node = n;
   NodeManager* nm = d_smt.d_nodeManager;
 
   switch(k) {
+  case kind::BITVECTOR_SDIV:
+  case kind::BITVECTOR_SREM:
+  case kind::BITVECTOR_SMOD: {
+    node = bv::LinearRewriteStrategy <
+      bv::RewriteRule<bv::SremEliminate>,
+      bv::RewriteRule<bv::SdivEliminate>,
+      bv::RewriteRule<bv::SmodEliminate>
+      >::apply(node);
+    break;
+  }
+    
+ case kind::BITVECTOR_UDIV:
+ case kind::BITVECTOR_UREM: {
+   node = expandBVDivByZero(node); 
+    break; 
+  }    
   case kind::DIVISION: {
     // partial function: division
     if(d_smt.d_logic.isLinear()) {

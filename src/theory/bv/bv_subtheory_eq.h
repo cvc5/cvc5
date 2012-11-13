@@ -58,6 +58,8 @@ class EqualitySolver : public SubtheorySolver {
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
 
+  /** FIXME: for debugging purposes only */
+  context::CDList<TNode> d_assertions; 
 public:
 
   EqualitySolver(context::Context* c, TheoryBV* bv);
