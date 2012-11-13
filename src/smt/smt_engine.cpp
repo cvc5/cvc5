@@ -41,7 +41,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_engine.h"
-#include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
 #include "util/boolean_simplification.h"
@@ -1195,16 +1195,12 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   Node node = n;
   NodeManager* nm = d_smt.d_nodeManager;
-
+  // FIXME: this theory specific code should be factored out of the SmtEngine, somehow
   switch(k) {
   case kind::BITVECTOR_SDIV:
   case kind::BITVECTOR_SREM:
   case kind::BITVECTOR_SMOD: {
-    node = bv::LinearRewriteStrategy <
-      bv::RewriteRule<bv::SremEliminate>,
-      bv::RewriteRule<bv::SdivEliminate>,
-      bv::RewriteRule<bv::SmodEliminate>
-      >::apply(node);
+    node = bv::TheoryBVRewriter::eliminateBVSDiv(node);
     break;
   }
     

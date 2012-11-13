@@ -83,10 +83,18 @@ public:
   static RewriteResponse postRewrite(TNode node);
 
   static RewriteResponse preRewrite(TNode node);
-
+  
   static void init();
   static void shutdown();
-  
+  /** 
+   * Temporary hack for devision-by-zero until we refactor theory code from
+   * smt engine. 
+   * 
+   * @param node 
+   * 
+   * @return 
+   */
+  static Node eliminateBVSDiv(TNode node); 
 };/* class TheoryBVRewriter */
 
 }/* CVC4::theory::bv namespace */

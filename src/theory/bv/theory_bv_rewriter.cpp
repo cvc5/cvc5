@@ -594,6 +594,14 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ROTATE_LEFT ] = RewriteRotateLeft;
 }
 
+Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {
+  Node result = bv::LinearRewriteStrategy <
+    bv::RewriteRule<bv::SremEliminate>,
+    bv::RewriteRule<bv::SdivEliminate>,
+    bv::RewriteRule<bv::SmodEliminate>
+    >::apply(node);
+  return result; 
+}
 
 
 
