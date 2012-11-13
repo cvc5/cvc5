@@ -664,23 +664,40 @@ void TheoryArrays::collectReads(TNode n, set<Node>& readSet, set<Node>& cache)
 }
 
 
+void TheoryArrays::collectArrays(TNode n, set<Node>& arraySet, set<Node>& cache)
+{
+  if (cache.find(n) != cache.end()) {
+    return;
+  }
+  if (n.getType().isArray()) {
+    arraySet.insert(n);
+  }
+  for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
+    collectArrays(*child_it, arraySet, cache);
+  }
+  cache.insert(n);
+}
+
+
 void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
   m->assertEqualityEngine( &d_equalityEngine );
 
   std::map<Node, std::vector<Node> > selects;
 
-  set<Node> readSet;
-  set<Node> cache;
-  // Collect all selects appearing in assertions
+  set<Node> readSet, arraySet;
+  set<Node> readCache, arrayCache;
+  // Collect all arrays and selects appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it) {
-    collectReads(*assert_it, readSet, cache);
+    collectReads(*assert_it, readSet, readCache);
+    collectArrays(*assert_it, arraySet, arrayCache);
   }
 
-  // Add selects that are shared terms
+  // Add arrays and selects that are shared terms
   context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
   for (; shared_it != shared_it_end; ++ shared_it) {
-    collectReads(*shared_it, readSet, cache);
+    collectReads(*shared_it, readSet, readCache);
+    collectArrays(*shared_it, arraySet, arrayCache);
   }
 
   // Add selects that were generated internally
@@ -692,16 +709,15 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
   // Go through all equivalence classes and collect relevant arrays and reads
   std::vector<Node> arrays;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  bool isArray, computeRep;
+  bool computeRep;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    isArray = eqc.getType().isArray();
     computeRep = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ){
       Node n = *eqc_i;
       // If this EC is an array type and it contains something other than STORE nodes, we have to compute a representative explicitly
-      if (isArray && n.getKind() != kind::STORE) {
+      if (!computeRep && n.getKind() != kind::STORE && arraySet.find(n) != arraySet.end()) {
         arrays.push_back(eqc);
         computeRep = true;
       }
@@ -711,11 +727,6 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
         selects[d_equalityEngine.getRepresentative(n[0])].push_back(n);
       }
       ++eqc_i;
-    }
-    // If this is an array EC but it only contains STORE nodes, then the value of this EC is derived from the others -
-    // no need to do extra work to compute it
-    if (isArray && !computeRep) {
-      m->assertRepresentative(eqc);
     }
     ++eqcs_i;
   }

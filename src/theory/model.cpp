@@ -410,6 +410,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   // Process all terms in the equality engine, store representatives for each EC
   std::map< Node, Node > assertedReps, constantReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  std::set< TypeNode > allTypes;
   eqcs_i = eq::EqClassesIterator(&tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
     // eqc is the equivalence class representative
@@ -452,87 +453,131 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     }
     else if (!rep.isNull()) {
       assertedReps[eqc] = rep;
-      typeRepSet.add(eqct, eqc);
+      typeRepSet.add(eqct.getBaseType(), eqc);
+      allTypes.insert(eqct);
     }
     else {
       typeNoRepSet.add(eqct, eqc);
+      allTypes.insert(eqct);
     }
   }
 
   // Need to ensure that each EC has a constant representative.
 
-  // Phase 1: For types that do not have asserted reps, assign the unassigned EC's using either evaluation or type enumeration
-  Trace("model-builder") << "Starting phase 1..." << std::endl;
+  Trace("model-builder") << "Processing EC's..." << std::endl;
 
   TypeSet::iterator it;
+  set<TypeNode>::iterator type_it;
   bool changed, unassignedAssignable, assignOne = false;
 
   // Double-fixed-point loop
   // Outer loop handles a special corner case (see code at end of loop for details)
   for (;;) {
 
-    // In this loop, we find a value for this EC using evaluation if possible.  If not, and
-    // the EC contains a single "assignable" expression, then we assign it using type enumeration
-    // If the EC contains both, we wait, hoping to be able to evaluate the evaluable expression later
+    // Inner fixed-point loop: we are trying to learn constant values for every EC.  Each time through this loop, we process all of the
+    // types by type and may learn some new EC values.  EC's in one type may depend on EC's in another type, so we need a fixed-point loop
+    // to ensure that we learn as many EC values as possible
     do {
       changed = false;
       unassignedAssignable = false;
-      d_normalizedCache.clear();
-      for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
-        TypeNode t = TypeSet::getType(it);
-        Trace("model-builder") << "  Working on type: " << t << endl;
-        set<Node>& noRepSet = TypeSet::getSet(it);
-        if (noRepSet.empty()) {
-          continue;
-        }
 
+      // Iterate over all types we've seen
+      for (type_it = allTypes.begin(); type_it != allTypes.end(); ++type_it) {
+        TypeNode t = *type_it;
+        TypeNode tb = t.getBaseType();
         set<Node>::iterator i, i2;
-        bool assignable, evaluable;
 
-        for (i = noRepSet.begin(); i != noRepSet.end(); ) {
-          i2 = i;
-          ++i;
-          eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, &tm->d_equalityEngine);
-          assignable = false;
-          evaluable = false;
-          for ( ; !eqc_i.isFinished(); ++eqc_i) {
-            Node n = *eqc_i;
-            if (isAssignable(n)) {
-              assignable = true;
+        // 1. First normalize any non-const representative terms for this type
+        set<Node>* repSet = typeRepSet.getSet(tb);
+        bool done = repSet == NULL || repSet->empty();
+        if (!done) {
+          Trace("model-builder") << "  Normalizing base type: " << tb << endl;
+        }
+        while (!done) {
+          done = true;
+          d_normalizedCache.clear();
+          for (i = repSet->begin(); i != repSet->end(); ) {
+            Assert(assertedReps.find(*i) != assertedReps.end());
+            Node rep = assertedReps[*i];
+            Node normalized = normalize(tm, rep, constantReps, false);
+            Trace("model-builder") << "    Normalizing rep (" << rep << "), normalized to (" << normalized << ")" << endl;
+            if (normalized.isConst()) {
+              changed = true;
+              done = false;
+              typeConstSet.add(tb, normalized);
+              constantReps[*i] = normalized;
+              assertedReps.erase(*i);
+              i2 = i;
+              ++i;
+              repSet->erase(i2);
             }
             else {
-              evaluable = true;
-              Node normalized = normalize(tm, n, constantReps, true);
-              if (normalized.isConst()) {
-                typeConstSet.add(t.getBaseType(), normalized);
-                constantReps[*i2] = normalized;
-                Trace("model-builder") << "  Eval: Setting constant rep of " << (*i2) << " to " << normalized << endl;
+              if (normalized != rep) {
+                assertedReps[*i] = normalized;
                 changed = true;
-                noRepSet.erase(i2);
-                break;
+                done = false;
               }
+              ++i;
             }
           }
-          if (assignable) {
-            if ((assignOne || !evaluable) && fullModel) {
-              assignOne = false;
-              Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
-              Node n;
-              if (t.getCardinality().isInfinite()) {
-                n = typeConstSet.nextTypeEnum(t, true);
+        }
+
+        // 2. Now try to evaluate or assign the EC's in this type
+        set<Node>* noRepSet = typeNoRepSet.getSet(t);
+        if (noRepSet != NULL && !noRepSet->empty()) {
+          Trace("model-builder") << "   Eval/assign working on type: " << t << endl;
+          bool assignable, evaluable;
+          d_normalizedCache.clear();
+          for (i = noRepSet->begin(); i != noRepSet->end(); ) {
+            i2 = i;
+            ++i;
+            eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, &tm->d_equalityEngine);
+            assignable = false;
+            evaluable = false;
+            for ( ; !eqc_i.isFinished(); ++eqc_i) {
+              Node n = *eqc_i;
+              if (isAssignable(n)) {
+                assignable = true;
               }
               else {
-                TypeEnumerator te(t);
-                n = *te;
+                evaluable = true;
+                Node normalized = normalize(tm, n, constantReps, true);
+                if (normalized.isConst()) {
+                  typeConstSet.add(t.getBaseType(), normalized);
+                  constantReps[*i2] = normalized;
+                  Trace("model-builder") << "    Eval: Setting constant rep of " << (*i2) << " to " << normalized << endl;
+                  changed = true;
+                  noRepSet->erase(i2);
+                  break;
+                }
               }
-              Assert(!n.isNull());
-              constantReps[*i2] = n;
-              Trace("model-builder") << "  New Const: Setting constant rep of " << (*i2) << " to " << n << endl;
-              changed = true;
-              noRepSet.erase(i2);
             }
-            else {
-              unassignedAssignable = true;
+            if (assignable) {
+              // We are about to make a choice - we have to make sure we have learned everything we can first.  Only make a choice if:
+              // 1. fullModel is true
+              // 2. there are no terms of this type with un-normalized representatives
+              // 3. there are no evaluable terms in this EC
+              // Alternatively, if 2 or 3 don't hold but we are in a special deadlock-breaking mode, go ahead and make one assignment
+              if (fullModel && (((repSet == NULL || repSet->empty()) && !evaluable) || assignOne)) {
+                assignOne = false;
+                Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
+                Node n;
+                if (t.getCardinality().isInfinite()) {
+                  n = typeConstSet.nextTypeEnum(t, true);
+                }
+                else {
+                  TypeEnumerator te(t);
+                  n = *te;
+                }
+                Assert(!n.isNull());
+                constantReps[*i2] = n;
+                Trace("model-builder") << "    Assign: Setting constant rep of " << (*i2) << " to " << n << endl;
+                changed = true;
+                noRepSet->erase(i2);
+              }
+              else {
+                unassignedAssignable = true;
+              }
             }
           }
         }
@@ -549,46 +594,13 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     assignOne = true;
   }
 
-  // Phase 2: Substitute into asserted reps using constReps.
-  // Iterate until a fixed point is reached.
-  Trace("model-builder") << "Starting phase 2..." << std::endl;
-  do {
-    changed = false;
-    d_normalizedCache.clear();
-    for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it) {
-      set<Node>& repSet = TypeSet::getSet(it);
-      set<Node>::iterator i;
-      for (i = repSet.begin(); i != repSet.end(); ) {
-        Assert(assertedReps.find(*i) != assertedReps.end());
-        Node rep = assertedReps[*i];
-        Node normalized = normalize(tm, rep, constantReps, false);
-        Trace("model-builder") << "  Normalizing rep (" << rep << "), normalized to (" << normalized << ")" << endl;
-        if (normalized.isConst()) {
-          changed = true;
-          constantReps[*i] = normalized;
-          assertedReps.erase(*i);
-          set<Node>::iterator i2 = i;
-          ++i;
-          repSet.erase(i2);
-        }
-        else {
-          if (normalized != rep) {
-            assertedReps[*i] = normalized;
-            changed = true;
-          }
-          ++i;
-        }
-      }
-    }
-  } while (changed);
-
 #ifdef CVC4_ASSERTIONS
   if (fullModel) {
     // Assert that all representatives have been converted to constants
     for (it = typeRepSet.begin(); it != typeRepSet.end(); ++it) {
       set<Node>& repSet = TypeSet::getSet(it);
       if (!repSet.empty()) {
-        Trace("model-builder") << "Non-empty repSet, size = " << repSet.size() << ", first = " << *(repSet.begin()) << endl;
+        Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size() << ", first = " << *(repSet.begin()) << endl;
         Assert(false);
       }
     }

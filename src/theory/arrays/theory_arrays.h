@@ -218,8 +218,9 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
-  /** Helper function for collectModelInfo */
+  /** Helper functions for collectModelInfo */
   void collectReads(TNode n, std::set<Node>& readSet, std::set<Node>& cache);
+  void collectArrays(TNode n, std::set<Node>& arraySet, std::set<Node>& cache);
   public:
 
   void collectModelInfo( TheoryModel* m, bool fullModel );
