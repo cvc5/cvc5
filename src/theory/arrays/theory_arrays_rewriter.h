@@ -344,7 +344,14 @@ public:
               elements.push_back(store[2]);
               store = store[0];
             }
-            n = nm->mkNode(kind::STORE, store, index, value);
+            if (value.getKind() == kind::SELECT &&
+                value[0] == store &&
+                value[1] == index) {
+              n = store;
+            }
+            else {
+              n = nm->mkNode(kind::STORE, store, index, value);
+            }
             while (!indices.empty()) {
               n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
               indices.pop_back();
