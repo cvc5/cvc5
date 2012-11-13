@@ -94,6 +94,7 @@ class TheoryArraysRewriter {
         // replaced, we can just return node[0]
         return node[0];
       }
+      // else rebuild the store without the replaced write and then exit
     }
     else {
       n = nm->mkNode(kind::STORE, n, index, value);
@@ -104,6 +105,11 @@ class TheoryArraysRewriter {
       n = nm->mkNode(kind::STORE, n, indices.back(), elements.back());
       indices.pop_back();
       elements.pop_back();
+    }
+
+    // Ready to exit if write was to the default value (see previous comment)
+    if (value == defaultValue) {
+      return n;
     }
 
     Cardinality indexCard = index.getType().getCardinality();
