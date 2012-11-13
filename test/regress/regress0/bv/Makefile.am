@@ -97,7 +97,8 @@ CVC_TESTS = bvsimple.cvc sizecheck.cvc
 # Regression tests derived from bug reports
 BUG_TESTS = \
 	bug260a.smt \
-	bug260b.smt
+	bug260b.smt \
+	bug440.smt
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
 
