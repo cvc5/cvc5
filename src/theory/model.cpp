@@ -516,7 +516,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           if (assignable) {
             if ((assignOne || !evaluable) && fullModel) {
               assignOne = false;
-              Assert(!t.isBoolean());
+              Assert(!t.isBoolean() || (*i2).getKind() == kind::APPLY_UF);
               Node n;
               if (t.getCardinality().isInfinite()) {
                 n = typeConstSet.nextTypeEnum(t, true);
