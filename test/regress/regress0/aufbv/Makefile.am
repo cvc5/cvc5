@@ -44,6 +44,7 @@ TESTS =	\
 	fuzz10.smt \
 	fuzz11.smt \
 	fuzz12.smt \
+	fuzz13.smt \
 	fifo32bc06k08.delta01.smt \
 	rewrite_bug.smt \
 	array_rewrite_bug.smt

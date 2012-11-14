@@ -423,7 +423,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node, bool internalAssert)
     Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
     if (internalAssert) {
-      d_readsInternal.push_back(node);
+      d_readsInternal.insert(node);
     }
     d_reads.push_back(node);
     Assert((d_isPreRegistered.insert(node), true));
@@ -445,7 +445,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node, bool internalAssert)
       NodeManager* nm = NodeManager::currentNM();
       Node ni = nm->mkNode(kind::SELECT, node, i);
       if (!d_equalityEngine.hasTerm(ni)) {
-        preRegisterTermInternal(ni);
+        preRegisterTermInternal(ni, false);
       }
 
       // Apply RIntro1 Rule
@@ -649,87 +649,88 @@ void TheoryArrays::computeCareGraph()
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryArrays::collectReads(TNode n, set<Node>& readSet, set<Node>& cache)
+void TheoryArrays::collectTerms(TNode n, set<Node>& termSet)
 {
-  if (cache.find(n) != cache.end()) {
+  if (termSet.find(n) != termSet.end()) {
     return;
   }
-  if (n.getKind() == kind::SELECT) {
-    readSet.insert(n);
+  termSet.insert(n);
+  if (n.getType().isBoolean() || !isLeaf(n)) {
+    for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
+      collectTerms(*child_it, termSet);
+    }
   }
-  for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-    collectReads(*child_it, readSet, cache);
-  }
-  cache.insert(n);
 }
 
 
-void TheoryArrays::collectArrays(TNode n, set<Node>& arraySet, set<Node>& cache)
+void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
 {
-  if (cache.find(n) != cache.end()) {
-    return;
-  }
-  if (n.getType().isArray()) {
-    arraySet.insert(n);
-  }
-  for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-    collectArrays(*child_it, arraySet, cache);
-  }
-  cache.insert(n);
-}
+  set<Node> termSet;
+  set<Node> cache;
 
-
-void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel ){
-  m->assertEqualityEngine( &d_equalityEngine );
-
-  std::map<Node, std::vector<Node> > selects;
-
-  set<Node> readSet, arraySet;
-  set<Node> readCache, arrayCache;
-  // Collect all arrays and selects appearing in assertions
+  // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it) {
-    collectReads(*assert_it, readSet, readCache);
-    collectArrays(*assert_it, arraySet, arrayCache);
+    collectTerms(*assert_it, termSet);
   }
 
-  // Add arrays and selects that are shared terms
+  // Add terms that are shared terms
   context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
-  for (; shared_it != shared_it_end; ++ shared_it) {
-    collectReads(*shared_it, readSet, readCache);
-    collectArrays(*shared_it, arraySet, arrayCache);
+  for (; shared_it != shared_it_end; ++shared_it) {
+    collectTerms(*shared_it, termSet);
   }
 
   // Add selects that were generated internally
-  unsigned size = d_readsInternal.size();
-  for (unsigned i = 0; i < size; ++i) {
-    readSet.insert(d_readsInternal[i]);
+  context::CDHashSet<TNode, TNodeHashFunction>::iterator internal_it = d_readsInternal.begin(), internal_it_end = d_readsInternal.end();
+  for (; internal_it != internal_it_end; ++internal_it) {
+    termSet.insert(*internal_it);
   }
 
   // Go through all equivalence classes and collect relevant arrays and reads
   std::vector<Node> arrays;
+  std::map<Node, std::vector<Node> > selects;
+  bool computeRep, isArray;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  bool computeRep;
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
+    isArray = eqc.getType().isArray();
     computeRep = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ){
       Node n = *eqc_i;
       // If this EC is an array type and it contains something other than STORE nodes, we have to compute a representative explicitly
-      if (!computeRep && n.getKind() != kind::STORE && arraySet.find(n) != arraySet.end()) {
-        arrays.push_back(eqc);
-        computeRep = true;
+      if (isArray && termSet.find(n) != termSet.end()) {
+        if (n.getKind() == kind::STORE) {
+          // Make sure RIntro1 reads are included
+          termSet.insert(NodeManager::currentNM()->mkNode(kind::SELECT, n, n[1]));
+        }
+        else if (!computeRep) {
+          arrays.push_back(eqc);
+          computeRep = true;
+        }
       }
-      // If this term is a select, and it appears in an assertion or was generated internally,
+      ++eqc_i;
+    }
+    ++eqcs_i;
+  }
+
+  eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+  while( !eqcs_i.isFinished() ){
+    Node eqc = (*eqcs_i);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+    while( !eqc_i.isFinished() ){
+      Node n = *eqc_i;
+      // If this term is a select, and it appears in an assertion or was derived from one,
       // record that the EC rep of its store parameter is being read from using this term
-      if (n.getKind() == kind::SELECT && readSet.find(n) != readSet.end()) {
+      if (n.getKind() == kind::SELECT && termSet.find(n) != termSet.end()) {
         selects[d_equalityEngine.getRepresentative(n[0])].push_back(n);
       }
       ++eqc_i;
     }
     ++eqcs_i;
   }
+
+  m->assertEqualityEngine(&d_equalityEngine, &termSet);
 
   NodeManager* nm = NodeManager::currentNM();
   Node rep;
@@ -1259,6 +1260,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
       d_permRef.push_back(reason);
+      d_readsInternal.insert(aj);
+      d_readsInternal.insert(bj);
       if (!ajExists) {
         preRegisterTermInternal(aj);
       }
@@ -1301,6 +1304,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
+      d_readsInternal.insert(aj);
+      d_readsInternal.insert(aj2);
       if (!ajExists) {
         preRegisterTermInternal(aj);
       }
@@ -1311,6 +1316,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
+      d_readsInternal.insert(bj);
+      d_readsInternal.insert(bj2);
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
@@ -1327,6 +1334,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     Node eq1 = aj2.eqNode(bj2);
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
+      d_readsInternal.insert(aj2);
+      d_readsInternal.insert(bj2);
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }
@@ -1401,6 +1410,8 @@ void TheoryArrays::dischargeLemmas()
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {
+      d_readsInternal.insert(aj);
+      d_readsInternal.insert(aj2);
       if (!ajExists) {
         preRegisterTermInternal(aj);
       }
@@ -1411,6 +1422,8 @@ void TheoryArrays::dischargeLemmas()
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
+      d_readsInternal.insert(bj);
+      d_readsInternal.insert(bj2);
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
@@ -1427,6 +1440,8 @@ void TheoryArrays::dischargeLemmas()
     Node eq1 = aj2.eqNode(bj2);
     Node eq1_r = Rewriter::rewrite(eq1);
     if (eq1_r == d_true) {
+      d_readsInternal.insert(aj2);
+      d_readsInternal.insert(bj2);
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }

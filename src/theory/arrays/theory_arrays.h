@@ -218,12 +218,12 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
-  /** Helper functions for collectModelInfo */
-  void collectReads(TNode n, std::set<Node>& readSet, std::set<Node>& cache);
-  void collectArrays(TNode n, std::set<Node>& arraySet, std::set<Node>& cache);
+  /** Helper function for collectModelInfo */
+  void collectTerms(TNode n, std::set<Node>& termSet);
+
   public:
 
-  void collectModelInfo( TheoryModel* m, bool fullModel );
+  void collectModelInfo(TheoryModel* m, bool fullModel);
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
@@ -337,7 +337,7 @@ class TheoryArrays : public Theory {
   context::CDHashSet<TNode, TNodeHashFunction> d_sharedOther;
   context::CDO<bool> d_sharedTerms;
   context::CDList<TNode> d_reads;
-  context::CDList<TNode> d_readsInternal;
+  context::CDHashSet<TNode, TNodeHashFunction> d_readsInternal;
   std::hash_map<TNode, Node, TNodeHashFunction> d_diseqCache;
 
   // The decision requests we have for the core

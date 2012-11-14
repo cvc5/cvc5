@@ -246,9 +246,10 @@ void TheoryModel::assertPredicate( Node a, bool polarity ){
 }
 
 /** assert equality engine */
-void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
+void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* termSet)
+{
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  while( !eqcs_i.isFinished() ){
+  for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
     bool predicate = false;
     bool predTrue = false;
@@ -259,7 +260,10 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
       predFalse = ee->areEqual(eqc, d_false);
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    while(!eqc_i.isFinished()) {
+    for (; !eqc_i.isFinished(); ++eqc_i) {
+      if (termSet != NULL && termSet->find(*eqc_i) == termSet->end()) {
+        continue;
+      }
       if (predicate) {
         if (predTrue) {
           assertPredicate(*eqc_i, true);
@@ -275,9 +279,7 @@ void TheoryModel::assertEqualityEngine( const eq::EqualityEngine* ee ){
       } else {
         assertEquality(*eqc_i, eqc, true);
       }
-      ++eqc_i;
     }
-    ++eqcs_i;
   }
 }
 

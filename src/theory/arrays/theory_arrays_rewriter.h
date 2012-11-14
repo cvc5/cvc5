@@ -306,7 +306,15 @@ public:
           NodeManager* nm = NodeManager::currentNM();
           if (val) {
             // store(store(a,i,v),i,w) = store(a,i,w)
-            Node result = nm->mkNode(kind::STORE, store[0], index, value);
+            Node result;
+            if (value.getKind() == kind::SELECT &&
+                value[0] == store[0] &&
+                value[1] == index) {
+              result = store[0];
+            }
+            else {
+              result = nm->mkNode(kind::STORE, store[0], index, value);
+            }
             Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << result << std::endl;
             return RewriteResponse(REWRITE_DONE, result);
           }

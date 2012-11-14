@@ -92,7 +92,7 @@ public:
   /** assert predicate holds in the model */
   void assertPredicate( Node a, bool polarity );
   /** assert all equalities/predicates in equality engine hold in the model */
-  void assertEqualityEngine( const eq::EqualityEngine* ee );
+  void assertEqualityEngine(const eq::EqualityEngine* ee, std::set<Node>* termSet = NULL);
   /** assert representative
     *  This function tells the model that n should be the representative of its equivalence class.
     *  It should be called during model generation, before final representatives are chosen.  In the
