@@ -212,8 +212,12 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       // no-op
       break;
     case kind::LAMBDA:
-      op << "LAMBDA";
-      opType = PREFIX;
+      out << "(LAMBDA";
+      toStream(out, n[0], depth, types, true);
+      out << ": ";
+      toStream(out, n[1], depth, types, true);
+      out << ")";
+      return;
       break;
     case kind::APPLY:
       toStream(op, n.getOperator(), depth, types, true);

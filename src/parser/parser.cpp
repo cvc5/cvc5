@@ -164,7 +164,7 @@ Parser::mkFunction(const std::string& name, const Type& type,
 Expr
 Parser::mkAnonymousFunction(const std::string& prefix, const Type& type) {
   stringstream name;
-  name << prefix << ':' << ++d_anonymousFunctionCount;
+  name << prefix << "_anon_" << ++d_anonymousFunctionCount;
   return mkFunction(name.str(), type);
 }
 
