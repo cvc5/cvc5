@@ -1250,6 +1250,9 @@ lbool Solver::solve_()
         curr_restarts++;
     }
 
+    if(!withinBudget())
+        status = l_Undef;
+
     if (verbosity >= 1)
         printf("===============================================================================\n");
 
