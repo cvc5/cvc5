@@ -227,13 +227,13 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   Node d_divByZero;
 
-  /** 
+  /**
    * Maps from bit-vector width to divison-by-zero uninterpreted
-   * function symbols.  
+   * function symbols.
    */
   hash_map<unsigned, Node> d_BVDivByZero;
   hash_map<unsigned, Node> d_BVRemByZero;
-  
+
 
   /**
    * Function symbol used to implement uninterpreted
@@ -409,23 +409,25 @@ public:
   void addFormula(TNode n)
     throw(TypeCheckingException, LogicException);
 
-  /** 
+  /**
    * Return the uinterpreted function symbol corresponding to division-by-zero
-   * for this particular bit-wdith 
+   * for this particular bit-wdith
    * @param k should be UREM or UDIV
-   * @param width 
-   * 
-   * @return 
+   * @param width
+   *
+   * @return
    */
   Node getBVDivByZero(Kind k, unsigned width);
-  /** 
-   * Returns the node modeling the division-by-zero semantics of node n. 
-   * 
-   * @param n 
-   * 
-   * @return 
+
+  /**
+   * Returns the node modeling the division-by-zero semantics of node n.
+   *
+   * @param n
+   *
+   * @return
    */
   Node expandBVDivByZero(TNode n);
+
   /**
    * Expand definitions in n.
    */
