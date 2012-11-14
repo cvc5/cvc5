@@ -674,6 +674,10 @@ bool TheoryArith::AssertDisequality(Constraint constraint){
 
 void TheoryArith::addSharedTerm(TNode n){
   Debug("arith::addSharedTerm") << "addSharedTerm: " << n << endl;
+  if(n.isConst()){
+    d_partialModel.invalidateDelta();
+  }
+
   d_congruenceManager.addSharedTerm(n);
   if(!n.isConst() && !isSetup(n)){
     Polynomial poly = Polynomial::parsePolynomial(n);
@@ -2100,6 +2104,14 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
 
     const DeltaRational& rhsValue = curr->getValue();
     relevantDeltaValues.insert(rhsValue);
+  }
+
+  for(shared_terms_iterator shared_iter = shared_terms_begin(),
+        shared_end = shared_terms_end(); shared_iter != shared_end; ++shared_iter){
+    Node sharedCurr = *shared_iter;
+    if(sharedCurr.getKind() == CONST_RATIONAL){
+      relevantDeltaValues.insert(sharedCurr.getConst<Rational>());:
+    }
   }
 
   for(ArithVar v = 0; v < d_variables.size(); ++v){
