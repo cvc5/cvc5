@@ -2110,7 +2110,7 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
         shared_end = shared_terms_end(); shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
     if(sharedCurr.getKind() == CONST_RATIONAL){
-      relevantDeltaValues.insert(sharedCurr.getConst<Rational>());:
+      relevantDeltaValues.insert(sharedCurr.getConst<Rational>());
     }
   }
 
