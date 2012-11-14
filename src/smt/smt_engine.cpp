@@ -65,6 +65,7 @@
 #include "prop/options.h"
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
+#include "theory/quantifiers/macros.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1131,32 +1132,32 @@ void SmtEngine::defineFunction(Expr func,
 
 
 Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
-  NodeManager* nm = d_smt.d_nodeManager; 
+  NodeManager* nm = d_smt.d_nodeManager;
   if (k == kind::BITVECTOR_UDIV) {
     if (d_BVDivByZero.find(width) == d_BVDivByZero.end()) {
       // lazily create the function symbols
       std::ostringstream os;
-      os << "BVUDivByZero_" << width; 
+      os << "BVUDivByZero_" << width;
       Node divByZero = nm->mkSkolem(os.str(),
                                     nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
                                     "partial bvudiv", NodeManager::SKOLEM_EXACT_NAME);
-      d_BVDivByZero[width] = divByZero; 
+      d_BVDivByZero[width] = divByZero;
     }
-    return d_BVDivByZero[width]; 
+    return d_BVDivByZero[width];
   }
   else if (k == kind::BITVECTOR_UREM) {
     if (d_BVRemByZero.find(width) == d_BVRemByZero.end()) {
       std::ostringstream os;
-      os << "BVURemByZero_" << width; 
+      os << "BVURemByZero_" << width;
       Node divByZero = nm->mkSkolem(os.str(),
                                     nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
                                     "partial bvurem", NodeManager::SKOLEM_EXACT_NAME);
       d_BVRemByZero[width] = divByZero;
     }
-    return d_BVRemByZero[width]; 
-  } 
+    return d_BVRemByZero[width];
+  }
 
-  Unreachable(); 
+  Unreachable();
 }
 
 
@@ -1164,15 +1165,15 @@ Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
   // we only deal wioth the unsigned division operators as the signed ones should have been
   // expanded in terms of the unsigned operators
   NodeManager* nm = d_smt.d_nodeManager;
-  unsigned width = n.getType().getBitVectorSize(); 
+  unsigned width = n.getType().getBitVectorSize();
   Node divByZero = getBVDivByZero(n.getKind(), width);
   TNode num = n[0], den = n[1];
-  Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0)))); 
+  Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
   Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
   Node divTotalNumDen = nm->mkNode(n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
                                    kind::BITVECTOR_UREM_TOTAL, num, den);
-  Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen); 
-  return node; 
+  Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+  return node;
 }
 
 
@@ -1205,12 +1206,12 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     node = bv::TheoryBVRewriter::eliminateBVSDiv(node);
     break;
   }
-    
+
  case kind::BITVECTOR_UDIV:
  case kind::BITVECTOR_UREM: {
-   node = expandBVDivByZero(node); 
-    break; 
-  }    
+   node = expandBVDivByZero(node);
+    break;
+  }
   case kind::DIVISION: {
     // partial function: division
     if(d_smt.d_logic.isLinear()) {
@@ -2060,9 +2061,14 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-skolem-quant", d_assertionsToPreprocess);
 
+  if( options::macrosQuant() ){
+    //quantifiers macro expansion
+    QuantifierMacros qm;
+    qm.simplify( d_assertionsToPreprocess );
+  }
+
   if( options::sortInference() ){
     //sort inference technique
-    //TODO: use this as a rewrite technique here?
     SortInference si;
     si.simplify( d_assertionsToPreprocess );
   }

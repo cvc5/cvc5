@@ -985,7 +985,7 @@ Node TheoryArith::axiomIteForTotalDivision(Node div_tot){
   Comparison invEq = Comparison::mkComparison(EQUAL, n, d * div_tot_p);
   Comparison zeroEq = Comparison::mkComparison(EQUAL, div_tot_p, Polynomial::mkZero());
   Node dEq0 = (d.getNode()).eqNode(mkRationalNode(0));
-  Node ite = dEq0.iteNode(zeroEq.getNode(), invEq.getNode()); 
+  Node ite = dEq0.iteNode(zeroEq.getNode(), invEq.getNode());
 
   return ite;
 }

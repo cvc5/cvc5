@@ -26,6 +26,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/rewriterules/efficient_e_matching.h"
+#include "theory/rewriterules/rr_trigger.h"
 
 using namespace std;
 using namespace CVC4;
@@ -40,6 +41,7 @@ d_quant_rel( false ){ //currently do not care about relevance
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
   d_tr_trie = new inst::TriggerTrie;
+  d_rr_tr_trie = new rrinst::TriggerTrie;
   d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
 

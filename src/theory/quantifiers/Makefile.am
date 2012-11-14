@@ -42,7 +42,9 @@ libquantifiers_la_SOURCES = \
 	quant_util.h \
 	quant_util.cpp \
 	inst_match_generator.h \
-	inst_match_generator.cpp
+	inst_match_generator.cpp \
+	macros.h \
+	macros.cpp
 
 EXTRA_DIST = \
 	kinds \

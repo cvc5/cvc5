@@ -68,6 +68,10 @@ namespace inst {
   class TriggerTrie;
 }/* CVC4::theory::inst */
 
+namespace rrinst {
+  class TriggerTrie;
+}/* CVC4::theory::inst */
+
 class EfficientEMatcher;
 class EqualityQueryQuantifiersEngine;
 
@@ -108,6 +112,8 @@ private:
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
+  /** all triggers for rewrite rules will be stored in this trie */
+  rrinst::TriggerTrie* d_rr_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
 private:
@@ -193,6 +199,8 @@ public:
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
+  /** get rewrite trigger database */
+  rrinst::TriggerTrie* getRRTriggerDatabase() { return d_rr_tr_trie; }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false );
 public:

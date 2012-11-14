@@ -108,10 +108,6 @@ public:
   static bool isUsableTrigger( Node n, Node f );
   static bool isAtomicTrigger( Node n );
   static bool isSimpleTrigger( Node n );
-  /** filter all nodes that have instances */
-  static void filterInstances( QuantifiersEngine* qe, std::vector< Node >& nodes );
-  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
-  static int isInstanceOf( QuantifiersEngine* qe, Node n1, Node n2 );
   /** get pattern arithmetic */
   static bool getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coeffs );
 

@@ -468,6 +468,77 @@ void TermDb::getVarContainsNode( Node f, Node n, std::vector< Node >& varContain
   }
 }
 
+/** is n1 an instance of n2 or vice versa? */
+int TermDb::isInstanceOf( Node n1, Node n2 ){
+  if( n1==n2 ){
+    return 1;
+  }else if( n1.getKind()==n2.getKind() ){
+    if( n1.getKind()==APPLY_UF ){
+      if( n1.getOperator()==n2.getOperator() ){
+        int result = 0;
+        for( int i=0; i<(int)n1.getNumChildren(); i++ ){
+          if( n1[i]!=n2[i] ){
+            int cResult = isInstanceOf( n1[i], n2[i] );
+            if( cResult==0 ){
+              return 0;
+            }else if( cResult!=result ){
+              if( result!=0 ){
+                return 0;
+              }else{
+                result = cResult;
+              }
+            }
+          }
+        }
+        return result;
+      }
+    }
+    return 0;
+  }else if( n2.getKind()==INST_CONSTANT ){
+    computeVarContains( n1 );
+    //if( std::find( d_var_contains[ n1 ].begin(), d_var_contains[ n1 ].end(), n2 )!=d_var_contains[ n1 ].end() ){
+    //  return 1;
+    //}
+    if( d_var_contains[ n1 ].size()==1 && d_var_contains[ n1 ][ 0 ]==n2 ){
+      return 1;
+    }
+  }else if( n1.getKind()==INST_CONSTANT ){
+    computeVarContains( n2 );
+    //if( std::find( d_var_contains[ n2 ].begin(), d_var_contains[ n2 ].end(), n1 )!=d_var_contains[ n2 ].end() ){
+    //  return -1;
+    //}
+    if( d_var_contains[ n2 ].size()==1 && d_var_contains[ n2 ][ 0 ]==n1 ){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+void TermDb::filterInstances( std::vector< Node >& nodes ){
+  std::vector< bool > active;
+  active.resize( nodes.size(), true );
+  for( int i=0; i<(int)nodes.size(); i++ ){
+    for( int j=i+1; j<(int)nodes.size(); j++ ){
+      if( active[i] && active[j] ){
+        int result = isInstanceOf( nodes[i], nodes[j] );
+        if( result==1 ){
+          active[j] = false;
+        }else if( result==-1 ){
+          active[i] = false;
+        }
+      }
+    }
+  }
+  std::vector< Node > temp;
+  for( int i=0; i<(int)nodes.size(); i++ ){
+    if( active[i] ){
+      temp.push_back( nodes[i] );
+    }
+  }
+  nodes.clear();
+  nodes.insert( nodes.begin(), temp.begin(), temp.end() );
+}
+
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
     d_op_triggers[op].push_back( tr );

@@ -65,6 +65,10 @@ class QuantifiersEngine;
 namespace inst{
   class Trigger;
 }
+namespace rrinst{
+  class Trigger;
+}
+
 
 namespace quantifiers {
 
@@ -82,6 +86,7 @@ public:
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
+  friend class ::CVC4::theory::rrinst::Trigger;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -218,6 +223,10 @@ public:
   void getVarContainsNode( Node f, Node n, std::vector< Node >& varContains );
   /** register trigger (for eager quantifier instantiation) */
   void registerTrigger( inst::Trigger* tr, Node op );
+  /** -1: n1 is an instance of n2, 1: n1 is an instance of n2 */
+  int isInstanceOf( Node n1, Node n2 );
+  /** filter all nodes that have instances */
+  void filterInstances( std::vector< Node >& nodes );
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

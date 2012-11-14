@@ -26,43 +26,9 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::rrinst;
 
-//#define NESTED_PATTERN_SELECTION
-
-Trigger* Trigger::TrTrie::getTrigger2( std::vector< Node >& nodes ){
-  if( nodes.empty() ){
-    return d_tr;
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )!=d_children.end() ){
-      return d_children[n]->getTrigger2( nodes );
-    }else{
-      return NULL;
-    }
-  }
-}
-void Trigger::TrTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
-  if( nodes.empty() ){
-    d_tr = t;
-  }else{
-    Node n = nodes.back();
-    nodes.pop_back();
-    if( d_children.find( n )==d_children.end() ){
-      d_children[n] = new TrTrie;
-    }
-    d_children[n]->addTrigger2( nodes, t );
-  }
-}
-
-/** trigger static members */
-std::map< Node, std::vector< Node > > Trigger::d_var_contains;
-int Trigger::trCount = 0;
-Trigger::TrTrie Trigger::d_tr_trie;
-
 /** trigger class constructor */
 Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool smartTriggers ) :
 d_quantEngine( qe ), d_f( f ){
-  trCount++;
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
   Debug("trigger") << "Trigger for " << f << ": " << d_nodes << std::endl;
   if(matchOption == MATCH_GEN_DEFAULT) d_mg = mkPatterns( d_nodes, qe );
@@ -78,24 +44,6 @@ d_quantEngine( qe ), d_f( f ){
     //std::cout << "Multi-trigger for " << f << " : " << std::endl;
     //std::cout << "   " << (*this) << std::endl;
     ++(qe->d_statistics.d_multi_triggers);
-  }
-}
-void Trigger::computeVarContains( Node n ) {
-  if( d_var_contains.find( n )==d_var_contains.end() ){
-    d_var_contains[n].clear();
-    computeVarContains2( n, n );
-  }
-}
-
-void Trigger::computeVarContains2( Node n, Node parent ){
-  if( n.getKind()==INST_CONSTANT ){
-    if( std::find( d_var_contains[parent].begin(), d_var_contains[parent].end(), n )==d_var_contains[parent].end() ){
-      d_var_contains[parent].push_back( n );
-    }
-  }else{
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      computeVarContains2( n[i], parent );
-    }
   }
 }
 
@@ -141,9 +89,9 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     std::map< Node, std::vector< Node > > patterns;
     for( int i=0; i<(int)temp.size(); i++ ){
       bool foundVar = false;
-      computeVarContains( temp[i] );
-      for( int j=0; j<(int)d_var_contains[ temp[i] ].size(); j++ ){
-        Node v = d_var_contains[ temp[i] ][j];
+      qe->getTermDatabase()->computeVarContains( temp[i] );
+      for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
+        Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
         if( v.getAttribute(InstConstantAttribute())==f ){
           if( vars.find( v )==vars.end() ){
             vars[ v ] = true;
@@ -153,8 +101,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       }
       if( foundVar ){
         trNodes.push_back( temp[i] );
-        for( int j=0; j<(int)d_var_contains[ temp[i] ].size(); j++ ){
-          Node v = d_var_contains[ temp[i] ][j];
+        for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
+          Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
           patterns[ v ].push_back( temp[i] );
         }
       }
@@ -163,8 +111,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     for( int i=0; i<(int)trNodes.size(); i++ ){
       bool keepPattern = false;
       Node n = trNodes[i];
-      for( int j=0; j<(int)d_var_contains[ n ].size(); j++ ){
-        Node v = d_var_contains[ n ][j];
+      for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
+        Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
         if( patterns[v].size()==1 ){
           keepPattern = true;
           break;
@@ -172,8 +120,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       }
       if( !keepPattern ){
         //remove from pattern vector
-        for( int j=0; j<(int)d_var_contains[ n ].size(); j++ ){
-          Node v = d_var_contains[ n ][j];
+        for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
+          Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
           for( int k=0; k<(int)patterns[v].size(); k++ ){
             if( patterns[v][k]==n ){
               patterns[v].erase( patterns[v].begin() + k, patterns[v].begin() + k + 1 );
@@ -194,7 +142,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   if( trOption==TR_MAKE_NEW ){
     //static int trNew = 0;
     //static int trOld = 0;
-    //Trigger* t = d_tr_trie.getTrigger( trNodes );
+    //Trigger* t = qe->getTriggerDatabase()->getTrigger( trNodes );
     //if( t ){
     //  trOld++;
     //}else{
@@ -204,7 +152,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     //  std::cout << "Trigger new old = " << trNew << " " << trOld << std::endl;
     //}
   }else{
-    Trigger* t = d_tr_trie.getTrigger( trNodes );
+    Trigger* t = qe->getRRTriggerDatabase()->getTrigger( trNodes );
     if( t ){
       if( trOption==TR_GET_OLD ){
         //just return old trigger
@@ -215,7 +163,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     }
   }
   Trigger* t = new Trigger( qe, f, trNodes, matchOption, smartTriggers );
-  d_tr_trie.addTrigger( trNodes, t );
+  qe->getRRTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
 Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOption, bool keepAll, int trOption, bool smartTriggers ){
@@ -262,32 +210,6 @@ bool Trigger::isSimpleTrigger( Node n ){
   }else{
     return false;
   }
-}
-
-/** filter all nodes that have instances */
-void Trigger::filterInstances( std::vector< Node >& nodes ){
-  std::vector< bool > active;
-  active.resize( nodes.size(), true );
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    for( int j=i+1; j<(int)nodes.size(); j++ ){
-      if( active[i] && active[j] ){
-        int result = isInstanceOf( nodes[i], nodes[j] );
-        if( result==1 ){
-          active[j] = false;
-        }else if( result==-1 ){
-          active[i] = false;
-        }
-      }
-    }
-  }
-  std::vector< Node > temp;
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    if( active[i] ){
-      temp.push_back( nodes[i] );
-    }
-  }
-  nodes.clear();
-  nodes.insert( nodes.begin(), temp.begin(), temp.end() );
 }
 
 
@@ -359,7 +281,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
     collectPatTerms( qe, f, n, patTerms2, TS_ALL, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    filterInstances( temp );
+    qe->getTermDatabase()->filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Debug("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Debug("trigger-filter-instance") << "Old: ";
@@ -388,91 +310,6 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
   for( std::map< Node, bool >::iterator it = patMap.begin(); it != patMap.end(); ++it ){
     if( it->second ){
       patTerms.push_back( it->first );
-    }
-  }
-}
-
-/** is n1 an instance of n2 or vice versa? */
-int Trigger::isInstanceOf( Node n1, Node n2 ){
-  if( n1==n2 ){
-    return 1;
-  }else if( n1.getKind()==n2.getKind() ){
-    if( n1.getKind()==APPLY_UF ){
-      if( n1.getOperator()==n2.getOperator() ){
-        int result = 0;
-        for( int i=0; i<(int)n1.getNumChildren(); i++ ){
-          if( n1[i]!=n2[i] ){
-            int cResult = isInstanceOf( n1[i], n2[i] );
-            if( cResult==0 ){
-              return 0;
-            }else if( cResult!=result ){
-              if( result!=0 ){
-                return 0;
-              }else{
-                result = cResult;
-              }
-            }
-          }
-        }
-        return result;
-      }
-    }
-    return 0;
-  }else if( n2.getKind()==INST_CONSTANT ){
-    computeVarContains( n1 );
-    //if( std::find( d_var_contains[ n1 ].begin(), d_var_contains[ n1 ].end(), n2 )!=d_var_contains[ n1 ].end() ){
-    //  return 1;
-    //}
-    if( d_var_contains[ n1 ].size()==1 && d_var_contains[ n1 ][ 0 ]==n2 ){
-      return 1;
-    }
-  }else if( n1.getKind()==INST_CONSTANT ){
-    computeVarContains( n2 );
-    //if( std::find( d_var_contains[ n2 ].begin(), d_var_contains[ n2 ].end(), n1 )!=d_var_contains[ n2 ].end() ){
-    //  return -1;
-    //}
-    if( d_var_contains[ n2 ].size()==1 && d_var_contains[ n2 ][ 0 ]==n1 ){
-      return 1;
-    }
-  }
-  return 0;
-}
-
-bool Trigger::isVariableSubsume( Node n1, Node n2 ){
-  if( n1==n2 ){
-    return true;
-  }else{
-    //std::cout << "is variable subsume ? " << n1 << " " << n2 << std::endl;
-    computeVarContains( n1 );
-    computeVarContains( n2 );
-    for( int i=0; i<(int)d_var_contains[n2].size(); i++ ){
-      if( std::find( d_var_contains[n1].begin(), d_var_contains[n1].end(), d_var_contains[n2][i] )==d_var_contains[n1].end() ){
-        //std::cout << "no" << std::endl;
-        return false;
-      }
-    }
-    //std::cout << "yes" << std::endl;
-    return true;
-  }
-}
-
-void Trigger::getVarContains( Node f, std::vector< Node >& pats, std::map< Node, std::vector< Node > >& varContains ){
-  for( int i=0; i<(int)pats.size(); i++ ){
-    computeVarContains( pats[i] );
-    varContains[ pats[i] ].clear();
-    for( int j=0; j<(int)d_var_contains[pats[i]].size(); j++ ){
-      if( d_var_contains[pats[i]][j].getAttribute(InstConstantAttribute())==f ){
-        varContains[ pats[i] ].push_back( d_var_contains[pats[i]][j] );
-      }
-    }
-  }
-}
-
-void Trigger::getVarContainsNode( Node f, Node n, std::vector< Node >& varContains ){
-  computeVarContains( n );
-  for( int j=0; j<(int)d_var_contains[n].size(); j++ ){
-    if( d_var_contains[n][j].getAttribute(InstConstantAttribute())==f ){
-      varContains.push_back( d_var_contains[n][j] );
     }
   }
 }
@@ -518,4 +355,32 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     }
   }
   return false;
+}
+
+
+
+Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
+  if( nodes.empty() ){
+    return d_tr;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )!=d_children.end() ){
+      return d_children[n]->getTrigger2( nodes );
+    }else{
+      return NULL;
+    }
+  }
+}
+void TriggerTrie::addTrigger2( std::vector< Node >& nodes, Trigger* t ){
+  if( nodes.empty() ){
+    d_tr = t;
+  }else{
+    Node n = nodes.back();
+    nodes.pop_back();
+    if( d_children.find( n )==d_children.end() ){
+      d_children[n] = new TriggerTrie;
+    }
+    d_children[n]->addTrigger2( nodes, t );
+  }
 }

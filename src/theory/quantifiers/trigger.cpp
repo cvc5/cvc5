@@ -250,32 +250,6 @@ bool Trigger::isSimpleTrigger( Node n ){
   }
 }
 
-/** filter all nodes that have instances */
-void Trigger::filterInstances( QuantifiersEngine* qe, std::vector< Node >& nodes ){
-  std::vector< bool > active;
-  active.resize( nodes.size(), true );
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    for( int j=i+1; j<(int)nodes.size(); j++ ){
-      if( active[i] && active[j] ){
-        int result = isInstanceOf( qe, nodes[i], nodes[j] );
-        if( result==1 ){
-          active[j] = false;
-        }else if( result==-1 ){
-          active[i] = false;
-        }
-      }
-    }
-  }
-  std::vector< Node > temp;
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    if( active[i] ){
-      temp.push_back( nodes[i] );
-    }
-  }
-  nodes.clear();
-  nodes.insert( nodes.begin(), temp.begin(), temp.end() );
-}
-
 
 bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt ){
   if( patMap.find( n )==patMap.end() ){
@@ -345,7 +319,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
     collectPatTerms( qe, f, n, patTerms2, TS_ALL, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
-    filterInstances( qe, temp );
+    qe->getTermDatabase()->filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
       Debug("trigger-filter-instance") << "Filtered an instance: " << std::endl;
       Debug("trigger-filter-instance") << "Old: ";
@@ -376,54 +350,6 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       patTerms.push_back( it->first );
     }
   }
-}
-
-/** is n1 an instance of n2 or vice versa? */
-int Trigger::isInstanceOf( QuantifiersEngine* qe, Node n1, Node n2 ){
-  if( n1==n2 ){
-    return 1;
-  }else if( n1.getKind()==n2.getKind() ){
-    if( n1.getKind()==APPLY_UF ){
-      if( n1.getOperator()==n2.getOperator() ){
-        int result = 0;
-        for( int i=0; i<(int)n1.getNumChildren(); i++ ){
-          if( n1[i]!=n2[i] ){
-            int cResult = isInstanceOf( qe, n1[i], n2[i] );
-            if( cResult==0 ){
-              return 0;
-            }else if( cResult!=result ){
-              if( result!=0 ){
-                return 0;
-              }else{
-                result = cResult;
-              }
-            }
-          }
-        }
-        return result;
-      }
-    }
-    return 0;
-  }else if( n2.getKind()==INST_CONSTANT ){
-    qe->getTermDatabase()->computeVarContains( n1 );
-    //if( std::find( d_var_contains[ n1 ].begin(), d_var_contains[ n1 ].end(), n2 )!=d_var_contains[ n1 ].end() ){
-    //  return 1;
-    //}
-    if( qe->getTermDatabase()->d_var_contains[ n1 ].size()==1 &&
-        qe->getTermDatabase()->d_var_contains[ n1 ][ 0 ]==n2 ){
-      return 1;
-    }
-  }else if( n1.getKind()==INST_CONSTANT ){
-    qe->getTermDatabase()->computeVarContains( n2 );
-    //if( std::find( d_var_contains[ n2 ].begin(), d_var_contains[ n2 ].end(), n1 )!=d_var_contains[ n2 ].end() ){
-    //  return -1;
-    //}
-    if( qe->getTermDatabase()->d_var_contains[ n2 ].size()==1 &&
-        qe->getTermDatabase()->d_var_contains[ n2 ][ 0 ]==n1 ){
-      return 1;
-    }
-  }
-  return 0;
 }
 
 bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coeffs ){
