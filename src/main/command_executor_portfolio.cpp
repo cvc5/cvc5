@@ -191,17 +191,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     return CommandExecutor::doCommandSingleton(cmd);
   } else if(mode == 1) {               // portfolio
 
-    // If quantified, stay sequential
-    LogicInfo logicInfo = d_smts[0]->getLogicInfo();
-    logicInfo.lock();
-    if(logicInfo.isQuantified()) {
-      if(d_options[options::fallbackSequential])
-        return CommandExecutor::doCommandSingleton(cmd);
-      else
-        throw Exception("Quantified formulas are (currenltly) unsupported in portfolio mode.\n"
-                        "Please see option --fallback-sequential to make this a soft error.");
-    }
-
     d_seq->addCommand(cmd->clone());
 
     // We currently don't support changing number of threads for each
