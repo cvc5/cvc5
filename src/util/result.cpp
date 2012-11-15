@@ -92,6 +92,20 @@ bool Result::operator==(const Result& r) const throw() {
   return false;
 }
 
+bool operator==(enum Result::Sat sr, const Result& r) throw() {
+  return r == sr;
+}
+
+bool operator==(enum Result::Validity vr, const Result& r) throw() {
+  return r == vr;
+}
+bool operator!=(enum Result::Sat s, const Result& r) throw(){
+  return !(s == r);
+}
+bool operator!=(enum Result::Validity v, const Result& r) throw(){
+  return !(v == r);
+}
+
 Result Result::asSatisfiabilityResult() const throw() {
   if(d_which == TYPE_SAT) {
     return *this;

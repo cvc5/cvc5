@@ -31,6 +31,6 @@ int main() {
   SmtEngine smt(&em);
   Result r = smt.query(em.mkConst(true));
 
-  return r == Result::VALID ? 0 : 1;
+  return (Result::VALID == r) ? 0 : 1;
 }
 

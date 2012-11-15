@@ -155,6 +155,12 @@ std::ostream& operator<<(std::ostream& out,
 std::ostream& operator<<(std::ostream& out,
                          enum Result::UnknownExplanation e) CVC4_PUBLIC;
 
+bool operator==(enum Result::Sat s, const Result& r) throw() CVC4_PUBLIC;
+bool operator==(enum Result::Validity v, const Result& r) throw() CVC4_PUBLIC;
+
+bool operator!=(enum Result::Sat s, const Result& r) throw() CVC4_PUBLIC;
+bool operator!=(enum Result::Validity v, const Result& r) throw() CVC4_PUBLIC;
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__RESULT_H */
