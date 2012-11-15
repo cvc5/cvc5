@@ -142,6 +142,9 @@ void CommandExecutorPortfolio::lemmaSharingCleanup()
 {
   assert(d_numThreads == d_options[options::threads]);
 
+  if(d_numThreads == 1)
+    return;
+
   // Channel cleanup
   assert(d_channelsIn.size() == d_numThreads);
   assert(d_channelsOut.size() == d_numThreads);
@@ -248,11 +251,14 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                            );
     }
 
-    assert(d_channelsIn.size() == d_numThreads);
-    assert(d_channelsOut.size() == d_numThreads);
+    assert(d_channelsIn.size() == d_numThreads
+           || d_numThreads == 1);
+    assert(d_channelsOut.size() == d_numThreads
+           || d_numThreads == 1);
     assert(d_smts.size() == d_numThreads);
     boost::function<void()>
-      smFn = boost::bind(sharingManager<ChannelFormat>,
+      smFn = d_numThreads <= 1 ? boost::function<void()>() :
+             boost::bind(sharingManager<ChannelFormat>,
                          d_numThreads,
                          &d_channelsOut[0],
                          &d_channelsIn[0],
