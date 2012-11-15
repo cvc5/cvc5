@@ -720,8 +720,8 @@ void SmtEngine::setLogicInternal() throw() {
   d_logic.lock();
 
   // may need to force uninterpreted functions to be on for non-linear
-  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) /*||
-      d_logic.isTheoryEnabled(theory::THEORY_BV)*/) &&
+  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) ||
+      d_logic.isTheoryEnabled(theory::THEORY_BV)) &&
      !d_logic.isTheoryEnabled(theory::THEORY_UF)){
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(theory::THEORY_UF);
