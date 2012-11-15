@@ -321,15 +321,12 @@ void TheoryEngine::check(Theory::Effort effort) {
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
       if(d_logicInfo.isQuantified()) {
-        bool prevIncomplete = d_incomplete;
         // quantifiers engine must pass effort last call check
         d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         // if we have given up, then possibly flip decision
         if(options::flipDecision()) {
           if(d_incomplete && !d_inConflict && !needCheck()) {
-            if( ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision() ) {
-              d_incomplete = prevIncomplete;
-            }
+            ((theory::quantifiers::TheoryQuantifiers*) d_theoryTable[THEORY_QUANTIFIERS])->flipDecision();
           }
         }
         // if returning incomplete or SAT, we have ensured that the model in the quantifiers engine has been built
