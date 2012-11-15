@@ -218,8 +218,6 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
   private:
-  /** Helper function for collectModelInfo */
-  void collectTerms(TNode n, std::set<Node>& termSet);
 
   public:
 

@@ -649,36 +649,11 @@ void TheoryArrays::computeCareGraph()
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryArrays::collectTerms(TNode n, set<Node>& termSet)
-{
-  if (termSet.find(n) != termSet.end()) {
-    return;
-  }
-  termSet.insert(n);
-  if (n.getType().isBoolean() || !isLeaf(n)) {
-    for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
-      collectTerms(*child_it, termSet);
-    }
-  }
-}
-
-
 void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
 {
   set<Node> termSet;
-  set<Node> cache;
 
-  // Collect all terms appearing in assertions
-  context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
-  for (; assert_it != assert_it_end; ++assert_it) {
-    collectTerms(*assert_it, termSet);
-  }
-
-  // Add terms that are shared terms
-  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
-  for (; shared_it != shared_it_end; ++shared_it) {
-    collectTerms(*shared_it, termSet);
-  }
+  computeRelevantTerms(termSet);
 
   // Add selects that were generated internally
   context::CDHashSet<TNode, TNodeHashFunction>::iterator internal_it = d_readsInternal.begin(), internal_it_end = d_readsInternal.end();

@@ -233,6 +233,16 @@ protected:
   context::CDList<TNode> d_sharedTerms;
 
   /**
+   * Helper function for computeRelevantTerms
+   */
+  void collectTerms(TNode n, std::set<Node>& termSet);
+  /**
+   * Scans the current set of assertions and shared terms top-down until a theory-leaf is reached, and adds all terms found to termSet.
+   * This is used by collectModelInfo to delimit the set of terms that should be used when constructing a model
+   */
+  void computeRelevantTerms(std::set<Node>& termSet);
+
+  /**
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,

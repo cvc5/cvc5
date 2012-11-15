@@ -174,5 +174,7 @@ void EqualitySolver::collectModelInfo(TheoryModel* m) {
                                << *it << ")\n";
     }
   }
-  m->assertEqualityEngine(&d_equalityEngine);
+  set<Node> termSet;
+  d_bv->computeRelevantTerms(termSet);
+  m->assertEqualityEngine(&d_equalityEngine, &termSet);
 }

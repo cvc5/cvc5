@@ -245,5 +245,36 @@ std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   return currentlyShared;
 }
 
+
+void Theory::collectTerms(TNode n, set<Node>& termSet)
+{
+  if (termSet.find(n) != termSet.end()) {
+    return;
+  }
+  termSet.insert(n);
+  if (n.getKind() == kind::NOT || n.getKind() == kind::EQUAL || !isLeaf(n)) {
+    for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
+      collectTerms(*child_it, termSet);
+    }
+  }
+}
+
+
+void Theory::computeRelevantTerms(set<Node>& termSet)
+{
+  // Collect all terms appearing in assertions
+  context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
+  for (; assert_it != assert_it_end; ++assert_it) {
+    collectTerms(*assert_it, termSet);
+  }
+
+  // Add terms that are shared terms
+  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
+  for (; shared_it != shared_it_end; ++shared_it) {
+    collectTerms(*shared_it, termSet);
+  }
+}
+
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
