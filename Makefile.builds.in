@@ -81,7 +81,7 @@ am__v_relink_1 = :
 # configuration)
 CVC4_BINARIES = cvc4 pcvc4
 
-.PHONY: _default_build_ all
+.PHONY: _default_build_ all examples
 _default_build_: all
 all:
 #	build the current build profile
@@ -223,5 +223,5 @@ doc-prereq:
 	+(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | $(MAKE) -f- doc-prereq); done)
 
 # any other target than the default doesn't do the extra stuff above
-%:
+examples %:
 	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
