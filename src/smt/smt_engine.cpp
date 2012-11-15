@@ -720,8 +720,8 @@ void SmtEngine::setLogicInternal() throw() {
   d_logic.lock();
 
   // may need to force uninterpreted functions to be on for non-linear
-  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) ||
-       d_logic.isTheoryEnabled(theory::THEORY_BV)) &&
+  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) /*||
+      d_logic.isTheoryEnabled(theory::THEORY_BV)*/) &&
      !d_logic.isTheoryEnabled(theory::THEORY_UF)){
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(theory::THEORY_UF);
@@ -848,10 +848,10 @@ void SmtEngine::setLogicInternal() throw() {
         (not d_logic.isQuantified() &&
           d_logic.isPure(THEORY_BV)
           ) ||
-        // QF_AUFBV
+        // QF_AUFBV or QF_ABV or QF_UFBV
         (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-         d_logic.isTheoryEnabled(THEORY_UF) &&
+         (d_logic.isTheoryEnabled(THEORY_ARRAY) ||
+          d_logic.isTheoryEnabled(THEORY_UF)) &&
          d_logic.isTheoryEnabled(THEORY_BV)
          ) ||
         // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
