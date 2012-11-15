@@ -241,10 +241,6 @@ public:
    */
   theory::eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
 
-  /**
-   * collect model info
-   */
-  void collectModelInfo( theory::TheoryModel* m, bool fullModel );
 protected:
 
   /**

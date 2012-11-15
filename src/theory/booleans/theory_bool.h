@@ -21,7 +21,6 @@
 
 #include "theory/theory.h"
 #include "context/context.h"
-#include "theory/model.h"
 
 namespace CVC4 {
 namespace theory {

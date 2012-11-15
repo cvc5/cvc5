@@ -30,7 +30,6 @@
 #include "theory/rewriterules/rr_inst_match.h"
 #include "util/statistics_registry.h"
 #include "theory/rewriterules/theory_rewriterules_preprocess.h"
-#include "theory/model.h"
 
 namespace CVC4 {
 namespace theory {

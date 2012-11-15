@@ -43,7 +43,6 @@
 #include "util/cvc4_assert.h"
 #include "theory/ite_simplifier.h"
 #include "theory/unconstrained_simplifier.h"
-#include "theory/model.h"
 
 namespace CVC4 {
 
@@ -75,6 +74,8 @@ struct NodeTheoryPairHashFunction {
 
 namespace theory {
   class Instantiator;
+  class TheoryModel;
+  class TheoryEngineModelBuilder;
 }/* CVC4::theory namespace */
 
 class DecisionEngine;

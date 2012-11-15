@@ -261,7 +261,3 @@ Node SharedTermsDatabase::explain(TNode literal) const {
   d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   return mkAnd(assumptions);
 }
-
-void SharedTermsDatabase::collectModelInfo( theory::TheoryModel* m, bool fullModel ){
-  m->assertEqualityEngine( &d_equalityEngine );
-}

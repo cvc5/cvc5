@@ -216,6 +216,11 @@ private:
     return n;
   }
 
+  bool empty()
+  {
+    return d_typeSet.empty();
+  }
+
   iterator begin()
   {
     return d_typeSet.begin();
