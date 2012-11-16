@@ -331,7 +331,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       return;
       break;
     case kind::SELECT:
-      toStream(out, n[0], depth, types, false);
+      toStream(out, n[0], depth, types, true);
       out << '[';
       toStream(out, n[1], depth, types, false);
       out << ']';
