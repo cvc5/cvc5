@@ -796,96 +796,41 @@ public:
 
 };
 
+/**
+ * Iterator to iterate over the equivalence classes.
+ */
 class EqClassesIterator {
-
   const eq::EqualityEngine* d_ee;
   size_t d_it;
 public:
-
-  EqClassesIterator(): d_ee(NULL), d_it(0){ }
-  EqClassesIterator(const eq::EqualityEngine* ee) : d_ee(ee) {
-    d_it = 0;
-    // Go to the first non-internal node that is it's own representative
-    if (d_it < d_ee->d_nodesCount && (d_ee->d_isInternal[d_it] || d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it])) {
-      ++*this;
-    }
-  }
-  Node operator*() const {
-    return d_ee->d_nodes[d_it];
-  }
-  bool operator==(const EqClassesIterator& i) const {
-    return d_ee == i.d_ee && d_it == i.d_it;
-  }
-  bool operator!=(const EqClassesIterator& i) const {
-    return !(*this == i);
-  }
-  EqClassesIterator& operator++() {
-    ++d_it;
-    while (d_it<d_ee->d_nodesCount && (d_ee->d_isInternal[d_it] || d_ee->getRepresentative(d_ee->d_nodes[d_it]) != d_ee->d_nodes[d_it])) {
-      ++d_it;
-    }
-    return *this;
-  }
-  EqClassesIterator operator++(int) {
-    EqClassesIterator i = *this;
-    ++*this;
-    return i;
-  }
-  bool isFinished() const {
-    return d_it>=d_ee->d_nodesCount;
-  }
+  EqClassesIterator();
+  EqClassesIterator(const eq::EqualityEngine* ee);
+  Node operator*() const;
+  bool operator==(const EqClassesIterator& i) const;
+  bool operator!=(const EqClassesIterator& i) const;
+  EqClassesIterator& operator++();
+  EqClassesIterator operator++(int);
+  bool isFinished() const;
 };/* class EqClassesIterator */
 
+/**
+ * Iterator to iterate over the equivalence class members.
+ */
 class EqClassIterator {
-
   const eq::EqualityEngine* d_ee;
-
   /** Starting node */
   EqualityNodeId d_start;
-
   /** Current node */
   EqualityNodeId d_current;
-
 public:
-
-  EqClassIterator(): d_ee(NULL), d_start(null_id), d_current(null_id) { }
-  EqClassIterator(Node eqc, const eq::EqualityEngine* ee) : d_ee(ee) {
-    Assert( d_ee->getRepresentative(eqc) == eqc );
-    d_current = d_start = d_ee->getNodeId(eqc);
-  }
-  Node operator*() const {
-    return d_ee->d_nodes[d_current];
-  }
-  bool operator==(const EqClassIterator& i) const {
-    return d_ee == i.d_ee && d_current == i.d_current;
-  }
-  bool operator!=(const EqClassIterator& i) const {
-    return !(*this == i);
-  }
-  EqClassIterator& operator++() {
-    Assert(!isFinished());
-
-    // Find the next one
-    do {
-      d_current = d_ee->getEqualityNode(d_current).getNext();
-    } while (d_ee->d_isInternal[d_current]);
-
-    Assert(d_start == d_ee->getEqualityNode(d_current).getFind());
-
-    if (d_current == d_start) {
-      // we end when we have cycled back to the original representative
-      d_current = null_id;
-    }
-    return *this;
-  }
-  EqClassIterator operator++(int) {
-    EqClassIterator i = *this;
-    ++*this;
-    return i;
-  }
-  bool isFinished() const {
-    return d_current == null_id;
-  }
+  EqClassIterator();
+  EqClassIterator(Node eqc, const eq::EqualityEngine* ee);
+  Node operator*() const;
+  bool operator==(const EqClassIterator& i) const;
+  bool operator!=(const EqClassIterator& i) const;
+  EqClassIterator& operator++();
+  EqClassIterator operator++(int);
+  bool isFinished() const;
 };/* class EqClassIterator */
 
 } // Namespace eq
