@@ -597,7 +597,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         }
       }
       Trace("model-builder") << "  Assign phase, working on type: " << t << endl;
-      bool assignable, evaluable;
+      bool assignable, evaluable CVC4_UNUSED;
       for (i = noRepSet.begin(); i != noRepSet.end(); ) {
         i2 = i;
         ++i;
