@@ -19,6 +19,7 @@ TESTS =	\
 	bug338.smt2 \
 	bug347.smt \
 	bug348.smt \
+	bug451.smt \
 	try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smt \
 	try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smt \
 	diseqprop.01.smt \

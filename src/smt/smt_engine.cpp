@@ -296,6 +296,12 @@ private:
    */
   void removeITEs();
 
+  /**
+   * Helper function to fix up assertion list to restore invariants needed after ite removal
+   */
+  bool checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache);
+
+
   // Simplify ITE structure
   void simpITE();
 
@@ -1974,6 +1980,41 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
+
+bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache)
+{
+  hash_map<Node, bool, NodeHashFunction>::iterator it;
+  it = cache.find(n);
+  if (it != cache.end()) {
+    return (*it).second;
+  }
+
+  size_t sz = n.getNumChildren();
+  if (sz == 0) {
+    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
+    bool bad = false;
+    if (it != d_iteSkolemMap.end()) {
+      if (!((*it).first < n)) {
+        bad = true;
+      }
+    }
+    cache[n] = bad;
+    return bad;
+  }
+
+  size_t k = 0;
+  for (; k < sz; ++k) {
+    if (checkForBadSkolems(n[k], skolem, cache)) {
+      cache[n] = true;
+      return true;
+    }
+  }
+
+  cache[n] = false;
+  return false;
+}
+
+
 void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
@@ -2105,19 +2146,43 @@ void SmtEnginePrivate::processAssertions() {
     Chat() << "simplifying assertions..." << endl;
     noConflict &= simplifyAssertions();
     if (noConflict) {
-      // Some skolem variables may have been solved for - which is a good thing -
-      // but it means we have to move those ITE's back to the main set of assertions
+      // Need to fix up assertion list to maintain invariants:
+      // Let Sk be the set of Skolem variables introduced by ITE's.  Let <_sk be the order in which these variables were introduced
+      // during ite removal.
+      // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr mapped to by sk.  We need to ensure:
+      // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
+      // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
+      // If either of these is violated, we must add iteExpr as a proper assertion
       IteSkolemMap::iterator it = d_iteSkolemMap.begin();
       IteSkolemMap::iterator iend = d_iteSkolemMap.end();
       NodeBuilder<> builder(kind::AND);
       builder << d_assertionsToCheck[d_realAssertionsEnd - 1];
+      vector<TNode> toErase;
       for (; it != iend; ++it) {
-        if (d_topLevelSubstitutions.hasSubstitution((*it).first)) {
-          builder << d_assertionsToCheck[(*it).second];
-          d_assertionsToCheck[(*it).second] = NodeManager::currentNM()->mkConst<bool>(true);
+        TNode iteExpr = d_assertionsToCheck[(*it).second];
+        if (iteExpr.getKind() == kind::ITE &&
+            iteExpr[1].getKind() == kind::EQUAL &&
+            iteExpr[1][0] == (*it).first &&
+            iteExpr[2].getKind() == kind::EQUAL &&
+            iteExpr[2][0] == (*it).first) {
+          hash_map<Node, bool, NodeHashFunction> cache;
+          bool bad = checkForBadSkolems(iteExpr[0], (*it).first, cache);
+          bad = bad || checkForBadSkolems(iteExpr[1][1], (*it).first, cache);
+          bad = bad || checkForBadSkolems(iteExpr[2][1], (*it).first, cache);
+          if (!bad) {
+            continue;
+          }
         }
+        // Move this iteExpr into the main assertions
+        builder << d_assertionsToCheck[(*it).second];
+        d_assertionsToCheck[(*it).second] = NodeManager::currentNM()->mkConst<bool>(true);
+        toErase.push_back((*it).first);
       }
       if(builder.getNumChildren() > 1) {
+        while (!toErase.empty()) {
+          d_iteSkolemMap.erase(toErase.back());
+          toErase.pop_back();
+        }
         d_assertionsToCheck[d_realAssertionsEnd - 1] =
           Rewriter::rewrite(Node(builder));
       }
@@ -2244,6 +2309,9 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   // Add the formula
   if(!e.isNull()) {
     d_problemExtended = true;
+    if(d_assertionList != NULL) {
+      d_assertionList->push_back(e);
+    }
     d_private->addFormula(e.getNode());
   }
 
