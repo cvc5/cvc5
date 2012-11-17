@@ -133,10 +133,18 @@ using namespace CVC4;
 %include "java/arrays_java.i" // C arrays to Java arrays
 %include "java/various.i" // map char** to java.lang.String[]
 
+// Functions on the C++ side taking std::ostream& should on the Java side
+// take a java.io.OutputStream.  A JavaOutputStreamAdapter is created in
+// the wrapper which creates and passes on a std::stringstream to the C++
+// function.  Then on exit, the string from the stringstream is dumped to
+// the Java-side OutputStream.
 %typemap(jni) std::ostream& "jlong"
 %typemap(jtype) std::ostream& "long"
 %typemap(jstype) std::ostream& "java.io.OutputStream"
-%typemap(javain, pre="    edu.nyu.acsys.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.nyu.acsys.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput", post="    new java.io.PrintStream($javainput).print(temp$javainput.toString());") std::ostream& "edu.nyu.acsys.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
+%typemap(javain,
+         pre="    edu.nyu.acsys.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.nyu.acsys.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput",
+         post="    new java.io.PrintStream($javainput).print(temp$javainput.toString());")
+         std::ostream& "edu.nyu.acsys.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
 
 #endif /* SWIGJAVA */
 

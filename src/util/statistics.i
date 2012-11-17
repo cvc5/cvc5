@@ -14,6 +14,9 @@
 
 #ifdef SWIGJAVA
 
+// Instead of StatisticsBase::begin() and end(), create an
+// iterator() method on the Java side that returns a Java-style
+// Iterator.
 %ignore CVC4::StatisticsBase::begin();
 %ignore CVC4::StatisticsBase::end();
 %ignore CVC4::StatisticsBase::begin() const;
@@ -24,16 +27,19 @@
   }
 }
 
-%typemap(javainterfaces) CVC4::StatisticsBase "java.lang.Iterable<Object>";
+// StatisticsBase is "iterable" on the Java side
+%typemap(javainterfaces) CVC4::StatisticsBase "java.lang.Iterable<Object[]>";
 
+// the JavaIteratorAdapter should not be public, and implements Iterator
 %typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "java.util.Iterator";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "java.util.Iterator<Object[]>";
+// add some functions to the Java side (do it here because there's no way to do these in C++)
 %typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public Object next() {
+  public Object[] next() {
     if(hasNext()) {
       return getNext();
     } else {
@@ -41,7 +47,12 @@
     }
   }
 "
+// getNext() just allows C++ iterator access from Java-side next(), make it private
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>::getNext() "private";
 
+// map the types appropriately.  for statistics, the "payload" of the iterator is an Object[].
+// These Object arrays are always of two elements, the first is a String and the second an
+// SExpr.  (On the C++ side, it is a std::pair<std::string, SExpr>.)
 %typemap(jni) CVC4::StatisticsBase::const_iterator::value_type "jobjectArray";
 %typemap(jtype) CVC4::StatisticsBase::const_iterator::value_type "java.lang.Object[]";
 %typemap(jstype) CVC4::StatisticsBase::const_iterator::value_type "java.lang.Object[]";

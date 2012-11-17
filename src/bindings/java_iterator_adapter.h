@@ -1,3 +1,35 @@
+/*********************                                                        */
+/*! \file java_iterator_adapter.h
+ ** \verbatim
+ ** Original author: mdeters
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 prototype.
+ ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief An iterator adapter for the Java bindings, giving Java iterators
+ ** the ability to access elements from STL iterators.
+ **
+ ** An iterator adapter for the Java bindings, giving Java iterators the
+ ** ability to access elements from STL iterators.  This class is mapped
+ ** into Java by SWIG, where it implements Iterator (some additional
+ ** Java-side functions are added by the SWIG layer to implement the full
+ ** interface).
+ **
+ ** The functionality requires significant assistance from the ".i" SWIG
+ ** interface files, applying a variety of typemaps.
+ **/
+
+// private to the bindings layer
+#ifndef SWIGJAVA
+#  error This should only be included from the Java bindings layer.
+#endif /* SWIGJAVA */
+
+#ifndef __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
+#define __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
+
 namespace CVC4 {
 
 template <class T>
@@ -23,3 +55,5 @@ public:
 };/* class JavaIteratorAdapter<T> */
 
 }/* CVC4 namespace */
+
+#endif /* __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H */

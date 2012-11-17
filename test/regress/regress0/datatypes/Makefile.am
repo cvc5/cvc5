@@ -19,7 +19,9 @@ MAKEFLAGS = -k
 TESTS =	\
 	tuple.cvc \
 	rec1.cvc \
+	rec2.cvc \
 	rec4.cvc \
+	rec5.cvc \
 	datatype.cvc \
 	datatype0.cvc \
 	datatype1.cvc \
@@ -40,11 +42,9 @@ TESTS =	\
 	v3l60006.cvc \
 	v5l30058.cvc \
 	bug286.cvc \
-	wrong-sel-simp.cvc \
-	rec2.cvc
+	wrong-sel-simp.cvc
 
 FAILING_TESTS = \
-	rec5.cvc \
 	datatype-dump.cvc
 
 EXTRA_DIST = $(TESTS)
