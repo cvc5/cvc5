@@ -791,7 +791,13 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
 }
 
 static void toStream(std::ostream& out, const CommentCommand* c) throw() {
-  out << "(set-info :notes \"" << c->getComment() << "\")";
+  string s = c->getComment();
+  size_t pos = 0;
+  while((pos = s.find_first_of('"', pos)) != string::npos) {
+    s.replace(pos, 1, "\\\"");
+    pos += 2;
+  }
+  out << "(set-info :notes \"" << s << "\")";
 }
 
 static void toStream(std::ostream& out, const EmptyCommand* c) throw() {

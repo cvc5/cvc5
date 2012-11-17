@@ -1329,24 +1329,22 @@ void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
 }
 
 
-void TheoryEngine::setUserAttribute( std::string& attr, Node n ){
+void TheoryEngine::setUserAttribute(const std::string& attr, Node n) {
   Trace("te-attr") << "set user attribute " << attr << " " << n << std::endl;
   if( d_attr_handle.find( attr )!=d_attr_handle.end() ){
     for( size_t i=0; i<d_attr_handle[attr].size(); i++ ){
-      d_attr_handle[attr][i]->setUserAttribute( attr, n );
+      d_attr_handle[attr][i]->setUserAttribute(attr, n);
     }
-  }else{
+  } else {
     //unhandled exception?
   }
 }
 
-
-void TheoryEngine::handleUserAttribute( const char* attr, Theory* t ){
+void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   Trace("te-attr") << "Handle user attribute " << attr << " " << t << std::endl;
   std::string str( attr );
   d_attr_handle[ str ].push_back( t );
 }
-
 
 void TheoryEngine::checkTheoryAssertionsWithModel()
 {

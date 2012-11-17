@@ -76,52 +76,61 @@ LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
 std::string LogicInfo::getLogicString() const {
   CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
   if(d_logicString == "") {
-    size_t seen = 0; // make sure we support all the active theories
+    LogicInfo qf_all_supported;
+    qf_all_supported.disableQuantifiers();
+    qf_all_supported.lock();
+    if(hasEverything()) {
+      d_logicString = "ALL_SUPPORTED";
+    } else if(*this == qf_all_supported) {
+      d_logicString = "QF_ALL_SUPPORTED";
+    } else {
+      size_t seen = 0; // make sure we support all the active theories
 
-    stringstream ss;
-    if(!isQuantified()) {
-      ss << "QF_";
-    }
-    if(d_theories[THEORY_ARRAY]) {
-      ss << (d_sharingTheories == 1 ? "AX" : "A");
-      ++seen;
-    }
-    if(d_theories[THEORY_UF]) {
-      ss << "UF";
-      ++seen;
-    }
-    if(d_theories[THEORY_BV]) {
-      ss << "BV";
-      ++seen;
-    }
-    if(d_theories[THEORY_DATATYPES]) {
-      ss << "DT";
-      ++seen;
-    }
-    if(d_theories[THEORY_ARITH]) {
-      if(isDifferenceLogic()) {
-        ss << (areIntegersUsed() ? "I" : "");
-        ss << (areRealsUsed() ? "R" : "");
-        ss << "DL";
-      } else {
-        ss << (isLinear() ? "L" : "N");
-        ss << (areIntegersUsed() ? "I" : "");
-        ss << (areRealsUsed() ? "R" : "");
-        ss << "A";
+      stringstream ss;
+      if(!isQuantified()) {
+        ss << "QF_";
       }
-      ++seen;
-    }
+      if(d_theories[THEORY_ARRAY]) {
+        ss << (d_sharingTheories == 1 ? "AX" : "A");
+        ++seen;
+      }
+      if(d_theories[THEORY_UF]) {
+        ss << "UF";
+        ++seen;
+      }
+      if(d_theories[THEORY_BV]) {
+        ss << "BV";
+        ++seen;
+      }
+      if(d_theories[THEORY_DATATYPES]) {
+        ss << "DT";
+        ++seen;
+      }
+      if(d_theories[THEORY_ARITH]) {
+        if(isDifferenceLogic()) {
+          ss << (areIntegersUsed() ? "I" : "");
+          ss << (areRealsUsed() ? "R" : "");
+          ss << "DL";
+        } else {
+          ss << (isLinear() ? "L" : "N");
+          ss << (areIntegersUsed() ? "I" : "");
+          ss << (areRealsUsed() ? "R" : "");
+          ss << "A";
+        }
+        ++seen;
+      }
 
-    if(seen != d_sharingTheories) {
-      Unhandled("can't extract a logic string from LogicInfo; at least one "
-                "active theory is unknown to LogicInfo::getLogicString() !");
-    }
+      if(seen != d_sharingTheories) {
+        Unhandled("can't extract a logic string from LogicInfo; at least one "
+                  "active theory is unknown to LogicInfo::getLogicString() !");
+      }
 
-    if(seen == 0) {
-      ss << "SAT";
-    }
+      if(seen == 0) {
+        ss << "SAT";
+      }
 
-    d_logicString = ss.str();
+      d_logicString = ss.str();
+    }
   }
   return d_logicString;
 }

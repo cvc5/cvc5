@@ -133,17 +133,22 @@ using namespace CVC4;
 %include "java/arrays_java.i" // C arrays to Java arrays
 %include "java/various.i" // map char** to java.lang.String[]
 
+%typemap(jni) std::ostream& "jlong"
+%typemap(jtype) std::ostream& "long"
+%typemap(jstype) std::ostream& "java.io.OutputStream"
+%typemap(javain, pre="    edu.nyu.acsys.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.nyu.acsys.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput", post="    new java.io.PrintStream($javainput).print(temp$javainput.toString());") std::ostream& "edu.nyu.acsys.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
+
 #endif /* SWIGJAVA */
 
 %include "util/integer.i"
 %include "util/rational.i"
-%include "util/statistics.i"
 %include "util/exception.i"
 %include "util/language.i"
 %include "options/options.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
 %include "util/sexpr.i"
+%include "util/statistics.i"
 %include "util/output.i"
 %include "util/result.i"
 %include "util/configuration.i"
@@ -151,11 +156,13 @@ using namespace CVC4;
 %include "util/subrange_bound.i"
 %include "util/array.i"
 %include "util/array_store_all.i"
+%include "util/predicate.i"
 %include "util/hash.i"
 
 %include "expr/type.i"
 %include "util/ascription_type.i"
 %include "util/datatype.i"
+%include "util/uninterpreted_constant.i"
 
 %include "expr/kind.i"
 %include "expr/expr.i"
@@ -163,6 +170,9 @@ using namespace CVC4;
 %include "expr/symbol_table.i"
 %include "expr/expr_manager.i"
 %include "expr/expr_stream.i"
+%include "expr/variable_type_map.i"
+
+%include "theory/logic_info.i"
 
 %include "smt/smt_engine.i"
 %include "smt/modal_exception.i"

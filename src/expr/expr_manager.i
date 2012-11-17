@@ -15,6 +15,8 @@
   %ignore CVC4::ExprManager::mkExpr(Expr, const std::vector<Expr>&);
 #endif /* SWIGOCAML */
 
+%ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
+
 %include "expr/expr_manager.h"
 
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TypeConstant>;

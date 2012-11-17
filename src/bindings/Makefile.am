@@ -160,7 +160,10 @@ CLEANFILES = \
 	ruby.cpp \
 	tcl.cpp
 
-EXTRA_DIST = swig.h
+EXTRA_DIST = \
+	swig.h \
+	java_iterator_adapter.h \
+	java_output_stream_adapter.h
 
 MOSTLYCLEANFILES = \
         .swig_deps \
@@ -171,11 +174,11 @@ java_libcvc4jni_la-java.lo java.lo: java.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) $(java_libcvc4jni_la_CXXFLAGS) -o $@ $<
 CVC4.jar: java.cpp
 	$(AM_V_GEN) \
-	(cd java; \
-	rm -fr classes; \
-	mkdir -p classes; \
-	$(JAVAC) -classpath . -d classes `find . -name '*.java'`; \
-	cd classes); \
+	(cd java && \
+	rm -fr classes && \
+	mkdir -p classes && \
+	$(JAVAC) -classpath . -d classes `find . -name '*.java'` && \
+	cd classes) && \
 	$(JAR) cf $@ -C java/classes .
 #java.cpp:;
 csharp.lo: csharp.cpp

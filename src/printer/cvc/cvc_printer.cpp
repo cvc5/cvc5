@@ -939,7 +939,7 @@ static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) thro
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw() {
-  out << "% (set-logic " << c->getLogic() << ")";
+  out << "OPTION \"logic\" \"" << c->getLogic() << "\";";
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {

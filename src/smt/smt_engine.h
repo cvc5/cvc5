@@ -19,6 +19,7 @@
 #ifndef __CVC4__SMT_ENGINE_H
 #define __CVC4__SMT_ENGINE_H
 
+#include <string>
 #include <vector>
 
 #include "context/cdlist_forward.h"
@@ -586,7 +587,7 @@ public:
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
-  void setUserAttribute( std::string& attr, Expr expr );
+  void setUserAttribute(const std::string& attr, Expr expr);
 
 };/* class SmtEngine */
 

@@ -2,7 +2,7 @@
 #include "util/output.h"
 %}
 
-%feature("valuewrapper") CVC4::null_streambuf;
+%ignore CVC4::null_streambuf;
 %feature("valuewrapper") std::ostream;
 
 // There are issues with SWIG's attempted wrapping of these variables when
@@ -24,8 +24,25 @@
 %ignore CVC4::ScopedTrace::ScopedTrace(std::string);
 %ignore CVC4::ScopedTrace::ScopedTrace(std::string, bool);
 
-%rename(getostream) operator std::ostream&;
-%rename(getCVC4ostream) operator CVC4ostream;
+%ignore CVC4::WarningC::getStream();
+%ignore CVC4::MessageC::getStream();
+%ignore CVC4::NoticeC::getStream();
+%ignore CVC4::ChatC::getStream();
+%ignore CVC4::TraceC::getStream();
+%ignore CVC4::DebugC::getStream();
+%ignore CVC4::DumpOutC::getStream();
+
+%ignore CVC4::WarningC::setStream(std::ostream&);
+%ignore CVC4::MessageC::setStream(std::ostream&);
+%ignore CVC4::NoticeC::setStream(std::ostream&);
+%ignore CVC4::ChatC::setStream(std::ostream&);
+%ignore CVC4::TraceC::setStream(std::ostream&);
+%ignore CVC4::DebugC::setStream(std::ostream&);
+%ignore CVC4::DumpOutC::setStream(std::ostream&);
+
+%ignore operator std::ostream&;
+%ignore operator CVC4ostream;
+
 %rename(get) operator();
 %rename(ok) operator bool;
 

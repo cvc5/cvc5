@@ -66,7 +66,8 @@ EXTRA_DIST = \
 	command.i \
 	type.i \
 	kind.i \
-	expr.i
+	expr.i \
+	variable_type_map.i
 
 BUILT_SOURCES = \
 	kind.h \

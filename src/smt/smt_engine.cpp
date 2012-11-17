@@ -566,6 +566,15 @@ void SmtEngine::finishInit() {
     d_assertionList = new(true) AssertionList(d_userContext);
   }
 
+  // dump out a set-logic command
+  if(Dump.isOn("benchmark")) {
+    // Dump("benchmark") << SetBenchmarkLogicCommand(logic.getLogicString());
+    LogicInfo everything;
+    everything.lock();
+    Dump("benchmark") << CommentCommand("CVC4 always dumps the most general, \"all-supported\" logic (above), as some internals might require the use of a logic more general than the input.")
+                      << SetBenchmarkLogicCommand(everything.getLogicString());
+  }
+
   // dump out any pending declaration commands
   for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
     Dump("declarations") << *d_dumpCommands[i];
@@ -696,10 +705,6 @@ SmtEngine::~SmtEngine() throw() {
 
 void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
   SmtScope smts(this);
-
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SetBenchmarkLogicCommand(logic.getLogicString());
-  }
 
   d_logic = logic;
   setLogicInternal();
@@ -3016,7 +3021,7 @@ SExpr SmtEngine::getStatistic(std::string name) const throw() {
   return d_statisticsRegistry->getStatistic(name);
 }
 
-void SmtEngine::setUserAttribute(std::string& attr, Expr expr) {
+void SmtEngine::setUserAttribute(const std::string& attr, Expr expr) {
   SmtScope smts(this);
   d_theoryEngine->setUserAttribute(attr, expr.getNode());
 }
