@@ -1,11 +1,18 @@
 %{
 #include "util/statistics.h"
+
+#ifdef SWIGJAVA
+
 #include "bindings/java_iterator_adapter.h"
 #include "bindings/java_output_stream_adapter.h"
+
+#endif /* SWIGJAVA */
 %}
 
 %rename(assign) CVC4::Statistics::operator=(const StatisticsBase&);
 %rename(assign) CVC4::Statistics::operator=(const Statistics& stats);
+
+#ifdef SWIGJAVA
 
 %ignore CVC4::StatisticsBase::begin();
 %ignore CVC4::StatisticsBase::end();
@@ -47,8 +54,15 @@
       jenv->SetObjectArrayElement($result, 1, jenv->NewObject(jenv->FindClass("edu/nyu/acsys/CVC4/SExpr"), methodid, reinterpret_cast<long>(new CVC4::SExpr($1.second)), true));
     };
 
+#endif /* SWIGJAVA */
+
 %include "util/statistics.h"
+
+#ifdef SWIGJAVA
+
 %include "bindings/java_iterator_adapter.h"
 %include "bindings/java_output_stream_adapter.h"
 
 %template(JavaIteratorAdapter_StatisticsBase) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>;
+
+#endif /* SWIGJAVA */
