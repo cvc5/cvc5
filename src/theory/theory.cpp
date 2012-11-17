@@ -251,6 +251,7 @@ void Theory::collectTerms(TNode n, set<Node>& termSet)
   if (termSet.find(n) != termSet.end()) {
     return;
   }
+  Trace("theory::collectTerms") << "Theory::collectTerms: adding " << n << endl;
   termSet.insert(n);
   if (n.getKind() == kind::NOT || n.getKind() == kind::EQUAL || !isLeaf(n)) {
     for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
