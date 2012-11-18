@@ -92,14 +92,7 @@ public:
   /** get */
   Node get( TNode var ) { return d_map[var]; }
   /** set */
-  void set(TNode var, TNode n){
-    //std::cout << "var.getType() " << var.getType() << "n.getType() " << n.getType() << std::endl ;
-    Assert( !var.isNull() );
-    Assert( n.isNull() ||// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
-            //var.getType() == n.getType()
-            n.getType().isSubtypeOf( var.getType() ) );
-    d_map[var] = n;
-  }
+  void set(TNode var, TNode n);
   size_t size(){ return d_map.size(); }
   /* iterator */
   std::map< Node, Node >::iterator begin(){ return d_map.begin(); };

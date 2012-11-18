@@ -134,6 +134,18 @@ Node InstMatch::getValue( Node var ) const{
   }
 }
 
+void InstMatch::set(TNode var, TNode n){
+  Assert( !var.isNull() );
+  if( !n.isNull() &&// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
+  	//var.getType() == n.getType()
+  	!n.getType().isSubtypeOf( var.getType() ) ){
+    Trace("inst-match-warn") << var.getAttribute(InstConstantAttribute()) << std::endl;
+    Trace("inst-match-warn") << var << " " << var.getType() << n << " " << n.getType() << std::endl ;
+    Assert(false);
+  }
+  d_map[var] = n;
+}
+
 /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
 void InstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio ){
   if( long(index)<long(f[0].getNumChildren()) && ( !imtio || long(index)<long(imtio->d_order.size()) ) ){

@@ -2109,8 +2109,11 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::macrosQuant() ){
     //quantifiers macro expansion
-    QuantifierMacros qm;
-    qm.simplify( d_assertionsToPreprocess );
+    bool success;
+    do{
+      QuantifierMacros qm;
+      success = qm.simplify( d_assertionsToPreprocess, true );
+    }while( success );
   }
 
   if( options::sortInference() ){

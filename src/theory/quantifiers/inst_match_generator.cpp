@@ -629,7 +629,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
       Node ic = d_match_pattern[argIndex];
       for( std::map< Node, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
         Node t = it->first;
-        if( m.get( ic ).isNull() || m.get( ic )==t ){
+        if( ( m.get( ic ).isNull() || m.get( ic )==t ) && ic.getType()==t.getType() ){
           Node prev = m.get( ic );
           m.set( ic, t);
           addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
