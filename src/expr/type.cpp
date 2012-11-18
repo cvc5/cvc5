@@ -402,17 +402,21 @@ Type::operator SortConstructorType() const throw(IllegalArgumentException) {
 }
 
 /** Is this a predicate subtype */
+/* - not in release 1.0
 bool Type::isPredicateSubtype() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isPredicateSubtype();
 }
+*/
 
 /** Cast to a predicate subtype */
+/* - not in release 1.0
 Type::operator PredicateSubtype() const throw(IllegalArgumentException) {
   NodeManagerScope nms(d_nodeManager);
   CheckArgument(isNull() || isPredicateSubtype(), this);
   return PredicateSubtype(*this);
 }
+*/
 
 /** Is this an integer subrange */
 bool Type::isSubrange() const {
@@ -582,11 +586,13 @@ SortConstructorType::SortConstructorType(const Type& t)
   CheckArgument(isNull() || isSortConstructor(), this);
 }
 
+/* - not in release 1.0
 PredicateSubtype::PredicateSubtype(const Type& t)
   throw(IllegalArgumentException) :
   Type(t) {
   CheckArgument(isNull() || isPredicateSubtype(), this);
 }
+*/
 
 SubrangeType::SubrangeType(const Type& t)
   throw(IllegalArgumentException) :
@@ -699,6 +705,7 @@ BooleanType TesterType::getRangeType() const {
   return BooleanType(makeType(d_nodeManager->booleanType()));
 }
 
+/* - not in release 1.0
 Expr PredicateSubtype::getPredicate() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getSubtypePredicate().toExpr();
@@ -708,6 +715,7 @@ Type PredicateSubtype::getParentType() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getSubtypeParentType().toType();
 }
+*/
 
 SubrangeBounds SubrangeType::getSubrangeBounds() const {
   NodeManagerScope nms(d_nodeManager);

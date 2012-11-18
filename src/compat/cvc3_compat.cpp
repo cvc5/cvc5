@@ -197,7 +197,7 @@ bool Type::isBool() const {
 }
 
 bool Type::isSubtype() const {
-  return isPredicateSubtype();
+  return false;
 }
 
 Cardinality Type::card() const {
@@ -1075,11 +1075,14 @@ Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
+  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  /*
   if(witness.isNull()) {
     return d_em->mkPredicateSubtype(pred);
   } else {
     return d_em->mkPredicateSubtype(pred, witness);
   }
+  */
 }
 
 Type ValidityChecker::tupleType(const Type& type0, const Type& type1) {
@@ -1276,20 +1279,7 @@ Type ValidityChecker::getBaseType(const Expr& e) {
 }
 
 Type ValidityChecker::getBaseType(const Type& t) {
-  Type type = t;
-  while(type.isPredicateSubtype()) {
-    type = CVC4::PredicateSubtype(type).getBaseType();
-  }
-  // We might still be a (primitive) subtype.  Check the types that can
-  // form the base of such a type.
-  if(type.isReal()) {
-    return d_em->realType();
-  }
-  assert(!type.isInteger());// should be handled by Real
-  if(type.isBoolean()) {
-    return d_em->booleanType();
-  }
-  return type;
+  return t.getBaseType();
 }
 
 Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {

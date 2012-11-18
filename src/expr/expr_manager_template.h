@@ -438,8 +438,9 @@ public:
    * not a LAMBDA, or is ill-typed, or if CVC4 fails at proving that
    * the resulting predicate subtype is inhabited.
    */
-  Type mkPredicateSubtype(Expr lambda)
-    throw(TypeCheckingException);
+  // not in release 1.0
+  //Type mkPredicateSubtype(Expr lambda)
+  //  throw(TypeCheckingException);
 
   /**
    * Make a predicate subtype type defined by the given LAMBDA
@@ -448,8 +449,9 @@ public:
    * a LAMBDA, or is ill-typed, or if the witness is not a witness or
    * ill-typed.
    */
-  Type mkPredicateSubtype(Expr lambda, Expr witness)
-    throw(TypeCheckingException);
+  // not in release 1.0
+  //Type mkPredicateSubtype(Expr lambda, Expr witness)
+  //  throw(TypeCheckingException);
 
   /**
    * Make an integer subrange type as defined by the argument.

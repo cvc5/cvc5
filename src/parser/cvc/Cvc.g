@@ -1145,9 +1145,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     { /*SymbolTable* old = PARSER_STATE->getSymbolTable();
       PARSER_STATE->useDeclarationsFrom(symtab);
       delete old;*/
-      t = f2.isNull() ?
+      PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
+      /*t = f2.isNull() ?
         EXPR_MANAGER->mkPredicateSubtype(f) :
         EXPR_MANAGER->mkPredicateSubtype(f, f2);
+      */
     }
 
     /* subrange types */
