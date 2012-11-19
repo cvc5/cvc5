@@ -590,10 +590,10 @@ Node ConstraintValue::split(){
   TNode lhs = eqNode[0];
   TNode rhs = eqNode[1];
 
-  Node ltNode = NodeBuilder<2>(kind::LT) << lhs << rhs;
-  Node gtNode = NodeBuilder<2>(kind::GT) << lhs << rhs;
+  Node leqNode = NodeBuilder<2>(kind::LEQ) << lhs << rhs;
+  Node geqNode = NodeBuilder<2>(kind::GEQ) << lhs << rhs;
 
-  Node lemma = NodeBuilder<3>(OR) << eqNode << ltNode << gtNode;
+  Node lemma = NodeBuilder<3>(OR) << leqNode << geqNode;
 
 
   eq->d_database->pushSplitWatch(eq);
