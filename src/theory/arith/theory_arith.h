@@ -99,7 +99,7 @@ private:
 
 
   NodeSet d_setupNodes;
-  bool isSetup(Node n){
+  bool isSetup(Node n) const {
     return d_setupNodes.find(n) != d_setupNodes.end();
   }
   void markSetup(Node n){
@@ -299,13 +299,13 @@ private:
   ConstraintDatabase d_constraintDatabase;
 
   /** Internal model value for the atom */
-  bool getDeltaAtomValue(TNode n);
+  bool getDeltaAtomValue(TNode n) const;
 
   /** Internal model value for the node */
-  DeltaRational getDeltaValue(TNode n);
+  DeltaRational getDeltaValue(TNode n) const;
 
   /** TODO : get rid of this. */
-  DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed);
+  DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed) const;
 
   /** Uninterpretted function symbol for use when interpreting
    * division by zero.

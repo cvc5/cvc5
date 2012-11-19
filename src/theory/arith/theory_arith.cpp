@@ -1948,7 +1948,7 @@ void TheoryArith::propagate(Effort e) {
   }
 }
 
-bool TheoryArith::getDeltaAtomValue(TNode n) {
+bool TheoryArith::getDeltaAtomValue(TNode n) const {
   Assert(d_qflraStatus != Result::SAT_UNKNOWN);
 
   switch (n.getKind()) {
@@ -1967,8 +1967,14 @@ bool TheoryArith::getDeltaAtomValue(TNode n) {
   }
 }
 
+Exception nlException(TNode t){    
+  stringstream ss;
+  ss << "Cannot generate a DeltaRational value for non-linear term: ";
+  ss << t;
+  return Exception(ss.str());
+}
 
-DeltaRational TheoryArith::getDeltaValue(TNode n) {
+DeltaRational TheoryArith::getDeltaValue(TNode n) const {
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
   AlwaysAssert(!d_nlIncomplete);
   Debug("arith::value") << n << std::endl;
@@ -1990,29 +1996,64 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
   }
 
   case kind::MULT: { // 2+ args
-    Assert(n.getNumChildren() == 2 && n[0].isConst());
-    DeltaRational value(1);
-    if (n[0].getKind() == kind::CONST_RATIONAL) {
+    if (n[0].getKind() == kind::CONST_RATIONAL && n.getNumChildren() == 2) {
       return getDeltaValue(n[1]) * n[0].getConst<Rational>();
+    } else {
+      DeltaRational value(1,0);
+      for(TNode::iterator i = n.begin(), i_e = n.end(); i != i_e; ++i){
+        DeltaRational curr = getDeltaValue(*i);
+        if(value.infinitesimalSgn() != 0 && curr.infinitesimalSgn() != 0){
+          throw nlException(n);
+        }else if(curr.infinitesimalSgn() != 0){
+          Rational q = value.getNoninfinitesimalPart();
+          value = curr * q;
+        }else{
+          Rational q = curr.getNoninfinitesimalPart();
+          value = value * q;
+        }
+      }
+      return value;
     }
-    Unreachable();
   }
 
   case kind::MINUS: // 2 args
-    // should have been rewritten
-    Unreachable();
+    return getDeltaValue(n[0]) - getDeltaValue(n[1]);
 
   case kind::UMINUS: // 1 arg
-    // should have been rewritten
-    Unreachable();
+    return (- getDeltaValue(n[0]));
 
   case kind::DIVISION: // 2 args
-    Assert(n[1].isConst());
-    if (n[1].getKind() == kind::CONST_RATIONAL) {
-      return getDeltaValue(n[0]) / n[0].getConst<Rational>();
-    }
-    Unreachable();
+  case kind::INTS_DIVISION_TOTAL:
+  case kind::INTS_MODULUS_TOTAL:
+  case kind::DIVISION_TOTAL:
+    if(isSetup(n)){
+      ArithVar var = d_arithvarNodeMap.asArithVar(n);
+      return d_partialModel.getAssignment(var);
+    }else{
+      DeltaRational den_dr = getDeltaValue(n[1]);
+      if(den_dr.infinitesimalSgn() == 0){
+        Rational d = den_dr.getNoninfinitesimalPart();
+        if(d.isZero()){
+          return DeltaRational(0,0);
+        }else if(n.getKind() == kind::DIVISION_TOTAL){        
+          return getDeltaValue(n[0]) / d;
+        }else{
+          DeltaRational num = getDeltaValue(n[0]);
+          if(num.isIntegral() && d.isIntegral()){
+            Integer ni = num.getNoninfinitesimalPart().getNumerator();
+            Integer di = d.getNumerator();
 
+            Integer res = (n.getKind() == kind::INTS_DIVISION_TOTAL) ?
+              ni.floorDivideQuotient(di) : ni.floorDivideRemainder(di);
+            return DeltaRational(res);
+          }else{
+            throw nlException(n);
+          }
+        }
+      }else{
+        throw nlException(n);
+      }
+    }
 
   default:
     {
@@ -2026,7 +2067,7 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) {
   }
 }
 
-DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) {
+DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) const {
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
   AlwaysAssert(d_nlIncomplete);
 
@@ -2109,8 +2150,15 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
   for(shared_terms_iterator shared_iter = shared_terms_begin(),
         shared_end = shared_terms_end(); shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
-    if(sharedCurr.getKind() == CONST_RATIONAL){
-      relevantDeltaValues.insert(sharedCurr.getConst<Rational>());
+
+    try{
+      DeltaRational val = getDeltaValue(sharedCurr);
+      relevantDeltaValues.insert(val);
+    }catch(Exception e){
+      stringstream ss;
+      ss << "Cannot build a model due an exception: " << endl;
+      ss << e.getMessage();
+      throw Exception(ss.str());
     }
   }
 
