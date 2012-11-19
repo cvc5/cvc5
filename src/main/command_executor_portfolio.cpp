@@ -178,9 +178,13 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
    */
 
   int mode = 0;
-  // mode = 0 : run the first thread
-  // mode = 1 : run a porfolio
-  // mode = 2 : run the last winner
+  // mode = 0 : run command on lastWinner, saving the command
+  // to be run on all others
+  //
+  // mode = 1 : run a race of the command, update lastWinner
+  //
+  // mode = 2 : run _only_ the lastWinner thread, not saving the
+  // command
 
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
     dynamic_cast<QueryCommand*>(cmd) != NULL) {
@@ -191,7 +195,14 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
-    return CommandExecutor::doCommandSingleton(cmd);
+    Command* cmdExported = 
+      d_lastWinner == 0 ?
+      cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
+    int ret = smtEngineInvoke(d_smts[d_lastWinner],
+                              cmdExported,
+                              d_threadOptions[d_lastWinner][options::out]);
+    if(d_lastWinner != 0) delete cmdExported;
+    return ret;
   } else if(mode == 1) {               // portfolio
 
     d_seq->addCommand(cmd->clone());
@@ -201,7 +212,10 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     // can be acheived with not a lot of work
     Command *seqs[d_numThreads];
 
-    seqs[0] = cmd;
+    if(d_lastWinner == 0)
+      seqs[0] = cmd;
+    else
+      seqs[0] = d_seq;
 
     /* variable maps and exporting */
     for(unsigned i = 1; i < d_numThreads; ++i) {
@@ -215,10 +229,15 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
        *             first thread
        */
       try {
-        seqs[i] = d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
+        seqs[i] =
+          int(i) == d_lastWinner ?
+          cmd->exportTo(d_exprMgrs[i], *(d_vmaps[i])) :
+          d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
       }catch(ExportUnsupportedException& e){
-        if(d_options[options::fallbackSequential])
+        if(d_options[options::fallbackSequential]) {
+          Notice() << "Unsupported theory encountered, switching to sequential mode.";
           return CommandExecutor::doCommandSingleton(cmd);
+        }
         else
           throw Exception("Certain theories (e.g., datatypes) are (currently) unsupported in portfolio\n"
                           "mode. Please see option --fallback-sequential to make this a soft error.");
