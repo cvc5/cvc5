@@ -19,9 +19,10 @@
 #include "theory/arith/delta_rational.h"
 
 using namespace std;
-using namespace CVC4;
 
-std::ostream& CVC4::operator<<(std::ostream& os, const DeltaRational& dq){
+namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& os, const DeltaRational& dq){
   return os << "(" << dq.getNoninfinitesimalPart()
             << "," << dq.getInfinitesimalPart() << ")";
 }
@@ -31,3 +32,75 @@ std::string DeltaRational::toString() const {
   return "(" + getNoninfinitesimalPart().toString() + "," +
     getInfinitesimalPart().toString() + ")";
 }
+
+void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const DeltaRational& b){
+  Assert(res.sgn() > 0);
+
+  int cmp = a.cmp(b);
+  if(cmp != 0){
+    bool aLeqB = cmp < 0;
+
+    const DeltaRational& min = aLeqB ? a : b;
+    const DeltaRational& max = aLeqB ? b : a;
+
+    const Rational& pinf = min.getInfinitesimalPart();
+    const Rational& cinf = max.getInfinitesimalPart();
+
+    const Rational& pmaj = min.getNoninfinitesimalPart();
+    const Rational& cmaj = max.getNoninfinitesimalPart();
+
+    if(pmaj == cmaj){
+      Assert(pinf < cinf);
+      // any value of delta preserves the order
+    }else if(pinf == cinf){
+      Assert(pmaj < cmaj);
+      // any value of delta preserves the order
+    }else{
+      Assert(pinf != cinf && pmaj != cmaj);
+      Rational denDiffAbs = (cinf - pinf).abs();
+
+      Rational numDiff = (cmaj - pmaj);
+      Assert(numDiff.sgn() >= 0);
+      Assert(denDiffAbs.sgn() > 0);
+      Rational ratio = numDiff / denDiffAbs;
+      Assert(ratio.sgn() > 0);
+
+      if(ratio < res){
+        res = ratio;
+      }
+    }
+  }
+}
+
+
+DeltaRationalException::DeltaRationalException(const char* op, const DeltaRational& a, const DeltaRational& b) throw (){
+    std::stringstream ss;
+    ss << "Operation [" << op << "] between DeltaRational values ";
+    ss << a << " and " << b << " is not a DeltaRational.";
+    setMessage(ss.str());
+}
+
+DeltaRationalException::~DeltaRationalException() throw () { }
+
+
+Integer DeltaRational::floorDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException){
+  if(isIntegral() && y.isIntegral()){
+    Integer ti = floor();
+    Integer yi = y.floor();
+    return ti.floorDivideQuotient(yi);
+  }else{
+    throw DeltaRationalException("floorDivideQuotient", *this, y);
+  }
+}
+
+Integer DeltaRational::floorDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException){
+  if(isIntegral() && y.isIntegral()){
+    Integer ti = floor();
+    Integer yi = y.floor();
+    return ti.floorDivideRemainder(yi);
+  }else{
+    throw DeltaRationalException("floorDivideRemainder", *this, y);
+  }
+}
+
+}/* CVC4 namespace */

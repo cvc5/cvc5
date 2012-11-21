@@ -19,14 +19,23 @@
 
 #include "util/integer.h"
 #include "util/rational.h"
+#include "util/exception.h"
+
 
 #include <ostream>
+#pragma once
 
-
-#ifndef __CVC4__THEORY__ARITH__DELTA_RATIONAL_H
-#define __CVC4__THEORY__ARITH__DELTA_RATIONAL_H
 
 namespace CVC4 {
+
+class DeltaRational;
+
+class DeltaRationalException : public Exception {
+public:
+  DeltaRationalException(const char* op, const DeltaRational& a, const DeltaRational& b) throw ();
+  virtual ~DeltaRationalException() throw ();
+};
+
 
 /**
  * A DeltaRational is a pair of rationals (c,k) that represent the number
@@ -65,6 +74,19 @@ public:
     return getInfinitesimalPart().sgn();
   }
 
+  bool infinitesimalIsZero() const {
+    return getInfinitesimalPart().isZero();
+  }
+
+  bool noninfinitesimalIsZero() const {
+    return getNoninfinitesimalPart().isZero();
+  }
+
+  bool isZero() const {
+    return noninfinitesimalIsZero() && infinitesimalIsZero();
+  }
+
+
   int cmp(const DeltaRational& other) const{
     int cmp = c.cmp(other.c);
     if(cmp == 0){
@@ -85,6 +107,23 @@ public:
     CVC4::Rational tmpK = a*k;
     return DeltaRational(tmpC, tmpK);
   }
+
+
+  /**
+   * Multiplies (this->c + this->k * delta) * (a.c + a.k * delta)
+   * This can be done whenever this->k or a.k is 0.
+   * Otherwise, the result is not a DeltaRational and a DeltaRationalException is thrown.
+   */
+  DeltaRational operator*(const DeltaRational& a) const throw(DeltaRationalException){
+    if(infinitesimalIsZero()){
+      return a * (this->getNoninfinitesimalPart());
+    }else if(a.infinitesimalIsZero()){
+      return (*this) * a.getNoninfinitesimalPart();
+    }else{
+      throw DeltaRationalException("operator*", *this, a);
+    }
+  }
+
 
   DeltaRational operator-(const DeltaRational& a) const{
     CVC4::Rational negOne(CVC4::Integer(-1));
@@ -107,9 +146,28 @@ public:
     return DeltaRational(tmpC, tmpK);
   }
 
+  /**
+   * Divides (*this) / (a.c + a.k * delta)
+   * This can be done when a.k is 0 and a.c is non-zero.
+   * Otherwise, the result is not a DeltaRational and a DeltaRationalException is thrown.
+   */
+  DeltaRational operator/(const DeltaRational& a) const throw(DeltaRationalException){
+    if(a.infinitesimalIsZero()){
+      return (*this) / a.getNoninfinitesimalPart();
+    }else{
+      throw DeltaRationalException("operator/", *this, a);
+    }
+  }
+
+
   bool operator==(const DeltaRational& other) const{
     return (k == other.k) && (c == other.c);
   }
+
+  bool operator!=(const DeltaRational& other) const{
+    return !(*this == other);
+  }
+
 
   bool operator<=(const DeltaRational& other) const{
     int cmp = c.cmp(other.c);
@@ -146,7 +204,7 @@ public:
   }
 
   bool isIntegral() const {
-    if(getInfinitesimalPart().sgn() == 0){
+    if(infinitesimalIsZero()){
       return getNoninfinitesimalPart().isIntegral();
     }else{
       return false;
@@ -177,16 +235,33 @@ public:
     }
   }
 
+  /** Only well defined if both this and y are integral. */
+  Integer floorDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException);
+
+  /** Only well defined if both this and y are integral. */
+  Integer floorDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException);
+
+
   std::string toString() const;
 
   Rational substituteDelta(const Rational& d) const{
     return getNoninfinitesimalPart() + (d * getInfinitesimalPart());
   }
 
+  /**
+   * Computes a sufficient upperbound to seperate two DeltaRationals.
+   * This value is stored in res.
+   * For any rational d such that
+   *   0 < d < res
+   * then
+   *   a < b if and only if substituteDelta(a, d) < substituteDelta(b,d).
+   * (Similar relationships hold for for a == b and a > b.)
+   * Precondition: res > 0
+   */
+  static void seperatingDelta(Rational& res, const DeltaRational& a, const DeltaRational& b);
+
 };
 
 std::ostream& operator<<(std::ostream& os, const DeltaRational& n);
 
 }/* CVC4 namespace */
-
-#endif /* __CVC4__THEORY__ARITH__DELTA_RATIONAL_H */
