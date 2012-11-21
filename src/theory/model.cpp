@@ -707,6 +707,14 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &tm->d_equalityEngine);
       for ( ; !eqc_i.isFinished(); ++eqc_i) {
         Node n = *eqc_i;
+        static int repCheckInstance = 0;
+        ++repCheckInstance;
+
+        Debug("check-model::rep-checking")
+          << "( " << repCheckInstance <<") "
+          << "n: " << n << endl
+          << "getValue(n): " << tm->getValue(n) << endl
+          << "rep: " << rep << endl;
         Assert(tm->getValue(*eqc_i) == rep);
       }
     }
