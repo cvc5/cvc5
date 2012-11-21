@@ -144,6 +144,14 @@ Node TheoryArith::getIntModulusBy0Func(){
   return d_intModulusBy0Func;
 }
 
+TheoryArith::ModelException::ModelException(TNode n, const char* msg) throw (){
+  stringstream ss;
+  ss << "Cannot construct a model for " << n << " as " << endl << msg;
+  setMessage(ss.str());
+}
+TheoryArith::ModelException::~ModelException() throw (){ }
+
+
 TheoryArith::Statistics::Statistics():
   d_statAssertUpperConflicts("theory::arith::AssertUpperConflicts", 0),
   d_statAssertLowerConflicts("theory::arith::AssertLowerConflicts", 0),
@@ -1948,35 +1956,8 @@ void TheoryArith::propagate(Effort e) {
   }
 }
 
-bool TheoryArith::getDeltaAtomValue(TNode n) const {
-  Assert(d_qflraStatus != Result::SAT_UNKNOWN);
-
-  switch (n.getKind()) {
-    case kind::EQUAL: // 2 args
-      return getDeltaValue(n[0]) == getDeltaValue(n[1]);
-    case kind::LT: // 2 args
-      return getDeltaValue(n[0]) < getDeltaValue(n[1]);
-    case kind::LEQ: // 2 args
-      return getDeltaValue(n[0]) <= getDeltaValue(n[1]);
-    case kind::GT: // 2 args
-      return getDeltaValue(n[0]) > getDeltaValue(n[1]);
-    case kind::GEQ: // 2 args
-      return getDeltaValue(n[0]) >= getDeltaValue(n[1]);
-    default:
-      Unreachable();
-  }
-}
-
-Exception nlException(TNode t){    
-  stringstream ss;
-  ss << "Cannot generate a DeltaRational value for non-linear term: ";
-  ss << t;
-  return Exception(ss.str());
-}
-
-DeltaRational TheoryArith::getDeltaValue(TNode n) const {
+DeltaRational TheoryArith::getDeltaValue(TNode n) const throw (DeltaRationalException, ModelException) {
   AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
-  AlwaysAssert(!d_nlIncomplete);
   Debug("arith::value") << n << std::endl;
 
   switch(n.getKind()) {
@@ -1986,150 +1967,83 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) const {
 
   case kind::PLUS: { // 2+ args
     DeltaRational value(0);
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
-        i != iend;
-        ++i) {
+    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
       value = value + getDeltaValue(*i);
     }
     return value;
   }
 
   case kind::MULT: { // 2+ args
-    if (n[0].getKind() == kind::CONST_RATIONAL && n.getNumChildren() == 2) {
-      return getDeltaValue(n[1]) * n[0].getConst<Rational>();
-    } else {
-      DeltaRational value(1,0);
-      for(TNode::iterator i = n.begin(), i_e = n.end(); i != i_e; ++i){
-        DeltaRational curr = getDeltaValue(*i);
-        if(value.infinitesimalSgn() != 0 && curr.infinitesimalSgn() != 0){
-          throw nlException(n);
-        }else if(curr.infinitesimalSgn() != 0){
-          Rational q = value.getNoninfinitesimalPart();
-          value = curr * q;
-        }else{
-          Rational q = curr.getNoninfinitesimalPart();
-          value = value * q;
+    DeltaRational value(1);
+    unsigned variableParts = 0;
+    for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
+      TNode curr = *i;
+      value = value * getDeltaValue(curr);
+      if(!curr.isConst()){
+        ++variableParts;
+      }
+    }
+    // TODO: This is a bit of a weak check
+    if(isSetup(n)){
+      ArithVar var = d_arithvarNodeMap.asArithVar(n);
+      const DeltaRational& assign = d_partialModel.getAssignment(var);
+      if(assign != value){
+        throw ModelException(n, "Model disagrees on non-linear term.");
+      }
+    }
+    return value;
+  }
+  case kind::MINUS:{ // 2 args
+    return getDeltaValue(n[0]) - getDeltaValue(n[1]);
+  }
+
+  case kind::UMINUS:{ // 1 arg
+    return (- getDeltaValue(n[0]));
+  }
+
+  case kind::DIVISION:{ // 2 args
+    DeltaRational res = getDeltaValue(n[0]) / getDeltaValue(n[1]);
+    if(isSetup(n)){
+      ArithVar var = d_arithvarNodeMap.asArithVar(n);
+      if(d_partialModel.getAssignment(var) != res){
+        throw ModelException(n, "Model disagrees on non-linear term.");
+      }
+    }
+    return res;
+  }
+  case kind::DIVISION_TOTAL:
+  case kind::INTS_DIVISION_TOTAL:
+  case kind::INTS_MODULUS_TOTAL: { // 2 args
+    DeltaRational denom = getDeltaValue(n[1]);
+    if(denom.isZero()){
+      return DeltaRational(0,0);
+    }else{
+      DeltaRational numer = getDeltaValue(n[0]);
+      DeltaRational res;
+      if(n.getKind() == kind::DIVISION_TOTAL){
+        res = numer / denom;
+      }else if(n.getKind() == kind::INTS_DIVISION_TOTAL){
+        res = Rational(numer.floorDivideQuotient(denom));
+      }else{
+        Assert(n.getKind() == kind::INTS_MODULUS_TOTAL);
+        res = Rational(numer.floorDivideRemainder(denom));
+      }
+      if(isSetup(n)){
+        ArithVar var = d_arithvarNodeMap.asArithVar(n);
+        if(d_partialModel.getAssignment(var) != res){
+          throw ModelException(n, "Model disagrees on non-linear term.");
         }
       }
-      return value;
+      return res;
     }
   }
 
-  case kind::MINUS: // 2 args
-    return getDeltaValue(n[0]) - getDeltaValue(n[1]);
-
-  case kind::UMINUS: // 1 arg
-    return (- getDeltaValue(n[0]));
-
-  case kind::DIVISION: // 2 args
-  case kind::INTS_DIVISION_TOTAL:
-  case kind::INTS_MODULUS_TOTAL:
-  case kind::DIVISION_TOTAL:
+  default:
     if(isSetup(n)){
       ArithVar var = d_arithvarNodeMap.asArithVar(n);
       return d_partialModel.getAssignment(var);
     }else{
-      DeltaRational den_dr = getDeltaValue(n[1]);
-      if(den_dr.infinitesimalSgn() == 0){
-        Rational d = den_dr.getNoninfinitesimalPart();
-        if(d.isZero()){
-          return DeltaRational(0,0);
-        }else if(n.getKind() == kind::DIVISION_TOTAL){        
-          return getDeltaValue(n[0]) / d;
-        }else{
-          DeltaRational num = getDeltaValue(n[0]);
-          if(num.isIntegral() && d.isIntegral()){
-            Integer ni = num.getNoninfinitesimalPart().getNumerator();
-            Integer di = d.getNumerator();
-
-            Integer res = (n.getKind() == kind::INTS_DIVISION_TOTAL) ?
-              ni.floorDivideQuotient(di) : ni.floorDivideRemainder(di);
-            return DeltaRational(res);
-          }else{
-            throw nlException(n);
-          }
-        }
-      }else{
-        throw nlException(n);
-      }
-    }
-
-  default:
-    {
-      if(isSetup(n)){
-        ArithVar var = d_arithvarNodeMap.asArithVar(n);
-        return d_partialModel.getAssignment(var);
-      }else{
-        Unreachable();
-      }
-    }
-  }
-}
-
-DeltaRational TheoryArith::getDeltaValueWithNonlinear(TNode n, bool& failed) const {
-  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
-  AlwaysAssert(d_nlIncomplete);
-
-  Debug("arith::value") << n << std::endl;
-
-  switch(n.getKind()) {
-
-  case kind::CONST_RATIONAL:
-    return n.getConst<Rational>();
-
-  case kind::PLUS: { // 2+ args
-    DeltaRational value(0);
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
-        i != iend && !failed;
-        ++i) {
-      value = value + getDeltaValueWithNonlinear(*i, failed);
-    }
-    return value;
-  }
-
-  case kind::MULT: { // 2+ args
-    DeltaRational value(1);
-    if (n[0].getKind() == kind::CONST_RATIONAL) {
-      return getDeltaValueWithNonlinear(n[1], failed) * n[0].getConst<Rational>();
-    }else{
-      failed = true;
-      return value;
-    }
-  }
-
-  case kind::MINUS: // 2 args
-    // should have been rewritten
-    Unreachable();
-
-  case kind::UMINUS: // 1 arg
-    // should have been rewritten
-    Unreachable();
-
-  case kind::DIVISION: // 2 args
-    Assert(n[1].isConst());
-    if (n[1].getKind() == kind::CONST_RATIONAL) {
-      return getDeltaValueWithNonlinear(n[0], failed) / n[0].getConst<Rational>();
-    }else{
-      failed = true;
-      return DeltaRational();
-    }
-    //fall through
-  case kind::INTS_DIVISION:
-  case kind::INTS_MODULUS:
-    //a bit strict
-    failed = true;
-    return DeltaRational();
-
-  default:
-    {
-      if(isSetup(n)){
-        ArithVar var = d_arithvarNodeMap.asArithVar(n);
-        return d_partialModel.getAssignment(var);
-      }else{
-        Unreachable();
-      }
+      throw ModelException(n, "Expected a setup node.");
     }
   }
 }
@@ -2151,15 +2065,10 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
         shared_end = shared_terms_end(); shared_iter != shared_end; ++shared_iter){
     Node sharedCurr = *shared_iter;
 
-    try{
-      DeltaRational val = getDeltaValue(sharedCurr);
-      relevantDeltaValues.insert(val);
-    }catch(Exception e){
-      stringstream ss;
-      ss << "Cannot build a model due an exception: " << endl;
-      ss << e.getMessage();
-      throw Exception(ss.str());
-    }
+    // ModelException is fatal as this point. Don't catch!
+    // DeltaRationalException is fatal as this point. Don't catch!
+    DeltaRational val = getDeltaValue(sharedCurr);
+    relevantDeltaValues.insert(val);
   }
 
   for(ArithVar v = 0; v < d_variables.size(); ++v){
@@ -2185,32 +2094,7 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
 
       Assert(prev < curr);
 
-      const Rational& pinf = prev.getInfinitesimalPart();
-      const Rational& cinf = curr.getInfinitesimalPart();
-
-      const Rational& pmaj = prev.getNoninfinitesimalPart();
-      const Rational& cmaj = curr.getNoninfinitesimalPart();
-
-      if(pmaj == cmaj){
-        Assert(pinf < cinf);
-        // any value of delta preserves the order
-      }else if(pinf == cinf){
-        Assert(pmaj < cmaj);
-        // any value of delta preserves the order
-      }else{
-        Assert(pinf != cinf && pmaj != cmaj);
-        Rational denDiffAbs = (cinf - pinf).abs();
-
-        Rational numDiff = (cmaj - pmaj);
-        Assert(numDiff.sgn() >= 0);
-        Assert(denDiffAbs.sgn() > 0);
-        Rational ratio = numDiff / denDiffAbs;
-        Assert(ratio.sgn() > 0);
-
-        if(ratio < min){
-          min = ratio;
-        }
-      }
+      DeltaRational::seperatingDelta(min, prev, curr);
       prev = curr;
     }
   }
@@ -2411,26 +2295,19 @@ void TheoryArith::presolve(){
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   if(d_qflraStatus == Result::SAT_UNKNOWN){
     return EQUALITY_UNKNOWN;
-  }else if(d_nlIncomplete){
-    bool failed = false;
-    DeltaRational amod = getDeltaValueWithNonlinear(a, failed);
-    DeltaRational bmod = getDeltaValueWithNonlinear(b, failed);
-    if(failed){
+  }else{
+    try {
+      if (getDeltaValue(a) == getDeltaValue(b)) {
+        return EQUALITY_TRUE_IN_MODEL;
+      } else {
+        return EQUALITY_FALSE_IN_MODEL;
+      }
+    } catch (DeltaRationalException& dr) {
       return EQUALITY_UNKNOWN;
-    }else{
-      return amod == bmod ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
+    } catch (ModelException& me) {
+      return EQUALITY_UNKNOWN;
     }
-  }else if (getDeltaValue(a) == getDeltaValue(b)) {
-    return EQUALITY_TRUE_IN_MODEL;
-  } else {
-    return EQUALITY_FALSE_IN_MODEL;
   }
-
-}
-
-bool TheoryArith::rowImplication(ArithVar v, bool upperBound, const DeltaRational& r){
-  Unimplemented();
-  return false;
 }
 
 bool TheoryArith::propagateCandidateBound(ArithVar basic, bool upperBound){

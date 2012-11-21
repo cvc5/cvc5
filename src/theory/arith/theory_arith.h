@@ -75,7 +75,6 @@ private:
   //                     if unknown, the simplex priority queue cannot be emptied
   int d_unknownsInARow;
 
-  bool rowImplication(ArithVar v, bool upperBound, const DeltaRational& r);
 
   /**
    * This counter is false if nothing has been done since the last cut.
@@ -298,14 +297,14 @@ private:
   /** The constraint database associated with the theory. */
   ConstraintDatabase d_constraintDatabase;
 
-  /** Internal model value for the atom */
-  bool getDeltaAtomValue(TNode n) const;
+  class ModelException : public Exception {
+  public:
+    ModelException(TNode n, const char* msg) throw ();
+    virtual ~ModelException() throw ();
+  };
 
   /** Internal model value for the node */
-  DeltaRational getDeltaValue(TNode n) const;
-
-  /** TODO : get rid of this. */
-  DeltaRational getDeltaValueWithNonlinear(TNode n, bool& failed) const;
+  DeltaRational getDeltaValue(TNode n) const throw (DeltaRationalException, ModelException);
 
   /** Uninterpretted function symbol for use when interpreting
    * division by zero.
