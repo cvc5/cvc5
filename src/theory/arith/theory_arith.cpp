@@ -87,20 +87,6 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_DELTA_ZERO(0),
   d_statistics()
 {
-  // if(!logicInfo.isLinear()){ // If non-linear
-  //   NodeManager* currNM = NodeManager::currentNM();
-  //   if(logicInfo.areRealsUsed()){ // If reals are enabled, create this symbol
-  //     TypeNode realType = currNM->realType();
-  //     TypeNode realToRealFunctionType = currNM->mkFunctionType(realType, realType);
-  //     d_realDivideBy0Func = currNM->mkSkolem("/by0_$$", realToRealFunctionType);
-  //   }
-  //   if(logicInfo.areIntegersUsed()){  // If integers are enabled, create these symbols
-  //     TypeNode intType = currNM->integerType();
-  //     TypeNode intToIntFunctionType = currNM->mkFunctionType(intType, intType);
-  //     d_intDivideBy0Func = currNM->mkSkolem("divby0_$$", intToIntFunctionType);
-  //     d_intModulusBy0Func = currNM->mkSkolem("modby0_$$", intToIntFunctionType);
-  //   }
-  // }
 }
 
 TheoryArith::~TheoryArith(){}
@@ -331,10 +317,12 @@ bool TheoryArith::AssertLower(Constraint constraint){
   }else{
     Assert(cmpToUB < 0);
     const ValueCollection& vc = constraint->getValueCollection();
-    if(vc.hasDisequality() && vc.hasUpperBound()){
+
+    if(vc.hasDisequality()){
       const Constraint diseq = vc.getDisequality();
       if(diseq->isTrue()){
-        const Constraint ub = vc.getUpperBound();
+        const Constraint ub = d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), UpperBound);
+
         if(ub->hasProof()){
           Node conflict = ConstraintValue::explainConflict(diseq, ub, constraint);
           Debug("eq") << " assert upper conflict " << conflict << endl;
@@ -343,9 +331,7 @@ bool TheoryArith::AssertLower(Constraint constraint){
         }else if(!ub->negationHasProof()){
           Constraint negUb = ub->getNegation();
           negUb->impliedBy(constraint, diseq);
-          //if(!negUb->canBePropagated()){
           d_learnedBounds.push_back(negUb);
-            //}//otherwise let this be propagated/asserted later
         }
       }
     }
@@ -450,10 +436,11 @@ bool TheoryArith::AssertUpper(Constraint constraint){
     }
   }else if(cmpToLB > 0){
     const ValueCollection& vc = constraint->getValueCollection();
-    if(vc.hasDisequality() && vc.hasLowerBound()){
+    if(vc.hasDisequality()){
       const Constraint diseq = vc.getDisequality();
       if(diseq->isTrue()){
-        const Constraint lb = vc.getLowerBound();
+        const Constraint lb =
+          d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), LowerBound);
         if(lb->hasProof()){
           Node conflict = ConstraintValue::explainConflict(diseq, lb, constraint);
           Debug("eq") << " assert upper conflict " << conflict << endl;
@@ -626,11 +613,6 @@ bool TheoryArith::AssertDisequality(Constraint constraint){
     }
   }
 
-  if(constraint->isSplit()){
-    Debug("eq") << "skipping already split " << constraint << endl;
-    return false;
-  }
-
   const ValueCollection& vc = constraint->getValueCollection();
   if(vc.hasLowerBound() && vc.hasUpperBound()){
     const Constraint lb = vc.getLowerBound();
@@ -642,28 +624,37 @@ bool TheoryArith::AssertDisequality(Constraint constraint){
       Node conflict = ConstraintValue::explainConflict(constraint, lb, ub);
       d_raiseConflict(conflict);
       return true;
-
-    }else if(lb->isTrue()){
+    }
+  }
+  if(vc.hasLowerBound() ){
+    const Constraint lb = vc.getLowerBound();
+    if(lb->isTrue()){
+      const Constraint ub = d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), UpperBound);
       Debug("eq") << "propagate UpperBound " << constraint << lb << ub << endl;
       const Constraint negUb = ub->getNegation();
       if(!negUb->isTrue()){
         negUb->impliedBy(constraint, lb);
         d_learnedBounds.push_back(negUb);
       }
-    }else if(ub->isTrue()){
+    }
+  }
+  if(vc.hasUpperBound()){
+    const Constraint ub = vc.getUpperBound();
+    if(ub->isTrue()){
+      const Constraint lb = d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), LowerBound);
+
       Debug("eq") << "propagate LowerBound " << constraint << lb << ub << endl;
       const Constraint negLb = lb->getNegation();
       if(!negLb->isTrue()){
         negLb->impliedBy(constraint, ub);
-        //if(!negLb->canBePropagated()){
         d_learnedBounds.push_back(negLb);
-        //}
       }
     }
   }
 
+  bool split = constraint->isSplit();
 
-  if(c_i == d_partialModel.getAssignment(x_i)){
+  if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("eq") << "lemma now! " << constraint << endl;
     d_out->lemma(constraint->split());
     return false;
@@ -671,13 +662,14 @@ bool TheoryArith::AssertDisequality(Constraint constraint){
     Debug("eq") << "can drop as less than lb" << constraint << endl;
   }else if(d_partialModel.strictlyGreaterThanUpperBound(x_i, c_i)){
     Debug("eq") << "can drop as less than ub" << constraint << endl;
-  }else{
+  }else if(!split){
     Debug("eq") << "push back" << constraint << endl;
     d_diseqQueue.push(constraint);
     d_partialModel.invalidateDelta();
+  }else{
+    Debug("eq") << "skipping already split " << constraint << endl;
   }
   return false;
-
 }
 
 void TheoryArith::addSharedTerm(TNode n){
@@ -719,19 +711,6 @@ Node TheoryArith::ppRewrite(TNode atom) {
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   Debug("simplify") << "TheoryArith::solve(" << in << ")" << endl;
-
-//TODO: Handle this better
-// FAIL: preprocess_10.cvc (exit: 1)
-// =================================
-
-// running /home/taking/ws/cvc4/branches/arithmetic/infer-bounds/builds/x86_64-unknown-linux-gnu/debug-staticbinary/src/main/cvc4 --lang=cvc4 --segv-nospin preprocess_10.cvc [from working dir /home/taking/ws/cvc4/branches/arithmetic/infer-bounds/builds/x86_64-unknown-linux-gnu/debug-staticbinary/../../../test/regress/regress0/preprocess]
-// run_regression: error: differences between expected and actual output on stdout
-// --- /tmp/cvc4_expect_stdout.20298.5Ga5123F4L    2012-04-30 12:27:16.136684359 -0400
-// +++ /tmp/cvc4_stdout.20298.oZwTuIYuF3   2012-04-30 12:27:16.176685543 -0400
-// @@ -1 +1,3 @@
-// +TheoryArith::solve(): substitution x |-> IF b THEN 10 ELSE -10 ENDIF
-// +minVar is integral 0right 0
-//  sat
 
 
   // Solve equalities
@@ -1811,6 +1790,9 @@ bool TheoryArith::splitDisequalities(){
         Debug("arith::lemma") << "RHS value = " << rhsValue << endl;
         Node lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
+        Node relem = Rewriter::rewrite(lemma);
+
+        Debug("arith::lemma") << "Now " << relem << endl;
         d_out->lemma(lemma);
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
@@ -1818,7 +1800,7 @@ bool TheoryArith::splitDisequalities(){
       }else if(d_partialModel.strictlyGreaterThanUpperBound(lhsVar, rhsValue)){
         Debug("eq") << "can drop as greater than ub" << front << endl;
       }else{
-        Debug("eq") << "save" << front << endl;
+        Debug("eq") << "save" << front << ": " <<lhsValue << " != " << rhsValue << endl;
         save.push_back(front);
       }
     }
@@ -2107,6 +2089,10 @@ Rational TheoryArith::deltaValueForTotalOrder() const{
 void TheoryArith::collectModelInfo( TheoryModel* m, bool fullModel ){
   AlwaysAssert(d_qflraStatus ==  Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
+
+  if(Debug.isOn("arith::collectModelInfo")){
+    debugPrintFacts();
+  }
 
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 

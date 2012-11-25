@@ -845,7 +845,6 @@ public:
    * Returns a constraint of the given type for the value and variable
    * for the given ValueCollection, vc.
    * This is made if there is no such constraint.
-   * Weirdly enough vc may be altered despite this signature!
    */
   Constraint ensureConstraint(ValueCollection& vc, ConstraintType t){
     if(vc.hasConstraintOfType(t)){
