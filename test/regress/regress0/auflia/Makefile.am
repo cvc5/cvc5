@@ -20,7 +20,8 @@ TESTS =	\
 	fuzz03.smt \
 	fuzz04.smt \
 	fuzz05.smt \
-	a17.smt
+	a17.smt \
+	error72.delta2.smt
 
 EXTRA_DIST = $(TESTS)
 
