@@ -63,7 +63,7 @@ class EqualitySolver : public SubtheorySolver {
 public:
 
   EqualitySolver(context::Context* c, TheoryBV* bv);
-
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
   bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);

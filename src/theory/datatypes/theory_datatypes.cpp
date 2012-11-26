@@ -56,6 +56,10 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
 TheoryDatatypes::~TheoryDatatypes() {
 }
 
+void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( Node n, bool doMake ){
   std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
   if( !hasEqcInfo( n ) ){

@@ -144,6 +144,8 @@ public:
     return d_explanationMap.find(n) != d_explanationMap.end();
   }
 
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
 private:
   Node externalToInternal(TNode n) const{
     Assert(canExplain(n));

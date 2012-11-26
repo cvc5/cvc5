@@ -65,6 +65,10 @@ ArithCongruenceManager::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_conflicts);
 }
 
+void ArithCongruenceManager::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_ee.setMasterEqualityEngine(eq);
+}
+
 void ArithCongruenceManager::watchedVariableIsZero(Constraint lb, Constraint ub){
   Assert(lb->isLowerBound());
   Assert(ub->isUpperBound());

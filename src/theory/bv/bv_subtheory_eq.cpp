@@ -67,6 +67,10 @@ EqualitySolver::EqualitySolver(context::Context* c, TheoryBV* bv)
   }
 }
 
+void EqualitySolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
 void EqualitySolver::preRegister(TNode node) {
   if (!d_useEqualityEngine)
     return;

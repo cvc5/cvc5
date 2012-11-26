@@ -42,11 +42,25 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 
+#include "theory/uf/equality_engine.h"
 
 using namespace std;
 
 using namespace CVC4;
 using namespace CVC4::theory;
+
+void TheoryEngine::finishInit() {
+  if (d_logicInfo.isQuantified()) {
+    Assert(d_masterEqualityEngine == 0);
+    d_masterEqualityEngine = new eq::EqualityEngine(getSatContext(), "theory::master");
+
+    for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+      if (d_theoryTable[theoryId]) {
+        d_theoryTable[theoryId]->setMasterEqualityEngine(d_masterEqualityEngine);
+      }
+    }
+  }
+}
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
@@ -58,6 +72,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_userContext(userContext),
   d_logicInfo(logicInfo),
   d_sharedTerms(this, context),
+  d_masterEqualityEngine(NULL),
   d_quantEngine(NULL),
   d_curr_model(NULL),
   d_curr_model_builder(NULL),
@@ -113,6 +128,8 @@ TheoryEngine::~TheoryEngine() {
   delete d_curr_model;
 
   delete d_quantEngine;
+
+  delete d_masterEqualityEngine;
 
   StatisticsRegistry::unregisterStat(&d_combineTheoriesTime);
 }
@@ -228,21 +245,6 @@ void TheoryEngine::dumpAssertions(const char* tag) {
     }
   }
 }
-
-
-template<typename T, bool doAssert>
-class scoped_vector_clear {
-  vector<T>& d_v;
-public:
-  scoped_vector_clear(vector<T>& v)
-  : d_v(v) {
-    Assert(!doAssert || d_v.empty());
-  }
-  ~scoped_vector_clear() {
-    d_v.clear();
-  }
-
-};
 
 /**
  * Check all (currently-active) theories for conflicts.

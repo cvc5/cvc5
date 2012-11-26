@@ -123,6 +123,8 @@ class TheoryArrays : public Theory {
   TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryArrays();
 
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
   std::string identify() const { return std::string("TheoryArrays"); }
 
   /////////////////////////////////////////////////////////////////////////////

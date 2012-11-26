@@ -187,6 +187,8 @@ public:
     }
   }
 
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
   void check(Effort);
   void preRegisterTerm(TNode term);
   Node explain(TNode n);

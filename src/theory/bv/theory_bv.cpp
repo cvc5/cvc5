@@ -50,6 +50,11 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
 
 TheoryBV::~TheoryBV() {}
 
+
+void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalitySolver.setMasterEqualityEngine(eq);
+}
+
 TheoryBV::Statistics::Statistics():
   d_avgConflictSize("theory::bv::AvgBVConflictSize"),
   d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),

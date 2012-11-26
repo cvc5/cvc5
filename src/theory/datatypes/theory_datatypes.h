@@ -179,6 +179,9 @@ public:
   TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation,
                   const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryDatatypes();
+
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
   /** propagate */
   void propagate(Effort effort);
   /** propagate */

@@ -54,6 +54,10 @@ namespace rrinst{
 class CandidateGenerator;
 }
 
+namespace eq {
+class EqualityEngine;
+}
+
 /**
  * Information about an assertion for the theories.
  */
@@ -246,7 +250,8 @@ protected:
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) throw()
+         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
+         QuantifiersEngine* qe, eq::EqualityEngine* master = 0) throw()
   : d_id(id)
   , d_satContext(satContext)
   , d_userContext(userContext)
@@ -513,6 +518,11 @@ public:
    * be considered a "shared term" by this theory
    */
   virtual void addSharedTerm(TNode n) { }
+
+  /**
+   * Called to set the master equality engine.
+   */
+  virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
   /**
    * Return the current theory care graph. Theories should overload computeCareGraph to do

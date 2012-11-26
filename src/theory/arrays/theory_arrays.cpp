@@ -111,7 +111,6 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   }
 }
 
-
 TheoryArrays::~TheoryArrays() {
 
   StatisticsRegistry::unregisterStat(&d_numRow);
@@ -122,6 +121,10 @@ TheoryArrays::~TheoryArrays() {
   StatisticsRegistry::unregisterStat(&d_numSharedArrayVarSplits);
   StatisticsRegistry::unregisterStat(&d_checkTimer);
 
+}
+
+void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
 

@@ -151,7 +151,34 @@ class EqualityEngine : public context::ContextNotifyObj {
   /** Default implementation of the notification object */
   static EqualityEngineNotifyNone s_notifyNone;
 
+  /**
+   * Master equality engine that gets all the equality information from
+   * this one, or null if none.
+   */
+  EqualityEngine* d_masterEqualityEngine;
+
 public:
+
+  /**
+   * Initialize the equality engine, given the notification class.
+   */
+  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name);
+
+  /**
+   * Initialize the equality engine with no notification class.
+   */
+  EqualityEngine(context::Context* context, std::string name);
+
+  /**
+   * Just a destructor.
+   */
+  virtual ~EqualityEngine() throw(AssertionException);
+
+  /**
+   * Set the master equality engine for this one. Master engine will get copies of all
+   * the terms and equalities from this engine.
+   */
+  void setMasterEqualityEngine(EqualityEngine* master);
 
   /** Statistics about the equality engine instance */
   struct Statistics {
@@ -638,21 +665,6 @@ private:
   std::string d_name;
 
 public:
-
-  /**
-   * Initialize the equality engine, given the notification class.
-   */
-  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name);
-
-  /**
-   * Initialize the equality engine with no notification class.
-   */
-  EqualityEngine(context::Context* context, std::string name);
-
-  /**
-   * Just a destructor.
-   */
-  virtual ~EqualityEngine() throw(AssertionException);
 
   /**
    * Adds a term to the term database.

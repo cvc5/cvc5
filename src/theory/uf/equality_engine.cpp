@@ -79,8 +79,9 @@ EqualityEngine::~EqualityEngine() throw(AssertionException) {
 }
 
 
-EqualityEngine::EqualityEngine(context::Context* context, std::string name) 
+EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 : ContextNotifyObj(context)
+, d_masterEqualityEngine(0)
 , d_context(context)
 , d_done(context, false)
 , d_performNotify(true)
@@ -102,6 +103,7 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 
 EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name)
 : ContextNotifyObj(context)
+, d_masterEqualityEngine(0)
 , d_context(context)
 , d_done(context, false)
 , d_performNotify(true)
@@ -119,6 +121,11 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 , d_name(name)
 {
   init();
+}
+
+void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
+  Assert(d_masterEqualityEngine == 0);
+  d_masterEqualityEngine = master;
 }
 
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
@@ -292,6 +299,11 @@ void EqualityEngine::addTerm(TNode t) {
     d_triggerTermSetUpdatesSize = d_triggerTermSetUpdatesSize + 1;
     // Mark the the new set as a trigger 
     d_nodeIndividualTrigger[tId] = newTriggerTermSet();
+  }
+
+  // If this is not an internal node, add it to the master
+  if (d_masterEqualityEngine && !d_isInternal[result]) {
+    d_masterEqualityEngine->addTerm(t);
   }
 
   propagate();
@@ -1213,9 +1225,34 @@ void EqualityEngine::propagate() {
       continue;
     }
 
-    // Depending on the merge preference (such as size, or being a constant), merge them
+    // Vector to collect the triggered events
     std::vector<TriggerId> triggers;
-    if ((node2.getSize() > node1.getSize() && !d_isConstant[t1classId]) || d_isConstant[t2classId]) {
+
+    // Figure out the merge preference
+    EqualityNodeId mergeInto = t1classId;
+    if (d_isInternal[t2classId] != d_isInternal[t1classId]) {
+      // We always keep non-internal nodes as representatives: if any node in
+      // the class is non-internal, then the representative will be non-internal
+      if (d_isInternal[t1classId]) {
+        mergeInto = t2classId;
+      } else {
+        mergeInto = t1classId;
+      }
+    } else if (d_isConstant[t2classId] != d_isConstant[t1classId]) {
+      // We always keep constants as representatives: if any (at most one) node
+      // in the class in a constant, then the representative will be a constant
+      if (d_isConstant[t2classId]) {
+        mergeInto = t2classId;
+      } else {
+        mergeInto = t1classId;
+      }
+    } else if (node2.getSize() > node1.getSize()) {
+      // We always merge into the bigger class to reduce the amount of traversing
+      // we need to do
+      mergeInto = t2classId;
+    }
+
+    if (mergeInto == t2classId) {
       Debug("equality") << d_name << "::eq::propagate(): merging " << d_nodes[current.t1Id]<< " into " << d_nodes[current.t2Id] << std::endl;
       d_assertedEqualities.push_back(Equality(t2classId, t1classId));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
@@ -1229,6 +1266,12 @@ void EqualityEngine::propagate() {
     if (!merge(node1, node2, triggers)) {
         d_done = true;
       }
+    }
+
+    // If not merging internal nodes, notify the master
+    if (d_masterEqualityEngine && !d_isInternal[mergeInto]) {
+      d_masterEqualityEngine->assertEqualityInternal(d_nodes[t1classId], d_nodes[t2classId], TNode::null());
+      d_masterEqualityEngine->propagate();
     }
 
     // Notify the triggers

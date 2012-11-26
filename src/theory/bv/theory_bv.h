@@ -50,6 +50,8 @@ public:
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryBV();
 
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
   void preRegisterTerm(TNode n);
 
   void check(Effort e);

@@ -91,6 +91,10 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
 
 TheoryArith::~TheoryArith(){}
 
+void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_congruenceManager.setMasterEqualityEngine(eq);
+}
+
 Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
   NodeManager* currNM = NodeManager::currentNM();
   TypeNode functionType = currNM->mkFunctionType(dom, range);
