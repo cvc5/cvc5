@@ -2641,7 +2641,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, bool userVisible, con
   // decouple SmtEngine and ExprManager if the user does a few
   // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
   // and expects to find their cardinalities in the model.
-  if(userVisible && (!d_fullyInited || options::produceModels())) {
+  if(/* userVisible && */ (!d_fullyInited || options::produceModels())) {
     doPendingPops();
     d_modelCommands->push_back(c.clone());
   }
