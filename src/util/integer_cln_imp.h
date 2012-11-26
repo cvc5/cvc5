@@ -456,7 +456,14 @@ public:
     if(s == 0){
       return 1;
     }else if(s < 0){
-      return cln::integer_length(-d_value);
+      size_t len = cln::integer_length(d_value);
+      /*If this is -2^n, return len+1 not len to stay consistent with the definition above!
+       * From CLN's documentation of integer_length:
+       *   This is the smallest n >= 0 such that -2^n <= x < 2^n.
+       *   If x > 0, this is the unique n > 0 such that 2^(n-1) <= x < 2^n.
+       */
+      size_t ord2 = cln::ord2(d_value);
+      return (len == ord2) ? (len + 1) : len;
     }else{
       return cln::integer_length(d_value);
     }

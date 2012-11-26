@@ -366,4 +366,25 @@ public:
     TS_ASSERT( ! Integer(64).testBit(1) );
     TS_ASSERT( ! Integer(64).testBit(0) );
   }
+
+  unsigned int internalLength(int i){
+    if ( i == 0){
+      return 1;
+    }else{
+      int absi = i < 0 ? -i : i;
+      unsigned int n = 0;
+      int powN = 1;
+      do {
+        powN <<= 1;
+        ++n;
+      }while(absi >= powN);
+      return n;
+    }
+  }
+
+  void testTestLength() {
+    for(int i = -17; i <= 17; ++i){
+      TS_ASSERT_EQUALS(Integer(i).length(), internalLength(i));
+    }
+  }
 };
