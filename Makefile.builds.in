@@ -222,6 +222,9 @@ doc-internals-builds: doc-prereq
 doc-prereq:
 	+(cd $(CURRENT_BUILD) && for dir in `find . -name Makefile | xargs grep -l BUILT_SOURCES`; do (cd `dirname "$$dir"`; (cat Makefile; echo 'doc-prereq: $$(BUILT_SOURCES)') | $(MAKE) -f- doc-prereq); done)
 
-# any other target than the default doesn't do the extra stuff above
-examples %:
+# Any other target than the default doesn't do the extra stuff above.
+# Split out "examples" target, recent Makes don't want them combined.
+examples:
+	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
+%:
 	+(cd $(CURRENT_BUILD) && $(MAKE) $@)
