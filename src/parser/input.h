@@ -45,7 +45,7 @@ public:
 };
 
 /** Wrapper around an input stream. */
-class InputStream {
+class CVC4_PUBLIC InputStream {
 
   /** The name of this input stream. */
   std::string d_name;
@@ -73,7 +73,7 @@ public:
 
   /** Get the name of this input stream. */
   const std::string getName() const;
-};
+};/* class InputStream */
 
 class Parser;
 

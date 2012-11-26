@@ -24,7 +24,7 @@
 ####
 
 import CVC4
-from CVC4 import ExprManager, SmtEngine, Integer, Expr
+from CVC4 import ExprManager, SmtEngine, Rational, Expr
 
 import sys
 
@@ -39,16 +39,16 @@ def main():
 
   x = em.mkVar("x", integer)
   y = em.mkVar("y", integer)
-  zero = em.mkConst(Integer(0))
+  zero = em.mkConst(Rational(0))
 
   x_positive = em.mkExpr(CVC4.GT, x, zero)
   y_positive = em.mkExpr(CVC4.GT, y, zero)
 
-  two = em.mkConst(Integer(2))
+  two = em.mkConst(Rational(2))
   twox = em.mkExpr(CVC4.MULT, two, x)
   twox_plus_y = em.mkExpr(CVC4.PLUS, twox, y)
 
-  three = em.mkConst(Integer(3))
+  three = em.mkConst(Rational(3))
   twox_plus_y_geq_3 = em.mkExpr(CVC4.GEQ, twox_plus_y, three)
 
   formula = Expr(em.mkExpr(CVC4.AND, x_positive, y_positive)).impExpr(Expr(twox_plus_y_geq_3))
