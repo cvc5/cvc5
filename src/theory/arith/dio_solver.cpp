@@ -132,27 +132,11 @@ bool DioSolver::debugEqualityInInputEquations(Node eq){
   return false;
 }
 
-bool DioSolver::acceptableOriginalNodes(Node n){
-  Kind k = n.getKind();
-  if(k == kind::EQUAL){
-    return true;
-  }else if(k == kind::AND){
-    Node ub = n[0];
-    Node lb = n[1];
-    Kind kub = Comparison::comparisonKind(ub);
-    Kind klb = Comparison::comparisonKind(lb);
-    Debug("nf::tmp") << n << endl;
-    return (kub == kind::GEQ || kub==kind::LT) && (klb == kind::GEQ || klb == kind::LT);
-  }else{
-    return false;
-  }
-}
 
 void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(!debugEqualityInInputEquations(reason));
   Assert(eq.debugIsIntegral());
   Assert(eq.getNode().getKind() == kind::EQUAL);
-  Assert(acceptableOriginalNodes(reason));
 
   SumPair sp = eq.toSumPair();
   uint32_t length = sp.maxLength();
@@ -209,7 +193,6 @@ Node DioSolver::proveIndex(TrailIndex i){
     Variable v = vl.getHead();
 
     Node input = proofVariableToReason(v);
-    Assert(acceptableOriginalNodes(input));
     if(input.getKind() == kind::AND){
       for(Node::iterator input_iter = input.begin(), input_end = input.end(); input_iter != input_end; ++input_iter){
 	Node inputChild = *input_iter;
@@ -689,9 +672,10 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   TrailIndex ci = d_trail.size();
   d_trail.push_back(Constraint(newSI, Polynomial::mkZero()));
+  // no longer reference av safely!
 
   Debug("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
-                      << ") for " << av.getNode() << endl;
+                      << ") for " << d_trail[i].d_minimalMonomial.getNode() << endl;
   Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl) == Constant::mkConstant(-1));
 
   SumPair newFact = r + fresh_a;

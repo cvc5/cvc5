@@ -237,11 +237,6 @@ private:
    */
   size_t allocateVariableInPool();
 
-  /**
-   * Returns true if the node can be accepted as a reason according to the
-   * kinds.
-   */
-  bool acceptableOriginalNodes(Node n);
 
   /** Empties the unproccessed input constraints into the queue. */
   void enqueueInputConstraints();
