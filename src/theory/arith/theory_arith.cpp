@@ -1326,7 +1326,7 @@ Node TheoryArith::callDioSolver(){
       Assert(orig.getKind() != EQUAL);
       return orig;
     }else{
-      Debug("dio::push") << v << " " << eq.getNode() << endl;
+      Debug("dio::push") << v << " " << eq.getNode() << " with reason " << orig << endl;
       d_diosolver.pushInputConstraint(eq, orig);
     }
   }
