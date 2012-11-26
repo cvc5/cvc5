@@ -101,10 +101,6 @@ bool TheoryProxy::theoryNeedCheck() const {
   return d_theoryEngine->needCheck();
 }
 
-void TheoryProxy::removeClausesAboveLevel(int level) {
-  d_cnfStream->removeClausesAboveLevel(level);
-}
-
 TNode TheoryProxy::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }

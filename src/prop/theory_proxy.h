@@ -97,16 +97,10 @@ public:
 
   bool theoryNeedCheck() const;
 
-  void removeClausesAboveLevel(int level);
-
   /**
    * Notifies of a new variable at a decision level.
    */
   void variableNotify(SatVariable var);
-
-  void unregisterVar(SatLiteral lit);
-
-  void renewVar(SatLiteral lit, int level = -1);
 
   TNode getNode(SatLiteral lit);
 

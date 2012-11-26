@@ -22,6 +22,7 @@
 #define __CVC4__LOGIC_INFO_H
 
 #include <string>
+#include <vector>
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -43,7 +44,7 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC LogicInfo {
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
-  bool d_theories[theory::THEORY_LAST]; /**< set of active theories */
+  std::vector<bool> d_theories; /**< set of active theories */
   size_t d_sharingTheories; /**< count of theories that need sharing */
 
   // for arithmetic

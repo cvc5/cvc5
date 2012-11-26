@@ -47,19 +47,10 @@ class CnfStream {
 public:
 
   /** Cache of what nodes have been registered to a literal. */
-  typedef __gnu_cxx::hash_map<SatLiteral, TNode, SatLiteralHashFunction> NodeCache;
-
-  /** Per node translation information */
-  struct TranslationInfo {
-    bool recorded;
-    /** The level at which this node was translated (negative if not translated) */
-    int level;
-    /** The literal of this node */
-    SatLiteral literal;
-  };
+  typedef context::CDHashMap<SatLiteral, TNode, SatLiteralHashFunction> LiteralToNodeMap;
 
   /** Cache of what literals have been registered to a node. */
-  typedef __gnu_cxx::hash_map<Node, TranslationInfo, NodeHashFunction> TranslationCache;
+  typedef context::CDHashMap<Node, SatLiteral, NodeHashFunction> NodeToLiteralMap;
 
 protected:
 
@@ -69,8 +60,11 @@ protected:
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
 
-  TranslationCache d_translationCache;
-  NodeCache d_nodeCache;
+  /** Map from nodes to literals */
+  NodeToLiteralMap d_nodeToLiteralMap;
+
+  /** Map from literals to nodes */
+  LiteralToNodeMap d_literalToNodeMap;
 
   /**
    * True if the lit-to-Node map should be kept for all lits, not just
@@ -81,9 +75,6 @@ protected:
 
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
-
-  /** Top level nodes that we translated */
-  std::vector<TNode> d_translationTrail;
 
   /**
    * How many literals were already mapped at the top-level when we
@@ -111,23 +102,11 @@ protected:
     return node;
   }
 
-  /** Record this translation */
-  void recordTranslation(TNode node, bool alwaysRecord = false);
-
-  /**
-   * Moves the node and all of it's parents to level 0.
-   */
-  void moveToBaseLevel(TNode node);
-
-  /**
-   * Mark the node, and all parent at levels above level as untranslated.
-   */
-  void undoTranslate(TNode node, int level);
-
   /**
    * Are we asserting a removable clause (true) or a permanent clause (false).
-   * This is set at the begining of convertAndAssert so that it doesn't
-   * need to be passed on over the stack.
+   * This is set at the beginning of convertAndAssert so that it doesn't
+   * need to be passed on over the stack. Only pure clauses  can be asserted as
+   * removable.
    */
   bool d_removable;
 
@@ -219,13 +198,6 @@ public:
   TNode getNode(const SatLiteral& literal);
 
   /**
-   * Returns true if the node has been cached in the translation cache.
-   * @param node the node
-   * @return true if the node has been cached
-   */
-  bool isTranslated(TNode node) const;
-
-  /**
    * Returns true iff the node has an assigned literal (it might not be translated).
    * @param node the node
    */
@@ -253,18 +225,13 @@ public:
    */
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
 
-  const TranslationCache& getTranslationCache() const {
-    return d_translationCache;
+  const NodeToLiteralMap& getTranslationCache() const {
+    return d_nodeToLiteralMap;
   }
 
-  const NodeCache& getNodeCache() const {
-    return d_nodeCache;
+  const LiteralToNodeMap& getNodeCache() const {
+    return d_literalToNodeMap;
   }
-
-  /**
-   * Removes all the translation information of clauses that have the given associated assert level.
-   */
-  void removeClausesAboveLevel(int level);
 
 };/* class CnfStream */
 

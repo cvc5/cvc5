@@ -31,7 +31,7 @@ namespace CVC4 {
 
 LogicInfo::LogicInfo() :
   d_logicString(""),
-  d_theories(),
+  d_theories(THEORY_LAST, false),
   d_sharingTheories(0),
   d_integers(true),
   d_reals(true),
@@ -40,14 +40,13 @@ LogicInfo::LogicInfo() :
   d_locked(false) {
 
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
-    d_theories[id] = false;// ensure it's cleared
     enableTheory(id);
   }
 }
 
 LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
   d_logicString(""),
-  d_theories(),
+  d_theories(THEORY_LAST, false),
   d_sharingTheories(0),
   d_integers(false),
   d_reals(false),
@@ -61,7 +60,7 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
 
 LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
   d_logicString(""),
-  d_theories(),
+  d_theories(THEORY_LAST, false),
   d_sharingTheories(0),
   d_integers(false),
   d_reals(false),

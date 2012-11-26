@@ -98,10 +98,9 @@ SimpSolver::~SimpSolver()
 Var SimpSolver::newVar(bool sign, bool dvar, bool theoryAtom) {
     Var v = Solver::newVar(sign, dvar,theoryAtom);
 
-    frozen    .push((char)theoryAtom);
-    eliminated.push((char)false);
-
     if (use_simplification){
+        frozen    .push((char)theoryAtom);
+        eliminated.push((char)false);
         n_occ     .push(0);
         n_occ     .push(0);
         occurs    .init(v);
@@ -159,8 +158,10 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 bool SimpSolver::addClause_(vec<Lit>& ps, bool removable)
 {
 #ifndef NDEBUG
-    for (int i = 0; i < ps.size(); i++)
+    if (use_simplification) {
+      for (int i = 0; i < ps.size(); i++)
         assert(!isEliminated(var(ps[i])));
+    }
 #endif
 
     int nclauses = clauses_persistent.size();

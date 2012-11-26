@@ -80,10 +80,6 @@ public:
 
   void pop();
 
-  void unregisterVar(SatLiteral lit);
-
-  void renewVar(SatLiteral lit, int level = -1);
-
   void requirePhase(SatLiteral lit);
 
   bool flipDecision();

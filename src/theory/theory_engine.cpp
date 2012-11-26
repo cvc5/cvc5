@@ -341,7 +341,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << std::endl;
 
   } catch(const theory::Interrupted&) {
-    Trace("theory") << "TheoryEngine::check() => conflict" << endl;
+    Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
   }
 
   // If fulleffort, check all theories
@@ -519,7 +519,7 @@ bool TheoryEngine::properConflict(TNode conflict) const {
 }
 
 bool TheoryEngine::properPropagation(TNode lit) const {
-  if(!getPropEngine()->isTranslatedSatLiteral(lit)) {
+  if(!getPropEngine()->isSatLiteral(lit)) {
     return false;
   }
   bool b;

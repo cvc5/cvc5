@@ -212,14 +212,6 @@ void MinisatSatSolver::pop(){
   d_minisat->pop();
 }
 
-void MinisatSatSolver::unregisterVar(SatLiteral lit) {
-  d_minisat->unregisterVar(toMinisatLit(lit));
-}
-
-void MinisatSatSolver::renewVar(SatLiteral lit, int level) {
-  d_minisat->renewVar(toMinisatLit(lit), level);
-}
-
 /// Statistics for MinisatSatSolver
 
 MinisatSatSolver::Statistics::Statistics() :

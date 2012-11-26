@@ -64,10 +64,7 @@ public:
   /** Call modelValue() when the search is done.*/
   virtual SatValue modelValue(SatLiteral l) = 0;
 
-  virtual void unregisterVar(SatLiteral lit) = 0;
-
-  virtual void renewVar(SatLiteral lit, int level = -1) = 0;
-
+  /** Get the current assertion level */
   virtual unsigned getAssertionLevel() const = 0;
 
 };/* class SatSolver */

@@ -100,7 +100,7 @@ void Bitblaster::bbAtom(TNode node) {
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
 
   if (!options::bitvectorEagerBitblast()) {
-    d_cnfStream->convertAndAssert(atom_definition, true, false);
+    d_cnfStream->convertAndAssert(atom_definition, false, false);
     d_bitblastedAtoms.insert(node);
   } else {
     d_bvOutput->lemma(atom_definition, false);

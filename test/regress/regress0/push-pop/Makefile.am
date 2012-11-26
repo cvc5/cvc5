@@ -1,4 +1,4 @@
-SUBDIRS = . 
+SUBDIRS = boolean arith . 
 
 BINARY = cvc4
 LOG_COMPILER = @srcdir@/../../run_regression

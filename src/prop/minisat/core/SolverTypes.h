@@ -340,6 +340,7 @@ class OccLists
     OccLists(const Deleted& d) : deleted(d) {}
     
     void  init      (const Idx& idx){ occs.growTo(toInt(idx)+1); dirty.growTo(toInt(idx)+1, 0); }
+    void  resizeTo  (const Idx& idx){ int shrinkSize = occs.size() - (toInt(idx) + 1); occs.shrink(shrinkSize); }
     // Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
     Vec&  operator[](const Idx& idx){ return occs[toInt(idx)]; }
     Vec&  lookup    (const Idx& idx){ if (dirty[toInt(idx)]) clean(idx); return occs[toInt(idx)]; }

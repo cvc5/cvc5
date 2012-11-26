@@ -105,6 +105,9 @@ protected:
   /** Variables to re-register with theory solvers on backtracks */
   vec<VarIntroInfo> variables_to_register;
 
+  /** Keep only newSize variables */
+  void resizeVars(int newSize);
+
 public:
 
     // Constructor/Destructor:
@@ -150,9 +153,6 @@ public:
     // CVC4 context push/pop
     void          push                     ();
     void          pop                      ();
-
-    void unregisterVar(Lit lit); // Unregister the literal (set assertion level to -1)
-    void renewVar(Lit lit, int level = -1); // Register the literal (set assertion level to the given level, or current level if -1)
 
     bool    addClause (const vec<Lit>& ps, bool removable);                     // Add a clause to the solver.
     bool    addEmptyClause(bool removable);                                     // Add the empty clause, making the solver contradictory.
@@ -258,8 +258,26 @@ protected:
 
     // Helper structures:
     //
-    struct VarData { CRef reason; int level; int intro_level; int trail_index; };
-    static inline VarData mkVarData(CRef cr, int l, int intro_l, int trail_i){ VarData d = {cr, l, intro_l, trail_i}; return d; }
+    struct VarData {
+      // Reason for the literal being in the trail
+      CRef reason;
+      // Sat level when the literal was added to the trail
+      int level;
+      // User level when the literal was added to the trail
+      int user_level;
+      // Use level at which this literal was introduced
+      int intro_level;
+      // The index in the trail
+      int trail_index;
+
+      VarData(CRef reason, int level, int user_level, int intro_level, int trail_index)
+      : reason(reason)
+      , level(level)
+      , user_level(user_level)
+      , intro_level(intro_level)
+      , trail_index(trail_index)
+      {}
+    };
 
     struct Watcher {
         CRef cref;
@@ -293,13 +311,12 @@ protected:
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
                         watches;            // 'watches[lit]' is a list of constraints watching 'lit' (will go there if literal becomes true).
     vec<lbool>          assigns;            // The current assignments.
+    vec<int>            assigns_lim;        // The size by levels of the current assignment
     vec<char>           polarity;           // The preferred polarity of each variable (bit 0) and whether it's locked (bit 1).
     vec<char>           decision;           // Declares if a variable is eligible for selection in the decision heuristic.
     vec<int>            flipped;            // Which trail_lim decisions have been flipped in this context.
     vec<Lit>            trail;              // Assignment stack; stores all assigments made in the order they were made.
     vec<int>            trail_lim;          // Separator indices for different decision levels in 'trail'.
-    vec<Lit>            trail_user;         // Stack of assignments to UNdo on user pop.
-    vec<int>            trail_user_lim;     // Separator indices for different user levels in 'trail'.
     vec<bool>           trail_ok;           // Stack of "whether we're in conflict" flags.
     vec<VarData>        vardata;            // Stores reason and level for each variable.
     int                 qhead;              // Head of queue (as index into the trail -- no more explicit propagation queue in MiniSat).
@@ -361,7 +378,7 @@ protected:
     void     popTrail         ();                                                      // Backtrack the trail to the previous push position
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
-    int      litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - returns the maximal level of the clauses proving redundancy of p
+    bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - true if p is redundant
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
@@ -396,7 +413,8 @@ protected:
     bool     isPropagatedBy   (Var x, const Clause& c) const; // Is the value of the variable propagated by the clause Clause C
 
     int      level            (Var x) const;
-    int      intro_level      (Var x) const; // Level at which this variable was introduced
+    int      user_level       (Var x) const; // User level at which this variable was asserted
+    int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
     bool     withinBudget     ()      const;
@@ -429,13 +447,16 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const { return vardat
 
 inline bool Solver::isDecision(Var x) const { Debug("minisat") << "var " << x << " is a decision iff " << (vardata[x].reason == CRef_Undef) << " && " << level(x) << " > 0" << std::endl; return vardata[x].reason == CRef_Undef && level(x) > 0; }
 
-inline int  Solver::level (Var x) const { return vardata[x].level; }
+inline int  Solver::level (Var x) const { assert(x < vardata.size()); return vardata[x].level; }
 
-inline int  Solver::intro_level(Var x) const { return vardata[x].intro_level; }
+inline int  Solver::user_level(Var x) const { assert(x < vardata.size()); return vardata[x].user_level; }
 
-inline int  Solver::trail_index(Var x) const { return vardata[x].trail_index; }
+inline int  Solver::intro_level(Var x) const { assert(x < vardata.size()); return vardata[x].intro_level; }
+
+inline int  Solver::trail_index(Var x) const { assert(x < vardata.size()); return vardata[x].trail_index; }
 
 inline void Solver::insertVarOrder(Var x) {
+    assert(x < vardata.size());
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
 
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
@@ -476,8 +497,8 @@ inline void     Solver::newDecisionLevel()                      { trail_lim.push
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
-inline lbool    Solver::value         (Var x) const   { return assigns[x]; }
-inline lbool    Solver::value         (Lit p) const   { return assigns[var(p)] ^ sign(p); }
+inline lbool    Solver::value         (Var x) const   { assert(x < nVars()); return assigns[x]; }
+inline lbool    Solver::value         (Lit p) const   { assert(var(p) < nVars()); return assigns[var(p)] ^ sign(p); }
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }

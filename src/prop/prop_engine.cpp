@@ -130,22 +130,22 @@ bool PropEngine::flipDecision() {
 }
 
 bool PropEngine::isDecision(Node lit) const {
-  Assert(isTranslatedSatLiteral(lit));
+  Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
 void PropEngine::printSatisfyingAssignment(){
-  const CnfStream::TranslationCache& transCache =
+  const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();
   Debug("prop-value") << "Literal | Value | Expr" << endl
                       << "----------------------------------------"
                       << "-----------------" << endl;
-  for(CnfStream::TranslationCache::const_iterator i = transCache.begin(),
+  for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
       end = transCache.end();
       i != end;
       ++i) {
-    pair<Node, CnfStream::TranslationInfo> curr = *i;
-    SatLiteral l = curr.second.literal;
+    pair<Node, SatLiteral> curr = *i;
+    SatLiteral l = curr.second;
     if(!l.isNegated()) {
       Node n = curr.first;
       SatValue value = d_satSolver->modelValue(l);
@@ -218,10 +218,6 @@ Node PropEngine::getValue(TNode node) const {
 
 bool PropEngine::isSatLiteral(TNode node) const {
   return d_cnfStream->hasLiteral(node);
-}
-
-bool PropEngine::isTranslatedSatLiteral(TNode node) const {
-  return d_cnfStream->isTranslated(node);
 }
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
