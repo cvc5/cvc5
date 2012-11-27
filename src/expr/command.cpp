@@ -407,8 +407,16 @@ void CommandSequence::invoke(SmtEngine* smtEngine) throw() {
 void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
   for(; d_index < d_commandSequence.size(); ++d_index) {
     d_commandSequence[d_index]->invoke(smtEngine, out);
+    if(! d_commandSequence[d_index]->ok()) {
+      // abort execution
+      d_commandStatus = d_commandSequence[d_index]->getCommandStatus();
+      return;
+    }
     delete d_commandSequence[d_index];
   }
+
+  AlwaysAssert(d_commandStatus == NULL);
+  d_commandStatus = CommandSuccess::instance();
 }
 
 CommandSequence::const_iterator CommandSequence::begin() const throw() {
