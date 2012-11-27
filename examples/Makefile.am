@@ -6,7 +6,8 @@ AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
-	simple_vc_cxx
+	simple_vc_cxx \
+	linear_arith
 
 if CVC4_BUILD_LIBCOMPAT
 noinst_PROGRAMS += \
@@ -27,6 +28,12 @@ noinst_DATA += \
 	SimpleVCCompat.class
 endif
 endif
+
+linear_arith_SOURCES = \
+	linear_arith.cpp
+linear_arith_LDADD = \
+	@builddir@/../src/parser/libcvc4parser.la \
+	@builddir@/../src/libcvc4.la
 
 simple_vc_cxx_SOURCES = \
 	simple_vc_cxx.cpp
@@ -63,10 +70,12 @@ EXTRA_DIST = \
 	README
 
 if STATIC_BINARY
+linear_arith_LINK = $(CXXLINK) -all-static
 simple_vc_cxx_LINK = $(CXXLINK) -all-static
 simple_vc_compat_cxx_LINK = $(CXXLINK) -all-static
 simple_vc_compat_c_LINK = $(LINK) -all-static
 else
+linear_arith_LINK = $(CXXLINK)
 simple_vc_cxx_LINK = $(CXXLINK)
 simple_vc_compat_cxx_LINK = $(CXXLINK)
 simple_vc_compat_c_LINK = $(LINK)
@@ -82,3 +91,4 @@ MOSTLYCLEANFILES = $(noinst_DATA)
 AM_V_JAVAC = $(am__v_JAVAC_$(V))
 am__v_JAVAC_ = $(am__v_JAVAC_$(AM_DEFAULT_VERBOSITY))
 am__v_JAVAC_0 = @echo "  JAVAC " $@;
+
