@@ -53,10 +53,16 @@ class TypeChecker;
 namespace attr {
   struct VarNameTag { };
   struct SortArityTag { };
+  struct DatatypeTupleTag { };
+  struct DatatypeRecordTag { };
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
+/** Attribute true for datatype types that are replacements for tuple types */
+typedef expr::Attribute<expr::attr::DatatypeTupleTag, TypeNode> DatatypeTupleAttr;
+/** Attribute true for datatype types that are replacements for record types */
+typedef expr::Attribute<expr::attr::DatatypeRecordTag, TypeNode> DatatypeRecordAttr;
 
 }/* CVC4::expr namespace */
 
@@ -71,8 +77,8 @@ public:
   virtual void nmNotifyNewSortConstructor(TypeNode tn) { }
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort) { }
   virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
-  virtual void nmNotifyNewVar(TNode n) { }
-  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment) { }
+  virtual void nmNotifyNewVar(TNode n, bool isGlobal) { }
+  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, bool isGlobal) { }
 };/* class NodeManagerListener */
 
 class NodeManager {
@@ -82,8 +88,8 @@ class NodeManager {
   friend class expr::TypeChecker;
 
   // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string&, Type);
-  friend Expr ExprManager::mkVar(Type);
+  friend Expr ExprManager::mkVar(const std::string&, Type, bool isGlobal);
+  friend Expr ExprManager::mkVar(Type, bool isGlobal);
 
   // friend so it can access NodeManager's d_listeners and notify clients
   friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>&, const std::set<Type>&);
@@ -156,6 +162,11 @@ class NodeManager {
    * A list of subscribers for NodeManager events.
    */
   std::vector<NodeManagerListener*> d_listeners;
+
+  /**
+   * A map of tuple and record types to their corresponding datatype.
+   */
+  std::hash_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tupleAndRecordTypes;
 
   /**
    * Look up a NodeValue in the pool associated to this NodeManager.
@@ -288,12 +299,12 @@ class NodeManager {
    * version of this is private to avoid internal uses of mkVar() from
    * within CVC4.  Such uses should employ mkSkolem() instead.
    */
-  Node mkVar(const std::string& name, const TypeNode& type);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type);
+  Node mkVar(const std::string& name, const TypeNode& type, bool isGlobal = false);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type, bool isGlobal = false);
 
   /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type);
-  Node* mkVarPtr(const TypeNode& type);
+  Node mkVar(const TypeNode& type, bool isGlobal = false);
+  Node* mkVarPtr(const TypeNode& type, bool isGlobal = false);
 
 public:
 
@@ -413,7 +424,8 @@ public:
   enum SkolemFlags {
     SKOLEM_DEFAULT = 0,   /**< default behavior */
     SKOLEM_NO_NOTIFY = 1, /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2 /**< do not make the name unique by adding the id */
+    SKOLEM_EXACT_NAME = 2,/**< do not make the name unique by adding the id */
+    SKOLEM_IS_GLOBAL = 4  /**< global vars appear in models even after a pop */
   };/* enum SkolemFlags */
 
   /**
@@ -717,6 +729,14 @@ public:
   inline TypeNode mkTupleType(const std::vector<TypeNode>& types);
 
   /**
+   * Make a record type with the description from rec.
+   *
+   * @param rec a description of the record
+   * @returns the record type
+   */
+  inline TypeNode mkRecordType(const Record& rec);
+
+  /**
    * Make a symbolic expression type with types from
    * <code>types</code>. <code>types</code> may have any number of
    * elements.
@@ -778,6 +798,12 @@ public:
    */
   TypeNode mkSubrangeType(const SubrangeBounds& bounds)
     throw(TypeCheckingExceptionPrivate);
+
+  /**
+   * Given a tuple or record type, get the internal datatype used for
+   * it.  Makes the DatatypeType if necessary.
+   */
+  TypeNode getDatatypeForTupleRecord(TypeNode tupleRecordType);
 
   /**
    * Get the type for the given node and optionally do type checking.
@@ -1065,6 +1091,10 @@ inline TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
     typeNodes.push_back(types[i]);
   }
   return mkTypeNode(kind::TUPLE_TYPE, typeNodes);
+}
+
+inline TypeNode NodeManager::mkRecordType(const Record& rec) {
+  return mkTypeConst(rec);
 }
 
 inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
@@ -1456,25 +1486,25 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 }
 
 
-inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
+inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bool isGlobal) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
+    (*i)->nmNotifyNewVar(n, isGlobal);
   }
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const std::string& name,
-                                   const TypeNode& type) {
+                                   const TypeNode& type, bool isGlobal) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
+    (*i)->nmNotifyNewVar(*n, isGlobal);
   }
   return n;
 }
@@ -1492,22 +1522,22 @@ inline Node* NodeManager::mkBoundVarPtr(const std::string& name,
   return n;
 }
 
-inline Node NodeManager::mkVar(const TypeNode& type) {
+inline Node NodeManager::mkVar(const TypeNode& type, bool isGlobal) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n);
+    (*i)->nmNotifyNewVar(n, isGlobal);
   }
   return n;
 }
 
-inline Node* NodeManager::mkVarPtr(const TypeNode& type) {
+inline Node* NodeManager::mkVarPtr(const TypeNode& type, bool isGlobal) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n);
+    (*i)->nmNotifyNewVar(*n, isGlobal);
   }
   return n;
 }

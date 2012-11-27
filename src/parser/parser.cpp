@@ -138,8 +138,8 @@ bool Parser::isPredicate(const std::string& name) {
 Expr
 Parser::mkVar(const std::string& name, const Type& type,
               bool levelZero) {
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type);
+  Debug("parser") << "mkVar(" << name << ", " << type << ", " << levelZero << ")" << std::endl;
+  Expr expr = d_exprManager->mkVar(name, type, levelZero);
   defineVar(name, expr, levelZero);
   return expr;
 }
@@ -156,7 +156,7 @@ Expr
 Parser::mkFunction(const std::string& name, const Type& type,
                    bool levelZero) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type);
+  Expr expr = d_exprManager->mkVar(name, type, levelZero);
   defineFunction(name, expr, levelZero);
   return expr;
 }
@@ -337,37 +337,6 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
   d_unresolved.clear();
 
   return types;
-}
-
-DatatypeType Parser::mkRecordType(const std::vector< std::pair<std::string, Type> >& typeIds) {
-  DatatypeType& dtt = d_recordTypes[typeIds];
-  if(dtt.isNull()) {
-    Datatype dt("__cvc4_record");
-Debug("datatypes") << "make new record_ctor" << std::endl;
-    DatatypeConstructor c("__cvc4_record_ctor");
-    for(std::vector< std::pair<std::string, Type> >::const_iterator i = typeIds.begin(); i != typeIds.end(); ++i) {
-      c.addArg((*i).first, (*i).second);
-    }
-    dt.addConstructor(c);
-    dtt = d_exprManager->mkDatatypeType(dt);
-  } else {
-Debug("datatypes") << "use old record_ctor" << std::endl;
-}
-  return dtt;
-}
-
-DatatypeType Parser::mkTupleType(const std::vector<Type>& types) {
-  DatatypeType& dtt = d_tupleTypes[types];
-  if(dtt.isNull()) {
-    Datatype dt("__cvc4_tuple");
-    DatatypeConstructor c("__cvc4_tuple_ctor");
-    for(std::vector<Type>::const_iterator i = types.begin(); i != types.end(); ++i) {
-      c.addArg("__cvc4_tuple_stor", *i);
-    }
-    dt.addConstructor(c);
-    dtt = d_exprManager->mkDatatypeType(dt);
-  }
-  return dtt;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

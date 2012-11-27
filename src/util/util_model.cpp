@@ -36,11 +36,17 @@ Model::Model() :
 }
 
 size_t Model::getNumCommands() const {
-  return d_smt.d_modelCommands->size();
+  return d_smt.d_modelCommands->size() + d_smt.d_modelGlobalCommands.size();
 }
 
 const Command* Model::getCommand(size_t i) const {
-  return (*d_smt.d_modelCommands)[i];
+  Assert(i < getNumCommands());
+  // index the global commands first, then the locals
+  if(i < d_smt.d_modelGlobalCommands.size()) {
+    return d_smt.d_modelGlobalCommands[i];
+  } else {
+    return (*d_smt.d_modelCommands)[i - d_smt.d_modelGlobalCommands.size()];
+  }
 }
 
 }/* CVC4 namespace */

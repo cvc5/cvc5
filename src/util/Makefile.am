@@ -43,6 +43,9 @@ libutil_la_SOURCES = \
 	array.h \
 	datatype.h \
 	datatype.cpp \
+	tuple.h \
+	record.h \
+	record.cpp \
 	matcher.h \
 	gmp_util.h \
 	sexpr.h \

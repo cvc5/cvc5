@@ -84,4 +84,72 @@ typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionType
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
 
+operator TUPLE_TYPE 1: "tuple type"
+cardinality TUPLE_TYPE \
+    "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
+    "theory/datatypes/theory_datatypes_type_rules.h"
+well-founded TUPLE_TYPE \
+    "::CVC4::theory::datatypes::TupleProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::datatypes::TupleProperties::mkGroundTerm(%TYPE%)" \
+    "theory/datatypes/theory_datatypes_type_rules.h"
+enumerator TUPLE_TYPE \
+    "::CVC4::theory::datatypes::TupleEnumerator" \
+    "theory/datatypes/type_enumerator.h"
+
+operator TUPLE 1: "a tuple"
+typerule TUPLE ::CVC4::theory::datatypes::TupleTypeRule
+construle TUPLE ::CVC4::theory::datatypes::TupleProperties
+
+constant TUPLE_SELECT_OP \
+        ::CVC4::TupleSelect \
+        ::CVC4::TupleSelectHashFunction \
+        "util/tuple.h" \
+        "operator for a tuple select"
+parameterized TUPLE_SELECT TUPLE_SELECT_OP 1 "tuple select"
+typerule TUPLE_SELECT ::CVC4::theory::datatypes::TupleSelectTypeRule
+
+constant TUPLE_UPDATE_OP \
+        ::CVC4::TupleUpdate \
+        ::CVC4::TupleUpdateHashFunction \
+        "util/tuple.h" \
+        "operator for a tuple update"
+parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update"
+typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
+
+constant RECORD_TYPE \
+    ::CVC4::Record \
+    "::CVC4::RecordHashFunction" \
+    "util/record.h" \
+    "record type"
+cardinality RECORD_TYPE \
+    "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
+    "theory/datatypes/theory_datatypes_type_rules.h"
+well-founded RECORD_TYPE \
+    "::CVC4::theory::datatypes::TupleProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::datatypes::RecordProperties::mkGroundTerm(%TYPE%)" \
+    "theory/datatypes/theory_datatypes_type_rules.h"
+enumerator RECORD_TYPE \
+    "::CVC4::theory::datatypes::RecordEnumerator" \
+    "theory/datatypes/type_enumerator.h"
+
+parameterized RECORD RECORD_TYPE 1: "a record"
+typerule RECORD ::CVC4::theory::datatypes::RecordTypeRule
+construle RECORD ::CVC4::theory::datatypes::RecordProperties
+
+constant RECORD_SELECT_OP \
+        ::CVC4::RecordSelect \
+        ::CVC4::RecordSelectHashFunction \
+        "util/record.h" \
+        "operator for a record select"
+parameterized RECORD_SELECT RECORD_SELECT_OP 1 "record select"
+typerule RECORD_SELECT ::CVC4::theory::datatypes::RecordSelectTypeRule
+
+constant RECORD_UPDATE_OP \
+        ::CVC4::RecordUpdate \
+        ::CVC4::RecordUpdateHashFunction \
+        "util/record.h" \
+        "operator for a record update"
+parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update"
+typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
+
 endtheory

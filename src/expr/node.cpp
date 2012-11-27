@@ -27,6 +27,9 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
                                                            std::string message) throw() :
   Exception(message),
   d_node(new Node(node)) {
+#ifdef CVC4_DEBUG
+  s_debugLastException = toString().c_str();
+#endif /* CVC4_DEBUG */
 }
 
 TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() throw () {

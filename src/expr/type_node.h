@@ -536,8 +536,17 @@ public:
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Get the length of a tuple type */
+  size_t getTupleLength() const;
+
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
+
+  /** Is this a record type? */
+  bool isRecord() const;
+
+  /** Get the description of the record type */
+  const Record& getRecord() const;
 
   /** Is this a symbolic expression type? */
   bool isSExpr() const;
@@ -571,6 +580,9 @@ public:
 
   /** Is this a tester type */
   bool isTester() const;
+
+  /** Get the Datatype specification from a datatype type */
+  const Datatype& getDatatype() const;
 
   /** Get the size of this bit-vector type */
   unsigned getBitVectorSize() const;
@@ -883,6 +895,12 @@ inline bool TypeNode::isTuple() const {
     ( isPredicateSubtype() && getSubtypeParentType().isTuple() );
 }
 
+/** Is this a record type? */
+inline bool TypeNode::isRecord() const {
+  return getKind() == kind::RECORD_TYPE ||
+    ( isPredicateSubtype() && getSubtypeParentType().isRecord() );
+}
+
 /** Is this a symbolic expression type? */
 inline bool TypeNode::isSExpr() const {
   return getKind() == kind::SEXPR_TYPE ||
@@ -920,6 +938,7 @@ inline bool TypeNode::isBitVector() const {
 /** Is this a datatype type */
 inline bool TypeNode::isDatatype() const {
   return getKind() == kind::DATATYPE_TYPE ||
+    getKind() == kind::TUPLE_TYPE || getKind() == kind::RECORD_TYPE ||
     ( isPredicateSubtype() && getSubtypeParentType().isDatatype() );
 }
 
@@ -949,6 +968,16 @@ inline bool TypeNode::isBitVector(unsigned size) const {
   return
     ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size ) ||
     ( isPredicateSubtype() && getSubtypeParentType().isBitVector(size) );
+}
+
+/** Get the datatype specification from a datatype type */
+inline const Datatype& TypeNode::getDatatype() const {
+  Assert(isDatatype());
+  if(getKind() == kind::DATATYPE_TYPE) {
+    return getConst<Datatype>();
+  } else {
+    return NodeManager::currentNM()->getDatatypeForTupleRecord(*this).getConst<Datatype>();
+  }
 }
 
 /** Get the size of this bit-vector type */

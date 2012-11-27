@@ -296,7 +296,6 @@ operator DISTINCT 2: "disequality"
 variable VARIABLE "variable"
 variable BOUND_VARIABLE "bound variable"
 variable SKOLEM "skolem var"
-operator TUPLE 1: "a tuple"
 operator SEXPR 0: "a symbolic expression"
 
 operator LAMBDA 2 "lambda"
@@ -313,14 +312,6 @@ cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 well-founded FUNCTION_TYPE false
-operator TUPLE_TYPE 1: "tuple type"
-cardinality TUPLE_TYPE \
-    "::CVC4::theory::builtin::TupleProperties::computeCardinality(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
-well-founded TUPLE_TYPE \
-    "::CVC4::theory::builtin::TupleProperties::isWellFounded(%TYPE%)" \
-    "::CVC4::theory::builtin::TupleProperties::mkGroundTerm(%TYPE%)" \
-    "theory/builtin/theory_builtin_type_rules.h"
 operator SEXPR_TYPE 0: "symbolic expression type"
 cardinality SEXPR_TYPE \
     "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
@@ -350,7 +341,6 @@ typerule CONST_STRING ::CVC4::theory::builtin::StringConstantTypeRule
 typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
 typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
-typerule TUPLE ::CVC4::theory::builtin::TupleTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule

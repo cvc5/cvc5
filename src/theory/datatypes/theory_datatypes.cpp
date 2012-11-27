@@ -22,6 +22,7 @@
 #include "util/cvc4_assert.h"
 #include "theory/datatypes/theory_datatypes_instantiator.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/model.h"
 #include "smt/options.h"
 
@@ -94,6 +95,19 @@ void TheoryDatatypes::check(Effort e) {
     Assertion assertion = get();
     TNode fact = assertion.assertion;
     Trace("datatypes-assert") << "Assert " << fact << std::endl;
+
+    TNode atom CVC4_UNUSED = fact.getKind() == kind::NOT ? fact[0] : fact;
+
+    // extra debug check to make sure that the rewriter did its job correctly
+    Assert( atom.getKind() != kind::EQUAL ||
+            ( atom[0].getKind() != kind::TUPLE && atom[1].getKind() != kind::TUPLE &&
+              atom[0].getKind() != kind::RECORD && atom[1].getKind() != kind::RECORD &&
+              atom[0].getKind() != kind::TUPLE_UPDATE && atom[1].getKind() != kind::TUPLE_UPDATE &&
+              atom[0].getKind() != kind::RECORD_UPDATE && atom[1].getKind() != kind::RECORD_UPDATE &&
+              atom[0].getKind() != kind::TUPLE_SELECT && atom[1].getKind() != kind::TUPLE_SELECT &&
+              atom[0].getKind() != kind::RECORD_SELECT && atom[1].getKind() != kind::RECORD_SELECT ),
+            "tuple/record escaped into datatypes decision procedure; should have been rewritten away" );
+
     //assert the fact
     assertFact( fact, fact );
     flushPendingFacts();
@@ -273,6 +287,90 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 
 void TheoryDatatypes::presolve() {
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
+}
+
+Node TheoryDatatypes::ppRewrite(TNode in) {
+  Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
+
+  if(in.getKind() == kind::TUPLE_SELECT) {
+    TypeNode t = in[0].getType();
+    if(t.hasAttribute(expr::DatatypeTupleAttr())) {
+      t = t.getAttribute(expr::DatatypeTupleAttr());
+    }
+    TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
+    const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][in.getOperator().getConst<TupleSelect>().getIndex()].getSelector()), in[0]);
+  } else if(in.getKind() == kind::RECORD_SELECT) {
+    TypeNode t = in[0].getType();
+    if(t.hasAttribute(expr::DatatypeRecordAttr())) {
+      t = t.getAttribute(expr::DatatypeRecordAttr());
+    }
+    TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
+    const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][in.getOperator().getConst<RecordSelect>().getField()].getSelector()), in[0]);
+  }
+
+  // we only care about tuples and records here
+  if(in.getKind() != kind::TUPLE && in.getKind() != kind::TUPLE_UPDATE &&
+     in.getKind() != kind::RECORD && in.getKind() != kind::RECORD_UPDATE) {
+    // nothing to do
+    return in;
+  }
+
+  TypeNode t = in.getType();
+
+  if(t.hasAttribute(expr::DatatypeTupleAttr())) {
+    t = t.getAttribute(expr::DatatypeTupleAttr());
+  } else if(t.hasAttribute(expr::DatatypeRecordAttr())) {
+    t = t.getAttribute(expr::DatatypeRecordAttr());
+  }
+
+  // if the type doesn't have an associated datatype, then make one for it
+  TypeNode dtt = (t.isTuple() || t.isRecord()) ? NodeManager::currentNM()->getDatatypeForTupleRecord(t) : t;
+
+  const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
+
+  // now rewrite the expression
+  Node n;
+  if(in.getKind() == kind::TUPLE || in.getKind() == kind::RECORD) {
+    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+    b << Node::fromExpr(dt[0].getConstructor());
+    b.append(in.begin(), in.end());
+    n = b;
+  } else if(in.getKind() == kind::TUPLE_UPDATE || in.getKind() == kind::RECORD_UPDATE) {
+    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+    b << Node::fromExpr(dt[0].getConstructor());
+    size_t size, updateIndex;
+    if(in.getKind() == kind::TUPLE_UPDATE) {
+      size = t.getNumChildren();
+      updateIndex = in.getOperator().getConst<TupleUpdate>().getIndex();
+    } else { // kind::RECORD_UPDATE
+      const Record& record = t.getConst<Record>();
+      size = record.getNumFields();
+      updateIndex = record.getIndex(in.getOperator().getConst<RecordUpdate>().getField());
+    }
+    Debug("tuprec") << "expr is " << in << std::endl;
+    Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
+    Debug("tuprec") << "t is " << t << std::endl;
+    Debug("tuprec") << "t has arity " << size << std::endl;
+    for(size_t i = 0; i < size; ++i) {
+      if(i == updateIndex) {
+        b << in[1];
+        Debug("tuprec") << "arg " << i << " gets updated to " << in[1] << std::endl;
+      } else {
+        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][i].getSelector()), in[0]);
+        Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
+      }
+    }
+    Debug("tuprec") << "builder says " << b << std::endl;
+    n = b;
+  }
+
+  Assert(!n.isNull());
+
+  Debug("tuprec") << "REWROTE " << in << " to " << n << std::endl;
+
+  return n;
 }
 
 void TheoryDatatypes::addSharedTerm(TNode t) {
@@ -719,7 +817,7 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
     Node n_ic = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
     collectTerms( n_ic );
     //add type ascription for ambiguous constructor types
-    if( n_ic.getType()!=n.getType() ){
+    if(!n_ic.getType().isComparableTo(n.getType())) {
       Assert( dt.isParametric() );
       Debug("datatypes-parametric") << "DtInstantiate: ambiguous type for " << n_ic << ", ascribe to " << n.getType() << std::endl;
       Debug("datatypes-parametric") << "Constructor is " << dt[index] << std::endl;

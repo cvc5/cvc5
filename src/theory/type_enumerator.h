@@ -97,8 +97,40 @@ public:
 
   ~TypeEnumerator() { delete d_te; }
 
-  bool isFinished() throw() { return d_te->isFinished(); }
-  Node operator*() throw(NoMoreValuesException) { return **d_te; }
+  bool isFinished() throw() {
+#ifdef CVC4_ASSERTIONS
+    if(d_te->isFinished()) {
+      try {
+        **d_te;
+        Assert(false, "expected an NoMoreValuesException to be thrown");
+      } catch(NoMoreValuesException&) {
+        // ignore the exception, we're just asserting that it would be thrown
+      }
+    } else {
+      try {
+        **d_te;
+      } catch(NoMoreValuesException&) {
+        Assert(false, "didn't expect a NoMoreValuesException to be thrown");
+      }
+    }
+#endif /* CVC4_ASSERTIONS */
+    return d_te->isFinished();
+  }
+  Node operator*() throw(NoMoreValuesException) {
+#ifdef CVC4_ASSERTIONS
+    try {
+      Node n = **d_te;
+      Assert(n.isConst());
+      Assert(! isFinished());
+      return n;
+    } catch(NoMoreValuesException&) {
+      Assert(isFinished());
+      throw;
+    }
+#else /* CVC4_ASSERTIONS */
+    return **d_te;
+#endif /* CVC4_ASSERTIONS */
+  }
   TypeEnumerator& operator++() throw() { ++*d_te; return *this; }
   TypeEnumerator operator++(int) throw() { TypeEnumerator te = *this; ++*d_te; return te; }
 

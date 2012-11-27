@@ -40,11 +40,13 @@
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/model_postprocessor.h"
 #include "theory/theory_engine.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
 #include "util/boolean_simplification.h"
+#include "util/node_visitor.h"
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "smt/command_list.h"
@@ -366,14 +368,14 @@ public:
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewVar(TNode n) {
+  void nmNotifyNewVar(TNode n, bool isGlobal) {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());
-    d_smt.addToModelCommandAndDump(c);
+    d_smt.addToModelCommandAndDump(c, isGlobal);
   }
 
-  void nmNotifyNewSkolem(TNode n, const std::string& comment) {
+  void nmNotifyNewSkolem(TNode n, const std::string& comment, bool isGlobal) {
     std::string id = n.getAttribute(expr::VarNameAttr());
     DeclareFunctionCommand c(id,
                              n.toExpr(),
@@ -381,7 +383,7 @@ public:
     if(Dump.isOn("skolems") && comment != "") {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
-    d_smt.addToModelCommandAndDump(c, false, "skolems");
+    d_smt.addToModelCommandAndDump(c, isGlobal, false, "skolems");
   }
 
   Node applySubstitutions(TNode node) const {
@@ -502,6 +504,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_definedFunctions(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
+  d_modelGlobalCommands(),
   d_modelCommands(NULL),
   d_dumpCommands(),
   d_logic(),
@@ -2020,7 +2023,6 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
   return false;
 }
 
-
 void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
@@ -2389,6 +2391,9 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
 
   // Add the formula
   d_problemExtended = true;
+  if(d_assertionList != NULL) {
+    d_assertionList->push_back(e.notExpr());
+  }
   d_private->addFormula(e.getNode().notNode());
 
   // Run the check
@@ -2440,6 +2445,12 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   return quickCheck().asValidityResult();
 }
 
+Node SmtEngine::postprocess(TNode node) {
+  ModelPostprocessor mpost;
+  NodeVisitor<ModelPostprocessor> visitor;
+  return visitor.run(mpost, node);
+}
+
 Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -2458,7 +2469,9 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
 
   // Make sure all preprocessing is done
   d_private->processAssertions();
-  return d_private->simplify(Node::fromExpr(e)).toExpr();
+  Node n = d_private->simplify(Node::fromExpr(e));
+  n = postprocess(n);
+  return n.toExpr();
 }
 
 Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, LogicException) {
@@ -2478,7 +2491,9 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
   hash_map<Node, Node, NodeHashFunction> cache;
-  return d_private->expandDefinitions(Node::fromExpr(e), cache).toExpr();
+  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
+  n = postprocess(n);
+  return n.toExpr();
 }
 
 Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, LogicException) {
@@ -2520,10 +2535,12 @@ Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, LogicException) {
   Trace("smt") << "--- getting value of " << n << endl;
   TheoryModel* m = d_theoryEngine->getModel();
   Node resultNode;
-  if( m ){
-    resultNode = m->getValue( n );
+  if(m != NULL) {
+    resultNode = m->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
+  resultNode = postprocess(resultNode);
+  Trace("smt") << "--- model-post returned " << resultNode << endl;
 
   // type-check the result we got
   Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(n.getType()));
@@ -2630,7 +2647,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   return SExpr(sexprs);
 }
 
-void SmtEngine::addToModelCommandAndDump(const Command& c, bool userVisible, const char* dumpTag) {
+void SmtEngine::addToModelCommandAndDump(const Command& c, bool isGlobal, bool userVisible, const char* dumpTag) {
   Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << endl;
   SmtScope smts(this);
   // If we aren't yet fully inited, the user might still turn on
@@ -2643,7 +2660,11 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, bool userVisible, con
   // and expects to find their cardinalities in the model.
   if(/* userVisible && */ (!d_fullyInited || options::produceModels())) {
     doPendingPops();
-    d_modelCommands->push_back(c.clone());
+    if(isGlobal) {
+      d_modelGlobalCommands.push_back(c.clone());
+    } else {
+      d_modelCommands->push_back(c.clone());
+    }
   }
   if(Dump.isOn(dumpTag)) {
     if(d_fullyInited) {

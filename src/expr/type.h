@@ -38,6 +38,7 @@ class ExprManagerMapCollection;
 class SmtEngine;
 
 class Datatype;
+class Record;
 
 template <bool ref_count>
 class NodeTemplate;
@@ -54,6 +55,7 @@ class SelectorType;
 class TesterType;
 class FunctionType;
 class TupleType;
+class RecordType;
 class SExprType;
 class SortType;
 class SortConstructorType;
@@ -323,6 +325,18 @@ public:
   operator TupleType() const throw(IllegalArgumentException);
 
   /**
+   * Is this a record type?
+   * @return true if the type is a record type
+   */
+  bool isRecord() const;
+
+  /**
+   * Cast this type to a record type
+   * @return the RecordType
+   */
+  operator RecordType() const throw(IllegalArgumentException);
+
+  /**
    * Is this a symbolic expression type?
    * @return true if the type is a symbolic expression type
    */
@@ -527,9 +541,27 @@ public:
   /** Construct from the base type */
   TupleType(const Type& type = Type()) throw(IllegalArgumentException);
 
+  /** Get the length of the tuple.  The same as getTypes().size(). */
+  size_t getLength() const;
+
   /** Get the constituent types */
   std::vector<Type> getTypes() const;
+
 };/* class TupleType */
+
+/**
+ * Class encapsulating a record type.
+ */
+class CVC4_PUBLIC RecordType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  RecordType(const Type& type = Type()) throw(IllegalArgumentException);
+
+  /** Get the constituent types */
+  const Record& getRecord() const;
+};/* class RecordType */
 
 /**
  * Class encapsulating a tuple type.

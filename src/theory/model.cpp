@@ -17,6 +17,7 @@
 #include "theory/theory_engine.h"
 #include "theory/type_enumerator.h"
 #include "smt/options.h"
+#include "smt/smt_engine.h"
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
@@ -56,7 +57,7 @@ Node TheoryModel::getValue( TNode n ) const{
 Expr TheoryModel::getValue( Expr expr ) const{
   Node n = Node::fromExpr( expr );
   Node ret = getValue( n );
-  return ret.toExpr();
+  return d_smt.postprocess(ret).toExpr();
 }
 
 /** get cardinality for sort */

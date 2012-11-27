@@ -136,7 +136,9 @@ function typerule {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   typerules="${typerules}
+#line $lineno \"$kf\"
   case kind::$1:
+#line $lineno \"$kf\"
     typeNode = $2::computeType(nodeManager, n, check);
     break;
 "
@@ -147,7 +149,9 @@ function construle {
   lineno=${BASH_LINENO[0]}
   check_theory_seen
   construles="${construles}
+#line $lineno \"$kf\"
   case kind::$1:
+#line $lineno \"$kf\"
     return $2::computeIsConst(nodeManager, n);
 "
 }

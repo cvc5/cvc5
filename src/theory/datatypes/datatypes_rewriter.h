@@ -54,6 +54,43 @@ public:
         }
       }
     }
+    if(in.getKind() == kind::TUPLE_SELECT && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
+      return RewriteResponse(REWRITE_DONE, in[0][in.getOperator().getConst<TupleSelect>().getIndex()]);
+    }
+    if(in.getKind() == kind::RECORD_SELECT && in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
+      const Record& rec = in[0].getType().getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
+      return RewriteResponse(REWRITE_DONE, in[0][rec.getIndex(in.getOperator().getConst<RecordSelect>().getField())]);
+    }
+    if(in.getKind() == kind::APPLY_SELECTOR &&
+       (in[0].getKind() == kind::TUPLE || in[0].getKind() == kind::RECORD)) {
+      // These strange (half-tuple-converted) terms can be created by
+      // the system if you have something like "foo.1" for a tuple
+      // term foo.  The select is rewritten to "select_1(foo)".  If
+      // foo gets a value in the model from the TypeEnumerator, you
+      // then have a select of a tuple, and we should flatten that
+      // here.  Ditto for records, below.
+      Expr selectorExpr = in.getOperator().toExpr();
+      const Datatype& dt CVC4_UNUSED = Datatype::datatypeOf(selectorExpr);
+      TypeNode dtt CVC4_UNUSED = TypeNode::fromType(dt.getDatatypeType());
+      size_t selectorIndex = Datatype::indexOf(selectorExpr);
+      Debug("tuprec") << "looking at " << in << ", got selector index " << selectorIndex << std::endl;
+#ifdef CVC4_ASSERTIONS
+      // sanity checks: tuple- and record-converted datatypes should have one constructor
+      Assert(NodeManager::currentNM()->getDatatypeForTupleRecord(in[0].getType()) == dtt);
+      if(in[0].getKind() == kind::TUPLE) {
+        Assert(dtt.hasAttribute(expr::DatatypeTupleAttr()));
+        Assert(dtt.getAttribute(expr::DatatypeTupleAttr()) == in[0].getType());
+      } else {
+        Assert(dtt.hasAttribute(expr::DatatypeRecordAttr()));
+        Assert(dtt.getAttribute(expr::DatatypeRecordAttr()) == in[0].getType());
+      }
+      Assert(dt.getNumConstructors() == 1);
+      Assert(dt[0].getNumArgs() > selectorIndex);
+      Assert(dt[0][selectorIndex].getSelector() == selectorExpr);
+#endif /* CVC4_ASSERTIONS */
+      Debug("tuprec") << "==> returning " << in[0][selectorIndex] << std::endl;
+      return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
+    }
     if(in.getKind() == kind::APPLY_SELECTOR &&
        in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
       // Have to be careful not to rewrite well-typed expressions
@@ -90,6 +127,45 @@ public:
         }
       }
     }
+    if(in.getKind() == kind::TUPLE_SELECT &&
+       in[0].getKind() == kind::TUPLE) {
+      return RewriteResponse(REWRITE_DONE, in[0][in.getOperator().getConst<TupleSelect>().getIndex()]);
+    }
+    if(in.getKind() == kind::TUPLE_UPDATE &&
+       in[0].getKind() == kind::TUPLE) {
+      size_t ix = in.getOperator().getConst<TupleUpdate>().getIndex();
+      NodeBuilder<> b(kind::TUPLE);
+      for(TNode::const_iterator i = in[0].begin(); i != in[0].end(); ++i, --ix) {
+        if(ix == 0) {
+          b << in[1];
+        } else {
+          b << *i;
+        }
+      }
+      Node n = b;
+      Assert(n.getType().isSubtypeOf(in.getType()));
+      return RewriteResponse(REWRITE_DONE, n);
+    }
+    if(in.getKind() == kind::RECORD_SELECT &&
+       in[0].getKind() == kind::RECORD) {
+      return RewriteResponse(REWRITE_DONE, in[0][in[0].getOperator().getConst<Record>().getIndex(in.getOperator().getConst<RecordSelect>().getField())]);
+    }
+    if(in.getKind() == kind::RECORD_UPDATE &&
+       in[0].getKind() == kind::RECORD) {
+      size_t ix = in[0].getOperator().getConst<Record>().getIndex(in.getConst<RecordUpdate>().getField());
+      NodeBuilder<> b(kind::RECORD);
+      b << in[0].getOperator();
+      for(TNode::const_iterator i = in[0].begin(); i != in[0].end(); ++i, --ix) {
+        if(ix == 0) {
+          b << in[1];
+        } else {
+          b << *i;
+        }
+      }
+      Node n = b;
+      Assert(n.getType().isSubtypeOf(in.getType()));
+      return RewriteResponse(REWRITE_DONE, n);
+    }
 
     if(in.getKind() == kind::EQUAL && in[0] == in[1]) {
       return RewriteResponse(REWRITE_DONE,
@@ -113,7 +189,9 @@ public:
   static inline void shutdown() {}
 
   static bool checkClash( Node n1, Node n2 ) {
-    if( n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR ) {
+    if( (n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR) ||
+        (n1.getKind() == kind::TUPLE && n2.getKind() == kind::TUPLE) ||
+        (n1.getKind() == kind::RECORD && n2.getKind() == kind::RECORD) ) {
       if( n1.getOperator() != n2.getOperator() ) {
         return true;
       } else {
@@ -137,7 +215,8 @@ public:
   /** is this term a datatype */
   static bool isTermDatatype( Node n ){
     TypeNode tn = n.getType();
-    return tn.isDatatype() || tn.isParametricDatatype();
+    return tn.isDatatype() || tn.isParametricDatatype() ||
+           tn.isTuple() || tn.isRecord();
   }
 
 };/* class DatatypesRewriter */

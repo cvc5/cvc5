@@ -281,6 +281,15 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
 
     // datatypes
+  case kind::APPLY_TYPE_ASCRIPTION: {
+      out << "as ";
+      toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types);
+      out << ' ';
+      TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+      out << (t.isFunctionLike() ? t.getRangeType() : t);
+      stillNeedToPrintParams = false;
+    }
+    break;
   case kind::APPLY_TESTER:
   case kind::APPLY_CONSTRUCTOR:
   case kind::APPLY_SELECTOR:

@@ -67,10 +67,6 @@ private:
   /** The node responsible for the failure */
   NodeTemplate<true>* d_node;
 
-protected:
-
-  TypeCheckingExceptionPrivate() throw() : Exception() {}
-
 public:
 
   /**

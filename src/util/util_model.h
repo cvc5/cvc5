@@ -35,8 +35,8 @@ class Model {
   friend std::ostream& operator<<(std::ostream&, Model&);
 
 protected:
-  /** The SmtEngine we're associated to */
-  const SmtEngine& d_smt;
+  /** The SmtEngine we're associated with */
+  SmtEngine& d_smt;
 
   /** construct the base class; users cannot do this, only CVC4 internals */
   Model();
@@ -48,6 +48,8 @@ public:
   size_t getNumCommands() const;
   /** get command */
   const Command* getCommand(size_t i) const;
+  /** get the smt engine that this model is hooked up to */
+  SmtEngine* getSmtEngine() { return &d_smt; }
 
 public:
   /** get value for expression */

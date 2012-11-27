@@ -320,7 +320,7 @@ Node NodeManager::mkSkolem(const std::string& name, const TypeNode& type, const 
   }
   if((flags & SKOLEM_NO_NOTIFY) == 0) {
     for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-      (*i)->nmNotifyNewSkolem(n, comment);
+      (*i)->nmNotifyNewSkolem(n, comment, (flags & SKOLEM_IS_GLOBAL) == SKOLEM_IS_GLOBAL);
     }
   }
   return n;
@@ -393,6 +393,40 @@ TypeNode NodeManager::mkPredicateSubtype(Expr lambda, Expr witness)
 TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
   throw(TypeCheckingExceptionPrivate) {
   return TypeNode(mkTypeConst(bounds));
+}
+
+TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
+  Assert(t.isTuple() || t.isRecord());
+
+  // if the type doesn't have an associated datatype, then make one for it
+  TypeNode& dtt = d_tupleAndRecordTypes[t];
+  if(dtt.isNull()) {
+    if(t.isTuple()) {
+      Datatype dt("__cvc4_tuple");
+      DatatypeConstructor c("__cvc4_tuple_ctor");
+      for(TypeNode::const_iterator i = t.begin(); i != t.end(); ++i) {
+        c.addArg("__cvc4_tuple_stor", (*i).toType());
+      }
+      dt.addConstructor(c);
+      dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
+    } else {
+      const Record& rec = t.getRecord();
+      Datatype dt("__cvc4_record");
+      DatatypeConstructor c("__cvc4_record_ctor");
+      for(Record::const_iterator i = rec.begin(); i != rec.end(); ++i) {
+        c.addArg((*i).first, (*i).second);
+      }
+      dt.addConstructor(c);
+      dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
+      Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
+    }
+    dtt.setAttribute(DatatypeRecordAttr(), t);
+  } else {
+    Debug("tuprec") << "REUSING cached " << t << ": " << dtt << std::endl;
+  }
+  Assert(!dtt.isNull());
+  return dtt;
 }
 
 }/* CVC4 namespace */

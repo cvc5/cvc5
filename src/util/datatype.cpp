@@ -558,6 +558,7 @@ Expr DatatypeConstructor::getConstructor() const {
 
 Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   CheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  ExprManagerScope ems(d_constructor);
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   CheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
   DatatypeType dtt = dt.getDatatypeType();

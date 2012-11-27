@@ -359,6 +359,11 @@ public:
   TupleType mkTupleType(const std::vector<Type>& types);
 
   /**
+   * Make a record type with types from the rec parameter.
+   */
+  RecordType mkRecordType(const Record& rec);
+
+  /**
    * Make a symbolic expressiontype with types from
    * <code>types[0..types.size()-1]</code>.  <code>types</code> may
    * have any number of elements.
@@ -464,8 +469,8 @@ public:
     throw(TypeCheckingException);
 
   // variables are special, because duplicates are permitted
-  Expr mkVar(const std::string& name, Type type);
-  Expr mkVar(Type type);
+  Expr mkVar(const std::string& name, Type type, bool isGlobal = false);
+  Expr mkVar(Type type, bool isGlobal = false);
   Expr mkBoundVar(const std::string& name, Type type);
   Expr mkBoundVar(Type type);
 

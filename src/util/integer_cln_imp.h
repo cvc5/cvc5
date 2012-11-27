@@ -59,7 +59,9 @@ private:
   void readInt(const cln::cl_read_flags& flags, const std::string& s, unsigned base) throw(std::invalid_argument) {
     try {
       if(s.find_first_not_of('0') == std::string::npos) {
-        // string of all zeroes, CLN has a bug for these inputs
+        // String of all zeroes, CLN has a bug for these inputs up to and
+        // including CLN v1.3.2.
+        // See http://www.ginac.de/CLN/cln.git/?a=commit;h=4a477b0cc3dd7fbfb23b25090ff8c8869c8fa21a for details.
         d_value = read_integer(flags, "0", NULL, NULL);
       } else {
         d_value = read_integer(flags, s.c_str(), NULL, NULL);

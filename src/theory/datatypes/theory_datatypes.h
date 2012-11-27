@@ -52,6 +52,7 @@ private:
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
+
 private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -202,6 +203,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  Node ppRewrite(TNode n);
   void presolve();
   void addSharedTerm(TNode t);
   EqualityStatus getEqualityStatus(TNode a, TNode b);

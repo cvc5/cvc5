@@ -207,7 +207,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ']';
       return;
       break;
-    case kind::TUPLE:
     case kind::SEXPR:
       // no-op
       break;
@@ -291,6 +290,14 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     // DATATYPES
+    case kind::APPLY_TYPE_ASCRIPTION: {
+        toStream(out, n[0], depth, types, false);
+        out << "::";
+        TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
+        out << (t.isFunctionLike() ? t.getRangeType() : t);
+      }
+      return;
+      break;
     case kind::APPLY_CONSTRUCTOR:
     case kind::APPLY_SELECTOR:
     case kind::APPLY_TESTER:
@@ -321,6 +328,49 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << " -> BOOLEAN";
       return;
       break;
+    case kind::TUPLE_SELECT:
+      toStream(out, n[0], depth, types, true);
+      out << '.' << n.getOperator().getConst<TupleSelect>().getIndex();
+      return;
+      break;
+    case kind::RECORD_SELECT:
+      toStream(out, n[0], depth, types, true);
+      out << '.' << n.getOperator().getConst<RecordSelect>().getField();
+      return;
+      break;
+    case kind::TUPLE_UPDATE:
+      toStream(out, n[0], depth, types, true);
+      out << " WITH ." << n.getOperator().getConst<TupleUpdate>().getIndex() << " := ";
+      toStream(out, n[1], depth, types, true);
+      return;
+      break;
+    case kind::RECORD_UPDATE:
+      toStream(out, n[0], depth, types, true);
+      out << " WITH ." << n.getOperator().getConst<RecordUpdate>().getField() << " := ";
+      toStream(out, n[1], depth, types, true);
+      return;
+      break;
+    case kind::TUPLE:
+      // no-op
+      break;
+    case kind::RECORD: {
+      // (# _a := 2, _b := 2 #)
+      const Record& rec = n.getOperator().getConst<Record>();
+      out << "(# ";
+      TNode::iterator i = n.begin();
+      bool first = true;
+      for(Record::const_iterator j = rec.begin(); j != rec.end(); ++i, ++j) {
+        if(!first) {
+          out << ", ";
+        }
+        out << (*j).first << " := ";
+        toStream(out, *i, depth, types, false);
+        first = false;
+      }
+      out << " #)";
+      return;
+      break;
+    }
 
     // ARRAYS
     case kind::ARRAY_TYPE:
@@ -412,6 +462,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::GEQ:
       op << ">=";
       opType = INFIX;
+      break;
+    case kind::PARAMETRIC_DATATYPE:
+      out << n[0].getConst<Datatype>().getName();
       break;
 
     // BITVECTORS
@@ -748,14 +801,14 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( tn.isSort() ){
-      //print the cardinality
+      // print the cardinality
       if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
         out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
       }
     }
     out << c << std::endl;
     if( tn.isSort() ){
-      //print the representatives
+      // print the representatives
       if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
         for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
           if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
@@ -780,7 +833,7 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     }else{
       out << tn;
     }
-    out << " = " << tm.getValue( n ) << ";" << std::endl;
+    out << " = " << tm.getValue(n.toExpr()) << ";" << std::endl;
 
 /*
     //for table format (work in progress)
@@ -916,10 +969,11 @@ static void toStream(std::ostream& out, const SimplifyCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
-  out << "% (get-value ( ";
   const vector<Expr>& terms = c->getTerms();
-  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
-  out << " ))";
+  Assert(!terms.empty());
+  out << "GET_VALUE ";
+  copy(terms.begin(), terms.end() - 1, ostream_iterator<Expr>(out, ";\nGET_VALUE "));
+  out << terms.back() << ";";
 }
 
 static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
