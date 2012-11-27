@@ -963,7 +963,9 @@ void SmtEngine::setLogicInternal() throw() {
   }
 
   // may need to force BV on to handle Boolean terms
-  if(!d_logic.isPure(theory::THEORY_ARITH)) {
+  // except in pure arith and QF_SAT
+  if(!d_logic.isPure(theory::THEORY_ARITH) &&
+     !d_logic.isPure(theory::THEORY_BOOL)) {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(theory::THEORY_BV);
     d_logic.lock();
