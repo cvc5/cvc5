@@ -343,7 +343,7 @@ public:
     d_assertionsToPreprocess(),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
-    d_booleanTermConverter(),
+    d_booleanTermConverter(d_smt),
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_assertionsToCheck(),
     d_fakeContext(),

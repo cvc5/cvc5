@@ -59,6 +59,7 @@ SMT2_TESTS = \
 CVC_TESTS = \
 	boolean.cvc \
 	boolean-prec.cvc \
+	boolean-terms.cvc \
 	hole6.cvc \
 	ite.cvc \
 	let.cvc \

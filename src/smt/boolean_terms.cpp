@@ -110,11 +110,29 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
           vector<TypeNode> argTypes = t.getArgTypes();
           replace(argTypes.begin(), argTypes.end(), t[i], nm->mkBitVectorType(1));
           TypeNode newType = nm->mkFunctionType(argTypes, t.getRangeType());
-          Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "_bt",
+          Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "__boolterm__",
                                 newType, "a function introduced by Boolean-term conversion",
                                 NodeManager::SKOLEM_EXACT_NAME);
           Debug("boolean-terms") << "constructed func: " << n << " of type " << newType << endl;
           top.setAttribute(BooleanTermAttr(), n);
+          NodeBuilder<> boundVarsBuilder(kind::BOUND_VAR_LIST);
+          NodeBuilder<> bodyBuilder(kind::APPLY_UF);
+          bodyBuilder << n;
+          for(unsigned j = 0; j < t.getNumChildren() - 1; ++j) {
+            Node var = nm->mkBoundVar(t[j]);
+            boundVarsBuilder << var;
+            if(t[j].isBoolean()) {
+              bodyBuilder << nm->mkNode(kind::ITE, var, nm->mkConst(BitVector(1u, 1u)),
+                                        nm->mkConst(BitVector(1u, 0u)));
+            } else {
+              bodyBuilder << var;
+            }
+          }
+          Node boundVars = boundVarsBuilder;
+          Node body = bodyBuilder;
+          Node lam = nm->mkNode(kind::LAMBDA, boundVars, body);
+          Debug("boolean-terms") << "substituting " << top << " ==> " << lam << std::endl;
+          d_smt.d_theoryEngine->getModel()->addSubstitution(top, lam);
           d_booleanTermCache[make_pair(top, boolParent)] = n;
           return n;
         }
@@ -205,9 +223,7 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
           return n;
         }
       }
-    }/* else if(t.isRecord()) {
-      Unimplemented();
-    }*/
+    }
     return top;
   }
   switch(k) {

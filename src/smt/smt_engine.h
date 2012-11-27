@@ -80,6 +80,7 @@ namespace smt {
   class SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
+  class BooleanTermConverter;
 
   void beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
 
@@ -308,6 +309,7 @@ class CVC4_PUBLIC SmtEngine {
 
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
+  friend class ::CVC4::smt::BooleanTermConverter;
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   // to access d_modelCommands

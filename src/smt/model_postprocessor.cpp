@@ -15,6 +15,7 @@
  **/
 
 #include "smt/model_postprocessor.h"
+#include "smt/boolean_terms.h"
 
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -43,6 +44,8 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     }
     d_nodes[current] = b;
     Debug("tuprec") << "returning " << d_nodes[current] << std::endl;
+  } else if(current.hasAttribute(smt::BooleanTermAttr())) {
+    Debug("boolean-terms") << "found bool-term attr on: " << current << std::endl;
   } else {
     Debug("tuprec") << "returning self" << std::endl;
     // rewrite to self

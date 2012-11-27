@@ -53,8 +53,12 @@ std::ostream& operator<<(std::ostream& out, const TypeCheckingException& e) {
 }
 
 std::ostream& operator<<(std::ostream& out, const Expr& e) {
-  ExprManagerScope ems(*e.getExprManager());
-  return out << e.getNode();
+  if(e.isNull()) {
+    return out << "null";
+  } else {
+    ExprManagerScope ems(*e.getExprManager());
+    return out << e.getNode();
+  }
 }
 
 TypeCheckingException::TypeCheckingException(const TypeCheckingException& t) throw() :

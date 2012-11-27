@@ -76,8 +76,11 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
 }
 
 Node TheoryModel::getModelValue( TNode n ) const{
-  Assert(n.getKind() != kind::FORALL && n.getKind() != kind::EXISTS && n.getKind() != kind::LAMBDA);
-  if( n.isConst() ) {
+  Assert(n.getKind() != kind::FORALL && n.getKind() != kind::EXISTS);
+  if(n.isConst()) {
+    return n;
+  }
+  if(n.getKind() == kind::LAMBDA) {
     return n;
   }
 

@@ -41,6 +41,9 @@ class BooleanTermConverter {
                          PairHashFunction< Node, bool,
                                            NodeHashFunction, std::hash<int> > > BooleanTermCache;
 
+  /** The SmtEngine to which we're associated */
+  SmtEngine& d_smt;
+
   /** The cache used during Boolean term conversion */
   BooleanTermCache d_booleanTermCache;
 
@@ -50,6 +53,10 @@ class BooleanTermConverter {
   const Datatype& booleanTermsConvertDatatype(const Datatype& dt) throw();
 
 public:
+
+  BooleanTermConverter(SmtEngine& smt) :
+    d_smt(smt) {
+  }
 
   /**
    * We rewrite Boolean terms in assertions as bitvectors of length 1.
