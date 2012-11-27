@@ -50,6 +50,7 @@
 #include "util/configuration.h"
 #include "util/exception.h"
 #include "smt/command_list.h"
+#include "smt/boolean_terms.h"
 #include "smt/options.h"
 #include "options/option_exception.h"
 #include "util/output.h"
@@ -105,6 +106,8 @@ public:
 struct SmtEngineStatistics {
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
+  /** time spent in Boolean term rewriting */
+  TimerStat d_rewriteBooleanTermsTime;
   /** time spent in non-clausal simplification */
   TimerStat d_nonclausalSimplificationTime;
   /** Num of constant propagations found during nonclausal simp */
@@ -130,6 +133,7 @@ struct SmtEngineStatistics {
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
+    d_rewriteBooleanTermsTime("smt::SmtEngine::rewriteBooleanTermsTime"),
     d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
     d_staticLearningTime("smt::SmtEngine::staticLearningTime"),
@@ -143,6 +147,7 @@ struct SmtEngineStatistics {
     d_checkModelTime("smt::SmtEngine::checkModelTime") {
 
     StatisticsRegistry::registerStat(&d_definitionExpansionTime);
+    StatisticsRegistry::registerStat(&d_rewriteBooleanTermsTime);
     StatisticsRegistry::registerStat(&d_nonclausalSimplificationTime);
     StatisticsRegistry::registerStat(&d_numConstantProps);
     StatisticsRegistry::registerStat(&d_staticLearningTime);
@@ -158,6 +163,7 @@ struct SmtEngineStatistics {
 
   ~SmtEngineStatistics() {
     StatisticsRegistry::unregisterStat(&d_definitionExpansionTime);
+    StatisticsRegistry::unregisterStat(&d_rewriteBooleanTermsTime);
     StatisticsRegistry::unregisterStat(&d_nonclausalSimplificationTime);
     StatisticsRegistry::unregisterStat(&d_numConstantProps);
     StatisticsRegistry::unregisterStat(&d_staticLearningTime);
@@ -197,6 +203,9 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** Size of assertions array when preprocessing starts */
   unsigned d_realAssertionsEnd;
+
+  /** The converter for Boolean terms -> BITVECTOR(1). */
+  BooleanTermConverter d_booleanTermConverter;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
@@ -334,6 +343,7 @@ public:
     d_assertionsToPreprocess(),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
+    d_booleanTermConverter(),
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_assertionsToCheck(),
     d_fakeContext(),
@@ -950,6 +960,13 @@ void SmtEngine::setLogicInternal() throw() {
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
       setOption("check-models", SExpr("false"));
     }
+  }
+
+  // may need to force BV on to handle Boolean terms
+  if(!d_logic.isPure(theory::THEORY_ARITH)) {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableTheory(theory::THEORY_BV);
+    d_logic.lock();
   }
 }
 
@@ -2059,6 +2076,20 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
   dumpAssertions("post-definition-expansion", d_assertionsToPreprocess);
+
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
+  dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
+  {
+    Chat() << "rewriting Boolean terms..." << endl;
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
+    for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
+      d_assertionsToPreprocess[i] =
+        d_booleanTermConverter.rewriteBooleanTerms(d_assertionsToPreprocess[i]);
+    }
+  }
+  dumpAssertions("post-boolean-terms", d_assertionsToPreprocess);
 
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;

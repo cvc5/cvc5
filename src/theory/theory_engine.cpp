@@ -694,7 +694,9 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
        << ", which doesn't include " << Theory::theoryOf(atom)
-       << ", but got an asserted fact to that theory";
+       << ", but got a preprocessing-time fact for that theory." << endl
+       << "The fact:" << endl
+       << literal;
     throw LogicException(ss.str());
   }
 
@@ -792,7 +794,9 @@ Node TheoryEngine::preprocess(TNode assertion) {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
          << ", which doesn't include " << Theory::theoryOf(current)
-         << ", but got an asserted fact to that theory";
+         << ", but got a preprocesing-time fact for that theory." << endl
+         << "The fact:" << endl
+         << current;
       throw LogicException(ss.str());
     }
 
@@ -882,7 +886,9 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
     stringstream ss;
     ss << "The logic was specified as " << d_logicInfo.getLogicString()
        << ", which doesn't include " << toTheoryId
-       << ", but got an asserted fact to that theory";
+       << ", but got an asserted fact to that theory." << endl
+       << "The fact:" << endl
+       << assertion;
     throw LogicException(ss.str());
   }
 

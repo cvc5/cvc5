@@ -277,66 +277,70 @@ bool Parser::isUnresolvedType(const std::string& name) {
 std::vector<DatatypeType>
 Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
 
-  std::vector<DatatypeType> types =
-    d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
+  try {
+    std::vector<DatatypeType> types =
+      d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
 
-  assert(datatypes.size() == types.size());
+    assert(datatypes.size() == types.size());
 
-  for(unsigned i = 0; i < datatypes.size(); ++i) {
-    DatatypeType t = types[i];
-    const Datatype& dt = t.getDatatype();
-    const std::string& name = dt.getName();
-    Debug("parser-idt") << "define " << name << " as " << t << std::endl;
-    if(isDeclared(name, SYM_SORT)) {
-      throw ParserException(name + " already declared");
-    }
-    if( t.isParametric() ) {
-      std::vector< Type > paramTypes = t.getParamTypes();
-      defineType(name, paramTypes, t );
-    } else {
-      defineType(name, t);
-    }
-    for(Datatype::const_iterator j = dt.begin(),
-          j_end = dt.end();
-        j != j_end;
-        ++j) {
-      const DatatypeConstructor& ctor = *j;
-      Expr::printtypes::Scope pts(Debug("parser-idt"), true);
-      Expr constructor = ctor.getConstructor();
-      Debug("parser-idt") << "+ define " << constructor << std::endl;
-      string constructorName = ctor.getName();
-      if(isDeclared(constructorName, SYM_VARIABLE)) {
-        throw ParserException(constructorName + " already declared");
+    for(unsigned i = 0; i < datatypes.size(); ++i) {
+      DatatypeType t = types[i];
+      const Datatype& dt = t.getDatatype();
+      const std::string& name = dt.getName();
+      Debug("parser-idt") << "define " << name << " as " << t << std::endl;
+      if(isDeclared(name, SYM_SORT)) {
+        throw ParserException(name + " already declared");
       }
-      defineVar(constructorName, constructor);
-      Expr tester = ctor.getTester();
-      Debug("parser-idt") << "+ define " << tester << std::endl;
-      string testerName = ctor.getTesterName();
-      if(isDeclared(testerName, SYM_VARIABLE)) {
-        throw ParserException(testerName + " already declared");
+      if( t.isParametric() ) {
+        std::vector< Type > paramTypes = t.getParamTypes();
+        defineType(name, paramTypes, t );
+      } else {
+        defineType(name, t);
       }
-      defineVar(testerName, tester);
-      for(DatatypeConstructor::const_iterator k = ctor.begin(),
-            k_end = ctor.end();
-          k != k_end;
-          ++k) {
-        Expr selector = (*k).getSelector();
-        Debug("parser-idt") << "+++ define " << selector << std::endl;
-        string selectorName = (*k).getName();
-        if(isDeclared(selectorName, SYM_VARIABLE)) {
-          throw ParserException(selectorName + " already declared");
+      for(Datatype::const_iterator j = dt.begin(),
+            j_end = dt.end();
+          j != j_end;
+          ++j) {
+        const DatatypeConstructor& ctor = *j;
+        Expr::printtypes::Scope pts(Debug("parser-idt"), true);
+        Expr constructor = ctor.getConstructor();
+        Debug("parser-idt") << "+ define " << constructor << std::endl;
+        string constructorName = ctor.getName();
+        if(isDeclared(constructorName, SYM_VARIABLE)) {
+          throw ParserException(constructorName + " already declared");
         }
-        defineVar(selectorName, selector);
+        defineVar(constructorName, constructor);
+        Expr tester = ctor.getTester();
+        Debug("parser-idt") << "+ define " << tester << std::endl;
+        string testerName = ctor.getTesterName();
+        if(isDeclared(testerName, SYM_VARIABLE)) {
+          throw ParserException(testerName + " already declared");
+        }
+        defineVar(testerName, tester);
+        for(DatatypeConstructor::const_iterator k = ctor.begin(),
+              k_end = ctor.end();
+            k != k_end;
+            ++k) {
+          Expr selector = (*k).getSelector();
+          Debug("parser-idt") << "+++ define " << selector << std::endl;
+          string selectorName = (*k).getName();
+          if(isDeclared(selectorName, SYM_VARIABLE)) {
+            throw ParserException(selectorName + " already declared");
+          }
+          defineVar(selectorName, selector);
+        }
       }
     }
+
+    // These are no longer used, and the ExprManager would have
+    // complained of a bad substitution if anything is left unresolved.
+    // Clear out the set.
+    d_unresolved.clear();
+
+    return types;
+  } catch(IllegalArgumentException& ie) {
+    throw ParserException(ie.getMessage());
   }
-
-  // These are no longer used, and the ExprManager would have
-  // complained of a bad substitution if anything is left unresolved.
-  // Clear out the set.
-  d_unresolved.clear();
-
-  return types;
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {

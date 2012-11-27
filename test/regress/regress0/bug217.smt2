@@ -1,10 +1,12 @@
+; EXPECT: unsat
+; EXIT: 20
 (set-logic QF_UF)
-(set-info :status unsat)
+(set-info :status sat)
+(set-option :produce-models true)
 (declare-fun f (Bool) Bool)
 (declare-fun x () Bool)
 (declare-fun y () Bool)
 (declare-fun z () Bool)
-;(assert (and x (or (f x) (f y))))
 (assert (or (f x) (f y) (f z)))
 (assert (not (f false)))
 (assert (not (f true)))

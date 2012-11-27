@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdarg>
+#include "util/cvc4_assert.h"
 
 using namespace std;
 using namespace CVC4;
@@ -63,7 +64,14 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
   setMessage(string(buf));
 
+#ifdef CVC4_DEBUG
+  if(s_debugLastException == NULL) {
+    // we leak buf[] but only in debug mode with assertions failing
+    s_debugLastException = buf;
+  }
+#else /* CVC4_DEBUG */
   delete [] buf;
+#endif /* CVC4_DEBUG */
 }
 
 void IllegalArgumentException::construct(const char* header, const char* extra,
@@ -96,5 +104,12 @@ void IllegalArgumentException::construct(const char* header, const char* extra,
 
   setMessage(string(buf));
 
+#ifdef CVC4_DEBUG
+  if(s_debugLastException == NULL) {
+    // we leak buf[] but only in debug mode with assertions failing
+    s_debugLastException = buf;
+  }
+#else /* CVC4_DEBUG */
   delete [] buf;
+#endif /* CVC4_DEBUG */
 }

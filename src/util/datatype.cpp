@@ -296,8 +296,8 @@ bool Datatype::operator==(const Datatype& other) const throw() {
     return false;
   }
 
-  if(d_name != other.d_name ||
-     getNumConstructors() != other.getNumConstructors()) {
+  if( d_name != other.d_name ||
+      getNumConstructors() != other.getNumConstructors() ) {
     return false;
   }
   for(const_iterator i = begin(), j = other.begin(); i != end(); ++i, ++j) {
@@ -765,7 +765,7 @@ Expr DatatypeConstructorArg::getConstructor() const {
   return d_constructor;
 }
 
-Type DatatypeConstructorArg::getType() const {
+SelectorType DatatypeConstructorArg::getType() const {
   return getSelector().getType();
 }
 

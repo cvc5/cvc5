@@ -82,7 +82,7 @@ assertions\n\
 + Output the assertions after preprocessing and before clausification.\n\
   Can also specify \"assertions:pre-PASS\" or \"assertions:post-PASS\",\n\
   where PASS is one of the preprocessing passes: definition-expansion\n\
-  constrain-subtypes substitution skolem-quant simplify\n\
+  boolean-terms constrain-subtypes substitution skolem-quant simplify\n\
   static-learning ite-removal repeat-simplify theory-preprocessing.\n\
   PASS can also be the special value \"everything\", in which case the\n\
   assertions are printed before any preprocessing (with\n\
@@ -176,6 +176,7 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
       }
       if(!strcmp(p, "everything")) {
       } else if(!strcmp(p, "definition-expansion")) {
+      } else if(!strcmp(p, "boolean-terms")) {
       } else if(!strcmp(p, "constrain-subtypes")) {
       } else if(!strcmp(p, "substitution")) {
       } else if(!strcmp(p, "skolem-quant")) {

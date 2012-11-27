@@ -231,12 +231,6 @@ void PopCommand::invoke(SmtEngine* smtEngine) throw() {
   }
 }
 
-/* class CheckSatCommand */
-
-CheckSatCommand::CheckSatCommand() throw() :
-  d_expr() {
-}
-
 Command* PopCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   return new PopCommand();
 }
@@ -246,6 +240,10 @@ Command* PopCommand::clone() const {
 }
 
 /* class CheckSatCommand */
+
+CheckSatCommand::CheckSatCommand() throw() :
+  d_expr() {
+}
 
 CheckSatCommand::CheckSatCommand(const Expr& expr) throw() :
   d_expr(expr) {

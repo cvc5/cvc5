@@ -111,7 +111,7 @@ public:
    * Get the type of the selector for this constructor argument;
    * this call is only permitted after resolution.
    */
-  Type getType() const;
+  SelectorType getType() const;
 
   /**
    * Get the name of the type of this constructor argument

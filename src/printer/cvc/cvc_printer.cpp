@@ -20,7 +20,7 @@
 #include "expr/node_manager.h" // for VarNameAttr
 #include "expr/command.h"
 #include "theory/substitutions.h"
-
+#include "smt/boolean_terms.h"
 #include "theory/model.h"
 
 #include <iostream>
@@ -305,24 +305,23 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::CONSTRUCTOR_TYPE:
     case kind::SELECTOR_TYPE:
-      if (n.getNumChildren() > 1) {
-        if (n.getNumChildren() > 2) {
+      if(n.getNumChildren() > 1) {
+        if(n.getNumChildren() > 2) {
           out << '(';
         }
-        for (unsigned i = 0; i < n.getNumChildren(); ++ i) {
-          if (i > 0) {
+        for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
+          if(i > 0) {
             out << ", ";
           }
           toStream(out, n[i], depth, types, false);
         }
-        if (n.getNumChildren() > 2) {
+        if(n.getNumChildren() > 2) {
           out << ')';
         }
+        out << " -> ";
       }
-      out << " -> ";
-      toStream(out, n[n.getNumChildren()-1], depth, types, false);
+      toStream(out, n[n.getNumChildren() - 1], depth, types, false);
       return;
-      break;
     case kind::TESTER_TYPE:
       toStream(out, n[0], depth, types, false);
       out << " -> BOOLEAN";
@@ -823,6 +822,11 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
     TypeNode tn = n.getType();
     out << n << " : ";
+    /* Boolean terms functionality needs to be merged in
+    if(n.hasAttribute(smt::BooleanTermAttr())) {
+      out << "*** ";
+    }
+    */
     if( tn.isFunction() || tn.isPredicate() ){
       out << "(";
       for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
@@ -977,7 +981,7 @@ static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
-  out << "% (get-model)";
+  out << "COUNTERMODEL;";
 }
 
 static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
@@ -985,7 +989,7 @@ static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const GetAssertionsCommand* c) throw() {
-  out << "% (get-assertions)";
+  out << "WHERE;";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {
@@ -1007,9 +1011,9 @@ static void toStream(std::ostream& out, const GetInfoCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const SetOptionCommand* c) throw() {
-  out << "% (set-option " << c->getFlag() << " ";
+  out << "OPTION \"" << c->getFlag() << "\" ";
   toStream(out, c->getSExpr());
-  out << ")";
+  out << ";";
 }
 
 static void toStream(std::ostream& out, const GetOptionCommand* c) throw() {

@@ -15,6 +15,8 @@ libsmt_la_SOURCES = \
 	command_list.cpp \
 	command_list.h \
 	modal_exception.h \
+	boolean_terms.h \
+	boolean_terms.cpp \
 	logic_exception.h \
 	simplification_mode.h \
 	simplification_mode.cpp

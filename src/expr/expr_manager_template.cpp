@@ -700,10 +700,6 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
       // CVC4::Datatype class, but this actually needs to be checked.
       AlwaysAssert(!SelectorType(selectorType).getRangeType().d_typeNode->isFunctionLike(),
                    "cannot put function-like things in datatypes");
-      // currently don't play well with Boolean terms
-      if(SelectorType(selectorType).getRangeType().d_typeNode->isBoolean()) {
-        WarningOnce() << "Warning: CVC4 does not yet support Boolean terms (you have created a datatype containing a Boolean)" << std::endl;
-      }
     }
   }
 }
