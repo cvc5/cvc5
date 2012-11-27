@@ -98,7 +98,7 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
 #if READLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
 #else /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
-    ::rl_completion_entry_function = (Function) commandGenerator;
+    ::rl_completion_entry_function = (int (*)(const char*, int)) commandGenerator;
 #endif /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 

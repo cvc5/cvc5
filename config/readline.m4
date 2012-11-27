@@ -62,12 +62,13 @@ else
     AC_MSG_CHECKING([for type of rl_completion_entry_function])
     AC_LANG_PUSH([C++])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <stdio.h>
 #include <readline/readline.h>
 char* foo(const char*, int) { return (char*)0; }],[
-::rl_completion_entry_function = foo;])],
+rl_completion_entry_function = foo;])],
       [AC_MSG_RESULT([char* (*)(const char*, int)])
        readline_compentry_func_returns_charp=1],
-      [AC_MSG_FAILURE([Function])])
+      [AC_MSG_RESULT([Function])])
     AC_LANG_POP([C++])
   else
     have_libreadline=0
