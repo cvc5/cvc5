@@ -2,6 +2,12 @@
 # -----------------------
 # Supported language bindings for CVC4.
 AC_DEFUN([CVC4_SUPPORTED_BINDINGS],
+[c,java])
+
+# CVC4_ALL_BINDINGS
+# -----------------
+# All language bindings for CVC4 (may include unofficial bindings).
+AC_DEFUN([CVC4_ALL_BINDINGS],
 [c,java,csharp,perl,php,python,ruby,tcl,ocaml])
 
 # CVC4_CHECK_BINDINGS(DEFAULT_BINDINGS_LIST)
@@ -12,7 +18,7 @@ AC_DEFUN([CVC4_CHECK_BINDINGS], [
 dnl Check for SWIG (for building language bindings)
 noswig=no
 
-m4_foreach(lang,[CVC4_SUPPORTED_BINDINGS],
+m4_foreach(lang,[CVC4_ALL_BINDINGS],
 [[cvc4_build_]]lang[[_bindings=no
 ]])
 
@@ -49,10 +55,19 @@ if test -z "$try_bindings"; then
 else
   AC_MSG_RESULT([$try_bindings])
 fi
+CVC4_UNSUPPORTED_LANGUAGE_BINDINGS=
 cvc4_save_CPPFLAGS="$CPPFLAGS"
 cvc4_save_CXXFLAGS="$CXXFLAGS"
 AC_LANG_PUSH([C++])
 for binding in $try_bindings; do
+  __cvc4_lang_supported=no
+  m4_foreach([__cvc4_supported_binding], [CVC4_SUPPORTED_BINDINGS],
+    [if test "$binding" = "__cvc4_supported_binding"; then __cvc4_lang_supported=yes; fi
+  ])dnl
+  if test $__cvc4_lang_supported = no; then
+    CVC4_UNSUPPORTED_LANGUAGE_BINDINGS="${CVC4_UNSUPPORTED_LANGUAGE_BINDINGS:+$CVC4_UNSUPPORTED_LANGUAGE_BINDINGS }$binding"
+  fi
+
   binding_error=no
   AC_MSG_CHECKING([for availability of $binding binding])
   case "$binding" in
@@ -167,7 +182,7 @@ done
 
 AM_CONDITIONAL([CVC4_HAS_SWIG], [test "$SWIG"])
 
-m4_foreach([lang], [CVC4_SUPPORTED_BINDINGS],
+m4_foreach([lang], [CVC4_ALL_BINDINGS],
 [AM_CONDITIONAL([CVC4_LANGUAGE_BINDING_]m4_toupper(lang), [test "$cvc4_build_]lang[_bindings" = yes])
 ])dnl
 

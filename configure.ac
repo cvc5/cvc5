@@ -1287,6 +1287,14 @@ ${licensewarn}Now just type make, followed by make check or make install, as you
 
 EOF
 
+if test -n "$CVC4_UNSUPPORTED_LANGUAGE_BINDINGS"; then
+  AC_MSG_WARN([])
+  AC_MSG_WARN([You are electing to build unsupported language binding(s): $CVC4_UNSUPPORTED_LANGUAGE_BINDINGS])
+  AC_MSG_WARN([Please be aware that these bindings may not compile, or work, and the interface to CVC4 via])
+  AC_MSG_WARN([these bindings may change drastically in upcoming releases of CVC4.])
+  AC_MSG_WARN([])
+fi
+
 if test -n "$CVC4_INTEGRITY_WARNING"; then
   AC_MSG_WARN([])
   AC_MSG_WARN($CVC4_INTEGRITY_WARNING)
