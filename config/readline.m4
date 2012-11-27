@@ -5,6 +5,7 @@ AC_DEFUN([CVC4_CHECK_FOR_READLINE], [
 AC_MSG_CHECKING([whether user requested readline support])
 LIBREADLINE=
 have_libreadline=0
+readline_compentry_func_returns_charp=0
 READLINE_LIBS=
 if test "$with_readline" = no; then
   AC_MSG_RESULT([no, readline disabled by user])
@@ -58,6 +59,16 @@ else
   fi
   if test "$with_readline" = yes; then
     have_libreadline=1
+    AC_MSG_CHECKING([for type of rl_completion_entry_function])
+    AC_LANG_PUSH([C++])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <readline/readline.h>
+char* foo(const char*, int) { return (char*)0; }],[
+::rl_completion_entry_function = foo;])],
+      [AC_MSG_RESULT([char* (*)(const char*, int)])
+       readline_compentry_func_returns_charp=1],
+      [AC_MSG_FAILURE([Function])])
+    AC_LANG_POP([C++])
   else
     have_libreadline=0
     READLINE_LIBS=

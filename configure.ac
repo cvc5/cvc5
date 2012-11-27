@@ -891,6 +891,7 @@ fi
 AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
 CVC4_CHECK_FOR_READLINE
 AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], $have_libreadline, [Define to 1 to use libreadline])
+AC_DEFINE_UNQUOTED([READLINE_COMPENTRY_FUNC_RETURNS_CHARP], $readline_compentry_func_returns_charp, [Define to 1 if rl_completion_entry_function is declared to return pointer to char])
 AC_SUBST([READLINE_LIBS])
 
 AC_SEARCH_LIBS([clock_gettime], [rt],

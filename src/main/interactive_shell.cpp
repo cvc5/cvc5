@@ -94,8 +94,12 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
 
 #if HAVE_LIBREADLINE
   if(d_in == cin) {
-    ::rl_readline_name = "CVC4";
+    ::rl_readline_name = const_cast<char*>("CVC4");
+#if READLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
+#else /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
+    ::rl_completion_entry_function = (Function) commandGenerator;
+#endif /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
     switch(OutputLanguage lang = toOutputLanguage(d_options[options::inputLanguage])) {
