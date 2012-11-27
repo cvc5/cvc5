@@ -130,7 +130,7 @@ public:
 
     Trace("decision") << "jh: Nothing to split on " << std::endl;
 
-#if defined CVC4_ASSERTIONS || defined CVC4_DEBUG
+#if defined CVC4_DEBUG
     bool alljustified = true;
     for(unsigned i = 0 ; i < d_assertions.size() && alljustified ; ++i) {
       TNode curass = d_assertions[i];
@@ -176,10 +176,6 @@ public:
     }
   }
 
-  /* Compute justified */
-  /*bool computeJustified() {
-    
-  }*/
 private:
   SatLiteral findSplitter(TNode node, SatValue desiredVal)
   {
@@ -188,7 +184,6 @@ private:
     ret = findSplitterRec(node, desiredVal, &litDecision);
     if(ret == true) {
       Debug("decision") << "Yippee!!" << std::endl;
-      //d_prvsIndex = i;
       ++d_helfulness;
       return litDecision;
     } else {
@@ -198,7 +193,6 @@ private:
   
   /** 
    * Do all the hard work. 
-   * @param findFirst returns
    */ 
   bool findSplitterRec(TNode node, SatValue value, SatLiteral* litDecision);
 

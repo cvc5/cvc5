@@ -36,6 +36,9 @@ justification\n\
 \n\
 justification-stoponly\n\
 + Use the justification heuristic only to stop early, not for decisions\n\
+";
+/** Under-development options, commenting out from help for the release */
+/*
 \n\
 relevancy\n\
 + Under development may-relevancy\n\
@@ -52,7 +55,7 @@ justification-rel\n\
 justification-must\n\
 + Start deciding on literals close to root instead of those\n\
 + near leaves (don't expect it to work well) [Unimplemented]\n\
-";
+";*/
 
 inline DecisionMode stringToDecisionMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   options::decisionRelevancyLeaves.set(false);

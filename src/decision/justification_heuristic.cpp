@@ -11,8 +11,7 @@
  **
  ** \brief Justification heuristic for decision making
  **
- ** A ATGP-inspired justification-based decision heuristic. See
- ** [insert reference] for more details. This code is, or not, based
+ ** A ATGP-inspired justification-based decision heuristic. This code is based
  ** on the CVC3 implementation of the same heuristic -- note below.
  **
  ** It needs access to the simplified but non-clausal formula.
@@ -43,30 +42,6 @@
 #include "expr/kind.h"
 #include "theory/rewriter.h"
 #include "util/ite_removal.h"
-
-/***
-Here's the main idea
-
-   Given a boolean formula "node", the goal is to try to make it
-evaluate to "desiredVal" (true/false). for instance if "node" is a AND
-formula we want to make it evaluate to true, we'd like one of the
-children to be true. this is done recursively.
-
-***/
-
-/*
-
-CVC3 code <---->  this code
- 
- value            desiredVal
- getValue(lit)    litVal
-
-***/
-
-
-// Local helper functions for just this file
-
-
 
 // JustificationHeuristic stuff
 

@@ -50,8 +50,18 @@ void DecisionEngine::init()
   d_engineState = 1;
 
   Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  if(options::incrementalSolving()) return;
-
+  if(options::incrementalSolving()) {
+    if(options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL) {
+      if(options::decisionMode.wasSetByUser()) {
+        Warning() << "Ignorning decision option since using incremental mode (currently not supported together)"
+                  << std::endl;
+      } else {
+        Notice() << "Using internal decision heuristic since using incremental mode (not supported currently)"
+                 << std::endl;
+      }
+    }
+    return;
+  }
   Trace("decision-init") << " * options->decisionMode: " 
                          << options::decisionMode() << std:: endl;
   Trace("decision-init") << " * options->decisionStopOnly: "
