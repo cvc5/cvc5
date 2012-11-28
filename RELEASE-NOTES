@@ -62,7 +62,8 @@ QUERY commands.
 CVC4 supports rational literals (of type REAL) in decimal; CVC3 did not
 support decimals.
 
-CVC4 does not have support for the IS_INTEGER predicate.
+CVC4 does not have support for the IS_INTEGER predicate, or for predicate
+subtypes, although these are planned for future releases.
 
 ** SMT-LIB compliance
 
