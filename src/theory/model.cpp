@@ -75,7 +75,8 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   }
 }
 
-Node TheoryModel::getModelValue( TNode n ) const{
+Node TheoryModel::getModelValue(TNode n) const
+{
   Assert(n.getKind() != kind::FORALL && n.getKind() != kind::EXISTS);
   if(n.isConst()) {
     return n;
@@ -111,6 +112,10 @@ Node TheoryModel::getModelValue( TNode n ) const{
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF) {
       Node op = n.getOperator();
+      if (op.getKind() == kind::LAMBDA) {
+        Node rw = Rewriter::rewrite(n);
+        return getModelValue(rw);
+      }
       std::map< Node, Node >::const_iterator it = d_uf_models.find(op);
       if (it == d_uf_models.end()) {
         // Unknown term - return first enumerated value for this type
@@ -126,7 +131,7 @@ Node TheoryModel::getModelValue( TNode n ) const{
     }
     //evaluate the children
     for (unsigned i = 0; i < n.getNumChildren(); ++i) {
-      Node val = getValue(n[i]);
+      Node val = getModelValue(n[i]);
       children.push_back(val);
     }
     Node val = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
