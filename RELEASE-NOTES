@@ -138,9 +138,8 @@ this, use the --filter-lemma-length=N option to share lemmas of N literals
 (or smaller).  (Some lemmas are ineligible for sharing because they include
 literals that are "local" to one thread.)
 
-Currently, the portfolio **does not work** with quantifiers or with
-the theory of inductive datatypes.  These limitations will be addressed
-in a future release.
+Currently, the portfolio **does not work** with the theory of inductive
+datatypes. This limitation will be addressed in a future release.
 
 ** Questions ??
 
