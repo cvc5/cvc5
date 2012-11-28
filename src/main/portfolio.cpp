@@ -25,9 +25,12 @@
 
 namespace CVC4 {
 
+/** Mutex to make sure at most one thread is winner */
 boost::mutex mutex_done;
+
+/** Mutex / condition variable to notify main when winner data written */
 boost::mutex mutex_main_wait;
-boost::condition condition_var_main_wait;
+boost::condition_variable condition_var_main_wait;
 
 bool global_flag_done;
 int global_winner;
@@ -38,12 +41,16 @@ void runThread(int thread_id, boost::function<S()> threadFn, S& returnValue)
   returnValue = threadFn();
 
   if( mutex_done.try_lock() ) {
-    if(global_flag_done == false) {
-      global_flag_done = true;
-      global_winner = thread_id;
+    if(global_flag_done == false) 
+    {
+      {
+        boost::lock_guard<boost::mutex> lock(mutex_main_wait);
+        global_winner = thread_id;
+        global_flag_done = true;
+      }
+      condition_var_main_wait.notify_all(); // we want main thread to quit
     }
     mutex_done.unlock();
-    condition_var_main_wait.notify_all(); // we want main thread to quit
   }
 }
 
@@ -68,8 +75,9 @@ std::pair<int, S> runPortfolio(int numThreads,
   if(not driverFn.empty())
     thread_driver = boost::thread(driverFn);
 
+  boost::unique_lock<boost::mutex> lock(mutex_main_wait);
   while(global_flag_done == false)
-    condition_var_main_wait.wait(mutex_main_wait);
+    condition_var_main_wait.wait(lock);
 
   if(not driverFn.empty()) {
     thread_driver.interrupt();
