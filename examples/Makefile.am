@@ -1,4 +1,4 @@
-SUBDIRS = nra-translate hashsmt .
+SUBDIRS = nra-translate hashsmt api .
 
 AM_CPPFLAGS = \
 	-I@srcdir@/../src/include -I@srcdir@/../src -I@builddir@/../src $(ANTLR_INCLUDES)
@@ -6,8 +6,7 @@ AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
-	simple_vc_cxx \
-	linear_arith
+	simple_vc_cxx
 
 if CVC4_BUILD_LIBCOMPAT
 noinst_PROGRAMS += \
@@ -29,11 +28,6 @@ noinst_DATA += \
 endif
 endif
 
-linear_arith_SOURCES = \
-	linear_arith.cpp
-linear_arith_LDADD = \
-	@builddir@/../src/parser/libcvc4parser.la \
-	@builddir@/../src/libcvc4.la
 
 simple_vc_cxx_SOURCES = \
 	simple_vc_cxx.cpp
@@ -70,12 +64,10 @@ EXTRA_DIST = \
 	README
 
 if STATIC_BINARY
-linear_arith_LINK = $(CXXLINK) -all-static
 simple_vc_cxx_LINK = $(CXXLINK) -all-static
 simple_vc_compat_cxx_LINK = $(CXXLINK) -all-static
 simple_vc_compat_c_LINK = $(LINK) -all-static
 else
-linear_arith_LINK = $(CXXLINK)
 simple_vc_cxx_LINK = $(CXXLINK)
 simple_vc_compat_cxx_LINK = $(CXXLINK)
 simple_vc_compat_c_LINK = $(LINK)
