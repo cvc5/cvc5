@@ -189,7 +189,15 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
     dynamic_cast<QueryCommand*>(cmd) != NULL) {
     mode = 1;
-  } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL) {
+  } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
+            dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
+            dynamic_cast<GetModelCommand*>(cmd) != NULL ||
+            dynamic_cast<GetProofCommand*>(cmd) != NULL ||
+            dynamic_cast<GetUnsatCoreCommand*>(cmd) != NULL ||
+            dynamic_cast<GetAssertionsCommand*>(cmd) != NULL ||
+            dynamic_cast<GetInfoCommand*>(cmd) != NULL ||
+            dynamic_cast<GetOptionCommand*>(cmd) != NULL ||
+            false) {
     mode = 2;
   }
 
