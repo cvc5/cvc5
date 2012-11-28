@@ -179,6 +179,16 @@ Parser::mkVars(const std::vector<std::string> names,
   return vars;
 }
 
+std::vector<Expr>
+Parser::mkBoundVars(const std::vector<std::string> names,
+                    const Type& type) {
+  std::vector<Expr> vars;
+  for(unsigned i = 0; i < names.size(); ++i) {
+    vars.push_back(mkBoundVar(names[i], type));
+  }
+  return vars;
+}
+
 void
 Parser::defineVar(const std::string& name, const Expr& val,
                   bool levelZero) {

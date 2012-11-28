@@ -866,7 +866,7 @@ boundVarDeclReturn[std::vector<CVC4::Expr>& terms,
   // NOTE: do not clear the vectors here!
 }
   : identifierList[ids,CHECK_NONE,SYM_VARIABLE] COLON type[t,CHECK_DECLARED]
-    { const std::vector<Expr>& vars = PARSER_STATE->mkVars(ids, t, false);
+    { const std::vector<Expr>& vars = PARSER_STATE->mkBoundVars(ids, t);
       terms.insert(terms.end(), vars.begin(), vars.end());
       for(unsigned i = 0; i < vars.size(); ++i) {
         types.push_back(t);
@@ -920,7 +920,8 @@ declareTypes[CVC4::Command*& cmd, const std::vector<std::string>& idList]
  * re-declared if topLevel is true (CVC allows re-declaration if the
  * types are compatible---if they aren't compatible, an error is
  * thrown).  Also if topLevel is true, variable definitions are
- * permitted and "cmd" is output.
+ * permitted and "cmd" is output.  If topLevel is false, bound vars
+ * are created
  */
 declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::string>& idList, bool topLevel]
 @init {
@@ -957,10 +958,12 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
             }
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
-            Expr func = PARSER_STATE->mkVar(*i, t, true);
             if(topLevel) {
+              Expr func = PARSER_STATE->mkVar(*i, t, true);
               Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
+            } else {
+              PARSER_STATE->mkBoundVar(*i, t);
             }
           }
         }
