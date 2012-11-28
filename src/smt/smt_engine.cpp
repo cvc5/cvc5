@@ -961,15 +961,6 @@ void SmtEngine::setLogicInternal() throw() {
       setOption("check-models", SExpr("false"));
     }
   }
-
-  // may need to force BV on to handle Boolean terms
-  // except in pure arith and QF_SAT
-  if(!d_logic.isPure(theory::THEORY_ARITH) &&
-     !d_logic.isPure(theory::THEORY_BOOL)) {
-    d_logic = d_logic.getUnlockedCopy();
-    d_logic.enableTheory(theory::THEORY_BV);
-    d_logic.lock();
-  }
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -2087,8 +2078,13 @@ void SmtEnginePrivate::processAssertions() {
     Chat() << "rewriting Boolean terms..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
     for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
-      d_assertionsToPreprocess[i] =
-        d_booleanTermConverter.rewriteBooleanTerms(d_assertionsToPreprocess[i]);
+      Node n = d_booleanTermConverter.rewriteBooleanTerms(d_assertionsToPreprocess[i]);
+      if(n != d_assertionsToPreprocess[i] && !d_smt.d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(theory::THEORY_BV);
+        d_smt.d_logic.lock();
+      }
+      d_assertionsToPreprocess[i] = n;
     }
   }
   dumpAssertions("post-boolean-terms", d_assertionsToPreprocess);
