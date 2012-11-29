@@ -138,12 +138,15 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
       if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
         // temporarily set the node manager to NULL; this gets around
         // a check that mkVar isn't called internally
-        NodeManagerScope nullScope(NULL);
 
         if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
+          NodeManagerScope nullScope(NULL);
           to_e = to->mkBoundVar(name, type);// FIXME thread safety
         } else if(n.getKind() == kind::VARIABLE) {
-          to_e = to->mkVar(name, type);// FIXME thread safety
+          bool isGlobal;
+          Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
+          NodeManagerScope nullScope(NULL);
+          to_e = to->mkVar(name, type, isGlobal);// FIXME thread safety
         } else if(n.getKind() == kind::SKOLEM) {
           // skolems are only available at the Node level (not the Expr level)
           TypeNode typeNode = TypeNode::fromType(type);

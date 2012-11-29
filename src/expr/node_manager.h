@@ -52,12 +52,14 @@ class TypeChecker;
 // TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
   struct VarNameTag { };
+  struct GlobalVarTag { };
   struct SortArityTag { };
   struct DatatypeTupleTag { };
   struct DatatypeRecordTag { };
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
+typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 /** Attribute true for datatype types that are replacements for tuple types */
 typedef expr::Attribute<expr::attr::DatatypeTupleTag, TypeNode> DatatypeTupleAttr;
@@ -1479,6 +1481,7 @@ inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bo
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
+  setAttribute(n, expr::GlobalVarAttr(), isGlobal);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
     (*i)->nmNotifyNewVar(n, isGlobal);
   }
@@ -1491,6 +1494,7 @@ inline Node* NodeManager::mkVarPtr(const std::string& name,
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
+  setAttribute(*n, expr::GlobalVarAttr(), isGlobal);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
     (*i)->nmNotifyNewVar(*n, isGlobal);
   }
@@ -1514,6 +1518,7 @@ inline Node NodeManager::mkVar(const TypeNode& type, bool isGlobal) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
+  setAttribute(n, expr::GlobalVarAttr(), isGlobal);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
     (*i)->nmNotifyNewVar(n, isGlobal);
   }
@@ -1524,6 +1529,7 @@ inline Node* NodeManager::mkVarPtr(const TypeNode& type, bool isGlobal) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
+  setAttribute(*n, expr::GlobalVarAttr(), isGlobal);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
     (*i)->nmNotifyNewVar(*n, isGlobal);
   }
