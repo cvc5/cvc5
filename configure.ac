@@ -751,6 +751,15 @@ AC_SUBST([WNO_UNINITIALIZED])
 AC_SUBST([WNO_UNUSED_VARIABLE])
 AC_SUBST([FNO_STRICT_ALIASING])
 
+# On Mac, we have to fix the visibility of standard library symbols.
+# Otherwise, exported template instantiations---even though explicitly
+# CVC4_PUBLIC, can be generated as symbols with internal-only linkage.
+# Presumably, Apple is distributing a libstdc++ that is built *without*
+# --enable-libstdcxx-visibility (?)
+if test "$target_vendor" = apple; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-D_GLIBCXX_VISIBILITY_DEFAULT=\"__attribute__((__visibility__(\\\"default\\\")))\""
+fi
+
 # Doxygen configuration
 AC_ARG_ENABLE([internals-documentation],
   [AS_HELP_STRING([--enable-internals-documentation],
