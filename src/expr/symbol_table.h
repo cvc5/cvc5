@@ -59,10 +59,10 @@ class CVC4_PUBLIC SymbolTable {
   context::CDHashSet<Expr, ExprHashFunction> *d_functions;
 
 public:
-  /** Create a declaration scope. */
+  /** Create a symbol table. */
   SymbolTable();
 
-  /** Destroy a declaration scope. */
+  /** Destroy a symbol table. */
   ~SymbolTable();
 
   /**
@@ -195,7 +195,7 @@ public:
   /** Push a scope level. */
   void pushScope() throw();
 
-  /** Get the current level of this declaration scope. */
+  /** Get the current level of this symbol table. */
   size_t getLevel() const throw();
 
 };/* class SymbolTable */
