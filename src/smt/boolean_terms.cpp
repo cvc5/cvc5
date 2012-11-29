@@ -166,6 +166,7 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
     } else if(t.isRecord()) {
       return top;
     } else if(t.isDatatype()) {
+      return top;// no support for datatypes at present
       const Datatype& dt = t.getConst<Datatype>();
       const Datatype& dt2 = booleanTermsConvertDatatype(dt);
       if(dt != dt2) {
@@ -185,6 +186,7 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
         return top;
       }
     } else if(t.isConstructor()) {
+      return top;// no support for datatypes at present
       Assert(!boolParent);
       const Datatype& dt = t[t.getNumChildren() - 1].getConst<Datatype>();
       const Datatype& dt2 = booleanTermsConvertDatatype(dt);
@@ -197,6 +199,7 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
         return top;
       }
     } else if(t.isTester() || t.isSelector()) {
+      return top;// no support for datatypes at present
       Assert(!boolParent);
       const Datatype& dt = t[0].getConst<Datatype>();
       const Datatype& dt2 = booleanTermsConvertDatatype(dt);
@@ -242,6 +245,7 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
     Debug("bt") << "looking at: " << top << std::endl;
     if(mk == kind::metakind::PARAMETERIZED) {
       if(kindToTheoryId(k) != THEORY_BV &&
+         k != kind::APPLY_TYPE_ASCRIPTION &&
          k != kind::TUPLE_SELECT &&
          k != kind::TUPLE_UPDATE &&
          k != kind::RECORD_SELECT &&
