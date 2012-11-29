@@ -106,8 +106,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_quantEngine = new QuantifiersEngine(context, this);
 
   // build model information if applicable
-  d_curr_model = new theory::TheoryModel( userContext, "DefaultModel", true );
-  d_curr_model_builder = new theory::TheoryEngineModelBuilder( this );
+  d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
+  d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
 
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);

@@ -2778,21 +2778,9 @@ void SmtEngine::checkModel(bool hardFailure) {
 
       Notice() << "SmtEngine::checkModel(): adding substitution: " << func << " |-> " << val << endl;
 
-      // (1) check that the value is actually a value
-      if(!val.isConst()) {
-        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
-        stringstream ss;
-        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-           << "model value for " << func << endl
-           << "             is " << val << endl
-           << "and that is not a constant (.isConst() == false)." << endl
-           << "Run with `--check-models -v' for additional diagnostics.";
-        InternalError(ss.str());
-      }
-
-      // (2) if the value is a lambda, ensure the lambda doesn't contain the
+      // (1) if the value is a lambda, ensure the lambda doesn't contain the
       // function symbol (since then the definition is recursive)
-      if(val.getKind() == kind::LAMBDA) {
+      if (val.getKind() == kind::LAMBDA) {
         // first apply the model substitutions we have so far
         Node n = substitutions.apply(val[1]);
         // now check if n contains func by doing a substitution
@@ -2814,6 +2802,18 @@ void SmtEngine::checkModel(bool hardFailure) {
              << "Run with `--check-models -v' for additional diagnostics.";
           InternalError(ss.str());
         }
+      }
+
+      // (2) check that the value is actually a value
+      else if (!val.isConst()) {
+        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
+        stringstream ss;
+        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+           << "model value for " << func << endl
+           << "             is " << val << endl
+           << "and that is not a constant (.isConst() == false)." << endl
+           << "Run with `--check-models -v' for additional diagnostics.";
+        InternalError(ss.str());
       }
 
       // (3) checks complete, add the substitution

@@ -22,9 +22,12 @@
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
+#include "theory/ite_simplifier.h"
 
 namespace CVC4 {
+
 namespace theory {
+
 
 /** Theory Model class
  *    For Model m, should call m.initialize() before using
@@ -35,8 +38,9 @@ class TheoryModel : public Model
 protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
+  ITESimplifier d_iteSimp;
 public:
-  TheoryModel( context::Context* c, std::string name, bool enableFuncModels );
+  TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel(){}
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine d_equalityEngine;
@@ -55,7 +59,7 @@ protected:
   /**
    * Get model value function.  This function is called by getValue
    */
-  Node getModelValue( TNode n ) const;
+  Node getModelValue(TNode n, bool hasBoundVars = false) const;
 public:
   /**
    * Get value function.  This should be called only after a ModelBuilder has called buildModel(...)

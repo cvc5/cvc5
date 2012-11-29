@@ -173,7 +173,7 @@ public:
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
     Assert(n.getKind() == kind::LAMBDA);
-    return true;
+    return false;
   }
 };/* class LambdaTypeRule */
 
