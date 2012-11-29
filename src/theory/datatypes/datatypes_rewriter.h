@@ -33,6 +33,31 @@ public:
   static RewriteResponse postRewrite(TNode in) {
     Trace("datatypes-rewrite") << "post-rewriting " << in << std::endl;
 
+    if(in.getKind() == kind::APPLY_CONSTRUCTOR ){
+      Type t = in.getType().toType();
+      DatatypeType dt = DatatypeType(t);
+      //check for parametric datatype constructors
+      // to ensure a normal form, all parameteric datatype constructors must have a type ascription
+      if( dt.isParametric() ){
+        if( in.getOperator().getKind()!=kind::APPLY_TYPE_ASCRIPTION ){
+          Trace("datatypes-rewrite") << "Ascribing type to parametric datatype constructor " << in << std::endl;
+          Node op = in.getOperator();
+          //get the constructor object
+          const DatatypeConstructor& dtc = Datatype::datatypeOf(op.toExpr())[Datatype::indexOf(op.toExpr())];
+          //create ascribed constructor type
+          Node tc = NodeManager::currentNM()->mkConst(AscriptionType(dtc.getSpecializedConstructorType(t)));
+          Node op_new = NodeManager::currentNM()->mkNode( kind::APPLY_TYPE_ASCRIPTION, tc, op );
+          //make new node
+          std::vector< Node > children;
+          children.push_back( op_new );
+          children.insert( children.end(), in.begin(), in.end() );
+          Node inr = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+          Trace("datatypes-rewrite") << "Created " << inr << std::endl;
+          return RewriteResponse(REWRITE_DONE, inr);
+        }
+      }
+    }
+
     if(in.getKind() == kind::APPLY_TESTER) {
       if(in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
         bool result = Datatype::indexOf(in.getOperator().toExpr()) == Datatype::indexOf(in[0].getOperator().toExpr());
@@ -173,6 +198,7 @@ public:
     }
     if(in.getKind() == kind::EQUAL &&
        checkClash(in[0], in[1])) {
+      Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(false));
     }
