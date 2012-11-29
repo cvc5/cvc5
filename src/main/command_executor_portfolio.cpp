@@ -306,6 +306,18 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       assert(portfolioReturn.first >= 0);
       assert(unsigned(portfolioReturn.first) < d_numThreads);
 
+      if(Debug.isOn("treat-unknown-error")) {
+        if(d_ostringstreams[portfolioReturn.first]->str() == "unknown\n") {
+          *d_options[options::out]
+            << "portfolioReturn = (" << portfolioReturn.first << ", " << portfolioReturn.second
+            << ")\n";
+          for(unsigned i = 0; i < d_numThreads; ++i)
+            *d_options[options::out]
+              << "thread " << i << ": " << d_ostringstreams[i]->str() << std::endl;
+          throw Exception("unknown encountered");
+        }
+      }
+
       *d_options[options::out]
         << d_ostringstreams[portfolioReturn.first]->str();
     }

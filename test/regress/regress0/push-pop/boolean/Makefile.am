@@ -73,6 +73,10 @@ SMT2_TESTS = \
 	fuzz_51.smt2 \
 	fuzz_52.smt2 
 
+# Disabled because they take too long
+#	fuzz_1_to_52_merged.smt2 \
+#
+
 BUG_TESTS = 
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(BUG_TESTS)
