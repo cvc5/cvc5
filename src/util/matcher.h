@@ -66,8 +66,16 @@ public:
     std::vector< TypeNode >::iterator i = std::find( d_types.begin(), d_types.end(), pattern );
     if( i!=d_types.end() ){
       int index = i - d_types.begin();
-      if( !d_match[index].isNull() && d_match[index]!=tn ){
-        return false;
+      if( !d_match[index].isNull() ){
+        Debug("typecheck-idt") << "check subtype " << tn << " " << d_match[index] << std::endl;
+        TypeNode tnn = TypeNode::leastCommonTypeNode( tn, d_match[index] );
+        //recognize subtype relation
+        if( !tnn.isNull() ){
+          d_match[index] = tnn;
+          return true;
+        }else{
+          return false;
+        }
       }else{
         d_match[ i - d_types.begin() ] = tn;
         return true;
