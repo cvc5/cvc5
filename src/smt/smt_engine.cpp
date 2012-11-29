@@ -310,6 +310,11 @@ private:
   /**
    * Helper function to fix up assertion list to restore invariants needed after ite removal
    */
+  void collectSkolems(TNode n, set<TNode>& skolemSet, hash_map<Node, bool, NodeHashFunction>& cache);
+
+  /**
+   * Helper function to fix up assertion list to restore invariants needed after ite removal
+   */
   bool checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache);
 
 
@@ -2000,6 +2005,32 @@ Result SmtEngine::quickCheck() {
 }
 
 
+void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, hash_map<Node, bool, NodeHashFunction>& cache)
+{
+  hash_map<Node, bool, NodeHashFunction>::iterator it;
+  it = cache.find(n);
+  if (it != cache.end()) {
+    return;
+  }
+
+  size_t sz = n.getNumChildren();
+  if (sz == 0) {
+    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
+    if (it != d_iteSkolemMap.end()) {
+      skolemSet.insert(n);
+    }
+    cache[n] = true;
+    return;
+  }
+
+  size_t k = 0;
+  for (; k < sz; ++k) {
+    collectSkolems(n[k], skolemSet, cache);
+  }
+  cache[n] = true;
+}
+
+
 bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache)
 {
   hash_map<Node, bool, NodeHashFunction>::iterator it;
@@ -2157,7 +2188,7 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("pre-simplify", d_assertionsToPreprocess);
   Chat() << "simplifying assertions..." << endl;
   bool noConflict = simplifyAssertions();
-  dumpAssertions("post-simplify", d_assertionsToPreprocess);
+  dumpAssertions("post-simplify", d_assertionsToCheck);
 
   dumpAssertions("pre-static-learning", d_assertionsToCheck);
   if(options::doStaticLearning()) {
@@ -2189,7 +2220,21 @@ void SmtEnginePrivate::processAssertions() {
       // Need to fix up assertion list to maintain invariants:
       // Let Sk be the set of Skolem variables introduced by ITE's.  Let <_sk be the order in which these variables were introduced
       // during ite removal.
-      // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr mapped to by sk.  We need to ensure:
+      // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr mapped to by sk.
+
+      // cache for expression traversal
+      hash_map<Node, bool, NodeHashFunction> cache;
+
+      // First, find all skolems that appear in the substitution map - their associated iteExpr will need
+      // to be moved to the main assertion set
+      set<TNode> skolemSet;
+      SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin();
+      for (; pos != d_topLevelSubstitutions.end(); ++pos) {
+        collectSkolems((*pos).first, skolemSet, cache);
+        collectSkolems((*pos).second, skolemSet, cache);
+      }
+      
+      // We need to ensure:
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
@@ -2199,18 +2244,20 @@ void SmtEnginePrivate::processAssertions() {
       builder << d_assertionsToCheck[d_realAssertionsEnd - 1];
       vector<TNode> toErase;
       for (; it != iend; ++it) {
-        TNode iteExpr = d_assertionsToCheck[(*it).second];
-        if (iteExpr.getKind() == kind::ITE &&
-            iteExpr[1].getKind() == kind::EQUAL &&
-            iteExpr[1][0] == (*it).first &&
-            iteExpr[2].getKind() == kind::EQUAL &&
-            iteExpr[2][0] == (*it).first) {
-          hash_map<Node, bool, NodeHashFunction> cache;
-          bool bad = checkForBadSkolems(iteExpr[0], (*it).first, cache);
-          bad = bad || checkForBadSkolems(iteExpr[1][1], (*it).first, cache);
-          bad = bad || checkForBadSkolems(iteExpr[2][1], (*it).first, cache);
-          if (!bad) {
-            continue;
+        if (skolemSet.find((*it).first) == skolemSet.end()) {
+          TNode iteExpr = d_assertionsToCheck[(*it).second];
+          if (iteExpr.getKind() == kind::ITE &&
+              iteExpr[1].getKind() == kind::EQUAL &&
+              iteExpr[1][0] == (*it).first &&
+              iteExpr[2].getKind() == kind::EQUAL &&
+              iteExpr[2][0] == (*it).first) {
+            cache.clear();
+            bool bad = checkForBadSkolems(iteExpr[0], (*it).first, cache);
+            bad = bad || checkForBadSkolems(iteExpr[1][1], (*it).first, cache);
+            bad = bad || checkForBadSkolems(iteExpr[2][1], (*it).first, cache);
+            if (!bad) {
+              continue;
+            }
           }
         }
         // Move this iteExpr into the main assertions
