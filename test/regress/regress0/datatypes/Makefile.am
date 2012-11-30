@@ -42,10 +42,11 @@ TESTS =	\
 	v3l60006.cvc \
 	v5l30058.cvc \
 	bug286.cvc \
+	bug438.cvc \
+	bug438b.cvc \
 	wrong-sel-simp.cvc
 
 FAILING_TESTS = \
-	bug438.cvc \
 	datatype-dump.cvc
 
 EXTRA_DIST = $(TESTS)
