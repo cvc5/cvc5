@@ -24,6 +24,7 @@ using namespace std;
 
 const char* largeVal = "4547897890548754897897897897890789078907890";
 
+
 class IntegerWhite : public CxxTest::TestSuite {
 public:
 
@@ -38,5 +39,16 @@ public:
     TS_ASSERT_THROWS_NOTHING(fits_in_2_bytes.hash());
     TS_ASSERT_THROWS_NOTHING(fits_in_16_bytes.hash());
     TS_ASSERT_THROWS_NOTHING(large.hash());
+  }
+
+  //Make sure we can properly handle:
+  //http://www.ginac.de/CLN/cln_3.html#SEC15
+  const int i_above2tothe29 = (1 << 29) + 1;
+  const unsigned int u_above2tothe29 = (1 << 29) + 1;
+  void testConstruction(){
+    TS_ASSERT_EQUALS(Integer(i_above2tothe29), Integer((long)i_above2tothe29));
+    TS_ASSERT_EQUALS(Integer(u_above2tothe29),
+                     Integer((unsigned long)u_above2tothe29));
+
   }
 };
