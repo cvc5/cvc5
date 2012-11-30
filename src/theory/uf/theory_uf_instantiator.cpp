@@ -41,6 +41,7 @@ Instantiator( c, qe, th )
     //if( options::cbqi() ){
     //  addInstStrategy( new InstStrategyCheckCESolved( this, qe ) );
     //}
+    //these are the instantiation strategies for basic E-matching
     if( options::userPatternsQuant() ){
       d_isup = new InstStrategyUserPatterns( this, qe );
       addInstStrategy( d_isup );
@@ -69,7 +70,7 @@ void InstantiatorTheoryUf::assertNode( Node assertion )
 {
   Debug("quant-uf-assert") << "InstantiatorTheoryUf::check: " << assertion << std::endl;
   //preRegisterTerm( assertion );
-  d_quantEngine->addTermToDatabase( assertion );
+  //INST_ELIM_TRY//d_quantEngine->addTermToDatabase( assertion );
   if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );
@@ -148,52 +149,6 @@ void InstantiatorTheoryUf::getEquivalenceClass( Node a, std::vector< Node >& eqc
       eqc_iter++;
     }
   }
-}
-
-InstantiatorTheoryUf::Statistics::Statistics():
-  //d_instantiations("InstantiatorTheoryUf::Total_Instantiations", 0),
-  d_instantiations_ce_solved("InstantiatorTheoryUf::Instantiations_CE-Solved", 0),
-  d_instantiations_e_induced("InstantiatorTheoryUf::Instantiations_E-Induced", 0),
-  d_instantiations_user_pattern("InstantiatorTheoryUf::Instantiations_User_Pattern", 0),
-  d_instantiations_guess("InstantiatorTheoryUf::Instantiations_Free_Var", 0),
-  d_instantiations_auto_gen("InstantiatorTheoryUf::Instantiations_Auto_Gen", 0),
-  d_instantiations_auto_gen_min("InstantiatorTheoryUf::Instantiations_Auto_Gen_Min", 0),
-  d_splits("InstantiatorTheoryUf::Total_Splits", 0)
-{
-  //StatisticsRegistry::registerStat(&d_instantiations);
-  StatisticsRegistry::registerStat(&d_instantiations_ce_solved);
-  StatisticsRegistry::registerStat(&d_instantiations_e_induced);
-  StatisticsRegistry::registerStat(&d_instantiations_user_pattern );
-  StatisticsRegistry::registerStat(&d_instantiations_guess );
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen );
-  StatisticsRegistry::registerStat(&d_instantiations_auto_gen_min );
-  StatisticsRegistry::registerStat(&d_splits);
-}
-
-InstantiatorTheoryUf::Statistics::~Statistics(){
-  //StatisticsRegistry::unregisterStat(&d_instantiations);
-  StatisticsRegistry::unregisterStat(&d_instantiations_ce_solved);
-  StatisticsRegistry::unregisterStat(&d_instantiations_e_induced);
-  StatisticsRegistry::unregisterStat(&d_instantiations_user_pattern );
-  StatisticsRegistry::unregisterStat(&d_instantiations_guess );
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen );
-  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen_min );
-  StatisticsRegistry::unregisterStat(&d_splits);
-}
-
-/** new node */
-void InstantiatorTheoryUf::newEqClass( TNode n ){
-  d_quantEngine->addTermToDatabase( n );
-}
-
-/** merge */
-void InstantiatorTheoryUf::merge( TNode a, TNode b ){
-  d_quantEngine->getEfficientEMatcher()->merge( a, b );
-}
-
-/** assert terms are disequal */
-void InstantiatorTheoryUf::assertDisequal( TNode a, TNode b, TNode reason ){
-
 }
 
 void InstantiatorTheoryUf::outputEqClass( const char* c, Node n ){

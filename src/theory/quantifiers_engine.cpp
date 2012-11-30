@@ -330,7 +330,7 @@ bool QuantifiersEngine::addLemma( Node lem ){
 }
 
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool modInst, bool mkRep ){
-  Trace("inst-add") << "Add instantiation: " << m << std::endl;
+  Trace("inst-add-debug") << "Add instantiation: " << m << std::endl;
   //make sure there are values for each variable we are instantiating
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Node ic = d_term_db->getInstantiationConstant( f, i );
@@ -350,7 +350,7 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
   }
   //check for duplication modulo equality
   if( !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst ) ){
-    Trace("inst-add") << " -> Already exists." << std::endl;
+    Trace("inst-add-debug") << " -> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
@@ -365,10 +365,12 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
   bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );
   //report the result
   if( addedInst ){
-    Trace("inst-add") << " -> Success." << std::endl;
+    Trace("inst-add") << "Added instantiation for " << f << ": " << std::endl;
+    Trace("inst-add") << "   " << m << std::endl;
+    Trace("inst-add-debug") << " -> Success." << std::endl;
     return true;
   }else{
-    Trace("inst-add") << " -> Lemma already exists." << std::endl;
+    Trace("inst-add-debug") << " -> Lemma already exists." << std::endl;
     return false;
   }
 }
@@ -567,37 +569,23 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_miss);
 }
 
+eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
+  return ((quantifiers::TheoryQuantifiers*)getTheoryEngine()->theoryOf( THEORY_QUANTIFIERS ))->getMasterEqualityEngine();
+}
+
 void EqualityQueryQuantifiersEngine::reset(){
   d_int_rep.clear();
   d_reset_count++;
 }
 
 bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
-  eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
-  if( ee->hasTerm( a ) ){
-    return true;
-  }
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( d_qe->getInstantiator( i ) ){
-      if( d_qe->getInstantiator( i )->hasTerm( a ) ){
-        return true;
-      }
-    }
-  }
-  return false;
+  return getEngine()->hasTerm( a );
 }
 
 Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
-  eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
+  eq::EqualityEngine* ee = getEngine();
   if( ee->hasTerm( a ) ){
     return ee->getRepresentative( a );
-  }
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( d_qe->getInstantiator( i ) ){
-      if( d_qe->getInstantiator( i )->hasTerm( a ) ){
-        return d_qe->getInstantiator( i )->getRepresentative( a );
-      }
-    }
   }
   return a;
 }
@@ -606,47 +594,31 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
   if( a==b ){
     return true;
   }else{
-    eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
+    eq::EqualityEngine* ee = getEngine();
     if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
       if( ee->areEqual( a, b ) ){
         return true;
       }
     }
-    for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-      if( d_qe->getInstantiator( i ) ){
-        if( d_qe->getInstantiator( i )->areEqual( a, b ) ){
-          return true;
-        }
-      }
-    }
-    //std::cout << "Equal = " << eq_sh << " " << eq_uf << " " << eq_a << " " << eq_dt << std::endl;
     return false;
   }
 }
 
 bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
-  eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
+  eq::EqualityEngine* ee = getEngine();
   if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
     if( ee->areDisequal( a, b, false ) ){
       return true;
     }
   }
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( d_qe->getInstantiator( i ) ){
-      if( d_qe->getInstantiator( i )->areDisequal( a, b ) ){
-        return true;
-      }
-    }
-  }
   return false;
-  //std::cout << "Disequal = " << deq_sh << " " << deq_uf << " " << deq_a << " " << deq_dt << std::endl;
 }
 
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
+  Node r = getRepresentative( a );
   if( !options::internalReps() ){
-    return d_qe->getInstantiator( THEORY_UF )->getRepresentative( a );
+    return r;
   }else{
-    Node r = d_qe->getInstantiator( THEORY_UF )->getRepresentative( a );
     if( d_int_rep.find( r )==d_int_rep.end() ){
       std::vector< Node > eqc;
       getEquivalenceClass( r, eqc );
@@ -680,11 +652,11 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return ((uf::TheoryUF*)d_qe->getTheoryEngine()->theoryOf( THEORY_UF ))->getEqualityEngine();
+  return d_qe->getMasterEqualityEngine();
 }
 
 void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
-  eq::EqualityEngine* ee = d_qe->getTheoryEngine()->getSharedTermsDatabase()->getEqualityEngine();
+  eq::EqualityEngine* ee = getEngine();
   if( ee->hasTerm( a ) ){
     Node rep = ee->getRepresentative( a );
     eq::EqClassIterator eqc_iter( rep, ee );
@@ -692,13 +664,7 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
       eqc.push_back( *eqc_iter );
       eqc_iter++;
     }
-  }
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( d_qe->getInstantiator( i ) ){
-      d_qe->getInstantiator( i )->getEquivalenceClass( a, eqc );
-    }
-  }
-  if( eqc.empty() ){
+  }else{
     eqc.push_back( a );
   }
   //a should be in its equivalence class

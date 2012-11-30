@@ -203,6 +203,7 @@ public:
   rrinst::TriggerTrie* getRRTriggerDatabase() { return d_rr_tr_trie; }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false );
+  eq::EqualityEngine* getMasterEqualityEngine() ;
 public:
   /** statistics class */
   class Statistics {

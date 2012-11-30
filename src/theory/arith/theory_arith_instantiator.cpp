@@ -317,7 +317,7 @@ void InstantiatorTheoryArith::preRegisterTerm( Node t ){
 
 void InstantiatorTheoryArith::assertNode( Node assertion ){
   Debug("quant-arith-assert") << "InstantiatorTheoryArith::check: " << assertion << std::endl;
-  d_quantEngine->addTermToDatabase( assertion );
+  //INST_ELIM_TRY//d_quantEngine->addTermToDatabase( assertion );
   if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );

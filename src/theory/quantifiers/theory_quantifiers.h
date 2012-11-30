@@ -71,6 +71,7 @@ public:
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   bool flipDecision();
   void setUserAttribute( std::string& attr, Node n );
+  eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 private:
   void assertUniversal( Node n );
   void assertExistential( Node n );

@@ -36,7 +36,7 @@ void InstantiatorTheoryArrays::preRegisterTerm( Node t ){
 
 void InstantiatorTheoryArrays::assertNode( Node assertion ){
   Debug("quant-arrays-assert") << "InstantiatorTheoryArrays::assertNode: " << assertion << std::endl;
-  d_quantEngine->addTermToDatabase( assertion );
+  //INST_ELIM_TRY//d_quantEngine->addTermToDatabase( assertion );
   if( options::cbqi() ){
     if( assertion.hasAttribute(InstConstantAttribute()) ){
       setQuantifierActive( assertion.getAttribute(InstConstantAttribute()) );

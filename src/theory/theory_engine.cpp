@@ -44,6 +44,8 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "theory/rewriterules/efficient_e_matching.h"
+
 using namespace std;
 
 using namespace CVC4;
@@ -52,7 +54,7 @@ using namespace CVC4::theory;
 void TheoryEngine::finishInit() {
   if (d_logicInfo.isQuantified()) {
     Assert(d_masterEqualityEngine == 0);
-    d_masterEqualityEngine = new eq::EqualityEngine(getSatContext(), "theory::master");
+    d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master");
 
     for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
       if (d_theoryTable[theoryId]) {
@@ -61,6 +63,23 @@ void TheoryEngine::finishInit() {
     }
   }
 }
+
+void TheoryEngine::eqNotifyNewClass(TNode t){
+  d_quantEngine->addTermToDatabase( t );
+}
+
+void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
+  //TODO: add notification to efficient E-matching
+}
+
+void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
+
+}
+
+void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
+
+}
+
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
@@ -73,6 +92,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_logicInfo(logicInfo),
   d_sharedTerms(this, context),
   d_masterEqualityEngine(NULL),
+  d_masterEENotify(*this),
   d_quantEngine(NULL),
   d_curr_model(NULL),
   d_curr_model_builder(NULL),

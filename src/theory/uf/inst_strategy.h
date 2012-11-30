@@ -58,6 +58,15 @@ public:
   inst::Trigger* getUserGenerator( Node f, int i ) { return d_user_gen[f][ i ]; }
   /** identify */
   std::string identify() const { return std::string("UserPatterns"); }
+public:
+  /** statistics class */
+  //class Statistics {
+  //public:
+  //  IntStat d_instantiations;
+  //  Statistics();
+  //  ~Statistics();
+  //};
+  //Statistics d_statistics;
 };/* class InstStrategyUserPatterns */
 
 class InstStrategyAutoGenTriggers : public InstStrategy{
@@ -114,6 +123,16 @@ public:
   }
   /** set generate additional */
   void setGenerateAdditional( bool val ) { d_generate_additional = val; }
+public:
+  /** statistics class */
+  //class Statistics {
+  //public:
+  //  IntStat d_instantiations;
+  //  IntStat d_instantiations_min;
+  //  Statistics();
+  //  ~Statistics();
+  //};
+  //Statistics d_statistics;
 };/* class InstStrategyAutoGenTriggers */
 
 class InstStrategyFreeVariable : public InstStrategy{
@@ -131,6 +150,15 @@ public:
   ~InstStrategyFreeVariable(){}
   /** identify */
   std::string identify() const { return std::string("FreeVariable"); }
+public:
+  /** statistics class */
+  //class Statistics {
+  //public:
+  //  IntStat d_instantiations;
+  //  Statistics();
+  //  ~Statistics();
+  //};
+  //Statistics d_statistics;
 };/* class InstStrategyFreeVariable */
 
 }/* CVC4::theory::uf namespace */

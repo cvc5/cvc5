@@ -75,10 +75,11 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
       if( processTrigger ){
         //if( d_user_gen[f][i]->isMultiTrigger() )
           //Notice() << "  Process (user) " << (*d_user_gen[f][i]) << " for " << f << "..." << std::endl;
-        int numInst = d_user_gen[f][i]->addInstantiations( d_th->d_baseMatch[f] );
+        InstMatch baseMatch;
+        int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
         //if( d_user_gen[f][i]->isMultiTrigger() )
           //Notice() << "  Done, numInst = " << numInst << "." << std::endl;
-        d_th->d_statistics.d_instantiations_user_pattern += numInst;
+        //d_statistics.d_instantiations += numInst;
         if( d_user_gen[f][i]->isMultiTrigger() ){
           d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
         }
@@ -106,6 +107,17 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
                                                  options::smartTriggers() ) );
   }
 }
+/*
+InstStrategyUserPatterns::Statistics::Statistics():
+  d_instantiations("InstStrategyUserPatterns::Instantiations", 0)
+{
+  StatisticsRegistry::registerStat(&d_instantiations);
+}
+
+InstStrategyUserPatterns::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_instantiations);
+}
+*/
 
 void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers
@@ -153,14 +165,15 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
         if( processTrigger ){
           //if( tr->isMultiTrigger() )
             Debug("quant-uf-strategy-auto-gen-triggers") << "  Process " << (*tr) << "..." << std::endl;
-          int numInst = tr->addInstantiations( d_th->d_baseMatch[f] );
+          InstMatch baseMatch;
+          int numInst = tr->addInstantiations( baseMatch );
           //if( tr->isMultiTrigger() )
             Debug("quant-uf-strategy-auto-gen-triggers") << "  Done, numInst = " << numInst << "." << std::endl;
-          if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
-            d_th->d_statistics.d_instantiations_auto_gen_min += numInst;
-          }else{
-            d_th->d_statistics.d_instantiations_auto_gen += numInst;
-          }
+          //if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
+          //  d_statistics.d_instantiations_min += numInst;
+          //}else{
+          //  d_statistics.d_instantiations += numInst;
+          //}
           if( tr->isMultiTrigger() ){
             d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
           }
@@ -321,6 +334,20 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     }
   }
 }
+/*
+InstStrategyAutoGenTriggers::Statistics::Statistics():
+  d_instantiations("InstStrategyAutoGenTriggers::Instantiations", 0),
+  d_instantiations_min("InstStrategyAutoGenTriggers::Instantiations_min", 0)
+{
+  StatisticsRegistry::registerStat(&d_instantiations);
+  StatisticsRegistry::registerStat(&d_instantiations_min);
+}
+
+InstStrategyAutoGenTriggers::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_instantiations);
+  StatisticsRegistry::unregisterStat(&d_instantiations_min);
+}
+*/
 
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
 }
@@ -334,10 +361,21 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
       Debug("quant-uf-alg") << "Add guessed instantiation" << std::endl;
       InstMatch m;
       if( d_quantEngine->addInstantiation( f, m ) ){
-        ++(d_th->d_statistics.d_instantiations_guess);
+        //++(d_statistics.d_instantiations);
         //d_quantEngine->d_hasInstantiated[f] = true;
       }
     }
     return STATUS_UNKNOWN;
   }
 }
+/*
+InstStrategyFreeVariable::Statistics::Statistics():
+  d_instantiations("InstStrategyGuess::Instantiations", 0)
+{
+  StatisticsRegistry::registerStat(&d_instantiations);
+}
+
+InstStrategyFreeVariable::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_instantiations);
+}
+*/

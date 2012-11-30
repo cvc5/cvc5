@@ -48,11 +48,11 @@ d_quantEngine( qe ), d_f( f ){
   }else{
     d_mg = new InstMatchGenerator( d_nodes, qe, matchOption );
   }
-  Debug("trigger") << "Trigger for " << f << ": " << std::endl;
+  Trace("trigger") << "Trigger for " << f << ": " << std::endl;
   for( int i=0; i<(int)d_nodes.size(); i++ ){
-    Debug("trigger") << "   " << d_nodes[i] << std::endl;
+    Trace("trigger") << "   " << d_nodes[i] << std::endl;
   }
-  Debug("trigger") << std::endl;
+  Trace("trigger") << std::endl;
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
       ++(qe->d_statistics.d_triggers);
@@ -230,7 +230,9 @@ bool Trigger::isUsable( Node n, Node f ){
 
 bool Trigger::isUsableTrigger( Node n, Node f ){
   //return n.getAttribute(InstConstantAttribute())==f && n.getKind()==APPLY_UF;
-  return n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
+  bool usable = n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
+  Trace("usable") << n << " usable : " << usable << std::endl;
+  return usable;
 }
 
 bool Trigger::isAtomicTrigger( Node n ){

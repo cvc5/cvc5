@@ -27,6 +27,8 @@
 #include "context/cdqueue.h"
 #include "context/cdo.h"
 
+#include "theory/uf/equality_engine.h"
+
 namespace CVC4 {
 namespace theory {
 
@@ -374,6 +376,8 @@ public:
       delete(i->second.second);
     }
   }
+  /** get equality engine we are using */
+  eq::EqualityEngine* getEqualityEngine();
 private:
   //information for each equivalence class
   std::map< Node, EqClassInfo* > d_eqc_ops;
@@ -390,7 +394,6 @@ public:
   typedef std::vector< std::pair< Node, int > > Ips;
   typedef std::map< Node, std::vector< std::pair< Node, Ips > > > PpIpsMap;
   typedef std::map< Node, std::vector< triple< size_t, Node, Ips > > > MultiPpIpsMap;
-
 private:
   /** Parent/Child Pairs (for efficient E-matching)
       So, for example, if we have the pattern f( g( x ) ), then d_pc_pairs[g][f][f( g( x ) )] = { f.0 }.
