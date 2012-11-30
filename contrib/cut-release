@@ -91,7 +91,7 @@ if [ -z "$root" ]; then
 fi
 
 echo "Checking repo for unmerged updates..."
-if [ `svn -uq status | wc -l` -ne 1 ]; then
+if [ `svn -uq status | grep -v '^M *[0-9]* *NEWS$' | wc -l` -ne 1 ]; then
   echo "$(basename "$0"): ERROR: This working directory isn't up to date" 2>&1
   $dryrun || exit 1
 fi
