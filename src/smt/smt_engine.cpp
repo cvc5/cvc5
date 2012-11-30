@@ -2622,7 +2622,7 @@ Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, LogicException) {
   Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(n.getType()));
 
   // ensure it's a constant
-  Assert(resultNode.isConst());
+  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
