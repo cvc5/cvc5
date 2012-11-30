@@ -6,13 +6,13 @@
 (declare-fun R (Int Int) Bool)
 
 ;; reflexive
-(assert-rewrite ((x Int)) () (R x x) true ())
+(assert-rewrite ((x Int)) () () (R x x) true)
 
 ;; anti-symmetric
-(assert-reduction ((x Int) (y Int)) () ((R x y) (R y x)) (= x y) ())
+(assert-reduction ((x Int) (y Int)) () () ((R x y) (R y x)) (= x y))
 
 ;; transitive
-(assert-propagation ((x Int) (y Int) (z Int)) () ((R x y) (R y z)) (R x z) ())
+(assert-propagation ((x Int) (y Int) (z Int)) () () ((R x y) (R y z)) (R x z))
 
 
 (declare-fun e1 () Int)
