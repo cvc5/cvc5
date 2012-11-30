@@ -654,7 +654,7 @@ public:
         l = options::defaultExprDepth();
       }
       if(l == 0) {
-        l = s_defaultPrintDepth;
+        return s_defaultPrintDepth;
       }
     }
     return l;
@@ -704,12 +704,6 @@ class CVC4_PUBLIC ExprPrintTypes {
    * The allocated index in ios_base for our setting.
    */
   static const int s_iosIndex;
-
-  /**
-   * The default printtypes setting, for ostreams that haven't yet had a
-   * printtypes() applied to them.
-   */
-  static const int s_defaultPrintTypes = false;
 
   /**
    * When this manipulator is used, the setting is stored here.
@@ -882,8 +876,10 @@ public:
       if(l <= 0 || l > language::output::LANG_MAX) {
         // if called from outside the library, we may not have options
         // available to us at this point (or perhaps the output language
-        // is not set in Options).  Default to something reasonable.
-        l = s_defaultOutputLanguage + 1;
+        // is not set in Options).  Default to something reasonable, but
+        // don't set "l" since that would make it "sticky" for this
+        // stream.
+        return OutputLanguage(s_defaultOutputLanguage);
       }
     }
     return OutputLanguage(l - 1);
