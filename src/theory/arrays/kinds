@@ -40,7 +40,7 @@ constant STORE_ALL \
     "array store-all"
 
 # used internally by array theory
-operator ARR_TABLE_FUN 4 "array table function"
+operator ARR_TABLE_FUN 4 "array table function (internal symbol)"
 
 typerule SELECT ::CVC4::theory::arrays::ArraySelectTypeRule
 typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
