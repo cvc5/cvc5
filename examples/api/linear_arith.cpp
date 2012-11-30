@@ -13,8 +13,8 @@
  **
  ** \brief A simple demonstration of the linear arithmetic capabilities of CVC4
  **
- ** A simple demonstration of the linear real, integer and mixed real integer
- ** solving capabilities of CVC4.
+ **  A simple demonstration of the linear arithmetic solving capabilities and
+ ** the push pop of CVC4. This also gives an example option.
  **/
 
 #include <iostream>
@@ -28,7 +28,7 @@ using namespace CVC4;
 int main() {
   ExprManager em;
   SmtEngine smt(&em);
-  smt.setOption("incremental", SExpr("true")); // Enable incremental solving
+  smt.setOption("incremental", true); // Enable incremental solving
 
   // Prove that if given x (Integer) and y (Real) then
   // the maximum value of y - x is 2/3
@@ -62,8 +62,8 @@ int main() {
   smt.assertFormula(assumptions);
 
 
-  Expr diff_leq_two_thirds = em.mkExpr(kind::LEQ, diff, two_thirds);
   smt.push();
+  Expr diff_leq_two_thirds = em.mkExpr(kind::LEQ, diff, two_thirds);
   cout << "Prove that " << diff_leq_two_thirds << " with CVC4." << endl;
   cout << "CVC4 should report VALID." << endl;
   cout << "Result from CVC4 is: " << smt.query(diff_leq_two_thirds) << endl;
@@ -71,12 +71,13 @@ int main() {
 
   cout << endl;
 
-  Expr diff_is_two_thirds = em.mkExpr(kind::EQUAL, diff, two_thirds);
   smt.push();
+  Expr diff_is_two_thirds = em.mkExpr(kind::EQUAL, diff, two_thirds);
+  smt.assertFormula(diff_is_two_thirds);
   cout << "Show that the asserts are consistent with " << endl;
   cout << diff_is_two_thirds << " with CVC4." << endl;
   cout << "CVC4 should report SAT." << endl;
-  cout << "Result from CVC4 is: " << smt.checkSat(diff_is_two_thirds) << endl;
+  cout << "Result from CVC4 is: " << smt.checkSat(em.mkConst(true)) << endl;
   smt.pop();
 
   cout << "Thus the maximum value of (y - x) is 2/3."<< endl;

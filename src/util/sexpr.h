@@ -12,6 +12,13 @@
  ** \brief Simple representation of S-expressions
  **
  ** Simple representation of S-expressions.
+ ** These are used when a simple, and obvious interface for basic
+ ** expressions is appropraite.
+ **
+ ** These are quite ineffecient.
+ ** These are totally disconnected from any ExprManager.
+ ** These keep unique copies of all of their children.
+ ** These are VERY overly verbose and keep much more data than is needed.
  **/
 
 #include "cvc4_public.h"
@@ -80,6 +87,38 @@ public:
     d_children() {
   }
 
+  SExpr(int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children() {
+  }
+
+  SExpr(long int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children() {
+  }
+
+  SExpr(unsigned int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children() {
+  }
+
+  SExpr(unsigned long int value) :
+    d_sexprType(SEXPR_INTEGER),
+    d_integerValue(value),
+    d_rationalValue(0),
+    d_stringValue(""),
+    d_children() {
+  }
+
   SExpr(const CVC4::Rational& value) :
     d_sexprType(SEXPR_RATIONAL),
     d_integerValue(0),
@@ -93,6 +132,32 @@ public:
     d_integerValue(0),
     d_rationalValue(0),
     d_stringValue(value),
+    d_children() {
+  }
+
+  /**
+   * This constructs a string expression from a const char* value.
+   * This cannot be removed in order to support SExpr("foo").
+   * Given the other constructors this SExpr("foo") converts to bool.
+   * instead of SExpr(string("foo")).
+   */
+  SExpr(const char* value) :
+    d_sexprType(SEXPR_STRING),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value),
+    d_children() {
+  }
+
+  /**
+   * This adds a convenience wrapper to SExpr to cast from bools.
+   * This is internally handled as the strings "true" and "false"
+   */
+  SExpr(bool value) :
+    d_sexprType(SEXPR_STRING),
+    d_integerValue(0),
+    d_rationalValue(0),
+    d_stringValue(value ? "true" : "false"),
     d_children() {
   }
 

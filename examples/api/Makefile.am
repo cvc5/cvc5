@@ -5,7 +5,8 @@ AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
 	linear_arith \
-	helloworld
+	helloworld \
+	combination
 
 
 noinst_DATA =
@@ -15,6 +16,11 @@ linear_arith_SOURCES = \
 linear_arith_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
+
+combination_SOURCES = \
+	combination.cpp
+combination_LDADD = \
+	@builddir@/../../src/libcvc4.la
 
 helloworld_SOURCES = \
 	helloworld.cpp
