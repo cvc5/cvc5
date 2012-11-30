@@ -66,6 +66,11 @@ public:
     d_zeroCtor(0),
     d_argEnumerators(NULL) {
 
+    //Assert(type.isDatatype());
+    Debug("te") << "datatype is datatype? " << type.isDatatype() << std::endl;
+    Debug("te") << "datatype is kind " << type.getKind() << std::endl;
+    Debug("te") << "datatype is " << type << std::endl;
+
     /* find the "zero" constructor (the first non-recursive one) */
     /* FIXME: this isn't sufficient for mutually-recursive datatypes! */
     while(d_zeroCtor < d_datatype.getNumConstructors()) {

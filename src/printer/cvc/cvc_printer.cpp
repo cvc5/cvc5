@@ -290,6 +290,17 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
 
     // DATATYPES
+    case kind::PARAMETRIC_DATATYPE:
+      out << n[0].getConst<Datatype>().getName() << '[';
+      for(unsigned i = 1; i < n.getNumChildren(); ++i) {
+        if(i > 1) {
+          out << ',';
+        }
+        out << n[i];
+      }
+      out << ']';
+      return;
+      break;
     case kind::APPLY_TYPE_ASCRIPTION: {
         toStream(out, n[0], depth, types, false);
         out << "::";
@@ -461,9 +472,6 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     case kind::GEQ:
       op << ">=";
       opType = INFIX;
-      break;
-    case kind::PARAMETRIC_DATATYPE:
-      out << n[0].getConst<Datatype>().getName();
       break;
 
     // BITVECTORS

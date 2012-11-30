@@ -63,10 +63,14 @@ operator PARAMETRIC_DATATYPE 1: "parametric datatype"
 cardinality PARAMETRIC_DATATYPE \
     "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality()" \
     "util/datatype.h"
-well-founded PARAMETRIC_DATATYPE\
+well-founded PARAMETRIC_DATATYPE \
     "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
     "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm(%TYPE%.toType())" \
     "util/datatype.h"
+
+enumerator PARAMETRIC_DATATYPE \
+    "::CVC4::theory::datatypes::DatatypesEnumerator" \
+    "theory/datatypes/type_enumerator.h"
 
 parameterized APPLY_TYPE_ASCRIPTION ASCRIPTION_TYPE 1 \
     "type ascription, for datatype constructor applications"
