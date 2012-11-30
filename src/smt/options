@@ -60,13 +60,13 @@ option - regular-output-channel argument :handler CVC4::smt::setRegularOutputCha
 option - diagnostic-output-channel argument :handler CVC4::smt::setDiagnosticOutputChannel :handler-include "smt/options_handlers.h"
  set the diagnostic output channel of the solver
 
-common-option cumulativeMillisecondLimit --tlimit=MS "unsigned long"
+common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long"
  enable time limiting (give milliseconds)
-common-option perCallMillisecondLimit --tlimit-per=MS "unsigned long"
+common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long"
  enable time limiting per query (give milliseconds)
-common-option cumulativeResourceLimit --rlimit=N "unsigned long"
+common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
  enable resource limiting
-common-option perCallResourceLimit --rlimit-per=N "unsigned long"
+common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
  enable resource limiting per query
 
 # --replay is currently broken; don't document it for 1.0

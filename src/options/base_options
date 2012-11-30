@@ -31,7 +31,7 @@
 #
 #     SPECIFICATIONs take this form:
 #
-#       SPECIFICATION ::= (internal-name | -) [-short-option/-alternate-short-option] [--long-option/--alternate-long-option] [smt-option-name] C++-type [ATTRIBUTEs...]
+#       SPECIFICATION ::= (internal-name | -) [smt-option-name] [-short-option/-alternate-short-option] [--long-option/--alternate-long-option] C++-type [ATTRIBUTEs...]
 #       ATTRIBUTE ::=   :include include-files..
 #                     | :default C++-expression
 #                     | :handler custom-option-handlers..
