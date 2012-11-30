@@ -10,8 +10,8 @@
 ;;A dumb predicate for a simple example
 (declare-fun P (Element) Bool)
 
-(assert-rewrite ((?i1 Index) (?i2 Index) (?e Element) (?a (Array Index Element))) ()
-                (P (select (store ?a ?i1 ?e) ?i2)) true () )
+(assert-rewrite ((?i1 Index) (?i2 Index) (?e Element) (?a (Array Index Element))) () ()
+                (P (select (store ?a ?i1 ?e) ?i2)) true )
 
 (declare-fun a1 () (Array Index Element))
 (declare-fun a2 () (Array Index Element))

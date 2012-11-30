@@ -14,21 +14,21 @@
 ;;;;;;;;;;;;;;;;;;;;
 ;; injective
 
-(declare-fun inj1 (list) elt)
+(declare-fun inj11 (list) elt)
 (assert (forall ((?e elt) (?l list))
-                (! (! (=> true (=> true (= (inj1 (cons1 ?e ?l)) ?e))) :pattern ((cons1 ?e ?l)) ) :rewrite-rule) ))
+                (! (! (=> true (=> true (= (inj11 (cons1 ?e ?l)) ?e))) :pattern ((cons1 ?e ?l)) ) :rewrite-rule) ))
 
-(declare-fun inj2 (list) list)
+(declare-fun inj12 (list) list)
 (assert (forall ((?e elt) (?l list))
-                (! (! (=> true (=> true (= (inj2 (cons1 ?e ?l)) ?l))) :pattern ((cons1 ?e ?l)) ) :rewrite-rule) ))
+                (! (! (=> true (=> true (= (inj12 (cons1 ?e ?l)) ?l))) :pattern ((cons1 ?e ?l)) ) :rewrite-rule) ))
 
-(declare-fun inj1 (list) elt)
+(declare-fun inj21 (list) elt)
 (assert (forall ((?e elt) (?l list))
-                (! (! (=> true (=> true (= (inj1 (cons2 ?e ?l)) ?e))) :pattern ((cons2 ?e ?l)) ) :rewrite-rule) ))
+                (! (! (=> true (=> true (= (inj21 (cons2 ?e ?l)) ?e))) :pattern ((cons2 ?e ?l)) ) :rewrite-rule) ))
 
-(declare-fun inj2 (list) list)
+(declare-fun inj22 (list) list)
 (assert (forall ((?e elt) (?l list))
-                (! (! (=> true (=> true (= (inj2 (cons2 ?e ?l)) ?l))) :pattern ((cons2 ?e ?l)) ) :rewrite-rule) ))
+                (! (! (=> true (=> true (= (inj22 (cons2 ?e ?l)) ?l))) :pattern ((cons2 ?e ?l)) ) :rewrite-rule) ))
 
 
 ;;;;;;;;;;;;;;;;;;;;

@@ -7,13 +7,13 @@
 (declare-fun R (elt elt) Bool)
 
 ;; reflexive
-(assert-rewrite ((x elt)) () (R x x) true ())
+(assert-rewrite ((x elt)) () () (R x x) true)
 
 ;; transitive
-(assert-propagation ((x elt) (y elt) (z elt)) () ((R x y) (R y z)) (R x z) ())
+(assert-propagation ((x elt) (y elt) (z elt)) () () ((R x y) (R y z)) (R x z))
 
 ;; anti-symmetric
-(assert-propagation ((x elt) (y elt)) () ((R x y) (R y x)) (= x y) ())
+(assert-propagation ((x elt) (y elt)) () () ((R x y) (R y x)) (= x y))
 
 (declare-fun e1 () elt)
 (declare-fun e2 () elt)

@@ -532,9 +532,9 @@ rewriterulesCommand[CVC4::Command*& cmd]
       }
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
+    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
     term[head, expr2] term[body, expr2]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     {
       args.clear();
       args.push_back(head);
@@ -573,10 +573,10 @@ rewriterulesCommand[CVC4::Command*& cmd]
       }
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
+    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
     LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
     term[body, expr2]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     {
       args.clear();
       /* heads */
