@@ -433,9 +433,9 @@ public:
 
   //Make sure we can properly handle:
   //http://www.ginac.de/CLN/cln_3.html#SEC15
-  const int i_above2tothe29 = (1 << 29) + 1;
-  const unsigned int u_above2tothe29 = (1 << 29) + 1;
   void testConstruction(){
+    const int i_above2tothe29 = (1 << 29) + 1;
+    const unsigned int u_above2tothe29 = (1 << 29) + 1;
     TS_ASSERT_EQUALS(Rational(i_above2tothe29), Rational((long)i_above2tothe29));
     TS_ASSERT_EQUALS(Rational(u_above2tothe29),
                      Rational((unsigned long)u_above2tothe29));
