@@ -828,6 +828,7 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index 
       n_ic = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
       Assert( n_ic.getType()==n.getType() );
     }
+    n_ic = Rewriter::rewrite( n_ic );
     //d_inst_map[n][index] = n_ic;
     return n_ic;
   //}
