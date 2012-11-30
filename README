@@ -96,9 +96,8 @@ and the use of heavyweight computation (where more nimble engineering
 approaches could suffice) makes CVC3 a much slower prover than other
 tools.  As these designs are central to CVC3, a new version was
 preferable to a selective re-engineering, which would have ballooned
-in short order.  Some specific deficiencies of CVC3 are mentioned in
-this article.
+in short order.
 
 *** For more information
 
-More information about CVC4 is available at: http://cs.nyu.edu/acsys/cvc4
+More information about CVC4 is available at: http://cvc4.cs.nyu.edu/
