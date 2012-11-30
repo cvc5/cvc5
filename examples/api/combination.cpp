@@ -25,13 +25,30 @@
 using namespace std;
 using namespace CVC4;
 
+void preFixPrintGetValue(SmtEngine& smt, Expr e, int level = 0){
+  for(int i = 0; i < level; ++i){ cout << '-'; }
+  cout << "smt.getValue(" << e << ") -> " << smt.getValue(e) << endl;
+
+  if(e.hasOperator()){
+    preFixPrintGetValue(smt, e.getOperator(), level + 1);
+  }
+
+  for(Expr::const_iterator term_i = e.begin(), term_end = e.end();
+      term_i != term_end; ++term_i)
+  {
+    Expr curr = *term_i;
+    preFixPrintGetValue(smt, curr, level + 1);
+  }
+}
+
+
 int main() {
   ExprManager em;
   SmtEngine smt(&em);
-  smt.setOption("tlimit", 100);
   smt.setOption("produce-models", true); // Produce Models
-  smt.setOption("incremental", true); // Produce Models
+  smt.setOption("incremental", true); // Enable Multiple Queries
   smt.setOption("output-language", "smtlib"); // output-language
+  smt.setOption("default-dag-thresh", 0); //Disable dagifying the output
 
   // Sorts
   SortType u = em.mkSort("u");
@@ -44,7 +61,7 @@ int main() {
   Expr x = em.mkVar("x", u);
   Expr y = em.mkVar("y", u);
 
-  //Functions
+  // Functions
   Expr f = em.mkVar("f", uToInt);
   Expr p = em.mkVar("p", intPred);
 
@@ -52,34 +69,34 @@ int main() {
   Expr zero = em.mkConst(Rational(0));
   Expr one = em.mkConst(Rational(1));
 
-  // terms
+  // Terms
   Expr f_x = em.mkExpr(kind::APPLY_UF, f, x);
   Expr f_y = em.mkExpr(kind::APPLY_UF, f, y);
   Expr sum = em.mkExpr(kind::PLUS, f_x, f_y);
   Expr p_0 = em.mkExpr(kind::APPLY_UF, p, zero);
   Expr p_f_y = em.mkExpr(kind::APPLY_UF, p, f_y);
 
-  smt.assertFormula(em.mkExpr(kind::LEQ, zero, f_x)); // 0 <= f(x)
-  smt.assertFormula(em.mkExpr(kind::LEQ, zero, f_y)); // 0 <= f(y)
-  smt.assertFormula(em.mkExpr(kind::LEQ, sum, one));  // f(x) + f(y) <= 1
-  smt.assertFormula(p_0.notExpr());                   // not p(0)
-  smt.assertFormula(p_f_y);                           // p(f(y))
 
-  cout << "Under the assumptions, prove x cannot equal y is valid: "
-       << " CVC4 says " << smt.query(em.mkExpr(kind::DISTINCT, x, y)) << endl;
+  Expr assumptions =
+    em.mkExpr(kind::AND,
+              em.mkExpr(kind::LEQ, zero, f_x), // 0 <= f(x)
+              em.mkExpr(kind::LEQ, zero, f_y), // 0 <= f(y)
+              em.mkExpr(kind::LEQ, sum, one),  // f(x) + f(y) <= 1
+              p_0.notExpr(),                   // not p(0)
+              p_f_y);                          // p(f(y))
+  smt.assertFormula(assumptions);
+
+  cout << "Given the following assumptions:" << endl
+       << assumptions << endl
+       << "Prove x /= y is valid. "
+       << "CVC4 says: " << smt.query(em.mkExpr(kind::DISTINCT, x, y)) << "." << endl;
 
   cout << "Now we call checksat on a trivial query to show that" << endl
        << "the assumptions are satisfiable: "
        << smt.checkSat(em.mkConst(true)) << "."<< endl;
-  cout << smt.getValue(x) << endl;
-  cout << smt.getValue(y) << endl;
-  cout << smt.getValue(f_x) << endl;
-  cout << smt.getValue(f_y) << endl;
-  cout << smt.getValue(p_f_y) << endl;
-  cout << smt.getValue(p_0) << endl;
 
-  cout << smt.getValue(f) << endl;
-  cout << smt.getValue(p) << endl;
+  cout << "Finally, after a SAT call, we use smt.getValue(...) to generate a model." << endl;
+  preFixPrintGetValue(smt, assumptions);
 
   return 0;
 }
