@@ -828,6 +828,10 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
     Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
+    if(n.getKind() == kind::SKOLEM) {
+      // don't print out internal stuff
+      return;
+    }
     TypeNode tn = n.getType();
     out << n << " : ";
     /* Boolean terms functionality needs to be merged in

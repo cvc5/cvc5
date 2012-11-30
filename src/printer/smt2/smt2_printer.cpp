@@ -563,6 +563,10 @@ void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const 
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
     Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
+    if(n.getKind() == kind::SKOLEM) {
+      // don't print out internal stuff
+      return;
+    }
     Node val = tm.getValue( n );
     if(val.getKind() == kind::LAMBDA) {
       out << "(define-fun " << n << " " << val[0]
