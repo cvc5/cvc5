@@ -1,13 +1,11 @@
 /*********************                                                        */
-/*! \file bitvector.cpp
+/*! \file bitvectors.cpp
  ** \verbatim
  ** Original author: lianah
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** Copyright (c) 2009-2012  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -66,7 +64,7 @@ int main() {
   
   // Introduce a new variable for the new value of x after assignment. 
   Expr new_x = em.mkVar("new_x", bitvector32); // x after executing code (0) 
-  Expr new_x_ = em.mkVar("new_x_", bitvector32); // x after exectuing code (1) or (2)
+  Expr new_x_ = em.mkVar("new_x_", bitvector32); // x after executing code (1) or (2)
 
   // Encoding code (0)
   // new_x = x == a ? b : a; 

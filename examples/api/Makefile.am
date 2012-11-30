@@ -1,3 +1,5 @@
+SUBDIRS = . java
+
 AM_CPPFLAGS = \
 	-I@srcdir@/../../src/include -I@srcdir@/../../src -I@builddir@/../../src $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall
@@ -6,7 +8,8 @@ AM_CFLAGS = -Wall
 noinst_PROGRAMS = \
 	linear_arith \
 	helloworld \
-	combination
+	combination \
+	bitvectors
 
 
 noinst_DATA =
@@ -25,6 +28,11 @@ combination_LDADD = \
 helloworld_SOURCES = \
 	helloworld.cpp
 helloworld_LDADD = \
+	@builddir@/../../src/libcvc4.la
+
+bitvectors_SOURCES = \
+	bitvectors.cpp
+bitvectors_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
 # for installation
