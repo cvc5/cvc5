@@ -18,6 +18,7 @@
 #include "util/output.h"
 
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 
@@ -28,7 +29,8 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
   Exception(message),
   d_node(new Node(node)) {
 #ifdef CVC4_DEBUG
-  s_debugLastException = toString().c_str();
+  // yes, this leaks memory, but only in debug modes with exceptions occurring
+  s_debugLastException = strdup(toString().c_str());
 #endif /* CVC4_DEBUG */
 }
 
