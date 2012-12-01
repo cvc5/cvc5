@@ -24,6 +24,7 @@
 #include "theory/arrays/theory_arrays_model.h"
 #include "theory/model.h"
 #include "theory/arrays/options.h"
+#include "smt/logic_exception.h"
 
 
 using namespace std;
@@ -456,6 +457,9 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     checkStore(node);
     break;
   }
+  case kind::STORE_ALL: {
+    throw LogicException("Array theory solver does not yet support assertions using constant array value");
+  }    
   default:
     // Variables etc
     if (node.getType().isArray()) {
