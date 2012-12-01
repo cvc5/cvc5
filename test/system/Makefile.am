@@ -90,7 +90,7 @@ $(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
 #cvc3_main: cvc3_george.lo $(LIBADD)
 cvc3_main: $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $+
-CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/CVC4.jar @abs_top_builddir@/src/bindings/java/CVC4.la
+CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/CVC4.jar @abs_top_builddir@/src/bindings/java/libcvc4jni.la
 	$(AM_V_JAVAC)$(JAVAC) -classpath @abs_top_builddir@/src/bindings/CVC4.jar -d $(builddir) $<
 
 # for silent automake rules
