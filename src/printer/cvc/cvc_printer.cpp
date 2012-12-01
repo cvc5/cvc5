@@ -20,7 +20,7 @@
 #include "expr/node_manager.h" // for VarNameAttr
 #include "expr/command.h"
 #include "theory/substitutions.h"
-#include "smt/boolean_terms.h"
+#include "smt/smt_engine.h"
 #include "theory/model.h"
 
 #include <iostream>
@@ -834,11 +834,6 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     }
     TypeNode tn = n.getType();
     out << n << " : ";
-    /* Boolean terms functionality needs to be merged in
-    if(n.hasAttribute(smt::BooleanTermAttr())) {
-      out << "*** ";
-    }
-    */
     if( tn.isFunction() || tn.isPredicate() ){
       out << "(";
       for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
@@ -849,7 +844,7 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     }else{
       out << tn;
     }
-    out << " = " << tm.getValue(n.toExpr()) << ";" << std::endl;
+    out << " = " << Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr())) << ";" << std::endl;
 
 /*
     //for table format (work in progress)
