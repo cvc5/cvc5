@@ -31,6 +31,27 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
+static inline bool isBoolean(TNode top, unsigned i) {
+  switch(top.getKind()) {
+  case kind::NOT:
+  case kind::AND:
+  case kind::IFF:
+  case kind::IMPLIES:
+  case kind::OR:
+  case kind::XOR:
+    return true;
+
+  case kind::ITE:
+    if(i == 0) {
+      return true;
+    }
+    return top.getType().isBoolean();
+
+  default:
+    return false;
+  }
+}
+
 const Datatype& BooleanTermConverter::booleanTermsConvertDatatype(const Datatype& dt) throw() {
   return dt;
   // boolean terms not supported in datatypes, yet
@@ -156,6 +177,17 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
                               NodeManager::SKOLEM_EXACT_NAME);
         top.setAttribute(BooleanTermAttr(), n);
         Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+        Node one = nm->mkConst(BitVector(1u, 1u));
+        Node zero = nm->mkConst(BitVector(1u, 0u));
+        Node n_zero = nm->mkNode(kind::SELECT, n, zero);
+        Node n_one = nm->mkNode(kind::SELECT, n, one);
+        Node base = nm->mkConst(ArrayStoreAll(ArrayType(top.getType().toType()), nm->mkConst(false).toExpr()));
+        Node repl = nm->mkNode(kind::STORE,
+                    nm->mkNode(kind::STORE, base, nm->mkConst(false),
+                               nm->mkNode(kind::EQUAL, n_zero, one)), nm->mkConst(true),
+                               nm->mkNode(kind::EQUAL, n_one, one));
+        Debug("boolean-terms") << "array replacement: " << top << " => " << repl << endl;
+        d_smt.d_theoryEngine->getModel()->addSubstitution(top, repl);
         d_booleanTermCache[make_pair(top, boolParent)] = n;
         return n;
       }
@@ -252,19 +284,24 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
          k != kind::RECORD_UPDATE &&
          k != kind::RECORD) {
         Debug("bt") << "rewriting: " << top.getOperator() << std::endl;
-        b << rewriteBooleanTerms(top.getOperator(), kindToTheoryId(k) == THEORY_BOOL);
+        b << rewriteBooleanTerms(top.getOperator(), false);
         Debug("bt") << "got: " << b.getOperator() << std::endl;
       } else {
         b << top.getOperator();
       }
     }
-    for(TNode::const_iterator i = top.begin(); i != top.end(); ++i) {
-      Debug("bt") << "rewriting: " << *i << std::endl;
-      b << rewriteBooleanTerms(*i, kindToTheoryId(k) == THEORY_BOOL);
+    for(unsigned i = 0; i < top.getNumChildren(); ++i) {
+      Debug("bt") << "rewriting: " << top[i] << std::endl;
+      b << rewriteBooleanTerms(top[i], isBoolean(top, i));
       Debug("bt") << "got: " << b[b.getNumChildren() - 1] << std::endl;
     }
     Node n = b;
     Debug("boolean-terms") << "constructed: " << n << endl;
+    if(boolParent &&
+       n.getType().isBitVector() &&
+       n.getType().getBitVectorSize() == 1) {
+      n = nm->mkNode(kind::EQUAL, n, nm->mkConst(BitVector(1u, 1u)));
+    }
     d_booleanTermCache[make_pair(top, boolParent)] = n;
     return n;
   }

@@ -139,6 +139,7 @@ BUG_TESTS = \
 	bug382.smt2 \
 	bug383.smt2 \
 	bug398.smt2 \
+	bug411.smt2 \
 	bug421.smt2 \
 	bug421b.smt2 \
 	bug425.cvc

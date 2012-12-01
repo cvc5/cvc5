@@ -44,8 +44,6 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     }
     d_nodes[current] = b;
     Debug("tuprec") << "returning " << d_nodes[current] << std::endl;
-  } else if(current.hasAttribute(smt::BooleanTermAttr())) {
-    Debug("boolean-terms") << "found bool-term attr on: " << current << std::endl;
   } else {
     Debug("tuprec") << "returning self" << std::endl;
     // rewrite to self
