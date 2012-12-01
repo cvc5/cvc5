@@ -495,7 +495,7 @@ public:
     Assert(options::abstractValues());
     Node& val = d_abstractValues[n];
     if(val.isNull()) {
-      val = d_smt.d_nodeManager->mkConst(AbstractValue(d_abstractValues.size()));
+      val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
       d_abstractValueMap.addSubstitution(val, n);
     }
     return val;

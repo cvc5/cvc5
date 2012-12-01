@@ -171,6 +171,14 @@ class NodeManager {
   std::hash_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tupleAndRecordTypes;
 
   /**
+   * Keep a count of all abstract values produced by this NodeManager.
+   * Abstract values have a type attribute, so if multiple SmtEngines
+   * are attached to this NodeManager, we don't want their abstract
+   * values to overlap.
+   */
+  unsigned d_abstractValueCount;
+
+  /**
    * Look up a NodeValue in the pool associated to this NodeManager.
    * The NodeValue argument need not be a "completely-constructed"
    * NodeValue.  In particular, "non-inlined" constants are permitted
@@ -454,6 +462,9 @@ public:
 
   /** Create a instantiation constant with the given type. */
   Node mkInstConstant(const TypeNode& type);
+
+  /** Make a new abstract value with the given type. */
+  Node mkAbstractValue(const TypeNode& type);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -1552,6 +1563,13 @@ inline Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
 
 inline Node NodeManager::mkInstConstant(const TypeNode& type) {
   Node n = NodeBuilder<0>(this, kind::INST_CONSTANT);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  return n;
+}
+
+inline Node NodeManager::mkAbstractValue(const TypeNode& type) {
+  Node n = mkConst(AbstractValue(++d_abstractValueCount));
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
   return n;

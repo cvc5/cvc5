@@ -121,6 +121,33 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
   }
 
   if(mk == kind::metakind::CONSTANT) {
+    if(k == kind::STORE_ALL) {
+      const ArrayStoreAll& asa = top.getConst<ArrayStoreAll>();
+      ArrayType arrType = asa.getType();
+      TypeNode indexType = TypeNode::fromType(arrType.getIndexType());
+      Type constituentType = arrType.getConstituentType();
+      if(constituentType.isBoolean()) {
+        // we have store_all(true) or store_all(false)
+        // just turn it into store_all(1) or store_all(0)
+        Node newConst = nm->mkConst(BitVector(1u, asa.getExpr().getConst<bool>() ? 1u : 0u));
+        if(indexType.isBoolean()) {
+          // change index type to BV(1) also
+          indexType = nm->mkBitVectorType(1);
+        }
+        ArrayStoreAll asaRepl(nm->mkArrayType(indexType, nm->mkBitVectorType(1)).toType(), newConst.toExpr());
+        Node n = nm->mkConst(asaRepl);
+        Debug("boolean-terms") << " returning new store_all: " << n << std::endl;
+        return n;
+      }
+      if(indexType.isBoolean()) {
+        // must change index type to BV(1)
+        indexType = nm->mkBitVectorType(1);
+        ArrayStoreAll asaRepl(nm->mkArrayType(indexType, TypeNode::fromType(constituentType)).toType(), asa.getExpr());
+        Node n = nm->mkConst(asaRepl);
+        Debug("boolean-terms") << " returning new store_all: " << n << std::endl;
+        return n;
+      }
+    }
     return top;
   } else if(mk == kind::metakind::VARIABLE) {
     TypeNode t = top.getType();

@@ -1303,14 +1303,7 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
     kind::MetaKind mk = n.getMetaKind();
     if( mk != kind::metakind::VARIABLE
         && mk != kind::metakind::CONSTANT ) {
-      try {
-        d_nm->getType(n, true);
-      } catch(UnknownTypeException&) {
-        // Ignore the error; this expression doesn't have a type,
-        // because it has an abstract value in it.  If the user
-        // depends on the type of this expression, he should get an
-        // exception, but so far he's only constructed it.
-      }
+      d_nm->getType(n, true);
     }
   }
 }

@@ -86,7 +86,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_attrManager(ctxt),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false) {
+  d_inReclaimZombies(false),
+  d_abstractValueCount(0) {
   init();
 }
 
@@ -99,7 +100,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_attrManager(ctxt),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
-  d_inReclaimZombies(false) {
+  d_inReclaimZombies(false),
+  d_abstractValueCount(0) {
   init();
 }
 
