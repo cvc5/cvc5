@@ -9,7 +9,8 @@ noinst_PROGRAMS = \
 	linear_arith \
 	helloworld \
 	combination \
-	bitvectors
+	bitvectors \
+	bitvectors_and_arrays
 
 
 noinst_DATA =
@@ -19,6 +20,10 @@ linear_arith_SOURCES = \
 linear_arith_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
+bitvectors_and_arrays_SOURCES = \
+	bitvectors_and_arrays.cpp
+bitvectors_and_arrays_LDADD = \
+	@builddir@/../../src/libcvc4.la
 
 combination_SOURCES = \
 	combination.cpp
