@@ -35,12 +35,10 @@ namespace theory {
 namespace uf {
 
 class UfTermDb;
-class InstantiatorTheoryUf;
 class StrongSolverTheoryUf;
 
 class TheoryUF : public Theory {
 
-  friend class InstantiatorTheoryUf;
   friend class StrongSolverTheoryUf;
 
 public:

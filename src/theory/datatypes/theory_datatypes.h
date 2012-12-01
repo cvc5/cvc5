@@ -34,11 +34,9 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-class InstantiatorTheoryDatatypes;
 class EqualityQueryTheory;
 
 class TheoryDatatypes : public Theory {
-  friend class InstantiatorTheoryDatatypes;
   friend class EqualityQueryTheory;
 private:
   typedef context::CDChunkList<Node> NodeList;

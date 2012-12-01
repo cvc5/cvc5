@@ -81,12 +81,6 @@ function theory {
   theory_id="$1"
 }
 
-function instantiator {
-  # instantiator class header
-  lineno=${BASH_LINENO[0]}
-  check_theory_seen
-}
-
 function properties {
   # properties prop*
   lineno=${BASH_LINENO[0]}

@@ -102,9 +102,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     d_visited[current] = visitedTheories;
     Theory* th = d_engine->theoryOf(currentTheoryId);
     th->preRegisterTerm(current);
-    if(th->getInstantiator() != NULL) {
-      th->getInstantiator()->preRegisterTerm(current);
-    }
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << currentTheoryId << std::endl;
   }
   if (!Theory::setContains(parentTheoryId, visitedTheories)) {
@@ -112,9 +109,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     d_visited[current] = visitedTheories;
     Theory* th = d_engine->theoryOf(parentTheoryId);
     th->preRegisterTerm(current);
-    if(th->getInstantiator() != NULL) {
-      th->getInstantiator()->preRegisterTerm(current);
-    }
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
   }
   if (useType) {
@@ -124,9 +118,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
       d_visited[current] = visitedTheories;
       Theory* th = d_engine->theoryOf(typeTheoryId);
       th->preRegisterTerm(current);
-      if(th->getInstantiator() != NULL) {
-        th->getInstantiator()->preRegisterTerm(current);
-      }
       Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): adding " << parentTheoryId << std::endl;
     }
   }

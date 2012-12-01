@@ -46,7 +46,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class Instantiator;
 class QuantifiersEngine;
 class TheoryModel;
 
@@ -192,12 +191,6 @@ private:
    */
   QuantifiersEngine* d_quantEngine;
 
-  /**
-   * The instantiator for this theory, or NULL if quantifiers are not
-   * supported or not enabled.
-   */
-  Instantiator* d_inst;
-
   // === STATISTICS ===
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
@@ -207,12 +200,6 @@ private:
     ss << "theory<" << id << ">::" << statName;
     return ss.str();
   }
-
-  /**
-   * Construct and return the instantiator for the given theory.
-   * If there is no instantiator class, NULL is returned.
-   */
-  theory::Instantiator* makeInstantiator(context::Context* c, theory::QuantifiersEngine* qe);
 
 protected:
 
@@ -261,7 +248,6 @@ protected:
   , d_sharedTermsIndex(satContext, 0)
   , d_careGraph(0)
   , d_quantEngine(qe)
-  , d_inst(makeInstantiator(satContext, qe))
   , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
   , d_sharedTerms(satContext)
   , d_out(&out)
@@ -484,20 +470,6 @@ public:
    */
   const QuantifiersEngine* getQuantifiersEngine() const {
     return d_quantEngine;
-  }
-
-  /**
-   * Get the theory instantiator.
-   */
-  Instantiator* getInstantiator() {
-    return d_inst;
-  }
-
-  /**
-   * Get the theory instantiator (const version).
-   */
-  const Instantiator* getInstantiator() const {
-    return d_inst;
   }
 
   /**
@@ -821,55 +793,6 @@ namespace eq{
 }
 
 
-/** instantiator class */
-class Instantiator {
-  friend class QuantifiersEngine;
-protected:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
-  /** reference to the theory that it looks at */
-  Theory* d_th;
-  /** reset instantiation round */
-  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
-  /** process quantifier */
-  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
-public:
-  Instantiator(context::Context* c, QuantifiersEngine* qe, Theory* th);
-  virtual ~Instantiator();
-
-  /** get quantifiers engine */
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
-  /** get corresponding theory for this instantiator */
-  Theory* getTheory() { return d_th; }
-  /** Pre-register a term.  */
-  virtual void preRegisterTerm( Node t ) { }
-  /** assertNode function, assertion was asserted to theory */
-  virtual void assertNode( Node assertion ){}
-  /** identify */
-  virtual std::string identify() const { return std::string("Unknown"); }
-  /** print debug information */
-  virtual void debugPrint( const char* c ) {}
-public:
-  /** reset instantiation round */
-  void resetInstantiationRound( Theory::Effort effort );
-  /** do instantiation method*/
-  int doInstantiation( Node f, Theory::Effort effort, int e );
-public:
-  /** general queries about equality */
-  virtual bool hasTerm( Node a ) { return false; }
-  virtual bool areEqual( Node a, Node b ) { return false; }
-  virtual bool areDisequal( Node a, Node b ) { return false; }
-  virtual Node getRepresentative( Node a ) { return a; }
-  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-  virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) {}
-public:
-  /** A Creator of CandidateGenerator for classes (one element in each
-      equivalence class) and class (every element of one equivalence
-      class) */
-  virtual rrinst::CandidateGenerator* getRRCanGenClasses(){ return NULL; };
-  virtual rrinst::CandidateGenerator* getRRCanGenClass(){ return NULL; };
-};/* class Instantiator */
-
 inline Assertion Theory::get() {
   Assert( !done(), "Theory::get() called with assertion queue empty!" );
 
@@ -881,11 +804,6 @@ inline Assertion Theory::get() {
 
   if(Dump.isOn("state")) {
     Dump("state") << AssertCommand(fact.assertion.toExpr());
-  }
-
-  // if quantifiers are turned on and we have an instantiator, notify it
-  if(getLogicInfo().isQuantified() && getInstantiator() != NULL) {
-    getInstantiator()->assertNode(fact);
   }
 
   return fact;

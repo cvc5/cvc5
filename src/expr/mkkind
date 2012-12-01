@@ -105,12 +105,6 @@ function theory {
 "
 }
 
-function instantiator {
-  # instantiator class header
-  lineno=${BASH_LINENO[0]}
-  check_theory_seen
-}
-
 function properties {
   # rewriter class header
   lineno=${BASH_LINENO[0]}

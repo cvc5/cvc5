@@ -61,9 +61,6 @@ theory_parametric="false"
 rewriter_class=
 rewriter_header=
 
-instantiator_class=void
-instantiator_header=
-
 theory_id=
 theory_class=
 
@@ -135,7 +132,6 @@ template<>
 struct TheoryTraits<${theory_id}> {
     typedef ${theory_class} theory_class;
     typedef ${rewriter_class} rewriter_class;
-    typedef ${instantiator_class} instantiator_class;
 
     static const bool isStableInfinite = ${theory_stable_infinite};
     static const bool isFinite = ${theory_finite};
@@ -238,18 +234,6 @@ function construle {
   # construle OPERATOR isconst-checking-class
   lineno=${BASH_LINENO[0]}
   check_theory_seen
-}
-
-function instantiator {
-  # instantiator class header
-  lineno=${BASH_LINENO[0]}
-  check_theory_seen
-
-  instantiator_class="$1"
-  instantiator_header="$2"
-
-  theory_includes="${theory_includes}#include \"$2\"
-"
 }
 
 function properties {

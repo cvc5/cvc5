@@ -48,11 +48,6 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
 }/* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::~Theory() {
-  if(d_inst != NULL) {
-    delete d_inst;
-    d_inst = NULL;
-  }
-
   StatisticsRegistry::unregisterStat(&d_computeCareGraphTime);
 }
 
@@ -173,73 +168,6 @@ void Theory::debugPrintFacts() const{
   DebugChannel.getStream() << "Theory::debugPrintFacts()" << endl;
   printFacts(DebugChannel.getStream());
 }
-
-Instantiator::Instantiator(context::Context* c, QuantifiersEngine* qe, Theory* th) :
-  d_quantEngine(qe),
-  d_th(th) {
-}
-
-Instantiator::~Instantiator() {
-}
-
-void Instantiator::resetInstantiationRound(Theory::Effort effort) {
-  /*
-  for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
-    if(isActiveStrategy(d_instStrategies[i])) {
-      d_instStrategies[i]->processResetInstantiationRound(effort);
-    }
-  }
-  processResetInstantiationRound(effort);
-  */
-}
-
-int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
-  /*
-  if( getQuantifierActive(f) ) {
-    int status = process(f, effort, e );
-    if(d_instStrategies.empty()) {
-      Debug("inst-engine-inst") << "There are no instantiation strategies allocated." << endl;
-    } else {
-      for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
-        if(isActiveStrategy(d_instStrategies[i])) {
-          Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " process " << effort << endl;
-          //call the instantiation strategy's process method
-          int s_status = d_instStrategies[i]->process( f, effort, e );
-          Debug("inst-engine-inst") << "  -> status is " << s_status << endl;
-          InstStrategy::updateStatus(status, s_status);
-        } else {
-          Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " is not active." << endl;
-        }
-      }
-    }
-    return status;
-  } else {
-    Debug("inst-engine-inst") << "We have no constraints from this quantifier." << endl;
-    return InstStrategy::STATUS_SAT;
-  }
-  */
-  return 0;
-}
-
-//void Instantiator::doInstantiation(int effort) {
-//  d_status = InstStrategy::STATUS_SAT;
-//  for( int q = 0; q < d_quantEngine->getNumQuantifiers(); ++q ) {
-//    Node f = d_quantEngine->getQuantifier(q);
-//    if( d_quantEngine->getActive(f) && hasConstraintsFrom(f) ) {
-//      int d_quantStatus = process( f, effort );
-//      InstStrategy::updateStatus( d_status, d_quantStatus );
-//      for( int i = 0; i < (int)d_instStrategies.size(); ++i ) {
-//        if( isActiveStrategy( d_instStrategies[i] ) ) {
-//          Debug("inst-engine-inst") << d_instStrategies[i]->identify() << " process " << effort << endl;
-//          //call the instantiation strategy's process method
-//          d_quantStatus = d_instStrategies[i]->process( f, effort );
-//          Debug("inst-engine-inst") << "  -> status is " << d_quantStatus << endl;
-//          InstStrategy::updateStatus( d_status, d_quantStatus );
-//        }
-//      }
-//    }
-//  }
-//}
 
 std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   std::hash_set<TNode, TNodeHashFunction> currentlyShared;

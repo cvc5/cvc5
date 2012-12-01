@@ -74,7 +74,6 @@ struct NodeTheoryPairHashFunction {
 };/* struct NodeTheoryPairHashFunction */
 
 namespace theory {
-  class Instantiator;
   class TheoryModel;
   class TheoryEngineModelBuilder;
 
