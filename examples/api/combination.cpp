@@ -13,6 +13,7 @@
  **
  ** A simple demonstration of how to use uninterpreted functions, combining this
  ** with arithmetic, and extracting a model at the end of a satisfiable query.
+ ** The model is displayed using getValue().
  **/
 
 #include <iostream>
@@ -23,19 +24,19 @@
 using namespace std;
 using namespace CVC4;
 
-void preFixPrintGetValue(SmtEngine& smt, Expr e, int level = 0){
+void prefixPrintGetValue(SmtEngine& smt, Expr e, int level = 0){
   for(int i = 0; i < level; ++i){ cout << '-'; }
   cout << "smt.getValue(" << e << ") -> " << smt.getValue(e) << endl;
 
   if(e.hasOperator()){
-    preFixPrintGetValue(smt, e.getOperator(), level + 1);
+    prefixPrintGetValue(smt, e.getOperator(), level + 1);
   }
 
   for(Expr::const_iterator term_i = e.begin(), term_end = e.end();
       term_i != term_end; ++term_i)
   {
     Expr curr = *term_i;
-    preFixPrintGetValue(smt, curr, level + 1);
+    prefixPrintGetValue(smt, curr, level + 1);
   }
 }
 
@@ -45,8 +46,9 @@ int main() {
   SmtEngine smt(&em);
   smt.setOption("produce-models", true); // Produce Models
   smt.setOption("incremental", true); // Enable Multiple Queries
-  smt.setOption("output-language", "smtlib"); // output-language
+  smt.setOption("output-language", "cvc4"); // Set the output-language to CVC's
   smt.setOption("default-dag-thresh", 0); //Disable dagifying the output
+  smt.setLogic(string("QF_UFLIRA"));
 
   // Sorts
   SortType u = em.mkSort("u");
@@ -74,7 +76,7 @@ int main() {
   Expr p_0 = em.mkExpr(kind::APPLY_UF, p, zero);
   Expr p_f_y = em.mkExpr(kind::APPLY_UF, p, f_y);
 
-
+  // Construct the assumptions
   Expr assumptions =
     em.mkExpr(kind::AND,
               em.mkExpr(kind::LEQ, zero, f_x), // 0 <= f(x)
@@ -87,14 +89,17 @@ int main() {
   cout << "Given the following assumptions:" << endl
        << assumptions << endl
        << "Prove x /= y is valid. "
-       << "CVC4 says: " << smt.query(em.mkExpr(kind::DISTINCT, x, y)) << "." << endl;
+       << "CVC4 says: " << smt.query(em.mkExpr(kind::DISTINCT, x, y))
+       << "." << endl;
 
   cout << "Now we call checksat on a trivial query to show that" << endl
        << "the assumptions are satisfiable: "
        << smt.checkSat(em.mkConst(true)) << "."<< endl;
 
-  cout << "Finally, after a SAT call, we use smt.getValue(...) to generate a model." << endl;
-  preFixPrintGetValue(smt, assumptions);
+  cout << "Finally, after a SAT call, we recursively call smt.getValue(...) on"
+       << "all of the assumptions to see what the satisfying model looks like."
+       << endl;
+  prefixPrintGetValue(smt, assumptions);
 
   return 0;
 }
