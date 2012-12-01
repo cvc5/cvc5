@@ -10,9 +10,7 @@ libdatatypes_la_SOURCES = \
 	type_enumerator.h \
 	theory_datatypes.h \
 	datatypes_rewriter.h \
-	theory_datatypes.cpp \
-	theory_datatypes_instantiator.h \
-	theory_datatypes_instantiator.cpp
+	theory_datatypes.cpp 
 	
 EXTRA_DIST = \
 	kinds

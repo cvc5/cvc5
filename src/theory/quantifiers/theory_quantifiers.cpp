@@ -22,7 +22,6 @@
 #include "theory/quantifiers/model_engine.h"
 #include "expr/kind.h"
 #include "util/cvc4_assert.h"
-#include "theory/quantifiers/theory_quantifiers_instantiator.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"

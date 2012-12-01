@@ -15,12 +15,8 @@ libuf_la_SOURCES = \
 	equality_engine.cpp \
 	symmetry_breaker.h \
 	symmetry_breaker.cpp \
-	theory_uf_instantiator.h \
-	theory_uf_instantiator.cpp \
 	theory_uf_strong_solver.h \
 	theory_uf_strong_solver.cpp \
-	inst_strategy.h \
-	inst_strategy.cpp \
 	theory_uf_model.h \
 	theory_uf_model.cpp 
 

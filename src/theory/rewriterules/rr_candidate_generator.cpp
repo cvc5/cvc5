@@ -24,100 +24,44 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::rrinst;
 
-GenericCandidateGeneratorClasses::GenericCandidateGeneratorClasses(QuantifiersEngine * qe){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(qe->getInstantiator(i) != NULL)
-      d_can_gen[i] = qe->getInstantiator(i)->getRRCanGenClasses();
-    else d_can_gen[i] = NULL;
-  }
+GenericCandidateGeneratorClasses::GenericCandidateGeneratorClasses(QuantifiersEngine * qe) : d_qe(qe){
+  d_master_can_gen = new eq::rrinst::CandidateGeneratorTheoryEeClasses(d_qe->getMasterEqualityEngine());
 }
 
 GenericCandidateGeneratorClasses::~GenericCandidateGeneratorClasses(){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    delete(d_can_gen[i]);
-  }
+  delete d_master_can_gen;
 }
 
 void GenericCandidateGeneratorClasses::resetInstantiationRound(){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
-  }
-  d_can_gen_id=THEORY_FIRST;
+  d_master_can_gen->resetInstantiationRound();
 }
 
 void GenericCandidateGeneratorClasses::reset(TNode eqc){
-  Assert(eqc.isNull());
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
-  }
-  d_can_gen_id=THEORY_FIRST;
-  lookForNextTheory();
+  d_master_can_gen->reset(eqc);
 }
 
 TNode GenericCandidateGeneratorClasses::getNextCandidate(){
-  Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
-  /** No more */
-  if(d_can_gen_id == THEORY_LAST) return TNode::null();
-  /** Try with this theory */
-  TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
-  if( !cand.isNull() ) return cand;
-  lookForNextTheory();
-  return getNextCandidate();
+  return d_master_can_gen->getNextCandidate();
 }
 
-void GenericCandidateGeneratorClasses::lookForNextTheory(){
-  do{ /* look for the next available generator */
-    ++d_can_gen_id;
-  } while( d_can_gen_id < THEORY_LAST && d_can_gen[d_can_gen_id] == NULL);
-}
 
 GenericCandidateGeneratorClass::GenericCandidateGeneratorClass(QuantifiersEngine * qe): d_qe(qe) {
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(d_qe->getInstantiator(i) != NULL)
-      d_can_gen[i] = d_qe->getInstantiator(i)->getRRCanGenClass();
-    else d_can_gen[i] = NULL;
-  }
+  d_master_can_gen = new eq::rrinst::CandidateGeneratorTheoryEeClass(d_qe->getMasterEqualityEngine());
 }
 
 GenericCandidateGeneratorClass::~GenericCandidateGeneratorClass(){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    delete(d_can_gen[i]);
-  }
+  delete d_master_can_gen;
 }
 
 void GenericCandidateGeneratorClass::resetInstantiationRound(){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(d_can_gen[i] != NULL) d_can_gen[i]->resetInstantiationRound();
-  }
-  d_can_gen_id=THEORY_FIRST;
+  d_master_can_gen->resetInstantiationRound();
 }
 
 void GenericCandidateGeneratorClass::reset(TNode eqc){
-  for(TheoryId i = THEORY_FIRST; i < theory::THEORY_LAST; ++i){
-    if(d_can_gen[i] != NULL) d_can_gen[i]->reset(eqc);
-  }
-  d_can_gen_id=THEORY_FIRST;
-  d_node = eqc;
-  lookForNextTheory();
+  d_master_can_gen->reset(eqc);
 }
 
 TNode GenericCandidateGeneratorClass::getNextCandidate(){
-  Assert(THEORY_FIRST <= d_can_gen_id && d_can_gen_id <= THEORY_LAST);
-  /** No more */
-  if(d_can_gen_id == THEORY_LAST) return TNode::null();
-  /** Try with this theory */
-  TNode cand = d_can_gen[d_can_gen_id]->getNextCandidate();
-  if( !cand.isNull() ) return cand;
-  lookForNextTheory();
-  return getNextCandidate();
+  return d_master_can_gen->getNextCandidate();
 }
 
-void GenericCandidateGeneratorClass::lookForNextTheory(){
-  do{ /* look for the next available generator, where the element is */
-    ++d_can_gen_id;
-  } while(
-          d_can_gen_id < THEORY_LAST &&
-          (d_can_gen[d_can_gen_id] == NULL ||
-           !d_qe->getInstantiator( d_can_gen_id )->hasTerm( d_node ))
-          );
-}

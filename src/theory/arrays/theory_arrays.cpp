@@ -21,7 +21,6 @@
 #include <map>
 #include "theory/rewriter.h"
 #include "expr/command.h"
-#include "theory/arrays/theory_arrays_instantiator.h"
 #include "theory/arrays/theory_arrays_model.h"
 #include "theory/model.h"
 #include "theory/arrays/options.h"
@@ -721,7 +720,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
             }
           }
 
-          // Find all stores in which n[0] appears and get corresponding read terms        
+          // Find all stores in which n[0] appears and get corresponding read terms
           const CTNodeList* instores = d_infoMap.getInStores(array_eqc);
           size_t it = 0;
           for(; it < instores->size(); ++it) {

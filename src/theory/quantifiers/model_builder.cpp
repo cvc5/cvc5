@@ -17,7 +17,6 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_model.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/arrays/theory_arrays_model.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -25,6 +24,7 @@
 #include "theory/quantifiers/model_builder.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/inst_gen.h"
+#include "theory/quantifiers/trigger.h"
 
 using namespace std;
 using namespace CVC4;

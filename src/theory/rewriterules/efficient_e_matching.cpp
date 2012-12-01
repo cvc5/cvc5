@@ -92,7 +92,8 @@ EfficientEMatcher::EfficientEMatcher( CVC4::theory::QuantifiersEngine* qe ) : d_
 }
 
 eq::EqualityEngine* EfficientEMatcher::getEqualityEngine(){
-  return ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getEqualityEngine();
+  //return ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getEqualityEngine();
+  return d_quantEngine->getMasterEqualityEngine();
 }
 
 /** new node */

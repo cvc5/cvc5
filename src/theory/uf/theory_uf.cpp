@@ -18,12 +18,9 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/options.h"
 #include "theory/quantifiers/options.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/model.h"
 #include "theory/type_enumerator.h"
-//included since efficient e matching needs notifications from UF
-#include "theory/rewriterules/efficient_e_matching.h"
 
 using namespace std;
 using namespace CVC4;
@@ -479,15 +476,11 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
   if (d_thss != NULL) {
     d_thss->newEqClass(t);
   }
-  // this can be called very early, during initialization
-  if (!getLogicInfo().isLocked() || getLogicInfo().isQuantified()) {
-    //getQuantifiersEngine()->addTermToDatabase( t );
-  }
 }
 
 void TheoryUF::eqNotifyPreMerge(TNode t1, TNode t2) {
   if (getLogicInfo().isQuantified()) {
-    getQuantifiersEngine()->getEfficientEMatcher()->merge( t1, t2 );
+    //getQuantifiersEngine()->getEfficientEMatcher()->merge( t1, t2 );
   }
 }
 

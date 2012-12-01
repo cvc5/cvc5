@@ -15,7 +15,6 @@
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/datatypes/theory_datatypes.h"

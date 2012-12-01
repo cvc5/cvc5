@@ -6,7 +6,6 @@
 
 theory THEORY_ARITH ::CVC4::theory::arith::TheoryArith "theory/arith/theory_arith.h"
 typechecker "theory/arith/theory_arith_type_rules.h"
-instantiator ::CVC4::theory::arith::InstantiatorTheoryArith "theory/arith/theory_arith_instantiator.h"
 
 properties stable-infinite
 properties check propagate ppStaticLearn presolve notifyRestart

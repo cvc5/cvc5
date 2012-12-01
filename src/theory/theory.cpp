@@ -17,7 +17,6 @@
 #include "theory/theory.h"
 #include "util/cvc4_assert.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/instantiator_default.h"
 
 #include <vector>
 
@@ -184,15 +183,18 @@ Instantiator::~Instantiator() {
 }
 
 void Instantiator::resetInstantiationRound(Theory::Effort effort) {
+  /*
   for(int i = 0; i < (int) d_instStrategies.size(); ++i) {
     if(isActiveStrategy(d_instStrategies[i])) {
       d_instStrategies[i]->processResetInstantiationRound(effort);
     }
   }
   processResetInstantiationRound(effort);
+  */
 }
 
 int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
+  /*
   if( getQuantifierActive(f) ) {
     int status = process(f, effort, e );
     if(d_instStrategies.empty()) {
@@ -215,6 +217,8 @@ int Instantiator::doInstantiation(Node f, Theory::Effort effort, int e ) {
     Debug("inst-engine-inst") << "We have no constraints from this quantifier." << endl;
     return InstStrategy::STATUS_SAT;
   }
+  */
+  return 0;
 }
 
 //void Instantiator::doInstantiation(int effort) {

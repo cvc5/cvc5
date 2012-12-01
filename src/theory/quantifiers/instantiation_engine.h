@@ -24,8 +24,70 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class InstStrategyUserPatterns;
+
+/** instantiation strategy class */
+class InstStrategy {
+public:
+  enum Status {
+    STATUS_UNFINISHED,
+    STATUS_UNKNOWN,
+    STATUS_SAT,
+  };/* enum Status */
+protected:
+  /** reference to the instantiation engine */
+  QuantifiersEngine* d_quantEngine;
+  /** should process a quantifier */
+  std::map< Node, bool > d_quantActive;
+  /** calculate should process */
+  virtual bool calculateShouldProcess( Node f ) { return true; }
+public:
+  InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  virtual ~InstStrategy(){}
+
+  /** should process quantified formula f? */
+  bool shouldProcess( Node f ) {
+    if( d_quantActive.find( f )==d_quantActive.end() ){
+      d_quantActive[f] = calculateShouldProcess( f );
+    }
+    return d_quantActive[f];
+  }
+  /** reset instantiation */
+  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
+  /** process method, returns a status */
+  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
+  /** update status */
+  static void updateStatus( int& currStatus, int addStatus ){
+    if( addStatus==STATUS_UNFINISHED ){
+      currStatus = STATUS_UNFINISHED;
+    }else if( addStatus==STATUS_UNKNOWN ){
+      if( currStatus==STATUS_SAT ){
+        currStatus = STATUS_UNKNOWN;
+      }
+    }
+  }
+  /** identify */
+  virtual std::string identify() const { return std::string("Unknown"); }
+};/* class InstStrategy */
+
 class InstantiationEngine : public QuantifiersModule
 {
+private:
+  /** instantiation strategies */
+  std::vector< InstStrategy* > d_instStrategies;
+  /** instantiation strategies active */
+  std::map< InstStrategy*, bool > d_instStrategyActive;
+  /** user-pattern instantiation strategy */
+  InstStrategyUserPatterns* d_isup;
+  /** is instantiation strategy active */
+  bool isActiveStrategy( InstStrategy* is ) {
+    return d_instStrategyActive.find( is )!=d_instStrategyActive.end() && d_instStrategyActive[is];
+  }
+  /** add inst strategy */
+  void addInstStrategy( InstStrategy* is ){
+    d_instStrategies.push_back( is );
+    d_instStrategyActive[is] = true;
+  }
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   /** status of instantiation round (one of InstStrategy::STATUS_*) */
@@ -62,6 +124,8 @@ private:
 public:
   InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete = true );
   ~InstantiationEngine(){}
+  /** initialize */
+  void finishInit();
 
   bool needsCheck( Theory::Effort e );
   void check( Theory::Effort e );
@@ -69,6 +133,23 @@ public:
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }
   Node getNextDecisionRequest();
+  /** add user pattern */
+  void addUserPattern( Node f, Node pat );
+public:
+  /** statistics class */
+  class Statistics {
+  public:
+    IntStat d_instantiations_user_patterns;
+    IntStat d_instantiations_auto_gen;
+    IntStat d_instantiations_auto_gen_min;
+    IntStat d_instantiations_guess;
+    IntStat d_instantiations_cbqi_arith;
+    IntStat d_instantiations_cbqi_arith_minus;
+    IntStat d_instantiations_cbqi_datatypes;
+    Statistics();
+    ~Statistics();
+  };
+  Statistics d_statistics;
 };/* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

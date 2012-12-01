@@ -6,7 +6,6 @@
 
 theory THEORY_UF ::CVC4::theory::uf::TheoryUF "theory/uf/theory_uf.h"
 typechecker "theory/uf/theory_uf_type_rules.h"
-instantiator ::CVC4::theory::uf::InstantiatorTheoryUf "theory/uf/theory_uf_instantiator.h"
 
 properties stable-infinite parametric
 properties check propagate ppStaticLearn presolve getNextDecisionRequest

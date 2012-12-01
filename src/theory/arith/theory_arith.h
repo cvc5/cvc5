@@ -50,9 +50,12 @@
 
 namespace CVC4 {
 namespace theory {
-namespace arith {
 
-class InstStrategySimplex;
+namespace quantifiers {
+  class InstStrategySimplex;
+}
+
+namespace arith {
 
 /**
  * Implementation of QF_LRA.
@@ -60,7 +63,7 @@ class InstStrategySimplex;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class InstStrategySimplex;
+  friend class quantifiers::InstStrategySimplex;
 private:
   bool d_nlIncomplete;
   // TODO A better would be:

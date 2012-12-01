@@ -15,7 +15,6 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/theory_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/quantifiers/candidate_generator.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/quantifiers/options.h"

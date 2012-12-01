@@ -166,10 +166,9 @@ public:
 class GenericCandidateGeneratorClasses: public rrinst::CandidateGenerator{
 
   /** The candidate generators */
-  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
-  /** The current theory which candidategenerator is used */
-  TheoryId d_can_gen_id;
-
+  rrinst::CandidateGenerator* d_master_can_gen;
+  /** QuantifierEngine */
+  QuantifiersEngine* d_qe;
 public:
   GenericCandidateGeneratorClasses(QuantifiersEngine * qe);
   ~GenericCandidateGeneratorClasses();
@@ -183,22 +182,15 @@ public:
 class GenericCandidateGeneratorClass: public rrinst::CandidateGenerator{
 
   /** The candidate generators */
-  rrinst::CandidateGenerator* d_can_gen[theory::THEORY_LAST];
-  /** The current theory which candidategenerator is used */
-  TheoryId d_can_gen_id;
-  /** current node to look for equivalence class */
-  Node d_node;
+  rrinst::CandidateGenerator* d_master_can_gen;
   /** QuantifierEngine */
   QuantifiersEngine* d_qe;
-
 public:
   GenericCandidateGeneratorClass(QuantifiersEngine * qe);
   ~GenericCandidateGeneratorClass();
   void resetInstantiationRound();
-
   void reset(TNode eqc);
   TNode getNextCandidate();
-  void lookForNextTheory();
 };
 
 }/* CVC4::theory namespace */

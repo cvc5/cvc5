@@ -53,6 +53,7 @@ using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
   if (d_logicInfo.isQuantified()) {
+    d_quantEngine->finishInit();
     Assert(d_masterEqualityEngine == 0);
     d_masterEqualityEngine = new eq::EqualityEngine(d_masterEENotify,getSatContext(), "theory::master");
 
@@ -70,6 +71,9 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
   //TODO: add notification to efficient E-matching
+  if (d_logicInfo.isQuantified()) {
+    d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
+  }
 }
 
 void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){

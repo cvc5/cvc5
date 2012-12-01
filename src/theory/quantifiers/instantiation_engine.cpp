@@ -15,10 +15,12 @@
 #include "theory/quantifiers/instantiation_engine.h"
 
 #include "theory/theory_engine.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/inst_strategy_e_matching.h"
+#include "theory/quantifiers/inst_strategy_cbqi.h"
+#include "theory/quantifiers/trigger.h"
 
 using namespace std;
 using namespace CVC4;
@@ -26,10 +28,47 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
 QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
 
+}
+
+void InstantiationEngine::finishInit(){
+  //for UF terms
+  if( !options::finiteModelFind() || options::fmfInstEngine() ){
+    //if( options::cbqi() ){
+    //  addInstStrategy( new InstStrategyCheckCESolved( this, d_quantEngine ) );
+    //}
+    //these are the instantiation strategies for basic E-matching
+    if( options::userPatternsQuant() ){
+      d_isup = new InstStrategyUserPatterns( d_quantEngine );
+      addInstStrategy( d_isup );
+    }else{
+      d_isup = NULL;
+    }
+    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL,
+                                                                         InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT, 3 );
+    i_ag->setGenerateAdditional( true );
+    addInstStrategy( i_ag );
+    //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
+    if( !options::finiteModelFind() ){
+      addInstStrategy( new InstStrategyFreeVariable( d_quantEngine ) );
+    }
+    //d_isup->setPriorityOver( i_ag );
+    //d_isup->setPriorityOver( i_agm );
+    //i_ag->setPriorityOver( i_agm );
+  }
+  //CBQI: FIXME
+  //for arithmetic
+  //if( options::cbqi() ){
+  //  addInstStrategy( new InstStrategySimplex( d_quantEngine ) );
+  //}
+  //for datatypes
+  //if( options::cbqi() ){
+  //  addInstStrategy( new InstStrategyDatatypesValue( d_quantEngine ) );
+  //}
 }
 
 
@@ -68,9 +107,10 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   //reset the quantifiers engine
   Debug("inst-engine-ctrl") << "Reset IE" << std::endl;
   //reset the instantiators
-  for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-    if( d_quantEngine->getInstantiator( i ) ){
-      d_quantEngine->getInstantiator( i )->resetInstantiationRound( effort );
+  for( size_t i=0; i<d_instStrategies.size(); ++i ){
+    InstStrategy* is = d_instStrategies[i];
+    if( isActiveStrategy( is ) ){
+      is->processResetInstantiationRound( effort );
     }
   }
   //iterate over an internal effort level e
@@ -90,11 +130,12 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         //int e_use = d_quantEngine->getRelevance( f )==-1 ? e - 1 : e;
         int e_use = e;
         if( e_use>=0 ){
-          //use each theory instantiator to instantiate f
-          for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-            if( d_quantEngine->getInstantiator( i ) ){
-              Debug("inst-engine-debug") << "Do " << d_quantEngine->getInstantiator( i )->identify() << " " << e_use << std::endl;
-              int quantStatus = d_quantEngine->getInstantiator( i )->doInstantiation( f, effort, e_use );
+          //check each instantiation strategy
+          for( size_t i=0; i<d_instStrategies.size(); ++i ){
+            InstStrategy* is = d_instStrategies[i];
+            if( isActiveStrategy( is ) && is->shouldProcess( f ) ){
+              Debug("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
+              int quantStatus = is->process( f, effort, e_use );
               Debug("inst-engine-debug") << " -> status is " << quantStatus << std::endl;
               InstStrategy::updateStatus( d_inst_round_status, quantStatus );
             }
@@ -112,13 +153,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   Debug("inst-engine") << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
   if( !d_quantEngine->hasAddedLemma() ){
-    Debug("inst-engine-stuck") << "No instantiations produced at this state: " << std::endl;
-    for( theory::TheoryId i=theory::THEORY_FIRST; i<theory::THEORY_LAST; ++i ){
-      if( d_quantEngine->getInstantiator( i ) ){
-        d_quantEngine->getInstantiator( i )->debugPrint("inst-engine-stuck");
-        Debug("inst-engine-stuck") << std::endl;
-      }
-    }
+    Debug("inst-engine-stuck") << "No instantiations produced at this state." << std::endl;
     Debug("inst-engine-ctrl") << "---Fail." << std::endl;
     return false;
   }else{
@@ -238,9 +273,6 @@ void InstantiationEngine::registerQuantifier( Node f ){
   Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
   if( !doCbqi( f ) ){
     d_quantEngine->addTermToDatabase( ceBody, true );
-    //need to tell which instantiators will be responsible
-    //by default, just chose the UF instantiator
-    d_quantEngine->getInstantiator( theory::THEORY_UF )->setQuantifierActive( f );
   }
 
   //take into account user patterns
@@ -249,7 +281,7 @@ void InstantiationEngine::registerQuantifier( Node f ){
     //add patterns
     for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
       //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
-      ((uf::InstantiatorTheoryUf*)d_quantEngine->getInstantiator( theory::THEORY_UF ))->addUserPattern( f, subsPat[i] );
+      addUserPattern( f, subsPat[i] );
     }
   }
 }
@@ -359,4 +391,38 @@ Node InstantiationEngine::getNextDecisionRequest(){
     }
   }
   return Node::null();
+}
+
+void InstantiationEngine::addUserPattern( Node f, Node pat ){
+  if( d_isup ){
+    d_isup->addUserPattern( f, pat );
+  }
+}
+
+InstantiationEngine::Statistics::Statistics():
+  d_instantiations_user_patterns("InstantiationEngine::Instantiations_User_Patterns", 0),
+  d_instantiations_auto_gen("InstantiationEngine::Instantiations_Auto_Gen", 0),
+  d_instantiations_auto_gen_min("InstantiationEngine::Instantiations_Auto_Gen_Min", 0),
+  d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
+  d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
+  d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
+  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0)
+{
+  StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
+  StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
+  StatisticsRegistry::registerStat(&d_instantiations_auto_gen_min);
+  StatisticsRegistry::registerStat(&d_instantiations_guess);
+  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
+  StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
+  StatisticsRegistry::registerStat(&d_instantiations_cbqi_datatypes);
+}
+
+InstantiationEngine::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_instantiations_user_patterns);
+  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen);
+  StatisticsRegistry::unregisterStat(&d_instantiations_auto_gen_min);
+  StatisticsRegistry::unregisterStat(&d_instantiations_guess);
+  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
+  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);
+  StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_datatypes);
 }

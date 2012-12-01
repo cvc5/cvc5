@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/uf/theory_uf_instantiator.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/arrays/theory_arrays.h"
@@ -25,6 +24,7 @@
 #include "theory/quantifiers/instantiation_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 #include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/rewriterules/rr_trigger.h"
 
@@ -84,9 +84,9 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() {
   return d_eq_query;
 }
 
-Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
-  return d_te->theoryOf( id )->getInstantiator();
-}
+//Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
+//  return d_te->theoryOf( id )->getInstantiator();
+//}
 
 context::Context* QuantifiersEngine::getSatContext(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
@@ -98,6 +98,12 @@ OutputChannel& QuantifiersEngine::getOutputChannel(){
 /** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getValuation();
+}
+
+void QuantifiersEngine::finishInit(){
+  for( int i=0; i<(int)d_modules.size(); i++ ){
+    d_modules[i]->finishInit();
+  }
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){

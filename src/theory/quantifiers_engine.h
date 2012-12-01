@@ -45,6 +45,8 @@ public:
   virtual ~QuantifiersModule(){}
   //get quantifiers engine
   QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  /** initialize */
+  virtual void finishInit() {}
   /* whether this module needs to check this round */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
   /* Call during quantifier engine's check */
@@ -122,7 +124,7 @@ public:
   QuantifiersEngine(context::Context* c, TheoryEngine* te);
   ~QuantifiersEngine();
   /** get instantiator for id */
-  Instantiator* getInstantiator( theory::TheoryId id );
+  //Instantiator* getInstantiator( theory::TheoryId id );
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object for the given type. The default is the
@@ -147,6 +149,8 @@ public:
   /** get efficient e-matching utility */
   EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
 public:
+  /** initialize */
+  void finishInit();
   /** check at level */
   void check( Theory::Effort e );
   /** register quantifier */
