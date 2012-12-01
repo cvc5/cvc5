@@ -1219,6 +1219,15 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   Kind k = n.getKind();
 
   if(k != kind::APPLY && n.getNumChildren() == 0) {
+    SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
+    if(i != d_smt.d_definedFunctions->end()) {
+      // replacement must be closed
+      if((*i).second.getFormals().size() > 0) {
+        throw TypeCheckingException(n.toExpr(), std::string("Defined function requires arguments: `") + n.toString() + "'");
+      }
+      // don't bother putting in the cache
+      return (*i).second.getFormula();
+    }
     // don't bother putting in the cache
     return n;
   }
