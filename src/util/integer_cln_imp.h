@@ -120,8 +120,8 @@ public:
 
   Integer(const Integer& q) : d_value(q.d_value) {}
 
-  Integer(  signed int z) : d_value(z) {}
-  Integer(unsigned int z) : d_value(z) {}
+  Integer(  signed int z) : d_value((signed long int)z) {}
+  Integer(unsigned int z) : d_value((unsigned long int)z) {}
   Integer(  signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
@@ -192,35 +192,17 @@ public:
     return *this;
   }
 
-  /*
-  Integer operator/(const Integer& y) const {
-    return Integer( cln::floor1(d_value, y.d_value) );
-  }
-  Integer& operator/=(const Integer& y) {
-    d_value = cln::floor1(d_value, y.d_value);
-    return *this;
-  }
-
-  Integer operator%(const Integer& y) const {
-    return Integer( cln::floor2(d_value, y.d_value).remainder );
-  }
-  Integer& operator%=(const Integer& y) {
-    d_value = cln::floor2(d_value, y.d_value).remainder;
-    return *this;
-  }
-  */
-
 
   Integer bitwiseOr(const Integer& y) const {
-    return Integer(cln::logior(d_value, y.d_value));  
+    return Integer(cln::logior(d_value, y.d_value));
   }
 
   Integer bitwiseAnd(const Integer& y) const {
-    return Integer(cln::logand(d_value, y.d_value));  
+    return Integer(cln::logand(d_value, y.d_value));
   }
 
   Integer bitwiseXor(const Integer& y) const {
-    return Integer(cln::logxor(d_value, y.d_value));  
+    return Integer(cln::logxor(d_value, y.d_value));
   }
 
   Integer bitwiseNot() const {
@@ -401,8 +383,6 @@ public:
     return d_value == -1;
   }
 
-  //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
-
   long getLong() const {
     // ensure there isn't overflow
     CheckArgument(d_value <= std::numeric_limits<long>::max(), this,
@@ -445,7 +425,7 @@ public:
    */
   unsigned isPow2() const {
     if (d_value <= 0) return 0;
-    // power2p returns n such that d_value = 2^(n-1) 
+    // power2p returns n such that d_value = 2^(n-1)
     return cln::power2p(d_value);
   }
 

@@ -125,8 +125,8 @@ public:
   /**
    * Constructs a canonical Rational from a numerator.
    */
-  Rational(signed int n) : d_value(n) { }
-  Rational(unsigned int n) : d_value(n) { }
+  Rational(signed int n) : d_value((signed long int)n) { }
+  Rational(unsigned int n) : d_value((unsigned long int)n) { }
   Rational(signed long int n) : d_value(n) { }
   Rational(unsigned long int n) : d_value(n) { }
 
@@ -138,10 +138,10 @@ public:
   /**
    * Constructs a canonical Rational from a numerator and denominator.
    */
-  Rational(signed int n, signed int d) : d_value(n) {
+  Rational(signed int n, signed int d) : d_value((signed long int)n) {
     d_value /= d;
   }
-  Rational(unsigned int n, unsigned int d) : d_value(n) {
+  Rational(unsigned int n, unsigned int d) : d_value((unsigned long int)n) {
     d_value /= d;
   }
   Rational(signed long int n, signed long int d) : d_value(n) {
