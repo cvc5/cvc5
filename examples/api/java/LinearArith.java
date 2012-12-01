@@ -25,6 +25,7 @@ public class LinearArith {
     SmtEngine smt = new SmtEngine(em);
 
     smt.setOption("incremental", new SExpr(true)); // Enable incremental solving
+    smt.setLogic("QF_LIRA");                       // Set the logic
 
     // Prove that if given x (Integer) and y (Real) then
     // the maximum value of y - x is 2/3

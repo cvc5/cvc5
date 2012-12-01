@@ -3,6 +3,7 @@ noinst_DATA =
 if CVC4_LANGUAGE_BINDING_JAVA
 noinst_DATA += \
 	BitVectors.class \
+	BitVectorsAndArrays.class \
 	Combination.class \
 	HelloWorld.class \
 	LinearArith.class
@@ -13,6 +14,7 @@ endif
 
 EXTRA_DIST = \
 	BitVectors.java \
+	BitVectorsAndArrays.java \
 	Combination.java \
 	HelloWorld.java \
 	LinearArith.java

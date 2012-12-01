@@ -24,6 +24,7 @@ public class BitVectors {
     SmtEngine smt = new SmtEngine(em);
 
     smt.setOption("incremental", new SExpr(true)); // Enable incremental solving
+    smt.setLogic("QF_BV");                         // Set the logic
 
     // The following example has been adapted from the book A Hacker's Delight by
     // Henry S. Warren.
