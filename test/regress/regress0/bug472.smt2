@@ -1,0 +1,8 @@
+(set-logic QF_AUFLIA)
+(set-option :produce-models true)
+(declare-fun a () (Array Int Int))
+(assert (= (select a 0) 0))
+(check-sat)
+(get-value (a))
+(assert (= a @1))
+(check-sat)

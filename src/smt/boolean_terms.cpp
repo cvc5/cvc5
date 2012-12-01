@@ -121,7 +121,6 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
   }
 
   if(mk == kind::metakind::CONSTANT) {
-    Assert(k != kind::STORE_ALL, "array store-all not yet supported by Boolean-term conversion");
     return top;
   } else if(mk == kind::metakind::VARIABLE) {
     TypeNode t = top.getType();
