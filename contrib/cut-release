@@ -79,7 +79,7 @@ if $dryrun; then
     echo "$(basename "$0"): ERROR: In dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
     exit 1
   fi
-elif [ -n "$(svn status -q)" ]; then
+elif [ -n "$(svn status -q | grep -v '^M *[0-9]* *NEWS$')" ]; then
   echo "$(basename "$0"): ERROR: \"svn status\" indicates there are local modifications; please commit first" >&2
   exit 1
 fi
