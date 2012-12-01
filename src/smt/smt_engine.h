@@ -355,6 +355,11 @@ public:
   /**
    * Set the logic of the script.
    */
+  void setLogic(const char* logic) throw(ModalException);
+
+  /**
+   * Set the logic of the script.
+   */
   void setLogic(const LogicInfo& logic) throw(ModalException);
 
   /**

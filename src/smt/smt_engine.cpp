@@ -735,6 +735,12 @@ void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
   setLogic(LogicInfo(s));
 }
 
+void SmtEngine::setLogic(const char* logic) throw(ModalException){
+  SmtScope smts(this);
+
+  setLogic(LogicInfo(string(logic)));
+}
+
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
