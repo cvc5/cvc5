@@ -1022,7 +1022,8 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   if(ref_count) {
     d_nv->inc();
   } else {
-    Assert(d_nv->d_rc > 0, "TNode constructed from NodeValue with rc == 0");
+    Assert(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::s_null,
+           "TNode constructed from NodeValue with rc == 0");
   }
 }
 
