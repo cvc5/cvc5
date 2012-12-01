@@ -170,11 +170,11 @@ if ! $SHELL -c '\
 	./autogen.sh || echo "autoconf failed; does library_versions have something to match $version?"; \
 	mkdir "release-$version"; \
 	cd "release-$version"; \
-	../configure production-cln-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
+	../configure production-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
 	make dist "$@"; \
 	tar xf "cvc4-$version.tar.gz"; \
 	cd "cvc4-$version"; \
-	./configure production-cln-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
+	./configure production-staticbinary --disable-shared --enable-unit-testing --without-cudd --with-readline --with-portfolio; \
 	make check "$@"; \
 	make distcheck "$@"; \
 '; then
@@ -185,7 +185,7 @@ if ! [ -e release-$version/cvc4-$version.tar.gz ]; then
   echo "$(basename "$0"): INTERNAL ERROR: Cannot find the distribution tarball I just built" >&2
   exit 1
 fi
-if ! [ -e release-$version/src/main/cvc4 ]; then
+if ! [ -e release-$version/cvc4-$version/builds/src/main/cvc4 ]; then
   echo "$(basename "$0"): INTERNAL ERROR: Cannot find the binary I just built" >&2
   exit 1
 fi
@@ -193,14 +193,14 @@ fi
 echo
 echo 'This release of CVC4 will identify itself as:'
 echo
-release-$version/src/main/cvc4 --version
+release-$version/cvc4-$version/builds/src/main/cvc4 --version
 echo
 isthatright
 
 echo
 echo 'This binary release of CVC4 will identify itself as being configured like this:'
 echo
-release-$version/src/main/cvc4 --show-config
+release-$version/cvc4-$version/builds/src/main/cvc4 --show-config
 echo
 isthatright
 
@@ -209,15 +209,15 @@ echo "Signing tarball..."
 cp -p "release-$version/cvc4-$version.tar.gz" .
 gpg -b --armor "cvc4-$version.tar.gz"
 
-echo
-echo "Signing cvc4 binary..."
-cp -p "release-$version/src/main/cvc4" "cvc4-$version"
-gpg -b --armor "cvc4-$version"
+#echo
+#echo "Signing cvc4 binary..."
+#cp -p "release-$version/cvc4-$version/builds/src/main/cvc4" "cvc4-$version"
+#gpg -b --armor "cvc4-$version"
 
-echo
-echo "Signing pcvc4 binary..."
-cp -p "release-$version/src/main/pcvc4" "pcvc4-$version"
-gpg -b --armor "pcvc4-$version"
+#echo
+#echo "Signing pcvc4 binary..."
+#cp -p "release-$version/src/main/pcvc4" "pcvc4-$version"
+#gpg -b --armor "pcvc4-$version"
 
 echo
 echo "About to run: svn commit -m \"Cutting release $version.\""
