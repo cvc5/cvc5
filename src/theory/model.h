@@ -90,11 +90,11 @@ public:
     *   such as contraining the interpretation of uninterpretted functions,
     *   and adding n to the equality engine of this model
     */
-  virtual void addTerm( Node n );
+  virtual void addTerm(TNode n);
   /** assert equality holds in the model */
-  void assertEquality( Node a, Node b, bool polarity );
+  void assertEquality(TNode a, TNode b, bool polarity);
   /** assert predicate holds in the model */
-  void assertPredicate( Node a, bool polarity );
+  void assertPredicate(TNode a, bool polarity);
   /** assert all equalities/predicates in equality engine hold in the model */
   void assertEqualityEngine(const eq::EqualityEngine* ee, std::set<Node>* termSet = NULL);
   /** assert representative
@@ -103,13 +103,13 @@ public:
     *  case of TheoryEngineModelBuilder, it should be called during Theory's collectModelInfo( ... )
     *  functions where fullModel = true.
     */
-  void assertRepresentative( Node n );
+  void assertRepresentative(TNode n);
 public:
   /** general queries */
-  bool hasTerm( Node a );
-  Node getRepresentative( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
+  bool hasTerm(TNode a);
+  Node getRepresentative(TNode a);
+  bool areEqual(TNode a, TNode b);
+  bool areDisequal(TNode a, TNode b);
 public:
   /** get value function for Exprs. */
   Expr getValue( Expr expr ) const;

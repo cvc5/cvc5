@@ -210,7 +210,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 }
 
 /** add term */
-void TheoryModel::addTerm( Node n ){
+void TheoryModel::addTerm(TNode n ){
   Assert(d_equalityEngine.hasTerm(n));
   //must collect UF terms
   if (n.getKind()==APPLY_UF) {
@@ -223,7 +223,7 @@ void TheoryModel::addTerm( Node n ){
 }
 
 /** assert equality */
-void TheoryModel::assertEquality( Node a, Node b, bool polarity ){
+void TheoryModel::assertEquality(TNode a, TNode b, bool polarity ){
   if (a == b && polarity) {
     return;
   }
@@ -233,7 +233,7 @@ void TheoryModel::assertEquality( Node a, Node b, bool polarity ){
 }
 
 /** assert predicate */
-void TheoryModel::assertPredicate( Node a, bool polarity ){
+void TheoryModel::assertPredicate(TNode a, bool polarity ){
   if ((a == d_true && polarity) ||
       (a == d_false && (!polarity))) {
     return;
@@ -263,6 +263,8 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
       predFalse = ee->areEqual(eqc, d_false);
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+    bool first = true;
+    Node rep;
     for (; !eqc_i.isFinished(); ++eqc_i) {
       if (termSet != NULL && termSet->find(*eqc_i) == termSet->end()) {
         continue;
@@ -274,28 +276,43 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
         else if (predFalse) {
           assertPredicate(*eqc_i, false);
         }
-        else if (eqc != (*eqc_i)) {
-          Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << eqc << "));" << endl;
-          d_equalityEngine.mergePredicates(*eqc_i, eqc, Node::null());
-          Assert(d_equalityEngine.consistent());
+        else {
+          if (first) {
+            rep = (*eqc_i);
+            first = false;
+          }
+          else {
+            Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
+            d_equalityEngine.mergePredicates(*eqc_i, rep, Node::null());
+            Assert(d_equalityEngine.consistent());
+          }
         }
       } else {
-        assertEquality(*eqc_i, eqc, true);
+        if (first) {
+          rep = (*eqc_i);
+          first = false;
+        }
+        else {
+          assertEquality(*eqc_i, rep, true);
+        }
       }
     }
   }
 }
 
-void TheoryModel::assertRepresentative( Node n ){
+void TheoryModel::assertRepresentative(TNode n )
+{
   Trace("model-builder-reps") << "Assert rep : " << n << std::endl;
   d_reps[ n ] = n;
 }
 
-bool TheoryModel::hasTerm( Node a ){
+bool TheoryModel::hasTerm(TNode a)
+{
   return d_equalityEngine.hasTerm( a );
 }
 
-Node TheoryModel::getRepresentative( Node a ){
+Node TheoryModel::getRepresentative(TNode a)
+{
   if( d_equalityEngine.hasTerm( a ) ){
     Node r = d_equalityEngine.getRepresentative( a );
     if( d_reps.find( r )!=d_reps.end() ){
@@ -308,7 +325,8 @@ Node TheoryModel::getRepresentative( Node a ){
   }
 }
 
-bool TheoryModel::areEqual( Node a, Node b ){
+bool TheoryModel::areEqual(TNode a, TNode b)
+{
   if( a==b ){
     return true;
   }else if( d_equalityEngine.hasTerm( a ) && d_equalityEngine.hasTerm( b ) ){
@@ -318,7 +336,8 @@ bool TheoryModel::areEqual( Node a, Node b ){
   }
 }
 
-bool TheoryModel::areDisequal( Node a, Node b ){
+bool TheoryModel::areDisequal(TNode a, TNode b)
+{
   if( d_equalityEngine.hasTerm( a ) && d_equalityEngine.hasTerm( b ) ){
     return d_equalityEngine.areDisequal( a, b, false );
   }else{
