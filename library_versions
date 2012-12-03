@@ -45,3 +45,4 @@
 #
 0\..* libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
 1\.0 libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
+1\.1-prerelease libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
