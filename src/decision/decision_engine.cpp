@@ -33,7 +33,7 @@ DecisionEngine::DecisionEngine(context::Context *sc,
   d_enabledStrategies(),
   d_needIteSkolemMap(),
   d_relevancyStrategy(NULL),
-  d_assertions(),
+  d_assertions(uc),
   d_cnfStream(NULL),
   d_satSolver(NULL),
   d_satContext(sc),
@@ -50,18 +50,6 @@ void DecisionEngine::init()
   d_engineState = 1;
 
   Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  if(options::incrementalSolving()) {
-    if(options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL) {
-      if(options::decisionMode.wasSetByUser()) {
-        Warning() << "Ignorning decision option since using incremental mode (currently not supported together)"
-                  << std::endl;
-      } else {
-        Notice() << "Using internal decision heuristic since using incremental mode (not supported currently)"
-                 << std::endl;
-      }
-    }
-    return;
-  }
   Trace("decision-init") << " * options->decisionMode: " 
                          << options::decisionMode() << std:: endl;
   Trace("decision-init") << " * options->decisionStopOnly: "
@@ -70,11 +58,16 @@ void DecisionEngine::init()
   if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
   if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
     ITEDecisionStrategy* ds = 
-      new decision::JustificationHeuristic(this, d_satContext);
+      new decision::JustificationHeuristic(this, d_userContext, d_satContext);
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
   if(options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY) {
+    if(options::incrementalSolving()) {
+      Warning() << "Relevancy decision heuristic and incremental not supported together"
+                << std::endl;
+      return; // Currently not supported with incremental
+    }
     RelevancyStrategy* ds = 
       new decision::Relevancy(this, d_satContext);
     enableStrategy(ds);
@@ -137,7 +130,7 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions,
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
   
-  d_assertions.reserve(assertions.size());
+  // d_assertions.reserve(assertions.size());
   for(unsigned i = 0; i < assertions.size(); ++i)
     d_assertions.push_back(assertions[i]);
   

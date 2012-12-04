@@ -27,6 +27,8 @@
 #include "decision_strategy.h"
 
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 
@@ -44,7 +46,7 @@ public:
 class JustificationHeuristic : public ITEDecisionStrategy {
   typedef std::vector<pair<TNode,TNode> > IteList;
   typedef hash_map<TNode,IteList,TNodeHashFunction> IteCache;
-  typedef hash_map<TNode,TNode,TNodeHashFunction> SkolemMap;
+  typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
 
   // being 'justified' is monotonic with respect to decisions
   typedef context::CDHashSet<TNode,TNodeHashFunction> JustifiedSet;
@@ -59,7 +61,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * A copy of the assertions that need to be justified
    * directly. Doesn't have ones introduced during during ITE-removal.
    */
-  std::vector<TNode> d_assertions;   
+  context::CDList<TNode> d_assertions;
   //TNode is fine since decisionEngine has them too
 
   /** map from ite-rewrite skolem to a boolean-ite assertion */
@@ -77,13 +79,17 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    */
   hash_set<TNode,TNodeHashFunction> d_visited;
 public:
-  JustificationHeuristic(CVC4::DecisionEngine* de, context::Context *c):
+  JustificationHeuristic(CVC4::DecisionEngine* de,
+                         context::Context *uc,
+                         context::Context *c):
     ITEDecisionStrategy(de, c),
     d_justified(c),
     d_prvsIndex(c, 0),
     d_helfulness("decision::jh::helpfulness", 0),
     d_giveup("decision::jh::giveup", 0),
-    d_timestat("decision::jh::time") {
+    d_timestat("decision::jh::time"),
+    d_assertions(uc),
+    d_iteAssertions(uc) {
     StatisticsRegistry::registerStat(&d_helfulness);
     StatisticsRegistry::registerStat(&d_giveup);
     StatisticsRegistry::registerStat(&d_timestat);
@@ -91,6 +97,7 @@ public:
   }
   ~JustificationHeuristic() {
     StatisticsRegistry::unregisterStat(&d_helfulness);
+    StatisticsRegistry::unregisterStat(&d_giveup);
     StatisticsRegistry::unregisterStat(&d_timestat);
   }
   prop::SatLiteral getNext(bool &stopSearch) {

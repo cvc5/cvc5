@@ -42,7 +42,8 @@ class DecisionEngine {
   vector <ITEDecisionStrategy* > d_needIteSkolemMap;
   RelevancyStrategy* d_relevancyStrategy;
 
-  vector <Node> d_assertions;
+  typedef context::CDList<Node> AssertionsList;
+  AssertionsList d_assertions;
 
   // PropEngine* d_propEngine;
   CnfStream* d_cnfStream;
@@ -55,7 +56,7 @@ class DecisionEngine {
   context::CDO<SatValue> d_result;
 
   // Disable creating decision engine without required parameters
-  DecisionEngine() : d_result(NULL) {}
+  DecisionEngine();
 
   // init/shutdown state
   unsigned d_engineState;    // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
@@ -68,8 +69,6 @@ public:
   /** Destructor, currently does nothing */
   ~DecisionEngine() {
     Trace("decision") << "Destroying decision engine" << std::endl;
-    for(unsigned i = 0; i < d_enabledStrategies.size(); ++i)
-      delete d_enabledStrategies[i];
   }
   
   // void setPropEngine(PropEngine* pe) {
@@ -99,14 +98,15 @@ public:
   /**
    * This is called by SmtEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system.  For now,
-   * there's nothing to do here in the DecisionEngine.
+   * ordering issues between some parts of the system.
    */
   void shutdown() {
     Assert(d_engineState == 1);
     d_engineState = 2;
 
     Trace("decision") << "Shutting down decision engine" << std::endl;
+    for(unsigned i = 0; i < d_enabledStrategies.size(); ++i)
+      delete d_enabledStrategies[i];
   }
 
   // Interface for External World to use our services
@@ -191,7 +191,7 @@ public:
   /**
    * Get the assertions. Strategies are notified when these are available. 
    */
-  const vector<Node>& getAssertions() {
+  AssertionsList& getAssertions() {
     return d_assertions;
   }
 

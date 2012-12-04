@@ -73,7 +73,7 @@ void JustificationHeuristic::computeITEs(TNode n, IteList &l)
   for(unsigned i=0; i<n.getNumChildren(); ++i) {
     SkolemMap::iterator it2 = d_iteAssertions.find(n[i]);
     if(it2 != d_iteAssertions.end()) {
-      l.push_back(make_pair(n[i], it2->second));
+      l.push_back(make_pair(n[i], (*it2).second));
       Assert(n[i].getNumChildren() == 0);
     }
     computeITEs(n[i], l);
@@ -98,6 +98,15 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
                                              SatValue desiredVal,
                                              SatLiteral* litDecision)
 {
+  /**
+   * Main idea
+   *
+   * Given a boolean formula "node", the goal is to try to make it
+   * evaluate to "desiredVal" (true/false). for instance if "node" is a AND
+   * formula we want to make it evaluate to true, we'd like one of the
+   * children to be true. this is done recursively.
+   */
+
   Trace("jh-findSplitterRec") 
     << "findSplitterRec(" << node << ", " 
     << desiredVal << ", .. )" << std::endl; 
