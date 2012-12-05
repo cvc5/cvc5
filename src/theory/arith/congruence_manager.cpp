@@ -272,7 +272,7 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   d_watchedVariables.add(s);
 
   Node eq = x.eqNode(y);
-  d_watchedEqualities[s] = eq;
+  d_watchedEqualities.set(s, eq);
 }
 
 void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar s, TNode reason){

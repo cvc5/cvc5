@@ -151,6 +151,7 @@ public:
     pop_back();
   }
 
+  /** Returns the key at the back of a non-empty list.*/
   Key back() const {
     return d_list.back();
   }
@@ -163,6 +164,27 @@ public:
     d_image[atBack] = T();
     d_list.pop_back();
   }
+
+
+  /** Adds at least a constant fraction of the elements in the current map to another map. */
+  void splitInto(DenseMap<T>& target){
+    uint32_t targetSize = size()/2;
+    while(size() > targetSize){
+      Key key = back();
+      target.set(key, get(key));
+      pop_back();
+    }
+  }
+
+  /** Adds the current target map to the current map.*/
+  void addAll(const DenseMap<T>& target){
+    for(const_iterator i = target.begin(), e = target.end(); i != e; ++i){
+      Key k = *i;
+      set(k, target[k]);
+    }
+  }
+
+
 
  private:
 

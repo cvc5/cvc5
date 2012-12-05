@@ -25,6 +25,7 @@
 #include "util/dense_map.h"
 
 #include "theory/arith/arithvar.h"
+#include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/normal_form.h"
 
 #include <queue>
@@ -377,6 +378,8 @@ protected:
   uint32_t d_entriesInUse;
   MatrixEntryVector<T> d_entries;
 
+  std::vector<RowIndex> d_pool;
+
   T d_zero;
 
 public:
@@ -446,6 +449,23 @@ protected:
     d_entries.freeEntry(id);
   }
 
+ private:
+  RowIndex requestRowIndex(){
+    if(d_pool.empty()){
+      RowIndex ridx = d_rows.size();
+      d_rows.push_back(RowVectorT(&d_entries));
+      return ridx;
+    }else{
+      RowIndex rid = d_pool.back();
+      d_pool.pop_back();
+      return rid;
+    }
+  }
+
+  void releaseRowIndex(RowIndex rid){
+    d_pool.push_back(rid);
+  }
+
 public:
 
   size_t getNumRows() const {
@@ -485,8 +505,11 @@ public:
    */
   RowIndex addRow(const std::vector<T>& coeffs,
                   const std::vector<ArithVar>& variables){
-    RowIndex ridx = d_rows.size();
-    d_rows.push_back(RowVectorT(&d_entries));
+
+    RowIndex ridx = requestRowIndex();
+
+    //RowIndex ridx = d_rows.size();
+    //d_rows.push_back(RowVectorT(&d_entries));
 
     std::vector<Rational>::const_iterator coeffIter = coeffs.begin();
     std::vector<ArithVar>::const_iterator varsIter = variables.begin();
@@ -701,36 +724,7 @@ public:
       EntryID id = i.getID();
       removeEntry(id);
     }
-  }
-
-
-  Node rowAsEquality(RowIndex rid, const ArithVarToNodeMap& map){
-    using namespace CVC4::kind;
-
-    Assert(getRowLength(rid) >= 2);
-
-    std::vector<Node> pairs;
-    for(RowIterator i = getRow(rid); !i.atEnd(); ++i){
-      const Entry& entry = *i;
-      ArithVar colVar = entry.getColVar();
-
-      Node var = (map.find(colVar))->second;
-      Node coeff = mkRationalNode(entry.getCoefficient());
-
-      Node mult = NodeBuilder<2>(MULT) << coeff << var;
-      pairs.push_back(mult);
-    }
-
-    Node sum = Node::null();
-    if(pairs.size() == 1 ){
-      sum = pairs.front();
-    }else{
-      Assert(pairs.size() >= 2);
-      NodeBuilder<> sumBuilder(PLUS);
-      sumBuilder.append(pairs);
-      sum = sumBuilder;
-    }
-    return NodeBuilder<2>(EQUAL) << sum << mkRationalNode(d_zero);
+    releaseRowIndex(rid);
   }
 
   double densityMeasure() const{
@@ -751,6 +745,15 @@ public:
       Assert(divisor >= s);
 
       return (double(s)) / divisor;
+    }
+  }
+
+  void loadSignQueries(RowIndex rid, DenseMap<int>& target) const{
+
+    RowIterator i = getRow(rid).begin(), i_end = getRow(rid).end();
+    for(; i != i_end; ++i){
+      const MatrixEntry<T>& entry = *i;
+      target.set(entry.getColVar(), entry.getCoefficient().sgn());
     }
   }
 
@@ -833,8 +836,10 @@ private:
   // Set of all of the basic variables in the tableau.
   // ArithVarMap<RowIndex> : ArithVar |-> RowIndex
   BasicToRowMap d_basic2RowIndex;
+
   // RowIndex |-> Basic Variable
-  std::vector<ArithVar> d_rowIndex2basic;
+  typedef DenseMap<ArithVar> RowIndexToBasicMap;
+  RowIndexToBasicMap d_rowIndex2basic;
 
 public:
 
@@ -882,10 +887,6 @@ public:
     return getRow(basicToRowIndex(basic)).begin();
   }
 
-  // RowIterator rowIterator(RowIndex r) const {
-  //   return getRow(r).begin();
-  // }
-
   /**
    * Adds a row to the tableau.
    * The new row is equivalent to:
@@ -910,7 +911,6 @@ public:
   void pivot(ArithVar basicOld, ArithVar basicNew);
 
   void removeBasicRow(ArithVar basic);
-
 
 private:
   /* Changes the basic variable on the row for basicOld to basicNew. */

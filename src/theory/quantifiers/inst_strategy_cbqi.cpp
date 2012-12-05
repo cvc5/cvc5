@@ -46,11 +46,12 @@ void InstStrategySimplex::processResetInstantiationRound( Theory::Effort effort 
   d_tableaux.clear();
   d_ceTableaux.clear();
   //search for instantiation rows in simplex tableaux
-  ArithVarToNodeMap avtnm = d_th->d_arithvarNodeMap.getArithVarToNodeMap();
-  for( ArithVarToNodeMap::iterator it = avtnm.begin(); it != avtnm.end(); ++it ){
-    ArithVar x = (*it).first;
+  ArithVarNodeMap& avnm = d_th->d_arithvarNodeMap;
+  ArithVarNodeMap::var_iterator vi, vend;
+  for(vi = avnm.var_begin(), vend = avnm.var_end(); vi != vend; ++vi ){
+    ArithVar x = *vi;
     if( d_th->d_partialModel.hasEitherBound( x ) ){
-      Node n = (*it).second;
+      Node n = avnm.asNode(x);
       Node f;
       NodeBuilder<> t(kind::PLUS);
       if( n.getKind()==PLUS ){
@@ -167,10 +168,11 @@ void InstStrategySimplex::addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder
 }
 
 void InstStrategySimplex::debugPrint( const char* c ){
-  ArithVarToNodeMap avtnm = d_th->d_arithvarNodeMap.getArithVarToNodeMap();
-  for( ArithVarToNodeMap::iterator it = avtnm.begin(); it != avtnm.end(); ++it ){
-    ArithVar x = (*it).first;
-    Node n = (*it).second;
+  const ArithVarNodeMap& avnm = d_th->d_arithvarNodeMap;
+  ArithVarNodeMap::var_iterator vi, vend;
+  for(vi = avnm.var_begin(), vend = avnm.var_end(); vi != vend; ++vi ){
+    ArithVar x = *vi;
+    Node n = avnm.asNode(x);
     //if( ((TheoryArith*)getTheory())->d_partialModel.hasEitherBound( x ) ){
       Debug(c) << x << " : " << n << ", bounds = ";
       if( d_th->d_partialModel.hasLowerBound( x ) ){

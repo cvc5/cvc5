@@ -89,17 +89,20 @@ private:
   /** Static learner. */
   ArithStaticLearner d_learner;
 
-  /**
-   * List of the variables in the system.
-   * This is needed to keep a positive ref count on slack variables.
-   */
-  std::vector<Node> d_variables;
+
+  ArithVar d_numberOfVariables;
+  inline ArithVar getNumberOfVariables() const { return d_numberOfVariables; }
+  std::vector<ArithVar> d_pool;
+  void releaseArithVar(ArithVar v);
 
   /**
    * The map between arith variables to nodes.
    */
   ArithVarNodeMap d_arithvarNodeMap;
 
+  typedef ArithVarNodeMap::var_iterator var_iterator;
+  var_iterator var_begin() const { return d_arithvarNodeMap.var_begin(); }
+  var_iterator var_end() const { return d_arithvarNodeMap.var_end(); }
 
   NodeSet d_setupNodes;
   bool isSetup(Node n) const {
@@ -273,6 +276,18 @@ private:
   void outputConflicts();
 
 
+  class TempVarMalloc : public ArithVarMalloc {
+  private:
+    TheoryArith& d_ta;
+  public:
+    TempVarMalloc(TheoryArith& ta) : d_ta(ta) {}
+    ArithVar request(){
+      Node skolem = mkRealSkolem("tmpVar");
+      return d_ta.requestArithVar(skolem, false);
+    }
+    void release(ArithVar v){ d_ta.releaseArithVar(v); }
+  } d_tempVarMalloc;
+
   /**
    * A copy of the tableau.
    * This is equivalent  to the original tableau if d_tableauSizeHasBeenModified
@@ -433,7 +448,7 @@ private:
   ArithVar requestArithVar(TNode x, bool slack);
 
   /** Initial (not context dependent) sets up for a variable.*/
-  void setupInitialValue(ArithVar x);
+  void setupBasicValue(ArithVar x);
 
   /** Initial (not context dependent) sets up for a new slack variable.*/
   void setupSlack(TNode left);

@@ -9,6 +9,7 @@ libarith_la_SOURCES = \
 	theory_arith_type_rules.h \
 	type_enumerator.h \
 	arithvar.h \
+	arithvar.cpp \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
 	arith_static_learner.h \

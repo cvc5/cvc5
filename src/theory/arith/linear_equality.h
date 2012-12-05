@@ -79,7 +79,7 @@ public:
    * and then pivots x_i with the nonbasic variable in its row x_j.
    * Updates the assignment of the other basic variables accordingly.
    */
-  void pivotAndUpdate(ArithVar x_i, ArithVar x_j, DeltaRational& v);
+  void pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
 
 
   ArithPartialModel& getPartialModel() const{ return d_partialModel; }
@@ -140,6 +140,11 @@ public:
 
   /** Debugging information for a pivot. */
   void debugPivot(ArithVar x_i, ArithVar x_j);
+
+  /**
+   * 
+   */
+  bool debugEntireLinEqIsConsistent(const std::string& s);
 
 
 private:
