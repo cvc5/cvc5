@@ -68,16 +68,40 @@ public:
 
   ArithPartialModel(context::Context* c, RationalCallBack& deltaComputation);
 
+  /**
+   * This sets the lower bound for a variable in the current context.
+   * This must be stronger the previous constraint.
+   */
   void setLowerBoundConstraint(Constraint lb);
+
+  /**
+   * This sets the upper bound for a variable in the current context.
+   * This must be stronger the previous constraint.
+   */
   void setUpperBoundConstraint(Constraint ub);
 
+  /** Returns the constraint for the upper bound of a variable. */
   inline Constraint getUpperBoundConstraint(ArithVar x) const{
     return d_ubc[x];
   }
+  /** Returns the constraint for the lower bound of a variable. */
   inline Constraint getLowerBoundConstraint(ArithVar x) const{
     return d_lbc[x];
   }
 
+  /**
+   * This forces the lower bound for a variable to be relaxed in the current context.
+   * This is done by forcing the lower bound to be NullConstraint.
+   * This is an expert only operation! (See primal simplex for an example.)
+   */
+  void forceRelaxLowerBound(ArithVar x);
+
+  /**
+   * This forces the upper bound for a variable to be relaxed in the current context.
+   * This is done by forcing the upper bound to be NullConstraint.
+   * This is an expert only operation! (See primal simplex for an example.)
+   */
+  void forceRelaxUpperBound(ArithVar x);
 
   /* Initializes a variable to a safe value.*/
   void initialize(ArithVar x, const DeltaRational& r);
@@ -189,7 +213,6 @@ public:
     d_delta = d;
     d_deltaIsSafe = true;
   }
-
 
 private:
 

@@ -50,6 +50,16 @@ public:
   virtual void operator()(ArithVar x) = 0;
 };
 
+/**
+ * Requests arithmetic variables for internal use,
+ * and releases arithmetic variables that are no longer being used.
+ */
+class ArithVarMalloc {
+public:
+  virtual ArithVar request() = 0;
+  virtual void release(ArithVar v) = 0;
+};
+
 class TNodeCallBack {
 public:
   virtual void operator()(TNode n) = 0;

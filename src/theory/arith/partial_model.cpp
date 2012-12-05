@@ -72,7 +72,9 @@ void ArithPartialModel::setAssignment(ArithVar x, const DeltaRational& safe, con
    Debug("partial_model") << "pm: updating the assignment to" << x
                           << " now " << r <<endl;
   if(safe == r){
-    d_hasSafeAssignment[x] = false;
+    if(d_hasSafeAssignment[x]){
+      d_safeAssignment[x] = safe;
+    }
   }else{
     d_safeAssignment[x] = safe;
 
@@ -175,6 +177,25 @@ void ArithPartialModel::setUpperBoundConstraint(Constraint c){
 
   invalidateDelta();
   d_ubc.set(x, c);
+}
+
+void ArithPartialModel::forceRelaxLowerBound(ArithVar v){
+  AssertArgument(inMaps(v), "Calling forceRelaxLowerBound on a variable that is not properly setup.");
+  AssertArgument(hasLowerBound(v), "Calling forceRelaxLowerBound on a variable without a lowerbound.");
+
+  Debug("partial_model") << "forceRelaxLowerBound(" << v << ") dropping :" << getLowerBoundConstraint(v) << endl;
+
+  d_lbc.set(v, NullConstraint);
+}
+
+
+void ArithPartialModel::forceRelaxUpperBound(ArithVar v){
+  AssertArgument(inMaps(v), "Calling forceRelaxUpperBound on a variable that is not properly setup.");
+  AssertArgument(hasUpperBound(v), "Calling forceRelaxUpperBound on a variable without an upper bound.");
+
+  Debug("partial_model") << "forceRelaxUpperBound(" << v << ") dropping :" << getUpperBoundConstraint(v) << endl;
+
+  d_ubc.set(v, NullConstraint);
 }
 
 int ArithPartialModel::cmpToLowerBound(ArithVar x, const DeltaRational& c) const{
