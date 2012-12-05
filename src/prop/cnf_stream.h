@@ -29,6 +29,7 @@
 #include "prop/theory_proxy.h"
 #include "prop/registrar.h"
 #include "context/cdlist.h"
+#include "context/cdinsert_hashmap.h"
 
 #include <ext/hash_map>
 
@@ -47,10 +48,10 @@ class CnfStream {
 public:
 
   /** Cache of what nodes have been registered to a literal. */
-  typedef context::CDHashMap<SatLiteral, TNode, SatLiteralHashFunction> LiteralToNodeMap;
+  typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction> LiteralToNodeMap;
 
   /** Cache of what literals have been registered to a node. */
-  typedef context::CDHashMap<Node, SatLiteral, NodeHashFunction> NodeToLiteralMap;
+  typedef context::CDInsertHashMap<Node, SatLiteral, NodeHashFunction> NodeToLiteralMap;
 
 protected:
 

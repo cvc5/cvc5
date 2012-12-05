@@ -145,8 +145,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
     break;
   case CONST_RATIONAL:
     // Mark constants as minmax
-    d_minMap[n] = n.getConst<Rational>();
-    d_maxMap[n] = n.getConst<Rational>();
+    d_minMap.insert(n, n.getConst<Rational>());
+    d_maxMap.insert(n, n.getConst<Rational>());
     break;
   case OR: {
     // Look for things like "x = 0 OR x = 1" (that are defTrue) and
@@ -248,7 +248,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
     DeltaRational min = std::min(first, second);
     CDNodeToMinMaxMap::const_iterator minFind = d_minMap.find(n);
     if (minFind == d_minMap.end() || (*minFind).second < min) {
-      d_minMap[n] = min;
+      d_minMap.insert(n, min);
       Node nGeqMin;
       if (min.getInfinitesimalPart() == 0) {
         nGeqMin = NodeBuilder<2>(kind::GEQ) << n << mkRationalNode(min.getNoninfinitesimalPart());
@@ -267,7 +267,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
     DeltaRational max = std::max(first, second);
     CDNodeToMinMaxMap::const_iterator maxFind = d_maxMap.find(n);
     if (maxFind == d_maxMap.end() || (*maxFind).second > max) {
-      d_maxMap[n] = max;
+      d_maxMap.insert(n, max);
       Node nLeqMax;
       if (max.getInfinitesimalPart() == 0) {
         nLeqMax = NodeBuilder<2>(kind::LEQ) << n << mkRationalNode(max.getNoninfinitesimalPart());
@@ -398,7 +398,7 @@ void ArithStaticLearner::addBound(TNode n) {
     /* fall through */
   case kind::LEQ:
     if (maxFind == d_maxMap.end() || (*maxFind).second > bound) {
-      d_maxMap[n[0]] = bound;
+      d_maxMap.insert(n[0], bound);
       Debug("arith::static") << "adding bound " << n << endl;
     }
     break;
@@ -407,7 +407,7 @@ void ArithStaticLearner::addBound(TNode n) {
     /* fall through */
   case kind::GEQ:
     if (minFind == d_minMap.end() || (*minFind).second < bound) {
-      d_minMap[n[0]] = bound;
+      d_minMap.insert(n[0], bound);
       Debug("arith::static") << "adding bound " << n << endl;
     }
     break;

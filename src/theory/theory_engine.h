@@ -190,7 +190,7 @@ class TheoryEngine {
    * context-dependent set of those theory-propagable literals that
    * have been propagated.
    */
-  context::CDHashSet<TNode, TNodeHashFunction> d_hasPropagated;
+  context::CDHashSet<Node, NodeHashFunction> d_hasPropagated;
 
   /**
    * Statistics for a particular theory.

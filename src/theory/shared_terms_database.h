@@ -66,7 +66,7 @@ private:
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
-  typedef context::CDHashSet<TNode, TNodeHashFunction> RegisteredEqualitiesSet;
+  typedef context::CDHashSet<Node, NodeHashFunction> RegisteredEqualitiesSet;
   RegisteredEqualitiesSet d_registeredEqualities;
 
 private:

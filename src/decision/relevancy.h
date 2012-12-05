@@ -60,7 +60,7 @@ class Relevancy : public RelevancyStrategy {
   typedef hash_map<TNode,SatValue,TNodeHashFunction> PolarityCache;
 
   // being 'justified' is monotonic with respect to decisions
-  context::CDHashSet<TNode,TNodeHashFunction> d_justified;
+  context::CDHashSet<Node, NodeHashFunction> d_justified;
   context::CDO<unsigned>  d_prvsIndex;
 
   IntStat d_helfulness;

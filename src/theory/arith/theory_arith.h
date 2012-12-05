@@ -22,6 +22,7 @@
 #include "context/context.h"
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
+#include "context/cdinsert_hashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 
@@ -135,7 +136,7 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDHashMap<TNode, Constraint, TNodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
+  context::CDInsertHashMap<Node, Constraint, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
 
   /**
    * (For the moment) the type hierarchy goes as:

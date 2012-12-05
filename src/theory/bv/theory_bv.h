@@ -40,8 +40,8 @@ class TheoryBV : public Theory {
   context::Context* d_context;
 
   /** Context dependent set of atoms we already propagated */
-  context::CDHashSet<TNode, TNodeHashFunction> d_alreadyPropagatedSet;
-  context::CDHashSet<TNode, TNodeHashFunction> d_sharedTermsSet;
+  context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
+  context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
   BitblastSolver d_bitblastSolver;
   EqualitySolver d_equalitySolver;

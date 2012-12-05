@@ -20,16 +20,15 @@
 #define __CVC4__CONTEXT__CDSET_H
 
 #include "context/context.h"
-#include "context/cdhashset_forward.h"
-#include "context/cdhashmap.h"
+#include "context/cdinsert_hashmap.h"
 #include "util/cvc4_assert.h"
 
 namespace CVC4 {
 namespace context {
 
 template <class V, class HashFcn>
-class CDHashSet : protected CDHashMap<V, V, HashFcn> {
-  typedef CDHashMap<V, V, HashFcn> super;
+class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
+  typedef CDInsertHashMap<V, bool, HashFcn> super;
 
 public:
 
@@ -58,40 +57,30 @@ public:
     return super::size();
   }
 
-  size_t count(const V& v) const {
-    return super::count(v);
-  }
-
   bool insert(const V& v) {
-    return super::insert(v, v);
-  }
-
-  void insertAtContextLevelZero(const V& v) {
-    return super::insertAtContextLevelZero(v, v);
+    return super::insert_safe(v, true);
   }
 
   bool contains(const V& v) {
-    return find(v) != end();
+    return super::contains(v);
   }
 
-  // FIXME: no erase(), too much hassle to implement efficiently...
-
-  class iterator {
-    typename super::iterator d_it;
+  class const_iterator {
+    typename super::const_iterator d_it;
 
   public:
 
-    iterator(const typename super::iterator& it) : d_it(it) {}
-    iterator(const iterator& it) : d_it(it.d_it) {}
+    const_iterator(const typename super::const_iterator& it) : d_it(it) {}
+    const_iterator(const const_iterator& it) : d_it(it.d_it) {}
 
     // Default constructor
-    iterator() {}
+    const_iterator() {}
 
     // (Dis)equality
-    bool operator==(const iterator& i) const {
+    bool operator==(const const_iterator& i) const {
       return d_it == i.d_it;
     }
-    bool operator!=(const iterator& i) const {
+    bool operator!=(const const_iterator& i) const {
       return d_it != i.d_it;
     }
 
@@ -101,7 +90,7 @@ public:
     }
 
     // Prefix increment
-    iterator& operator++() {
+    const_iterator& operator++() {
       ++d_it;
       return *this;
     }
@@ -131,18 +120,28 @@ public:
     }
   };/* class CDSet<>::iterator */
 
-  typedef iterator const_iterator;
-
   const_iterator begin() const {
-    return iterator(super::begin());
+    return const_iterator(super::begin());
   }
 
   const_iterator end() const {
-    return iterator(super::end());
+    return const_iterator(super::end());
   }
 
   const_iterator find(const V& v) const {
-    return iterator(super::find(v));
+    return const_iterator(super::find(v));
+  }
+
+  typedef typename super::key_iterator key_iterator;
+  key_iterator key_begin() const {
+    return super::key_begin();
+  }
+  key_iterator key_end() const {
+    return super::key_end();
+  }
+
+  void insertAtContextLevelZero(const V& v) {
+    return super::insertAtContextLevelZero(v, true);
   }
 
 };/* class CDSet */

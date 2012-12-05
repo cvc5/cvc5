@@ -118,7 +118,7 @@ private:
 
   /** Nodes that have been attached already (computed forward edges for) */
   // All the nodes we've visited so far
-  context::CDHashSet<TNode, TNodeHashFunction> d_seen;
+  context::CDHashSet<Node, NodeHashFunction> d_seen;
 
   /**
    * Assignment status of each node.

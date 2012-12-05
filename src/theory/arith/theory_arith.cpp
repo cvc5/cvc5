@@ -1369,7 +1369,7 @@ Constraint TheoryArith::constraintFromFactQueue(){
     if(assertion != reAssertion){
       Debug("arith::nf") << "getting non-nf assertion " << assertion << " |-> " <<  reAssertion << endl;
       Assert(constraint != NullConstraint);
-      d_assertionsThatDoNotMatchTheirLiterals[assertion] = constraint;
+      d_assertionsThatDoNotMatchTheirLiterals.insert(assertion, constraint);
     }
   }
 

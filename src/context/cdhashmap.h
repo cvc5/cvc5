@@ -17,14 +17,19 @@
  ** and operator== for the key class.  For key types that don't have a
  ** __gnu_cxx::hash<>, you should provide an explicit HashFcn.
  **
+ ** See also:
+ **  CDInsertHashMap : An "insert-once" CD hash map.
+ **  CDTrailHashMap : A lightweight CD hash map with poor iteration
+ **    characteristics and some quirks in usage.
+ **
  ** Internal documentation:
  **
- ** CDMap<> is something of a work in progress at present (26 May
+ ** CDHashMap<> is something of a work in progress at present (26 May
  ** 2010), due to some recent discoveries of problems with its
  ** internal state.  Here are some notes on the internal use of
  ** CDOhash_maps that may be useful in figuring out this mess:
  **
- **     So you have a CDMap<>.
+ **     So you have a CDHashMap<>.
  **
  **     You insert some (key,value) pairs.  Each allocates a CDOhash_map<>
  **     and goes on a doubly-linked list headed by map.d_first and
@@ -36,7 +41,7 @@
  **     map pointer at level 0, and a non-NULL map pointer in the
  **     current context level.  (Remember that for later.)
  **
- **     When a key is associated to a new value in a CDMap, its
+ **     When a key is associated to a new value in a CDHashMap, its
  **     associated CDOhash_map calls makeCurrent(), then sets the new
  **     value.  The save object is also a CDOhash_map (allocated in context
  **     memory).
@@ -62,21 +67,21 @@
  **     obliterate() removes it from the map and frees the CDOhash_map's
  **     memory.
  **
- **     Fourth, you might delete the cdhashmap(calling CDMap::~CDMap()).
+ **     Fourth, you might delete the cdhashmap(calling CDHashMap::~CDHashMap()).
  **     This first calls destroy(), as per ContextObj contract, but
  **     cdhashmapdoesn't save/restore itself, so that does nothing at the
- **     CDMap-level.  Then it empties the trash.  Then, for each
+ **     CDHashMap-level.  Then it empties the trash.  Then, for each
  **     element in the map, it marks it as being "part of a complete
  **     map destruction", which essentially short-circuits
  **     CDOhash_map::restore() (see CDOhash_map::restore()), then deallocates
  **     it.  Finally it asserts that the trash is empty (which it
  **     should be, since restore() was short-circuited).
  **
- **     Fifth, you might clear() the CDMap.  This does exactly the
- **     same as CDMap::~CDMap(), except that it doesn't call destroy()
+ **     Fifth, you might clear() the CDHashMap.  This does exactly the
+ **     same as CDHashMap::~CDHashMap(), except that it doesn't call destroy()
  **     on itself.
  **
- **     CDMap::emptyTrash() simply goes through and calls
+ **     CDHashMap::emptyTrash() simply goes through and calls
  **     ->deleteSelf() on all elements in the trash.
  **     ContextObj::deleteSelf() calls the CDOhash_map destructor, then
  **     frees the memory associated to the CDOhash_map.  CDOhash_map::~CDOhash_map()
@@ -87,8 +92,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDMAP_H
-#define __CVC4__CONTEXT__CDMAP_H
+#ifndef __CVC4__CONTEXT__CDHASHMAP_H
+#define __CVC4__CONTEXT__CDHASHMAP_H
 
 #include <vector>
 #include <iterator>
@@ -148,9 +153,9 @@ class CDOhash_map : public ContextObj {
         d_next->d_prev = d_prev;
         d_prev->d_next = d_next;
         if(d_noTrash) {
-          Debug("gc") << "CDMap<> no-trash " << this << std::endl;
+          Debug("gc") << "CDHashMap<> no-trash " << this << std::endl;
         } else {
-          Debug("gc") << "CDMap<> trash push_back " << this << std::endl;
+          Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
           //this->deleteSelf();
           d_map->d_trash.push_back(this);
         }
@@ -190,7 +195,7 @@ public:
       // "Initializing" map insertion: this entry will never be
       // removed from the map, it's inserted at level 0 as an
       // "initializing" element.  See
-      // CDMap<>::insertAtContextLevelZero().
+      // CDHashMap<>::insertAtContextLevelZero().
       d_data = data;
     } else {
       // Normal map insertion: first makeCurrent(), then set the data
@@ -417,7 +422,7 @@ public:
   }
 
   /**
-   * Version of insert() for CDMap<> that inserts data value d at
+   * Version of insert() for CDHashMap<> that inserts data value d at
    * context level zero.  This is a special escape hatch for inserting
    * "initializing" data into the map.  Imagine something happens at a
    * deep context level L that causes insertion into a map, such that
@@ -538,7 +543,7 @@ public:
       const std::pair<const Key, Data>& operator*() const {
         return *d_pair;
       }
-    };/* class CDMap<>::iterator::Proxy */
+    };/* class CDHashMap<>::iterator::Proxy */
 
     // Actual postfix increment: returns Proxy with the old value.
     // Now, an expression like *i++ will return the current *i, and
@@ -549,7 +554,7 @@ public:
       ++(*this);
       return e;
     }
-  };/* class CDMap<>::iterator */
+  };/* class CDHashMap<>::iterator */
 
   typedef iterator const_iterator;
 
@@ -576,9 +581,9 @@ public:
     return const_cast<const CDHashMap*>(this)->find(k);
   }
 
-};/* class CDMap<> */
+};/* class CDHashMap<> */
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDMAP_H */
+#endif /* __CVC4__CONTEXT__CDHashMAP_H */

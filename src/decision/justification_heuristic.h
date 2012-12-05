@@ -49,7 +49,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
 
   // being 'justified' is monotonic with respect to decisions
-  typedef context::CDHashSet<TNode,TNodeHashFunction> JustifiedSet;
+  typedef context::CDHashSet<Node,NodeHashFunction> JustifiedSet;
   JustifiedSet d_justified;
   context::CDO<unsigned>  d_prvsIndex;
 
@@ -107,8 +107,8 @@ public:
     d_visited.clear();
 
     if(Trace.isOn("justified")) {
-      for(JustifiedSet::iterator i = d_justified.begin();
-          i != d_justified.end(); ++i) {
+      for(JustifiedSet::key_iterator i = d_justified.key_begin();
+          i != d_justified.key_end(); ++i) {
         TNode n = *i;
         SatLiteral l = d_decisionEngine->hasSatLiteral(n) ?
           d_decisionEngine->getSatLiteral(n) : -1;

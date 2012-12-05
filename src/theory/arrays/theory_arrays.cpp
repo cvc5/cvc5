@@ -537,7 +537,7 @@ EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
 void TheoryArrays::computeCareGraph()
 {
   if (d_sharedArrays.size() > 0) {
-    context::CDHashSet<TNode, TNodeHashFunction>::iterator it1 = d_sharedArrays.begin(), it2, iend = d_sharedArrays.end();
+    CDNodeSet::key_iterator it1 = d_sharedArrays.key_begin(), it2, iend = d_sharedArrays.key_end();
     for (; it1 != iend; ++it1) {
       for (it2 = it1, ++it2; it2 != iend; ++it2) {
         if ((*it1).getType() != (*it2).getType()) {
@@ -1261,7 +1261,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
 
 void TheoryArrays::queueRowLemma(RowLemmaType lem)
 {
-  if (d_conflict || d_RowAlreadyAdded.count(lem) != 0) {
+  if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
     return;
   }
   TNode a = lem.first;
@@ -1407,7 +1407,7 @@ void TheoryArrays::dischargeLemmas()
   for (unsigned count = 0; count < sz; ++count) {
     RowLemmaType l = d_RowQueue.front();
     d_RowQueue.pop();
-    if (d_RowAlreadyAdded.count(l) != 0) {
+    if (d_RowAlreadyAdded.contains(l)) {
       continue;
     }
 
