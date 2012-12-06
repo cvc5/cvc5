@@ -70,13 +70,17 @@ SatValue JustificationHeuristic::tryGetSatValue(Node n)
 void JustificationHeuristic::computeITEs(TNode n, IteList &l)
 {
   Trace("jh-ite") << " computeITEs( " << n << ", &l)\n";
+  d_visitedComputeITE.insert(n);
   for(unsigned i=0; i<n.getNumChildren(); ++i) {
     SkolemMap::iterator it2 = d_iteAssertions.find(n[i]);
     if(it2 != d_iteAssertions.end()) {
       l.push_back(make_pair(n[i], (*it2).second));
       Assert(n[i].getNumChildren() == 0);
     }
-    computeITEs(n[i], l);
+    if(d_visitedComputeITE.find(n[i]) ==
+         d_visitedComputeITE.end()) {
+      computeITEs(n[i], l);
+    }
   }
 }
 
@@ -89,6 +93,7 @@ const JustificationHeuristic::IteList& JustificationHeuristic::getITEs(TNode n)
     // Compute the list of ITEs
     // TODO: optimize by avoiding multiple lookup for d_iteCache[n]
     d_iteCache[n] = IteList();
+    d_visitedComputeITE.clear();
     computeITEs(n, d_iteCache[n]);
     return d_iteCache[n];
   }
