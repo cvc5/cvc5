@@ -776,10 +776,10 @@ void test6() {
     newAssertion(vc1, ar_eq1);
     check(vc1, query1);
     
-    cout << "*** VC #2:" << endl;
-    newAssertion(vc2, vc2->importExpr(r1_eq));
-    newAssertion(vc2, vc2->importExpr(ar_eq1));
-    check(vc2, vc2->importExpr(query1));
+    //cout << "*** VC #2:" << endl;
+    //newAssertion(vc2, vc2->importExpr(r1_eq));
+    //newAssertion(vc2, vc2->importExpr(ar_eq1));
+    //check(vc2, vc2->importExpr(query1));
   } catch(const Exception& e) {
     exitStatus = 1;
     cout << "*** Exception caught in test6(): \n" << e << endl;
@@ -2142,8 +2142,8 @@ int main(int argc, char** argv)
       cout << "\n}\n\ntest5(): {" << endl;
       test5();
     }
-    //cout << "\n}\n\ntest6(): {" << endl;
-    //test6();
+    cout << "\n}\n\ntest6(): {" << endl;
+    test6();
     cout << "\n}\n\ntest7(): {" << endl;
     test7();
     //cout << "\n}\n\ntest8(): {" << endl;

@@ -1107,23 +1107,38 @@ Type ValidityChecker::tupleType(const std::vector<Type>& types) {
 }
 
 Type ValidityChecker::recordType(const std::string& field, const Type& type) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  std::vector< std::pair<std::string, CVC4::Type> > fields;
+  fields.push_back(std::make_pair(field, (const CVC4::Type&) type));
+  return d_em->mkRecordType(CVC4::Record(fields));
 }
 
 Type ValidityChecker::recordType(const std::string& field0, const Type& type0,
                                  const std::string& field1, const Type& type1) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  std::vector< std::pair<std::string, CVC4::Type> > fields;
+  fields.push_back(std::make_pair(field0, (const CVC4::Type&) type0));
+  fields.push_back(std::make_pair(field1, (const CVC4::Type&) type1));
+  return d_em->mkRecordType(CVC4::Record(fields));
 }
 
 Type ValidityChecker::recordType(const std::string& field0, const Type& type0,
                                  const std::string& field1, const Type& type1,
                                  const std::string& field2, const Type& type2) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  std::vector< std::pair<std::string, CVC4::Type> > fields;
+  fields.push_back(std::make_pair(field0, (const CVC4::Type&) type0));
+  fields.push_back(std::make_pair(field1, (const CVC4::Type&) type1));
+  fields.push_back(std::make_pair(field2, (const CVC4::Type&) type2));
+  return d_em->mkRecordType(CVC4::Record(fields));
 }
 
 Type ValidityChecker::recordType(const std::vector<std::string>& fields,
                                  const std::vector<Type>& types) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  CVC4::CheckArgument(fields.size() == types.size() && fields.size() > 0,
+                      "invalid vector length(s) in recordType()");
+  std::vector< std::pair<std::string, CVC4::Type> > fieldSpecs;
+  for(unsigned i = 0; i < fields.size(); ++i) {
+    fieldSpecs.push_back(std::make_pair(fields[i], (const CVC4::Type&) types[i]));
+  }
+  return d_em->mkRecordType(CVC4::Record(fieldSpecs));
 }
 
 Type ValidityChecker::dataType(const std::string& name,
@@ -1559,32 +1574,43 @@ Expr ValidityChecker::geExpr(const Expr& left, const Expr& right) {
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field, const Expr& expr) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  CVC4::Type t = recordType(field, expr.getType());
+  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr);
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field0, const Expr& expr0,
                                  const std::string& field1, const Expr& expr1) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  CVC4::Type t = recordType(field0, expr0.getType(),
+                            field1, expr1.getType());
+  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr0, expr1);
 }
 
 Expr ValidityChecker::recordExpr(const std::string& field0, const Expr& expr0,
                                  const std::string& field1, const Expr& expr1,
                                  const std::string& field2, const Expr& expr2) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  CVC4::Type t = recordType(field0, expr0.getType(),
+                            field1, expr1.getType(),
+                            field2, expr2.getType());
+  return d_em->mkExpr(CVC4::kind::RECORD, d_em->mkConst(CVC4::RecordType(t).getRecord()), expr0, expr1, expr2);
 }
 
 Expr ValidityChecker::recordExpr(const std::vector<std::string>& fields,
                                  const std::vector<Expr>& exprs) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  std::vector<Type> types;
+  for(unsigned i = 0; i < exprs.size(); ++i) {
+    types.push_back(exprs[i].getType());
+  }
+  CVC4::Type t = recordType(fields, types);
+  return d_em->mkExpr(d_em->mkConst(CVC4::RecordType(t).getRecord()), *reinterpret_cast<const vector<CVC4::Expr>*>(&exprs));
 }
 
 Expr ValidityChecker::recSelectExpr(const Expr& record, const std::string& field) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  return d_em->mkExpr(d_em->mkConst(CVC4::RecordSelect(field)), record);
 }
 
 Expr ValidityChecker::recUpdateExpr(const Expr& record, const std::string& field,
                                     const Expr& newValue) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  return d_em->mkExpr(d_em->mkConst(CVC4::RecordUpdate(field)), record, newValue);
 }
 
 Expr ValidityChecker::readExpr(const Expr& array, const Expr& index) {
@@ -1935,12 +1961,16 @@ Expr ValidityChecker::tupleExpr(const std::vector<Expr>& exprs) {
 }
 
 Expr ValidityChecker::tupleSelectExpr(const Expr& tuple, int index) {
-  Unimplemented("Tuples not supported by CVC4 yet (sorry!)");
+  CVC4::CheckArgument(index >= 0 && index < tuple.getNumChildren(),
+                      "invalid index in tuple select");
+  return d_em->mkExpr(d_em->mkConst(CVC4::TupleSelect(index)), tuple);
 }
 
 Expr ValidityChecker::tupleUpdateExpr(const Expr& tuple, int index,
                                       const Expr& newValue) {
-  Unimplemented("Tuples not supported by CVC4 yet (sorry!)");
+  CVC4::CheckArgument(index >= 0 && index < tuple.getNumChildren(),
+                      "invalid index in tuple update");
+  return d_em->mkExpr(d_em->mkConst(CVC4::TupleUpdate(index)), tuple, newValue);
 }
 
 Expr ValidityChecker::datatypeConsExpr(const std::string& constructor, const std::vector<Expr>& args) {

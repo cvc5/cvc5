@@ -1,5 +1,8 @@
 This file contains a summary of important user-visible changes.
 
-This is the first public release, CVC4 1.0.
+Changes since 1.0
+=================
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Sat, 01 Dec 2012 12:53:23 -0500
+* tuple and record support in the compatibility library
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 05 Dec 2012 11:34:18 -0500
