@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <stdexcept>
 #include <exception>
 #include <cstdlib>
 #include <cstdarg>

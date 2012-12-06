@@ -26,6 +26,7 @@ namespace CVC4 {
 
 class CVC4_PUBLIC Proof {
 public:
+  virtual ~Proof() { }
   virtual void toStream(std::ostream& out) = 0;
 };/* class Proof */
 

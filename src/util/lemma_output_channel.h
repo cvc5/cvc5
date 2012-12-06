@@ -32,6 +32,8 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC LemmaOutputChannel {
 public:
+  virtual ~LemmaOutputChannel() throw() { }
+
   /**
    * Notifies this output channel that there's a new lemma.
    * The lemma may or may not be in CNF.
