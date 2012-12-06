@@ -76,6 +76,12 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * term-ITE.
    */
   hash_set<TNode,TNodeHashFunction> d_visited;
+
+  /**
+   * Set to track visited nodes in a dfs search done in computeITE
+   * function
+   */
+  hash_set<TNode,TNodeHashFunction> d_visitedComputeITE;
 public:
   JustificationHeuristic(CVC4::DecisionEngine* de, context::Context *c):
     ITEDecisionStrategy(de, c),
