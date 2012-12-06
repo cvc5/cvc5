@@ -46,6 +46,8 @@ public:
     cnt(0)
   {}
 
+  ~PortfolioLemmaOutputChannel() throw() { }
+
   void notifyNewLemma(Expr lemma) {
     if(int(lemma.getNumChildren()) > options::sharingFilterByLength()) {
       return;
@@ -83,6 +85,8 @@ public:
     d_sharedChannel(c),
     d_pickler(em, to, from){
   }
+
+  ~PortfolioLemmaInputChannel() throw() { }
 
   bool hasNewLemma(){
     Debug("lemmaInputChannel") << d_tag << ": " << "hasNewLemma" << std::endl;
