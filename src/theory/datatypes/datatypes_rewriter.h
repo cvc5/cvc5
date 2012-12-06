@@ -177,7 +177,7 @@ public:
     }
     if(in.getKind() == kind::RECORD_UPDATE &&
        in[0].getKind() == kind::RECORD) {
-      size_t ix = in[0].getOperator().getConst<Record>().getIndex(in.getConst<RecordUpdate>().getField());
+      size_t ix = in[0].getOperator().getConst<Record>().getIndex(in.getOperator().getConst<RecordUpdate>().getField());
       NodeBuilder<> b(kind::RECORD);
       b << in[0].getOperator();
       for(TNode::const_iterator i = in[0].begin(); i != in[0].end(); ++i, --ix) {

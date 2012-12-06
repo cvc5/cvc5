@@ -26,6 +26,8 @@ namespace CVC4 {
 
 class CVC4_PUBLIC LemmaInputChannel {
 public:
+  virtual ~LemmaInputChannel() throw() { }
+
   virtual bool hasNewLemma() = 0;
   virtual Expr getNewLemma() = 0;
 
