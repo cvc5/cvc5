@@ -3,10 +3,10 @@
 echo
 echo '***************************************************************************'
 echo '*                                                                         *'
-echo '*  ERROR:  CxxTest was not found at configure-time; tests cannot be run.  *'
+echo '*   WARNING:  CxxTest not found at configure time; tests cannot be run.   *'
 echo '*                                                                         *'
 echo '***************************************************************************'
 echo
 
-exit 1
-
+# skip this test, rather than reporting an error
+exit 77
