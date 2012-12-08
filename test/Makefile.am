@@ -15,7 +15,7 @@ units systemtests regress regress0 regress1 regress2 regress3:
 test: check
 
 am__tty_colors = \
-red=; grn=; lgn=; blu=; std=; \
+red=; grn=; lgn=; blu=; mag=; std=; \
 test "X$(AM_COLOR_TESTS)" != Xno \
 && test "X$$TERM" != Xdumb \
 && { test "X$(AM_COLOR_TESTS)" = Xalways || test -t 1 2>/dev/null; } \
@@ -24,6 +24,7 @@ test "X$(AM_COLOR_TESTS)" != Xno \
   grn='[0;32m'; \
   lgn='[1;32m'; \
   blu='[1;34m'; \
+  mag='[1;35m'; \
   std='[m'; \
 }
 
@@ -61,14 +62,23 @@ check-recursive: check-pre
 check-pre:
 	@rm -f $(subdirs_to_check:=/test-suite.log)
 
+if HAVE_CXXTESTGEN
+HANDLE_UNIT_TEST_SUMMARY = \
+	if test -s "unit/test-suite.log"; then :; else \
+		echo "$${red}Unit tests did not run; maybe there were compilation problems ?$$std"; \
+	fi
+else
+HANDLE_UNIT_TEST_SUMMARY = \
+	echo "$${mag}Unit tests not supported, since CxxTest wasn't found$$std"; \
+	rm -f "unit/test-suite.log"
+endif
+
 if AUTOMAKE_1_11
 # automake 1.11 version
 check-local:
 	@$(am__tty_colors); \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
-	if test -s "unit/test-suite.log"; then :; else \
-		echo "$${red}Unit tests did not run; maybe there were compilation problems ?$$std"; \
-	fi; \
+	$(HANDLE_UNIT_TEST_SUMMARY); \
 	if test -s "system/test-suite.log"; then :; else \
 		echo "$${red}System tests did not run; maybe there were compilation problems ?$$std"; \
 	fi; \
@@ -90,9 +100,7 @@ else
 check-local:
 	@$(am__tty_colors); \
 	echo $${blu}===============================  TESTING SUMMARY  =============================$$std; \
-	if test -s "unit/test-suite.log"; then :; else \
-		echo "$${red}Unit tests did not run; maybe there were compilation problems ?$$std"; \
-	fi; \
+	$(HANDLE_UNIT_TEST_SUMMARY); \
 	if test -s "system/test-suite.log"; then :; else \
 		echo "$${red}System tests did not run; maybe there were compilation problems ?$$std"; \
 	fi; \
