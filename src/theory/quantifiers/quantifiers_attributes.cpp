@@ -22,7 +22,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-void QuantifiersAttributes::setUserAttribute( std::string& attr, Node n ){
+void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n ){
   if( n.getKind()==FORALL ){
     if( attr=="axiom" ){
       Trace("quant-attr") << "Set axiom " << n << std::endl;

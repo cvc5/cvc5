@@ -70,7 +70,7 @@ public:
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   bool flipDecision();
-  void setUserAttribute( std::string& attr, Node n );
+  void setUserAttribute( const std::string& attr, Node n );
   eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 private:
   void assertUniversal( Node n );
