@@ -126,13 +126,24 @@ void TheoryBV::check(Effort e)
   }
 
   // FIXME: this is not quite correct as it does not take into account cardinality constraints 
-  if (!d_coreSolver.isCoreTheory()) {
+
+  if (d_coreSolver.isCoreTheory()) {
+    // paranoid check to make sure results of bit-blaster agree with slicer for core theory
+    if (inConflict()) {
+      d_conflict = false;
+      d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
+      Assert (inConflict()); 
+    } else {
+      d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
+      Assert (!inConflict()); 
+    }
+  }
+  else {
     if (!inConflict()) {
       // sending assertions to the bitblast solver
       d_bitblastSolver.addAssertions(new_assertions, e);
     }
-  }
-
+  } 
   if (inConflict()) {
     sendConflict();
   }
@@ -252,7 +263,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Ask the appropriate subtheory for the explanation
   if (propagatedBy(literal, SUB_CORE)) {
-    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << "): EQUALITY" << std::endl;
+    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << "): CORE" << std::endl;
     d_coreSolver.explain(literal, assumptions);
   } else {
     Assert(propagatedBy(literal, SUB_BITBLAST));

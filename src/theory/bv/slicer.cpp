@@ -138,20 +138,22 @@ void SliceBlock::computeBlockBase(std::vector<RootId>& queue)  {
         Splinter* bottom, *top = NULL;
         SplinterPointer sp;
         slice->split(i, sp, bottom, top);
-          
+        Assert (bottom != NULL && top != NULL); 
+        Assert (i > bottom->getLow()); 
+        unsigned delta = i - bottom->getLow();   
         if (sp != Undefined) {
           // if we do need to split something else split it
           Debug("bv-slicer") <<"    must split " << sp.debugPrint(); 
-          Slice* slice = d_slicer->getSlice(sp);
+          Slice* other_slice = d_slicer->getSlice(sp);
           Splinter* s = d_slicer->getSplinter(sp);
-          Index cutPoint = s->getLow() + i; 
+          Index cutPoint = s->getLow() + delta; 
           Splinter* new_bottom = new Splinter(cutPoint, s->getLow());
           Splinter* new_top = new Splinter(s->getHigh(), cutPoint + 1);
           new_bottom->setPointer(SplinterPointer(d_rootId, row, bottom->getLow()));
           new_top->setPointer(SplinterPointer(d_rootId, row, top->getLow()));
 
-          slice->addSplinter(new_bottom->getLow(), new_bottom);
-          slice->addSplinter(new_top->getLow(), new_top); 
+          other_slice->addSplinter(new_bottom->getLow(), new_bottom);
+          other_slice->addSplinter(new_top->getLow(), new_top); 
           
           bottom->setPointer(SplinterPointer(sp.term, sp.row, new_bottom->getLow()));
           top->setPointer(SplinterPointer(sp.term, sp.row, new_top->getLow()));
@@ -324,6 +326,9 @@ void Slicer::registerSimpleEquality(TNode eq) {
         slice->addSplinter(high+1, s); 
       }
       block_a->addSlice(slice);
+      d_rootBlocks[id_a] = block_a; 
+      Debug("bv-slicer") << "     updated block" << id_a << " to " << endl;
+      Debug("bv-slicer") << block_a->debugPrint() << endl;
       return; 
     }
   }
@@ -341,7 +346,11 @@ void Slicer::registerSimpleEquality(TNode eq) {
   SplinterPointer sp_b = SplinterPointer(id_b, row_b, low_b); 
 
   slice_a->getSplinter(low_a)->setPointer(sp_b);
-  slice_b->getSplinter(low_b)->setPointer(sp_a); 
+  slice_b->getSplinter(low_b)->setPointer(sp_a);
+  Debug("bv-slicer") << "     updated block" << id_a << " to " << endl;
+  Debug("bv-slicer") << block_a->debugPrint() << endl;
+  Debug("bv-slicer") << "     updated block" <<id_b << " to " << endl;
+  Debug("bv-slicer") << block_b->debugPrint() << endl;
 }
 
 Slice* Slicer::makeSlice(TNode node) {

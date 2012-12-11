@@ -73,11 +73,11 @@ inline Node mkAnd(std::vector<TNode>& children) {
   std::set<TNode> distinctChildren;
   distinctChildren.insert(children.begin(), children.end());
   
-  if (children.size() == 0) {
+  if (distinctChildren.size() == 0) {
     return mkTrue();
   }
   
-  if (children.size() == 1) {
+  if (distinctChildren.size() == 1) {
     return *children.begin();
   }
   

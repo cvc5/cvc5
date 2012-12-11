@@ -228,7 +228,7 @@ void CoreSolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
 }
 
 bool CoreSolver::storePropagation(TNode literal) {
-  return d_bv->storePropagation(literal, SUB_EQUALITY);
+  return d_bv->storePropagation(literal, SUB_CORE);
 }
   
 void CoreSolver::conflict(TNode a, TNode b) {
