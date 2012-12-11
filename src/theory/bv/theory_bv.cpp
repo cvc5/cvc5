@@ -17,6 +17,7 @@
 
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/bv/slicer.h"
 #include "theory/valuation.h"
 #include "theory/bv/bitblaster.h"
 #include "theory/bv/options.h"
@@ -39,8 +40,9 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
+    d_slicer(),
     d_bitblastSolver(c, this),
-    d_equalitySolver(c, this),
+    d_coreSolver(c, this, &d_slicer),
     d_statistics(),
     d_conflict(c, false),
     d_literalsToPropagate(c),
@@ -52,7 +54,7 @@ TheoryBV::~TheoryBV() {}
 
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_equalitySolver.setMasterEqualityEngine(eq);
+  d_coreSolver.setMasterEqualityEngine(eq);
 }
 
 TheoryBV::Statistics::Statistics():
@@ -72,15 +74,19 @@ TheoryBV::Statistics::~Statistics() {
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {
-  BVDebug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
+  Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
   if (options::bitvectorEagerBitblast()) {
     // don't use the equality engine in the eager bit-blasting
     return;
   }
 
+  if (node.getKind() == kind::EQUAL) {
+    d_slicer.processEquality(node); 
+  }
+  
   d_bitblastSolver.preRegister(node);
-  d_equalitySolver.preRegister(node);
+  d_coreSolver.preRegister(node);
 }
 
 void TheoryBV::sendConflict() {
@@ -88,7 +94,7 @@ void TheoryBV::sendConflict() {
   if (d_conflictNode.isNull()) {
     return;
   } else {
-    BVDebug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode;
+    Debug("bitvector") << indent() << "TheoryBV::check(): conflict " << d_conflictNode;
     d_out->conflict(d_conflictNode);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
     d_conflictNode = Node::null();
@@ -97,7 +103,7 @@ void TheoryBV::sendConflict() {
 
 void TheoryBV::check(Effort e)
 {
-  BVDebug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+  Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
 
   // if we are already in conflict just return the conflict
   if (inConflict()) {
@@ -111,17 +117,20 @@ void TheoryBV::check(Effort e)
     Assertion assertion = get();
     TNode fact = assertion.assertion;
     new_assertions.push_back(fact);
-    BVDebug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n";
+    Debug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n";
   }
 
   if (!inConflict()) {
     // sending assertions to the equality solver first
-    d_equalitySolver.addAssertions(new_assertions, e);
+    d_coreSolver.addAssertions(new_assertions, e);
   }
 
-  if (!inConflict()) {
-    // sending assertions to the bitblast solver
-    d_bitblastSolver.addAssertions(new_assertions, e);
+  // FIXME: this is not quite correct as it does not take into account cardinality constraints 
+  if (!d_coreSolver.isCoreTheory()) {
+    if (!inConflict()) {
+      // sending assertions to the bitblast solver
+      d_bitblastSolver.addAssertions(new_assertions, e);
+    }
   }
 
   if (inConflict()) {
@@ -132,13 +141,13 @@ void TheoryBV::check(Effort e)
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
   //  Assert (fullModel); // can only query full model
-  d_equalitySolver.collectModelInfo(m); 
+  d_coreSolver.collectModelInfo(m); 
   d_bitblastSolver.collectModelInfo(m); 
   
 }
 
 void TheoryBV::propagate(Effort e) {
-  BVDebug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
+  Debug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
 
   if (inConflict()) {
     return;
@@ -152,7 +161,7 @@ void TheoryBV::propagate(Effort e) {
   }
 
   if (!ok) {
-    BVDebug("bitvector::propagate") << indent() << "TheoryBV::propagate(): conflict from theory engine" << std::endl;
+    Debug("bitvector::propagate") << indent() << "TheoryBV::propagate(): conflict from theory engine" << std::endl;
     setConflict();
   }
 }
@@ -184,7 +193,6 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-
 Node TheoryBV::ppRewrite(TNode t)
 {
   if (RewriteRule<BitwiseEq>::applies(t)) {
@@ -194,6 +202,10 @@ Node TheoryBV::ppRewrite(TNode t)
   return t;
 }
 
+void TheoryBV::presolve() {
+  Debug("bitvector") << "TheoryBV::presolve" << endl; 
+  d_slicer.computeCoarsestBase(); 
+}
 
 bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 {
@@ -224,7 +236,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   // * bitblaster needs to be left alone until it's done, otherwise it doesn't know how to explain
   // * equality engine can propagate eagerly
   bool ok = true;
-  if (subtheory == SUB_EQUALITY) {
+  if (subtheory == SUB_CORE) {
     d_out->propagate(literal);
     if (!ok) {
       setConflict();
@@ -239,19 +251,19 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Ask the appropriate subtheory for the explanation
-  if (propagatedBy(literal, SUB_EQUALITY)) {
-    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << "): EQUALITY" << std::endl;
-    d_equalitySolver.explain(literal, assumptions);
+  if (propagatedBy(literal, SUB_CORE)) {
+    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << "): EQUALITY" << std::endl;
+    d_coreSolver.explain(literal, assumptions);
   } else {
     Assert(propagatedBy(literal, SUB_BITBLAST));
-    BVDebug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;
+    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;
     d_bitblastSolver.explain(literal, assumptions);
   }
 }
 
 
 Node TheoryBV::explain(TNode node) {
-  BVDebug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
+  Debug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
@@ -271,9 +283,10 @@ void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (!options::bitvectorEagerBitblast() && d_useEqualityEngine) {
-    d_equalitySolver.addSharedTerm(t);
+    d_coreSolver.addSharedTerm(t);
   }
 }
+
 
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
@@ -282,7 +295,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
     return EQUALITY_UNKNOWN;
   }
 
-  EqualityStatus status = d_equalitySolver.getEqualityStatus(a, b);
+  EqualityStatus status = d_coreSolver.getEqualityStatus(a, b);
   if (status == EQUALITY_UNKNOWN) {
     status = d_bitblastSolver.getEqualityStatus(a, b);
   }

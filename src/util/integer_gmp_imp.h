@@ -137,6 +137,7 @@ public:
     return *this;
   }
 
+
   Integer bitwiseOr(const Integer& y) const {
     mpz_class result;
     mpz_ior(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
@@ -170,6 +171,24 @@ public:
     return Integer( result );
   }
 
+  /** 
+   * Returns the Integer obtained by setting the ith bit of the
+   * current Integer to 1. 
+   * 
+   * @param bit 
+   * 
+   * @return 
+   */
+  Integer setBit(uint32_t i) const {
+    mpz_class res = d_value;
+    mpz_setbit(res.get_mpz_t(), i);
+    return Integer(res); 
+  }
+
+  bool isBitSet(uint32_t i) const {
+    return !extractBitRange(1, i).isZero(); 
+  }
+  
   /**
    * Returns the integer with the binary representation of size bits
    * extended with amount 1's

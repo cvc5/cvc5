@@ -218,6 +218,16 @@ public:
     return Integer( d_value << ipow);
   }
 
+  bool isBitSet(uint32_t i) const {
+    return !extractBitRange(1, i).isZero(); 
+  }
+  
+  Integer setBit(uint32_t i) const {
+    cln::cl_I mask(1);
+    mask = mask << i; 
+    return Integer(cln::logior(d_value, mask)); 
+  }
+  
   Integer oneExtend(uint32_t size, uint32_t amount) const {
     DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
     cln::cl_byte range(amount, size);

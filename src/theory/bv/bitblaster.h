@@ -164,9 +164,9 @@ public:
   }
 
   bool isSharedTerm(TNode node);
-private:
 
-  
+private:
+ 
   class Statistics {
   public:
     IntStat d_numTermClauses, d_numAtomClauses;

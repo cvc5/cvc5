@@ -28,7 +28,9 @@
 #include "context/cdqueue.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_subtheory_eq.h"
+#include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
+#include "theory/bv/slicer.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,8 +45,11 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
+  Slicer         d_slicer;
+  
   BitblastSolver d_bitblastSolver;
-  EqualitySolver d_equalitySolver;
+  CoreSolver d_coreSolver;
+
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -67,6 +72,7 @@ public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   Node ppRewrite(TNode t);
 
+  void presolve();
 private:
 
   class Statistics {
@@ -137,6 +143,7 @@ private:
   friend class Bitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;
+  friend class CoreSolver;
 
 };/* class TheoryBV */
 

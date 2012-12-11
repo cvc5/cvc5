@@ -33,7 +33,8 @@ namespace bv {
 
 enum SubTheory {
   SUB_EQUALITY = 1,
-  SUB_BITBLAST = 2
+  SUB_BITBLAST = 2,
+  SUB_CORE = 3
 };
 
 inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {

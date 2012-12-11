@@ -346,7 +346,7 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     BVDebug("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
 
-   bb->storeVariable(node);
+  bb->storeVariable(node);
 }
 
 void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {
