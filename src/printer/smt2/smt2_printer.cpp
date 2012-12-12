@@ -254,7 +254,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SUB: out << "bvsub "; break;
   case kind::BITVECTOR_NEG: out << "bvneg "; break;
   case kind::BITVECTOR_UDIV: out << "bvudiv "; break;
+  case kind::BITVECTOR_UDIV_TOTAL: out << "bvudiv_total "; break;
   case kind::BITVECTOR_UREM: out << "bvurem "; break;
+  case kind::BITVECTOR_UREM_TOTAL: out << "bvurem_total "; break;
   case kind::BITVECTOR_SDIV: out << "bvsdiv "; break;
   case kind::BITVECTOR_SREM: out << "bvsrem "; break;
   case kind::BITVECTOR_SMOD: out << "bvsmod "; break;

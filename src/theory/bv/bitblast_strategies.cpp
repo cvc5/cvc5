@@ -648,6 +648,17 @@ void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
 
   Bits r;
   uDivModRec(a, b, q, r, getSize(node)); 
+  // adding a special case for division by 0
+  std::vector<Node> iszero; 
+  for (unsigned i = 0; i < b.size(); ++i) {
+    iszero.push_back(utils::mkNode(kind::IFF, b[i], utils::mkFalse())); 
+  }
+  Node b_is_0 = utils::mkAnd(iszero); 
+  
+  for (unsigned i = 0; i < q.size(); ++i) {
+    q[i] = utils::mkNode(kind::ITE, b_is_0, utils::mkFalse(), q[i]);
+    r[i] = utils::mkNode(kind::ITE, b_is_0, utils::mkFalse(), r[i]);
+  }
 
   // cache the remainder in case we need it later
   Node remainder = mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]);
@@ -664,6 +675,17 @@ void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
 
   Bits q;
   uDivModRec(a, b, q, rem, getSize(node)); 
+  // adding a special case for division by 0
+  std::vector<Node> iszero; 
+  for (unsigned i = 0; i < b.size(); ++i) {
+    iszero.push_back(utils::mkNode(kind::IFF, b[i], utils::mkFalse())); 
+  }
+  Node b_is_0 = utils::mkAnd(iszero); 
+  
+  for (unsigned i = 0; i < q.size(); ++i) {
+    q[i] = utils::mkNode(kind::ITE, b_is_0, utils::mkFalse(), q[i]);
+    rem[i] = utils::mkNode(kind::ITE, b_is_0, utils::mkFalse(), rem[i]);
+  }
 
   // cache the quotient in case we need it later
   Node quotient = mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]);
