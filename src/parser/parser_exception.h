@@ -89,6 +89,30 @@ protected:
   unsigned long d_column;
 };/* class ParserException */
 
+class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
+public:
+
+  // Constructors same as ParserException's
+
+  ParserEndOfFileException() throw() :
+    ParserException() {
+  }
+
+  ParserEndOfFileException(const std::string& msg) throw() :
+    ParserException(msg) {
+  }
+
+  ParserEndOfFileException(const char* msg) throw() :
+    ParserException(msg) {
+  }
+
+  ParserEndOfFileException(const std::string& msg, const std::string& filename,
+                           unsigned long line, unsigned long column) throw() :
+    ParserException(msg, filename, line, column) {
+  }
+
+};/* class ParserEndOfFileException */
+
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 

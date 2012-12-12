@@ -69,13 +69,13 @@ private:
   }
 
   void testAssertTrue() {
-    *d_sin << "ASSERT TRUE;" << flush;
+    *d_sin << "ASSERT TRUE;\n" << flush;
     InteractiveShell shell(*d_exprManager, d_options);
     countCommands( shell, 1, 1 );
   }
 
   void testQueryFalse() {
-    *d_sin << "QUERY FALSE;" << flush;
+    *d_sin << "QUERY FALSE;\n" << flush;
     InteractiveShell shell(*d_exprManager, d_options);
     countCommands( shell, 1, 1 );
   }

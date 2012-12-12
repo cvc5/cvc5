@@ -178,7 +178,7 @@ protected:
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  virtual void parseError(const std::string& msg)
+  virtual void parseError(const std::string& msg, bool eofException = false)
     throw (ParserException) = 0;
 
   /** Parse an expression from the input by invoking the
