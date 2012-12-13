@@ -43,14 +43,14 @@ class Base {
 public:
   Base(uint32_t size) 
     : d_size(size) {
-    Assert (size > 1);
+    Assert (size > 0);
     d_repr = BitVector(size - 1, 0u);
   }
 
   Base(const BitVector& repr) 
     : d_size(repr.getSize() + 1),
       d_repr(repr) {
-    Assert (d_size > 1);
+    Assert (d_size > 0);
   }
   
   /** 

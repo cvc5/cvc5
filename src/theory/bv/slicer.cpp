@@ -139,9 +139,9 @@ void SliceBlock::computeBlockBase(std::vector<RootId>& queue)  {
         SplinterPointer sp;
         slice->split(i, sp, bottom, top);
         Assert (bottom != NULL && top != NULL); 
-        Assert (i > bottom->getLow()); 
-        unsigned delta = i - bottom->getLow();   
+        Assert (i >= bottom->getLow()); 
         if (sp != Undefined) {
+          unsigned delta = i - bottom->getLow();   
           // if we do need to split something else split it
           Debug("bv-slicer") <<"    must split " << sp.debugPrint(); 
           Slice* other_slice = d_slicer->getSlice(sp);
@@ -216,8 +216,9 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   
   Base base1(width); 
   if (t1.getKind() == kind::BITVECTOR_CONCAT) {
-    unsigned size = 0; 
-    for (int i = t1.getNumChildren(); i >= 0; --i) {
+    int size = -1;
+    // no need to count the last child since the end cut point is implicit 
+    for (int i = t1.getNumChildren() - 1; i >= 1 ; --i) {
       size = size + utils::getSize(t1[i]);
       base1.sliceAt(size); 
     }
@@ -225,8 +226,8 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
 
   Base base2(width); 
   if (t2.getKind() == kind::BITVECTOR_CONCAT) {
-    unsigned size = 0; 
-    for (int i = t2.getNumChildren(); i >= 0; --i) {
+    unsigned size = -1; 
+    for (int i = t2.getNumChildren() - 1; i >= 1; --i) {
       size = size + utils::getSize(t2[i]);
       base2.sliceAt(size); 
     }
@@ -238,9 +239,9 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
     int last = 0; 
     for (unsigned i = 1; i < utils::getSize(t1); ++i) {
       if (base1.isCutPoint(i)) {
-        Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, last, i - 1));
-        Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, last, i - 1));
-        last = i;
+        Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, i, last));
+        Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, i, last));
+        last = i + 1;
         Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
         equalities.push_back(utils::mkNode(kind::EQUAL, extract1, extract2)); 
       }
