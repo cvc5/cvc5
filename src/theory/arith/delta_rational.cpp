@@ -83,23 +83,23 @@ DeltaRationalException::DeltaRationalException(const char* op, const DeltaRation
 DeltaRationalException::~DeltaRationalException() throw () { }
 
 
-Integer DeltaRational::floorDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException){
+Integer DeltaRational::euclidianDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException){
   if(isIntegral() && y.isIntegral()){
     Integer ti = floor();
     Integer yi = y.floor();
-    return ti.floorDivideQuotient(yi);
+    return ti.euclidianDivideQuotient(yi);
   }else{
-    throw DeltaRationalException("floorDivideQuotient", *this, y);
+    throw DeltaRationalException("euclidianDivideQuotient", *this, y);
   }
 }
 
-Integer DeltaRational::floorDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException){
+Integer DeltaRational::euclidianDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException){
   if(isIntegral() && y.isIntegral()){
     Integer ti = floor();
     Integer yi = y.floor();
-    return ti.floorDivideRemainder(yi);
+    return ti.euclidianDivideRemainder(yi);
   }else{
-    throw DeltaRationalException("floorDivideRemainder", *this, y);
+    throw DeltaRationalException("euclidianDivideRemainder", *this, y);
   }
 }
 
