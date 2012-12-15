@@ -192,6 +192,6 @@ bool TheoryQuantifiers::restart(){
   }
 }
 
-void TheoryQuantifiers::setUserAttribute( std::string& attr, Node n ){
+void TheoryQuantifiers::setUserAttribute( const std::string& attr, Node n ){
   QuantifiersAttributes::setUserAttribute( attr, n );
 }

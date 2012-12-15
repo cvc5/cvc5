@@ -178,23 +178,25 @@ public:
     Integer prod = d_value * y.d_value;
     return BitVector(d_size, prod);
   }
-  
-  BitVector unsignedDiv (const BitVector& y) const {
+  /** 
+   * Total division function that returns 0 when the denominator is 0.  
+   */
+  BitVector unsignedDivTotal (const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
-    // TODO: decide whether we really want these semantics
     if (y.d_value == 0) {
-      return BitVector(d_size, Integer(0));
+      return BitVector(d_size, 0u);
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);
     return BitVector(d_size, d_value.floorDivideQuotient(y.d_value)); 
   }
-
-  BitVector unsignedRem(const BitVector& y) const {
+  /** 
+   * Total division function that returns 0 when the denominator is 0.  
+   */
+  BitVector unsignedRemTotal(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
-    // TODO: decide whether we really want these semantics
     if (y.d_value == 0) {
-      return BitVector(d_size, d_value);
+      return BitVector(d_size, 0u);
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);

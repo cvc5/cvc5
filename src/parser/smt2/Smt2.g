@@ -629,7 +629,7 @@ pattern[CVC4::Expr& expr]
     }
   ;
 
-simpleSymbolicExpr[CVC4::SExpr& sexpr]
+simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 @declarations {
   CVC4::Kind k;
   std::string s;
@@ -647,6 +647,10 @@ simpleSymbolicExpr[CVC4::SExpr& sexpr]
       ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);
       sexpr = SExpr(ss.str());
     }
+  ;
+
+simpleSymbolicExpr[CVC4::SExpr& sexpr]
+  : simpleSymbolicExprNoKeyword[sexpr]
   | KEYWORD
     { sexpr = SExpr(AntlrInput::tokenText($KEYWORD)); }
   ;
@@ -715,8 +719,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK AS_TOK term[f, f2] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK 
-    {     
+  | LPAREN_TOK AS_TOK term[f, f2] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
+    {
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
         std::vector<CVC4::Expr> v;
         Expr e = f.getOperator();
@@ -928,28 +932,42 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
   Expr patexpr;
   std::vector<Expr> patexprs;
   Expr e2;
+  bool hasValue = false;
 }
-: KEYWORD
+  : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
-    //EXPR_MANAGER->setNamedAttribute( expr, attr );
-    if( attr==":rewrite-rule" ){
-      //do nothing
-    } else if( attr==":axiom" || attr==":conjecture" ){
+    // EXPR_MANAGER->setNamedAttribute( expr, attr );
+    if(attr == ":rewrite-rule") {
+      if(hasValue) {
+        std::stringstream ss;
+        ss << "warning: Attribute " << attr << " does not take a value (ignoring)";
+        PARSER_STATE->warning(ss.str());
+      }
+      // do nothing
+    } else if(attr == ":axiom" || attr == ":conjecture") {
+      if(hasValue) {
+        std::stringstream ss;
+        ss << "warning: Attribute " << attr << " does not take a value (ignoring)";
+        PARSER_STATE->warning(ss.str());
+      }
       std::string attr_name = attr;
       attr_name.erase( attr_name.begin() );
       Command* c = new SetUserAttributeCommand( attr_name, expr );
       PARSER_STATE->preemptCommand(c);
     } else {
-      std::stringstream ss;
-      ss << "Attribute `" << attr << "' not supported";
-      PARSER_STATE->parseError(ss.str());
+      PARSER_STATE->attributeNotSupported(attr);
     }
   }
   | ATTRIBUTE_PATTERN_TOK LPAREN_TOK ( term[patexpr, e2] { patexprs.push_back( patexpr ); }  )+ RPAREN_TOK
     {
       attr = std::string(":pattern");
       retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
+    }
+  | ATTRIBUTE_NO_PATTERN_TOK LPAREN_TOK term[patexpr, e2]+ RPAREN_TOK
+    {
+      attr = std::string(":no-pattern");
+      PARSER_STATE->attributeNotSupported(attr);
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
@@ -1098,7 +1116,7 @@ quantOp[CVC4::Kind& kind]
 @init {
   Debug("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : EXISTS_TOK      { $kind = CVC4::kind::EXISTS; }
+  : EXISTS_TOK    { $kind = CVC4::kind::EXISTS; }
   | FORALL_TOK    { $kind = CVC4::kind::FORALL; }
   ;
 
@@ -1374,6 +1392,7 @@ SIMPLIFY_TOK : 'simplify';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';
+ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 
 // operators (NOTE: theory symbols go here)

@@ -45,7 +45,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine(d_notify, c, "theory::datatypes::TheoryDatatypes"),
   d_selector_apps( c ),
   d_labels( c ),
-  d_conflict( c, false ){
+  d_conflict( c, false ),
+  d_collectTermsCache( c ){
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
@@ -758,31 +759,34 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
 
 
 void TheoryDatatypes::collectTerms( Node n ) {
-  for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-    collectTerms( n[i] );
-  }
-  if( n.getKind() == APPLY_CONSTRUCTOR ){
-    //we must take into account subterm relation when checking for cycles
+  if( d_collectTermsCache.find( n )==d_collectTermsCache.end() ){
+    d_collectTermsCache[n] = true;
     for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-      Debug("datatypes-cycles") << "DtCyc: Subterm " << n << " -> " << n[i] << endl;
-      bool result = d_cycle_check.addEdgeNode( n, n[i] );
-      d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
+      collectTerms( n[i] );
     }
-  }else if( n.getKind() == APPLY_SELECTOR ){
-    if( d_selector_apps.find( n )==d_selector_apps.end() ){
-      d_selector_apps[n] = false;
-      //we must also record which selectors exist
-      Debug("datatypes") << "  Found selector " << n << endl;
-      if (n.getType().isBoolean()) {
-        d_equalityEngine.addTriggerPredicate( n );
-      }else{
-        d_equalityEngine.addTerm( n );
+    if( n.getKind() == APPLY_CONSTRUCTOR ){
+      //we must take into account subterm relation when checking for cycles
+      for( int i=0; i<(int)n.getNumChildren(); i++ ) {
+        Debug("datatypes-cycles") << "DtCyc: Subterm " << n << " -> " << n[i] << endl;
+        bool result = d_cycle_check.addEdgeNode( n, n[i] );
+        d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
       }
-      Node rep = getRepresentative( n[0] );
-      EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
-      if( !eqc->d_selectors ){
-        eqc->d_selectors = true;
-        instantiate( eqc, rep );
+    }else if( n.getKind() == APPLY_SELECTOR ){
+      if( d_selector_apps.find( n )==d_selector_apps.end() ){
+        d_selector_apps[n] = false;
+        //we must also record which selectors exist
+        Debug("datatypes") << "  Found selector " << n << endl;
+        if (n.getType().isBoolean()) {
+          d_equalityEngine.addTriggerPredicate( n );
+        }else{
+          d_equalityEngine.addTerm( n );
+        }
+        Node rep = getRepresentative( n[0] );
+        EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
+        if( !eqc->d_selectors ){
+          eqc->d_selectors = true;
+          instantiate( eqc, rep );
+        }
       }
     }
   }

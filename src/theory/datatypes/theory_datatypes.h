@@ -156,6 +156,8 @@ private:
   context::CDO<bool> d_conflict;
   /** The conflict node */
   Node d_conflictNode;
+  /** cache for which terms we have called collectTerms(...) on */
+  BoolMap d_collectTermsCache;
   /** pending assertions/merges */
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;

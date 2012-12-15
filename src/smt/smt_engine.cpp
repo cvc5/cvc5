@@ -631,6 +631,11 @@ void SmtEngine::finalOptionsAreSet() {
     }
   }
 
+  if(options::produceAssignments() && !options::produceModels()) {
+    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << std::endl;
+    setOption("produce-models", SExpr("true"));
+  }
+
   if(! d_logic.isLocked()) {
     // ensure that our heuristics are properly set up
     setLogicInternal();
@@ -2705,20 +2710,22 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
 
   vector<SExpr> sexprs;
   TypeNode boolType = d_nodeManager->booleanType();
+  TheoryModel* m = d_theoryEngine->getModel();
   for(AssignmentSet::const_iterator i = d_assignments->begin(),
         iend = d_assignments->end();
       i != iend;
       ++i) {
     Assert((*i).getType() == boolType);
 
-    // Normalize
-    Node n = Rewriter::rewrite(*i);
+    // Expand, then normalize
+    hash_map<Node, Node, NodeHashFunction> cache;
+    Node n = d_private->expandDefinitions(*i, cache);
+    n = Rewriter::rewrite(n);
 
     Trace("smt") << "--- getting value of " << n << endl;
-    TheoryModel* m = d_theoryEngine->getModel();
     Node resultNode;
-    if( m ){
-      resultNode = m->getValue( n );
+    if(m != NULL) {
+      resultNode = m->getValue(n);
     }
 
     // type-check the result we got
@@ -2727,12 +2734,12 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
     vector<SExpr> v;
     if((*i).getKind() == kind::APPLY) {
       Assert((*i).getNumChildren() == 0);
-      v.push_back((*i).getOperator().toString());
+      v.push_back(SExpr::Keyword((*i).getOperator().toString()));
     } else {
       Assert((*i).isVar());
-      v.push_back((*i).toString());
+      v.push_back(SExpr::Keyword((*i).toString()));
     }
-    v.push_back(resultNode.toString());
+    v.push_back(SExpr::Keyword(resultNode.toString()));
     sexprs.push_back(v);
   }
   return SExpr(sexprs);
