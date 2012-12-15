@@ -387,4 +387,79 @@ public:
       TS_ASSERT_EQUALS(Integer(i).length(), internalLength(i));
     }
   }
+
+  void testEuclideanDivision() {
+    Integer q, r;
+
+    Integer::euclidianQR(q, r, 1, 4);
+    TS_ASSERT_EQUALS( q, Integer(0));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+
+    Integer::euclidianQR(q, r, 1, -4);
+    TS_ASSERT_EQUALS( q, Integer(0));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+    Integer::euclidianQR(q, r, -1, 4);
+    TS_ASSERT_EQUALS( q, Integer(-1));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+    Integer::euclidianQR(q,r, -1, -4);
+    TS_ASSERT_EQUALS( q, Integer(1));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+    Integer::euclidianQR(q,r, 5, 4);
+    TS_ASSERT_EQUALS( q, Integer(1));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+    Integer::euclidianQR(q,r, 5, -4);
+    TS_ASSERT_EQUALS( q, Integer(-1));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+    Integer::euclidianQR(q,r, -5, 4);
+    TS_ASSERT_EQUALS( q, Integer(-2));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+    Integer::euclidianQR(q,r, -5, -4);
+    TS_ASSERT_EQUALS( q, Integer(2));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+  }
+  void testFloorDivision() {
+    Integer q, r;
+
+    Integer::floorQR(q, r, 1, 4);
+    TS_ASSERT_EQUALS( q, Integer(0));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+
+    Integer::floorQR(q, r, 1, -4);
+    TS_ASSERT_EQUALS( q, Integer(-1));
+    TS_ASSERT_EQUALS( r, Integer(-3));
+
+    Integer::floorQR(q, r, -1, 4);
+    TS_ASSERT_EQUALS( q, Integer(-1));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+    Integer::floorQR(q,r, -1, -4);
+    TS_ASSERT_EQUALS( q, Integer(0));
+    TS_ASSERT_EQUALS( r, Integer(-1));
+
+    Integer::floorQR(q,r, 5, 4);
+    TS_ASSERT_EQUALS( q, Integer(1));
+    TS_ASSERT_EQUALS( r, Integer(1));
+
+    Integer::floorQR(q,r, 5, -4);
+    TS_ASSERT_EQUALS( q, Integer(-2));
+    TS_ASSERT_EQUALS( r, Integer(-3));
+
+    Integer::floorQR(q,r, -5, 4);
+    TS_ASSERT_EQUALS( q, Integer(-2));
+    TS_ASSERT_EQUALS( r, Integer(3));
+
+    Integer::floorQR(q,r, -5, -4);
+    TS_ASSERT_EQUALS( q, Integer(1));
+    TS_ASSERT_EQUALS( r, Integer(-1));
+
+  }
 };
