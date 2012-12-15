@@ -2009,10 +2009,10 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) const throw (DeltaRationalExce
       if(n.getKind() == kind::DIVISION_TOTAL){
         res = numer / denom;
       }else if(n.getKind() == kind::INTS_DIVISION_TOTAL){
-        res = Rational(numer.floorDivideQuotient(denom));
+        res = Rational(numer.euclidianDivideQuotient(denom));
       }else{
         Assert(n.getKind() == kind::INTS_MODULUS_TOTAL);
-        res = Rational(numer.floorDivideRemainder(denom));
+        res = Rational(numer.euclidianDivideRemainder(denom));
       }
       if(isSetup(n)){
         ArithVar var = d_arithvarNodeMap.asArithVar(n);

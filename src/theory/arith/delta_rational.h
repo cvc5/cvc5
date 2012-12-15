@@ -236,10 +236,10 @@ public:
   }
 
   /** Only well defined if both this and y are integral. */
-  Integer floorDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException);
+  Integer euclidianDivideQuotient(const DeltaRational& y) const throw(DeltaRationalException);
 
   /** Only well defined if both this and y are integral. */
-  Integer floorDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException);
+  Integer euclidianDivideRemainder(const DeltaRational& y) const throw(DeltaRationalException);
 
 
   std::string toString() const;
