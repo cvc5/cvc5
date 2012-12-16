@@ -677,7 +677,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       toStream(out, n[1], depth, types, false);
       out << ')';
       // TODO: user patterns?
-      break;
+      return;
     case kind::INST_CONSTANT:
       out << "INST_CONSTANT";
       break;
