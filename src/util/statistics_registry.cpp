@@ -17,7 +17,9 @@
 
 #include "util/statistics_registry.h"
 #include "expr/expr_manager.h"
-#include "lib/clock_gettime.h"
+#ifndef __WIN32__
+#  include "lib/clock_gettime.h"
+#endif /* ! __WIN32__ */
 #include "smt/smt_engine.h"
 
 #ifndef __BUILDING_STATISTICS_FOR_EXPORT
@@ -102,14 +104,17 @@ void StatisticsRegistry::flushInformation(std::ostream &out) const {
 }
 
 void TimerStat::start() {
+#ifndef __WIN32__
   if(__CVC4_USE_STATISTICS) {
     CheckArgument(!d_running, *this, "timer already running");
     clock_gettime(CLOCK_MONOTONIC, &d_start);
     d_running = true;
   }
+#endif /* ! __WIN32__ */
 }/* TimerStat::start() */
 
 void TimerStat::stop() {
+#ifndef __WIN32__
   if(__CVC4_USE_STATISTICS) {
     CheckArgument(d_running, *this, "timer not running");
     ::timespec end;
@@ -117,6 +122,7 @@ void TimerStat::stop() {
     d_data += end - d_start;
     d_running = false;
   }
+#endif /* ! __WIN32__ */
 }/* TimerStat::stop() */
 
 RegisterStatistic::RegisterStatistic(ExprManager& em, Stat* stat) :

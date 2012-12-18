@@ -30,12 +30,18 @@
 
 /* otherwise, we have to define it */
 
+#ifndef __WIN32__
+
 /* get timespec from <time.h> */
 #include <time.h>
+
+#endif /* ! __WIN32__ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+struct timespec;
 
 typedef enum {
   CLOCK_REALTIME,

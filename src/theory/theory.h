@@ -33,6 +33,7 @@
 #include "options/options.h"
 #include "util/statistics_registry.h"
 #include "util/dump.h"
+#include "lib/ffs.h"
 
 #include <string>
 #include <iostream>

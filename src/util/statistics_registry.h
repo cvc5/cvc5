@@ -612,6 +612,8 @@ public:
 
 };/* class StatisticsRegistry */
 
+#ifndef __WIN32__
+
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
 /****************************************************************************/
@@ -765,6 +767,25 @@ public:
 
 };/* class TimerStat */
 
+#else /* __WIN32__ */
+
+class CodeTimer;
+
+class TimerStat : public IntStat {
+public:
+
+  typedef CVC4::CodeTimer CodeTimer;
+
+  TimerStat(const std::string& name) :
+    IntStat(name, 0) {
+  }
+
+  void start();
+  void stop();
+
+};/* class TimerStat */
+
+#endif /* __WIN32__ */
 
 /**
  * Utility class to make it easier to call stop() at the end of a
@@ -787,7 +808,6 @@ public:
     d_timer.stop();
   }
 };/* class CodeTimer */
-
 
 /**
  * To use a statistic, you need to declare it, initialize it in your

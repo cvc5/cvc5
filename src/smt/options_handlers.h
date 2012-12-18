@@ -23,6 +23,7 @@
 #include "util/dump.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
+#include "lib/strtok_r.h"
 
 #include <cerrno>
 #include <cstring>

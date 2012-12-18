@@ -15,5 +15,8 @@ libreplacements_la_LIBADD = \
 EXTRA_DIST = \
 	replacements.h \
 	clock_gettime.c \
-	clock_gettime.h
-
+	clock_gettime.h \
+	strtok_r.c \
+	strtok_r.h \
+	ffs.c \
+	ffs.h

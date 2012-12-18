@@ -220,7 +220,8 @@ esac
 AM_CONDITIONAL([AUTOMAKE_1_11], [$automake111])
 
 # Initialize libtool's configuration options.
-_LT_SET_OPTION([LT_INIT],[win32-dll])
+# we're not DLL-clean yet (i.e., don't properly use dllexport and dllimport)
+# _LT_SET_OPTION([LT_INIT],[win32-dll])
 LT_INIT
 
 # Checks for programs.
@@ -900,6 +901,12 @@ AC_SEARCH_LIBS([clock_gettime], [rt],
                [AC_DEFINE([HAVE_CLOCK_GETTIME], [1],
                           [Defined to 1 if clock_gettime() is supported by the platform.])],
                [AC_LIBOBJ([clock_gettime])])
+AC_CHECK_FUNC([strtok_r], [AC_DEFINE([HAVE_STRTOK_R], [1],
+                                     [Defined to 1 if strtok_r() is supported by the platform.])],
+                          [AC_LIBOBJ([strtok_r])])
+AC_CHECK_FUNC([ffs], [AC_DEFINE([HAVE_FFS], [1],
+                                [Defined to 1 if ffs() is supported by the platform.])],
+                     [AC_LIBOBJ([ffs])])
 
 # Check for the presence of CUDD libraries
 CVC4_CHECK_CUDD
@@ -1116,6 +1123,11 @@ CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAG
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
 CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
+
+# visibility flag not supported for Windows builds
+case $host_os in
+  (*mingw*) FLAG_VISIBILITY_HIDDEN=
+esac
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 
