@@ -896,13 +896,6 @@ fi
 
 # Checks for libraries.
 
-# Check for libreadline (defined in config/readline.m4)
-AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
-CVC4_CHECK_FOR_READLINE
-AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], $have_libreadline, [Define to 1 to use libreadline])
-AC_DEFINE_UNQUOTED([READLINE_COMPENTRY_FUNC_RETURNS_CHARP], $readline_compentry_func_returns_charp, [Define to 1 if rl_completion_entry_function is declared to return pointer to char])
-AC_SUBST([READLINE_LIBS])
-
 AC_SEARCH_LIBS([clock_gettime], [rt],
                [AC_DEFINE([HAVE_CLOCK_GETTIME], [1],
                           [Defined to 1 if clock_gettime() is supported by the platform.])],
@@ -975,6 +968,29 @@ AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
 if test "$with_portfolio" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_PORTFOLIO"
 fi
+
+# Check for libreadline (defined in config/readline.m4)
+AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
+# make the flags as close as possible to the final flags, because the Boost
+# flags can bring in a different, incompatible readline library than we'd
+# get otherwise (e.g. on Mac, where there are commonly two different readlines,
+# one in /usr and one in /opt/local)
+cvc4_rlcheck_save_CPPFLAGS="$CPPFLAGS"
+cvc4_rlcheck_save_CXXFLAGS="$CXXFLAGS"
+cvc4_rlcheck_save_CFLAGS="$CFLAGS"
+cvc4_rlcheck_save_LDFLAGS="$LDFLAGS"
+CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAGS"
+CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
+CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
+LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
+CVC4_CHECK_FOR_READLINE
+CPPFLAGS="$cvc4_rlcheck_save_CPPFLAGS"
+CXXFLAGS="$cvc4_rlcheck_save_CXXFLAGS"
+CFLAGS="$cvc4_rlcheck_save_CFLAGS"
+LDFLAGS="$cvc4_rlcheck_save_LDFLAGS"
+AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], $have_libreadline, [Define to 1 to use libreadline])
+AC_DEFINE_UNQUOTED([READLINE_COMPENTRY_FUNC_RETURNS_CHARP], $readline_compentry_func_returns_charp, [Define to 1 if rl_completion_entry_function is declared to return pointer to char])
+AC_SUBST([READLINE_LIBS])
 
 # Whether to build compatibility library
 CVC4_BUILD_LIBCOMPAT=yes
