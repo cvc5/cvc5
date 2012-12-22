@@ -57,6 +57,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
     }
   }
 
+
 public:
 
   DatatypesEnumerator(TypeNode type) throw() :
@@ -89,6 +90,25 @@ public:
 
     /* allocate space for the enumerators */
     newEnumerators();
+  }
+
+  DatatypesEnumerator(const DatatypesEnumerator& other) :
+    TypeEnumeratorBase<DatatypesEnumerator>(other.getType()),
+    d_datatype(other.d_datatype),
+    d_ctor(other.d_ctor),
+    d_zeroCtor(other.d_zeroCtor),
+    d_argEnumerators(NULL) {
+    
+    if (other.d_argEnumerators != NULL) {
+      d_argEnumerators = new TypeEnumerator*[d_datatype[d_ctor].getNumArgs()];
+      for(size_t a = 0; a < d_datatype[d_ctor].getNumArgs(); ++a) {
+        if (other.d_argEnumerators[a] != NULL) {
+          d_argEnumerators[a] = new TypeEnumerator(*other.d_argEnumerators[a]);
+        } else {
+          d_argEnumerators[a] = NULL;
+        }
+       }
+    }             
   }
 
   ~DatatypesEnumerator() throw() {
