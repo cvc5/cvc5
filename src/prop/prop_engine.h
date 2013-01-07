@@ -105,7 +105,7 @@ public:
   /**
    * Destructor.
    */
-  CVC4_PUBLIC ~PropEngine();
+  CVC4_PUBLIC virtual ~PropEngine();
 
   /**
    * This is called by SmtEngine, at shutdown time, just before
@@ -121,7 +121,7 @@ public:
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert
    */
-  void assertFormula(TNode node);
+  virtual void assertFormula(TNode node);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -145,7 +145,7 @@ public:
    * @param n the node in question; must have an associated SAT literal
    * @param phase the phase to use
    */
-  void requirePhase(TNode n, bool phase);
+  virtual void requirePhase(TNode n, bool phase);
 
   /**
    * Backtracks to and flips the most recent unflipped decision, and
@@ -206,12 +206,12 @@ public:
   /**
    * Push the context level.
    */
-  void push();
+  virtual void push();
 
   /**
    * Pop the context level.
    */
-  void pop();
+  virtual void pop();
 
   /**
    * Get the assertion level of the SAT solver.

@@ -1,0 +1,8 @@
+(set-logic QF_LRA)
+(set-info :smt-lib-version 2.0)
+(set-info :status sat)
+(declare-fun x () Real)
+(assert (>= x 0))
+(assert (< x 1))
+(check-sat)
+(exit)

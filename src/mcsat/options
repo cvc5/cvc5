@@ -1,0 +1,102 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module MCSAT "mcsat/options.h" MCSAT framework
+
+option mcsat --enable-mcsat/--disable-mcsat bool :default false :read-write
+ turns on mcsat in the cvc4 main solver
+/turns off mcsat in the cvc4 main sovler
+
+option mcsat_conflict_minimization --enable-mcsat-conflict-minimization/--disable-mcsat-conflict-minimization bool :default true :read-write
+ turns on conflict minimization
+/turns off conflict minimization
+
+option mcsat_var_random_select --mcsat-var-random-select=N double :default 0.05
+ the percent of variables that are randomly selected 
+
+option mcsat_var_max_score --mcsat-var-max-score=N double :default 1e10
+ maximal score before they are scaled down 
+
+option mcsat_learnts_limit_inc --mcsat-learnts-limit-inc=N double :default 1.2
+ sets the factor to increase the learnts size when needed  
+
+option mcsat_learnts_keep_factor --mcsat-learnts-keep-factor=N double :default 0.5 
+ sets the factor of learnts to keep when collecting garbage
+
+option use_mcsat_bcp_value_phase_heuristic --enable-mcsat-bcp-value-phase-heuristic/--disable-mcsat-bcp-value-phase-heuristic bool :default true :read-write
+ turns on the variable value selection heurisic based on previous phase for the mcsat bcp layer
+/turns off the variable value selection heurisic based on previous phase for the mcsat bcp layer
+
+option mcsat_bcp_bump --mcsat-bcp-bump=N unsigned :default 1 
+ FM bump factor
+
+option mcsat_bcp_bum_initp --mcsat-bcp-bump-init=N unsigned :default 0 
+ FM bump initial variable
+
+option mcsat_bcp_restart_base --mcsat-bcp-restart-base=N double :default 2.0
+ sets the base for the restart computation via the luby sequence
+ 
+option mcsat_bcp_restart_init --mcsat-bcp-restart-init=N unsigned :default 50 
+ sets the inital number of conflicts for the restart strategy 
+
+option mcsat_bcp_attach_limit --mcsat-bcp-attach-limit=N unsigned :default 0 
+ maximal number of literals that a learnt clause can have so that we use it in BCP (0 = inf)
+
+option mcsat_uf_bump --mcsat-uf-bump=N unsigned :default 2 
+ UF bump factor
+
+option mcsat_fm_lemmas_keep_factor --mcsat-fm-lemmas-keep-factor=N double :default 0.1 
+ sets the factor of FM lemmas  to keep when collecting garbage
+
+option mcsat_fm_bump --mcsat-fm-bump=N unsigned :default 2 
+ FM bump factor
+
+option mcsat_fm_bump_init --mcsat-fm-bump-init=N unsigned :default 0 
+ FM bump factor
+
+option mcsat_fm_decide_fixed --enable-mcsat-fm-decide-fixed/--disable-mcsat-fm-decide-fixed bool :default true :read-write
+ decides fixed FM variables immediately 
+/does not decide fixed FM variable immediately
+
+option mcsat_fm_cascade --enable-mcsat-fm-cascade/--disable-mcsat-fm-cascade bool :default true :read-write
+ cascade FM resolution while possible
+/does not cascade FM resolution
+
+option mcsat_fm_equality_resolution --enable-mcsat-fm-resolve-equalities/--disable-mcsat-fm-resolve-equalities bool :default false :read-write
+ resolve equalities while possible
+/does not force resolution of equalities 
+
+option mcsat_fm_deductive_propagate --enable-mcsat-fm-deductive-propagation/--disable-mcsat-fm-deductive-propagation bool :default false :read-write
+ enable deductive propagation 
+/disable deductive propagation
+
+option mcsat_fm_discriminate --enable-mcsat-fm-discrimination/--disable-mcsat-fm-discrimination bool :default true :read-write
+ enable discrimination of constraints based on level and size
+/disable discrimination of constraints based on level and size
+
+option mcsat_fm_discriminate_size --enable-mcsat-fm-discrimination-size/--disable-mcsat-fm-discrimination-size bool :default true :read-write
+ enable discrimination of constraints based on size
+/disable discrimination of constraints based on size
+
+option mcsat_fm_discriminate_level --enable-mcsat-fm-discrimination-level/--disable-mcsat-fm-discrimination-level bool :default true :read-write
+ enable discrimination of constraints based on level
+/disable discrimination of constraints based on level
+
+option mcsat_fm_cache_evaluation --enable-mcsat-fm-evaluation-cache/--disable-mcsat-fm-evaluation-cache bool :default true :read-write
+ enable caching of evaluation values 
+/disable caching of evaluation value
+
+option mcsat_fm_cache_bounding --enable-mcsat-fm-bounding-cache/--disable-mcsat-fm-bounding-cache bool :default true :read-write
+ enable caching of bounding 
+/disable caching of bounding 
+
+option mcsat_fm_unbounded_d --mcsat-fm-unbounded-d=N unsigned :default 0 :read-write
+ if x >= l only, pick x + d 
+
+option mcsat_fm_unbounded_sq --enable-mcsat-fm-unbounded-sq/--disable-mcsat-fm-unbounded-sq bool :default true :read-write
+ square the unbounded values
+/does not square the unbounded values
+
+endmodule

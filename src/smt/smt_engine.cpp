@@ -103,6 +103,9 @@
 #include "util/proof.h"
 #include "util/resource_manager.h"
 
+#include "mcsat/options.h"
+#include "mcsat/prop_engine.h"
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;

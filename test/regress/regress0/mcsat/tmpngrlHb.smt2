@@ -1,0 +1,8 @@
+(set-logic QF_LRA)
+(set-info :smt-lib-version 2.0)
+(declare-fun x0 () Real)
+(declare-fun x1 () Real)
+(assert (> (+ (* 3 x1) (* 8 x0) 6) 0))
+(assert (not (< (+ (* (- 2) x1) (* (- 9) x0) (- 8)) 0)))
+(check-sat)
+(exit)
