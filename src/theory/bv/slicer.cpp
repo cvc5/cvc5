@@ -446,12 +446,50 @@ void Slicer::computeCoarsestBase() {
   debugCheckBase(); 
 }
 
+void Slicer::getExtractOverBase(TNode node, std::vector<Node>& decomp) {
+  
+}
 
 void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
-  TNode root = node.getKind() == kind::BITVECTOR_EXTRACT ? node[0] : node; 
-  Assert (isRootTerm(root)); 
-  Base base = getSliceBlock(getRootId(root))->getBase();
-  base.decomposeNode(node, decomp);
+  if (node.getKind() == kind::BITVECTOR_CONCAT) {
+    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+      TNode root = node[i].getKind() == kind::BITVECTOR_EXTRACT ? node[i][0] : node[i]; 
+      Assert (isRootTerm(root)); 
+      Base base = getSliceBlock(getRootId(root))->getBase();
+      std::vector<Node> decomp_i; 
+      base.decomposeNode(node[i], decomp_i);
+      // TODO: add check for extract and finish this code here
+      
+      if (node[i].getKind() == kind::BITVECTOR_EXTRACT) {
+        unsigned low = utils::getExtractLow(node[i]); 
+        unsigned high = utils::getExtractHigh(node[i]); 
+        unsigned size = 0;
+        bool add = false;
+        for (int i = decomp_i.size() - 1; i >= 0; --i) {
+          int size_i = utils::getSize(decomp_i[i]);
+          if (low > size + size_i - 1 && !add) {
+            add = true; 
+            Node first = utils::mkExtract(decomp_i[i], size + size_i -1, low - size);
+            decomp.push_back(first); 
+          }
+          if (high < size + size_i - 1 && add) {
+            add = false;
+            Node last = utils::mkExtract(decomp_i[i], size + size_i - 1, high - size);
+            decomp.push_back(last); 
+          }
+          if(add) {
+            decomp.push_back(decomp_i[i]); 
+          }
+          size += size_i; 
+        }
+      }
+    }
+  } else {
+    TNode root = node.getKind() == kind::BITVECTOR_EXTRACT ? node[0] : node; 
+    Assert (isRootTerm(root)); 
+    Base base = getSliceBlock(getRootId(root))->getBase();
+    base.decomposeNode(node, decomp);
+  }
 }
 
 void Slicer::debugCheckBase() {
