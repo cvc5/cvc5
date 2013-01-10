@@ -29,6 +29,7 @@ using namespace std;
 
 void Base::decomposeNode(TNode node, std::vector<Node>& decomp) {
   Debug("bv-slicer") << "Base::decomposeNode " << node << "\n with base" << debugPrint() << endl;
+  
   Index low = 0;
   Index high = utils::getSize(node) - 1; 
   if (node.getKind() == kind::BITVECTOR_EXTRACT) {
@@ -237,7 +238,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   if (base1 != Base(width)) {
     // we split the equalities according to the base
     int last = 0; 
-    for (unsigned i = 1; i < utils::getSize(t1); ++i) {
+    for (unsigned i = 0; i < utils::getSize(t1); ++i) {
       if (base1.isCutPoint(i)) {
         Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, i, last));
         Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, i, last));
@@ -255,13 +256,13 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
 void Slicer::processEquality(TNode node) {
   Assert (node.getKind() == kind::EQUAL);
   Debug("bv-slicer") << "theory::bv::Slicer::processEquality " << node << endl; 
-  std::vector<Node> equalities;
-  splitEqualities(node, equalities); 
-  for (unsigned i = 0; i < equalities.size(); ++i) {
-    Debug("bv-slicer") << "    splitEqualities " << node << endl;
-    registerSimpleEquality(equalities[i]); 
-    d_simpleEqualities.push_back(equalities[i]);
-  }
+  // std::vector<Node> equalities;
+  // splitEqualities(node, equalities); 
+  // for (unsigned i = 0; i < equalities.size(); ++i) {
+  //   Debug("bv-slicer") << "    splitEqualities " << node << endl;
+  registerSimpleEquality(node); 
+  d_simpleEqualities.push_back(node);
+  //  }
 }
 
 void Slicer::registerSimpleEquality(TNode eq) {
@@ -269,7 +270,10 @@ void Slicer::registerSimpleEquality(TNode eq) {
   Debug("bv-slicer") << "theory::bv::Slicer::registerSimpleEquality " << eq << endl;  
   TNode a = eq[0];
   TNode b = eq[1];
- 
+
+  if (a == b)
+    return;
+  
   RootId id_a = registerTerm(a);
   RootId id_b = registerTerm(b);
   
@@ -284,7 +288,7 @@ void Slicer::registerSimpleEquality(TNode eq) {
     low_b  = utils::getExtractLow(b);
   }
 
-  if (id_a == id_b) {
+  if (id_a == id_b ) {
     // we are in the special case a[i0:j0] = a[i1:j1]
     Index high_a = utils::getExtractHigh(a);
     Index high_b = utils::getExtractHigh(b);
@@ -446,50 +450,17 @@ void Slicer::computeCoarsestBase() {
   debugCheckBase(); 
 }
 
-void Slicer::getExtractOverBase(TNode node, std::vector<Node>& decomp) {
+// void Slicer::getExtractOverBase(TNode node, std::vector<Node>& decomp) {
   
-}
+// }
+
 
 void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
-  if (node.getKind() == kind::BITVECTOR_CONCAT) {
-    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-      TNode root = node[i].getKind() == kind::BITVECTOR_EXTRACT ? node[i][0] : node[i]; 
-      Assert (isRootTerm(root)); 
-      Base base = getSliceBlock(getRootId(root))->getBase();
-      std::vector<Node> decomp_i; 
-      base.decomposeNode(node[i], decomp_i);
-      // TODO: add check for extract and finish this code here
-      
-      if (node[i].getKind() == kind::BITVECTOR_EXTRACT) {
-        unsigned low = utils::getExtractLow(node[i]); 
-        unsigned high = utils::getExtractHigh(node[i]); 
-        unsigned size = 0;
-        bool add = false;
-        for (int i = decomp_i.size() - 1; i >= 0; --i) {
-          int size_i = utils::getSize(decomp_i[i]);
-          if (low > size + size_i - 1 && !add) {
-            add = true; 
-            Node first = utils::mkExtract(decomp_i[i], size + size_i -1, low - size);
-            decomp.push_back(first); 
-          }
-          if (high < size + size_i - 1 && add) {
-            add = false;
-            Node last = utils::mkExtract(decomp_i[i], size + size_i - 1, high - size);
-            decomp.push_back(last); 
-          }
-          if(add) {
-            decomp.push_back(decomp_i[i]); 
-          }
-          size += size_i; 
-        }
-      }
-    }
-  } else {
-    TNode root = node.getKind() == kind::BITVECTOR_EXTRACT ? node[0] : node; 
-    Assert (isRootTerm(root)); 
-    Base base = getSliceBlock(getRootId(root))->getBase();
-    base.decomposeNode(node, decomp);
-  }
+  Assert (node.getKind() != kind::BITVECTOR_CONCAT); 
+  TNode root = node.getKind() == kind::BITVECTOR_EXTRACT ? node[0] : node; 
+  Assert (isRootTerm(root)); 
+  Base base = getSliceBlock(getRootId(root))->getBase();
+  base.decomposeNode(node, decomp);
 }
 
 void Slicer::debugCheckBase() {

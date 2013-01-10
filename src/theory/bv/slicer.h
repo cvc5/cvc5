@@ -303,7 +303,7 @@ typedef std::vector<Splinter*> Splinters;
 typedef std::vector<SliceBlock*> SliceBlocks;
 
 class Slicer {
-  std::vector<TNode> d_simpleEqualities; /**< equalities of the form a[i0:j0] = b[i1:j1] */
+  std::vector<Node> d_simpleEqualities; /**< equalities of the form a[i0:j0] = b[i1:j1] */
   Roots d_roots;
   uint32_t d_numRoots; 
   NodeRootIdMap d_nodeRootMap;
@@ -323,9 +323,10 @@ public:
    */
   void processEquality(TNode node);
   bool isCoreTerm(TNode node); 
+  static void splitEqualities(TNode node, std::vector<Node>& equalities);
 private:
   void registerSimpleEquality(TNode node);
-  void splitEqualities(TNode node, std::vector<Node>& equalities);
+
   TNode addSimpleTerm(TNode t);
   bool isRootTerm(TNode node);
 
