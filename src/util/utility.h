@@ -70,8 +70,9 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
 template <class T>
 inline T gcd(T a, T b) {
   while (b != 0) {
-    a = b;
-    b = a % b; 
+    T t = b;
+    b = a % t;
+    a = t;
   }
   return a;
 }

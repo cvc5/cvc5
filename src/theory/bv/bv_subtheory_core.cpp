@@ -110,6 +110,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
   TNode b = eq[1]; 
   std::vector<Node> a_decomp;
   std::vector<Node> b_decomp;
+
   d_slicer->getBaseDecomposition(a, a_decomp);
   d_slicer->getBaseDecomposition(b, b_decomp);
 

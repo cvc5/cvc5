@@ -103,6 +103,32 @@ void Slice::addSplinter(Index i, Splinter* sp) {
   d_splinters[i] = sp;
 }
 
+bool Slice::isConsistent() {
+  // check that base is consistent with slicings
+  // and that the slicings are continous
+  std::map<Index, Splinter*>::const_iterator it = d_splinters.begin();
+  Index prev = -1;
+  for (; it != d_splinters.end(); ++it) {
+    Index index = (*it).first;  
+    Splinter* splinter = (*it).second;
+    if (index != 0 && !d_base.isCutPoint(index-1))
+      return false; 
+    if (index != splinter->getLow())
+      return false;
+    if (prev + 1 != index)
+      return false;
+    prev = splinter->getHigh(); 
+  }
+  if (prev != d_bitwidth - 1)
+    return false; 
+
+  for (unsigned i = 0; i < d_bitwidth - 1; ++i) {
+    if (d_base.isCutPoint(i) && d_splinters.find(i+1) == d_splinters.end())
+      return false; 
+  }
+  return true; 
+}
+
 std::string Slice::debugPrint() {
   std::ostringstream os;
   os << d_base.debugPrint(); 
@@ -129,11 +155,13 @@ void SliceBlock::computeBlockBase(std::vector<RootId>& queue)  {
   // at this point d_base has all the cut points in the individual slices
   for (unsigned row = 0; row < d_block.size(); ++row) {
     Slice* slice = d_block[row];
-    const Base base = slice->getBase();
+    Base base = slice->getBase();
     Base new_cut_points = base.diffCutPoints(d_base);
     // use the cut points from the base to split the current slice
     for (unsigned i = 0; i < d_bitwidth; ++i) {
-      if (new_cut_points.isCutPoint(i) && i != d_bitwidth - 1) {
+      base = slice->getBase(); // the base may have changed if splinters of the same slice are equal
+      if (new_cut_points.isCutPoint(i) && i != d_bitwidth - 1
+          && ! base.isCutPoint(i) ) {
         Debug("bv-slicer") << "    adding cut point at " << i << " for row " << row << endl; 
         // split this slice (this updates the slice's base)
         Splinter* bottom, *top = NULL;
@@ -143,7 +171,7 @@ void SliceBlock::computeBlockBase(std::vector<RootId>& queue)  {
         Assert (i >= bottom->getLow()); 
         if (sp != Undefined) {
           unsigned delta = i - bottom->getLow();   
-          // if we do need to split something else split it
+          // if we do need to split something else split it now
           Debug("bv-slicer") <<"    must split " << sp.debugPrint(); 
           Slice* other_slice = d_slicer->getSlice(sp);
           Splinter* s = d_slicer->getSplinter(sp);
@@ -152,7 +180,7 @@ void SliceBlock::computeBlockBase(std::vector<RootId>& queue)  {
           Splinter* new_top = new Splinter(s->getHigh(), cutPoint + 1);
           new_bottom->setPointer(SplinterPointer(d_rootId, row, bottom->getLow()));
           new_top->setPointer(SplinterPointer(d_rootId, row, top->getLow()));
-
+          // note that this could modify the current splinter 
           other_slice->addSplinter(new_bottom->getLow(), new_bottom);
           other_slice->addSplinter(new_top->getLow(), new_top); 
           
@@ -267,7 +295,7 @@ void Slicer::processEquality(TNode node) {
 
 void Slicer::registerSimpleEquality(TNode eq) {
   Assert (eq.getKind() == kind::EQUAL);
-  Debug("bv-slicer") << "theory::bv::Slicer::registerSimpleEquality " << eq << endl;  
+  Debug("bv-slicer-eq") << "theory::bv::Slicer::registerSimpleEquality " << eq << endl;  
   TNode a = eq[0];
   TNode b = eq[1];
 
@@ -311,7 +339,7 @@ void Slicer::registerSimpleEquality(TNode eq) {
       Splinter* prev_splinter = NULL;
       // the row the new slice will be in 
       unsigned block_row = block_a->getSize(); 
-      for (unsigned i = low; i < high; i+=granularity) {
+      for (unsigned i = low; i <= high; i+=granularity) {
         Splinter* s = new Splinter(i+ granularity-1, i);
         slice->addSplinter(i, s);
         // update splinter pointers to reflect entailed equalities 
@@ -326,7 +354,7 @@ void Slicer::registerSimpleEquality(TNode eq) {
         Splinter* s = new Splinter(low -1 , 0);
         slice->addSplinter(0, s); 
       }
-      if (high + granularity <= size) {
+      if (high + granularity < size) {
         Splinter* s = new Splinter(size - 1, high + 1);
         slice->addSplinter(high+1, s); 
       }
@@ -447,12 +475,8 @@ void Slicer::computeCoarsestBase() {
     SliceBlock* block = d_rootBlocks[current];
     block->computeBlockBase(queue); 
   }
-  debugCheckBase(); 
+  Assert(debugCheckBase());
 }
-
-// void Slicer::getExtractOverBase(TNode node, std::vector<Node>& decomp) {
-  
-// }
 
 
 void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
@@ -463,7 +487,32 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
   base.decomposeNode(node, decomp);
 }
 
-void Slicer::debugCheckBase() {
+bool Slicer::debugCheckBase() {
+  // check that all terms involved in equalities are properly sliced w.r.t.
+  // these equalities 
+  for (unsigned i = 0; i < d_simpleEqualities.size(); ++i) {
+    TNode a = d_simpleEqualities[i][0];
+    TNode b = d_simpleEqualities[i][1];
+    std::vector<Node> a_decomp;
+    std::vector<Node> b_decomp;
+
+    Base base_a = getSliceBlock(getRootId(a.getKind() == kind::BITVECTOR_EXTRACT ? a[0] : a))->getBase();
+    Base base_b = getSliceBlock(getRootId(b.getKind() == kind::BITVECTOR_EXTRACT ? b[0] : b))->getBase();
+    base_a.decomposeNode(a, a_decomp);
+    base_b.decomposeNode(b, b_decomp);
+    if (a_decomp.size() != b_decomp.size()) {
+      Debug("bv-slicer-check") << "Slicer::debugCheckBase different decomposition sizes for \n"
+                               << a <<" and \n"
+                               << b <<" \n"; 
+      return false;
+    }
+    for (unsigned j = 0; j < a_decomp.size(); ++j) {
+      if (utils::getSize(a_decomp[j]) != utils::getSize(b_decomp[j])) {
+        Debug("bv-slicer-check") << "Slicer::debugCheckBase inconsistent decompositions  \n"; 
+        return false;
+      }
+    }
+  }
   // iterate through blocks and check that the block base is the same as each slice base
   for (unsigned i = 0; i < d_rootBlocks.size(); ++i) {
     SliceBlock* block = d_rootBlocks[i];
@@ -471,19 +520,33 @@ void Slicer::debugCheckBase() {
     SliceBlock::const_iterator it = block->begin();
     for (; it != block->end(); ++it) {
       Slice* slice = *it;
+      if (!slice->isConsistent()) {
+        Debug("bv-slicer-check") << "Slicer::debugCheckBase inconsistent slice:  \n"
+                                 << slice->debugPrint() << "\n"; 
+        return false;
+      }
       Base diff_points = slice->getBase().diffCutPoints(block_base);
-      Assert (diff_points == Base(block->getBitwidth()));
+      if (diff_points != Base(block->getBitwidth())) {
+        Debug("bv-slicer-check") << "Slicer::debugCheckBase slice missing cut points:  \n"
+                                 << slice->debugPrint()
+                                 << "Block base: " << block->getBase().debugPrint() << endl; 
+        return false;
+      }
       Slice::const_iterator slice_it = slice->begin();
       for (; slice_it!= slice->end(); ++slice_it) {
         Splinter* splinter = (*slice_it).second;
         const SplinterPointer& sp = splinter->getPointer();
         if (sp != Undefined) {
           Splinter* other = getSplinter(sp);
-          Assert (splinter->getBitwidth() == other->getBitwidth());
+          if (splinter->getBitwidth() != other->getBitwidth()) {
+            Debug("bv-slicer-check") << "Slicer::debugCheckBase inconsistent splinter pointer  \n"; 
+            return false;
+          }
         }
       }
     }
   }
+  return true; 
 }
 
 

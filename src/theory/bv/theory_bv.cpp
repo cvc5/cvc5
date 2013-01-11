@@ -127,23 +127,24 @@ void TheoryBV::check(Effort e)
 
   // FIXME: this is not quite correct as it does not take into account cardinality constraints 
 
-  if (d_coreSolver.isCoreTheory()) {
+  //if (d_coreSolver.isCoreTheory()) {
     // paranoid check to make sure results of bit-blaster agree with slicer for core theory
-    if (inConflict()) {
-      d_conflict = false;
-      d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
-      Assert (inConflict()); 
-    } else {
-      d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
-      Assert (!inConflict()); 
-    }
+    // if (inConflict()) {
+    //   d_conflict = false;
+    //   d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
+    //   Assert (inConflict()); 
+    // } else {
+    //   d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
+    //   Assert (!inConflict()); 
+    // }
+  //}
+  //else {
+  
+  if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+    // sending assertions to the bitblast solver if it's not just core theory 
+    d_bitblastSolver.addAssertions(new_assertions, e);
   }
-  else {
-    if (!inConflict()) {
-      // sending assertions to the bitblast solver
-      d_bitblastSolver.addAssertions(new_assertions, e);
-    }
-  } 
+  
   if (inConflict()) {
     sendConflict();
   }

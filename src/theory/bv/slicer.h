@@ -70,7 +70,7 @@ public:
 
   void decomposeNode(TNode node, std::vector<Node>& decomp);
 
-  bool isCutPoint(Index index) {
+  bool isCutPoint (Index index) {
     Assert (index < d_size); 
     // the last cut point is implicit
     if (index == d_size - 1)
@@ -223,7 +223,8 @@ public:
   std::map<Index, Splinter*>::const_iterator end() {
     return d_splinters.end(); 
   }
-  std::string debugPrint(); 
+  std::string debugPrint();
+  bool isConsistent();
 };
 
 class Slicer; 
@@ -341,7 +342,7 @@ private:
   RootId makeRoot(TNode n);
   Slice* makeSlice(TNode node);
 
-  void debugCheckBase(); 
+  bool debugCheckBase(); 
 public:
   Slice* getSlice(const SplinterPointer& sp) {
     Assert (sp != Undefined); 
