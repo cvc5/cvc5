@@ -354,7 +354,7 @@ void Slicer::registerSimpleEquality(TNode eq) {
         Splinter* s = new Splinter(low -1 , 0);
         slice->addSplinter(0, s); 
       }
-      if (high + granularity < size) {
+      if (high != size - 1) {
         Splinter* s = new Splinter(size - 1, high + 1);
         slice->addSplinter(high+1, s); 
       }
@@ -427,7 +427,9 @@ bool Slicer::isCoreTerm(TNode node) {
     Kind kind = node.getKind(); 
     if (kind != kind::BITVECTOR_EXTRACT &&
         kind != kind::BITVECTOR_CONCAT &&
-        kind != kind::EQUAL && kind != kind::NOT) {
+        kind != kind::EQUAL && kind != kind::NOT &&
+        node.getMetaKind() != kind::metakind::VARIABLE &&
+        kind != kind::CONST_BITVECTOR) {
       d_coreTermCache[node] = false;
       return false; 
     } else {

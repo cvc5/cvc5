@@ -125,23 +125,10 @@ void TheoryBV::check(Effort e)
     d_coreSolver.addAssertions(new_assertions, e);
   }
 
-  // FIXME: this is not quite correct as it does not take into account cardinality constraints 
-
-  //if (d_coreSolver.isCoreTheory()) {
-    // paranoid check to make sure results of bit-blaster agree with slicer for core theory
-    // if (inConflict()) {
-    //   d_conflict = false;
-    //   d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
-    //   Assert (inConflict()); 
-    // } else {
-    //   d_bitblastSolver.addAssertions(new_assertions, Theory::EFFORT_FULL); 
-    //   Assert (!inConflict()); 
-    // }
-  //}
-  //else {
-  
   if (!inConflict() && !d_coreSolver.isCoreTheory()) {
     // sending assertions to the bitblast solver if it's not just core theory 
+    Assert (false);
+    std::cout << "Using bitblaster \n"; 
     d_bitblastSolver.addAssertions(new_assertions, e);
   }
   
