@@ -356,7 +356,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
   optind = 0;
 #if HAVE_DECL_OPTRESET
-  optreset = 1; // on BSD getopt() (e.g. Mac OS), might also need this
+  optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
 #endif /* HAVE_DECL_OPTRESET */
 
   // find the base name of the program
@@ -386,7 +386,9 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     Debug("preemptGetopt") << "top of loop, extra_optind == " << extra_optind << ", extra_argc == " << extra_argc << std::endl;
     if((extra_optind == 0 ? 1 : extra_optind) < extra_argc) {
 #if HAVE_DECL_OPTRESET
-      optreset = 1; // on BSD getopt() (e.g. Mac OS), might also need this
+      if(optind_ref != &extra_optind) {
+        optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
+      }
 #endif /* HAVE_DECL_OPTRESET */
       old_optind = optind = extra_optind;
       optind_ref = &extra_optind;
@@ -425,7 +427,9 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     }
     if(c == -1) {
 #if HAVE_DECL_OPTRESET
-      optreset = 1; // on BSD getopt() (e.g. Mac OS), might also need this
+      if(optind_ref != &main_optind) {
+        optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
+      }
 #endif /* HAVE_DECL_OPTRESET */
       old_optind = optind = main_optind;
       optind_ref = &main_optind;
@@ -457,7 +461,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 461 "${template}"
+#line 465 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
