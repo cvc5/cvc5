@@ -23,7 +23,7 @@ AC_DEFUN([AC_PROG_ANTLR], [
   if test "x$ANTLR" = "x"; then
     AC_MSG_WARN(
 [No usable antlr3 script found. Make sure that the parser code has
-been generated already. To obtain ANTLR see <http://www.antlr.org/>.]
+been generated already. To obtain ANTLR see <http://www.antlr3.org/>.]
     )
     ANTLR_VERSION=
   else
@@ -84,7 +84,7 @@ AC_DEFUN([AC_LIB_ANTLR],[
       ],
           [
             AC_MSG_RESULT(no)
-            AC_MSG_ERROR([ANTLR3 C runtime not found, see <http://www.antlr.org/>])
+            AC_MSG_ERROR([ANTLR3 C runtime not found, see <http://www.antlr3.org/>])
           ]
     )
   done

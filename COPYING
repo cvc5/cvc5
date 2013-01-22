@@ -199,7 +199,7 @@ http://www.boost.org/LICENSE_1_0.txt and reprinted below:
   DEALINGS IN THE SOFTWARE.
 
 CVC4 incorporates code from ANTLR3, excluded from the above copyright.
-See http://www.antlr.org/, and the files src/parser/bounded_token_buffer.h,
+See http://www.antlr3.org/, and the files src/parser/bounded_token_buffer.h,
 src/parser/bounded_token_buffer.cpp, and src/parser/antlr_input_imports.cpp.
 Their copyright:
 
