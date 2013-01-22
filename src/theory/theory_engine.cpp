@@ -740,8 +740,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryEngine::ppTheoryRewrite(TNode term)
-{
+Node TheoryEngine::ppTheoryRewrite(TNode term) {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end()) {
     return (*find).second;
@@ -826,7 +825,8 @@ Node TheoryEngine::preprocess(TNode assertion) {
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL) {
-      d_ppCache[current] = ppTheoryRewrite(current);
+      Node ppRewritten = ppTheoryRewrite(current);
+      d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
     }
