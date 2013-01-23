@@ -1,5 +1,8 @@
 This file contains a summary of important user-visible changes.
 
-This is the first public release, CVC4 1.0.
+Changes since 1.0
+=================
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Sat, 01 Dec 2012 12:53:23 -0500
+* numerous bug fixes, usability improvements, and build system improvements
+
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 23 Jan 2013 16:11:10 -0500
