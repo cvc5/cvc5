@@ -560,7 +560,7 @@ status[ CVC4::BenchmarkStatus& status ]
  */
 annotation[CVC4::Command*& smt_command]
 @init {
-  std::string key;
+  std::string key, value;
   smt_command = NULL;
   std::vector<Expr> pats;
   Expr pat;
@@ -569,7 +569,7 @@ annotation[CVC4::Command*& smt_command]
     { PARSER_STATE->warning(":pat not supported here; ignored"); }
     annotatedFormulas[pats,pat] '}'
   | attribute[key]
-    ( value=userValue
+    ( userValue[value]
       { smt_command = new SetInfoCommand(key.c_str() + 1, value); }
     | { smt_command = new EmptyCommand(std::string("annotation: ") + key); }
     )
@@ -581,7 +581,7 @@ annotation[CVC4::Command*& smt_command]
  */
 termAnnotation[CVC4::Expr& expr]
 @init {
-  std::string key;
+  std::string key, value;
   std::vector<Expr> pats;
   Expr pat;
 }
@@ -604,7 +604,7 @@ termAnnotation[CVC4::Expr& expr]
     }
   | ':pat'
     { PARSER_STATE->warning("expected an instantiation pattern after :pat"); }
-  | attribute[key] userValue?
+  | attribute[key] userValue[value]?
     { PARSER_STATE->attributeNotSupported(key); }
   ;
 
@@ -781,9 +781,9 @@ FLET_IDENTIFIER
  * only constraint imposed on a user-defined value is that it start
  * with an open brace and end with closed brace.
  */
-userValue returns [std::string s]
+userValue[std::string& s]
   : USER_VALUE
-    { $s = AntlrInput::tokenText($USER_VALUE); }
+    { s = AntlrInput::tokenText($USER_VALUE); }
   ;
 
 PATTERN_ANNOTATION_BEGIN
