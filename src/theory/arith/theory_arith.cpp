@@ -752,8 +752,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
       Assert(elim == Rewriter::rewrite(elim));
 
 
-      static const unsigned MAX_SUB_SIZE = 20;
-      if(false && right.size() > MAX_SUB_SIZE){
+      static const unsigned MAX_SUB_SIZE = 2;
+      if(right.size() > MAX_SUB_SIZE){
         Debug("simplify") << "TheoryArith::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
       }else if(elim.hasSubterm(minVar)){
