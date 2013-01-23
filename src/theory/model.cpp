@@ -77,66 +77,69 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
 
 Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
 {
-  Assert(n.getKind() != kind::FORALL && n.getKind() != kind::EXISTS);
-  if(n.getKind() == kind::LAMBDA) {
-    NodeManager* nm = NodeManager::currentNM();
-    Node body = getModelValue(n[1], true);
-    // This is a bit ugly, but cache inside simplifier can change, so can't be const
-    // The ite simplifier is needed to get rid of artifacts created by Boolean terms
-    body = const_cast<ITESimplifier*>(&d_iteSimp)->simpITE(body);
-    body = Rewriter::rewrite(body);
-    return nm->mkNode(kind::LAMBDA, n[0], body);
-  }
-  if(n.isConst() || (hasBoundVars && n.getKind() == kind::BOUND_VARIABLE)) {
-    return n;
-  }
-
-  TypeNode t = n.getType();
-  if (t.isFunction() || t.isPredicate()) {
-    if (d_enableFuncModels) {
-      std::map< Node, Node >::const_iterator it = d_uf_models.find(n);
-      if (it != d_uf_models.end()) {
-        // Existing function
-        return it->second;
-      }
-      // Unknown function symbol: return LAMBDA x. c, where c is the first constant in the enumeration of the range type
-      vector<TypeNode> argTypes = t.getArgTypes();
-      vector<Node> args;
+  if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL) {
+    CheckArgument(d_equalityEngine.hasTerm(n), n, "Cannot get the model value for a previously-unseen quantifier: %s", n.toString().c_str());
+  } else {
+    if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();
-      for (unsigned i = 0; i < argTypes.size(); ++i) {
-        args.push_back(nm->mkBoundVar(argTypes[i]));
+      Node body = getModelValue(n[1], true);
+      // This is a bit ugly, but cache inside simplifier can change, so can't be const
+      // The ite simplifier is needed to get rid of artifacts created by Boolean terms
+      body = const_cast<ITESimplifier*>(&d_iteSimp)->simpITE(body);
+      body = Rewriter::rewrite(body);
+      return nm->mkNode(kind::LAMBDA, n[0], body);
+    }
+    if(n.isConst() || (hasBoundVars && n.getKind() == kind::BOUND_VARIABLE)) {
+      return n;
+    }
+
+    TypeNode t = n.getType();
+    if (t.isFunction() || t.isPredicate()) {
+      if (d_enableFuncModels) {
+        std::map< Node, Node >::const_iterator it = d_uf_models.find(n);
+        if (it != d_uf_models.end()) {
+          // Existing function
+          return it->second;
+        }
+        // Unknown function symbol: return LAMBDA x. c, where c is the first constant in the enumeration of the range type
+        vector<TypeNode> argTypes = t.getArgTypes();
+        vector<Node> args;
+        NodeManager* nm = NodeManager::currentNM();
+        for (unsigned i = 0; i < argTypes.size(); ++i) {
+          args.push_back(nm->mkBoundVar(argTypes[i]));
+        }
+        Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, args);
+        TypeEnumerator te(t.getRangeType());
+        return nm->mkNode(kind::LAMBDA, boundVarList, *te);
       }
-      Node boundVarList = nm->mkNode(kind::BOUND_VAR_LIST, args);
-      TypeEnumerator te(t.getRangeType());
-      return nm->mkNode(kind::LAMBDA, boundVarList, *te);
+      // TODO: if func models not enabled, throw an error?
+      Unreachable();
     }
-    // TODO: if func models not enabled, throw an error?
-    Unreachable();
-  }
 
-  if (n.getNumChildren() > 0) {
-    std::vector<Node> children;
-    if (n.getKind() == APPLY_UF) {
-      Node op = getModelValue(n.getOperator(), hasBoundVars);
-      children.push_back(op);
+    if (n.getNumChildren() > 0) {
+      std::vector<Node> children;
+      if (n.getKind() == APPLY_UF) {
+        Node op = getModelValue(n.getOperator(), hasBoundVars);
+        children.push_back(op);
+      }
+      else if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        children.push_back(n.getOperator());
+      }
+      //evaluate the children
+      for (unsigned i = 0; i < n.getNumChildren(); ++i) {
+        Node val = getModelValue(n[i], hasBoundVars);
+        children.push_back(val);
+      }
+      Node val = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
+      Assert(hasBoundVars || val.isConst());
+      return val;
     }
-    else if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      children.push_back(n.getOperator());
-    }
-    //evaluate the children
-    for (unsigned i = 0; i < n.getNumChildren(); ++i) {
-      Node val = getModelValue(n[i], hasBoundVars);
-      children.push_back(val);
-    }
-    Node val = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
-    Assert(hasBoundVars || val.isConst());
-    return val;
-  }
 
-  if (!d_equalityEngine.hasTerm(n)) {
-    // Unknown term - return first enumerated value for this type
-    TypeEnumerator te(n.getType());
-    return *te;
+    if (!d_equalityEngine.hasTerm(n)) {
+      // Unknown term - return first enumerated value for this type
+      TypeEnumerator te(n.getType());
+      return *te;
+    }
   }
   Node val = d_equalityEngine.getRepresentative(n);
   Assert(d_reps.find(val) != d_reps.end());

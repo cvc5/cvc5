@@ -93,7 +93,9 @@ Node TheoryQuantifiers::getValue(TNode n) {
 }
 
 void TheoryQuantifiers::collectModelInfo( TheoryModel* m, bool fullModel ){
-
+  for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
+    m->assertPredicate(*i, true);
+  }
 }
 
 void TheoryQuantifiers::check(Effort e) {
