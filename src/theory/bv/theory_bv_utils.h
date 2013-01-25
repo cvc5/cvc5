@@ -37,6 +37,12 @@ namespace theory {
 namespace bv {
 namespace utils {
 
+inline uint32_t pow2(uint32_t power) {
+  Assert (power < 32); 
+  uint32_t one = 1;
+  return one << power; 
+}
+
 inline unsigned getExtractHigh(TNode node) {
   return node.getOperator().getConst<BitVectorExtract>().high;
 }

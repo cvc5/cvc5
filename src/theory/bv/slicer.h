@@ -18,10 +18,15 @@
 
 #include "cvc4_private.h"
 
+
 #include <vector>
 #include <list>
 #include <ext/hash_map>
+#include <math.h>
+
 #include "util/bitvector.h"
+#include "util/statistics_registry.h"
+
 #include "expr/node.h"
 #include "theory/bv/theory_bv_utils.h"
 #ifndef __CVC4__THEORY__BV__SLICER_BV_H
@@ -39,19 +44,15 @@ typedef uint32_t Index;
 
 class Base {
   uint32_t d_size;
-  CVC4::BitVector d_repr;  
+  std::vector<uint32_t> d_repr;
 public:
   Base(uint32_t size) 
-    : d_size(size) {
-    Assert (size > 0);
-    d_repr = BitVector(size - 1, 0u);
+    : d_size(size),
+      d_repr((size-1)/32 + ((size-1) % 32 == 0? 0 : 1), 0)
+  {
+    Assert (d_size > 0); 
   }
 
-  Base(const BitVector& repr) 
-    : d_size(repr.getSize() + 1),
-      d_repr(repr) {
-    Assert (d_size > 0);
-  }
   
   /** 
    * Marks the base by adding a cut between index and index + 1
@@ -59,40 +60,74 @@ public:
    * @param index 
    */
   void sliceAt(Index index) {
-    Assert (index < d_size - 1); 
-    d_repr = d_repr.setBit(index); 
+    Index vector_index = index / 32;
+    Assert (vector_index < d_size - 1); 
+    Index int_index = index % 32;
+    uint32_t bit_mask = utils::pow2(int_index); 
+    d_repr[vector_index] = d_repr[vector_index] | bit_mask; 
   }
 
   void sliceWith(const Base& other) {
-    Assert (d_size == other.d_size); 
-    d_repr = d_repr | other.d_repr; 
+    Assert (d_size == other.d_size);
+    for (unsigned i = 0; i < d_repr.size(); ++i) {
+      d_repr[i] = d_repr[i] | other.d_repr[i]; 
+    }
   }
 
-  void decomposeNode(TNode node, std::vector<Node>& decomp);
+  void decomposeNode(TNode node, std::vector<Node>& decomp) const;
 
-  bool isCutPoint (Index index) {
-    Assert (index < d_size); 
-    // the last cut point is implicit
+  bool isCutPoint (Index index) const {
+    // there is an implicit cut point at the end of the bv
     if (index == d_size - 1)
-      return true; 
-    return d_repr.isBitSet(index); 
+      return true;
+    
+    Index vector_index = index / 32;
+    Assert (vector_index < d_size - 1); 
+    Index int_index = index % 32;
+    uint32_t bit_mask = utils::pow2(int_index); 
+
+    return (bit_mask & d_repr[vector_index]) != 0; 
   }
 
-  Base diffCutPoints(const Base& other) const {
-    return Base(other.d_repr ^ d_repr); 
+  void diffCutPoints(const Base& other, Base& res) const {
+    Assert (d_size == other.d_size && res.d_size == d_size);
+    for (unsigned i = 0; i < d_repr.size(); ++i) {
+      Assert (res.d_repr[i] == 0); 
+      res.d_repr[i] = d_repr[i] ^ other.d_repr[i]; 
+    }
   }
 
-  bool operator==(const Base& other) const {
-    return d_repr == other.d_repr; 
+  bool isEmpty() const {
+    for (unsigned i = 0; i< d_repr.size(); ++i) {
+      if (d_repr[i] != 0)
+        return false;
+    }
+    return true;
   }
-  bool operator!=(const Base& other) const {
-    return !(*this == other); 
+
+  void reset() {
+    for (unsigned i = 0; i< d_repr.size(); ++i) {
+      d_repr[i] = 0;
+    }
   }
-  std::string debugPrint() {
+
+  // bool operator==(const Base& other) const {
+  //   Assert (d_size == other.d_size);
+  //   for (unsigned i = 0; i < d_repr.size(); ++i) {
+  //     if (d_repr[i] != other.d_repr[i])
+  //       return false; 
+  //   }
+  //   return true; 
+  // }
+  // bool operator!=(const Base& other) const {
+  //   return !(*this == other); 
+  // }
+
+  std::string debugPrint() const {
     std::ostringstream os;
     os << "[";
     bool first = true; 
-    for (Index i = 0; i < d_size - 1; ++i) {
+    for (unsigned i = 0; i < d_size - 1; ++i) {
       if (isCutPoint(i)) {
         if (first)
           first = false;
@@ -229,6 +264,8 @@ public:
 
 class Slicer; 
 
+typedef __gnu_cxx::hash_set<RootId> BlockIdSet; 
+
 class SliceBlock {
   uint32_t d_bitwidth; 
   RootId d_rootId;                /**< the id of the root term this block corresponds to */
@@ -236,10 +273,8 @@ class SliceBlock {
   Base d_base;                    /**<  the base corresponding to this block containing all the cut points.
                                    Invariant: the base should contain all the cut-points in the slices*/
   Slicer* d_slicer; // FIXME: more elegant way to do this
-
+  
 public:
-
-
   SliceBlock(RootId rootId, uint32_t bitwidth, Slicer* slicer)
     : d_bitwidth(bitwidth),
       d_rootId(rootId),
@@ -267,7 +302,7 @@ public:
    * 
    * @param queue other blocks that changed their base. 
    */
-  void computeBlockBase(std::vector<RootId>& queue);
+  void computeBlockBase(BlockIdSet& recompute);
 
   void sliceBaseAt(Index i) {
     d_base.sliceAt(i); 
@@ -311,6 +346,8 @@ class Slicer {
   /* Indexed by Root Id */
   SliceBlocks d_rootBlocks;
   RootTermCache d_coreTermCache;
+
+
 public:
   Slicer();
   void computeCoarsestBase();
@@ -342,8 +379,24 @@ private:
   RootId makeRoot(TNode n);
   Slice* makeSlice(TNode node);
 
-  bool debugCheckBase(); 
+  bool debugCheckBase();
+
+  class Statistics {
+  public:
+    IntStat d_numBlocks;
+    AverageStat d_avgBlockSize;
+    AverageStat d_avgBlockBitwitdh;
+    IntStat d_numBlockBaseComputations; 
+    IntStat d_numSplits;
+    IntStat d_numSimpleEqualities;
+    IntStat d_numSlices; 
+    Statistics();
+    ~Statistics(); 
+  };
+
 public:
+  Statistics d_statistics;
+  
   Slice* getSlice(const SplinterPointer& sp) {
     Assert (sp != Undefined); 
     SliceBlock* sb = d_rootBlocks[sp.term];
