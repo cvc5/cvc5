@@ -38,6 +38,10 @@ class CVC4_PUBLIC Configuration {
   static const char* const SUBVERSION_BRANCH_NAME;
   static const unsigned SUBVERSION_REVISION;
   static const bool SUBVERSION_HAS_MODIFICATIONS;
+  static const bool IS_GIT_BUILD;
+  static const char* const GIT_BRANCH_NAME;
+  static const char* const GIT_COMMIT;
+  static const bool GIT_HAS_MODIFICATIONS;
 
 public:
 
@@ -100,6 +104,12 @@ public:
   static char const* const* getTraceTags();
   /* Test if the given argument is a known trace tag name */
   static bool isTraceTag(char const *);
+
+  static bool isGitBuild();
+  static const char* getGitBranchName();
+  static const char* getGitCommit();
+  static bool hasGitModifications();
+  static std::string getGitId();
 
   static bool isSubversionBuild();
   static const char* getSubversionBranchName();

@@ -115,10 +115,13 @@ namespace CVC4 {
 
 #define CVC4_ABOUT_STRING ( ::std::string("\
 This is CVC4 version " CVC4_RELEASE_STRING ) + \
+    ( ::CVC4::Configuration::isGitBuild() \
+        ? ( ::std::string(" [") + ::CVC4::Configuration::getGitId() + "]" ) \
+        : \
     ( ::CVC4::Configuration::isSubversionBuild() \
         ? ( ::std::string(" [") + ::CVC4::Configuration::getSubversionId() + "]" ) \
         : ::std::string("") \
-    ) + "\n\
+    )) + "\n\
 compiled with " + ::CVC4::Configuration::getCompiler() + "\n\
 on " + ::CVC4::Configuration::getCompiledDateTime() + "\n\n\
 Copyright (C) 2009, 2010, 2011, 2012\n\

@@ -239,7 +239,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       InteractiveShell shell(*exprMgr, opts);
       Message() << Configuration::getPackageName()
                 << " " << Configuration::getVersionString();
-      if(Configuration::isSubversionBuild()) {
+      if(Configuration::isGitBuild()) {
+        Message() << " [" << Configuration::getGitId() << "]";
+      } else if(Configuration::isSubversionBuild()) {
         Message() << " [" << Configuration::getSubversionId() << "]";
       }
       Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")

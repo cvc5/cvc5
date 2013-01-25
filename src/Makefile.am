@@ -30,8 +30,8 @@ libcvc4_la_LDFLAGS = -version-info $(LIBCVC4_VERSION)
 # as a C library, which messes up exception handling support)
 nodist_EXTRA_libcvc4_noinst_la_SOURCES = dummy.cpp
 nodist_EXTRA_libcvc4_la_SOURCES = dummy.cpp
-libcvc4_noinst_la_SOURCES = subversion_versioninfo.cpp
-libcvc4_la_SOURCES = subversion_versioninfo.cpp
+libcvc4_noinst_la_SOURCES = git_versioninfo.cpp svn_versioninfo.cpp
+libcvc4_la_SOURCES = git_versioninfo.cpp svn_versioninfo.cpp
 libcvc4_la_LIBADD = \
 	@builddir@/options/liboptions.la \
 	@builddir@/util/libutil.la \
@@ -67,9 +67,12 @@ libcvc4_noinst_la_LIBADD += \
 endif
 
 CLEANFILES = \
-	subversion_versioninfo.cpp \
+	svn_versioninfo.cpp \
 	svninfo.tmp \
-	svninfo
+	svninfo \
+	git_versioninfo.cpp \
+	gitinfo.tmp \
+	gitinfo
 
 EXTRA_DIST = \
 	include/cvc4_private_library.h \
@@ -80,7 +83,7 @@ EXTRA_DIST = \
 	include/cvc4.h \
 	cvc4.i
 
-subversion_versioninfo.cpp: svninfo
+svn_versioninfo.cpp: svninfo
 	$(AM_V_GEN)( \
 	  if test -s svninfo; then \
 	    issvn=true; \
@@ -107,6 +110,34 @@ svninfo: svninfo.tmp
 .PHONY: svninfo.tmp
 svninfo.tmp:
 	$(AM_V_GEN)(cd "$(top_srcdir)" && svn info && echo "Modifications: `test -z \"\`svn status -q\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
+
+git_versioninfo.cpp: gitinfo
+	$(AM_V_GEN)( \
+	  if test -s gitinfo; then \
+	    isgit=true; \
+	    branch=`head -1 gitinfo`; \
+	    rev=`head -2 gitinfo | tail -1 | awk '{print$$1}'`; \
+	    mods=`grep '^Modifications: ' gitinfo | awk '{print$$2}'`; \
+	  else \
+	    isgit=false; \
+	    branch=unknown; \
+	    rev=0; \
+	    mods=false; \
+	  fi; \
+	  echo "#include \"util/configuration.h\""; \
+	  echo "const bool ::CVC4::Configuration::IS_GIT_BUILD = $$isgit;"; \
+	  echo "const char* const ::CVC4::Configuration::GIT_BRANCH_NAME = \"$$branch\";"; \
+	  echo "const char* const ::CVC4::Configuration::GIT_COMMIT = \"$$rev\";"; \
+	  echo "const bool ::CVC4::Configuration::GIT_HAS_MODIFICATIONS = $$mods;"; \
+	) >"$@"
+# This .tmp business is to keep from having to re-compile options.cpp
+# (and then re-link the libraries) if nothing has changed.
+gitinfo: gitinfo.tmp
+	$(AM_V_GEN)diff -q gitinfo.tmp gitinfo &>/dev/null || mv gitinfo.tmp gitinfo || true
+# .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
+.PHONY: gitinfo.tmp
+gitinfo.tmp:
+	$(AM_V_GEN)(cd "$(top_srcdir)" && sed 's,^ref: refs/heads/,,' .git/HEAD && git show-ref refs/heads/`sed 's,^ref: refs/heads/,,' .git/HEAD` && echo "Modifications: `test -z \"\`git status -s -uno\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
 
 install-data-local:
 	(echo include/cvc4.h; \
