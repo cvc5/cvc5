@@ -2443,7 +2443,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels()){
+  if(options::checkModels()) {
     if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
        (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
       checkModel(/* hard failure iff */ ! r.isUnknown());
@@ -2513,7 +2513,7 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
   Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels()){
+  if(options::checkModels()) {
     if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
        (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
       checkModel(/* hard failure iff */ ! r.isUnknown());

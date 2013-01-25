@@ -1378,19 +1378,19 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   d_attr_handle[ str ].push_back( t );
 }
 
-void TheoryEngine::checkTheoryAssertionsWithModel()
-{
-  for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-    Theory* theory = d_theoryTable[theoryId];
-    if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-      if (theoryId == THEORY_QUANTIFIERS || theoryId == THEORY_REWRITERULES) {
-        continue;
-      }
-      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-      for (unsigned i = 0; it != it_end; ++ it, ++i) {
-        Node assertion = (*it).assertion;
-        Node val = getModel()->getValue(assertion);
-        Assert(val == d_true);
+void TheoryEngine::checkTheoryAssertionsWithModel() {
+  for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
+    if(theoryId != THEORY_REWRITERULES) {
+      Theory* theory = d_theoryTable[theoryId];
+      if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+        for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+              it_end = theory->facts_end();
+            it != it_end;
+            ++it) {
+          Node assertion = (*it).assertion;
+          Node val = getModel()->getValue(assertion);
+          Assert(val == d_true);
+        }
       }
     }
   }

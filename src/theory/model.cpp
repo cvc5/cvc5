@@ -131,6 +131,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
         children.push_back(val);
       }
       Node val = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
+      if(val.getKind() == kind::CARDINALITY_CONSTRAINT) {
+        val = NodeManager::currentNM()->mkConst(getCardinality(val[0].getType().toType()).getFiniteCardinality() <= val[1].getConst<Rational>().getNumerator());
+      }
       Assert(hasBoundVars || val.isConst());
       return val;
     }
