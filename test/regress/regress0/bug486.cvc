@@ -1,3 +1,7 @@
+% COMMAND-LINE: --finite-model-find -i
+% EXPECT: invalid
+% EXPECT: valid
+% EXIT: 20
 prin:TYPE;
 form:TYPE;
 
