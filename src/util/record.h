@@ -29,7 +29,7 @@
 
 namespace CVC4 {
 
-class Record;
+class CVC4_PUBLIC Record;
 
 // operators for record select and update
 

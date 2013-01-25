@@ -752,7 +752,7 @@ public:
                      table_value_type table_value_type;
     typedef attr::AttributeTraits<table_value_type, context_dep> traits;
     uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::s_id++;
-    Assert(traits::cleanup.size() == id);// sanity check
+    //Assert(traits::cleanup.size() == id);// sanity check
     traits::cleanup.push_back(attr::getCleanupStrategy<value_t,
                                                        CleanupStrategy>::fn);
     return id;

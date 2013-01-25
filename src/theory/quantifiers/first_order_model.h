@@ -33,8 +33,6 @@ class TermDb;
 class FirstOrderModel : public TheoryModel
 {
 private:
-  //add term function
-  void addTerm( Node n );
   //for initialize model
   void initializeModelForTerm( Node n );
   /** whether an axiom is asserted */

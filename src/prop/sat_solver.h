@@ -130,8 +130,6 @@ public:
 
 };/* class DPLLSatSolverInterface */
 
-}/* CVC4::prop namespace */
-
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();
   return out;
@@ -167,6 +165,7 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
   return out;
 }
 
+}/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROP__SAT_MODULE_H */

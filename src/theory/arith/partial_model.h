@@ -225,7 +225,7 @@ private:
   bool equalSizes();
 
   bool inMaps(ArithVar x) const{
-    return 0 <= x && x < d_mapSize;
+    return x < d_mapSize;
   }
 
 };/* class ArithPartialModel */

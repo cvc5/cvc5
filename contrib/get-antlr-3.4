@@ -49,10 +49,10 @@ cd libantlr3c-3.4
 
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --enable-64bit --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
 else
   # 32-bit stuff here
-  ./configure --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+  ./configure --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
 fi
 
 cp Makefile Makefile.orig

@@ -42,6 +42,8 @@ namespace CVC4 {
 class ExprManager;
 class SmtEngine;
 
+inline std::ostream& operator<<(std::ostream& os, const timespec& t);
+
 /**
  * The base class for all statistics.
  *

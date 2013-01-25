@@ -30,15 +30,15 @@
 namespace CVC4 {
 
 class NodeManager;
-class ExprManager;
-class Expr;
+class CVC4_PUBLIC ExprManager;
+class CVC4_PUBLIC Expr;
 class TypeNode;
-class ExprManagerMapCollection;
+struct CVC4_PUBLIC ExprManagerMapCollection;
 
-class SmtEngine;
+class CVC4_PUBLIC SmtEngine;
 
-class Datatype;
-class Record;
+class CVC4_PUBLIC Datatype;
+class CVC4_PUBLIC Record;
 
 template <bool ref_count>
 class NodeTemplate;
@@ -240,22 +240,10 @@ public:
   bool isBoolean() const;
 
   /**
-   * Cast this type to a Boolean type
-   * @return the BooleanType
-   */
-  operator BooleanType() const throw(IllegalArgumentException);
-
-  /**
    * Is this the integer type?
    * @return true if the type is a integer type
    */
   bool isInteger() const;
-
-  /**
-   * Cast this type to a integer type
-   * @return the IntegerType
-   */
-  operator IntegerType() const throw(IllegalArgumentException);
 
   /**
    * Is this the real type?
@@ -264,34 +252,16 @@ public:
   bool isReal() const;
 
   /**
-   * Cast this type to a real type
-   * @return the RealType
-   */
-  operator RealType() const throw(IllegalArgumentException);
-
-  /**
    * Is this the string type?
    * @return true if the type is the string type
    */
   bool isString() const;
 
   /**
-   * Cast this type to a string type
-   * @return the StringType
-   */
-  operator StringType() const throw(IllegalArgumentException);
-
-  /**
    * Is this the bit-vector type?
    * @return true if the type is a bit-vector type
    */
   bool isBitVector() const;
-
-  /**
-   * Cast this type to a bit-vector type
-   * @return the BitVectorType
-   */
-  operator BitVectorType() const throw(IllegalArgumentException);
 
   /**
    * Is this a function type?
@@ -307,22 +277,10 @@ public:
   bool isPredicate() const;
 
   /**
-   * Cast this type to a function type
-   * @return the FunctionType
-   */
-  operator FunctionType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a tuple type?
    * @return true if the type is a tuple type
    */
   bool isTuple() const;
-
-  /**
-   * Cast this type to a tuple type
-   * @return the TupleType
-   */
-  operator TupleType() const throw(IllegalArgumentException);
 
   /**
    * Is this a record type?
@@ -331,22 +289,10 @@ public:
   bool isRecord() const;
 
   /**
-   * Cast this type to a record type
-   * @return the RecordType
-   */
-  operator RecordType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a symbolic expression type?
    * @return true if the type is a symbolic expression type
    */
   bool isSExpr() const;
-
-  /**
-   * Cast this type to a symbolic expression type
-   * @return the SExprType
-   */
-  operator SExprType() const throw(IllegalArgumentException);
 
   /**
    * Is this an array type?
@@ -355,22 +301,10 @@ public:
   bool isArray() const;
 
   /**
-   * Cast this type to an array type
-   * @return the ArrayType
-   */
-  operator ArrayType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a datatype type?
    * @return true if the type is a datatype type
    */
   bool isDatatype() const;
-
-  /**
-   * Cast this type to a datatype type
-   * @return the DatatypeType
-   */
-  operator DatatypeType() const throw(IllegalArgumentException);
 
   /**
    * Is this a constructor type?
@@ -379,22 +313,10 @@ public:
   bool isConstructor() const;
 
   /**
-   * Cast this type to a constructor type
-   * @return the ConstructorType
-   */
-  operator ConstructorType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a selector type?
    * @return true if the type is a selector type
    */
   bool isSelector() const;
-
-  /**
-   * Cast this type to a selector type
-   * @return the SelectorType
-   */
-  operator SelectorType() const throw(IllegalArgumentException);
 
   /**
    * Is this a tester type?
@@ -403,34 +325,16 @@ public:
   bool isTester() const;
 
   /**
-   * Cast this type to a tester type
-   * @return the TesterType
-   */
-  operator TesterType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
   bool isSort() const;
 
   /**
-   * Cast this type to a sort type
-   * @return the sort type
-   */
-  operator SortType() const throw(IllegalArgumentException);
-
-  /**
    * Is this a sort constructor kind?
    * @return true if this is a sort constructor kind
    */
   bool isSortConstructor() const;
-
-  /**
-   * Cast this type to a sort constructor type
-   * @return the sort constructor type
-   */
-  operator SortConstructorType() const throw(IllegalArgumentException);
 
   /**
    * Is this a predicate subtype?
@@ -440,23 +344,10 @@ public:
   //bool isPredicateSubtype() const;
 
   /**
-   * Cast this type to a predicate subtype
-   * @return the predicate subtype
-   */
-  // not in release 1.0
-  //operator PredicateSubtype() const throw(IllegalArgumentException);
-
-  /**
    * Is this an integer subrange type?
    * @return true if this is an integer subrange type
    */
   bool isSubrange() const;
-
-  /**
-   * Cast this type to an integer subrange type
-   * @return the integer subrange type
-   */
-  operator SubrangeType() const throw(IllegalArgumentException);
 
   /**
    * Outputs a string representation of this type to the stream.

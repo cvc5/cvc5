@@ -32,7 +32,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "theory/interrupted.h"
 using namespace BVMinisat;
 
-namespace CVC4 {
+namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
 

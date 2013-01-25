@@ -204,24 +204,10 @@ bool Type::isBoolean() const {
   return d_typeNode->isBoolean();
 }
 
-/** Cast to a Boolean type */
-Type::operator BooleanType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isBoolean(), this);
-  return BooleanType(*this);
-}
-
 /** Is this the integer type? */
 bool Type::isInteger() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isInteger();
-}
-
-/** Cast to a integer type */
-Type::operator IntegerType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isInteger(), this);
-  return IntegerType(*this);
 }
 
 /** Is this the real type? */
@@ -230,24 +216,10 @@ bool Type::isReal() const {
   return d_typeNode->isReal();
 }
 
-/** Cast to a real type */
-Type::operator RealType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isReal(), this);
-  return RealType(*this);
-}
-
 /** Is this the string type? */
 bool Type::isString() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isString();
-}
-
-/** Cast to a string type */
-Type::operator StringType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isString(), this);
-  return StringType(*this);
 }
 
 /** Is this the bit-vector type? */
@@ -256,31 +228,10 @@ bool Type::isBitVector() const {
   return d_typeNode->isBitVector();
 }
 
-/** Cast to a bit-vector type */
-Type::operator BitVectorType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isBitVector(), this);
-  return BitVectorType(*this);
-}
-
-/** Cast to a Constructor type */
-Type::operator DatatypeType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isDatatype(), this);
-  return DatatypeType(*this);
-}
-
 /** Is this a datatype type? */
 bool Type::isDatatype() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isDatatype() || d_typeNode->isParametricDatatype();
-}
-
-/** Cast to a Constructor type */
-Type::operator ConstructorType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isConstructor(), this);
-  return ConstructorType(*this);
 }
 
 /** Is this the Constructor type? */
@@ -289,24 +240,10 @@ bool Type::isConstructor() const {
   return d_typeNode->isConstructor();
 }
 
-/** Cast to a Selector type */
-Type::operator SelectorType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isSelector(), this);
-  return SelectorType(*this);
-}
-
 /** Is this the Selector type? */
 bool Type::isSelector() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSelector();
-}
-
-/** Cast to a Tester type */
-Type::operator TesterType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isTester(), this);
-  return TesterType(*this);
 }
 
 /** Is this the Tester type? */
@@ -330,24 +267,10 @@ bool Type::isPredicate() const {
   return d_typeNode->isPredicate();
 }
 
-/** Cast to a function type */
-Type::operator FunctionType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isFunction(), this);
-  return FunctionType(*this);
-}
-
 /** Is this a tuple type? */
 bool Type::isTuple() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isTuple();
-}
-
-/** Cast to a tuple type */
-Type::operator TupleType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isTuple(), this);
-  return TupleType(*this);
 }
 
 /** Is this a record type? */
@@ -356,36 +279,16 @@ bool Type::isRecord() const {
   return d_typeNode->isRecord();
 }
 
-/** Cast to a record type */
-Type::operator RecordType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isRecord(), this);
-  return RecordType(*this);
-}
-
 /** Is this a symbolic expression type? */
 bool Type::isSExpr() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSExpr();
 }
 
-/** Cast to a symbolic expression type */
-Type::operator SExprType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isSExpr(), this);
-  return SExprType(*this);
-}
-
 /** Is this an array type? */
 bool Type::isArray() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isArray();
-}
-
-/** Cast to an array type */
-Type::operator ArrayType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  return ArrayType(*this);
 }
 
 /** Is this a sort kind */
@@ -395,23 +298,9 @@ bool Type::isSort() const {
 }
 
 /** Cast to a sort type */
-Type::operator SortType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isSort(), this);
-  return SortType(*this);
-}
-
-/** Is this a sort constructor kind */
 bool Type::isSortConstructor() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSortConstructor();
-}
-
-/** Cast to a sort constructor type */
-Type::operator SortConstructorType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isSortConstructor(), this);
-  return SortConstructorType(*this);
 }
 
 /** Is this a predicate subtype */
@@ -422,26 +311,10 @@ bool Type::isPredicateSubtype() const {
 }
 */
 
-/** Cast to a predicate subtype */
-/* - not in release 1.0
-Type::operator PredicateSubtype() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isPredicateSubtype(), this);
-  return PredicateSubtype(*this);
-}
-*/
-
 /** Is this an integer subrange */
 bool Type::isSubrange() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSubrange();
-}
-
-/** Cast to a predicate subtype */
-Type::operator SubrangeType() const throw(IllegalArgumentException) {
-  NodeManagerScope nms(d_nodeManager);
-  CheckArgument(isNull() || isSubrange(), this);
-  return SubrangeType(*this);
 }
 
 vector<Type> FunctionType::getArgTypes() const {
