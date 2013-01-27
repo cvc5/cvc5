@@ -69,6 +69,7 @@
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
 #include "theory/quantifiers/macros.h"
+#include "theory/datatypes/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -975,6 +976,13 @@ void SmtEngine::setLogicInternal() throw() {
     if (options::checkModels()) {
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
       setOption("check-models", SExpr("false"));
+    }
+  }
+
+  //datatypes theory should assign values to all datatypes terms if logic is quantified
+  if (d_logic.isQuantified() && d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+    if( !options::dtForceAssignment.wasSetByUser() ){
+      options::dtForceAssignment.set(true);
     }
   }
 }
@@ -2253,7 +2261,7 @@ void SmtEnginePrivate::processAssertions() {
         collectSkolems((*pos).first, skolemSet, cache);
         collectSkolems((*pos).second, skolemSet, cache);
       }
-      
+
       // We need to ensure:
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
