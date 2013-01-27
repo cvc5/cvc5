@@ -60,11 +60,10 @@ void InstantiationEngine::finishInit(){
     //d_isup->setPriorityOver( i_agm );
     //i_ag->setPriorityOver( i_agm );
   }
-  //CBQI: FIXME
   //for arithmetic
-  //if( options::cbqi() ){
-  //  addInstStrategy( new InstStrategySimplex( d_quantEngine ) );
-  //}
+  if( options::cbqi() ){
+    addInstStrategy( new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine ) );
+  }
   //for datatypes
   //if( options::cbqi() ){
   //  addInstStrategy( new InstStrategyDatatypesValue( d_quantEngine ) );

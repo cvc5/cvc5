@@ -236,7 +236,7 @@ private:
     *  This returns true when the datatypes theory is expected to specify the constructor
     *  type for all equivalence classes.
     */
-  bool mustSpecifyModel();
+  bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
 private:

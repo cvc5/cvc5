@@ -24,6 +24,7 @@
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/model.h"
 #include "smt/options.h"
+#include "theory/quantifiers/options.h"
 
 #include <map>
 
@@ -151,7 +152,7 @@ void TheoryDatatypes::check(Effort e) {
                 }
               }
             }
-            if( !needSplit && mustSpecifyModel() ){
+            if( !needSplit && mustSpecifyAssignment() ){
               //for the sake of termination, we must choose the constructor of a ground term
               //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
               //** TODO: this is probably not good enough, actually need fair enumeration strategy
@@ -164,7 +165,7 @@ void TheoryDatatypes::check(Effort e) {
             }
             if( needSplit && consIndex!=-1 ) {
               Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
-              Trace("dt-split") << "*************Split for possible constructor " << test << " for " << n <<  endl;
+              Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
               test = Rewriter::rewrite( test );
               NodeBuilder<> nb(kind::OR);
               nb << test << test.notNode();
@@ -375,8 +376,13 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
 
 void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
-                     << t << endl;
-  d_equalityEngine.addTriggerTerm(t, THEORY_DATATYPES);
+                     << t << " " << t.getType().isBoolean() << endl;
+  if( t.getType().isBoolean() ){
+    //d_equalityEngine.addTriggerPredicate(t, THEORY_DATATYPES);
+  }else{
+    d_equalityEngine.addTriggerTerm(t, THEORY_DATATYPES);
+  }
+  Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
 }
 
 /** propagate */
@@ -489,7 +495,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             Node unifEq = cons1.eqNode( cons2 );
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( cons1[i]!=cons2[i] ){
-                Node eq = cons1[i].eqNode( cons2[i] );
+                Node eq = cons1[i].getType().isBoolean() ? cons1[i].iffNode( cons2[i] ) : cons1[i].eqNode( cons2[i] );
                 d_pending.push_back( eq );
                 d_pending_exp[ eq ] = unifEq;
                 Trace("datatypes-infer") << "DtInfer : " << eq << " by " << unifEq << std::endl;
@@ -797,7 +803,7 @@ void TheoryDatatypes::processNewTerm( Node n ){
   //see if it is rewritten to be something different
   Node rn = Rewriter::rewrite( n );
   if( rn!=n ){
-    Node eq = rn.eqNode( n );
+    Node eq = n.getType().isBoolean() ? rn.iffNode( n ) : rn.eqNode( n );
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = NodeManager::currentNM()->mkConst( true );
     Trace("datatypes-infer") << "DtInfer : " << eq << ", trivial" << std::endl;
@@ -851,7 +857,7 @@ void TheoryDatatypes::collapseSelectors(){
           Node sn = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, op, cons );
           Node s = Rewriter::rewrite( sn );
           if( sn!=s ){
-            Node eq = s.eqNode( sn );
+            Node eq = s.getType().isBoolean() ? s.iffNode( sn ) : s.eqNode( sn );
             d_pending.push_back( eq );
             d_pending_exp[ eq ] = NodeManager::currentNM()->mkConst( true );
             Trace("datatypes-infer") << "DtInfer : " << eq << ", by rewrite" << std::endl;
@@ -883,7 +889,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     int index = getLabelIndex( eqc, n );
     const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
     //must be finite or have a selector
-    if( eqc->d_selectors || dt[ index ].isFinite() || mustSpecifyModel() ){
+    if( eqc->d_selectors || dt[ index ].isFinite() || mustSpecifyAssignment() ){
       //instantiate this equivalence class
       eqc->d_inst = true;
       Node tt_cons = getInstantiateCons( tt, dt, index );
@@ -967,9 +973,12 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
   return false;
 }
 
-bool TheoryDatatypes::mustSpecifyModel(){
-  return options::produceModels();
-  //return options::finiteModelFind() || options::produceModels();
+bool TheoryDatatypes::mustSpecifyAssignment(){
+  //FIXME: the condition finiteModelFind is an over-approximation in this function
+  //   we still may not want to specify assignments for datatypes that are truly infinite
+  //   the fix for this is to correctly compute the cardinality for datatypes containing uninterpered sorts in fmf (i.e. by assuming they are finite)
+  return options::finiteModelFind() || options::produceModels() || options::dtForceAssignment();
+  //return options::produceModels();
   //return false;
 }
 
@@ -980,7 +989,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   //  (3) Instantiate : is_C( t ) => t = C( sel_1( t ) ... sel_n( t ) )
   //We may need to communicate (3) outwards if the conclusions involve other theories
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
-  if( n.getKind()==EQUAL && n[1].getKind()==APPLY_CONSTRUCTOR && exp.getKind()!=EQUAL  ){
+  if( ( n.getKind()==EQUAL || n.getKind()==IFF) && n[1].getKind()==APPLY_CONSTRUCTOR && exp.getKind()!=EQUAL  ){
     bool addLemma = false;
 #if 1
     const Datatype& dt = ((DatatypeType)(n[1].getType()).toType()).getDatatype();
@@ -997,13 +1006,15 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
       //check if we have already added this lemma
       if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
         d_inst_lemmas[ n[0] ].push_back( n[1] );
+        Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
         return true;
       }else{
+        Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
         return false;
       }
     }
-    Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
   }
+  Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
   return false;
 }
 

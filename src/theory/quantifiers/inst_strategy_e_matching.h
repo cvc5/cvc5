@@ -87,6 +87,9 @@ private:
   /** generate triggers */
   void generateTriggers( Node f );
 public:
+  /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
+      rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)
+      rgfr is the frequency at which triggers are generated */
   InstStrategyAutoGenTriggers( QuantifiersEngine* qe, int tstrt, int rstrt, int rgfr = -1 ) :
       InstStrategy( qe ), d_tr_strategy( tstrt ), d_rlv_strategy( rstrt ), d_generate_additional( false ){
     setRegenerateFrequency( rgfr );
