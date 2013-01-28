@@ -48,8 +48,8 @@ void InstantiationEngine::finishInit(){
     }else{
       d_isup = NULL;
     }
-    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL,
-                                                                         InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT, 3 );
+    int rlv = options::relevantTriggers() ? InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT : InstStrategyAutoGenTriggers::RELEVANCE_NONE;
+    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, rlv, 3 );
     i_ag->setGenerateAdditional( true );
     addInstStrategy( i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
