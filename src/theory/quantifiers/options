@@ -44,6 +44,9 @@ option macrosQuant --macros-quant bool :default false
 # Whether to use smart triggers
 option smartTriggers /--disable-smart-triggers bool :default true
  disable smart triggers
+# Whether to use relevent triggers
+option relevantTriggers /--relevant-triggers bool :default true
+ prefer triggers that are more relevant based on SInE style method
 
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false

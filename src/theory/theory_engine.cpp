@@ -127,7 +127,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   }
 
   // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(context, this);
+  d_quantEngine = new QuantifiersEngine(context, userContext, this);
 
   // build model information if applicable
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
