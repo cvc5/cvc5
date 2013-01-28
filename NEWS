@@ -6,5 +6,6 @@ Changes since 1.0
 * tuple and record support in the compatibility library
 * user patterns are now supported in the SMT-LIBv1.2 parser
 * SMT-LIB get-model output now is easier to machine-parse: contains (model...)
+* Win32 support via mingw
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 23 Jan 2013 16:01:40 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 28 Jan 2013 15:26:24 -0500
