@@ -63,6 +63,8 @@
 #include "theory/logic_info.h"
 #include "theory/options.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/booleans/boolean_term_conversion_mode.h"
+#include "theory/booleans/options.h"
 #include "util/ite_removal.h"
 #include "theory/model.h"
 #include "printer/printer.h"
@@ -586,11 +588,13 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_cumulativeTimeUsed(0),
   d_cumulativeResourceUsed(0),
   d_status(),
-  d_private(new smt::SmtEnginePrivate(*this)),
-  d_statisticsRegistry(new StatisticsRegistry()),
+  d_private(NULL),
+  d_statisticsRegistry(NULL),
   d_stats(NULL) {
 
   SmtScope smts(this);
+  d_private = new smt::SmtEnginePrivate(*this);
+  d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
 
   // We have mutual dependency here, so we add the prop engine to the theory
@@ -2636,10 +2640,26 @@ void SmtEnginePrivate::processAssertions() {
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
     for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
       Node n = d_booleanTermConverter.rewriteBooleanTerms(d_assertionsToPreprocess[i]);
-      if(n != d_assertionsToPreprocess[i] && !d_smt.d_logic.isTheoryEnabled(theory::THEORY_BV)) {
-        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-        d_smt.d_logic.enableTheory(theory::THEORY_BV);
-        d_smt.d_logic.lock();
+      if(n != d_assertionsToPreprocess[i]) {
+        switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
+        case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
+        case booleans::BOOLEAN_TERM_CONVERT_NATIVE:
+          if(!d_smt.d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+            d_smt.d_logic.enableTheory(theory::THEORY_BV);
+            d_smt.d_logic.lock();
+          }
+          break;
+        case booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
+          if(!d_smt.d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+            d_smt.d_logic.enableTheory(theory::THEORY_DATATYPES);
+            d_smt.d_logic.lock();
+          }
+          break;
+        default:
+          Unhandled(mode);
+        }
       }
       d_assertionsToPreprocess[i] = n;
     }
@@ -3046,10 +3066,14 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   return quickCheck().asValidityResult();
 }
 
-Node SmtEngine::postprocess(TNode node) {
+Node SmtEngine::postprocess(TNode node, TypeNode expectedType) {
   ModelPostprocessor mpost;
   NodeVisitor<ModelPostprocessor> visitor;
-  return visitor.run(mpost, node);
+  Node value = visitor.run(mpost, node);
+  Debug("boolean-terms") << "postproc: got " << value << " expect type " << expectedType << endl;
+  Node realValue = mpost.rewriteAs(value, expectedType);
+  Debug("boolean-terms") << "postproc: realval " << realValue << " expect type " << expectedType << endl;
+  return realValue;
 }
 
 Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicException) {
@@ -3071,7 +3095,7 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
   // Make sure all preprocessing is done
   d_private->processAssertions();
   Node n = d_private->simplify(Node::fromExpr(e));
-  n = postprocess(n);
+  n = postprocess(n, TypeNode::fromType(e.getType()));
   return n.toExpr();
 }
 
@@ -3093,7 +3117,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   }
   hash_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
-  n = postprocess(n);
+  n = postprocess(n, TypeNode::fromType(e.getType()));
   return n.toExpr();
 }
 
@@ -3140,8 +3164,10 @@ Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, TypeCheckingExcep
     resultNode = m->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  resultNode = postprocess(resultNode);
+  resultNode = postprocess(resultNode, n.getType());
   Trace("smt") << "--- model-post returned " << resultNode << endl;
+  Trace("smt") << "--- model-post returned " << resultNode.getType() << endl;
+  Trace("smt") << "--- model-post expected " << n.getType() << endl;
 
   // type-check the result we got
   Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(n.getType()));
@@ -3356,7 +3382,9 @@ void SmtEngine::checkModel(bool hardFailure) {
       // function symbol (since then the definition is recursive)
       if (val.getKind() == kind::LAMBDA) {
         // first apply the model substitutions we have so far
+        Debug("boolean-terms") << "applying subses to " << val[1] << endl;
         Node n = substitutions.apply(val[1]);
+        Debug("boolean-terms") << "++ got " << n << endl;
         // now check if n contains func by doing a substitution
         // [func->func2] and checking equality of the Nodes.
         // (this just a way to check if func is in n.)
@@ -3391,6 +3419,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       }
 
       // (3) checks complete, add the substitution
+      Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val << endl;
       substitutions.addSubstitution(func, val);
     }
   }
@@ -3408,7 +3437,9 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
     // Apply our model value substitutions.
+    Debug("boolean-terms") << "applying subses to " << n << endl;
     n = substitutions.apply(n);
+    Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
     // Simplify the result.

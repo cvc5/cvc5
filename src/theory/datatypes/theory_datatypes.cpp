@@ -24,6 +24,7 @@
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/model.h"
 #include "smt/options.h"
+#include "smt/boolean_terms.h"
 #include "theory/quantifiers/options.h"
 
 #include <map>
@@ -311,14 +312,27 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
     return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][in.getOperator().getConst<RecordSelect>().getField()].getSelector()), in[0]);
   }
 
+  TypeNode t = in.getType();
+
   // we only care about tuples and records here
   if(in.getKind() != kind::TUPLE && in.getKind() != kind::TUPLE_UPDATE &&
      in.getKind() != kind::RECORD && in.getKind() != kind::RECORD_UPDATE) {
+    if((t.isTuple() || t.isRecord()) && in.hasAttribute(smt::BooleanTermAttr())) {
+      Debug("tuprec") << "should map " << in << " of type " << t << " back to " << in.getAttribute(smt::BooleanTermAttr()).getType() << endl;
+      Debug("tuprec") << "so " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getDatatype() << " goes to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getDatatype() << endl;
+      if(t.isTuple()) {
+        Debug("tuprec") << "current datatype-tuple-attr is " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getAttribute(expr::DatatypeTupleAttr()) << endl;
+        Debug("tuprec") << "setting to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeTupleAttr()) << endl;
+        NodeManager::currentNM()->getDatatypeForTupleRecord(t).setAttribute(expr::DatatypeTupleAttr(), NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeTupleAttr()));
+      } else {
+        Debug("tuprec") << "current datatype-record-attr is " << NodeManager::currentNM()->getDatatypeForTupleRecord(t).getAttribute(expr::DatatypeRecordAttr()) << endl;
+        Debug("tuprec") << "setting to " << NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeRecordAttr()) << endl;
+        NodeManager::currentNM()->getDatatypeForTupleRecord(t).setAttribute(expr::DatatypeRecordAttr(), NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeRecordAttr()));
+      }
+    }
     // nothing to do
     return in;
   }
-
-  TypeNode t = in.getType();
 
   if(t.hasAttribute(expr::DatatypeTupleAttr())) {
     t = t.getAttribute(expr::DatatypeTupleAttr());

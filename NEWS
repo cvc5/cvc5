@@ -15,5 +15,6 @@ Changes since 1.0
   use -q.  Previously, this would silence all output (including "sat" or
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
+* Boolean term support in datatypes
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 20 Feb 2013 18:31:50 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 20 Mar 2013 20:03:50 -0400

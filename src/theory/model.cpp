@@ -57,7 +57,7 @@ Node TheoryModel::getValue( TNode n ) const{
 Expr TheoryModel::getValue( Expr expr ) const{
   Node n = Node::fromExpr( expr );
   Node ret = getValue( n );
-  return d_smt.postprocess(ret).toExpr();
+  return d_smt.postprocess(ret, TypeNode::fromType(expr.getType())).toExpr();
 }
 
 /** get cardinality for sort */

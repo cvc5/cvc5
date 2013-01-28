@@ -1,0 +1,8 @@
+% EXPECT: sat
+% EXIT: 10
+
+x : [# i:INT, b:BOOLEAN #];
+
+ASSERT x /= (# i := 0, b := FALSE #);
+
+CHECKSAT;

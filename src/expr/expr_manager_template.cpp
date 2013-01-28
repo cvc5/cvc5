@@ -936,7 +936,7 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
       ("export of types belonging to theory of DATATYPES kinds unsupported");
   }
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED &&
-     n.getKind() != kind::SORT_TYPE) { 
+     n.getKind() != kind::SORT_TYPE) {
     throw ExportUnsupportedException
       ("export of PARAMETERIZED-kinded types (other than SORT_KIND) not supported");
   }
