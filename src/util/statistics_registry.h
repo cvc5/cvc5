@@ -42,8 +42,6 @@ namespace CVC4 {
 class ExprManager;
 class SmtEngine;
 
-inline std::ostream& operator<<(std::ostream& os, const timespec& t);
-
 /**
  * The base class for all statistics.
  *
@@ -619,6 +617,8 @@ public:
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
 /****************************************************************************/
+
+inline std::ostream& operator<<(std::ostream& os, const timespec& t);
 
 /** Compute the sum of two timespecs. */
 inline timespec& operator+=(timespec& a, const timespec& b) {

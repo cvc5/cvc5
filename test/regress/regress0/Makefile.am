@@ -3,7 +3,7 @@ DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatype
 
 BINARY = cvc4
 LOG_COMPILER = @srcdir@/../run_regression
-AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)
+AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness

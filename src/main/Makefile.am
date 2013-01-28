@@ -41,9 +41,9 @@ pcvc4_LDADD += $(BOOST_THREAD_LIBS) -lpthread
 pcvc4_LDADD += $(BOOST_THREAD_LDFLAGS)
 
 if STATIC_BINARY
-pcvc4_LINK = $(CXXLINK) -all-static
+pcvc4_LINK = $(CXXLINK) -all-static $(pcvc4_LDFLAGS)
 else
-pcvc4_LINK = $(CXXLINK)
+pcvc4_LINK = $(CXXLINK) $(pcvc4_LDFLAGS)
 endif
 endif
 
@@ -87,8 +87,8 @@ clean-local:
 	rm -f $(BUILT_SOURCES)
 
 if STATIC_BINARY
-cvc4_LINK = $(CXXLINK) -all-static
+cvc4_LINK = $(CXXLINK) -all-static $(cvc4_LDFLAGS)
 else
-cvc4_LINK = $(CXXLINK)
+cvc4_LINK = $(CXXLINK) $(cvc4_LDFLAGS)
 endif
 

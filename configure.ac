@@ -1125,11 +1125,16 @@ CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 
 # visibility flag not supported for Windows builds
+# also increase default stack size for Windows binaries
 case $host_os in
   (*mingw*) FLAG_VISIBILITY_HIDDEN=
+            cvc4_LDFLAGS=-Wl,--stack,134217728
+            pcvc4_LDFLAGS=-Wl,--stack,134217728
 esac
 
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
+AC_SUBST(cvc4_LDFLAGS)
+AC_SUBST(pcvc4_LDFLAGS)
 
 # mk_include
 #
