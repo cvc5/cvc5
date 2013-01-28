@@ -36,7 +36,7 @@ extern "C" {
 
 static double s_clockconv = 0.0;
 
-long clock_gettime(clockid_t which_clock, struct timespec *tp) {
+long clock_gettime(clockid_t which_clock, struct timespec* tp) {
   if( s_clockconv == 0.0 ) {
     mach_timebase_info_data_t tb;
     kern_return_t err = mach_timebase_info(&tb);
@@ -66,8 +66,17 @@ long clock_gettime(clockid_t which_clock, struct timespec *tp) {
 
 #else /* else we're __WIN32__ */
 
-long clock_gettime(clockid_t which_clock, struct timespec *tp) {
-  // unsupported on Windows
+#include <time.h>
+#include <windows.h>
+
+long clock_gettime(clockid_t which_clock, struct timespec* tp) {
+  if(tp != NULL) {
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    uint64_t nanos = ((((uint64_t)ft.dwHighDateTime) << 32) | ft.dwLowDateTime) * 100;
+    tp->tv_sec = nanos / 1000000000ul;
+    tp->tv_nsec = nanos % 1000000000ul;
+  }
   return 0;
 }
 

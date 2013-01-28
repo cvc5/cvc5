@@ -63,8 +63,13 @@ AntlrInputStream*
 AntlrInputStream::newFileInputStream(const std::string& name,
                                      bool useMmap)
   throw (InputStreamException) {
+#ifdef _WIN32
+  if(useMmap) {
+    useMmap = false;
+  }
+#endif
   pANTLR3_INPUT_STREAM input = NULL;
-  if( useMmap ) {
+  if(useMmap) {
     input = MemoryMappedInputBufferNew(name);
   } else {
     // libantlr3c v3.2 isn't source-compatible with v3.4
@@ -74,7 +79,7 @@ AntlrInputStream::newFileInputStream(const std::string& name,
     input = antlr3FileStreamNew((pANTLR3_UINT8) name.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
   }
-  if( input == NULL ) {
+  if(input == NULL) {
     throw InputStreamException("Couldn't open file: " + name);
   }
   return new AntlrInputStream( name, input );
