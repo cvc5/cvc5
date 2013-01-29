@@ -103,6 +103,17 @@ std::string Base::debugPrint() const {
 }
 
 /**
+ * ExtractTerm
+ *
+ */
+
+std::string ExtractTerm::debugPrint() const {
+  ostringstream os;
+  os << "id" << id << "[" << high << ":" << low <<"] ";  
+  return os.str(); 
+}
+
+/**
  * NormalForm
  *
  */
@@ -119,7 +130,31 @@ TermId NormalForm::getTerm(Index i, const UnionFind& uf) const {
   }
   Unreachable(); 
 }
- 
+
+std::string NormalForm::debugPrint(const UnionFind& uf) const {
+  ostringstream os;
+  os << "NF " << base.debugPrint() << endl;
+  os << "("; 
+  for (unsigned i = 0; i < decomp.size(); ++i) {
+    os << decomp[i] << "[" << uf.getBitwidth(decomp[i]) <<"]";
+    os << (i < decomp.size() - 1? ", " : "");  
+  }
+  os << ") \n"; 
+  return os.str(); 
+}
+/**
+ * UnionFind::Node
+ * 
+ */
+
+std::string UnionFind::Node::debugPrint() const {
+  ostringstream os;
+  os << "Repr " << d_repr << " ["<< d_bitwidth << "] ";
+  os << "( " << d_ch1 <<", " << d_ch2 << ")" << endl; 
+  return os.str(); 
+}
+
+
 /**
  * UnionFind
  * 
@@ -129,6 +164,7 @@ TermId UnionFind::addTerm(Index bitwidth) {
   d_nodes.push_back(node);
   TermId id = d_nodes.size() - 1; 
   d_representatives.insert(id);
+  Debug("bv-slicer") << "UnionFind::addTerm " << id << " size " << bitwidth << endl;
   return id; 
 }
 /** 
@@ -138,6 +174,8 @@ TermId UnionFind::addTerm(Index bitwidth) {
  * @param t2 
  */
 void UnionFind::unionTerms(const ExtractTerm& t1, const ExtractTerm& t2) {
+  Debug("bv-slicer") << "UnionFind::unionTerms " << t1.debugPrint() << " and \n"
+                     << "                      " << t2.debugPrint() << endl;
   Assert (t1.getBitwidth() == t2.getBitwidth());
   
   NormalForm nf1(t1.getBitwidth());
@@ -162,6 +200,7 @@ void UnionFind::unionTerms(const ExtractTerm& t1, const ExtractTerm& t2) {
  * @param t2 
  */
 void UnionFind::merge(TermId t1, TermId t2) {
+  Debug("bv-slicer-uf") << "UnionFind::merge (" << t1 <<", " << t2 << ")" << endl;
   t1 = find(t1);
   t2 = find(t2); 
 
@@ -190,8 +229,10 @@ TermId UnionFind::find(TermId id) const {
  * @return 
  */
 void UnionFind::split(TermId id, Index i) {
+  Debug("bv-slicer-uf") << "UnionFind::split " << id << " at " << i << endl;
   id = find(id); 
-  Node node = getNode(id); 
+  Node node = getNode(id);
+  Debug("bv-slicer-uf") << "   node: " << node.debugPrint() << endl;
   Assert (i < node.getBitwidth());
 
   if (i == 0 || i == node.getBitwidth()) {
@@ -222,6 +263,8 @@ void UnionFind::getNormalForm(const ExtractTerm& term, NormalForm& nf) {
     count += getBitwidth(nf.decomp[i]);
     nf.base.sliceAt(count); 
   }
+  Debug("bv-slicer-uf") << "UnionFind::getNormalFrom term: " << term.debugPrint() << endl;
+  Debug("bv-slicer-uf") << "           nf: " << nf.debugPrint(*this) << endl; 
 }
 
 void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp) {
@@ -266,8 +309,8 @@ void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp)
  * @param common 
  */
 void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposition& decomp2, TermId common) {
+  Debug("bv-slicer") << "UnionFind::handleCommonSlice common = " << common << endl; 
   Index common_size = getBitwidth(common); 
-
   // find starting points of common slice
   Index start1 = 0;
   for (unsigned j = 0; j < decomp1.size(); ++j) {
@@ -300,6 +343,8 @@ void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposit
 }
 
 void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2) {
+  Debug("bv-slicer") << "UnionFind::alignSlicings " << term1.debugPrint() << endl;
+  Debug("bv-slicer") << "                         " << term2.debugPrint() << endl;
   NormalForm nf1(term1.getBitwidth());
   NormalForm nf2(term2.getBitwidth());
   
@@ -340,8 +385,9 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
  * @param term 
  */
 void UnionFind::ensureSlicing(const ExtractTerm& term) {
+  Debug("bv-slicer") << "Slicer::ensureSlicing " << term.debugPrint() << endl;
   TermId id = find(term.id);
-  split(id, term.high);
+  split(id, term.high + 1);
   split(id, term.low);
 }
 
@@ -354,7 +400,7 @@ ExtractTerm Slicer::registerTerm(TNode node) {
   Index low = 0, high = utils::getSize(node); 
   TNode n = node; 
   if (node.getKind() == kind::BITVECTOR_EXTRACT) {
-    TNode n = node[0];
+    n = node[0];
     high = utils::getExtractHigh(node);
     low = utils::getExtractLow(node); 
   }
@@ -364,11 +410,14 @@ ExtractTerm Slicer::registerTerm(TNode node) {
     d_idToNode[id] = n; 
   }
   TermId id = d_nodeToId[n];
-
-  return ExtractTerm(id, high, low); 
+  ExtractTerm res(id, high, low); 
+  Debug("bv-slicer") << "Slicer::registerTerm " << node << " => " << res.debugPrint() << endl;
+  return res; 
 }
 
 void Slicer::processEquality(TNode eq) {
+  Debug("bv-slicer") << "Slicer::processEquality: " << eq << endl;
+  
   Assert (eq.getKind() == kind::EQUAL);
   TNode a = eq[0];
   TNode b = eq[1];
@@ -379,10 +428,14 @@ void Slicer::processEquality(TNode eq) {
   d_unionFind.ensureSlicing(b_ex);
   
   d_unionFind.alignSlicings(a_ex, b_ex);
-  d_unionFind.unionTerms(a_ex, b_ex); 
+  d_unionFind.unionTerms(a_ex, b_ex);
+  
+  Debug("bv-slicer") << "Slicer::processEquality done. " << endl;
 }
 
 void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
+  Debug("bv-slicer") << "Slicer::getBaseDecomposition " << node << endl;
+  
   Index high = utils::getSize(node);
   Index low = 0; 
   if (node.getKind() == kind::BITVECTOR_EXTRACT) {
@@ -405,6 +458,13 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     current_low += current_size;
     decomp.push_back(current); 
   }
+
+  Debug("bv-slicer") << "as [";
+  for (unsigned i = 0; i < decomp.size(); ++i) {
+    Debug("bv-slicer") << decomp[i] <<" "; 
+  }
+  Debug("bv-slicer") << "]" << endl;
+
 }
 
 bool Slicer::isCoreTerm(TNode node) {

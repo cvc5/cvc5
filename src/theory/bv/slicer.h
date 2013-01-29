@@ -89,7 +89,8 @@ struct ExtractTerm {
   {
     Assert (h >= l && id != UndefinedId); 
   }
-  Index getBitwidth() const { return high - low + 1; } 
+  Index getBitwidth() const { return high - low + 1; }
+  std::string debugPrint() const; 
 };
 
 class UnionFind; 
@@ -109,7 +110,8 @@ struct NormalForm {
    * 
    * @return 
    */
-  TermId getTerm(Index i, const UnionFind& uf) const; 
+  TermId getTerm(Index i, const UnionFind& uf) const;
+  std::string debugPrint(const UnionFind& uf) const; 
 };
 
 
@@ -148,6 +150,7 @@ class UnionFind {
       d_ch1 = ch1;
       d_ch2 = ch2; 
     }
+    std::string debugPrint() const; 
   };
 
   /// map from TermId to the nodes that represent them 
