@@ -210,7 +210,6 @@ Node TheoryBV::ppRewrite(TNode t)
 
 void TheoryBV::presolve() {
   Debug("bitvector") << "TheoryBV::presolve" << endl; 
-  d_slicer.computeCoarsestBase(); 
 }
 
 bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)

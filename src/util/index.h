@@ -21,6 +21,7 @@
 
 #include <stdint.h>
 #include <boost/static_assert.hpp>
+#include <limits>
 
 namespace CVC4 {
 

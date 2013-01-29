@@ -418,6 +418,35 @@ inline std::string vectorToString(const std::vector<Node>& nodes) {
   return out.str();
 }
 
+// FIXME: dumb code 
+inline void intersect(const std::vector<uint32_t>& v1,
+                      const std::vector<uint32_t>& v2,
+                      std::vector<uint32_t>& intersection) {
+  for (unsigned i = 0; i < v1.size(); ++i) {
+    bool found = false;
+    for (unsigned j = 0; j < v2.size(); ++j) {
+      if (v2[j] == v1[i]) {
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      intersection.push_back(v1[i]); 
+    }
+  }
+}
+
+template <class T>
+inline T gcd(T a, T b) {
+  while (b != 0) {
+    T t = b;
+    b = a % t;
+    a = t;
+  }
+  return a;
+}
+
+
 }
 }
 }

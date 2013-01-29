@@ -67,17 +67,6 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
   return (match2 == last) ? match : last;
 }
 
-template <class T>
-inline T gcd(T a, T b) {
-  while (b != 0) {
-    T t = b;
-    b = a % t;
-    a = t;
-  }
-  return a;
-}
-
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__UTILITY_H */
