@@ -93,11 +93,13 @@ Node TheoryQuantifiers::getValue(TNode n) {
 }
 
 void TheoryQuantifiers::collectModelInfo( TheoryModel* m, bool fullModel ){
-  for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if((*i).assertion.getKind() == kind::NOT) {
-      m->assertPredicate((*i).assertion[0], false);
-    } else {
-      m->assertPredicate(*i, true);
+  if( fullModel ){
+    for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
+      if((*i).assertion.getKind() == kind::NOT) {
+        m->assertPredicate((*i).assertion[0], false);
+      } else {
+        m->assertPredicate(*i, true);
+      }
     }
   }
 }
