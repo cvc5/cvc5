@@ -43,6 +43,7 @@
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -62,6 +63,9 @@ namespace CVC4 {
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = NULL;
+
+    /** A pointer to the totalTime driver stat (the signal handlers need it) */
+    CVC4::TimerStat* pTotalTime = NULL;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -84,8 +88,8 @@ void printUsage(Options& opts, bool full) {
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
-  TimerStat s_totalTime("totalTime");
-  s_totalTime.start();
+  pTotalTime = new TimerStat("totalTime");
+  pTotalTime->start();
 
   // For the signal handlers' benefit
   pOptions = &opts;
@@ -216,7 +220,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   int returnValue = 0;
   {
     // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(), &s_totalTime);
+    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(), pTotalTime);
 
     // Filename statistics
     ReferenceStat< const char* > s_statFilename("filename", filename);
@@ -304,7 +308,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat< Result > s_statSatResult("sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(), &s_statSatResult);
 
-    s_totalTime.stop();
+    pTotalTime->stop();
 
     // Set the global executor pointer to NULL first.  If we get a
     // signal while dumping statistics, we don't want to try again.
@@ -334,9 +338,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // On exceptional exit, these are leaked, but that's okay... they
   // need to be around in that case for main() to print statistics.
+  delete pTotalTime;
   delete pExecutor;
   delete exprMgr;
 
+  pTotalTime = NULL;
   pExecutor = NULL;
 
   return returnValue;
