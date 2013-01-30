@@ -119,7 +119,7 @@ class UnionFind {
   class Node {
     Index d_bitwidth;
     TermId d_ch1, d_ch2;
-    TermId d_repr;    
+    TermId d_repr;
   public:
     Node(Index b)
   : d_bitwidth(b),
@@ -136,23 +136,18 @@ class UnionFind {
       Assert (i < 2);
       return i == 0? d_ch1 : d_ch2;
     }
-    Index getCutPoint(const UnionFind& uf) const {
-      Assert (d_ch1 != UndefinedId && d_ch2 != UndefinedId);
-      return uf.getNode(d_ch1).getBitwidth(); 
-    }
     void setRepr(TermId id) {
       Assert (! hasChildren());
       d_repr = id;
     }
-
     void setChildren(TermId ch1, TermId ch2) {
       Assert (d_repr == UndefinedId && !hasChildren());
       d_ch1 = ch1;
       d_ch2 = ch2; 
     }
-    std::string debugPrint() const; 
+    std::string debugPrint() const;
   };
-
+  
   /// map from TermId to the nodes that represent them 
   std::vector<Node> d_nodes;
   /// a term is in this set if it is its own representative
@@ -160,6 +155,32 @@ class UnionFind {
   
   void getDecomposition(const ExtractTerm& term, Decomposition& decomp);
   void handleCommonSlice(const Decomposition& d1, const Decomposition& d2, TermId common);
+  /// getter methods for the internal nodes
+  TermId getRepr(TermId id)  const {
+    Assert (id < d_nodes.size());
+    return d_nodes[id].getRepr(); 
+  }
+  TermId getChild(TermId id, Index i) const {
+    Assert (id < d_nodes.size());
+    return d_nodes[id].getChild(i); 
+  }
+  Index getCutPoint(TermId id) const {
+    return getBitwidth(getChild(id, 1)); 
+  }
+  bool hasChildren(TermId id) const {
+    Assert (id < d_nodes.size());
+    return d_nodes[id].hasChildren(); 
+  }
+  /// setter methods for the internal nodes
+  void setRepr(TermId id, TermId new_repr) {
+    Assert (id < d_nodes.size());
+    d_nodes[id].setRepr(new_repr); 
+  }
+  void setChildren(TermId id, TermId ch1, TermId ch2) {
+    Assert (id < d_nodes.size() && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch2));
+    d_nodes[id].setChildren(ch1, ch2); 
+  }
+
   
 public:
   UnionFind()
@@ -176,11 +197,6 @@ public:
   void getNormalForm(const ExtractTerm& term, NormalForm& nf);
   void alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2);
   void ensureSlicing(const ExtractTerm& term);
-  
-  Node getNode(TermId id) const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id]; 
-  }
   Index getBitwidth(TermId id) const {
     Assert (id < d_nodes.size());
     return d_nodes[id].getBitwidth(); 
@@ -207,6 +223,7 @@ public:
   bool isCoreTerm (TNode node);
   static void splitEqualities(TNode node, std::vector<Node>& equalities); 
 }; 
+
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */

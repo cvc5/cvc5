@@ -207,17 +207,14 @@ void UnionFind::merge(TermId t1, TermId t2) {
   if (t1 == t2)
     return;
 
-  Node n1 = getNode(t1); 
-  Node n2 = getNode(t2);
-  Assert (! n1.hasChildren() && ! n2.hasChildren());
-  n1.setRepr(t2); 
+  Assert (! hasChildren(t1) && ! hasChildren(t2));
+  setRepr(t1, t2); 
   d_representatives.erase(t1); 
 }
 
 TermId UnionFind::find(TermId id) const {
-  Node node = getNode(id); 
-  if (node.getRepr() != UndefinedId)
-    return find(node.getRepr());
+  if (getRepr(id) != UndefinedId)
+    return find(getRepr(id));
   return id; 
 }
 /** 
@@ -231,27 +228,25 @@ TermId UnionFind::find(TermId id) const {
 void UnionFind::split(TermId id, Index i) {
   Debug("bv-slicer-uf") << "UnionFind::split " << id << " at " << i << endl;
   id = find(id); 
-  Node node = getNode(id);
-  Debug("bv-slicer-uf") << "   node: " << node.debugPrint() << endl;
-  Assert (i < node.getBitwidth());
+  Debug("bv-slicer-uf") << "   node: " << d_nodes[id].debugPrint() << endl;
 
-  if (i == 0 || i == node.getBitwidth()) {
+  if (i == 0 || i == getBitwidth(id)) {
     // nothing to do 
     return;
   }
-
-  if (!node.hasChildren()) {
+  Assert (i < getBitwidth(id));
+  if (!hasChildren(id)) {
     // first time we split this term 
     TermId bottom_id = addTerm(i);
-    TermId top_id = addTerm(node.getBitwidth() - i);
-    node.setChildren(top_id, bottom_id);
+    TermId top_id = addTerm(getBitwidth(id) - i);
+    setChildren(id, top_id, bottom_id);
 
   } else {
-    Index cut = node.getCutPoint(*this); 
+    Index cut = getCutPoint(id); 
     if (i < cut )
-      split(node.getChild(0), i);
+      split(getChild(id, 1), i);
     else
-      split(node.getChild(1), i - cut); 
+      split(getChild(id, 0), i - cut); 
   }
 }
 
@@ -271,32 +266,31 @@ void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp)
   // making sure the term is aligned
   TermId id = find(term.id); 
 
-  Node node = getNode(id);
-  Assert (term.high < node.getBitwidth());
+  Assert (term.high < getBitwidth(id));
   // because we split the node, this must be the whole extract
-  if (!node.hasChildren()) {
-    Assert (term.high == node.getBitwidth() - 1 &&
+  if (!hasChildren(id)) {
+    Assert (term.high == getBitwidth(id) - 1 &&
             term.low == 0);
     decomp.push_back(id); 
   }
     
-  Index cut = node.getCutPoint(*this);
+  Index cut = getCutPoint(id);
   
   if (term.low < cut && term.high < cut) {
     // the extract falls entirely on the low child
-    ExtractTerm child_ex(node.getChild(0), term.high, term.low); 
+    ExtractTerm child_ex(getChild(id, 0), term.high, term.low); 
     getDecomposition(child_ex, decomp); 
   }
   else if (term.low >= cut && term.high >= cut){
     // the extract falls entirely on the high child
-    ExtractTerm child_ex(node.getChild(1), term.high - cut, term.low - cut);
+    ExtractTerm child_ex(getChild(id, 1), term.high - cut, term.low - cut);
     getDecomposition(child_ex, decomp); 
   }
   else {
     // the extract is split over the two children
-    ExtractTerm low_child(node.getChild(0), cut - 1, term.low);
+    ExtractTerm low_child(getChild(id, 0), cut - 1, term.low);
     getDecomposition(low_child, decomp);
-    ExtractTerm high_child(node.getChild(1), term.high, cut);
+    ExtractTerm high_child(getChild(id, 1), term.high, cut);
     getDecomposition(high_child, decomp); 
   }
 }
@@ -397,7 +391,7 @@ void UnionFind::ensureSlicing(const ExtractTerm& term) {
  */
 
 ExtractTerm Slicer::registerTerm(TNode node) {
-  Index low = 0, high = utils::getSize(node); 
+  Index low = 0, high = utils::getSize(node) - 1; 
   TNode n = node; 
   if (node.getKind() == kind::BITVECTOR_EXTRACT) {
     n = node[0];
