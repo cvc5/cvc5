@@ -537,6 +537,11 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel();
 
+  /** Counts the number of fullCheck calls to arithmetic. */
+  uint32_t d_fullCheckCounter;
+  std::vector<Node> cutAllBounded() const;
+  Node branchIntegerVariable(ArithVar x) const;
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
