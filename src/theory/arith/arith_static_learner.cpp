@@ -21,8 +21,6 @@
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/options.h"
 
-#include "util/propositional_query.h"
-
 #include "expr/expr.h"
 #include "expr/convenience_node_builders.h"
 
@@ -37,7 +35,6 @@ namespace arith {
 
 
 ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
-  d_miplibTrick(userContext),
   d_minMap(userContext),
   d_maxMap(userContext),
   d_statistics()
@@ -45,29 +42,16 @@ ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
 
 ArithStaticLearner::Statistics::Statistics():
   d_iteMinMaxApplications("theory::arith::iteMinMaxApplications", 0),
-  d_iteConstantApplications("theory::arith::iteConstantApplications", 0),
-  d_miplibtrickApplications("theory::arith::miplibtrickApplications", 0),
-  d_avgNumMiplibtrickValues("theory::arith::avgNumMiplibtrickValues")
+  d_iteConstantApplications("theory::arith::iteConstantApplications", 0)
 {
   StatisticsRegistry::registerStat(&d_iteMinMaxApplications);
   StatisticsRegistry::registerStat(&d_iteConstantApplications);
-  StatisticsRegistry::registerStat(&d_miplibtrickApplications);
-  StatisticsRegistry::registerStat(&d_avgNumMiplibtrickValues);
 }
 
 ArithStaticLearner::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_iteMinMaxApplications);
   StatisticsRegistry::unregisterStat(&d_iteConstantApplications);
-  StatisticsRegistry::unregisterStat(&d_miplibtrickApplications);
-  StatisticsRegistry::unregisterStat(&d_avgNumMiplibtrickValues);
 }
-
-void ArithStaticLearner::miplibTrickInsert(Node key, Node value){
-  if(options::arithMLTrick()){
-    d_miplibTrick.insert(key, value);
-  }
-}
-
 
 void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
 
@@ -111,8 +95,6 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
     process(n,learned, defTrue);
 
   }
-
-  postProcess(learned);
 }
 
 
@@ -132,24 +114,6 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
     if((d_minMap.find(n[1]) != d_minMap.end() && d_minMap.find(n[2]) != d_minMap.end()) ||
        (d_maxMap.find(n[1]) != d_maxMap.end() && d_maxMap.find(n[2]) != d_maxMap.end())) {
       iteConstant(n, learned);
-    }
-    break;
-  case IMPLIES:
-    // == 3-FINITE VALUE SET : Collect information ==
-    if(n[1].getKind() == EQUAL &&
-       n[1][0].isVar() &&
-       defTrue.find(n) != defTrue.end()){
-      Node eqTo = n[1][1];
-      Node rewriteEqTo = Rewriter::rewrite(eqTo);
-      if(rewriteEqTo.getKind() == CONST_RATIONAL){
-
-        TNode var = n[1][0];
-        Node current = (d_miplibTrick.find(var)  == d_miplibTrick.end()) ?
-          mkBoolNode(false) : d_miplibTrick[var];
-
-        miplibTrickInsert(var, n.orNode(current));
-        Debug("arith::miplib") << "insert " << var  << " const " << n << endl;
-      }
     }
     break;
   case CONST_RATIONAL:
@@ -298,99 +262,6 @@ std::set<Node> listToSet(TNode l){
     l = l[1];
   }
   return ret;
-}
-
-void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
-  // == 3-FINITE VALUE SET ==
-  CDNodeToNodeListMap::const_iterator keyIter = d_miplibTrick.begin();
-  CDNodeToNodeListMap::const_iterator endKeys = d_miplibTrick.end();
-  while(keyIter != endKeys) {
-    TNode var = (*keyIter).first;
-    Node list = (*keyIter).second;
-    const set<Node> imps = listToSet(list);
-
-    if(imps.empty()){
-      ++keyIter;
-      continue;
-    }
-
-    Assert(!imps.empty());
-    vector<Node> conditions;
-    set<Rational> values;
-    set<Node>::const_iterator j=imps.begin(), impsEnd=imps.end();
-    for(; j != impsEnd; ++j){
-      TNode imp = *j;
-      Assert(imp.getKind() == IMPLIES);
-      Assert(imp[1].getKind() == EQUAL);
-
-      Node eqTo = imp[1][1];
-      Node rewriteEqTo = Rewriter::rewrite(eqTo);
-      Assert(rewriteEqTo.getKind() == CONST_RATIONAL);
-
-      conditions.push_back(imp[0]);
-      values.insert(rewriteEqTo.getConst<Rational>());
-    }
-
-    Node possibleTaut = Node::null();
-    if(conditions.size() == 1){
-      possibleTaut = conditions.front();
-    }else{
-      NodeBuilder<> orBuilder(OR);
-      orBuilder.append(conditions);
-      possibleTaut = orBuilder;
-    }
-
-
-    Debug("arith::miplib") << "var: " << var << endl;
-    Debug("arith::miplib") << "possibleTaut: " << possibleTaut << endl;
-
-    Result isTaut = PropositionalQuery::isTautology(possibleTaut);
-    if(isTaut == Result(Result::VALID)){
-      miplibTrick(var, values, learned);
-      miplibTrickInsert(var, mkBoolNode(false));
-    }
-    ++keyIter;
-  }
-}
-
-
-void ArithStaticLearner::miplibTrick(TNode var, set<Rational>& values, NodeBuilder<>& learned){
-
-  Debug("arith::miplib") << var << " found a tautology!"<< endl;
-
-  const Rational& min = *(values.begin());
-  const Rational& max = *(values.rbegin());
-
-  Debug("arith::miplib") << "min: " << min << endl;
-  Debug("arith::miplib") << "max: " << max << endl;
-
-  Assert(min <= max);
-  ++(d_statistics.d_miplibtrickApplications);
-  (d_statistics.d_avgNumMiplibtrickValues).addEntry(values.size());
-
-  Node nGeqMin = NodeBuilder<2>(GEQ) << var << mkRationalNode(min);
-  Node nLeqMax = NodeBuilder<2>(LEQ) << var << mkRationalNode(max);
-  Debug("arith::miplib") << nGeqMin << nLeqMax << endl;
-  learned << nGeqMin << nLeqMax;
-  set<Rational>::iterator valuesIter = values.begin();
-  set<Rational>::iterator valuesEnd = values.end();
-  set<Rational>::iterator valuesPrev = valuesIter;
-  ++valuesIter;
-  for(; valuesIter != valuesEnd; valuesPrev = valuesIter, ++valuesIter){
-    const Rational& prev = *valuesPrev;
-    const Rational& curr = *valuesIter;
-    Assert(prev < curr);
-
-    //The interval (last,curr) can be excluded:
-    //(not (and (> var prev) (< var curr))
-    //<=> (or (not (> var prev)) (not (< var curr)))
-    //<=> (or (<= var prev) (>= var curr))
-    Node leqPrev = NodeBuilder<2>(LEQ) << var << mkRationalNode(prev);
-    Node geqCurr = NodeBuilder<2>(GEQ) << var << mkRationalNode(curr);
-    Node excludedMiddle =  NodeBuilder<2>(OR) << leqPrev << geqCurr;
-    Debug("arith::miplib") << excludedMiddle << endl;
-    learned << excludedMiddle;
-  }
 }
 
 void ArithStaticLearner::addBound(TNode n) {
