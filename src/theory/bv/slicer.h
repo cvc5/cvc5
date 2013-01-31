@@ -187,6 +187,19 @@ class UnionFind {
     d_nodes[id].setChildren(ch1, ch0); 
   }
 
+  class Statistics {
+  public:
+    IntStat d_numNodes; 
+    IntStat d_numRepresentatives;
+    IntStat d_numSplits;
+    IntStat d_numMerges;
+    AverageStat d_avgFindDepth; 
+    Statistics();
+    ~Statistics();
+  };
+
+  Statistics d_statistics
+;
   
 public:
   UnionFind()
@@ -208,7 +221,6 @@ public:
     return d_nodes[id].getBitwidth(); 
   }
   std::string debugPrint(TermId id); 
-
 };
 
 class Slicer {

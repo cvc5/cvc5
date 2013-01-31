@@ -164,9 +164,13 @@ std::string UnionFind::Node::debugPrint() const {
 TermId UnionFind::addTerm(Index bitwidth) {
   Node node(bitwidth);
   d_nodes.push_back(node);
+  ++(d_statistics.d_numNodes);
+  
   TermId id = d_nodes.size() - 1; 
   d_representatives.insert(id);
-  Debug("bv-slicer") << "UnionFind::addTerm " << id << " size " << bitwidth << endl;
+  ++(d_statistics.d_numRepresentatives); 
+
+  Debug("bv-slicer-uf") << "UnionFind::addTerm " << id << " size " << bitwidth << endl;
   return id; 
 }
 /** 
@@ -203,6 +207,7 @@ void UnionFind::unionTerms(const ExtractTerm& t1, const ExtractTerm& t2) {
  */
 void UnionFind::merge(TermId t1, TermId t2) {
   Debug("bv-slicer-uf") << "UnionFind::merge (" << t1 <<", " << t2 << ")" << endl;
+  ++(d_statistics.d_numMerges);
   t1 = find(t1);
   t2 = find(t2); 
 
@@ -211,7 +216,8 @@ void UnionFind::merge(TermId t1, TermId t2) {
 
   Assert (! hasChildren(t1) && ! hasChildren(t2));
   setRepr(t1, t2); 
-  d_representatives.erase(t1); 
+  d_representatives.erase(t1);
+  d_statistics.d_numRepresentatives += -1; 
 }
 
 TermId UnionFind::find(TermId id) const {
@@ -251,6 +257,7 @@ void UnionFind::split(TermId id, Index i) {
     else
       split(getChild(id, 1), i - cut); 
   }
+  ++(d_statistics.d_numSplits);
 }
 
 void UnionFind::getNormalForm(const ExtractTerm& term, NormalForm& nf) {
@@ -324,8 +331,11 @@ void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposit
       break;
     start2 += getBitwidth(decomp2[j]); 
   }
-  start1 = start1 > start2 ? start2 : start1;
-  start2 = start1 > start2 ? start1 : start2; 
+  if (start1 > start2) {
+    Index temp = start1;
+    start1 = start2;
+    start2 = temp; 
+  }
 
   if (start2 - start1 < common_size) {
     Index overlap = start1 + common_size - start2;
@@ -359,24 +369,35 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
     // handle common slice may change the normal form 
     handleCommonSlice(nf1.decomp, nf2.decomp, intersection[i]); 
   }
-  
-  // we need to update the normal form which may have changed 
-  getNormalForm(term1, nf1);
-  getNormalForm(term2, nf2); 
+  // propagate cuts to a fixpoint 
+  bool changed;
+  Base cuts(term1.getBitwidth()); 
+  do {
+    changed = false; 
+    // we need to update the normal form which may have changed 
+    getNormalForm(term1, nf1);
+    getNormalForm(term2, nf2); 
 
-  // align the cuts points of the two slicings
-  // FIXME: this can be done more efficiently
-  Base& cuts = nf1.base;
-  cuts.debugPrint(); 
-  cuts.sliceWith(nf2.base);
-  for (unsigned i = 0; i < cuts.getBitwidth(); ++i) {
-    if (cuts.isCutPoint(i)) {
-      pair<TermId, Index> pair1 = nf1.getTerm(i, *this);
-      split(pair1.first, i - pair1.second); 
-      pair<TermId, Index> pair2 = nf2.getTerm(i, *this);
-      split(pair2.first, i - pair2.second); 
+    // align the cuts points of the two slicings
+    // FIXME: this can be done more efficiently
+    cuts.sliceWith(nf1.base);
+    cuts.sliceWith(nf2.base); 
+
+    for (unsigned i = 0; i < cuts.getBitwidth(); ++i) {
+      if (cuts.isCutPoint(i)) {
+        if (!nf1.base.isCutPoint(i)) {
+          pair<TermId, Index> pair1 = nf1.getTerm(i, *this);
+          split(pair1.first, i - pair1.second);
+          changed = true; 
+        }
+        if (!nf2.base.isCutPoint(i)) {
+          pair<TermId, Index> pair2 = nf2.getTerm(i, *this);
+          split(pair2.first, i - pair2.second);
+          changed = true; 
+        }
+      }
     }
-  }
+  } while (changed); 
 }
 /** 
  * Given an extract term a[i:j] makes sure a is sliced
@@ -385,7 +406,7 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
  * @param term 
  */
 void UnionFind::ensureSlicing(const ExtractTerm& term) {
-  Debug("bv-slicer") << "Slicer::ensureSlicing " << term.debugPrint() << endl;
+  //Debug("bv-slicer") << "Slicer::ensureSlicing " << term.debugPrint() << endl;
   TermId id = find(term.id);
   split(id, term.high + 1);
   split(id, term.low);
@@ -429,7 +450,8 @@ void Slicer::processEquality(TNode eq) {
   
   d_unionFind.alignSlicings(a_ex, b_ex);
   d_unionFind.unionTerms(a_ex, b_ex);
-
+  Debug("bv-slicer") << "Base of " << a_ex.id <<" " << d_unionFind.debugPrint(a_ex.id) << endl;
+  Debug("bv-slicer") << "Base of " << b_ex.id <<" " << d_unionFind.debugPrint(b_ex.id) << endl;
   Debug("bv-slicer") << "Slicer::processEquality done. " << endl;
 }
 
@@ -500,7 +522,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   
   Base base1(width); 
   if (t1.getKind() == kind::BITVECTOR_CONCAT) {
-    int size = -1;
+    int size = 0;
     // no need to count the last child since the end cut point is implicit 
     for (int i = t1.getNumChildren() - 1; i >= 1 ; --i) {
       size = size + utils::getSize(t1[i]);
@@ -510,7 +532,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
 
   Base base2(width); 
   if (t2.getKind() == kind::BITVECTOR_CONCAT) {
-    unsigned size = -1; 
+    unsigned size = 0; 
     for (int i = t2.getNumChildren() - 1; i >= 1; --i) {
       size = size + utils::getSize(t2[i]);
       base2.sliceAt(size); 
@@ -521,11 +543,11 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   if (!base1.isEmpty()) {
     // we split the equalities according to the base
     int last = 0; 
-    for (unsigned i = 0; i < utils::getSize(t1); ++i) {
+    for (unsigned i = 1; i <= utils::getSize(t1); ++i) {
       if (base1.isCutPoint(i)) {
-        Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, i, last));
-        Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, i, last));
-        last = i + 1;
+        Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, i-1, last));
+        Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, i-1, last));
+        last = i;
         Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
         equalities.push_back(utils::mkNode(kind::EQUAL, extract1, extract2)); 
       }
@@ -541,14 +563,34 @@ std::string UnionFind::debugPrint(TermId id) {
   if (hasChildren(id)) {
     TermId id1 = find(getChild(id, 1));
     TermId id0 = find(getChild(id, 0));
-    os << debugPrint(id1) <<" ";
-    os << debugPrint(id0) <<" "; 
+    os << debugPrint(id1);
+    os << debugPrint(id0); 
   } else {
     if (getRepr(id) == UndefinedId) {
-      os << id <<"[" << getBitwidth(id) <<"] "; 
+      os <<"id"<< id <<"[" << getBitwidth(id) <<"] "; 
     } else {
-      os << debugPrint(find(id)) << " ";
+      os << debugPrint(find(id));
     }
   }
   return os.str(); 
+}
+
+UnionFind::Statistics::Statistics():
+  d_numNodes("theory::bv::slicer::NumberOfNodes", 0),
+  d_numRepresentatives("theory::bv::slicer::NumberOfRepresentatives", 0),
+  d_numSplits("theory::bv::slicer::NumberOfSplits", 0),
+  d_numMerges("theory::bv::slicer::NumberOfMerges", 0),
+  d_avgFindDepth("theory::bv::slicer::AverageFindDepth")
+{
+  StatisticsRegistry::registerStat(&d_numRepresentatives);
+  StatisticsRegistry::registerStat(&d_numSplits);
+  StatisticsRegistry::registerStat(&d_numMerges);
+  StatisticsRegistry::registerStat(&d_avgFindDepth);
+}
+
+UnionFind::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numRepresentatives);
+  StatisticsRegistry::unregisterStat(&d_numSplits);
+  StatisticsRegistry::unregisterStat(&d_numMerges);
+  StatisticsRegistry::unregisterStat(&d_avgFindDepth);
 }

@@ -127,8 +127,6 @@ void TheoryBV::check(Effort e)
 
   if (!inConflict() && !d_coreSolver.isCoreTheory()) {
     // sending assertions to the bitblast solver if it's not just core theory 
-    Assert (false);
-    std::cout << "Using bitblaster \n"; 
     d_bitblastSolver.addAssertions(new_assertions, e);
   }
   
