@@ -613,6 +613,8 @@ public:
 
 };/* class StatisticsRegistry */
 
+}/* CVC4 namespace */
+
 /****************************************************************************/
 /* Some utility functions for timespec                                    */
 /****************************************************************************/
@@ -621,6 +623,7 @@ inline std::ostream& operator<<(std::ostream& os, const timespec& t);
 
 /** Compute the sum of two timespecs. */
 inline timespec& operator+=(timespec& a, const timespec& b) {
+  using namespace CVC4;
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
   CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
@@ -643,6 +646,7 @@ inline timespec& operator+=(timespec& a, const timespec& b) {
 
 /** Compute the difference of two timespecs. */
 inline timespec& operator-=(timespec& a, const timespec& b) {
+  using namespace CVC4;
   // assumes a.tv_nsec and b.tv_nsec are in range
   const long nsec_per_sec = 1000000000L; // one thousand million
   CheckArgument(a.tv_nsec >= 0 && a.tv_nsec < nsec_per_sec, a);
@@ -718,6 +722,8 @@ inline std::ostream& operator<<(std::ostream& os, const timespec& t) {
   return os << t.tv_sec << "."
             << std::setfill('0') << std::setw(8) << std::right << t.tv_nsec;
 }
+
+namespace CVC4 {
 
 class CodeTimer;
 
