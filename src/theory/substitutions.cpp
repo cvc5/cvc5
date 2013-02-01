@@ -27,12 +27,11 @@ struct substitution_stack_element {
   bool children_added;
   substitution_stack_element(TNode node)
   : node(node), children_added(false) {}
-};
-
+};/* struct substitution_stack_element */
 
 Node SubstitutionMap::internalSubstitute(TNode t) {
 
-  Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << std::endl;
+  Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
     return t;
@@ -48,11 +47,19 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
     substitution_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.node;
 
-    Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << std::endl;
+    Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeCache::iterator find = d_substitutionCache.find(current);
     if (find != d_substitutionCache.end()) {
+      toVisit.pop_back();
+      continue;
+    }
+
+    if (!d_substituteUnderQuantifiers &&
+        (current.getKind() == kind::FORALL || current.getKind() == kind::EXISTS)) {
+      Debug("substitution::internal") << "--not substituting under quantifier" << endl;
+      d_substitutionCache[current] = current;
       toVisit.pop_back();
       continue;
     }
@@ -98,7 +105,7 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
           }
         }
       }
-      Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << std::endl;
+      Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
       d_substitutionCache[current] = result;
       toVisit.pop_back();
     } else {
@@ -123,7 +130,7 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
         }
       } else {
         // No children, so we're done
-        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << std::endl;
+        Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
         d_substitutionCache[current] = current;
         toVisit.pop_back();
       }
@@ -132,7 +139,7 @@ Node SubstitutionMap::internalSubstitute(TNode t) {
 
   // Return the substituted version
   return d_substitutionCache[t];
-}
+}/* SubstitutionMap::internalSubstitute() */
 
 
   /*
@@ -258,7 +265,7 @@ void SubstitutionMap::processWorklist(vector<pair<Node, Node> >& equalities, boo
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
-  Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << std::endl;
+  Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
@@ -280,32 +287,32 @@ static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC
 static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
   SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
   SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
-  Debug("substitution") << "checking " << node << std::endl;
+  Debug("substitution") << "checking " << node << endl;
   for (; it != it_end; ++ it) {
-    Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << std::endl;
+    Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
     if (node.hasSubterm((*it).first)) {
-      Debug("substitution") << "-- FAIL" << std::endl;
+      Debug("substitution") << "-- FAIL" << endl;
       return false;
     }
   }
-  Debug("substitution") << "-- SUCCEED" << std::endl;
+  Debug("substitution") << "-- SUCCEED" << endl;
   return true;
 }
 
 Node SubstitutionMap::apply(TNode t) {
 
-  Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << std::endl;
+  Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
   // Setup the cache
   if (d_cacheInvalidated) {
     d_substitutionCache.clear();
     d_cacheInvalidated = false;
-    Debug("substitution") << "-- reset the cache" << std::endl;
+    Debug("substitution") << "-- reset the cache" << endl;
   }
 
   // Perform the substitution
   Node result = internalSubstitute(t);
-  Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << std::endl;
+  Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
   //  Assert(check(result, d_substitutions));
 
