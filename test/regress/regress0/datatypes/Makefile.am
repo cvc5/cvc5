@@ -18,6 +18,7 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
 	tuple.cvc \
+	tuple-model.cvc \
 	rec1.cvc \
 	rec2.cvc \
 	rec4.cvc \

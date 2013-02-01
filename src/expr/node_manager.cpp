@@ -412,6 +412,7 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
       dt.addConstructor(c);
       dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
       Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
+      dtt.setAttribute(DatatypeTupleAttr(), t);
     } else {
       const Record& rec = t.getRecord();
       Datatype dt("__cvc4_record");
@@ -422,8 +423,8 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
       dt.addConstructor(c);
       dtt = TypeNode::fromType(toExprManager()->mkDatatypeType(dt));
       Debug("tuprec") << "REWROTE " << t << " to " << dtt << std::endl;
+      dtt.setAttribute(DatatypeRecordAttr(), t);
     }
-    dtt.setAttribute(DatatypeRecordAttr(), t);
   } else {
     Debug("tuprec") << "REUSING cached " << t << ": " << dtt << std::endl;
   }
