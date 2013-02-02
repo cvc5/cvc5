@@ -193,7 +193,9 @@ class UnionFind {
     IntStat d_numRepresentatives;
     IntStat d_numSplits;
     IntStat d_numMerges;
-    AverageStat d_avgFindDepth; 
+    AverageStat d_avgFindDepth;
+    ReferenceStat<unsigned> d_numAddedEqualities; 
+    //IntStat d_numAddedEqualities; 
     Statistics();
     ~Statistics();
   };
@@ -220,7 +222,8 @@ public:
     Assert (id < d_nodes.size());
     return d_nodes[id].getBitwidth(); 
   }
-  std::string debugPrint(TermId id); 
+  std::string debugPrint(TermId id);
+  friend class Slicer; 
 };
 
 class Slicer {
@@ -240,7 +243,8 @@ public:
   void getBaseDecomposition(TNode node, std::vector<Node>& decomp);
   void processEquality(TNode eq);
   bool isCoreTerm (TNode node);
-  static void splitEqualities(TNode node, std::vector<Node>& equalities); 
+  static void splitEqualities(TNode node, std::vector<Node>& equalities);
+  static unsigned d_numAddedEqualities; 
 }; 
 
 

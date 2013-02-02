@@ -512,6 +512,7 @@ bool Slicer::isCoreTerm(TNode node) {
   }
   return d_coreTermCache[node]; 
 }
+unsigned Slicer::d_numAddedEqualities = 0; 
 
 void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
   Assert (node.getKind() == kind::EQUAL);
@@ -545,8 +546,8 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
     int last = 0; 
     for (unsigned i = 1; i <= utils::getSize(t1); ++i) {
       if (base1.isCutPoint(i)) {
-        Node extract1 = Rewriter::rewrite(utils::mkExtract(t1, i-1, last));
-        Node extract2 = Rewriter::rewrite(utils::mkExtract(t2, i-1, last));
+        Node extract1 = utils::mkExtract(t1, i-1, last);
+        Node extract2 = utils::mkExtract(t2, i-1, last);
         last = i;
         Assert (utils::getSize(extract1) == utils::getSize(extract2)); 
         equalities.push_back(utils::mkNode(kind::EQUAL, extract1, extract2)); 
@@ -556,6 +557,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
     // just return same equality
     equalities.push_back(node);
   }
+  d_numAddedEqualities += equalities.size() - 1; 
 } 
 
 std::string UnionFind::debugPrint(TermId id) {
@@ -580,12 +582,14 @@ UnionFind::Statistics::Statistics():
   d_numRepresentatives("theory::bv::slicer::NumberOfRepresentatives", 0),
   d_numSplits("theory::bv::slicer::NumberOfSplits", 0),
   d_numMerges("theory::bv::slicer::NumberOfMerges", 0),
-  d_avgFindDepth("theory::bv::slicer::AverageFindDepth")
+  d_avgFindDepth("theory::bv::slicer::AverageFindDepth"),
+  d_numAddedEqualities("theory::bv::slicer::NumberOfEqualitiesAdded", Slicer::d_numAddedEqualities)
 {
   StatisticsRegistry::registerStat(&d_numRepresentatives);
   StatisticsRegistry::registerStat(&d_numSplits);
   StatisticsRegistry::registerStat(&d_numMerges);
   StatisticsRegistry::registerStat(&d_avgFindDepth);
+  StatisticsRegistry::registerStat(&d_numAddedEqualities);
 }
 
 UnionFind::Statistics::~Statistics() {
@@ -593,4 +597,5 @@ UnionFind::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numSplits);
   StatisticsRegistry::unregisterStat(&d_numMerges);
   StatisticsRegistry::unregisterStat(&d_avgFindDepth);
+  StatisticsRegistry::unregisterStat(&d_numAddedEqualities);
 }
