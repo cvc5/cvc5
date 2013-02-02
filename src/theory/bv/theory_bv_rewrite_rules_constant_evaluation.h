@@ -207,7 +207,7 @@ Node RewriteRule<EvalUdiv>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<EvalUdiv>(" << node << ")" << std::endl;
   BitVector a = node[0].getConst<BitVector>();
   BitVector b = node[1].getConst<BitVector>();
-  BitVector res = a.unsignedDiv(b);
+  BitVector res = a.unsignedDivTotal(b);
   
   return utils::mkConst(res);
 }
@@ -222,7 +222,7 @@ Node RewriteRule<EvalUrem>::apply(TNode node) {
   BVDebug("bv-rewrite") << "RewriteRule<EvalUrem>(" << node << ")" << std::endl;
   BitVector a = node[0].getConst<BitVector>();
   BitVector b = node[1].getConst<BitVector>();
-  BitVector res = a.unsignedRem(b);
+  BitVector res = a.unsignedRemTotal(b);
   return utils::mkConst(res);
 }
 

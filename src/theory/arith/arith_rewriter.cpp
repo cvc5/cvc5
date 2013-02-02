@@ -338,7 +338,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
 
     bool isDiv = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
 
-    Integer result = isDiv ? ni.floorDivideQuotient(di) : ni.floorDivideRemainder(di);
+    Integer result = isDiv ? ni.euclidianDivideQuotient(di) : ni.euclidianDivideRemainder(di);
 
     Node resultNode = mkRationalNode(Rational(result));
     return RewriteResponse(REWRITE_DONE, resultNode);

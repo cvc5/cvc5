@@ -69,6 +69,7 @@
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
 #include "theory/quantifiers/macros.h"
+#include "theory/datatypes/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -631,6 +632,11 @@ void SmtEngine::finalOptionsAreSet() {
     }
   }
 
+  if(options::produceAssignments() && !options::produceModels()) {
+    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << std::endl;
+    setOption("produce-models", SExpr("true"));
+  }
+
   if(! d_logic.isLocked()) {
     // ensure that our heuristics are properly set up
     setLogicInternal();
@@ -970,6 +976,13 @@ void SmtEngine::setLogicInternal() throw() {
     if (options::checkModels()) {
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
       setOption("check-models", SExpr("false"));
+    }
+  }
+
+  //datatypes theory should assign values to all datatypes terms if logic is quantified
+  if (d_logic.isQuantified() && d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+    if( !options::dtForceAssignment.wasSetByUser() ){
+      options::dtForceAssignment.set(true);
     }
   }
 }
@@ -2248,7 +2261,7 @@ void SmtEnginePrivate::processAssertions() {
         collectSkolems((*pos).first, skolemSet, cache);
         collectSkolems((*pos).second, skolemSet, cache);
       }
-      
+
       // We need to ensure:
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
@@ -2438,7 +2451,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   Trace("smt") << "SmtEngine::checkSat(" << e << ") => " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels()){
+  if(options::checkModels()) {
     if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
        (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
       checkModel(/* hard failure iff */ ! r.isUnknown());
@@ -2508,7 +2521,7 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
   Trace("smt") << "SMT query(" << e << ") ==> " << r << endl;
 
   // Check that SAT results generate a model correctly.
-  if(options::checkModels()){
+  if(options::checkModels()) {
     if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
        (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
       checkModel(/* hard failure iff */ ! r.isUnknown());
@@ -2705,20 +2718,22 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
 
   vector<SExpr> sexprs;
   TypeNode boolType = d_nodeManager->booleanType();
+  TheoryModel* m = d_theoryEngine->getModel();
   for(AssignmentSet::const_iterator i = d_assignments->begin(),
         iend = d_assignments->end();
       i != iend;
       ++i) {
     Assert((*i).getType() == boolType);
 
-    // Normalize
-    Node n = Rewriter::rewrite(*i);
+    // Expand, then normalize
+    hash_map<Node, Node, NodeHashFunction> cache;
+    Node n = d_private->expandDefinitions(*i, cache);
+    n = Rewriter::rewrite(n);
 
     Trace("smt") << "--- getting value of " << n << endl;
-    TheoryModel* m = d_theoryEngine->getModel();
     Node resultNode;
-    if( m ){
-      resultNode = m->getValue( n );
+    if(m != NULL) {
+      resultNode = m->getValue(n);
     }
 
     // type-check the result we got
@@ -2727,12 +2742,12 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
     vector<SExpr> v;
     if((*i).getKind() == kind::APPLY) {
       Assert((*i).getNumChildren() == 0);
-      v.push_back((*i).getOperator().toString());
+      v.push_back(SExpr::Keyword((*i).getOperator().toString()));
     } else {
       Assert((*i).isVar());
-      v.push_back((*i).toString());
+      v.push_back(SExpr::Keyword((*i).toString()));
     }
-    v.push_back(resultNode.toString());
+    v.push_back(SExpr::Keyword(resultNode.toString()));
     sexprs.push_back(v);
   }
   return SExpr(sexprs);

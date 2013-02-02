@@ -430,10 +430,6 @@ Node RewriteRule<BitwiseNotOr>::apply(TNode node) {
 template<> inline
 bool RewriteRule<XorNot>::applies(TNode node) {
   Unreachable();
-  if (node.getKind() == kind::BITVECTOR_XOR &&
-      node.getNumChildren() == 2 &&
-          node[0].getKind() == kind::BITVECTOR_NOT &&
-          node[1].getKind() == kind::BITVECTOR_NOT); 
 }
 
 template<> inline

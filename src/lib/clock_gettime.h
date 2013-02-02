@@ -30,12 +30,33 @@
 
 /* otherwise, we have to define it */
 
-/* get timespec from <time.h> */
-#include <time.h>
+#ifdef __WIN32__
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+struct timespec {
+  uint64_t tv_sec;
+  int32_t tv_nsec;
+};/* struct timespec */
+
+#ifdef __cplusplus
+}/* extern "C" */
+#endif /* __cplusplus */
+
+#else /* ! __WIN32__ */
+
+/* get timespec from <time.h> */
+#include <time.h>
+
+#endif /* __WIN32__ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+struct timespec;
 
 typedef enum {
   CLOCK_REALTIME,
@@ -44,7 +65,7 @@ typedef enum {
   CLOCK_MONOTONIC_HR
 } clockid_t;
 
-long clock_gettime(clockid_t which_clock, struct timespec *tp);
+long clock_gettime(clockid_t which_clock, struct timespec* tp);
 
 #ifdef __cplusplus
 }/* extern "C" */
@@ -52,4 +73,3 @@ long clock_gettime(clockid_t which_clock, struct timespec *tp);
 
 #endif /* HAVE_CLOCK_GETTIME */
 #endif /*__CVC4__LIB__CLOCK_GETTIME_H */
-

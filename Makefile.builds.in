@@ -33,6 +33,7 @@ libdir = @libdir@
 abs_builddir = @abs_builddir@
 distdir = @PACKAGE@-@VERSION@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
+EXEEXT = @EXEEXT@
 SHELL = @SHELL@
 LIBTOOL = $(CURRENT_BUILD)/libtool
 
@@ -79,7 +80,7 @@ am__v_relink_1 = :
 # all the binaries that might need to be installed
 # (it's not a fatal error for one/some don't exist in a given build
 # configuration)
-CVC4_BINARIES = cvc4 pcvc4
+CVC4_BINARIES = cvc4$(EXEEXT) pcvc4$(EXEEXT)
 
 .PHONY: _default_build_ all examples
 _default_build_: all

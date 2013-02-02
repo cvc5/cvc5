@@ -34,8 +34,8 @@ mkdir -p antlr-3.4/share/java
 mkdir -p antlr-3.4/bin
 mkdir -p antlr-3.4/src
 cd antlr-3.4
-webget http://antlr.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
-webget http://antlr.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
+webget http://antlr3.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
+webget http://antlr3.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
 tee bin/antlr3 <<EOF
 #!/bin/bash
 export CLASSPATH=`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
@@ -49,10 +49,10 @@ cd libantlr3c-3.4
 
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here
-  ./configure --enable-64bit --disable-antlrdebug --prefix=`pwd`/../..
+  ./configure --enable-64bit --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
 else
   # 32-bit stuff here
-  ./configure --disable-antlrdebug --prefix=`pwd`/../..
+  ./configure --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
 fi
 
 cp Makefile Makefile.orig

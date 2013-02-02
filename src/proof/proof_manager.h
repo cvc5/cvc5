@@ -52,7 +52,7 @@ class ProofManager {
   
   static ProofManager* proofManager; 
   static bool isInitialized; 
-  ProofManager(ProofFormat format);
+  ProofManager(ProofFormat format = LFSC);
 public:
   static ProofManager* currentPM();
 

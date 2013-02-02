@@ -1,4 +1,3 @@
-/* *******************                                                        */
 /*! \file Smt1.g
  ** \verbatim
  ** Original author: cconway
@@ -235,10 +234,10 @@ annotatedFormula[CVC4::Expr& expr]
   Expr op; /* Operator expression FIXME: move away kill it */
 }
   : /* a built-in operator application */
-    LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr] RPAREN_TOK
+    LPAREN_TOK builtinOp[kind] annotatedFormulas[args,expr]
     { if((kind == CVC4::kind::AND || kind == CVC4::kind::OR) && args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
-	       It just so happens expr should already by the only argument. */
+	 * It just so happens expr should already be the only argument. */
         assert( expr == args[0] );
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
@@ -253,6 +252,7 @@ annotatedFormula[CVC4::Expr& expr]
         expr = MK_EXPR(kind, args);
       }
     }
+    termAnnotation[expr]* RPAREN_TOK
 
   | /* A quantifier */
     LPAREN_TOK
@@ -261,12 +261,13 @@ annotatedFormula[CVC4::Expr& expr]
     ( LPAREN_TOK let_identifier[name,CHECK_NONE] t=sortSymbol RPAREN_TOK
       { args.push_back(PARSER_STATE->mkBoundVar(name, t)); }
     )+
-    annotatedFormula[expr] RPAREN_TOK
+    annotatedFormula[expr]
     { args2.push_back( MK_EXPR( kind::BOUND_VAR_LIST, args ) );
       args2.push_back(expr);
       expr = MK_EXPR(kind, args2);
-      PARSER_STATE->popScope();
     }
+    termAnnotation[expr]* RPAREN_TOK
+    { PARSER_STATE->popScope(); }
 
   | /* A non-built-in function application */
 
@@ -275,9 +276,10 @@ annotatedFormula[CVC4::Expr& expr]
     // { isFunction(LT(2)->getText()) }?
     LPAREN_TOK
     parameterizedOperator[op]
-    annotatedFormulas[args,expr] RPAREN_TOK
+    annotatedFormulas[args,expr]
     // TODO: check arity
     { expr = MK_EXPR(op,args); }
+    termAnnotation[expr]* RPAREN_TOK
 
   | /* An ite expression */
     LPAREN_TOK ITE_TOK
@@ -286,9 +288,9 @@ annotatedFormula[CVC4::Expr& expr]
     annotatedFormula[expr]
     { args.push_back(expr); }
     annotatedFormula[expr]
-    { args.push_back(expr); }
-    RPAREN_TOK
-    { expr = MK_EXPR(CVC4::kind::ITE, args); }
+    { args.push_back(expr);
+      expr = MK_EXPR(CVC4::kind::ITE, args); }
+    termAnnotation[expr]* RPAREN_TOK
 
   | /* a let/flet binding */
     LPAREN_TOK
@@ -298,7 +300,7 @@ annotatedFormula[CVC4::Expr& expr]
     { PARSER_STATE->pushScope();
       PARSER_STATE->defineVar(name,expr); }
     annotatedFormula[expr]
-    RPAREN_TOK
+    termAnnotation[expr]* RPAREN_TOK
     { PARSER_STATE->popScope(); }
 
     /* constants */
@@ -310,7 +312,7 @@ annotatedFormula[CVC4::Expr& expr]
     { // FIXME: This doesn't work because an SMT rational is not a
       // valid GMP rational string
       expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
-  | n = BITVECTOR_BV_CONST '[' size = NUMERAL_TOK  ']'
+  | n = BITVECTOR_BV_CONST '[' size = NUMERAL_TOK ']'
     { expr = MK_CONST( AntlrInput::tokenToBitvector($n, $size) ); }
     // NOTE: Theory constants go here
     /* TODO: quantifiers, arithmetic constants */
@@ -320,7 +322,6 @@ annotatedFormula[CVC4::Expr& expr]
       | let_identifier[name,CHECK_DECLARED]
       | flet_identifier[name,CHECK_DECLARED] )
     { expr = PARSER_STATE->getVariable(name); }
-
   ;
 
 /**
@@ -458,7 +459,7 @@ functionSymbol[CVC4::Expr& fun]
  * Matches an attribute name from the input (:attribute_name).
  */
 attribute[std::string& s]
-  :  ATTR_IDENTIFIER
+  : ATTR_IDENTIFIER
     { s = AntlrInput::tokenText($ATTR_IDENTIFIER); }
   ;
 
@@ -555,28 +556,56 @@ status[ CVC4::BenchmarkStatus& status ]
 
 /**
  * Matches an annotation, which is an attribute name, with an optional user
+ * value.
  */
 annotation[CVC4::Command*& smt_command]
 @init {
-  std::string key;
+  std::string key, value;
   smt_command = NULL;
+  std::vector<Expr> pats;
+  Expr pat;
 }
-  : attribute[key]
-    ( USER_VALUE
-      { std::string value = AntlrInput::tokenText($USER_VALUE);
-        assert(*value.begin() == '{');
-        assert(*value.rbegin() == '}');
-        // trim whitespace
-        value.erase(value.begin(), value.begin() + 1);
-        value.erase(value.begin(), std::find_if(value.begin(), value.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-        value.erase(value.end() - 1);
-        value.erase(std::find_if(value.rbegin(), value.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), value.end());
-        smt_command = new SetInfoCommand(key.c_str() + 1, value); }
-    )?
-    { if(smt_command == NULL) {
-        smt_command = new EmptyCommand(std::string("annotation: ") + key);
+  : PATTERN_ANNOTATION_BEGIN
+    { PARSER_STATE->warning(":pat not supported here; ignored"); }
+    annotatedFormulas[pats,pat] '}'
+  | attribute[key]
+    ( userValue[value]
+      { smt_command = new SetInfoCommand(key.c_str() + 1, value); }
+    | { smt_command = new EmptyCommand(std::string("annotation: ") + key); }
+    )
+  ;
+
+/**
+ * Matches an annotation, which is an attribute name, with an optional user
+ * value.
+ */
+termAnnotation[CVC4::Expr& expr]
+@init {
+  std::string key, value;
+  std::vector<Expr> pats;
+  Expr pat;
+}
+  : PATTERN_ANNOTATION_BEGIN annotatedFormulas[pats,pat] '}'
+    { if(expr.getKind() == kind::FORALL || expr.getKind() == kind::EXISTS) {
+        pat = MK_EXPR(kind::INST_PATTERN, pats);
+        if(expr.getNumChildren() == 3) {
+          // we have other user patterns attached to the quantifier
+          // already; add this one to the existing list
+          pats = expr[2].getChildren();
+          pats.push_back(pat);
+          expr = MK_EXPR(expr.getKind(), expr[0], expr[1], MK_EXPR(kind::INST_PATTERN_LIST, pats));
+        } else {
+          // this is the only user pattern for the quantifier
+          expr = MK_EXPR(expr.getKind(), expr[0], expr[1], MK_EXPR(kind::INST_PATTERN_LIST, pat));
+        }
+      } else {
+        PARSER_STATE->warning(":pat only supported on quantifiers");
       }
     }
+  | ':pat'
+    { PARSER_STATE->warning("expected an instantiation pattern after :pat"); }
+  | attribute[key] userValue[value]?
+    { PARSER_STATE->attributeNotSupported(key); }
   ;
 
 /**
@@ -752,6 +781,15 @@ FLET_IDENTIFIER
  * only constraint imposed on a user-defined value is that it start
  * with an open brace and end with closed brace.
  */
+userValue[std::string& s]
+  : USER_VALUE
+    { s = AntlrInput::tokenText($USER_VALUE); }
+  ;
+
+PATTERN_ANNOTATION_BEGIN
+  : ':pat' (' ' | '\t' | '\f' | '\r' | '\n')* '{'
+  ;
+
 USER_VALUE
   : '{' ('\\{' | '\\}' | ~('{' | '}'))* '}'
   ;

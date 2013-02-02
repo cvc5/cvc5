@@ -42,10 +42,6 @@ void FirstOrderModel::reset(){
   TheoryModel::reset();
 }
 
-void FirstOrderModel::addTerm( Node n ){
-  TheoryModel::addTerm( n );
-}
-
 void FirstOrderModel::initialize( bool considerAxioms ){
   //rebuild models
   d_uf_model_tree.clear();

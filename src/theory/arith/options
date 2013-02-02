@@ -51,4 +51,13 @@ option arithRewriteEq --enable-arith-rewrite-equalities/--disable-arith-rewrite-
  turns on the preprocessing rewrite turning equalities into a conjunction of inequalities
 /turns off the preprocessing rewrite turning equalities into a conjunction of inequalities
 
+option arithMLTrick --enable-miplib-trick/--disable-miplib-trick bool :default false :read-write
+ turns on the preprocessing step of attempting to infer bounds on miplib problems
+/turns off the preprocessing step of attempting to infer bounds on miplib problems
+
+option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :default false :read-write
+ turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
+/ turns off the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
+
+
 endmodule

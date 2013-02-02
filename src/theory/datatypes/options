@@ -11,5 +11,7 @@ module DATATYPES "theory/datatypes/options.h" Datatypes theory
 # cdr( nil ) has no set value.
 expert-option dtRewriteErrorSel /--disable-dt-rewrite-error-sel bool :default true
  disable rewriting incorrectly applied selectors to arbitrary ground term
+option dtForceAssignment /--dt-force-assignment bool :default false :read-write
+ force the datatypes solver to give specific values to all datatypes terms before answering sat
  
 endmodule

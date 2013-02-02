@@ -276,7 +276,7 @@ void TheoryRewriteRules::check(Effort level) {
       if(glast.inst == RULEINST_TRUE||glast.inst == RULEINST_FALSE)
         continue;
       // If it has a value it should already has been notified
-      bool value; value = value; // avoiding the warning in non debug mode
+      bool value CVC4_UNUSED;
       Assert(!getValuation().hasSatValue(g,value));
       Debug("rewriterules::check") << "RewriteRules::Check Narrowing on:" << g << std::endl;
       /** Can split on already rewritten instrule... but... */

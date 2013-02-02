@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iterator>
 #include <stdint.h>
 #include <cassert>
@@ -500,6 +501,14 @@ Expr Parser::nextExpression() throw(ParserException) {
   return result;
 }
 
+void Parser::attributeNotSupported(const std::string& attr) {
+  if(d_attributesWarnedAbout.find(attr) == d_attributesWarnedAbout.end()) {
+    stringstream ss;
+    ss << "warning: Attribute " << attr << " not supported (ignoring this and all following uses)";
+    d_input->warning(ss.str());
+    d_attributesWarnedAbout.insert(attr);
+  }
+}
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

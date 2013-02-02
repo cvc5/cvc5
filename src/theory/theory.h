@@ -33,6 +33,7 @@
 #include "options/options.h"
 #include "util/statistics_registry.h"
 #include "util/dump.h"
+#include "lib/ffs.h"
 
 #include <string>
 #include <iostream>
@@ -49,13 +50,13 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 
-namespace rrinst{
-class CandidateGenerator;
-}
+namespace rrinst {
+  class CandidateGenerator;
+}/* CVC4::theory::rrinst namespace */
 
 namespace eq {
-class EqualityEngine;
-}
+  class EqualityEngine;
+}/* CVC4::theory::eq namespace */
 
 /**
  * Information about an assertion for the theories.
@@ -786,14 +787,10 @@ public:
   std::hash_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
 };/* class Theory */
 
-std::ostream& operator<<(std::ostream& os, Theory::Effort level);
+std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
+inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a);
 
-namespace eq{
-  class EqualityEngine;
-}
-
-
-inline Assertion Theory::get() {
+inline theory::Assertion Theory::get() {
   Assert( !done(), "Theory::get() called with assertion queue empty!" );
 
   // Get the assertion
@@ -809,7 +806,9 @@ inline Assertion Theory::get() {
   return fact;
 }
 
-}/* CVC4::theory namespace */
+inline std::ostream& operator<<(std::ostream& out, const theory::Assertion& a) {
+  return out << a.assertion;
+}
 
 inline std::ostream& operator<<(std::ostream& out,
                                 const CVC4::theory::Theory& theory) {
@@ -830,6 +829,7 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   return out;
 }
 
+}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__THEORY__THEORY_H */

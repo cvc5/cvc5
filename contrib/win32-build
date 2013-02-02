@@ -1,0 +1,95 @@
+#!/bin/bash
+#
+# win32-build script
+# Morgan Deters <mdeters@cs.nyu.edu>
+# Tue, 15 Jan 2013 11:11:24 -0500
+#
+
+if [ -z "$HOST" ]; then
+  HOST=i586-mingw32msvc
+  echo "WARNING:"
+  echo "WARNING: Using default HOST value: $HOST"
+  echo "WARNING: You should probably run this script like this:"
+  echo "WARNING:"
+  echo "WARNING:   HOST=i586-mingw32msvc win32-build"
+  echo "WARNING:"
+  echo "WARNING: (replacing the i586-mingw32msvc with your build host)"
+  echo "WARNING: to ensure the script builds correctly."
+  echo "WARNING:"
+fi
+
+GMPVERSION=5.1.0
+
+if [ $# -ne 0 ]; then
+  echo "usage: `basename $0`" >&2
+  echo >&2
+  echo "This script attempts to build CVC4 for Win32 using mingw." >&2
+  exit 1
+fi
+
+function reporterror {
+  echo
+  echo =============================================================================
+  echo
+  echo "There was an error setting up the prerequisites.  Look above for details."
+  echo
+  exit 1
+}
+
+function webget {
+  if which wget &>/dev/null; then
+    wget -c -O "$2" "$1"
+  elif which curl &>/dev/null; then
+    curl "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+for dir in antlr-3.4 gmp-$GMPVERSION boost-include; do
+  if [ -e "$dir" ]; then
+    echo "error: $dir directory exists; please move it out of the way." >&2
+    exit 1
+  fi
+done
+
+echo =============================================================================
+echo
+echo "Setting up ANTLR 3.4..."
+echo
+MACHINE_TYPE=x86 ANTLR_CONFIGURE_ARGS=--host=$HOST contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
+[ ${PIPESTATUS[0]} -eq 0 ] || reporterror
+echo
+echo =============================================================================
+echo
+echo "Setting up GMP $GMPVERSION..."
+echo
+( set -ex
+  mkdir gmp-$GMPVERSION
+  cd gmp-$GMPVERSION
+  gmpprefix=`pwd` &&
+  mkdir src &&
+  cd src &&
+  webget ftp://ftp.gmplib.org/pub/gmp-$GMPVERSION/gmp-$GMPVERSION.tar.bz2 gmp-$GMPVERSION.tar.bz2 &&
+  tar xfj gmp-$GMPVERSION.tar.bz2 &&
+  cd gmp-$GMPVERSION &&
+  ./configure --host=$HOST --prefix="$gmpprefix" --enable-cxx &&
+  make &&
+  make install
+) || exit 1
+echo
+echo =============================================================================
+echo
+echo "Setting up BOOST includes..."
+echo
+( mkdir boost-include &&
+  ln -sv /usr/include/boost boost-include/boost ) || exit 1
+echo
+echo =============================================================================
+echo
+echo 'Now just run:'
+echo "  ./configure --host=$HOST LDFLAGS=\"-L`pwd`/gmp-$GMPVERSION/lib -L`pwd`/antlr-3.4/lib\" CPPFLAGS=\"-I`pwd`/gmp-$GMPVERSION/include -I`pwd`/antlr-3.4/include -I`pwd`/boost-include\" ANTLR_HOME=\"`pwd`/antlr-3.4\""
+echo '  make'
+echo
+echo =============================================================================

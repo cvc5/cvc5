@@ -88,6 +88,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_deltaComputeCallback(this),
   d_basicVarModelUpdateCallBack(d_simplex),
   d_DELTA_ZERO(0),
+  d_fullCheckCounter(0),
   d_statistics()
 {
 }
@@ -752,8 +753,8 @@ Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubst
       Assert(elim == Rewriter::rewrite(elim));
 
 
-      static const unsigned MAX_SUB_SIZE = 20;
-      if(false && right.size() > MAX_SUB_SIZE){
+      static const unsigned MAX_SUB_SIZE = 2;
+      if(right.size() > MAX_SUB_SIZE){
         Debug("simplify") << "TheoryArith::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
       }else if(elim.hasSubterm(minVar)){
@@ -1730,6 +1731,20 @@ void TheoryArith::check(Effort effortLevel){
   }
   Assert( d_currentPropagationList.empty());
 
+  if(!emmittedConflictOrSplit && fullEffort(effortLevel)){
+    ++d_fullCheckCounter;
+  }
+  static const int CUT_ALL_BOUNDED_PERIOD = 10;
+  if(!emmittedConflictOrSplit && fullEffort(effortLevel) &&
+     d_fullCheckCounter % CUT_ALL_BOUNDED_PERIOD == 1){
+    vector<Node> lemmas = cutAllBounded();
+    //output the lemmas
+    for(vector<Node>::const_iterator i = lemmas.begin(); i != lemmas.end(); ++i){
+      d_out->lemma(*i);
+      ++(d_statistics.d_externalBranchAndBounds);
+    }
+    emmittedConflictOrSplit = lemmas.size() > 0;
+  }
 
   if(!emmittedConflictOrSplit && fullEffort(effortLevel)){
     emmittedConflictOrSplit = splitDisequalities();
@@ -1776,6 +1791,55 @@ void TheoryArith::check(Effort effortLevel){
   Debug("arith") << "TheoryArith::check end" << std::endl;
 }
 
+Node TheoryArith::branchIntegerVariable(ArithVar x) const {
+  const DeltaRational& d = d_partialModel.getAssignment(x);
+  Assert(!d.isIntegral());
+  const Rational& r = d.getNoninfinitesimalPart();
+  const Rational& i = d.getInfinitesimalPart();
+  Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
+
+  Assert(! (r.getDenominator() == 1 && i.getNumerator() == 0));
+  Assert(!d.isIntegral());
+  TNode var = d_arithvarNodeMap.asNode(x);
+  Integer floor_d = d.floor();
+
+  Node ub = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+  Node lb = ub.notNode();
+
+
+  Node lem = NodeManager::currentNM()->mkNode(kind::OR, ub, lb);
+  Trace("integers") << "integers: branch & bound: " << lem << endl;
+  if(d_valuation.isSatLiteral(lem[0])) {
+    Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+  } else {
+    Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+  }
+  if(d_valuation.isSatLiteral(lem[1])) {
+    Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+    } else {
+    Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+  }
+  return lem;
+}
+
+std::vector<Node> TheoryArith::cutAllBounded() const{
+  vector<Node> lemmas;
+  if(options::doCutAllBounded() && getNumberOfVariables() > 0){
+    for(ArithVar iter = 0; iter != getNumberOfVariables(); ++iter){
+    //Do not include slack variables
+      const DeltaRational& d = d_partialModel.getAssignment(iter);
+      if(isInteger(iter) && !isSlackVariable(iter) &&
+         d_partialModel.hasUpperBound(iter) &&
+         d_partialModel.hasLowerBound(iter) &&
+         !d.isIntegral()){
+        Node lem = branchIntegerVariable(iter);
+        lemmas.push_back(lem);
+      }
+    }
+  }
+  return lemmas;
+}
+
 /** Returns true if the roundRobinBranching() issues a lemma. */
 Node TheoryArith::roundRobinBranch(){
   if(hasIntegerModel()){
@@ -1785,36 +1849,40 @@ Node TheoryArith::roundRobinBranch(){
 
     Assert(isInteger(v));
     Assert(!isSlackVariable(v));
+    return branchIntegerVariable(v);
 
-    const DeltaRational& d = d_partialModel.getAssignment(v);
-    const Rational& r = d.getNoninfinitesimalPart();
-    const Rational& i = d.getInfinitesimalPart();
-    Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(v) << "]] is " << r << "[" << i << "]" << endl;
+    // Assert(isInteger(v));
+    // Assert(!isSlackVariable(v));
 
-    Assert(! (r.getDenominator() == 1 && i.getNumerator() == 0));
-    Assert(!d.isIntegral());
+    // const DeltaRational& d = d_partialModel.getAssignment(v);
+    // const Rational& r = d.getNoninfinitesimalPart();
+    // const Rational& i = d.getInfinitesimalPart();
+    // Trace("integers") << "integers: assignment to [[" << d_arithvarNodeMap.asNode(v) << "]] is " << r << "[" << i << "]" << endl;
 
-    TNode var = d_arithvarNodeMap.asNode(v);
-    Integer floor_d = d.floor();
-    Integer ceil_d = d.ceiling();
+    // Assert(! (r.getDenominator() == 1 && i.getNumerator() == 0));
+    // Assert(!d.isIntegral());
 
-    Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
-    Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d)));
+    // TNode var = d_arithvarNodeMap.asNode(v);
+    // Integer floor_d = d.floor();
+    // Integer ceil_d = d.ceiling();
+
+    // Node leq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
+    // Node geq = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::GEQ, var, mkRationalNode(ceil_d)));
 
 
-    Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
-    Trace("integers") << "integers: branch & bound: " << lem << endl;
-    if(d_valuation.isSatLiteral(lem[0])) {
-      Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
-    } else {
-      Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-    }
-    if(d_valuation.isSatLiteral(lem[1])) {
-      Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
-    } else {
-      Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
-    }
-    return lem;
+    // Node lem = NodeManager::currentNM()->mkNode(kind::OR, leq, geq);
+    // Trace("integers") << "integers: branch & bound: " << lem << endl;
+    // if(d_valuation.isSatLiteral(lem[0])) {
+    //   Debug("integers") << "    " << lem[0] << " == " << d_valuation.getSatValue(lem[0]) << endl;
+    // } else {
+    //   Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
+    // }
+    // if(d_valuation.isSatLiteral(lem[1])) {
+    //   Debug("integers") << "    " << lem[1] << " == " << d_valuation.getSatValue(lem[1]) << endl;
+    // } else {
+    //   Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+    // }
+    // return lem;
   }
 }
 
@@ -2060,10 +2128,10 @@ DeltaRational TheoryArith::getDeltaValue(TNode n) const throw (DeltaRationalExce
       if(n.getKind() == kind::DIVISION_TOTAL){
         res = numer / denom;
       }else if(n.getKind() == kind::INTS_DIVISION_TOTAL){
-        res = Rational(numer.floorDivideQuotient(denom));
+        res = Rational(numer.euclidianDivideQuotient(denom));
       }else{
         Assert(n.getKind() == kind::INTS_MODULUS_TOTAL);
-        res = Rational(numer.floorDivideRemainder(denom));
+        res = Rational(numer.euclidianDivideRemainder(denom));
       }
       if(isSetup(n)){
         ArithVar var = d_arithvarNodeMap.asArithVar(n);

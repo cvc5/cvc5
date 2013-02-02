@@ -35,9 +35,10 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
-QuantifiersEngine::QuantifiersEngine(context::Context* c, TheoryEngine* te):
+QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
 d_te( te ),
-d_quant_rel( false ){ //currently do not care about relevance
+d_quant_rel( false ),
+d_lemmas_produced_c(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
   d_tr_trie = new inst::TriggerTrie;
@@ -90,6 +91,10 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() {
 
 context::Context* QuantifiersEngine::getSatContext(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
+}
+
+context::Context* QuantifiersEngine::getUserContext(){
+  return d_te->theoryOf( THEORY_QUANTIFIERS )->getUserContext();
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel(){
@@ -309,7 +314,7 @@ Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
 
 bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
   if( d_inst_match_trie.find( f )!=d_inst_match_trie.end() ){
-    if( d_inst_match_trie[f].existsInstMatch( this, f, m, modEq, modInst ) ){
+    if( d_inst_match_trie[f]->existsInstMatch( this, f, m, modEq, modInst ) ){
       return true;
     }
   }
@@ -323,9 +328,9 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 bool QuantifiersEngine::addLemma( Node lem ){
   Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
-  if( d_lemmas_produced.find( lem )==d_lemmas_produced.end() ){
+  if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
     //d_curr_out->lemma( lem );
-    d_lemmas_produced[ lem ] = true;
+    d_lemmas_produced_c[ lem ] = true;
     d_lemmas_waiting.push_back( lem );
     Debug("inst-engine-debug") << "Added lemma : " << lem << std::endl;
     return true;
@@ -355,11 +360,21 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
     }
   }
   //check for duplication modulo equality
-  if( !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst ) ){
+  inst::CDInstMatchTrie* imt;
+  std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_inst_match_trie.find( f );
+  if( it!=d_inst_match_trie.end() ){
+    imt = it->second;
+  }else{
+    imt = new CDInstMatchTrie( getUserContext() );
+    d_inst_match_trie[f] = imt;
+  }
+  Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
+  if( !imt->addInstMatch( this, f, m, getUserContext(), modEq, modInst ) ){
     Trace("inst-add-debug") << " -> Already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
     return false;
   }
+  Trace("inst-add-debug") << "compute terms" << std::endl;
   //compute the vector of terms for the instantiation
   std::vector< Node > terms;
   for( size_t i=0; i<d_term_db->d_inst_constants[f].size(); i++ ){

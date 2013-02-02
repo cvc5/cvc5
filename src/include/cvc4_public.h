@@ -22,19 +22,7 @@
 #include <stdint.h>
 
 #if defined _WIN32 || defined __CYGWIN__
-#  ifdef BUILDING_DLL
-#    ifdef __GNUC__
-#      define CVC4_PUBLIC __attribute__((__dllexport__))
-#    else /* ! __GNUC__ */
-#      define CVC4_PUBLIC __declspec(dllexport)
-#    endif /* __GNUC__ */
-#  else /* BUILDING_DLL */
-#    ifdef __GNUC__
-#      define CVC4_PUBLIC __attribute__((__dllimport__))
-#    else /* ! __GNUC__ */
-#      define CVC4_PUBLIC __declspec(dllimport)
-#    endif /* __GNUC__ */
-#  endif /* BUILDING_DLL */
+#  define CVC4_PUBLIC
 #else /* !( defined _WIN32 || defined __CYGWIN__ ) */
 #  if __GNUC__ >= 4
 #    define CVC4_PUBLIC __attribute__ ((__visibility__("default")))

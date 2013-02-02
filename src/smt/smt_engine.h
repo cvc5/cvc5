@@ -47,7 +47,7 @@ namespace CVC4 {
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
-class NodeHashFunction;
+struct NodeHashFunction;
 
 class Command;
 class GetModelCommand;
@@ -77,7 +77,7 @@ namespace smt {
    */
   class DefinedFunction;
 
-  class SmtEngineStatistics;
+  struct SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
   class BooleanTermConverter;

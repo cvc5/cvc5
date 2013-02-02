@@ -12,20 +12,31 @@
 
 prog=`basename "$0"`
 
-if [ $# -lt 2 -o $# -gt 3 ]; then
-  echo "usage: $prog [ --proof | --dump ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]" >&2
+if [ $# -lt 2 ]; then
+  echo "usage: $prog [ --proof | --dump ] [ wrapper ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]" >&2
   exit 1
 fi
 
 proof=no
 dump=no
-if [ $1 = --proof ]; then
+if [ x"$1" = x--proof ]; then
   proof=yes
   shift
-elif [ $1 = --dump ]; then
+elif [ x"$1" = x--dump ]; then
   dump=yes
   shift
 fi
+
+if [ $# -lt 2 ]; then
+  echo "usage: $prog [ --proof | --dump ] [ wrapper ] cvc4-binary [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]" >&2
+  exit 1
+fi
+
+wrapper=
+while [ $# -gt 2 ]; do
+  wrapper="$wrapper$1 "
+  shift
+done
 
 cvc4=$1
 benchmark_orig=$2
@@ -209,15 +220,15 @@ fi
 cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
 if [ $dump = no ]; then
-  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
+  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
   ( cd `dirname "$benchmark"`;
-    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
+    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile"
 else
-  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` \| $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
+  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` \| $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
   ( cd `dirname "$benchmark"`;
-    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` | $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
+    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` | $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile"
 fi
@@ -249,9 +260,9 @@ if [ "$proof" = yes -a "$expected_proof" = yes ]; then
   gettemp pfbenchmark cvc4_pfbenchmark.$$.XXXXXXXXXX
   cp "$benchmark" "$pfbenchmark";
   echo "$proof_command" >>"$pfbenchmark";
-  echo running $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
+  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
   ( cd `dirname "$pfbenchmark"`;
-    "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"`;
+    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"`;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile"
 
@@ -276,7 +287,7 @@ fi
 
 if $check_models; then
   # at least one sat/invalid response: run an extra model-checking pass
-  if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS --check-models" "$0" "$cvc4" "$benchmark_orig"; then
+  if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS --check-models" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
     exitcode=1
   fi
 fi

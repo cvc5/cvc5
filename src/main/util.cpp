@@ -19,9 +19,14 @@
 #include <cerrno>
 #include <exception>
 #include <string.h>
+
+#ifndef __WIN32__
+
 #include <signal.h>
 #include <sys/resource.h>
 #include <unistd.h>
+
+#endif /* __WIN32__ */
 
 #include "util/exception.h"
 #include "options/options.h"
@@ -44,15 +49,17 @@ namespace CVC4 {
 
 namespace main {
 
-size_t cvc4StackSize;
-void* cvc4StackBase;
-
 /**
  * If true, will not spin on segfault even when CVC4_DEBUG is on.
  * Useful for nightly regressions, noninteractive performance runs
  * etc.
  */
 bool segvNoSpin = false;
+
+#ifndef __WIN32__
+
+size_t cvc4StackSize;
+void* cvc4StackBase;
 
 /** Handler for SIGXCPU, i.e., timeout. */
 void timeout_handler(int sig, siginfo_t* info, void*) {
@@ -144,10 +151,12 @@ void ill_handler(int sig, siginfo_t* info, void*) {
 #endif /* CVC4_DEBUG */
 }
 
+#endif /* __WIN32__ */
+
 static terminate_handler default_terminator;
 
 void cvc4unexpected() {
-#ifdef CVC4_DEBUG
+#if defined(CVC4_DEBUG) && !defined(__WIN32__)
   fprintf(stderr, "\n"
           "CVC4 threw an \"unexpected\" exception (one that wasn't properly "
           "specified\nin the throws() specifier for the throwing function)."
@@ -204,6 +213,7 @@ void cvc4terminate() {
 
 /** Initialize the driver.  Sets signal handlers for SIGINT and SIGSEGV. */
 void cvc4_init() throw(Exception) {
+#ifndef __WIN32__
   stack_t ss;
   ss.ss_sp = malloc(SIGSTKSZ);
   if(ss.ss_sp == NULL) {
@@ -261,6 +271,8 @@ void cvc4_init() throw(Exception) {
   if(sigaction(SIGILL, &act4, NULL)) {
     throw Exception(string("sigaction(SIGILL) failure: ") + strerror(errno));
   }
+
+#endif /* __WIN32__ */
 
   set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);

@@ -89,7 +89,7 @@ void Tptp::addTheory(Theory theory) {
 
 
 /* The include are managed in the lexer but called in the parser */
-// Inspired by http://www.antlr.org/api/C/interop.html
+// Inspired by http://www.antlr3.org/api/C/interop.html
 
 bool newInputStream(std::string fileName, pANTLR3_LEXER lexer){
   Debug("parser") << "Including " << fileName << std::endl;

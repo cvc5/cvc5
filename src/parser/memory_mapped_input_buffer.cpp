@@ -18,10 +18,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include <antlr3input.h>
+
+#ifndef _WIN32
+
 #include <cerrno>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <antlr3input.h>
+
+#endif /* _WIN32 */
 
 #include "parser/memory_mapped_input_buffer.h"
 #include "util/exception.h"
@@ -30,6 +35,14 @@ namespace CVC4 {
 namespace parser {
 
 extern "C" {
+
+#ifdef _WIN32
+
+pANTLR3_INPUT_STREAM MemoryMappedInputBufferNew(const std::string& filename) {
+  return 0;
+}
+
+#else /* ! _WIN32 */
 
 static ANTLR3_UINT32
 MemoryMapFile(pANTLR3_INPUT_STREAM input, const std::string& filename);
@@ -111,6 +124,8 @@ void UnmapFile(pANTLR3_INPUT_STREAM input) {
   munmap((void*) input->data, input->sizeBuf);
   input->close(input);
 }
+
+#endif /* _WIN32 */
 
 }/* extern "C" */
 

@@ -48,8 +48,8 @@ void InstantiationEngine::finishInit(){
     }else{
       d_isup = NULL;
     }
-    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL,
-                                                                         InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT, 3 );
+    int rlv = options::relevantTriggers() ? InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT : InstStrategyAutoGenTriggers::RELEVANCE_NONE;
+    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, rlv, 3 );
     i_ag->setGenerateAdditional( true );
     addInstStrategy( i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
@@ -60,11 +60,10 @@ void InstantiationEngine::finishInit(){
     //d_isup->setPriorityOver( i_agm );
     //i_ag->setPriorityOver( i_agm );
   }
-  //CBQI: FIXME
   //for arithmetic
-  //if( options::cbqi() ){
-  //  addInstStrategy( new InstStrategySimplex( d_quantEngine ) );
-  //}
+  if( options::cbqi() ){
+    addInstStrategy( new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine ) );
+  }
   //for datatypes
   //if( options::cbqi() ){
   //  addInstStrategy( new InstStrategyDatatypesValue( d_quantEngine ) );

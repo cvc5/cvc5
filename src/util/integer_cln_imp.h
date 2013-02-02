@@ -285,6 +285,61 @@ public:
   }
 
   /**
+   * Computes a quoitent and remainder according to Boute's Euclidean definition.
+   * euclidianDivideQuotient, euclidianDivideRemainder.
+   *
+   * Boute, Raymond T. (April 1992).
+   * The Euclidean definition of the functions div and mod.
+   * ACM Transactions on Programming Languages and Systems (TOPLAS)
+   * ACM Press. 14 (2): 127 - 144. doi:10.1145/128861.128862.
+   */
+  static void euclidianQR(Integer& q, Integer& r, const Integer& x, const Integer& y) {
+    // compute the floor and then fix the value up if needed.
+    floorQR(q,r,x,y);
+
+    if(r.strictlyNegative()){
+      // if r < 0
+      // abs(r) < abs(y)
+      // - abs(y) < r < 0, then 0 < r + abs(y) < abs(y)
+      // n = y * q + r
+      // n = y * q - abs(y) + r + abs(y)
+      if(r.sgn() >= 0){
+        // y = abs(y)
+        // n = y * q - y + r + y
+        // n = y * (q-1) + (r+y)
+        q -= 1;
+        r += y;
+      }else{
+        // y = -abs(y)
+        // n = y * q + y + r - y
+        // n = y * (q+1) + (r-y)
+        q += 1;
+        r -= y;
+      }
+    }
+  }
+
+  /**
+   * Returns the quoitent according to Boute's Euclidean definition.
+   * See the documentation for euclidianQR.
+   */
+  Integer euclidianDivideQuotient(const Integer& y) const {
+    Integer q,r;
+    euclidianQR(q,r, *this, y);
+    return q;
+  }
+
+  /**
+   * Returns the remainfing according to Boute's Euclidean definition.
+   * See the documentation for euclidianQR.
+   */
+  Integer euclidianDivideRemainder(const Integer& y) const {
+    Integer q,r;
+    euclidianQR(q,r, *this, y);
+    return r;
+  }
+
+  /**
    * If y divides *this, then exactQuotient returns (this/y)
    */
   Integer exactQuotient(const Integer& y) const {
@@ -381,15 +436,24 @@ public:
     return cln::cl_I_to_int(sgn);
   }
 
-  bool isZero() const {
-    return cln::zerop(d_value);
+
+  inline bool strictlyPositive() const {
+    return sgn() > 0;
   }
 
-  bool isOne() const {
+  inline bool strictlyNegative() const {
+    return sgn() < 0;
+  }
+
+  inline bool isZero() const {
+    return sgn() == 0;
+  }
+
+  inline bool isOne() const {
     return d_value == 1;
   }
 
-  bool isNegativeOne() const {
+  inline bool isNegativeOne() const {
     return d_value == -1;
   }
 

@@ -31,7 +31,7 @@
 namespace CVC4 {
 
 namespace options {
-  class OptionsHolder;
+  struct OptionsHolder;
 }/* CVC4::options namespace */
 
 class ExprStream;

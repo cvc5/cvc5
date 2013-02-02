@@ -45,6 +45,7 @@ private:
   // The domain is an implicit list OR(x, OR(y, ..., FALSE ))
   // or FALSE
   CDNodeToNodeListMap d_miplibTrick;
+  void miplibTrickInsert(Node key, Node value);
 
   /**
    * Map from a node to it's minimum and maximum.

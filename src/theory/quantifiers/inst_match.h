@@ -18,6 +18,7 @@
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include "util/hash.h"
+#include "context/cdo.h"
 
 #include <ext/hash_set>
 #include <map>
@@ -140,6 +141,42 @@ public:
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
                      bool modInst = false, ImtIndexOrder* imtio = NULL );
 };/* class InstMatchTrie */
+
+
+/** trie for InstMatch objects */
+class CDInstMatchTrie {
+public:
+  class ImtIndexOrder {
+  public:
+    std::vector< int > d_order;
+  };/* class InstMatchTrie ImtIndexOrder */
+private:
+  /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
+  void addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, int index, ImtIndexOrder* imtio );
+  /** exists match */
+  bool existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, int index, ImtIndexOrder* imtio );
+public:
+  /** the data */
+  std::map< Node, CDInstMatchTrie* > d_data;
+  /** is valid */
+  context::CDO< bool > d_valid;
+public:
+  CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
+  ~CDInstMatchTrie(){}
+public:
+  /** return true if m exists in this trie
+        modEq is if we check modulo equality
+        modInst is if we return true if m is an instance of a match that exists
+   */
+  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
+                        bool modInst = false, ImtIndexOrder* imtio = NULL );
+  /** add match m for quantifier f, take into account equalities if modEq = true,
+      if imtio is non-null, this is the order to add to trie
+      return true if successful
+  */
+  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, bool modEq = false,
+                     bool modInst = false, ImtIndexOrder* imtio = NULL );
+};/* class CDInstMatchTrie */
 
 class InstMatchTrieOrdered{
 private:

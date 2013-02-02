@@ -127,7 +127,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   }
 
   // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(context, this);
+  d_quantEngine = new QuantifiersEngine(context, userContext, this);
 
   // build model information if applicable
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
@@ -740,8 +740,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryEngine::ppTheoryRewrite(TNode term)
-{
+Node TheoryEngine::ppTheoryRewrite(TNode term) {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end()) {
     return (*find).second;
@@ -826,7 +825,8 @@ Node TheoryEngine::preprocess(TNode assertion) {
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL) {
-      d_ppCache[current] = ppTheoryRewrite(current);
+      Node ppRewritten = ppTheoryRewrite(current);
+      d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
     }
@@ -1378,19 +1378,19 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
   d_attr_handle[ str ].push_back( t );
 }
 
-void TheoryEngine::checkTheoryAssertionsWithModel()
-{
-  for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-    Theory* theory = d_theoryTable[theoryId];
-    if (theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-      if (theoryId == THEORY_QUANTIFIERS || theoryId == THEORY_REWRITERULES) {
-        continue;
-      }
-      context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-      for (unsigned i = 0; it != it_end; ++ it, ++i) {
-        Node assertion = (*it).assertion;
-        Node val = getModel()->getValue(assertion);
-        Assert(val == d_true);
+void TheoryEngine::checkTheoryAssertionsWithModel() {
+  for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
+    if(theoryId != THEORY_REWRITERULES) {
+      Theory* theory = d_theoryTable[theoryId];
+      if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+        for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+              it_end = theory->facts_end();
+            it != it_end;
+            ++it) {
+          Node assertion = (*it).assertion;
+          Node val = getModel()->getValue(assertion);
+          Assert(val == d_true);
+        }
       }
     }
   }

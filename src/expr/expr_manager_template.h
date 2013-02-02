@@ -43,7 +43,7 @@ class SmtEngine;
 class NodeManager;
 class Options;
 class IntStat;
-class ExprManagerMapCollection;
+struct ExprManagerMapCollection;
 class StatisticsRegistry;
 
 namespace expr {

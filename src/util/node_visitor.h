@@ -36,10 +36,11 @@ class NodeVisitor {
   /**
    * Guard against NodeVisitor<> being re-entrant.
    */
+  template <class T>
   class GuardReentry {
-    bool& d_guard;
+    T& d_guard;
   public:
-    GuardReentry(bool& guard)
+    GuardReentry(T& guard)
     : d_guard(guard) {
       Assert(!d_guard);
       d_guard = true;
@@ -71,7 +72,7 @@ public:
    */
   static typename Visitor::return_type run(Visitor& visitor, TNode node) {
 
-    GuardReentry guard(bool(s_inRun));
+    GuardReentry<CVC4_THREADLOCAL_TYPE(bool)> guard(s_inRun);
 
     // Notify of a start
     visitor.start(node);

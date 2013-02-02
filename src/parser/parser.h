@@ -144,6 +144,9 @@ class CVC4_PUBLIC Parser {
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
 
+  /** The set of attributes already warned about. */
+  std::set<std::string> d_attributesWarnedAbout;
+
   /**
    * The current set of unresolved types.  We can get by with this NOT
    * being on the scope, because we can only have one DATATYPE
@@ -450,6 +453,9 @@ public:
   inline void warning(const std::string& msg) {
     d_input->warning(msg);
   }
+
+  /** Issue a warning to the user, but only once per attribute. */
+  void attributeNotSupported(const std::string& attr);
 
   /** Raise a parse error with the given message. */
   inline void parseError(const std::string& msg) throw(ParserException) {

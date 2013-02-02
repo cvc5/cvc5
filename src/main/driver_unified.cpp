@@ -180,6 +180,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // important even for muzzled builds (to get result output right)
   *opts[options::out] << Expr::setlanguage(opts[options::outputLanguage]);
+  DumpChannel.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
 # ifndef PORTFOLIO_BUILD

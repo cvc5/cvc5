@@ -26,7 +26,7 @@ namespace CVC4 {
 bool          ProofManager::isInitialized = false;
 ProofManager* ProofManager::proofManager = NULL;
 
-ProofManager::ProofManager(ProofFormat format = LFSC):
+ProofManager::ProofManager(ProofFormat format):
   d_satProof(NULL),
   d_cnfProof(NULL),
   d_format(format)

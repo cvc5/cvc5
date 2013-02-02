@@ -19,6 +19,7 @@
 
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arith_static_learner.h"
+#include "theory/arith/options.h"
 
 #include "util/propositional_query.h"
 
@@ -60,6 +61,13 @@ ArithStaticLearner::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_miplibtrickApplications);
   StatisticsRegistry::unregisterStat(&d_avgNumMiplibtrickValues);
 }
+
+void ArithStaticLearner::miplibTrickInsert(Node key, Node value){
+  if(options::arithMLTrick()){
+    d_miplibTrick.insert(key, value);
+  }
+}
+
 
 void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
 
@@ -138,7 +146,8 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
         TNode var = n[1][0];
         Node current = (d_miplibTrick.find(var)  == d_miplibTrick.end()) ?
           mkBoolNode(false) : d_miplibTrick[var];
-        d_miplibTrick.insert(var, n.orNode(current));
+
+        miplibTrickInsert(var, n.orNode(current));
         Debug("arith::miplib") << "insert " << var  << " const " << n << endl;
       }
     }
@@ -338,7 +347,7 @@ void ArithStaticLearner::postProcess(NodeBuilder<>& learned){
     Result isTaut = PropositionalQuery::isTautology(possibleTaut);
     if(isTaut == Result(Result::VALID)){
       miplibTrick(var, values, learned);
-      d_miplibTrick.insert(var, mkBoolNode(false));
+      miplibTrickInsert(var, mkBoolNode(false));
     }
     ++keyIter;
   }

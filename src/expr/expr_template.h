@@ -67,7 +67,7 @@ namespace prop {
   class TheoryProxy;
 }/* CVC4::prop namespace */
 
-class ExprManagerMapCollection;
+struct ExprManagerMapCollection;
 
 struct ExprHashFunction;
 
