@@ -37,16 +37,6 @@ namespace arith {
 class ArithStaticLearner {
 private:
 
-  /* Maps a variable, x, to the set of defTrue nodes of the form
-   *  (=> _ (= x c))
-   * where c is a constant.
-   */
-  typedef context::CDTrailHashMap<Node, Node, NodeHashFunction> CDNodeToNodeListMap;
-  // The domain is an implicit list OR(x, OR(y, ..., FALSE ))
-  // or FALSE
-  CDNodeToNodeListMap d_miplibTrick;
-  void miplibTrickInsert(Node key, Node value);
-
   /**
    * Map from a node to it's minimum and maximum.
    */
@@ -63,22 +53,14 @@ public:
 private:
   void process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue);
 
-  void postProcess(NodeBuilder<>& learned);
-
   void iteMinMax(TNode n, NodeBuilder<>& learned);
   void iteConstant(TNode n, NodeBuilder<>& learned);
-
-  void miplibTrick(TNode var, std::set<Rational>& values, NodeBuilder<>& learned);
-
 
   /** These fields are designed to be accessible to ArithStaticLearner methods. */
   class Statistics {
   public:
     IntStat d_iteMinMaxApplications;
     IntStat d_iteConstantApplications;
-
-    IntStat d_miplibtrickApplications;
-    AverageStat d_avgNumMiplibtrickValues;
 
     Statistics();
     ~Statistics();

@@ -286,7 +286,9 @@ void TheoryEngine::check(Theory::Effort effort) {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
     if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
+Debug("theory") << "check<" << THEORY << ">" << std::endl; \
        theoryOf(THEORY)->check(effort); \
+Debug("theory") << "done<" << THEORY << ">" << std::endl; \
        if (d_inConflict) { \
          break; \
        } \
