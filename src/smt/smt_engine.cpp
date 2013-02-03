@@ -2202,7 +2202,6 @@ void SmtEnginePrivate::doMiplibTrick() {
           Debug("miplib") << "  -- INELIGIBLE " << (*j).first << " -- (insufficiently marked, got " << (*j).second << " for " << numVars << " vars, expected " << expected << endl;
         } else {
           if(false) { //checks[(*j).first] != coef[(*j).first][0] + coef[(*j).first][1]) {
-#warning fixme
             Debug("miplib") << "  -- INELIGIBLE " << (*j).first << " -- (not linear combination)" << endl;
           } else {
             Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << (*j).first << " --" << endl;
@@ -2252,7 +2251,7 @@ void SmtEnginePrivate::doMiplibTrick() {
               //Warning() << "REPLACE         " << newAssertion[1] << endl;
               //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
               Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
-            } else if(arithMLTrickSubstitutions) {
+            } else if(options::arithMLTrickSubstitutions()) {
               d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
             }
             Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;

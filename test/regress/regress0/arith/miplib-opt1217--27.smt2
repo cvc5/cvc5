@@ -1,4 +1,4 @@
-; COMMAND-LINE: --tlimit 5000
+; COMMAND-LINE: --enable-miplib-trick
 ; EXPECT: unsat
 ; EXIT: 20
 (set-logic QF_LRA)

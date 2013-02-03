@@ -41,14 +41,16 @@ TESTS =	\
 	bug443.delta01.smt \
 	miplib.cvc \
 	miplib2.cvc \
-	miplibtrick.smt \
+	miplibtrick.smt
+#	problem__003.smt2
+
+EXTRA_DIST = $(TESTS) \
 	miplib-opt1217--27.smt \
 	miplib-opt1217--27.smt2 \
 	miplib-pp08a-3000.smt \
-	miplib-pp08a-3000.smt2
-#	problem__003.smt2
-
-EXTRA_DIST = $(TESTS)
+	miplib-pp08a-3000.smt2 \
+	miplib-opt1217--27.smt.expect \
+	miplib-pp08a-3000.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

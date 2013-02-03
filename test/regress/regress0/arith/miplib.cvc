@@ -1,3 +1,4 @@
+% COMMAND-LINE: --enable-miplib-trick
 % EXPECT: sat
 % EXIT: 10
 
