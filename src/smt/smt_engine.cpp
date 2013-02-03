@@ -2252,7 +2252,7 @@ void SmtEnginePrivate::doMiplibTrick() {
               //Warning() << "REPLACE         " << newAssertion[1] << endl;
               //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
               Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
-            } else {
+            } else if(arithMLTrickSubstitutions) {
               d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
             }
             Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
