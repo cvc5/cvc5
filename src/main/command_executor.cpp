@@ -48,7 +48,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 
     return status;
   } else {
-    if(d_options[options::verbosity] > 0) {
+    if(d_options[options::verbosity] > 2) {
       *d_options[options::out] << "Invoking: " << *cmd << std::endl;
     }
 
