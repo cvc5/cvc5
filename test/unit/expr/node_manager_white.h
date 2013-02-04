@@ -54,4 +54,23 @@ public:
     Node m = d_nm->mkConst(i);
     TS_ASSERT_EQUALS(n.getId(), m.getId());
   }
+
+  void testOversizedNodeBuilder() {
+    NodeBuilder<> nb;
+
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(15));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(25));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(256));
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.realloc(100), AssertionException);
+#endif /* CVC4_ASSERTIONS */
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(257));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(4000));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(20000));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(60000));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(65535));
+#ifdef CVC4_ASSERTIONS
+    TS_ASSERT_THROWS(nb.realloc(65536), AssertionException);
+#endif /* CVC4_ASSERTIONS */
+  }
 };
