@@ -533,6 +533,7 @@ void StrongSolverTheoryUf::SortRepModel::assertDisequal( Node a, Node b, Node re
           //internal disequality
           d_regions[ai]->setDisequal( a, b, 1, true );
           d_regions[ai]->setDisequal( b, a, 1, true );
+          checkRegion( ai, false );  //do not need to check if it needs to combine (no new ext. disequalities)
         }else{
           //external disequality
           d_regions[ai]->setDisequal( a, b, 0, true );
@@ -610,14 +611,33 @@ void StrongSolverTheoryUf::SortRepModel::check( Theory::Effort level, OutputChan
         if( level==Theory::EFFORT_FULL ){
           if( !addedLemma ){
             Trace("uf-ss-debug") << "No splits added. " << d_cardinality << std::endl;
-            if( !options::ufssColoringSat() ){
+            Trace("uf-ss-si")  << "Must combine region" << std::endl;
+            if( true || !options::ufssColoringSat() ){
               bool recheck = false;
               //naive strategy, force region combination involving the first valid region
-              for( int i=0; i<(int)d_regions_index; i++ ){
-                if( d_regions[i]->d_valid ){
-                  forceCombineRegion( i, false );
-                  recheck = true;
-                  break;
+              if( options::sortInference()){
+                std::map< int, int > sortsFound;
+                for( int i=0; i<(int)d_regions_index; i++ ){
+                  if( d_regions[i]->d_valid ){
+                    Node op = d_regions[i]->d_nodes.begin()->first;
+                    int sort_id = d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId(op) ;
+                    if( sortsFound.find( sort_id )!=sortsFound.end() ){
+                      combineRegions( sortsFound[sort_id], i );
+                      recheck = true;
+                      break;
+                    }else{
+                      sortsFound[sort_id] = i;
+                    }
+                  }
+                }
+              }
+              if( !recheck ) {
+                for( int i=0; i<(int)d_regions_index; i++ ){
+                  if( d_regions[i]->d_valid ){
+                    forceCombineRegion( i, false );
+                    recheck = true;
+                    break;
+                  }
                 }
               }
               if( recheck ){
@@ -803,15 +823,10 @@ void StrongSolverTheoryUf::SortRepModel::assertCardinality( OutputChannel* out, 
   }
 }
 
-void StrongSolverTheoryUf::SortRepModel::checkRegion( int ri, bool rec ){
+void StrongSolverTheoryUf::SortRepModel::checkRegion( int ri, bool checkCombine ){
   if( isValid(ri) && d_hasCard ){
     Assert( d_cardinality>0 );
-    //first check if region is in conflict
-    std::vector< Node > clique;
-    if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
-      //explain clique
-      addCliqueLemma( clique, &d_th->getOutputChannel() );
-    }else if( d_regions[ri]->getMustCombine( d_cardinality ) ){
+    if( checkCombine && d_regions[ri]->getMustCombine( d_cardinality ) ){
       ////alternatively, check if we can reduce the number of external disequalities by moving single nodes
       //for( std::map< Node, bool >::iterator it = d_regions[i]->d_reps.begin(); it != d_regions[i]->d_reps.end(); ++it ){
       //  if( it->second ){
@@ -822,9 +837,15 @@ void StrongSolverTheoryUf::SortRepModel::checkRegion( int ri, bool rec ){
       //  }
       //}
       int riNew = forceCombineRegion( ri, true );
-      if( riNew>=0 && rec ){
-        checkRegion( riNew, rec );
+      if( riNew>=0 ){
+        checkRegion( riNew, checkCombine );
       }
+    }
+    //now check if region is in conflict
+    std::vector< Node > clique;
+    if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
+      //explain clique
+      addCliqueLemma( clique, &d_th->getOutputChannel() );
     }
   }
 }
@@ -996,6 +1017,13 @@ bool StrongSolverTheoryUf::SortRepModel::addSplit( Region* r, OutputChannel* out
     Assert( s!=Node::null() && s.getKind()==EQUAL );
     s = Rewriter::rewrite( s );
     Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
+    if( options::sortInference()) {
+      for( int i=0; i<2; i++ ){
+        int si = d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId( s[i] );
+        Trace("uf-ss-split-si") << si << " ";
+      }
+      Trace("uf-ss-split-si")  << std::endl;
+    }
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areEqual( s[0], s[1] ) << " ";
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areDisequal( s[0], s[1] ) << std::endl;
     //Trace("uf-ss-lemma") << s[0].getType() << " " << s[1].getType() << std::endl;
@@ -1018,117 +1046,149 @@ void StrongSolverTheoryUf::SortRepModel::addCliqueLemma( std::vector< Node >& cl
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
-  if( !options::ufssExplainedCliques() ){
+  if( options::ufssSimpleCliques() && !options::ufssExplainedCliques() ){
     //add as lemma
     std::vector< Node > eqs;
     for( int i=0; i<(int)clique.size(); i++ ){
       for( int j=0; j<i; j++ ){
+        Node r1 = d_th->d_equalityEngine.getRepresentative(clique[i]);
+        Node r2 = d_th->d_equalityEngine.getRepresentative(clique[j]);
         eqs.push_back( clique[i].eqNode( clique[j] ) );
       }
     }
     eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
     Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
+    Trace("uf-ss-lemma") << "*** Add clique conflict " << lem << std::endl;
+    ++( d_th->getStrongSolver()->d_statistics.d_clique_lemmas );
     out->lemma( lem );
-    return;
-  }
-  //if( options::ufssModelInference() ||
-  if( Trace.isOn("uf-ss-cliques") ){
-    std::vector< Node > clique_vec;
-    clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
-    d_cliques[ d_cardinality ].push_back( clique_vec );
-  }
-
-  //found a clique
-  Debug("uf-ss-cliques") << "Found a clique (cardinality=" << d_cardinality << ") :" << std::endl;
-  Debug("uf-ss-cliques") << "   ";
-  for( int i=0; i<(int)clique.size(); i++ ){
-    Debug("uf-ss-cliques") << clique[i] << " ";
-  }
-  Debug("uf-ss-cliques") << std::endl;
-  Debug("uf-ss-cliques") << "Finding clique disequalities..." << std::endl;
-  std::vector< Node > conflict;
-  //collect disequalities, and nodes that must be equal within representatives
-  std::map< Node, std::map< Node, bool > > explained;
-  std::map< Node, std::map< Node, bool > > nodesWithinRep;
-  for( int i=0; i<(int)d_disequalities_index; i++ ){
-    //if both sides of disequality exist in clique
-    Node r1 = d_th->d_equalityEngine.getRepresentative( d_disequalities[i][0][0] );
-    Node r2 = d_th->d_equalityEngine.getRepresentative( d_disequalities[i][0][1] );
-    if( r1!=r2 && ( explained.find( r1 )==explained.end() || explained[r1].find( r2 )==explained[r1].end() ) &&
-        std::find( clique.begin(), clique.end(), r1 )!=clique.end() &&
-        std::find( clique.begin(), clique.end(), r2 )!=clique.end() ){
-      explained[r1][r2] = true;
-      explained[r2][r1] = true;
-      conflict.push_back( d_disequalities[i] );
-      Debug("uf-ss-cliques") << "   -> disequality : " << d_disequalities[i] << std::endl;
-      nodesWithinRep[r1][ d_disequalities[i][0][0] ] = true;
-      nodesWithinRep[r2][ d_disequalities[i][0][1] ] = true;
-      if( conflict.size()==(clique.size()*( clique.size()-1 )/2) ){
-        break;
-      }
+  }else{
+    //debugging information
+    if( Trace.isOn("uf-ss-cliques") ){
+      std::vector< Node > clique_vec;
+      clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
+      d_cliques[ d_cardinality ].push_back( clique_vec );
     }
-  }
-  //Debug("uf-ss-cliques") << conflict.size() << " " << clique.size() << std::endl;
-  Assert( (int)conflict.size()==((int)clique.size()*( (int)clique.size()-1 )/2) );
-  //Assert( (int)conflict.size()==(int)clique.size()*( (int)clique.size()-1 )/2 );
-  Debug("uf-ss-cliques") << "Finding clique equalities internal to eq classes..." << std::endl;
-  //now, we must explain equalities within each equivalence class
-  for( std::map< Node, std::map< Node, bool > >::iterator it = nodesWithinRep.begin(); it != nodesWithinRep.end(); ++it ){
-    if( it->second.size()>1 ){
-      Node prev;
-      //add explanation of t1 = t2 = ... = tn
-      Debug("uf-ss-cliques") << "Explain ";
-      for( std::map< Node, bool >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-        if( prev!=Node::null() ){
-          Debug("uf-ss-cliques") << " = ";
-          //explain it2->first and prev
-          std::vector< TNode > expl;
-          d_th->d_equalityEngine.explainEquality( it2->first, prev, true, expl );
-          for( int i=0; i<(int)expl.size(); i++ ){
-            if( std::find( conflict.begin(), conflict.end(), expl[i] )==conflict.end() ){
-              conflict.push_back( expl[i] );
-            }
+    //found a clique
+    Debug("uf-ss-cliques") << "Found a clique (cardinality=" << d_cardinality << ") :" << std::endl;
+    Debug("uf-ss-cliques") << "   ";
+    for( int i=0; i<(int)clique.size(); i++ ){
+      Debug("uf-ss-cliques") << clique[i] << " ";
+    }
+    Debug("uf-ss-cliques") << std::endl;
+    Debug("uf-ss-cliques") << "Finding clique disequalities..." << std::endl;
+
+    //we will scan through each of the disequaltities
+    bool isSatConflict = true;
+    std::vector< Node > conflict;
+    //collect disequalities, and nodes that must be equal within representatives
+    std::map< Node, std::map< Node, bool > > explained;
+    std::map< Node, std::map< Node, bool > > nodesWithinRep;
+    //map from the reprorted clique members to those reported in the lemma
+    std::map< Node, Node > cliqueRepMap;
+    for( int i=0; i<(int)d_disequalities_index; i++ ){
+      //if both sides of disequality exist in clique
+      Node r1 = d_th->d_equalityEngine.getRepresentative( d_disequalities[i][0][0] );
+      Node r2 = d_th->d_equalityEngine.getRepresentative( d_disequalities[i][0][1] );
+      if( r1!=r2 && ( explained.find( r1 )==explained.end() || explained[r1].find( r2 )==explained[r1].end() ) &&
+          std::find( clique.begin(), clique.end(), r1 )!=clique.end() &&
+          std::find( clique.begin(), clique.end(), r2 )!=clique.end() ){
+        explained[r1][r2] = true;
+        explained[r2][r1] = true;
+        if( options::ufssExplainedCliques() ){
+          conflict.push_back( d_disequalities[i] );
+          Debug("uf-ss-cliques") << "   -> disequality : " << d_disequalities[i] << std::endl;
+          nodesWithinRep[r1][ d_disequalities[i][0][0] ] = true;
+          nodesWithinRep[r2][ d_disequalities[i][0][1] ] = true;
+        }else{
+          //get the terms we report in the lemma
+          Node ru1 = r1;
+          if( cliqueRepMap.find( r1 )==cliqueRepMap.end() ){
+            ru1 = d_disequalities[i][0][0];
+            cliqueRepMap[r1] = ru1;
+          }else{
+            ru1 = cliqueRepMap[r1];
+          }
+          Node ru2 = r2;
+          if( cliqueRepMap.find( r2 )==cliqueRepMap.end() ){
+            ru2 = d_disequalities[i][0][1];
+            cliqueRepMap[r2] = ru2;
+          }else{
+            ru2 = cliqueRepMap[r2];
+          }
+          if( ru1!=d_disequalities[i][0][0] || ru2!=d_disequalities[i][0][1] ){
+            //disequalities have endpoints that are not connected within an equivalence class
+            // we will be producing a lemma, introducing a new literal ru1 != ru2
+            conflict.push_back( ru1.eqNode( ru2 ).notNode() );
+            isSatConflict = false;
+          }else{
+            conflict.push_back( d_disequalities[i] );
           }
         }
-        prev = it2->first;
-        Debug("uf-ss-cliques") << prev;
+        if( conflict.size()==(clique.size()*( clique.size()-1 )/2) ){
+          break;
+        }
+      }
+    }
+    if( options::ufssExplainedCliques() ){
+      //Debug("uf-ss-cliques") << conflict.size() << " " << clique.size() << std::endl;
+      Assert( (int)conflict.size()==((int)clique.size()*( (int)clique.size()-1 )/2) );
+      //Assert( (int)conflict.size()==(int)clique.size()*( (int)clique.size()-1 )/2 );
+      Debug("uf-ss-cliques") << "Finding clique equalities internal to eq classes..." << std::endl;
+      //now, we must explain equalities within each equivalence class
+      for( std::map< Node, std::map< Node, bool > >::iterator it = nodesWithinRep.begin(); it != nodesWithinRep.end(); ++it ){
+        if( it->second.size()>1 ){
+          Node prev;
+          //add explanation of t1 = t2 = ... = tn
+          Debug("uf-ss-cliques") << "Explain ";
+          for( std::map< Node, bool >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+            if( prev!=Node::null() ){
+              Debug("uf-ss-cliques") << " = ";
+              //explain it2->first and prev
+              std::vector< TNode > expl;
+              d_th->d_equalityEngine.explainEquality( it2->first, prev, true, expl );
+              for( int i=0; i<(int)expl.size(); i++ ){
+                if( std::find( conflict.begin(), conflict.end(), expl[i] )==conflict.end() ){
+                  conflict.push_back( expl[i] );
+                }
+              }
+            }
+            prev = it2->first;
+            Debug("uf-ss-cliques") << prev;
+          }
+          Debug("uf-ss-cliques") << std::endl;
+        }
+      }
+      Debug("uf-ss-cliques") << "Explanation of clique (size=" << conflict.size() << ") = " << std::endl;
+      for( int i=0; i<(int)conflict.size(); i++ ){
+        Debug("uf-ss-cliques") << conflict[i] << " ";
       }
       Debug("uf-ss-cliques") << std::endl;
     }
-  }
-  Debug("uf-ss-cliques") << "Explanation of clique (size=" << conflict.size() << ") = " << std::endl;
-  for( int i=0; i<(int)conflict.size(); i++ ){
-    Debug("uf-ss-cliques") << conflict[i] << " ";
-    //bool value;
-    //bool hasValue = d_th->getValuation().hasSatValue( conflict[i], value );
-    //Assert( hasValue );
-    //Assert( value );
-  }
-  Debug("uf-ss-cliques") << std::endl;
-  //now, make the conflict
-#if 1
-  conflict.push_back( d_cardinality_literal[ d_cardinality ] );
-  Node conflictNode = NodeManager::currentNM()->mkNode( AND, conflict );
-  Trace("uf-ss-lemma") << "*** Add clique conflict " << conflictNode << std::endl;
-  //Notice() << "*** Add clique conflict " << conflictNode << std::endl;
-  out->conflict( conflictNode );
-  d_conflict = true;
-#else
-  Node conflictNode = conflict.size()==1 ? conflict[0] : NodeManager::currentNM()->mkNode( AND, conflict );
-  //add cardinality constraint
-  Node cardNode = d_cardinality_literal[ d_cardinality ];
-  //bool value;
-  //bool hasValue = d_th->getValuation().hasSatValue( cardNode, value );
-  //Assert( hasValue );
-  //Assert( value );
-  conflictNode = NodeManager::currentNM()->mkNode( IMPLIES, conflictNode, cardNode.notNode() );
-  Trace("uf-ss-lemma") << "*** Add clique conflict " << conflictNode << std::endl;
-  //Notice() << "*** Add clique conflict " << conflictNode << std::endl;
-  out->lemma( conflictNode );
-#endif
-  ++( d_th->getStrongSolver()->d_statistics.d_clique_lemmas );
+    //now, make the conflict
+    if( isSatConflict ){
+      conflict.push_back( d_cardinality_literal[ d_cardinality ] );
+      Node conflictNode = NodeManager::currentNM()->mkNode( AND, conflict );
+      Trace("uf-ss-lemma") << "*** Add clique conflict " << conflictNode << std::endl;
+      //Notice() << "*** Add clique conflict " << conflictNode << std::endl;
+      out->conflict( conflictNode );
+      d_conflict = true;
+      ++( d_th->getStrongSolver()->d_statistics.d_clique_conflicts );
+    }else{
+      Node conflictNode = conflict.size()==1 ? conflict[0] : NodeManager::currentNM()->mkNode( AND, conflict );
+      //add cardinality constraint
+      Node cardNode = d_cardinality_literal[ d_cardinality ];
+      //bool value;
+      //bool hasValue = d_th->getValuation().hasSatValue( cardNode, value );
+      //Assert( hasValue );
+      //Assert( value );
+      conflictNode = NodeManager::currentNM()->mkNode( IMPLIES, conflictNode, cardNode.notNode() );
+      Trace("uf-ss-lemma") << "*** Add clique lemma " << conflictNode << std::endl;
+      out->lemma( conflictNode );
+      ++( d_th->getStrongSolver()->d_statistics.d_clique_lemmas );
+    }
 
-  //DO_THIS: ensure that the same clique is not reported???  Check standard effort after assertDisequal can produce same clique.
+    //DO_THIS: ensure that the same clique is not reported???  Check standard effort after assertDisequal can produce same clique.
+  }
 }
 
 void StrongSolverTheoryUf::SortRepModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
@@ -1222,7 +1282,7 @@ int StrongSolverTheoryUf::SortRepModel::getNumRegions(){
 }
 
 void StrongSolverTheoryUf::SortRepModel::getRepresentatives( std::vector< Node >& reps ){
-  if( !options::ufssColoringSat() ){
+  //if( !options::ufssColoringSat() ){
     bool foundRegion = false;
     for( int i=0; i<(int)d_regions_index; i++ ){
       //should not have multiple regions at this point
@@ -1235,123 +1295,9 @@ void StrongSolverTheoryUf::SortRepModel::getRepresentatives( std::vector< Node >
         foundRegion = true;
       }
     }
-  }else{
-    Unimplemented("Build representatives for fmf region sat is not implemented");
-  }
-}
-
-
-/** initialize */
-void StrongSolverTheoryUf::InfRepModel::initialize( OutputChannel* out ){
-
-}
-
-/** new node */
-void StrongSolverTheoryUf::InfRepModel::newEqClass( Node n ){
-  d_rep[n] = n;
-  //d_const_rep[n] = n.getMetaKind()==metakind::CONSTANT;
-}
-
-/** merge */
-void StrongSolverTheoryUf::InfRepModel::merge( Node a, Node b ){
-  //d_rep[b] = false;
-  //d_const_rep[a] = d_const_rep[a] || d_const_rep[b];
-  Node repb = d_rep[b];
-  Assert( !repb.isNull() );
-  if( repb.getMetaKind()==metakind::CONSTANT || isBadRepresentative( d_rep[a] ) ){
-    d_rep[a] = repb;
-  }
-  d_rep[b] = Node::null();
-}
-
-/** check */
-void StrongSolverTheoryUf::InfRepModel::check( Theory::Effort level, OutputChannel* out ){
-
-}
-
-/** minimize */
-bool StrongSolverTheoryUf::InfRepModel::minimize( OutputChannel* out ){
-#if 0
-  bool retVal = true;
-#else
-  bool retVal = !addSplit( out );
-#endif
-  if( retVal ){
-    std::vector< Node > reps;
-    getRepresentatives( reps );
-    Trace("uf-ss-fmf") << "Num representatives of type " << d_type << " : " << reps.size() << std::endl;
-    /*
-    for( int i=0; i<(int)reps.size(); i++ ){
-      std::cout << reps[i] << " ";
-    }
-    std::cout << std::endl;
-    for( int i=0; i<(int)reps.size(); i++ ){
-      std::cout << reps[i].getMetaKind() << " ";
-    }
-    std::cout << std::endl;
-    for( NodeNodeMap::iterator it = d_rep.begin(); it != d_rep.end(); ++it ){
-      Node rep = (*it).second;
-      if( !rep.isNull() && !isBadRepresentative( rep ) ){
-        for( NodeNodeMap::iterator it2 = d_rep.begin(); it2 != d_rep.end(); ++it2 ){
-          Node rep2 = (*it2).second;
-          if( !rep2.isNull() && !isBadRepresentative( rep2 ) ){
-            if( d_th->getQuantifiersEngine()->getEqualityQuery()->areDisequal( rep, rep2 ) ){
-              std::cout << "1 ";
-            }else{
-              std::cout << "0 ";
-            }
-          }
-        }
-        //std::cout << " : " << rep;
-        std::cout << std::endl;
-      }
-    }
-    */
-  }
-  return retVal;
-}
-
-/** get representatives */
-void StrongSolverTheoryUf::InfRepModel::getRepresentatives( std::vector< Node >& reps ){
-  for( NodeNodeMap::iterator it = d_rep.begin(); it != d_rep.end(); ++it ){
-    if( !(*it).second.isNull() ){
-      reps.push_back( (*it).first );
-    }
-  }
-}
-
-
-/** add split function */
-bool StrongSolverTheoryUf::InfRepModel::addSplit( OutputChannel* out ){
-  std::vector< Node > visited;
-  for( NodeNodeMap::iterator it = d_rep.begin(); it != d_rep.end(); ++it ){
-    Node rep = (*it).second;
-    if( !rep.isNull() && !isBadRepresentative( rep ) ){
-      bool constRep = rep.getMetaKind()==metakind::CONSTANT;
-      for( size_t i=0; i<visited.size(); i++ ){
-        if( !constRep || !visited[i].getMetaKind()==metakind::CONSTANT ){
-          if( !d_th->getQuantifiersEngine()->getEqualityQuery()->areDisequal( rep, visited[i] ) ){
-            //split on these nodes
-            Node eq = rep.eqNode( visited[i] );
-            Trace("uf-ss-lemma") << "*** Split on " << eq << std::endl;
-            eq = Rewriter::rewrite( eq );
-            Debug("uf-ss-lemma-debug") << "Rewritten " << eq << std::endl;
-            out->split( eq );
-            //explore the equals branch first
-            out->requirePhase( eq, true );
-            ++( d_th->getStrongSolver()->d_statistics.d_split_lemmas );
-            return true;
-          }
-        }
-      }
-      visited.push_back( rep );
-    }
-  }
-  return false;
-}
-
-bool StrongSolverTheoryUf::InfRepModel::isBadRepresentative( Node n ){
-  return n.getKind()==kind::PLUS;
+  //}else{
+  //  Unimplemented("Build representatives for fmf region sat is not implemented");
+  //}
 }
 
 StrongSolverTheoryUf::StrongSolverTheoryUf(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
@@ -1438,6 +1384,13 @@ void StrongSolverTheoryUf::check( Theory::Effort level ){
     if( level==Theory::EFFORT_FULL ){
       debugPrint( "uf-ss-debug" );
     }
+    if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
+      int lemmas =  d_term_amb->disambiguateTerms( d_out );
+      d_statistics.d_disamb_term_lemmas += lemmas;
+      if( lemmas>=0 ){
+        return;
+      }
+    }
     for( std::map< TypeNode, RepModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
       it->second->check( level, d_out );
       if( it->second->isConflict() ){
@@ -1446,10 +1399,10 @@ void StrongSolverTheoryUf::check( Theory::Effort level ){
       }
     }
     //disambiguate terms if necessary
-    if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
-      Assert( d_term_amb!=NULL );
-      d_statistics.d_disamb_term_lemmas += d_term_amb->disambiguateTerms( d_out );
-    }
+    //if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
+    //  Assert( d_term_amb!=NULL );
+    //  d_statistics.d_disamb_term_lemmas += d_term_amb->disambiguateTerms( d_out );
+    //}
     Trace("uf-ss-solver") << "Done StrongSolverTheoryUf: check " << level << std::endl;
   }
 }
@@ -1481,9 +1434,6 @@ void StrongSolverTheoryUf::preRegisterTerm( TNode n ){
     if( tn.isSort() ){
       Trace("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
       rm  = new SortRepModel( n, d_th->getSatContext(), d_th );
-    }else if( tn.isInteger() ){
-      //rm = new InfRepModel( tn, d_th->getSatContext(), d_th );
-      //rm  = new SortRepModel( tn, d_th->getSatContext(), d_th );
     }else{
       /*
       if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
@@ -1603,12 +1553,14 @@ void StrongSolverTheoryUf::debugModel( TheoryModel* m ){
 }
 
 StrongSolverTheoryUf::Statistics::Statistics():
+  d_clique_conflicts("StrongSolverTheoryUf::Clique_Conflicts", 0),
   d_clique_lemmas("StrongSolverTheoryUf::Clique_Lemmas", 0),
   d_split_lemmas("StrongSolverTheoryUf::Split_Lemmas", 0),
   d_disamb_term_lemmas("StrongSolverTheoryUf::Disambiguate_Term_Lemmas", 0),
   d_totality_lemmas("StrongSolverTheoryUf::Totality_Lemmas", 0),
   d_max_model_size("StrongSolverTheoryUf::Max_Model_Size", 1)
 {
+  StatisticsRegistry::registerStat(&d_clique_conflicts);
   StatisticsRegistry::registerStat(&d_clique_lemmas);
   StatisticsRegistry::registerStat(&d_split_lemmas);
   StatisticsRegistry::registerStat(&d_disamb_term_lemmas);
@@ -1617,6 +1569,7 @@ StrongSolverTheoryUf::Statistics::Statistics():
 }
 
 StrongSolverTheoryUf::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_clique_conflicts);
   StatisticsRegistry::unregisterStat(&d_clique_lemmas);
   StatisticsRegistry::unregisterStat(&d_split_lemmas);
   StatisticsRegistry::unregisterStat(&d_disamb_term_lemmas);
@@ -1667,11 +1620,12 @@ int TermDisambiguator::disambiguateTerms( OutputChannel* out ){
                 }
                 Assert( children.size()>1 );
                 Node lem = NodeManager::currentNM()->mkNode( OR, children );
-                Debug( "uf-ss-lemma" ) << "*** Disambiguate lemma : " << lem << std::endl;
+                Trace( "uf-ss-lemma" ) << "*** Disambiguate lemma : " << lem << std::endl;
                 //Notice() << "*** Disambiguate lemma : " << lem << std::endl;
                 out->lemma( lem );
                 d_term_amb[ eq ] = false;
                 lemmaAdded++;
+                return lemmaAdded;
               }
             }
           }

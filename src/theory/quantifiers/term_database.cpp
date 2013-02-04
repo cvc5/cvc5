@@ -206,6 +206,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     ModelBasisAttribute mba;
     mbt.setAttribute(mba,true);
     d_model_basis_term[tn] = mbt;
+    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for " << tn << std::endl;
   }
   return d_model_basis_term[tn];
 }
@@ -367,6 +368,10 @@ Node TermDb::getSkolemizedBody( Node f ){
       Node skv = NodeManager::currentNM()->mkSkolem( "skv_$$", f[0][i].getType(), "is a termdb-created skolemized body" );
       d_skolem_constants[ f ].push_back( skv );
       vars.push_back( f[0][i] );
+      //carry information for sort inference
+      if( options::sortInference() ){
+        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], skv );
+      }
     }
     d_skolem_body[ f ] = f[ 1 ].substitute( vars.begin(), vars.end(),
                                             d_skolem_constants[ f ].begin(), d_skolem_constants[ f ].end() );
@@ -515,6 +520,34 @@ int TermDb::isInstanceOf( Node n1, Node n2 ){
   return 0;
 }
 
+bool TermDb::isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs ){
+  if( n1==n2 ){
+    return true;
+  }else if( n2.getKind()==INST_CONSTANT ){
+    //if( !node_contains( n1, n2 ) ){
+    //  return false;
+    //}
+    if( subs.find( n2 )==subs.end() ){
+      subs[n2] = n1;
+    }else if( subs[n2]!=n1 ){
+      return false;
+    }
+    return true;
+  }else if( n1.getKind()==n2.getKind() && n1.getMetaKind()==kind::metakind::PARAMETERIZED ){
+    if( n1.getOperator()!=n2.getOperator() ){
+      return false;
+    }
+    for( int i=0; i<(int)n1.getNumChildren(); i++ ){
+      if( !isUnifiableInstanceOf( n1[i], n2[i], subs ) ){
+        return false;
+      }
+    }
+    return true;
+  }else{
+    return false;
+  }
+}
+
 void TermDb::filterInstances( std::vector< Node >& nodes ){
   std::vector< bool > active;
   active.resize( nodes.size(), true );
@@ -523,8 +556,10 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
       if( active[i] && active[j] ){
         int result = isInstanceOf( nodes[i], nodes[j] );
         if( result==1 ){
+          Trace("filter-instances") << nodes[j] << " is an instance of " << nodes[i] << std::endl;
           active[j] = false;
         }else if( result==-1 ){
+          Trace("filter-instances") << nodes[i] << " is an instance of " << nodes[j] << std::endl;
           active[i] = false;
         }
       }

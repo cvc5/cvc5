@@ -71,6 +71,7 @@ d_lemmas_produced_c(u){
   d_optMatchIgnoreModelBasis = false;
   d_optInstLimitActive = false;
   d_optInstLimit = 0;
+  d_total_inst_count_debug = 0;
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
@@ -142,10 +143,23 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     //build the model if not done so already
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
-    if( options::produceModels() && e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma && !d_model->isModelSet() ){
-      d_te->getModelBuilder()->buildModel( d_model, true );
+    if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
+      if( options::produceModels() && !d_model->isModelSet() ){
+        d_te->getModelBuilder()->buildModel( d_model, true );
+      }
+      if( Trace.isOn("inst-per-quant") ){
+        for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){
+          Trace("inst-per-quant") << " * " << it->second << " for " << it->first << std::endl;
+        }
+      }
+    }else{
+      if( Trace.isOn("inst-per-quant-round") ){
+        for( std::map< Node, int >::iterator it = d_temp_inst_debug.begin(); it != d_temp_inst_debug.end(); ++it ){
+          Trace("inst-per-quant-round") << " * " << it->second << " for " << it->first << std::endl;
+          d_temp_inst_debug[it->first] = 0;
+        }
+      }
     }
-
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }
 }
@@ -242,6 +256,9 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   Node lem = nb;
   //check for duplication
   if( addLemma( lem ) ){
+    d_total_inst_debug[f]++;
+    d_temp_inst_debug[f]++;
+    d_total_inst_count_debug++;
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     uint64_t maxInstLevel = 0;
     for( int i=0; i<(int)terms.size(); i++ ){

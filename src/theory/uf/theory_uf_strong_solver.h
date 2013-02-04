@@ -213,7 +213,7 @@ public:
     void setSplitScore( Node n, int s );
   private:
     /** check if we need to combine region ri */
-    void checkRegion( int ri, bool rec = true );
+    void checkRegion( int ri, bool checkCombine = true );
     /** force combine region */
     int forceCombineRegion( int ri, bool useDensity = true );
     /** merge regions */
@@ -293,42 +293,6 @@ public:
     int getNumRegions();
   }; /** class SortRepModel */
 private:
-  /** infinite rep model */
-  class InfRepModel : public RepModel
-  {
-  protected:
-    /** theory uf pointer */
-    TheoryUF* d_th;
-    /** list of representatives */
-    NodeNodeMap d_rep;
-    /** whether representatives are constant */
-    NodeBoolMap d_const_rep;
-    /** add split */
-    bool addSplit( OutputChannel* out );
-    /** is bad representative */
-    bool isBadRepresentative( Node n );
-  public:
-    InfRepModel( TypeNode tn, context::Context* c, TheoryUF* th ) : RepModel( tn ),
-      d_th( th ), d_rep( c ), d_const_rep( c ){}
-    virtual ~InfRepModel(){}
-    /** initialize */
-    void initialize( OutputChannel* out );
-    /** new node */
-    void newEqClass( Node n );
-    /** merge */
-    void merge( Node a, Node b );
-    /** assert terms are disequal */
-    void assertDisequal( Node a, Node b, Node reason ){}
-    /** check */
-    void check( Theory::Effort level, OutputChannel* out );
-    /** minimize */
-    bool minimize( OutputChannel* out );
-    /** get representatives */
-    void getRepresentatives( std::vector< Node >& reps );
-    /** print debug */
-    void debugPrint( const char* c ){}
-  };
-private:
   /** The output channel for the strong solver. */
   OutputChannel* d_out;
   /** theory uf pointer */
@@ -393,6 +357,7 @@ public:
 
   class Statistics {
   public:
+    IntStat d_clique_conflicts;
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_disamb_term_lemmas;

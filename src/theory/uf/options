@@ -25,6 +25,8 @@ option ufssAbortCardinality --uf-ss-abort-card=N int :default -1
 option ufssSmartSplits --uf-ss-smart-split bool :default false
  use smart splitting heuristic for uf strong solver
 option ufssExplainedCliques --uf-ss-explained-cliques bool :default false
- add explained clique lemmas for uf strong solver
+ use explained clique lemmas for uf strong solver
+option ufssSimpleCliques --uf-ss-simple-cliques bool :default true
+ always use simple clique lemmas for uf strong solver
 
 endmodule

@@ -38,11 +38,13 @@ public:
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
   virtual void reset( Node eqc, QuantifiersEngine* qe ) = 0;
   /** get the next match.  must call reset( eqc ) before this function. */
-  virtual bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) = 0;
+  virtual bool getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ) = 0;
   /** add instantiations directly */
   virtual int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe ) = 0;
   /** add ground term t, called when t is added to term db */
   virtual int addTerm( Node f, Node t, QuantifiersEngine* qe ) = 0;
+  /** set active add */
+  virtual void setActiveAdd() {}
 };/* class IMGenerator */
 
 class CandidateGenerator;
@@ -78,7 +80,7 @@ private:
   /** get the next match.  must call d_cg->reset( ... ) before using.
       only valid for use where !d_match_pattern.isNull().
   */
-  bool getNextMatch2( InstMatch& m, QuantifiersEngine* qe, bool saveMatched = false );
+  bool getNextMatch2( Node f, InstMatch& m, QuantifiersEngine* qe, bool saveMatched = false );
   /** for arithmetic */
   bool getMatchArithmetic( Node t, InstMatch& m, QuantifiersEngine* qe );
 public:
@@ -86,7 +88,7 @@ public:
       d_match_pattern and t should have the same shape.
       only valid for use where !d_match_pattern.isNull().
   */
-  bool getMatch( Node t, InstMatch& m, QuantifiersEngine* qe );
+  bool getMatch( Node f, Node t, InstMatch& m, QuantifiersEngine* qe );
 
   /** constructors */
   InstMatchGenerator( Node pat, QuantifiersEngine* qe, int matchOption = 0 );
@@ -105,11 +107,14 @@ public:
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
   void reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. */
-  bool getNextMatch( InstMatch& m, QuantifiersEngine* qe );
+  bool getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe );
   /** add instantiations */
   int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t */
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
+
+  bool d_active_add;
+  void setActiveAdd();
 };/* class InstMatchGenerator */
 
 /** smart multi-trigger implementation */
@@ -152,7 +157,7 @@ public:
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
   void reset( Node eqc, QuantifiersEngine* qe );
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
-  bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) { return false; }
+  bool getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ) { return false; }
   /** add instantiations */
   int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t */
@@ -178,7 +183,7 @@ public:
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
   void reset( Node eqc, QuantifiersEngine* qe ) {}
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */
-  bool getNextMatch( InstMatch& m, QuantifiersEngine* qe ) { return false; }
+  bool getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ) { return false; }
   /** add instantiations */
   int addInstantiations( Node f, InstMatch& baseMatch, QuantifiersEngine* qe );
   /** add ground term t, possibly add instantiations */

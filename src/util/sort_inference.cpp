@@ -58,6 +58,14 @@ void SortInference::simplify( std::vector< Node >& assertions, bool doRewrite ){
       printSort( "sort-inference", it->second );
       Trace("sort-inference") << std::endl;
     }
+    for( std::map< Node, std::map< Node, int > >::iterator it = d_var_types.begin(); it != d_var_types.end(); ++it ){
+      Trace("sort-inference") << "Quantified formula " << it->first << " : " << std::endl;
+      for( std::map< Node, int >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+        printSort( "sort-inference", it2->second );
+        Trace("sort-inference") << std::endl;
+      }
+      Trace("sort-inference") << std::endl;
+    }
   }
   if( doRewrite ){
     //simplify all assertions by introducing new symbols wherever necessary (NOTE: this is unsound for quantifiers)
@@ -149,11 +157,11 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
   if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
     for( size_t i=0; i<n[0].getNumChildren(); i++ ){
       //TODO: try applying sort inference to quantified variables
-      //d_var_types[n][ n[0][i] ] = sortCount;
-      //sortCount++;
+      d_var_types[n][ n[0][i] ] = sortCount;
+      sortCount++;
 
       //type of the quantified variable must be the same
-      d_var_types[n][ n[0][i] ] = getIdForType( n[0][i].getType() );
+      //d_var_types[n][ n[0][i] ] = getIdForType( n[0][i].getType() );
       var_bound[ n[0][i] ] = n;
     }
   }
@@ -403,6 +411,18 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
     }
   }
 
+}
+int SortInference::getSortId( Node n ) {
+  Node op = n.getKind()==kind::APPLY_UF ? n.getOperator() : n;
+  return getRepresentative( d_op_return_types[op] );
+}
+
+int SortInference::getSortId( Node f, Node v ) {
+  return getRepresentative( d_var_types[f][v] );
+}
+
+void SortInference::setSkolemVar( Node f, Node v, Node sk ){
+  d_op_return_types[sk] = getSortId( f, v );
 }
 
 }

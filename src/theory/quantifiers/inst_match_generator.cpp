@@ -41,6 +41,13 @@ InstMatchGenerator::InstMatchGenerator( std::vector< Node >& pats, QuantifiersEn
   }
 }
 
+void InstMatchGenerator::setActiveAdd(){
+  d_active_add = true;
+  if( !d_children.empty() ){
+    d_children[d_children.size()-1]->setActiveAdd();
+  }
+}
+
 void InstMatchGenerator::initializePatterns( std::vector< Node >& pats, QuantifiersEngine* qe ){
   int childMatchPolicy = d_matchPolicy==MATCH_GEN_EFFICIENT_E_MATCH ? 0 : d_matchPolicy;
   for( int i=0; i<(int)pats.size(); i++ ){
@@ -52,6 +59,7 @@ void InstMatchGenerator::initializePatterns( std::vector< Node >& pats, Quantifi
 }
 
 void InstMatchGenerator::initializePattern( Node pat, QuantifiersEngine* qe ){
+  d_active_add = false;
   Debug("inst-match-gen") << "Pattern term is " << pat << std::endl;
   Assert( pat.hasAttribute(InstConstantAttribute()) );
   d_pattern = pat;
@@ -136,9 +144,9 @@ void InstMatchGenerator::initializePattern( Node pat, QuantifiersEngine* qe ){
 }
 
 /** get match (not modulo equality) */
-bool InstMatchGenerator::getMatch( Node t, InstMatch& m, QuantifiersEngine* qe ){
+bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngine* qe ){
   Debug("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
-                    << m.size() << ")" << ", " << d_children.size() << std::endl;
+                    << m << ")" << ", " << d_children.size() << std::endl;
   Assert( !d_match_pattern.isNull() );
   if( qe->d_optMatchIgnoreModelBasis && t.getAttribute(ModelBasisAttribute()) ){
     return true;
@@ -191,7 +199,7 @@ bool InstMatchGenerator::getMatch( Node t, InstMatch& m, QuantifiersEngine* qe )
     int index = 0;
     while( index>=0 && index<(int)d_children.size() ){
       partial.push_back( InstMatch( &partial[index] ) );
-      if( d_children[index]->getNextMatch2( partial[index+1], qe ) ){
+      if( d_children[index]->getNextMatch2( f, partial[index+1], qe ) ){
         index++;
       }else{
         d_children[index]->d_cg->reset( reps[index] );
@@ -203,15 +211,22 @@ bool InstMatchGenerator::getMatch( Node t, InstMatch& m, QuantifiersEngine* qe )
       }
     }
     if( index>=0 ){
-      m = partial.back();
-      return true;
+      if( d_children.empty() && d_active_add ){
+        Trace("active-add") << "Active Adding instantiation " << partial.back() << std::endl;
+        bool succ = qe->addInstantiation( f, partial.back() );
+        Trace("active-add") << "Success = " << succ << std::endl;
+        return succ;
+      }else{
+        m = partial.back();
+        return true;
+      }
     }else{
       return false;
     }
   }
 }
 
-bool InstMatchGenerator::getNextMatch2( InstMatch& m, QuantifiersEngine* qe, bool saveMatched ){
+bool InstMatchGenerator::getNextMatch2( Node f, InstMatch& m, QuantifiersEngine* qe, bool saveMatched ){
   bool success = false;
   Node t;
   do{
@@ -219,7 +234,7 @@ bool InstMatchGenerator::getNextMatch2( InstMatch& m, QuantifiersEngine* qe, boo
     t = d_cg->getNextCandidate();
     //if t not null, try to fit it into match m
     if( !t.isNull() && t.getType()==d_match_pattern.getType() ){
-      success = getMatch( t, m, qe );
+      success = getMatch( f, t, m, qe );
     }
   }while( !success && !t.isNull() );
   if (saveMatched) m.d_matched = t;
@@ -315,7 +330,7 @@ void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
   }
 }
 
-bool InstMatchGenerator::getNextMatch( InstMatch& m, QuantifiersEngine* qe ){
+bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ){
   m.d_matched = Node::null();
   if( d_match_pattern.isNull() ){
     int index = (int)d_partial.size();
@@ -325,7 +340,7 @@ bool InstMatchGenerator::getNextMatch( InstMatch& m, QuantifiersEngine* qe ){
       }else{
         d_partial.push_back( InstMatch() );
       }
-      if( d_children[index]->getNextMatch( d_partial[index], qe ) ){
+      if( d_children[index]->getNextMatch( f, d_partial[index], qe ) ){
         index++;
       }else{
         d_children[index]->reset( Node::null(), qe );
@@ -344,7 +359,7 @@ bool InstMatchGenerator::getNextMatch( InstMatch& m, QuantifiersEngine* qe ){
       return false;
     }
   }else{
-    bool res = getNextMatch2( m, qe, true );
+    bool res = getNextMatch2( f, m, qe, true );
     Assert(!res || !m.d_matched.isNull());
     return res;
   }
@@ -356,16 +371,21 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
   //now, try to add instantiation for each match produced
   int addedLemmas = 0;
   InstMatch m;
-  while( getNextMatch( m, qe ) ){
-    //m.makeInternal( d_quantEngine->getEqualityQuery() );
-    m.add( baseMatch );
-    if( qe->addInstantiation( f, m ) ){
-      addedLemmas++;
-      if( qe->d_optInstLimitActive && qe->d_optInstLimit<=0 ){
-        return addedLemmas;
+  while( getNextMatch( f, m, qe ) ){
+    //if( d_active_add ){
+    //  std::cout << "should not add at top level." << std::endl;
+    //}
+    if( !d_active_add ){
+      //m.makeInternal( d_quantEngine->getEqualityQuery() );
+      m.add( baseMatch );
+      if( qe->addInstantiation( f, m ) ){
+        addedLemmas++;
+        if( qe->d_optInstLimitActive && qe->d_optInstLimit<=0 ){
+          return addedLemmas;
+        }
       }
+      m.clear();
     }
-    m.clear();
   }
   //return number of lemmas added
   return addedLemmas;
@@ -375,7 +395,7 @@ int InstMatchGenerator::addTerm( Node f, Node t, QuantifiersEngine* qe ){
   Assert( options::eagerInstQuant() );
   if( !d_match_pattern.isNull() ){
     InstMatch m;
-    if( getMatch( t, m, qe ) ){
+    if( getMatch( f, t, m, qe ) ){
       if( qe->addInstantiation( f, m ) ){
         return 1;
       }
@@ -473,7 +493,7 @@ int InstMatchGeneratorMulti::addInstantiations( Node f, InstMatch& baseMatch, Qu
     Debug("smart-multi-trigger") << "Calculate matches " << i << std::endl;
     std::vector< InstMatch > newMatches;
     InstMatch m;
-    while( d_children[i]->getNextMatch( m, qe ) ){
+    while( d_children[i]->getNextMatch( f, m, qe ) ){
       m.makeRepresentative( qe );
       newMatches.push_back( InstMatch( &m ) );
       m.clear();
@@ -595,7 +615,7 @@ int InstMatchGeneratorMulti::addTerm( Node f, Node t, QuantifiersEngine* qe ){
     if( ((InstMatchGenerator*)d_children[i])->d_match_pattern.getOperator()==t.getOperator() ){
       InstMatch m;
       //if it produces a match, then process it with the rest
-      if( ((InstMatchGenerator*)d_children[i])->getMatch( t, m, qe ) ){
+      if( ((InstMatchGenerator*)d_children[i])->getMatch( f, t, m, qe ) ){
         processNewMatch( qe, m, i, addedLemmas );
       }
     }

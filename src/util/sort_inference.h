@@ -65,6 +65,10 @@ public:
   ~SortInference(){}
 
   void simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  int getSortId( Node n );
+  int getSortId( Node f, Node v );
+  //set that sk is the skolem variable of v for quantifier f
+  void setSkolemVar( Node f, Node v, Node sk );
 };
 
 }

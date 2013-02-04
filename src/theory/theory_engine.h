@@ -41,6 +41,7 @@
 #include "util/hash.h"
 #include "util/cache.h"
 #include "util/cvc4_assert.h"
+#include "util/sort_inference.h"
 #include "theory/ite_simplifier.h"
 #include "theory/unconstrained_simplifier.h"
 #include "theory/uf/equality_engine.h"
@@ -422,6 +423,9 @@ class TheoryEngine {
 
   RemoveITE& d_iteRemover;
 
+  /** sort inference module */
+  SortInference d_sortInfer;
+
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
 
@@ -732,6 +736,7 @@ public:
 
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 
+  SortInference* getSortInference() { return &d_sortInfer; }
 private:
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 public:

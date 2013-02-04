@@ -40,6 +40,7 @@ d_quantEngine( qe ), d_f( f ){
         d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
       }else{
         d_mg = new InstMatchGenerator( d_nodes[0], qe, matchOption );
+        d_mg->setActiveAdd();
       }
     }else{
       d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, matchOption );
@@ -59,7 +60,7 @@ d_quantEngine( qe ), d_f( f ){
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
-    Debug("multi-trigger") << "Multi-trigger " << (*this) << std::endl;
+    Trace("multi-trigger") << "Multi-trigger " << (*this) << " for " << f << std::endl;
     //Notice() << "Multi-trigger for " << f << " : " << std::endl;
     //Notice() << "   " << (*this) << std::endl;
     ++(qe->d_statistics.d_multi_triggers);
@@ -80,14 +81,14 @@ void Trigger::reset( Node eqc ){
   d_mg->reset( eqc, d_quantEngine );
 }
 
-bool Trigger::getNextMatch( InstMatch& m ){
-  bool retVal = d_mg->getNextMatch( m, d_quantEngine );
+bool Trigger::getNextMatch( Node f, InstMatch& m ){
+  bool retVal = d_mg->getNextMatch( f, m, d_quantEngine );
   return retVal;
 }
 
-bool Trigger::getMatch( Node t, InstMatch& m ){
+bool Trigger::getMatch( Node f, Node t, InstMatch& m ){
   //FIXME: this assumes d_mg is an inst match generator
-  return ((InstMatchGenerator*)d_mg)->getMatch( t, m, d_quantEngine );
+  return ((InstMatchGenerator*)d_mg)->getMatch( f, t, m, d_quantEngine );
 }
 
 int Trigger::addTerm( Node t ){
@@ -115,6 +116,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
     temp.insert( temp.begin(), nodes.begin(), nodes.end() );
     std::map< Node, bool > vars;
     std::map< Node, std::vector< Node > > patterns;
+    size_t varCount = 0;
     for( int i=0; i<(int)temp.size(); i++ ){
       bool foundVar = false;
       qe->getTermDatabase()->computeVarContains( temp[i] );
@@ -122,6 +124,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
         Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
         if( v.getAttribute(InstConstantAttribute())==f ){
           if( vars.find( v )==vars.end() ){
+            varCount++;
             vars[ v ] = true;
             foundVar = true;
           }
@@ -134,32 +137,40 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
           patterns[ v ].push_back( temp[i] );
         }
       }
-    }
-    //now, minimalize the trigger
-    for( int i=0; i<(int)trNodes.size(); i++ ){
-      bool keepPattern = false;
-      Node n = trNodes[i];
-      for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
-        Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
-        if( patterns[v].size()==1 ){
-          keepPattern = true;
-          break;
-        }
+      if( varCount==f[0].getNumChildren() ){
+        break;
       }
-      if( !keepPattern ){
-        //remove from pattern vector
+    }
+    if( varCount<f[0].getNumChildren() ){
+      //do not generate multi-trigger if it does not contain all variables
+      return NULL;
+    }else{
+      //now, minimize the trigger
+      for( int i=0; i<(int)trNodes.size(); i++ ){
+        bool keepPattern = false;
+        Node n = trNodes[i];
         for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
           Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
-          for( int k=0; k<(int)patterns[v].size(); k++ ){
-            if( patterns[v][k]==n ){
-              patterns[v].erase( patterns[v].begin() + k, patterns[v].begin() + k + 1 );
-              break;
-            }
+          if( patterns[v].size()==1 ){
+            keepPattern = true;
+            break;
           }
         }
-        //remove from trigger nodes
-        trNodes.erase( trNodes.begin() + i, trNodes.begin() + i + 1 );
-        i--;
+        if( !keepPattern ){
+          //remove from pattern vector
+          for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ n ].size(); j++ ){
+            Node v = qe->getTermDatabase()->d_var_contains[ n ][j];
+            for( int k=0; k<(int)patterns[v].size(); k++ ){
+              if( patterns[v][k]==n ){
+                patterns[v].erase( patterns[v].begin() + k, patterns[v].begin() + k + 1 );
+                break;
+              }
+            }
+          }
+          //remove from trigger nodes
+          trNodes.erase( trNodes.begin() + i, trNodes.begin() + i + 1 );
+          i--;
+        }
       }
     }
   }else{
@@ -322,16 +333,16 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     qe->getTermDatabase()->filterInstances( temp );
     if( temp.size()!=patTerms2.size() ){
-      Debug("trigger-filter-instance") << "Filtered an instance: " << std::endl;
-      Debug("trigger-filter-instance") << "Old: ";
+      Trace("trigger-filter-instance") << "Filtered an instance: " << std::endl;
+      Trace("trigger-filter-instance") << "Old: ";
       for( int i=0; i<(int)patTerms2.size(); i++ ){
-        Debug("trigger-filter-instance") << patTerms2[i] << " ";
+        Trace("trigger-filter-instance") << patTerms2[i] << " ";
       }
-      Debug("trigger-filter-instance") << std::endl << "New: ";
+      Trace("trigger-filter-instance") << std::endl << "New: ";
       for( int i=0; i<(int)temp.size(); i++ ){
-        Debug("trigger-filter-instance") << temp[i] << " ";
+        Trace("trigger-filter-instance") << temp[i] << " ";
       }
-      Debug("trigger-filter-instance") << std::endl;
+      Trace("trigger-filter-instance") << std::endl;
     }
     if( tstrt==TS_ALL ){
       patTerms.insert( patTerms.begin(), temp.begin(), temp.end() );

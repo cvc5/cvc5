@@ -2641,8 +2641,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::sortInference() ){
     //sort inference technique
-    SortInference si;
-    si.simplify( d_assertionsToPreprocess );
+    d_smt.d_theoryEngine->getSortInference()->simplify( d_assertionsToPreprocess );
   }
 
   dumpAssertions("pre-simplify", d_assertionsToPreprocess);

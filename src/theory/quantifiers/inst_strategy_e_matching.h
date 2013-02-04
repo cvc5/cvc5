@@ -80,12 +80,14 @@ private:
   std::map< Node, bool > d_is_single_trigger;
   std::map< Node, bool > d_single_trigger_gen;
   std::map< Node, bool > d_made_multi_trigger;
+  //processed trigger this round
+  std::map< Node, std::map< inst::Trigger*, bool > > d_processed_trigger;
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node f );
+  void generateTriggers( Node f, Theory::Effort effort, int e, int & status );
 public:
   /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
       rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)

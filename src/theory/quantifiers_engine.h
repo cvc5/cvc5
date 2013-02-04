@@ -119,6 +119,10 @@ private:
   rrinst::TriggerTrie* d_rr_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
+  /** statistics for debugging */
+  std::map< Node, int > d_total_inst_debug;
+  std::map< Node, int > d_temp_inst_debug;
+  int d_total_inst_count_debug;
 private:
   KEEP_STATISTIC(TimerStat, d_time, "theory::QuantifiersEngine::time");
 public:

@@ -27,7 +27,6 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 using namespace CVC4::theory::quantifiers;
 
-#define USE_SINGLE_TRIGGER_BEFORE_MULTI_TRIGGER
 //#define MULTI_TRIGGER_FULL_EFFORT_HALF
 #define MULTI_MULTI_TRIGGERS
 
@@ -65,18 +64,13 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
     //Notice() << "Try user-provided patterns..." << std::endl;
     for( int i=0; i<(int)d_user_gen[f].size(); i++ ){
       bool processTrigger = true;
-      if( effort!=Theory::EFFORT_LAST_CALL && d_user_gen[f][i]->isMultiTrigger() ){
-//#ifdef MULTI_TRIGGER_FULL_EFFORT_HALF
-//        processTrigger = d_counter[f]%2==0;
-//#endif
-      }
       if( processTrigger ){
         //if( d_user_gen[f][i]->isMultiTrigger() )
-          //Notice() << "  Process (user) " << (*d_user_gen[f][i]) << " for " << f << "..." << std::endl;
+          Trace("process-trigger") << "  Process (user) " << (*d_user_gen[f][i]) << "..." << std::endl;
         InstMatch baseMatch;
         int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
         //if( d_user_gen[f][i]->isMultiTrigger() )
-          //Notice() << "  Done, numInst = " << numInst << "." << std::endl;
+          Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
         d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_user_patterns += numInst;
         if( d_user_gen[f][i]->isMultiTrigger() ){
           d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
@@ -125,6 +119,7 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
       itt->first->reset( Node::null() );
     }
   }
+  d_processed_trigger.clear();
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
@@ -134,6 +129,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
   if( e<peffort ){
     return STATUS_UNFINISHED;
   }else{
+    int status = STATUS_UNKNOWN;
     bool gen = false;
     if( e==peffort ){
       if( d_counter.find( f )==d_counter.end() ){
@@ -147,7 +143,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       gen = true;
     }
     if( gen ){
-      generateTriggers( f );
+      generateTriggers( f, effort, e, status );
     }
     Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
     //Notice() << "Try auto-generated triggers..." << std::endl;
@@ -155,18 +151,14 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       Trigger* tr = itt->first;
       if( tr ){
         bool processTrigger = itt->second;
-        if( effort!=Theory::EFFORT_LAST_CALL && tr->isMultiTrigger() ){
-#ifdef MULTI_TRIGGER_FULL_EFFORT_HALF
-          processTrigger = d_counter[f]%2==0;
-#endif
-        }
-        if( processTrigger ){
+        if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
+          d_processed_trigger[f][tr] = true;
           //if( tr->isMultiTrigger() )
-            Debug("quant-uf-strategy-auto-gen-triggers") << "  Process " << (*tr) << "..." << std::endl;
+            Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
           InstMatch baseMatch;
           int numInst = tr->addInstantiations( baseMatch );
           //if( tr->isMultiTrigger() )
-            Debug("quant-uf-strategy-auto-gen-triggers") << "  Done, numInst = " << numInst << "." << std::endl;
+            Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
           if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
             d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
           }else{
@@ -181,24 +173,24 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
     }
     Debug("quant-uf-strategy") << "done." << std::endl;
     //Notice() << "done" << std::endl;
+    return status;
   }
-  return STATUS_UNKNOWN;
 }
 
-void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
-  Debug("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
+void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effort, int e, int & status ){
+  Trace("auto-gen-trigger-debug") << "Generate trigger for " << f << std::endl;
   if( d_patTerms[0].find( f )==d_patTerms[0].end() ){
     //determine all possible pattern terms based on trigger term selection strategy d_tr_strategy
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
     Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, true );
-    Debug("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << std::endl;
-    Debug("auto-gen-trigger") << "   ";
+    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << std::endl;
+    Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){
-      Debug("auto-gen-trigger") << patTermsF[i] << " ";
+      Trace("auto-gen-trigger") << patTermsF[i] << " ";
     }
-    Debug("auto-gen-trigger") << std::endl;
+    Trace("auto-gen-trigger") << std::endl;
     //extend to literal matching (if applicable)
     d_quantEngine->getPhaseReqTerms( f, patTermsF );
     //sort into single/multi triggers
@@ -214,23 +206,22 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
     }
     d_made_multi_trigger[f] = false;
-    Debug("auto-gen-trigger") << "Single triggers for " << f << " : " << std::endl;
-    Debug("auto-gen-trigger") << "   ";
+    Trace("auto-gen-trigger") << "Single triggers for " << f << " : " << std::endl;
+    Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)d_patTerms[0][f].size(); i++ ){
-      Debug("auto-gen-trigger") << d_patTerms[0][f][i] << " ";
+      Trace("auto-gen-trigger") << d_patTerms[0][f][i] << " ";
     }
-    Debug("auto-gen-trigger") << std::endl;
-    Debug("auto-gen-trigger") << "Multi-trigger term pool for " << f << " : " << std::endl;
-    Debug("auto-gen-trigger") << "   ";
+    Trace("auto-gen-trigger") << std::endl;
+    Trace("auto-gen-trigger") << "Multi-trigger term pool for " << f << " : " << std::endl;
+    Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)d_patTerms[1][f].size(); i++ ){
-      Debug("auto-gen-trigger") << d_patTerms[1][f][i] << " ";
+      Trace("auto-gen-trigger") << d_patTerms[1][f][i] << " ";
     }
-    Debug("auto-gen-trigger") << std::endl;
+    Trace("auto-gen-trigger") << std::endl;
   }
 
   //populate candidate pattern term vector for the current trigger
   std::vector< Node > patTerms;
-#ifdef USE_SINGLE_TRIGGER_BEFORE_MULTI_TRIGGER
   //try to add single triggers first
   for( int i=0; i<(int)d_patTerms[0][f].size(); i++ ){
     if( !d_single_trigger_gen[d_patTerms[0][f][i]] ){
@@ -241,13 +232,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
   if( patTerms.empty() ){
     patTerms.insert( patTerms.begin(), d_patTerms[1][f].begin(), d_patTerms[1][f].end() );
   }
-#else
-  patTerms.insert( patTerms.begin(), d_patTerms[0][f].begin(), d_patTerms[0][f].end() );
-  patTerms.insert( patTerms.begin(), d_patTerms[1][f].begin(), d_patTerms[1][f].end() );
-#endif
 
   if( !patTerms.empty() ){
-    Debug("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
+    Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
     //sort terms based on relevance
     if( d_rlv_strategy==RELEVANCE_DEFAULT ){
       sortQuantifiersForSymbol sqfs;
@@ -273,6 +260,15 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                                options::smartTriggers() );
       d_single_trigger_gen[ patTerms[0] ] = true;
     }else{
+      //only generate multi trigger if effort level > 5, or if no single triggers exist
+      if( !d_patTerms[0][f].empty() ){
+        if( e<=5 ){
+          status = STATUS_UNFINISHED;
+          return;
+        }else{
+          Trace("multi-trigger-debug") << "Resort to choosing multi-triggers..." << std::endl;
+        }
+      }
       //if we are re-generating triggers, shuffle based on some method
       if( d_made_multi_trigger[f] ){
 #ifndef MULTI_MULTI_TRIGGERS
