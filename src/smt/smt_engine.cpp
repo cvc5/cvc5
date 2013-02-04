@@ -2029,7 +2029,7 @@ void SmtEnginePrivate::doMiplibTrick() {
     }
     Debug("miplib") << "for " << *i << endl;
     bool eligible = true;
-    map<TNode, TNode> vars;
+    map<Node, Node> vars;
     map<TNode, uint64_t> marks;
     map<TNode, vector<Rational> > coef;
     map<Node, vector<Rational> > checks;
@@ -2103,7 +2103,7 @@ void SmtEnginePrivate::doMiplibTrick() {
         Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
         TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
         const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        TNode& v = vars[pos];
+        Node& v = vars[pos];
         if(v.isNull()) {
           v = var;
         } else if(v != var) {
@@ -2158,7 +2158,7 @@ void SmtEnginePrivate::doMiplibTrick() {
         Debug("miplib") << "  x:" << x << "  " << xneg << endl;
         TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
         const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        TNode& v = vars[x];
+        Node& v = vars[x];
         if(v.isNull()) {
           v = var;
         } else if(v != var) {
@@ -2220,7 +2220,21 @@ void SmtEnginePrivate::doMiplibTrick() {
                 stringstream ss;
                 ss << "mipvar_" << *ii;
                 Node newVar = nm->mkSkolem(ss.str(), nm->integerType(), "a variable introduced due to scrubbing a miplib encoding", NodeManager::SKOLEM_EXACT_NAME);
-                d_assertionsToCheck.push_back(Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero).andNode(nm->mkNode(kind::LEQ, newVar, one))));
+                Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
+                Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+                d_assertionsToCheck.push_back(Rewriter::rewrite(geq.andNode(leq)));
+                SubstitutionMap nullMap(&d_fakeContext);
+                Theory::PPAssertStatus status CVC4_UNUSED;// just for assertions
+                status = d_smt.d_theoryEngine->solve(geq, nullMap);
+                Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
+                       "unexpected solution from arith's ppAssert()");
+                Assert(nullMap.empty(),
+                       "unexpected substitution from arith's ppAssert()");
+                status = d_smt.d_theoryEngine->solve(leq, nullMap);
+                Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
+                       "unexpected solution from arith's ppAssert()");
+                Assert(nullMap.empty(),
+                       "unexpected substitution from arith's ppAssert()");
                 d_smt.d_theoryEngine->getModel()->addSubstitution(*ii, newVar.eqNode(one));
                 newVars.push_back(newVar);
                 varRef = newVar;
@@ -2251,10 +2265,12 @@ void SmtEnginePrivate::doMiplibTrick() {
               //Warning() << "REPLACE         " << newAssertion[1] << endl;
               //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
               Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
-            } else if(options::arithMLTrickSubstitutions()) {
+            } else if((*j).first.getNumChildren() <= options::arithMLTrickSubstitutions()) {
               d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
+              Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
+            } else {
+              Debug("miplib") << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1] << " (threshold is " << options::arithMLTrickSubstitutions() << ")" << endl;
             }
-            Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
             newAssertion = Rewriter::rewrite(newAssertion);
             Debug("miplib") << "  " << newAssertion << endl;
             d_assertionsToCheck.push_back(newAssertion);

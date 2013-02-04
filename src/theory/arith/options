@@ -55,8 +55,8 @@ option arithMLTrick miplib-trick --enable-miplib-trick/--disable-miplib-trick bo
  turns on the preprocessing step of attempting to infer bounds on miplib problems
 /turns off the preprocessing step of attempting to infer bounds on miplib problems
 
-option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs bool :default true
- does top-level substitution for miplib 'tmp' vars
+option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs unsigned :default 1
+ do substitution for miplib 'tmp' vars if defined in <= N eliminated vars
 
 option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :default false :read-write
  turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
