@@ -395,6 +395,9 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
 
 void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cache)
 {
+  if (n.getKind()==FORALL || n.getKind()==EXISTS) {
+    return;
+  }
   if (cache.find(n) != cache.end()) {
     return;
   }
