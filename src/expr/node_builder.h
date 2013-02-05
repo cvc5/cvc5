@@ -1285,7 +1285,7 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
     return;
   }
 
-  bool realloced = false;
+  bool realloced CVC4_UNUSED = false;
   if(nb.d_nvMaxChildren > d_nvMaxChildren) {
     realloced = true;
     realloc(nb.d_nvMaxChildren);
