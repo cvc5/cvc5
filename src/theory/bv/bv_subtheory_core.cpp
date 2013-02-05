@@ -33,6 +33,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer)
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_assertions(c),
+    d_normalFormCache(), 
     d_slicer(slicer),
     d_isCoreTheory(c, true)
 {
@@ -97,6 +98,19 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
+Node CoreSolver::getBaseDecomposition(TNode a) {
+  if (d_normalFormCache.find(a) != d_normalFormCache.end()) {
+    return d_normalFormCache[a]; 
+  }
+
+  // otherwise we must compute the normal form
+  std::vector<Node> a_decomp;
+  d_slicer->getBaseDecomposition(a, a_decomp);
+  Node new_a = utils::mkConcat(a_decomp);
+  d_normalFormCache[a] = new_a;
+  return new_a; 
+}
+
 bool CoreSolver::decomposeFact(TNode fact) {
   Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;  
   // FIXME: are this the right things to assert? 
@@ -107,18 +121,13 @@ bool CoreSolver::decomposeFact(TNode fact) {
   TNode eq = fact.getKind() == kind::NOT? fact[0] : fact; 
 
   TNode a = eq[0];
-  TNode b = eq[1]; 
-  std::vector<Node> a_decomp;
-  std::vector<Node> b_decomp;
-
-  d_slicer->getBaseDecomposition(a, a_decomp);
-  d_slicer->getBaseDecomposition(b, b_decomp);
-
-  Assert (a_decomp.size() == b_decomp.size());
+  TNode b = eq[1];
+  Node new_a = getBaseDecomposition(a);
+  Node new_b = getBaseDecomposition(b); 
   
-  Node new_a = utils::mkConcat(a_decomp);
-  Node new_b = utils::mkConcat(b_decomp);
-
+  Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
+          utils::getSize(new_a) == utils::getSize(a)); 
+  
   NodeManager* nm = NodeManager::currentNM();
   Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
   Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
@@ -134,10 +143,15 @@ bool CoreSolver::decomposeFact(TNode fact) {
   if (fact.getKind() == kind::EQUAL) {
     // assert the individual equalities as well
     //    a_i == b_i
-    for (unsigned i = 0; i < a_decomp.size(); ++i) {
-      Node eq_i = nm->mkNode(kind::EQUAL, a_decomp[i], b_decomp[i]);
-      ok = assertFact(eq_i, fact);
-      if (!ok) return false; 
+    if (new_a.getKind() == kind::BITVECTOR_CONCAT &&
+        new_b.getKind() == kind::BITVECTOR_CONCAT) {
+      
+      Assert (new_a.getNumChildren() == new_b.getNumChildren()); 
+      for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
+        Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
+        ok = assertFact(eq_i, fact);
+        if (!ok) return false;
+      }
     }
   }
   return true; 

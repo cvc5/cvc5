@@ -220,10 +220,13 @@ void UnionFind::merge(TermId t1, TermId t2) {
   d_statistics.d_numRepresentatives += -1; 
 }
 
-TermId UnionFind::find(TermId id) const {
+TermId UnionFind::find(TermId id) {
   TermId repr = getRepr(id); 
-  if (repr != UndefinedId)
-    return find(repr);
+  if (repr != UndefinedId) {
+    TermId find_id =  find(repr);
+    setRepr(id, find_id);
+    return find_id; 
+  }
   return id; 
 }
 /** 

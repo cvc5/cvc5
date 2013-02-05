@@ -212,7 +212,7 @@ public:
   TermId addTerm(Index bitwidth);
   void unionTerms(const ExtractTerm& t1, const ExtractTerm& t2); 
   void merge(TermId t1, TermId t2);
-  TermId find(TermId t1) const ; 
+  TermId find(TermId t1); 
   void split(TermId term, Index i);
 
   void getNormalForm(const ExtractTerm& term, NormalForm& nf);

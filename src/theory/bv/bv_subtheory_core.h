@@ -69,11 +69,13 @@ class CoreSolver : public SubtheorySolver {
 
   /** FIXME: for debugging purposes only */
   context::CDList<TNode> d_assertions;
+  __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> d_normalFormCache; 
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
 
   bool assertFact(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
+  Node getBaseDecomposition(TNode a); 
 public:
   bool isCoreTheory() {return d_isCoreTheory; }
   CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer);
