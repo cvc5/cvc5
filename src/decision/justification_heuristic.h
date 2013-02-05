@@ -137,8 +137,10 @@ public:
         return prop::undefSatLiteral;
       }
 
-      if(litDecision != undefSatLiteral)
+      if(litDecision != undefSatLiteral) {
+        d_prvsIndex = i;
         return litDecision;
+      }
     }
 
     Trace("decision") << "jh: Nothing to split on " << std::endl;
