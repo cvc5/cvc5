@@ -34,25 +34,26 @@ using namespace CVC4::theory::inst;
 Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool smartTriggers ) :
 d_quantEngine( qe ), d_f( f ){
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
+  Trace("trigger") << "Trigger for " << f << ": " << std::endl;
+  for( int i=0; i<(int)d_nodes.size(); i++ ){
+    Trace("trigger") << "   " << d_nodes[i] << std::endl;
+  }
+  Trace("trigger") << ", smart triggers = " << smartTriggers << std::endl;
   if( smartTriggers ){
     if( d_nodes.size()==1 ){
       if( isSimpleTrigger( d_nodes[0] ) ){
         d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
       }else{
-        d_mg = new InstMatchGenerator( d_nodes[0], qe, matchOption );
+        d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes[0], qe );
         d_mg->setActiveAdd();
       }
     }else{
       d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, matchOption );
     }
   }else{
-    d_mg = new InstMatchGenerator( d_nodes, qe, matchOption );
+    d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
+    d_mg->setActiveAdd();
   }
-  Trace("trigger") << "Trigger for " << f << ": " << std::endl;
-  for( int i=0; i<(int)d_nodes.size(); i++ ){
-    Trace("trigger") << "   " << d_nodes[i] << std::endl;
-  }
-  Trace("trigger") << std::endl;
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
       ++(qe->d_statistics.d_triggers);

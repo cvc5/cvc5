@@ -526,7 +526,7 @@ int ModelEngineBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
       //if applicable, try to add exceptions here
       if( !tr_terms.empty() ){
         //make a trigger for these terms, add instantiations
-        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms );
+        inst::Trigger* tr = inst::Trigger::mkTrigger( d_qe, f, tr_terms, 0, true, inst::Trigger::TR_MAKE_NEW, options::smartTriggers() );
         //Notice() << "Trigger = " << (*tr) << std::endl;
         tr->resetInstantiationRound();
         tr->reset( Node::null() );
