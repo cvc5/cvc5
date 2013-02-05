@@ -41,6 +41,8 @@ TESTS =	\
 	bug443.delta01.smt \
 	miplib.cvc \
 	miplib2.cvc \
+	miplib3.cvc \
+	miplib4.cvc \
 	miplibtrick.smt
 #	problem__003.smt2
 

@@ -2029,11 +2029,10 @@ void SmtEnginePrivate::doMiplibTrick() {
     }
     Debug("miplib") << "for " << *i << endl;
     bool eligible = true;
-    map<Node, Node> vars;
-    map<TNode, uint64_t> marks;
-    map<TNode, vector<Rational> > coef;
-    map<Node, vector<Rational> > checks;
-    map<TNode, vector<TNode> > asserts;
+    map<pair<Node, Node>, uint64_t> marks;
+    map<pair<Node, Node>, vector<Rational> > coef;
+    map<pair<Node, Node>, vector<Rational> > checks;
+    map<pair<Node, Node>, vector<TNode> > asserts;
     for(vector<TNode>::const_iterator j = assertions.begin(); j != assertions.end(); ++j) {
       Debug("miplib") << "  found: " << *j << endl;
       if((*j).getKind() != kind::IMPLIES) {
@@ -2093,24 +2092,11 @@ void SmtEnginePrivate::doMiplibTrick() {
           Debug("miplib") << "  --INELIGIBLE -- (couldn't find " << *i << " in conjunction)" << endl;
           break;
         }
-        /*
-        if(x > y) {
-          // symmetric
-          continue;
-        }
-        */
         sort(posv.begin(), posv.end());
-        Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
-        TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
+        const Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
+        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
+        const pair<Node, Node> pos_var(pos, var);
         const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        Node& v = vars[pos];
-        if(v.isNull()) {
-          v = var;
-        } else if(v != var) {
-          eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (wrong var " << v << " != " << var << ")" << endl;
-          break;
-        }
         uint64_t mark = 0;
         unsigned countneg = 0, thepos = 0;
         for(unsigned ii = 0; ii < pos.getNumChildren(); ++ii) {
@@ -2121,14 +2107,14 @@ void SmtEnginePrivate::doMiplibTrick() {
             mark |= (0x1 << ii);
           }
         }
-        if((marks[pos] & (1lu << mark)) != 0) {
+        if((marks[pos_var] & (1lu << mark)) != 0) {
           eligible = false;
           Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
           break;
         }
         Debug("miplib") << "mark is " << mark << " -- " << (1lu << mark) << endl;
-        marks[pos] |= (1lu << mark);
-        Debug("miplib") << "marks[" << pos << "] now " << marks[pos] << endl;
+        marks[pos_var] |= (1lu << mark);
+        Debug("miplib") << "marks[" << pos << "," << var << "] now " << marks[pos_var] << endl;
         if(countneg == pos.getNumChildren()) {
           if(constant != 0) {
             eligible = false;
@@ -2136,16 +2122,16 @@ void SmtEnginePrivate::doMiplibTrick() {
             break;
           }
         } else if(countneg == pos.getNumChildren() - 1) {
-          Assert(coef[pos].size() <= 6 && thepos < 6);
-          coef[pos].resize(6);
-          coef[pos][thepos] = constant;
+          Assert(coef[pos_var].size() <= 6 && thepos < 6);
+          coef[pos_var].resize(6);
+          coef[pos_var][thepos] = constant;
         } else {
-          if(checks[pos].size() <= mark) {
-            checks[pos].resize(mark + 1);
+          if(checks[pos_var].size() <= mark) {
+            checks[pos_var].resize(mark + 1);
           }
-          checks[pos][mark] = constant;
+          checks[pos_var][mark] = constant;
         }
-        asserts[pos].push_back(*j);
+        asserts[pos_var].push_back(*j);
       } else {
         TNode x = conj;
         if(x != *i && x != (*i).notNode()) {
@@ -2153,26 +2139,19 @@ void SmtEnginePrivate::doMiplibTrick() {
           Debug("miplib") << "  -- INELIGIBLE -- (x not present where I expect it)" << endl;
           break;
         }
-        bool xneg = (x.getKind() == kind::NOT);
+        const bool xneg = (x.getKind() == kind::NOT);
         x = xneg ? x[0] : x;
         Debug("miplib") << "  x:" << x << "  " << xneg << endl;
-        TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
+        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
+        const pair<Node, Node> x_var(x, var);
         const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        Node& v = vars[x];
-        if(v.isNull()) {
-          v = var;
-        } else if(v != var) {
-          eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (wrong var " << v << " != " << var << ")" << endl;
-          break;
-        }
         unsigned mark = (xneg ? 0 : 1);
-        if((marks[x] & (1u << mark)) != 0) {
+        if((marks[x_var] & (1u << mark)) != 0) {
           eligible = false;
           Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
           break;
         }
-        marks[x] |= (1u << mark);
+        marks[x_var] |= (1u << mark);
         if(xneg) {
           if(constant != 0) {
             eligible = false;
@@ -2180,39 +2159,43 @@ void SmtEnginePrivate::doMiplibTrick() {
             break;
           }
         } else {
-          Assert(coef[x].size() <= 6);
-          coef[x].resize(6);
-          coef[x][0] = constant;
-          if(checks[x].size() <= mark) {
-            checks[x].resize(mark + 1);
+          Assert(coef[x_var].size() <= 6);
+          coef[x_var].resize(6);
+          coef[x_var][0] = constant;
+          if(checks[x_var].size() <= mark) {
+            checks[x_var].resize(mark + 1);
           }
-          checks[x][mark] = constant;
+          checks[x_var][mark] = constant;
         }
-        asserts[x].push_back(*j);
+        asserts[x_var].push_back(*j);
       }
     }
     if(eligible) {
-      for(map<TNode, uint64_t>::const_iterator j = marks.begin(); j != marks.end(); ++j) {
-        unsigned numVars = (*j).first.getKind() == kind::AND ? (*j).first.getNumChildren() : 1;
+      for(map<pair<Node, Node>, uint64_t>::const_iterator j = marks.begin(); j != marks.end(); ++j) {
+        const TNode pos = (*j).first.first;
+        const TNode var = (*j).first.second;
+        const pair<Node, Node>& pos_var = (*j).first;
+        const uint64_t mark = (*j).second;
+        const unsigned numVars = pos.getKind() == kind::AND ? pos.getNumChildren() : 1;
         uint64_t expected = (uint64_t(1) << (1 << numVars)) - 1;
         expected = (expected == 0) ? -1 : expected;// fix for overflow
-        Debug("miplib") << "[" << (*j).first << "] => " << hex << (*j).second << " expect " << expected << dec << endl;
-        Assert((*j).first.getKind() == kind::AND || (*j).first.isVar());
-        if((*j).second != expected) {
-          Debug("miplib") << "  -- INELIGIBLE " << (*j).first << " -- (insufficiently marked, got " << (*j).second << " for " << numVars << " vars, expected " << expected << endl;
+        Debug("miplib") << "[" << pos << "] => " << hex << mark << " expect " << expected << dec << endl;
+        Assert(pos.getKind() == kind::AND || pos.isVar());
+        if(mark != expected) {
+          Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (insufficiently marked, got " << mark << " for " << numVars << " vars, expected " << expected << endl;
         } else {
-          if(false) { //checks[(*j).first] != coef[(*j).first][0] + coef[(*j).first][1]) {
-            Debug("miplib") << "  -- INELIGIBLE " << (*j).first << " -- (not linear combination)" << endl;
+          if(false) { //checks[pos] != coef[pos][0] + coef[pos][1]) {
+            Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (not linear combination)" << endl;
           } else {
-            Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << (*j).first << " --" << endl;
+            Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << pos << " --" << endl;
             vector<Node> newVars;
             expr::NodeSelfIterator ii, iiend;
-            if((*j).first.getKind() == kind::AND) {
-              ii = (*j).first.begin();
-              iiend = (*j).first.end();
+            if(pos.getKind() == kind::AND) {
+              ii = pos.begin();
+              iiend = pos.end();
             } else {
-              ii = expr::NodeSelfIterator::self((*j).first);
-              iiend = expr::NodeSelfIterator::selfEnd((*j).first);
+              ii = expr::NodeSelfIterator::self(pos);
+              iiend = expr::NodeSelfIterator::selfEnd(pos);
             }
             for(; ii != iiend; ++ii) {
               Node& varRef = intVars[*ii];
@@ -2248,24 +2231,24 @@ void SmtEnginePrivate::doMiplibTrick() {
               }
             }
             Node sum;
-            if((*j).first.getKind() == kind::AND) {
+            if(pos.getKind() == kind::AND) {
               NodeBuilder<> sumb(kind::PLUS);
-              for(size_t ii = 0; ii < (*j).first.getNumChildren(); ++ii) {
-                sumb << nm->mkNode(kind::MULT, nm->mkConst(coef[(*j).first][ii]), newVars[ii]);
+              for(size_t ii = 0; ii < pos.getNumChildren(); ++ii) {
+                sumb << nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][ii]), newVars[ii]);
               }
               sum = sumb;
             } else {
-              sum = nm->mkNode(kind::MULT, nm->mkConst(coef[(*j).first][0]), newVars[0]);
+              sum = nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
             }
-            Debug("miplib") << "vars[] " << vars[(*j).first] << endl
+            Debug("miplib") << "vars[] " << var << endl
                             << "    eq " << Rewriter::rewrite(sum) << endl;
-            Node newAssertion = vars[(*j).first].eqNode(Rewriter::rewrite(sum));
+            Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
             if(d_topLevelSubstitutions.hasSubstitution(newAssertion[0])) {
               //Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
               //Warning() << "REPLACE         " << newAssertion[1] << endl;
               //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
               Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
-            } else if((*j).first.getNumChildren() <= options::arithMLTrickSubstitutions()) {
+            } else if(pos.getNumChildren() <= options::arithMLTrickSubstitutions()) {
               d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
               Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
             } else {
@@ -2275,7 +2258,7 @@ void SmtEnginePrivate::doMiplibTrick() {
             Debug("miplib") << "  " << newAssertion << endl;
             d_assertionsToCheck.push_back(newAssertion);
             Debug("miplib") << "  assertions to remove: " << endl;
-            for(vector<TNode>::const_iterator k = asserts[(*j).first].begin(); k != asserts[(*j).first].end(); ++k) {
+            for(vector<TNode>::const_iterator k = asserts[pos_var].begin(), k_end = asserts[pos_var].end(); k != k_end; ++k) {
               Debug("miplib") << "    " << *k << endl;
               removeAssertions.insert((*k).getId());
             }
