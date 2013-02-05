@@ -92,7 +92,7 @@ void Bitblaster::bbAtom(TNode node) {
   // make sure it is marked as an atom
   addAtom(node); 
 
-  BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
+  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numAtoms;
   // the bitblasted definition of the atom
   Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
@@ -115,7 +115,7 @@ void Bitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  BVDebug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
+  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numTerms;
 
   d_termBBStrategies[node.getKind()] (node, bits,this);
@@ -195,8 +195,8 @@ bool Bitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
   
-  BVDebug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat asserting node: " << atom <<"\n";
-  BVDebug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat with literal:   " << markerLit << "\n";  
+  Debug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat asserting node: " << atom <<"\n";
+  Debug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat with literal:   " << markerLit << "\n";  
 
   SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -221,7 +221,7 @@ bool Bitblaster::solve(bool quick_solve) {
       Trace("bitvector") << "     " << d_cnfStream->getNode(*it) << "\n";
     }
   }
-  BVDebug("bitvector") << "Bitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n"; 
+  Debug("bitvector") << "Bitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n"; 
   return SAT_VALUE_TRUE == d_satSolver->solve(); 
 }
 
@@ -412,6 +412,23 @@ bool Bitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end(); 
 }
 
+bool Bitblaster::hasValue(TNode a) {
+  Assert (d_termCache.find(a) != d_termCache.end()); 
+  Bits bits = d_termCache[a];
+  for (int i = bits.size() -1; i >= 0; --i) {
+    SatValue bit_value; 
+    if (d_cnfStream->hasLiteral(bits[i])) { 
+      SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
+      bit_value = d_satSolver->value(bit);
+      if (bit_value == SAT_VALUE_UNKNOWN)
+        return false; 
+    } else {
+      return false; 
+    }
+  }
+  return true; 
+}
+
 Node Bitblaster::getVarValue(TNode a) {
   Assert (d_termCache.find(a) != d_termCache.end()); 
   Bits bits = d_termCache[a];
@@ -436,7 +453,7 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
   __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) {
+    if ((Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) && hasValue(var))  {
       Node const_value = getVarValue(var);
       Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
                                 << var << " "

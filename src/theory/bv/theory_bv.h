@@ -47,9 +47,11 @@ class TheoryBV : public Theory {
 
   Slicer         d_slicer;
   
+  context::CDQueue<TNode> d_bitblastAssertionsQueue;
+
   BitblastSolver d_bitblastSolver;
   CoreSolver d_coreSolver;
-
+  
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);

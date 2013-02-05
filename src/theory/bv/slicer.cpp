@@ -481,6 +481,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     current_low += current_size;
     decomp.push_back(current); 
   }
+  // cache the result
 
   Debug("bv-slicer") << "as [";
   for (unsigned i = 0; i < decomp.size(); ++i) {

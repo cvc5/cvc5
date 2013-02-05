@@ -229,7 +229,8 @@ public:
 class Slicer {
   __gnu_cxx::hash_map<TermId, TNode> d_idToNode;
   __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> d_nodeToId;
-  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_coreTermCache; 
+  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_coreTermCache;
+  __gnu_cxx::hash_map<TNode, std::vector<Node>, TNodeHashFunction> d_decompositionCache; 
   UnionFind d_unionFind;
   ExtractTerm registerTerm(TNode node); 
 public:

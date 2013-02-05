@@ -157,7 +157,14 @@ bool CoreSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Eff
     if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
       d_isCoreTheory = false; 
     }
-    ok = decomposeFact(fact);
+    
+    // only reason about equalities
+    // FIXME: should we slice when we have the terms in inequalities?
+    if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
+      ok = decomposeFact(fact);
+    } else {
+      ok = assertFact(fact, fact); 
+    }
     if (!ok)
       return false; 
   }

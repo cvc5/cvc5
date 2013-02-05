@@ -41,6 +41,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
     d_slicer(),
+    d_bitblastAssertionsQueue(c),
     d_bitblastSolver(c, this),
     d_coreSolver(c, this, &d_slicer),
     d_statistics(),
@@ -117,6 +118,7 @@ void TheoryBV::check(Effort e)
     Assertion assertion = get();
     TNode fact = assertion.assertion;
     new_assertions.push_back(fact);
+    d_bitblastAssertionsQueue.push_back(fact); 
     Debug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n";
   }
 
@@ -128,6 +130,9 @@ void TheoryBV::check(Effort e)
   if (!inConflict() && !d_coreSolver.isCoreTheory()) {
     // sending assertions to the bitblast solver if it's not just core theory 
     d_bitblastSolver.addAssertions(new_assertions, e);
+  } else {
+  // sending assertions to the bitblast solver if it's not just core theory 
+    d_bitblastSolver.addAssertions(new_assertions, EFFORT_STANDARD);
   }
   
   if (inConflict()) {
@@ -140,7 +145,6 @@ void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   //  Assert (fullModel); // can only query full model
   d_coreSolver.collectModelInfo(m); 
   d_bitblastSolver.collectModelInfo(m); 
-  
 }
 
 void TheoryBV::propagate(Effort e) {
