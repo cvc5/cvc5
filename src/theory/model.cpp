@@ -78,7 +78,23 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
 Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
 {
   if(n.getKind() == kind::EXISTS || n.getKind() == kind::FORALL) {
-    CheckArgument(d_equalityEngine.hasTerm(n), n, "Cannot get the model value for a previously-unseen quantifier: %s", n.toString().c_str());
+    // We should have terms, thanks to TheoryQuantifiers::collectModelInfo().
+    // However, if the Decision Engine stops us early, there might be a
+    // quantifier that isn't assigned.  In conjunction with miniscoping, this
+    // might lead to a perfectly good model.  Think of
+    //     ASSERT FORALL(x) : p OR x=5
+    // The p is pulled out by miniscoping, and set to TRUE by the decision
+    // engine, then the quantifier's value in the model doesn't matter, so the
+    // Decision Engine stops.  So even though the top-level quantifier was
+    // asserted, it can't be checked directly: first, it doesn't "exist" in
+    // non-miniscoped form, and second, no quantifiers have been asserted, so
+    // none is in the model.  We used to fail an assertion here, but that's
+    // no good.  Instead, return the quantifier itself.  If we're in
+    // checkModel(), and the quantifier actually matters, we'll get an
+    // assert-fail since the quantifier isn't a constant.
+    if(!d_equalityEngine.hasTerm(n)) {
+      return n;
+    }
   } else {
     if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();

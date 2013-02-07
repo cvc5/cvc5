@@ -3369,7 +3369,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // We have a "fake context" for the substitution map (we don't need it
   // to be context-dependent)
   context::Context fakeContext;
-  SubstitutionMap substitutions(&fakeContext);
+  SubstitutionMap substitutions(&fakeContext, /* substituteUnderQuantifiers = */ false);
 
   for(size_t k = 0; k < m->getNumCommands(); ++k) {
     const DeclareFunctionCommand* c = dynamic_cast<const DeclareFunctionCommand*>(m->getCommand(k));
@@ -3457,13 +3457,13 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
 
     TheoryId thy = Theory::theoryOf(n);
-    if(thy == THEORY_QUANTIFIERS || thy == THEORY_REWRITERULES) {
+    if(thy == THEORY_REWRITERULES) {
       // Note this "skip" is done here, rather than above.  This is
       // because (1) the quantifier could in principle simplify to false,
       // which should be reported, and (2) checking for the quantifier
       // above, before simplification, doesn't catch buried quantifiers
       // anyway (those not at the top-level).
-      Notice() << "SmtEngine::checkModel(): -- skipping quantified assertion"
+      Notice() << "SmtEngine::checkModel(): -- skipping rewrite-rules assertion"
                << endl;
       continue;
     }
