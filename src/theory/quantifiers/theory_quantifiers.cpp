@@ -92,14 +92,16 @@ Node TheoryQuantifiers::getValue(TNode n) {
   }
 }
 
-void TheoryQuantifiers::collectModelInfo( TheoryModel* m, bool fullModel ){
-  for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if((*i).assertion.getKind() == kind::NOT) {
-      Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
-      m->assertPredicate((*i).assertion[0], false);
-    } else {
-      Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
-      m->assertPredicate(*i, true);
+void TheoryQuantifiers::collectModelInfo(TheoryModel* m, bool fullModel) {
+  if(fullModel) {
+    for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
+      if((*i).assertion.getKind() == kind::NOT) {
+        Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
+        m->assertPredicate((*i).assertion[0], false);
+      } else {
+        Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
+        m->assertPredicate(*i, true);
+      }
     }
   }
 }
