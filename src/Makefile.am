@@ -120,7 +120,7 @@ install-data-local:
 	(cd "$(srcdir)" && find * -name '*.h' | \
 		xargs grep -l '^# *include  *"cvc4.*_public\.h"')) | \
 	while read f; do \
-		if expr "$$f" : ".*_\(template\|private\|test_utils\)\.h$$" &>/dev/null; then \
+		if expr "$$f" : ".*_\(template\|private\|private_library\|test_utils\)\.h$$" &>/dev/null; then \
 			continue; \
 		fi; \
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
@@ -150,7 +150,7 @@ uninstall-local:
 	(cd "$(srcdir)" && find * -name '*.h' | \
 		xargs grep -l '^# *include  *"cvc4.*_public\.h"')) | \
 	while read f; do \
-		if expr "$$f" : ".*_\(template\|private\|test_utils\)\.h$$" &>/dev/null; then \
+		if expr "$$f" : ".*_\(template\|private\|private_library\|test_utils\)\.h$$" &>/dev/null; then \
 			continue; \
 		fi; \
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
@@ -175,7 +175,7 @@ mostlyclean-local:
 	(cd "$(srcdir)" && find * -name '*.h' | \
 		xargs grep -l '^# *include  *"cvc4.*_public\.h"')) | \
 	while read f; do \
-		if expr "$$f" : ".*_\(template\|private\|test_utils\)\.h$$" &>/dev/null; then \
+		if expr "$$f" : ".*_\(template\|private\|private_library\|test_utils\)\.h$$" &>/dev/null; then \
 			continue; \
 		fi; \
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
