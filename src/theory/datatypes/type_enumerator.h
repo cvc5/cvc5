@@ -139,11 +139,10 @@ public:
   DatatypesEnumerator& operator++() throw() {
     if(d_ctor < d_datatype.getNumConstructors()) {
       for(size_t a = d_datatype[d_ctor].getNumArgs(); a > 0; --a) {
-        try {
-          *++*d_argEnumerators[a - 1];
-          return *this;
-        } catch(NoMoreValuesException&) {
+        if((++*d_argEnumerators[a - 1]).isFinished()) {
           *d_argEnumerators[a - 1] = TypeEnumerator(Node::fromExpr(d_datatype[d_ctor][a - 1].getSelector()).getType()[1]);
+        } else {
+          return *this;
         }
       }
 
