@@ -39,8 +39,7 @@ inline void setDefaultExprDepth(std::string option, int depth, SmtEngine* smt) {
   // intentionally exclude Dump stream from this list
 }
 
-inline void setDefaultDagThresh(std::string option, std::string optarg, SmtEngine* smt) {
-  int dag = atoi(optarg.c_str());
+inline void setDefaultDagThresh(std::string option, int dag, SmtEngine* smt) {
   if(dag < 0) {
     throw OptionException("--default-dag-thresh requires a nonnegative argument.");
   }

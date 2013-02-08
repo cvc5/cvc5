@@ -3338,6 +3338,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       hash_map<Node, Node, NodeHashFunction> cache;
       n = d_private->expandDefinitions(n, cache);
     }
+    Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
     // Apply our model value substitutions.
     n = substitutions.apply(n);
@@ -3358,6 +3359,12 @@ void SmtEngine::checkModel(bool hardFailure) {
                << endl;
       continue;
     }
+
+    // As a last-ditch effort, ask model to simplify it.
+    // Presently, this is only an issue for quantifiers, which can have a value
+    // but don't show up in our substitution map above.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
 
     // The result should be == true.
     if(n != NodeManager::currentNM()->mkConst(true)) {
