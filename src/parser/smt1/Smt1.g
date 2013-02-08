@@ -783,7 +783,15 @@ FLET_IDENTIFIER
  */
 userValue[std::string& s]
   : USER_VALUE
-    { s = AntlrInput::tokenText($USER_VALUE); }
+    { s = AntlrInput::tokenText($USER_VALUE);
+      assert(*s.begin() == '{');
+      assert(*s.rbegin() == '}');
+      // trim whitespace
+      s.erase(s.begin(), s.begin() + 1);
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+      s.erase(s.end() - 1);
+      s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    }
   ;
 
 PATTERN_ANNOTATION_BEGIN
