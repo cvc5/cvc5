@@ -2136,7 +2136,9 @@ void SmtEnginePrivate::doMiplibTrick() {
           }
         } else if(countneg == pos.getNumChildren() - 1) {
           Assert(coef[pos_var].size() <= 6 && thepos < 6);
-          coef[pos_var].resize(6);
+          if(coef[pos_var].size() <= thepos) {
+            coef[pos_var].resize(thepos + 1);
+          }
           coef[pos_var][thepos] = constant;
         } else {
           if(checks[pos_var].size() <= mark) {
@@ -2175,10 +2177,6 @@ void SmtEnginePrivate::doMiplibTrick() {
           Assert(coef[x_var].size() <= 6);
           coef[x_var].resize(6);
           coef[x_var][0] = constant;
-          if(checks[x_var].size() <= mark) {
-            checks[x_var].resize(mark + 1);
-          }
-          checks[x_var][mark] = constant;
         }
         asserts[x_var].push_back(*j);
       }
@@ -2197,84 +2195,111 @@ void SmtEnginePrivate::doMiplibTrick() {
         if(mark != expected) {
           Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (insufficiently marked, got " << mark << " for " << numVars << " vars, expected " << expected << endl;
         } else {
-          if(false) { //checks[pos] != coef[pos][0] + coef[pos][1]) {
-            Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (not linear combination)" << endl;
-          } else {
-            Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << pos << " --" << endl;
-            vector<Node> newVars;
-            expr::NodeSelfIterator ii, iiend;
-            if(pos.getKind() == kind::AND) {
-              ii = pos.begin();
-              iiend = pos.end();
-            } else {
-              ii = expr::NodeSelfIterator::self(pos);
-              iiend = expr::NodeSelfIterator::selfEnd(pos);
-            }
-            for(; ii != iiend; ++ii) {
-              Node& varRef = intVars[*ii];
-              if(varRef.isNull()) {
-                stringstream ss;
-                ss << "mipvar_" << *ii;
-                Node newVar = nm->mkSkolem(ss.str(), nm->integerType(), "a variable introduced due to scrubbing a miplib encoding", NodeManager::SKOLEM_EXACT_NAME);
-                Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
-                Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
-                d_assertionsToCheck.push_back(Rewriter::rewrite(geq.andNode(leq)));
-                SubstitutionMap nullMap(&d_fakeContext);
-                Theory::PPAssertStatus status CVC4_UNUSED;// just for assertions
-                status = d_smt.d_theoryEngine->solve(geq, nullMap);
-                Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                       "unexpected solution from arith's ppAssert()");
-                Assert(nullMap.empty(),
-                       "unexpected substitution from arith's ppAssert()");
-                status = d_smt.d_theoryEngine->solve(leq, nullMap);
-                Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                       "unexpected solution from arith's ppAssert()");
-                Assert(nullMap.empty(),
-                       "unexpected substitution from arith's ppAssert()");
-                d_smt.d_theoryEngine->getModel()->addSubstitution(*ii, newVar.eqNode(one));
-                newVars.push_back(newVar);
-                varRef = newVar;
+          if(mark != 3) { // exclude single-var case; nothing to check there
+            uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
+            sz = (sz == 0) ? -1 : sz;// fix for overflow
+            Assert(sz == mark, "expected size %u == mark %u", sz, mark);
+            for(size_t k = 0; k < checks[pos_var].size(); ++k) {
+              if((k & (k - 1)) != 0) {
+                Rational sum = 0;
+                Debug("miplib") << k << " => " << checks[pos_var][k] << endl;
+                for(size_t v = 1, kk = k; kk != 0; ++v, kk >>= 1) {
+                  if((kk & 0x1) == 1) {
+                    Assert(pos.getKind() == kind::AND);
+                    Debug("miplib") << "var " << v << " : " << pos[v - 1] << " coef:" << coef[pos_var][v - 1] << endl;
+                    sum += coef[pos_var][v - 1];
+                  }
+                }
+                Debug("miplib") << "checkSum is " << sum << " input says " << checks[pos_var][k] << endl;
+                if(sum != checks[pos_var][k]) {
+                  eligible = false;
+                  Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (nonlinear combination)" << endl;
+                  break;
+                }
               } else {
-                newVars.push_back(varRef);
-              }
-              if(!d_smt.d_logic.areIntegersUsed()) {
-                d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-                d_smt.d_logic.enableIntegers();
-                d_smt.d_logic.lock();
+                Assert(checks[pos_var][k] == 0, "checks[(%s,%s)][%u] should be 0, but it's %s", pos.toString().c_str(), var.toString().c_str(), k, checks[pos_var][k].toString().c_str());// we never set for single-positive-var
               }
             }
-            Node sum;
-            if(pos.getKind() == kind::AND) {
-              NodeBuilder<> sumb(kind::PLUS);
-              for(size_t ii = 0; ii < pos.getNumChildren(); ++ii) {
-                sumb << nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][ii]), newVars[ii]);
-              }
-              sum = sumb;
+          }
+          if(!eligible) {
+            eligible = true;// next is still eligible
+            continue;
+          }
+
+          Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << pos << " --" << endl;
+          vector<Node> newVars;
+          expr::NodeSelfIterator ii, iiend;
+          if(pos.getKind() == kind::AND) {
+            ii = pos.begin();
+            iiend = pos.end();
+          } else {
+            ii = expr::NodeSelfIterator::self(pos);
+            iiend = expr::NodeSelfIterator::selfEnd(pos);
+          }
+          for(; ii != iiend; ++ii) {
+            Node& varRef = intVars[*ii];
+            if(varRef.isNull()) {
+              stringstream ss;
+              ss << "mipvar_" << *ii;
+              Node newVar = nm->mkSkolem(ss.str(), nm->integerType(), "a variable introduced due to scrubbing a miplib encoding", NodeManager::SKOLEM_EXACT_NAME);
+              Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
+              Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
+              d_assertionsToCheck.push_back(Rewriter::rewrite(geq.andNode(leq)));
+              SubstitutionMap nullMap(&d_fakeContext);
+              Theory::PPAssertStatus status CVC4_UNUSED;// just for assertions
+              status = d_smt.d_theoryEngine->solve(geq, nullMap);
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
+                     "unexpected solution from arith's ppAssert()");
+              Assert(nullMap.empty(),
+                     "unexpected substitution from arith's ppAssert()");
+              status = d_smt.d_theoryEngine->solve(leq, nullMap);
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
+                     "unexpected solution from arith's ppAssert()");
+              Assert(nullMap.empty(),
+                     "unexpected substitution from arith's ppAssert()");
+              d_smt.d_theoryEngine->getModel()->addSubstitution(*ii, newVar.eqNode(one));
+              newVars.push_back(newVar);
+              varRef = newVar;
             } else {
-              sum = nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
+              newVars.push_back(varRef);
             }
-            Debug("miplib") << "vars[] " << var << endl
-                            << "    eq " << Rewriter::rewrite(sum) << endl;
-            Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
-            if(d_topLevelSubstitutions.hasSubstitution(newAssertion[0])) {
-              //Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
-              //Warning() << "REPLACE         " << newAssertion[1] << endl;
-              //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
-              Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
-            } else if(pos.getNumChildren() <= options::arithMLTrickSubstitutions()) {
-              d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
-              Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
-            } else {
-              Debug("miplib") << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1] << " (threshold is " << options::arithMLTrickSubstitutions() << ")" << endl;
+            if(!d_smt.d_logic.areIntegersUsed()) {
+              d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+              d_smt.d_logic.enableIntegers();
+              d_smt.d_logic.lock();
             }
-            newAssertion = Rewriter::rewrite(newAssertion);
-            Debug("miplib") << "  " << newAssertion << endl;
-            d_assertionsToCheck.push_back(newAssertion);
-            Debug("miplib") << "  assertions to remove: " << endl;
-            for(vector<TNode>::const_iterator k = asserts[pos_var].begin(), k_end = asserts[pos_var].end(); k != k_end; ++k) {
-              Debug("miplib") << "    " << *k << endl;
-              removeAssertions.insert((*k).getId());
+          }
+          Node sum;
+          if(pos.getKind() == kind::AND) {
+            NodeBuilder<> sumb(kind::PLUS);
+            for(size_t ii = 0; ii < pos.getNumChildren(); ++ii) {
+              sumb << nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][ii]), newVars[ii]);
             }
+            sum = sumb;
+          } else {
+            sum = nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
+          }
+          Debug("miplib") << "vars[] " << var << endl
+                          << "    eq " << Rewriter::rewrite(sum) << endl;
+          Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
+          if(d_topLevelSubstitutions.hasSubstitution(newAssertion[0])) {
+            //Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
+            //Warning() << "REPLACE         " << newAssertion[1] << endl;
+            //Warning() << "ORIG            " << d_topLevelSubstitutions.getSubstitution(newAssertion[0]) << endl;
+            Assert(d_topLevelSubstitutions.getSubstitution(newAssertion[0]) == newAssertion[1]);
+          } else if(pos.getNumChildren() <= options::arithMLTrickSubstitutions()) {
+            d_topLevelSubstitutions.addSubstitution(newAssertion[0], newAssertion[1]);
+            Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
+          } else {
+            Debug("miplib") << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1] << " (threshold is " << options::arithMLTrickSubstitutions() << ")" << endl;
+          }
+          newAssertion = Rewriter::rewrite(newAssertion);
+          Debug("miplib") << "  " << newAssertion << endl;
+          d_assertionsToCheck.push_back(newAssertion);
+          Debug("miplib") << "  assertions to remove: " << endl;
+          for(vector<TNode>::const_iterator k = asserts[pos_var].begin(), k_end = asserts[pos_var].end(); k != k_end; ++k) {
+            Debug("miplib") << "    " << *k << endl;
+            removeAssertions.insert((*k).getId());
           }
         }
       }
