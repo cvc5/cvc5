@@ -99,15 +99,15 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 Node CoreSolver::getBaseDecomposition(TNode a) {
-  if (d_normalFormCache.find(a) != d_normalFormCache.end()) {
-    return d_normalFormCache[a]; 
-  }
+  // if (d_normalFormCache.find(a) != d_normalFormCache.end()) {
+  //   return d_normalFormCache[a]; 
+  // }
 
   // otherwise we must compute the normal form
   std::vector<Node> a_decomp;
   d_slicer->getBaseDecomposition(a, a_decomp);
   Node new_a = utils::mkConcat(a_decomp);
-  d_normalFormCache[a] = new_a;
+  //  d_normalFormCache[a] = new_a;
   return new_a; 
 }
 
