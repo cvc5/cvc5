@@ -343,7 +343,6 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 
 constant SUBTYPE_TYPE \
