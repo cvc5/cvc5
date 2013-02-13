@@ -1753,6 +1753,17 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   // Resize the learnt
   d_nonClausalLearnedLiterals.resize(j);
 
+  //must add substitutions to model
+  TheoryModel* m = d_smt.d_theoryEngine->getModel();
+  if(m != NULL) {
+    for( SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin(); pos != d_topLevelSubstitutions.end(); ++pos) {
+      Node n = (*pos).first;
+      Node v = (*pos).second;
+      Trace("model") << "Add substitution : " << n << " " << v << std::endl;
+      m->addSubstitution( n, v );
+    }
+  }
+
   hash_set<TNode, TNodeHashFunction> s;
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Node assertion = d_assertionsToPreprocess[i];
