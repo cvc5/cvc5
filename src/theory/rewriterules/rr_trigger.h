@@ -100,6 +100,7 @@ public:
   static inline bool isAtomicTrigger( TNode n ){
     return
       n.getKind()==kind::APPLY_UF ||
+      n.getKind() == kind::APPLY_CONSTRUCTOR ||
       n.getKind()==kind::SELECT ||
       n.getKind()==kind::STORE;
   }
