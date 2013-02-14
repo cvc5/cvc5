@@ -41,7 +41,7 @@ bool RewriteRule<ExtractBitwise>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractBitwise>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<ExtractBitwise>(" << node << ")" << std::endl;
   unsigned high = utils::getExtractHigh(node);
   unsigned low = utils::getExtractLow(node);
   std::vector<Node> children; 
@@ -65,7 +65,7 @@ bool RewriteRule<ExtractNot>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractNot>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<ExtractNot>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<ExtractNot>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
   Node a = utils::mkExtract(node[0][0], high, low);
@@ -88,7 +88,7 @@ bool RewriteRule<ExtractArith>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractArith>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   Assert (low == 0); 
   unsigned high = utils::getExtractHigh(node);
@@ -117,7 +117,7 @@ bool RewriteRule<ExtractArith2>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<ExtractArith2>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<ExtractArith2>(" << node << ")" << std::endl;
   unsigned low = utils::getExtractLow(node);
   unsigned high = utils::getExtractHigh(node);
   std::vector<Node> children;
@@ -151,7 +151,7 @@ bool RewriteRule<FlattenAssocCommut>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<FlattenAssocCommut>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
   std::vector<Node> processingStack;
   processingStack.push_back(node);
   std::vector<Node> children;
@@ -291,7 +291,7 @@ bool RewriteRule<PlusCombineLikeTerms>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<PlusCombineLikeTerms>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<PlusCombineLikeTerms>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node); 
   BitVector constSum(size, (unsigned)0); 
   std::map<Node, BitVector> factorToCoefficient;
@@ -348,7 +348,7 @@ bool RewriteRule<MultSimplify>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<MultSimplify>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<MultSimplify>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node); 
   BitVector constant(size, Integer(1));
 
@@ -397,7 +397,7 @@ bool RewriteRule<MultDistribConst>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<MultDistribConst>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")" << std::endl;
 
   TNode constant = node[1];
   TNode factor = node[0];
@@ -434,7 +434,7 @@ bool RewriteRule<SolveEq>::applies(TNode node) {
 // Doesn't do full solving (yet), instead, if a term appears both on lhs and rhs, it subtracts from both sides so that one side's coeff is zero
 template<> inline
 Node RewriteRule<SolveEq>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<SolveEq>(" << node << ")" << std::endl;
 
   TNode left = node[0];
   TNode right = node[1];
@@ -662,7 +662,7 @@ static inline Node mkNodeKind(Kind k, TNode node, TNode c) {
 
 template<> inline
 Node RewriteRule<BitwiseEq>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<BitwiseEq>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<BitwiseEq>(" << node << ")" << std::endl;
 
   TNode term;
   BitVector c;
@@ -745,7 +745,7 @@ bool RewriteRule<NegMult>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NegMult>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NegMult>(" << node << ")" << std::endl;
   TNode mult = node[0];
   NodeBuilder<> nb(kind::BITVECTOR_MULT);
   BitVector bv(utils::getSize(node), (unsigned)1);
@@ -767,7 +767,7 @@ bool RewriteRule<NegSub>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NegSub>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NegSub>(" << node << ")" << std::endl;
   return utils::mkNode(kind::BITVECTOR_SUB, node[0][1], node[0][0]);
 }
 
@@ -779,7 +779,7 @@ bool RewriteRule<NegPlus>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NegPlus>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<NegPlus>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NegPlus>(" << node << ")" << std::endl;
   std::vector<Node> children;
   for (unsigned i = 0; i < node[0].getNumChildren(); ++i) {
     children.push_back(utils::mkNode(kind::BITVECTOR_NEG, node[0][i])); 
@@ -820,7 +820,7 @@ bool RewriteRule<AndSimplify>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<AndSimplify>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
 
   // this will remove duplicates
   std::hash_map<TNode, Count, TNodeHashFunction> subterms;
@@ -883,7 +883,7 @@ bool RewriteRule<OrSimplify>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<OrSimplify>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<OrSimplify>(" << node << ")" << std::endl;
 
   // this will remove duplicates
   std::hash_map<TNode, Count, TNodeHashFunction> subterms;
@@ -946,7 +946,7 @@ bool RewriteRule<XorSimplify>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<XorSimplify>::apply(TNode node) {
-  BVDebug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<XorSimplify>(" << node << ")" << std::endl;
 
 
   std::hash_map<TNode, Count, TNodeHashFunction> subterms;
@@ -1041,7 +1041,7 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
 
 // template<> inline
 // Node RewriteRule<AndSimplify>::apply(TNode node) {
-//   BVDebug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
+//   Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
 //   return resultNode;
 // }
 
@@ -1053,7 +1053,7 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
 
 // template<> inline
 // Node RewriteRule<>::apply(TNode node) {
-//   BVDebug("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
+//   Debug("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
 //   return resultNode;
 // }
 
