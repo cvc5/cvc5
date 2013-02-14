@@ -51,6 +51,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer)
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
     d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT);
     d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS);
+    d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);

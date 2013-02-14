@@ -29,6 +29,10 @@
 #include "util/index.h"
 #include "expr/node.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "context/context.h"
+#include "context/cdhashset.h"
+#include "context/cdo.h"
+
 #ifndef __CVC4__THEORY__BV__SLICER_BV_H
 #define __CVC4__THEORY__BV__SLICER_BV_H
 
@@ -80,7 +84,7 @@ public:
  * UnionFind
  * 
  */
-typedef __gnu_cxx::hash_set<TermId> TermSet;
+typedef context::CDHashSet<uint32_t> CDTermSet;
 typedef std::vector<TermId> Decomposition; 
 
 struct ExtractTerm {
@@ -121,7 +125,7 @@ struct NormalForm {
 };
 
 
-class UnionFind {
+class UnionFind : public context::ContextNotifyObj {
   class Node {
     Index d_bitwidth;
     TermId d_ch1, d_ch0;
@@ -157,7 +161,7 @@ class UnionFind {
   /// map from TermId to the nodes that represent them 
   std::vector<Node> d_nodes;
   /// a term is in this set if it is its own representative
-  TermSet d_representatives;
+  CDTermSet d_representatives;
   
   void getDecomposition(const ExtractTerm& term, Decomposition& decomp);
   void handleCommonSlice(const Decomposition& d1, const Decomposition& d2, TermId common);
@@ -187,6 +191,28 @@ class UnionFind {
     d_nodes[id].setChildren(ch1, ch0); 
   }
 
+  /* Backtracking mechanisms */
+
+  enum OperationKind {
+    MERGE,
+    SPLIT
+  }; 
+
+  struct Operation {
+    OperationKind op;
+    TermId id;
+    Operation(OperationKind o, TermId i)
+      : op(o), id(i) {}
+  };
+
+  std::vector<Operation> d_undoStack;
+  context::CDO<unsigned> d_undoStackIndex;
+
+  void backtrack();
+  void undoMerge(TermId id);
+  void undoSplit(TermId id); 
+  void recordOperation(OperationKind op, TermId term);
+  
   class Statistics {
   public:
     IntStat d_numNodes; 
@@ -195,18 +221,18 @@ class UnionFind {
     IntStat d_numMerges;
     AverageStat d_avgFindDepth;
     ReferenceStat<unsigned> d_numAddedEqualities; 
-    //IntStat d_numAddedEqualities; 
     Statistics();
     ~Statistics();
   };
 
-  Statistics d_statistics
-;
-  
+  Statistics d_statistics;
 public:
-  UnionFind()
+  UnionFind(context::Context* ctx)
     : d_nodes(),
-      d_representatives()
+      d_representatives(ctx),
+      d_undoStack(),
+      d_undoStackIndex(ctx),
+      d_statistics()
   {}
 
   TermId addTerm(Index bitwidth);
@@ -223,6 +249,11 @@ public:
     return d_nodes[id].getBitwidth(); 
   }
   std::string debugPrint(TermId id);
+
+  void contextNotifyPop() {
+    backtrack();
+  }
+
   friend class Slicer; 
 };
 
@@ -233,16 +264,17 @@ class Slicer {
   UnionFind d_unionFind;
   ExtractTerm registerTerm(TNode node); 
 public:
-  Slicer()
+  Slicer(context::Context* ctx)
     : d_idToNode(),
       d_nodeToId(),
       d_coreTermCache(),
-      d_unionFind()
+      d_unionFind(ctx)
   {}
   
   void getBaseDecomposition(TNode node, std::vector<Node>& decomp);
   void processEquality(TNode eq);
   bool isCoreTerm (TNode node);
+  
   static void splitEqualities(TNode node, std::vector<Node>& equalities);
   static unsigned d_numAddedEqualities; 
 }; 

@@ -216,6 +216,7 @@ void UnionFind::merge(TermId t1, TermId t2) {
 
   Assert (! hasChildren(t1) && ! hasChildren(t2));
   setRepr(t1, t2); 
+  recordOperation(UnionFind::MERGE, t1); 
   d_representatives.erase(t1);
   d_statistics.d_numRepresentatives += -1; 
 }
@@ -224,7 +225,7 @@ TermId UnionFind::find(TermId id) {
   TermId repr = getRepr(id); 
   if (repr != UndefinedId) {
     TermId find_id =  find(repr);
-    setRepr(id, find_id);
+    // setRepr(id, find_id);
     return find_id; 
   }
   return id; 
@@ -252,6 +253,7 @@ void UnionFind::split(TermId id, Index i) {
     TermId bottom_id = addTerm(i);
     TermId top_id = addTerm(getBitwidth(id) - i);
     setChildren(id, top_id, bottom_id);
+    recordOperation(UnionFind::SPLIT, id); 
 
   } else {
     Index cut = getCutPoint(id); 
@@ -413,6 +415,37 @@ void UnionFind::ensureSlicing(const ExtractTerm& term) {
   TermId id = find(term.id);
   split(id, term.high + 1);
   split(id, term.low);
+}
+
+void UnionFind::backtrack() {
+  for (int i = d_undoStack.size() -1; i >= d_undoStackIndex; ++i) {
+    Operation op = d_undoStack.back(); 
+    d_undoStack.pop_back();
+    if (op.op == UnionFind::MERGE) {
+      undoMerge(op.id); 
+    } else {
+      Assert (op.op == UnionFind::SPLIT);
+      undoSplit(op.id); 
+    }
+  }
+}
+
+void UnionFind::undoMerge(TermId id) {
+  Node& node = getNode(id);
+  Assert (getRepr(id) != id);
+  setRepr(id, id); 
+}
+
+void UnionFind::undoSplit(TermId id) {
+  Node& node = getNode(id);
+  Assert (hasChildren(node));
+  setChildren(id, UndefindId, UndefinedId); 
+}
+
+void UnionFind::recordOperation(OperationKind op, TermId term) {
+  ++d_undoStackIndex;
+  d_undoStack.push_back(Operation(op, term));
+  Assert (d_undoStack.size() == d_undoStackIndex); 
 }
 
 /**
