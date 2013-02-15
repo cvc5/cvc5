@@ -131,7 +131,7 @@ bool EqualitySolver::addAssertions(const std::vector<TNode>& assertions, Theory:
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value) {
-  BVDebug("bitvector::equality") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
+  Debug("bitvector::equality") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
   if (value) {
     return d_solver.storePropagation(equality);
   } else {
@@ -140,7 +140,7 @@ bool EqualitySolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool v
 }
 
 bool EqualitySolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  BVDebug("bitvector::equality") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
+  Debug("bitvector::equality") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
   if (value) {
     return d_solver.storePropagation(predicate);
   } else {

@@ -53,7 +53,7 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
+  Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
 
   //// Eager bit-blasting
   if (options::bitvectorEagerBitblast()) {
@@ -106,7 +106,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
   // solving
   if (e == Theory::EFFORT_FULL || options::bitvectorEagerFullcheck()) {
     Assert(!d_bv->inConflict());
-    BVDebug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
+    Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
     bool ok = d_bitblaster->solve();
     if (!ok) {
       std::vector<TNode> conflictAtoms;
