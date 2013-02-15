@@ -809,7 +809,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
          << ", which doesn't include " << Theory::theoryOf(current)
-         << ", but got a preprocesing-time fact for that theory." << endl
+         << ", but got a preprocessing-time fact for that theory." << endl
          << "The fact:" << endl
          << current;
       throw LogicException(ss.str());

@@ -540,7 +540,7 @@ public:
     return d_trailMap->find(k);
   }
 
-  /** Returns an iterator to the begining of the map.  */
+  /** Returns an iterator to the beginning of the map.  */
   const_iterator begin() const{
     return d_trailMap->begin();
   }
@@ -561,7 +561,7 @@ class CDTrailHashMap <TNode, Data, HashFcn > : public ContextObj {
    * If the key is a TNode and the backing (the hard node reference)
    * for the key in another data structure removes the key at the same context
    * the ref count could drop to 0.  The key would then not be eligible to be
-   * hashed. Getting the order right with a guarentee is to hard.
+   * hashed. Getting the order right with a guarantee is too hard.
    */
 
   BOOST_STATIC_ASSERT(sizeof(Data) == 0);

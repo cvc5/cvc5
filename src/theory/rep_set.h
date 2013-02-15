@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__REP_SET_H
-#define __CVC4__REP_SET_H
+#ifndef __CVC4__THEORY__REP_SET_H
+#define __CVC4__THEORY__REP_SET_H
 
 #include "expr/node.h"
 #include <map>
@@ -45,7 +45,7 @@ public:
   void complete( TypeNode t );
   /** debug print */
   void toStream(std::ostream& out);
-};
+};/* class RepSet */
 
 //representative domain
 typedef std::vector< int > RepDomain;
@@ -104,9 +104,9 @@ public:
   /** debug print */
   void debugPrint( const char* c );
   void debugPrintSmall( const char* c );
-};
+};/* class RepSetIterator */
 
-}
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__REP_SET_H */

@@ -249,7 +249,7 @@ public:
   }
 
   /**
-   * Computes a sufficient upperbound to seperate two DeltaRationals.
+   * Computes a sufficient upperbound to separate two DeltaRationals.
    * This value is stored in res.
    * For any rational d such that
    *   0 < d < res

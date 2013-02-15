@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file rational.h
+/*! \file rational.h.in
  ** \verbatim
  ** Original author: taking
  ** Major contributors: none

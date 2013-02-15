@@ -16,6 +16,7 @@ if [ $# -ne 0 ]; then
   echo "MacPorts must be installed (but this script installs prerequisite port" >&2
   echo "packages for CVC4).  If this script is successful, it prints a configure" >&2
   echo "line that you can use to configure CVC4." >&2
+  exit 1
 fi
 
 function reporterror {

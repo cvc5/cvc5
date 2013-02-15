@@ -358,7 +358,7 @@ Node QuantifierMacros::simplify( Node n ){
   if( n.getKind()==APPLY_UF ){
     Node op = n.getOperator();
     if( d_macro_defs.find( op )!=d_macro_defs.end() && !d_macro_defs[op].isNull() ){
-      //do subsitutition
+      //do substitution
       Node ret = d_macro_defs[op];
       ret = ret.substitute( d_macro_basis[op].begin(), d_macro_basis[op].end(), children.begin(), children.end() );
       return ret;

@@ -273,7 +273,7 @@ private:
    */
   AssertionOrder _d_assertionOrder;
   /**
-   * This is guarenteed to be on the fact queue.
+   * This is guaranteed to be on the fact queue.
    * For example if x + y = x + 1 is on the fact queue, then use this 
    */
   TNode d_witness;
@@ -491,8 +491,8 @@ public:
    * The explanation is the constant true.
    * explainInto() does nothing.
    */
-  //void setPsuedoConstraint();
-  //bool isPsuedoConstraint() const;
+  //void setPseudoConstraint();
+  //bool isPseudoConstraint() const;
 
   /**
    * Returns a explanation of the constraint that is appropriate for conflicts.
@@ -709,7 +709,7 @@ private:
    *
    * This is a special proof that is always a member of the list.
    */
-  //ProofId d_psuedoConstraintProof;
+  //ProofId d_pseudoConstraintProof;
 
   typedef context::CDList<Constraint, ConstraintValue::ProofCleanup> ProofCleanupList;
   typedef context::CDList<Constraint, ConstraintValue::CanBePropagatedCleanup> CBPList;

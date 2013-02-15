@@ -167,7 +167,7 @@ public:
   /** get counterexample literal (for cbqi) */
   Node getCounterexampleLiteral( Node f );
   /** returns node n with bound vars of f replaced by instantiation constants of f
-      node n : is the futur pattern
+      node n : is the future pattern
       node f : is the quantifier containing which bind the variable
       return a pattern where the variable are replaced by variable for
       instantiation.

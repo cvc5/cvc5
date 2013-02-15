@@ -60,7 +60,6 @@ option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs unsigned 
 
 option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :default false :read-write
  turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
-/ turns off the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
-
+/turns off the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
 
 endmodule

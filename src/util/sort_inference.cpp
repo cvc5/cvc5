@@ -425,4 +425,4 @@ void SortInference::setSkolemVar( Node f, Node v, Node sk ){
   d_op_return_types[sk] = getSortId( f, v );
 }
 
-}
+}/* CVC4 namespace */

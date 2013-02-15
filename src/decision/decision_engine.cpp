@@ -96,7 +96,7 @@ bool DecisionEngine::isRelevant(SatVariable var)
 
 SatValue DecisionEngine::getPolarity(SatVariable var)
 {
-  Debug("decision") << "getPolariry(" << var <<")" << std::endl;
+  Debug("decision") << "getPolarity(" << var <<")" << std::endl;
   if(d_relevancyStrategy != NULL) {
     Assert(isRelevant(var));
     return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );

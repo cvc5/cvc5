@@ -512,7 +512,7 @@ static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {
 }
 
 
-/// Return a string that represents the name assoicated with the input source
+/// Return a string that represents the name associated with the input source
 ///
 /// /param[in] is The ANTLR3_INT_STREAM interface that is representing this token stream.
 ///

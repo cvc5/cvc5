@@ -424,7 +424,7 @@ public:
   }
 
   void nmNotifyNewSkolem(TNode n, const std::string& comment, bool isGlobal) {
-    std::string id = n.getAttribute(expr::VarNameAttr());
+    string id = n.getAttribute(expr::VarNameAttr());
     DeclareFunctionCommand c(id,
                              n.toExpr(),
                              n.getType().toType());
@@ -541,8 +541,6 @@ public:
 
 }/* namespace CVC4::smt */
 
-using namespace CVC4::smt;
-
 SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_context(em->getContext()),
   d_userLevels(),
@@ -658,17 +656,17 @@ void SmtEngine::finalOptionsAreSet() {
 
   if(options::checkModels()) {
     if(! options::produceModels()) {
-      Notice() << "SmtEngine: turning on produce-models to support check-model" << std::endl;
+      Notice() << "SmtEngine: turning on produce-models to support check-model" << endl;
       setOption("produce-models", SExpr("true"));
     }
     if(! options::interactive()) {
-      Notice() << "SmtEngine: turning on interactive-mode to support check-model" << std::endl;
+      Notice() << "SmtEngine: turning on interactive-mode to support check-model" << endl;
       setOption("interactive-mode", SExpr("true"));
     }
   }
 
   if(options::produceAssignments() && !options::produceModels()) {
-    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << std::endl;
+    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << endl;
     setOption("produce-models", SExpr("true"));
   }
 
@@ -819,15 +817,15 @@ void SmtEngine::setLogicInternal() throw() {
   // by default, symmetry breaker is on only for QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
     bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified();
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf << std::endl;
+    Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
     options::ufSymmetryBreaker.set(qf_uf);
   }
   // by default, nonclausal simplification is off for QF_SAT and for quantifiers
   if(! options::simplificationMode.wasSetByUser()) {
     bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     bool quantifiers = d_logic.isQuantified();
-    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << std::endl;
-    //simplifaction=none works better for SMT LIB benchmarks with quantifiers, not others
+    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << endl;
+    //simplification=none works better for SMT LIB benchmarks with quantifiers, not others
     //options::simplificationMode.set(qf_sat || quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
     options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
   }
@@ -843,14 +841,14 @@ void SmtEngine::setLogicInternal() throw() {
     bool iteSimp = !d_logic.isQuantified() &&
       ((d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areRealsUsed()) ||
        (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_UF) && d_logic.isTheoryEnabled(THEORY_BV)));
-    Trace("smt") << "setting ite simplification to " << iteSimp << std::endl;
+    Trace("smt") << "setting ite simplification to " << iteSimp << endl;
     options::doITESimp.set(iteSimp);
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
       (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_UF) && d_logic.isTheoryEnabled(THEORY_BV));
-    Trace("smt") << "setting repeat simplification to " << repeatSimp << std::endl;
+    Trace("smt") << "setting repeat simplification to " << repeatSimp << endl;
     options::repeatSimp.set(repeatSimp);
   }
   // Turn on unconstrained simplification for QF_AUFBV
@@ -859,24 +857,24 @@ void SmtEngine::setLogicInternal() throw() {
     //    bool uncSimp = false && !qf_sat && !options::incrementalSolving();
     bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() && !options::checkModels() &&
       (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
-    Trace("smt") << "setting unconstrained simplification to " << uncSimp << std::endl;
+    Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
     options::unconstrainedSimp.set(uncSimp);
   }
   // Unconstrained simp currently does *not* support model generation
   if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp()) {
     if (options::produceModels()) {
-      Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << std::endl;
+      Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::checkModels()) {
-      Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << std::endl;
+      Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
   }
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();
-    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << std::endl;
+    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq << endl;
     options::arithRewriteEq.set(arithRewriteEq);
   }
   if(!  options::arithHeuristicPivots.wasSetByUser()) {
@@ -888,7 +886,7 @@ void SmtEngine::setLogicInternal() throw() {
         heuristicPivots = 0;
       }
     }
-    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots << std::endl;
+    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots << endl;
     options::arithHeuristicPivots.set(heuristicPivots);
   }
   if(! options::arithPivotThreshold.wasSetByUser()){
@@ -898,7 +896,7 @@ void SmtEngine::setLogicInternal() throw() {
         pivotThreshold = 16;
       }
     }
-    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold << std::endl;
+    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold << endl;
     options::arithPivotThreshold.set(pivotThreshold);
   }
   if(! options::arithStandardCheckVarOrderPivots.wasSetByUser()){
@@ -906,7 +904,7 @@ void SmtEngine::setLogicInternal() throw() {
     if(d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified()){
       varOrderPivots = 200;
     }
-    Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << std::endl;
+    Trace("smt") << "setting arithStandardCheckVarOrderPivots  " << varOrderPivots << endl;
     options::arithStandardCheckVarOrderPivots.set(varOrderPivots);
   }
   // Turn off early theory preprocessing if arithRewriteEq is on
@@ -965,7 +963,7 @@ void SmtEngine::setLogicInternal() throw() {
         ? true : false
       );
 
-    Trace("smt") << "setting decision mode to " << decMode << std::endl;
+    Trace("smt") << "setting decision mode to " << decMode << endl;
     options::decisionMode.set(decMode);
     options::decisionStopOnly.set(stoponly);
   }
@@ -973,7 +971,7 @@ void SmtEngine::setLogicInternal() throw() {
   //for finite model finding
   if( ! options::instWhenMode.wasSetByUser()){
     if( options::fmfInstEngine() ){
-      Trace("smt") << "setting inst when mode to LAST_CALL" << std::endl;
+      Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
       options::instWhenMode.set( INST_WHEN_LAST_CALL );
     }
   }
@@ -986,11 +984,11 @@ void SmtEngine::setLogicInternal() throw() {
   }
   else if (options::minisatUseElim()) {
     if (options::produceModels()) {
-      Notice() << "SmtEngine: turning off produce-models to support minisatUseElim" << std::endl;
+      Notice() << "SmtEngine: turning off produce-models to support minisatUseElim" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::checkModels()) {
-      Notice() << "SmtEngine: turning off check-models to support minisatUseElim" << std::endl;
+      Notice() << "SmtEngine: turning off check-models to support minisatUseElim" << endl;
       setOption("check-models", SExpr("false"));
     }
   }
@@ -1005,11 +1003,11 @@ void SmtEngine::setLogicInternal() throw() {
   if (d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
       !d_logic.isLinear()) {
     if (options::produceModels()) {
-      Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << std::endl;
+      Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::checkModels()) {
-      Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << std::endl;
+      Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << endl;
       setOption("check-models", SExpr("false"));
     }
   }
@@ -1030,7 +1028,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
   if(Dump.isOn("benchmark")) {
     if(key == "status") {
-      std::string s = value.getValue();
+      string s = value.getValue();
       BenchmarkStatus status =
         (s == "sat") ? SMT_SATISFIABLE :
           ((s == "unsat") ? SMT_UNSATISFIABLE : SMT_UNKNOWN);
@@ -1210,7 +1208,7 @@ void SmtEngine::defineFunction(Expr func,
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
-  Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << std::endl;
+  Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << endl;
   d_definedFunctions->insert(funcNode, def);
 }
 
@@ -1220,7 +1218,7 @@ Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
   if (k == kind::BITVECTOR_UDIV) {
     if (d_BVDivByZero.find(width) == d_BVDivByZero.end()) {
       // lazily create the function symbols
-      std::ostringstream os;
+      ostringstream os;
       os << "BVUDivByZero_" << width;
       Node divByZero = nm->mkSkolem(os.str(),
                                     nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
@@ -1231,7 +1229,7 @@ Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
   }
   else if (k == kind::BITVECTOR_UREM) {
     if (d_BVRemByZero.find(width) == d_BVRemByZero.end()) {
-      std::ostringstream os;
+      ostringstream os;
       os << "BVURemByZero_" << width;
       Node divByZero = nm->mkSkolem(os.str(),
                                     nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
@@ -1271,7 +1269,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     if(i != d_smt.d_definedFunctions->end()) {
       // replacement must be closed
       if((*i).second.getFormals().size() > 0) {
-        throw TypeCheckingException(n.toExpr(), std::string("Defined function requires arguments: `") + n.toString() + "'");
+        throw TypeCheckingException(n.toExpr(), string("Defined function requires arguments: `") + n.toString() + "'");
       }
       // don't bother putting in the cache
       return (*i).second.getFormula();
@@ -1300,9 +1298,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     break;
   }
 
- case kind::BITVECTOR_UDIV:
- case kind::BITVECTOR_UREM: {
-   node = expandBVDivByZero(node);
+  case kind::BITVECTOR_UDIV:
+  case kind::BITVECTOR_UREM: {
+    node = expandBVDivByZero(node);
     break;
   }
   case kind::DIVISION: {
@@ -1374,7 +1372,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       Debug("expand") << "     : \"" << name << "\"" << endl;
     }
     if(i == d_smt.d_definedFunctions->end()) {
-      throw TypeCheckingException(n.toExpr(), std::string("Undefined function: `") + func.toString() + "'");
+      throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
     }
     if(Debug.isOn("expand")) {
       Debug("expand") << " defn: " << def.getFunction() << endl
@@ -1443,16 +1441,16 @@ static bool containsQuantifiers(Node n) {
 }
 
 Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vector< Node >& fvs ){
-  Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size() << std::endl;
+  Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size() << endl;
   if( n.getKind()==kind::NOT ){
     Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvs );
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
     if( polarity ){
-      std::vector< Node > children;
+      vector< Node > children;
       children.push_back( n[0] );
       //add children to current scope
-      std::vector< Node > fvss;
+      vector< Node > fvss;
       fvss.insert( fvss.begin(), fvs.begin(), fvs.end() );
       for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
         fvss.push_back( n[0][i] );
@@ -1468,13 +1466,13 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
       //process body
       Node nn = preSkolemizeQuantifiers( n[1], polarity, fvs );
       //now, substitute skolems for the variables
-      std::vector< TypeNode > argTypes;
+      vector< TypeNode > argTypes;
       for( int i=0; i<(int)fvs.size(); i++ ){
         argTypes.push_back( fvs[i].getType() );
       }
       //calculate the variables and substitution
-      std::vector< Node > vars;
-      std::vector< Node > subs;
+      vector< Node > vars;
+      vector< Node > subs;
       for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
         vars.push_back( n[0][i] );
       }
@@ -1487,7 +1485,7 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
           Node op = NodeManager::currentNM()->mkSkolem( "skop_$$", typ, "op created during pre-skolemization" );
           //DOTHIS: set attribute on op, marking that it should not be selected as trigger
-          std::vector< Node > funcArgs;
+          vector< Node > funcArgs;
           funcArgs.push_back( op );
           funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
           subs.push_back( NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs ) );
@@ -1527,7 +1525,7 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
         return preSkolemizeQuantifiers( nn, polarity, fvs );
       }else{
         Assert( n.getKind() == kind::AND || n.getKind() == kind::OR );
-        std::vector< Node > children;
+        vector< Node > children;
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
         }
@@ -1576,7 +1574,7 @@ void SmtEnginePrivate::staticLearning() {
 static void dumpAssertions(const char* key,
                            const std::vector<Node>& assertionList) {
   if( Dump.isOn("assertions") &&
-      Dump.isOn(std::string("assertions:") + key) ) {
+      Dump.isOn(string("assertions:") + key) ) {
     // Push the simplified assertions to the dump output stream
     for(unsigned i = 0; i < assertionList.size(); ++ i) {
       TNode n = assertionList[i];
@@ -2350,7 +2348,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
     }
 
-    Trace("smt") << "POST nonClasualSimplify" << std::endl;
+    Trace("smt") << "POST nonClausalSimplify" << endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -2367,7 +2365,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    Trace("smt") << "POST theoryPP" << std::endl;
+    Trace("smt") << "POST theoryPP" << endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -2377,7 +2375,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       simpITE();
     }
 
-    Trace("smt") << "POST iteSimp" << std::endl;
+    Trace("smt") << "POST iteSimp" << endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -2387,14 +2385,14 @@ bool SmtEnginePrivate::simplifyAssertions()
       unconstrainedSimp();
     }
 
-    Trace("smt") << "POST unconstrainedSimp" << std::endl;
+    Trace("smt") << "POST unconstrainedSimp" << endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
     if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
       Chat() << "...doing another round of nonclausal simplification..." << endl;
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << " doing repeated simplification" << std::endl;
+                        << " doing repeated simplification" << endl;
       d_assertionsToCheck.swap(d_assertionsToPreprocess);
       Assert(d_assertionsToCheck.empty());
       bool noConflict = nonClausalSimplify();
@@ -2403,7 +2401,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    Trace("smt") << "POST repeatSimp" << std::endl;
+    Trace("smt") << "POST repeatSimp" << endl;
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -2630,11 +2628,11 @@ void SmtEnginePrivate::processAssertions() {
     //apply pre-skolemization to existential quantifiers
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       Node prev = d_assertionsToPreprocess[i];
-      std::vector< Node > fvs;
+      vector< Node > fvs;
       d_assertionsToPreprocess[i] = Rewriter::rewrite( preSkolemizeQuantifiers( d_assertionsToPreprocess[i], true, fvs ) );
       if( prev!=d_assertionsToPreprocess[i] ){
-        Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << std::endl;
-        Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << std::endl;
+        Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
+        Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << endl;
       }
     }
   }

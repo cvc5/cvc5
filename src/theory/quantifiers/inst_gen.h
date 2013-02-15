@@ -50,10 +50,10 @@ public:
   int getNumMatches() { return d_matches.size(); }
   bool getMatch( EqualityQuery* q, int i, InstMatch& m );
   Node getMatchValue( int i ) { return d_match_values[i]; }
-};
+};/* class InstGenProcess */
 
-}
-}
-}
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__INST_GEN_H */

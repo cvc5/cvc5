@@ -269,7 +269,7 @@ class TheoryEngine {
     void safePoint() throw(theory::Interrupted, AssertionException) {
       if (d_engine->d_interrupted)
         throw theory::Interrupted();
-   }
+    }
 
     void conflict(TNode conflictNode) throw(AssertionException) {
       Trace("theory::conflict") << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode << ")" << std::endl;
@@ -741,20 +741,23 @@ private:
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 public:
 
-  /** Set user attribute
-    * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
-    *  via the syntax (! n :attr)
-    */
+  /**
+   * Set user attribute.
+   * This function is called when an attribute is set by a user.  In SMT-LIBv2 this is done
+   * via the syntax (! n :attr)
+   */
   void setUserAttribute(const std::string& attr, Node n);
 
-  /** Handle user attribute
-    *   Associates theory t with the attribute attr.  Theory t will be
-    *   notifed whenever an attribute of name attr is set.
-    */
+  /**
+   * Handle user attribute.
+   * Associates theory t with the attribute attr.  Theory t will be
+   * notified whenever an attribute of name attr is set.
+   */
   void handleUserAttribute(const char* attr, theory::Theory* t);
 
-  /** Check that the theory assertions are satisfied in the model
-   *  This function is called from the smt engine's checkModel routine
+  /**
+   * Check that the theory assertions are satisfied in the model.
+   * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel();
 

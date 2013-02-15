@@ -371,8 +371,8 @@ void ConstraintValue::setAssertedToTheTheory(TNode witness) {
   d_database->pushAssertionOrderWatch(this, witness);
 }
 
-// bool ConstraintValue::isPsuedoConstraint() const {
-//   return d_proof == d_database->d_psuedoConstraintProof;
+// bool ConstraintValue::isPseudoConstraint() const {
+//   return d_proof == d_database->d_pseudoConstraintProof;
 // }
 
 bool ConstraintValue::isSelfExplaining() const {
@@ -486,7 +486,7 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Co
   d_equalityEngineProof = d_proofs.size();
   d_proofs.push_back(NullConstraint);
 
-  // d_psuedoConstraintProof = d_proofs.size();
+  // d_pseudoConstraintProof = d_proofs.size();
   // d_proofs.push_back(NullConstraint);
 }
 
@@ -833,11 +833,11 @@ void ConstraintValue::impliedBy(const std::vector<Constraint>& b){
   }
 }
 
-// void ConstraintValue::setPsuedoConstraint(){
+// void ConstraintValue::setPseudoConstraint(){
 //   Assert(truthIsUnknown());
 //   Assert(!hasLiteral());
 
-//   d_database->pushProofWatch(this, d_database->d_psuedoConstraintProof);
+//   d_database->pushProofWatch(this, d_database->d_pseudoConstraintProof);
 // }
 
 void ConstraintValue::setEqualityEngineProof(){
@@ -856,7 +856,7 @@ void ConstraintValue::markAsTrue(){
 void ConstraintValue::markAsTrue(Constraint imp){
   Assert(truthIsUnknown());
   Assert(imp->hasProof());
-  //Assert(!imp->isPsuedoConstraint());
+  //Assert(!imp->isPseudoConstraint());
 
   d_database->d_proofs.push_back(NullConstraint);
   d_database->d_proofs.push_back(imp);
@@ -868,8 +868,8 @@ void ConstraintValue::markAsTrue(Constraint impA, Constraint impB){
   Assert(truthIsUnknown());
   Assert(impA->hasProof());
   Assert(impB->hasProof());
-  //Assert(!impA->isPsuedoConstraint());
-  //Assert(!impB->isPsuedoConstraint());
+  //Assert(!impA->isPseudoConstraint());
+  //Assert(!impB->isPseudoConstraint());
 
   d_database->d_proofs.push_back(NullConstraint);
   d_database->d_proofs.push_back(impA);
@@ -886,7 +886,7 @@ void ConstraintValue::markAsTrue(const vector<Constraint>& a){
   for(vector<Constraint>::const_iterator i = a.begin(), end = a.end(); i != end; ++i){
     Constraint c_i = *i;
     Assert(c_i->hasProof());
-    //Assert(!c_i->isPsuedoConstraint());
+    //Assert(!c_i->isPseudoConstraint());
     d_database->d_proofs.push_back(c_i);
   }
 
@@ -903,7 +903,7 @@ SortedConstraintMap& ConstraintValue::constraintSet() const{
 bool ConstraintValue::proofIsEmpty() const{
   Assert(hasProof());
   bool result = d_database->d_proofs[d_proof] == NullConstraint;
-  //Assert((!result) || isSelfExplaining() || hasEqualityEngineProof() || isPsuedoConstraint());
+  //Assert((!result) || isSelfExplaining() || hasEqualityEngineProof() || isPseudoConstraint());
   Assert((!result) || isSelfExplaining() || hasEqualityEngineProof());
   return result;
 }

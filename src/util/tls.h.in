@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file tls.h
+/*! \file tls.h.in
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

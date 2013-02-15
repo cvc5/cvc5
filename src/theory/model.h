@@ -87,7 +87,7 @@ public:
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
   /** add term function
     *   addTerm( n ) will do any model-specific processing necessary for n,
-    *   such as contraining the interpretation of uninterpretted functions,
+    *   such as constraining the interpretation of uninterpreted functions,
     *   and adding n to the equality engine of this model
     */
   virtual void addTerm(TNode n);
