@@ -195,8 +195,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 # else
   vector<Options> threadOpts = parseThreadSpecificOptions(opts);
   if(opts[options::incrementalSolving] && !opts[options::incrementalParallel]) {
-    Warning() << "WARNING: In --incremental mode, using the sequential solver unless forced by...\n"
-              << "WARNING: ...the experimental --incremental-parallel option.\n";
+    Notice() << "Notice: In --incremental mode, using the sequential solver unless forced by...\n"
+             << "Notice: ...the experimental --incremental-parallel option.\n";
     exprMgr = new ExprManager(opts);
     pExecutor = new CommandExecutor(*exprMgr, opts);
   }
