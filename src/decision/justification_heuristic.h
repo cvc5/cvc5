@@ -84,6 +84,9 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * function
    */
   hash_set<TNode,TNodeHashFunction> d_visitedComputeITE;
+
+  /** current decision for the recursive call */
+  SatLiteral d_curDecision;
 public:
   JustificationHeuristic(CVC4::DecisionEngine* de,
                          context::Context *uc,
@@ -95,7 +98,11 @@ public:
     d_giveup("decision::jh::giveup", 0),
     d_timestat("decision::jh::time"),
     d_assertions(uc),
-    d_iteAssertions(uc) {
+    d_iteAssertions(uc),
+    d_iteCache(),
+    d_visited(),
+    d_visitedComputeITE(),
+    d_curDecision() {
     StatisticsRegistry::registerStat(&d_helfulness);
     StatisticsRegistry::registerStat(&d_giveup);
     StatisticsRegistry::registerStat(&d_timestat);
@@ -194,22 +201,17 @@ public:
 private:
   SatLiteral findSplitter(TNode node, SatValue desiredVal)
   {
-    bool ret;
-    SatLiteral litDecision;
-    ret = findSplitterRec(node, desiredVal, &litDecision);
-    if(ret == true) {
-      Debug("decision") << "Yippee!!" << std::endl;
+    d_curDecision = undefSatLiteral;
+    if(findSplitterRec(node, desiredVal)) {
       ++d_helfulness;
-      return litDecision;
-    } else {
-      return undefSatLiteral;
-    }
+    } 
+    return d_curDecision;
   }
   
   /** 
    * Do all the hard work. 
    */ 
-  bool findSplitterRec(TNode node, SatValue value, SatLiteral* litDecision);
+  bool findSplitterRec(TNode node, SatValue value);
 
   /* Helper functions */
   void setJustified(TNode);
@@ -224,6 +226,14 @@ private:
 
   /* Compute all term-ITEs in a node recursively */
   void computeITEs(TNode n, IteList &l);
+
+  bool handleAndOrEasy(TNode node, SatValue desiredVal);
+  bool handleAndOrHard(TNode node, SatValue desiredVal);
+  bool handleBinaryEasy(TNode node1, SatValue desiredVal1,
+                        TNode node2, SatValue desiredVal2);
+  bool handleBinaryHard(TNode node1, SatValue desiredVal1,
+                        TNode node2, SatValue desiredVal2);
+
 };/* class JustificationHeuristic */
 
 }/* namespace decision */

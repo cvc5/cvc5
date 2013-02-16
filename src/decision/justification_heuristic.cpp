@@ -16,25 +16,6 @@
  **
  ** It needs access to the simplified but non-clausal formula.
  **/
-/*****************************************************************************/
-/*!
- * file search_sat.cpp
- * brief Implementation of Search engine with generic external sat solver
- *
- * Author: Clark Barrett
- *
- * Created: Wed Dec  7 21:00:24 2005
- *
- * <hr>
- *
- * License to use, copy, modify, sell and/or distribute this software
- * and its documentation for any purpose is hereby granted without
- * royalty, subject to the terms and conditions defined in the \ref
- * LICENSE file provided with this distribution.
- * 
- * <hr>
- */
-/*****************************************************************************/
 
 #include "justification_heuristic.h"
 
@@ -42,8 +23,6 @@
 #include "expr/kind.h"
 #include "theory/rewriter.h"
 #include "util/ite_removal.h"
-
-// JustificationHeuristic stuff
 
 void JustificationHeuristic::setJustified(TNode n)
 {
@@ -100,8 +79,7 @@ const JustificationHeuristic::IteList& JustificationHeuristic::getITEs(TNode n)
 }
 
 bool JustificationHeuristic::findSplitterRec(TNode node, 
-                                             SatValue desiredVal,
-                                             SatLiteral* litDecision)
+                                             SatValue desiredVal)
 {
   /**
    * Main idea
@@ -112,7 +90,7 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
    * children to be true. this is done recursively.
    */
 
-  Trace("jh-findSplitterRec") 
+  Trace("decision::jh") 
     << "findSplitterRec(" << node << ", " 
     << desiredVal << ", .. )" << std::endl; 
 
@@ -122,13 +100,9 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     node = node[0];
   }
 
-  if(Debug.isOn("decision")) {
-    if(checkJustified(node))
-      Debug("decision") << "  justified, returning" << std::endl; 
-  }
-
   /* Base case */
   if (checkJustified(node)) {
+    Debug("decision::jh") << "  justified, returning" << std::endl; 
     return false;
   }
 
@@ -141,7 +115,6 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
       Debug("decision") << "no sat literal for this node" << std::endl;
     }
   }
-  //Assert(litPresent); -- fails
 #endif
 
   // Get value of sat literal for the node, if there is one
@@ -159,21 +132,18 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   theory::TheoryId tId = theory::kindToTheoryId(k);
 
   /* Some debugging stuff */
-  Debug("jh-findSplitterRec") << "kind = " << k << std::endl;
-  Debug("jh-findSplitterRec") << "theoryId = " << tId << std::endl;
-  Debug("jh-findSplitterRec") << "node = " << node << std::endl;
-  Debug("jh-findSplitterRec") << "litVal = " << litVal << std::endl;
+  Debug("decision::jh") << "kind = " << k << std::endl
+                        << "theoryId = " << tId << std::endl
+                        << "node = " << node << std::endl
+                        << "litVal = " << litVal << std::endl;
 
   /**
    * If not in theory of booleans, and not a "boolean" EQUAL (IFF),
    * then check if this is something to split-on.
    */
-  if(tId != theory::THEORY_BOOL
-     //      && !(k == kind::EQUAL && node[0].getType().isBoolean()) 
-     ) {
+  if(tId != theory::THEORY_BOOL) {
 
-    // if node has embedded ites -- which currently happens iff it got
-    // replaced during ite removal -- then try to resolve that first
+    // if node has embedded ites, resolve that first
     const IteList& l = getITEs(node);
     Trace("jh-ite") << " ite size = " << l.size() << std::endl;
     /*d_visited.insert(node);*/
@@ -181,7 +151,7 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
       if(d_visited.find(i->first) == d_visited.end()) {
         d_visited.insert(i->first);
         Debug("jh-ite") << "jh-ite: adding visited " << i->first << std::endl;
-        if(findSplitterRec(i->second, SAT_VALUE_TRUE, litDecision))
+        if(findSplitterRec(i->second, SAT_VALUE_TRUE))
           return true;
         Debug("jh-ite") << "jh-ite: removing visited " << i->first << std::endl;
         d_visited.erase(i->first);
@@ -195,167 +165,94 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
       return false;
     } else {
       Assert(d_decisionEngine->hasSatLiteral(node));
-      /* if(not d_decisionEngine->hasSatLiteral(node))
-         throw GiveUpException(); */
-      Assert(d_decisionEngine->hasSatLiteral(node));
-      SatVariable v = d_decisionEngine->getSatLiteral(node).getSatVariable();
-      *litDecision = SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
-      Trace("decision") << "decision " << *litDecision << std::endl;
-      Trace("decision") << "Found something to split. Glad to be able to serve you." << std::endl;
+      SatVariable v = 
+        d_decisionEngine->getSatLiteral(node).getSatVariable();
+      d_curDecision =
+        SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
+      Trace("decision") << "decision " << d_curDecision << std::endl;
       return true;
     }
   }
 
-  SatValue valHard = SAT_VALUE_FALSE;
+  bool ret = false;
   switch (k) {
 
   case kind::CONST_BOOLEAN:
     Assert(node.getConst<bool>() == false || desiredVal == SAT_VALUE_TRUE);
-    Assert(node.getConst<bool>() == true || desiredVal == SAT_VALUE_FALSE);
-    setJustified(node);
-    return false;
+    Assert(node.getConst<bool>() == true  || desiredVal == SAT_VALUE_FALSE);
+    break;
 
   case kind::AND:
-    valHard = SAT_VALUE_TRUE;
+    if (desiredVal == SAT_VALUE_FALSE)
+      ret = handleAndOrEasy(node, desiredVal);
+    else
+      ret = handleAndOrHard(node, desiredVal);
+    break;
 
   case kind::OR:
-    if (desiredVal == valHard) {
-      int n = node.getNumChildren();
-      for(int i = 0; i < n; ++i) {
-        if (findSplitterRec(node[i], valHard, litDecision)) {
-          return true;
-        }
-      }
-      Assert(litPresent == false || litVal == valHard,
-             "Output should be justified");
-      setJustified(node);
-      return false;
-    }
-    else {
-      SatValue valEasy = invertValue(valHard);
-      int n = node.getNumChildren();
-      for(int i = 0; i < n; ++i) {
-        Debug("jh-findSplitterRec") << " node[i] = " << node[i] << " " 
-                                 << tryGetSatValue(node[i]) << std::endl;
-        if ( tryGetSatValue(node[i]) != valHard) {
-          Debug("jh-findSplitterRec") << "hi"<< std::endl;
-          if (findSplitterRec(node[i], valEasy, litDecision)) {
-            return true;
-          }
-          Assert(litPresent == false || litVal == valEasy, "Output should be justified");
-          setJustified(node);
-          return false;
-        }
-      }
-      if(Debug.isOn("jh-findSplitterRec")) {
-        Debug("jh-findSplitterRec") << " * ** " << std::endl;
-        Debug("jh-findSplitterRec") << node.getKind() << " "
-                                    << node << std::endl;
-        for(unsigned i = 0; i < node.getNumChildren(); ++i) 
-        Debug("jh-findSplitterRec") << "child: " << tryGetSatValue(node[i]) 
-                                    << std::endl;
-        Debug("jh-findSplitterRec") << "node: " << tryGetSatValue(node)
-                                    << std::endl;
-      }
-      Assert(false, "No controlling input found (2)");
-    }
+    if (desiredVal == SAT_VALUE_FALSE)
+      ret = handleAndOrHard(node, desiredVal);
+    else
+      ret = handleAndOrEasy(node, desiredVal);
     break;
 
   case kind::IMPLIES:
-    //throw GiveUpException();
-    Assert(node.getNumChildren() == 2, "Expected 2 fanins");
-    if (desiredVal == SAT_VALUE_FALSE) {
-      if (findSplitterRec(node[0], SAT_VALUE_TRUE, litDecision)) {
-        return true;
-      }
-      if (findSplitterRec(node[1], SAT_VALUE_FALSE, litDecision)) {
-        return true;
-      }
-      Assert(litPresent == false || litVal == SAT_VALUE_FALSE, 
-             "Output should be justified");
-      setJustified(node);
-      return false;
-    }
-    else {
-      if (tryGetSatValue(node[0]) != SAT_VALUE_TRUE) {
-        if (findSplitterRec(node[0], SAT_VALUE_FALSE, litDecision)) {
-          return true;
-        }
-        Assert(litPresent == false || litVal == SAT_VALUE_TRUE, 
-               "Output should be justified");
-        setJustified(node);
-        return false;
-      }
-      if (tryGetSatValue(node[1]) != SAT_VALUE_FALSE) {
-        if (findSplitterRec(node[1], SAT_VALUE_TRUE, litDecision)) {
-          return true;
-        }
-        Assert(litPresent == false || litVal == SAT_VALUE_TRUE, 
-               "Output should be justified");
-        setJustified(node);
-        return false;
-      }
-      Assert(false, "No controlling input found (3)");
-    }
+    if (desiredVal == SAT_VALUE_FALSE)
+      ret = handleBinaryHard(node[0], SAT_VALUE_TRUE,
+                             node[1], SAT_VALUE_FALSE);
+
+    else
+      ret = handleBinaryEasy(node[0], SAT_VALUE_FALSE,
+                             node[1], SAT_VALUE_TRUE);
     break;
 
-  case kind::IFF: 
-    //throw GiveUpException();
-    {
-    SatValue val = tryGetSatValue(node[0]);
-    if (val != SAT_VALUE_UNKNOWN) {
-      if (findSplitterRec(node[0], val, litDecision)) {
-        return true;
-      }
-      if (desiredVal == SAT_VALUE_FALSE) val = invertValue(val);
+  case kind::IFF: {
+    SatValue desiredVal1 = tryGetSatValue(node[0]);
+    SatValue desiredVal2 = tryGetSatValue(node[1]);
 
-      if (findSplitterRec(node[1], val, litDecision)) {
-        return true;
-      }
-      Assert(litPresent == false || litVal == desiredVal, 
-             "Output should be justified");
-      setJustified(node);
-      return false;
+    if(desiredVal1 == SAT_VALUE_UNKNOWN &&
+       desiredVal2 == SAT_VALUE_UNKNOWN) {
+      // CHOICE: pick one of them arbitarily
+      desiredVal1 = SAT_VALUE_FALSE;
     }
-    else {
-      val = tryGetSatValue(node[1]);
-      if (val == SAT_VALUE_UNKNOWN) val = SAT_VALUE_FALSE;
-      if (desiredVal == SAT_VALUE_FALSE) val = invertValue(val);
-      if (findSplitterRec(node[0], val, litDecision)) {
-        return true;
-      }
-      Assert(false, "Unable to find controlling input (4)");
+
+    if(desiredVal2 == SAT_VALUE_UNKNOWN) {
+      desiredVal2 =
+        desiredVal == SAT_VALUE_TRUE ?
+        desiredVal1 : invertValue(desiredVal1);
+    } else if(desiredVal1 == SAT_VALUE_UNKNOWN) {
+      desiredVal1 =
+        desiredVal == SAT_VALUE_TRUE ?
+        desiredVal2 : invertValue(desiredVal2);
     }
+
+    ret = handleBinaryHard(node[0], desiredVal1,
+                           node[1], desiredVal2);
     break;
   }
     
-  case kind::XOR:
-    //throw GiveUpException();
-    {
-    SatValue val = tryGetSatValue(node[0]);
-    if (val != SAT_VALUE_UNKNOWN) {
-      if (findSplitterRec(node[0], val, litDecision)) {
-        return true;
-      }
-      if (desiredVal == SAT_VALUE_TRUE) val = invertValue(val);
+  case kind::XOR:{
+    SatValue desiredVal1 = tryGetSatValue(node[0]);
+    SatValue desiredVal2 = tryGetSatValue(node[1]);
 
-      if (findSplitterRec(node[1], val, litDecision)) {
-        return true;
-      }
-      Assert(litPresent == false || litVal == desiredVal, 
-             "Output should be justified");
-      setJustified(node);
-      return false;
+    if(desiredVal1 == SAT_VALUE_UNKNOWN &&
+       desiredVal2 == SAT_VALUE_UNKNOWN) {
+      // CHOICE: pick one of them arbitarily
+      desiredVal1 = SAT_VALUE_FALSE;
     }
-    else {
-      SatValue val = tryGetSatValue(node[1]);
-      if (val == SAT_VALUE_UNKNOWN) val = SAT_VALUE_FALSE;
-      if (desiredVal == SAT_VALUE_TRUE) val = invertValue(val);
-      if (findSplitterRec(node[0], val, litDecision)) {
-        return true;
-      }
-      Assert(false, "Unable to find controlling input (5)");
+
+    if(desiredVal2 == SAT_VALUE_UNKNOWN) {
+      desiredVal2 =
+        desiredVal == SAT_VALUE_FALSE ?
+        desiredVal1 : invertValue(desiredVal1);
+    } else if(desiredVal1 == SAT_VALUE_UNKNOWN) {
+      desiredVal1 =
+        desiredVal == SAT_VALUE_FALSE ?
+        desiredVal2 : invertValue(desiredVal2);
     }
+
+    ret = handleBinaryHard(node[0], desiredVal1,
+                           node[1], desiredVal2);
     break;
   }
 
@@ -370,14 +267,14 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
 	 tryGetSatValue(node[1]) == invertValue(desiredVal))
 	? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
 
-      if(findSplitterRec(node[0], ifDesiredVal, litDecision)) {
+      if(findSplitterRec(node[0], ifDesiredVal)) {
 	return true;
       }
       Assert(false, "No controlling input found (6)");
     } else {
 
       // Try to justify 'if'
-      if (findSplitterRec(node[0], ifVal, litDecision)) {
+      if (findSplitterRec(node[0], ifVal)) {
 	return true;
       }
 
@@ -386,7 +283,7 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
       int ch = (ifVal == SAT_VALUE_TRUE) ? 1 : 2;
       int chVal = tryGetSatValue(node[ch]);
       if( (chVal == SAT_VALUE_UNKNOWN || chVal == desiredVal)
-	  && findSplitterRec(node[ch], desiredVal, litDecision) ) {
+	  && findSplitterRec(node[ch], desiredVal) ) {
 	return true;
       }
     }
@@ -401,5 +298,53 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     break;
   }//end of switch(k)
 
-  Unreachable();
+  if(ret == false) {
+    Assert(litPresent == false || litVal ==  desiredVal,
+           "Output should be justified");
+    setJustified(node);
+  }
+  return ret;
 }/* findRecSplit method */
+
+bool JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal) {
+  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or 
+          (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_TRUE) );
+
+  int numChildren = node.getNumChildren();
+  SatValue desiredValInverted = invertValue(desiredVal);
+  for(int i = 0; i < numChildren; ++i)
+    if ( tryGetSatValue(node[i]) != desiredValInverted )
+      return findSplitterRec(node[i], desiredVal);
+  Assert(false, "handleAndOrEasy: No controlling input found");
+  return false;
+}
+
+bool JustificationHeuristic::handleAndOrHard(TNode node, SatValue desiredVal) {
+  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or 
+          (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_FALSE) );
+
+  int numChildren = node.getNumChildren();
+  for(int i = 0; i < numChildren; ++i)
+    if (findSplitterRec(node[i], desiredVal))
+      return true;
+  return false;
+}
+
+bool JustificationHeuristic::handleBinaryEasy
+(TNode node1, SatValue desiredVal1, TNode node2, SatValue desiredVal2)
+{
+  if ( tryGetSatValue(node1) != invertValue(desiredVal1) )
+    return findSplitterRec(node1, desiredVal1);
+  if ( tryGetSatValue(node2) != invertValue(desiredVal2) )
+    return findSplitterRec(node2, desiredVal2);
+  Assert(false, "handleBinaryEasy: No controlling input found");
+  return false;
+}
+
+bool JustificationHeuristic::handleBinaryHard
+(TNode node1, SatValue desiredVal1, TNode node2, SatValue desiredVal2)
+{
+  if( findSplitterRec(node1, desiredVal1) )
+    return true;
+  return findSplitterRec(node2, desiredVal2);
+}
