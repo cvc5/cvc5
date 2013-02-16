@@ -10,5 +10,9 @@ Changes since 1.0
 * for printing commands as they're invoked from the driver, you now need
   verbosity of 3 or higher (e.g. -vvv) instead of verbosity 1 or higher (-v).
   This allows tracing the solver's activities without having too much output.
+* To make CVC4 quieter in abnormal (e.g., "warning" conditions), you can
+  use -q.  Previously, this would silence all output (including "sat" or
+  "unsat") as well.  Now, single -q silences messages and warnings, and
+  double -qq silences all output (except on exception or signal).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 04 Feb 2013 16:24:20 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 20 Feb 2013 18:31:50 -0500

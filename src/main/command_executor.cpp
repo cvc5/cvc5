@@ -59,7 +59,7 @@ bool CommandExecutor::doCommand(Command* cmd)
 bool CommandExecutor::doCommandSingleton(Command *cmd)
 {
   bool status = true;
-  if(d_options[options::verbosity] >= 0) {
+  if(d_options[options::verbosity] >= -1) {
     status = smtEngineInvoke(&d_smtEngine, cmd, d_options[options::out]);
   } else {
     status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
