@@ -86,7 +86,7 @@ subversion_versioninfo.cpp: svninfo
 	    issvn=true; \
 	    branch=`grep '^URL: ' svninfo | sed 's,.*/cvc4/,,'`; \
 	    rev=`grep '^Revision: ' svninfo | awk '{print$$2}'`; \
-	    mods=`grep '^Modifications: ' svninfo | awk '{print$$2}'`; \
+	    mods=`grep '^Modifications: ' svninfo | awk '{print$$2} END { if(!NR) print "false" }'`; \
 	  else \
 	    issvn=false; \
 	    branch=unknown; \
