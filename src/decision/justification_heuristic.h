@@ -233,7 +233,7 @@ private:
                         TNode node2, SatValue desiredVal2);
   bool handleBinaryHard(TNode node1, SatValue desiredVal1,
                         TNode node2, SatValue desiredVal2);
-
+  bool handleITE(TNode node, SatValue desiredVal);
 };/* class JustificationHeuristic */
 
 }/* namespace decision */

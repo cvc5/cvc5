@@ -256,42 +256,9 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     break;
   }
 
-  case kind::ITE: {
-    //[0]: if, [1]: then, [2]: else
-    SatValue ifVal = tryGetSatValue(node[0]);
-    if (ifVal == SAT_VALUE_UNKNOWN) {
-      
-      // are we better off trying false? if not, try true
-      SatValue ifDesiredVal = 
-        (tryGetSatValue(node[2]) == desiredVal ||
-	 tryGetSatValue(node[1]) == invertValue(desiredVal))
-	? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
-
-      if(findSplitterRec(node[0], ifDesiredVal)) {
-	return true;
-      }
-      Assert(false, "No controlling input found (6)");
-    } else {
-
-      // Try to justify 'if'
-      if (findSplitterRec(node[0], ifVal)) {
-	return true;
-      }
-
-      // If that was successful, we need to go into only one of 'then'
-      // or 'else'
-      int ch = (ifVal == SAT_VALUE_TRUE) ? 1 : 2;
-      int chVal = tryGetSatValue(node[ch]);
-      if( (chVal == SAT_VALUE_UNKNOWN || chVal == desiredVal)
-	  && findSplitterRec(node[ch], desiredVal) ) {
-	return true;
-      }
-    }
-    Assert(litPresent == false || litVal == desiredVal,
-	   "Output should be justified");
-    setJustified(node);
-    return false;
-  }
+  case kind::ITE:
+    ret = handleITE(node, desiredVal);
+    break;
 
   default:
     Assert(false, "Unexpected Boolean operator");
@@ -347,4 +314,42 @@ bool JustificationHeuristic::handleBinaryHard
   if( findSplitterRec(node1, desiredVal1) )
     return true;
   return findSplitterRec(node2, desiredVal2);
+}
+
+bool JustificationHeuristic::handleITE(TNode node, SatValue desiredVal)
+{
+  Debug("decision::jh") << " handleITE (" << node << ", "
+                              << desiredVal << std::endl;
+
+  //[0]: if, [1]: then, [2]: else
+  SatValue ifVal = tryGetSatValue(node[0]);
+  if (ifVal == SAT_VALUE_UNKNOWN) {
+      
+    // are we better off trying false? if not, try true [CHOICE]
+    SatValue ifDesiredVal = 
+      (tryGetSatValue(node[2]) == desiredVal ||
+       tryGetSatValue(node[1]) == invertValue(desiredVal))
+      ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+
+    if(findSplitterRec(node[0], ifDesiredVal)) return true;
+    
+    Assert(false, "No controlling input found (6)");
+  } else {
+    // Try to justify 'if'
+    if(findSplitterRec(node[0], ifVal)) return true;
+
+    // If that was successful, we need to go into only one of 'then'
+    // or 'else'
+    int ch = (ifVal == SAT_VALUE_TRUE) ? 1 : 2;
+
+    // STALE code: remove after tests or mar 2013, whichever earlier
+    // int chVal = tryGetSatValue(node[ch]);
+    // Assert(chVal == SAT_VALUE_UNKNOWN || chVal == desiredVal);
+    // end STALE code: remove
+
+    if( findSplitterRec(node[ch], desiredVal) ) {
+      return true;
+    }
+  }// else (...ifVal...)
+  return false;
 }
