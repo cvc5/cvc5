@@ -83,120 +83,18 @@ class JustificationHeuristic : public ITEDecisionStrategy {
 public:
   JustificationHeuristic(CVC4::DecisionEngine* de,
                          context::Context *uc,
-                         context::Context *c):
-    ITEDecisionStrategy(de, c),
-    d_justified(c),
-    d_prvsIndex(c, 0),
-    d_helfulness("decision::jh::helpfulness", 0),
-    d_giveup("decision::jh::giveup", 0),
-    d_timestat("decision::jh::time"),
-    d_assertions(uc),
-    d_iteAssertions(uc),
-    d_iteCache(),
-    d_visited(),
-    d_visitedComputeITE(),
-    d_curDecision() {
-    StatisticsRegistry::registerStat(&d_helfulness);
-    StatisticsRegistry::registerStat(&d_giveup);
-    StatisticsRegistry::registerStat(&d_timestat);
-    Trace("decision") << "Justification heuristic enabled" << std::endl;
-  }
-  ~JustificationHeuristic() {
-    StatisticsRegistry::unregisterStat(&d_helfulness);
-    StatisticsRegistry::unregisterStat(&d_giveup);
-    StatisticsRegistry::unregisterStat(&d_timestat);
-  }
-  prop::SatLiteral getNext(bool &stopSearch) {
-    Trace("decision") << "JustificationHeuristic::getNext()" << std::endl;
-    TimerStat::CodeTimer codeTimer(d_timestat);
+                         context::Context *c);
 
-    d_visited.clear();
+  ~JustificationHeuristic();
 
-    if(Trace.isOn("justified")) {
-      for(JustifiedSet::key_iterator i = d_justified.key_begin();
-          i != d_justified.key_end(); ++i) {
-        TNode n = *i;
-        SatLiteral l = d_decisionEngine->hasSatLiteral(n) ?
-          d_decisionEngine->getSatLiteral(n) : -1;
-        SatValue v = tryGetSatValue(n);
-        Trace("justified") <<"{ "<<l<<"}" << n <<": "<<v << std::endl;
-      }
-    }
-
-    for(unsigned i = d_prvsIndex; i < d_assertions.size(); ++i) {
-      Debug("decision") << "---" << std::endl << d_assertions[i] << std::endl;
-
-      // Sanity check: if it was false, aren't we inconsistent?
-      Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
-
-      SatValue desiredVal = SAT_VALUE_TRUE;
-      SatLiteral litDecision;
-
-      litDecision = findSplitter(d_assertions[i], desiredVal);
-
-      if(litDecision != undefSatLiteral) {
-        d_prvsIndex = i;
-        return litDecision;
-      }
-    }
-
-    Trace("decision") << "jh: Nothing to split on " << std::endl;
-
-#if defined CVC4_DEBUG
-    bool alljustified = true;
-    for(unsigned i = 0 ; i < d_assertions.size() && alljustified ; ++i) {
-      TNode curass = d_assertions[i];
-      while(curass.getKind() == kind::NOT)
-        curass = curass[0];
-      alljustified &= checkJustified(curass);
-
-      if(Debug.isOn("decision")) {
-	if(!checkJustified(curass))
-	  Debug("decision") << "****** Not justified [i="<<i<<"]: " 
-                            << d_assertions[i] << std::endl;
-      }
-    }
-    Assert(alljustified);
-#endif
-
-    // SAT solver can stop...
-    stopSearch = true;
-    d_decisionEngine->setResult(SAT_VALUE_TRUE);
-    return prop::undefSatLiteral;
-  }
+  prop::SatLiteral getNext(bool &stopSearch);
 
   void addAssertions(const std::vector<Node> &assertions,
                      unsigned assertionsEnd,
-                     IteSkolemMap iteSkolemMap) {
-    Trace("decision")
-      << "JustificationHeuristic::addAssertions()" 
-      << " size = " << assertions.size()
-      << " assertionsEnd = " << assertionsEnd
-      << std::endl;
-
-    // Save the 'real' assertions locally
-    for(unsigned i = 0; i < assertionsEnd; ++i)
-      d_assertions.push_back(assertions[i]);
-
-    // Save mapping between ite skolems and ite assertions
-    for(IteSkolemMap::iterator i = iteSkolemMap.begin();
-        i != iteSkolemMap.end(); ++i) {
-      Trace("jh-ite") << " jh-ite: " << (i->first) << " maps to "
-                      << assertions[(i->second)] << std::endl;
-      Assert(i->second >= assertionsEnd && i->second < assertions.size());
-      d_iteAssertions[i->first] = assertions[i->second];
-    }
-  }
+                     IteSkolemMap iteSkolemMap);
 
 private:
-  SatLiteral findSplitter(TNode node, SatValue desiredVal)
-  {
-    d_curDecision = undefSatLiteral;
-    if(findSplitterRec(node, desiredVal)) {
-      ++d_helfulness;
-    } 
-    return d_curDecision;
-  }
+  SatLiteral findSplitter(TNode node, SatValue desiredVal);
   
   /** 
    * Do all the hard work. 

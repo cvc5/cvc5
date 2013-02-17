@@ -24,6 +24,159 @@
 #include "theory/rewriter.h"
 #include "util/ite_removal.h"
 
+
+using namespace CVC4;
+
+JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
+                                               context::Context *uc,
+                                               context::Context *c):
+  ITEDecisionStrategy(de, c),
+  d_justified(c),
+  d_prvsIndex(c, 0),
+  d_helfulness("decision::jh::helpfulness", 0),
+  d_giveup("decision::jh::giveup", 0),
+  d_timestat("decision::jh::time"),
+  d_assertions(uc),
+  d_iteAssertions(uc),
+  d_iteCache(),
+  d_visited(),
+  d_visitedComputeITE(),
+  d_curDecision() {
+  StatisticsRegistry::registerStat(&d_helfulness);
+  StatisticsRegistry::registerStat(&d_giveup);
+  StatisticsRegistry::registerStat(&d_timestat);
+  Trace("decision") << "Justification heuristic enabled" << std::endl;
+}
+
+JustificationHeuristic::~JustificationHeuristic() {
+  StatisticsRegistry::unregisterStat(&d_helfulness);
+  StatisticsRegistry::unregisterStat(&d_giveup);
+  StatisticsRegistry::unregisterStat(&d_timestat);
+}
+
+CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch) {
+  Trace("decision") << "JustificationHeuristic::getNext()" << std::endl;
+  TimerStat::CodeTimer codeTimer(d_timestat);
+
+  d_visited.clear();
+
+  if(Trace.isOn("justified")) {
+    for(JustifiedSet::key_iterator i = d_justified.key_begin();
+        i != d_justified.key_end(); ++i) {
+      TNode n = *i;
+      SatLiteral l = d_decisionEngine->hasSatLiteral(n) ?
+        d_decisionEngine->getSatLiteral(n) : -1;
+      SatValue v = tryGetSatValue(n);
+      Trace("justified") <<"{ "<<l<<"}" << n <<": "<<v << std::endl;
+    }
+  }
+
+  for(unsigned i = d_prvsIndex; i < d_assertions.size(); ++i) {
+    Debug("decision") << "---" << std::endl << d_assertions[i] << std::endl;
+
+    // Sanity check: if it was false, aren't we inconsistent?
+    Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
+
+    SatValue desiredVal = SAT_VALUE_TRUE;
+    SatLiteral litDecision;
+
+    litDecision = findSplitter(d_assertions[i], desiredVal);
+
+    if(litDecision != undefSatLiteral) {
+      d_prvsIndex = i;
+      return litDecision;
+    }
+  }
+
+  Trace("decision") << "jh: Nothing to split on " << std::endl;
+
+#if defined CVC4_DEBUG
+  bool alljustified = true;
+  for(unsigned i = 0 ; i < d_assertions.size() && alljustified ; ++i) {
+    TNode curass = d_assertions[i];
+    while(curass.getKind() == kind::NOT)
+      curass = curass[0];
+    alljustified &= checkJustified(curass);
+
+    if(Debug.isOn("decision")) {
+      if(!checkJustified(curass))
+        Debug("decision") << "****** Not justified [i="<<i<<"]: " 
+                          << d_assertions[i] << std::endl;
+    }
+  }
+  Assert(alljustified);
+#endif
+
+  // SAT solver can stop...
+  stopSearch = true;
+  d_decisionEngine->setResult(SAT_VALUE_TRUE);
+  return prop::undefSatLiteral;
+}
+
+
+inline void computeXorIffDesiredValues
+(Kind k, SatValue desiredVal, SatValue &desiredVal1, SatValue &desiredVal2)
+{
+  Assert(k == kind::IFF || k == kind::XOR);
+
+  bool shouldInvert =
+    (desiredVal == SAT_VALUE_TRUE && k == kind::IFF) ||
+    (desiredVal == SAT_VALUE_FALSE && k == kind::XOR);
+
+  if(desiredVal1 == SAT_VALUE_UNKNOWN &&
+     desiredVal2 == SAT_VALUE_UNKNOWN) {
+    // CHOICE: pick one of them arbitarily
+    desiredVal1 = SAT_VALUE_FALSE;
+  }
+
+  if(desiredVal2 == SAT_VALUE_UNKNOWN) {
+    desiredVal2 = shouldInvert ? invertValue(desiredVal1) : desiredVal1;
+  } else if(desiredVal1 == SAT_VALUE_UNKNOWN) {
+    desiredVal1 = shouldInvert ? invertValue(desiredVal2) : desiredVal2;
+  }
+}
+
+
+
+void JustificationHeuristic::addAssertions
+(const std::vector<Node> &assertions,
+ unsigned assertionsEnd,
+ IteSkolemMap iteSkolemMap) {
+
+  Trace("decision")
+    << "JustificationHeuristic::addAssertions()" 
+    << " size = " << assertions.size()
+    << " assertionsEnd = " << assertionsEnd
+    << std::endl;
+
+  // Save the 'real' assertions locally
+  for(unsigned i = 0; i < assertionsEnd; ++i)
+    d_assertions.push_back(assertions[i]);
+
+  // Save mapping between ite skolems and ite assertions
+  for(IteSkolemMap::iterator i = iteSkolemMap.begin();
+      i != iteSkolemMap.end(); ++i) {
+
+    Trace("decision::jh::ite") 
+      << " jh-ite: " << (i->first) << " maps to "
+      << assertions[(i->second)] << std::endl;
+    Assert(i->second >= assertionsEnd && i->second < assertions.size());
+
+    d_iteAssertions[i->first] = assertions[i->second];
+  }
+}
+
+SatLiteral JustificationHeuristic::findSplitter(TNode node,
+                                                SatValue desiredVal)
+{
+  d_curDecision = undefSatLiteral;
+  if(findSplitterRec(node, desiredVal)) {
+    ++d_helfulness;
+  } 
+  return d_curDecision;
+}
+
+
 void JustificationHeuristic::setJustified(TNode n)
 {
   d_justified.insert(n);
@@ -46,6 +199,22 @@ SatValue JustificationHeuristic::tryGetSatValue(Node n)
   }//end of else
 }
 
+const JustificationHeuristic::IteList&
+JustificationHeuristic::getITEs(TNode n)
+{
+  IteCache::iterator it = d_iteCache.find(n);
+  if(it != d_iteCache.end()) {
+    return it->second;
+  } else {
+    // Compute the list of ITEs
+    // TODO: optimize by avoiding multiple lookup for d_iteCache[n]
+    d_iteCache[n] = IteList();
+    d_visitedComputeITE.clear();
+    computeITEs(n, d_iteCache[n]);
+    return d_iteCache[n];
+  }
+}
+
 void JustificationHeuristic::computeITEs(TNode n, IteList &l)
 {
   Trace("decision::jh::ite") << " computeITEs( " << n << ", &l)\n";
@@ -63,21 +232,6 @@ void JustificationHeuristic::computeITEs(TNode n, IteList &l)
   }
 }
 
-const JustificationHeuristic::IteList& JustificationHeuristic::getITEs(TNode n)
-{
-  IteCache::iterator it = d_iteCache.find(n);
-  if(it != d_iteCache.end()) {
-    return it->second;
-  } else {
-    // Compute the list of ITEs
-    // TODO: optimize by avoiding multiple lookup for d_iteCache[n]
-    d_iteCache[n] = IteList();
-    d_visitedComputeITE.clear();
-    computeITEs(n, d_iteCache[n]);
-    return d_iteCache[n];
-  }
-}
-
 bool JustificationHeuristic::findSplitterRec(TNode node, 
                                              SatValue desiredVal)
 {
@@ -85,7 +239,7 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
    * Main idea
    *
    * Given a boolean formula "node", the goal is to try to make it
-   * evaluate to "desiredVal" (true/false). for instance if "node" is a AND
+   * evaluate to "desiredVal" (true/false). for instance if "node" is a OR
    * formula we want to make it evaluate to true, we'd like one of the
    * children to be true. this is done recursively.
    */
@@ -149,13 +303,12 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
     if(litVal != SAT_VALUE_UNKNOWN) {
       setJustified(node);
       return false;
-    } else {
+    } 
+    else {
       Assert(d_decisionEngine->hasSatLiteral(node));
       SatVariable v = 
         d_decisionEngine->getSatLiteral(node).getSatVariable();
-      d_curDecision =
-        SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
-      Trace("decision") << "decision " << d_curDecision << std::endl;
+      d_curDecision = SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
       return true;
     }
   }
@@ -192,51 +345,11 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
                              node[1], SAT_VALUE_TRUE);
     break;
 
+  case kind::XOR:
   case kind::IFF: {
     SatValue desiredVal1 = tryGetSatValue(node[0]);
     SatValue desiredVal2 = tryGetSatValue(node[1]);
-
-    if(desiredVal1 == SAT_VALUE_UNKNOWN &&
-       desiredVal2 == SAT_VALUE_UNKNOWN) {
-      // CHOICE: pick one of them arbitarily
-      desiredVal1 = SAT_VALUE_FALSE;
-    }
-
-    if(desiredVal2 == SAT_VALUE_UNKNOWN) {
-      desiredVal2 =
-        desiredVal == SAT_VALUE_TRUE ?
-        desiredVal1 : invertValue(desiredVal1);
-    } else if(desiredVal1 == SAT_VALUE_UNKNOWN) {
-      desiredVal1 =
-        desiredVal == SAT_VALUE_TRUE ?
-        desiredVal2 : invertValue(desiredVal2);
-    }
-
-    ret = handleBinaryHard(node[0], desiredVal1,
-                           node[1], desiredVal2);
-    break;
-  }
-    
-  case kind::XOR:{
-    SatValue desiredVal1 = tryGetSatValue(node[0]);
-    SatValue desiredVal2 = tryGetSatValue(node[1]);
-
-    if(desiredVal1 == SAT_VALUE_UNKNOWN &&
-       desiredVal2 == SAT_VALUE_UNKNOWN) {
-      // CHOICE: pick one of them arbitarily
-      desiredVal1 = SAT_VALUE_FALSE;
-    }
-
-    if(desiredVal2 == SAT_VALUE_UNKNOWN) {
-      desiredVal2 =
-        desiredVal == SAT_VALUE_FALSE ?
-        desiredVal1 : invertValue(desiredVal1);
-    } else if(desiredVal1 == SAT_VALUE_UNKNOWN) {
-      desiredVal1 =
-        desiredVal == SAT_VALUE_FALSE ?
-        desiredVal2 : invertValue(desiredVal2);
-    }
-
+    computeXorIffDesiredValues(k, desiredVal, desiredVal1, desiredVal2);
     ret = handleBinaryHard(node[0], desiredVal1,
                            node[1], desiredVal2);
     break;
@@ -259,7 +372,9 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
   return ret;
 }/* findRecSplit method */
 
-bool JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal) {
+bool JustificationHeuristic::handleAndOrEasy(TNode node,
+                                             SatValue desiredVal)
+{
   Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or 
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_TRUE) );
 
@@ -272,7 +387,8 @@ bool JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal) {
   return false;
 }
 
-bool JustificationHeuristic::handleAndOrHard(TNode node, SatValue desiredVal) {
+bool JustificationHeuristic::handleAndOrHard(TNode node,
+                                             SatValue desiredVal) {
   Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or 
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_FALSE) );
 
@@ -283,8 +399,10 @@ bool JustificationHeuristic::handleAndOrHard(TNode node, SatValue desiredVal) {
   return false;
 }
 
-bool JustificationHeuristic::handleBinaryEasy
-(TNode node1, SatValue desiredVal1, TNode node2, SatValue desiredVal2)
+bool JustificationHeuristic::handleBinaryEasy(TNode node1,
+                                              SatValue desiredVal1,
+                                              TNode node2,
+                                              SatValue desiredVal2)
 {
   if ( tryGetSatValue(node1) != invertValue(desiredVal1) )
     return findSplitterRec(node1, desiredVal1);
@@ -294,8 +412,10 @@ bool JustificationHeuristic::handleBinaryEasy
   return false;
 }
 
-bool JustificationHeuristic::handleBinaryHard
-(TNode node1, SatValue desiredVal1, TNode node2, SatValue desiredVal2)
+bool JustificationHeuristic::handleBinaryHard(TNode node1,
+                                              SatValue desiredVal1,
+                                              TNode node2,
+                                              SatValue desiredVal2)
 {
   if( findSplitterRec(node1, desiredVal1) )
     return true;
@@ -348,15 +468,9 @@ bool JustificationHeuristic::handleEmbeddedITEs(TNode node)
   for(IteList::const_iterator i = l.begin(); i != l.end(); ++i) {
     if(d_visited.find(i->first) == d_visited.end()) {
       d_visited.insert(i->first);
-      Debug("decision::jh::ite") << "jh-ite: adding visited "
-                                 << i->first << std::endl;
       if(findSplitterRec(i->second, SAT_VALUE_TRUE))
         return true;
-      Debug("decision::jh::ite") << "jh-ite: removing visited "
-                                 << i->first << std::endl;
       d_visited.erase(i->first);
-    } else {
-      Debug("decision::jh::ite") << "jh-ite: already visited " << i->first << std::endl;
     }
   }
   return false;
