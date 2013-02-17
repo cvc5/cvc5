@@ -48,7 +48,7 @@ SatValue JustificationHeuristic::tryGetSatValue(Node n)
 
 void JustificationHeuristic::computeITEs(TNode n, IteList &l)
 {
-  Trace("jh-ite") << " computeITEs( " << n << ", &l)\n";
+  Trace("decision::jh::ite") << " computeITEs( " << n << ", &l)\n";
   d_visitedComputeITE.insert(n);
   for(unsigned i=0; i<n.getNumChildren(); ++i) {
     SkolemMap::iterator it2 = d_iteAssertions.find(n[i]);
@@ -138,27 +138,13 @@ bool JustificationHeuristic::findSplitterRec(TNode node,
                         << "litVal = " << litVal << std::endl;
 
   /**
-   * If not in theory of booleans, and not a "boolean" EQUAL (IFF),
-   * then check if this is something to split-on.
+   * If not in theory of booleans, check if this is something to split-on.
    */
   if(tId != theory::THEORY_BOOL) {
 
     // if node has embedded ites, resolve that first
-    const IteList& l = getITEs(node);
-    Trace("jh-ite") << " ite size = " << l.size() << std::endl;
-    /*d_visited.insert(node);*/
-    for(IteList::const_iterator i = l.begin(); i != l.end(); ++i) {
-      if(d_visited.find(i->first) == d_visited.end()) {
-        d_visited.insert(i->first);
-        Debug("jh-ite") << "jh-ite: adding visited " << i->first << std::endl;
-        if(findSplitterRec(i->second, SAT_VALUE_TRUE))
-          return true;
-        Debug("jh-ite") << "jh-ite: removing visited " << i->first << std::endl;
-        d_visited.erase(i->first);
-      } else {
-        Debug("jh-ite") << "jh-ite: already visited " << i->first << std::endl;
-      }
-    }
+    if(handleEmbeddedITEs(node))
+      return true;
 
     if(litVal != SAT_VALUE_UNKNOWN) {
       setJustified(node);
@@ -351,5 +337,27 @@ bool JustificationHeuristic::handleITE(TNode node, SatValue desiredVal)
       return true;
     }
   }// else (...ifVal...)
+  return false;
+}
+
+bool JustificationHeuristic::handleEmbeddedITEs(TNode node)
+{
+  const IteList& l = getITEs(node);
+  Trace("decision::jh::ite") << " ite size = " << l.size() << std::endl;
+
+  for(IteList::const_iterator i = l.begin(); i != l.end(); ++i) {
+    if(d_visited.find(i->first) == d_visited.end()) {
+      d_visited.insert(i->first);
+      Debug("decision::jh::ite") << "jh-ite: adding visited "
+                                 << i->first << std::endl;
+      if(findSplitterRec(i->second, SAT_VALUE_TRUE))
+        return true;
+      Debug("decision::jh::ite") << "jh-ite: removing visited "
+                                 << i->first << std::endl;
+      d_visited.erase(i->first);
+    } else {
+      Debug("decision::jh::ite") << "jh-ite: already visited " << i->first << std::endl;
+    }
+  }
   return false;
 }

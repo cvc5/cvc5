@@ -36,13 +36,6 @@ namespace CVC4 {
 
 namespace decision {
 
-class GiveUpException : public Exception {
-public:
-  GiveUpException() : 
-    Exception("justification heuristic: giving up") {
-  }
-};/* class GiveUpException */
-
 class JustificationHeuristic : public ITEDecisionStrategy {
   typedef std::vector<pair<TNode,TNode> > IteList;
   typedef hash_map<TNode,IteList,TNodeHashFunction> IteCache;
@@ -138,11 +131,8 @@ public:
 
       SatValue desiredVal = SAT_VALUE_TRUE;
       SatLiteral litDecision;
-      try {
-        litDecision = findSplitter(d_assertions[i], desiredVal);
-      }catch(GiveUpException &e) {
-        return prop::undefSatLiteral;
-      }
+
+      litDecision = findSplitter(d_assertions[i], desiredVal);
 
       if(litDecision != undefSatLiteral) {
         d_prvsIndex = i;
@@ -234,6 +224,7 @@ private:
   bool handleBinaryHard(TNode node1, SatValue desiredVal1,
                         TNode node2, SatValue desiredVal2);
   bool handleITE(TNode node, SatValue desiredVal);
+  bool handleEmbeddedITEs(TNode node);
 };/* class JustificationHeuristic */
 
 }/* namespace decision */
