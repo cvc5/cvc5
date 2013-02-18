@@ -117,11 +117,11 @@ git_versioninfo.cpp: gitinfo
 	    isgit=true; \
 	    branch=`head -1 gitinfo`; \
 	    rev=`head -2 gitinfo | tail -1 | awk '{print$$1}'`; \
-	    mods=`grep '^Modifications: ' gitinfo | awk '{print$$2}'`; \
+	    mods=`grep '^Modifications: ' gitinfo | awk '{print$$2} END { if(!NR) print "false" }'`; \
 	  else \
 	    isgit=false; \
 	    branch=unknown; \
-	    rev=0; \
+	    rev=unknown; \
 	    mods=false; \
 	  fi; \
 	  echo "#include \"util/configuration.h\""; \
