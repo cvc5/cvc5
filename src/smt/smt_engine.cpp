@@ -1285,7 +1285,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     if(i != d_smt.d_definedFunctions->end()) {
       // replacement must be closed
       if((*i).second.getFormals().size() > 0) {
-        throw TypeCheckingException(n.toExpr(), string("Defined function requires arguments: `") + n.toString() + "'");
+        //throw TypeCheckingException(n.toExpr(), string("Defined function requires arguments: `") + n.toString() + "'");
       }
       // don't bother putting in the cache
       return (*i).second.getFormula();
