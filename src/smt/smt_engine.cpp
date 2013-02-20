@@ -3039,7 +3039,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   return n.toExpr();
 }
 
-Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, LogicException) {
+Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
