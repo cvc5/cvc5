@@ -63,16 +63,14 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Command* parseCommand() 
-    throw(ParserException, TypeCheckingException);
+  Command* parseCommand();
 
   /** Parse an expression from the input. Returns a null <code>Expr</code>
    * if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() 
-    throw(ParserException, TypeCheckingException);
+  Expr parseExpr();
 
 private:
 

@@ -168,8 +168,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Command* parseCommand()
-    throw (ParserException, TypeCheckingException) = 0;
+  virtual Command* parseCommand() = 0;
 
   /**
    * Issue a warning to the user, with source file, line, and column info.
@@ -188,8 +187,7 @@ protected:
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Expr parseExpr()
-    throw (ParserException, TypeCheckingException) = 0;
+  virtual Expr parseExpr() = 0;
 
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;

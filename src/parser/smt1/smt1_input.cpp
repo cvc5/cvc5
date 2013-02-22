@@ -57,13 +57,11 @@ Smt1Input::~Smt1Input() {
   d_pSmt1Parser->free(d_pSmt1Parser);
 }
 
-Command* Smt1Input::parseCommand()
-  throw (ParserException, TypeCheckingException) {
+Command* Smt1Input::parseCommand() {
   return d_pSmt1Parser->parseCommand(d_pSmt1Parser);
 }
 
-Expr Smt1Input::parseExpr()
-  throw (ParserException, TypeCheckingException) {
+Expr Smt1Input::parseExpr() {
   return d_pSmt1Parser->parseExpr(d_pSmt1Parser);
 }
 

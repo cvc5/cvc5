@@ -58,13 +58,11 @@ TptpInput::~TptpInput() {
   d_pTptpParser->free(d_pTptpParser);
 }
 
-Command* TptpInput::parseCommand()
-  throw (ParserException, TypeCheckingException) {
+Command* TptpInput::parseCommand() {
   return d_pTptpParser->parseCommand(d_pTptpParser);
 }
 
-Expr TptpInput::parseExpr()
-  throw (ParserException, TypeCheckingException) {
+Expr TptpInput::parseExpr() {
   return d_pTptpParser->parseExpr(d_pTptpParser);
 }
 
