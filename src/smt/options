@@ -54,6 +54,8 @@ common-option incrementalSolving incremental -i --incremental bool
 
 option abstractValues abstract-values --abstract-values bool :default false
  in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard
+option modelUninterpDtEnum --model-u-dt-enum bool :default false
+ in models, output uninterpreted sorts as datatype enumerations
 
 option - regular-output-channel argument :handler CVC4::smt::setRegularOutputChannel :handler-include "smt/options_handlers.h"
  set the regular output channel of the solver

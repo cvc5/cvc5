@@ -73,9 +73,8 @@ void ModelEngine::check( Theory::Effort e ){
         if( addedLemmas==0 ){
           Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
           //let the strong solver verify that the model is minimal
-          uf::StrongSolverTheoryUf* uf_ss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
           //for debugging, this will if there are terms in the model that the strong solver was not notified of
-          uf_ss->debugModel( fm );
+          ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm );
           Trace("model-engine-debug") << "Check model..." << std::endl;
           d_incomplete_check = false;
           //print debug
@@ -164,7 +163,7 @@ int ModelEngine::checkModel( int checkOption ){
         Trace("model-engine-debug") << "   ";
         for( size_t i=0; i<it->second.size(); i++ ){
           //Trace("model-engine-debug") << it->second[i] << "  ";
-          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getInternalRepresentative( it->second[i] );
+          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getRepresentative( it->second[i] );
           Trace("model-engine-debug") << r << " ";
         }
         Trace("model-engine-debug") << std::endl;

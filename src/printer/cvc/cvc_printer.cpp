@@ -21,7 +21,9 @@
 #include "expr/command.h"
 #include "theory/substitutions.h"
 #include "smt/smt_engine.h"
+#include "smt/options.h"
 #include "theory/model.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 
 #include <iostream>
 #include <vector>
@@ -813,21 +815,34 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
   theory::TheoryModel& tm = (theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if( tn.isSort() ){
-      // print the cardinality
-      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-        out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+    if( options::modelUninterpDtEnum() && tn.isSort() &&
+        tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+      out << "DATATYPE " << std::endl;
+      out << "  " << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " = ";
+      for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
+        if (i>0) {
+          out << "| ";
+        }
+        out << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " ";
       }
-    }
-    out << c << std::endl;
-    if( tn.isSort() ){
-      // print the representatives
-      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-        for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-          if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-            out << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " : " << tn << ";" << std::endl;
-          }else{
-            out << "% rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+      out << std::endl << "END;" << std::endl;
+    } else {
+      if( tn.isSort() ){
+        // print the cardinality
+        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+          out << "% cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+        }
+      }
+      out << c << std::endl;
+      if( tn.isSort() ){
+        // print the representatives
+        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+          for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
+            if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
+              out << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " : " << tn << ";" << std::endl;
+            }else{
+              out << "% rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+            }
           }
         }
       }
@@ -850,7 +865,15 @@ void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const t
     }else{
       out << tn;
     }
-    out << " = " << Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr())) << ";" << std::endl;
+    Node val = Node::fromExpr(tm.getSmtEngine()->getValue(n.toExpr()));
+    if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
+      TypeNode tn = val[1].getType();
+      if (tn.isSort() && tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+        Cardinality indexCard((*tm.d_rep_set.d_type_reps.find(tn)).second.size());
+        val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
+      }
+    }
+    out << " = " << val << ";" << std::endl;
 
 /*
     //for table format (work in progress)

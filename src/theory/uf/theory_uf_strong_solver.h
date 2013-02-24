@@ -31,8 +31,9 @@ namespace uf {
 
 class TheoryUF;
 class TermDisambiguator;
+class DisequalityPropagator;
 
-class StrongSolverTheoryUf{
+class StrongSolverTheoryUF{
 protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
@@ -42,51 +43,14 @@ protected:
   typedef context::CDList<bool> IntList;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 public:
-  class RepModel {
-  protected:
-    /** type */
-    TypeNode d_type;
-  public:
-    RepModel( TypeNode tn ) : d_type( tn ){}
-    virtual ~RepModel(){}
-    /** initialize */
-    virtual void initialize( OutputChannel* out ) = 0;
-    /** new node */
-    virtual void newEqClass( Node n ) = 0;
-    /** merge */
-    virtual void merge( Node a, Node b ) = 0;
-    /** assert terms are disequal */
-    virtual void assertDisequal( Node a, Node b, Node reason ) = 0;
-    /** check */
-    virtual void check( Theory::Effort level, OutputChannel* out ){}
-    /** get next decision request */
-    virtual Node getNextDecisionRequest() { return Node::null(); }
-    /** minimize */
-    virtual bool minimize( OutputChannel* out, TheoryModel* m ){ return true; }
-    /** assert cardinality */
-    virtual void assertCardinality( OutputChannel* out, int c, bool val ){}
-    /** is in conflict */
-    virtual bool isConflict() { return false; }
-    /** get cardinality */
-    virtual int getCardinality() { return -1; }
-    /** has cardinality */
-    virtual bool hasCardinalityAsserted() { return true; }
-    /** get representatives */
-    virtual void getRepresentatives( std::vector< Node >& reps ){}
-    /** print debug */
-    virtual void debugPrint( const char* c ){}
-    /** debug a model */
-    virtual void debugModel( TheoryModel* m ){}
-  };
-public:
   /** information for incremental conflict/clique finding for a particular sort */
-  class SortRepModel : public RepModel {
+  class SortModel {
   public:
     /** a partition of the current equality graph for which cliques can occur internally */
     class Region {
     public:
       /** conflict find pointer */
-      SortRepModel* d_cf;
+      SortModel* d_cf;
       /** information stored about each node in region */
       class RegionNodeInfo {
       public:
@@ -142,7 +106,7 @@ public:
       void setRep( Node n, bool valid );
     public:
       //constructor
-      Region( SortRepModel* cf, context::Context* c ) : d_cf( cf ), d_testCliqueSize( c, 0 ),
+      Region( SortModel* cf, context::Context* c ) : d_cf( cf ), d_testCliqueSize( c, 0 ),
         d_splitsSize( c, 0 ), d_testClique( c ), d_splits( c ), d_reps_size( c, 0 ),
         d_total_diseq_external( c, 0 ), d_total_diseq_internal( c, 0 ), d_valid( c, true ) {
       }
@@ -186,8 +150,10 @@ public:
       void debugPrint( const char* c, bool incClique = false );
     };
   private:
-    /** theory uf pointer */
-    TheoryUF* d_th;
+    /** the type this model is for */
+    TypeNode d_type;
+    /** strong solver pointer */
+    StrongSolverTheoryUF* d_thss;
     /** regions used to d_region_index */
     context::CDO< unsigned > d_regions_index;
     /** vector of regions */
@@ -256,8 +222,8 @@ public:
     /** get totality lemma terms */
     Node getTotalityLemmaTerm( int cardinality, int i );
   public:
-    SortRepModel( Node n, context::Context* c, TheoryUF* th );
-    virtual ~SortRepModel(){}
+    SortModel( Node n, context::Context* c, StrongSolverTheoryUF* thss );
+    virtual ~SortModel(){}
     /** initialize */
     void initialize( OutputChannel* out );
     /** new node */
@@ -266,6 +232,8 @@ public:
     void merge( Node a, Node b );
     /** assert terms are disequal */
     void assertDisequal( Node a, Node b, Node reason );
+    /** are disequal */
+    bool areDisequal( Node a, Node b );
     /** check */
     void check( Theory::Effort level, OutputChannel* out );
     /** propagate */
@@ -291,7 +259,7 @@ public:
   public:
     /** get number of regions (for debugging) */
     int getNumRegions();
-  }; /** class SortRepModel */
+  }; /** class SortModel */
 private:
   /** The output channel for the strong solver. */
   OutputChannel* d_out;
@@ -300,19 +268,31 @@ private:
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
-  std::map< TypeNode, RepModel* > d_rep_model;
+  std::map< TypeNode, SortModel* > d_rep_model;
   /** all types */
   std::vector< TypeNode > d_conf_types;
   /** whether conflict find data structures have been initialized */
   TypeNodeBoolMap d_rep_model_init;
   /** get conflict find */
-  RepModel* getRepModel( Node n );
+  SortModel* getSortModel( Node n );
 private:
   /** term disambiguator */
   TermDisambiguator* d_term_amb;
+  /** disequality propagator */
+  DisequalityPropagator* d_deq_prop;
 public:
-  StrongSolverTheoryUf(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
-  ~StrongSolverTheoryUf() {}
+  StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
+  ~StrongSolverTheoryUF() {}
+  /** get theory */
+  TheoryUF* getTheory() { return d_th; }
+  /** term disambiguator */
+  TermDisambiguator* getTermDisambiguator() { return d_term_amb; }
+  /** disequality propagator */
+  DisequalityPropagator* getDisequalityPropagator() { return d_deq_prop; }
+  /** get default sat context */
+  context::Context* getSatContext();
+  /** get default output channel */
+  OutputChannel& getOutputChannel();
   /** new node */
   void newEqClass( Node n );
   /** merge */
@@ -321,6 +301,8 @@ public:
   void assertDisequal( Node a, Node b, Node reason );
   /** assert node */
   void assertNode( Node n, bool isDecision );
+  /** are disequal */
+  bool areDisequal( Node a, Node b );
 public:
   /** check */
   void check( Theory::Effort level );
@@ -336,7 +318,7 @@ public:
   void notifyRestart();
 public:
   /** identify */
-  std::string identify() const { return std::string("StrongSolverTheoryUf"); }
+  std::string identify() const { return std::string("StrongSolverTheoryUF"); }
   //print debug
   void debugPrint( const char* c );
   /** debug a model */
@@ -368,7 +350,7 @@ public:
   };
   /** statistics class */
   Statistics d_statistics;
-};/* class StrongSolverTheoryUf */
+};/* class StrongSolverTheoryUF */
 
 
 class TermDisambiguator
@@ -385,6 +367,37 @@ public:
   ~TermDisambiguator(){}
   /** check ambiguous terms */
   int disambiguateTerms( OutputChannel* out );
+};
+
+class DisequalityPropagator
+{
+private:
+  /** quantifiers engine */
+  QuantifiersEngine* d_qe;
+  /** strong solver */
+  StrongSolverTheoryUF* d_ufss;
+  /** true,false */
+  Node d_true;
+  Node d_false;
+  /** check term t against equivalence class that t is disequal from */
+  void checkEquivalenceClass( Node t, Node eqc );
+public:
+  DisequalityPropagator(QuantifiersEngine* qe, StrongSolverTheoryUF* ufss);
+  /** merge */
+  void merge( Node a, Node b );
+  /** assert terms are disequal */
+  void assertDisequal( Node a, Node b, Node reason );
+  /** assert predicate */
+  void assertPredicate( Node p, bool polarity );
+public:
+  class Statistics {
+  public:
+    IntStat d_propagations;
+    Statistics();
+    ~Statistics();
+  };
+  /** statistics class */
+  Statistics d_statistics;
 };
 
 }

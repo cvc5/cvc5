@@ -71,7 +71,7 @@ option userPatternsQuant /--ignore-user-patterns bool :default true
 option flipDecision --flip-decision/ bool :default false
  turns on flip decision heuristic
 
-option internalReps --disable-quant-internal-reps/ bool :default true
+option internalReps /--disable-quant-internal-reps bool :default true
  disables instantiating with representatives chosen by quantifiers engine
 
 option finiteModelFind --finite-model-find bool :default false

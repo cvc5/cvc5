@@ -58,7 +58,7 @@ public:
   /** make complete */
   void makeComplete( Node f, QuantifiersEngine* qe );
   /** make internal representative */
-  void makeInternalRepresentative( QuantifiersEngine* qe );
+  //void makeInternalRepresentative( QuantifiersEngine* qe );
   /** make representative */
   void makeRepresentative( QuantifiersEngine* qe );
   /** get value */

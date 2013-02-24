@@ -371,7 +371,7 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      Node r = d_eq_query->getInternalRepresentative( val );
+      Node r = d_eq_query->getInternalRepresentative( val, f, i );
       Trace("inst-add-debug") << "mkRep " << r << " " << val << std::endl;
       m.set( ic, r );
     }
@@ -477,56 +477,6 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
     d_statistics.d_lit_phase_nreq += (int)nodes.size();
   }
 }
-/*
-EqualityQuery* QuantifiersEngine::getEqualityQuery(TypeNode t) {
-  // Should use skeleton (in order to have the type and the kind
-  //  or any needed other information) instead of only the type
-
-  // TheoryId id = Theory::theoryOf(t);
-  // inst::EqualityQuery* eq = d_eq_query_arr[id];
-  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
-  // else return eq;
-
-  // hack because the generic one is too slow
-  // TheoryId id = Theory::theoryOf(t);
-  // if( true || id == theory::THEORY_UF){
-  //   uf::InstantiatorTheoryUf* ith = static_cast<uf::InstantiatorTheoryUf*>( getInstantiator( theory::THEORY_UF ));
-  //   return new uf::EqualityQueryInstantiatorTheoryUf(ith);
-  // }
-  // inst::EqualityQuery* eq = d_eq_query_arr[id];
-  // if(eq == NULL) return d_eq_query_arr[theory::THEORY_UF];
-  // else return eq;
-
-
-  //Currently we use the generic EqualityQuery
-  return getEqualityQuery();
-}
-
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses() {
-  return new GenericCandidateGeneratorClasses(this);
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass() {
-  return new GenericCandidateGeneratorClass(this);
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClasses(TypeNode t) {
-  // TheoryId id = Theory::theoryOf(t);
-  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClasses();
-  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClasses();
-  // else return eq;
-  return getRRCanGenClasses();
-}
-
-rrinst::CandidateGenerator* QuantifiersEngine::getRRCanGenClass(TypeNode t) {
-  // TheoryId id = Theory::theoryOf(t);
-  // rrinst::CandidateGenerator* eq = getInstantiator(id)->getRRCanGenClass();
-  // if(eq == NULL) return getInstantiator(id)->getRRCanGenClass();
-  // else return eq;
-  return getRRCanGenClass();
-}
-*/
 
 QuantifiersEngine::Statistics::Statistics():
   d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
@@ -652,39 +602,57 @@ bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
   return false;
 }
 
-Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a ){
+Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, int index ){
   Node r = getRepresentative( a );
   if( !options::internalReps() ){
     return r;
   }else{
-    if( d_int_rep.find( r )==d_int_rep.end() ){
+    int sortId = 0;
+    if( optInternalRepSortInference() ){
+      sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( f, f[0][index] );
+    }
+    if( d_int_rep[sortId].find( r )==d_int_rep[sortId].end() ){
       std::vector< Node > eqc;
       getEquivalenceClass( r, eqc );
       //find best selection for representative
-      Node r_best = r;
-      int r_best_score = getRepScore( r );
+      Node r_best;
+      int r_best_score;
       for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore( eqc[i] );
+        int score = getRepScore( eqc[i], f, index );
+        if( optInternalRepSortInference() ){
+          int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i]);
+          if( score>=0 && e_sortId!=sortId ){
+            score += 100;
+          }
+        }
         //score prefers earliest use of this term as a representative
-        if( score>=0 && ( r_best_score<0 || score<r_best_score ) ){
+        if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
           r_best = eqc[i];
           r_best_score = score;
         }
       }
       //now, make sure that no other member of the class is an instance
-      r_best = getInstance( r_best, eqc );
+      if( !optInternalRepSortInference() ){
+        r_best = getInstance( r_best, eqc );
+      }
       //store that this representative was chosen at this point
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
       }
-      d_int_rep[r] = r_best;
+      d_int_rep[sortId][r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
       }
+      if( optInternalRepSortInference() ){
+        int sortIdBest = d_qe->getTheoryEngine()->getSortInference()->getSortId( r_best );
+        if( sortId!=sortIdBest ){
+          Trace("sort-inf-rep") << "Choosing representative with bad type " << r_best << " " << sortId << " " << sortIdBest << std::endl;
+        }
+      }
       return r_best;
     }else{
-      return d_int_rep[r];
+      return d_int_rep[sortId][r];
     }
   }
 }
@@ -740,7 +708,11 @@ int getDepth( Node n ){
   }
 }
 
-int EqualityQueryQuantifiersEngine::getRepScore( Node n ){
+int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
   return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];          //initial
   //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
+}
+
+bool EqualityQueryQuantifiersEngine::optInternalRepSortInference() {
+  return false;
 }

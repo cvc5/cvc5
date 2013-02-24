@@ -338,6 +338,14 @@ Node TermDb::getInstConstantBody( Node f ){
 Node TermDb::getCounterexampleLiteral( Node f ){
   if( d_ce_lit.find( f )==d_ce_lit.end() ){
     Node ceBody = getInstConstantBody( f );
+    //check if any variable are of bad types, and fail if so
+    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
+      if( d_inst_constants[f][i].getType().isBoolean() ){
+        d_ce_lit[ f ] = Node::null();
+        return Node::null();
+      }
+    }
+    //otherwise, ensure literal
     Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
     d_ce_lit[ f ] = ceLit;
     setInstantiationConstantAttr( ceLit, f );

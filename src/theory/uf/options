@@ -28,5 +28,7 @@ option ufssExplainedCliques --uf-ss-explained-cliques bool :default false
  use explained clique lemmas for uf strong solver
 option ufssSimpleCliques --uf-ss-simple-cliques bool :default true
  always use simple clique lemmas for uf strong solver
+option ufssDiseqPropagation --uf-ss-deq-prop bool :default false
+ eagerly propagate disequalities for uf strong solver
 
 endmodule

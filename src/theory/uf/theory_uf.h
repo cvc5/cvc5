@@ -35,11 +35,11 @@ namespace theory {
 namespace uf {
 
 class UfTermDb;
-class StrongSolverTheoryUf;
+class StrongSolverTheoryUF;
 
 class TheoryUF : public Theory {
 
-  friend class StrongSolverTheoryUf;
+  friend class StrongSolverTheoryUF;
 
 public:
 
@@ -116,7 +116,7 @@ private:
   NotifyClass d_notify;
 
   /** The associated theory strong solver (or NULL if none) */
-  StrongSolverTheoryUf* d_thss;
+  StrongSolverTheoryUF* d_thss;
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
@@ -212,7 +212,7 @@ public:
     return &d_equalityEngine;
   }
 
-  StrongSolverTheoryUf* getStrongSolver() {
+  StrongSolverTheoryUF* getStrongSolver() {
     return d_thss;
   }
 
