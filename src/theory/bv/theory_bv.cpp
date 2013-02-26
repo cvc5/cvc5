@@ -148,7 +148,10 @@ void TheoryBV::propagate(Effort e) {
   bool ok = true;
   for (; d_literalsToPropagateIndex < d_literalsToPropagate.size() && ok; d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
     TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-    ok = d_out->propagate(literal);
+    // temporary fix for incremental bit-blasting 
+    if (d_valuation.isSatLiteral(literal)) {
+      ok = d_out->propagate(literal);
+    }
   }
 
   if (!ok) {
