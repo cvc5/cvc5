@@ -742,10 +742,7 @@ mainCommand[CVC4::Command*& cmd]
 
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
-      { std::stringstream ss;
-        ss << sexpr;
-        cmd = new EchoCommand(ss.str());
-      }
+      { cmd = new EchoCommand(sexpr.getValue()); }
     | { cmd = new EchoCommand(); }
     )
 

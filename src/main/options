@@ -37,6 +37,8 @@ option sharingFilterByLength --filter-lemma-length=N int :default -1 :read-write
  don't share (among portfolio threads) lemmas strictly longer than N
 option fallbackSequential  --fallback-sequential bool :default false
  Switch to sequential mode (instead of printing an error) if it can't be solved in portfolio mode
+option incrementalParallel --incremental-parallel bool :default false :link --incremental
+ Use parallel solver even in incremental mode (may print 'unknown's at times)
 
 expert-option waitToJoin --wait-to-join bool :default true
  wait for other threads to join before quitting

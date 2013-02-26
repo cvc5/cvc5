@@ -26,6 +26,7 @@
 #include "cvc4autoconfig.h"
 #include "main/main.h"
 #include "main/interactive_shell.h"
+#include "main/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
@@ -187,17 +188,22 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   DumpChannel.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
+  ExprManager* exprMgr;
 # ifndef PORTFOLIO_BUILD
-  ExprManager* exprMgr = new ExprManager(opts);
-# else
-  vector<Options> threadOpts = parseThreadSpecificOptions(opts);
-  ExprManager* exprMgr = new ExprManager(threadOpts[0]);
-# endif
-
-# ifndef PORTFOLIO_BUILD
+  exprMgr = new ExprManager(opts);
   pExecutor = new CommandExecutor(*exprMgr, opts);
 # else
-  pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
+  vector<Options> threadOpts = parseThreadSpecificOptions(opts);
+  if(opts[options::incrementalSolving] && !opts[options::incrementalParallel]) {
+    Notice() << "Notice: In --incremental mode, using the sequential solver unless forced by...\n"
+             << "Notice: ...the experimental --incremental-parallel option.\n";
+    exprMgr = new ExprManager(opts);
+    pExecutor = new CommandExecutor(*exprMgr, opts);
+  }
+  else {
+    exprMgr = new ExprManager(threadOpts[0]);
+    pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
+  }
 # endif
 
   Parser* replayParser = NULL;
