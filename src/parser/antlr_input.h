@@ -185,8 +185,9 @@ public:
   std::string getUnparsedText();
 
   /** Get the ANTLR3 lexer for this input. */
-  pANTLR3_LEXER getAntlr3Lexer(){ return d_lexer; };
+  pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
+  pANTLR3_INPUT_STREAM getAntlr3InputStream() { return d_antlr3InputStream; }
 protected:
   /** Create an input. This input takes ownership of the given input stream,
    * and will delete it at destruction time.

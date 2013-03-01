@@ -473,9 +473,11 @@ static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {
 
   tokenStream = buffer->commonTstream;
 
+  /*
   if( buffer->done == ANTLR3_TRUE ) {
     return &(tokenStream->tstream->tokenSource->eofToken);
   }
+  */
 
   /* Pick out the next token from the token source
    * Remember we just get a pointer (reference if you like) here
