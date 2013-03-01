@@ -39,6 +39,13 @@ static inline bool isBoolean(TNode top, unsigned i) {
   case kind::IMPLIES:
   case kind::OR:
   case kind::XOR:
+  case kind::FORALL:
+  case kind::EXISTS:
+  case kind::REWRITE_RULE:
+  case kind::RR_REWRITE:
+  case kind::RR_DEDUCTION:
+  case kind::RR_REDUCTION:
+  case kind::INST_PATTERN:
     return true;
 
   case kind::ITE:
@@ -289,13 +296,16 @@ Node BooleanTermConverter::rewriteBooleanTerms(TNode top, bool boolParent) throw
   }
   switch(k) {
   case kind::LAMBDA:
-  case kind::FORALL:
-  case kind::EXISTS:
+    Unreachable("not expecting a LAMBDA in boolean-term conversion: %s", top.toString().c_str());
+
+  case kind::BOUND_VAR_LIST:
+    return top;
+
   case kind::REWRITE_RULE:
   case kind::RR_REWRITE:
-  case kind::RR_REDUCTION:
   case kind::RR_DEDUCTION:
-    //Assert(false, "not yet supported");
+  case kind::RR_REDUCTION:
+    // not yet supported
     return top;
 
   default:
