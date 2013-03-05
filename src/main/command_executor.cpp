@@ -28,7 +28,7 @@ void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString
 
 CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
   d_exprMgr(exprMgr),
-  d_smtEngine(SmtEngine(&exprMgr)),
+  d_smtEngine(new SmtEngine(&exprMgr)),
   d_options(options),
   d_stats("driver"),
   d_result() {
@@ -61,13 +61,22 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 }
 
+void CommandExecutor::reset()
+{
+  if(d_options[options::statistics]) {
+    flushStatistics(*d_options[options::err]);
+  }
+  delete d_smtEngine;
+  d_smtEngine = new SmtEngine(&d_exprMgr);
+}
+
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options[options::verbosity] >= -1) {
-    status = smtEngineInvoke(&d_smtEngine, cmd, d_options[options::out]);
+    status = smtEngineInvoke(d_smtEngine, cmd, d_options[options::out]);
   } else {
-    status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
+    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
   }
 
   Result res;

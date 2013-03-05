@@ -238,6 +238,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Command* cmd;
     bool status = true;
     if(opts[options::interactive] && inputFromStdin) {
+      if( opts[options::tearDownIncremental] ) {
+        throw OptionException("--tear-down-incremental incompatible with --interactive");
+      }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
         cmd = new SetOptionCommand("incremental", true);
@@ -267,6 +270,79 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         status = pExecutor->doCommand(cmd) && status;
         delete cmd;
       }
+    } else if(opts[options::tearDownIncremental]) {
+      if(opts[options::incrementalSolving]) {
+        throw OptionException("--tear-down-incremental incompatible with --incremental");
+      }
+
+      ParserBuilder parserBuilder(exprMgr, filename, opts);
+
+      if( inputFromStdin ) {
+#if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
+        parserBuilder.withStreamInput(cin);
+#else /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+        parserBuilder.withLineBufferedStreamInput(cin);
+#endif /* CVC4_COMPETITION_MODE && !CVC4_SMTCOMP_APPLICATION_TRACK */
+      }
+
+      vector< vector<Command*> > allCommands;
+      allCommands.push_back(vector<Command*>());
+      Parser *parser = parserBuilder.build();
+      if(replayParser != NULL) {
+        // have the replay parser use the file's declarations
+        replayParser->useDeclarationsFrom(parser);
+      }
+      bool needReset = false;
+      while(status && (cmd = parser->nextCommand())) {
+        if(dynamic_cast<PushCommand*>(cmd) != NULL) {
+          if(needReset) {
+            pExecutor->reset();
+            for(size_t i = 0; i < allCommands.size(); ++i) {
+              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+                Command* cmd = allCommands[i][j]->clone();
+                pExecutor->doCommand(cmd);
+                delete cmd;
+              }
+            }
+            needReset = false;
+          }
+          allCommands.push_back(vector<Command*>());
+        } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
+          allCommands.pop_back(); // fixme leaks cmds here
+          pExecutor->reset();
+          for(size_t i = 0; i < allCommands.size(); ++i) {
+            for(size_t j = 0; j < allCommands[i].size(); ++j) {
+              Command* cmd = allCommands[i][j]->clone();
+              pExecutor->doCommand(cmd);
+              delete cmd;
+            }
+          }
+        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
+                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+          if(needReset) {
+            pExecutor->reset();
+            for(size_t i = 0; i < allCommands.size(); ++i) {
+              for(size_t j = 0; j < allCommands[i].size(); ++j) {
+                Command* cmd = allCommands[i][j]->clone();
+                pExecutor->doCommand(cmd);
+                delete cmd;
+              }
+            }
+          }
+          status = pExecutor->doCommand(cmd);
+          needReset = true;
+        } else {
+          allCommands.back().push_back(cmd->clone());
+          if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
+            delete cmd;
+            break;
+          }
+          status = pExecutor->doCommand(cmd);
+        }
+        delete cmd;
+      }
+      // Remove the parser
+      delete parser;
     } else {
       if(!opts.wasSetByUser(options::incrementalSolving)) {
         cmd = new SetOptionCommand("incremental", false);
