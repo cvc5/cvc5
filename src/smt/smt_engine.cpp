@@ -365,6 +365,10 @@ public:
     d_smt.d_nodeManager->subscribeEvents(this);
   }
 
+  ~SmtEnginePrivate() {
+    d_smt.d_nodeManager->unsubscribeEvents(this);
+  }
+
   void nmNotifyNewSort(TypeNode tn) {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
