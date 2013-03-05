@@ -392,6 +392,7 @@ public:
       d_propagator.finish();
       d_propagatorNeedsFinish = false;
     }
+    d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
   void nmNotifyNewSort(TypeNode tn) {
