@@ -136,6 +136,12 @@ struct SmtEngineStatistics {
   IntStat d_numAssertionsPost;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
+  /** time spent in PropEngine::checkSat() */
+  TimerStat d_solveTime;
+  /** time spent in pushing/popping */
+  TimerStat d_pushPopTime;
+  /** time spent in processAssertions() */
+  TimerStat d_processAssertionsTime;
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
@@ -152,7 +158,10 @@ struct SmtEngineStatistics {
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-    d_checkModelTime("smt::SmtEngine::checkModelTime") {
+    d_checkModelTime("smt::SmtEngine::checkModelTime"),
+    d_solveTime("smt::SmtEngine::solveTime"),
+    d_pushPopTime("smt::SmtEngine::pushPopTime"),
+    d_processAssertionsTime("smt::SmtEngine::processAssertionsTime") {
 
     StatisticsRegistry::registerStat(&d_definitionExpansionTime);
     StatisticsRegistry::registerStat(&d_rewriteBooleanTermsTime);
@@ -169,6 +178,9 @@ struct SmtEngineStatistics {
     StatisticsRegistry::registerStat(&d_numAssertionsPre);
     StatisticsRegistry::registerStat(&d_numAssertionsPost);
     StatisticsRegistry::registerStat(&d_checkModelTime);
+    StatisticsRegistry::registerStat(&d_solveTime);
+    StatisticsRegistry::registerStat(&d_pushPopTime);
+    StatisticsRegistry::registerStat(&d_processAssertionsTime);
   }
 
   ~SmtEngineStatistics() {
@@ -187,6 +199,9 @@ struct SmtEngineStatistics {
     StatisticsRegistry::unregisterStat(&d_numAssertionsPre);
     StatisticsRegistry::unregisterStat(&d_numAssertionsPost);
     StatisticsRegistry::unregisterStat(&d_checkModelTime);
+    StatisticsRegistry::unregisterStat(&d_solveTime);
+    StatisticsRegistry::unregisterStat(&d_pushPopTime);
+    StatisticsRegistry::unregisterStat(&d_processAssertionsTime);
   }
 };/* struct SmtEngineStatistics */
 
@@ -2480,6 +2495,8 @@ Result SmtEngine::check() {
     resource = d_resourceBudgetPerCall;
   }
 
+  TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
+
   Chat() << "solving..." << endl;
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   Result result = d_propEngine->checkSat(millis, resource);
@@ -2562,6 +2579,8 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
 }
 
 void SmtEnginePrivate::processAssertions() {
+  TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
+
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
@@ -3538,6 +3557,7 @@ void SmtEngine::internalPush() {
   doPendingPops();
   if(options::incrementalSolving()) {
     d_private->processAssertions();
+    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_userContext->push();
     // the d_context push is done inside of the SAT solver
     d_propEngine->push();
@@ -3558,6 +3578,7 @@ void SmtEngine::internalPop(bool immediate) {
 void SmtEngine::doPendingPops() {
   Assert(d_pendingPops == 0 || options::incrementalSolving());
   while(d_pendingPops > 0) {
+    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_propEngine->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
