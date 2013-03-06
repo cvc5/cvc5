@@ -56,7 +56,7 @@ class Base {
   Index d_size;
   std::vector<uint32_t> d_repr;
 public:
-  Base(Index size);
+  Base (Index size);
   void sliceAt(Index index); 
   void sliceWith(const Base& other);
   bool isCutPoint(Index index) const;
@@ -84,7 +84,7 @@ public:
  * UnionFind
  * 
  */
-typedef context::CDHashSet<uint32_t> CDTermSet;
+typedef context::CDHashSet<uint32_t, std::hash<uint32_t> > CDTermSet;
 typedef std::vector<TermId> Decomposition; 
 
 struct ExtractTerm {
@@ -151,7 +151,7 @@ class UnionFind : public context::ContextNotifyObj {
       d_repr = id;
     }
     void setChildren(TermId ch1, TermId ch0) {
-      Assert (d_repr == UndefinedId && !hasChildren());
+      // Assert (d_repr == UndefinedId && !hasChildren());
       d_ch1 = ch1;
       d_ch0 = ch0; 
     }
@@ -161,7 +161,7 @@ class UnionFind : public context::ContextNotifyObj {
   /// map from TermId to the nodes that represent them 
   std::vector<Node> d_nodes;
   /// a term is in this set if it is its own representative
-  CDTermSet d_representatives;
+  //CDTermSet d_representatives;
   
   void getDecomposition(const ExtractTerm& term, Decomposition& decomp);
   void handleCommonSlice(const Decomposition& d1, const Decomposition& d2, TermId common);
@@ -187,7 +187,8 @@ class UnionFind : public context::ContextNotifyObj {
     d_nodes[id].setRepr(new_repr); 
   }
   void setChildren(TermId id, TermId ch1, TermId ch0) {
-    Assert (id < d_nodes.size() && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch0));
+    Assert ((ch1 == UndefinedId && ch0 == UndefinedId) ||
+            (id < d_nodes.size() && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch0)));
     d_nodes[id].setChildren(ch1, ch0); 
   }
 
@@ -212,7 +213,7 @@ class UnionFind : public context::ContextNotifyObj {
   void undoMerge(TermId id);
   void undoSplit(TermId id); 
   void recordOperation(OperationKind op, TermId term);
-  
+  virtual ~UnionFind() throw(AssertionException) {}
   class Statistics {
   public:
     IntStat d_numNodes; 
@@ -228,8 +229,9 @@ class UnionFind : public context::ContextNotifyObj {
   Statistics d_statistics;
 public:
   UnionFind(context::Context* ctx)
-    : d_nodes(),
-      d_representatives(ctx),
+    : ContextNotifyObj(ctx), 
+      d_nodes(),
+      //      d_representatives(ctx),
       d_undoStack(),
       d_undoStackIndex(ctx),
       d_statistics()
@@ -248,6 +250,7 @@ public:
     Assert (id < d_nodes.size());
     return d_nodes[id].getBitwidth(); 
   }
+  void getBase(TermId id, Base& base, Index offset); 
   std::string debugPrint(TermId id);
 
   void contextNotifyPop() {
@@ -274,7 +277,7 @@ public:
   void getBaseDecomposition(TNode node, std::vector<Node>& decomp);
   void processEquality(TNode eq);
   bool isCoreTerm (TNode node);
-  
+  Base getTopLevelBase(TNode node); 
   static void splitEqualities(TNode node, std::vector<Node>& equalities);
   static unsigned d_numAddedEqualities; 
 }; 

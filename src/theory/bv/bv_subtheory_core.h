@@ -25,7 +25,7 @@ namespace theory {
 namespace bv {
 
 class Slicer; 
-
+class Base; 
 /**
  * Bitvector equality solver
  */
@@ -75,7 +75,8 @@ class CoreSolver : public SubtheorySolver {
 
   bool assertFact(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a); 
+  Node getBaseDecomposition(TNode a);
+  bool addNewSplits(TNode n, Base& old_base, Base& new_base); 
 public:
   bool isCoreTheory() {return d_isCoreTheory; }
   CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer);

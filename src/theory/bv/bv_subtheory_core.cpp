@@ -100,21 +100,14 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 }
 
 Node CoreSolver::getBaseDecomposition(TNode a) {
-  // if (d_normalFormCache.find(a) != d_normalFormCache.end()) {
-  //   return d_normalFormCache[a]; 
-  // }
-
-  // otherwise we must compute the normal form
   std::vector<Node> a_decomp;
   d_slicer->getBaseDecomposition(a, a_decomp);
   Node new_a = utils::mkConcat(a_decomp);
-  //  d_normalFormCache[a] = new_a;
   return new_a; 
 }
 
 bool CoreSolver::decomposeFact(TNode fact) {
   Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;  
-  // FIXME: are this the right things to assert? 
   // assert decompositions since the equality engine does not know the semantics of
   // concat:
   //   a == a_1 concat ... concat a_k
@@ -123,6 +116,12 @@ bool CoreSolver::decomposeFact(TNode fact) {
 
   TNode a = eq[0];
   TNode b = eq[1];
+  // we need to get the old decomposition to keep track of the cuts we added
+  Base a_old_base = d_slicer->getTopLevelBase(a);
+  Base b_old_base = d_slicer->getTopLevelBase(b);
+
+  d_slicer->processEquality(eq); 
+  
   Node new_a = getBaseDecomposition(a);
   Node new_b = getBaseDecomposition(b); 
   
@@ -133,7 +132,15 @@ bool CoreSolver::decomposeFact(TNode fact) {
   Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
   Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
 
-  bool ok = true;
+  Base a_new_base = d_slicer->getTopLevelBase(a);
+  Base b_new_base = d_slicer->getTopLevelBase(b);
+
+  bool ok = true; 
+  ok = addNewSplits(a, a_old_base, a_new_base);
+  if (!ok) return false; 
+  ok = addNewSplits(b, b_old_base, b_new_base);
+  if (!ok) return false; 
+  
   ok = assertFact(a_eq_new_a, utils::mkTrue());
   if (!ok) return false; 
   ok = assertFact(b_eq_new_b, utils::mkTrue());
@@ -158,6 +165,56 @@ bool CoreSolver::decomposeFact(TNode fact) {
   return true; 
 }
 
+bool CoreSolver::addNewSplits(TNode n, Base& old_base, Base& new_base) {
+  if (n.getKind() == kind::BITVECTOR_EXTRACT) {
+    n = n[0]; 
+  }
+  Assert (old_base.getBitwidth() == new_base.getBitwidth() &&
+          utils::getSize(n) == old_base.getBitwidth()); 
+
+  Index high, low = 0;
+  std::vector<std::pair<Index, Index> > toSlice;
+  bool hasNewCut = false; 
+  // collect the intervals that need to be sliced
+  for (unsigned i = 0; i <= old_base.getBitwidth(); ++i) {
+    Assert (! old_base.isCutPoint(i) || new_base.isCutPoint(i));
+    if (new_base.isCutPoint(i) && !old_base.isCutPoint(i)) {
+      hasNewCut = true; 
+    }
+    if (new_base.isCutPoint(i) && old_base.isCutPoint(i)) {
+      high = i;
+      if (hasNewCut) {
+        toSlice.push_back(std::pair<Index, Index>(high, low));
+      }
+      low = i;
+      hasNewCut = false; 
+    }
+  }
+  // for each interval, assert the proper equality
+  for (unsigned i = 0; i < toSlice.size(); ++i) {
+    int high = toSlice[i].first;
+    int low = toSlice[i].second;
+    int prev = high;
+    std::vector<Node> extracts; 
+    for (int k = high -1; k >= low; --k) {
+      if (new_base.isCutPoint(k) && (!old_base.isCutPoint(k) || k == low)) {
+        // add a new extract
+        Node ex = utils::mkExtract(n, prev - 1, k);
+        prev = k;
+        extracts.push_back(ex); 
+      }
+    }
+    Node concat = utils::mkConcat(extracts);
+    Node current = utils::mkExtract(n, high - 1, low);
+    Node eq = utils::mkNode(kind::EQUAL, concat, current);
+    bool ok = assertFact(eq, utils::mkTrue());
+    if (!ok)
+      return false; 
+  }
+  return true; 
+}
+
+
 bool CoreSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::addAssertions \n";
   Assert (!d_bv->inConflict());
@@ -168,14 +225,13 @@ bool CoreSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Eff
     TNode fact = assertions[i];
     
     // update whether we are in the core fragment
-    // FIXME: move isCoreTerm into CoreSolver
     if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
       d_isCoreTheory = false; 
     }
     
     // only reason about equalities
-    // FIXME: should we slice when we have the terms in inequalities?
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
+      TNode eq = fact.getKind() == kind::EQUAL ? fact : fact[0];
       ok = decomposeFact(fact);
     } else {
       ok = assertFact(fact, fact); 

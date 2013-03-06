@@ -167,7 +167,7 @@ TermId UnionFind::addTerm(Index bitwidth) {
   ++(d_statistics.d_numNodes);
   
   TermId id = d_nodes.size() - 1; 
-  d_representatives.insert(id);
+  //  d_representatives.insert(id);
   ++(d_statistics.d_numRepresentatives); 
 
   Debug("bv-slicer-uf") << "UnionFind::addTerm " << id << " size " << bitwidth << endl;
@@ -217,7 +217,7 @@ void UnionFind::merge(TermId t1, TermId t2) {
   Assert (! hasChildren(t1) && ! hasChildren(t2));
   setRepr(t1, t2); 
   recordOperation(UnionFind::MERGE, t1); 
-  d_representatives.erase(t1);
+  //d_representatives.erase(t1);
   d_statistics.d_numRepresentatives += -1; 
 }
 
@@ -254,7 +254,6 @@ void UnionFind::split(TermId id, Index i) {
     TermId top_id = addTerm(getBitwidth(id) - i);
     setChildren(id, top_id, bottom_id);
     recordOperation(UnionFind::SPLIT, id); 
-
   } else {
     Index cut = getCutPoint(id); 
     if (i < cut )
@@ -418,8 +417,10 @@ void UnionFind::ensureSlicing(const ExtractTerm& term) {
 }
 
 void UnionFind::backtrack() {
-  for (int i = d_undoStack.size() -1; i >= d_undoStackIndex; ++i) {
+  int size = d_undoStack.size(); 
+  for (int i = size; i > d_undoStackIndex.get(); --i) {
     Operation op = d_undoStack.back(); 
+    Assert (!d_undoStack.empty()); 
     d_undoStack.pop_back();
     if (op.op == UnionFind::MERGE) {
       undoMerge(op.id); 
@@ -431,22 +432,34 @@ void UnionFind::backtrack() {
 }
 
 void UnionFind::undoMerge(TermId id) {
-  Node& node = getNode(id);
-  Assert (getRepr(id) != id);
-  setRepr(id, id); 
+  TermId repr = getRepr(id);
+  Assert (repr != id);
+  setRepr(id, UndefinedId); 
 }
 
 void UnionFind::undoSplit(TermId id) {
-  Node& node = getNode(id);
-  Assert (hasChildren(node));
-  setChildren(id, UndefindId, UndefinedId); 
+  Assert (hasChildren(id));
+  setChildren(id, UndefinedId, UndefinedId); 
 }
 
 void UnionFind::recordOperation(OperationKind op, TermId term) {
-  ++d_undoStackIndex;
+  d_undoStackIndex.set(d_undoStackIndex.get() + 1);
   d_undoStack.push_back(Operation(op, term));
   Assert (d_undoStack.size() == d_undoStackIndex); 
 }
+
+void UnionFind::getBase(TermId id, Base& base, Index offset) {
+  id = find(id); 
+  if (!hasChildren(id))
+    return;
+  TermId id1 = find(getChild(id, 1));
+  TermId id0 = find(getChild(id, 0));
+  Index cut = getCutPoint(id);
+  base.sliceAt(cut + offset);
+  getBase(id1, base, cut + offset);
+  getBase(id0, base, offset); 
+}
+
 
 /**
  * Slicer
@@ -517,7 +530,6 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     current_low += current_size;
     decomp.push_back(current); 
   }
-  // cache the result
 
   Debug("bv-slicer") << "as [";
   for (unsigned i = 0; i < decomp.size(); ++i) {
@@ -595,7 +607,28 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities) {
     equalities.push_back(node);
   }
   d_numAddedEqualities += equalities.size() - 1; 
-} 
+}
+
+/** 
+ * Returns the base decomposition of the current term. 
+ * 
+ * @param id 
+ * 
+ * @return 
+ */
+Base Slicer::getTopLevelBase(TNode node) {
+  if (node.getKind() == kind::BITVECTOR_EXTRACT) {
+    node = node[0];
+  }
+  // if we haven't seen this node before it must not be sliced yet
+  if (d_nodeToId.find(node) == d_nodeToId.end()) {
+    return Base(utils::getSize(node)); 
+  }
+  TermId id = d_nodeToId[node];
+  Base base(d_unionFind.getBitwidth(id));
+  d_unionFind.getBase(id, base, 0);
+  return base; 
+}
 
 std::string UnionFind::debugPrint(TermId id) {
   ostringstream os; 

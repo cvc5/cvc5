@@ -40,7 +40,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
-    d_slicer(),
+    d_slicer(c),
     d_bitblastAssertionsQueue(c),
     d_bitblastSolver(c, this),
     d_coreSolver(c, this, &d_slicer),
@@ -74,16 +74,14 @@ TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_solveTimer);
 }
 
+
+
 void TheoryBV::preRegisterTerm(TNode node) {
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
   if (options::bitvectorEagerBitblast()) {
     // don't use the equality engine in the eager bit-blasting
     return;
-  }
-
-  if (node.getKind() == kind::EQUAL) {
-    d_slicer.processEquality(node); 
   }
   
   d_bitblastSolver.preRegister(node);

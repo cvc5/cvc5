@@ -39,6 +39,9 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
   case kind::BUILTIN:
     typeNode = nodeManager->builtinOperatorType();
     break;
+  case kind::BITVECTOR_EXTRACT_OP :
+    typeNode = nodeManager->builtinOperatorType();
+    break; 
 
 ${typerules}
 
