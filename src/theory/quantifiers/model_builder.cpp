@@ -368,15 +368,32 @@ void ModelEngineBuilderDefault::reset( FirstOrderModel* fm ){
   d_op_selection_terms.clear();
 }
 
+
+int ModelEngineBuilderDefault::getSelectionScore( std::vector< Node >& uf_terms ) {
+  /*
+  size_t maxChildren = 0;
+  for( size_t i=0; i<uf_terms.size(); i++ ){
+    if( uf_terms[i].getNumChildren()>maxChildren ){
+      maxChildren = uf_terms[i].getNumChildren();
+    }
+  }
+  //TODO: look at how many entries they have?
+  return (int)maxChildren;
+  */
+  return 0;
+}
+
 void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   Debug("fmf-model-prefs") << "Analyze quantifier " << f << std::endl;
   //the pro/con preferences for this quantifier
   std::vector< Node > pro_con[2];
   //the terms in the selection literal we choose
   std::vector< Node > selectionLitTerms;
+  Trace("inst-gen-debug-quant") << "Inst-gen analyze " << f << std::endl;
   //for each asserted quantifier f,
   // - determine selection literals
   // - check which function/predicates have good and bad definitions for satisfying f
+  int selectLitScore = -1;
   QuantPhaseReq* qpr = d_qe->getPhaseRequirements( f );
   for( std::map< Node, bool >::iterator it = qpr->d_phase_reqs.begin(); it != qpr->d_phase_reqs.end(); ++it ){
     //the literal n is phase-required for quantifier f
@@ -433,10 +450,18 @@ void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f )
             selectLit = true;
           }
         }
+        //also check if it is naturally a better literal
+        if( !selectLit ){
+          int score = getSelectionScore( uf_terms );
+          //Trace("inst-gen-debug") << "Check " << score << " < " << selectLitScore << std::endl;
+          selectLit = score<selectLitScore;
+        }
         //see if we wish to choose this as a selection literal
         d_quant_selection_lit_candidates[f].push_back( value ? n : n.notNode() );
         if( selectLit ){
+          selectLitScore = getSelectionScore( uf_terms );
           Trace("inst-gen-debug") << "Choose selection literal " << gn << std::endl;
+          Trace("inst-gen-debug") << "  flags: " << isConst << " " << selectLitConstraints << " " << selectLitScore << std::endl;
           d_quant_selection_lit[f] = value ? n : n.notNode();
           selectionLitTerms.clear();
           selectionLitTerms.insert( selectionLitTerms.begin(), uf_terms.begin(), uf_terms.end() );
@@ -466,7 +491,7 @@ void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f )
       d_op_selection_terms[ selectionLitTerms[i].getOperator() ].push_back( selectionLitTerms[i] );
     }
   }else{
-    Trace("inst-gen-warn") << "WARNING: " << f << " has no selection literals (is the body of f clausified?)" << std::endl;
+    Trace("inst-gen-warn") << "WARNING: " << f << " has no selection literals" << std::endl;
   }
   //process information about requirements and preferences of quantifier f
   if( d_quant_sat.find( f )!=d_quant_sat.end() ){

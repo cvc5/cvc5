@@ -75,7 +75,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
       if( !n.hasAttribute(InstConstantAttribute()) ){
-        Debug("term-db") << "register trigger term " << n << std::endl;
+        Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
         Node op = n.getOperator();
         d_op_map[op].push_back( n );
@@ -194,7 +194,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( d_type_map[ tn ].empty() ){
+    if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;

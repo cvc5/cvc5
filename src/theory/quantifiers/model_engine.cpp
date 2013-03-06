@@ -224,7 +224,7 @@ int ModelEngine::checkModel( int checkOption ){
 
 int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
   int addedLemmas = 0;
-  Debug("inst-fmf-ei") << "Exhaustive instantiate " << f << "..." << std::endl;
+  Trace("inst-fmf-ei") << "Exhaustive instantiate " << f << "..." << std::endl;
   Debug("inst-fmf-ei") << "   Instantiation Constants: ";
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
@@ -298,12 +298,12 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
       relevantInst = relevantInst * (int)riter.d_domain[i].size();
     }
     d_relevantLemmas += relevantInst;
-    Debug("inst-fmf-ei") << "Finished: " << std::endl;
+    Trace("inst-fmf-ei") << "Finished: " << std::endl;
     //Debug("inst-fmf-ei") << "   Inst Total: " << totalInst << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
-    Debug("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
+    Trace("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
     if( addedLemmas>1000 ){
       Trace("model-engine-warn") << "WARNING: many instantiations produced for " << f << ": " << std::endl;
       //Trace("model-engine-warn") << "   Inst Total: " << totalInst << std::endl;

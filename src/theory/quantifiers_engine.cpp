@@ -616,7 +616,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
       getEquivalenceClass( r, eqc );
       //find best selection for representative
       Node r_best;
-      int r_best_score;
+      int r_best_score = -1;
       for( size_t i=0; i<eqc.size(); i++ ){
         int score = getRepScore( eqc[i], f, index );
         if( optInternalRepSortInference() ){
@@ -714,5 +714,5 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
 }
 
 bool EqualityQueryQuantifiersEngine::optInternalRepSortInference() {
-  return false;
+  return false; //shown to be not effective
 }

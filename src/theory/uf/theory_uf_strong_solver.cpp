@@ -637,37 +637,36 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           if( !addedLemma ){
             Trace("uf-ss-debug") << "No splits added. " << d_cardinality << std::endl;
             Trace("uf-ss-si")  << "Must combine region" << std::endl;
-            if( true || !options::ufssColoringSat() ){
-              bool recheck = false;
-              //naive strategy, force region combination involving the first valid region
-              if( options::sortInference()){
-                std::map< int, int > sortsFound;
-                for( int i=0; i<(int)d_regions_index; i++ ){
-                  if( d_regions[i]->d_valid ){
-                    Node op = d_regions[i]->d_nodes.begin()->first;
-                    int sort_id = d_thss->getTheory()->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId(op) ;
-                    if( sortsFound.find( sort_id )!=sortsFound.end() ){
-                      combineRegions( sortsFound[sort_id], i );
-                      recheck = true;
-                      break;
-                    }else{
-                      sortsFound[sort_id] = i;
-                    }
-                  }
-                }
-              }
-              if( !recheck ) {
-                for( int i=0; i<(int)d_regions_index; i++ ){
-                  if( d_regions[i]->d_valid ){
-                    forceCombineRegion( i, false );
+            bool recheck = false;
+            if( options::sortInference()){
+              //if sort inference is enabled, search for regions with same sort
+              std::map< int, int > sortsFound;
+              for( int i=0; i<(int)d_regions_index; i++ ){
+                if( d_regions[i]->d_valid ){
+                  Node op = d_regions[i]->d_nodes.begin()->first;
+                  int sort_id = d_thss->getTheory()->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId(op);
+                  if( sortsFound.find( sort_id )!=sortsFound.end() ){
+                    combineRegions( sortsFound[sort_id], i );
                     recheck = true;
                     break;
+                  }else{
+                    sortsFound[sort_id] = i;
                   }
                 }
               }
-              if( recheck ){
-                check( level, out );
+            }
+            if( !recheck ) {
+              //naive strategy, force region combination involving the first valid region
+              for( int i=0; i<(int)d_regions_index; i++ ){
+                if( d_regions[i]->d_valid ){
+                  forceCombineRegion( i, false );
+                  recheck = true;
+                  break;
+                }
               }
+            }
+            if( recheck ){
+              check( level, out );
             }
           }
         }

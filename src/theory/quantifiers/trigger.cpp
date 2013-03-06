@@ -38,7 +38,8 @@ d_quantEngine( qe ), d_f( f ){
   for( int i=0; i<(int)d_nodes.size(); i++ ){
     Trace("trigger") << "   " << d_nodes[i] << std::endl;
   }
-  Trace("trigger") << ", smart triggers = " << smartTriggers << std::endl;
+  Trace("trigger-debug") << ", smart triggers = " << smartTriggers;
+  Trace("trigger") << std::endl;
   if( smartTriggers ){
     if( d_nodes.size()==1 ){
       if( isSimpleTrigger( d_nodes[0] ) ){
@@ -49,6 +50,8 @@ d_quantEngine( qe ), d_f( f ){
       }
     }else{
       d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, matchOption );
+      //d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
+      //d_mg->setActiveAdd();
     }
   }else{
     d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );

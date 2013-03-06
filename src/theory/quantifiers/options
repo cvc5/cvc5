@@ -37,6 +37,9 @@ option cnfQuant --cnf-quant bool :default false
 option preSkolemQuant --pre-skolem-quant bool :default false
  apply skolemization eagerly to bodies of quantified formulas
 
+# Whether to perform agressive miniscoping
+option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
+ perform aggressive miniscoping for quantifiers
 # Whether to perform quantifier macro expansion
 option macrosQuant --macros-quant bool :default false
  perform quantifiers macro expansions
@@ -64,6 +67,7 @@ option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::Liter
 option cbqi --enable-cbqi/--disable-cbqi bool :default false
  turns on counterexample-based quantifier instantiation [off by default]
 /turns off counterexample-based quantifier instantiation
+
 
 option userPatternsQuant /--ignore-user-patterns bool :default true
  ignore user-provided patterns for quantifier instantiation
@@ -94,6 +98,8 @@ option fmfInstGen /--disable-fmf-inst-gen bool :default true
  disable Inst-Gen instantiation techniques for finite model finding
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
  only perform Inst-Gen instantiation techniques on one quantifier per round
+option fmfFreshDistConst --fmf-fresh-dc bool :default false
+ use fresh distinguished representative when applying Inst-Gen techniques
 
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms

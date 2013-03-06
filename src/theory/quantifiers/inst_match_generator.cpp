@@ -144,6 +144,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
     return false;
   }else{
     EqualityQuery* q = qe->getEqualityQuery();
+    bool success = true;
     //save previous match
     InstMatch prev( &m );
     //if t is null
@@ -162,33 +163,36 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
                                     << m.get(d_match_pattern[i])
                                     << std::endl;
             Debug("matching-fail") << "Match fail: " << m.get(d_match_pattern[i]) << " and " << t[i] << std::endl;
-            return false;
+            success = false;
+            break;
           }
         }
       }else{
         if( !q->areEqual( d_match_pattern[i], t[i] ) ){
           Debug("matching-fail") << "Match fail arg: " << d_match_pattern[i] << " and " << t[i] << std::endl;
           //ground arguments are not equal
-          return false;
+          success = false;
+          break;
         }
       }
     }
-    //now, fit children into match
-    //we will be requesting candidates for matching terms for each child
-    std::vector< Node > reps;
-    for( int i=0; i<(int)d_children.size(); i++ ){
-      Node rep = q->getRepresentative( t[ d_children_index[i] ] );
-      reps.push_back( rep );
-      d_children[i]->reset( rep, qe );
-    }
-    bool success = true;
-    if( d_next!=NULL ){
-      success = d_next->getNextMatch( f, m, qe );
-    }else{
-      if( d_active_add ){
-        Trace("active-add") << "Active Adding instantiation " << m << std::endl;
-        success = qe->addInstantiation( f, m );
-        Trace("active-add") << "Success = " << success << std::endl;
+    if( success ){
+      //now, fit children into match
+      //we will be requesting candidates for matching terms for each child
+      std::vector< Node > reps;
+      for( int i=0; i<(int)d_children.size(); i++ ){
+        Node rep = q->getRepresentative( t[ d_children_index[i] ] );
+        reps.push_back( rep );
+        d_children[i]->reset( rep, qe );
+      }
+      if( d_next!=NULL ){
+        success = d_next->getNextMatch( f, m, qe );
+      }else{
+        if( d_active_add ){
+          Trace("active-add") << "Active Adding instantiation " << m << std::endl;
+          success = qe->addInstantiation( f, m );
+          Trace("active-add") << "Success = " << success << std::endl;
+        }
       }
     }
     if( !success ){
@@ -317,10 +321,10 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
           return addedLemmas;
         }
       }
-      m.clear();
     }else{
       addedLemmas++;
     }
+    m.clear();
   }
   //return number of lemmas added
   return addedLemmas;
@@ -463,10 +467,11 @@ int InstMatchGeneratorMulti::addInstantiations( Node f, InstMatch& baseMatch, Qu
     std::vector< InstMatch > newMatches;
     InstMatch m;
     while( d_children[i]->getNextMatch( f, m, qe ) ){
-      m.makeRepresentative( qe );
+      //m.makeRepresentative( qe );
       newMatches.push_back( InstMatch( &m ) );
       m.clear();
     }
+    Debug("smart-multi-trigger") << "Made " << newMatches.size() << " new matches for index " << i << std::endl;
     for( int j=0; j<(int)newMatches.size(); j++ ){
       processNewMatch( qe, newMatches[j], i, addedLemmas );
     }
