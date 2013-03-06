@@ -82,6 +82,9 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_ROTATE_RIGHT);
 }
 
+void Smt2::addStringOperators() {
+}
+
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_CORE:
@@ -120,6 +123,11 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_BITVECTORS:
     addBitvectorOperators();
+    break;
+
+  case THEORY_STRINGS:
+    defineType("String", getExprManager()->stringType());
+    addStringOperators();
     break;
 
   case THEORY_QUANTIFIERS:
@@ -244,6 +252,7 @@ void Smt2::setLogic(const std::string& name) {
     addTheory(THEORY_INTS);
     addTheory(THEORY_REALS);
     addTheory(THEORY_BITVECTORS);
+    addTheory(THEORY_STRINGS);
     break;
 
   case Smt1::AUFLIA:

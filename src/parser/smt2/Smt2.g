@@ -684,6 +684,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::hash_set<std::string, StringHashFunction> names;
   std::vector< std::pair<std::string, Expr> > binders;
   Type type;
+  std::string s;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -917,6 +918,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
+
+  | str[s]
+    { expr = MK_CONST( s ); }
 
     // NOTE: Theory constants go here
   ;

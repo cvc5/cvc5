@@ -43,6 +43,7 @@ public:
     THEORY_REALS,
     THEORY_REALS_INTS,
     THEORY_QUANTIFIERS,
+	THEORY_STRINGS
   };
 
 private:
@@ -99,6 +100,8 @@ private:
   void addArithmeticOperators();
 
   void addBitvectorOperators();
+
+  void addStringOperators();
 
 };/* class Smt2 */
 
