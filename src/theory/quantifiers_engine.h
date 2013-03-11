@@ -272,6 +272,8 @@ private:
   std::map< Node, int > d_rep_score;
   /** reset count */
   int d_reset_count;
+
+  bool d_liberal;
 private:
   /** node contains */
   Node getInstance( Node n, std::vector< Node >& eqc );
@@ -280,7 +282,7 @@ private:
   /** choose rep based on sort inference */
   bool optInternalRepSortInference();
 public:
-  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ){}
+  EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ), d_liberal( false ){}
   ~EqualityQueryQuantifiersEngine(){}
   /** reset */
   void reset();
@@ -296,6 +298,8 @@ public:
       not contain instantiation constants, if such a term exists.
    */
   Node getInternalRepresentative( Node a, Node f, int index );
+
+  void setLiberal( bool l ) { d_liberal = l; }
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory namespace */

@@ -1427,17 +1427,27 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   return node;
 }
 
+
+struct ContainsQuantAttributeId {};
+typedef expr::Attribute<ContainsQuantAttributeId, uint64_t> ContainsQuantAttribute;
+
 // check if the given node contains a universal quantifier
 static bool containsQuantifiers(Node n) {
-  if(n.getKind() == kind::FORALL) {
+  if( n.hasAttribute(ContainsQuantAttribute()) ){
+    return n.getAttribute(ContainsQuantAttribute())==1;
+  } else if(n.getKind() == kind::FORALL) {
     return true;
   } else {
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      if(containsQuantifiers(n[i])) {
-        return true;
+    bool cq = false;
+    for( unsigned i = 0; i < n.getNumChildren(); ++i ){
+      if( containsQuantifiers(n[i]) ){
+        cq = true;
+        break;
       }
     }
-    return false;
+    ContainsQuantAttribute cqa;
+    n.setAttribute(cqa, cq ? 1 : 0);
+    return cq;
   }
 }
 
@@ -1498,43 +1508,36 @@ Node SmtEnginePrivate::preSkolemizeQuantifiers( Node n, bool polarity, std::vect
     }
   }else{
     //check if it contains a quantifier as a subterm
-    bool containsQuant = false;
-    if( n.getType().isBoolean() ){
-      for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        if( containsQuantifiers( n[i] ) ){
-          containsQuant = true;
-          break;
-        }
-      }
-    }
     //if so, we will write this node
-    if( containsQuant ){
-      if( n.getKind()==kind::ITE || n.getKind()==kind::IFF || n.getKind()==kind::XOR || n.getKind()==kind::IMPLIES ){
-        Node nn;
-        //must remove structure
-        if( n.getKind()==kind::ITE ){
-          nn = NodeManager::currentNM()->mkNode( kind::AND,
-                 NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
-                 NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
-        }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
-          nn = NodeManager::currentNM()->mkNode( kind::AND,
-                 NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
-                 NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
-        }else if( n.getKind()==kind::IMPLIES ){
-          nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
+    if( containsQuantifiers( n ) ){
+      if( n.getType().isBoolean() ){
+        if( n.getKind()==kind::ITE || n.getKind()==kind::IFF || n.getKind()==kind::XOR || n.getKind()==kind::IMPLIES ){
+          Node nn;
+          //must remove structure
+          if( n.getKind()==kind::ITE ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                   NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] ),
+                   NodeManager::currentNM()->mkNode( kind::OR, n[0], n[2] ) );
+          }else if( n.getKind()==kind::IFF || n.getKind()==kind::XOR ){
+            nn = NodeManager::currentNM()->mkNode( kind::AND,
+                   NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n.getKind()==kind::XOR ? n[1].notNode() : n[1] ),
+                   NodeManager::currentNM()->mkNode( kind::OR, n[0], n.getKind()==kind::XOR ? n[1] : n[1].notNode() ) );
+          }else if( n.getKind()==kind::IMPLIES ){
+            nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
+          }
+          return preSkolemizeQuantifiers( nn, polarity, fvs );
+        }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
+          vector< Node > children;
+          for( int i=0; i<(int)n.getNumChildren(); i++ ){
+            children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
+          }
+          return NodeManager::currentNM()->mkNode( n.getKind(), children );
+        }else{
+          //must pull ite's
         }
-        return preSkolemizeQuantifiers( nn, polarity, fvs );
-      }else{
-        Assert( n.getKind() == kind::AND || n.getKind() == kind::OR );
-        vector< Node > children;
-        for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
-        }
-        return NodeManager::currentNM()->mkNode( n.getKind(), children );
       }
-    }else{
-      return n;
     }
+    return n;
   }
 }
 

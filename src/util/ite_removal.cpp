@@ -19,6 +19,7 @@
 #include "util/ite_removal.h"
 #include "theory/rewriter.h"
 #include "expr/command.h"
+#include "theory/quantifiers/options.h"
 
 using namespace CVC4;
 using namespace std;
@@ -28,12 +29,13 @@ namespace CVC4 {
 void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
 {
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
-    output[i] = run(output[i], output, iteSkolemMap);
+    std::vector<Node> quantVar;
+    output[i] = run(output[i], output, iteSkolemMap, quantVar);
   }
 }
 
 Node RemoveITE::run(TNode node, std::vector<Node>& output,
-                    IteSkolemMap& iteSkolemMap) {
+                    IteSkolemMap& iteSkolemMap, std::vector<Node>& quantVar) {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << endl;
 
@@ -50,8 +52,23 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   if(node.getKind() == kind::ITE) {
     TypeNode nodeType = node.getType();
     if(!nodeType.isBoolean()) {
+      Node skolem;
       // Make the skolem to represent the ITE
-      Node skolem = nodeManager->mkSkolem("termITE_$$", nodeType, "a variable introduced due to term-level ITE removal");
+      if( quantVar.empty() ){
+        skolem = nodeManager->mkSkolem("termITE_$$", nodeType, "a variable introduced due to term-level ITE removal");
+      }else{
+        //if in the scope of free variables, make a skolem operator
+        vector< TypeNode > argTypes;
+        for( size_t i=0; i<quantVar.size(); i++ ){
+          argTypes.push_back( quantVar[i].getType() );
+        }
+        TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, nodeType );
+        Node op = NodeManager::currentNM()->mkSkolem( "termITEop_$$", typ, "a function variable introduced due to term-level ITE removal" );
+        vector< Node > funcArgs;
+        funcArgs.push_back( op );
+        funcArgs.insert( funcArgs.end(), quantVar.begin(), quantVar.end() );
+        skolem = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
+      }
 
       // The new assertion
       Node newAssertion =
@@ -63,7 +80,16 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
       d_iteCache[node] = skolem;
 
       // Remove ITEs from the new assertion, rewrite it and push it to the output
-      newAssertion = run(newAssertion, output, iteSkolemMap);
+      newAssertion = run(newAssertion, output, iteSkolemMap, quantVar);
+
+      if( !quantVar.empty() ){
+        //if in the scope of free variables, it is a quantified assertion
+        vector< Node > children;
+        children.push_back( NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, quantVar ) );
+        children.push_back( newAssertion );
+        newAssertion = NodeManager::currentNM()->mkNode( kind::FORALL, children );
+      }
+
       iteSkolemMap[skolem] = output.size();
       output.push_back(newAssertion);
 
@@ -73,9 +99,16 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   }
 
   // If not an ITE, go deep
-  if( node.getKind() != kind::FORALL &&
+  if( ( node.getKind() != kind::FORALL || options::iteRemoveQuant() ) &&
       node.getKind() != kind::EXISTS &&
       node.getKind() != kind::REWRITE_RULE ) {
+    std::vector< Node > newQuantVar;
+    newQuantVar.insert( newQuantVar.end(), quantVar.begin(), quantVar.end() );
+    if( node.getKind()==kind::FORALL ){
+      for( size_t i=0; i<node[0].getNumChildren(); i++ ){
+        newQuantVar.push_back( node[0][i] );
+      }
+    }
     vector<Node> newChildren;
     bool somethingChanged = false;
     if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -83,7 +116,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
     }
     // Remove the ITEs from the children
     for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-      Node newChild = run(*it, output, iteSkolemMap);
+      Node newChild = run(*it, output, iteSkolemMap, newQuantVar);
       somethingChanged |= (newChild != *it);
       newChildren.push_back(newChild);
     }

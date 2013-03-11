@@ -226,17 +226,24 @@ bool Trigger::isUsableTrigger( std::vector< Node >& nodes, Node f ){
 
 bool Trigger::isUsable( Node n, Node f ){
   if( n.getAttribute(InstConstantAttribute())==f ){
-    if( !isAtomicTrigger( n ) && n.getKind()!=INST_CONSTANT ){
-      std::map< Node, Node > coeffs;
-      return getPatternArithmetic( f, n, coeffs );
-    }else{
+    if( isAtomicTrigger( n ) ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         if( !isUsable( n[i], f ) ){
           return false;
         }
       }
       return true;
+    }else if( n.getKind()==INST_CONSTANT ){
+      return true;
+    }else{
+      std::map< Node, Node > coeffs;
+      if( isArithmeticTrigger( f, n, coeffs ) ){
+        return true;
+      }else if( isBooleanTermTrigger( n ) ){
+        return true;
+      }
     }
+    return false;
   }else{
     return true;
   }
@@ -368,7 +375,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
   }
 }
 
-bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coeffs ){
+bool Trigger::isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs ){
   if( n.getKind()==PLUS ){
     Assert( coeffs.empty() );
     NodeBuilder<> t(kind::PLUS);
@@ -381,7 +388,7 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
             coeffs.clear();
             return false;
           }
-        }else if( !getPatternArithmetic( f, n[i], coeffs ) ){
+        }else if( !isArithmeticTrigger( f, n[i], coeffs ) ){
           coeffs.clear();
           return false;
         }
@@ -406,6 +413,22 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     }else if( n[1].getKind()==INST_CONSTANT && n[1].getAttribute(InstConstantAttribute())==f ){
       if( !n[0].hasAttribute(InstConstantAttribute()) ){
         coeffs[ n[1] ] = n[0];
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Trigger::isBooleanTermTrigger( Node n ) {
+  if( n.getKind()==ITE ){
+    //check for boolean term converted to ITE
+    if( n[0].getKind()==INST_CONSTANT &&
+        n[1].getKind()==CONST_BITVECTOR &&
+        n[2].getKind()==CONST_BITVECTOR ){
+      if( ((BitVectorType)n[1].getType().toType()).getSize()==1 &&
+          n[1].getConst<BitVector>().toInteger()==1 &&
+          n[2].getConst<BitVector>().toInteger()==0 ){
         return true;
       }
     }

@@ -36,7 +36,8 @@ option cnfQuant --cnf-quant bool :default false
 #   forall x. P( x ) => f( S( x ) ) = x
 option preSkolemQuant --pre-skolem-quant bool :default false
  apply skolemization eagerly to bodies of quantified formulas
-
+option iteRemoveQuant --ite-remove-quant bool :default false
+ apply ite removal to bodies of quantifiers
 # Whether to perform agressive miniscoping
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers
@@ -48,7 +49,7 @@ option macrosQuant --macros-quant bool :default false
 option smartTriggers /--disable-smart-triggers bool :default true
  disable smart triggers
 # Whether to use relevent triggers
-option relevantTriggers --relevant-triggers bool :default true
+option relevantTriggers /--disable-relevant-triggers bool :default true
  prefer triggers that are more relevant based on SInE style analysis
 
 # Whether to consider terms in the bodies of quantifiers for matching

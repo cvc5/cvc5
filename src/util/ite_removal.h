@@ -55,7 +55,7 @@ public:
    * ite created in conjunction with that skolem variable.
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
-           IteSkolemMap& iteSkolemMap);
+           IteSkolemMap& iteSkolemMap, std::vector<Node>& quantVar);
 
 };/* class RemoveTTE */
 

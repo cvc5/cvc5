@@ -145,6 +145,10 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
     if( gen ){
       generateTriggers( f, effort, e, status );
     }
+    //if( e==4 ){
+    //  d_processed_trigger.clear();
+    //  d_quantEngine->getEqualityQuery()->setLiberal( true );
+    //}
     Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
     //Notice() << "Try auto-generated triggers..." << std::endl;
     for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[f].begin(); itt != d_auto_gen_trigger[f].end(); ++itt ){
@@ -171,6 +175,9 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
         }
       }
     }
+    //if( e==4 ){
+    //  d_quantEngine->getEqualityQuery()->setLiberal( false );
+    //}
     Debug("quant-uf-strategy") << "done." << std::endl;
     //Notice() << "done" << std::endl;
     return status;

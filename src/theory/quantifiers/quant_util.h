@@ -91,6 +91,8 @@ public:
   virtual eq::EqualityEngine* getEngine() = 0;
   /** get the equivalence class of a */
   virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
+
+  virtual void setLiberal( bool l ) = 0;
 };/* class EqualityQuery */
 
 }

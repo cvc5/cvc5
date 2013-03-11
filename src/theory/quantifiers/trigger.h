@@ -109,7 +109,8 @@ public:
   static bool isAtomicTrigger( Node n );
   static bool isSimpleTrigger( Node n );
   /** get pattern arithmetic */
-  static bool getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coeffs );
+  static bool isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs );
+  static bool isBooleanTermTrigger( Node n );
 
   inline void toStream(std::ostream& out) const {
     out << "TRIGGER( ";
