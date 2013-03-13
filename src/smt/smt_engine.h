@@ -444,7 +444,7 @@ public:
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) throw(ModalException, LogicException);
+  Expr getValue(const Expr& e) throw(ModalException, TypeCheckingException, LogicException);
 
   /**
    * Add a function to the set of expressions whose value is to be

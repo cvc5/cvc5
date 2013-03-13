@@ -1075,7 +1075,7 @@ Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
 }
 
 Type ValidityChecker::subtypeType(const Expr& pred, const Expr& witness) {
-  Unimplemented("Records not supported by CVC4 yet (sorry!)");
+  Unimplemented("Predicate subtyping not supported by CVC4 yet (sorry!)");
   /*
   if(witness.isNull()) {
     return d_em->mkPredicateSubtype(pred);

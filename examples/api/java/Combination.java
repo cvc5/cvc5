@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file Combination.cpp
+/*! \file Combination.java
  ** \verbatim
  ** Original author: mdeters
  ** Major contributors: none

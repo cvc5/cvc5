@@ -160,8 +160,8 @@ protected:
    * Does a depth first search on removed literals and adds the literals
    * to be removed in the proper order to the stack. 
    * 
-   * @param lit the literal we are recusing on
-   * @param removedSet the previously computed set of redundantant literals
+   * @param lit the literal we are recursing on
+   * @param removedSet the previously computed set of redundant literals
    * @param removeStack the stack of literals in reverse order of resolution
    */
   void removedDfs(::Minisat::Lit lit, LitSet* removedSet, LitVector& removeStack, LitSet& inClause, LitSet& seen);

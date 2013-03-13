@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file node_builder.h
  ** \verbatim
- ** Original author: mdeters
- ** Major contributors: dejan
- ** Minor contributors (to current version): taking, cconway
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -277,7 +277,9 @@ class NodeBuilder {
    * double-decremented later (on destruction/clear).
    */
   inline void realloc() {
-    realloc(d_nvMaxChildren * 2);
+    size_t newSize = 2 * size_t(d_nvMaxChildren);
+    size_t hardLimit = (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
+    realloc(EXPECT_FALSE( newSize > hardLimit ) ? hardLimit : newSize);
   }
 
   /**
@@ -662,6 +664,7 @@ public:
     expr::NodeValue* nv = n.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
+    Assert(d_nv->d_nchildren <= d_nvMaxChildren);
     return *this;
   }
 
@@ -674,6 +677,7 @@ public:
     expr::NodeValue* nv = typeNode.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
+    Assert(d_nv->d_nchildren <= d_nvMaxChildren);
     return *this;
   }
 
@@ -771,6 +775,9 @@ template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
   Assert( toSize > d_nvMaxChildren,
           "attempt to realloc() a NodeBuilder to a smaller/equal size!" );
+  Assert( toSize < (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN),
+          "attempt to realloc() a NodeBuilder to size %u (beyond hard limit of %u)",
+          toSize, (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
 
   if(EXPECT_FALSE( nvIsAllocated() )) {
     // Ensure d_nv is not modified on allocation failure
@@ -783,6 +790,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
       throw std::bad_alloc();
     }
     d_nvMaxChildren = toSize;
+    Assert(d_nvMaxChildren == toSize);//overflow check
     // Here, the copy (between two heap-allocated buffers) has already
     // been done for us by the std::realloc().
     d_nv = newBlock;
@@ -795,6 +803,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
       throw std::bad_alloc();
     }
     d_nvMaxChildren = toSize;
+    Assert(d_nvMaxChildren == toSize);//overflow check
 
     d_nv = newBlock;
     d_nv->d_id = d_inlineNv.d_id;
@@ -1276,10 +1285,14 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
     return;
   }
 
+  bool realloced CVC4_UNUSED = false;
   if(nb.d_nvMaxChildren > d_nvMaxChildren) {
+    realloced = true;
     realloc(nb.d_nvMaxChildren);
   }
 
+  Assert(nb.d_nvMaxChildren <= d_nvMaxChildren);
+  Assert(nb.d_nv->nv_end() - nb.d_nv->nv_begin() <= d_nvMaxChildren, "realloced:%s, d_nvMax:%u, size:%u, nc:%u", realloced ? "true" : "false", d_nvMaxChildren, nb.d_nv->nv_end() - nb.d_nv->nv_begin(), nb.d_nv->getNumChildren());
   std::copy(nb.d_nv->nv_begin(),
             nb.d_nv->nv_end(),
             d_nv->nv_begin());

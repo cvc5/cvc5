@@ -41,7 +41,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
     d_slicer(c),
-    d_bitblastAssertionsQueue(c),
     d_bitblastSolver(c, this),
     d_coreSolver(c, this, &d_slicer),
     d_statistics(),
@@ -110,29 +109,23 @@ void TheoryBV::check(Effort e)
     return;
   }
 
-  // getting the new assertions
-  std::vector<TNode> new_assertions;
   while (!done()) {
-    Assertion assertion = get();
-    TNode fact = assertion.assertion;
-    new_assertions.push_back(fact);
-    d_bitblastAssertionsQueue.push_back(fact); 
-    Debug("bitvector-assertions") << "TheoryBV::check assertion " << fact << "\n";
+    TNode fact = get().assertion;
+    d_coreSolver.assertFact(fact);
+    d_bitblastSolver.assertFact(fact); 
   }
 
+  bool ok = true; 
   if (!inConflict()) {
-    // sending assertions to the equality solver first
-    d_coreSolver.addAssertions(new_assertions, e);
+    ok = d_coreSolver.check(e); 
   }
 
+  Assert (!ok == inConflict()); 
   if (!inConflict() && !d_coreSolver.isCoreTheory()) {
-    // sending assertions to the bitblast solver if it's not just core theory 
-    d_bitblastSolver.addAssertions(new_assertions, e);
-  } else {
-  // sending assertions to the bitblast solver if it's not just core theory 
-    d_bitblastSolver.addAssertions(new_assertions, EFFORT_STANDARD);
+    ok = d_bitblastSolver.check(e); 
   }
   
+  Assert (!ok == inConflict()); 
   if (inConflict()) {
     sendConflict();
   }
@@ -156,7 +149,10 @@ void TheoryBV::propagate(Effort e) {
   bool ok = true;
   for (; d_literalsToPropagateIndex < d_literalsToPropagate.size() && ok; d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
     TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-    ok = d_out->propagate(literal);
+    // temporary fix for incremental bit-blasting 
+    if (d_valuation.isSatLiteral(literal)) {
+      ok = d_out->propagate(literal);
+    }
   }
 
   if (!ok) {
@@ -214,7 +210,7 @@ void TheoryBV::presolve() {
 
 bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 {
-  Debug("bitvector::propagate") << indent() << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ")" << std::endl;
+  Debug("bitvector::propagate") << indent() << getSatContext()->getLevel() << " " << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ")" << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {

@@ -64,6 +64,8 @@ public:
     else return ASSIGNED_TO_TRUE;
   }
 
+  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
+
 private:
 
   context::Context d_context;
@@ -96,7 +98,7 @@ private:
    */
   DataClearer< std::vector<TNode> > d_propagationQueueClearer;
 
-  /** Are we in conflict */
+  /** Are we in conflict? */
   context::CDO<bool> d_conflict;
 
   /** Map of substitutions */
@@ -107,8 +109,9 @@ private:
    */
   DataClearer< std::vector<Node> > d_learnedLiteralClearer;
 
-  /** Back edges from nodes to where they are used */
-  typedef std::hash_map<Node, std::vector<Node>, NodeHashFunction> BackEdgesMap;
+  /**
+   * Back edges from nodes to where they are used.
+   */
   BackEdgesMap d_backEdges;
 
   /**
@@ -157,6 +160,7 @@ private:
     }
   }
 
+public:
   /** True iff Node is assigned in circuit (either true or false). */
   bool isAssigned(TNode n) const {
     AssignmentMap::const_iterator i = d_state.find(n);
@@ -179,6 +183,7 @@ private:
     return (*i).second == ASSIGNED_TO_TRUE;
   }
 
+private:
   /** Predicate for use in STL functions. */
   class IsAssigned : public std::unary_function<TNode, bool> {
     CircuitPropagator& d_circuit;
@@ -267,6 +272,13 @@ public:
    * @return true iff conflict found
    */
   bool propagate() CVC4_WARN_UNUSED_RESULT;
+
+  /**
+   * Get the back edges of this circuit.
+   */
+  const BackEdgesMap& getBackEdges() const {
+    return d_backEdges;
+  }
 
 };/* class CircuitPropagator */
 

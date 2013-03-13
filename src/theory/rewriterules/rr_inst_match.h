@@ -180,7 +180,7 @@ public:
   /** If reset, or getNextMatch return false they remove from the
       InstMatch the binding that they have previously created */
 
-  /** virtual Matcher in order to have definned behavior */
+  /** virtual Matcher in order to have defined behavior */
   virtual ~Matcher(){};
 };
 
@@ -195,7 +195,7 @@ private:
   std::vector< triple< Matcher*, size_t, EqualityQuery* > > d_childrens;
   /** the variable that have been set by this matcher (during its own reset) */
   std::vector< TNode > d_binded; /* TNode because the variable are already in d_pattern */
-  /** the representant of the argument of the term given by the last reset */
+  /** the representative of the argument of the term given by the last reset */
   std::vector< Node > d_reps;
 public:
   /** The pattern we are producing matches for */
@@ -250,7 +250,7 @@ public:
 PatsMatcher* mkPatterns( std::vector< Node > pat, QuantifiersEngine* qe );
 PatsMatcher* mkPatternsEfficient( std::vector< Node > pat, QuantifiersEngine* qe );
 
-/** return true if whatever Node is subsituted for the variables the
+/** return true if whatever Node is substituted for the variables the
     given Node can't match the pattern */
 bool nonunifiable( TNode t, TNode pat, const std::vector<Node> & vars);
 

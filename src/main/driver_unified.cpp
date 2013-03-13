@@ -26,6 +26,7 @@
 #include "cvc4autoconfig.h"
 #include "main/main.h"
 #include "main/interactive_shell.h"
+#include "main/options.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
@@ -43,6 +44,7 @@
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -62,6 +64,9 @@ namespace CVC4 {
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = NULL;
+
+    /** A pointer to the totalTime driver stat (the signal handlers need it) */
+    CVC4::TimerStat* pTotalTime = NULL;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -84,8 +89,8 @@ void printUsage(Options& opts, bool full) {
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
-  TimerStat s_totalTime("totalTime");
-  s_totalTime.start();
+  pTotalTime = new TimerStat("totalTime");
+  pTotalTime->start();
 
   // For the signal handlers' benefit
   pOptions = &opts;
@@ -183,17 +188,22 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   DumpChannel.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
+  ExprManager* exprMgr;
 # ifndef PORTFOLIO_BUILD
-  ExprManager* exprMgr = new ExprManager(opts);
-# else
-  vector<Options> threadOpts = parseThreadSpecificOptions(opts);
-  ExprManager* exprMgr = new ExprManager(threadOpts[0]);
-# endif
-
-# ifndef PORTFOLIO_BUILD
+  exprMgr = new ExprManager(opts);
   pExecutor = new CommandExecutor(*exprMgr, opts);
 # else
-  pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
+  vector<Options> threadOpts = parseThreadSpecificOptions(opts);
+  if(opts[options::incrementalSolving] && !opts[options::incrementalParallel]) {
+    Notice() << "Notice: In --incremental mode, using the sequential solver unless forced by...\n"
+             << "Notice: ...the experimental --incremental-parallel option.\n";
+    exprMgr = new ExprManager(opts);
+    pExecutor = new CommandExecutor(*exprMgr, opts);
+  }
+  else {
+    exprMgr = new ExprManager(threadOpts[0]);
+    pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
+  }
 # endif
 
   Parser* replayParser = NULL;
@@ -216,7 +226,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   int returnValue = 0;
   {
     // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(), &s_totalTime);
+    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(), pTotalTime);
 
     // Filename statistics
     ReferenceStat< const char* > s_statFilename("filename", filename);
@@ -229,7 +239,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       InteractiveShell shell(*exprMgr, opts);
       Message() << Configuration::getPackageName()
                 << " " << Configuration::getVersionString();
-      if(Configuration::isSubversionBuild()) {
+      if(Configuration::isGitBuild()) {
+        Message() << " [" << Configuration::getGitId() << "]";
+      } else if(Configuration::isSubversionBuild()) {
         Message() << " [" << Configuration::getSubversionId() << "]";
       }
       Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
@@ -304,7 +316,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat< Result > s_statSatResult("sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(), &s_statSatResult);
 
-    s_totalTime.stop();
+    pTotalTime->stop();
 
     // Set the global executor pointer to NULL first.  If we get a
     // signal while dumping statistics, we don't want to try again.
@@ -334,9 +346,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // On exceptional exit, these are leaked, but that's okay... they
   // need to be around in that case for main() to print statistics.
+  delete pTotalTime;
   delete pExecutor;
   delete exprMgr;
 
+  pTotalTime = NULL;
   pExecutor = NULL;
 
   return returnValue;

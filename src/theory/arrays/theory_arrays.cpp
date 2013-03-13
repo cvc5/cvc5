@@ -1324,7 +1324,9 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   // Prefer equality between indexes so as not to introduce new read terms
   if (d_eagerIndexSplitting && !bothExist && !d_equalityEngine.areDisequal(i,j, false)) {
-    d_decisionRequests.push(i.eqNode(j));
+    Node i_eq_j = d_valuation.ensureLiteral(i.eqNode(j));
+    getOutputChannel().requirePhase(i_eq_j, true);
+    d_decisionRequests.push(i_eq_j);
   }
 
   // TODO: maybe add triggers here
@@ -1392,7 +1394,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
 Node TheoryArrays::getNextDecisionRequest() {
   if(! d_decisionRequests.empty()) {
-    Node n = d_valuation.ensureLiteral(d_decisionRequests.front());
+    Node n = d_decisionRequests.front();
     d_decisionRequests.pop();
     return n;
   } else {

@@ -72,19 +72,31 @@ protected:
 
   /** The bit-vector theory */
   TheoryBV* d_bv;
-
+  context::CDQueue<TNode> d_assertionQueue;
+  context::CDO<uint32_t>  d_assertionIndex; 
 public:
   
   SubtheorySolver(context::Context* c, TheoryBV* bv) :
     d_context(c),
-    d_bv(bv)
+    d_bv(bv),
+    d_assertionQueue(c),
+    d_assertionIndex(c, 0)
   {}
   virtual ~SubtheorySolver() {}
+  
+  virtual bool check(Theory::Effort e) = 0; 
+  virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
+  virtual void preRegister(TNode node) {}
+  virtual void collectModelInfo(TheoryModel* m) = 0;
+  bool done() { return d_assertionQueue.size() == d_assertionIndex; }
+  TNode get() {
+    Assert (!done()); 
+    TNode res = d_assertionQueue[d_assertionIndex];
+    d_assertionIndex = d_assertionIndex + 1;
+    return res; 
+  }
+  void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
 
-  virtual bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) = 0;
-  virtual void  explain(TNode literal, std::vector<TNode>& assumptions) = 0;
-  virtual void  preRegister(TNode node) {}
-  virtual void  collectModelInfo(TheoryModel* m) = 0; 
 }; 
 
 }

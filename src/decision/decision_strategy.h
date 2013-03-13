@@ -9,7 +9,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Decision stategy
+ ** \brief Decision strategy
  **
  ** Decision strategy
  **/

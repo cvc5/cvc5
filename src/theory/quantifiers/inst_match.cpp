@@ -103,12 +103,12 @@ void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
   }
 }
 
-void InstMatch::makeInternalRepresentative( QuantifiersEngine* qe ){
-  EqualityQueryQuantifiersEngine* eqqe = (EqualityQueryQuantifiersEngine*)qe->getEqualityQuery();
-  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-    d_map[ it->first ] = eqqe->getInternalRepresentative( it->second );
-  }
-}
+//void InstMatch::makeInternalRepresentative( QuantifiersEngine* qe ){
+//  EqualityQueryQuantifiersEngine* eqqe = (EqualityQueryQuantifiersEngine*)qe->getEqualityQuery();
+//  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+//    d_map[ it->first ] = eqqe->getInternalRepresentative( it->second );
+//  }
+//}
 
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
   for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){

@@ -56,12 +56,12 @@ public:
   /** reset, eqc is the equivalence class to search in (search in any if eqc=null) */
   void reset( Node eqc );
   /** get next match.  must call reset( eqc ) once before this function. */
-  bool getNextMatch( InstMatch& m );
+  bool getNextMatch( Node f, InstMatch& m );
   /** get the match against ground term or formula t.
       the trigger and t should have the same shape.
       Currently the trigger should not be a multi-trigger.
   */
-  bool getMatch( Node t, InstMatch& m);
+  bool getMatch( Node f, Node t, InstMatch& m);
   /** add ground term t, called when t is added to the TermDb */
   int addTerm( Node t );
   /** return whether this is a multi-trigger */

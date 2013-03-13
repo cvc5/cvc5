@@ -23,7 +23,6 @@ TESTS =	\
 	delta-minimized-row-vector-bug.smt \
 	fuzz_3-eq.smt \
 	leq.01.smt \
-	miplibtrick.smt \
 	DTP_k2_n35_c175_s15.smt2 \
 	mod.01.smt2 \
 	mod.02.smt2 \
@@ -39,10 +38,21 @@ TESTS =	\
 	div.09.smt2 \
 	mult.01.smt2 \
 	mult.02.smt2 \
-	bug443.delta01.smt
+	bug443.delta01.smt \
+	miplib.cvc \
+	miplib2.cvc \
+	miplib3.cvc \
+	miplib4.cvc \
+	miplibtrick.smt
 #	problem__003.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	miplib-opt1217--27.smt \
+	miplib-opt1217--27.smt2 \
+	miplib-pp08a-3000.smt \
+	miplib-pp08a-3000.smt2 \
+	miplib-opt1217--27.smt.expect \
+	miplib-pp08a-3000.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

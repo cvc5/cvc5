@@ -167,7 +167,7 @@ public:
   /** get counterexample literal (for cbqi) */
   Node getCounterexampleLiteral( Node f );
   /** returns node n with bound vars of f replaced by instantiation constants of f
-      node n : is the futur pattern
+      node n : is the future pattern
       node f : is the quantifier containing which bind the variable
       return a pattern where the variable are replaced by variable for
       instantiation.
@@ -212,6 +212,8 @@ private:
   std::map< TNode, std::vector< TNode > > d_var_contains;
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
+  /** helper for is intance of */
+  bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
 public:
   /** compute var contains */
   void computeVarContains( Node n );

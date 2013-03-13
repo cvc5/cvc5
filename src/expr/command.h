@@ -401,7 +401,7 @@ public:
 
 /**
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
- *  via the syntax (! expr :atrr)
+ *  via the syntax (! expr :attr)
  */
 class CVC4_PUBLIC SetUserAttributeCommand : public Command {
 protected:

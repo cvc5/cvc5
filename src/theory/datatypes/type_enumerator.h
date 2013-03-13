@@ -92,23 +92,21 @@ public:
     newEnumerators();
   }
 
-  DatatypesEnumerator(const DatatypesEnumerator& other) :
-    TypeEnumeratorBase<DatatypesEnumerator>(other.getType()),
-    d_datatype(other.d_datatype),
-    d_ctor(other.d_ctor),
-    d_zeroCtor(other.d_zeroCtor),
+  DatatypesEnumerator(const DatatypesEnumerator& de) throw() :
+    TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
+    d_datatype(de.d_datatype),
+    d_ctor(de.d_ctor),
+    d_zeroCtor(de.d_zeroCtor),
     d_argEnumerators(NULL) {
-    
-    if (other.d_argEnumerators != NULL) {
-      d_argEnumerators = new TypeEnumerator*[d_datatype[d_ctor].getNumArgs()];
+
+    if(de.d_argEnumerators != NULL) {
+      newEnumerators();
       for(size_t a = 0; a < d_datatype[d_ctor].getNumArgs(); ++a) {
-        if (other.d_argEnumerators[a] != NULL) {
-          d_argEnumerators[a] = new TypeEnumerator(*other.d_argEnumerators[a]);
-        } else {
-          d_argEnumerators[a] = NULL;
+        if(de.d_argEnumerators[a] != NULL) {
+          d_argEnumerators[a] = new TypeEnumerator(*de.d_argEnumerators[a]);
         }
-       }
-    }             
+      }
+    }
   }
 
   ~DatatypesEnumerator() throw() {
@@ -139,11 +137,10 @@ public:
   DatatypesEnumerator& operator++() throw() {
     if(d_ctor < d_datatype.getNumConstructors()) {
       for(size_t a = d_datatype[d_ctor].getNumArgs(); a > 0; --a) {
-        try {
-          *++*d_argEnumerators[a - 1];
-          return *this;
-        } catch(NoMoreValuesException&) {
+        if((++*d_argEnumerators[a - 1]).isFinished()) {
           *d_argEnumerators[a - 1] = TypeEnumerator(Node::fromExpr(d_datatype[d_ctor][a - 1].getSelector()).getType()[1]);
+        } else {
+          return *this;
         }
       }
 
@@ -175,6 +172,14 @@ public:
 class TupleEnumerator : public TypeEnumeratorBase<TupleEnumerator> {
   TypeEnumerator** d_enumerators;
 
+  /** Allocate and initialize the delegate enumerators */
+  void newEnumerators() {
+    d_enumerators = new TypeEnumerator*[getType().getNumChildren()];
+    for(size_t i = 0; i < getType().getNumChildren(); ++i) {
+      d_enumerators[i] = NULL;
+    }
+  }
+
   void deleteEnumerators() throw() {
     if(d_enumerators != NULL) {
       for(size_t i = 0; i < getType().getNumChildren(); ++i) {
@@ -190,9 +195,20 @@ public:
   TupleEnumerator(TypeNode type) throw() :
     TypeEnumeratorBase<TupleEnumerator>(type) {
     Assert(type.isTuple());
-    d_enumerators = new TypeEnumerator*[type.getNumChildren()];
-    for(size_t i = 0; i < type.getNumChildren(); ++i) {
-      d_enumerators[i] = new TypeEnumerator(type[i]);
+    newEnumerators();
+  }
+
+  TupleEnumerator(const TupleEnumerator& te) throw() :
+    TypeEnumeratorBase<TupleEnumerator>(te.getType()),
+    d_enumerators(NULL) {
+
+    if(te.d_enumerators != NULL) {
+      newEnumerators();
+      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
+        if(te.d_enumerators[i] != NULL) {
+          d_enumerators[i] = new TypeEnumerator(*te.d_enumerators[i]);
+        }
+      }
     }
   }
 
@@ -241,9 +257,19 @@ public:
 class RecordEnumerator : public TypeEnumeratorBase<RecordEnumerator> {
   TypeEnumerator** d_enumerators;
 
+  /** Allocate and initialize the delegate enumerators */
+  void newEnumerators() {
+    const Record& rec = getType().getConst<Record>();
+    d_enumerators = new TypeEnumerator*[rec.getNumFields()];
+    for(size_t i = 0; i < rec.getNumFields(); ++i) {
+      d_enumerators[i] = new TypeEnumerator(TypeNode::fromType(rec[i].second));
+    }
+  }
+
   void deleteEnumerators() throw() {
     if(d_enumerators != NULL) {
-      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
+      const Record& rec = getType().getConst<Record>();
+      for(size_t i = 0; i < rec.getNumFields(); ++i) {
         delete d_enumerators[i];
       }
       delete [] d_enumerators;
@@ -256,12 +282,20 @@ public:
   RecordEnumerator(TypeNode type) throw() :
     TypeEnumeratorBase<RecordEnumerator>(type) {
     Assert(type.isRecord());
-    const Record& rec = getType().getConst<Record>();
-    Debug("te") << "creating record enumerator for " << type << std::endl;
-    d_enumerators = new TypeEnumerator*[rec.getNumFields()];
-    for(size_t i = 0; i < rec.getNumFields(); ++i) {
-      Debug("te") << " - sub-enumerator for " << rec[i].second << std::endl;
-      d_enumerators[i] = new TypeEnumerator(TypeNode::fromType(rec[i].second));
+    newEnumerators();
+  }
+
+  RecordEnumerator(const RecordEnumerator& re) throw() :
+    TypeEnumeratorBase<RecordEnumerator>(re.getType()),
+    d_enumerators(NULL) {
+
+    if(re.d_enumerators != NULL) {
+      newEnumerators();
+      for(size_t i = 0; i < getType().getNumChildren(); ++i) {
+        if(re.d_enumerators[i] != NULL) {
+          d_enumerators[i] = new TypeEnumerator(*re.d_enumerators[i]);
+        }
+      }
     }
   }
 

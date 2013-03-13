@@ -151,7 +151,7 @@ void Tptp::includeFile(std::string fileName){
 
   if( d_tptpDir.empty() ){
     parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " and the TPTP directory is not specified (environnement variable TPTP)");
+               + " at " + currentDirFileName + " and the TPTP directory is not specified (environment variable TPTP)");
   };
 
   std::string tptpDirFileName = d_tptpDir + fileName;

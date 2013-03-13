@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file efficient_e_matching.cpp
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: bobot
- ** Minor contributors (to current version): mdeters
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file inst_strategy_e_matching.h
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: none
- ** Minor contributors (to current version): bobot, mdeters
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -80,12 +80,14 @@ private:
   std::map< Node, bool > d_is_single_trigger;
   std::map< Node, bool > d_single_trigger_gen;
   std::map< Node, bool > d_made_multi_trigger;
+  //processed trigger this round
+  std::map< Node, std::map< inst::Trigger*, bool > > d_processed_trigger;
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
   int process( Node f, Theory::Effort effort, int e );
   /** generate triggers */
-  void generateTriggers( Node f );
+  void generateTriggers( Node f, Theory::Effort effort, int e, int & status );
 public:
   /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
       rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)

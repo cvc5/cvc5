@@ -66,6 +66,7 @@ int main(int argc, char* argv[]) {
 #endif
     *opts[options::err] << "CVC4 Error:" << endl << e << endl;
     if(opts[options::statistics] && pExecutor != NULL) {
+      pTotalTime->stop();
       pExecutor->flushStatistics(*opts[options::err]);
     }
   }

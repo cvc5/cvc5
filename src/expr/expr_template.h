@@ -654,6 +654,11 @@ public:
         l = options::defaultExprDepth();
       }
       if(l == 0) {
+        // if called from outside the library, we may not have options
+        // available to us at this point (or perhaps the output language
+        // is not set in Options).  Default to something reasonable, but
+        // don't set "l" since that would make it "sticky" for this
+        // stream.
         return s_defaultPrintDepth;
       }
     }
@@ -797,7 +802,17 @@ public:
     if(l == 0) {
       // set the default dag setting on this ostream
       // (offset by one to detect whether default has been set yet)
-      l = s_defaultDag + 1;
+      if(&Options::current() != NULL) {
+        l = options::defaultDagThresh() + 1;
+      }
+      if(l == 0) {
+        // if called from outside the library, we may not have options
+        // available to us at this point (or perhaps the output language
+        // is not set in Options).  Default to something reasonable, but
+        // don't set "l" since that would make it "sticky" for this
+        // stream.
+        return s_defaultDag + 1;
+      }
     }
     return static_cast<size_t>(l - 1);
   }

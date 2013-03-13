@@ -1,3 +1,4 @@
+/* *******************                                                        */
 /*! \file Smt1.g
  ** \verbatim
  ** Original author: cconway
@@ -30,10 +31,8 @@ options {
 
 @header {
 /**
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
- ** Courant Institute of Mathematical Sciences
- ** New York University
+ ** This file is part of CVC4.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/
@@ -783,7 +782,15 @@ FLET_IDENTIFIER
  */
 userValue[std::string& s]
   : USER_VALUE
-    { s = AntlrInput::tokenText($USER_VALUE); }
+    { s = AntlrInput::tokenText($USER_VALUE);
+      assert(*s.begin() == '{');
+      assert(*s.rbegin() == '}');
+      // trim whitespace
+      s.erase(s.begin(), s.begin() + 1);
+      s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+      s.erase(s.end() - 1);
+      s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    }
   ;
 
 PATTERN_ANNOTATION_BEGIN

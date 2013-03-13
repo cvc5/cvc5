@@ -41,7 +41,7 @@ Node ArrayModel::getValue( TheoryModel* m, Node i ){
     return it->second;
   }else{
     return NodeManager::currentNM()->mkNode( SELECT, getArrayValue(), i );
-    //return d_default_value;   //TODO: guarentee I can return this here
+    //return d_default_value;   //TODO: guarantee I can return this here
   }
 }
 

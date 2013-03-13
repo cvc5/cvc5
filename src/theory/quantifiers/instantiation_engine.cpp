@@ -84,16 +84,18 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         //add cbqi lemma
         //get the counterexample literal
         Node ceLit = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( f );
-        //require any decision on cel to be phase=true
-        d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
-        Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
-        //add counterexample lemma
-        NodeBuilder<> nb(kind::OR);
-        nb << f << ceLit;
-        Node lem = nb;
-        Debug("cbqi-debug") << "Counterexample lemma : " << lem << std::endl;
-        d_quantEngine->getOutputChannel().lemma( lem );
-        addedLemma = true;
+        if( !ceLit.isNull() ){
+          //require any decision on cel to be phase=true
+          d_quantEngine->getOutputChannel().requirePhase( ceLit, true );
+          Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+          //add counterexample lemma
+          NodeBuilder<> nb(kind::OR);
+          nb << f << ceLit;
+          Node lem = nb;
+          Debug("cbqi-debug") << "Counterexample lemma : " << lem << std::endl;
+          d_quantEngine->getOutputChannel().lemma( lem );
+          addedLemma = true;
+        }
       }
     }
     if( addedLemma ){

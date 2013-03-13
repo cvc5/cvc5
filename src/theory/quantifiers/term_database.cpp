@@ -75,7 +75,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
       if( !n.hasAttribute(InstConstantAttribute()) ){
-        Debug("term-db") << "register trigger term " << n << std::endl;
+        Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
         Node op = n.getOperator();
         d_op_map[op].push_back( n );
@@ -194,7 +194,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( d_type_map[ tn ].empty() ){
+    if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
       std::stringstream ss;
       ss << Expr::setlanguage(options::outputLanguage());
       ss << "e_" << tn;
@@ -206,6 +206,7 @@ Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
     ModelBasisAttribute mba;
     mbt.setAttribute(mba,true);
     d_model_basis_term[tn] = mbt;
+    Trace("model-basis-term") << "Choose " << mbt << " as model basis term for " << tn << std::endl;
   }
   return d_model_basis_term[tn];
 }
@@ -337,6 +338,14 @@ Node TermDb::getInstConstantBody( Node f ){
 Node TermDb::getCounterexampleLiteral( Node f ){
   if( d_ce_lit.find( f )==d_ce_lit.end() ){
     Node ceBody = getInstConstantBody( f );
+    //check if any variable are of bad types, and fail if so
+    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
+      if( d_inst_constants[f][i].getType().isBoolean() ){
+        d_ce_lit[ f ] = Node::null();
+        return Node::null();
+      }
+    }
+    //otherwise, ensure literal
     Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
     d_ce_lit[ f ] = ceLit;
     setInstantiationConstantAttr( ceLit, f );
@@ -367,6 +376,10 @@ Node TermDb::getSkolemizedBody( Node f ){
       Node skv = NodeManager::currentNM()->mkSkolem( "skv_$$", f[0][i].getType(), "is a termdb-created skolemized body" );
       d_skolem_constants[ f ].push_back( skv );
       vars.push_back( f[0][i] );
+      //carry information for sort inference
+      if( options::sortInference() ){
+        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], skv );
+      }
     }
     d_skolem_body[ f ] = f[ 1 ].substitute( vars.begin(), vars.end(),
                                             d_skolem_constants[ f ].begin(), d_skolem_constants[ f ].end() );
@@ -515,6 +528,34 @@ int TermDb::isInstanceOf( Node n1, Node n2 ){
   return 0;
 }
 
+bool TermDb::isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs ){
+  if( n1==n2 ){
+    return true;
+  }else if( n2.getKind()==INST_CONSTANT ){
+    //if( !node_contains( n1, n2 ) ){
+    //  return false;
+    //}
+    if( subs.find( n2 )==subs.end() ){
+      subs[n2] = n1;
+    }else if( subs[n2]!=n1 ){
+      return false;
+    }
+    return true;
+  }else if( n1.getKind()==n2.getKind() && n1.getMetaKind()==kind::metakind::PARAMETERIZED ){
+    if( n1.getOperator()!=n2.getOperator() ){
+      return false;
+    }
+    for( int i=0; i<(int)n1.getNumChildren(); i++ ){
+      if( !isUnifiableInstanceOf( n1[i], n2[i], subs ) ){
+        return false;
+      }
+    }
+    return true;
+  }else{
+    return false;
+  }
+}
+
 void TermDb::filterInstances( std::vector< Node >& nodes ){
   std::vector< bool > active;
   active.resize( nodes.size(), true );
@@ -523,8 +564,10 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
       if( active[i] && active[j] ){
         int result = isInstanceOf( nodes[i], nodes[j] );
         if( result==1 ){
+          Trace("filter-instances") << nodes[j] << " is an instance of " << nodes[i] << std::endl;
           active[j] = false;
         }else if( result==-1 ){
+          Trace("filter-instances") << nodes[i] << " is an instance of " << nodes[j] << std::endl;
           active[i] = false;
         }
       }

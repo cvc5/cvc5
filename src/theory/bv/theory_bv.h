@@ -25,7 +25,6 @@
 #include "context/cdhashset.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
-#include "context/cdqueue.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_subtheory_eq.h"
 #include "theory/bv/bv_subtheory_core.h"
@@ -46,11 +45,8 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
   Slicer         d_slicer;
-  
-  context::CDQueue<TNode> d_bitblastAssertionsQueue;
-
   BitblastSolver d_bitblastSolver;
-  CoreSolver d_coreSolver;
+  CoreSolver     d_coreSolver;
   
 public:
 

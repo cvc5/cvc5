@@ -47,6 +47,7 @@ namespace bv {
 typedef Index TermId;
 extern const TermId UndefinedId;
 
+class CDBase; 
 
 /** 
  * Base
@@ -55,9 +56,11 @@ extern const TermId UndefinedId;
 class Base {
   Index d_size;
   std::vector<uint32_t> d_repr;
+  void undoSliceAt(Index index); 
 public:
   Base (Index size);
-  void sliceAt(Index index); 
+  void sliceAt(Index index);
+  
   void sliceWith(const Base& other);
   bool isCutPoint(Index index) const;
   void diffCutPoints(const Base& other, Base& res) const;
@@ -78,6 +81,47 @@ public:
     }
     return true; 
   }
+  friend class CDBase; 
+}; 
+
+
+class CDBase : public context::ContextNotifyObj {
+  context::Context* d_ctx;
+  context::CDO<unsigned> d_undoIndex;
+
+  std::vector<unsigned> d_undoStack; 
+  Base d_base;
+  CDBase(context::Context* ctx, Index bitwidth)
+    : ContextNotifyObj(ctx),
+      d_ctx(ctx),
+      d_undoIndex(d_ctx),
+      d_undoStack(),
+      d_base(bitwidth)
+  {}
+  void sliceAt(Index i) {
+    Assert (!d_base.isCutPoint(i)); 
+    d_undoStack.push_back(i);
+    d_undoIndex.set(d_undoIndex.get() + 1); 
+    d_base.sliceAt(i); 
+  }
+  bool isCutPoint(Index i) {
+    return d_base.isCutPoint(i); 
+  }
+  Index getBitwidth() const {return d_base.getBitwidth(); }
+  virtual ~CDBase() throw(AssertionException) {}
+  void contextNotifyPop() {
+    backtrack();
+  }
+
+  void backtrack() {
+    for (unsigned i = d_undoIndex.get(); i < d_undoStack.size(); ++i) {
+      Index i = d_undoStack.back();
+      d_undoStack.pop_back();
+      d_base.undoSliceAt(i); 
+    }
+    Assert(d_undoIndex.get() == d_undoStack.size()); 
+  }
+  
 }; 
 
 /**
@@ -227,11 +271,11 @@ class UnionFind : public context::ContextNotifyObj {
   };
 
   Statistics d_statistics;
+  bool d_newSplit; 
 public:
   UnionFind(context::Context* ctx)
     : ContextNotifyObj(ctx), 
       d_nodes(),
-      //      d_representatives(ctx),
       d_undoStack(),
       d_undoStackIndex(ctx),
       d_statistics()
@@ -256,6 +300,8 @@ public:
   void contextNotifyPop() {
     backtrack();
   }
+  bool hasNewSplit() { return d_newSplit; }
+  void resetNewSplit() { d_newSplit = false; } 
 
   friend class Slicer; 
 };
@@ -279,7 +325,9 @@ public:
   bool isCoreTerm (TNode node);
   Base getTopLevelBase(TNode node); 
   static void splitEqualities(TNode node, std::vector<Node>& equalities);
-  static unsigned d_numAddedEqualities; 
+  static unsigned d_numAddedEqualities;
+  inline bool hasNewSplit() { return d_unionFind.hasNewSplit(); }
+  inline void resetNewSplit() { d_unionFind.resetNewSplit();  } 
 }; 
 
 

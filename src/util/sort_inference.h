@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file sort_inference.h
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: none
+ ** Original author: Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -65,6 +65,10 @@ public:
   ~SortInference(){}
 
   void simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  int getSortId( Node n );
+  int getSortId( Node f, Node v );
+  //set that sk is the skolem variable of v for quantifier f
+  void setSkolemVar( Node f, Node v, Node sk );
 };
 
 }

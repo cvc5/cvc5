@@ -138,8 +138,8 @@ else
 	done
 endif
 #	set up builds/$(CURRENT_BUILD)/bin and builds/$(CURRENT_BUILD)/lib
-	$(AM_V_at)test -e $(CURRENT_BUILD)/lib || ln -sf "$(abs_builddir)$(libdir)" $(CURRENT_BUILD)/lib
-	$(AM_V_at)test -e $(CURRENT_BUILD)/bin || ln -sf "$(abs_builddir)$(bindir)" $(CURRENT_BUILD)/bin
+	rm -f $(CURRENT_BUILD)/lib; ln -sf "$(abs_builddir)$(libdir)" $(CURRENT_BUILD)/lib
+	rm -f $(CURRENT_BUILD)/bin; ln -sf "$(abs_builddir)$(bindir)" $(CURRENT_BUILD)/bin
 #	set up builds/...prefix.../bin and builds/...prefix.../lib
 	$(AM_V_mkdir) ".$(bindir)"
 	$(AM_V_mkdir) ".$(libdir)"
@@ -185,8 +185,8 @@ else
 	done
 endif
 #	set up builds/bin and builds/lib
-	$(AM_V_at)test -e lib || ln -sf ".$(libdir)" lib
-	$(AM_V_at)test -e bin || ln -sf ".$(bindir)" bin
+	rm -f lib; ln -sf ".$(libdir)" lib
+	rm -f bin; ln -sf ".$(bindir)" bin
 	rm -f doc; ln -sf "$(CURRENT_BUILD)/doc" doc
 	rm -f examples; ln -sf "$(CURRENT_BUILD)/examples" examples
 

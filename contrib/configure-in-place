@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash -ex
 #
 # configure-in-place
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2010, 2011  The CVC4 Project
+# Copyright (c) 2010-2013  The CVC4 Project
 #
 # usage: configure-in-place [ arguments... ]
 #
@@ -10,9 +10,9 @@
 # should be invoked).
 #
 
-if [ -e .svn ]; then
+if [ -e .git ] && ! [ x"$1" = x-f ]; then
   echo
-  echo "DO NOT USE THIS IN SUBVERSION WORKING DIRECTORIES!"
+  echo "DO NOT USE THIS IN GIT WORKING DIRECTORIES!"
   echo
   echo "You might accidentally commit Makefiles in the source directories"
   echo "improperly, since they exist in the source directory for"
@@ -21,6 +21,10 @@ if [ -e .svn ]; then
   exit 1
 fi
 
+if [ x"$1" = x-f ]; then
+  shift
+fi
+
 ./configure "$@"
-. builds/current
-builds/$(CURRENT_BUILD)/config.status
+CURRENT_BUILD="$(grep '^CURRENT_BUILD *= *' builds/current | awk 'BEGIN {FS=" *= *"} {print$2}')"
+builds/$CURRENT_BUILD/config.status

@@ -2,7 +2,7 @@
 #
 # update-copyright.pl
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2009-2012  The CVC4 Project
+# Copyright (c) 2009-2013  The CVC4 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -16,15 +16,17 @@
 # the CVC4 source tree, that means src/ in the CVC4 source tree.
 #
 # If -m is specified as the first argument, all files and directories
-# are scanned, but only ones modifed in the current working directory
-# are modified (i.e., those that have status M in "svn status").
+# are scanned, but only ones modified in the index or working tree
+# are modified (i.e., those that have at least one status M in
+# "git status -s").
 #
 # It ignores any file/directory not starting with [a-zA-Z]
-# (so, this includes . and .., vi swaps, .svn meta-info,
+# (so, this includes . and .., vi swaps, .git meta-info,
 # .deps, etc.)
 #
 # It ignores any file not ending with one of:
 #   .c .cc .cpp .C .h .hh .hpp .H .y .yy .ypp .Y .l .ll .lpp .L .g
+#   [ or those with ".in" also suffixed, e.g., .cpp.in ]
 # (so, this includes emacs ~-backups, CVS detritus, etc.)
 #
 # It ignores any directory matching $excluded_directories
@@ -37,17 +39,17 @@ my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2012';
+my $years = '2009-2013';
 
 my $standard_template = <<EOF;
- ** This file is part of the CVC4 prototype.
+ ** This file is part of the CVC4 project.
  ** Copyright (c) $years  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\\endverbatim
 EOF
 
 my $public_template = <<EOF;
- ** This file is part of the CVC4 prototype.
+ ** This file is part of the CVC4 project.
  ** Copyright (c) $years  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\\endverbatim
@@ -71,7 +73,7 @@ if($#ARGV >= 0 && $ARGV[0] eq '-h' || $ARGV[0] eq '--help') {
   exit;
 }
 
-# whether we ONLY process files with svn status "M"
+# whether we ONLY process files with git status "M"
 my $modonly = 0;
 
 if($#ARGV >= 0 && $ARGV[0] eq '-m') {
@@ -87,11 +89,12 @@ if($#ARGV == -1) {
   print <<EOF;
 Warning: this script is dangerous.  It will overwrite the header comments in your
 source files to match the template in the script, attempting to retain file-specific
-comments, but this isn't guaranteed.  You should run this in an svn working directory
-and run "svn diff" after to ensure everything was correctly rewritten.
+comments, but this isn't guaranteed.  You should run this in a git working tree
+and run "git diff" after to ensure everything was correctly rewritten.
 
 The directories in which to search for and change sources is:
   $pwd/src
+  $pwd/examples
   $pwd/test
 
 Continue? y or n:
@@ -101,7 +104,8 @@ EOF
   die 'aborting operation' if !( $_ eq 'y' || $_ eq 'yes' || $_ eq 'Y' || $_ eq 'YES' );
 
   $searchdirs[0] = 'src';
-  $searchdirs[1] = 'test';
+  $searchdirs[1] = 'examples';
+  $searchdirs[2] = 'test';
 } else {
   @searchdirs = @ARGV;
 }
@@ -129,9 +133,9 @@ while($#searchdirs >= 0) {
 
 sub handleFile {
   my ($srcdir, $file) = @_;
-  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)$/);
+  return if !($file =~ /\.(c|cc|cpp|C|h|hh|hpp|H|y|yy|ypp|Y|l|ll|lpp|L|g|java)(\.in)?$/);
   return if ($srcdir.'/'.$file) =~ /$excluded_paths/;
-  return if $modonly  &&`svn status "$srcdir/$file" 2>/dev/null` !~ /^M/;
+  return if $modonly && `git status -s "$srcdir/$file" 2>/dev/null` !~ /^(M|.M)/;
   print "$srcdir/$file...";
   my $infile = $srcdir.'/'.$file;
   my $outfile = $srcdir.'/#'.$file.'.tmp';

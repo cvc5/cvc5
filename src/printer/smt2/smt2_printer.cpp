@@ -27,8 +27,10 @@
 #include "theory/substitutions.h"
 #include "util/language.h"
 #include "smt/smt_engine.h"
+#include "smt/options.h"
 
 #include "theory/model.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 
 using namespace std;
 
@@ -552,21 +554,30 @@ void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const 
   theory::TheoryModel& tm = (theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
-    if( tn.isSort() ){
-      //print the cardinality
-      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-        out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+    if( options::modelUninterpDtEnum() && tn.isSort() &&
+        tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+      out << "(declare-datatypes () ((" << dynamic_cast<const DeclareTypeCommand*>(c)->getSymbol() << " ";
+      for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
+        out << "(" << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << ")";
       }
-    }
-    out << c << std::endl;
-    if( tn.isSort() ){
-      //print the representatives
-      if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-        for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
-          if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-            out << "(declare-fun " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " () " << tn << ")" << std::endl;
-          }else{
-            out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+      out << ")))" << std::endl;
+    } else {
+      if( tn.isSort() ){
+        //print the cardinality
+        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+          out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+        }
+      }
+      out << c << std::endl;
+      if( tn.isSort() ){
+        //print the representatives
+        if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+          for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
+            if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
+              out << "(declare-fun " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " () " << tn << ")" << std::endl;
+            }else{
+              out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+            }
           }
         }
       }
@@ -583,6 +594,13 @@ void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const 
           << " " << n.getType().getRangeType()
           << " " << val[1] << ")" << std::endl;
     } else {
+      if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
+        TypeNode tn = val[1].getType();
+        if (tn.isSort() && tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
+          Cardinality indexCard((*tm.d_rep_set.d_type_reps.find(tn)).second.size());
+          val = theory::arrays::TheoryArraysRewriter::normalizeConstant( val, indexCard );
+        }
+      }
       out << "(define-fun " << n << " () "
           << n.getType() << " " << val << ")" << std::endl;
     }

@@ -286,7 +286,9 @@ void TheoryEngine::check(Theory::Effort effort) {
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
     if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
+Debug("theory") << "check<" << THEORY << ">" << std::endl; \
        theoryOf(THEORY)->check(effort); \
+Debug("theory") << "done<" << THEORY << ">" << std::endl; \
        if (d_inConflict) { \
          break; \
        } \
@@ -726,16 +728,6 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
   Theory::PPAssertStatus solveStatus = theoryOf(atom)->ppAssert(literal, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
-  //must add substitutions to model
-  theory::TheoryModel* m = getModel();
-  if( m ){
-    for( SubstitutionMap::iterator pos = substitutionOut.begin(); pos != substitutionOut.end(); ++pos) {
-      Node n = (*pos).first;
-      Node v = (*pos).second;
-      Trace("model") << "Add substitution : " << n << " " << v << std::endl;
-      m->addSubstitution( n, v );
-    }
-  }
   return solveStatus;
 }
 
@@ -817,7 +809,7 @@ Node TheoryEngine::preprocess(TNode assertion) {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
          << ", which doesn't include " << Theory::theoryOf(current)
-         << ", but got a preprocesing-time fact for that theory." << endl
+         << ", but got a preprocessing-time fact for that theory." << endl
          << "The fact:" << endl
          << current;
       throw LogicException(ss.str());

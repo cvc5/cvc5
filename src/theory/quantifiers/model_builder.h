@@ -155,6 +155,8 @@ private:    ///information for (old) InstGen
   std::map< Node, Node > d_term_selection_lit;
   //map from operators to terms that appear in selection literals
   std::map< Node, std::vector< Node > > d_op_selection_terms;
+  //get selection score
+  int getSelectionScore( std::vector< Node >& uf_terms );
 protected:
   //reset
   void reset( FirstOrderModel* fm );

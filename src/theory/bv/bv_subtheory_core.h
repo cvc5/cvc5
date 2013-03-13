@@ -73,16 +73,17 @@ class CoreSolver : public SubtheorySolver {
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
 
-  bool assertFact(TNode fact, TNode reason);  
+  bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a);
-  bool addNewSplits(TNode n, Base& old_base, Base& new_base); 
+  bool d_baseChanged;
+  bool d_checkCalled;
 public:
-  bool isCoreTheory() {return d_isCoreTheory; }
   CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer);
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  bool  isCoreTheory() { return d_isCoreTheory; }
+  void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
-  bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
+  bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   void  collectModelInfo(TheoryModel* m);
   void  addSharedTerm(TNode t) {

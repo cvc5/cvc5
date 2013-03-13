@@ -32,7 +32,7 @@ typedef CVC4::theory::rrinst::CandidateGenerator CandidateGenerator;
 
 //New CandidateGenerator. They have a simpler semantic than the old one
 
-// Just iterate amoung the equivalence classes
+// Just iterate among the equivalence classes
 // node::Null() must be given to reset
 class CandidateGeneratorTheoryEeClasses : public CandidateGenerator{
 private:
@@ -54,7 +54,7 @@ public:
   };
 };
 
-// Just iterate amoung the equivalence class of the given node
+// Just iterate among the equivalence class of the given node
 // node::Null() *can't* be given to reset
 class CandidateGeneratorTheoryEeClass : public CandidateGenerator{
 private:

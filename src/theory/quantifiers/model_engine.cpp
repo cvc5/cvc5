@@ -73,9 +73,8 @@ void ModelEngine::check( Theory::Effort e ){
         if( addedLemmas==0 ){
           Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
           //let the strong solver verify that the model is minimal
-          uf::StrongSolverTheoryUf* uf_ss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
           //for debugging, this will if there are terms in the model that the strong solver was not notified of
-          uf_ss->debugModel( fm );
+          ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm );
           Trace("model-engine-debug") << "Check model..." << std::endl;
           d_incomplete_check = false;
           //print debug
@@ -164,7 +163,7 @@ int ModelEngine::checkModel( int checkOption ){
         Trace("model-engine-debug") << "   ";
         for( size_t i=0; i<it->second.size(); i++ ){
           //Trace("model-engine-debug") << it->second[i] << "  ";
-          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getInternalRepresentative( it->second[i] );
+          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getRepresentative( it->second[i] );
           Trace("model-engine-debug") << r << " ";
         }
         Trace("model-engine-debug") << std::endl;
@@ -225,7 +224,7 @@ int ModelEngine::checkModel( int checkOption ){
 
 int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
   int addedLemmas = 0;
-  Debug("inst-fmf-ei") << "Exhaustive instantiate " << f << "..." << std::endl;
+  Trace("inst-fmf-ei") << "Exhaustive instantiate " << f << "..." << std::endl;
   Debug("inst-fmf-ei") << "   Instantiation Constants: ";
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
@@ -299,12 +298,12 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain ){
       relevantInst = relevantInst * (int)riter.d_domain[i].size();
     }
     d_relevantLemmas += relevantInst;
-    Debug("inst-fmf-ei") << "Finished: " << std::endl;
+    Trace("inst-fmf-ei") << "Finished: " << std::endl;
     //Debug("inst-fmf-ei") << "   Inst Total: " << totalInst << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
-    Debug("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
-    Debug("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Relevant: " << relevantInst << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Tried: " << triedLemmas << std::endl;
+    Trace("inst-fmf-ei") << "   Inst Added: " << addedLemmas << std::endl;
+    Trace("inst-fmf-ei") << "   # Tests: " << tests << std::endl;
     if( addedLemmas>1000 ){
       Trace("model-engine-warn") << "WARNING: many instantiations produced for " << f << ": " << std::endl;
       //Trace("model-engine-warn") << "   Inst Total: " << totalInst << std::endl;

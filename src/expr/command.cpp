@@ -703,8 +703,12 @@ Expr SimplifyCommand::getTerm() const throw() {
 }
 
 void SimplifyCommand::invoke(SmtEngine* smtEngine) throw() {
-  d_result = smtEngine->simplify(d_term);
-  d_commandStatus = CommandSuccess::instance();
+  try {
+    d_result = smtEngine->simplify(d_term);
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
 }
 
 Expr SimplifyCommand::getResult() const throw() {

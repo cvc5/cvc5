@@ -35,7 +35,9 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer)
     d_assertions(c),
     d_normalFormCache(), 
     d_slicer(slicer),
-    d_isCoreTheory(c, true)
+    d_isCoreTheory(c, true),
+    d_baseChanged(false),
+    d_checkCalled(false)
 {
   if (d_useEqualityEngine) {
 
@@ -83,6 +85,7 @@ void CoreSolver::preRegister(TNode node) {
 
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
+      d_slicer->processEquality(node);
   } else {
     d_equalityEngine.addTerm(node);
   }
@@ -101,6 +104,11 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 
 Node CoreSolver::getBaseDecomposition(TNode a) {
   std::vector<Node> a_decomp;
+  // FIXME: hack to do bitwise decomposition 
+  // for (int i = utils::getSize(a) - 1; i>= 0; --i) {
+  //   Node bit = Rewriter::rewrite(utils::mkExtract(a, i, i));
+  //   a_decomp.push_back(bit); 
+  // }
   d_slicer->getBaseDecomposition(a, a_decomp);
   Node new_a = utils::mkConcat(a_decomp);
   return new_a; 
@@ -116,11 +124,8 @@ bool CoreSolver::decomposeFact(TNode fact) {
 
   TNode a = eq[0];
   TNode b = eq[1];
-  // we need to get the old decomposition to keep track of the cuts we added
-  Base a_old_base = d_slicer->getTopLevelBase(a);
-  Base b_old_base = d_slicer->getTopLevelBase(b);
 
-  d_slicer->processEquality(eq); 
+  // d_slicer->processEquality(eq); 
   
   Node new_a = getBaseDecomposition(a);
   Node new_b = getBaseDecomposition(b); 
@@ -132,20 +137,12 @@ bool CoreSolver::decomposeFact(TNode fact) {
   Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
   Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
 
-  Base a_new_base = d_slicer->getTopLevelBase(a);
-  Base b_new_base = d_slicer->getTopLevelBase(b);
-
   bool ok = true; 
-  ok = addNewSplits(a, a_old_base, a_new_base);
+  ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
   if (!ok) return false; 
-  ok = addNewSplits(b, b_old_base, b_new_base);
+  ok = assertFactToEqualityEngine(b_eq_new_b, utils::mkTrue());
   if (!ok) return false; 
-  
-  ok = assertFact(a_eq_new_a, utils::mkTrue());
-  if (!ok) return false; 
-  ok = assertFact(b_eq_new_b, utils::mkTrue());
-  if (!ok) return false; 
-  ok = assertFact(fact, fact);
+  ok = assertFactToEqualityEngine(fact, fact);
   if (!ok) return false;
   
   if (fact.getKind() == kind::EQUAL) {
@@ -157,7 +154,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
       Assert (new_a.getNumChildren() == new_b.getNumChildren()); 
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
-        ok = assertFact(eq_i, fact);
+        ok = assertFactToEqualityEngine(eq_i, fact);
         if (!ok) return false;
       }
     }
@@ -165,64 +162,15 @@ bool CoreSolver::decomposeFact(TNode fact) {
   return true; 
 }
 
-bool CoreSolver::addNewSplits(TNode n, Base& old_base, Base& new_base) {
-  if (n.getKind() == kind::BITVECTOR_EXTRACT) {
-    n = n[0]; 
-  }
-  Assert (old_base.getBitwidth() == new_base.getBitwidth() &&
-          utils::getSize(n) == old_base.getBitwidth()); 
-
-  Index high, low = 0;
-  std::vector<std::pair<Index, Index> > toSlice;
-  bool hasNewCut = false; 
-  // collect the intervals that need to be sliced
-  for (unsigned i = 0; i <= old_base.getBitwidth(); ++i) {
-    Assert (! old_base.isCutPoint(i) || new_base.isCutPoint(i));
-    if (new_base.isCutPoint(i) && !old_base.isCutPoint(i)) {
-      hasNewCut = true; 
-    }
-    if (new_base.isCutPoint(i) && old_base.isCutPoint(i)) {
-      high = i;
-      if (hasNewCut) {
-        toSlice.push_back(std::pair<Index, Index>(high, low));
-      }
-      low = i;
-      hasNewCut = false; 
-    }
-  }
-  // for each interval, assert the proper equality
-  for (unsigned i = 0; i < toSlice.size(); ++i) {
-    int high = toSlice[i].first;
-    int low = toSlice[i].second;
-    int prev = high;
-    std::vector<Node> extracts; 
-    for (int k = high -1; k >= low; --k) {
-      if (new_base.isCutPoint(k) && (!old_base.isCutPoint(k) || k == low)) {
-        // add a new extract
-        Node ex = utils::mkExtract(n, prev - 1, k);
-        prev = k;
-        extracts.push_back(ex); 
-      }
-    }
-    Node concat = utils::mkConcat(extracts);
-    Node current = utils::mkExtract(n, high - 1, low);
-    Node eq = utils::mkNode(kind::EQUAL, concat, current);
-    bool ok = assertFact(eq, utils::mkTrue());
-    if (!ok)
-      return false; 
-  }
-  return true; 
-}
-
-
-bool CoreSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  Trace("bitvector::core") << "CoreSolver::addAssertions \n";
+bool CoreSolver::check(Theory::Effort e) {
+  d_checkCalled = true; 
+  Trace("bitvector::core") << "CoreSolver::check \n";
   Assert (!d_bv->inConflict());
 
   bool ok = true; 
   std::vector<Node> core_eqs;
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    TNode fact = assertions[i];
+  while (! done()) {
+    TNode fact = get(); 
     
     // update whether we are in the core fragment
     if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
@@ -234,17 +182,17 @@ bool CoreSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Eff
       TNode eq = fact.getKind() == kind::EQUAL ? fact : fact[0];
       ok = decomposeFact(fact);
     } else {
-      ok = assertFact(fact, fact); 
+      ok = assertFactToEqualityEngine(fact, fact); 
     }
     if (!ok)
       return false; 
   }
-
+  
   return true;
 }
 
-bool CoreSolver::assertFact(TNode fact, TNode reason) {
-  Debug("bv-slicer") << "CoreSolver::assertFact fact=" << fact << endl;
+bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
+  Debug("bv-slicer") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
   Debug("bv-slicer") << "                     reason=" << reason << endl;
   // Notify the equality engine 
   if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_CORE) ) {
@@ -276,7 +224,7 @@ bool CoreSolver::assertFact(TNode fact, TNode reason) {
 }
 
 bool CoreSolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value) {
-  BVDebug("bitvector::core") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
+  Debug("bitvector::core") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
   if (value) {
     return d_solver.storePropagation(equality);
   } else {
@@ -285,7 +233,7 @@ bool CoreSolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value
 }
 
 bool CoreSolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  BVDebug("bitvector::core") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
+  Debug("bitvector::core") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
   if (value) {
     return d_solver.storePropagation(predicate);
   } else {

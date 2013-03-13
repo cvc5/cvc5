@@ -52,12 +52,21 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_bitblaster->explain(literal, assumptions);
 }
 
-bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
-  Debug("bitvector::bitblaster") << "number of assertions:  " << assertions.size() << std::endl;
+
+bool BitblastSolver::check(Theory::Effort e) {
+  //// Eager bit-blasting
+  if (options::bitvectorEagerBitblast()) {
+    while (!done()) {
+      TNode assertion = get(); 
+      TNode atom = assertion.getKind() == kind::NOT ? assertion[0] : assertion;
+      if (atom.getKind() != kind::BITVECTOR_BITOF) {
+        d_bitblaster->bbAtom(atom);
+      }
+      return true;
+    }
+  }
 
   //// Lazy bit-blasting
-
   // bit-blast enqueued nodes
   while (!d_bitblastQueue.empty()) {
     TNode atom = d_bitblastQueue.front();
@@ -65,9 +74,9 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     d_bitblastQueue.pop();
   }
 
-  // propagation
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    TNode fact = assertions[i];
+  // Processinga ssertions  
+  while (!done()) {
+    TNode fact = get(); 
     if (!d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_BITBLAST)) {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
@@ -93,7 +102,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     }
   }
 
-  // solving
+  // Solving
   if (e == Theory::EFFORT_FULL || options::bitvectorEagerFullcheck()) {
     Assert(!d_bv->inConflict());
     Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";

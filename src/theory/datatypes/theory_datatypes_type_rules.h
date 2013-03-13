@@ -285,7 +285,7 @@ struct TupleSelectTypeRule {
     const TupleSelect& ts = n.getOperator().getConst<TupleSelect>();
     TypeNode tupleType = n[0].getType(check);
     if(!tupleType.isTuple()) {
-      if(!tupleType.hasAttribute(expr::DatatypeRecordAttr())) {
+      if(!tupleType.hasAttribute(expr::DatatypeTupleAttr())) {
         throw TypeCheckingExceptionPrivate(n, "Tuple-select expression formed over non-tuple");
       }
       tupleType = tupleType.getAttribute(expr::DatatypeTupleAttr());
@@ -309,7 +309,7 @@ struct TupleUpdateTypeRule {
     TypeNode newValue = n[1].getType(check);
     if(check) {
       if(!tupleType.isTuple()) {
-        if(!tupleType.hasAttribute(expr::DatatypeRecordAttr())) {
+        if(!tupleType.hasAttribute(expr::DatatypeTupleAttr())) {
           throw TypeCheckingExceptionPrivate(n, "Tuple-update expression formed over non-tuple");
         }
         tupleType = tupleType.getAttribute(expr::DatatypeTupleAttr());

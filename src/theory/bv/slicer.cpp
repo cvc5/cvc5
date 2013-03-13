@@ -48,6 +48,14 @@ void Base::sliceAt(Index index) {
   d_repr[vector_index] = d_repr[vector_index] | bit_mask; 
 }
 
+void Base::undoSliceAt(Index index) {
+  Index vector_index = index / 32;
+  Assert (vector_index < d_size); 
+  Index int_index = index % 32;
+  uint32_t bit_mask = utils::pow2(int_index); 
+  d_repr[vector_index] = d_repr[vector_index] ^ bit_mask; 
+}
+
 void Base::sliceWith(const Base& other) {
   Assert (d_size == other.d_size);
   for (unsigned i = 0; i < d_repr.size(); ++i) {
@@ -245,8 +253,9 @@ void UnionFind::split(TermId id, Index i) {
 
   if (i == 0 || i == getBitwidth(id)) {
     // nothing to do 
-    return;
+    return; 
   }
+
   Assert (i < getBitwidth(id));
   if (!hasChildren(id)) {
     // first time we split this term 
@@ -417,6 +426,7 @@ void UnionFind::ensureSlicing(const ExtractTerm& term) {
 }
 
 void UnionFind::backtrack() {
+  return; 
   int size = d_undoStack.size(); 
   for (int i = size; i > d_undoStackIndex.get(); --i) {
     Operation op = d_undoStack.back(); 
@@ -443,6 +453,9 @@ void UnionFind::undoSplit(TermId id) {
 }
 
 void UnionFind::recordOperation(OperationKind op, TermId term) {
+  if (op == SPLIT) {
+    d_newSplit = true; 
+  }
   d_undoStackIndex.set(d_undoStackIndex.get() + 1);
   d_undoStack.push_back(Operation(op, term));
   Assert (d_undoStack.size() == d_undoStackIndex); 

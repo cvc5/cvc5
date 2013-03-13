@@ -71,7 +71,7 @@ class BacktrackableSetCollection {
       const tree_entry_type& node = d_memory.back();
 
       if(Debug.isOn("cd_set_collection")) {
-        BVDebug("cd_set_collection") << "BacktrackableSetCollection::backtrack(): removing " << node.getValue()
+        Debug("cd_set_collection") << "BacktrackableSetCollection::backtrack(): removing " << node.getValue()
                                      << " from " << internalToString(getRoot(d_memory.size()-1)) << std::endl;
       }
 
@@ -279,7 +279,7 @@ public:
     // Find the biggest node smaleer than value (it must exist)
     while (set != null) {
       if(Debug.isOn("set_collection")) {
-        BVDebug("set_collection") << "BacktrackableSetCollection::getPrev(" << toString(set) << "," << value << ")" << std::endl;
+        Debug("set_collection") << "BacktrackableSetCollection::getPrev(" << toString(set) << "," << value << ")" << std::endl;
       }
       const tree_entry_type& node = d_memory[set];
       if (node.getValue() >= value) {
@@ -308,7 +308,7 @@ public:
     // Find the smallest node bigger than value (it must exist)
     while (set != null) {
       if(Debug.isOn("set_collection")) {
-        BVDebug("set_collection") << "BacktrackableSetCollection::getNext(" << toString(set) << "," << value << ")" << std::endl;
+        Debug("set_collection") << "BacktrackableSetCollection::getNext(" << toString(set) << "," << value << ")" << std::endl;
       }
       const tree_entry_type& node = d_memory[set];
       if (node.getValue() <= value) {
@@ -377,7 +377,7 @@ public:
     Assert(isValid(set));
 
     if(Debug.isOn("set_collection")) {
-      BVDebug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
+      Debug("set_collection") << "BacktrackableSetCollection::getElements(" << toString(set) << "," << lowerBound << "," << upperBound << ")" << std::endl;
     }
 
     // Empty set no elements

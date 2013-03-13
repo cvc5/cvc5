@@ -41,19 +41,19 @@ private:
   static void computeArgs( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static bool hasArg( std::vector< Node >& args, Node n );
   static void setNestedQuantifiers( Node n, Node q );
-  static void computeArgs( std::map< Node, bool >& active, Node n );
   static Node computeClause( Node n );
 private:
   static Node computeMiniscoping( std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
+  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested = false );
   static Node computeNNF( Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
-  static Node computePrenex( Node body, std::vector< Node >& args, bool pol, bool polReq );
+  static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
 private:
   enum{
     COMPUTE_MINISCOPING = 0,
+    COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
-    COMPUTE_PRE_SKOLEM,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,
