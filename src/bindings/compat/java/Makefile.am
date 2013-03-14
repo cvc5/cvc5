@@ -14,8 +14,8 @@ LIBCVC4BINDINGS_VERSION = @CVC4_BINDINGS_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
-	-I@srcdir@/../../../include -I@srcdir@/../../.. \
-	-I@srcdir@/include/cvc3 -I@builddir@/../../.. -I@builddir@/cvc3
+	-I@builddir@/../../.. -I@srcdir@/../../../include -I@srcdir@/../../.. \
+	-I@builddir@/cvc3 -I@srcdir@/include/cvc3
 AM_CXXFLAGS = -Wall
 
 javadatadir = $(datadir)/java

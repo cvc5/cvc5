@@ -14,7 +14,7 @@ LIBCVC4PARSER_VERSION = @CVC4_PARSER_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
-	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
+	-I@builddir@/.. $(ANTLR_INCLUDES) -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = smt1 smt2 cvc tptp

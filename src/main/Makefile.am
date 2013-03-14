@@ -1,6 +1,6 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4DRIVER \
-	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
+	-I@builddir@/.. $(ANTLR_INCLUDES) -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
 bin_PROGRAMS = cvc4

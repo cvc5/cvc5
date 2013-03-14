@@ -14,7 +14,7 @@ LIBCVC4COMPAT_VERSION = @CVC4_COMPAT_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4COMPATLIB \
-	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/.. $(ANTLR_INCLUDES)
+	-I@builddir@/.. $(ANTLR_INCLUDES) -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
 if CVC4_BUILD_LIBCOMPAT
