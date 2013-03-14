@@ -68,10 +68,10 @@ if HAVE_CXXTESTGEN
 AM_CPPFLAGS = \
 	-I. \
 	"-I@CXXTEST@" \
+	"-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/include" \
 	"-I@top_srcdir@/lib" \
 	"-I@top_srcdir@/src" \
-	"-I@top_builddir@/src" \
 	"-I@top_srcdir@/src/prop/minisat" \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
