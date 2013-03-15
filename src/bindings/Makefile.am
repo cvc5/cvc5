@@ -217,10 +217,10 @@ if CVC4_HAS_SWIG
 
 $(patsubst %,%.cpp,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.cpp: @srcdir@/../cvc4.i
 	$(AM_V_at)mkdir -p $(patsubst %.cpp,%,$@)
-	$(AM_V_GEN)$(SWIG) -Wall -I@builddir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) $($(subst .,_,$@)_SWIGFLAGS) -o $@ $< -I@srcdir@/../include -I@srcdir@/..
+	$(AM_V_GEN)$(SWIG) -Wall -I@builddir@/.. -I@srcdir@/../include -I@srcdir@/.. -c++ -$(patsubst %.cpp,%,$@) -outdir $(patsubst %.cpp,%,$@) $($(subst .,_,$@)_SWIGFLAGS) -o $@ $<
 
 $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))): %.d: @srcdir@/../cvc4.i
-	$(AM_V_GEN)$(SWIG) -I@builddir@/.. -c++ -$(patsubst %.d,%,$@) -MM -o $(patsubst %.d,%.cpp,$@) $< -I@srcdir@/../include -I@srcdir@/..
+	$(AM_V_GEN)$(SWIG) -I@builddir@/.. -I@srcdir@/../include -I@srcdir@/.. -c++ -$(patsubst %.d,%,$@) -MM -o $(patsubst %.d,%.cpp,$@) $<
 # .PHONY so they get rebuilt each time
 .PHONY: .swig_deps $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
 .swig_deps: $(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS)))
