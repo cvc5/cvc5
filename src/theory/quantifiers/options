@@ -56,7 +56,7 @@ option relevantTriggers /--disable-relevant-triggers bool :default true
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
 
-option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL :read-write :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToInstWhenMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkInstWhenMode :predicate-include "theory/quantifiers/options_handlers.h"
+option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL :read-write :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToInstWhenMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkInstWhenMode :predicate-include "theory/quantifiers/options_handlers.h"
  when to apply instantiation
  
 option eagerInstQuant --eager-inst-quant bool :default false
