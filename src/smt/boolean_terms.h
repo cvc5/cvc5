@@ -24,6 +24,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "util/hash.h"
+#include <map>
 #include <utility>
 
 namespace CVC4 {
@@ -52,6 +53,8 @@ class BooleanTermConverter {
    */
   const Datatype& booleanTermsConvertDatatype(const Datatype& dt) throw();
 
+  Node rewriteBooleanTermsRec(TNode n, bool boolParent, std::map<TNode, Node>& quantBoolVars) throw();
+
 public:
 
   BooleanTermConverter(SmtEngine& smt) :
@@ -61,7 +64,10 @@ public:
   /**
    * We rewrite Boolean terms in assertions as bitvectors of length 1.
    */
-  Node rewriteBooleanTerms(TNode n, bool boolParent = true) throw();
+  Node rewriteBooleanTerms(TNode n, bool boolParent = true) throw() {
+    std::map<TNode, Node> quantBoolVars;
+    return rewriteBooleanTermsRec(n, boolParent, quantBoolVars);
+  }
 
 };/* class BooleanTermConverter */
 
