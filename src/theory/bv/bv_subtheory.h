@@ -32,9 +32,9 @@ class TheoryModel;
 namespace bv {
 
 enum SubTheory {
-  SUB_EQUALITY = 1,
+  SUB_CORE = 1,
   SUB_BITBLAST = 2,
-  SUB_CORE = 3
+  SUB_INEQUALITY = 3
 };
 
 inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
@@ -42,9 +42,11 @@ inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
   case SUB_BITBLAST:
     out << "BITBLASTER";
     break;
-  case SUB_EQUALITY:
-    out << "EQUALITY";
+  case SUB_CORE:
+    out << "BV_CORE_SUBTHEORY";
     break;
+  case SUB_INEQUALITY:
+    out << "BV_INEQUALITY_SUBTHEORY"; 
   default:
     Unreachable();
     break;
@@ -83,10 +85,10 @@ public:
     d_assertionIndex(c, 0)
   {}
   virtual ~SubtheorySolver() {}
-  
   virtual bool check(Theory::Effort e) = 0; 
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
+  virtual void propagate(Effort e) {}
   virtual void collectModelInfo(TheoryModel* m) = 0;
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {

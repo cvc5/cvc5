@@ -31,14 +31,7 @@ class Base;
  */
 class CoreSolver : public SubtheorySolver {
 
-  enum FactSource {
-    AXIOM = 0, // this is asserting that a node is equal to its decomposition 
-    ASSERTION = 1, // externally visible assertion 
-    SPLIT = 2 //  fact resulting from a split
-  };
-  
   // NotifyClass: handles call-back from congruence closure module
-
   class NotifyClass : public eq::EqualityEngineNotify {
     CoreSolver& d_solver;
 
@@ -52,12 +45,12 @@ class CoreSolver : public SubtheorySolver {
     void eqNotifyPreMerge(TNode t1, TNode t2) { }
     void eqNotifyPostMerge(TNode t1, TNode t2) { }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
-};
+  };
 
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-
+  
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
@@ -69,17 +62,14 @@ class CoreSolver : public SubtheorySolver {
 
   /** FIXME: for debugging purposes only */
   context::CDList<TNode> d_assertions;
-  __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> d_normalFormCache; 
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a);
-  bool d_baseChanged;
-  bool d_checkCalled;
-public:
-  CoreSolver(context::Context* c, TheoryBV* bv, Slicer* slicer);
+  Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
+public: 
+  CoreSolver(context::Context* c, TheoryBV* bv);
   bool  isCoreTheory() { return d_isCoreTheory; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
@@ -100,6 +90,7 @@ public:
     }
     return EQUALITY_UNKNOWN;
   }
+  bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
 };
 
 

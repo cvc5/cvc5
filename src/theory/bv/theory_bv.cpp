@@ -40,15 +40,16 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
-    d_slicer(c),
     d_bitblastSolver(c, this),
-    d_coreSolver(c, this, &d_slicer),
+    d_coreSolver(c, this),
     d_statistics(),
     d_conflict(c, false),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c)
-  {}
+  {
+    
+  }
 
 TheoryBV::~TheoryBV() {}
 
@@ -287,7 +288,6 @@ void TheoryBV::addSharedTerm(TNode t) {
     d_coreSolver.addSharedTerm(t);
   }
 }
-
 
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)

@@ -44,8 +44,8 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
-  Slicer         d_slicer;
   BitblastSolver d_bitblastSolver;
+  // TODO generalize to multiple subtheories 
   CoreSolver     d_coreSolver;
   
 public:
