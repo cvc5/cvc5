@@ -35,6 +35,24 @@ typedef unsigned ReasonId;
 
 class InequalityGraph {
   context::Context d_context;
+
+  struct InequalityEdge {
+    TermId next;
+    ReasonId reason;
+    InequalityEdge(TermId n, ReasonId r)
+      : next(n)
+        reason(r)
+    {}
+  };
+  
+  class InequalityNode {
+    TermId d_id;
+    unsigned d_bitwidth;
+    bool d_isConstant;
+    BitVector d_value;
+  };
+  std::vector<InequalityNode> d_nodes;
+  std::vector< std::vector<InequalityEdge> > d_nodeEdges;
   
 public:
   
@@ -44,7 +62,9 @@ public:
   bool addInequality(TermId a, TermId b, ReasonId reason);
   bool propagate();
   bool areLessThan(TermId a, TermId b);
-  void getConflict(std::vector<ReasonId>& conflict); 
+  void getConflict(std::vector<ReasonId>& conflict);
+  TermId addTerm(unsigned bitwidth);
+  TermId addTerm(const BitVector& value); 
 }; 
 
 }

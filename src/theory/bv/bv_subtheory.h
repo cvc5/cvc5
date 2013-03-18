@@ -61,6 +61,7 @@ const bool d_useSatPropagation = true;
 // forward declaration 
 class TheoryBV; 
 
+typedef context::CDQueue<TNode> AssertionQueue; 
 /**
  * Abstract base class for bit-vector subtheory solvers
  *
@@ -74,7 +75,7 @@ protected:
 
   /** The bit-vector theory */
   TheoryBV* d_bv;
-  context::CDQueue<TNode> d_assertionQueue;
+  AssertionQueue d_assertionQueue;
   context::CDO<uint32_t>  d_assertionIndex; 
 public:
   
@@ -88,7 +89,7 @@ public:
   virtual bool check(Theory::Effort e) = 0; 
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
-  virtual void propagate(Effort e) {}
+  virtual void propagate(Theory::Effort e) {}
   virtual void collectModelInfo(TheoryModel* m) = 0;
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {

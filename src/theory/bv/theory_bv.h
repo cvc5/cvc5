@@ -26,7 +26,6 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 #include "theory/bv/bv_subtheory.h"
-#include "theory/bv/bv_subtheory_eq.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/slicer.h"

@@ -33,6 +33,6 @@ void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   
 }
 
-bool InequalitySolver::propagate(Theory::Effort e) {
+void InequalitySolver::propagate(Theory::Effort e) {
   
 }

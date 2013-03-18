@@ -19,18 +19,15 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include "context/context.h"
-#include "context/cdqueue.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/theory.h"
-
+#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_subtheory.h"
 namespace CVC4 {
 namespace theory {
 
 
 namespace bv {
 
-class InequalitySolver {
+class InequalitySolver: public SubtheorySolver {
 
 public:
   
@@ -39,7 +36,7 @@ public:
   {}
   
   bool check(Theory::Effort e);
-  void propagate(Effort e); 
+  void propagate(Theory::Effort e); 
   void explain(TNode literal, std::vector<TNode>& assumptions); 
 }; 
 
