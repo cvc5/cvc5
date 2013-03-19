@@ -21,18 +21,19 @@
 
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/bv_inequality_graph.h"
+
 namespace CVC4 {
 namespace theory {
-
-
 namespace bv {
 
 class InequalitySolver: public SubtheorySolver {
-
+  InequalityGraph d_inequalityGraph;
 public:
   
   InequalitySolver(context::Context* c, TheoryBV* bv)
-    : SubtheorySolver(c, bv)
+    : SubtheorySolver(c, bv),
+      d_inequalityGraph()
   {}
   
   bool check(Theory::Effort e);

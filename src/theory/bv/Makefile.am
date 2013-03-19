@@ -19,6 +19,8 @@ libbv_la_SOURCES = \
 	bv_subtheory_bitblast.cpp \
 	bv_subtheory_inequality.h \
 	bv_subtheory_inequality.cpp \
+	bv_inequality_graph.h \
+	bv_inequality_graph.cpp \
 	bitblast_strategies.h \
 	bitblast_strategies.cpp \
 	slicer.h \

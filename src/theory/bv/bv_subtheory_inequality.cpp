@@ -27,12 +27,34 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
-  
+  bool ok = true; 
+  while (!done() && ok) {
+    TNode fact = get();
+     if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
+       TNode a = fact[0][1];
+       TNode b = fact[0][0]; 
+       ok = d_inequalityGraph.addInequality(a, b, fact);
+    }
+    if (fact.getKind() == kind::BITVECTOR_ULT) {
+      TNode a = fact[0];
+      Tnode b = fact[0]; 
+      ok = d_inequalityGraph.addInequality(a, b, fact);
+    }
+  }
+  if (!ok) {
+    std::vector<TNode> conflict;
+    d_inequalityGraph.getConflict(conflict); 
+    d_bv->setConflict(utils::mkConjunction(conflict));
+    return false; 
+  }
+  return true; 
 }
+
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
-  
+  Assert (false); 
 }
 
 void InequalitySolver::propagate(Theory::Effort e) {
-  
+  Assert (false); 
 }
+
