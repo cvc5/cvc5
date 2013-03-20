@@ -113,6 +113,7 @@ TPTP_TESTS = \
 
 # Regression tests derived from bug reports
 BUG_TESTS = \
+	smt2output.smt2 \
 	bug32.cvc \
 	bug49.smt \
 	bug161.smt \

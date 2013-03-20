@@ -74,6 +74,17 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   }
 }
 
+static std::string maybeQuoteSymbol(const std::string& s) {
+  // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted) symbols
+  if(s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@$%^&*_-+=<>.?/") != string::npos) {
+    // need to quote it
+    stringstream ss;
+    ss << '|' << s << '|';
+    return ss.str();
+  }
+  return s;
+}
+
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types) const throw() {
   // null
@@ -86,7 +97,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   if(n.isVar()) {
     string s;
     if(n.getAttribute(expr::VarNameAttr(), s)) {
-      out << s;
+      out << maybeQuoteSymbol(s);
     } else {
       if(n.getKind() == kind::VARIABLE) {
         out << "var_";
@@ -175,7 +186,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
 
     case kind::DATATYPE_TYPE:
-      out << n.getConst<Datatype>().getName();
+      out << maybeQuoteSymbol(n.getConst<Datatype>().getName());
       break;
 
     case kind::UNINTERPRETED_CONSTANT: {
@@ -196,7 +207,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   if(n.getKind() == kind::SORT_TYPE) {
     string name;
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << name;
+      out << maybeQuoteSymbol(name);
       return;
     }
   }
