@@ -40,16 +40,15 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
-    d_bitblastSolver(c, this),
     d_coreSolver(c, this),
+    d_inequalitySolver(c, this),
+    d_bitblastSolver(c, this),
     d_statistics(),
     d_conflict(c, false),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c)
-  {
-    
-  }
+  {}
 
 TheoryBV::~TheoryBV() {}
 
@@ -113,6 +112,7 @@ void TheoryBV::check(Effort e)
   while (!done()) {
     TNode fact = get().assertion;
     d_coreSolver.assertFact(fact);
+    d_inequalitySolver.assertFact(fact); 
     d_bitblastSolver.assertFact(fact); 
   }
 
@@ -120,9 +120,15 @@ void TheoryBV::check(Effort e)
   if (!inConflict()) {
     ok = d_coreSolver.check(e); 
   }
-
   Assert (!ok == inConflict()); 
+
+  // if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+  //   ok = d_inequalitySolver.check(e); 
+  // }
+
+  Assert (!ok == inConflict());
   if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+    // if (!inConflict() && !d_inequalitySolver.isInequalityTheory()) {
     ok = d_bitblastSolver.check(e); 
   }
   

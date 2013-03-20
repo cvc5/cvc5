@@ -37,7 +37,7 @@ bool InequalitySolver::check(Theory::Effort e) {
     }
     if (fact.getKind() == kind::BITVECTOR_ULT) {
       TNode a = fact[0];
-      Tnode b = fact[0]; 
+      TNode b = fact[1]; 
       ok = d_inequalityGraph.addInequality(a, b, fact);
     }
   }

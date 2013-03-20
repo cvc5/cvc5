@@ -19,7 +19,6 @@
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
-#include "theory/bv/theory_bv.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_inequality_graph.h"
 
@@ -33,12 +32,14 @@ public:
   
   InequalitySolver(context::Context* c, TheoryBV* bv)
     : SubtheorySolver(c, bv),
-      d_inequalityGraph()
+      d_inequalityGraph(c)
   {}
   
   bool check(Theory::Effort e);
   void propagate(Theory::Effort e); 
-  void explain(TNode literal, std::vector<TNode>& assumptions); 
+  void explain(TNode literal, std::vector<TNode>& assumptions);
+  bool isInequalityTheory() { return false; }
+  virtual void collectModelInfo(TheoryModel* m) {}
 }; 
 
 }

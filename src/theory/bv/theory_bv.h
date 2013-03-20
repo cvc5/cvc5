@@ -28,6 +28,7 @@
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
+#include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/slicer.h"
 
 namespace CVC4 {
@@ -42,11 +43,10 @@ class TheoryBV : public Theory {
   /** Context dependent set of atoms we already propagated */
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
-
-  BitblastSolver d_bitblastSolver;
-  // TODO generalize to multiple subtheories 
-  CoreSolver     d_coreSolver;
   
+  CoreSolver       d_coreSolver;
+  InequalitySolver d_inequalitySolver; 
+  BitblastSolver   d_bitblastSolver;
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -141,7 +141,7 @@ private:
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;
-
+  friend class InequalitySolver; 
 };/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */
