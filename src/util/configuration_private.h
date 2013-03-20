@@ -89,12 +89,6 @@ namespace CVC4 {
 #  define IS_COMPETITION_BUILD false
 #endif /* CVC4_COMPETITION_MODE */
 
-#ifdef CVC4_CUDD
-#  define IS_CUDD_BUILD true
-#else /* CVC4_CUDD */
-#  define IS_CUDD_BUILD false
-#endif /* CVC4_CUDD */
-
 #ifdef CVC4_GMP_IMP
 #  define IS_GMP_BUILD true
 #else /* CVC4_GMP_IMP */

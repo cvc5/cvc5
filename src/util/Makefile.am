@@ -1,14 +1,9 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-	-I@srcdir@/../include -I@srcdir@/.. -I@builddir@/..
+	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-noinst_LTLIBRARIES = libutil.la libutilcudd.la libstatistics.la
-
-# libutilcudd.la is a separate library so that we can pass separate
-# compiler flags
-libutilcudd_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) @CUDD_CPPFLAGS@
-libutilcudd_la_LIBADD = @CUDD_LDFLAGS@ @CUDD_LIBS@
+noinst_LTLIBRARIES = libutil.la libstatistics.la
 
 libstatistics_la_CPPFLAGS = $(CPPFLAGS) $(AM_CPPFLAGS) -D__BUILDING_STATISTICS_FOR_EXPORT
 
@@ -91,16 +86,9 @@ libutil_la_SOURCES = \
 	sort_inference.h \
 	sort_inference.cpp
 
-libutil_la_LIBADD = \
-	@builddir@/libutilcudd.la
-
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
 	statistics_registry.cpp
-
-libutilcudd_la_SOURCES = \
-	propositional_query.h \
-	propositional_query.cpp
 
 BUILT_SOURCES = \
 	rational.h \

@@ -122,7 +122,7 @@ bool Configuration::isBuiltWithCln() {
 }
 
 bool Configuration::isBuiltWithCudd() {
-  return IS_CUDD_BUILD;
+  return false;
 }
 
 bool Configuration::isBuiltWithTlsSupport() {

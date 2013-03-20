@@ -140,7 +140,7 @@ void InstMatch::set(TNode var, TNode n){
   	//var.getType() == n.getType()
   	!n.getType().isSubtypeOf( var.getType() ) ){
     Trace("inst-match-warn") << var.getAttribute(InstConstantAttribute()) << std::endl;
-    Trace("inst-match-warn") << var << " " << var.getType() << n << " " << n.getType() << std::endl ;
+    Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
     Assert(false);
   }
   d_map[var] = n;

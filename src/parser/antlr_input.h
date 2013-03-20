@@ -285,7 +285,14 @@ inline Rational AntlrInput::tokenToRational(pANTLR3_COMMON_TOKEN token) {
 
 inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTLR3_COMMON_TOKEN size) {
   std::string number_str = tokenTextSubstr(number, 2);
-  return BitVector(tokenToUnsigned(size), Integer(number_str));
+  unsigned sz = tokenToUnsigned(size);
+  Integer val(number_str);
+  if(val.modByPow2(sz) != val) {
+    std::stringstream ss;
+    ss << "Overflow in bitvector construction (specified bitvector size " << sz << " too small to hold value " << tokenText(number) << ")";
+    throw std::invalid_argument(ss.str());
+  }
+  return BitVector(sz, val);
 }
 
 }/* CVC4::parser namespace */

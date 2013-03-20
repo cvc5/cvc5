@@ -462,15 +462,9 @@ Command* Parser::nextCommand() throw(ParserException) {
       } catch(ParserException& e) {
         setDone();
         throw;
-      } catch(Exception& e) {
+      } catch(exception& e) {
         setDone();
-        stringstream ss;
-        // set the language of the stream, otherwise if it contains
-        // Exprs or Types it prints in the AST language
-        OutputLanguage outlang =
-          language::toOutputLanguage(d_input->getLanguage());
-        ss << Expr::setlanguage(outlang) << e;
-        parseError( ss.str() );
+        parseError(e.what());
       }
     }
   }
@@ -490,11 +484,9 @@ Expr Parser::nextExpression() throw(ParserException) {
     } catch(ParserException& e) {
       setDone();
       throw;
-    } catch(Exception& e) {
+    } catch(exception& e) {
       setDone();
-      stringstream ss;
-      ss << e;
-      parseError( ss.str() );
+      parseError(e.what());
     }
   }
   Debug("parser") << "nextExpression() => " << result << std::endl;

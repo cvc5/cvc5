@@ -908,9 +908,6 @@ AC_CHECK_FUNC([ffs], [AC_DEFINE([HAVE_FFS], [1],
                                 [Defined to 1 if ffs() is supported by the platform.])],
                      [AC_LIBOBJ([ffs])])
 
-# Check for the presence of CUDD libraries
-CVC4_CHECK_CUDD
-
 # Check for antlr C++ runtime (defined in config/antlr.m4)
 AC_LIB_ANTLR
 
@@ -1298,7 +1295,6 @@ Unit tests   : $support_unit_tests
 Proof tests  : $support_proof_tests
 gcov support : $enable_coverage
 gprof support: $enable_profiling
-CUDD         : $cvc4cudd
 Readline     : $with_readline
 
 Static libs  : $enable_static

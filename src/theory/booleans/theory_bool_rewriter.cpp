@@ -118,6 +118,24 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     } else if(n[1].getKind() == kind::NOT && n[1][0] == n[0]) {
       // IFF x (NOT x)
       return RewriteResponse(REWRITE_DONE, ff);
+    } else if(n[0].getKind() == kind::EQUAL && n[1].getKind() == kind::EQUAL) {
+      TNode t,c;
+      if (n[0][0].isConst()) {
+        c = n[0][0];
+        t = n[0][1];
+      }
+      else if (n[0][1].isConst()) {
+        c = n[0][1];
+        t = n[0][0];
+      }
+      if (!c.isNull()) {
+        if (n[1][0] == t && n[1][1].isConst()) {
+          return RewriteResponse(REWRITE_DONE, n[1][1] == c ? tt : ff);
+        }
+        else if (n[1][1] == t && n[1][0].isConst()) {
+          return RewriteResponse(REWRITE_DONE, n[1][0] == c ? tt : ff);
+        }
+      }
     }
     break;
   }

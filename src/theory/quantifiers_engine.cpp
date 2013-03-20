@@ -583,12 +583,16 @@ bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
     return true;
   }else{
     eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      if( ee->areEqual( a, b ) ){
-        return true;
+    if( d_liberal ){
+      return true;//!areDisequal( a, b );
+    }else{
+      if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
+        if( ee->areEqual( a, b ) ){
+          return true;
+        }
       }
+      return false;
     }
-    return false;
   }
 }
 

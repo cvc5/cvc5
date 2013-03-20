@@ -23,7 +23,7 @@ sort RRHB_TYPE \
 # operators...
 
 # variables, guards, RR_REWRITE/REDUCTION_RULE/DEDUCTION_RULE
-operator REWRITE_RULE 3 "generale rewrite rule"
+operator REWRITE_RULE 3 "general rewrite rule"
 #HEAD/BODY/TRIGGER
 operator RR_REWRITE 2:3 "actual rewrite rule"
 operator RR_REDUCTION 2:3 "actual reduction rule"

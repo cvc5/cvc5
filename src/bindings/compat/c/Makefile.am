@@ -14,7 +14,7 @@ LIBCVC4BINDINGS_VERSION = @CVC4_BINDINGS_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
-	-I@srcdir@/../../../include -I@srcdir@/../../.. -I@builddir@/../../..
+	-I@builddir@/../../.. -I@srcdir@/../../../include -I@srcdir@/../../..
 AM_CXXFLAGS = -Wall -Wno-return-type
 
 lib_LTLIBRARIES =

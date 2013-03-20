@@ -58,13 +58,11 @@ Smt2Input::~Smt2Input() {
   d_pSmt2Parser->free(d_pSmt2Parser);
 }
 
-Command* Smt2Input::parseCommand()
-  throw (ParserException, TypeCheckingException) {
+Command* Smt2Input::parseCommand() {
   return d_pSmt2Parser->parseCommand(d_pSmt2Parser);
 }
 
-Expr Smt2Input::parseExpr()
-  throw (ParserException, TypeCheckingException) {
+Expr Smt2Input::parseExpr() {
   return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
 }
 

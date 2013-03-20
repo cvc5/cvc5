@@ -74,7 +74,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
     int childMatchPolicy = MATCH_GEN_DEFAULT;
     for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
       if( d_match_pattern[i].hasAttribute(InstConstantAttribute()) ){
-        if( d_match_pattern[i].getKind()!=INST_CONSTANT ){
+        if( d_match_pattern[i].getKind()!=INST_CONSTANT && !Trigger::isBooleanTermTrigger( d_match_pattern[i] ) ){
           InstMatchGenerator * cimg = new InstMatchGenerator( d_match_pattern[i], childMatchPolicy );
           d_children.push_back( cimg );
           d_children_index.push_back( i );
@@ -115,7 +115,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
       d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern.getOperator() );
     }else{
       d_cg = new CandidateGeneratorQueue;
-      if( !Trigger::getPatternArithmetic( d_match_pattern.getAttribute(InstConstantAttribute()), d_match_pattern, d_arith_coeffs ) ){
+      if( !Trigger::isArithmeticTrigger( d_match_pattern.getAttribute(InstConstantAttribute()), d_match_pattern, d_arith_coeffs ) ){
         Debug("inst-match-gen") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
         //Warning() << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
         d_matchPolicy = MATCH_GEN_INTERNAL_ERROR;
@@ -155,14 +155,20 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
     //first, check if ground arguments are not equal, or a match is in conflict
     for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
       if( d_match_pattern[i].hasAttribute(InstConstantAttribute()) ){
-        if( d_match_pattern[i].getKind()==INST_CONSTANT ){
-          if( !m.setMatch( q, d_match_pattern[i], t[i] ) ){
+        if( d_match_pattern[i].getKind()==INST_CONSTANT || Trigger::isBooleanTermTrigger( d_match_pattern[i] ) ){
+          Node vv = d_match_pattern[i];
+          Node tt = t[i];
+          if( Trigger::isBooleanTermTrigger( d_match_pattern[i] ) ){
+            vv = d_match_pattern[i][0];
+            tt = NodeManager::currentNM()->mkConst(q->areEqual( tt, d_match_pattern[i][1] ));
+          }
+          if( !m.setMatch( q, vv, tt ) ){
             //match is in conflict
-            Debug("matching-debug") << "Match in conflict " << t[i] << " and "
-                                    << d_match_pattern[i] << " because "
-                                    << m.get(d_match_pattern[i])
+            Debug("matching-debug") << "Match in conflict " << tt << " and "
+                                    << vv << " because "
+                                    << m.get(vv)
                                     << std::endl;
-            Debug("matching-fail") << "Match fail: " << m.get(d_match_pattern[i]) << " and " << t[i] << std::endl;
+            Debug("matching-fail") << "Match fail: " << m.get(vv) << " and " << tt << std::endl;
             success = false;
             break;
           }

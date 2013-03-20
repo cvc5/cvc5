@@ -11,8 +11,6 @@ EXTRA_DIST = \
 	configure-in-place \
 	depgraph \
 	get-antlr-3.4 \
-	build-cudd-2.4.2-with-libtool.sh \
-	build-cudd-2.5.0-with-libtool.sh \
 	mac-build \
 	win32-build \
 	run-script-smtcomp2012 \
