@@ -38,7 +38,7 @@ public:
   bool check(Theory::Effort e);
   void propagate(Theory::Effort e); 
   void explain(TNode literal, std::vector<TNode>& assumptions);
-  bool isInequalityTheory() { return false; }
+  bool isInequalityTheory() { return true; }
   virtual void collectModelInfo(TheoryModel* m) {}
 }; 
 

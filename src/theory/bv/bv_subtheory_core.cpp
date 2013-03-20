@@ -50,7 +50,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
     d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
     d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT);
+    d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT, true);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);
@@ -197,8 +197,8 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
-  Debug("bv-slicer") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
-  Debug("bv-slicer") << "                     reason=" << reason << endl;
+  Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
+  Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
   // Notify the equality engine 
   if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_CORE) ) {
     Trace("bitvector::core") << "     (assert " << fact << ")\n";  

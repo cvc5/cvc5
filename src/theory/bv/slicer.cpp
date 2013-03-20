@@ -657,15 +657,18 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::ve
   }
   
   // construct actual extract nodes
-  Index current_low = 0;
-  Index current_high = 0; 
-  for (unsigned i = 0; i < nf.decomp.size(); ++i) {
-    Index current_size = d_unionFind.getBitwidth(nf.decomp[i]); 
-    current_high += current_size; 
-    Node current = Rewriter::rewrite(utils::mkExtract(node, current_high - 1, current_low));
-    current_low += current_size;
+  Index size = utils::getSize(node);
+  Index current_low = size - 1;
+  Index current_high = size - 1;
+  
+  for (int i = nf.decomp.size() - 1; i>=0 ; --i) {
+    Index current_size = d_unionFind.getBitwidth(nf.decomp[i]);
+    current_low = current_low - current_size; 
+    Node current = Rewriter::rewrite(utils::mkExtract(node, current_high, current_low+1));
+    current_high -= current_size;
     decomp.push_back(current); 
   }
+  
 
   Debug("bv-slicer") << "as [";
   for (unsigned i = 0; i < decomp.size(); ++i) {
