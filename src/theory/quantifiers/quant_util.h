@@ -31,7 +31,7 @@ namespace theory {
 class QuantRelevance
 {
 private:
-  /** for computing relavance */
+  /** for computing relevance */
   bool d_computeRel;
   /** map from quantifiers to symbols they contain */
   std::map< Node, std::vector< Node > > d_syms;

@@ -45,7 +45,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 ${typerules}
 
-#line 46 "${template}"
+#line 49 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
@@ -68,7 +68,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 69 "${template}"
+#line 72 "${template}"
 
   default:;
   }

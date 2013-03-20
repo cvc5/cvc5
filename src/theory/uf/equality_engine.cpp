@@ -291,7 +291,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
 	if (isConstant(getNodeId(t[i]))) {
-	  Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluatates " << t[i] << std::endl;
+	  Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
 	  subtermEvaluates(result);
 	}
       }
@@ -390,7 +390,7 @@ void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason) {
 }
 
 void EqualityEngine::mergePredicates(TNode p, TNode q, TNode reason) {
-  Debug("equality") << d_name << "::eq::mergePredicats(" << p << "," << q << ")" << std::endl;
+  Debug("equality") << d_name << "::eq::mergePredicates(" << p << "," << q << ")" << std::endl;
   assertEqualityInternal(p, q, reason);
   propagate();
 }

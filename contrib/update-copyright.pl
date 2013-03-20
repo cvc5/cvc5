@@ -34,7 +34,7 @@
 # the license.)
 #
 
-my $excluded_directories = '^(minisat|bvminisat|cryptominisat|CVS|generated)$';
+my $excluded_directories = '^(minisat|bvminisat|CVS|generated)$';
 my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*)$';
 
 # Years of copyright for the template.  E.g., the string

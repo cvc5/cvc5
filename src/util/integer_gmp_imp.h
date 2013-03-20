@@ -174,10 +174,6 @@ public:
   /** 
    * Returns the Integer obtained by setting the ith bit of the
    * current Integer to 1. 
-   * 
-   * @param bit 
-   * 
-   * @return 
    */
   Integer setBit(uint32_t i) const {
     mpz_class res = d_value;

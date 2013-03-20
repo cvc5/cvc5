@@ -34,7 +34,7 @@ namespace main {
 
 class CommandExecutorPortfolio : public CommandExecutor {
 
-  // These shall be created/deleted during initalization
+  // These shall be created/deleted during initialization
   std::vector<ExprManager*> d_exprMgrs;
   const unsigned d_numThreads;   // Currently const, but designed so it is
                                  // not too hard to support this changing

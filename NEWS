@@ -6,15 +6,16 @@ Changes since 1.0
 * tuple and record support in the compatibility library
 * user patterns are now supported in the SMT-LIBv1.2 parser
 * SMT-LIB get-model output now is easier to machine-parse: contains (model...)
-* Win32 support via mingw
+* Win32-building support via mingw
 * for printing commands as they're invoked from the driver, you now need
   verbosity of 3 or higher (e.g. -vvv) instead of verbosity 1 or higher (-v).
   This allows tracing the solver's activities without having too much output.
-* multiline support in interactive mode
+* multiline input support in interactive mode
 * To make CVC4 quieter in abnormal (e.g., "warning" conditions), you can
   use -q.  Previously, this would silence all output (including "sat" or
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
 * Boolean term support in datatypes
+* numerous bug fixes, usability improvements, and build system improvements
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 20 Mar 2013 20:03:50 -0400
+-- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 26 Mar 2013 15:17:52 -0400

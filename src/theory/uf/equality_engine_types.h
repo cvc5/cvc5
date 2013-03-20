@@ -282,7 +282,7 @@ enum FunctionApplicationType {
 struct FunctionApplication {
   /** Type of application */
   FunctionApplicationType type;
-  /** The actuall application elements */
+  /** The actual application elements */
   EqualityNodeId a, b;
 
   /** Construct an application */

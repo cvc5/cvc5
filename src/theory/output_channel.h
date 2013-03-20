@@ -208,12 +208,13 @@ public:
    */
   virtual void spendResource() throw() {}
 
-  /** Handle user attribute
-    *   Associates theory t with the attribute attr.  Theory t will be
-    *   notifed whenever an attribute of name attr is set on a node.
-    *   This can happen through, for example, the SMT LIB v2 language.
-    */
-  virtual void handleUserAttribute( const char* attr, Theory* t ){}
+  /**
+   * Handle user attribute.
+   * Associates theory t with the attribute attr.  Theory t will be
+   * notified whenever an attribute of name attr is set on a node.
+   * This can happen through, for example, the SMT-LIBv2 language.
+   */
+  virtual void handleUserAttribute(const char* attr, Theory* t) {}
 
 };/* class OutputChannel */
 

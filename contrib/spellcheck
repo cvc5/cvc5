@@ -2,7 +2,7 @@
 
 dir="$(dirname "$0")"
 
-find src \( -name '*.cpp' -o -name '*.h' \) \! -path 'src/prop/minisat/*' \! -path 'src/prop/bvminisat/*' \! -path 'src/prop/cryptominisat/*' \! -path 'src/parser/*/generated/*' |
+find src \( -name '*.cpp' -o -name '*.h' \) \! -path 'src/prop/minisat/*' \! -path 'src/prop/bvminisat/*' \! -path 'src/parser/*/generated/*' |
   while read f; do
     misspelled_words=`
     $dir/extract-strings-and-comments $f |

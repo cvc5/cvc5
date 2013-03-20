@@ -727,7 +727,7 @@ public:
   }
 
   /**
-   * Returns true if this kind is used for congruencce closure + evaluation of constants.
+   * Returns true if this kind is used for congruence closure + evaluation of constants.
    */
   bool isInterpretedFunctionKind(Kind fun) const {
     return d_congruenceKindsInterpreted.tst(fun);

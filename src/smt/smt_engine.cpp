@@ -254,7 +254,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * A map of AbsractValues to their actual constants.  Only used if
    * options::abstractValues() is on.
    */
-  theory::SubstitutionMap d_abstractValueMap;
+  SubstitutionMap d_abstractValueMap;
 
   /**
    * A mapping of all abstract values (actual value |-> abstract) that
@@ -489,7 +489,7 @@ public:
 
   /**
    * Return the uinterpreted function symbol corresponding to division-by-zero
-   * for this particular bit-wdith
+   * for this particular bit-width
    * @param k should be UREM or UDIV
    * @param width
    *
@@ -695,7 +695,7 @@ void SmtEngine::finalOptionsAreSet() {
     setLogicInternal();
   }
 
-  // finish initalization, creat the prop engine, etc.
+  // finish initialization, create the prop engine, etc.
   finishInit();
 
   AlwaysAssert( d_propEngine->getAssertionLevel() == 0,
@@ -815,11 +815,11 @@ void SmtEngine::setLogicInternal() throw() {
   d_logic.lock();
 
   // may need to force uninterpreted functions to be on for non-linear
-  if(((d_logic.isTheoryEnabled(theory::THEORY_ARITH) && !d_logic.isLinear()) ||
-      d_logic.isTheoryEnabled(theory::THEORY_BV)) &&
-     !d_logic.isTheoryEnabled(theory::THEORY_UF)){
+  if(((d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ||
+      d_logic.isTheoryEnabled(THEORY_BV)) &&
+     !d_logic.isTheoryEnabled(THEORY_UF)){
     d_logic = d_logic.getUnlockedCopy();
-    d_logic.enableTheory(theory::THEORY_UF);
+    d_logic.enableTheory(THEORY_UF);
     d_logic.lock();
   }
 
@@ -1030,7 +1030,7 @@ void SmtEngine::setLogicInternal() throw() {
   }
 
   // Non-linear arithmetic does not support models
-  if (d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+  if (d_logic.isTheoryEnabled(THEORY_ARITH) &&
       !d_logic.isLinear()) {
     if (options::produceModels()) {
       Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << endl;
@@ -1042,8 +1042,8 @@ void SmtEngine::setLogicInternal() throw() {
     }
   }
 
-  //datatypes theory should assign values to all datatypes terms if logic is quantified
-  if (d_logic.isQuantified() && d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+  // datatypes theory should assign values to all datatypes terms if logic is quantified
+  if (d_logic.isQuantified() && d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
     if( !options::dtForceAssignment.wasSetByUser() ){
       options::dtForceAssignment.set(true);
     }
@@ -1800,7 +1800,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     for( SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin(); pos != d_topLevelSubstitutions.end(); ++pos) {
       Node n = (*pos).first;
       Node v = (*pos).second;
-      Trace("model") << "Add substitution : " << n << " " << v << std::endl;
+      Trace("model") << "Add substitution : " << n << " " << v << endl;
       m->addSubstitution( n, v );
     }
   }
@@ -2395,7 +2395,7 @@ bool SmtEnginePrivate::simplifyAssertions()
           // miplib rewrites aren't safe in incremental mode
           ! options::incrementalSolving() &&
           // only useful in arith
-          d_smt.d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+          d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -2654,16 +2654,16 @@ void SmtEnginePrivate::processAssertions() {
         switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
         case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
         case booleans::BOOLEAN_TERM_CONVERT_NATIVE:
-          if(!d_smt.d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+          if(!d_smt.d_logic.isTheoryEnabled(THEORY_BV)) {
             d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(theory::THEORY_BV);
+            d_smt.d_logic.enableTheory(THEORY_BV);
             d_smt.d_logic.lock();
           }
           break;
         case booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
-          if(!d_smt.d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+          if(!d_smt.d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
             d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(theory::THEORY_DATATYPES);
+            d_smt.d_logic.enableTheory(THEORY_DATATYPES);
             d_smt.d_logic.lock();
           }
           break;

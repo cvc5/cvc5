@@ -212,7 +212,7 @@ private:
   std::map< TNode, std::vector< TNode > > d_var_contains;
   /** triggers for each operator */
   std::map< Node, std::vector< inst::Trigger* > > d_op_triggers;
-  /** helper for is intance of */
+  /** helper for is instance of */
   bool isUnifiableInstanceOf( Node n1, Node n2, std::map< Node, Node >& subs );
 public:
   /** compute var contains */
