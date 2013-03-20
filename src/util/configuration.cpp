@@ -216,8 +216,13 @@ std::string Configuration::getGitId() {
     return "";
   }
 
+  const char* branchName = getGitBranchName();
+  if(*branchName == '\0') {
+    branchName = "-";
+  }
+
   stringstream ss;
-  ss << "git " << getGitBranchName() << " " << string(getGitCommit()).substr(0, 8)
+  ss << "git " << branchName << " " << string(getGitCommit()).substr(0, 8)
      << ( ::CVC4::Configuration::hasGitModifications() ? " (with modifications)" : "" );
   return ss.str();
 }
