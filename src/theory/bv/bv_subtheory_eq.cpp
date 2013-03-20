@@ -35,7 +35,7 @@ EqualitySolver::EqualitySolver(context::Context* c, TheoryBV* bv)
   if (d_useEqualityEngine) {
 
     // The kinds we are treating as function application in congruence
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT);
+    d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_OR);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XOR);
@@ -44,8 +44,8 @@ EqualitySolver::EqualitySolver(context::Context* c, TheoryBV* bv)
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOR);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XNOR);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS);
+    d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
+    d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
     //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);

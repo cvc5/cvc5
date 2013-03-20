@@ -233,6 +233,9 @@ private:
   /** The map of kinds to be treated as function applications */
   KindMap d_congruenceKinds;
 
+  /** The map of kinds to be treated as interpreted function applications (for evaluation of constants) */
+  KindMap d_congruenceKindsInterpreted;
+
   /** Map from nodes to their ids */
   __gnu_cxx::hash_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
 
@@ -415,6 +418,65 @@ private:
   std::vector<bool> d_isConstant;
 
   /**
+   * Map from ids to whether they evaluate. A node evaluates 
+   * (1) if it is a constant
+   * (2) if it is internal and it's children evaluate
+   * (3) if it is non-internal and it's children are constants
+   * 
+   * Example:
+   * 
+   *  f(x) + g(y)
+   * 
+   * If f and g are interpreted, in the context x = 0, the nodes 
+   * f(x) and g(y) evaluate, but not f(x) + g(y). The term f(x) + g(y) 
+   * evaluates if we evaluate f(0) and g(0) to constants c1 and c2.
+   */
+  std::vector<bool> d_evaluates;
+  
+  /** 
+   * For nodes that we need to postpone evaluation.
+   */
+  std::queue<EqualityNodeId> d_evaluationQueue;
+  
+  /**
+   * Evaluate all terms in the evaluation queue.
+   */
+  void processEvaluationQueue();
+  
+  /** 
+   * Check whether the node evaluates in the current context 
+   */
+  bool evaluates(EqualityNodeId id) const {
+    return d_evaluates[id];
+  }
+
+  /** Vector of nodes that evaluate. */
+  std::vector<EqualityNodeId> d_nodesThatEvaluate;
+
+  /** Size of the nodes that evaluate vector. */
+  context::CDO<unsigned> d_nodesThatEvaluateSize;
+  
+  /** Set the node evaluate flag */
+  void setEvaluates(EqualityNodeId id) {
+    Assert(!d_evaluates[id]);
+    d_evaluates[id] = true;
+    d_nodesThatEvaluate.push_back(id);
+    d_nodesThatEvaluateSize = d_nodesThatEvaluate.size();
+  }
+
+  /** 
+   * Propagate something that evaluates.
+   * @param fragile if true, no new terms are added, but 
+   */
+  void evaluateApplication(const FunctionApplication& funNormalized, EqualityNodeId funId);
+
+  /**
+   * Returns the evaluation of the term when all (direct) children are replaced with 
+   * the constant representatives.
+   */
+  Node evaluateTerm(TNode node);
+  
+  /**
    * Returns true if it's a constant
    */
   bool isConstant(EqualityNodeId id) const {
@@ -451,9 +513,12 @@ private:
 
   /** Enqueue to the propagation queue */
   void enqueue(const MergeCandidate& candidate, bool back = true);
-
+  
   /** Do the propagation */
   void propagate();
+
+  /** Are we in propagate */
+  bool d_inPropagate;
 
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
@@ -674,20 +739,21 @@ public:
   /**
    * Add a kind to treat as function applications.
    */
-  void addFunctionKind(Kind fun) {
-    d_congruenceKinds |= fun;
-  }
+  void addFunctionKind(Kind fun, bool interpreted = false);
 
   /**
    * Returns true if this kind is used for congruence closure.
    */
-  bool isFunctionKind(Kind fun) {
+  bool isFunctionKind(Kind fun) const {
     return d_congruenceKinds.tst(fun);
   }
 
   /**
-   * Adds a function application term to the database.
+   * Returns true if this kind is used for congruencce closure + evaluation of constants.
    */
+  bool isInterpretedFunctionKind(Kind fun) const {
+    return d_congruenceKindsInterpreted.tst(fun);
+  }
 
   /**
    * Check whether the node is already in the database.
