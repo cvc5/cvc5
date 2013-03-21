@@ -952,6 +952,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       std::string attr_name = attr;
       attr_name.erase( attr_name.begin() );
       Command* c = new SetUserAttributeCommand( attr_name, expr );
+      c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     } else {
       PARSER_STATE->attributeNotSupported(attr);
@@ -979,6 +980,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       // bind name to expr with define-fun
       Command* c =
         new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
+      c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
   ;

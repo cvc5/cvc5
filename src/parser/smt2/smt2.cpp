@@ -290,7 +290,9 @@ void Smt2::checkThatLogicIsSet() {
 
       setLogic("ALL_SUPPORTED");
 
-      preemptCommand(new SetBenchmarkLogicCommand("ALL_SUPPORTED"));
+      Command* c = new SetBenchmarkLogicCommand("ALL_SUPPORTED");
+      c->setMuted(true);
+      preemptCommand(c);
     }
   }
 }
