@@ -267,7 +267,7 @@ command returns [CVC4::Command* cmd = NULL]
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
           ++i) {
-        terms.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
       }
     }
     term[expr, expr2]
@@ -479,7 +479,7 @@ extendedCommand[CVC4::Command*& cmd]
               sortedVarNames.begin(), iend = sortedVarNames.end();
             i != iend;
             ++i) {
-          terms.push_back(PARSER_STATE->mkVar((*i).first, (*i).second));
+          terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
         }
       }
       term[e,e2]

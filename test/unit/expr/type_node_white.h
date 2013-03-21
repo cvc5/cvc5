@@ -61,7 +61,7 @@ public:
     TypeNode bvType = d_nm->mkBitVectorType(32);
     TypeNode subrangeType = d_nm->mkSubrangeType(SubrangeBounds(Integer(1), Integer(10)));
 
-    Node x = d_nm->mkVar("x", realType);
+    Node x = d_nm->mkBoundVar("x", realType);
     Node xPos = d_nm->mkNode(GT, x, d_nm->mkConst(Rational(0)));
     TypeNode funtype = d_nm->mkFunctionType(integerType, booleanType);
     Node lambda = d_nm->mkVar("lambda", funtype);

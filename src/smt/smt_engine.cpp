@@ -1169,6 +1169,16 @@ void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
                                Expr formula) {
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
+  for(std::vector<Expr>::const_iterator i = formals.begin(); i != formals.end(); ++i) {
+    if((*i).getKind() != kind::BOUND_VARIABLE) {
+      stringstream ss;
+      ss << "All formal arguments to defined functions must be BOUND_VARIABLEs, but in the\n"
+         << "definition of function " << func << ", formal\n"
+         << "  " << *i << "\n"
+         << "has kind " << (*i).getKind();
+      throw TypeCheckingException(func, ss.str());
+    }
+  }
   if(Dump.isOn("declarations")) {
     stringstream ss;
     ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
@@ -1285,7 +1295,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     if(i != d_smt.d_definedFunctions->end()) {
       // replacement must be closed
       if((*i).second.getFormals().size() > 0) {
-        //throw TypeCheckingException(n.toExpr(), string("Defined function requires arguments: `") + n.toString() + "'");
+        return d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()), (*i).second.getFormula());
       }
       // don't bother putting in the cache
       return (*i).second.getFormula();
