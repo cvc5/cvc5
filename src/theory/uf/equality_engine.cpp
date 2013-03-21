@@ -244,7 +244,9 @@ void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
   Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
   Assert(!d_isInternal[id]);
   Assert(d_subtermsToEvaluate[id] > 0);
-  d_subtermsToEvaluate[id] --;
+  if ((-- d_subtermsToEvaluate[id]) == 0) {
+    d_evaluationQueue.push(id);
+  }
   d_subtermEvaluates.push_back(id);
   d_subtermEvaluatesSize = d_subtermEvaluates.size();
   Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): new " << d_subtermsToEvaluate[id] << std::endl;
@@ -296,6 +298,7 @@ void EqualityEngine::addTerm(TNode t) {
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
 	if (isConstant(getNodeId(t[i]))) {
+	  Debug("equality::evaluation") << d_name << "::eq::addTerm(" << t << "): evaluatates " << t[i] << std::endl;
 	  subtermEvaluates(result);
 	}
       }

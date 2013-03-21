@@ -144,10 +144,10 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
      tryToStream<DeclareFunctionCommand>(out, c) ||
-     tryToStream<DefineFunctionCommand>(out, c) ||
      tryToStream<DeclareTypeCommand>(out, c) ||
      tryToStream<DefineTypeCommand>(out, c) ||
      tryToStream<DefineNamedFunctionCommand>(out, c) ||
+     tryToStream<DefineFunctionCommand>(out, c) ||
      tryToStream<SimplifyCommand>(out, c) ||
      tryToStream<GetValueCommand>(out, c) ||
      tryToStream<GetModelCommand>(out, c) ||
