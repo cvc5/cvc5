@@ -67,8 +67,8 @@ void EqualityEngine::init() {
   // QuantifiersEngine.AddTermToDatabase that try to access to the uf
   // instantiator that currently doesn't exist.
   ScopedBool sb(d_performNotify, false);
-  addTerm(d_true);
-  addTerm(d_false);
+  addTermInternal(d_true);
+  addTermInternal(d_false);
 
   d_trueId = getNodeId(d_true);
   d_falseId = getNodeId(d_false);  
@@ -233,13 +233,6 @@ void EqualityEngine::addFunctionKind(Kind fun, bool interpreted) {
   }
 }
 
-bool isOperator(TNode node) {
-  if (node.getKind() == kind::BUILTIN) {
-    return true;
-  }
-  return false;
-}
-
 void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
   Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
   Assert(!d_isInternal[id]);
@@ -252,13 +245,13 @@ void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
   Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): new " << d_subtermsToEvaluate[id] << std::endl;
 }
 
-void EqualityEngine::addTerm(TNode t) {
+void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
-  Debug("equality") << d_name << "::eq::addTerm(" << t << ")" << std::endl;
+  Debug("equality") << d_name << "::eq::addTermInternal(" << t << ")" << std::endl;
 
   // If there already, we're done
   if (hasTerm(t)) {
-    Debug("equality") << d_name << "::eq::addTerm(" << t << "): already there" << std::endl;
+    Debug("equality") << d_name << "::eq::addTermInternal(" << t << "): already there" << std::endl;
     return;
   }
 
@@ -269,23 +262,23 @@ void EqualityEngine::addTerm(TNode t) {
   EqualityNodeId result;
 
   if (t.getKind() == kind::EQUAL) {
-    addTerm(t[0]);
-    addTerm(t[1]);
+    addTermInternal(t[0]);
+    addTermInternal(t[1]);
     EqualityNodeId t0id = getNodeId(t[0]);
     EqualityNodeId t1id = getNodeId(t[1]);
     result = newApplicationNode(t, t0id, t1id, APP_EQUALITY);
     d_isInternal[result] = false;
+    d_isConstant[result] = false;
   } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
     TNode tOp = t.getOperator();
     // Add the operator
-    addTerm(tOp);
+    addTermInternal(tOp, true);
     result = getNodeId(tOp);
-    d_isInternal[result] = true;
     // Add all the children and Curryfy
     bool isInterpreted = isInterpretedFunctionKind(t.getKind());
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
       // Add the child
-      addTerm(t[i]);
+      addTermInternal(t[i]);
       EqualityNodeId tiId = getNodeId(t[i]);
       // Add the application
       result = newApplicationNode(t, result, tiId, isInterpreted ? APP_INTERPRETED : APP_UNINTERPRETED);
@@ -298,7 +291,7 @@ void EqualityEngine::addTerm(TNode t) {
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
 	if (isConstant(getNodeId(t[i]))) {
-	  Debug("equality::evaluation") << d_name << "::eq::addTerm(" << t << "): evaluatates " << t[i] << std::endl;
+	  Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluatates " << t[i] << std::endl;
 	  subtermEvaluates(result);
 	}
       }
@@ -307,8 +300,8 @@ void EqualityEngine::addTerm(TNode t) {
     // Otherwise we just create the new id
     result = newNode(t);
     // Is this an operator
-    d_isInternal[result] = false;
-    d_isConstant[result] = t.isConst() && !isOperator(t);
+    d_isInternal[result] = isOperator;
+    d_isConstant[result] = !isOperator && t.isConst();
   }
 
   if (t.getType().isBoolean()) {
@@ -333,7 +326,7 @@ void EqualityEngine::addTerm(TNode t) {
 
   // If this is not an internal node, add it to the master
   if (d_masterEqualityEngine && !d_isInternal[result]) {
-    d_masterEqualityEngine->addTerm(t);
+    d_masterEqualityEngine->addTermInternal(t);
   }
 
   // Empty the queue
@@ -341,7 +334,7 @@ void EqualityEngine::addTerm(TNode t) {
 
   Assert(hasTerm(t));
   
-  Debug("equality") << d_name << "::eq::addTerm(" << t << ") => " << result << std::endl;
+  Debug("equality") << d_name << "::eq::addTermInternal(" << t << ") => " << result << std::endl;
 }
 
 bool EqualityEngine::hasTerm(TNode t) const {
@@ -380,8 +373,8 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason) {
   }
 
   // Add the terms if they are not already in the database
-  addTerm(t1);
-  addTerm(t2);
+  addTermInternal(t1);
+  addTermInternal(t2);
 
   // Add to the queue and propagate
   EqualityNodeId t1Id = getNodeId(t1);
@@ -496,6 +489,7 @@ TNode EqualityEngine::getRepresentative(TNode t) const {
   Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ")" << std::endl;
   Assert(hasTerm(t));
   EqualityNodeId representativeId = getEqualityNode(t).getFind();
+  Assert(!d_isInternal[representativeId]);
   Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
   return d_nodes[representativeId];
 }
@@ -609,7 +603,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
         const FunctionApplication& fun = d_applications[useNode.getApplicationId()].normalized;
         // If it's interpreted and we can interpret
-	if (fun.isInterpreted() && class1isConstant && !d_isInternal[class2Id]) {
+	if (fun.isInterpreted() && class1isConstant && !d_isInternal[funId]) {
 	  // Get the actual term id 
 	  TNode term = d_nodes[useNode.getApplicationId()];
 	  subtermEvaluates(getNodeId(term));
@@ -1090,8 +1084,8 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
   }
 
   // Add the terms
-  addTerm(eq[0]);
-  addTerm(eq[1]);
+  addTermInternal(eq[0]);
+  addTermInternal(eq[1]);
 
   bool skipTrigger = false;
 
@@ -1110,7 +1104,7 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
   }
 
   // Add the equality
-  addTerm(eq);
+  addTermInternal(eq);
 
   // Positive trigger
   addTriggerEqualityInternal(eq[0], eq[1], eq, true);
@@ -1127,7 +1121,7 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
   }
 
   // Add the term
-  addTerm(predicate);
+  addTermInternal(predicate);
 
   bool skipTrigger = false;
 
@@ -1231,7 +1225,7 @@ void EqualityEngine::processEvaluationQueue() {
     Node nodeEvaluated = evaluateTerm(d_nodes[id]);
     Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): " << d_nodes[id] << " evaluates to " << nodeEvaluated << std::endl;
     Assert(nodeEvaluated.isConst());
-    addTerm(nodeEvaluated);
+    addTermInternal(nodeEvaluated);
     EqualityNodeId nodeEvaluatedId = getNodeId(nodeEvaluated);
 
     // Enqueue the semantic equality
@@ -1524,7 +1518,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
 size_t EqualityEngine::getSize(TNode t)
 {
   // Add the term
-  addTerm(t);
+  addTermInternal(t);
   return getEqualityNode(getEqualityNode(t).getFind()).getSize();
 }
 
@@ -1540,7 +1534,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   }
 
   // Add the term if it's not already there
-  addTerm(t);
+  addTermInternal(t);
 
   // Get the node id
   EqualityNodeId eqNodeId = getNodeId(t);

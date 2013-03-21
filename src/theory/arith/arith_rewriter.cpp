@@ -86,7 +86,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
   }else if(t.isVar()){
     return rewriteVariable(t);
   }else{
-    switch(t.getKind()){
+    switch(Kind k = t.getKind()){
     case kind::MINUS:
       return rewriteMinus(t, true);
     case kind::UMINUS:
@@ -104,7 +104,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::INTS_MODULUS_TOTAL:
       return rewriteIntsDivModTotal(t,true);
     default:
-      Unreachable();
+      Unhandled(k);
     }
   }
 }

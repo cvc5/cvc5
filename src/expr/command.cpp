@@ -74,11 +74,12 @@ ostream& operator<<(ostream& out, const CommandStatus* s) throw() {
 
 /* class Command */
 
-Command::Command() throw() : d_commandStatus(NULL) {
+Command::Command() throw() : d_commandStatus(NULL), d_muted(false) {
 }
 
 Command::Command(const Command& cmd) {
   d_commandStatus = (cmd.d_commandStatus == NULL) ? NULL : &cmd.d_commandStatus->clone();
+  d_muted = cmd.d_muted;
 }
 
 Command::~Command() throw() {
@@ -98,7 +99,9 @@ bool Command::fail() const throw() {
 
 void Command::invoke(SmtEngine* smtEngine, std::ostream& out) throw() {
   invoke(smtEngine);
-  printResult(out);
+  if(!(isMuted() && ok())) {
+    printResult(out);
+  }
 }
 
 std::string Command::toString() const throw() {

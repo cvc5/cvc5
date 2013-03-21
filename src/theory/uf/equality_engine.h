@@ -702,12 +702,17 @@ private:
   /** Name of the equality engine */
   std::string d_name;
 
+  /** The internal addTerm */
+  void addTermInternal(TNode t, bool isOperator = false);
+
 public:
 
   /**
    * Adds a term to the term database.
    */
-  void addTerm(TNode t);
+  void addTerm(TNode t) {
+    addTermInternal(t, false);
+  }
 
   /**
    * Add a kind to treat as function applications.
