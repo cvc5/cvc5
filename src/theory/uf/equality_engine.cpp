@@ -90,7 +90,7 @@ EqualityEngine::EqualityEngine(context::Context* context, std::string name)
 , d_nodesCount(context, 0)
 , d_assertedEqualitiesCount(context, 0)
 , d_equalityTriggersCount(context, 0)
-, d_nodesThatEvaluateSize(context, 0)
+, d_subtermEvaluatesSize(context, 0)
 , d_stats(name)
 , d_inPropagate(false)
 , d_triggerDatabaseSize(context, 0)
@@ -114,7 +114,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 , d_nodesCount(context, 0)
 , d_assertedEqualitiesCount(context, 0)
 , d_equalityTriggersCount(context, 0)
-, d_nodesThatEvaluateSize(context, 0)
+, d_subtermEvaluatesSize(context, 0)
 , d_stats(name)
 , d_inPropagate(false)
 , d_triggerDatabaseSize(context, 0)
@@ -141,18 +141,18 @@ void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
   }
 }
 
-EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, bool isEquality) {
+EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type) {
   Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ")" << std::endl;
 
   ++ d_stats.functionTermsCount;
 
   // Get another id for this
   EqualityNodeId funId = newNode(original);
-  FunctionApplication funOriginal(isEquality, t1, t2);
+  FunctionApplication funOriginal(type, t1, t2);
   // The function application we're creating
   EqualityNodeId t1ClassId = getEqualityNode(t1).getFind();
   EqualityNodeId t2ClassId = getEqualityNode(t2).getFind();
-  FunctionApplication funNormalized(isEquality, t1ClassId, t2ClassId);
+  FunctionApplication funNormalized(type, t1ClassId, t2ClassId);
 
   // We add the original version
   d_applications[funId] = FunctionApplicationPair(funOriginal, funNormalized);
@@ -203,8 +203,8 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   d_nodeIndividualTrigger.push_back(+null_set_id);
   // Mark non-constant by default
   d_isConstant.push_back(false);
-  // Makr non-evaluate by default
-  d_evaluates.push_back(false);
+  // No terms to evaluate by defaul
+  d_subtermsToEvaluate.push_back(0);
   // Mark Boolean nodes
   d_isBoolean.push_back(false);
   // Mark the node as internal by default
@@ -227,10 +227,27 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
 void EqualityEngine::addFunctionKind(Kind fun, bool interpreted) {
   d_congruenceKinds |= fun;
-  if (interpreted) {
+  if (interpreted && fun != kind::EQUAL) {
     Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
     d_congruenceKindsInterpreted |= fun;
   }
+}
+
+bool isOperator(TNode node) {
+  if (node.getKind() == kind::BUILTIN) {
+    return true;
+  }
+  return false;
+}
+
+void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
+  Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
+  Assert(!d_isInternal[id]);
+  Assert(d_subtermsToEvaluate[id] > 0);
+  d_subtermsToEvaluate[id] --;
+  d_subtermEvaluates.push_back(id);
+  d_subtermEvaluatesSize = d_subtermEvaluates.size();
+  Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): new " << d_subtermsToEvaluate[id] << std::endl;
 }
 
 void EqualityEngine::addTerm(TNode t) {
@@ -254,45 +271,48 @@ void EqualityEngine::addTerm(TNode t) {
     addTerm(t[1]);
     EqualityNodeId t0id = getNodeId(t[0]);
     EqualityNodeId t1id = getNodeId(t[1]);
-    result = newApplicationNode(t, t0id, t1id, true);
+    result = newApplicationNode(t, t0id, t1id, APP_EQUALITY);
     d_isInternal[result] = false;
-
   } else if (t.getNumChildren() > 0 && d_congruenceKinds[t.getKind()]) {
     TNode tOp = t.getOperator();
     // Add the operator
     addTerm(tOp);
     result = getNodeId(tOp);
     d_isInternal[result] = true;
-    d_isConstant[result] = isInterpretedFunctionKind(t.getKind());
-    d_evaluates[result] = isInterpretedFunctionKind(t.getKind());
     // Add all the children and Curryfy
+    bool isInterpreted = isInterpretedFunctionKind(t.getKind());
     for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
       // Add the child
       addTerm(t[i]);
+      EqualityNodeId tiId = getNodeId(t[i]);
       // Add the application
-      result = newApplicationNode(t, result, getNodeId(t[i]), false);
+      result = newApplicationNode(t, result, tiId, isInterpreted ? APP_INTERPRETED : APP_UNINTERPRETED);
     }
     d_isInternal[result] = false;
-    if (t.isConst()) {
-      d_isConstant[result] = true;
-      d_evaluates[result] = true;
+    d_isConstant[result] = t.isConst();
+    // If interpreted, set the number of non-interpreted children
+    if (isInterpreted) {
+      // How many children are not constants yet 
+      d_subtermsToEvaluate[result] = t.getNumChildren();
+      for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
+	if (isConstant(getNodeId(t[i]))) {
+	  subtermEvaluates(result);
+	}
+      }
     }
   } else {
     // Otherwise we just create the new id
     result = newNode(t);
     // Is this an operator
     d_isInternal[result] = false;
-    if (t.isConst()) {
-      d_isConstant[result] = true;
-      d_evaluates[result] = true;
-    }
+    d_isConstant[result] = t.isConst() && !isOperator(t);
   }
 
   if (t.getType().isBoolean()) {
     // We set this here as this only applies to actual terms, not the
     // intermediate application terms
     d_isBoolean[result] = true;
-  } else if (t.isConst()) {
+  } else if (d_isConstant[result]) {
     // Non-Boolean constants are trigger terms for all tags
     EqualityNodeId tId = getNodeId(t);
     d_newSetTags = 0;
@@ -585,10 +605,16 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         EqualityNodeId funId = useNode.getApplicationId();
         Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
         const FunctionApplication& fun = d_applications[useNode.getApplicationId()].normalized;
-        // Check if there is an application with find arguments
+        // If it's interpreted and we can interpret
+	if (fun.isInterpreted() && class1isConstant && !d_isInternal[class2Id]) {
+	  // Get the actual term id 
+	  TNode term = d_nodes[useNode.getApplicationId()];
+	  subtermEvaluates(getNodeId(term));
+	}
+	// Check if there is an application with find arguments
         EqualityNodeId aNormalized = getEqualityNode(fun.a).getFind();
         EqualityNodeId bNormalized = getEqualityNode(fun.b).getFind();
-        FunctionApplication funNormalized(fun.isEquality, aNormalized, bNormalized);
+        FunctionApplication funNormalized(fun.type, aNormalized, bNormalized);
         ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
         if (find != d_applicationLookup.end()) {
           // Applications fun and the funNormalized can be merged due to congruence
@@ -788,10 +814,11 @@ void EqualityEngine::backtrack() {
     d_applicationLookups.resize(d_applicationLookupsCount);
   }
 
-  if (d_nodesThatEvaluate.size() > d_nodesThatEvaluateSize) {
-    for(int i = d_nodesThatEvaluate.size() - 1, i_end = (int)d_nodesThatEvaluateSize; i >= i_end; --i) {
-      d_evaluates[d_nodesThatEvaluate[i]] = false;
+  if (d_subtermEvaluates.size() > d_subtermEvaluatesSize) {
+    for(int i = d_subtermEvaluates.size() - 1, i_end = (int)d_subtermEvaluatesSize; i >= i_end; --i) {
+      d_subtermsToEvaluate[d_subtermEvaluates[i]] ++;
     }
+    d_subtermEvaluates.resize(d_subtermEvaluatesSize);
   }
 
   if (d_nodes.size() > d_nodesCount) {
@@ -802,7 +829,7 @@ void EqualityEngine::backtrack() {
       d_nodeIds.erase(d_nodes[i]);
 
       const FunctionApplication& app = d_applications[i].original;
-      if (app.isApplication()) {
+      if (!app.isNull()) {
         // Remove b from use-list
         getEqualityNode(app.b).removeTopFromUseList(d_useListNodes);
         // Remove a from use-list
@@ -816,7 +843,7 @@ void EqualityEngine::backtrack() {
     d_nodeTriggers.resize(d_nodesCount);
     d_nodeIndividualTrigger.resize(d_nodesCount);
     d_isConstant.resize(d_nodesCount);
-    d_evaluates.resize(d_nodesCount);
+    d_subtermsToEvaluate.resize(d_nodesCount);
     d_isBoolean.resize(d_nodesCount);
     d_isInternal.resize(d_nodesCount);
     d_equalityGraph.resize(d_nodesCount);
@@ -994,7 +1021,7 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
               EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
               const FunctionApplication& eq = d_applications[eqId].original;
-              Assert(eq.isEquality, "Must be an equality");
+              Assert(eq.isEquality(), "Must be an equality");
               
               // Explain why a = b constant
               Debug("equality") << push;
@@ -1209,20 +1236,6 @@ void EqualityEngine::processEvaluationQueue() {
   }
 
   Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): done" << std::endl;
-}
-
-void EqualityEngine::evaluateApplication(const FunctionApplication& funNormalized, EqualityNodeId funId) {
-
-  // Evaluate special for equality and other
-  if (!funNormalized.isEquality) {
-    // We can't add new terms 
-    d_evaluationQueue.push(funId);
-  } else {
-    if (funNormalized.a != funNormalized.b) {
-      // We don't enqueue fun -> true, as this is convered with reflexivity
-      enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
-    }
-  }
 }
 
 void EqualityEngine::propagate() {
@@ -1466,7 +1479,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   }
   
   // Create the equality
-  FunctionApplication eqNormalized(true, t1ClassId, t2ClassId);
+  FunctionApplication eqNormalized(APP_EQUALITY, t1ClassId, t2ClassId);
   ApplicationIdsMap::const_iterator find = d_applicationLookup.find(eqNormalized);
   if (find != d_applicationLookup.end()) {
     if (getEqualityNode(find->second).getFind() == getEqualityNode(d_falseId).getFind()) {
@@ -1618,19 +1631,11 @@ void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, 
   Assert(d_applicationLookupsCount == d_applicationLookups.size());
 
   // If an equality over constants we merge to false
-  if (funNormalized.isEquality && funNormalized.a == funNormalized.b) {
-    enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));
-  }
-
-  // Now check for application evaluation
-  if (!d_evaluates[funId]) {
-    if (d_evaluates[funNormalized.a] && d_evaluates[funNormalized.b]) {
-      // Depending on the "internal"
-      if (d_isInternal[funId]) {
-        setEvaluates(funId);
-      } else {
-        evaluateApplication(funNormalized, funId);
-      }
+  if (funNormalized.isEquality()) {
+    if (funNormalized.a == funNormalized.b) {
+      enqueue(MergeCandidate(funId, d_trueId, MERGED_THROUGH_REFLEXIVITY, TNode::null()));
+    } else if (d_isConstant[funNormalized.a] && d_isConstant[funNormalized.b]) {
+      enqueue(MergeCandidate(funId, d_falseId, MERGED_THROUGH_CONSTANTS, TNode::null()));
     }
   }
 }
@@ -1798,7 +1803,7 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
 
       const FunctionApplication& fun = d_applications[useListNode.getApplicationId()].original;
       // If it's an equality asserted to false, we do the work
-      if (fun.isEquality && getEqualityNode(funId).getFind() == getEqualityNode(d_false).getFind()) {
+      if (fun.isEquality() && getEqualityNode(funId).getFind() == getEqualityNode(d_false).getFind()) {
         // Get the other equality member
         bool lhs = false;
         EqualityNodeId toCompare = fun.b;

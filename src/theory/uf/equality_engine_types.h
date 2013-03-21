@@ -264,6 +264,15 @@ struct EqualityPairHashFunction {
   }
 };
 
+enum FunctionApplicationType {
+  /** This application is an equality a = b */
+  APP_EQUALITY,
+  /** This is a part of an uninterpreted application f(t1, ...., tn) */
+  APP_UNINTERPRETED,
+  /** This is a part of an interpreted application f(t1, ..., tn) */
+  APP_INTERPRETED
+};
+
 /**
  * Represents the function APPLY a b. If isEquality is true then it
  * represents the predicate (a = b). Note that since one can not 
@@ -271,16 +280,35 @@ struct EqualityPairHashFunction {
  * function below are still well defined.
  */
 struct FunctionApplication {
-  bool isEquality;
+  /** Type of application */
+  FunctionApplicationType type;
+  /** The actuall application elements */
   EqualityNodeId a, b;
-  FunctionApplication(bool isEquality = false, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
-  : isEquality(isEquality), a(a), b(b) {}
+
+  /** Construct an application */
+  FunctionApplication(FunctionApplicationType type = APP_EQUALITY, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
+  : type(type), a(a), b(b) {}
+
+  /** Equality of two applications */
   bool operator == (const FunctionApplication& other) const {
-    return isEquality == other.isEquality && a == other.a && b == other.b;
+    return type == other.type && a == other.a && b == other.b;
   }
-  bool isApplication() const {
-    return a != null_id && b != null_id;
+
+  /** Is this a null application */
+  bool isNull() const {
+    return a == null_id || b == null_id;
   }
+
+  /** Is this an equality */
+  bool isEquality() const {
+    return type == APP_EQUALITY;
+  }
+
+  /** Is this an interpreted application (equality is special, i.e. not interpreted) */
+  bool isInterpreted() const {
+    return type == APP_INTERPRETED;
+  }
+
 };
 
 struct FunctionApplicationHashFunction {
@@ -303,7 +331,7 @@ struct FunctionApplicationPair {
   FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
   : original(original), normalized(normalized) {}
   bool isNull() const {
-    return !original.isApplication();
+    return original.isNull();
   }
 };
 
