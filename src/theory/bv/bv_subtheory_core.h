@@ -19,6 +19,7 @@
 #include "cvc4_private.h"
 #include "theory/bv/bv_subtheory.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,11 +61,10 @@ class CoreSolver : public SubtheorySolver {
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
 
-  /** FIXME: for debugging purposes only */
-  context::CDList<TNode> d_assertions;
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
-
+  /** To make sure we keep the explanations */
+  context::CDHashSet<Node, NodeHashFunction> d_reasons; 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);

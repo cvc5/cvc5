@@ -315,10 +315,10 @@ class CoreSolver;
 
 class Slicer {
   __gnu_cxx::hash_map<TermId, TNode, __gnu_cxx::hash<TermId> > d_idToNode;
-  __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> d_nodeToId;
-  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_coreTermCache;
-  __gnu_cxx::hash_map<TNode, ExplanationId, TNodeHashFunction> d_explanationToId;
-  std::vector<TNode> d_explanations; 
+  __gnu_cxx::hash_map<Node, TermId, NodeHashFunction> d_nodeToId;
+  __gnu_cxx::hash_map<Node, bool, NodeHashFunction> d_coreTermCache;
+  __gnu_cxx::hash_map<Node, ExplanationId, NodeHashFunction> d_explanationToId;
+  std::vector<Node> d_explanations; 
   UnionFind d_unionFind;
 
   context::CDQueue<Node> d_newSplits;

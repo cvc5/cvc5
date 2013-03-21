@@ -61,7 +61,7 @@ const bool d_useSatPropagation = true;
 // forward declaration 
 class TheoryBV; 
 
-typedef context::CDQueue<TNode> AssertionQueue; 
+typedef context::CDQueue<Node> AssertionQueue; 
 /**
  * Abstract base class for bit-vector subtheory solvers
  *

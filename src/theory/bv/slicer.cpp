@@ -521,7 +521,6 @@ void UnionFind::ensureSlicing(const ExtractTerm& term) {
 }
 
 void UnionFind::backtrack() {
-  return; 
   int size = d_undoStack.size(); 
   for (int i = size; i > (int)d_undoStackIndex.get(); --i) {
     Operation op = d_undoStack.back(); 
@@ -619,7 +618,7 @@ void Slicer::assertEquality(TNode eq) {
 }
 
 TermId Slicer::getId(TNode node) const {
-  __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction >::const_iterator it = d_nodeToId.find(node);
+  __gnu_cxx::hash_map<Node, TermId, NodeHashFunction >::const_iterator it = d_nodeToId.find(node);
   Assert (it != d_nodeToId.end());
   return it->second; 
 }
@@ -632,7 +631,7 @@ void Slicer::registerEquality(TNode eq) {
   }
 }
 
-void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<TNode>& explanation) {
+void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<Node>& explanation) {
   Debug("bv-slicer") << "Slicer::getBaseDecomposition " << node << endl;
   
   Index high = utils::getSize(node) - 1;
@@ -652,7 +651,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::ve
 
   for (unsigned i = 0; i < explanation_ids.size(); ++i) {
     Assert (hasExplanation(explanation_ids[i])); 
-    TNode exp = getExplanation(explanation_ids[i]);
+    Node exp = getExplanation(explanation_ids[i]);
     explanation.push_back(exp); 
   }
   

@@ -32,9 +32,9 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
-    d_assertions(c),
     d_slicer(new Slicer(c, this)),
-    d_isCoreTheory(c, true)
+    d_isCoreTheory(c, true),
+    d_reasons(c)
 {
   if (d_useEqualityEngine) {
 
@@ -124,7 +124,8 @@ bool CoreSolver::decomposeFact(TNode fact) {
 
     explanation.push_back(fact);
     Node reason = utils::mkAnd(explanation); 
-  
+    d_reasons.insert(reason);
+    
     Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
             utils::getSize(new_a) == utils::getSize(a)); 
     // FIXME: do we still need to assert these? 
@@ -132,6 +133,9 @@ bool CoreSolver::decomposeFact(TNode fact) {
     Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
     Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
 
+    d_reasons.insert(a_eq_new_a);
+    d_reasons.insert(b_eq_new_b); 
+    
     bool ok = true; 
     ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
     if (!ok) return false; 
@@ -145,6 +149,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
         ok = assertFactToEqualityEngine(eq_i, reason);
+        d_reasons.insert(eq_i); 
         if (!ok) return false;
       }
     }
@@ -269,8 +274,8 @@ void CoreSolver::conflict(TNode a, TNode b) {
 
 void CoreSolver::collectModelInfo(TheoryModel* m) {
   if (Debug.isOn("bitvector-model")) {
-    context::CDList<TNode>::const_iterator it = d_assertions.begin();
-    for (; it!= d_assertions.end(); ++it) {
+    context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
+    for (; it!= d_assertionQueue.end(); ++it) {
       Debug("bitvector-model") << "CoreSolver::collectModelInfo (assert "
                                << *it << ")\n";
     }
