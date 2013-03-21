@@ -50,7 +50,7 @@ class DecisionEngine {
   DPLLSatSolverInterface* d_satSolver;
 
   context::Context* d_satContext;
-  context::Context* d_userContext;
+  context::UserContext* d_userContext;
 
   // Does decision engine know the answer?
   context::CDO<SatValue> d_result;
@@ -64,7 +64,7 @@ public:
   // Necessary functions
 
   /** Constructor */
-  DecisionEngine(context::Context *sc, context::Context *uc);
+  DecisionEngine(context::Context *sc, context::UserContext *uc);
 
   /** Destructor, currently does nothing */
   ~DecisionEngine() {

@@ -283,16 +283,22 @@ void AntlrInput::warning(const std::string& message) {
   Warning() << getInputStream()->getName() << ':' << d_lexer->getLine(d_lexer) << '.' << d_lexer->getCharPositionInLine(d_lexer) << ": " << message << endl;
 }
 
-void AntlrInput::parseError(const std::string& message)
+void AntlrInput::parseError(const std::string& message, bool eofException)
   throw (ParserException) {
   Debug("parser") << "Throwing exception: "
       << getInputStream()->getName() << ":"
       << d_lexer->getLine(d_lexer) << "."
       << d_lexer->getCharPositionInLine(d_lexer) << ": "
       << message << endl;
-  throw ParserException(message, getInputStream()->getName(),
-                        d_lexer->getLine(d_lexer),
-                        d_lexer->getCharPositionInLine(d_lexer));
+  if(eofException) {
+    throw ParserEndOfFileException(message, getInputStream()->getName(),
+                                   d_lexer->getLine(d_lexer),
+                                   d_lexer->getCharPositionInLine(d_lexer));
+  } else {
+    throw ParserException(message, getInputStream()->getName(),
+                          d_lexer->getLine(d_lexer),
+                          d_lexer->getCharPositionInLine(d_lexer));
+  }
 }
 
 

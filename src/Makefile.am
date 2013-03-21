@@ -137,7 +137,7 @@ gitinfo: gitinfo.tmp
 # .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
 .PHONY: gitinfo.tmp
 gitinfo.tmp:
-	$(AM_V_GEN)(cd "$(top_srcdir)" && sed 's,^ref: refs/heads/,,' .git/HEAD && git show-ref refs/heads/`sed 's,^ref: refs/heads/,,' .git/HEAD` && echo "Modifications: `test -z \"\`git status -s -uno\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
+	$(AM_V_GEN)(cd "$(top_srcdir)"; if ! grep -q '^ref: refs/heads/' .git/HEAD; then echo; fi; sed 's,^ref: refs/heads/,,' .git/HEAD; git show-ref refs/heads/`sed 's,^ref: refs/heads/,,' .git/HEAD`; echo "Modifications: `test -z \"\`git status -s -uno\`\" && echo false || echo true`") >"$@" 2>/dev/null || true
 
 install-data-local:
 	(echo include/cvc4.h; \

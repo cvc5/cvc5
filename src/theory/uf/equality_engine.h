@@ -418,20 +418,11 @@ private:
   std::vector<bool> d_isConstant;
 
   /**
-   * Map from ids to whether they evaluate. A node evaluates 
-   * (1) if it is a constant
-   * (2) if it is internal and it's children evaluate
-   * (3) if it is non-internal and it's children are constants
+   * Map from ids of proper terms, to the number of non-constant direct subterms. If we update an interpreted
+   * application to a constant, we can decrease this value. If we hit 0, we can evaluate the term.
    * 
-   * Example:
-   * 
-   *  f(x) + g(y)
-   * 
-   * If f and g are interpreted, in the context x = 0, the nodes 
-   * f(x) and g(y) evaluate, but not f(x) + g(y). The term f(x) + g(y) 
-   * evaluates if we evaluate f(0) and g(0) to constants c1 and c2.
    */
-  std::vector<bool> d_evaluates;
+  std::vector<unsigned> d_subtermsToEvaluate;
   
   /** 
    * For nodes that we need to postpone evaluation.
@@ -443,32 +434,14 @@ private:
    */
   void processEvaluationQueue();
   
-  /** 
-   * Check whether the node evaluates in the current context 
-   */
-  bool evaluates(EqualityNodeId id) const {
-    return d_evaluates[id];
-  }
-
   /** Vector of nodes that evaluate. */
-  std::vector<EqualityNodeId> d_nodesThatEvaluate;
+  std::vector<EqualityNodeId> d_subtermEvaluates;
 
   /** Size of the nodes that evaluate vector. */
-  context::CDO<unsigned> d_nodesThatEvaluateSize;
+  context::CDO<unsigned> d_subtermEvaluatesSize;
   
   /** Set the node evaluate flag */
-  void setEvaluates(EqualityNodeId id) {
-    Assert(!d_evaluates[id]);
-    d_evaluates[id] = true;
-    d_nodesThatEvaluate.push_back(id);
-    d_nodesThatEvaluateSize = d_nodesThatEvaluate.size();
-  }
-
-  /** 
-   * Propagate something that evaluates.
-   * @param fragile if true, no new terms are added, but 
-   */
-  void evaluateApplication(const FunctionApplication& funNormalized, EqualityNodeId funId);
+  void subtermEvaluates(EqualityNodeId id);
 
   /**
    * Returns the evaluation of the term when all (direct) children are replaced with 
@@ -503,7 +476,7 @@ private:
   Statistics d_stats;
 
   /** Add a new function application node to the database, i.e APP t1 t2 */
-  EqualityNodeId newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, bool isEquality);
+  EqualityNodeId newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type);
 
   /** Add a new node to the database */
   EqualityNodeId newNode(TNode t);

@@ -261,7 +261,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   }
 
   // Call the error display routine
-  input->parseError(ss.str());
+  input->parseError(ss.str(), ((pANTLR3_COMMON_TOKEN)ex->token)->type == ANTLR3_TOKEN_EOF);
 }
 
 ///

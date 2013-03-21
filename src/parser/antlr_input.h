@@ -209,7 +209,7 @@ protected:
   /**
    * Throws a <code>ParserException</code> with the given message.
    */
-  void parseError(const std::string& msg)
+  void parseError(const std::string& msg, bool eofException = false)
     throw (ParserException);
 
   /** Set the ANTLR3 lexer for this input. */

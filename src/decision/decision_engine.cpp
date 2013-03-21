@@ -29,7 +29,7 @@ using namespace std;
 namespace CVC4 {
 
 DecisionEngine::DecisionEngine(context::Context *sc,
-                                 context::Context *uc) :
+                               context::UserContext *uc) :
   d_enabledStrategies(),
   d_needIteSkolemMap(),
   d_relevancyStrategy(NULL),

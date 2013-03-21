@@ -27,8 +27,12 @@ inline void showConfiguration(std::string option, SmtEngine* smt) {
   printf("\n");
   printf("version    : %s\n", Configuration::getVersionString().c_str());
   if(Configuration::isGitBuild()) {
+    const char* branchName = Configuration::getGitBranchName();
+    if(*branchName == '\0') {
+      branchName = "-";
+    }
     printf("scm        : git [%s %s%s]\n",
-           Configuration::getGitBranchName(),
+           branchName,
            std::string(Configuration::getGitCommit()).substr(0, 8).c_str(),
            Configuration::hasGitModifications() ?
              " (with modifications)" : "");

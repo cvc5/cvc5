@@ -38,7 +38,7 @@ namespace decision {
 
 class JustificationHeuristic : public ITEDecisionStrategy {
   typedef std::vector<pair<TNode,TNode> > IteList;
-  typedef hash_map<TNode,IteList,TNodeHashFunction> IteCache;
+  typedef context::CDHashMap<TNode,IteList,TNodeHashFunction> IteCache;
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
 
   // being 'justified' is monotonic with respect to decisions
@@ -82,7 +82,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   SatLiteral d_curDecision;
 public:
   JustificationHeuristic(CVC4::DecisionEngine* de,
-                         context::Context *uc,
+                         context::UserContext *uc,
                          context::Context *c);
 
   ~JustificationHeuristic();
@@ -110,7 +110,7 @@ private:
   SatValue tryGetSatValue(Node n);
 
   /* Get list of all term-ITEs for the atomic formula v */
-  const JustificationHeuristic::IteList& getITEs(TNode n);
+  JustificationHeuristic::IteList getITEs(TNode n);
 
   /* Compute all term-ITEs in a node recursively */
   void computeITEs(TNode n, IteList &l);

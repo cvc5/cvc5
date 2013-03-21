@@ -28,7 +28,7 @@
 using namespace CVC4;
 
 JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
-                                               context::Context *uc,
+                                               context::UserContext *uc,
                                                context::Context *c):
   ITEDecisionStrategy(de, c),
   d_justified(c),
@@ -38,7 +38,7 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
   d_timestat("decision::jh::time"),
   d_assertions(uc),
   d_iteAssertions(uc),
-  d_iteCache(),
+  d_iteCache(uc),
   d_visited(),
   d_visitedComputeITE(),
   d_curDecision() {
@@ -199,19 +199,20 @@ SatValue JustificationHeuristic::tryGetSatValue(Node n)
   }//end of else
 }
 
-const JustificationHeuristic::IteList&
+JustificationHeuristic::IteList
 JustificationHeuristic::getITEs(TNode n)
 {
   IteCache::iterator it = d_iteCache.find(n);
   if(it != d_iteCache.end()) {
-    return it->second;
+    return (*it).second;
   } else {
     // Compute the list of ITEs
     // TODO: optimize by avoiding multiple lookup for d_iteCache[n]
-    d_iteCache[n] = IteList();
     d_visitedComputeITE.clear();
-    computeITEs(n, d_iteCache[n]);
-    return d_iteCache[n];
+    IteList ilist;
+    computeITEs(n, ilist);
+    d_iteCache.insert(n, ilist);
+    return ilist;
   }
 }
 
@@ -462,15 +463,15 @@ bool JustificationHeuristic::handleITE(TNode node, SatValue desiredVal)
 
 bool JustificationHeuristic::handleEmbeddedITEs(TNode node)
 {
-  const IteList& l = getITEs(node);
+  const IteList l = getITEs(node);
   Trace("decision::jh::ite") << " ite size = " << l.size() << std::endl;
 
   for(IteList::const_iterator i = l.begin(); i != l.end(); ++i) {
-    if(d_visited.find(i->first) == d_visited.end()) {
-      d_visited.insert(i->first);
-      if(findSplitterRec(i->second, SAT_VALUE_TRUE))
+    if(d_visited.find((*i).first) == d_visited.end()) {
+      d_visited.insert((*i).first);
+      if(findSplitterRec((*i).second, SAT_VALUE_TRUE))
         return true;
-      d_visited.erase(i->first);
+      d_visited.erase((*i).first);
     }
   }
   return false;

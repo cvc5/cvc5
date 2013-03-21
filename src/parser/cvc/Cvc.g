@@ -625,8 +625,7 @@ mainCommand[CVC4::Command*& cmd]
   : ASSERT_TOK formula[f] { cmd = new AssertCommand(f); }
 
   | QUERY_TOK formula[f] { cmd = new QueryCommand(f); }
-  | CHECKSAT_TOK formula[f] { cmd = new CheckSatCommand(f); }
-  | CHECKSAT_TOK { cmd = new CheckSatCommand(); }
+  | CHECKSAT_TOK formula[f]? { cmd = f.isNull() ? new CheckSatCommand() : new CheckSatCommand(f); }
 
     /* options */
   | OPTION_TOK
