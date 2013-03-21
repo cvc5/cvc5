@@ -9,11 +9,11 @@
 (declare-fun v4 () (_ BitVec 16))
 (declare-fun v5 () (_ BitVec 16))
 (assert (and
+	 (bvult v2 v4)
+	 (bvult v3 v4)
 	 (bvult v0 v1)
 	 (bvult v1 v2)
 	 (bvult v1 v3)
-	 (bvult v2 v4)
-	 (bvult v3 v4)
 	 (bvult v4 v5)
 	 (bvult v5 v1)
 	 ))

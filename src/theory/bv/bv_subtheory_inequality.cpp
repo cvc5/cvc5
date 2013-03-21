@@ -30,15 +30,23 @@ bool InequalitySolver::check(Theory::Effort e) {
   bool ok = true; 
   while (!done() && ok) {
     TNode fact = get();
-     if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
-       TNode a = fact[0][1];
-       TNode b = fact[0][0]; 
-       ok = d_inequalityGraph.addInequality(a, b, fact);
-    }
-    if (fact.getKind() == kind::BITVECTOR_ULT) {
+    
+    if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
+      TNode a = fact[0][1];
+      TNode b = fact[0][0]; 
+      ok = d_inequalityGraph.addInequality(a, b, true, fact);
+    } else if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULT) {
+      TNode a = fact[0][1];
+      TNode b = fact[0][0]; 
+      ok = d_inequalityGraph.addInequality(a, b, false, fact);
+    } else if (fact.getKind() == kind::BITVECTOR_ULT) {
       TNode a = fact[0];
       TNode b = fact[1]; 
-      ok = d_inequalityGraph.addInequality(a, b, fact);
+      ok = d_inequalityGraph.addInequality(a, b, true, fact);
+    } else if (fact.getKind() == kind::BITVECTOR_ULE) {
+      TNode a = fact[0];
+      TNode b = fact[1]; 
+      ok = d_inequalityGraph.addInequality(a, b, false, fact);
     }
   }
   if (!ok) {

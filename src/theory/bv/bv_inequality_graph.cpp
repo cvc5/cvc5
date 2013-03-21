@@ -26,205 +26,219 @@ using namespace CVC4::theory::bv::utils;
 
 const TermId CVC4::theory::bv::UndefinedTermId = -1; 
 const ReasonId CVC4::theory::bv::UndefinedReasonId = -1;
+const ReasonId CVC4::theory::bv::AxiomReasonId = -2;
 
+BitVector InequalityGraph::maxValue(unsigned bitwidth) {
+  if (d_signed) {
+    return BitVector(1, 0u).concat(~BitVector(bitwidth - 1, 0u)); 
+  }
+  return ~BitVector(bitwidth, 0u);
+}
 
-bool InequalityGraph::addInequality(TNode a, TNode b, TNode reason) {
+BitVector InequalityGraph::minValue(unsigned bitwidth) {
+  if (d_signed) {
+    return ~BitVector(bitwidth, 0u); 
+  } 
+  return BitVector(bitwidth, 0u);
+}
+
+TermId InequalityGraph::getMaxValueId(unsigned bitwidth) {
+  BitVector bv = maxValue(bitwidth); 
+  Node max = utils::mkConst(bv); 
+  
+  if (d_termNodeToIdMap.find(max) == d_termNodeToIdMap.end()) {
+    TermId id = d_termNodes.size(); 
+    d_termNodes.push_back(max);
+    d_termNodeToIdMap[max] = id;
+    InequalityNode node(id, bitwidth, true, bv);
+    d_ineqNodes.push_back(node); 
+
+    // although it will never have out edges we need this to keep the size of
+    // d_termNodes and d_ineqEdges in sync
+    d_ineqEdges.push_back(Edges());
+    return id; 
+  }
+  return d_termNodeToIdMap[max]; 
+}
+
+TermId InequalityGraph::getMinValueId(unsigned bitwidth) {
+  BitVector bv = minValue(bitwidth); 
+  Node min = utils::mkConst(bv); 
+
+  if (d_termNodeToIdMap.find(min) == d_termNodeToIdMap.end()) {
+    TermId id = d_termNodes.size(); 
+    d_termNodes.push_back(min);
+    d_termNodeToIdMap[min] = id;
+    d_ineqEdges.push_back(Edges());
+    InequalityNode node = InequalityNode(id, bitwidth, true, bv);
+    d_ineqNodes.push_back(node); 
+    return id; 
+  }
+  return d_termNodeToIdMap[min]; 
+}
+
+bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason) {
   Debug("bv-inequality") << "InequlityGraph::addInequality " << a << " " << b << "\n"; 
+
   TermId id_a = registerTerm(a);
   TermId id_b = registerTerm(b);
   ReasonId id_reason = registerReason(reason);
 
-  if (hasValue(id_a) && hasValue(id_b)) {
-    if (getValue(id_a) < getValue(id_b)) {
-      // the inequality is true in the current partial model
-      // we still add the edge because it may not be true later (cardinality)
-      addEdge(id_a, id_b, id_reason);
-      return true;
-    }
-    if (canReach(id_b, id_a)) {
-      // we are introducing a cycle; make sure the model reflects this
-      Assert (getValue(id_a) >= getValue(id_b)); 
-      
-      std::vector<ReasonId> conflict;
-      conflict.push_back(id_reason); 
-      computeExplanation(id_b, id_a, conflict);
-      setConflict(conflict); 
-      return false; 
-    }
-  } else {
-    bool ok = initializeValues(a, b, id_reason);
-    if (!ok) {
-      return false;
-    }
-  }
-  // the inequality edge does not exist
-  addEdge(id_a, id_b, id_reason);
-  BFSQueue queue;
-  queue.push(PQueueElement(id_a, getValue(id_a)));
-  TermIdSet seen; 
-  return computeValuesBFS(queue, seen); 
-}
-
-void InequalityGraph::computeExplanation(TermId from, TermId to, std::vector<ReasonId>& explanation) {
-  if (to == from || (from == UndefinedTermId && getInequalityNode(to).isConstant())) {
-    // we have explained the whole path or reached a constant that forced the value of to
-    return;
-  }
-  
-  const Edges& edges = getInEdges(to);
-  if (edges.size() == 0) {
-    // this can happen when from is Undefined
-    Assert (from == UndefinedTermId); 
-    return; 
-  }
-  BitVector max(getBitwidth(to), 0u);
-  TermId to_visit = UndefinedTermId;
-  ReasonId reason = UndefinedReasonId;
-  
-  for (Edges::const_iterator it = edges.begin(); it != edges.end(); ++it) {
-    TermId next = it->next; 
-    if (next == from) {
-      explanation.push_back(it->reason); 
-      return; 
-    }
-    if (getValue(next) >= max) {
-      max = getValue(next);
-      to_visit = it->next;
-      reason = it->reason; 
-    } 
-  }
-  Assert(reason != UndefinedReasonId && to_visit != UndefinedTermId);
-  explanation.push_back(reason);
-  computeExplanation(from, to_visit, explanation); 
-}
-
-void InequalityGraph::addEdge(TermId a, TermId b, TermId reason) {
-  Edges& out_edges = getOutEdges(a);
-  out_edges.push_back(InequalityEdge(b, reason));
-  Edges& in_edges = getInEdges(b);
-  in_edges.push_back(InequalityEdge(a, reason)); 
-}
-
-TermId InequalityGraph::getMaxParent(TermId id) {
-  const Edges& in_edges = getInEdges(id);
-  Assert (in_edges.size() != 0);
-  
-  BitVector max(getBitwidth(0), 0u);
-  TermId max_id = UndefinedTermId; 
-  for (Edges::const_iterator it = in_edges.begin(); it!= in_edges.end(); ++it) {
-    // Assert (seen.count(it->next));
-    const BitVector& value = getInequalityNode(it->next).getValue();
-    if (value >= max) {
-      max = value;
-      max_id = it->next; 
-    }
-  }
-  Assert (max_id != UndefinedTermId); 
-  return max_id; 
-}
-
-bool InequalityGraph::hasParents(TermId id) {
-  return getInEdges(id).size() != 0; 
-}
-
-TermId InequalityGraph::getReasonId(TermId a, TermId b) {
-  const Edges& edges = getOutEdges(a);
-  for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
-    if (it->next == b) {
-      return it->reason; 
-    }
-  }
-  Unreachable(); 
-}
-
-bool InequalityGraph::computeValuesBFS(BFSQueue& queue, TermIdSet& seen) {
-  if (queue.empty())
+  Assert (!(isConst(id_a) && isConst(id_b))); 
+  BitVector a_val = getValue(id_a);
+  BitVector b_val = getValue(id_b);
+    
+  unsigned bitwidth = utils::getSize(a); 
+  BitVector diff = strict ? BitVector(bitwidth, 1u) : BitVector(bitwidth, 0u); 
+  if (a_val + diff <= b_val) {
+    // the inequality is true in the current partial model
+    // we still add the edge because it may not be true later (cardinality)
+    addEdge(id_a, id_b, strict, id_reason);
     return true;
+  }
 
-  TermId current = queue.top().id;
-  seen.insert(current); 
-  queue.pop();
+  if (isConst(id_b) && a_val + diff > b_val) {
+    // we must be in a conflict since a has the minimum value that
+    // satisifes the constraints
+    std::vector<ReasonId> conflict;
+    conflict.push_back(id_reason);
+    computeExplanation(UndefinedTermId, id_a, conflict);
+    Debug("bv-inequality") << "InequalityGraph::addInequality conflict: constant UB \n"; 
+    setConflict(conflict);
+    return false; 
+  }
   
-  InequalityNode& ineqNode = getInequalityNode(current);
-  Debug("bv-inequality-internal") << "InequalityGraph::computeValueBFS \n"; 
-  Debug("bv-inequality-internal") << "    processing " << getTerm(current) << "\n"
-                                  << "    old value " << ineqNode.getValue() << "\n";
-  BitVector zero(getBitwidth(current), 0u);
-  BitVector one(getBitwidth(current), 1u); 
-  const BitVector min_val = hasParents(current) ? getInequalityNode(getMaxParent(current)).getValue() + one : zero;
-  Debug("bv-inequality-internal") << "    min value " << min_val << "\n"; 
-                                 
+  // add the inequality edge
+  addEdge(id_a, id_b, strict, id_reason);
+  BFSQueue queue;
+  queue.push(PQueueElement(id_a, getValue(id_a), getValue(id_a), 
+                           (hasExplanation(id_a) ? getExplanation(id_a) : Explanation())));
+  TermIdSet seen; 
+  return computeValuesBFS(queue, id_a, seen); 
+}
+
+bool InequalityGraph::updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen) {
+  TermId id = el.id;
+  const BitVector& lower_bound = el.lower_bound; 
+  InequalityNode& ineqNode = getInequalityNode(id);
+                               
   if (ineqNode.isConstant()) {
-    if (ineqNode.getValue() < min_val) {
+    if (ineqNode.getValue() < lower_bound) {
       Debug("bv-inequality") << "Conflict: constant " << ineqNode.getValue() << "\n"; 
       std::vector<ReasonId> conflict;
-      TermId max_parent = getMaxParent(current);
-      ReasonId reason_id = getReasonId(max_parent, current);
-      conflict.push_back(reason_id); 
-      computeExplanation(UndefinedTermId, max_parent, conflict);
+      TermId parent = el.explanation.parent; 
+      ReasonId reason = el.explanation.reason; 
+      conflict.push_back(reason); 
+      computeExplanation(UndefinedTermId, parent, conflict);
+      Debug("bv-inequality") << "InequalityGraph::addInequality conflict: constant\n"; 
       setConflict(conflict); 
       return false; 
     }
   } else {
     // if not constant we can update the value
-    if (ineqNode.getValue() < min_val) {
-      Debug("bv-inequality-internal") << "Updating " << getTerm(current) <<
-        " from " << ineqNode.getValue() << "\n" <<
-        " to " << min_val << "\n";  
-      ineqNode.setValue(min_val); 
+    if (ineqNode.getValue() < lower_bound) {
+      // if we are updating the term we started with we must be in a cycle
+      if (seen.count(id)) {
+        TermId parent = el.explanation.parent;
+        ReasonId reason = el.explanation.reason;
+        std::vector<TermId> conflict;
+        conflict.push_back(reason);
+        computeExplanation(id, parent, conflict);
+        Debug("bv-inequality") << "InequalityGraph::addInequality conflict: cycle \n"; 
+        setConflict(conflict); 
+        return false; 
+      }
+      Debug("bv-inequality-internal") << "Updating " << getTermNode(id) 
+                                      << "  from " << ineqNode.getValue() << "\n"
+                                      << "  to " << lower_bound << "\n";
+      ineqNode.setValue(lower_bound);
+      setExplanation(id, el.explanation); 
     }
   }
-  unsigned bitwidth = min_val.getSize(); 
-  BitVector next_min = ineqNode.getValue() + BitVector(bitwidth, 1u); 
-  bool overflow = next_min < min_val; 
-  const Edges& edges = getOutEdges(current);
-
-  if (edges.size() > 0 && overflow) {
-    // we have reached the maximum value
-    Debug("bv-inequality") << "Conflict: overflow: " << getTerm(current) << "\n";
-    std::vector<ReasonId> conflict; 
-    computeExplanation(UndefinedTermId, current, conflict);
-    setConflict(conflict); 
-    return false;
-  }
-
-  for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
-    TermId next = it->next;
-    if (!seen.count(next)) {
-      const BitVector& value = getInequalityNode(next).getValue(); 
-      queue.push(PQueueElement(next, value));
-    }
-  }
-  return computeValuesBFS(queue, seen); 
+  return true; 
 }
 
+bool InequalityGraph::computeValuesBFS(BFSQueue& queue, TermId start, TermIdSet& seen) {
+  if (queue.empty())
+    return true;
 
-bool InequalityGraph::areLessThanInternal(TermId a, TermId b) {
-  return getValue(a) < getValue(b); 
+  const PQueueElement current = queue.top();
+  queue.pop();
+  
+  if (!updateValue(current, start, seen)) {
+    return false; 
+  }
+  if (seen.count(current.id) && current.id != getMaxValueId(getBitwidth(current.id))) {
+    Debug("bv-inequality-internal") << "InequalityGraph::computeValuesBFS equal cycle."; 
+    // this means we are in a cycle where all the values are forced to be equal
+    return computeValuesBFS(queue, start, seen); 
+  }
+  
+  seen.insert(current.id); 
+  const BitVector& current_value = getValue(current.id);
+  
+  unsigned size = getBitwidth(current.id);
+  const BitVector zero(size, 0u); 
+  const BitVector one(size, 1u); 
+  
+  const Edges& edges = getEdges(current.id);
+  for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
+    TermId next = it->next;
+    const BitVector increment = it->strict ? one : zero; 
+    const BitVector& next_lower_bound = current_value + increment;
+    const BitVector& value = getValue(next); 
+    queue.push(PQueueElement(next, value, next_lower_bound, Explanation(current.id, it->reason)));
+  }
+  return computeValuesBFS(queue, start, seen); 
+}
+
+void InequalityGraph::computeExplanation(TermId from, TermId to, std::vector<ReasonId>& explanation) {
+  while(hasExplanation(to) && from != to) {
+    const Explanation& exp = getExplanation(to);
+    Assert (exp.reason != UndefinedReasonId); 
+    explanation.push_back(exp.reason);
+    
+    Assert (exp.parent != UndefinedTermId); 
+    to = exp.parent; 
+  }
+}
+
+void InequalityGraph::addEdge(TermId a, TermId b, bool strict, TermId reason) {
+  Edges& edges = getEdges(a);
+  edges.push_back(InequalityEdge(b, strict, reason));
 }
 
 TermId InequalityGraph::registerTerm(TNode term) {
+  Debug("bv-inequality-internal") << "InequalityGraph::registerTerm " << term << "\n"; 
+
+
   if (d_termNodeToIdMap.find(term) != d_termNodeToIdMap.end()) {
     return d_termNodeToIdMap[term]; 
   }
 
   // store in node mapping
   TermId id = d_termNodes.size();
+  Debug("bv-inequality-internal") << " with id " << id << "\n";
+  
   d_termNodes.push_back(term);
   d_termNodeToIdMap[term] = id;
   
   // create InequalityNode
+  unsigned size = utils::getSize(term);
   bool isConst = term.getKind() == kind::CONST_BITVECTOR;
-  BitVector value(0,0u);  // leaves the value unintialized at this time
-  InequalityNode ineq = InequalityNode(id, utils::getSize(term), isConst, value);
+  BitVector value = isConst? term.getConst<BitVector>() : minValue(size); 
+  
+  InequalityNode ineq = InequalityNode(id, size, isConst, value);
   Assert (d_ineqNodes.size() == id); 
   d_ineqNodes.push_back(ineq);
+  
   Assert (d_ineqEdges.size() == id); 
   d_ineqEdges.push_back(Edges());
-  Assert(d_parentEdges.size() == id);
-  d_parentEdges.push_back(Edges()); 
-  Debug("bv-inequality-internal") << "InequalityGraph::registerTerm " << term << "\n"
-                                  << "with id " << id << "\n"; 
+
+  // add the default edges min <= term <= max
+  addEdge(getMinValueId(size), id, false, AxiomReasonId);
+  addEdge(id, getMaxValueId(size), false, AxiomReasonId); 
+  
   return id; 
 }
 
@@ -238,12 +252,12 @@ ReasonId InequalityGraph::registerReason(TNode reason) {
   return id; 
 }
 
-TNode InequalityGraph::getReason(ReasonId id) const {
+TNode InequalityGraph::getReasonNode(ReasonId id) const {
   Assert (d_reasonNodes.size() > id);
   return d_reasonNodes[id]; 
 }
 
-TNode InequalityGraph::getTerm(TermId id) const {
+TNode InequalityGraph::getTermNode(TermId id) const {
   Assert (d_termNodes.size() > id);
   return d_termNodes[id]; 
 }
@@ -253,7 +267,9 @@ void InequalityGraph::setConflict(const std::vector<ReasonId>& conflict) {
   d_inConflict = true;
   d_conflict.clear(); 
   for (unsigned i = 0; i < conflict.size(); ++i) {
-    d_conflict.push_back(getReason(conflict[i])); 
+    if (conflict[i] != AxiomReasonId) {
+      d_conflict.push_back(getReasonNode(conflict[i]));
+    }
   }
   if (Debug.isOn("bv-inequality")) {
     Debug("bv-inequality") << "InequalityGraph::setConflict \n";
@@ -269,37 +285,114 @@ void InequalityGraph::getConflict(std::vector<TNode>& conflict) {
   }
 }
 
-bool InequalityGraph::canReach(TermId from, TermId to) {
-  if (from == to )
-    return true;
+// bool InequalityGraph::initializeValues(TNode a, TNode b, bool strict, TermId reason_id) {
+//   TermId id_a = registerTerm(a);
+//   TermId id_b = registerTerm(b);
   
-  TermIdSet seen;
-  TermIdQueue queue;
-  queue.push(from); 
-  bfs(seen, queue);
-  if (seen.count(to)) {
-    return true; 
-  }
-  return false; 
-}
-
-void InequalityGraph::bfs(TermIdSet& seen, TermIdQueue& queue) {
-  if (queue.empty())
-    return;
+//   InequalityNode& ineq_a = getInequalityNode(id_a);
+//   InequalityNode& ineq_b = getInequalityNode(id_b);
   
-  TermId current = queue.front();
-  queue.pop();
+//   unsigned size = utils::getSize(a);
+//   BitVector one = mkOne(size);
+//   BitVector zero = mkZero(size); 
+//   BitVector diff = strict? one : zero; 
+    
+//   // FIXME: dumb case splitting 
+//   if (ineq_a.isConstant() && ineq_b.isConstant()) {
+//     Assert (a.getConst<BitVector>() + diff <= b.getConst<BitVector>());
+//     ineq_a.setValue(a.getConst<BitVector>());
+//     ineq_b.setValue(b.getConst<BitVector>());
+//     return true; 
+//   }
+  
+//   if (ineq_a.isConstant()) {
+//     ineq_a.setValue(a.getConst<BitVector>());
+//   }
+  
+//   if (ineq_b.isConstant()) {
+//     const BitVector& const_val = b.getConst<BitVector>(); 
+//     ineq_b.setValue(const_val);
 
-  const Edges& edges = getOutEdges(current);
-  for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
-    TermId next = it->next;
-    if(seen.count(next) == 0) {
-      seen.insert(next);
-      queue.push(next); 
-    }
-  }
-  bfs(seen, queue);
-}
+//     if (hasValue(id_a) && !(ineq_a.getValue() + diff <= const_val)) {
+//       // must be a conflict because we have as an invariant that a will have the min
+//       // possible value for a. 
+//       std::vector<ReasonId> conflict;
+//       conflict.push_back(reason_id);
+//       // FIXME: this will not compute the most precise conflict
+//       // could be fixed by giving computeExplanation a bound (i.e. the size of const_val)
+//       computeExplanation(UndefinedTermId, id_a, conflict);
+//       setConflict(conflict); 
+//       return false; 
+//     }
+//   }
+
+//   if (!hasValue(id_a) && !hasValue(id_b)) {
+//     // initialize to the minimum possible values
+//     if (strict) {
+//       ineq_a.setValue(MinValue(size)); 
+//       ineq_b.setValue(MinValue(size) + one);
+//     } else {
+//       ineq_a.setValue(MinValue(size));
+//       ineq_b.setValue(MinValue(size)); 
+//     }
+//   }
+//   else if (!hasValue(id_a) && hasValue(id_b)) {
+//     const BitVector& b_value = ineq_b.getValue();
+//     if (strict && b_value == MinValue(size) && ineq_b.isConstant()) {
+//       Debug("bv-inequality") << "Conflict: underflow " << getTerm(id_a) <<"\n";
+//       std::vector<ReasonId> conflict;
+//       conflict.push_back(reason_id);
+//       setConflict(conflict); 
+//       return false; 
+//     }
+//     // otherwise we attempt to increment b
+//     ineq_b.setValue(one); 
+//   }
+//     // if a has no value then we can assign it to whatever we want
+//     // to maintain the invariant that each value has the lowest value
+//     // we assign it to zero 
+//     ineq_a.setValue(zero); 
+//   } else if (hasValue(id_a) && !hasValue(id_b)) {
+//     const BitVector& a_value = ineq_a.getValue();
+//     if (a_value + one < a_value) {
+//       return false; 
+//     }
+//     ineq_b.setValue(a_value + one); 
+//   }
+//   return true; 
+// }
+
+// bool InequalityGraph::canReach(TermId from, TermId to) {
+//   if (from == to )
+//     return true;
+  
+//   TermIdSet seen;
+//   TermIdQueue queue;
+//   queue.push(from); 
+//   bfs(seen, queue);
+//   if (seen.count(to)) {
+//     return true; 
+//   }
+//   return false; 
+// }
+
+// void InequalityGraph::bfs(TermIdSet& seen, TermIdQueue& queue) {
+//   if (queue.empty())
+//     return;
+  
+//   TermId current = queue.front();
+//   queue.pop();
+
+//   const Edges& edges = getOutEdges(current);
+//   for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
+//     TermId next = it->next;
+//     if(seen.count(next) == 0) {
+//       seen.insert(next);
+//       queue.push(next); 
+//     }
+//   }
+//   bfs(seen, queue);
+// }
 
 // void InequalityGraph::getPath(TermId to, TermId from, const TermIdSet& seen, std::vector<ReasonId> explanation) {
 //   // traverse parent edges
@@ -313,75 +406,20 @@ void InequalityGraph::bfs(TermIdSet& seen, TermIdQueue& queue) {
 //   }
 // }
 
-bool InequalityGraph::hasValue(TermId id) const {
-  return getInequalityNode(id).getValue() != BitVector(0, 0u); 
-}
-
-bool InequalityGraph::initializeValues(TNode a, TNode b, TermId reason_id) {
-  TermId id_a = registerTerm(a);
-  TermId id_b = registerTerm(b);
+// TermId InequalityGraph::getMaxParent(TermId id) {
+//   const Edges& in_edges = getInEdges(id);
+//   Assert (in_edges.size() != 0);
   
-  InequalityNode& ineq_a = getInequalityNode(id_a);
-  InequalityNode& ineq_b = getInequalityNode(id_b);
-  // FIXME: dumb case splitting 
-  if (ineq_a.isConstant() && ineq_b.isConstant()) {
-    Assert (a.getConst<BitVector>() < b.getConst<BitVector>());
-    ineq_a.setValue(a.getConst<BitVector>());
-    ineq_b.setValue(b.getConst<BitVector>());
-    return true; 
-  }
-  
-  if (ineq_a.isConstant()) {
-    ineq_a.setValue(a.getConst<BitVector>());
-  }
-  if (ineq_b.isConstant()) {
-    const BitVector& const_val = b.getConst<BitVector>(); 
-    ineq_b.setValue(const_val);
-    // check for potential underflow
-    if (hasValue(id_a) && ineq_a.getValue() > const_val) {
-      // must be a conflict because we have as an invariant that a will have the min
-      // possible value for a. 
-      std::vector<ReasonId> conflict;
-      conflict.push_back(reason_id);
-      // FIXME: this will not compute the most precise conflict
-      // could be fixed by giving computeExplanation a bound (i.e. the size of const_val)
-      computeExplanation(UndefinedTermId, id_a, conflict);
-      setConflict(conflict); 
-      return false; 
-    }
-  }
-
-  BitVector one(getBitwidth(id_a), 1u);
-  BitVector zero(getBitwidth(id_a), 0u);
-  
-  if (!hasValue(id_a) && !hasValue(id_b)) {
-    // initialize to the minimum possible values
-    ineq_a.setValue(zero); 
-    ineq_b.setValue(one); 
-  }
-  else if (!hasValue(id_a) && hasValue(id_b)) {
-    const BitVector& b_value = ineq_b.getValue();
-    if (b_value == zero) {
-      if (ineq_b.isConstant()) {
-        Debug("bv-inequality") << "Conflict: underflow " << getTerm(id_a) <<"\n";
-        std::vector<ReasonId> conflict;
-        conflict.push_back(reason_id);
-        setConflict(conflict); 
-        return false; 
-      }
-      // otherwise we attempt to increment b
-      ineq_b.setValue(one); 
-    }
-    // if a has no value then we can assign it to whatever we want
-    // to maintain the invariant that each value has the lowest value
-    // we assign it to zero 
-    ineq_a.setValue(zero); 
-  } else if (hasValue(id_a) && !hasValue(id_b)) {
-    const BitVector& a_value = ineq_a.getValue();
-    if (a_value + one < a_value) {
-      return false; 
-    }
-    ineq_b.setValue(a_value + one); 
-  }
-  return true; 
-}
+//   BitVector max(getBitwidth(0), 0u);
+//   TermId max_id = UndefinedTermId; 
+//   for (Edges::const_iterator it = in_edges.begin(); it!= in_edges.end(); ++it) {
+//     // Assert (seen.count(it->next));
+//     const BitVector& value = getInequalityNode(it->next).getValue();
+//     if (value >= max) {
+//       max = value;
+//       max_id = it->next; 
+//     }
+//   }
+//   Assert (max_id != UndefinedTermId); 
+//   return max_id; 
+// }
