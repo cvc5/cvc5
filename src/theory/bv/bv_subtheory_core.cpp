@@ -123,7 +123,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
     Node new_b = getBaseDecomposition(b, explanation);
 
     explanation.push_back(fact);
-    TNode reason = utils::mkAnd(explanation); 
+    Node reason = utils::mkAnd(explanation); 
   
     Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
             utils::getSize(new_a) == utils::getSize(a)); 
@@ -197,11 +197,10 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
-  Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
-  Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
   // Notify the equality engine 
   if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_CORE) ) {
-    Trace("bitvector::core") << "     (assert " << fact << ")\n";  
+    Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
+    // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;
     TNode predicate = negated ? fact[0] : fact;
     if (predicate.getKind() == kind::EQUAL) {
