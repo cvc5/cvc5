@@ -72,6 +72,9 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   }
 }
 
+CoreSolver::~CoreSolver() {
+  delete d_slicer; 
+}
 void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
@@ -99,10 +102,11 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-Node CoreSolver::getBaseDecomposition(TNode a, std::vector<TNode>& explanation) {
+Node CoreSolver::getBaseDecomposition(TNode a, std::vector<Node>& explanation) {
   std::vector<Node> a_decomp;
   d_slicer->getBaseDecomposition(a, a_decomp, explanation);
   Node new_a = utils::mkConcat(a_decomp);
+  Debug("bv-slicer") << "CoreSolver::getBaseDecomposition " << a <<" => " << new_a << "\n"; 
   return new_a; 
 }
 
@@ -118,7 +122,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
     TNode b = fact[1];
 
     d_slicer->processEquality(fact); 
-    std::vector<TNode> explanation; 
+    std::vector<Node> explanation; 
     Node new_a = getBaseDecomposition(a, explanation);
     Node new_b = getBaseDecomposition(b, explanation);
 
@@ -157,10 +161,20 @@ bool CoreSolver::decomposeFact(TNode fact) {
     d_slicer->assertEquality(fact); 
   } else {
     // still need to register the terms
+    d_slicer->processEquality(fact[0]);
     TNode a = fact[0][0];
     TNode b = fact[0][1];
-    d_slicer->registerTerm(a);
-    d_slicer->registerTerm(b); 
+    std::vector<Node> explanation_a; 
+    Node new_a = getBaseDecomposition(a, explanation_a);
+    Node reason_a = explanation_a.empty()? mkTrue() : mkAnd(explanation_a);
+    assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, a, new_a), reason_a);
+
+    std::vector<Node> explanation_b; 
+    Node new_b = getBaseDecomposition(b, explanation_b);
+    Node reason_b = explanation_b.empty()? mkTrue() : mkAnd(explanation_b);
+    assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, b, new_b), reason_b);
+    d_reasons.insert(reason_a);
+    d_reasons.insert(reason_b); 
   }
   // finally assert the actual fact to the equality engine
   return assertFactToEqualityEngine(fact, fact);

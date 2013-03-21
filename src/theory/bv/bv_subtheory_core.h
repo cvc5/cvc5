@@ -67,9 +67,10 @@ class CoreSolver : public SubtheorySolver {
   context::CDHashSet<Node, NodeHashFunction> d_reasons; 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
+  Node getBaseDecomposition(TNode a, std::vector<Node>& explanation);
 public: 
   CoreSolver(context::Context* c, TheoryBV* bv);
+  ~CoreSolver();
   bool  isCoreTheory() { return d_isCoreTheory; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
@@ -91,6 +92,7 @@ public:
     return EQUALITY_UNKNOWN;
   }
   bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
+  void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
 };
 
 

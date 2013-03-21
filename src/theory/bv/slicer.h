@@ -224,7 +224,7 @@ class UnionFind : public context::ContextNotifyObj {
     Assert (id < d_nodes.size());
     return d_nodes[id].hasChildren(); 
   }
-  TermId getTopLevel(TermId id) const;
+  // TermId getTopLevel(TermId id) const;
   
   /// setter methods for the internal nodes
   void setRepr(TermId id, TermId new_repr, ExplanationId reason) {
@@ -338,7 +338,7 @@ public:
       d_coreSolver(coreSolver)
   {}
   
-  void getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<TNode>& explanation);
+  void getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<Node>& explanation);
   void registerEquality(TNode eq);
   ExtractTerm registerTerm(TNode node);
   void processEquality(TNode eq);
@@ -354,7 +354,7 @@ public:
   ExplanationId getExplanationId(TNode reason) const;
   
   bool termInEqualityEngine(TermId id); 
-  void enqueueSplit(TermId id, Index i);
+  void enqueueSplit(TermId id, Index i, TermId top, TermId bottom);
   void getNewSplits(std::vector<Node>& splits);
   static void splitEqualities(TNode node, std::vector<Node>& equalities);
   static unsigned d_numAddedEqualities;
