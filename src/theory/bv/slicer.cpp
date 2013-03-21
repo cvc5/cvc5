@@ -631,7 +631,7 @@ void Slicer::registerEquality(TNode eq) {
   }
 }
 
-void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<Node>& explanation) {
+void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<TNode>& explanation) {
   Debug("bv-slicer") << "Slicer::getBaseDecomposition " << node << endl;
   
   Index high = utils::getSize(node) - 1;
@@ -651,7 +651,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::ve
 
   for (unsigned i = 0; i < explanation_ids.size(); ++i) {
     Assert (hasExplanation(explanation_ids[i])); 
-    Node exp = getExplanation(explanation_ids[i]);
+    TNode exp = getExplanation(explanation_ids[i]);
     explanation.push_back(exp); 
   }
   
