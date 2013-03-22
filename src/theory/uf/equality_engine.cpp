@@ -603,9 +603,9 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
         const FunctionApplication& fun = d_applications[useNode.getApplicationId()].normalized;
         // If it's interpreted and we can interpret
-	if (fun.isInterpreted() && class1isConstant && !d_isInternal[funId]) {
+	if (fun.isInterpreted() && class1isConstant && !d_isInternal[currentId]) {
 	  // Get the actual term id 
-	  TNode term = d_nodes[useNode.getApplicationId()];
+	  TNode term = d_nodes[funId];
 	  subtermEvaluates(getNodeId(term));
 	}
 	// Check if there is an application with find arguments
