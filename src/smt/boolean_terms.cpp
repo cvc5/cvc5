@@ -137,7 +137,7 @@ static void collectVarsInTermContext(TNode n, std::set<TNode>& vars, std::set<TN
 Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, bool boolParent, std::map<TNode, Node>& quantBoolVars) throw() {
   Debug("boolean-terms") << "rewriteBooleanTermsRec: " << top << " - boolParent=" << boolParent << endl;
 
-  BooleanTermCache::iterator i = d_booleanTermCache.find(make_pair<Node, bool>(top, boolParent));
+  BooleanTermCache::iterator i = d_booleanTermCache.find(std::pair<Node, bool>(top, boolParent));
   if(i != d_booleanTermCache.end()) {
     return (*i).second.isNull() ? Node(top) : (*i).second;
   }
