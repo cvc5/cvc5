@@ -102,7 +102,7 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-Node CoreSolver::getBaseDecomposition(TNode a, std::vector<Node>& explanation) {
+Node CoreSolver::getBaseDecomposition(TNode a, std::vector<TNode>& explanation) {
   std::vector<Node> a_decomp;
   d_slicer->getBaseDecomposition(a, a_decomp, explanation);
   Node new_a = utils::mkConcat(a_decomp);
@@ -122,28 +122,35 @@ bool CoreSolver::decomposeFact(TNode fact) {
     TNode b = fact[1];
 
     d_slicer->processEquality(fact); 
-    std::vector<Node> explanation; 
-    Node new_a = getBaseDecomposition(a, explanation);
-    Node new_b = getBaseDecomposition(b, explanation);
+    std::vector<TNode> explanation_a; 
+    Node new_a = getBaseDecomposition(a, explanation_a);
+    Node reason_a = mkAnd(explanation_a);
+    d_reasons.insert(reason_a);
+    
+    std::vector<TNode> explanation_b; 
+    Node new_b = getBaseDecomposition(b, explanation_b);
+    Node reason_b = mkAnd(explanation_b);
+    d_reasons.insert(reason_b);
 
+    std::vector<Node> explanation; 
     explanation.push_back(fact);
+    explanation.insert(explanation.end(), explanation_a.begin(), explanation_a.end());
+    explanation.insert(explanation.end(), explanation_b.begin(), explanation_b.end());
+    
     Node reason = utils::mkAnd(explanation); 
     d_reasons.insert(reason);
     
     Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
             utils::getSize(new_a) == utils::getSize(a)); 
-    // FIXME: do we still need to assert these? 
+
     NodeManager* nm = NodeManager::currentNM();
     Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
     Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
 
-    d_reasons.insert(a_eq_new_a);
-    d_reasons.insert(b_eq_new_b); 
-    
     bool ok = true; 
-    ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
+    ok = assertFactToEqualityEngine(a_eq_new_a, reason_a);
     if (!ok) return false; 
-    ok = assertFactToEqualityEngine(b_eq_new_b, utils::mkTrue());
+    ok = assertFactToEqualityEngine(b_eq_new_b, reason_a);
     if (!ok) return false; 
     // assert the individual equalities as well
     //    a_i == b_i
@@ -152,6 +159,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
       Assert (new_a.getNumChildren() == new_b.getNumChildren()); 
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
+        // this reason is not very precise!!
         ok = assertFactToEqualityEngine(eq_i, reason);
         d_reasons.insert(eq_i); 
         if (!ok) return false;
@@ -164,15 +172,16 @@ bool CoreSolver::decomposeFact(TNode fact) {
     d_slicer->processEquality(fact[0]);
     TNode a = fact[0][0];
     TNode b = fact[0][1];
-    std::vector<Node> explanation_a; 
+    std::vector<TNode> explanation_a; 
     Node new_a = getBaseDecomposition(a, explanation_a);
     Node reason_a = explanation_a.empty()? mkTrue() : mkAnd(explanation_a);
     assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, a, new_a), reason_a);
 
-    std::vector<Node> explanation_b; 
+    std::vector<TNode> explanation_b; 
     Node new_b = getBaseDecomposition(b, explanation_b);
     Node reason_b = explanation_b.empty()? mkTrue() : mkAnd(explanation_b);
     assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, b, new_b), reason_b);
+
     d_reasons.insert(reason_a);
     d_reasons.insert(reason_b); 
   }
@@ -279,12 +288,15 @@ void CoreSolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
 bool CoreSolver::storePropagation(TNode literal) {
   return d_bv->storePropagation(literal, SUB_CORE);
 }
-  
+
 void CoreSolver::conflict(TNode a, TNode b) {
   std::vector<TNode> assumptions;
   d_equalityEngine.explainEquality(a, b, true, assumptions);
-  d_bv->setConflict(mkAnd(assumptions));
+  Node conflict = flattenAnd(assumptions);
+  d_bv->setConflict(conflict);
 }
+
+
 
 void CoreSolver::collectModelInfo(TheoryModel* m) {
   if (Debug.isOn("bitvector-model")) {

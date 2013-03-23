@@ -161,13 +161,13 @@ class UnionFind : public context::ContextNotifyObj {
     {}
   }; 
     
-  class Node {
+  class EqualityNode {
     Index d_bitwidth;  
     TermId d_ch1, d_ch0; // the ids of the two children if they exist
     ReprEdge d_edge;     // points to the representative and stores the explanation
     
   public:
-    Node(Index b)
+    EqualityNode(Index b)
   : d_bitwidth(b),
     d_ch1(UndefinedId),
     d_ch0(UndefinedId), 
@@ -189,54 +189,36 @@ class UnionFind : public context::ContextNotifyObj {
       d_edge.reason = reason; 
     }
     void setChildren(TermId ch1, TermId ch0) {
-      // Assert (d_repr == UndefinedId && !hasChildren());
       d_ch1 = ch1;
       d_ch0 = ch0; 
     }
     std::string debugPrint() const;
   };
+
+  // the equality nodes in the union find
+  std::vector<EqualityNode> d_equalityNodes;
   
-  /// map from TermId to the nodes that represent them 
-  std::vector<Node> d_nodes;
+  /// getter methods for the internal nodes
+  TermId getRepr(TermId id)  const;
+  ExplanationId getReason(TermId id) const;
+  TermId getChild(TermId id, Index i) const;
+  Index getCutPoint(TermId id) const;
+  bool hasChildren(TermId id) const;
+  
+  /// setter methods for the internal nodes
+  void setRepr(TermId id, TermId new_repr, ExplanationId reason);
+  void setChildren(TermId id, TermId ch1, TermId ch0); 
+
+  // the mappings between ExtractTerms and ids
   __gnu_cxx::hash_map<TermId, ExtractTerm, __gnu_cxx::hash<TermId> > d_idToExtract;
   __gnu_cxx::hash_map<ExtractTerm, TermId, ExtractTermHashFunction > d_extractToId;
+
+  __gnu_cxx::hash_set<TermId> d_topLevelIds;
   
   void getDecomposition(const ExtractTerm& term, Decomposition& decomp);
   void getDecompositionWithExplanation(const ExtractTerm& term, Decomposition& decomp, std::vector<ExplanationId>& explanation);
   void handleCommonSlice(const Decomposition& d1, const Decomposition& d2, TermId common);
-  /// getter methods for the internal nodes
-  TermId getRepr(TermId id)  const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id].getRepr(); 
-  }
-  ExplanationId getReason(TermId id) const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id].getReason(); 
-  }
-  TermId getChild(TermId id, Index i) const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id].getChild(i); 
-  }
-  Index getCutPoint(TermId id) const {
-    return getBitwidth(getChild(id, 0)); 
-  }
-  bool hasChildren(TermId id) const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id].hasChildren(); 
-  }
-  // TermId getTopLevel(TermId id) const;
   
-  /// setter methods for the internal nodes
-  void setRepr(TermId id, TermId new_repr, ExplanationId reason) {
-    Assert (id < d_nodes.size());
-    d_nodes[id].setRepr(new_repr, reason); 
-  }
-  void setChildren(TermId id, TermId ch1, TermId ch0) {
-    Assert ((ch1 == UndefinedId && ch0 == UndefinedId) ||
-            (id < d_nodes.size() && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch0)));
-    d_nodes[id].setChildren(ch1, ch0); 
-  }
-
   /* Backtracking mechanisms */
 
   enum OperationKind {
@@ -271,36 +253,44 @@ class UnionFind : public context::ContextNotifyObj {
     ~Statistics();
   };
   Statistics d_statistics;
-  Slicer* d_slicer; 
+  Slicer* d_slicer;
+  TermId d_termIdCount; 
+
+  TermId mkEqualityNode(Index bitwidth);
+  ExtractTerm mkExtractTerm(TermId id, Index high, Index low); 
+  void storeExtractTerm(Index id, const ExtractTerm& term);
+  ExtractTerm getExtractTerm(TermId id) const;
+  bool extractHasId(const ExtractTerm& ex) const { return d_extractToId.find(ex) != d_extractToId.end(); }
+  TermId getExtractId(const ExtractTerm& ex) const {Assert (extractHasId(ex)); return d_extractToId.find(ex)->second; }
+  bool isExtractTerm(TermId id) const; 
 public:
   UnionFind(context::Context* ctx, Slicer* slicer)
     : ContextNotifyObj(ctx), 
-      d_nodes(),
+      d_equalityNodes(),
       d_idToExtract(),
-      d_extractToId(), 
+      d_extractToId(),
+      d_topLevelIds(),
       d_undoStack(),
       d_undoStackIndex(ctx),
       d_statistics(),
-      d_slicer(slicer)
+      d_slicer(slicer),
+      d_termIdCount(0)
   {}
 
-  TermId addNode(Index bitwidth);
-  TermId addExtract(Index topLevel, Index high, Index low);
-  ExtractTerm getExtractTerm(TermId id) const;
-  bool isExtractTerm(TermId id) const; 
-  
-  void unionTerms(const ExtractTerm& t1, const ExtractTerm& t2, TermId reason); 
+  TermId addEqualityNode(unsigned bitwidth, TermId id, Index high, Index low);
+  TermId registerTopLevelTerm(Index bitwidth);  
+  void unionTerms(TermId id1, TermId id2, TermId reason); 
   void merge(TermId t1, TermId t2, TermId reason);
   TermId find(TermId t1);
   TermId findWithExplanation(TermId id, std::vector<ExplanationId>& explanation); 
   void split(TermId term, Index i);
   void getNormalForm(const ExtractTerm& term, NormalForm& nf);
   void getNormalFormWithExplanation(const ExtractTerm& term, NormalForm& nf, std::vector<ExplanationId>& explanation); 
-  void alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2);
-  void ensureSlicing(const ExtractTerm& term);
+  void alignSlicings(TermId id1, TermId id2);
+  void ensureSlicing(TermId id);
   Index getBitwidth(TermId id) const {
-    Assert (id < d_nodes.size());
-    return d_nodes[id].getBitwidth(); 
+    Assert (id < d_equalityNodes.size());
+    return d_equalityNodes[id].getBitwidth(); 
   }
   void getBase(TermId id, Base& base, Index offset); 
   std::string debugPrint(TermId id);
@@ -314,17 +304,19 @@ public:
 class CoreSolver; 
 
 class Slicer {
-  __gnu_cxx::hash_map<TermId, TNode, __gnu_cxx::hash<TermId> > d_idToNode;
-  __gnu_cxx::hash_map<Node, TermId, NodeHashFunction> d_nodeToId;
-  __gnu_cxx::hash_map<Node, bool, NodeHashFunction> d_coreTermCache;
-  __gnu_cxx::hash_map<Node, ExplanationId, NodeHashFunction> d_explanationToId;
-  std::vector<Node> d_explanations; 
+  __gnu_cxx::hash_map<TermId, TNode> d_idToNode; 
+  __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> d_nodeToId;
+  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_coreTermCache;
+  __gnu_cxx::hash_map<TNode, ExplanationId, NodeHashFunction> d_explanationToId;
+  std::vector<TNode> d_explanations; 
   UnionFind d_unionFind;
 
   context::CDQueue<Node> d_newSplits;
   context::CDO<unsigned>  d_newSplitsIndex;
   CoreSolver* d_coreSolver;
-  TermId d_termIdCount; 
+  TermId registerTopLevelTerm(TNode node); 
+  bool isTopLevelNode(TermId id) const; 
+  TermId registerTerm(TNode node);
 public:
   Slicer(context::Context* ctx, CoreSolver* coreSolver)
     : d_idToNode(),
@@ -338,16 +330,15 @@ public:
       d_coreSolver(coreSolver)
   {}
   
-  void getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<Node>& explanation);
+  void getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::vector<TNode>& explanation);
   void registerEquality(TNode eq);
-  ExtractTerm registerTerm(TNode node);
+
   void processEquality(TNode eq);
   void assertEquality(TNode eq);
   bool isCoreTerm (TNode node);
 
   bool hasNode(TermId id) const; 
   Node  getNode(TermId id) const;
-  TermId getId(TNode node) const;
 
   bool hasExplanation(ExplanationId id) const;
   TNode getExplanation(ExplanationId id) const;

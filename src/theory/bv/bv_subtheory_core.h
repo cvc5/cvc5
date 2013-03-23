@@ -67,7 +67,7 @@ class CoreSolver : public SubtheorySolver {
   context::CDHashSet<Node, NodeHashFunction> d_reasons; 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a, std::vector<Node>& explanation);
+  Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
 public: 
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();

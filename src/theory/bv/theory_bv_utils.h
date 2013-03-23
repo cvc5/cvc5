@@ -69,28 +69,6 @@ inline Node mkVar(unsigned size) {
   return nm->mkSkolem("bv_$$", nm->mkBitVectorType(size), "is a variable created by the theory of bitvectors"); 
 }
 
-inline Node mkAnd(std::vector<TNode>& children) {
-  std::set<TNode> distinctChildren;
-  distinctChildren.insert(children.begin(), children.end());
-  
-  if (distinctChildren.size() == 0) {
-    return mkTrue();
-  }
-  
-  if (distinctChildren.size() == 1) {
-    return *children.begin();
-  }
-  
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = distinctChildren.begin();
-  std::set<TNode>::const_iterator it_end = distinctChildren.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}
 
 inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {
   Assert (kind == kind::BITVECTOR_AND ||
@@ -154,14 +132,6 @@ inline Node mkXor(TNode node1, TNode node2) {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
 }
 
-
-inline Node mkAnd(std::vector<Node>& children) {
-  if(children.size() > 1) {
-    return NodeManager::currentNM()->mkNode(kind::AND, children);
-  } else {
-    return children[0];
-  }
-}
 
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
@@ -268,7 +238,6 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
   return conjunction;
 }
 
-
 inline unsigned isPow2Const(TNode node) {
   if (node.getKind() != kind::CONST_BITVECTOR) {
     return false; 
@@ -277,6 +246,83 @@ inline unsigned isPow2Const(TNode node) {
   BitVector bv = node.getConst<BitVector>();
   return bv.isPow2(); 
 }
+
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
+inline Node mkAnd(const std::vector<TNode>& conjunctions) {
+  std::set<TNode> all;
+  all.insert(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return conjunctions[0];
+  }
+  
+
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}/* mkAnd() */
+
+inline Node mkAnd(const std::vector<Node>& conjunctions) {
+  std::set<TNode> all;
+  all.insert(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return conjunctions[0];
+  }
+  
+
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}/* mkAnd() */
+
+
+
+inline Node flattenAnd(std::vector<TNode>& queue) {
+  TNodeSet nodes;
+  while(!queue.empty()) {
+    TNode current = queue.back();
+    queue.pop_back();
+    if (current.getKind() ==  kind::AND) {
+      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+        if (nodes.count(current[i]) == 0) {
+          queue.push_back(current[i]);
+        }
+      }
+    } else {
+      nodes.insert(current); 
+    }
+  }
+  std::vector<TNode> children; 
+  for (TNodeSet::const_iterator it = nodes.begin(); it!= nodes.end(); ++it) {
+    children.push_back(*it); 
+  }
+  return mkAnd(children); 
+}
+
 
 // neeed a better name, this is not technically a ground term 
 inline bool isBVGroundTerm(TNode node) {
@@ -356,27 +402,7 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
 }
 
 
-inline Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
 
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}/* mkAnd() */
 
 
 // Turn a set into a string
