@@ -28,6 +28,7 @@ const TermId CVC4::theory::bv::UndefinedTermId = -1;
 const ReasonId CVC4::theory::bv::UndefinedReasonId = -1;
 const ReasonId CVC4::theory::bv::AxiomReasonId = -2;
 
+
 BitVector InequalityGraph::maxValue(unsigned bitwidth) {
   if (d_signed) {
     return BitVector(1, 0u).concat(~BitVector(bitwidth - 1, 0u)); 
@@ -78,7 +79,7 @@ TermId InequalityGraph::getMinValueId(unsigned bitwidth) {
 }
 
 bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason) {
-  Debug("bv-inequality") << "InequlityGraph::addInequality " << a << " " << b << "\n"; 
+  Debug("bv-inequality") << "InequlityGraph::addInequality " << a << " " << b << "strict: " << strict << "\n"; 
 
   TermId id_a = registerTerm(a);
   TermId id_b = registerTerm(b);
@@ -89,7 +90,17 @@ bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason)
   BitVector b_val = getValue(id_b);
     
   unsigned bitwidth = utils::getSize(a); 
-  BitVector diff = strict ? BitVector(bitwidth, 1u) : BitVector(bitwidth, 0u); 
+  BitVector diff = strict ? BitVector(bitwidth, 1u) : BitVector(bitwidth, 0u);
+
+  if (a_val + diff < a_val) {
+    // we have an overflow
+    std::vector<ReasonId> conflict;
+    conflict.push_back(id_reason);
+    computeExplanation(UndefinedTermId, id_a, conflict);
+    setConflict(conflict);
+    return false; 
+  }
+  
   if (a_val + diff <= b_val) {
     // the inequality is true in the current partial model
     // we still add the edge because it may not be true later (cardinality)
@@ -117,7 +128,7 @@ bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason)
   return computeValuesBFS(queue, id_a, seen); 
 }
 
-bool InequalityGraph::updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen) {
+bool InequalityGraph::updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen, bool& changed) {
   TermId id = el.id;
   const BitVector& lower_bound = el.lower_bound; 
   InequalityNode& ineqNode = getInequalityNode(id);
@@ -138,7 +149,7 @@ bool InequalityGraph::updateValue(const PQueueElement& el, TermId start, const T
     // if not constant we can update the value
     if (ineqNode.getValue() < lower_bound) {
       // if we are updating the term we started with we must be in a cycle
-      if (seen.count(id)) {
+      if (seen.count(id) && id == start) {
         TermId parent = el.explanation.parent;
         ReasonId reason = el.explanation.reason;
         std::vector<TermId> conflict;
@@ -151,6 +162,7 @@ bool InequalityGraph::updateValue(const PQueueElement& el, TermId start, const T
       Debug("bv-inequality-internal") << "Updating " << getTermNode(id) 
                                       << "  from " << ineqNode.getValue() << "\n"
                                       << "  to " << lower_bound << "\n";
+      changed = true; 
       ineqNode.setValue(lower_bound);
       setExplanation(id, el.explanation); 
     }
@@ -164,17 +176,28 @@ bool InequalityGraph::computeValuesBFS(BFSQueue& queue, TermId start, TermIdSet&
 
   const PQueueElement current = queue.top();
   queue.pop();
-  
-  if (!updateValue(current, start, seen)) {
+  Debug("bv-inequality-internal") << "InequalityGraph::computeValuesBFS proceessing " << getTermNode(current.id) << " " << current.toString() << "\n";
+  bool updated_current = false; 
+  if (!updateValue(current, start, seen, updated_current)) {
     return false; 
   }
-  if (seen.count(current.id) && current.id != getMaxValueId(getBitwidth(current.id))) {
+  if (seen.count(current.id) && current.id == start) {
+    // we know what we didn't update start or we would have had a conflict 
     Debug("bv-inequality-internal") << "InequalityGraph::computeValuesBFS equal cycle."; 
     // this means we are in a cycle where all the values are forced to be equal
+    // TODO: make sure we collapse this cycle into one big node. 
     return computeValuesBFS(queue, start, seen); 
   }
   
-  seen.insert(current.id); 
+  if (!updated_current && !(seen.count(current.id) == 0 && current.id == start)) {
+    // if we didn't update current we don't need to readd to the queue it's children 
+    seen.insert(current.id);
+    Debug("bv-inequality-internal") << "  unchanged " << getTermNode(current.id) << "\n";  
+    return computeValuesBFS(queue, start, seen); 
+  }
+  
+  seen.insert(current.id);
+  
   const BitVector& current_value = getValue(current.id);
   
   unsigned size = getBitwidth(current.id);
@@ -186,8 +209,19 @@ bool InequalityGraph::computeValuesBFS(BFSQueue& queue, TermId start, TermIdSet&
     TermId next = it->next;
     const BitVector increment = it->strict ? one : zero; 
     const BitVector& next_lower_bound = current_value + increment;
+    if (next_lower_bound < current_value) {
+      // it means we have an overflow and hence a conflict
+        std::vector<TermId> conflict;
+        conflict.push_back(it->reason);
+        computeExplanation(start, current.id, conflict);
+        Debug("bv-inequality") << "InequalityGraph::addInequality conflict: cycle \n"; 
+        setConflict(conflict); 
+        return false; 
+    }
     const BitVector& value = getValue(next); 
-    queue.push(PQueueElement(next, value, next_lower_bound, Explanation(current.id, it->reason)));
+    PQueueElement el = PQueueElement(next, value, next_lower_bound, Explanation(current.id, it->reason)); 
+    queue.push(el);
+    Debug("bv-inequality-internal") << "   enqueue " << getTermNode(el.id) << " " << el.toString() << "\n"; 
   }
   return computeValuesBFS(queue, start, seen); 
 }
@@ -209,16 +243,13 @@ void InequalityGraph::addEdge(TermId a, TermId b, bool strict, TermId reason) {
 }
 
 TermId InequalityGraph::registerTerm(TNode term) {
-  Debug("bv-inequality-internal") << "InequalityGraph::registerTerm " << term << "\n"; 
-
-
   if (d_termNodeToIdMap.find(term) != d_termNodeToIdMap.end()) {
     return d_termNodeToIdMap[term]; 
   }
 
   // store in node mapping
   TermId id = d_termNodes.size();
-  Debug("bv-inequality-internal") << " with id " << id << "\n";
+  Debug("bv-inequality-internal") << "InequalityGraph::registerTerm " << term << " => id"<< id << "\n"; 
   
   d_termNodes.push_back(term);
   d_termNodeToIdMap[term] = id;
@@ -284,6 +315,13 @@ void InequalityGraph::getConflict(std::vector<TNode>& conflict) {
     conflict.push_back(d_conflict[i]); 
   }
 }
+
+std::string InequalityGraph::PQueueElement::toString() const {
+  ostringstream os;
+  os << "(id: " << id <<", value: " << value.toString(10) << ", lower_bound: " << lower_bound.toString(10) <<")"; 
+  return os.str(); 
+}
+
 
 // bool InequalityGraph::initializeValues(TNode a, TNode b, bool strict, TermId reason_id) {
 //   TermId id_a = registerTerm(a);

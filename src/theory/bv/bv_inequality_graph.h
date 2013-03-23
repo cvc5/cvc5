@@ -101,6 +101,7 @@ class InequalityGraph {
     bool operator< (const PQueueElement& other) const {
       return value > other.value;
     }
+    std::string toString() const; 
   };
   
   typedef __gnu_cxx::hash_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
@@ -171,7 +172,7 @@ class InequalityGraph {
    * 
    * @return 
    */
-  bool updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen);
+  bool updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen, bool& changed);
   /** 
    * Update the current model starting with the start term. 
    * 

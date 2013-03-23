@@ -12,7 +12,7 @@
 	 (bvule v0 v1)
 	 (bvule v1 v2)
 	 (bvule v2 v0)
-	 (bvule (_ bv4 16) v0)
+	 (bvult (_ bv4 16) v0)
 	 (bvult v2 (_ bv5 16))
 	 ))
 (check-sat)

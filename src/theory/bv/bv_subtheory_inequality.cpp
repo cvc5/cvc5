@@ -30,7 +30,13 @@ bool InequalitySolver::check(Theory::Effort e) {
   bool ok = true; 
   while (!done() && ok) {
     TNode fact = get();
-    
+    if (fact.getKind() == kind::EQUAL) {
+      TNode a = fact[0];
+      TNode b = fact[1];
+      ok = d_inequalityGraph.addInequality(a, b, false, fact);
+      if (ok)
+        ok = d_inequalityGraph.addInequality(b, a, false, fact); 
+    }
     if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
       TNode a = fact[0][1];
       TNode b = fact[0][0]; 

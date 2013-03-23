@@ -122,15 +122,15 @@ void TheoryBV::check(Effort e)
   }
   Assert (!ok == inConflict()); 
 
-  // if (!inConflict() && !d_coreSolver.isCoreTheory()) {
-  //   ok = d_inequalitySolver.check(e); 
-  // }
+  if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+    ok = d_inequalitySolver.check(e); 
+  }
 
   Assert (!ok == inConflict());
-  if (!inConflict() && !d_coreSolver.isCoreTheory()) {
-    // if (!inConflict() && !d_inequalitySolver.isInequalityTheory()) {
-    ok = d_bitblastSolver.check(e); 
-  }
+  // if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+  // if (!inConflict() && !d_inequalitySolver.isInequalityTheory()) {
+  //   ok = d_bitblastSolver.check(e); 
+  // }
   
   Assert (!ok == inConflict()); 
   if (inConflict()) {
