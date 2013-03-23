@@ -48,7 +48,7 @@ namespace CVC4 {
 
 struct StringHashFunction {
   size_t operator()(const std::string& str) const {
-    return std::hash<const char*>()(str.c_str());
+    return __gnu_cxx::hash<const char*>()(str.c_str());
   }
 };/* struct StringHashFunction */
 

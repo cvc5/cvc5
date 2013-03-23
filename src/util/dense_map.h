@@ -98,7 +98,7 @@ public:
       return false;
     }else{
       Assert(x <  allocated());
-      return d_posVector[x] != POSITION_SENTINEL;
+      return d_posVector[x] != +POSITION_SENTINEL;
     }
   }
 
@@ -160,7 +160,7 @@ public:
   void pop_back() {
     Assert(!empty());
     Key atBack = back();
-    d_posVector[atBack] = POSITION_SENTINEL;
+    d_posVector[atBack] = +POSITION_SENTINEL;
     d_image[atBack] = T();
     d_list.pop_back();
   }
@@ -195,7 +195,7 @@ public:
 
   void increaseSize(Key max){
     Assert(max >= allocated());
-    d_posVector.resize(max+1, POSITION_SENTINEL);
+    d_posVector.resize(max+1, +POSITION_SENTINEL);
     d_image.resize(max+1);
   }
 

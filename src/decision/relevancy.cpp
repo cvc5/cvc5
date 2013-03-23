@@ -28,6 +28,11 @@
 
 // Relevancy stuff
 
+const double Relevancy::secondsPerDecision = 0.001;
+const double Relevancy::secondsPerExpense = 1e-7;
+const double Relevancy::EPS = 1e-9;
+
+
 void Relevancy::setJustified(TNode n)
 {
   Debug("decision") << " marking [" << n.getId() << "]"<< n << "as justified" << std::endl;
