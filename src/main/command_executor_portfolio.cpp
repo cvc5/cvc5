@@ -123,17 +123,14 @@ void CommandExecutorPortfolio::lemmaSharingInit()
     }
 
     /* Output to string stream  */
-    if(d_options[options::verbosity] == 0
-       || d_options[options::separateOutput]) {
-      assert(d_ostringstreams.size() == 0);
-      for(unsigned i = 0; i < d_numThreads; ++i) {
-        d_ostringstreams.push_back(new ostringstream);
-        d_threadOptions[i].set(options::out, d_ostringstreams[i]);
+    assert(d_ostringstreams.size() == 0);
+    for(unsigned i = 0; i < d_numThreads; ++i) {
+      d_ostringstreams.push_back(new ostringstream);
+      d_threadOptions[i].set(options::out, d_ostringstreams[i]);
 
-        // important even for muzzled builds (to get result output right)
-        *d_threadOptions[i][options::out]
-          << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
-      }
+      // important even for muzzled builds (to get result output right)
+      *d_threadOptions[i][options::out]
+        << Expr::setlanguage(d_threadOptions[i][options::outputLanguage]);
     }
   }
 }/* CommandExecutorPortfolio::lemmaSharingInit() */
@@ -208,7 +205,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],
                                cmdExported,
-                               d_threadOptions[d_lastWinner][options::out]);
+                               d_options[options::verbosity] >= -1 ? d_threadOptions[d_lastWinner][options::out] : NULL);
     if(d_lastWinner != 0) delete cmdExported;
     return ret;
   } else if(mode == 1) {               // portfolio
@@ -274,7 +271,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       fns[i] = boost::bind(smtEngineInvoke,
                            d_smts[i],
                            seqs[i],
-                           d_threadOptions[i][options::out]
+                           d_options[options::verbosity] >= -1 ? d_threadOptions[i][options::out] : NULL
                            );
     }
 
@@ -332,7 +329,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],
                                cmdExported,
-                               d_threadOptions[d_lastWinner][options::out]);
+                               d_options[options::verbosity] >= -1 ? d_threadOptions[d_lastWinner][options::out] : NULL);
     if(d_lastWinner != 0) delete cmdExported;
     return ret;
   } else {
