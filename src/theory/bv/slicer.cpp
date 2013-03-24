@@ -589,8 +589,8 @@ void UnionFind::ensureSlicing(TermId t) {
 void UnionFind::backtrack() {
   int size = d_undoStack.size(); 
   for (int i = size; i > (int)d_undoStackIndex.get(); --i) {
-    Operation op = d_undoStack.back(); 
     Assert (!d_undoStack.empty()); 
+    Operation op = d_undoStack.back(); 
     d_undoStack.pop_back();
     if (op.op == UnionFind::MERGE) {
       undoMerge(op.id); 
