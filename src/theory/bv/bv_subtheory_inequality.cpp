@@ -27,15 +27,21 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
+  Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n"; 
   bool ok = true; 
   while (!done() && ok) {
     TNode fact = get();
+    Debug("bv-subtheory-inequality") << "  "<< fact <<"\n"; 
     if (fact.getKind() == kind::EQUAL) {
       TNode a = fact[0];
       TNode b = fact[1];
       ok = d_inequalityGraph.addInequality(a, b, false, fact);
       if (ok)
         ok = d_inequalityGraph.addInequality(b, a, false, fact); 
+    } else if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL) {
+      TNode a = fact[0][0];
+      TNode b = fact[0][1];
+      ok = d_inequalityGraph.addDisequality(a, b, fact);
     }
     if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULE) {
       TNode a = fact[0][1];
@@ -60,6 +66,12 @@ bool InequalitySolver::check(Theory::Effort e) {
     d_inequalityGraph.getConflict(conflict); 
     d_bv->setConflict(utils::mkConjunction(conflict));
     return false; 
+  }
+  // send out any lemmas
+  std::vector<TNode> lemmas;
+  d_inequalityGraph.getNewLemmas(lemmas); 
+  for(unsigned i = 0; i < lemmas.size(); ++i) {
+    d_bv->lemma(lemmas[i]); 
   }
   return true; 
 }

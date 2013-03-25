@@ -137,6 +137,8 @@ private:
 
   void sendConflict();
 
+  void lemma(TNode node) { d_out->lemma(node); }
+  
   friend class Bitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;

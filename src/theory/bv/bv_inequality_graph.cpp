@@ -261,9 +261,27 @@ void InequalityGraph::addEdge(TermId a, TermId b, bool strict, TermId reason) {
   d_undoStackIndex = d_undoStackIndex + 1; 
 }
 
+void InequalityGraph::initializeModelValue(TNode node) {
+  TermId id = getTermId(node); 
+  Assert (!hasModelValue(id));
+  bool isConst = node.getKind() == kind::CONST_BITVECTOR;
+  unsigned size = utils::getSize(node); 
+  BitVector value = isConst? node.getConst<BitVector>() : BitVector(size, 0u); 
+  setModelValue(id, ModelValue(value, UndefinedTermId, UndefinedReasonId));
+}
+
+bool InequalityGraph::isRegistered(TNode term) const {
+  return d_termNodeToIdMap.find(term) != d_termNodeToIdMap.end(); 
+}
+
 TermId InequalityGraph::registerTerm(TNode term) {
   if (d_termNodeToIdMap.find(term) != d_termNodeToIdMap.end()) {
-    return d_termNodeToIdMap[term]; 
+    TermId id = d_termNodeToIdMap[term];
+    if (!hasModelValue(id)) {
+      // we could have backtracked and
+      initializeModelValue(term); 
+    }
+    return id; 
   }
 
   // store in node mapping
@@ -275,21 +293,17 @@ TermId InequalityGraph::registerTerm(TNode term) {
   
   // create InequalityNode
   unsigned size = utils::getSize(term);
+
   bool isConst = term.getKind() == kind::CONST_BITVECTOR;
-  BitVector value = isConst? term.getConst<BitVector>() : BitVector(size, 0u); 
-  
   InequalityNode ineq = InequalityNode(id, size, isConst);
-  setModelValue(id, ModelValue(value, UndefinedTermId, UndefinedReasonId));
-  
+
   Assert (d_ineqNodes.size() == id); 
   d_ineqNodes.push_back(ineq);
   
   Assert (d_ineqEdges.size() == id); 
   d_ineqEdges.push_back(Edges());
 
-  // add the default edges min <= term <= max
-  //  addEdge(getMinValueId(size), id, false, AxiomReasonId);
-  // addEdge(id, getMaxValueId(size), false, AxiomReasonId); 
+  initializeModelValue(term); 
   
   return id; 
 }
@@ -312,6 +326,11 @@ TNode InequalityGraph::getReasonNode(ReasonId id) const {
 TNode InequalityGraph::getTermNode(TermId id) const {
   Assert (d_termNodes.size() > id);
   return d_termNodes[id]; 
+}
+
+TermId InequalityGraph::getTermId(TNode node) const {
+  Assert (d_termNodeToIdMap.find(node) != d_termNodeToIdMap.end());
+  return d_termNodeToIdMap.find(node)->second; 
 }
 
 void InequalityGraph::setConflict(const std::vector<ReasonId>& conflict) {
@@ -351,14 +370,74 @@ bool InequalityGraph::hasModelValue(TermId id) const {
 }
 
 BitVector InequalityGraph::getValue(TermId id) const {
-  Assert (hasModelValue(id));
-  BitVector res = (*(d_modelValues.find(id))).second.value; 
+  Assert (hasModelValue(id)); 
+  BitVector res = (*(d_modelValues.find(id))).second.value;
   return res; 
 }
 
 bool InequalityGraph::hasReason(TermId id) const {
   const ModelValue& mv = getModelValue(id);
   return mv.reason != UndefinedReasonId; 
+}
+
+bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
+  Debug("bv-inequality") << "InequalityGraph::addDisequality " << reason << "\n"; 
+  d_disequalities.push_back(reason);
+
+  if (!isRegistered(a) || !isRegistered(b)) {
+    splitDisequality(reason);
+    return true; 
+  }
+  TermId id_a = getTermId(a);
+  TermId id_b = getTermId(b);
+  if (!hasModelValue(id_a)) {
+    initializeModelValue(a); 
+  }
+  if (!hasModelValue(id_b)) {
+    initializeModelValue(b); 
+  }
+  const BitVector& val_a = getValue(id_a);
+  const BitVector& val_b = getValue(id_b);
+  if (val_a == val_b) {
+    if (a.getKind() == kind::CONST_BITVECTOR) {
+      // then we know b cannot be smaller  than the assigned value so we try to make it larger
+      return addInequality(a, b, true, reason);
+    }
+    if (b.getKind() == kind::CONST_BITVECTOR) {
+      return addInequality(b, a, true, reason);
+    }
+    // if none of the terms are constants just add the lemma 
+    splitDisequality(reason);
+  } else {
+    Debug("bv-inequality-internal") << "Disequal: " << a << " => " << val_a.toString(10) << "\n"
+                                    << "          " << b << " => " << val_b.toString(10) << "\n"; 
+  }
+  return true; 
+}
+
+void InequalityGraph::splitDisequality(TNode diseq) {
+  Debug("bv-inequality-internal")<<"InequalityGraph::splitDisequality " << diseq <<"\n"; 
+  Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
+  TNode a = diseq[0][0];
+  TNode b = diseq[0][1];
+  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  Node split = utils::mkNode(kind::OR, a_lt_b, b_lt_a);
+  Node lemma = utils::mkNode(kind::IMPLIES, diseq, split);
+  if (d_lemmasAdded.find(lemma) == d_lemmasAdded.end()) { 
+    d_lemmaQueue.push_back(lemma);
+  }
+}
+
+void InequalityGraph::getNewLemmas(std::vector<TNode>& new_lemmas) {
+  for (unsigned i = d_lemmaIndex; i < d_lemmaQueue.size(); ++i)  {
+    TNode lemma = d_lemmaQueue[i];
+    if (d_lemmasAdded.find(lemma) == d_lemmasAdded.end()) {
+      new_lemmas.push_back(lemma);
+      d_lemmasAdded.insert(lemma); 
+    }
+    d_lemmaIndex = d_lemmaIndex + 1; 
+  } 
 }
 
 std::string InequalityGraph::PQueueElement::toString() const {

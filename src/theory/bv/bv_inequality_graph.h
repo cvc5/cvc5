@@ -111,7 +111,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   typedef __gnu_cxx::hash_set<TermId> TermIdSet;
 
   typedef std::priority_queue<PQueueElement> BFSQueue; 
-  
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;
   
@@ -125,7 +125,8 @@ class InequalityGraph : public context::ContextNotifyObj{
   std::vector<TNode> d_conflict;
   bool d_signed; 
 
-  context::CDHashMap<TermId, ModelValue>  d_modelValues; 
+  context::CDHashMap<TermId, ModelValue>  d_modelValues;
+  void initializeModelValue(TNode node); 
   void setModelValue(TermId term, const ModelValue& mv);
   ModelValue getModelValue(TermId term) const;
   bool hasModelValue(TermId id) const; 
@@ -142,7 +143,8 @@ class InequalityGraph : public context::ContextNotifyObj{
   TermId registerTerm(TNode term);
   TNode getTermNode(TermId id) const; 
   TermId getTermId(TNode node) const;
-
+  bool isRegistered(TNode term) const; 
+  
   ReasonId registerReason(TNode reason);
   TNode getReasonNode(ReasonId id) const;
   
@@ -152,10 +154,6 @@ class InequalityGraph : public context::ContextNotifyObj{
   const InequalityNode& getInequalityNode(TermId id) const { Assert (id < d_ineqNodes.size()); return d_ineqNodes[id]; }
   unsigned getBitwidth(TermId id) const { return getInequalityNode(id).getBitwidth(); }
   bool isConst(TermId id) const { return getInequalityNode(id).isConstant(); }
-  // BitVector maxValue(unsigned bitwidth);
-  // BitVector minValue(unsigned bitwidth);
-  // TermId getMaxValueId(unsigned bitwidth);
-  // TermId getMinValueId(unsigned bitwidth);
   
   BitVector getValue(TermId id) const; 
     
@@ -191,7 +189,18 @@ class InequalityGraph : public context::ContextNotifyObj{
    * @param explanation 
    */
   void computeExplanation(TermId from, TermId to, std::vector<ReasonId>& explanation); 
+  void splitDisequality(TNode diseq); 
 
+  /**
+     Disequality reasoning
+   */
+  
+  /*** The currently asserted disequalities */
+  context::CDQueue<TNode> d_disequalities;
+  context::CDQueue<Node> d_lemmaQueue; 
+  context::CDO<unsigned> d_lemmaIndex; 
+  TNodeSet d_lemmasAdded; 
+  
   /** Backtracking mechanisms **/
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
   context::CDO<unsigned> d_undoStackIndex; 
@@ -213,6 +222,10 @@ public:
       d_conflict(),
       d_signed(s),
       d_modelValues(c),
+      d_disequalities(c),
+      d_lemmaQueue(c),
+      d_lemmaIndex(c, 0),
+      d_lemmasAdded(),
       d_undoStack(),
       d_undoStackIndex(c)
   {}
@@ -227,9 +240,11 @@ public:
    * @return 
    */
   bool addInequality(TNode a, TNode b, bool strict, TNode reason);
+  bool addDisequality(TNode a, TNode b, TNode reason); 
   bool areLessThan(TNode a, TNode b);
   void getConflict(std::vector<TNode>& conflict);
   virtual ~InequalityGraph() throw(AssertionException) {}
+  void getNewLemmas(std::vector<TNode>& new_lemmas);
 }; 
 
 }
