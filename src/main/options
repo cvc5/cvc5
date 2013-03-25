@@ -31,8 +31,6 @@ option threadArgv std::vector<std::string> :include <vector> <string>
  Thread configuration (a string to be passed to parseOptions)
 option thread_id int :default -1
  Thread ID, for internal use in case of multi-threaded run
-#option separateOutput bool :default false
-# In multi-threaded setting print output of each thread at the end of run, separated by a divider ("----").
 option sharingFilterByLength --filter-lemma-length=N int :default -1 :read-write
  don't share (among portfolio threads) lemmas strictly longer than N
 option fallbackSequential  --fallback-sequential bool :default false
