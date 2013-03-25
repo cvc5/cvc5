@@ -87,34 +87,37 @@ class InequalityGraph : public context::ContextNotifyObj{
         value(val)
     {}
   };
-
-  struct PQueueElement {
-    TermId id;
-    BitVector lower_bound;
-    ModelValue model_value; 
-    PQueueElement(TermId id, const BitVector& lb, const ModelValue& mv)
-      : id(id),
-        lower_bound(lb),
-        model_value(mv)
-    {}
-    
-    bool operator< (const PQueueElement& other) const {
-      return model_value.value > other.model_value.value;
-    }
-    std::string toString() const; 
-  };
   
+  typedef context::CDHashMap<TermId, ModelValue> Model;
+
+  struct QueueComparator {
+    const Model* d_model;
+    QueueComparator(const Model* model)
+      : d_model(model)
+    {}
+    bool operator() (TermId left, TermId right) const {
+      Assert (d_model->find(left) != d_model->end() &&
+              d_model->find(right) != d_model->end());
+      
+      return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
+    }
+  }; 
+
   typedef __gnu_cxx::hash_map<TNode, ReasonId, TNodeHashFunction> ReasonToIdMap;
   typedef __gnu_cxx::hash_map<TNode, TermId, TNodeHashFunction> TermNodeToIdMap;
 
   typedef std::vector<InequalityEdge> Edges; 
   typedef __gnu_cxx::hash_set<TermId> TermIdSet;
 
-  typedef std::priority_queue<PQueueElement> BFSQueue; 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+  typedef std::priority_queue<TermId, std::vector<TermId>, QueueComparator> BFSQueue; 
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+
   std::vector<InequalityNode> d_ineqNodes;
   std::vector< Edges > d_ineqEdges;
-  
+
+  // to keep the explanation nodes alive
+  NodeSet d_reasonSet; 
   std::vector<TNode> d_reasonNodes;
   ReasonToIdMap d_reasonToIdMap;
   
@@ -125,7 +128,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   std::vector<TNode> d_conflict;
   bool d_signed; 
 
-  context::CDHashMap<TermId, ModelValue>  d_modelValues;
+  Model  d_modelValues;
   void initializeModelValue(TNode node); 
   void setModelValue(TermId term, const ModelValue& mv);
   ModelValue getModelValue(TermId term) const;
@@ -163,23 +166,21 @@ class InequalityGraph : public context::ContextNotifyObj{
   /** 
    * If necessary update the value in the model of the current queue element. 
    * 
-   * @param el current queue element we are updating
+   * @param id current queue element we are updating
    * @param start node we started with, to detect cycles
-   * @param seen 
    * 
    * @return 
    */
-  bool updateValue(const PQueueElement& el, TermId start, const TermIdSet& seen, bool& changed);
+  bool updateValue(TermId id, ModelValue new_mv, TermId start, bool& changed);
   /** 
    * Update the current model starting with the start term. 
    * 
    * @param queue 
    * @param start 
-   * @param seen 
    * 
    * @return 
    */
-  bool computeValuesBFS(BFSQueue& queue, TermId start, TermIdSet& seen);
+  bool processQueue(BFSQueue& queue, TermId start);
   /** 
    * Return the reasons why from <= to. If from is undefined we just
    * explain the current value of to. 
@@ -197,9 +198,10 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  context::CDQueue<Node> d_lemmaQueue; 
-  context::CDO<unsigned> d_lemmaIndex; 
-  TNodeSet d_lemmasAdded; 
+  context::CDQueue<TNode> d_disequalitiesToSplit; 
+  context::CDO<unsigned> d_diseqToSplitIndex; 
+  TNodeSet d_lemmasAdded;
+  TNodeSet d_disequalitiesAlreadySplit; 
   
   /** Backtracking mechanisms **/
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
@@ -223,28 +225,72 @@ public:
       d_signed(s),
       d_modelValues(c),
       d_disequalities(c),
-      d_lemmaQueue(c),
-      d_lemmaIndex(c, 0),
-      d_lemmasAdded(),
+      d_disequalitiesToSplit(c),
+      d_diseqToSplitIndex(c, 0),
+      d_disequalitiesAlreadySplit(),
       d_undoStack(),
       d_undoStackIndex(c)
   {}
   /** 
-   * 
+   * Add a new inequality to the graph 
    * 
    * @param a 
    * @param b 
-   * @param diff 
+   * @param strict 
    * @param reason 
    * 
    * @return 
    */
   bool addInequality(TNode a, TNode b, bool strict, TNode reason);
+  /** 
+   * Add a new disequality to the graph. This may lead in a lemma. 
+   * 
+   * @param a 
+   * @param b 
+   * @param reason 
+   * 
+   * @return 
+   */
   bool addDisequality(TNode a, TNode b, TNode reason); 
-  bool areLessThan(TNode a, TNode b);
   void getConflict(std::vector<TNode>& conflict);
   virtual ~InequalityGraph() throw(AssertionException) {}
-  void getNewLemmas(std::vector<TNode>& new_lemmas);
+  /** 
+   * Get any new lemmas (resulting from disequalities splits) that need
+   * to be added. 
+   * 
+   * @param new_lemmas 
+   */
+  void getNewLemmas(std::vector<Node>& new_lemmas);
+  /** 
+   * Check that the currently asserted disequalities that have not been split on
+   * are still true in the current model. 
+   */
+  void checkDisequalities();
+  /** 
+   * Return true if a < b is entailed by the current set of assertions. 
+   * 
+   * @param a 
+   * @param b 
+   * 
+   * @return 
+   */
+  bool isLessThan(TNode a, TNode b);
+  /** 
+   * Returns true if the term has a value in the model (i.e. if we have seen it)
+   * 
+   * @param a 
+   * 
+   * @return 
+   */
+  bool hasValueInModel(TNode a) const;
+  /** 
+   * Return the value of a in the current model. 
+   * 
+   * @param a 
+   * 
+   * @return 
+   */
+  BitVector getValueInModel(TNode a) const; 
 }; 
 
 }

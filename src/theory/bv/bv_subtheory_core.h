@@ -71,7 +71,7 @@ class CoreSolver : public SubtheorySolver {
 public: 
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
-  bool  isCoreTheory() { return d_isCoreTheory; }
+  bool  isComplete() { return d_isCoreTheory; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
   bool  check(Theory::Effort e);

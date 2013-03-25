@@ -74,7 +74,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     d_bitblastQueue.pop();
   }
 
-  // Processinga ssertions  
+  // Processing assertions  
   while (!done()) {
     TNode fact = get(); 
     if (!d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_BITBLAST)) {

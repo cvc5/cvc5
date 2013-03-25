@@ -46,6 +46,7 @@ public:
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
   void collectModelInfo(TheoryModel* m); 
+  bool isComplete() { return true; }
 };
 
 }

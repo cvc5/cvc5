@@ -61,19 +61,57 @@ bool InequalitySolver::check(Theory::Effort e) {
       ok = d_inequalityGraph.addInequality(a, b, false, fact);
     }
   }
+  
   if (!ok) {
     std::vector<TNode> conflict;
     d_inequalityGraph.getConflict(conflict); 
-    d_bv->setConflict(utils::mkConjunction(conflict));
+    d_bv->setConflict(utils::flattenAnd(conflict));
     return false; 
   }
+
+  // make sure all the disequalities we didn't split on are still satisifed
+  // and split on the ones that are not
+  d_inequalityGraph.checkDisequalities();
+
   // send out any lemmas
-  std::vector<TNode> lemmas;
+  std::vector<Node> lemmas;
   d_inequalityGraph.getNewLemmas(lemmas); 
   for(unsigned i = 0; i < lemmas.size(); ++i) {
     d_bv->lemma(lemmas[i]); 
   }
   return true; 
+}
+
+EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b) {
+  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+
+  // if an inequality containing the terms has been asserted then we know
+  // the equality is false
+  if (d_assertionSet.contains(a_lt_b) || d_assertionSet.contains(b_lt_a)) {
+    return EQUALITY_FALSE; 
+  }
+  
+  if (!d_inequalityGraph.hasValueInModel(a) ||
+      !d_inequalityGraph.hasValueInModel(b)) {
+    return EQUALITY_UNKNOWN; 
+  }
+
+  // TODO: check if this disequality is entailed by inequalities via transitivity
+  
+  BitVector a_val = d_inequalityGraph.getValueInModel(a);
+  BitVector b_val = d_inequalityGraph.getValueInModel(b);
+  
+  if (a_val == b_val) {
+    return EQUALITY_TRUE_IN_MODEL; 
+  } else {
+    return EQUALITY_FALSE_IN_MODEL; 
+  }
+}
+
+void InequalitySolver::assertFact(TNode fact) {
+  d_assertionQueue.push_back(fact);
+  d_assertionSet.insert(fact); 
 }
 
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {

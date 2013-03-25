@@ -32,9 +32,6 @@ using namespace CVC4::context;
 using namespace std;
 using namespace CVC4::theory::bv::utils;
 
-
-
-
 TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe)
   : Theory(THEORY_BV, c, u, out, valuation, logicInfo, qe),
     d_context(c),
@@ -122,11 +119,11 @@ void TheoryBV::check(Effort e)
   }
   Assert (!ok == inConflict()); 
 
-  if (!inConflict() && !d_coreSolver.isCoreTheory()) {
+  if (!inConflict() && !d_coreSolver.isComplete()) {
     ok = d_inequalitySolver.check(e); 
   }
 
-  Assert (!ok == inConflict());
+  // Assert (!ok == inConflict());
   // if (!inConflict() && !d_coreSolver.isCoreTheory()) {
   // if (!inConflict() && !d_inequalitySolver.isInequalityTheory()) {
   //   ok = d_bitblastSolver.check(e); 
@@ -303,6 +300,9 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   }
 
   EqualityStatus status = d_coreSolver.getEqualityStatus(a, b);
+  if (status == EQUALITY_UNKNOWN) {
+    status = d_inequalitySolver.getEqualityStatus(a, b); 
+  }
   if (status == EQUALITY_UNKNOWN) {
     status = d_bitblastSolver.getEqualityStatus(a, b);
   }

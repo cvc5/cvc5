@@ -21,25 +21,30 @@
 
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/bv_inequality_graph.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
 class InequalitySolver: public SubtheorySolver {
+  context::CDHashSet<Node, NodeHashFunction> d_assertionSet; 
   InequalityGraph d_inequalityGraph;
 public:
   
   InequalitySolver(context::Context* c, TheoryBV* bv)
     : SubtheorySolver(c, bv),
+      d_assertionSet(c),
       d_inequalityGraph(c)
   {}
   
   bool check(Theory::Effort e);
   void propagate(Theory::Effort e); 
   void explain(TNode literal, std::vector<TNode>& assumptions);
-  bool isInequalityTheory() { return true; }
-  virtual void collectModelInfo(TheoryModel* m) {}
+  bool isComplete() { return true; }
+  void collectModelInfo(TheoryModel* m) {}
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
+  void assertFact(TNode fact); 
 }; 
 
 }

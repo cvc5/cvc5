@@ -91,6 +91,9 @@ public:
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
   virtual void collectModelInfo(TheoryModel* m) = 0;
+  virtual bool isComplete() = 0;
+  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
+  
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
     Assert (!done()); 
@@ -98,8 +101,7 @@ public:
     d_assertionIndex = d_assertionIndex + 1;
     return res; 
   }
-  void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-
+  virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
 }; 
 
 }
