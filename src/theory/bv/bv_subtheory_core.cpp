@@ -192,7 +192,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
   Assert (!d_bv->inConflict());
-
+  ++(d_statistics.d_numCallstoCheck); 
   bool ok = true; 
   std::vector<Node> core_eqs;
   while (! done()) {
@@ -226,7 +226,7 @@ bool CoreSolver::check(Theory::Effort e) {
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // Notify the equality engine 
-  if (d_useEqualityEngine && !d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_CORE) ) {
+  if (d_useEqualityEngine && !d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;
@@ -309,4 +309,13 @@ void CoreSolver::collectModelInfo(TheoryModel* m) {
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
   m->assertEqualityEngine(&d_equalityEngine, &termSet);
+}
+
+CoreSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+{
+  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+}
+CoreSolver::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
 }

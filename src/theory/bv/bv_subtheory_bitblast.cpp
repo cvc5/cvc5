@@ -30,11 +30,21 @@ using namespace CVC4::theory::bv::utils;
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_bitblaster(new Bitblaster(c, bv)),
-    d_bitblastQueue(c)
+    d_bitblastQueue(c),
+    d_statistics()
 {}
 
 BitblastSolver::~BitblastSolver() {
   delete d_bitblaster;
+}
+
+BitblastSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
+{
+  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+}
+BitblastSolver::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
 }
 
 void BitblastSolver::preRegister(TNode node) {
@@ -54,6 +64,7 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 
 
 bool BitblastSolver::check(Theory::Effort e) {
+  ++(d_statistics.d_numCallstoCheck); 
   //// Eager bit-blasting
   if (options::bitvectorEagerBitblast()) {
     while (!done()) {
@@ -77,7 +88,7 @@ bool BitblastSolver::check(Theory::Effort e) {
   // Processing assertions  
   while (!done()) {
     TNode fact = get(); 
-    if (!d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_BITBLAST)) {
+    if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
       // Assert to sat

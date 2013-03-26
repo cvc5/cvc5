@@ -28,20 +28,32 @@ namespace theory {
 namespace bv {
 
 class InequalitySolver: public SubtheorySolver {
+  struct Statistics {
+    IntStat d_numCallstoCheck;
+    Statistics();
+    ~Statistics(); 
+  }; 
+
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet; 
   InequalityGraph d_inequalityGraph;
+  context::CDO<bool> d_isComplete;
+  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_ineqTermCache; 
+  bool isInequalityOnly(TNode node); 
+  Statistics d_statistics; 
 public:
-  
   InequalitySolver(context::Context* c, TheoryBV* bv)
     : SubtheorySolver(c, bv),
       d_assertionSet(c),
-      d_inequalityGraph(c)
+      d_inequalityGraph(c),
+      d_isComplete(c, true),
+      d_ineqTermCache(),
+      d_statistics()
   {}
   
   bool check(Theory::Effort e);
   void propagate(Theory::Effort e); 
   void explain(TNode literal, std::vector<TNode>& assumptions);
-  bool isComplete() { return true; }
+  bool isComplete() { return d_isComplete; }
   void collectModelInfo(TheoryModel* m) {}
   EqualityStatus getEqualityStatus(TNode a, TNode b);
   void assertFact(TNode fact); 

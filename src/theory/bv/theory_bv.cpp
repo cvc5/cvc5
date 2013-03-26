@@ -22,6 +22,9 @@
 #include "theory/bv/bitblaster.h"
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/bv_subtheory_core.h"
+#include "theory/bv/bv_subtheory_inequality.h"
+#include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/model.h"
 
 using namespace CVC4;
@@ -37,37 +40,57 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_context(c),
     d_alreadyPropagatedSet(c),
     d_sharedTermsSet(c),
-    d_coreSolver(c, this),
-    d_inequalitySolver(c, this),
-    d_bitblastSolver(c, this),
+    d_subtheories(),
+    d_subtheoryMap(),
     d_statistics(),
     d_conflict(c, false),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c)
-  {}
+  {
+    SubtheorySolver* core_solver = new CoreSolver(c, this); 
+    d_subtheories.push_back(core_solver);
+    d_subtheoryMap[SUB_CORE] = core_solver;
 
-TheoryBV::~TheoryBV() {}
+    SubtheorySolver* ineq_solver = new InequalitySolver(c, this); 
+    d_subtheories.push_back(ineq_solver);
+    d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
 
+    SubtheorySolver* bb_solver = new BitblastSolver(c, this); 
+    d_subtheories.push_back(bb_solver);
+    d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+  }
+
+TheoryBV::~TheoryBV() {
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    delete d_subtheories[i]; 
+  }
+}
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_coreSolver.setMasterEqualityEngine(eq);
+  dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
 }
 
 TheoryBV::Statistics::Statistics():
   d_avgConflictSize("theory::bv::AvgBVConflictSize"),
   d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
-  d_solveTimer("theory::bv::solveTimer")
+  d_solveTimer("theory::bv::solveTimer"),
+  d_numCallsToCheckFullEffort("theory::bv::NumberOfFullCheckCalls", 0),
+  d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0)
 {
   StatisticsRegistry::registerStat(&d_avgConflictSize);
   StatisticsRegistry::registerStat(&d_solveSubstitutions);
   StatisticsRegistry::registerStat(&d_solveTimer);
+  StatisticsRegistry::registerStat(&d_numCallsToCheckFullEffort);
+  StatisticsRegistry::registerStat(&d_numCallsToCheckStandardEffort);
 }
 
 TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_avgConflictSize);
   StatisticsRegistry::unregisterStat(&d_solveSubstitutions);
   StatisticsRegistry::unregisterStat(&d_solveTimer);
+  StatisticsRegistry::unregisterStat(&d_numCallsToCheckFullEffort);
+  StatisticsRegistry::unregisterStat(&d_numCallsToCheckStandardEffort);
 }
 
 
@@ -79,9 +102,9 @@ void TheoryBV::preRegisterTerm(TNode node) {
     // don't use the equality engine in the eager bit-blasting
     return;
   }
-  
-  d_bitblastSolver.preRegister(node);
-  d_coreSolver.preRegister(node);
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    d_subtheories[i]->preRegister(node); 
+  }
 }
 
 void TheoryBV::sendConflict() {
@@ -99,7 +122,11 @@ void TheoryBV::sendConflict() {
 void TheoryBV::check(Effort e)
 {
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
-
+  if (Theory::fullEffort(e)) {
+    ++(d_statistics.d_numCallsToCheckFullEffort); 
+  } else {
+    ++(d_statistics.d_numCallsToCheckStandardEffort); 
+  }
   // if we are already in conflict just return the conflict
   if (inConflict()) {
     sendConflict();
@@ -108,38 +135,37 @@ void TheoryBV::check(Effort e)
 
   while (!done()) {
     TNode fact = get().assertion;
-    d_coreSolver.assertFact(fact);
-    d_inequalitySolver.assertFact(fact); 
-    d_bitblastSolver.assertFact(fact); 
+    for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+      d_subtheories[i]->assertFact(fact); 
+    }
   }
 
-  bool ok = true; 
-  if (!inConflict()) {
-    ok = d_coreSolver.check(e); 
-  }
-  Assert (!ok == inConflict()); 
+  bool ok = true;
+  bool complete = false;
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    Assert (!inConflict()); 
+    ok = d_subtheories[i]->check(e);
+    complete = d_subtheories[i]->isComplete(); 
 
-  if (!inConflict() && !d_coreSolver.isComplete()) {
-    ok = d_inequalitySolver.check(e); 
-  }
-
-  // Assert (!ok == inConflict());
-  // if (!inConflict() && !d_coreSolver.isCoreTheory()) {
-  // if (!inConflict() && !d_inequalitySolver.isInequalityTheory()) {
-  //   ok = d_bitblastSolver.check(e); 
-  // }
-  
-  Assert (!ok == inConflict()); 
-  if (inConflict()) {
-    sendConflict();
+    if (!ok) {
+      // if we are in a conflict no need to check with other theories
+      Assert (inConflict());
+      sendConflict();
+      return; 
+    }
+    if (complete) {
+      // if the last subtheory was complete we stop
+      return; 
+    }
   }
 }
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
   //  Assert (fullModel); // can only query full model
-  d_coreSolver.collectModelInfo(m); 
-  d_bitblastSolver.collectModelInfo(m); 
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    d_subtheories[i]->collectModelInfo(m); 
+  }
 }
 
 void TheoryBV::propagate(Effort e) {
@@ -255,15 +281,9 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
-  // Ask the appropriate subtheory for the explanation
-  if (propagatedBy(literal, SUB_CORE)) {
-    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << "): CORE" << std::endl;
-    d_coreSolver.explain(literal, assumptions);
-  } else {
-    Assert(propagatedBy(literal, SUB_BITBLAST));
-    Debug("bitvector::explain") << "TheoryBV::explain(" << literal << ") : BITBLASTER" << std::endl;
-    d_bitblastSolver.explain(literal, assumptions);
-  }
+  Assert (wasPropagatedBySubtheory(literal));
+  SubTheory sub = getPropagatingSubtheory(literal);
+  d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
 
@@ -288,7 +308,9 @@ void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (!options::bitvectorEagerBitblast() && d_useEqualityEngine) {
-    d_coreSolver.addSharedTerm(t);
+    for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+      d_subtheories[i]->addSharedTerm(t);
+    }
   }
 }
 
@@ -298,15 +320,13 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   if (options::bitvectorEagerBitblast()) {
     return EQUALITY_UNKNOWN;
   }
-
-  EqualityStatus status = d_coreSolver.getEqualityStatus(a, b);
-  if (status == EQUALITY_UNKNOWN) {
-    status = d_inequalitySolver.getEqualityStatus(a, b); 
+  
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
+    if (status != EQUALITY_UNKNOWN) {
+      return status; 
+    }
   }
-  if (status == EQUALITY_UNKNOWN) {
-    status = d_bitblastSolver.getEqualityStatus(a, b);
-  }
-
-  return status;
+  return EQUALITY_UNKNOWN; ;
 }
 

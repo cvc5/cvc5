@@ -26,14 +26,14 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 #include "theory/bv/bv_subtheory.h"
-#include "theory/bv/bv_subtheory_core.h"
-#include "theory/bv/bv_subtheory_bitblast.h"
-#include "theory/bv/bv_subtheory_inequality.h"
-#include "theory/bv/slicer.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+class CoreSolver;
+class InequalitySolver;
+class BitblastSolver; 
 
 class TheoryBV : public Theory {
 
@@ -44,9 +44,8 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
   
-  CoreSolver       d_coreSolver;
-  InequalitySolver d_inequalitySolver; 
-  BitblastSolver   d_bitblastSolver;
+  std::vector<SubtheorySolver*> d_subtheories;
+  __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -77,6 +76,8 @@ private:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
+    IntStat d_numCallsToCheckFullEffort;
+    IntStat d_numCallsToCheckStandardEffort; 
     Statistics();
     ~Statistics();
   };
@@ -102,10 +103,14 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
-  bool propagatedBy(TNode literal, SubTheory subtheory) const {
+  bool wasPropagatedBySubtheory(TNode literal) const {
+    return d_propagatedBy.find(literal) != d_propagatedBy.end(); 
+  }
+  
+  SubTheory getPropagatingSubtheory(TNode literal) const {
+    Assert(wasPropagatedBySubtheory(literal)); 
     PropagatedMap::const_iterator find = d_propagatedBy.find(literal);
-    if (find == d_propagatedBy.end()) return false;
-    else return (*find).second == subtheory;
+    return (*find).second;
   }
 
   /** Should be called to propagate the literal.  */

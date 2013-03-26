@@ -76,7 +76,7 @@ protected:
   /** The bit-vector theory */
   TheoryBV* d_bv;
   AssertionQueue d_assertionQueue;
-  context::CDO<uint32_t>  d_assertionIndex; 
+  context::CDO<uint32_t>  d_assertionIndex;
 public:
   
   SubtheorySolver(context::Context* c, TheoryBV* bv) :
@@ -93,7 +93,7 @@ public:
   virtual void collectModelInfo(TheoryModel* m) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
-  
+  virtual void addSharedTerm(TNode node) {} 
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
     Assert (!done()); 

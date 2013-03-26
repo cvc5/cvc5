@@ -31,7 +31,12 @@ class Base;
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
-
+  struct Statistics {
+    IntStat d_numCallstoCheck;
+    Statistics();
+    ~Statistics(); 
+  }; 
+  
   // NotifyClass: handles call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify {
     CoreSolver& d_solver;
@@ -68,6 +73,7 @@ class CoreSolver : public SubtheorySolver {
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
+  Statistics d_statistics; 
 public: 
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();

@@ -27,7 +27,9 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
-  Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n"; 
+  Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
+  ++(d_statistics.d_numCallstoCheck);
+  
   bool ok = true; 
   while (!done() && ok) {
     TNode fact = get();
@@ -111,7 +113,36 @@ EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b) {
 
 void InequalitySolver::assertFact(TNode fact) {
   d_assertionQueue.push_back(fact);
-  d_assertionSet.insert(fact); 
+  d_assertionSet.insert(fact);
+  if (!isInequalityOnly(fact)) {
+    d_isComplete = false; 
+  }
+}
+
+bool InequalitySolver::isInequalityOnly(TNode node) {
+  if (d_ineqTermCache.find(node) != d_ineqTermCache.end()) {
+    return d_ineqTermCache[node]; 
+  }
+  
+  if (node.getKind() == kind::NOT) {
+    node = node[0]; 
+  }
+  
+  if (node.getKind() != kind::EQUAL &&
+      node.getKind() != kind::BITVECTOR_ULT &&
+      node.getKind() != kind::BITVECTOR_ULE &&
+      node.getKind() != kind::CONST_BITVECTOR &&
+      node.getKind() != kind::SELECT &&
+      node.getKind() != kind::STORE &&
+      node.getMetaKind() != kind::metakind::VARIABLE) {
+    return false; 
+  }
+  bool res = true; 
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    res = res && isInequalityOnly(node[i]);
+  }
+  d_ineqTermCache[node] = res; 
+  return res; 
 }
 
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
@@ -120,5 +151,14 @@ void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 
 void InequalitySolver::propagate(Theory::Effort e) {
   Assert (false); 
+}
+
+InequalitySolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::InequalitySolver::NumCallsToCheck", 0)
+{
+  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+}
+InequalitySolver::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
 }
 
