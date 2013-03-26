@@ -777,8 +777,8 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp, std::ve
 bool Slicer::isCoreTerm(TNode node) {
   if (d_coreTermCache.find(node) == d_coreTermCache.end()) {
     Kind kind = node.getKind(); 
-    if (kind != kind::BITVECTOR_EXTRACT &&
-        kind != kind::BITVECTOR_CONCAT &&
+    if (//kind != kind::BITVECTOR_EXTRACT &&
+        //kind != kind::BITVECTOR_CONCAT &&
         kind != kind::EQUAL &&
         kind != kind::STORE &&
         kind != kind::SELECT &&
