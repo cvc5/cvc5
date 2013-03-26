@@ -83,6 +83,11 @@ EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
   return d_engine->getEqualityStatus(a, b);
 }
 
+Node Valuation::getModelValue(TNode var) {
+  return d_engine->getModelValue(var);
+}
+
+
 Node Valuation::ensureLiteral(TNode n) {
   Debug("ensureLiteral") << "rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);

@@ -127,3 +127,7 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
 void BitblastSolver::collectModelInfo(TheoryModel* m) {
   return d_bitblaster->collectModelInfo(m); 
 }
+
+Node BitblastSolver::getModelValue(TNode node) {
+  return d_bitblaster->getVarValue(node);
+}

@@ -709,6 +709,12 @@ public:
    */
   theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
 
+  /**
+   * Retruns the value that a theory that owns the type of var currently
+   * has (or null if none);
+   */
+  Node getModelValue(TNode var);
+
 private:
 
   /** Default visitor for pre-registration */

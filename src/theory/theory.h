@@ -516,6 +516,11 @@ public:
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
 
   /**
+   * Return the model value of the give shared term (or null if not avalilable.
+   */
+  virtual Node getModelValue(TNode var) { return Node::null(); }
+
+  /**
    * Check the current assignment's consistency.
    *
    * An implementation of check() is required to either:
