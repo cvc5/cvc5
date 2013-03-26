@@ -54,6 +54,9 @@ using namespace CVC4;
 #include "expr/expr.h"
 #include "util/datatype.h"
 #include "expr/command.h"
+#include "bindings/java_stream_adapters.h"
+
+std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %}
 
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;
@@ -72,7 +75,10 @@ using namespace CVC4;
 
 #ifdef SWIGJAVA
 
-%exception {
+#include "bindings/java_iterator_adapter.h"
+#include "bindings/java_stream_adapters.h"
+
+%exception %{
   try {
     $action
   } catch(CVC4::Exception& e) {
@@ -81,12 +87,19 @@ using namespace CVC4;
     std::string explanation = ss.str();
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
   }
-}
+%}
 
 // Create a mapping from C++ Exceptions to Java Exceptions.
 // This is in a couple of throws typemaps, simply because it's sensitive to SWIG's concept of which namespace we're in.
 %typemap(throws) Exception %{
-  jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/$1_type");
+  std::string name = "edu/nyu/acsys/$1_type";
+  size_t i = name.find("::");
+  if(i != std::string::npos) {
+    size_t j = name.rfind("::");
+    assert(i <= j);
+    name.replace(i, j - i + 2, "/");
+  }
+  jclass clazz = jenv->FindClass(name.c_str());
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
   assert(method != NULL && jenv->ExceptionOccurred() == NULL);
@@ -97,8 +110,11 @@ using namespace CVC4;
 %}
 %typemap(throws) CVC4::Exception %{
   std::string name = "edu/nyu/acsys/$1_type";
-  for(size_t i = name.find("::"); i != std::string::npos; i = name.find("::")) {
-    name.replace(i, 2, "/");
+  size_t i = name.find("::");
+  if(i != std::string::npos) {
+    size_t j = name.rfind("::");
+    assert(i <= j);
+    name.replace(i, j - i + 2, "/");
   }
   jclass clazz = jenv->FindClass(name.c_str());
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
@@ -145,6 +161,76 @@ using namespace CVC4;
          pre="    edu.nyu.acsys.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.nyu.acsys.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput",
          post="    new java.io.PrintStream($javainput).print(temp$javainput.toString());")
          std::ostream& "edu.nyu.acsys.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
+
+%typemap(jni) std::istream& "jlong"
+%typemap(jtype) std::istream& "long"
+%typemap(jstype) std::istream& "java.io.InputStream"
+%typemap(javain,
+         pre="    edu.nyu.acsys.CVC4.JavaInputStreamAdapter temp$javainput = edu.nyu.acsys.CVC4.JavaInputStreamAdapter.get($javainput);", pgcppname="temp$javainput",
+         post="")
+         std::istream& "edu.nyu.acsys.CVC4.JavaInputStreamAdapter.getCPtr(temp$javainput)"
+%typemap(in) jobject inputStream %{
+  $1 = jenv->NewGlobalRef($input);
+%}
+%typemap(out) CVC4::JavaInputStreamAdapter* %{
+  $1->pull(jenv);
+  *(CVC4::JavaInputStreamAdapter **)&$result = $1;
+%}
+%typemap(javacode) CVC4::JavaInputStreamAdapter %{
+  private static java.util.HashMap streams = new java.util.HashMap();
+  public static JavaInputStreamAdapter get(java.io.InputStream is) {
+    if(streams.containsKey(is)) {
+      return (JavaInputStreamAdapter) streams.get(is);
+    }
+    JavaInputStreamAdapter adapter = new JavaInputStreamAdapter(is);
+    streams.put(is, adapter);
+    return adapter;
+  }
+%}
+%typemap(javafinalize) CVC4::JavaInputStreamAdapter %{
+  protected void finalize() {
+    streams.remove(getInputStream());
+    delete();
+  }
+%}
+%ignore CVC4::JavaInputStreamAdapter::init(JNIEnv*);
+%ignore CVC4::JavaInputStreamAdapter::pullAdapters(JNIEnv*);
+%javamethodmodifiers CVC4::JavaInputStreamAdapter::getInputStream() const "private";
+%javamethodmodifiers CVC4::JavaInputStreamAdapter::JavaInputStreamAdapter(jobject) "private";
+
+%exception CVC4::parser::Parser::nextCommand() %{
+  try {
+    CVC4::JavaInputStreamAdapter::pullAdapters(jenv);
+    $action
+  } catch(CVC4::Exception& e) {
+    std::stringstream ss;
+    ss << e.what() << ": " << e.getMessage();
+    std::string explanation = ss.str();
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
+  }
+%}
+%exception CVC4::parser::Parser::nextExpression() %{
+  try {
+    CVC4::JavaInputStreamAdapter::pullAdapters(jenv);
+    $action
+  } catch(CVC4::Exception& e) {
+    std::stringstream ss;
+    ss << e.what() << ": " << e.getMessage();
+    std::string explanation = ss.str();
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
+  }
+%}
+%exception CVC4::JavaInputStreamAdapter::~JavaInputStreamAdapter() %{
+  try {
+    jenv->DeleteGlobalRef(arg1->getInputStream());
+    $action
+  } catch(CVC4::Exception& e) {
+    std::stringstream ss;
+    ss << e.what() << ": " << e.getMessage();
+    std::string explanation = ss.str();
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
+  }
+%}
 
 #endif /* SWIGJAVA */
 

@@ -25,6 +25,11 @@
 namespace CVC4 {
 namespace parser {
 
+typedef struct ANTLR3_LINE_BUFFERED_INPUT_STREAM {
+  ANTLR3_INPUT_STREAM antlr;
+  std::istream* in;
+} *pANTLR3_LINE_BUFFERED_INPUT_STREAM;
+
 pANTLR3_INPUT_STREAM
 antlr3LineBufferedStreamNew(std::istream& in, ANTLR3_UINT32 encoding, pANTLR3_UINT8 name);
 

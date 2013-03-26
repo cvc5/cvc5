@@ -446,26 +446,20 @@ Command* Parser::nextCommand() throw(ParserException) {
   if(!d_commandQueue.empty()) {
     cmd = d_commandQueue.front();
     d_commandQueue.pop_front();
-    if(cmd == NULL) {
-      setDone();
-    }
+    setDone(cmd == NULL);
   } else {
-    if(!done()) {
-      try {
-        cmd = d_input->parseCommand();
-        d_commandQueue.push_back(cmd);
-        cmd = d_commandQueue.front();
-        d_commandQueue.pop_front();
-        if(cmd == NULL) {
-          setDone();
-        }
-      } catch(ParserException& e) {
-        setDone();
-        throw;
-      } catch(exception& e) {
-        setDone();
-        parseError(e.what());
-      }
+    try {
+      cmd = d_input->parseCommand();
+      d_commandQueue.push_back(cmd);
+      cmd = d_commandQueue.front();
+      d_commandQueue.pop_front();
+      setDone(cmd == NULL);
+    } catch(ParserException& e) {
+      setDone();
+      throw;
+    } catch(exception& e) {
+      setDone();
+      parseError(e.what());
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
@@ -478,9 +472,7 @@ Expr Parser::nextExpression() throw(ParserException) {
   if(!done()) {
     try {
       result = d_input->parseExpr();
-      if(result.isNull()) {
-        setDone();
-      }
+      setDone(result.isNull());
     } catch(ParserException& e) {
       setDone();
       throw;
