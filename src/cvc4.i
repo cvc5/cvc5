@@ -62,6 +62,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;
 %template(vectorType) std::vector< CVC4::Type >;
 %template(vectorExpr) std::vector< CVC4::Expr >;
+%template(vectorVectorExpr) std::vector< std::vector< CVC4::Expr > >;
 %template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
 %template(vectorSExpr) std::vector< CVC4::SExpr >;
 %template(vectorString) std::vector< std::string >;
@@ -177,7 +178,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   *(CVC4::JavaInputStreamAdapter **)&$result = $1;
 %}
 %typemap(javacode) CVC4::JavaInputStreamAdapter %{
-  private static java.util.HashMap streams = new java.util.HashMap();
+  private static java.util.HashMap<java.io.InputStream, JavaInputStreamAdapter> streams =
+    new java.util.HashMap<java.io.InputStream, JavaInputStreamAdapter>();
   public static JavaInputStreamAdapter get(java.io.InputStream is) {
     if(streams.containsKey(is)) {
       return (JavaInputStreamAdapter) streams.get(is);
@@ -195,6 +197,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %}
 %ignore CVC4::JavaInputStreamAdapter::init(JNIEnv*);
 %ignore CVC4::JavaInputStreamAdapter::pullAdapters(JNIEnv*);
+%ignore CVC4::JavaInputStreamAdapter::pull(JNIEnv*);
 %javamethodmodifiers CVC4::JavaInputStreamAdapter::getInputStream() const "private";
 %javamethodmodifiers CVC4::JavaInputStreamAdapter::JavaInputStreamAdapter(jobject) "private";
 
@@ -256,6 +259,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/type.i"
 %include "util/ascription_type.i"
 %include "util/datatype.i"
+%include "util/tuple.i"
+%include "util/record.i"
 %include "util/uninterpreted_constant.i"
 
 %include "expr/kind.i"

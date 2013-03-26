@@ -304,7 +304,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
     }
   }
 
-  BooleanTermCache::iterator i = d_termCache.find(make_pair<Node, theory::TheoryId>(top, parentTheory));
+  BooleanTermCache::iterator i = d_termCache.find(pair<Node, theory::TheoryId>(top, parentTheory));
   if(i != d_termCache.end()) {
     return (*i).second.isNull() ? Node(top) : (*i).second;
   }

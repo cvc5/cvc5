@@ -2,7 +2,7 @@
 # -----------------------
 # Supported language bindings for CVC4.
 AC_DEFUN([CVC4_SUPPORTED_BINDINGS],
-[c,java])
+[c,c++,java])
 
 # CVC4_ALL_BINDINGS
 # -----------------

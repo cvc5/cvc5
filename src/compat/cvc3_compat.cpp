@@ -1261,6 +1261,7 @@ Type ValidityChecker::createType(const std::string& typeName) {
 
 Type ValidityChecker::createType(const std::string& typeName, const Type& def) {
   d_parserContext->defineType(typeName, def);
+  return def;
 }
 
 Type ValidityChecker::lookupType(const std::string& typeName) {
@@ -1279,6 +1280,7 @@ Expr ValidityChecker::varExpr(const std::string& name, const Type& type,
                               const Expr& def) {
   CVC4::CheckArgument(def.getType() == type, def, "expected types to match");
   d_parserContext->defineVar(name, def);
+  return def;
 }
 
 Expr ValidityChecker::lookupVar(const std::string& name, Type* type) {

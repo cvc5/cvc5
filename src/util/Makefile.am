@@ -119,11 +119,12 @@ EXTRA_DIST = \
 	bool.i \
 	sexpr.i \
 	datatype.i \
+	tuple.i \
+	record.i \
 	output.i \
 	cardinality.i \
 	result.i \
 	configuration.i \
-	cvc4_assert.i \
 	bitvector.i \
 	subrange_bound.i \
 	exception.i \

@@ -19,6 +19,8 @@ namespace CVC4 {
   }/* namespace CVC4::parser */
 }/* namespace CVC4 */
 
+%ignore CVC4::parser::Parser::ExprStream;
+
 %include "parser/parser.h"
 
 %{

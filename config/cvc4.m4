@@ -94,7 +94,7 @@ AC_CONFIG_FILES([$1.tmp:$1.in],
 AC_DEFUN([CVC4_CXX_OPTION], [
 AC_MSG_CHECKING([whether $CXX supports $1])
 cvc4_save_CXXFLAGS="$CXXFLAGS"
-CXXFLAGS="$CXXFLAGS $1"
+CXXFLAGS="$CXXFLAGS $WERROR $1"
 AC_LANG_PUSH([C++])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
                   [AC_MSG_RESULT([yes]); $2='$1'],
