@@ -225,11 +225,11 @@ Node TheoryBV::ppRewrite(TNode t)
     return Rewriter::rewrite(result);
   }
   
-  if (t.getKind() == kind::EQUAL) {
-    std::vector<Node> equalities;
-    Slicer::splitEqualities(t, equalities);
-    return utils::mkAnd(equalities); 
-  }
+  // if (t.getKind() == kind::EQUAL) {
+  //   std::vector<Node> equalities;
+  //   Slicer::splitEqualities(t, equalities);
+  //   return utils::mkAnd(equalities); 
+  // }
   
   return t;
 }

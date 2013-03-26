@@ -205,7 +205,8 @@ bool CoreSolver::check(Theory::Effort e) {
     
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
-      ok = decomposeFact(fact);
+      // ok = decomposeFact(fact);
+      ok = assertFactToEqualityEngine(fact, fact); 
     } else {
       ok = assertFactToEqualityEngine(fact, fact); 
     }
@@ -214,13 +215,13 @@ bool CoreSolver::check(Theory::Effort e) {
   }
   
   // make sure to assert the new splits
-  std::vector<Node> new_splits;
-  d_slicer->getNewSplits(new_splits);
-  for (unsigned i = 0; i < new_splits.size(); ++i) {
-    ok = assertFactToEqualityEngine(new_splits[i], utils::mkTrue());
-    if (!ok)
-      return false; 
-  }
+  // std::vector<Node> new_splits;
+  // d_slicer->getNewSplits(new_splits);
+  // for (unsigned i = 0; i < new_splits.size(); ++i) {
+  //   ok = assertFactToEqualityEngine(new_splits[i], utils::mkTrue());
+  //   if (!ok)
+  //     return false; 
+  // }
   return true;
 }
 

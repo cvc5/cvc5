@@ -209,9 +209,8 @@ ExtractTerm UnionFind::mkExtractTerm(TermId id, Index high, Index low) {
   ExtractTerm top = getExtractTerm(id);
   Assert (d_topLevelIds.find(top.id) != d_topLevelIds.end());
   
-  Index top_high = top.high;
   Index top_low = top.low;
-  Assert (top_high - top_low + 1 > high);
+  Assert (top.high - top_low + 1 > high);
   high += top_low; 
   low += top_low;
   id = top.id; 
@@ -602,8 +601,7 @@ void UnionFind::backtrack() {
 }
 
 void UnionFind::undoMerge(TermId id) {
-  TermId repr = getRepr(id);
-  Assert (repr != UndefinedId);
+  Assert (getRepr(id) != UndefinedId);
   setRepr(id, UndefinedId, UndefinedId); 
 }
 
@@ -781,7 +779,10 @@ bool Slicer::isCoreTerm(TNode node) {
     Kind kind = node.getKind(); 
     if (kind != kind::BITVECTOR_EXTRACT &&
         kind != kind::BITVECTOR_CONCAT &&
-        kind != kind::EQUAL && kind != kind::NOT &&
+        kind != kind::EQUAL &&
+        kind != kind::STORE &&
+        kind != kind::SELECT &&
+        kind != kind::NOT &&
         node.getMetaKind() != kind::metakind::VARIABLE &&
         kind != kind::CONST_BITVECTOR) {
       d_coreTermCache[node] = false;

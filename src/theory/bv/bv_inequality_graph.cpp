@@ -358,7 +358,17 @@ bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
       return addInequality(a, b, true, explanation);
     }
     if (b.getKind() == kind::CONST_BITVECTOR) {
-      return addInequality(b, a, true, reason);
+      // then we know b cannot be smaller  than the assigned value so we try to make it larger
+      std::vector<ReasonId> explanation_ids; 
+      computeExplanation(UndefinedTermId, id_a, explanation_ids); 
+      std::vector<TNode> explanation_nodes;
+      explanation_nodes.push_back(reason);
+      for (unsigned i = 0; i < explanation_ids.size(); ++i) {
+        explanation_nodes.push_back(getReasonNode(explanation_ids[i])); 
+      }
+      Node explanation = utils::mkAnd(explanation_nodes);
+      d_reasonSet.insert(explanation); 
+      return addInequality(b, a, true, explanation);
     }
     // if none of the terms are constants just add the lemma 
     splitDisequality(reason);
@@ -410,8 +420,7 @@ void InequalityGraph::backtrack() {
       Debug("bv-inequality-internal") << getTermNode(it->next) <<" " << it->strict << "\n"; 
     }
     Assert (!edges.empty());
-    InequalityEdge back = edges.back(); 
-    Assert (back == edge);
+    Assert (edges.back() == edge);
     edges.pop_back(); 
   }
 }
