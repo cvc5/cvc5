@@ -27,3 +27,4 @@ generated/
 config.reconfig
 *.swp
 /debug/
+src/theory/strings/Makefile.in

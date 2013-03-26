@@ -172,9 +172,18 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
     break;
   case kind::RR_REDUCTION:
     /** Add head to remove */
-      for(Node::iterator i = head.begin(); i != head.end(); ++i) {
-        to_remove.push_back(*i);
-      };
+    switch(head.getKind()){
+		case kind::AND:
+			for(Node::iterator i = head.begin(); i != head.end(); ++i) {
+				to_remove.push_back(*i);
+			};
+			break;
+		default:
+			if (head != d_true){
+				to_remove.push_back(head);
+			}
+	}
+   /** go to the next case */
   case kind::RR_DEDUCTION:
     /** Add head to guards and pattern */
     switch(head.getKind()){
