@@ -137,6 +137,12 @@ void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   
 }
 
+Node TheoryBV::getModelValue(TNode var) {
+  Assert(!inConflict());
+  return d_bitblastSolver.getModelValue(var);
+}
+
+
 void TheoryBV::propagate(Effort e) {
   Debug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
 

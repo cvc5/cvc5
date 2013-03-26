@@ -117,6 +117,8 @@ private:
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
+  Node getModelValue(TNode var);
+
   inline std::string indent()
   {
     std::string indentStr(getSatContext()->getLevel(), ' ');
