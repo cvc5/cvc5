@@ -11,4 +11,10 @@ option arraysOptimizeLinear --arrays-optimize-linear bool :default true :read-wr
 option arraysLazyRIntro1 --arrays-lazy-rintro1 bool :default true :read-write
  turn on optimization to only perform RIntro1 rule lazily (see Jovanovic/Barrett 2012: Being Careful with Theory Combination)
 
+option arraysModelBased --arrays-model-based bool :default false :read-write
+ turn on model-based arrray solver
+
+option arraysEagerIndexSplitting --arrays-eager-index bool :default false :read-write
+ turn on eager index splitting for generated array lemmas
+
 endmodule

@@ -115,6 +115,14 @@ class TheoryArrays : public Theory {
   IntStat d_numNonLinear;
   /** splits on array variables */
   IntStat d_numSharedArrayVarSplits;
+  /** splits in getModelVal */
+  IntStat d_numGetModelValSplits;
+  /** conflicts in getModelVal */
+  IntStat d_numGetModelValConflicts;
+  /** splits in setModelVal */
+  IntStat d_numSetModelValSplits;
+  /** conflicts in setModelVal */
+  IntStat d_numSetModelValConflicts;
   /** time spent in check() */
   TimerStat d_checkTimer;
 
@@ -152,6 +160,7 @@ class TheoryArrays : public Theory {
   Node preprocessTerm(TNode term);
   Node recursivePreprocessTerm(TNode term);
   bool ppDisequal(TNode a, TNode b);
+  Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
 
   public:
 
@@ -339,23 +348,44 @@ class TheoryArrays : public Theory {
   CDNodeSet d_sharedOther;
   context::CDO<bool> d_sharedTerms;
   context::CDList<TNode> d_reads;
-  std::hash_map<TNode, Node, TNodeHashFunction> d_diseqCache;
+  std::hash_map<Node, Node, NodeHashFunction> d_skolemCache;
+  context::CDO<unsigned> d_skolemIndex;
+  std::vector<Node> d_skolemAssertions;
 
   // The decision requests we have for the core
   context::CDQueue<Node> d_decisionRequests;
 
   // List of nodes that need permanent references in this context
   context::CDList<Node> d_permRef;
+  context::CDList<Node> d_modelConstraints;
 
+  Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions);
   void setNonLinear(TNode a);
   void checkRIntro1(TNode a, TNode b);
+  Node removeRepLoops(TNode a, TNode rep);
+  Node expandStores(TNode s, std::vector<TNode>& assumptions, bool checkLoop = false, TNode a = TNode(), TNode b = TNode());
   void mergeArrays(TNode a, TNode b);
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
   void queueRowLemma(RowLemmaType lem);
   void dischargeLemmas();
+
+  std::vector<Node> d_decisions;
+  bool d_inCheckModel;
+  int d_topLevel;
+  void convertNodeToAssumptions(TNode node, std::vector<TNode>& assumptions, TNode nodeSkip);
+  void preRegisterStores(TNode s);
+  void checkModel();
+  bool hasLoop(TNode node, TNode target);
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  NodeMap d_getModelValCache;
+  NodeMap d_lastVal;
+  Node getModelVal(TNode node);
+  Node getModelValRec(TNode node);
+  bool setModelVal(TNode node, TNode val, bool invert,
+                   bool explain, std::vector<TNode>& assumptions);
 
   public:
 
