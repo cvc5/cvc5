@@ -428,9 +428,18 @@ bool Bitblaster::hasValue(TNode a) {
   }
   return true; 
 }
-
+/** 
+ * Returns the value a is currently assigned to in the SAT solver
+ * or null if the value is completely unassigned. 
+ * 
+ * @param a 
+ * 
+ * @return 
+ */
 Node Bitblaster::getVarValue(TNode a) {
-  Assert (d_termCache.find(a) != d_termCache.end()); 
+  if (d_termCache.find(a) == d_termCache.end()) {
+    return Node(); 
+  }
   Bits bits = d_termCache[a];
   Integer value(0); 
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -455,6 +464,10 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
     TNode var = *it;
     if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
       Node const_value = getVarValue(var);
+      if(const_value == Node()) {
+        // if the value is unassigned just set it to zero
+        const_value = utils::mkConst(BitVector(utils::getSize(var), 0u)); 
+      }
       Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
                                 << var << " "
                                 << const_value << "))\n";

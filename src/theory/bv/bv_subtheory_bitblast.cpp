@@ -141,5 +141,7 @@ void BitblastSolver::collectModelInfo(TheoryModel* m) {
 }
 
 Node BitblastSolver::getModelValue(TNode node) {
-  return d_bitblaster->getVarValue(node);
+  Node val = d_bitblaster->getVarValue(node);
+  Assert (val != Node() || d_bv->isSharedTerm(node));
+  return val; 
 }

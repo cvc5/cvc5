@@ -181,7 +181,10 @@ void InequalitySolver::collectModelInfo(TheoryModel* m) {
 
 Node InequalitySolver::getModelValue(TNode var) {
   Assert (isComplete());
-  Assert (d_inequalityGraph.hasValueInModel(var)); 
+  if (!d_inequalityGraph.hasValueInModel(var)) {
+    Assert (d_bv->isSharedTerm(var));
+    return Node(); 
+  }
   BitVector val = d_inequalityGraph.getValueInModel(var);
   return utils::mkConst(val); 
 }

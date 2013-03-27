@@ -407,7 +407,11 @@ Node CoreSolver::getModelValue(TNode var) {
   if (repr.getKind() == kind::CONST_BITVECTOR) {
     return repr; 
   }
-  Assert (d_modelValues.find(repr) != d_modelValues.end()); 
+  if (d_modelValues.find(repr) == d_modelValues.end()) {
+    // it may be a shared term that never gets asserted
+    Assert(d_bv->isSharedTerm(var));
+    return Node(); 
+  }
   return d_modelValues[repr]; 
 }
 
