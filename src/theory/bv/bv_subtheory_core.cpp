@@ -403,8 +403,12 @@ void CoreSolver::collectModelInfo(TheoryModel* m) {
 
 Node CoreSolver::getModelValue(TNode var) {
   Assert (isComplete());
-  Assert (d_modelValues.find(var) != d_modelValues.end()); 
-  return d_modelValues[d_equalityEngine.getRepresentative(var)]; 
+  TNode repr = d_equalityEngine.getRepresentative(var);
+  if (repr.getKind() == kind::CONST_BITVECTOR) {
+    return repr; 
+  }
+  Assert (d_modelValues.find(repr) != d_modelValues.end()); 
+  return d_modelValues[repr]; 
 }
 
 CoreSolver::Statistics::Statistics()
