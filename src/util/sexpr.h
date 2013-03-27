@@ -37,6 +37,13 @@
 
 namespace CVC4 {
 
+class CVC4_PUBLIC SExprKeyword {
+  std::string d_str;
+public:
+  SExprKeyword(const std::string& s) : d_str(s) {}
+  const std::string& getString() const { return d_str; }
+};/* class SExpr::Keyword */
+
 /**
  * A simple S-expression. An S-expression is either an atom with a
  * string value, or a list of other S-expressions.
@@ -65,11 +72,7 @@ class CVC4_PUBLIC SExpr {
 
 public:
 
-  class CVC4_PUBLIC Keyword : protected std::string {
-  public:
-    Keyword(const std::string& s) : std::string(s) {}
-    const std::string& getString() const { return *this; }
-  };/* class SExpr::Keyword */
+  typedef SExprKeyword Keyword;
 
   SExpr() :
     d_sexprType(SEXPR_STRING),

@@ -87,10 +87,12 @@ return toJavaVCopy(env, result);
 DEFINITION: Java_cvc3_ValidityChecker_jniAnyType
 jobject m ValidityChecker vc
 assert(false);// Unimplemented
+return NULL;
 
 DEFINITION: Java_cvc3_ValidityChecker_jniArrayLiteral
 jobject m ValidityChecker vc c Expr indexVar c Expr bodyExpr
 assert(false);// Unimplemented
+return NULL;
 
 DEFINITION: Java_cvc3_ValidityChecker_jniArrayType
 jobject m ValidityChecker vc c Type typeIndex c Type typeData

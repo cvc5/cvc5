@@ -235,7 +235,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // Parse and execute commands until we are done
     Command* cmd;
     bool status = true;
-    if( opts[options::interactive] ) {
+    if(opts[options::interactive]) {
+#ifndef PORTFOLIO_BUILD
+      if(!opts.wasSetByUser(options::incrementalSolving)) {
+        cmd = new SetOptionCommand("incremental", true);
+        pExecutor->doCommand(cmd);
+        delete cmd;
+      }
+#endif /* PORTFOLIO_BUILD */
       InteractiveShell shell(*exprMgr, opts);
       Message() << Configuration::getPackageName()
                 << " " << Configuration::getVersionString();

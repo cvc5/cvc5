@@ -6,7 +6,8 @@ noinst_DATA += \
 	BitVectorsAndArrays.class \
 	Combination.class \
 	HelloWorld.class \
-	LinearArith.class
+	LinearArith.class \
+	PipedInput.class
 endif
 
 %.class: %.java
@@ -17,7 +18,8 @@ EXTRA_DIST = \
 	BitVectorsAndArrays.java \
 	Combination.java \
 	HelloWorld.java \
-	LinearArith.java
+	LinearArith.java \
+	PipedInput.java
 
 # for installation
 examplesdir = $(docdir)/$(subdir)

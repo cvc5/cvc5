@@ -31,6 +31,7 @@
 //#include "fdstream.h"
 #include <string>
 #include <cassert>
+#include <cerrno>
 #include <unistd.h>
 
 #ifdef CVC4_DEBUG
@@ -862,7 +863,12 @@ extern "C" void vc_printExprFile(VC vc, Expr e, int fd)
     CVC3::ValidityChecker* cvc = (CVC3::ValidityChecker*) vc;
     cvc->printExpr(fromExpr(e), ss);
     string s = ss.str();
-    write(fd, s.c_str(), s.size());
+    ssize_t e = write(fd, s.c_str(), s.size());
+    if(e < 0) {
+      IF_DEBUG(cerr << "write() failed, errno == " << errno << endl;)
+      c_interface_error_string = "write() failed";
+      c_interface_error_flag = errno;
+    }
   } catch(CVC3::Exception ex) {
     signal_error("vc_printExpr",error_int,ex);
   }

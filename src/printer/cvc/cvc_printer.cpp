@@ -24,6 +24,8 @@
 #include "smt/options.h"
 #include "theory/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "printer/dagification_visitor.h"
+#include "util/node_visitor.h"
 
 #include <iostream>
 #include <vector>

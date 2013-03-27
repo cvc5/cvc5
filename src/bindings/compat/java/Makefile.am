@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4BINDINGSLIB \
 	-I@builddir@/../../.. -I@srcdir@/../../../include -I@srcdir@/../../.. \
 	-I@builddir@/cvc3 -I@srcdir@/include/cvc3
-AM_CXXFLAGS = -Wall
+AM_CXXFLAGS = -Wall -Wno-unused-variable
 
 javadatadir = $(datadir)/java
 javalibdir = $(libdir)/jni

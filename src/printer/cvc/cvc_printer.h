@@ -22,9 +22,6 @@
 #include <iostream>
 
 #include "printer/printer.h"
-#include "printer/dagification_visitor.h"
-#include "theory/substitutions.h"
-#include "util/node_visitor.h"
 
 namespace CVC4 {
 namespace printer {
@@ -34,6 +31,7 @@ class CvcPrinter : public CVC4::Printer {
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const throw();
   void toStream(std::ostream& out, Model& m, const Command* c) const throw();
 public:
+  using CVC4::Printer::toStream;
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();

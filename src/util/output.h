@@ -570,7 +570,7 @@ public:
  * used for clearly separating different phases of an algorithm,
  * or iterations of a loop, or... etc.
  */
-class IndentedScope {
+class CVC4_PUBLIC IndentedScope {
   CVC4ostream d_out;
 public:
   inline IndentedScope(CVC4ostream out);
