@@ -249,6 +249,32 @@ inline unsigned isPow2Const(TNode node) {
 
 typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
+inline Node mkOr(const std::vector<Node>& nodes) {
+  std::set<TNode> all;
+  all.insert(nodes.begin(), nodes.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return nodes[0];
+  }
+  
+
+  NodeBuilder<> disjunction(kind::OR);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    disjunction << *it;
+    ++ it;
+  }
+
+  return disjunction; 
+}/* mkOr() */
+
+                 
 inline Node mkAnd(const std::vector<TNode>& conjunctions) {
   std::set<TNode> all;
   all.insert(conjunctions.begin(), conjunctions.end());

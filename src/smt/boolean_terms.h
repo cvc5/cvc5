@@ -38,35 +38,64 @@ typedef expr::Attribute<attr::BooleanTermAttrTag, Node> BooleanTermAttr;
 
 class BooleanTermConverter {
   /** The type of the Boolean term conversion cache */
-  typedef std::hash_map< std::pair<Node, bool>, Node,
+  typedef std::hash_map< std::pair<Node, theory::TheoryId>, Node,
                          PairHashFunction< Node, bool,
-                                           NodeHashFunction, std::hash<int> > > BooleanTermCache;
+                                           NodeHashFunction, std::hash<size_t> > > BooleanTermCache;
+  /** The type of the Boolean term conversion type cache */
+  typedef std::hash_map< std::pair<TypeNode, bool>, TypeNode,
+                         PairHashFunction< TypeNode, bool,
+                                           TypeNodeHashFunction, std::hash<int> > > BooleanTermTypeCache;
+  /** The type of the Boolean term conversion datatype cache */
+  typedef std::hash_map<const Datatype*, const Datatype*, DatatypeHashFunction> BooleanTermDatatypeCache;
 
   /** The SmtEngine to which we're associated */
   SmtEngine& d_smt;
 
+  /** The conversion for "false." */
+  Node d_ff;
+  /** The conversion for "true." */
+  Node d_tt;
+  /** The conversion for "false" when in datatypes contexts. */
+  Node d_ffDt;
+  /** The conversion for "true" when in datatypes contexts. */
+  Node d_ttDt;
+
   /** The cache used during Boolean term conversion */
-  BooleanTermCache d_booleanTermCache;
+  BooleanTermCache d_termCache;
+  /** The cache used during Boolean term type conversion */
+  BooleanTermTypeCache d_typeCache;
+  /** The cache used during Boolean term datatype conversion */
+  BooleanTermDatatypeCache d_datatypeCache;
 
   /**
    * Scan a datatype for and convert as necessary.
    */
-  const Datatype& booleanTermsConvertDatatype(const Datatype& dt) throw();
+  const Datatype& convertDatatype(const Datatype& dt) throw();
 
-  Node rewriteBooleanTermsRec(TNode n, bool boolParent, std::map<TNode, Node>& quantBoolVars) throw();
+  /**
+   * Convert a type.
+   */
+  TypeNode convertType(TypeNode type, bool datatypesContext);
+
+  Node rewriteBooleanTermsRec(TNode n, theory::TheoryId parentTheory, std::map<TNode, Node>& quantBoolVars) throw();
 
 public:
 
-  BooleanTermConverter(SmtEngine& smt) :
-    d_smt(smt) {
-  }
+  /**
+   * Construct a Boolean-term converter associated to the given
+   * SmtEngine.
+   */
+  BooleanTermConverter(SmtEngine& smt);
 
   /**
-   * We rewrite Boolean terms in assertions as bitvectors of length 1.
+   * Rewrite Boolean terms under a node.  The node itself is not converted
+   * if boolParent is true, but its Boolean subterms appearing in a
+   * non-Boolean context will be rewritten.
    */
-  Node rewriteBooleanTerms(TNode n, bool boolParent = true) throw() {
+  Node rewriteBooleanTerms(TNode n, bool boolParent = true, bool dtParent = false) throw() {
     std::map<TNode, Node> quantBoolVars;
-    return rewriteBooleanTermsRec(n, boolParent, quantBoolVars);
+    Assert(!(boolParent && dtParent));
+    return rewriteBooleanTermsRec(n, boolParent ? theory::THEORY_BOOL : (dtParent ? theory::THEORY_DATATYPES : theory::THEORY_BUILTIN), quantBoolVars);
   }
 
 };/* class BooleanTermConverter */

@@ -109,9 +109,10 @@ class Relevancy : public RelevancyStrategy {
   bool d_multipleBacktrace;
   //bool d_computeRelevancy;     // are we in a mode where we compute relevancy?
 
-  static const double secondsPerDecision = 0.001;
-  static const double secondsPerExpense = 1e-7;
-  static const double EPS = 1e-9;
+  static const double secondsPerDecision;
+  static const double secondsPerExpense;
+  static const double EPS;
+
   /** Maximum time this algorithm should spent as part of whole algorithm */
   double d_maxTimeAsPercentageOfTotalTime;
 

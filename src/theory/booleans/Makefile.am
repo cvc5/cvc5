@@ -13,7 +13,10 @@ libbooleans_la_SOURCES = \
 	theory_bool_rewriter.h \
 	theory_bool_rewriter.cpp \
 	circuit_propagator.h \
-	circuit_propagator.cpp
+	circuit_propagator.cpp \
+	boolean_term_conversion_mode.h \
+	boolean_term_conversion_mode.cpp
 
 EXTRA_DIST = \
-	kinds
+	kinds \
+	options_handlers.h

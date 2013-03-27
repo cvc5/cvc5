@@ -54,7 +54,8 @@ public:
   void propagate(Theory::Effort e); 
   void explain(TNode literal, std::vector<TNode>& assumptions);
   bool isComplete() { return d_isComplete; }
-  void collectModelInfo(TheoryModel* m) {}
+  void collectModelInfo(TheoryModel* m); 
+  Node getModelValue(TNode var); 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
   void assertFact(TNode fact); 
 }; 

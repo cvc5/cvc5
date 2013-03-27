@@ -713,6 +713,10 @@ public:
   operator Node();
   operator Node() const;
 
+  // similarly for TypeNode
+  operator TypeNode();
+  operator TypeNode() const;
+
   NodeBuilder<nchild_thresh>& operator&=(TNode);
   NodeBuilder<nchild_thresh>& operator|=(TNode);
   NodeBuilder<nchild_thresh>& operator+=(TNode);
@@ -899,6 +903,16 @@ NodeBuilder<nchild_thresh>::operator Node() {
 template <unsigned nchild_thresh>
 NodeBuilder<nchild_thresh>::operator Node() const {
   return constructNode();
+}
+
+template <unsigned nchild_thresh>
+NodeBuilder<nchild_thresh>::operator TypeNode() {
+  return constructTypeNode();
+}
+
+template <unsigned nchild_thresh>
+NodeBuilder<nchild_thresh>::operator TypeNode() const {
+  return constructTypeNode();
 }
 
 template <unsigned nchild_thresh>

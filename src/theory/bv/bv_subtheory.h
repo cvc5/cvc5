@@ -91,6 +91,7 @@ public:
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
   virtual void collectModelInfo(TheoryModel* m) = 0;
+  virtual Node getModelValue(TNode var) = 0; 
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
   virtual void addSharedTerm(TNode node) {} 

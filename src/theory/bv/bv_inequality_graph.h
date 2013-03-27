@@ -88,11 +88,11 @@ class InequalityGraph : public context::ContextNotifyObj{
     {}
   };
   
-  typedef context::CDHashMap<TermId, ModelValue> Model;
+  typedef context::CDHashMap<TermId, ModelValue> ModelValues;
 
   struct QueueComparator {
-    const Model* d_model;
-    QueueComparator(const Model* model)
+    const ModelValues* d_model;
+    QueueComparator(const ModelValues* model)
       : d_model(model)
     {}
     bool operator() (TermId left, TermId right) const {
@@ -128,7 +128,7 @@ class InequalityGraph : public context::ContextNotifyObj{
   std::vector<TNode> d_conflict;
   bool d_signed; 
 
-  Model  d_modelValues;
+  ModelValues  d_modelValues;
   void initializeModelValue(TNode node); 
   void setModelValue(TermId term, const ModelValue& mv);
   ModelValue getModelValue(TermId term) const;
@@ -290,7 +290,9 @@ public:
    * 
    * @return 
    */
-  BitVector getValueInModel(TNode a) const; 
+  BitVector getValueInModel(TNode a) const;
+
+  void getAllValuesInModel(std::vector<Node>& assignments); 
 }; 
 
 }

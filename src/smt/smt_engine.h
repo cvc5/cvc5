@@ -249,7 +249,7 @@ class CVC4_PUBLIC SmtEngine {
    * like turning datatypes back into tuples, length-1-bitvectors back
    * into booleans, etc.
    */
-  Node postprocess(TNode n);
+  Node postprocess(TNode n, TypeNode expectedType);
 
   /**
    * This is something of an "init" procedure, but is idempotent; call

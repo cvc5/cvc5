@@ -79,7 +79,7 @@ class EqualityTypeRule {
 
       if ( TypeNode::leastCommonTypeNode(lhsType, rhsType).isNull() ) {
         std::stringstream ss;
-        ss << "Subtypes must have a common type:" << std::endl;
+        ss << "Subexpressions must have a common base type:" << std::endl;
         ss << "Equation: " << n << std::endl;
         ss << "Type 1: " << lhsType << std::endl;
         ss << "Type 2: " << rhsType << std::endl;

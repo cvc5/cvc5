@@ -153,6 +153,23 @@ void InequalitySolver::propagate(Theory::Effort e) {
   Assert (false); 
 }
 
+void InequalitySolver::collectModelInfo(TheoryModel* m) {
+  Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n"; 
+  std::vector<Node> model;
+  d_inequalityGraph.getAllValuesInModel(model);
+  for (unsigned i = 0; i < model.size(); ++i) {
+    Assert (model[i].getKind() == kind::EQUAL); 
+    m->assertEquality(model[i][0], model[i][1], true); 
+  }
+}
+
+Node InequalitySolver::getModelValue(TNode var) {
+  Assert (isComplete());
+  Assert (d_inequalityGraph.hasValueInModel(var)); 
+  BitVector val = d_inequalityGraph.getValueInModel(var);
+  return utils::mkConst(val); 
+}
+
 InequalitySolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::InequalitySolver::NumCallsToCheck", 0)
 {

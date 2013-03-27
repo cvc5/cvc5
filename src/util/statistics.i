@@ -4,7 +4,7 @@
 #ifdef SWIGJAVA
 
 #include "bindings/java_iterator_adapter.h"
-#include "bindings/java_output_stream_adapter.h"
+#include "bindings/java_stream_adapters.h"
 
 #endif /* SWIGJAVA */
 %}
@@ -72,7 +72,7 @@
 #ifdef SWIGJAVA
 
 %include "bindings/java_iterator_adapter.h"
-%include "bindings/java_output_stream_adapter.h"
+%include "bindings/java_stream_adapters.h"
 
 %template(JavaIteratorAdapter_StatisticsBase) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>;
 

@@ -176,7 +176,7 @@ class TupleEnumerator : public TypeEnumeratorBase<TupleEnumerator> {
   void newEnumerators() {
     d_enumerators = new TypeEnumerator*[getType().getNumChildren()];
     for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-      d_enumerators[i] = NULL;
+      d_enumerators[i] = new TypeEnumerator(getType()[i]);
     }
   }
 
@@ -205,9 +205,7 @@ public:
     if(te.d_enumerators != NULL) {
       newEnumerators();
       for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-        if(te.d_enumerators[i] != NULL) {
-          d_enumerators[i] = new TypeEnumerator(*te.d_enumerators[i]);
-        }
+        *d_enumerators[i] = TypeEnumerator(*te.d_enumerators[i]);
       }
     }
   }
@@ -292,9 +290,7 @@ public:
     if(re.d_enumerators != NULL) {
       newEnumerators();
       for(size_t i = 0; i < getType().getNumChildren(); ++i) {
-        if(re.d_enumerators[i] != NULL) {
-          d_enumerators[i] = new TypeEnumerator(*re.d_enumerators[i]);
-        }
+        *d_enumerators[i] = TypeEnumerator(*re.d_enumerators[i]);
       }
     }
   }

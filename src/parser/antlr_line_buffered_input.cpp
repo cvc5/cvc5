@@ -21,14 +21,10 @@
 #include <cassert>
 
 #include "util/output.h"
+#include "parser/antlr_line_buffered_input.h"
 
 namespace CVC4 {
 namespace parser {
-
-typedef struct ANTLR3_LINE_BUFFERED_INPUT_STREAM {
-  ANTLR3_INPUT_STREAM antlr;
-  std::istream* in;
-} *pANTLR3_LINE_BUFFERED_INPUT_STREAM;
 
 static pANTLR3_INPUT_STREAM    antlr3CreateLineBufferedStream(std::istream& in);
 
@@ -213,7 +209,9 @@ myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
     Debug("pipe") << "LA" << std::endl;
     if	(( ((pANTLR3_UINT8)input->nextChar) + la - 1) >= (((pANTLR3_UINT8)input->data) + input->sizeBuf))
     {
-      std::istream& in = *((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in;
+      std::istream& in = *((CVC4::parser::pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in;
+      //MGD
+      // in.clear();
       if(!in) {
         Debug("pipe") << "EOF" << std::endl;
         return	ANTLR3_CHARSTREAM_EOF;
@@ -246,7 +244,7 @@ myLA(pANTLR3_INT_STREAM is, ANTLR3_INT32 la) {
       ++input->sizeBuf;
     }
 
-    Debug("pipe") << "READ POINTER[" << la << "] AT: >>" << std::string(((char*)input->nextChar), input->sizeBuf - (((char*)input->nextChar) - (char*)input->data) + 1) << "<< returning '" << (char)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << "' (" << (unsigned)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << ")" << std::endl;
+    Debug("pipe") << "READ POINTER[" << la << "] AT: >>" << std::string(((char*)input->nextChar), input->sizeBuf - (((char*)input->nextChar) - (char*)input->data)) << "<< returning '" << (char)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << "' (" << (unsigned)(*((pANTLR3_UINT8)input->nextChar + la - 1)) << ")" << std::endl;
     return	(ANTLR3_UCHAR)(*((pANTLR3_UINT8)input->nextChar + la - 1));
 }
 
@@ -356,7 +354,6 @@ antlr3CreateLineBufferedStream(std::istream& in)
         input->isAllocated	= ANTLR3_FALSE;
 
         ((pANTLR3_LINE_BUFFERED_INPUT_STREAM)input)->in = &in;
-
 	// Call the common 8 bit input stream handler
 	// initialization.
 	//

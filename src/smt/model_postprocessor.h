@@ -25,9 +25,12 @@ namespace CVC4 {
 namespace smt {
 
 class ModelPostprocessor {
+  std::hash_map<TNode, Node, TNodeHashFunction> d_nodes;
+
 public:
   typedef Node return_type;
-  std::hash_map<TNode, Node, TNodeHashFunction> d_nodes;
+
+  Node rewriteAs(TNode n, TypeNode asType);
 
   bool alreadyVisited(TNode current, TNode parent) {
     return d_nodes.find(current) != d_nodes.end();

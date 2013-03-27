@@ -222,7 +222,90 @@ bool CoreSolver::check(Theory::Effort e) {
   //   if (!ok)
   //     return false; 
   // }
+
+  // if we are sat and in full check attempt to construct a model
+  if (Theory::fullEffort(e) && isComplete()) {
+    buildModel();
+  }
+  
   return true;
+}
+
+void CoreSolver::buildModel() {
+  Debug("bv-core") << "CoreSolver::buildModel() \n"; 
+  d_modelValues.clear(); 
+  TNodeSet constants;
+  TNodeSet constants_in_eq_engine; 
+  // collect constants in equality engine
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine); 
+  while (!eqcs_i.isFinished()) {
+    TNode repr = *eqcs_i;
+    if  (repr.getKind() == kind::CONST_BITVECTOR) {
+      // must check if it's just the constant
+      eq::EqClassIterator it(repr, &d_equalityEngine);
+      if (!(++it).isFinished()) {
+        constants.insert(repr);
+        constants_in_eq_engine.insert(repr); 
+      }
+    }
+    ++eqcs_i; 
+  }
+  // build repr to value map
+  
+  eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
+  while (!eqcs_i.isFinished()) {
+    TNode repr = *eqcs_i;
+    ++eqcs_i; 
+    TypeNode type = repr.getType(); 
+    if (type.isBitVector() && repr.getKind()!= kind::CONST_BITVECTOR) {
+      Debug("bv-core-model") << "   processing " << repr <<"\n"; 
+      // we need to assign a value for it
+      TypeEnumerator te(type);
+      Node val; 
+      do {
+        val = *te; 
+        ++te;
+        // Debug("bv-core-model") << "  trying value " << val << "\n";
+        // Debug("bv-core-model") << "  is in set? " << constants.count(val) << "\n";
+        // Debug("bv-core-model") << "  enumerator done? " << te.isFinished() << "\n"; 
+      } while (constants.count(val) != 0 && !(te.isFinished()));
+      
+      if (te.isFinished() && constants.count(val) != 0) {
+        // if we cannot enumerate anymore values we just return the lemma stating that
+        // at least two of the representatives are equal.
+        std::vector<TNode> representatives;
+        representatives.push_back(repr);
+
+        for (TNodeSet::const_iterator it = constants_in_eq_engine.begin();
+             it != constants_in_eq_engine.end(); ++it) {
+          TNode constant = *it; 
+          if (utils::getSize(constant) == utils::getSize(repr)) {
+            representatives.push_back(constant); 
+          }
+        }
+        for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
+          representatives.push_back(it->first);
+        }
+        std::vector<Node> equalities; 
+        for (unsigned i = 0; i < representatives.size(); ++i) {
+          for (unsigned j = i + 1; j < representatives.size(); ++j) {
+            TNode a = representatives[i];
+            TNode b = representatives[j];
+            if (utils::getSize(a) == utils::getSize(b)) {
+              equalities.push_back(utils::mkNode(kind::EQUAL, a, b));
+            }
+          }
+        }
+        Node lemma = utils::mkOr(equalities);
+        d_bv->lemma(lemma);
+        Debug("bv-core") << "  lemma: " << lemma << "\n"; 
+        return; 
+      }
+      Debug("bv-core-model") << "   " << repr << " => " << val <<"\n" ;
+      constants.insert(val);
+      d_modelValues[repr] = val; 
+    }
+  }
 }
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
@@ -297,8 +380,6 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
-
-
 void CoreSolver::collectModelInfo(TheoryModel* m) {
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
@@ -310,6 +391,20 @@ void CoreSolver::collectModelInfo(TheoryModel* m) {
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
   m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  if (isComplete()) {
+    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete."; 
+    for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
+      Node a = it->first;
+      Node b = it->second;
+      m->assertEquality(a, b, true); 
+    }
+  }
+}
+
+Node CoreSolver::getModelValue(TNode var) {
+  Assert (isComplete());
+  Assert (d_modelValues.find(var) != d_modelValues.end()); 
+  return d_modelValues[d_equalityEngine.getRepresentative(var)]; 
 }
 
 CoreSolver::Statistics::Statistics()

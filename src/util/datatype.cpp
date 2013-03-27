@@ -820,7 +820,18 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
   // can only output datatypes in the CVC4 native language
   Expr::setlanguage::Scope ls(os, language::output::LANG_CVC4);
 
-  os << "DATATYPE " << dt.getName() << " =" << endl;
+  os << "DATATYPE " << dt.getName();
+  if(dt.isParametric()) {
+    os << '[';
+    for(size_t i = 0; i < dt.getNumParameters(); ++i) {
+      if(i > 0) {
+        os << ',';
+      }
+      os << dt.getParameter(i);
+    }
+    os << ']';
+  }
+  os << " =" << endl;
   Datatype::const_iterator i = dt.begin(), i_end = dt.end();
   if(i != i_end) {
     os << "  ";

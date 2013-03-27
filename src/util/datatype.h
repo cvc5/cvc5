@@ -450,7 +450,7 @@ public:
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, std::vector<Type>& params);
+  inline Datatype(std::string name, const std::vector<Type>& params);
 
   /**
    * Add a constructor to this Datatype.  Constructor names need not
@@ -620,7 +620,7 @@ inline Datatype::Datatype(std::string name) :
   d_self() {
 }
 
-inline Datatype::Datatype(std::string name, std::vector<Type>& params) :
+inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
   d_name(name),
   d_params(params),
   d_constructors(),

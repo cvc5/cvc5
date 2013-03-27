@@ -1,0 +1,12 @@
+% EXPECT: sat
+% EXIT: 10
+
+DATATYPE List =
+  cons(car:BOOLEAN, cdr:List) | nil
+END;
+
+x : List;
+
+ASSERT x /= nil;
+
+CHECKSAT;

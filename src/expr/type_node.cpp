@@ -94,14 +94,31 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     if(t == NodeManager::currentNM()->getDatatypeForTupleRecord(*this)) {
       return true;
     }
-    if(isTuple() != t.isTuple() || isRecord() != t.isRecord() ||
-       getNumChildren() != t.getNumChildren()) {
+    if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
       return false;
     }
-    // children must be subtypes of t's, in order
-    for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
-      if(!(*i).isSubtypeOf(*j)) {
+    if(isTuple()) {
+      if(getNumChildren() != t.getNumChildren()) {
         return false;
+      }
+      // children must be subtypes of t's, in order
+      for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
+        if(!(*i).isSubtypeOf(*j)) {
+          return false;
+        }
+      }
+    } else {
+      const Record& r1 = getConst<Record>();
+      const Record& r2 = t.getConst<Record>();
+      if(r1.getNumFields() != r2.getNumFields()) {
+        return false;
+      }
+      // r1's fields must be subtypes of r2's, in order
+      // names must match also
+      for(Record::const_iterator i = r1.begin(), j = r2.begin(); i != r1.end(); ++i, ++j) {
+        if((*i).first != (*j).first || !(*i).second.isSubtypeOf((*j).second)) {
+          return false;
+        }
       }
     }
     return true;
@@ -125,14 +142,31 @@ bool TypeNode::isComparableTo(TypeNode t) const {
          NodeManager::currentNM()->getDatatypeForTupleRecord(*this)) {
         return true;
       }
-      if(isTuple() != t.isTuple() || isRecord() != t.isRecord() ||
-         getNumChildren() != t.getNumChildren()) {
+      if(isTuple() != t.isTuple() || isRecord() != t.isRecord()) {
         return false;
       }
-      // children must be comparable to t's, in order
-      for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
-        if(!(*i).isComparableTo(*j)) {
+      if(isTuple()) {
+        if(getNumChildren() != t.getNumChildren()) {
           return false;
+        }
+        // children must be comparable to t's, in order
+        for(const_iterator i = begin(), j = t.begin(); i != end(); ++i, ++j) {
+          if(!(*i).isComparableTo(*j)) {
+            return false;
+          }
+        }
+      } else {
+        const Record& r1 = getConst<Record>();
+        const Record& r2 = t.getConst<Record>();
+        if(r1.getNumFields() != r2.getNumFields()) {
+          return false;
+        }
+        // r1's fields must be comparable to r2's, in order
+        // names must match also
+        for(Record::const_iterator i = r1.begin(), j = r2.begin(); i != r1.end(); ++i, ++j) {
+          if((*i).first != (*j).first || !(*i).second.isComparableTo((*j).second)) {
+            return false;
+          }
         }
       }
       return true;

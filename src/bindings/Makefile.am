@@ -163,7 +163,7 @@ CLEANFILES = \
 EXTRA_DIST = \
 	swig.h \
 	java_iterator_adapter.h \
-	java_output_stream_adapter.h
+	java_stream_adapters.h
 
 MOSTLYCLEANFILES = \
         .swig_deps \

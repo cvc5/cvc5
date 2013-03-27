@@ -14,4 +14,6 @@ option bitvectorShareLemmas --bitblast-share-lemmas bool
 option bitvectorEagerFullcheck --bitblast-eager-fullcheck bool
  check the bitblasting eagerly
 
+option bitvectorInequalitySolver --bv-inequality-solver bool
+ turn on the inequality solver for the bit-vector theory 
 endmodule

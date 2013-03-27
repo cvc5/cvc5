@@ -1129,6 +1129,11 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   return theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
 }
 
+Node TheoryEngine::getModelValue(TNode var) {
+  Assert(d_sharedTerms.isShared(var));
+  return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
+}
+
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   std::set<TNode> all;

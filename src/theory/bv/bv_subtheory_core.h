@@ -31,6 +31,9 @@ class Base;
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
+  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+
   struct Statistics {
     IntStat d_numCallstoCheck;
     Statistics();
@@ -69,7 +72,9 @@ class CoreSolver : public SubtheorySolver {
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
   /** To make sure we keep the explanations */
-  context::CDHashSet<Node, NodeHashFunction> d_reasons; 
+  context::CDHashSet<Node, NodeHashFunction> d_reasons;
+  ModelValue d_modelValues;
+  void buildModel(); 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
@@ -83,6 +88,7 @@ public:
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   void  collectModelInfo(TheoryModel* m);
+  Node  getModelValue(TNode var); 
   void  addSharedTerm(TNode t) {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }

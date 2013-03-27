@@ -458,3 +458,15 @@ BitVector InequalityGraph::getValueInModel(TNode node) const {
   Assert (hasModelValue(id));
   return getValue(id); 
 }
+
+void InequalityGraph::getAllValuesInModel(std::vector<Node>& assignments) {
+  for (ModelValues::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
+    TermId id = (*it).first;
+    BitVector value = (*it).second.value;
+    TNode var = getTermNode(id);
+    Node constant = utils::mkConst(value);
+    Node assignment = utils::mkNode(kind::EQUAL, var, constant);
+    assignments.push_back(assignment); 
+    Debug("bitvector-model") << "   " << var <<" => " << constant << "\n"; 
+  }
+}

@@ -52,10 +52,12 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_subtheories.push_back(core_solver);
     d_subtheoryMap[SUB_CORE] = core_solver;
 
-    SubtheorySolver* ineq_solver = new InequalitySolver(c, this); 
-    d_subtheories.push_back(ineq_solver);
-    d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
-
+    if (options::bitvectorInequalitySolver()) {
+      SubtheorySolver* ineq_solver = new InequalitySolver(c, this); 
+      d_subtheories.push_back(ineq_solver);
+      d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
+    }
+    
     SubtheorySolver* bb_solver = new BitblastSolver(c, this); 
     d_subtheories.push_back(bb_solver);
     d_subtheoryMap[SUB_BITBLAST] = bb_solver;
@@ -164,8 +166,21 @@ void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
   //  Assert (fullModel); // can only query full model
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    d_subtheories[i]->collectModelInfo(m); 
+    if (d_subtheories[i]->isComplete()) {
+      d_subtheories[i]->collectModelInfo(m);
+      return; 
+    }
   }
+}
+
+Node TheoryBV::getModelValue(TNode var) {
+  Assert(!inConflict());
+  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    if (d_subtheories[i]->isComplete()) {
+      return d_subtheories[i]->getModelValue(var); 
+    }
+  }
+  Unreachable(); 
 }
 
 void TheoryBV::propagate(Effort e) {

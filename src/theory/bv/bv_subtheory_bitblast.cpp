@@ -64,6 +64,7 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
 
 
 bool BitblastSolver::check(Theory::Effort e) {
+  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n"; 
   ++(d_statistics.d_numCallstoCheck); 
   //// Eager bit-blasting
   if (options::bitvectorEagerBitblast()) {
@@ -87,7 +88,8 @@ bool BitblastSolver::check(Theory::Effort e) {
 
   // Processing assertions  
   while (!done()) {
-    TNode fact = get(); 
+    TNode fact = get();
+    Debug("bv-bitblast") << "  fact " << fact << ")\n"; 
     if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
@@ -136,4 +138,8 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
 
 void BitblastSolver::collectModelInfo(TheoryModel* m) {
   return d_bitblaster->collectModelInfo(m); 
+}
+
+Node BitblastSolver::getModelValue(TNode node) {
+  return d_bitblaster->getVarValue(node);
 }

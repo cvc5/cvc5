@@ -97,6 +97,11 @@ public:
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
+   * Returns the model value of the shared term (or null if not available).
+   */
+  Node getModelValue(TNode var);
+
+  /**
    * Ensure that the given node will have a designated SAT literal
    * that is definitionally equal to it.  The result of this function
    * is a Node that can be queried via getSatValue().

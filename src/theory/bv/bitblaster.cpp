@@ -438,7 +438,7 @@ Node Bitblaster::getVarValue(TNode a) {
     if (d_cnfStream->hasLiteral(bits[i])) { 
       SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert (bit_value != SAT_VALUE_UNKNOWN);
+      Assert (bit_value != SAT_VALUE_UNKNOWN); 
     } else {
       // the bit is unconstrainted so we can give it an arbitrary value 
       bit_value = SAT_VALUE_FALSE;
@@ -453,7 +453,7 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
   __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if ((Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) && hasValue(var))  {
+    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
       Node const_value = getVarValue(var);
       Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
                                 << var << " "
