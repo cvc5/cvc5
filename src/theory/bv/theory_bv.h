@@ -123,6 +123,8 @@ private:
 
   void addSharedTerm(TNode t);
 
+  bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
+  
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   Node getModelValue(TNode var);

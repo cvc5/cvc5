@@ -36,6 +36,7 @@ class InequalitySolver: public SubtheorySolver {
 
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet; 
   InequalityGraph d_inequalityGraph;
+  context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations; 
   context::CDO<bool> d_isComplete;
   __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_ineqTermCache; 
   bool isInequalityOnly(TNode node); 
@@ -45,6 +46,7 @@ public:
     : SubtheorySolver(c, bv),
       d_assertionSet(c),
       d_inequalityGraph(c),
+      d_explanations(c),
       d_isComplete(c, true),
       d_ineqTermCache(),
       d_statistics()

@@ -243,7 +243,7 @@ void CoreSolver::buildModel() {
     if  (repr.getKind() == kind::CONST_BITVECTOR) {
       // must check if it's just the constant
       eq::EqClassIterator it(repr, &d_equalityEngine);
-      if (!(++it).isFinished()) {
+      if (!(++it).isFinished() || true) {
         constants.insert(repr);
         constants_in_eq_engine.insert(repr); 
       }

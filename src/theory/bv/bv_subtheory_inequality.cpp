@@ -49,6 +49,12 @@ bool InequalitySolver::check(Theory::Effort e) {
       TNode a = fact[0][1];
       TNode b = fact[0][0]; 
       ok = d_inequalityGraph.addInequality(a, b, true, fact);
+      // propagate
+      // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
+      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b)); 
+      //   d_bv->storePropagation(neq, SUB_INEQUALITY);
+      //   d_explanations[neq] = fact;
+      // }
     } else if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_ULT) {
       TNode a = fact[0][1];
       TNode b = fact[0][0]; 
@@ -57,6 +63,12 @@ bool InequalitySolver::check(Theory::Effort e) {
       TNode a = fact[0];
       TNode b = fact[1]; 
       ok = d_inequalityGraph.addInequality(a, b, true, fact);
+      // propagate
+      // if (d_bv->isSharedTerm(a) && d_bv->isSharedTerm(b)) {
+      //   Node neq = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, a, b)); 
+      //   d_bv->storePropagation(neq, SUB_INEQUALITY);
+      //   d_explanations[neq] = fact;
+      // }
     } else if (fact.getKind() == kind::BITVECTOR_ULE) {
       TNode a = fact[0];
       TNode b = fact[1]; 
@@ -147,7 +159,10 @@ bool InequalitySolver::isInequalityOnly(TNode node) {
 }
 
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
-  Assert (false); 
+  Assert (d_explanations.find(literal) != d_explanations.end());
+  TNode explanation = d_explanations[literal];
+  assumptions.push_back(explanation);
+  Debug("bv-inequality-explain") << "InequalitySolver::explain " << literal << " with " << explanation <<"\n"; 
 }
 
 void InequalitySolver::propagate(Theory::Effort e) {
