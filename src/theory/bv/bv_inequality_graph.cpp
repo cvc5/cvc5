@@ -330,7 +330,7 @@ bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
   d_disequalities.push_back(reason);
 
   if (!isRegistered(a) || !isRegistered(b)) {
-    splitDisequality(reason);
+    //splitDisequality(reason);
     return true; 
   }
   TermId id_a = getTermId(a);
@@ -371,7 +371,7 @@ bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
       return addInequality(b, a, true, explanation);
     }
     // if none of the terms are constants just add the lemma 
-    splitDisequality(reason);
+    //splitDisequality(reason);
   } else {
     Debug("bv-inequality-internal") << "Disequal: " << a << " => " << val_a.toString(10) << "\n"
                                     << "          " << b << " => " << val_b.toString(10) << "\n"; 
@@ -379,30 +379,13 @@ bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
   return true; 
 }
 
-void InequalityGraph::splitDisequality(TNode diseq) {
-  Debug("bv-inequality-internal")<<"InequalityGraph::splitDisequality " << diseq <<"\n"; 
-  Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
-  if (d_disequalitiesAlreadySplit.find(diseq) == d_disequalitiesAlreadySplit.end()) {
-    d_disequalitiesToSplit.push_back(diseq); 
-  }
-}
-
-void InequalityGraph::getNewLemmas(std::vector<Node>& new_lemmas) {
-  for (unsigned i = d_diseqToSplitIndex; i < d_disequalitiesToSplit.size(); ++i)  {
-    TNode diseq = d_disequalitiesToSplit[i];
-    if (d_disequalitiesAlreadySplit.find(diseq) == d_disequalitiesAlreadySplit.end()) {
-        TNode a = diseq[0][0];
-        TNode b = diseq[0][1];
-        Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
-        Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
-        Node eq = diseq[0]; 
-        Node lemma = utils::mkNode(kind::OR, a_lt_b, b_lt_a, eq);
-        new_lemmas.push_back(lemma);
-        d_disequalitiesAlreadySplit.insert(diseq); 
-    }
-    d_diseqToSplitIndex = d_diseqToSplitIndex + 1; 
-  }
-}
+// void InequalityGraph::splitDisequality(TNode diseq) {
+//   Debug("bv-inequality-internal")<<"InequalityGraph::splitDisequality " << diseq <<"\n"; 
+//   Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
+//   if (d_disequalitiesAlreadySplit.find(diseq) == d_disequalitiesAlreadySplit.end()) {
+//     d_disequalitiesToSplit.push_back(diseq); 
+//   }
+// }
 
 void InequalityGraph::backtrack() {
   Debug("bv-inequality-internal") << "InequalityGraph::backtrack()\n"; 
@@ -425,7 +408,18 @@ void InequalityGraph::backtrack() {
   }
 }
 
-void InequalityGraph::checkDisequalities() {
+Node InequalityGraph::makeDiseqSplitLemma(TNode diseq) {
+  Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
+  TNode a = diseq[0][0];
+  TNode b = diseq[0][1];
+  Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
+  Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  Node eq = diseq[0]; 
+  Node lemma = utils::mkNode(kind::OR, a_lt_b, b_lt_a, eq);
+  return lemma; 
+}
+
+void InequalityGraph::checkDisequalities(std::vector<Node>& lemmas) {
   for (CDQueue<TNode>::const_iterator it = d_disequalities.begin(); it != d_disequalities.end(); ++it) {
     if (d_disequalitiesAlreadySplit.find(*it) == d_disequalitiesAlreadySplit.end()) {
       // if we haven't already split on this disequality
@@ -433,8 +427,8 @@ void InequalityGraph::checkDisequalities() {
       TermId a_id = registerTerm(diseq[0][0]);
       TermId b_id = registerTerm(diseq[0][1]);
       if (getValue(a_id) == getValue(b_id)) {
-        // if the disequality is not satisified by the model 
-        d_disequalitiesToSplit.push_back(diseq); 
+        lemmas.push_back(makeDiseqSplitLemma(diseq));
+        d_disequalitiesAlreadySplit.insert(diseq);
       }
     }
   }

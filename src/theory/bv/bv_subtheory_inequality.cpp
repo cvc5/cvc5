@@ -83,13 +83,11 @@ bool InequalitySolver::check(Theory::Effort e) {
     return false; 
   }
 
-  // make sure all the disequalities we didn't split on are still satisifed
-  // and split on the ones that are not
-  d_inequalityGraph.checkDisequalities();
-  if (isComplete()) {
-    // if we are complete we want to send out any inequality lemmas 
+  if (isComplete() && Theory::fullEffort(e)) {
+    // make sure all the disequalities we didn't split on are still satisifed
+    // and split on the ones that are not
     std::vector<Node> lemmas;
-    d_inequalityGraph.getNewLemmas(lemmas); 
+    d_inequalityGraph.checkDisequalities(lemmas);
     for(unsigned i = 0; i < lemmas.size(); ++i) {
       d_bv->lemma(lemmas[i]); 
     }

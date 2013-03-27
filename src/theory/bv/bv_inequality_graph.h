@@ -190,7 +190,7 @@ class InequalityGraph : public context::ContextNotifyObj{
    * @param explanation 
    */
   void computeExplanation(TermId from, TermId to, std::vector<ReasonId>& explanation); 
-  void splitDisequality(TNode diseq); 
+  //  void splitDisequality(TNode diseq); 
 
   /**
      Disequality reasoning
@@ -198,11 +198,8 @@ class InequalityGraph : public context::ContextNotifyObj{
   
   /*** The currently asserted disequalities */
   context::CDQueue<TNode> d_disequalities;
-  context::CDQueue<TNode> d_disequalitiesToSplit; 
-  context::CDO<unsigned> d_diseqToSplitIndex; 
-  TNodeSet d_lemmasAdded;
-  TNodeSet d_disequalitiesAlreadySplit; 
-  
+  NodeSet d_disequalitiesAlreadySplit; 
+  Node makeDiseqSplitLemma(TNode diseq); 
   /** Backtracking mechanisms **/
   std::vector<std::pair<TermId, InequalityEdge> > d_undoStack;
   context::CDO<unsigned> d_undoStackIndex; 
@@ -225,8 +222,6 @@ public:
       d_signed(s),
       d_modelValues(c),
       d_disequalities(c),
-      d_disequalitiesToSplit(c),
-      d_diseqToSplitIndex(c, 0),
       d_disequalitiesAlreadySplit(),
       d_undoStack(),
       d_undoStackIndex(c)
@@ -255,17 +250,10 @@ public:
   void getConflict(std::vector<TNode>& conflict);
   virtual ~InequalityGraph() throw(AssertionException) {}
   /** 
-   * Get any new lemmas (resulting from disequalities splits) that need
-   * to be added. 
-   * 
-   * @param new_lemmas 
-   */
-  void getNewLemmas(std::vector<Node>& new_lemmas);
-  /** 
    * Check that the currently asserted disequalities that have not been split on
    * are still true in the current model. 
    */
-  void checkDisequalities();
+  void checkDisequalities(std::vector<Node>& lemmas);
   /** 
    * Return true if a < b is entailed by the current set of assertions. 
    * 
