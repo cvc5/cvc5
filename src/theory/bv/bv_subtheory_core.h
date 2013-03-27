@@ -77,7 +77,7 @@ class CoreSolver : public SubtheorySolver {
   void buildModel(); 
   bool assertFactToEqualityEngine(TNode fact, TNode reason);  
   bool decomposeFact(TNode fact);
-  Node getBaseDecomposition(TNode a, std::vector<TNode>& explanation);
+  Node getBaseDecomposition(TNode a);
   Statistics d_statistics; 
 public: 
   CoreSolver(context::Context* c, TheoryBV* bv);

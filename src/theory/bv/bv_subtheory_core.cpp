@@ -20,6 +20,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/slicer.h"
 #include "theory/model.h"
+#include "theory/bv/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -32,7 +33,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
-    d_slicer(new Slicer(c, this)),
+    d_slicer(new Slicer()),
     d_isCoreTheory(c, true),
     d_reasons(c)
 {
@@ -85,7 +86,9 @@ void CoreSolver::preRegister(TNode node) {
 
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
-      // d_slicer->processEquality(node);
+      if (options::bitvectorCoreSolver()) {
+        d_slicer->processEquality(node);
+      }
   } else {
     d_equalityEngine.addTerm(node);
   }
@@ -102,9 +105,9 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-Node CoreSolver::getBaseDecomposition(TNode a, std::vector<TNode>& explanation) {
+Node CoreSolver::getBaseDecomposition(TNode a) {
   std::vector<Node> a_decomp;
-  d_slicer->getBaseDecomposition(a, a_decomp, explanation);
+  d_slicer->getBaseDecomposition(a, a_decomp);
   Node new_a = utils::mkConcat(a_decomp);
   Debug("bv-slicer") << "CoreSolver::getBaseDecomposition " << a <<" => " << new_a << "\n"; 
   return new_a; 
@@ -116,77 +119,49 @@ bool CoreSolver::decomposeFact(TNode fact) {
   // concat:
   //   a == a_1 concat ... concat a_k
   //   b == b_1 concat ... concat b_k
+  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;  
+  // FIXME: are this the right things to assert? 
+  // assert decompositions since the equality engine does not know the semantics of
+  // concat:
+  //   a == a_1 concat ... concat a_k
+  //   b == b_1 concat ... concat b_k
+  TNode eq = fact.getKind() == kind::NOT? fact[0] : fact; 
 
+  TNode a = eq[0];
+  TNode b = eq[1];
+  Node new_a = getBaseDecomposition(a);
+  Node new_b = getBaseDecomposition(b); 
+  
+  Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
+          utils::getSize(new_a) == utils::getSize(a)); 
+  
+  NodeManager* nm = NodeManager::currentNM();
+  Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
+  Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
+
+  bool ok = true;
+  ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
+  if (!ok) return false; 
+  ok = assertFactToEqualityEngine(b_eq_new_b, utils::mkTrue());
+  if (!ok) return false; 
+  ok = assertFactToEqualityEngine(fact, fact);
+  if (!ok) return false;
+  
   if (fact.getKind() == kind::EQUAL) {
-    TNode a = fact[0];
-    TNode b = fact[1];
-
-    d_slicer->processEquality(fact); 
-    std::vector<TNode> explanation_a; 
-    Node new_a = getBaseDecomposition(a, explanation_a);
-    Node reason_a = mkAnd(explanation_a);
-    d_reasons.insert(reason_a);
-    
-    std::vector<TNode> explanation_b; 
-    Node new_b = getBaseDecomposition(b, explanation_b);
-    Node reason_b = mkAnd(explanation_b);
-    d_reasons.insert(reason_b);
-
-    std::vector<Node> explanation; 
-    explanation.push_back(fact);
-    explanation.insert(explanation.end(), explanation_a.begin(), explanation_a.end());
-    explanation.insert(explanation.end(), explanation_b.begin(), explanation_b.end());
-    
-    Node reason = utils::mkAnd(explanation); 
-    d_reasons.insert(reason);
-    
-    Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
-            utils::getSize(new_a) == utils::getSize(a)); 
-
-    NodeManager* nm = NodeManager::currentNM();
-    Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
-    Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
-
-    bool ok = true; 
-    ok = assertFactToEqualityEngine(a_eq_new_a, reason_a);
-    if (!ok) return false; 
-    ok = assertFactToEqualityEngine(b_eq_new_b, reason_a);
-    if (!ok) return false; 
     // assert the individual equalities as well
     //    a_i == b_i
     if (new_a.getKind() == kind::BITVECTOR_CONCAT &&
         new_b.getKind() == kind::BITVECTOR_CONCAT) {
+      
       Assert (new_a.getNumChildren() == new_b.getNumChildren()); 
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
-        // this reason is not very precise!!
-        ok = assertFactToEqualityEngine(eq_i, reason);
-        d_reasons.insert(eq_i); 
+        ok = assertFactToEqualityEngine(eq_i, fact);
         if (!ok) return false;
       }
     }
-    // merge the two terms in the slicer as well
-    d_slicer->assertEquality(fact); 
-  } else {
-    // still need to register the terms
-    d_slicer->processEquality(fact[0]);
-    TNode a = fact[0][0];
-    TNode b = fact[0][1];
-    std::vector<TNode> explanation_a; 
-    Node new_a = getBaseDecomposition(a, explanation_a);
-    Node reason_a = explanation_a.empty()? mkTrue() : mkAnd(explanation_a);
-    assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, a, new_a), reason_a);
-
-    std::vector<TNode> explanation_b; 
-    Node new_b = getBaseDecomposition(b, explanation_b);
-    Node reason_b = explanation_b.empty()? mkTrue() : mkAnd(explanation_b);
-    assertFactToEqualityEngine(utils::mkNode(kind::EQUAL, b, new_b), reason_b);
-
-    d_reasons.insert(reason_a);
-    d_reasons.insert(reason_b); 
   }
-  // finally assert the actual fact to the equality engine
-  return assertFactToEqualityEngine(fact, fact);
+  return true; 
 }
 
 bool CoreSolver::check(Theory::Effort e) {
@@ -205,8 +180,11 @@ bool CoreSolver::check(Theory::Effort e) {
     
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
-      // ok = decomposeFact(fact);
-      ok = assertFactToEqualityEngine(fact, fact); 
+      if (options::bitvectorCoreSolver()) {
+        ok = decomposeFact(fact);
+      } else {
+        ok = assertFactToEqualityEngine(fact, fact);
+      }
     } else {
       ok = assertFactToEqualityEngine(fact, fact); 
     }
@@ -214,16 +192,6 @@ bool CoreSolver::check(Theory::Effort e) {
       return false; 
   }
   
-  // make sure to assert the new splits
-  // std::vector<Node> new_splits;
-  // d_slicer->getNewSplits(new_splits);
-  // for (unsigned i = 0; i < new_splits.size(); ++i) {
-  //   ok = assertFactToEqualityEngine(new_splits[i], utils::mkTrue());
-  //   if (!ok)
-  //     return false; 
-  // }
-
-  // if we are sat and in full check attempt to construct a model
   if (Theory::fullEffort(e) && isComplete()) {
     buildModel();
   }
@@ -232,6 +200,10 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 void CoreSolver::buildModel() {
+  if (options::bitvectorCoreSolver()) {
+    // FIXME
+    return; 
+  }
   Debug("bv-core") << "CoreSolver::buildModel() \n"; 
   d_modelValues.clear(); 
   TNodeSet constants;
@@ -381,6 +353,10 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::collectModelInfo(TheoryModel* m) {
+  if (options::bitvectorCoreSolver()) {
+    Unreachable();
+    return; 
+  }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {

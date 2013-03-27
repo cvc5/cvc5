@@ -16,4 +16,8 @@ option bitvectorEagerFullcheck --bitblast-eager-fullcheck bool
 
 option bitvectorInequalitySolver --bv-inequality-solver bool
  turn on the inequality solver for the bit-vector theory 
+
+option bitvectorCoreSolver --bv-core-solver bool
+ turn on the core solver for the bit-vector theory 
+ 
 endmodule

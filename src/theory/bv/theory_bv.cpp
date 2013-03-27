@@ -239,12 +239,12 @@ Node TheoryBV::ppRewrite(TNode t)
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     return Rewriter::rewrite(result);
   }
-  
-  // if (t.getKind() == kind::EQUAL) {
-  //   std::vector<Node> equalities;
-  //   Slicer::splitEqualities(t, equalities);
-  //   return utils::mkAnd(equalities); 
-  // }
+
+  if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
+    std::vector<Node> equalities;
+    Slicer::splitEqualities(t, equalities);
+    return utils::mkAnd(equalities); 
+  }
   
   return t;
 }
