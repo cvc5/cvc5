@@ -1194,8 +1194,12 @@ Node TheoryEngine::getExplanation(TNode node) {
 
 theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable) {
   if(Dump.isOn("t-lemmas")) {
+    Node n = node;
+    if (negated) {
+      n = node.negate();
+    }
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
-                     << QueryCommand(node.toExpr());
+                     << QueryCommand(n.toExpr());
   }
 
   // Share with other portfolio threads

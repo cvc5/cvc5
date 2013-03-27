@@ -583,6 +583,7 @@ void TheoryArrays::computeCareGraph()
       }
     }
   }
+  if (options::arraysModelBased()) return;
   if (d_sharedTerms) {
 
     vector< pair<TNode, TNode> > currentPairs;
@@ -956,7 +957,7 @@ void TheoryArrays::check(Effort e) {
   }
 
   if (options::arraysModelBased() && !d_conflict && (options::arraysEagerIndexSplitting() || fullEffort(e))) {
-    checkModel();
+    checkModel(e);
   }
 
   if(!d_eagerLemmas && fullEffort(e) && !d_conflict && !options::arraysModelBased()) {
@@ -995,14 +996,65 @@ void TheoryArrays::preRegisterStores(TNode s)
 }
 
 
-void TheoryArrays::checkModel()
+void TheoryArrays::checkModel(Effort e)
 {
   d_inCheckModel = true;
   d_topLevel = getSatContext()->getLevel();
   Assert(d_skolemIndex == 0);
   Assert(d_skolemAssertions.empty());
+  Assert(d_lemmas.empty());
 
+  if (fullEffort(e)) {
+    // Add constraints for shared terms
+    context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end(), shared_it2;
+    Node modelVal, modelVal2, d;
+    vector<TNode> assumptions;
+    bool invert;
+    for (; shared_it != shared_it_end; ++shared_it) {
+      if ((*shared_it).getType().isArray()) {
+        continue;
+      }
+      if ((*shared_it).isConst()) {
+        modelVal = (*shared_it);
+      }
+      else {
+        modelVal = d_valuation.getModelValue(*shared_it);
+        if (modelVal.isNull()) {
+          continue;
+        }
+      }
+      Assert(modelVal.isConst());
+      for (shared_it2 = shared_it, ++shared_it2; shared_it2 != shared_it_end; ++shared_it2) {
+        if ((*shared_it2).getType() != (*shared_it).getType()) {
+          continue;
+        }
+        if ((*shared_it2).isConst()) {
+          modelVal2 = (*shared_it2);
+        }
+        else {
+          modelVal2 = d_valuation.getModelValue(*shared_it2);
+          if (modelVal2.isNull()) {
+            continue;
+          }
+        }
+        Assert(modelVal2.isConst());
+        invert = (modelVal != modelVal2);
+        d = (*shared_it).eqNode(*shared_it2);
+        if (modelVal != modelVal2) {
+          d = d.notNode();
+        }
+        if (!setModelVal(d, d_true, false, true, assumptions)) {
+          assumptions.push_back(d);
+          d_lemmas.push_back(mkAnd(assumptions, true));
+          goto finish;
+        }
+        assumptions.clear();
+      }
+    }
+  }
+  {
   // TODO: record and replay decisions
+  int baseLevel = getSatContext()->getLevel();
   unsigned constraintIdx;
   Node assertion, assertionToCheck;
   vector<TNode> assumptions;
@@ -1061,7 +1113,7 @@ void TheoryArrays::checkModel()
         }
         if (t.getKind() == kind::AND) {
           for(TNode::iterator child_it = t.begin(); child_it != t.end(); ++child_it) {
-            // Assert(validAssumptions.find(*child_it) != validAssumptions.end());
+            Assert(validAssumptions.find(*child_it) != validAssumptions.end());
             all.insert(*child_it);
           }
         }
@@ -1075,10 +1127,11 @@ void TheoryArrays::checkModel()
           continue;
         }
         else {
-          // Assert(validAssumptions.find(t) != validAssumptions.end());
+          Assert(validAssumptions.find(t) != validAssumptions.end());
           all.insert(t);
         }
       }
+      //      d_lemmas.push_back(mkAnd(assumptions, true));
 
       bool eq = false;
       Node decision, explanation;
@@ -1087,13 +1140,16 @@ void TheoryArrays::checkModel()
         decision = d_decisions.back();
         d_decisions.pop_back();
         if (all.find(decision) != all.end()) {
+          if (getSatContext()->getLevel() < baseLevel) {
+            goto finish;
+          }
           all.erase(decision);
           eq = false;
           if (decision.getKind() == kind::NOT) {
             decision = decision[0];
             eq = true;
           }
-          while (!d_decisions.empty() && all.find(d_decisions.back()) == all.end()) {
+          while (getSatContext()->getLevel() != baseLevel && all.find(d_decisions.back()) == all.end()) {
             getSatContext()->pop();
             d_decisions.pop_back();
           }
@@ -1122,6 +1178,7 @@ void TheoryArrays::checkModel()
         d_permRef.push_back(explanation);
       }
       if (decision.isNull()) {
+        //        d_lemmas.pop_back();
         d_conflictNode = explanation;
         d_conflict = true;
         break;
@@ -1148,12 +1205,22 @@ void TheoryArrays::checkModel()
         if (d[0].getType().isArray()) {
           Assert(d[1].getKind() == kind::STORE);
           if (d[1][0].getKind() == kind::STORE) {
-            preRegisterTermInternal(d[1][0][0]);
-            preRegisterTermInternal(d[1][0][2]);
+            if (!d_equalityEngine.hasTerm(d[1][0][0])) {
+              preRegisterTermInternal(d[1][0][0]);
+            }
+            if (!d_equalityEngine.hasTerm(d[1][0][2])) {
+              preRegisterTermInternal(d[1][0][2]);
+            }
           }
-          preRegisterTermInternal(d[1][0]);
-          preRegisterTermInternal(d[1][2]);
-          preRegisterTermInternal(d[1]);
+          if (!d_equalityEngine.hasTerm(d[1][0])) {
+            preRegisterTermInternal(d[1][0]);
+          }
+          if (!d_equalityEngine.hasTerm(d[1][2])) {
+            preRegisterTermInternal(d[1][2]);
+          }
+          if (!d_equalityEngine.hasTerm(d[1])) {
+            preRegisterTermInternal(d[1]);
+          }
         }
         Debug("arrays-model-based") << "Re-asserting skolem equality " << d << endl;
         d_equalityEngine.assertEquality(d, true, d_true);
@@ -1171,7 +1238,7 @@ void TheoryArrays::checkModel()
     if (d_conflict) {
       break;
     }
-    Assert(getModelVal(assertion) == d_true);
+    //    Assert(getModelVal(assertion) == d_true);
     assumptions.clear();
   }
 #ifdef CVC4_ASSERTIONS
@@ -1182,6 +1249,8 @@ void TheoryArrays::checkModel()
     }
   }
 #endif
+  }
+  finish:
   while (!d_decisions.empty()) {
     Assert(!d_conflict);
     getSatContext()->pop();
@@ -1189,6 +1258,11 @@ void TheoryArrays::checkModel()
   }
   d_skolemAssertions.clear();
   d_skolemIndex = 0;
+  while (!d_lemmas.empty()) {
+    Debug("arrays-model-based") << "Sending lemma: " << d_lemmas.back() << endl;
+    d_out->lemma(d_lemmas.back());
+    d_lemmas.pop_back();
+  }
   Assert(getSatContext()->getLevel() == d_topLevel);
   if (d_conflict) {
     Node tmp = d_conflictNode;
@@ -1527,17 +1601,30 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
       d_equalityEngine.assertEquality(d, !invert, d_decisions.back());
       Debug("arrays-model-based") << "Asserting " << d_decisions.back() << " with explanation " << d_decisions.back() << endl;
       ++d_numSetModelValSplits;
-      while (d_conflict) {
+      if (d_conflict) {
         ++d_numSetModelValConflicts;
         Debug("arrays-model-based") << "...which results in a conflict!" << endl;
         d = d_decisions.back();
         unsigned sz = assumptions.size();
         convertNodeToAssumptions(d_conflictNode, assumptions, d);
-        NodeBuilder<> conjunction(kind::AND);
-        for (unsigned i = sz; i < assumptions.size(); ++i) {
-          conjunction << assumptions[i];
+        unsigned sz2 = assumptions.size();
+        Assert(sz2 > sz);
+        Node explanation;
+        if (sz2 == sz+1) {
+          explanation = assumptions[sz];
         }
-        Node explanation = conjunction;
+        else {
+          NodeBuilder<> conjunction(kind::AND);
+          for (unsigned i = sz; i < sz2; ++i) {
+            conjunction << assumptions[i];
+          }
+          explanation = conjunction;
+        }
+        //        assumptions.push_back(d);
+        //        d_lemmas.push_back(mkAnd(assumptions, true, sz));
+        // while (assumptions.size() > sz2) {
+        //   assumptions.pop_back();
+        // }
         getSatContext()->pop();
         d_decisions.pop_back();
         d_permRef.push_back(explanation);
@@ -1562,52 +1649,64 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
 }
 
 
-Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions)
+Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
   Assert(conjunctions.size() > 0);
 
   std::set<TNode> all;
   std::set<TNode> explained;
 
-  unsigned i = 0;
+  unsigned i = startIndex;
   TNode t;
   for (; i < conjunctions.size(); ++i) {
     t = conjunctions[i];
     if (t == d_true) {
       continue;
     }
-
-    if (t.getKind() == kind::AND) {
+    else if (t.getKind() == kind::AND) {
       for(TNode::iterator child_it = t.begin(); child_it != t.end(); ++child_it) {
+        if (*child_it == d_true) {
+          continue;
+        }
         all.insert(*child_it);
       }
     }
-
-    // Expand explanation resulting from propagating a ROW lemma
-    if (t.getKind() == kind::OR) {
+    else if (t.getKind() == kind::OR) {
+      // Expand explanation resulting from propagating a ROW lemma
       if ((explained.find(t) == explained.end())) {
         Assert(t[1].getKind() == kind::EQUAL);
         d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
         explained.insert(t);
       }
-      continue;
     }
-    all.insert(t);
+    else {
+      all.insert(t);
+    }
   }
 
   if (all.size() == 0) {
-    return d_true;
+    return invert ? d_false : d_true;
   }
   if (all.size() == 1) {
     // All the same, or just one
-    return *(all.begin());
+    if (invert) {
+      return (*(all.begin())).negate();
+    }
+    else {
+      return *(all.begin());
+    }
   }
 
-  NodeBuilder<> conjunction(kind::AND);
+  NodeBuilder<> conjunction(invert ? kind::OR : kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
   while (it != it_end) {
-    conjunction << *it;
+    if (invert) {
+      conjunction << (*it).negate();
+    }
+    else {
+      conjunction << *it;
+    }
     ++ it;
   }
 

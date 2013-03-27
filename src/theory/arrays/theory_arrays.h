@@ -358,9 +358,10 @@ class TheoryArrays : public Theory {
   // List of nodes that need permanent references in this context
   context::CDList<Node> d_permRef;
   context::CDList<Node> d_modelConstraints;
+  std::vector<Node> d_lemmas;
 
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
-  Node mkAnd(std::vector<TNode>& conjunctions);
+  Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
   void checkRIntro1(TNode a, TNode b);
   Node removeRepLoops(TNode a, TNode rep);
@@ -377,7 +378,7 @@ class TheoryArrays : public Theory {
   int d_topLevel;
   void convertNodeToAssumptions(TNode node, std::vector<TNode>& assumptions, TNode nodeSkip);
   void preRegisterStores(TNode s);
-  void checkModel();
+  void checkModel(Effort e);
   bool hasLoop(TNode node, TNode target);
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_getModelValCache;
