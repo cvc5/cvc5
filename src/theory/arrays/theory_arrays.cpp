@@ -1141,6 +1141,19 @@ void TheoryArrays::checkModel(Effort e)
         d_decisions.pop_back();
         if (all.find(decision) != all.end()) {
           if (getSatContext()->getLevel() < baseLevel) {
+            if (all.size() == 1) {
+              d_lemmas.push_back(decision.negate());
+            }
+            else {
+              NodeBuilder<> disjunction(kind::OR);
+              std::set<TNode>::const_iterator it = all.begin();
+              std::set<TNode>::const_iterator it_end = all.end();
+              while (it != it_end) {
+                disjunction << (*it).negate();
+                ++it;
+              }
+              d_lemmas.push_back(disjunction);
+            }
             goto finish;
           }
           all.erase(decision);
