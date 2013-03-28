@@ -19,6 +19,8 @@
 %ignore CVC4::Record::operator!=(const Record&) const;
 %rename(getField) CVC4::Record::operator[](size_t) const;
 
+#ifdef SWIGJAVA
+
 // These Object arrays are always of two elements, the first is a String and the second a
 // Type.  (On the C++ side, it is a std::pair<std::string, Type>.)
 %typemap(jni) std::pair<std::string, CVC4::Type> "jobjectArray";
@@ -32,8 +34,6 @@
       jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
       jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<long>(new CVC4::Type($1.second)), true));
     };
-
-#ifdef SWIGJAVA
 
 // Instead of Record::begin() and end(), create an
 // iterator() method on the Java side that returns a Java-style
@@ -78,6 +78,15 @@
 "
 // getNext() just allows C++ iterator access from Java-side next(), make it private
 %javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Record>::getNext() "private";
+
+// map the types appropriately.  for records, the "payload" of the iterator is an Object[].
+// These Object arrays are always of two elements, the first is a String and the second a
+// Type.  (On the C++ side, it is a std::pair<std::string, SExpr>.)
+%typemap(jni) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
+%typemap(jtype) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
+%typemap(jstype) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
+%typemap(javaout) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
+%typemap(out) CVC4::Record::const_iterator::value_type = std::pair<std::string, CVC4::Type>;
 
 #endif /* SWIGJAVA */
 

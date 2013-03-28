@@ -66,6 +66,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
 %template(vectorSExpr) std::vector< CVC4::SExpr >;
 %template(vectorString) std::vector< std::string >;
+%template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
+%template(pairStringType) std::pair< std::string, CVC4::Type >;
 %template(setType) std::set< CVC4::Type >;
 %template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 

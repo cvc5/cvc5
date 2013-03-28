@@ -72,6 +72,12 @@ namespace CVC4 {
 // getNext() just allows C++ iterator access from Java-side next(), make it private
 %javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Expr>::getNext() "private";
 
+// map the types appropriately
+%typemap(jni) CVC4::Expr::const_iterator::value_type "jobject";
+%typemap(jtype) CVC4::Expr::const_iterator::value_type "edu.nyu.acsys.CVC4.Expr";
+%typemap(jstype) CVC4::Expr::const_iterator::value_type "edu.nyu.acsys.CVC4.Expr";
+%typemap(javaout) CVC4::Expr::const_iterator::value_type { return $jnicall; }
+
 #endif /* SWIGJAVA */
 
 %include "expr/expr.h"
