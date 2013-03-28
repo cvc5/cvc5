@@ -1009,7 +1009,6 @@ void TheoryArrays::checkModel(Effort e)
     context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end(), shared_it2;
     Node modelVal, modelVal2, d;
     vector<TNode> assumptions;
-    bool invert;
     for (; shared_it != shared_it_end; ++shared_it) {
       if ((*shared_it).getType().isArray()) {
         continue;
@@ -1038,7 +1037,6 @@ void TheoryArrays::checkModel(Effort e)
           }
         }
         Assert(modelVal2.isConst());
-        invert = (modelVal != modelVal2);
         d = (*shared_it).eqNode(*shared_it2);
         if (modelVal != modelVal2) {
           d = d.notNode();
