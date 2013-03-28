@@ -412,11 +412,8 @@ bool Bitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end(); 
 }
 
-Node Bitblaster::getVarValue(TNode a) {
-  if (d_termCache.find(a) == d_termCache.end()) {
-    Assert(isSharedTerm(a));
-    return Node();
-  }
+bool Bitblaster::hasValue(TNode a) {
+  Assert (d_termCache.find(a) != d_termCache.end()); 
   Bits bits = d_termCache[a];
   for (int i = bits.size() -1; i >= 0; --i) {
     SatValue bit_value; 
@@ -441,6 +438,7 @@ Node Bitblaster::getVarValue(TNode a) {
  */
 Node Bitblaster::getVarValue(TNode a) {
   if (d_termCache.find(a) == d_termCache.end()) {
+    Assert(isSharedTerm(a));
     return Node(); 
   }
   Bits bits = d_termCache[a];
