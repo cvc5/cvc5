@@ -130,6 +130,10 @@ TheoryArrays::~TheoryArrays() {
   StatisticsRegistry::unregisterStat(&d_numExplain);
   StatisticsRegistry::unregisterStat(&d_numNonLinear);
   StatisticsRegistry::unregisterStat(&d_numSharedArrayVarSplits);
+  StatisticsRegistry::unregisterStat(&d_numGetModelValSplits);
+  StatisticsRegistry::unregisterStat(&d_numGetModelValConflicts);
+  StatisticsRegistry::unregisterStat(&d_numSetModelValSplits);
+  StatisticsRegistry::unregisterStat(&d_numSetModelValConflicts);
   StatisticsRegistry::unregisterStat(&d_checkTimer);
 
 }
