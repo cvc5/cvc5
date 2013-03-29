@@ -124,7 +124,8 @@ class Bitblaster {
   // division is bitblasted in terms of constraints
   // so it needs to use private bitblaster interface
   void bbUdiv(TNode node, Bits& bits);
-  void bbUrem(TNode node, Bits& bits); 
+  void bbUrem(TNode node, Bits& bits);
+  bool hasValue(TNode a); 
 public:
   void cacheTermDef(TNode node, Bits def); // public so we can cache remainder for division
   void bbTerm(TNode node, Bits&  bits);
@@ -164,9 +165,9 @@ public:
   }
 
   bool isSharedTerm(TNode node);
-private:
 
-  
+private:
+ 
   class Statistics {
   public:
     IntStat d_numTermClauses, d_numAtomClauses;

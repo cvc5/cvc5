@@ -31,6 +31,12 @@ namespace theory {
 namespace bv {
 namespace utils {
 
+inline uint32_t pow2(uint32_t power) {
+  Assert (power < 32); 
+  uint32_t one = 1;
+  return one << power; 
+}
+
 inline unsigned getExtractHigh(TNode node) {
   return node.getOperator().getConst<BitVectorExtract>().high;
 }
@@ -63,28 +69,6 @@ inline Node mkVar(unsigned size) {
   return nm->mkSkolem("bv_$$", nm->mkBitVectorType(size), "is a variable created by the theory of bitvectors"); 
 }
 
-inline Node mkAnd(std::vector<TNode>& children) {
-  std::set<TNode> distinctChildren;
-  distinctChildren.insert(children.begin(), children.end());
-  
-  if (children.size() == 0) {
-    return mkTrue();
-  }
-  
-  if (children.size() == 1) {
-    return *children.begin();
-  }
-  
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = distinctChildren.begin();
-  std::set<TNode>::const_iterator it_end = distinctChildren.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}
 
 inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {
   Assert (kind == kind::BITVECTOR_AND ||
@@ -148,14 +132,6 @@ inline Node mkXor(TNode node1, TNode node2) {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
 }
 
-
-inline Node mkAnd(std::vector<Node>& children) {
-  if(children.size() > 1) {
-    return NodeManager::currentNM()->mkNode(kind::AND, children);
-  } else {
-    return children[0];
-  }
-}
 
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(BitVectorExtract(high, low));
@@ -262,7 +238,6 @@ inline Node mkConjunction(const std::set<TNode> nodes) {
   return conjunction;
 }
 
-
 inline unsigned isPow2Const(TNode node) {
   if (node.getKind() != kind::CONST_BITVECTOR) {
     return false; 
@@ -271,6 +246,109 @@ inline unsigned isPow2Const(TNode node) {
   BitVector bv = node.getConst<BitVector>();
   return bv.isPow2(); 
 }
+
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
+inline Node mkOr(const std::vector<Node>& nodes) {
+  std::set<TNode> all;
+  all.insert(nodes.begin(), nodes.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return nodes[0];
+  }
+  
+
+  NodeBuilder<> disjunction(kind::OR);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    disjunction << *it;
+    ++ it;
+  }
+
+  return disjunction; 
+}/* mkOr() */
+
+                 
+inline Node mkAnd(const std::vector<TNode>& conjunctions) {
+  std::set<TNode> all;
+  all.insert(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return conjunctions[0];
+  }
+  
+
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}/* mkAnd() */
+
+inline Node mkAnd(const std::vector<Node>& conjunctions) {
+  std::set<TNode> all;
+  all.insert(conjunctions.begin(), conjunctions.end());
+
+  if (all.size() == 0) {
+    return mkTrue(); 
+  }
+  
+  if (all.size() == 1) {
+    // All the same, or just one
+    return conjunctions[0];
+  }
+  
+
+  NodeBuilder<> conjunction(kind::AND);
+  std::set<TNode>::const_iterator it = all.begin();
+  std::set<TNode>::const_iterator it_end = all.end();
+  while (it != it_end) {
+    conjunction << *it;
+    ++ it;
+  }
+
+  return conjunction;
+}/* mkAnd() */
+
+
+
+inline Node flattenAnd(std::vector<TNode>& queue) {
+  TNodeSet nodes;
+  while(!queue.empty()) {
+    TNode current = queue.back();
+    queue.pop_back();
+    if (current.getKind() ==  kind::AND) {
+      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+        if (nodes.count(current[i]) == 0) {
+          queue.push_back(current[i]);
+        }
+      }
+    } else {
+      nodes.insert(current); 
+    }
+  }
+  std::vector<TNode> children; 
+  for (TNodeSet::const_iterator it = nodes.begin(); it!= nodes.end(); ++it) {
+    children.push_back(*it); 
+  }
+  return mkAnd(children); 
+}
+
 
 // neeed a better name, this is not technically a ground term 
 inline bool isBVGroundTerm(TNode node) {
@@ -350,27 +428,7 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
 }
 
 
-inline Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
 
-  std::set<TNode> all;
-  all.insert(conjunctions.begin(), conjunctions.end());
-
-  if (all.size() == 1) {
-    // All the same, or just one
-    return conjunctions[0];
-  }
-
-  NodeBuilder<> conjunction(kind::AND);
-  std::set<TNode>::const_iterator it = all.begin();
-  std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
-    conjunction << *it;
-    ++ it;
-  }
-
-  return conjunction;
-}/* mkAnd() */
 
 
 // Turn a set into a string
@@ -405,6 +463,35 @@ inline std::string vectorToString(const std::vector<Node>& nodes) {
   out << "]";
   return out.str();
 }
+
+// FIXME: dumb code 
+inline void intersect(const std::vector<uint32_t>& v1,
+                      const std::vector<uint32_t>& v2,
+                      std::vector<uint32_t>& intersection) {
+  for (unsigned i = 0; i < v1.size(); ++i) {
+    bool found = false;
+    for (unsigned j = 0; j < v2.size(); ++j) {
+      if (v2[j] == v1[i]) {
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      intersection.push_back(v1[i]); 
+    }
+  }
+}
+
+template <class T>
+inline T gcd(T a, T b) {
+  while (b != 0) {
+    T t = b;
+    b = a % t;
+    a = t;
+  }
+  return a;
+}
+
 
 }
 }

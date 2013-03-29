@@ -412,8 +412,35 @@ bool Bitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end(); 
 }
 
-Node Bitblaster::getVarValue(TNode a) {
+bool Bitblaster::hasValue(TNode a) {
   Assert (d_termCache.find(a) != d_termCache.end()); 
+  Bits bits = d_termCache[a];
+  for (int i = bits.size() -1; i >= 0; --i) {
+    SatValue bit_value; 
+    if (d_cnfStream->hasLiteral(bits[i])) { 
+      SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
+      bit_value = d_satSolver->value(bit);
+      if (bit_value == SAT_VALUE_UNKNOWN)
+        return false; 
+    } else {
+      return false; 
+    }
+  }
+  return true; 
+}
+/** 
+ * Returns the value a is currently assigned to in the SAT solver
+ * or null if the value is completely unassigned. 
+ * 
+ * @param a 
+ * 
+ * @return 
+ */
+Node Bitblaster::getVarValue(TNode a) {
+  if (d_termCache.find(a) == d_termCache.end()) {
+    Assert(isSharedTerm(a));
+    return Node(); 
+  }
   Bits bits = d_termCache[a];
   Integer value(0); 
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -421,7 +448,7 @@ Node Bitblaster::getVarValue(TNode a) {
     if (d_cnfStream->hasLiteral(bits[i])) { 
       SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert (bit_value != SAT_VALUE_UNKNOWN);
+      Assert (bit_value != SAT_VALUE_UNKNOWN); 
     } else {
       // the bit is unconstrainted so we can give it an arbitrary value 
       bit_value = SAT_VALUE_FALSE;
@@ -436,8 +463,12 @@ void Bitblaster::collectModelInfo(TheoryModel* m) {
   __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)) {
+    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
       Node const_value = getVarValue(var);
+      if(const_value == Node()) {
+        // if the value is unassigned just set it to zero
+        const_value = utils::mkConst(BitVector(utils::getSize(var), 0u)); 
+      }
       Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
                                 << var << " "
                                 << const_value << "))\n";

@@ -54,6 +54,12 @@
 // getNext() just allows C++ iterator access from Java-side next(), make it private
 %javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::CommandSequence>::getNext() "private";
 
+// map the types appropriately
+%typemap(jni) CVC4::CommandSequence::const_iterator::value_type "jobject";
+%typemap(jtype) CVC4::CommandSequence::const_iterator::value_type "edu.nyu.acsys.CVC4.Command";
+%typemap(jstype) CVC4::CommandSequence::const_iterator::value_type "edu.nyu.acsys.CVC4.Command";
+%typemap(javaout) CVC4::CommandSequence::const_iterator::value_type { return $jnicall; }
+
 #endif /* SWIGJAVA */
 
 %include "expr/command.h"

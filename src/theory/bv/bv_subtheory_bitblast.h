@@ -30,23 +30,28 @@ class Bitblaster;
  * BitblastSolver
  */
 class BitblastSolver : public SubtheorySolver {
-
+  struct Statistics {
+    IntStat d_numCallstoCheck;
+    Statistics();
+    ~Statistics(); 
+  }; 
   /** Bitblaster */
   Bitblaster* d_bitblaster;
 
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;
-
+  Statistics d_statistics; 
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();
 
   void  preRegister(TNode node);
-  bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
+  bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo(TheoryModel* m);
+  void collectModelInfo(TheoryModel* m); 
   Node getModelValue(TNode node);
+  bool isComplete() { return true; }
 };
 
 }

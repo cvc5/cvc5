@@ -167,6 +167,20 @@ void ArrayInfo::setRIntro1Applied(const TNode a) {
   
 }
 
+void ArrayInfo::setModelRep(const TNode a, const TNode b) {
+  Assert(a.getType().isArray());
+  Info* temp_info;
+  CNodeInfoMap::iterator it = info_map.find(a);
+  if(it == info_map.end()) {
+    temp_info = new Info(ct, bck);
+    temp_info->modelRep = b;
+    info_map[a] = temp_info;
+  } else {
+    (*it).second->modelRep = b;
+  }
+  
+}
+
 /**
  * Returns the information associated with TNode a
  */
@@ -198,6 +212,16 @@ const bool ArrayInfo::rIntro1Applied(const TNode a) const
     return (*it).second->rIntro1Applied;
   }
   return false;
+}
+
+const TNode ArrayInfo::getModelRep(const TNode a) const
+{
+  CNodeInfoMap::const_iterator it = info_map.find(a);
+
+  if(it!= info_map.end()) {
+    return (*it).second->modelRep;
+  }
+  return TNode();
 }
 
 const CTNodeList* ArrayInfo::getIndices(const TNode a) const{

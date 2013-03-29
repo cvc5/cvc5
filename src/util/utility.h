@@ -67,7 +67,6 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
   return (match2 == last) ? match : last;
 }
 
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__UTILITY_H */

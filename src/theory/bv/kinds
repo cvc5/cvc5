@@ -8,7 +8,7 @@ theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
 typechecker "theory/bv/theory_bv_type_rules.h"
 
 properties finite
-properties check propagate
+properties check propagate presolve
 
 rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 

@@ -18,23 +18,34 @@
 
 #include "cvc4_private.h"
 #include "theory/bv/bv_subtheory.h"
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
+class Slicer; 
+class Base; 
 /**
  * Bitvector equality solver
  */
-class EqualitySolver : public SubtheorySolver {
+class CoreSolver : public SubtheorySolver {
+  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
 
+  struct Statistics {
+    IntStat d_numCallstoCheck;
+    Statistics();
+    ~Statistics(); 
+  }; 
+  
   // NotifyClass: handles call-back from congruence closure module
-
   class NotifyClass : public eq::EqualityEngineNotify {
-    EqualitySolver& d_solver;
+    CoreSolver& d_solver;
 
   public:
-    NotifyClass(EqualitySolver& solver): d_solver(solver) {}
+    NotifyClass(CoreSolver& solver): d_solver(solver) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value);
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
@@ -43,12 +54,12 @@ class EqualitySolver : public SubtheorySolver {
     void eqNotifyPreMerge(TNode t1, TNode t2) { }
     void eqNotifyPostMerge(TNode t1, TNode t2) { }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
-};
+  };
 
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-
+  
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
@@ -58,16 +69,26 @@ class EqualitySolver : public SubtheorySolver {
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
 
-  /** FIXME: for debugging purposes only */
-  context::CDList<TNode> d_assertions; 
-public:
-
-  EqualitySolver(context::Context* c, TheoryBV* bv);
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  Slicer* d_slicer;
+  context::CDO<bool> d_isCoreTheory;
+  /** To make sure we keep the explanations */
+  context::CDHashSet<Node, NodeHashFunction> d_reasons;
+  ModelValue d_modelValues;
+  void buildModel(); 
+  bool assertFactToEqualityEngine(TNode fact, TNode reason);  
+  bool decomposeFact(TNode fact);
+  Node getBaseDecomposition(TNode a);
+  Statistics d_statistics; 
+public: 
+  CoreSolver(context::Context* c, TheoryBV* bv);
+  ~CoreSolver();
+  bool  isComplete() { return d_isCoreTheory; }
+  void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
-  bool  addAssertions(const std::vector<TNode>& assertions, Theory::Effort e);
+  bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   void  collectModelInfo(TheoryModel* m);
+  Node  getModelValue(TNode var); 
   void  addSharedTerm(TNode t) {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }
@@ -82,6 +103,8 @@ public:
     }
     return EQUALITY_UNKNOWN;
   }
+  bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
+  void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
 };
 
 

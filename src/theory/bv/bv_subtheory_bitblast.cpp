@@ -30,11 +30,21 @@ using namespace CVC4::theory::bv::utils;
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_bitblaster(new Bitblaster(c, bv)),
-    d_bitblastQueue(c)
+    d_bitblastQueue(c),
+    d_statistics()
 {}
 
 BitblastSolver::~BitblastSolver() {
   delete d_bitblaster;
+}
+
+BitblastSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
+{
+  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+}
+BitblastSolver::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
 }
 
 void BitblastSolver::preRegister(TNode node) {
@@ -52,22 +62,23 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_bitblaster->explain(literal, assumptions);
 }
 
-bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory::Effort e) {
-  Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions (" << e << ")" << std::endl;
 
+bool BitblastSolver::check(Theory::Effort e) {
+  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n"; 
+  ++(d_statistics.d_numCallstoCheck); 
   //// Eager bit-blasting
   if (options::bitvectorEagerBitblast()) {
-    for (unsigned i = 0; i < assertions.size(); ++i) {
-      TNode atom = assertions[i].getKind() == kind::NOT ? assertions[i][0] : assertions[i];
+    while (!done()) {
+      TNode assertion = get(); 
+      TNode atom = assertion.getKind() == kind::NOT ? assertion[0] : assertion;
       if (atom.getKind() != kind::BITVECTOR_BITOF) {
         d_bitblaster->bbAtom(atom);
       }
+      return true;
     }
-    return true;
   }
 
   //// Lazy bit-blasting
-
   // bit-blast enqueued nodes
   while (!d_bitblastQueue.empty()) {
     TNode atom = d_bitblastQueue.front();
@@ -75,10 +86,11 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     d_bitblastQueue.pop();
   }
 
-  // propagation
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    TNode fact = assertions[i];
-    if (!d_bv->inConflict() && !d_bv->propagatedBy(fact, SUB_BITBLAST)) {
+  // Processing assertions  
+  while (!done()) {
+    TNode fact = get();
+    Debug("bv-bitblast") << "  fact " << fact << ")\n"; 
+    if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
       // Assert to sat
@@ -103,7 +115,7 @@ bool BitblastSolver::addAssertions(const std::vector<TNode>& assertions, Theory:
     }
   }
 
-  // solving
+  // Solving
   if (e == Theory::EFFORT_FULL || options::bitvectorEagerFullcheck()) {
     Assert(!d_bv->inConflict());
     Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
@@ -129,5 +141,7 @@ void BitblastSolver::collectModelInfo(TheoryModel* m) {
 }
 
 Node BitblastSolver::getModelValue(TNode node) {
-  return d_bitblaster->getVarValue(node);
+  Node val = d_bitblaster->getVarValue(node);
+  Assert (val != Node() || d_bv->isSharedTerm(node));
+  return val; 
 }

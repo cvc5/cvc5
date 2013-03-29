@@ -178,10 +178,23 @@ public:
     Integer prod = d_value * y.d_value;
     return BitVector(d_size, prod);
   }
+
+  BitVector setBit(uint32_t i) const {
+    CheckArgument(i < d_size, i);
+    Integer res = d_value.setBit(i);
+    return BitVector(d_size, res); 
+  }
+
+  bool isBitSet(uint32_t i) const {
+    CheckArgument(i < d_size, i); 
+    return d_value.isBitSet(i); 
+  }
+  
   /** 
    * Total division function that returns 0 when the denominator is 0.  
    */
   BitVector unsignedDivTotal (const BitVector& y) const {
+
     CheckArgument(d_size == y.d_size, y);
     if (y.d_value == 0) {
       return BitVector(d_size, 0u);
@@ -190,6 +203,7 @@ public:
     CheckArgument(y.d_value > 0, y);
     return BitVector(d_size, d_value.floorDivideQuotient(y.d_value)); 
   }
+  
   /** 
    * Total division function that returns 0 when the denominator is 0.  
    */
