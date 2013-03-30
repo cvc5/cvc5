@@ -46,6 +46,7 @@ private:
   static Node computeMiniscoping( std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested = false );
   static Node computeNNF( Node body );
+  static Node computeSimpleIteLift( Node body );
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
@@ -54,6 +55,7 @@ private:
     COMPUTE_MINISCOPING = 0,
     COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
+    COMPUTE_SIMPLE_ITE_LIFT,
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,

@@ -273,6 +273,43 @@ Node QuantifiersRewriter::computeNNF( Node body ){
   }
 }
 
+Node QuantifiersRewriter::computeSimpleIteLift( Node body ) {
+  if( body.getKind()==EQUAL ){
+    for( size_t i=0; i<2; i++ ){
+      if( body[i].getKind()==ITE ){
+        Node no = i==0 ? body[1] : body[0];
+        bool doRewrite = false;
+        std::vector< Node > children;
+        children.push_back( body[i][0] );
+        for( size_t j=1; j<=2; j++ ){
+          //check if it rewrites to a constant
+          Node nn = NodeManager::currentNM()->mkNode( EQUAL, no, body[i][j] );
+          nn = Rewriter::rewrite( nn );
+          children.push_back( nn );
+          if( nn.isConst() ){
+            doRewrite = true;
+          }
+        }
+        if( doRewrite ){
+          return NodeManager::currentNM()->mkNode( ITE, children );
+        }
+      }
+    }
+  }else if( body.getKind()!=APPLY_UF && body.getType()==NodeManager::currentNM()->booleanType() ){
+    bool changed = false;
+    std::vector< Node > children;
+    for( size_t i=0; i<body.getNumChildren(); i++ ){
+      Node nn = computeSimpleIteLift( body[i] );
+      children.push_back( nn );
+      changed = changed || nn!=body[i];
+    }
+    if( changed ){
+      return NodeManager::currentNM()->mkNode( body.getKind(), children );
+    }
+  }
+  return body;
+}
+
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
   Trace("var-elim-quant") << "Compute var elimination for " << body << std::endl;
   QuantPhaseReq qpr( body );
@@ -521,6 +558,8 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
       return computeAggressiveMiniscoping( args, n, f.hasAttribute(NestedQuantAttribute()) );
     }else if( computeOption==COMPUTE_NNF ){
       n = computeNNF( n );
+    }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
+      n = computeSimpleIteLift( n );
     }else if( computeOption==COMPUTE_PRENEX ){
       n = computePrenex( n, args, true );
     }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
@@ -771,6 +810,8 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
     return options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_NNF ){
     return false;//TODO: compute NNF (current bad idea since arithmetic rewrites equalities)
+  }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
+    return true;
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant() && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
