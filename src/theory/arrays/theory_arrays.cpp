@@ -1060,7 +1060,9 @@ void TheoryArrays::checkModel(Effort e)
   unsigned constraintIdx;
   Node assertion, assertionToCheck;
   vector<TNode> assumptions;
+  //  int numrestarts = 0;
   while (true) {
+    //    ++numrestarts;
     int level = getSatContext()->getLevel();
     d_getModelValCache.clear();
     for (constraintIdx = 0; constraintIdx < d_modelConstraints.size(); ++constraintIdx) {
@@ -1133,7 +1135,6 @@ void TheoryArrays::checkModel(Effort e)
           all.insert(t);
         }
       }
-      //      d_lemmas.push_back(mkAnd(assumptions, true));
 
       bool eq = false;
       Node decision, explanation;
@@ -1198,6 +1199,23 @@ void TheoryArrays::checkModel(Effort e)
         d_conflict = true;
         break;
       }
+      {
+        // generate lemma
+        // if (all.size() == 0) {
+        //   d_lemmas.push_back(decision.negate());
+        // }
+        // else {
+        //   NodeBuilder<> disjunction(kind::OR);
+        //   std::set<TNode>::const_iterator it = all.begin();
+        //   std::set<TNode>::const_iterator it_end = all.end();
+        //   while (it != it_end) {
+        //     disjunction << (*it).negate();
+        //     ++it;
+        //   }
+        //   disjunction << decision.negate();
+        //   d_lemmas.push_back(disjunction);
+        // }
+      }
       d_equalityEngine.assertEquality(decision, eq, explanation);
       if (!eq) decision = decision.notNode();
       Debug("arrays-model-based") << "Asserting learned literal " << decision << " with explanation " << explanation << endl;
@@ -1257,7 +1275,7 @@ void TheoryArrays::checkModel(Effort e)
     assumptions.clear();
   }
 #ifdef CVC4_ASSERTIONS
-  if (!d_conflict) {
+  if (!d_conflict && fullEffort(e)) {
     context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
     for (; assert_it != assert_it_end; ++assert_it) {
       Assert(getModelVal(*assert_it) == d_true);

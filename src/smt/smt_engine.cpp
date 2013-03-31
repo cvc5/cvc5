@@ -864,6 +864,16 @@ void SmtEngine::setLogicInternal() throw() {
     Trace("smt") << "setting ite simplification to " << iteSimp << endl;
     options::doITESimp.set(iteSimp);
   }
+  // Turn off array eager index splitting for QF_AUFLIA
+  if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
+    if (not d_logic.isQuantified() &&
+        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+        d_logic.isTheoryEnabled(THEORY_UF) &&
+        d_logic.isTheoryEnabled(THEORY_ARITH)) {
+      Trace("smt") << "setting array eager index splitting to false" << endl;
+      options::arraysEagerIndexSplitting.set(false);
+    }
+  }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
