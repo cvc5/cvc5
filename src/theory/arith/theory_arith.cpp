@@ -1739,22 +1739,19 @@ void TheoryArith::check(Effort effortLevel){
   if(!emmittedConflictOrSplit && fullEffort(effortLevel) &&
      d_fullCheckCounter % CUT_ALL_BOUNDED_PERIOD == 1){
 
-    cout << options::maxCutsInContext() << " " << d_cutsInContext << endl;
+    Debug("arith::demand-restart") << options::maxCutsInContext() << " " << d_cutsInContext << "cut all" << endl;
 
+    vector<Node> lemmas = cutAllBounded();
+    //output the lemmas
+    for(vector<Node>::const_iterator i = lemmas.begin(); i != lemmas.end(); ++i){
+      d_out->lemma(*i);
+      Debug("arith::demand-restart") << options::maxCutsInContext() << " " << d_cutsInContext << "cut all " << *i << endl;
+      ++(d_statistics.d_externalBranchAndBounds);
+      d_cutsInContext = d_cutsInContext + 1;
+      emmittedConflictOrSplit = lemmas.size() > 0;
+    }
     if(options::maxCutsInContext() <= d_cutsInContext){
       d_out->demandRestart();
-    }else{
-
-      cout << "cutting" << endl;
-
-      vector<Node> lemmas = cutAllBounded();
-      //output the lemmas
-      for(vector<Node>::const_iterator i = lemmas.begin(); i != lemmas.end(); ++i){
-        d_out->lemma(*i);
-        ++(d_statistics.d_externalBranchAndBounds);
-        d_cutsInContext = d_cutsInContext + 1;
-      }
-      emmittedConflictOrSplit = lemmas.size() > 0;
     }
   }
 
@@ -1782,10 +1779,10 @@ void TheoryArith::check(Effort effortLevel){
         d_hasDoneWorkSinceCut = false;
         d_out->lemma(possibleLemma);
 
+        d_cutsInContext = d_cutsInContext + 1;
+        Debug("arith::demand-restart") << options::maxCutsInContext() << " " << d_cutsInContext << " dio cut" << endl;
         if(options::maxCutsInContext() <= d_cutsInContext){
           d_out->demandRestart();
-        }else{
-          d_cutsInContext = d_cutsInContext + 1;
         }
       }
     }
@@ -1794,16 +1791,16 @@ void TheoryArith::check(Effort effortLevel){
       Node possibleLemma = roundRobinBranch();
       if(!possibleLemma.isNull()){
 
+        d_cutsInContext = d_cutsInContext + 1;
+
+        Debug("arith::demand-restart") << options::maxCutsInContext() << " " << d_cutsInContext << " branch" << endl;
+
+        ++(d_statistics.d_externalBranchAndBounds);
+        emmittedConflictOrSplit = true;
+        d_out->lemma(possibleLemma);
+        d_cutsInContext = d_cutsInContext + 1;
         if(options::maxCutsInContext() <= d_cutsInContext){
           d_out->demandRestart();
-        }else{
-          d_cutsInContext = d_cutsInContext + 1;
-
-          cout << options::maxCutsInContext() << " " << d_cutsInContext << endl;
-
-          ++(d_statistics.d_externalBranchAndBounds);
-          emmittedConflictOrSplit = true;
-          d_out->lemma(possibleLemma);
         }
       }
     }
