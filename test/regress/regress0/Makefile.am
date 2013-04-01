@@ -37,7 +37,8 @@ SMT_TESTS = \
 	simple2.smt \
 	simple-lra.smt \
 	simple-rdl.smt \
-	simple-uf.smt
+	simple-uf.smt \
+	constant-rewrite.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \

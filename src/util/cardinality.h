@@ -245,6 +245,11 @@ public:
    */
   std::string toString() const throw();
 
+  /**
+   * Compare two cardinalities and if it is known that the current
+   * cardinality is smaller or equal to c, it returns true.
+   */
+  bool knownLessThanOrEqual(const Cardinality& c) const throw();
 };/* class Cardinality */
 
 

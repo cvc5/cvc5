@@ -193,6 +193,10 @@ Cardinality::CardinalityComparison Cardinality::compare(const Cardinality& c) co
   Unreachable();
 }
 
+bool Cardinality::knownLessThanOrEqual(const Cardinality& c) const throw() {
+  CardinalityComparison cmp = this->compare(c);
+  return cmp == LESS || cmp == EQUAL;
+}
 
 std::string Cardinality::toString() const throw() {
   std::stringstream ss;

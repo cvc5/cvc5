@@ -118,29 +118,60 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     } else if(n[1].getKind() == kind::NOT && n[1][0] == n[0]) {
       // IFF x (NOT x)
       return RewriteResponse(REWRITE_DONE, ff);
+    } else if(n[0].getKind() == kind::EQUAL && n[1].getKind() == kind::EQUAL) {
+      // a : (= i x)
+      // i : (= j k)
+      // x : (= y z)
+
+      // assume wlog k, z are constants and j is the same symbol as y
+      // (iff (= j k) (= j z))
+      // if k = z
+      //  then (iff (= j k) (= j k)) => true
+      // else
+      //  (iff (= j k) (= j z)) <=> b
+      //  b : (and (not (= j k)) (not (= j z)))
+      //  (= j k) (= j z) | a b
+      //  f       f       | t t
+      //  f       t       | f f
+      //  t       f       | f f
+      //  t       t       | * f
+      // * j cannot equal both k and z in a theory model
+      TNode t,c;
+      if (n[0][0].isConst()) {
+        c = n[0][0];
+        t = n[0][1];
+      }
+      else if (n[0][1].isConst()) {
+        c = n[0][1];
+        t = n[0][0];
+      }
+      bool matchesForm = false;
+      bool constantsEqual = false;
+      if (!c.isNull()) {
+        if (n[1][0] == t && n[1][1].isConst()) {
+          matchesForm = true;
+          constantsEqual = (n[1][1] == c);
+        }
+        else if (n[1][1] == t && n[1][0].isConst()) {
+          matchesForm = true;
+          constantsEqual = (n[1][1] == c);
+        }
+      }
+      if(matchesForm){
+        if(constantsEqual){
+          return RewriteResponse(REWRITE_DONE, tt);
+        }else{
+          Cardinality kappa = t.getType().getCardinality();
+          Cardinality two(2l);
+          if(kappa.knownLessThanOrEqual(two)){
+            return RewriteResponse(REWRITE_DONE, ff);
+          }else{
+            Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
+            return RewriteResponse(REWRITE_AGAIN, neitherEquality);
+          }
+        }
+      }
     }
-    // This is wrong: it would rewrite c1 == x <=> c2 == x to false
-    // when this is sat for x = c3 where c3 is different from c1, and c2
-    
-    // else if(n[0].getKind() == kind::EQUAL && n[1].getKind() == kind::EQUAL) {
-    //   TNode t,c;
-    //   if (n[0][0].isConst()) {
-    //     c = n[0][0];
-    //     t = n[0][1];
-    //   }
-    //   else if (n[0][1].isConst()) {
-    //     c = n[0][1];
-    //     t = n[0][0];
-    //   }
-    //   if (!c.isNull()) {
-    //     if (n[1][0] == t && n[1][1].isConst()) {
-    //       return RewriteResponse(REWRITE_DONE, n[1][1] == c ? tt : ff);
-    //     }
-    //     else if (n[1][1] == t && n[1][0].isConst()) {
-    //       return RewriteResponse(REWRITE_DONE, n[1][0] == c ? tt : ff);
-    //     }
-    //   }
-    // }
     break;
   }
   case kind::XOR: {
