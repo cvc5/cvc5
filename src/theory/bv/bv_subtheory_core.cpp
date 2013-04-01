@@ -202,6 +202,7 @@ bool CoreSolver::check(Theory::Effort e) {
 void CoreSolver::buildModel() {
   if (options::bitvectorCoreSolver()) {
     // FIXME
+    Unreachable(); 
     return; 
   }
   Debug("bv-core") << "CoreSolver::buildModel() \n"; 
@@ -227,7 +228,15 @@ void CoreSolver::buildModel() {
   eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
   while (!eqcs_i.isFinished()) {
     TNode repr = *eqcs_i;
-    ++eqcs_i; 
+    ++eqcs_i;
+    
+    if (repr.getKind() != kind::VARIABLE &&
+        repr.getKind() != kind::SKOLEM &&
+        repr.getKind() != kind::CONST_BITVECTOR &&
+        !d_bv->isSharedTerm(repr)) {
+      continue; 
+    }
+  
     TypeNode type = repr.getType(); 
     if (type.isBitVector() && repr.getKind()!= kind::CONST_BITVECTOR) {
       Debug("bv-core-model") << "   processing " << repr <<"\n"; 
