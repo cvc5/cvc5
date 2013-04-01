@@ -51,7 +51,9 @@ Node TheoryModel::getValue( TNode n ) const{
   //apply substitutions
   Node nn = d_substitutions.apply( n );
   //get value in model
-  return getModelValue( nn );
+  nn = getModelValue( nn );
+  Assert(nn.isConst() || nn.getKind() == kind::LAMBDA);
+  return nn;
 }
 
 Expr TheoryModel::getValue( Expr expr ) const{
@@ -150,7 +152,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       if(val.getKind() == kind::CARDINALITY_CONSTRAINT) {
         val = NodeManager::currentNM()->mkConst(getCardinality(val[0].getType().toType()).getFiniteCardinality() <= val[1].getConst<Rational>().getNumerator());
       }
-      Assert(hasBoundVars || val.isConst());
       return val;
     }
 

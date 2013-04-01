@@ -38,6 +38,7 @@ TESTS =	\
 	typed_v2l30079.cvc \
 	typed_v3l20092.cvc \
 	typed_v5l30069.cvc \
+	boolean-equality.cvc \
 	boolean-terms-datatype.cvc \
 	boolean-terms-parametric-datatype-1.cvc \
 	boolean-terms-parametric-datatype-2.cvc \

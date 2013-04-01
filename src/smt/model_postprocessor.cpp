@@ -48,6 +48,31 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
       return NodeManager::currentNM()->mkConst(tf);
     }
   }
+  if(n.getType().isBoolean()) {
+    bool tf = n.getConst<bool>();
+    if(asType.isBitVector(1u)) {
+      return NodeManager::currentNM()->mkConst(BitVector(1u, tf ? 1u : 0u));
+    }
+    if(asType.isDatatype() && asType.hasAttribute(BooleanTermAttr())) {
+      const Datatype& asDatatype = asType.getConst<Datatype>();
+      return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, (tf ? asDatatype[0] : asDatatype[1]).getConstructor());
+    }
+  }
+  if(n.getType().isRecord() && asType.isRecord()) {
+    Debug("boolean-terms") << "+++ got a record - rewriteAs " << n << " : " << asType << endl;
+    const Record& rec CVC4_UNUSED = n.getType().getConst<Record>();
+    const Record& asRec = asType.getConst<Record>();
+    Assert(rec.getNumFields() == asRec.getNumFields());
+    Assert(n.getNumChildren() == asRec.getNumFields());
+    NodeBuilder<> b(n.getKind());
+    b << asType;
+    for(size_t i = 0; i < n.getNumChildren(); ++i) {
+      b << rewriteAs(n[i], TypeNode::fromType(asRec[i].second));
+    }
+    Node out = b;
+    Debug("boolean-terms") << "+++ returning record " << out << endl;
+    return out;
+  }
   Debug("boolean-terms") << "+++ rewriteAs " << n << " : " << asType << endl;
   if(n.getType().isArray()) {
     Assert(asType.isArray());
