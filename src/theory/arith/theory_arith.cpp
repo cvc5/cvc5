@@ -89,6 +89,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputCha
   d_basicVarModelUpdateCallBack(d_simplex),
   d_DELTA_ZERO(0),
   d_fullCheckCounter(0),
+  d_cutsInContext(c,0),
   d_statistics()
 {
 }
@@ -1737,13 +1738,24 @@ void TheoryArith::check(Effort effortLevel){
   static const int CUT_ALL_BOUNDED_PERIOD = 10;
   if(!emmittedConflictOrSplit && fullEffort(effortLevel) &&
      d_fullCheckCounter % CUT_ALL_BOUNDED_PERIOD == 1){
-    vector<Node> lemmas = cutAllBounded();
-    //output the lemmas
-    for(vector<Node>::const_iterator i = lemmas.begin(); i != lemmas.end(); ++i){
-      d_out->lemma(*i);
-      ++(d_statistics.d_externalBranchAndBounds);
+
+    cout << options::maxCutsInContext() << " " << d_cutsInContext << endl;
+
+    if(options::maxCutsInContext() <= d_cutsInContext){
+      d_out->demandRestart();
+    }else{
+
+      cout << "cutting" << endl;
+
+      vector<Node> lemmas = cutAllBounded();
+      //output the lemmas
+      for(vector<Node>::const_iterator i = lemmas.begin(); i != lemmas.end(); ++i){
+        d_out->lemma(*i);
+        ++(d_statistics.d_externalBranchAndBounds);
+        d_cutsInContext = d_cutsInContext + 1;
+      }
+      emmittedConflictOrSplit = lemmas.size() > 0;
     }
-    emmittedConflictOrSplit = lemmas.size() > 0;
   }
 
   if(!emmittedConflictOrSplit && fullEffort(effortLevel)){
@@ -1769,15 +1781,30 @@ void TheoryArith::check(Effort effortLevel){
         emmittedConflictOrSplit = true;
         d_hasDoneWorkSinceCut = false;
         d_out->lemma(possibleLemma);
+
+        if(options::maxCutsInContext() <= d_cutsInContext){
+          d_out->demandRestart();
+        }else{
+          d_cutsInContext = d_cutsInContext + 1;
+        }
       }
     }
 
     if(!emmittedConflictOrSplit) {
       Node possibleLemma = roundRobinBranch();
       if(!possibleLemma.isNull()){
-        ++(d_statistics.d_externalBranchAndBounds);
-        emmittedConflictOrSplit = true;
-        d_out->lemma(possibleLemma);
+
+        if(options::maxCutsInContext() <= d_cutsInContext){
+          d_out->demandRestart();
+        }else{
+          d_cutsInContext = d_cutsInContext + 1;
+
+          cout << options::maxCutsInContext() << " " << d_cutsInContext << endl;
+
+          ++(d_statistics.d_externalBranchAndBounds);
+          emmittedConflictOrSplit = true;
+          d_out->lemma(possibleLemma);
+        }
       }
     }
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()

@@ -542,6 +542,8 @@ private:
   std::vector<Node> cutAllBounded() const;
   Node branchIntegerVariable(ArithVar x) const;
 
+  context::CDO<unsigned> d_cutsInContext;
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:

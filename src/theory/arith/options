@@ -62,4 +62,7 @@ option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :
  turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
 /turns off the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
 
+option maxCutsInContext --maxCutsInContext unsigned :default 65535
+ maximum cuts in a given context before signalling a restart
+
 endmodule
