@@ -216,6 +216,13 @@ public:
    */
   virtual void handleUserAttribute(const char* attr, Theory* t) {}
 
+
+  /** Demands that the search restart from sat search level 0.
+   * Using this leads to non-termination issues.
+   * It is appropraite for prototyping for theories.
+   */
+  virtual void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {}
+
 };/* class OutputChannel */
 
 }/* CVC4::theory namespace */

@@ -208,20 +208,22 @@ class TheoryEngine {
 
   public:
 
-    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision;
+    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision, restartDemands;
 
     Statistics(theory::TheoryId theory):
       conflicts(mkName("theory<", theory, ">::conflicts"), 0),
       propagations(mkName("theory<", theory, ">::propagations"), 0),
       lemmas(mkName("theory<", theory, ">::lemmas"), 0),
       requirePhase(mkName("theory<", theory, ">::requirePhase"), 0),
-      flipDecision(mkName("theory<", theory, ">::flipDecision"), 0)
+      flipDecision(mkName("theory<", theory, ">::flipDecision"), 0),
+      restartDemands(mkName("theory<", theory, ">::restartDemands"), 0)
     {
       StatisticsRegistry::registerStat(&conflicts);
       StatisticsRegistry::registerStat(&propagations);
       StatisticsRegistry::registerStat(&lemmas);
       StatisticsRegistry::registerStat(&requirePhase);
       StatisticsRegistry::registerStat(&flipDecision);
+      StatisticsRegistry::registerStat(&restartDemands);
     }
 
     ~Statistics() {
@@ -230,6 +232,7 @@ class TheoryEngine {
       StatisticsRegistry::unregisterStat(&lemmas);
       StatisticsRegistry::unregisterStat(&requirePhase);
       StatisticsRegistry::unregisterStat(&flipDecision);
+      StatisticsRegistry::unregisterStat(&restartDemands);
     }
   };/* class TheoryEngine::Statistics */
 
@@ -290,6 +293,16 @@ class TheoryEngine {
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
       return d_engine->lemma(lemma, false, removable);
+    }
+
+    void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {
+      NodeManager* curr = NodeManager::currentNM();
+      Node restartVar =  curr->mkSkolem("restartVar",
+                                        curr->booleanType(),
+                                        "A boolean variable assrted to be true to force a restart");
+      Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
+      ++ d_statistics.restartDemands;
+      lemma(restartVar, true);
     }
 
     void requirePhase(TNode n, bool phase)
