@@ -43,6 +43,7 @@ TESTS =	\
 	boolean-terms-parametric-datatype-2.cvc \
 	boolean-terms-tuple.cvc \
 	boolean-terms-record.cvc \
+	boolean-terms-rewrite.cvc \
 	some-boolean-tests.cvc \
 	v10l40099.cvc \
 	v2l40025.cvc \

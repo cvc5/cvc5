@@ -1,0 +1,8 @@
+% EXPECT: sat
+% EXIT: 10
+
+x : [# b:BOOLEAN #];
+
+ASSERT x = x;
+
+CHECKSAT;
