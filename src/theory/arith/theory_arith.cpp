@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_arith.cpp
  ** \verbatim
- ** Original author: taking
+ ** Original author: Tim King <taking@cs.nyu.edu>
  ** Major contributors: none
- ** Minor contributors (to current version): kshitij, ajreynol, mdeters, dejan
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Minor contributors (to current version): Kshitij Bansal <kshitij@cs.nyu.edu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>, Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_arith_type_rules.h
  ** \verbatim
- ** Original author: dejan
- ** Major contributors: taking, cconway, mdeters
+ ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Major contributors: Tim King <taking@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

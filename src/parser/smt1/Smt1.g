@@ -1,11 +1,11 @@
 /* *******************                                                        */
 /*! \file Smt1.g
  ** \verbatim
- ** Original author: cconway
- ** Major contributors: dejan, mdeters
- ** Minor contributors (to current version): ajreynol, taking
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Minor contributors (to current version): Andrew Reynolds <andrew.j.reynolds@gmail.com>, Tim King <taking@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

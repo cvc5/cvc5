@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file array_info.h
  ** \verbatim
- ** Original author: lianah
- ** Major contributors: mdeters
- ** Minor contributors (to current version): dejan, barrett
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: none
+ ** Minor contributors (to current version): Dejan Jovanović <dejan.jovanovic@gmail.com>, Clark Barrett <barrett@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

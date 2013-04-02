@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file arith_rewriter.h
  ** \verbatim
- ** Original author: taking
- ** Major contributors: mdeters, dejan
+ ** Original author: Tim King <taking@cs.nyu.edu>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>, Dejan Jovanović <dejan.jovanovic@gmail.com>
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

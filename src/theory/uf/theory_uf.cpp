@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_uf.cpp
  ** \verbatim
- ** Original author: dejan
- ** Major contributors: mdeters
- ** Minor contributors (to current version): barrett, ajreynol
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Tim King <taking@cs.nyu.edu>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>, Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Minor contributors (to current version): Clark Barrett <barrett@cs.nyu.edu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

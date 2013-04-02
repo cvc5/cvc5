@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_arith.h
  ** \verbatim
- ** Original author: mdeters
- ** Major contributors: taking
- ** Minor contributors (to current version): ajreynol, dejan
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Tim King <taking@cs.nyu.edu>
+ ** Minor contributors (to current version): Andrew Reynolds <andrew.j.reynolds@gmail.com>, Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

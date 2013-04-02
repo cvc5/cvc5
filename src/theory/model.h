@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file model.h
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: mdeters, barrett
- ** Minor contributors (to current version): taking
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>, Clark Barrett <barrett@cs.nyu.edu>
+ ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

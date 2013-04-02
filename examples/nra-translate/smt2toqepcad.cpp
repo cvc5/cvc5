@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file smt2toqepcad.cpp
+ ** \verbatim
+ ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Major contributors: none
+ ** Minor contributors (to current version): Morgan Deters <mdeters@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 #include <string>
 #include <iostream>
 #include <typeinfo>

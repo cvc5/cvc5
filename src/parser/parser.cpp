@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file parser.cpp
  ** \verbatim
- ** Original author: dejan
- ** Major contributors: cconway, mdeters
- ** Minor contributors (to current version): bobot, ajreynol
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>, Dejan Jovanović <dejan.jovanovic@gmail.com>, François Bobot <francois@bobot.eu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

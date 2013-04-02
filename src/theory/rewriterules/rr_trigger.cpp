@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file rr_trigger.cpp
  ** \verbatim
- ** Original author: ajreynol
- ** Major contributors: mdeters
- ** Minor contributors (to current version): bobot
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Andrew Reynolds <andrew.j.reynolds@gmail.com>, François Bobot <francois@bobot.eu>
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

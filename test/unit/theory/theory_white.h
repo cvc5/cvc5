@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_white.h
  ** \verbatim
- ** Original author: taking
- ** Major contributors: barrett, mdeters
- ** Minor contributors (to current version): dejan
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Clark Barrett <barrett@cs.nyu.edu>, Tim King <taking@cs.nyu.edu>
+ ** Minor contributors (to current version): Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

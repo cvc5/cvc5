@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file ite_simplifier.cpp
  ** \verbatim
- ** Original author: barrett
+ ** Original author: Clark Barrett <barrett@cs.nyu.edu>
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Minor contributors (to current version): Morgan Deters <mdeters@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

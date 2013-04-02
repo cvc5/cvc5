@@ -1,10 +1,10 @@
 /*********************                                                        */
 /*! \file boolean_term_conversion_mode.h
  ** \verbatim
- ** Original author: mdeters
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters
- ** This file is part of the CVC4 prototype.
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim

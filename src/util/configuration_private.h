@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file configuration_private.h
  ** \verbatim
- ** Original author: mdeters
- ** Major contributors: acsys
- ** Minor contributors (to current version): lianah, cconway
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Major contributors: ACSYS <cvc4-devel@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Liana Hadarean <lianahady@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

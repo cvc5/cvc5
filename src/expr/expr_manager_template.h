@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file expr_manager_template.h
  ** \verbatim
- ** Original author: dejan
- ** Major contributors: mdeters
- ** Minor contributors (to current version): ajreynol, taking, cconway
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Minor contributors (to current version): Andrew Reynolds <andrew.j.reynolds@gmail.com>, Tim King <taking@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

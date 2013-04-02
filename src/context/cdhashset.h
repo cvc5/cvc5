@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file cdhashset.h
  ** \verbatim
- ** Original author: mdeters
- ** Major contributors: none
- ** Minor contributors (to current version): bobot, dejan
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Major contributors: Tim King <taking@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): François Bobot <francois@bobot.eu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

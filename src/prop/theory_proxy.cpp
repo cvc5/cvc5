@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file theory_proxy.cpp
  ** \verbatim
- ** Original author: cconway
- ** Major contributors: kshitij, dejan, mdeters
- ** Minor contributors (to current version): barrett, taking, lianah
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Major contributors: Kshitij Bansal <kshitij@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Clark Barrett <barrett@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>, Tim King <taking@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

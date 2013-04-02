@@ -1,11 +1,11 @@
 /*********************                                                        */
 /*! \file smt2.cpp
  ** \verbatim
- ** Original author: cconway
- ** Major contributors: mdeters
- ** Minor contributors (to current version): barrett
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Original author: Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Clark Barrett <barrett@cs.nyu.edu>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
