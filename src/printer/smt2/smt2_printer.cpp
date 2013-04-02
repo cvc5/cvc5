@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file smt2_printer.cpp
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanović <dejan.jovanovic@gmail.com>, lianah <lianahady@gmail.com>, Tim King <taking@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>, François Bobot <francois@bobot.eu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Minor contributors (to current version): Dejan Jovanovic, lianah, Tim King, Liana Hadarean, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

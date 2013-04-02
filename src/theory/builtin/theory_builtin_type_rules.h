@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file theory_builtin_type_rules.h
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>, Christopher L. Conway <christopherleeconway@gmail.com>, Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Minor contributors (to current version): Tim King, Andrew Reynolds, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file bitvector.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>
- ** Minor contributors (to current version): lianah <lianahady@gmail.com>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Morgan Deters, Liana Hadarean
+ ** Minor contributors (to current version): lianah, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

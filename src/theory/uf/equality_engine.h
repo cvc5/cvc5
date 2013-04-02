@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file equality_engine.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
- ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>, Andrew Reynolds <andrew.j.reynolds@gmail.com>, Dejan Jovanović <dejan@cs.nyu.edu>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Morgan Deters
+ ** Minor contributors (to current version): Tim King, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

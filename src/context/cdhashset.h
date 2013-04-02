@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file cdhashset.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Tim King <taking@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
- ** Minor contributors (to current version): François Bobot <francois@bobot.eu>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Tim King, Morgan Deters
+ ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

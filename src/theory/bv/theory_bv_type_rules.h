@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file theory_bv_type_rules.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Liana Hadarean <lianahady@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Liana Hadarean, Morgan Deters, Christopher L. Conway
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

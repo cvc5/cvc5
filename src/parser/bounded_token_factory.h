@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file bounded_token_factory.h
  ** \verbatim
- ** Original author: Christopher L. Conway <christopherleeconway@gmail.com>
- ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Christopher L. Conway
+ ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

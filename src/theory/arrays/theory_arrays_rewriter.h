@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file theory_arrays_rewriter.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Morgan Deters <mdeters@cs.nyu.edu>, Clark Barrett <barrett@cs.nyu.edu>
- ** Minor contributors (to current version): Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Morgan Deters, Clark Barrett
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

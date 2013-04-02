@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file ouroborous.cpp
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Morgan Deters
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.

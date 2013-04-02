@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file smt_engine.h
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds <andrew.j.reynolds@gmail.com>, Tim King <taking@cs.nyu.edu>, Clark Barrett <barrett@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>, Kshitij Bansal <kshitij@cs.nyu.edu>, Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Minor contributors (to current version): Andrew Reynolds, Tim King, Clark Barrett, Christopher L. Conway, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

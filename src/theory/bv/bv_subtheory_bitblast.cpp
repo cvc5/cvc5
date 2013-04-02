@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file bv_subtheory_bitblast.cpp
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: lianah <lianahady@gmail.com>
- ** Minor contributors (to current version): Dejan Jovanović <dejan@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: lianah
+ ** Minor contributors (to current version): Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

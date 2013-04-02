@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file cddense_set.h
  ** \verbatim
- ** Original author: Tim King <taking@cs.nyu.edu>
+ ** Original author: Tim King
  ** Major contributors: none
- ** Minor contributors (to current version): Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

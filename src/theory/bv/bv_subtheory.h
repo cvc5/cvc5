@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file bv_subtheory.h
  ** \verbatim
- ** Original author: Liana Hadarean <lianahady@gmail.com>
- ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>, lianah <lianahady@gmail.com>
- ** Minor contributors (to current version): Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Liana Hadarean
+ ** Major contributors: Dejan Jovanovic, lianah
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

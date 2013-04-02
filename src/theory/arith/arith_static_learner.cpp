@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file arith_static_learner.cpp
  ** \verbatim
- ** Original author: Tim King <taking@cs.nyu.edu>
- ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Tim King
+ ** Major contributors: Dejan Jovanovic, Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

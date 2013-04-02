@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file arithvar.cpp
  ** \verbatim
- ** Original author: Tim King <taking@cs.nyu.edu>
+ ** Original author: Tim King
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.

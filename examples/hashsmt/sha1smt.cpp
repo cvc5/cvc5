@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file sha1smt.cpp
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
+ ** Original author: Dejan Jovanovic
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.

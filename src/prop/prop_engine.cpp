@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file prop_engine.cpp
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
- ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Minor contributors (to current version): Clark Barrett <barrett@cs.nyu.edu>, Liana Hadarean <lianahady@gmail.com>, Kshitij Bansal <kshitij@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>, Tim King <taking@cs.nyu.edu>
+ ** Original author: Morgan Deters
+ ** Major contributors: Dejan Jovanovic
+ ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Kshitij Bansal, Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

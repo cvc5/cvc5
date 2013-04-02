@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file rr_trigger.cpp
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
- ** Major contributors: Andrew Reynolds <andrew.j.reynolds@gmail.com>, François Bobot <francois@bobot.eu>
+ ** Original author: Morgan Deters
+ ** Major contributors: Andrew Reynolds, Francois Bobot
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

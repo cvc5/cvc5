@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file model_builder.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Original author: Andrew Reynolds
  ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal <kshitij@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

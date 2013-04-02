@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file theory_arith_type_rules.h
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Tim King <taking@cs.nyu.edu>, Christopher L. Conway <christopherleeconway@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Tim King, Christopher L. Conway, Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

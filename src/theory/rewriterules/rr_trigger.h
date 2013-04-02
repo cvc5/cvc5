@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file rr_trigger.h
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
- ** Major contributors: Andrew Reynolds <andrew.j.reynolds@gmail.com>, François Bobot <francois@bobot.eu>
- ** Minor contributors (to current version): Tianyi Liang <tianyi-liang@uiowa.edu>
+ ** Original author: Morgan Deters
+ ** Major contributors: Andrew Reynolds, Francois Bobot
+ ** Minor contributors (to current version): Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

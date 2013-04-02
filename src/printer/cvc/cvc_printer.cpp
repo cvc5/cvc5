@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file cvc_printer.cpp
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
- ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Minor contributors (to current version): François Bobot <francois@bobot.eu>, lianah <lianahady@gmail.com>, Clark Barrett <barrett@cs.nyu.edu>, Tim King <taking@cs.nyu.edu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>
+ ** Original author: Morgan Deters
+ ** Major contributors: Dejan Jovanovic
+ ** Minor contributors (to current version): Francois Bobot, lianah, Clark Barrett, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

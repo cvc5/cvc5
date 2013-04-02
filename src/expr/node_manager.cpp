@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file node_manager.cpp
  ** \verbatim
- ** Original author: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Major contributors: Christopher L. Conway <christopherleeconway@gmail.com>, Morgan Deters <mdeters@cs.nyu.edu>
- ** Minor contributors (to current version): ACSYS <cvc4-devel@cs.nyu.edu>, Tim King <taking@cs.nyu.edu>
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Christopher L. Conway, Morgan Deters
+ ** Minor contributors (to current version): ACSYS, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

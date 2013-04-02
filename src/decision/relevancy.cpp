@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file relevancy.cpp
  ** \verbatim
- ** Original author: Kshitij Bansal <kshitij@cs.nyu.edu>
+ ** Original author: Kshitij Bansal
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanović <dejan@cs.nyu.edu>, Morgan Deters <mdeters@cs.nyu.edu>
+ ** Minor contributors (to current version): Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

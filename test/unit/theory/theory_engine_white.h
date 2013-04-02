@@ -1,9 +1,9 @@
 /*********************                                                        */
 /*! \file theory_engine_white.h
  ** \verbatim
- ** Original author: Morgan Deters <mdeters@cs.nyu.edu>
- ** Major contributors: Dejan Jovanović <dejan.jovanovic@gmail.com>
- ** Minor contributors (to current version): Tim King <taking@cs.nyu.edu>, Andrew Reynolds <andrew.j.reynolds@gmail.com>, Christopher L. Conway <christopherleeconway@gmail.com>
+ ** Original author: Morgan Deters
+ ** Major contributors: Dejan Jovanovic
+ ** Minor contributors (to current version): Tim King, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
