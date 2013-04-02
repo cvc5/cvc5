@@ -40,7 +40,7 @@ namespace arrays {
 // Use static configuration of options for now
 const bool d_ccStore = false;
 const bool d_useArrTable = false;
-const bool d_eagerLemmas = false;
+  //const bool d_eagerLemmas = false;
 const bool d_propagateLemmas = true;
 const bool d_preprocess = true;
 const bool d_solveWrite = true;
@@ -964,7 +964,7 @@ void TheoryArrays::check(Effort e) {
     checkModel(e);
   }
 
-  if(!d_eagerLemmas && fullEffort(e) && !d_conflict && !options::arraysModelBased()) {
+  if(!options::arraysEagerLemmas() && fullEffort(e) && !d_conflict && !options::arraysModelBased()) {
     // generate the lemmas on the worklist
     Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
     dischargeLemmas();
@@ -2281,7 +2281,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   // TODO: maybe add triggers here
 
-  if (d_eagerLemmas || bothExist) {
+  if (options::arraysEagerLemmas() || bothExist) {
 
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);

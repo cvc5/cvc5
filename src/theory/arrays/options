@@ -17,4 +17,7 @@ option arraysModelBased --arrays-model-based bool :default false :read-write
 option arraysEagerIndexSplitting --arrays-eager-index bool :default true :read-write
  turn on eager index splitting for generated array lemmas
 
+option arraysEagerLemmas --arrays-eager-lemmas bool :default false :read-write
+ turn on eager lemma generation for arrays
+
 endmodule

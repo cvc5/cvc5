@@ -875,6 +875,15 @@ void SmtEngine::setLogicInternal() throw() {
       options::arraysEagerIndexSplitting.set(false);
     }
   }
+  // Turn on array eager lemmas for QF_AX
+  if(! options::arraysEagerLemmas.wasSetByUser()) {
+    if (not d_logic.isQuantified() &&
+        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+        d_logic.isPure(THEORY_ARRAY)) {
+      Trace("smt") << "setting array eager lemmas to true" << endl;
+      options::arraysEagerIndexSplitting.set(true);
+    }
+  }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
