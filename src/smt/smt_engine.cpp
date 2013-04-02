@@ -864,12 +864,13 @@ void SmtEngine::setLogicInternal() throw() {
     Trace("smt") << "setting ite simplification to " << iteSimp << endl;
     options::doITESimp.set(iteSimp);
   }
-  // Turn off array eager index splitting for QF_AUFLIA
+  // Turn off array eager index splitting for QF_AUFLIA and QF_AX
   if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-        d_logic.isTheoryEnabled(THEORY_UF) &&
-        d_logic.isTheoryEnabled(THEORY_ARITH)) {
+        (d_logic.isPure(THEORY_ARRAY) ||
+         (d_logic.isTheoryEnabled(THEORY_UF) &&
+          d_logic.isTheoryEnabled(THEORY_ARITH)))) {
       Trace("smt") << "setting array eager index splitting to false" << endl;
       options::arraysEagerIndexSplitting.set(false);
     }
