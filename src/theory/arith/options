@@ -65,4 +65,7 @@ option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :
 option maxCutsInContext --maxCutsInContext unsigned :default 65535
  maximum cuts in a given context before signalling a restart
 
+option revertArithModels --revert-arith-models-on-unsat bool :default false
+ Revert the arithmetic model to a known safe model on unsat if one is cached
+
 endmodule

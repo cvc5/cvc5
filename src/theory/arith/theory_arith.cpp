@@ -1649,7 +1649,7 @@ void TheoryArith::check(Effort effortLevel){
     break;
   case Result::UNSAT:
     d_unknownsInARow = 0;
-    if(previous == Result::SAT){
+    if(options::revertArithModels() && previous == Result::SAT){
       ++d_statistics.d_revertsOnConflicts;
       Debug("arith::bt") << "clearing on conflict" << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
       revertOutOfConflict();
