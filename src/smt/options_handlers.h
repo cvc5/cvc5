@@ -409,6 +409,17 @@ inline std::ostream* checkReplayLogFilename(std::string option, std::string opta
 #endif /* CVC4_REPLAY */
 }
 
+// ensure we are a stats-enabled build of CVC4
+inline void statsEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
+#ifndef CVC4_STATISTICS_ON
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_STATISTICS_ON */
+}
+
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */
 

@@ -103,7 +103,7 @@ common-option - -v --verbose void :handler CVC4::options::increaseVerbosity
 common-option - -q --quiet void :handler CVC4::options::decreaseVerbosity
  decrease verbosity (may be repeated)
 
-common-option statistics statistics --stats bool
+common-option statistics statistics --stats bool :predicate CVC4::smt::statsEnabledBuild :predicate-include "smt/options_handlers.h"
  give statistics on exit
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
