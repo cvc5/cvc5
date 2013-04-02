@@ -864,24 +864,23 @@ void SmtEngine::setLogicInternal() throw() {
     Trace("smt") << "setting ite simplification to " << iteSimp << endl;
     options::doITESimp.set(iteSimp);
   }
-  // Turn off array eager index splitting for QF_AUFLIA and QF_AX
+  // Turn off array eager index splitting for QF_AUFLIA
   if(! options::arraysEagerIndexSplitting.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-        (d_logic.isPure(THEORY_ARRAY) ||
-         (d_logic.isTheoryEnabled(THEORY_UF) &&
-          d_logic.isTheoryEnabled(THEORY_ARITH)))) {
+        d_logic.isTheoryEnabled(THEORY_UF) &&
+        d_logic.isTheoryEnabled(THEORY_ARITH)) {
       Trace("smt") << "setting array eager index splitting to false" << endl;
       options::arraysEagerIndexSplitting.set(false);
     }
   }
-  // Turn on array eager lemmas for QF_AX
-  if(! options::arraysEagerLemmas.wasSetByUser()) {
+  // Turn on model-based arrays for QF_AX
+  if(! options::arraysModelBased.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
         d_logic.isPure(THEORY_ARRAY)) {
-      Trace("smt") << "setting array eager lemmas to true" << endl;
-      options::arraysEagerIndexSplitting.set(true);
+      Trace("smt") << "turning on model-based array solver" << endl;
+      options::arraysModelBased.set(true);
     }
   }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
