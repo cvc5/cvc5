@@ -53,11 +53,11 @@ submission submission-main:
 	$(MAKE) check
 	$(MAKE) -C test/regress/regress1 check
 	# main track
-	mkdir -p cvc4-smtcomp-$(YEAR)
-	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
-	cp contrib/run-script-smtcomp2012 cvc4-smtcomp-$(YEAR)/run
-	chmod 755 cvc4-smtcomp-$(YEAR)/run
-	tar cf cvc4-smtcomp-$(YEAR).tar cvc4-smtcomp-$(YEAR)
+	mkdir -p cvc4-smteval-$(YEAR)
+	cp -p builds/bin/cvc4 cvc4-smteval-$(YEAR)/cvc4
+	cp contrib/run-script-smteval2013 cvc4-smtcomp-$(YEAR)/run
+	chmod 755 cvc4-smteval-$(YEAR)/run
+	tar cf cvc4-smteval-$(YEAR).tar cvc4-smtcomp-$(YEAR)
 submission-application:
 	# application track is a separate build because it has different preprocessor #defines
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -73,12 +73,12 @@ submission-application:
 	$(MAKE) check
 	$(MAKE) -C test/regress/regress1 check
 	# package the application track tarball
-	mkdir -p cvc4-application-smtcomp-$(YEAR)
-	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
+	mkdir -p cvc4-application-smteval-$(YEAR)
+	cp -p builds/bin/cvc4 cvc4-application-smteval-$(YEAR)/cvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./cvc4 -L smt2 --no-checking --no-interactive --incremental' ) > cvc4-application-smtcomp-$(YEAR)/run
-	chmod 755 cvc4-application-smtcomp-$(YEAR)/run
-	tar cf cvc4-application-smtcomp-$(YEAR).tar cvc4-application-smtcomp-$(YEAR)
+	  echo 'exec ./cvc4 -L smt2 --no-checking --no-interactive --incremental' ) > cvc4-application-smteval-$(YEAR)/run
+	chmod 755 cvc4-application-smteval-$(YEAR)/run
+	tar cf cvc4-application-smteval-$(YEAR).tar cvc4-application-smtcomp-$(YEAR)
 submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -95,9 +95,9 @@ submission-parallel:
 	-$(MAKE) check BINARY=pcvc4
 	$(MAKE) -C test/regress/regress1 check BINARY=pcvc4
 	# package the parallel track tarball
-	mkdir -p cvc4-parallel-smtcomp-$(YEAR)
-	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/pcvc4
+	mkdir -p cvc4-parallel-smteval-$(YEAR)
+	cp -p builds/bin/pcvc4 cvc4-parallel-smteval-$(YEAR)/pcvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/run
-	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/run
-	tar cf cvc4-parallel-smtcomp-$(YEAR).tar cvc4-parallel-smtcomp-$(YEAR)
+	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smteval-$(YEAR)/run
+	chmod 755 cvc4-parallel-smteval-$(YEAR)/run
+	tar cf cvc4-parallel-smteval-$(YEAR).tar cvc4-parallel-smtcomp-$(YEAR)

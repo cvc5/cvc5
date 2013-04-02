@@ -1,0 +1,55 @@
+#!/bin/bash
+
+cat >bench-$$.smt2
+trap 'rm bench-$$.smt2' EXIT
+
+logic=$(expr "$(head -n 1 bench-$$.smt2)" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  result="$(./cvc4 -L smt2 --no-checking --no-interactive "$@" bench-$$.smt2)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+  esac
+}
+
+# use: finishwith [params..]
+# to run cvc4 and let it output whatever it will to stdout.
+function finishwith {
+  ./cvc4 -L smt2 --no-checking --no-interactive "$@" bench-$$.smt2
+}
+
+case "$logic" in
+
+QF_LRA)
+  # 3 minutes with default decision heuristic
+  trywith --tlimit-per=180000
+  # switch to internal decision heuristic
+  finishwith --decision=internal
+  ;;
+AUFLIA)
+  # 60 seconds with default decision heuristic
+  trywith --tlimit-per=60000
+  # try simplification for 60 seconds, default decision heuristic
+  trywith --simplification=batch --tlimit-per=60000
+  # switch to internal decision heuristic
+  finishwith --decision=internal
+  ;;
+QF_AUFBV)
+  trywith --tlimit-per=600000
+  finishwith --decision=justification-stoponly
+  ;;
+QF_AX)
+  trywith --tlimit-per=2000
+  finishwith --no-arrays-model-based
+  ;;
+*)
+  # just run the default
+  finishwith
+  ;;
+
+esac
+
