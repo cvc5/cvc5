@@ -55,9 +55,9 @@ submission submission-main:
 	# main track
 	mkdir -p cvc4-smteval-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-smteval-$(YEAR)/cvc4
-	cp contrib/run-script-smteval2013 cvc4-smtcomp-$(YEAR)/run
+	cp contrib/run-script-smteval2013 cvc4-smteval-$(YEAR)/run
 	chmod 755 cvc4-smteval-$(YEAR)/run
-	tar cf cvc4-smteval-$(YEAR).tar cvc4-smtcomp-$(YEAR)
+	tar cf cvc4-smteval-$(YEAR).tar cvc4-smteval-$(YEAR)
 submission-application:
 	# application track is a separate build because it has different preprocessor #defines
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -78,7 +78,7 @@ submission-application:
 	( echo '#!/bin/sh'; \
 	  echo 'exec ./cvc4 -L smt2 --no-checking --no-interactive --incremental' ) > cvc4-application-smteval-$(YEAR)/run
 	chmod 755 cvc4-application-smteval-$(YEAR)/run
-	tar cf cvc4-application-smteval-$(YEAR).tar cvc4-application-smtcomp-$(YEAR)
+	tar cf cvc4-application-smteval-$(YEAR).tar cvc4-application-smteval-$(YEAR)
 submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -100,4 +100,4 @@ submission-parallel:
 	( echo '#!/bin/sh'; \
 	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smteval-$(YEAR)/run
 	chmod 755 cvc4-parallel-smteval-$(YEAR)/run
-	tar cf cvc4-parallel-smteval-$(YEAR).tar cvc4-parallel-smtcomp-$(YEAR)
+	tar cf cvc4-parallel-smteval-$(YEAR).tar cvc4-parallel-smteval-$(YEAR)
