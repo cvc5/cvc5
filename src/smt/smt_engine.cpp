@@ -874,11 +874,13 @@ void SmtEngine::setLogicInternal() throw() {
       options::arraysEagerIndexSplitting.set(false);
     }
   }
-  // Turn on model-based arrays for QF_AX
+  // Turn on model-based arrays for QF_AX (unless models are enabled)
   if(! options::arraysModelBased.wasSetByUser()) {
     if (not d_logic.isQuantified() &&
         d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-        d_logic.isPure(THEORY_ARRAY)) {
+        d_logic.isPure(THEORY_ARRAY) &&
+        !options::produceModels() &&
+        !options::checkModels()) {
       Trace("smt") << "turning on model-based array solver" << endl;
       options::arraysModelBased.set(true);
     }
