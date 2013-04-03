@@ -4,6 +4,9 @@
 #
 
 function isthatright {
+  if $dryrun; then
+    echo -n "[DRY RUN] "
+  fi
   if [ -z "$1" ]; then
     echo -n "Does that look right? [y/n] "
   else
@@ -24,6 +27,8 @@ function isthatright {
 if [ "$1" = -n ]; then
   dryrun=true
   shift
+  echo
+  echo '************************* DRY RUN *************************'
 else
   dryrun=false
 fi
@@ -34,8 +39,8 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-if ! [ -e src/expr/node.h -a -e .svn ]; then
-  echo "$(basename "$0"): ERROR: You should run this from the top-level of a CVC4 subversion working directory" >&2
+if ! [ -e src/expr/node.h -a -e .git ]; then
+  echo "$(basename "$0"): ERROR: You should run this from the top-level of a CVC4 git working directory" >&2
   exit 1
 fi
 
@@ -68,37 +73,32 @@ echo
 isthatright
 
 echo "Checking whether release \`$version' already exists..."
-if ! svn ls "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version" 2>&1 >/dev/null | grep non-existent >/dev/null; then
-  echo "$(basename "$0"): ERROR: Subversion repo already contains a release \`$version'" >&2
+if [ -n "`git tag -l "$version"`" ]; then
+  echo "$(basename "$0"): ERROR: Git repo already contains a release \`$version'" >&2
   $dryrun || exit 1
 fi
 
 echo "Checking working directory for local modifications..."
 if $dryrun; then
-  if [ -n "$(svn status -q configure.ac)" ]; then
+  if [ -n "$(git status -s configure.ac)" ]; then
     echo "$(basename "$0"): ERROR: In dry-run mode, cannot operate properly with local modifications to \"configure.ac\", sorry" >&2
     exit 1
   fi
-elif [ -n "$(svn status -q | grep -v '^M *[0-9]* *NEWS$')" ]; then
-  echo "$(basename "$0"): ERROR: \"svn status\" indicates there are local modifications; please commit first" >&2
+elif [ -n "$(git status -s | grep -v '^ *M *\(NEWS\|README\|AUTHORS\|RELEASE-NOTES\|INSTALL\|THANKS\|library_versions\|contrib/cut-release\)$')" ]; then
+  echo "$(basename "$0"): ERROR: \"git status\" indicates there are local modifications; please commit first" >&2
   exit 1
 fi
 
-root="$(svn info | grep "^Repository Root: https://subversive.cims.nyu.edu/.*" | cut -f3 -d' ')"
-if [ -z "$root" ]; then
-  echo "$(basename "$0"): ERROR: Can't get repository root URL" 2>&1
-  $dryrun || exit 1
-fi
-
 echo "Checking repo for unmerged updates..."
-if [ `svn -uq status | grep -v '^M *[0-9]* *NEWS$' | wc -l` -ne 1 ]; then
+git fetch &>/dev/null
+if git status -sb | grep -q '^## .* \[.*behind '; then
   echo "$(basename "$0"): ERROR: This working directory isn't up to date" 2>&1
   $dryrun || exit 1
 fi
 
 echo "Checking sources for broken public headers..."
 suspect_files="\
-$(grep -r --exclude-dir=.svn '^[ \t]*#[ \t]*include[ \t]*"[^/]*"' src |
+$(grep -r --exclude-dir=.git '^[ \t]*#[ \t]*include[ \t]*"[^/]*"' src |
   grep -v '"cvc4parser_public\.h"' |
   grep -v '"cvc4_public\.h"' |
   grep -v '"cvc4_private\.h"' |
@@ -110,24 +110,37 @@ $(grep -r --exclude-dir=.svn '^[ \t]*#[ \t]*include[ \t]*"[^/]*"' src |
   xargs echo)"
 if [ -n "$suspect_files" ]; then
   echo "$(basename "$0"): ERROR: The following publicly-installed headers appear" 2>&1
-  echo "$(basename "$0"): ERROR:   to have relative #includes and may be broken up" 2>&1
-  echo "$(basename "$0"): ERROR:   on install: $suspect_files" 2>&1
+  echo "$(basename "$0"): ERROR:   to have relative #includes and may be broken" 2>&1
+  echo "$(basename "$0"): ERROR:   after install: $suspect_files" 2>&1
   $dryrun || exit 1
 fi
 
-echo "Checking NEWS file for recent updates..."
-if [ -n "$(svn status -q NEWS)" ]; then
-  echo "+ It's locally modified."
-else
-  echo -n "+ "
-  svn info NEWS | grep '^Last Changed Date: '
-  echo
-  echo "You should probably make sure to put some notes in the NEWS file"
-  echo "for this release, indicating the most important changes from the"
-  echo "last release."
-  echo
-  isthatright "Continue without updating NEWS"
-fi
+for updatefile in NEWS README AUTHORS RELEASE-NOTES INSTALL THANKS; do
+  echo "Checking $updatefile file for recent updates..."
+  if [ -n "$(git status -s $updatefile)" ]; then
+    echo "+ It's locally modified."
+  else
+    git log -n 1 --date=local --pretty=format:'+ Last changed on %ad (%ar)' $updatefile
+    echo
+    case $updatefile in
+      NEWS)
+        echo "You should make sure to put some notes in the NEWS file for"
+        echo "release $version, indicating the most important changes since the"
+        echo "last release."
+        ;;
+      AUTHORS)
+        echo "You should make sure there are no new authors to list for $version."
+        ;;
+      *)
+        echo "You should ensure that $updatefile is appropriately updated"
+        echo "for $version before continuing.  (Maybe it even lists the previous"
+        echo "version number!)"
+        ;;
+    esac
+    echo
+    isthatright "Continue without updating $updatefile"
+  fi
+done
 
 echo "Adjusting version info lines in configure.ac..."
 if ! grep '^m4_define(_CVC4_MAJOR,  *[0-9][0-9]* *)' configure.ac &>/dev/null ||
@@ -142,12 +155,12 @@ perl -pi -e 's/^m4_define\(_CVC4_MAJOR, ( *)[0-9]+( *)\)/m4_define(_CVC4_MAJOR, 
              s/^m4_define\(_CVC4_RELEASE, ( *)[0-9]+( *)\)/m4_define(_CVC4_RELEASE, ${1}'"$release"'$2)/;
              s/^m4_define\(_CVC4_EXTRAVERSION, ( *)\[.*\]( *)\)/m4_define(_CVC4_EXTRAVERSION, $1\['"$extra"'\]$2)/' configure.ac
 
-trap 'echo; echo; echo "Aborting in error."; svn revert configure.ac; echo' EXIT
+trap 'echo; echo; echo "Aborting in error."; git co -- configure.ac; echo' EXIT
 
 echo
 echo 'Made the following change to configure.ac:'
 echo
-svn diff configure.ac
+git diff configure.ac
 echo
 isthatright
 
@@ -158,8 +171,8 @@ if ! grep '^m4_define(_CVC4_MAJOR,  *'"$major"' *)' configure.ac &>/dev/null ||
   echo "$(basename "$0"): INTERNAL ERROR: Cannot find the modified version info lines in configure.ac, bailing..." >&2
   exit 1
 fi
-if [ -z "$(svn status -q configure.ac)" ]; then
-  echo "$(basename "$0"): INTERNAL ERROR: \"svn status\" indicates there are no local modifications to configure.ac; I expected the ones I just made!" >&2
+if [ -z "$(git status -s configure.ac)" ]; then
+  echo "$(basename "$0"): INTERNAL ERROR: \"git status\" indicates there are no local modifications to configure.ac; I expected the ones I just made!" >&2
   exit 1
 fi
 
@@ -219,36 +232,48 @@ gpg -b --armor "cvc4-$version.tar.gz"
 #cp -p "release-$version/src/main/pcvc4" "pcvc4-$version"
 #gpg -b --armor "pcvc4-$version"
 
-echo
-echo "About to run: svn commit -m \"Cutting release $version.\""
-isthatright
-$dryrun || svn commit -m "Cutting release $version."
+if $dryrun; then
+  echo
+  echo '************************* DRY RUN *************************'
+fi
 
 echo
-echo "About to run: svn copy -m \"Cutting release $version.\" \"$root\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version\""
+echo "About to run: git commit -am \"Cutting release $version.\""
 isthatright
-$dryrun || svn copy -m "Cutting release $version." "$root" "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version"
+$dryrun || git commit -am "Cutting release $version."
 
 echo
-if [ "$(svn info | grep '^URL: https://subversive.cims.nyu.edu/cvc4/cvc4/trunk$')" ]; then
+echo "About to run: git tag \"$version\""
+isthatright
+$dryrun || git tag "$version"
+
+echo
+andbranch=
+if git status -bs | grep -q '^## master\($\|  *\)'; then
   if [ "$release" = 0 ]; then
-    echo "About to run: svn copy -m \"Branching release $version for bugfixes.\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version\" \"https://subversive.cims.nyu.edu/cvc4/cvc4/branches/releases/$version.x\""
+    echo "About to run: git branch \"$version.x\""
     isthatright
-    $dryrun || svn copy -m "Branching release $version for bugfixes." "https://subversive.cims.nyu.edu/cvc4/cvc4/tags/releases/$version" "https://subversive.cims.nyu.edu/cvc4/cvc4/branches/releases/$version.x"
+    $dryrun || git branch "$version.x"
+    andbranch=", the $version.x branch,"
   else
     echo "Not branching, because this is a minor release (i.e., not a \"dot-oh\""
-    echo "release), so I'm guessing you have a devel repository outside of trunk"
+    echo "release), so I'm guessing you have a devel branch outside of master"
     echo "somewhere?  You can still make a branch manually, of course."
   fi
 else
   echo "Not branching, because it appears there already is a branch"
-  echo "to work with for version $version ..?  (You're not on trunk.)"
+  echo "to work with for version $version ..?  (You're not on master.)"
   echo "You can still make a branch manually, of course."
 fi
 
 echo
-echo "Done.  Next steps are to upload and advertise these packages and to add"
-echo "a $version release to Bugzilla."
+echo "Done.  Next steps are to:"
+echo
+echo "1. push to GitHub (don't forget to push master$andbranch and the $version tag)"
+echo "2. upload source and binaries"
+echo "3. advertise these packages"
+echo "4. add a $version release and next-milestone to Bugzilla."
+echo
 
 trap '' EXIT
 

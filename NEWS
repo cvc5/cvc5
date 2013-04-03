@@ -5,19 +5,24 @@ Changes since 1.0
 
 * bit-vector solver now has a specialized decision procedure for unsigned bit-
   vector inequalities
-* tuple and record support in the compatibility library
-* user patterns are now supported in the SMT-LIBv1.2 parser
-* SMT-LIB get-model output now is easier to machine-parse: contains (model...)
+* numerous important bug fixes, performance improvements, and usability
+  improvements
+* support for multiline input in interactive mode
 * Win32-building support via mingw
-* for printing commands as they're invoked from the driver, you now need
-  verbosity of 3 or higher (e.g. -vvv) instead of verbosity 1 or higher (-v).
-  This allows tracing the solver's activities without having too much output.
-* multiline input support in interactive mode
-* To make CVC4 quieter in abnormal (e.g., "warning" conditions), you can
+* SMT-LIB get-model output now is easier to machine-parse: contains (model...)
+* user patterns for quantifier instantiation are now supported in the
+  SMT-LIBv1.2 parser
+* --finite-model-find was incomplete when using --incremental, now fixed
+* the E-matching procedure is slightly improved
+* Boolean terms are now supported in datatypes
+* tuple and record support have been added to the compatibility library
+* driver verbosity change: for printing all commands as they're executed, you
+  now need verbosity level >= 3 (e.g., -vvv) instead of level 1 (-v).  This
+  allows tracing the solver's activities (with -v and -vv) without having too
+  much output.
+* to make CVC4 quieter in abnormal (e.g., "warning" conditions), you can
   use -q.  Previously, this would silence all output (including "sat" or
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
-* Boolean term support in datatypes
-* numerous bug fixes, usability improvements, and build system improvements
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 26 Mar 2013 15:17:52 -0400
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 03 Apr 2013 13:06:35 -0400

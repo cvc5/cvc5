@@ -299,7 +299,7 @@ class TheoryEngine {
       NodeManager* curr = NodeManager::currentNM();
       Node restartVar =  curr->mkSkolem("restartVar",
                                         curr->booleanType(),
-                                        "A boolean variable assrted to be true to force a restart");
+                                        "A boolean variable asserted to be true to force a restart");
       Trace("theory::restart") << "EngineOutputChannel<" << d_theory << ">::restart(" << restartVar << ")" << std::endl;
       ++ d_statistics.restartDemands;
       lemma(restartVar, true);

@@ -1,11 +1,12 @@
-CVC4 release version 1.0.
+CVC4 release version 1.1.
 
 *** Quick-start instructions
 
 *** Build dependences
 
-The following tools and libraries are required to run CVC4. Versions
-given are minimum versions; more recent versions should be compatible.
+The following tools and libraries are required to build and run CVC4.
+Versions given are minimum versions; more recent versions should be
+compatible.
 
   GNU C and C++ (gcc and g++), reasonably recent versions
   GNU Make
@@ -40,7 +41,7 @@ libantlr3c.  On a 32-bit machine, or if you have difficulty building
 libantlr3c (or difficulty getting CVC4 to link against it later), you
 may need to remove the --enable-64bit part in the script.  (If you're
 curious, the manual instructions are at
-http://church.cims.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
+http://cvc4.cs.nyu.edu/wiki/Developer%27s_Guide#ANTLR3 .)
 
 *** Building CVC4
 
@@ -172,6 +173,13 @@ binding, please contact us via the users' mailing list at
 cvc-users@cs.nyu.edu.
 
 *** Building CVC4 from a repository checkout
+
+CVC4's main repository is kept on GitHub at:
+
+  https://github.com/CVC4/CVC4
+
+and there are numerous experimental forks housed on GitHub as well,
+by different developers, implementing various features.
 
 The following tools and libraries are additionally required to build
 CVC4 from from a repository checkout rather than from a prepared

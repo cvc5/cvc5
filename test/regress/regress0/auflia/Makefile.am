@@ -22,6 +22,7 @@ TESTS =	\
 	fuzz05.smt \
 	fuzz06.smt \
 	fuzz-error232.smt \
+	fuzz-error1099.smt \
 	a17.smt \
 	error72.delta2.smt \
 	x2.smt

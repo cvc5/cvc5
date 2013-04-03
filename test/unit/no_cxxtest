@@ -3,7 +3,7 @@
 echo
 echo '***************************************************************************'
 echo '*                                                                         *'
-echo '*   WARNING:  CxxTest not found at configure time; tests cannot be run.   *'
+echo '*  WARNING:  CxxTest not found at configure time; unit tests cannot run.  *'
 echo '*                                                                         *'
 echo '***************************************************************************'
 echo
