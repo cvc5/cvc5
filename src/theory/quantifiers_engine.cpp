@@ -122,6 +122,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
+    if( !getMasterEqualityEngine()->consistent() ){
+      Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
+      return;
+    }
     //reset relevant information
     d_hasAddedLemma = false;
     d_term_db->reset( e );
