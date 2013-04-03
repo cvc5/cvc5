@@ -3,6 +3,8 @@ This file contains a summary of important user-visible changes.
 Changes since 1.0
 =================
 
+* bit-vector solver now has a specialized decision procedure for unsigned bit-
+  vector inequalities
 * tuple and record support in the compatibility library
 * user patterns are now supported in the SMT-LIBv1.2 parser
 * SMT-LIB get-model output now is easier to machine-parse: contains (model...)
