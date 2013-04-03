@@ -249,7 +249,7 @@ $dryrun || git tag "$version"
 
 echo
 andbranch=
-if git status -bs | grep -q '^## master\($\|  *\)'; then
+if git status -bs | grep -q '^## master\($\|  *\|\.\.\.\)'; then
   if [ "$release" = 0 ]; then
     echo "About to run: git branch \"$version.x\""
     isthatright
@@ -273,6 +273,8 @@ echo "1. push to GitHub (don't forget to push master$andbranch and the $version 
 echo "2. upload source and binaries"
 echo "3. advertise these packages"
 echo "4. add a $version release and next-milestone to Bugzilla."
+echo "5. change $version to pre-release in master$andbranch"
+echo "   (in configure.ac) and update library_versions and NEWS."
 echo
 
 trap '' EXIT
