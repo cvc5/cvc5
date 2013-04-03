@@ -52,6 +52,7 @@ public:
   void collectModelInfo(TheoryModel* m); 
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
+  void bitblastQueue();
 };
 
 }

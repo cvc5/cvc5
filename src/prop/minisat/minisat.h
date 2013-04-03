@@ -57,7 +57,7 @@ public:
 
   void addClause(SatClause& clause, bool removable);
 
-  SatVariable newVar(bool theoryAtom = false);
+  SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }
   SatVariable falseVar() { return d_minisat->falseVar(); }
 

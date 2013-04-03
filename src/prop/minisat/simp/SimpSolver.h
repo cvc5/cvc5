@@ -46,7 +46,7 @@ class SimpSolver : public Solver {
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false);
+    Var     newVar    (bool polarity = true, bool dvar = true, bool isTheoryAtom = false, bool preRegister = false, bool canErase = true);
     bool    addClause (const vec<Lit>& ps, bool removable);
     bool    addEmptyClause(bool removable);                  // Add the empty clause to the solver.
     bool    addClause (Lit p, bool removable);               // Add a unit clause to the solver.

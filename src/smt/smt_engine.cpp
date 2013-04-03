@@ -59,6 +59,7 @@
 #include "theory/substitutions.h"
 #include "theory/uf/options.h"
 #include "theory/arith/options.h"
+#include "theory/bv/options.h"
 #include "theory/theory_traits.h"
 #include "theory/logic_info.h"
 #include "theory/options.h"
@@ -672,6 +673,11 @@ void SmtEngine::finishInit() {
 void SmtEngine::finalOptionsAreSet() {
   if(d_fullyInited) {
     return;
+  }
+
+  if (options::bitvectorEagerBitblast()) {
+    // Eager solver should use the internal decision strategy
+    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
   }
 
   if(options::checkModels()) {

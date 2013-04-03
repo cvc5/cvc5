@@ -117,7 +117,7 @@ public:
 
     // Problem specification:
     //
-    Var     newVar    (bool polarity = true, bool dvar = true, bool theoryAtom = false); // Add a new variable with parameters specifying variable mode.
+    Var     newVar    (bool polarity = true, bool dvar = true, bool isTheoryAtom = false, bool preRegister = false, bool canErase = true); // Add a new variable with parameters specifying variable mode.
     Var     trueVar() const { return varTrue; }
     Var     falseVar() const { return varFalse; }
 

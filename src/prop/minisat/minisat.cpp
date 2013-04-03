@@ -140,8 +140,8 @@ void MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   d_minisat->addClause(minisat_clause, removable);
 }
 
-SatVariable MinisatSatSolver::newVar(bool theoryAtom) {
-  return d_minisat->newVar(true, true, theoryAtom);
+SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase) {
+  return d_minisat->newVar(true, true, isTheoryAtom, preRegister, canErase);
 }
 
 SatValue MinisatSatSolver::solve(unsigned long& resource) {

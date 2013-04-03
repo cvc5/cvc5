@@ -80,7 +80,7 @@ public:
 
   SatValue propagate();
 
-  SatVariable newVar(bool theoryAtom = false);
+  SatVariable newVar(bool isTheoryAtom = false, bool preRegister = false, bool canErase = true);
 
   SatVariable trueVar() { return d_minisat->trueVar(); }
   SatVariable falseVar() { return d_minisat->falseVar(); }

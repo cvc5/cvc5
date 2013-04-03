@@ -146,11 +146,12 @@ protected:
    * Acquires a new variable from the SAT solver to represent the node
    * and inserts the necessary data it into the mapping tables.
    * @param node a formula
-   * @param theoryLiteral whether this literal a theory literal (and
-   * therefore the theory is to be informed when set to true/false)
+   * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
+   * @param preRegister whether to preregister the atom with the theory
+   * @param canEliminate whether the sat solver can safely eliminate this variable
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(TNode node, bool theoryLiteral = false);
+  SatLiteral newLiteral(TNode node, bool isTheoryAtom = false, bool preRegister = false, bool canEliminate = true);
 
   /**
    * Constructs a new literal for an atom and returns it.  Calls

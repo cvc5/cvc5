@@ -54,7 +54,11 @@ void BitblastSolver::preRegister(TNode node) {
        node.getKind() == kind::BITVECTOR_SLT ||
        node.getKind() == kind::BITVECTOR_SLE) &&
       !d_bitblaster->hasBBAtom(node)) {
-    d_bitblastQueue.push_back(node);
+    if (options::bitvectorEagerBitblast()) {
+      d_bitblaster->bbAtom(node);
+    } else {
+      d_bitblastQueue.push_back(node);
+    }
   }
 }
 
@@ -62,29 +66,23 @@ void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_bitblaster->explain(literal, assumptions);
 }
 
-
-bool BitblastSolver::check(Theory::Effort e) {
-  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n"; 
-  ++(d_statistics.d_numCallstoCheck); 
-  //// Eager bit-blasting
-  if (options::bitvectorEagerBitblast()) {
-    while (!done()) {
-      TNode assertion = get(); 
-      TNode atom = assertion.getKind() == kind::NOT ? assertion[0] : assertion;
-      if (atom.getKind() != kind::BITVECTOR_BITOF) {
-        d_bitblaster->bbAtom(atom);
-      }
-      return true;
-    }
-  }
-
-  //// Lazy bit-blasting
-  // bit-blast enqueued nodes
+void BitblastSolver::bitblastQueue() {
   while (!d_bitblastQueue.empty()) {
     TNode atom = d_bitblastQueue.front();
     d_bitblaster->bbAtom(atom);
     d_bitblastQueue.pop();
   }
+}
+
+bool BitblastSolver::check(Theory::Effort e) {
+  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n"; 
+  Assert(!options::bitvectorEagerBitblast());
+
+  ++(d_statistics.d_numCallstoCheck); 
+
+  //// Lazy bit-blasting
+  // bit-blast enqueued nodes
+  bitblastQueue();
 
   // Processing assertions  
   while (!done()) {

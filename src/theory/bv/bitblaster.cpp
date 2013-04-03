@@ -104,6 +104,7 @@ void Bitblaster::bbAtom(TNode node) {
     d_bitblastedAtoms.insert(node);
   } else {
     d_bvOutput->lemma(atom_definition, false);
+    d_bitblastedAtoms.insert(node);
   }
 }
 

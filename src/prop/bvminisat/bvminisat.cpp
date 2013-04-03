@@ -88,8 +88,8 @@ void BVMinisatSatSolver::popAssumption() {
   d_minisat->popAssumption();
 }
 
-SatVariable BVMinisatSatSolver::newVar(bool freeze){
-  return d_minisat->newVar(true, true, freeze);
+SatVariable BVMinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
+  return d_minisat->newVar(true, true, !canErase);
 }
 
 void BVMinisatSatSolver::markUnremovable(SatLiteral lit){

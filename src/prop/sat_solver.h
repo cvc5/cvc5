@@ -40,8 +40,14 @@ public:
   /** Assert a clause in the solver. */
   virtual void addClause(SatClause& clause, bool removable) = 0;
 
-  /** Create a new boolean variable in the solver. */
-  virtual SatVariable newVar(bool theoryAtom = false) = 0;
+  /**
+   * Create a new boolean variable in the solver.
+   * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
+   * @param preRegister whether to preregister the atom with the theory
+   * @param canErase whether the sat solver can safely eliminate this variable
+   *
+   */
+  virtual SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase) = 0;
 
   /** Create a new (or return an existing) boolean variable representing the constant true */
   virtual SatVariable trueVar() = 0;

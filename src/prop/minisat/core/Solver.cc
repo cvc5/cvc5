@@ -150,7 +150,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
+Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase)
 {
     int v = nVars();
 
@@ -163,12 +163,12 @@ Var Solver::newVar(bool sign, bool dvar, bool theoryAtom)
     polarity .push(sign);
     decision .push();
     trail    .capacity(v+1);
-    theory   .push(theoryAtom);
+    theory   .push(isTheoryAtom);
 
     setDecisionVar(v, dvar);
 
     // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
-    if (theoryAtom) {
+    if (preRegister) {
       variables_to_register.push(VarIntroInfo(v, decisionLevel()));
     }
 

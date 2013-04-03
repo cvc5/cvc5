@@ -26,6 +26,7 @@
 #include "expr/command.h"
 #include "expr/expr.h"
 #include "prop/theory_proxy.h"
+#include "theory/bv/options.h"
 
 #include <queue>
 
@@ -151,8 +152,8 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
   Debug("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit << std::endl;
 }
 
-SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
-  Debug("cnf") << "newLiteral(" << node << ", " << theoryLiteral << ")" << endl;
+SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
+  Debug("cnf") << "newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node
@@ -166,7 +167,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
         lit = SatLiteral(d_satSolver->falseVar());
       }
     } else {
-      lit = SatLiteral(d_satSolver->newVar(theoryLiteral));
+      lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, preRegister, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
@@ -175,7 +176,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   }
 
   // If it's a theory literal, need to store it for back queries
-  if ( theoryLiteral || d_fullLitToNodeMap ||
+  if ( isTheoryAtom || d_fullLitToNodeMap ||
        ( CVC4_USE_REPLAY && options::replayLog() != NULL ) ||
        (Dump.isOn("clauses")) ) {
 
@@ -184,7 +185,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool theoryLiteral) {
   }
 
   // If a theory literal, we pre-register it
-  if (theoryLiteral) {
+  if (preRegister) {
     bool backup = d_removable;
     d_registrar->preRegister(node);
     d_removable = backup;
@@ -214,13 +215,27 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   Assert(!hasLiteral(node), "atom already mapped!");
 
+  bool theoryLiteral = false;
+  bool canEliminate = true;
+  bool preRegister = false;
+
   // Is this a variable add it to the list
   if (node.isVar()) {
     d_booleanVariables.push_back(node);
+  } else {
+    theoryLiteral = true;
+    canEliminate = false;
+    preRegister = true;
+
+    if (options::bitvectorEagerBitblast() && theory::Theory::theoryOf(node) == theory::THEORY_BV) {
+      // All BV atoms are treated as boolean except for equality
+      theoryLiteral = false;
+      canEliminate = true;
+    }
   }
 
   // Make a new literal (variables are not considered theory literals)
-  SatLiteral lit = newLiteral(node, !node.isVar());
+  SatLiteral lit = newLiteral(node, theoryLiteral, preRegister, canEliminate);
 
   // Return the resulting literal
   return lit;
