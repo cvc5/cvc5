@@ -55,7 +55,7 @@ public:
     d_addClauseCalled(false) {
   }
 
-  SatVariable newVar(bool theoryAtom) {
+  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) {
     return d_nextVar++;
   }
 
