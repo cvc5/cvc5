@@ -113,6 +113,10 @@ Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister
 
 lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 {
+    if (options::minisatDumpDimacs()) {
+      toDimacs(); 
+      return l_Undef; 
+    }
     popTrail();
 
     vec<Var> extra_frozen;
