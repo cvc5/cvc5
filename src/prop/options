@@ -28,4 +28,7 @@ option sat_refine_conflicts --refine-conflicts bool
 option minisatUseElim --minisat-elimination bool :default true :read-write 
  use Minisat elimination
 
+option minisatDumpDimacs --minisat-dump-dimacs bool :default false
+ instead of solving minisat dumps the asserted clauses in Dimacs format
+ 
 endmodule
