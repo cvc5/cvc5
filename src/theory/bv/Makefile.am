@@ -12,6 +12,8 @@ libbv_la_SOURCES = \
 	type_enumerator.h \
 	bitblaster.h \
 	bitblaster.cpp \
+	bv_to_bool.h \
+	bv_to_bool.cpp \
 	bv_subtheory.h \
 	bv_subtheory_core.h \
 	bv_subtheory_core.cpp \
@@ -36,7 +38,7 @@ libbv_la_SOURCES = \
 	theory_bv_type_rules.h \
 	theory_bv_rewriter.h \
 	theory_bv_rewriter.cpp \
-	cd_set_collection.h 
+	cd_set_collection.h
 
 EXTRA_DIST = \
 	kinds

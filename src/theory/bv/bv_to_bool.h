@@ -15,6 +15,7 @@
  **/
 
 #include "cvc4_private.h"
+#include "theory/bv/theory_bv_utils.h"
 
 #ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
 #define __CVC4__THEORY__BV__BV_TO_BOOL_H
@@ -24,22 +25,25 @@ namespace theory {
 namespace bv {
 
 class BvToBoolVisitor {
-  typedef unsigned return_type;
-  typedef __gnu_cxx::hash_set<TNode> TNodeSet; 
-  typedef __gnu_cxx::hash_map<TNode, Node> TNodeNodeMap; 
-  TNodeNodeMap d_bvToBool;
+
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> TNodeNodeMap; 
+  TNodeNodeMap d_cache;
   TNodeSet d_visited;
   Node d_one;
   Node d_zero;
 
-  void addBvToBool(TNode bv_term, Node bool_term);
-  Node toBoolTerm(TNode bv_term) const;
-  bool hasBoolTerm(TNode bv_term) const; 
-  
+  void addToCache(TNode bv_term, Node bool_term);
+  Node getCache(TNode bv_term) const;
+  bool hasCache(TNode bv_term) const; 
+
+  bool isConvertibleToBool(TNode current);
+  Node convertToBool(TNode current);
 public:
+  typedef Node return_type;
   BvToBoolVisitor()
-    : d_substitution(),
-      d_visited,
+    : d_cache(),
+      d_visited(),
       d_one(utils::mkConst(BitVector(1, 1u))),
       d_zero(utils::mkConst(BitVector(1, 0u)))
   {}
@@ -47,18 +51,16 @@ public:
   bool alreadyVisited(TNode current, TNode parent);
   void visit(TNode current, TNode parent);
   return_type done(TNode node);
-  Node liftBoolToBV(TNode node);
-  
 }; 
 
 class BvToBoolPreprocessor {
   BvToBoolVisitor d_visitor; 
 public:
   BvToBoolPreprocessor()
-    : d_visitor
+    : d_visitor()
   {}
   ~BvToBoolPreprocessor() {}
-  Node liftBvToBool(TNode assertion); 
+  Node liftBoolToBV(TNode assertion);
 }; 
 
 
