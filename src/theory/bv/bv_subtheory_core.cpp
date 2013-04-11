@@ -387,17 +387,26 @@ void CoreSolver::collectModelInfo(TheoryModel* m) {
 }
 
 Node CoreSolver::getModelValue(TNode var) {
+  // we don't need to evaluate bv expressions and only look at variable values
+  // because this only gets called when the core theory is complete (i.e. no other bv
+  // function symbols are currently asserted)
+  Assert (d_slicer->isCoreTerm(var)); 
+  
+  Debug("bitvector-model") << "CoreSolver::getModelValue (" << var <<")";  
   Assert (isComplete());
   TNode repr = d_equalityEngine.getRepresentative(var);
+  Node result = Node(); 
   if (repr.getKind() == kind::CONST_BITVECTOR) {
-    return repr; 
-  }
-  if (d_modelValues.find(repr) == d_modelValues.end()) {
+    result = repr; 
+  } else if (d_modelValues.find(repr) == d_modelValues.end()) {
     // it may be a shared term that never gets asserted
+    // result is just Null
     Assert(d_bv->isSharedTerm(var));
-    return Node(); 
+  } else {
+    result = d_modelValues[repr]; 
   }
-  return d_modelValues[repr]; 
+  Debug("bitvector-model") << " => " << result <<"\n"; 
+  return result; 
 }
 
 CoreSolver::Statistics::Statistics()

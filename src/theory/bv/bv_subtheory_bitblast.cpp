@@ -31,6 +31,7 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
     d_bitblaster(new Bitblaster(c, bv)),
     d_bitblastQueue(c),
+    d_modelValuesCache(c), 
     d_statistics()
 {}
 
@@ -139,7 +140,61 @@ void BitblastSolver::collectModelInfo(TheoryModel* m) {
 }
 
 Node BitblastSolver::getModelValue(TNode node) {
-  Node val = d_bitblaster->getVarValue(node);
+  Debug("bitvector-model") << "BitblastSolver::getModelValue (" << node <<")";
+  std::vector<TNode> stack;
+  __gnu_cxx::hash_set<TNode, TNodeHashFunction> processed; 
+  stack.push_back(node);
+
+  while (!stack.empty()) {
+    TNode current = stack.back();
+    stack.pop_back();
+    processed.insert(current);
+    
+    if (d_modelValuesCache.hasSubstitution(current) ||
+        processed.count(current) != 0) {
+      // if it has a subsitution or we have already processed it nothing to do
+      continue; 
+    }
+
+    // see if the node itself has a value in the bit-blaster
+    // this can happen if say select (...) = x has been asserted
+    // to the bit-blaster
+    Node current_val = d_bitblaster->getVarValue(current);
+    if (current_val != Node()) {
+      d_modelValuesCache.addSubstitution(current, current_val); 
+    } else {
+      // if not process all of the children 
+      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+        TNode child = current[i];
+        if (current[i].getType().isBitVector() &&
+            ( current[i].getKind() == kind::VARIABLE ||
+              current[i].getKind() == kind::STORE ||
+              current[i].getKind() == kind::SKOLEM)) {
+          // we only want the values of variables 
+          Node child_value = d_bitblaster->getVarValue(child);
+          Debug("bitvector-model") << child << " => " << child_value <<"\n"; 
+          if (child_value == Node()) {
+            return Node(); 
+          }
+          d_modelValuesCache.addSubstitution(child, child_value);
+        }
+        stack.push_back(child);
+      }
+    }
+  }
+  
+  Node val = Rewriter::rewrite(d_modelValuesCache.apply(node));
+  Debug("bitvector-model") << " => " << val <<"\n";
   Assert (val != Node() || d_bv->isSharedTerm(node));
+  
+  if (val.getKind() != kind::CONST_BITVECTOR) {
+    // if we could not reduce the value to a constant return Null
+    return Node(); 
+  }
+  
+  if (node != val) {
+    d_modelValuesCache.addSubstitution(node, val);
+  }
+  
   return val; 
 }
