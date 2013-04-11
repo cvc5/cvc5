@@ -1296,11 +1296,8 @@ void TheoryArrays::checkModel(Effort e)
     Debug("arrays-model-based") << "Sending lemma: " << d_lemmas.back() << endl;
     d_out->lemma(d_lemmas.back());
 #ifdef CVC4_ASSERTIONS
-    context::CDList<Node>::const_iterator it = d_lemmasSaved.begin(), it_end = d_lemmasSaved.end();
-    for (; it != it_end; ++it) {
-      Assert((*it) != d_lemmas.back());
-    }
-    d_lemmasSaved.push_back(d_lemmas.back());
+    Assert(d_lemmasSaved.find(d_lemmas.back()) == d_lemmasSaved.end());
+    d_lemmasSaved.insert(d_lemmas.back());
 #endif
     d_lemmas.pop_back();
   }
