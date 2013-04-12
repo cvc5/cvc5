@@ -23,21 +23,39 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-void BvToBoolVisitor::addToCache(TNode bv_term, Node bool_term) {
-  Assert (!hasCache(bv_term));
+void BvToBoolVisitor::storeBvToBool(TNode bv_term, Node bool_term) {
+  Assert (!hasBoolTerm(bv_term));
   Assert (bool_term.getType().isBoolean()); 
-  d_cache[bv_term] = bool_term; 
+  d_bvToBoolTerm[bv_term] = bool_term; 
 }
 
-Node BvToBoolVisitor::getCache(TNode bv_term) const {
-  Assert (hasCache(bv_term));
-  return d_cache.find(bv_term)->second; 
+Node BvToBoolVisitor::getBoolTerm(TNode bv_term) const {
+  Assert(hasBoolTerm(bv_term));
+  return d_bvToBoolTerm.find(bv_term)->second; 
 }
 
-bool BvToBoolVisitor::hasCache(TNode bv_term) const {
+bool BvToBoolVisitor::hasBoolTerm(TNode bv_term) const {
   Assert (bv_term.getType().isBitVector()); 
-  return d_cache.find(bv_term) != d_cache.end(); 
+  return d_bvToBoolTerm.find(bv_term) != d_bvToBoolTerm.end(); 
 }
+
+void BvToBoolVisitor::addToCache(TNode term, Node new_term) {
+  Assert (new_term != Node()); 
+  Assert (!hasCache(term));
+  d_cache[term] = new_term; 
+}
+
+Node BvToBoolVisitor::getCache(TNode term) const {
+  if (!hasCache(term)) {
+    return term; 
+  }
+  return d_cache.find(term)->second; 
+}
+
+bool BvToBoolVisitor::hasCache(TNode term) const {
+  return d_cache.find(term) != d_cache.end(); 
+}
+
 
 void BvToBoolVisitor::start(TNode node) {}
 
@@ -60,95 +78,126 @@ bool BvToBoolVisitor::isConvertibleToBool(TNode current) {
       kind == kind::BITVECTOR_AND ||
       kind == kind::BITVECTOR_XOR ||
       kind == kind::BITVECTOR_NOT ||
-      // kind == kind::BITVECTOR_PLUS ||
-      // kind == kind::BITVECTOR_SUB ||
-      // kind == kind::BITVECTOR_NEG ||
       kind == kind::BITVECTOR_ULT ||
       kind == kind::BITVECTOR_ULE ||
       kind == kind::EQUAL) {
-    return current[0].getType().getBitVectorSize() == 1; 
+    // we can convert it to bool if all of the children can also be converted
+    // to bool
+    if (! current[0].getType().getBitVectorSize() == 1)
+      return false; 
+    for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+      // we assume that the children have been visited
+      if (!hasBoolTerm(current[i]))
+        return false; 
+    }
+    return true; 
   }
   if (kind == kind::ITE &&
       type.isBitVector()) {
-    return type.getBitVectorSize() == 1; 
+    return type.getBitVectorSize() == 1 && hasBoolTerm(current[1]) && hasBoolTerm(current[2]); 
   }
   return false; 
 }
 
+
 Node BvToBoolVisitor::convertToBool(TNode current) {
+  Debug("bv-to-bool") << "BvToBoolVisitor::convertToBool (" << current << ") "; 
   Kind kind = current.getKind();
-  if (kind == kind::BITVECTOR_ULT) {
-    TNode a = getCache(current[0]);
-    TNode b = getCache(current[1]);
+
+  Node new_current; 
+  if (current.getNumChildren() == 0) {
+    if (current.getKind() == kind::CONST_BITVECTOR) {
+      new_current = current == d_one? utils::mkTrue() : utils::mkFalse(); 
+    } else {
+      new_current = utils::mkNode(kind::EQUAL, current, d_one); 
+    }
+    Debug("bv-to-bool") << "=> " << new_current << "\n"; 
+  } else if (kind == kind::BITVECTOR_ULT) {
+    TNode a = getBoolTerm(current[0]);
+    TNode b = getBoolTerm(current[1]);
     Node a_eq_0 = utils::mkNode(kind::EQUAL, a, d_zero);
     Node b_eq_1 = utils::mkNode(kind::EQUAL, b, d_one);
-    Node new_current = utils::mkNode(kind::AND, a_eq_0, b_eq_1);
-    return new_current; 
-  }
-  if (kind == kind::BITVECTOR_ULE) {
-    TNode a = getCache(current[0]);
-    TNode b = getCache(current[1]);
+    new_current = utils::mkNode(kind::AND, a_eq_0, b_eq_1);
+  }  else if (kind == kind::BITVECTOR_ULE) {
+    TNode a = getBoolTerm(current[0]);
+    TNode b = getBoolTerm(current[1]);
     Node a_eq_0 = utils::mkNode(kind::EQUAL, a, d_zero);
     Node b_eq_1 = utils::mkNode(kind::EQUAL, b, d_one);
     Node a_lt_b = utils::mkNode(kind::AND, a_eq_0, b_eq_1); 
     Node a_eq_b = utils::mkNode(kind::EQUAL, a, b);
-    Node new_current = utils::mkNode(kind::OR, a_lt_b, a_eq_b);
-    return new_current; 
+    new_current = utils::mkNode(kind::OR, a_lt_b, a_eq_b);
+  } else if (kind == kind::ITE) {
+    TNode cond = current[0];
+    TNode a = getBoolTerm(current[1]);
+    TNode b = getBoolTerm(current[2]);
+    new_current = utils::mkNode(kind::ITE, cond, a, b);
+  } else {
+    Kind new_kind; 
+    switch (kind) {
+    case kind::BITVECTOR_OR :
+      new_kind = kind::OR;
+      break; 
+    case kind::BITVECTOR_AND:
+      new_kind =  kind::AND;
+      break; 
+    case kind::BITVECTOR_XOR:
+      new_kind = kind::XOR;
+      break; 
+    case kind::BITVECTOR_NOT:
+      new_kind =  kind::NOT;
+      break; 
+    case kind::EQUAL:
+      new_kind = kind::IFF;
+      break; 
+    default:
+      Unreachable("Unknown kind ", kind);  
+    }
+    NodeBuilder<> builder(new_kind);
+    if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      builder << current.getOperator();
+    }
+    for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+      builder << getBoolTerm(current[i]); 
+    }
+    new_current = builder;
   }
-
   
-  Kind new_kind; 
-  switch (kind) {
-  case kind::BITVECTOR_OR :
-    new_kind = kind::OR;
-  case kind::BITVECTOR_AND:
-    new_kind =  kind::AND;
-  case kind::BITVECTOR_XOR:
-    new_kind = kind::XOR;
-  case kind::BITVECTOR_NOT:
-    new_kind =  kind::NOT;
-  case kind::BITVECTOR_ULT:
-  default:
-    Unreachable();  
+  Debug("bv-to-bool") << "=> " << new_current << "\n";
+  if (current.getType().isBitVector()) {
+    storeBvToBool(current, new_current); 
+  } else {
+    addToCache(current, new_current); 
   }
-  NodeBuilder<> builder(new_kind);
-  for (unsigned i = 0; i < current.getNumChildren(); ++i) {
-    builder << getCache(current[i]); 
-  }
-  return builder; 
+  return new_current; 
 }
 
 void BvToBoolVisitor::visit(TNode current, TNode parent) {
+  Debug("bv-to-bool") << "BvToBoolVisitor visit (" << current << ", " << parent << ")\n"; 
   Assert (!alreadyVisited(current, parent));
   d_visited.insert(current);
-  
-  if (current.getNumChildren() == 0 &&
-      isConvertibleToBool(current)) {
-    Node bool_current; 
-    if (current.getKind() == kind::CONST_BITVECTOR) {
-      bool_current = current == d_one? utils::mkTrue() : utils::mkFalse(); 
-    } else {
-      bool_current = utils::mkNode(kind::EQUAL, current, d_one); 
-    }
-    addToCache(current, bool_current);
-    return; 
-  }
 
+  Node result; 
   // if it has more than one child
   if (isConvertibleToBool(current)) {
-    Node bool_current = convertToBool(current); 
-    addToCache(current, bool_current); 
+    result = convertToBool(current); 
   } else {
-    NodeBuilder<> builder(current.getKind());
-    for (unsigned i = 0; i < current.getNumChildren(); ++i) {
-      Node converted = getCache(current[i]);
-      if (converted.getType() == current[i].getType()) {
-        builder << converted; 
-      } else {
-        builder << current[i]; 
+    if (current.getNumChildren() == 0) {
+      result = current; 
+    } else {
+      NodeBuilder<> builder(current.getKind());
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        builder << current.getOperator();
       }
+      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
+        Node converted = getCache(current[i]);
+        if (converted.getType() == current[i].getType()) {
+          builder << converted; 
+        } else {
+          builder << current[i]; 
+        }
+      }
+      result = builder;
     }
-    Node result = builder;
     addToCache(current, result); 
   }
 }

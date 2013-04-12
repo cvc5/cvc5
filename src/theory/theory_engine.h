@@ -45,6 +45,7 @@
 #include "theory/ite_simplifier.h"
 #include "theory/unconstrained_simplifier.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/bv/bv_to_bool.h"
 
 namespace CVC4 {
 
@@ -748,8 +749,11 @@ private:
   /** For preprocessing pass simplifying unconstrained expressions */
   UnconstrainedSimplifier d_unconstrainedSimp;
 
+  /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
+  theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor; 
 public:
 
+  Node ppBvToBool(TNode assertion); 
   Node ppSimpITE(TNode assertion);
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 

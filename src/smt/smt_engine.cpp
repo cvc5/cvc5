@@ -349,7 +349,9 @@ private:
    */
   bool checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache);
 
-
+  // Lift bit-vectors of size 1 to booleans
+  void bvToBool(); 
+  
   // Simplify ITE structure
   void simpITE();
 
@@ -1925,6 +1927,14 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 }
 
 
+void SmtEnginePrivate::bvToBool() {
+  Trace("simplify") << "SmtEnginePrivate::bvToBool()" << endl;
+
+  for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+    d_assertionsToCheck[i] = d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck[i]);
+  }
+}
+
 void SmtEnginePrivate::simpITE() {
   TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
 
@@ -2474,6 +2484,16 @@ bool SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+    // Lift bit-vectors of size 1 to bool 
+    if(options::bvToBool()) {
+      Chat() << "...doing bvToBool..." << endl;
+      bvToBool();
+    }
+
+    Trace("smt") << "POST bvToBool" << endl;
+    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+    
     if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
       Chat() << "...doing another round of nonclausal simplification..." << endl;
       Trace("simplify") << "SmtEnginePrivate::simplify(): "

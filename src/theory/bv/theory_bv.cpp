@@ -124,6 +124,7 @@ void TheoryBV::sendConflict() {
 
 void TheoryBV::check(Effort e)
 {
+  Trace("bitvector") <<"TheoryBV::check (" << e << ")\n"; 
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   if (options::bitvectorEagerBitblast()) {
     return;
@@ -244,10 +245,10 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
 
 Node TheoryBV::ppRewrite(TNode t)
 {
-  if (RewriteRule<BitwiseEq>::applies(t)) {
-    Node result = RewriteRule<BitwiseEq>::run<false>(t);
-    return Rewriter::rewrite(result);
-  }
+  // if (RewriteRule<BitwiseEq>::applies(t)) {
+  //   Node result = RewriteRule<BitwiseEq>::run<false>(t);
+  //   return Rewriter::rewrite(result);
+  // }
 
   if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
     std::vector<Node> equalities;
