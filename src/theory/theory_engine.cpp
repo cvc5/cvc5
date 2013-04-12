@@ -119,7 +119,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
-  d_unconstrainedSimp(context, logicInfo)
+  d_unconstrainedSimp(context, logicInfo),
+  d_bvToBoolPreprocessor()
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
@@ -1274,6 +1275,12 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Assert(properConflict(conflict));
     lemma(conflict, true, true);
   }
+}
+
+Node TheoryEngine::ppBvToBool(TNode assertion) {
+  Node result = d_bvToBoolPreprocessor.liftBoolToBV(assertion);
+  result = Rewriter::rewrite(result);
+  return result; 
 }
 
 Node TheoryEngine::ppSimpITE(TNode assertion)

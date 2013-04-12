@@ -19,5 +19,8 @@ option bitvectorInequalitySolver --bv-inequality-solver bool :default true
 
 option bitvectorCoreSolver --bv-core-solver bool
  turn on the core solver for the bit-vector theory 
+
+option bvToBool --bv-to-bool bool
+ lift bit-vectors of size 1 to booleans when possible
  
 endmodule

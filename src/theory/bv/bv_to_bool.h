@@ -29,20 +29,27 @@ class BvToBoolVisitor {
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
   typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> TNodeNodeMap; 
   TNodeNodeMap d_cache;
+  TNodeNodeMap d_bvToBoolTerm; 
   TNodeSet d_visited;
   Node d_one;
   Node d_zero;
 
-  void addToCache(TNode bv_term, Node bool_term);
-  Node getCache(TNode bv_term) const;
-  bool hasCache(TNode bv_term) const; 
+  void storeBvToBool(TNode bv_term, Node bool_term);
+  Node getBoolTerm(TNode bv_term) const;
+  bool hasBoolTerm(TNode bv_term) const; 
 
+  void addToCache(TNode term, Node new_term);
+  Node getCache(TNode term) const;
+  bool hasCache(TNode term) const; 
+
+  
   bool isConvertibleToBool(TNode current);
   Node convertToBool(TNode current);
 public:
   typedef Node return_type;
   BvToBoolVisitor()
     : d_cache(),
+      d_bvToBoolTerm(),
       d_visited(),
       d_one(utils::mkConst(BitVector(1, 1u))),
       d_zero(utils::mkConst(BitVector(1, 0u)))
