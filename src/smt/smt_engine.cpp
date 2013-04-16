@@ -1929,9 +1929,10 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
 void SmtEnginePrivate::bvToBool() {
   Trace("simplify") << "SmtEnginePrivate::bvToBool()" << endl;
-
+  std::vector<Node> new_assertions;
+  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions); 
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-    d_assertionsToCheck[i] = d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck[i]);
+    d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]); 
   }
 }
 
@@ -2484,16 +2485,6 @@ bool SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-    // Lift bit-vectors of size 1 to bool 
-    if(options::bvToBool()) {
-      Chat() << "...doing bvToBool..." << endl;
-      bvToBool();
-    }
-
-    Trace("smt") << "POST bvToBool" << endl;
-    Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-    Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-    
     if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
       Chat() << "...doing another round of nonclausal simplification..." << endl;
       Trace("simplify") << "SmtEnginePrivate::simplify(): "
@@ -2792,6 +2783,17 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-static-learning", d_assertionsToCheck);
 
+  // Lift bit-vectors of size 1 to bool 
+  if(options::bvToBool()) {
+    Chat() << "...doing bvToBool..." << endl;
+    bvToBool();
+  }
+
+  Trace("smt") << "POST bvToBool" << endl;
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
+  
   dumpAssertions("pre-ite-removal", d_assertionsToCheck);
   {
     Chat() << "removing term ITEs..." << endl;
