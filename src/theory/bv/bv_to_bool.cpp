@@ -241,7 +241,7 @@ bool BvToBoolPreprocessor::matchesBooleanPatern(TNode current) {
 }
 
 
-void BvToBoolPreprocessor::liftBoolToBV(const std::vector<TNode>& assertions, std::vector<Node>& new_assertions) {
+void BvToBoolPreprocessor::liftBoolToBV(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   TNodeNodeMap candidates;
   for (unsigned i = 0; i < assertions.size(); ++i) {
     if (matchesBooleanPatern(assertions[i])) {
@@ -249,7 +249,7 @@ void BvToBoolPreprocessor::liftBoolToBV(const std::vector<TNode>& assertions, st
       TNode bv_var = assertion[0][0];
       Assert (bv_var.getKind() == kind::VARIABLE &&
               bv_var.getType().isBitVector() &&
-              bv_bar.getType().getBitVectorSize() == 1);
+              bv_var.getType().getBitVectorSize() == 1);
       TNode bool_cond = assertion[1];
       Assert (bool_cond.getType().isBoolean());
       if (candidates.find(bv_var) == candidates.end()) {
