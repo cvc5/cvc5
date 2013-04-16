@@ -753,7 +753,7 @@ private:
   theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor; 
 public:
 
-  Node ppBvToBool(TNode assertion); 
+  void ppBvToBool(const std::vector<TNode>& assertions, std::vector<Node> new_assertions); 
   Node ppSimpITE(TNode assertion);
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 

@@ -24,33 +24,31 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class BvToBoolVisitor {
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> TNodeNodeMap; 
 
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
-  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> TNodeNodeMap; 
+class BvToBoolVisitor {
+  TNodeNodeMap d_bvToBoolMap; 
   TNodeNodeMap d_cache;
-  TNodeNodeMap d_bvToBoolTerm; 
-  TNodeSet d_visited;
   Node d_one;
   Node d_zero;
-
-  void storeBvToBool(TNode bv_term, Node bool_term);
-  Node getBoolTerm(TNode bv_term) const;
-  bool hasBoolTerm(TNode bv_term) const; 
 
   void addToCache(TNode term, Node new_term);
   Node getCache(TNode term) const;
   bool hasCache(TNode term) const; 
-
   
-  bool isConvertibleToBool(TNode current);
-  Node convertToBool(TNode current);
+  bool isConvertibleBvTerm(TNode node);
+  bool isConvertibleBvAtom(TNode node);
+  Node getBoolForBvTerm(TNode node);
+  void storeBvToBool(TNode bv_term, TNode bool_term);
+  Node convertBvAtom(TNode node);
+  Node convertBvTerm(TNode node);
+  void check(TNode current, TNode parent);
 public:
   typedef Node return_type;
-  BvToBoolVisitor()
-    : d_cache(),
-      d_bvToBoolTerm(),
-      d_visited(),
+  BvToBoolVisitor(TNodeNodeMap& bvToBool)
+    : d_bvToBoolMap(bvToBool), 
+      d_cache(),
       d_one(utils::mkConst(BitVector(1, 1u))),
       d_zero(utils::mkConst(BitVector(1, 0u)))
   {}
@@ -60,14 +58,14 @@ public:
   return_type done(TNode node);
 }; 
 
+
 class BvToBoolPreprocessor {
-  BvToBoolVisitor d_visitor; 
+  bool matchesBooleanPatern(TNode node);
 public:
   BvToBoolPreprocessor()
-    : d_visitor()
   {}
   ~BvToBoolPreprocessor() {}
-  Node liftBoolToBV(TNode assertion);
+  void liftBoolToBV(const std::vector<TNode>& assertions, std::vector<Node>& new_assertions);
 }; 
 
 
