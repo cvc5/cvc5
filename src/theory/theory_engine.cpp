@@ -1277,7 +1277,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   }
 }
 
-void TheoryEngine::ppBvToBool(const std::vector<TNode>& assertions, std::vector<Node> new_assertions) {
+void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node> new_assertions) {
   d_bvToBoolPreprocessor.liftBoolToBV(assertions, new_assertions);
 }
 

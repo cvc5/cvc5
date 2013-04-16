@@ -65,7 +65,7 @@ public:
   BvToBoolPreprocessor()
   {}
   ~BvToBoolPreprocessor() {}
-  void liftBoolToBV(const std::vector<TNode>& assertions, std::vector<Node>& new_assertions);
+  void liftBoolToBV(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 }; 
 
 
