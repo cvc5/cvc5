@@ -37,7 +37,8 @@ CVC_TESTS = \
 	preprocess_09.cvc \
 	preprocess_10.cvc \
 	preprocess_11.cvc \
-	preprocess_12.cvc
+	preprocess_12.cvc \
+	preprocess_13.cvc
 
 # Regression tests derived from bug reports
 BUG_TESTS = 

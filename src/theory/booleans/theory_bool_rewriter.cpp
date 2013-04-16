@@ -22,6 +22,40 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
+RewriteResponse flattenOrNode(TNode n, TNode trueNode, TNode falseNode)
+{
+  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+
+  node_set visited;
+  visited.insert(falseNode);
+
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+
+  Kind k = n.getKind();
+  NodeBuilder<> nb(k);
+
+  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+    TNode current = toProcess[i];
+    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+      TNode child = current[j];
+      if(visited.find(child) != visited.end()) {
+        continue;
+      } else if(child == trueNode) {
+        return RewriteResponse(REWRITE_DONE, trueNode);
+      } else {
+        if(child.getKind() == k)
+          toProcess.push_back(child);
+        else
+          nb << child;
+      }
+    }
+  }
+  if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, falseNode);
+  if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
+  return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
+}
+
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
   Node tt = nodeManager->mkConst(true);
@@ -35,27 +69,15 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     break;
   }
   case kind::OR: {
-    if (n.getNumChildren() == 2) {
-      if (n[0] == tt || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
-      if (n[0] == ff) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    bool done = true;
+    TNode::iterator i = n.begin(), iend = n.end();
+    for(; i != iend; ++i) {
+      if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
+      if (*i == ff) done = false;
+      if ((*i).getKind() == kind::OR) done = false;
     }
-    else {
-      bool done = true;
-      TNode::iterator i = n.begin(), iend = n.end();
-      for(; i != iend; ++i) {
-        if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
-        if (*i == ff) done = false;
-      }
-      if (!done) {
-        NodeBuilder<> nb(kind::OR);
-        for(i = n.begin(); i != iend; ++i) {
-          if (*i != ff) nb << *i;
-        }
-        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, ff);
-        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
-      }
+    if (!done) {
+      return flattenOrNode(n, /*trueNode = */ tt, /* falseNode = */ ff);
     }
     break;
   }
