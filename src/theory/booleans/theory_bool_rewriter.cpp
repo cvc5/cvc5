@@ -22,12 +22,25 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-RewriteResponse flattenOrNode(TNode n, TNode trueNode, TNode falseNode)
+/**
+ * flattenNode looks for children of same kind, and if found merges
+ * them into the parent.
+ *
+ * It simultaneously handles a couple of other optimizations: 
+ * - trivialNode - if found during exploration, return that node itself
+ *    (like in case of OR, if "true" is found, makes sense to replace
+ *     whole formula with "true")
+ * - skipNode - as name suggests, skip them
+ *    (like in case of OR, you may want to skip any "false" nodes found)
+ *
+ * Use a null node if you want to ignore any of the optimizations.
+ */
+RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
   typedef std::hash_set<TNode, TNodeHashFunction> node_set;
 
   node_set visited;
-  visited.insert(falseNode);
+  visited.insert(skipNode);
 
   std::vector<TNode> toProcess;
   toProcess.push_back(n);
@@ -41,8 +54,8 @@ RewriteResponse flattenOrNode(TNode n, TNode trueNode, TNode falseNode)
       TNode child = current[j];
       if(visited.find(child) != visited.end()) {
         continue;
-      } else if(child == trueNode) {
-        return RewriteResponse(REWRITE_DONE, trueNode);
+      } else if(child == trivialNode) {
+        return RewriteResponse(REWRITE_DONE, trivialNode);
       } else {
         if(child.getKind() == k)
           toProcess.push_back(child);
@@ -51,7 +64,7 @@ RewriteResponse flattenOrNode(TNode n, TNode trueNode, TNode falseNode)
       }
     }
   }
-  if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, falseNode);
+  if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
   if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
   return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
 }
@@ -77,35 +90,22 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if ((*i).getKind() == kind::OR) done = false;
     }
     if (!done) {
-      return flattenOrNode(n, /*trueNode = */ tt, /* falseNode = */ ff);
+      return flattenNode(n, /*trivialNode = */ tt, /* skipNode = */ ff);
     }
     break;
   }
   case kind::AND: {
-    //TODO: Why REWRITE_AGAIN here?
-    if (n.getNumChildren() == 2) {
-      if (n[0] == ff || n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
-      if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == tt) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    bool done = true;
+    TNode::iterator i = n.begin(), iend = n.end();
+    for(; i != iend; ++i) {
+      if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
+      if (*i == tt) done = false;
+      if ((*i).getKind() == kind::AND) done = false;
     }
-    else {
-      bool done = true;
-      TNode::iterator i = n.begin(), iend = n.end();
-      for(; i != iend; ++i) {
-        if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
-        if (*i == tt) done = false;
-      }
-      if (!done) {
-        NodeBuilder<> nb(kind::AND);
-        for(i = n.begin(); i != iend; ++i) {
-          if (*i != tt) {
-            nb << *i;
-          }
-        }
-        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, tt);
-        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
-      }
+    if (!done) {
+      RewriteResponse ret = flattenNode(n, /*trivialNode = */ ff, /* skipNode = */ tt);
+      Debug("bool-flatten") << n << ": " << ret.node << std::endl;
+      return ret;
     }
     break;
   }
