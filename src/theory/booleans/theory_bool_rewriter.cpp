@@ -66,7 +66,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   }
   if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
   if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-  return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
+  return RewriteResponse(REWRITE_DONE, nb.constructNode());
 }
 
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
