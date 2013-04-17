@@ -25,11 +25,11 @@ namespace theory {
 namespace bv {
 
 typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
-typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> TNodeNodeMap; 
+typedef __gnu_cxx::hash_map<Node, Node, TNodeHashFunction> NodeNodeMap; 
 
 class BvToBoolVisitor {
-  TNodeNodeMap d_bvToBoolMap; 
-  TNodeNodeMap d_cache;
+  NodeNodeMap d_bvToBoolMap; 
+  NodeNodeMap d_cache;
   Node d_one;
   Node d_zero;
 
@@ -40,14 +40,13 @@ class BvToBoolVisitor {
   bool isConvertibleBvTerm(TNode node);
   bool isConvertibleBvAtom(TNode node);
   Node getBoolForBvTerm(TNode node);
-  void storeBvToBool(TNode bv_term, TNode bool_term);
   Node convertBvAtom(TNode node);
   Node convertBvTerm(TNode node);
   void check(TNode current, TNode parent);
 public:
   typedef Node return_type;
-  BvToBoolVisitor(TNodeNodeMap& bvToBool)
-    : d_bvToBoolMap(bvToBool), 
+  BvToBoolVisitor()
+    : d_bvToBoolMap(), 
       d_cache(),
       d_one(utils::mkConst(BitVector(1, 1u))),
       d_zero(utils::mkConst(BitVector(1, 0u)))
@@ -56,6 +55,8 @@ public:
   bool alreadyVisited(TNode current, TNode parent);
   void visit(TNode current, TNode parent);
   return_type done(TNode node);
+  void storeBvToBool(TNode bv_term, TNode bool_term);
+  bool hasBoolTerm(TNode node); 
 }; 
 
 

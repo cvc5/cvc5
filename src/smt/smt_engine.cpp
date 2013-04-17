@@ -1928,11 +1928,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
 
 void SmtEnginePrivate::bvToBool() {
-  Trace("simplify") << "SmtEnginePrivate::bvToBool()" << endl;
+  Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
   std::vector<Node> new_assertions;
   d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions); 
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-    d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]); 
+    d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]);
   }
 }
 
