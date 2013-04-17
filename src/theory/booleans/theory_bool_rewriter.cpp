@@ -57,6 +57,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
       } else if(child == trivialNode) {
         return RewriteResponse(REWRITE_DONE, trivialNode);
       } else {
+        visited.insert(child);
         if(child.getKind() == k)
           toProcess.push_back(child);
         else
