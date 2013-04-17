@@ -46,7 +46,8 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   toProcess.push_back(n);
 
   Kind k = n.getKind();
-  NodeBuilder<> nb(k);
+  typedef std::vector<TNode> ChildList;
+  ChildList childList;   //TNode should be fine, since 'n' is still there
 
   for (unsigned i = 0; i < toProcess.size(); ++ i) {
     TNode current = toProcess[i];
@@ -61,13 +62,30 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
         if(child.getKind() == k)
           toProcess.push_back(child);
         else
-          nb << child;
+          childList.push_back(child);
       }
     }
   }
-  if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
-  if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-  return RewriteResponse(REWRITE_DONE, nb.constructNode());
+  if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
+  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+
+  /* Trickery to stay under number of children possible in a node */
+  NodeManager* nodeManager = NodeManager::currentNM();
+  static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
+  if (childList.size() < MAX_CHILDREN) {
+    Node retNode = nodeManager->mkNode(k, childList);
+    return RewriteResponse(REWRITE_DONE, retNode);
+  } else {
+    Assert(childList.size() < size_t(MAX_CHILDREN) * size_t(MAX_CHILDREN) );
+    NodeBuilder<> nb(k);
+    ChildList::iterator cur = childList.begin(), next, en = childList.end();
+    while( cur != en ) {
+      next = min(cur + MAX_CHILDREN, en);
+      nb << (nodeManager->mkNode(k, ChildList(cur, next) ));
+      cur = next;
+    }
+    return RewriteResponse(REWRITE_DONE, nb.constructNode());
+  }
 }
 
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
