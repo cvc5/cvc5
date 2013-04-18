@@ -290,7 +290,7 @@ simpleTerm[CVC4::Expr& expr]
   : variable[expr]
   | NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT { expr = PARSER_STATE->convertStrToUnsorted(
-        MK_CONST(AntlrInput::tokenText($DISTINCT_OBJECT))); }
+        AntlrInput::tokenText($DISTINCT_OBJECT)); }
 ;
 
 functionTerm[CVC4::Expr& expr]

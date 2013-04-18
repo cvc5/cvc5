@@ -19,7 +19,7 @@
 #pragma once
 
 #include "theory/bv/bv_subtheory.h"
-
+#include "theory/substitutions.h"
 namespace CVC4 {
 namespace theory {
 namespace bv {
@@ -41,6 +41,12 @@ class BitblastSolver : public SubtheorySolver {
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;
   Statistics d_statistics; 
+
+  typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
+  NodeMap d_modelCache;
+  context::CDO<bool> d_validModelCache;
+  Node getModelValueRec(TNode node);
+
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();

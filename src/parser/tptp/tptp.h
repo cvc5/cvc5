@@ -21,6 +21,7 @@
 
 #include "parser/parser.h"
 #include "expr/command.h"
+#include "util/hash.h"
 #include <ext/hash_set>
 #include <cassert>
 
@@ -42,7 +43,7 @@ class Tptp : public Parser {
   Expr d_uts_op;
   // The set of expression that already have a bridge
   std::hash_set<Expr, ExprHashFunction> d_r_converted;
-  std::hash_set<Expr, ExprHashFunction> d_s_converted;
+  std::hash_map<std::string, Expr, StringHashFunction> d_distinct_objects;
 
   //TPTP directory where to find includes
   // empty if none could be determined
@@ -87,32 +88,12 @@ public:
     return ret;
   }
 
-  inline Expr convertStrToUnsorted(Expr expr){
-    ExprManager * em = getExprManager();
-
-    // Create the conversion function If they doesn't exists
-    if(d_stu_op.isNull()){
-      Type t;
-      //Conversion from string to unsorted
-      t = em->mkFunctionType(em->stringType(), d_unsorted);
-      d_stu_op = em->mkVar("$$stu",t);
-      preemptCommand(new DeclareFunctionCommand("$$stu", d_stu_op, t));
-      //Conversion from unsorted to string
-      t = em->mkFunctionType(d_unsorted, em->stringType());
-      d_uts_op = em->mkVar("$$uts",t);
-      preemptCommand(new DeclareFunctionCommand("$$uts", d_uts_op, t));
+  inline Expr convertStrToUnsorted(std::string str) {
+    Expr& e = d_distinct_objects[str];
+    if(e.isNull()) {
+      e = getExprManager()->mkConst(UninterpretedConstant(d_unsorted, d_distinct_objects.size() - 1));
     }
-    // Add the inverse in order to show that over the elements that
-    // appear in the problem there is a bijection between unsorted and
-    // rational
-    Expr ret = em->mkExpr(kind::APPLY_UF,d_stu_op,expr);
-    if ( d_s_converted.find(expr) == d_s_converted.end() ){
-      d_s_converted.insert(expr);
-      Expr eq = em->mkExpr(kind::EQUAL,expr,
-                           em->mkExpr(kind::APPLY_UF,d_uts_op,ret));
-      preemptCommand(new AssertCommand(eq));
-    };
-    return ret;
+    return e;
   }
 
 public:

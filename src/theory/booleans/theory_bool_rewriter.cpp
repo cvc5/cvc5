@@ -22,6 +22,72 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
+/**
+ * flattenNode looks for children of same kind, and if found merges
+ * them into the parent.
+ *
+ * It simultaneously handles a couple of other optimizations: 
+ * - trivialNode - if found during exploration, return that node itself
+ *    (like in case of OR, if "true" is found, makes sense to replace
+ *     whole formula with "true")
+ * - skipNode - as name suggests, skip them
+ *    (like in case of OR, you may want to skip any "false" nodes found)
+ *
+ * Use a null node if you want to ignore any of the optimizations.
+ */
+RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
+{
+  typedef std::hash_set<TNode, TNodeHashFunction> node_set;
+
+  node_set visited;
+  visited.insert(skipNode);
+
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+
+  Kind k = n.getKind();
+  typedef std::vector<TNode> ChildList;
+  ChildList childList;   //TNode should be fine, since 'n' is still there
+
+  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+    TNode current = toProcess[i];
+    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
+      TNode child = current[j];
+      if(visited.find(child) != visited.end()) {
+        continue;
+      } else if(child == trivialNode) {
+        return RewriteResponse(REWRITE_DONE, trivialNode);
+      } else {
+        visited.insert(child);
+        if(child.getKind() == k)
+          toProcess.push_back(child);
+        else
+          childList.push_back(child);
+      }
+    }
+  }
+  if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
+  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+
+  /* Trickery to stay under number of children possible in a node */
+  NodeManager* nodeManager = NodeManager::currentNM();
+  static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
+  if (childList.size() < MAX_CHILDREN) {
+    Node retNode = nodeManager->mkNode(k, childList);
+    return RewriteResponse(REWRITE_DONE, retNode);
+  } else {
+    Assert(childList.size() < size_t(MAX_CHILDREN) * size_t(MAX_CHILDREN) );
+    NodeBuilder<> nb(k);
+    ChildList::iterator cur = childList.begin(), next, en = childList.end();
+    while( cur != en ) {
+      next = min(cur + MAX_CHILDREN, en);
+      nb << (nodeManager->mkNode(k, ChildList(cur, next) ));
+      cur = next;
+    }
+    return RewriteResponse(REWRITE_DONE, nb.constructNode());
+  }
+}
+
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
   Node tt = nodeManager->mkConst(true);
@@ -35,55 +101,30 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     break;
   }
   case kind::OR: {
-    if (n.getNumChildren() == 2) {
-      if (n[0] == tt || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
-      if (n[0] == ff) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    bool done = true;
+    TNode::iterator i = n.begin(), iend = n.end();
+    for(; i != iend; ++i) {
+      if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
+      if (*i == ff) done = false;
+      if ((*i).getKind() == kind::OR) done = false;
     }
-    else {
-      bool done = true;
-      TNode::iterator i = n.begin(), iend = n.end();
-      for(; i != iend; ++i) {
-        if (*i == tt) return RewriteResponse(REWRITE_DONE, tt);
-        if (*i == ff) done = false;
-      }
-      if (!done) {
-        NodeBuilder<> nb(kind::OR);
-        for(i = n.begin(); i != iend; ++i) {
-          if (*i != ff) nb << *i;
-        }
-        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, ff);
-        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
-      }
+    if (!done) {
+      return flattenNode(n, /*trivialNode = */ tt, /* skipNode = */ ff);
     }
     break;
   }
   case kind::AND: {
-    //TODO: Why REWRITE_AGAIN here?
-    if (n.getNumChildren() == 2) {
-      if (n[0] == ff || n[1] == ff) return RewriteResponse(REWRITE_DONE, ff);
-      if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
-      if (n[1] == tt) return RewriteResponse(REWRITE_AGAIN, n[0]);
+    bool done = true;
+    TNode::iterator i = n.begin(), iend = n.end();
+    for(; i != iend; ++i) {
+      if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
+      if (*i == tt) done = false;
+      if ((*i).getKind() == kind::AND) done = false;
     }
-    else {
-      bool done = true;
-      TNode::iterator i = n.begin(), iend = n.end();
-      for(; i != iend; ++i) {
-        if (*i == ff) return RewriteResponse(REWRITE_DONE, ff);
-        if (*i == tt) done = false;
-      }
-      if (!done) {
-        NodeBuilder<> nb(kind::AND);
-        for(i = n.begin(); i != iend; ++i) {
-          if (*i != tt) {
-            nb << *i;
-          }
-        }
-        if (nb.getNumChildren() == 0) return RewriteResponse(REWRITE_DONE, tt);
-        if (nb.getNumChildren() == 1) return RewriteResponse(REWRITE_AGAIN, nb.getChild(0));
-        return RewriteResponse(REWRITE_AGAIN, nb.constructNode());
-      }
+    if (!done) {
+      RewriteResponse ret = flattenNode(n, /*trivialNode = */ ff, /* skipNode = */ tt);
+      Debug("bool-flatten") << n << ": " << ret.node << std::endl;
+      return ret;
     }
     break;
   }

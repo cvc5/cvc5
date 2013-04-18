@@ -358,6 +358,7 @@ class TheoryArrays : public Theory {
   // List of nodes that need permanent references in this context
   context::CDList<Node> d_permRef;
   context::CDList<Node> d_modelConstraints;
+  context::CDHashSet<Node, NodeHashFunction > d_lemmasSaved;
   std::vector<Node> d_lemmas;
 
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);

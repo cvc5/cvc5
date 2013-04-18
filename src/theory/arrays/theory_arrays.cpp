@@ -87,6 +87,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_decisionRequests(c),
   d_permRef(c),
   d_modelConstraints(c),
+  d_lemmasSaved(c),
   d_inCheckModel(false)
 {
   StatisticsRegistry::registerStat(&d_numRow);
@@ -1294,6 +1295,10 @@ void TheoryArrays::checkModel(Effort e)
   while (!d_lemmas.empty()) {
     Debug("arrays-model-based") << "Sending lemma: " << d_lemmas.back() << endl;
     d_out->lemma(d_lemmas.back());
+#ifdef CVC4_ASSERTIONS
+    Assert(d_lemmasSaved.find(d_lemmas.back()) == d_lemmasSaved.end());
+    d_lemmasSaved.insert(d_lemmas.back());
+#endif
     d_lemmas.pop_back();
   }
   Assert(getSatContext()->getLevel() == d_topLevel);

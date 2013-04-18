@@ -749,8 +749,8 @@ SmtEngine::~SmtEngine() throw() {
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
-    d_context->pop();
-    d_userContext->pop();
+    d_context->popto(0);
+    d_userContext->popto(0);
 
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
@@ -771,17 +771,17 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
-    delete d_stats;
-
-    delete d_private;
 
     delete d_theoryEngine;
     delete d_propEngine;
     delete d_decisionEngine;
 
-    delete d_userContext;
-
+    delete d_stats;
     delete d_statisticsRegistry;
+
+    delete d_private;
+
+    delete d_userContext;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
