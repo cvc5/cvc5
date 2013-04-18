@@ -747,8 +747,8 @@ SmtEngine::~SmtEngine() throw() {
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
-    d_context->pop();
-    d_userContext->pop();
+    d_context->popto(0);
+    d_userContext->popto(0);
 
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
