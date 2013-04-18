@@ -769,17 +769,17 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
-    delete d_stats;
-
-    delete d_private;
 
     delete d_theoryEngine;
     delete d_propEngine;
     delete d_decisionEngine;
 
-    delete d_userContext;
-
+    delete d_stats;
     delete d_statisticsRegistry;
+
+    delete d_private;
+
+    delete d_userContext;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
