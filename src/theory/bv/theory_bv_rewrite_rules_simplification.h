@@ -524,6 +524,25 @@ Node RewriteRule<LteSelf>::apply(TNode node) {
 }
 
 /**
+ * ZeroUlt
+ *
+ * 0 < a ==> a != 0
+ */
+
+template<> inline
+bool RewriteRule<ZeroUlt>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_ULT &&
+          node[0] == utils::mkConst(BitVector(utils::getSize(node[0]), Integer(0))));
+}
+
+template<> inline
+Node RewriteRule<ZeroUlt>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<ZeroUlt>(" << node << ")" << std::endl;
+  return utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, node[0], node[1])); 
+}
+
+
+/**
  * UltZero
  *
  * a < 0 ==> false
@@ -540,6 +559,42 @@ Node RewriteRule<UltZero>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
   return utils::mkFalse(); 
 }
+
+
+/**
+ * 
+ */
+template<> inline
+bool RewriteRule<UltOne>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_ULT &&
+          node[1] == utils::mkConst(BitVector(utils::getSize(node[0]), Integer(1))));
+}
+
+template<> inline
+Node RewriteRule<UltOne>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
+  return utils::mkNode(kind::EQUAL, node[0], utils::mkConst(BitVector(utils::getSize(node[0]), 0u))); 
+}
+
+/**
+ * 
+ */
+template<> inline
+bool RewriteRule<SltZero>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_SLT &&
+          node[1] == utils::mkConst(BitVector(utils::getSize(node[0]), Integer(0))));
+}
+
+template<> inline
+Node RewriteRule<SltZero>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
+  unsigned size = utils::getSize(node[0]); 
+  Node most_significant_bit = utils::mkExtract(node[0], size - 1, size - 1);
+  Node one = utils::mkConst(BitVector(1, 1u));
+  
+  return utils::mkNode(kind::EQUAL, most_significant_bit, one); 
+}
+
 
 /**
  * UltSelf
