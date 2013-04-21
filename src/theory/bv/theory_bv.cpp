@@ -250,7 +250,7 @@ Node TheoryBV::ppRewrite(TNode t)
   //   return Rewriter::rewrite(result);
   // }
 
-  if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
+  if (/*options::bitvectorCoreSolver() && */t.getKind() == kind::EQUAL) {
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     return utils::mkAnd(equalities); 

@@ -95,11 +95,6 @@ public:
    * Notifies the engine of all the theories used.
    */
   bool done(TNode node);
-  ~PreRegisterVisitor() {
-    for (TNodeToTheorySetMap::const_iterator it = d_visited.begin(); it != d_visited.end(); ++it) {
-      std::cout << it->first <<"\n"; 
-    }
-  }
 };
 
 

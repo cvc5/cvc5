@@ -125,6 +125,10 @@ enum RewriteRuleId {
   UremOne,
   UremSelf,
   ShiftZero,
+
+  UltOne,
+  SltZero, 
+  ZeroUlt,
   
   /// normalization rules
   ExtractBitwise,
@@ -262,7 +266,10 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case OrSimplify : out << "OrSimplify"; return out;
   case XorSimplify : out << "XorSimplify"; return out;
   case NegPlus : out << "NegPlus"; return out;
-  case BBPlusNeg : out << "BBPlusNeg"; return out; 
+  case BBPlusNeg : out << "BBPlusNeg"; return out;
+  case UltOne : out << "UltOne"; return out;
+  case SltZero : out << "SltZero"; return out;
+  case ZeroUlt : out << "ZeroUlt"; return out; 
   default:
     Unreachable();
   }
@@ -477,6 +484,9 @@ struct AllRewriteRules {
   RewriteRule<BBPlusNeg> rule111;
   RewriteRule<SolveEq> rule112;
   RewriteRule<BitwiseEq> rule113;
+  RewriteRule<UltOne> rule114;
+  RewriteRule<SltZero> rule115;
+  
 };
 
 template<> inline
