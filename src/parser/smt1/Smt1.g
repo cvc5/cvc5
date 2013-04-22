@@ -313,6 +313,10 @@ annotatedFormula[CVC4::Expr& expr]
       expr = MK_CONST( AntlrInput::tokenToRational($RATIONAL_TOK) ); }
   | n = BITVECTOR_BV_CONST '[' size = NUMERAL_TOK ']'
     { expr = MK_CONST( AntlrInput::tokenToBitvector($n, $size) ); }
+  | n = BITVECTOR1_BV_CONST
+    { unsigned int bit = AntlrInput::tokenText($n)[3] - '0';
+      expr = MK_CONST( BitVector(1, bit) );
+    }
     // NOTE: Theory constants go here
     /* TODO: quantifiers, arithmetic constants */
 
@@ -743,6 +747,13 @@ ROTATE_RIGHT_TOK  : 'rotate_right';
  */
 BITVECTOR_BV_CONST
   : 'bv' DIGIT+
+  ;
+
+/**
+ * Matches a bit-vector constant of the form bit(0|1)
+ */
+BITVECTOR1_BV_CONST
+  : 'bit0' | 'bit1'
   ;
 
 
