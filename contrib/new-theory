@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# usage: new-theory theory-directory-name
+# usage: new-theory [--alternate existing-theory] new-theory-dir-name
 #
 
 cd "`dirname "$0"`/.."
@@ -11,23 +11,39 @@ if [ ! -e src/theory/theory_engine.h ]; then
   exit 1
 fi
 
+if [ $# -ge 1 -a "$1" = --alternate ]; then
+  shift
+  alternate=true
+  alttheory="$1"
+  shift
+else
+  alternate=false
+fi
+
 if [ $# -ne 1 ]; then
-  echo "usage: new-theory theory-directory-name" >&2
-  echo "e.g.:  new-theory arith" >&2
+  echo "usage: new-theory [--alternate existing-theory] new-theory-dir-name" >&2
   echo "e.g.:  new-theory arrays" >&2
   echo "e.g.:  new-theory sets" >&2
   echo "e.g.:  new-theory rewrite_rules" >&2
+  echo "e.g.:  new-theory --alternate arith difference-logic" >&2
   echo >&2
-  echo "This tool will create a new src/theory/<theory-directory-name>" >&2
+  echo "This tool will create a new src/theory/<new-theory-dir-name>" >&2
   echo "directory and fill in some infrastructural files in that directory." >&2
   echo "It also will incorporate that directory into the build process." >&2
   echo "Please refer to the file README.WHATS-NEXT file created in that" >&2
-  echo "directory for tips on what to do next."
-  echo
+  echo "directory for tips on what to do next." >&2
+  echo >&2
   echo "Theories with multiple words (e.g. \"rewrite_rules\") should have" >&2
   echo "directories and namespaces separated by an underscore (_).  The" >&2
   echo "resulting class names created by this script will be in CamelCase" >&2
   echo "(e.g. RewriteRules) if that convention is followed." >&2
+  echo >&2
+  echo "With --alternate, create a new theory directory that is declared as" >&2
+  echo "an alternate implementation of an existing host theory.  Such" >&2
+  echo "\"alternates\" share preprocessing, typechecking, rewriting (i.e.," >&2
+  echo "normal form), and expression kinds with their host theories, but" >&2
+  echo "differ in decision procedure implementation.  They are selectable" >&2
+  echo "at runtime with --use-theory." >&2
   exit 1
 fi
 
@@ -36,6 +52,9 @@ dir="$1"
 if [ -e "src/theory/$dir" ]; then
   echo "ERROR: Theory \"$dir\" already exists." >&2
   echo "ERROR: Please choose a new directory name (or move that one aside)." >&2
+  echo "ERROR: Or, if you'd like to create an alternate implementation of" >&2
+  echo "ERROR: $dir, use this program this way:" >&2
+  echo "ERROR:     new-theory --alternate $dir new-implementation-name" >&2
   exit 1
 fi
 
@@ -47,6 +66,17 @@ if ! expr "$dir" : '[a-zA-Z][a-zA-Z0-9_]*$' &>/dev/null ||
   echo "ERROR: letters, numbers, and the underscore (_) character; an" >&2
   echo "ERROR: underscore cannot be the final character." >&2
   exit 1
+fi
+
+if $alternate; then
+  if ! [ -d "src/theory/$alttheory" -a -f "src/theory/$alttheory/kinds" ]; then
+    echo "ERROR: Theory \"$alttheory\" doesn't exist, or cannot read its kinds file." >&2
+    exit 1
+  fi
+  alt_id="$(
+    function theory() { echo $1 | sed 's,^THEORY_,,'; exit; }
+    source "src/theory/$alttheory/kinds"
+  )"
 fi
 
 id="`echo "$dir" | tr a-z A-Z`"
@@ -62,6 +92,7 @@ fi
 echo "Theory of $dir"
 echo "Theory directory: src/theory/$dir"
 echo "Theory id: THEORY_$id"
+$alternate && echo "Alternate for theory id: THEORY_$alt_id"
 echo "Theory class: CVC4::theory::$dir::Theory$camel"
 echo
 
@@ -74,13 +105,28 @@ function copyskel {
     > "src/theory/$dir/$dest"
 }
 
+function copyaltskel {
+  src="$1"
+  dest="`echo "$src" | sed "s/DIR/$dir/g"`"
+  echo "Creating src/theory/$dir/$dest..."
+  sed "s/\$dir/$dir/g;s/\$camel/$camel/g;s/\$id/$id/g;s/\$alt_id/$alt_id/g" \
+    contrib/alttheoryskel/$src \
+    > "src/theory/$dir/$dest"
+}
+
 # copy files from the skeleton, with proper replacements
-for file in `ls contrib/theoryskel`; do
-  copyskel "$file"
-done
+if $alternate; then
+  for file in `ls contrib/alttheoryskel`; do
+    copyaltskel "$file"
+  done
+else
+  for file in `ls contrib/theoryskel`; do
+    copyskel "$file"
+  done
+fi
 
 echo
-echo "Adding $dir to SUBDIRS in src/theory/Makefile.am..."
+echo "Adding $dir to SUBDIRS to src/theory/Makefile.am..."
 if grep -q '^SUBDIRS = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/theory/Makefile.am &>/dev/null; then
   echo "NOTE: src/theory/Makefile.am already descends into dir $dir"
 else
@@ -95,9 +141,9 @@ else
   fi
 fi
 
-echo "Adding lib$theory.la to LIBADD in src/theory/Makefile.am..."
+echo "Adding lib$dir.la to LIBADD to src/theory/Makefile.am..."
 if grep -q '^	@builddir@/'"$dir"'/lib'"$dir"'\.la\>' src/theory/Makefile.am &>/dev/null; then
-  echo "NOTE: src/theory/Makefile.am already seems to include lib$theory.la"
+  echo "NOTE: src/theory/Makefile.am already seems to include lib$dir.la"
 else
   awk '!/^libtheory_la_LIBADD = / {print$0} /^libtheory_la_LIBADD = / {while(/\\ *$/){print $0;getline} print $0,"\\";print "\t@builddir@/'"$dir"'/lib'"$dir"'.la"}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
   if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
@@ -106,6 +152,22 @@ else
   fi
   if ! mv -f src/theory/Makefile.am.new-theory src/theory/Makefile.am; then
     echo "ERROR: cannot replace src/theory/Makefile.am !" >&2
+    exit 1
+  fi
+fi
+
+echo "Adding ../theory/$dir/options.cpp to OPTIONS_FILES_SRCS"
+echo "  and nodist_liboptions_la_SOURCES to src/options/Makefile.am..."
+if grep -q '^	\.\./theory/'"$dir"'/options\.cpp\>' src/options/Makefile.am &>/dev/null; then
+  echo "NOTE: src/options/Makefile.am already seems to link to $dir option files"
+else
+  awk '!/^OPTIONS_FILES_SRCS = \\|^nodist_liboptions_la_SOURCES = / {print$0} /^OPTIONS_FILES_SRCS = \\|^nodist_liboptions_la_SOURCES = / {while(/\\ *$/){print $0;getline} print $0,"\\";print "\t../theory/'"$dir"'/options.cpp","\\";print "\t../theory/'"$dir"'/options.h";}' src/options/Makefile.am > src/options/Makefile.am.new-theory
+  if ! cp -f src/options/Makefile.am src/options/Makefile.am~; then
+    echo "ERROR: cannot copy src/options/Makefile.am !" >&2
+    exit 1
+  fi
+  if ! mv -f src/options/Makefile.am.new-theory src/options/Makefile.am; then
+    echo "ERROR: cannot replace src/options/Makefile.am !" >&2
     exit 1
   fi
 fi

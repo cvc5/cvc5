@@ -13,7 +13,7 @@ Theory$camel::Theory$camel(context::Context* c,
                            Valuation valuation,
                            const LogicInfo& logicInfo,
                            QuantifiersEngine* qe) :
-  Theory(THEORY_$id, c, u, out, valuation, logicInfo, qe) {
+  Theory(THEORY_$alt_id, c, u, out, valuation, logicInfo, qe) {
 }/* Theory$camel::Theory$camel() */
 
 void Theory$camel::check(Effort level) {

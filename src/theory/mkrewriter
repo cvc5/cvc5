@@ -52,13 +52,13 @@ seen_theory=false
 seen_theory_builtin=false
 
 function theory {
-  # theory T header
+  # theory ID T header
 
   lineno=${BASH_LINENO[0]}
 
   if $seen_theory; then
-    echo "$kf:$lineno: theory declaration can only appear once" >&2
-    exit 1;
+    echo "$kf:$lineno: error: multiple theories defined in one file !?" >&2
+    exit 1
   fi
 
   # this script doesn't care about the theory class information, but
@@ -80,6 +80,20 @@ function theory {
   fi
 
   theory_id="$1"
+}
+
+function alternate {
+  # alternate ID name T header
+
+  lineno=${BASH_LINENO[0]}
+
+  if $seen_theory; then
+    echo "$kf:$lineno: error: multiple theories defined in one file !?" >&2
+    exit 1
+  fi
+
+  seen_theory=true
+  seen_endtheory=true
 }
 
 function properties {

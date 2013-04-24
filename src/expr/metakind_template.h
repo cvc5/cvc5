@@ -325,6 +325,23 @@ ${metakind_ubchildren}
 
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
+
+#line 330 "${template}"
+
+namespace theory {
+
+static inline bool useTheoryValidate(std::string theory) {
+${use_theory_validations}
+  return false;
+}
+
+static const char *const useTheoryHelp = "\
+The following options are valid alternate implementations for use with\n\
+the --use-theory option:\n\
+\n\
+${theory_alternate_doc}";
+
+}/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
 #endif /* __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

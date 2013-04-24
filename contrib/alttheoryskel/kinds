@@ -1,0 +1,8 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+alternate THEORY_$alt_id "$dir" ::CVC4::theory::$dir::Theory$camel "theory/$dir/theory_$dir.h"
+

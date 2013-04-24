@@ -22,3 +22,9 @@ EXTRA_DIST = \
 	theoryskel/theory_DIR.h \
 	theoryskel/theory_DIR_rewriter.h \
 	theoryskel/theory_DIR_type_rules.h
+	alttheoryskel/kinds \
+	alttheoryskel/Makefile \
+	alttheoryskel/Makefile.am \
+	alttheoryskel/README.WHATS-NEXT \
+	alttheoryskel/theory_DIR.cpp \
+	alttheoryskel/theory_DIR.h

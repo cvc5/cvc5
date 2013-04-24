@@ -7,9 +7,7 @@ noinst_LTLIBRARIES = lib$dir.la
 
 lib$dir_la_SOURCES = \
 	theory_$dir.h \
-	theory_$dir.cpp \
-	theory_$dir_rewriter.h \
-	theory_$dir_type_rules.h
+	theory_$dir.cpp
 
 EXTRA_DIST = \
 	kinds \

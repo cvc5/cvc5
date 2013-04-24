@@ -603,12 +603,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_theoryEngine = new TheoryEngine(d_context, d_userContext, d_private->d_iteRemover, const_cast<const LogicInfo&>(d_logic));
 
   // Add the theories
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    d_theoryEngine->addTheory<TheoryTraits<THEORY>::theory_class>(THEORY);
-  CVC4_FOR_EACH_THEORY;
+  for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    TheoryConstructor::addTheory(d_theoryEngine, id);
+  }
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures

@@ -21,6 +21,7 @@
 
 #include "cvc4_private.h"
 #include "theory/theory.h"
+#include "theory/options.h"
 
 ${theory_includes}
 
@@ -33,6 +34,20 @@ struct TheoryTraits;
 ${theory_traits}
 
 ${theory_for_each_macro}
+
+#line 39 "${template}"
+
+struct TheoryConstructor {
+  static void addTheory(TheoryEngine* engine, TheoryId id) {
+    switch(id) {
+
+${theory_constructors}
+
+    default:
+      Unhandled(id);
+    }
+  }
+};/* struct CVC4::theory::TheoryConstructor */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
