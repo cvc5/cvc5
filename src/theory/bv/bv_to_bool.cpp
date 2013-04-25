@@ -44,8 +44,11 @@ void BvToBoolVisitor::start(TNode node) {}
 
 void BvToBoolVisitor::storeBvToBool(TNode bv_term, TNode bool_term) {
   Assert (bv_term.getType().isBitVector() &&
-          bv_term.getType().getBitVectorSize() == 1);
-  Assert (bool_term.getType().isBoolean() &&  d_bvToBoolMap.find(bv_term) == d_bvToBoolMap.end());
+          bv_term.getType().getBitVectorSize() == 1 &&
+          bool_term.getType().isBoolean() && bv_term != Node() && bool_term != Node());
+  if (d_bvToBoolMap.find(bv_term) != d_bvToBoolMap.end()) {
+    Assert (d_bvToBoolMap[bv_term] == bool_term); 
+  }
   d_bvToBoolMap[bv_term] = bool_term; 
 }
 
@@ -75,9 +78,10 @@ bool BvToBoolVisitor::isConvertibleBvTerm(TNode node) {
     return true;
   }
   
-  Kind kind = node.getKind();
   if (!node.getType().isBitVector() || node.getType().getBitVectorSize() != 1)
     return false;
+
+  Kind kind = node.getKind();
   
   if (kind == kind::CONST_BITVECTOR) {
     return true; 
@@ -93,6 +97,10 @@ bool BvToBoolVisitor::isConvertibleBvTerm(TNode node) {
       if (!isConvertibleBvTerm(node[i]))
         return false; 
     }
+    return true; 
+  }
+  if (kind == kind::VARIABLE) {
+    storeBvToBool(node, utils::mkNode(kind::EQUAL, node, utils::mkConst(BitVector(1, 1u)))); 
     return true; 
   }
   return false; 
@@ -226,7 +234,8 @@ void BvToBoolVisitor::visit(TNode current, TNode parent) {
   check(current, parent); 
   
   if (isConvertibleBvAtom(current)) {
-    result = convertBvAtom(current); 
+    result = convertBvAtom(current);
+    addToCache(current, result);
   } else if (isConvertibleBvTerm(current)) {
     result = convertBvTerm(current); 
   } else {
@@ -244,10 +253,10 @@ void BvToBoolVisitor::visit(TNode current, TNode parent) {
       }
       result = builder;
     }
+    addToCache(current, result);
   }
   Assert (result != Node());
   Debug("bv-to-bool") << "    =>" << result <<"\n"; 
-  addToCache(current, result);
 }
 
 

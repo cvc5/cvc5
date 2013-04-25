@@ -43,6 +43,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_subtheories(),
     d_subtheoryMap(),
     d_statistics(),
+    d_lemmasAdded(c, false),
     d_conflict(c, false),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
@@ -125,6 +126,28 @@ void TheoryBV::sendConflict() {
   }
 }
 
+void TheoryBV::checkForLemma(TNode fact) {
+  if (fact.getKind() == kind::EQUAL) {
+    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL) {
+      TNode urem = fact[0];
+      TNode result = fact[1];
+      TNode divisor = urem[1]; 
+      Node result_ult_div = utils::mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node split = utils::mkNode(kind::OR, utils::mkNode(kind::NOT, fact), result_ult_div);
+      lemma(split);
+    }
+    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL) {
+      TNode urem = fact[1];
+      TNode result = fact[0];
+      TNode divisor = urem[1]; 
+      Node result_ult_div = utils::mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node split = utils::mkNode(kind::OR, utils::mkNode(kind::NOT, fact), result_ult_div);
+      lemma(split);
+    }
+  }
+}
+
+
 void TheoryBV::check(Effort e)
 {
   Trace("bitvector") <<"TheoryBV::check (" << e << ")\n"; 
@@ -144,8 +167,14 @@ void TheoryBV::check(Effort e)
     return;
   }
 
+  if (Theory::fullEffort(e)) {
+    Trace("bitvector-fulleffort") << "TheoryBV::fullEffort \n"; 
+    printFacts( Trace("bitvector-fulleffort") ); 
+  }
+  
   while (!done()) {
     TNode fact = get().assertion;
+    checkForLemma(fact); 
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->assertFact(fact); 
     }

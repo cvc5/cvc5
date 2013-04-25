@@ -85,6 +85,7 @@ Node RewriteRule<SgeEliminate>::apply(TNode node) {
   return result;
 }
 
+
 template <>
 bool RewriteRule<SltEliminate>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLT); 
@@ -134,6 +135,21 @@ Node RewriteRule<SleEliminate>::apply(TNode node) {
   TNode b = node[1];
   Node b_slt_a = utils::mkNode(kind::BITVECTOR_SLT, b, a);
   return utils::mkNode(kind::NOT, b_slt_a); 
+}
+
+template <>
+bool RewriteRule<UleEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_ULE); 
+}
+
+template <>
+Node RewriteRule<UleEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UleEliminate>(" << node << ")" << std::endl;
+
+  TNode a = node[0];
+  TNode b = node[1];
+  Node b_ult_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
+  return utils::mkNode(kind::NOT, b_ult_a); 
 }
 
 
