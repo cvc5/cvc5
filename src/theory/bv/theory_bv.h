@@ -84,6 +84,8 @@ private:
 
   Statistics d_statistics;
 
+  context::CDO<bool> d_lemmasAdded;
+  
   // Are we in conflict?
   context::CDO<bool> d_conflict;
 
@@ -96,6 +98,8 @@ private:
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
+
+  
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
    * properly.
@@ -146,7 +150,9 @@ private:
 
   void sendConflict();
 
-  void lemma(TNode node) { d_out->lemma(node); }
+  void lemma(TNode node) { d_out->lemma(node); d_lemmasAdded = true; }
+
+  void checkForLemma(TNode node); 
   
   friend class Bitblaster;
   friend class BitblastSolver;

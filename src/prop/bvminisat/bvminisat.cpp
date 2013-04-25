@@ -106,6 +106,7 @@ SatValue BVMinisatSatSolver::solve(){
 
 SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "MinisatSatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
+  ++d_statistics.d_statCallsToSolve;
   if(resource == 0) {
     d_minisat->budgetOff();
   } else {

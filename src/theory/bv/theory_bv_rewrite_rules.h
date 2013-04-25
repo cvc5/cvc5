@@ -152,7 +152,7 @@ enum RewriteRuleId {
   AndSimplify,
   OrSimplify,
   XorSimplify,
-
+  UleEliminate, 
   // rules to simplify bitblasting
   BBPlusNeg
  };
@@ -269,7 +269,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BBPlusNeg : out << "BBPlusNeg"; return out;
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
-  case ZeroUlt : out << "ZeroUlt"; return out; 
+  case ZeroUlt : out << "ZeroUlt"; return out;
+  case UleEliminate : out << "UleEliminate"; return out; 
   default:
     Unreachable();
   }
