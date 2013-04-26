@@ -30,6 +30,8 @@
 #include <cln/output.h>
 #include <cln/rational_io.h>
 #include <cln/number_io.h>
+#include <cln/dfloat.h>
+#include <cln/real.h>
 
 #include "util/exception.h"
 #include "util/integer.h"
@@ -139,16 +141,16 @@ public:
    * Constructs a canonical Rational from a numerator and denominator.
    */
   Rational(signed int n, signed int d) : d_value((signed long int)n) {
-    d_value /= d;
+    d_value /= cln::cl_I(d);
   }
   Rational(unsigned int n, unsigned int d) : d_value((unsigned long int)n) {
-    d_value /= d;
+    d_value /= cln::cl_I(d);
   }
   Rational(signed long int n, signed long int d) : d_value(n) {
-    d_value /= d;
+    d_value /= cln::cl_I(d);
   }
   Rational(unsigned long int n, unsigned long int d) : d_value(n) {
-    d_value /= d;
+    d_value /= cln::cl_I(d);
   }
 
 #ifdef CVC4_NEED_INT64_T_OVERLOADS
@@ -184,6 +186,14 @@ public:
    */
   Integer getDenominator() const {
     return Integer(cln::denominator(d_value));
+  }
+
+  /** Return an exact rational for a double d. */
+  static Rational fromDouble(double d){
+    cln::cl_DF fromD = d;
+    Rational q;
+    q.d_value = cln::rationalize(fromD);
+    return q;
   }
 
   /**
@@ -302,6 +312,11 @@ public:
     return (*this);
   }
 
+  Rational& operator-=(const Rational& y){
+    d_value -= y.d_value;
+    return (*this);
+  }
+
   Rational& operator*=(const Rational& y){
     d_value *= y.d_value;
     return (*this);
@@ -328,6 +343,10 @@ public:
    */
   size_t hash() const {
     return equal_hashcode(d_value);
+  }
+
+  uint32_t complexity() const {
+    return getNumerator().length() + getDenominator().length();
   }
 
 };/* class Rational */

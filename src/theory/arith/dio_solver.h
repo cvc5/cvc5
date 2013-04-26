@@ -20,10 +20,13 @@
 #define __CVC4__THEORY__ARITH__DIO_SOLVER_H
 
 #include "context/context.h"
+#include "context/cdo.h"
+#include "context/cdlist.h"
+#include "context/cdqueue.h"
 
-#include "theory/arith/matrix.h"
 #include "theory/arith/partial_model.h"
 #include "util/rational.h"
+#include "theory/arith/normal_form.h"
 
 #include "util/statistics_registry.h"
 
@@ -40,8 +43,9 @@ private:
   typedef size_t InputConstraintIndex;
   typedef size_t SubIndex;
 
-  std::vector<Variable> d_variablePool;
-  context::CDO<size_t> d_lastUsedVariable;
+  std::vector<Variable> d_proofVariablePool;
+  /** Sat context dependent. */
+  context::CDO<size_t> d_lastUsedProofVariable;
 
   /**
    * The set of input constraints is stored in a CDList.
@@ -164,6 +168,11 @@ private:
   context::CDO<SubIndex> d_lastPureSubstitution;
   context::CDO<SubIndex> d_pureSubstitionIter;
 
+  /**
+   * Decomposition lemma queue.
+   */
+  context::CDQueue<TrailIndex> d_decompositionLemmaQueue;
+
 public:
 
   /** Construct a Diophantine equation solver with the given context. */
@@ -231,11 +240,11 @@ private:
   }
 
   /**
-   * Allocates a "unique" variables from the pool of integer variables.
+   * Allocates a "unique" proof variable.
    * This variable is fresh with respect to the context.
    * Returns index of the variable in d_variablePool;
    */
-  size_t allocateVariableInPool();
+  size_t allocateProofVariable();
 
 
   /** Empties the unproccessed input constraints into the queue. */
@@ -376,6 +385,21 @@ private:
   void debugPrintTrail(TrailIndex i) const;
 
 public:
+  bool hasMoreDecompositionLemmas() const{
+    return !d_decompositionLemmaQueue.empty();
+  }
+  Node nextDecompositionLemma() {
+    Assert(hasMoreDecompositionLemmas());
+    TrailIndex front = d_decompositionLemmaQueue.front();
+    d_decompositionLemmaQueue.pop();
+    return trailIndexToEquality(front);
+  }
+private:
+  Node trailIndexToEquality(TrailIndex i) const;
+  void addTrailElementAsLemma(TrailIndex i);
+
+public:
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:

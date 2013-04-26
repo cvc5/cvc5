@@ -4,8 +4,8 @@ and The University of Iowa.  All rights reserved.
 CVC4 is open-source; distribution is under the terms of the modified BSD
 license.  However, certain builds of CVC4 link against GPLed libraries,
 and therefore the use of these builds is restricted in non-open-source
-projects.  See below for a discussion of CLN and how to ensure you have
-a build that doesn't link against GPLed libraries.
+projects.  See below for a discussion of CLN and GLPK, and how to ensure
+you have a build that doesn't link against GPLed libraries.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS
 ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -19,7 +19,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 28 Jan 2013 17:22:36 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 25 Apr 2013 15:45:40 -0400
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:
@@ -237,10 +237,23 @@ for Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-Please be advised that as this class library is covered under the GPLv3, if
-you choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
+Please be advised that as this library is covered under the GPLv3, if you
+choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
 then it is also covered under the GPLv3.  If you want to make sure you build
 a version of CVC4 that uses libgmp, the GNU Multiple Precision Arithmetic
 Library, configure CVC4 with "--with-gmp" before building (though that is the
 default).  It can then be used in contexts where you want to license CVC4
 under the (modified) BSD license.
+
+Certain builds of CVC4 link against a GPLed library, GLPK, the GNU Linear
+Programming Kit, available here:
+
+  http://www.gnu.org/software/glpk/
+
+Please be advised that as this library is covered under the GPLv3, if
+you choose to use the combined work, "CVC4+GLPK," by building CVC4 with
+GLPK, then it is also covered under the GPLv3.  If you want to make sure
+you build a version of CVC4 that does not use GLPK, configure CVC4 with
+"--without-glpk" before building (though that is the default).  It can
+then be used in contexts where you want to license CVC4 under the
+(modified) BSD license.

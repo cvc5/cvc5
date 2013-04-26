@@ -51,16 +51,16 @@ This decides on kind of propagation arithmetic attempts to do during the search.
 +both\n\
 ";
 
-static const std::string heuristicPivotRulesHelp = "\
-This decides on the rule used by simplex during heuristic rounds\n\
+static const std::string errorSelectionRulesHelp = "\
+This decides on the rule used by simplex during hueristic rounds\n\
 for deciding the next basic variable to select.\n\
 Heuristic pivot rules available:\n\
 +min\n\
   The minimum abs() value of the variable's violation of its bound. (default)\n\
-+min-break-ties\n\
-  The minimum violation with ties broken by variable order (total)\n\
 +max\n\
   The maximum violation the bound\n\
++varord\n\
+  The variable order\n\
 ";
 
 inline ArithUnateLemmaMode stringToArithUnateLemmaMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
@@ -99,15 +99,15 @@ inline ArithPropagationMode stringToArithPropagationMode(std::string option, std
   }
 }
 
-inline ArithHeuristicPivotRule stringToArithHeuristicPivotRule(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+inline ErrorSelectionRule stringToErrorSelectionRule(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "min") {
-    return MINIMUM;
-  } else if(optarg == "min-break-ties") {
-    return BREAK_TIES;
+    return MINIMUM_AMOUNT;
+  } else if(optarg == "varord") {
+    return VAR_ORDER;
   } else if(optarg == "max") {
-    return MAXIMUM;
+    return MAXIMUM_AMOUNT;
   } else if(optarg == "help") {
-    puts(heuristicPivotRulesHelp.c_str());
+    puts(errorSelectionRulesHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --heuristic-pivot-rule: `") +

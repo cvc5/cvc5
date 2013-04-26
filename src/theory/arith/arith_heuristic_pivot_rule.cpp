@@ -19,16 +19,16 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, ArithHeuristicPivotRule rule) {
+std::ostream& operator<<(std::ostream& out, ErrorSelectionRule rule) {
   switch(rule) {
-  case MINIMUM:
-    out << "MINIMUM";
+  case MINIMUM_AMOUNT:
+    out << "MINIMUM_AMOUNT";
     break;
-  case BREAK_TIES:
-    out << "BREAK_TIES";
+  case VAR_ORDER:
+    out << "VAR_ORDER";
     break;
-  case MAXIMUM:
-    out << "MAXIMUM";
+  case MAXIMUM_AMOUNT:
+    out << "MAXIMUM_AMOUNT";
     break;
   default:
     out << "ArithHeuristicPivotRule!UNKNOWN";

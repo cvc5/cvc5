@@ -19,7 +19,7 @@
 #define __CVC4__INST_STRATEGT_CBQI_H
 
 #include "theory/quantifiers/instantiation_engine.h"
-#include "theory/arith/arithvar_node_map.h"
+#include "theory/arith/arithvar.h"
 
 #include "util/statistics_registry.h"
 

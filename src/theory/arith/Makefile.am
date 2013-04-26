@@ -10,11 +10,11 @@ libarith_la_SOURCES = \
 	type_enumerator.h \
 	arithvar.h \
 	arithvar.cpp \
+	bound_counts.h \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
 	arith_static_learner.h \
 	arith_static_learner.cpp \
-	arithvar_node_map.h \
 	constraint_forward.h \
 	constraint.h \
 	constraint.cpp \
@@ -29,14 +29,34 @@ libarith_la_SOURCES = \
 	partial_model.cpp \
 	linear_equality.h \
 	linear_equality.cpp \
+	simplex_update.h \
+	simplex_update.cpp \
+	callbacks.h \
+	callbacks.cpp \
 	matrix.h \
 	matrix.cpp \
-	arith_priority_queue.h \
-	arith_priority_queue.cpp \
+	tableau.h \
+	tableau.cpp \
+	tableau_sizes.h \
+	tableau_sizes.cpp \
+	error_set.h \
+	error_set.cpp \
 	simplex.h \
 	simplex.cpp \
+	dual_simplex.h \
+	dual_simplex.cpp \
+	fc_simplex.h \
+	fc_simplex.cpp \
+	soi_simplex.h \
+	soi_simplex.cpp \
+	approx_simplex.h \
+	approx_simplex.cpp \
+	pure_update_simplex.h \
+	pure_update_simplex.cpp \
 	theory_arith.h \
 	theory_arith.cpp \
+	theory_arith_private.h \
+	theory_arith_private.cpp \
 	dio_solver.h \
 	dio_solver.cpp \
 	arith_heuristic_pivot_rule.h \
@@ -44,7 +64,7 @@ libarith_la_SOURCES = \
 	arith_unate_lemma_mode.h \
 	arith_unate_lemma_mode.cpp \
 	arith_propagation_mode.h \
-	arith_propagation_mode.cpp 
+	arith_propagation_mode.cpp
 
 EXTRA_DIST = \
 	kinds \

@@ -21,8 +21,10 @@
 
 #include "util/rational.h"
 #include "util/integer.h"
+#include "util/dense_map.h"
 #include "expr/node.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/arith/arithvar.h"
 #include "context/cdhashset.h"
 #include <ext/hash_map>
 #include <vector>
@@ -35,6 +37,10 @@ namespace arith {
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 typedef context::CDHashSet<Node, NodeHashFunction> CDNodeSet;
+
+//Maps from Nodes -> ArithVars, and vice versa
+typedef __gnu_cxx::hash_map<Node, ArithVar, NodeHashFunction> NodeToArithVarMap;
+typedef DenseMap<Node> ArithVarToNodeMap;
 
 inline Node mkRationalNode(const Rational& q){
   return NodeManager::currentNM()->mkConst<Rational>(q);
@@ -50,6 +56,27 @@ inline Node mkIntSkolem(const std::string& name){
 
 inline Node mkRealSkolem(const std::string& name){
   return NodeManager::currentNM()->mkSkolem(name, NodeManager::currentNM()->realType());
+}
+
+inline Node skolemFunction(const std::string& name, TypeNode dom, TypeNode range){
+  NodeManager* currNM = NodeManager::currentNM();
+  TypeNode functionType = currNM->mkFunctionType(dom, range);
+  return currNM->mkSkolem(name, functionType);
+}
+
+/**
+ * (For the moment) the type hierarchy goes as:
+ * Integer <: Real
+ * The type number of a variable is an integer representing the most specific
+ * type of the variable. The possible values of type number are:
+ */
+enum ArithType {
+  ATReal = 0,
+  ATInteger = 1
+};
+
+inline ArithType nodeToArithType(TNode x) {
+  return (x.getType().isInteger() ? ATInteger : ATReal);
 }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */

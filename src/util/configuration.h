@@ -87,6 +87,8 @@ public:
 
   static bool isBuiltWithCln();
 
+  static bool isBuiltWithGlpk();
+
   static bool isBuiltWithCudd();
 
   static bool isBuiltWithTlsSupport();

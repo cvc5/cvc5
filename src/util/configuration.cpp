@@ -121,6 +121,10 @@ bool Configuration::isBuiltWithCln() {
   return IS_CLN_BUILD;
 }
 
+bool Configuration::isBuiltWithGlpk() {
+  return IS_GLPK_BUILD;
+}
+
 bool Configuration::isBuiltWithCudd() {
   return false;
 }

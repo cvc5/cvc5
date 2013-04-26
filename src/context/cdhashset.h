@@ -61,7 +61,7 @@ public:
     return super::insert_safe(v, true);
   }
 
-  bool contains(const V& v) {
+  bool contains(const V& v) const {
     return super::contains(v);
   }
 

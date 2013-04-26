@@ -20,8 +20,8 @@
 #pragma once
 
 #include "theory/arith/arithvar.h"
-#include "theory/arith/arithvar_node_map.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/arith/partial_model.h"
 
 #include "theory/uf/equality_engine.h"
 
@@ -41,7 +41,7 @@ namespace arith {
 class ArithCongruenceManager {
 private:
   context::CDRaised d_inConflict;
-  NodeCallBack& d_raiseConflict;
+  RaiseConflict d_raiseConflict;
 
   /**
    * The set of ArithVars equivalent to a pair of terms.
@@ -111,9 +111,9 @@ private:
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;
-  TNodeCallBack& d_setupLiteral;
+  SetupLiteralCallBack d_setupLiteral;
 
-  const ArithVarNodeMap& d_av2Node;
+  const ArithVariables& d_avariables;
 
   eq::EqualityEngine d_ee;
 
@@ -181,23 +181,8 @@ private:
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  /**
-   * This is set to true when the first shared term is added.
-   * When this is set to true in the context, d_queue is emptied
-   * and not used again in the context.
-   */
-  //context::CDO<bool> d_hasSharedTerms;
-
-
-  /**
-   * The generalization of asserting an equality or a disequality.
-   * If there are shared equalities, this is added to the equality engine.
-   * Otherwise, this is put on a queue until there is a shared term.
-   */
-  //void assertLiteral(bool eq, ArithVar s, TNode reason);
 
   /** This sends a shared term to the uninterpreted equality engine. */
-  //void addAssertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
   void assertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
 
   /** Dequeues the delay queue and asserts these equalities.*/
@@ -210,7 +195,7 @@ private:
 
 public:
 
-  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, TNodeCallBack& setLiteral, const ArithVarNodeMap&, NodeCallBack& raiseConflict);
+  ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseConflict raiseConflict);
 
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);

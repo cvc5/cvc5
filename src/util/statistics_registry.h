@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <ctime>
 #include <vector>
+#include <map>
 #include <stdint.h>
 #include <cassert>
 
@@ -536,6 +537,47 @@ public:
   }
 
 };/* class ListStat */
+
+template <class T>
+class HistogramStat : public Stat {
+private:
+  typedef std::map<T, unsigned int> Histogram;
+  Histogram d_hist;
+public:
+
+  /** Construct a histogram of a stream of entries. */
+  HistogramStat(const std::string& name) : Stat(name) {}
+  ~HistogramStat() {}
+
+  void flushInformation(std::ostream& out) const{
+    if(__CVC4_USE_STATISTICS) {
+      typename Histogram::const_iterator i = d_hist.begin();
+      typename Histogram::const_iterator end =  d_hist.end();
+      out << "[";
+      while(i != end){
+        const T& key = (*i).first;
+        unsigned int count = (*i).second;
+        out << "("<<key<<" : "<<count<< ")";
+        ++i;
+        if(i != end){
+          out << ", ";
+        }
+      }
+      out << "]";
+    }
+  }
+
+  HistogramStat& operator<<(const T& val){
+    if(__CVC4_USE_STATISTICS) {
+      if(d_hist.find(val) == d_hist.end()){
+        d_hist.insert(std::make_pair(val,0));
+      }
+      d_hist[val]++;
+    }
+    return (*this);
+  }
+
+};/* class HistogramStat */
 
 /****************************************************************************/
 /* Statistics Registry                                                      */

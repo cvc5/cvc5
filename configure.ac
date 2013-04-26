@@ -496,7 +496,7 @@ if test "$enable_static_binary" = yes; then
   fi
 fi
 
-AC_MSG_CHECKING([whether to support proof in libcvc4])
+AC_MSG_CHECKING([whether to support proofs in libcvc4])
 
 AC_ARG_ENABLE([proof],
   [AS_HELP_STRING([--enable-proof],
@@ -707,6 +707,17 @@ if test "$enable_profiling" = yes; then
   CVC4CFLAGS="${CVC4CFLAGS:+$CVC4CFLAGS }-pg"
   CVC4LDFLAGS="${CVC4LDFLAGS:+$CVC4LDFLAGS }-pg"
 fi
+
+# Check for libglpk (defined in config/glpk.m4)
+AC_ARG_WITH([glpk],
+  [AS_HELP_STRING([--with-glpk],
+     [use GLPK simplex solver])], [], [with_glpk=])
+CVC4_CHECK_FOR_GLPK
+if test $have_libglpk -eq 1; then
+  CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_GLPK"
+fi
+AM_CONDITIONAL([CVC4_USE_GLPK], [test $have_libglpk -eq 1])
+AC_SUBST([GLPK_LIBS])
 
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates __gnu_cxx::hash<uint64_t> or not.  Some do, some don't.
@@ -1312,6 +1323,7 @@ TLS support  : $CVC4_TLS_explanation
 Portfolio    : $with_portfolio
 
 MP library   : $mplibrary
+GLPK         : $with_glpk
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS

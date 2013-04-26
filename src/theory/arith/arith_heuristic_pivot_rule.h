@@ -25,12 +25,13 @@
 namespace CVC4 {
 
 typedef enum {
-  MINIMUM,
-  BREAK_TIES,
-  MAXIMUM
-} ArithHeuristicPivotRule;
+  VAR_ORDER,
+  MINIMUM_AMOUNT,
+  MAXIMUM_AMOUNT,
+  SUM_METRIC
+} ErrorSelectionRule;
 
-std::ostream& operator<<(std::ostream& out, ArithHeuristicPivotRule rule) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, ErrorSelectionRule rule) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

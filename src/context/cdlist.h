@@ -52,6 +52,7 @@ public:
   /** The value type with which this CDList<> was instantiated. */
   typedef T value_type;
 
+  /** The cleanup type with which this CDList<> was instantiated. */
   typedef CleanUpT CleanUp;
 
   /** The allocator type with which this CDList<> was instantiated. */

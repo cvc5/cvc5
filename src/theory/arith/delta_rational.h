@@ -160,6 +160,14 @@ public:
   }
 
 
+  DeltaRational abs() const {
+    if(sgn() >= 0){
+      return *this;
+    }else{
+      return (*this) * Rational(-1);
+    }
+  }
+
   bool operator==(const DeltaRational& other) const{
     return (k == other.k) && (c == other.c);
   }
@@ -196,10 +204,17 @@ public:
     return *(this);
   }
 
-  DeltaRational& operator+=(DeltaRational& other){
+  DeltaRational& operator+=(const DeltaRational& other){
     c += other.c;
     k += other.k;
 
+    return *(this);
+  }
+
+  DeltaRational& operator/=(const Rational& a){
+    Assert(!a.isZero());
+    c /= a;
+    k /= a;
     return *(this);
   }
 
@@ -259,6 +274,17 @@ public:
    * Precondition: res > 0
    */
   static void seperatingDelta(Rational& res, const DeltaRational& a, const DeltaRational& b);
+
+  uint32_t complexity() const {
+    return c.complexity() + k.complexity();
+  }
+
+  double approx(double deltaSub) const {
+    double maj = getNoninfinitesimalPart().getDouble();
+    double min = deltaSub * (getInfinitesimalPart().getDouble());
+    return maj + min;
+  }
+
 
 };
 

@@ -29,6 +29,7 @@
 #include <vector>
 #include <boost/integer_traits.hpp>
 #include "util/index.h"
+#include "util/cvc4_assert.h"
 
 namespace CVC4 {
 
@@ -287,15 +288,36 @@ public:
 
   bool isMember(Element x) const{ return d_map.isKey(x); }
 
-  void add(Element x){
+  void add(Element x, CountType c = 1u){
+    Assert(c > 0);
     if(d_map.isKey(x)){
-      d_map.set(x, d_map.get(x)+1);
+      d_map.set(x, d_map.get(x)+c);
     }else{
-      d_map.set(x,1);
+      d_map.set(x,c);
     }
   }
 
-  void remove(Element x){ return d_map.remove(x); }
+  void setCount(Element x, CountType c){
+    d_map.set(x, c);
+  }
+
+  void removeAll(Element x){ return d_map.remove(x); }
+
+  void removeOne(Element x){
+    CountType c = count(x);
+    switch(c){
+    case 0: break; // do nothing
+    case 1: removeAll(x); break; // remove
+    default: d_map.set(x, c-1); break; // decrease
+    }
+  }
+
+  void removeOneOfEverything(){
+    BackingMap::KeyList keys(d_map.begin(), d_map.end());
+    for(BackingMap::const_iterator i=keys.begin(), i_end = keys.end(); i != i_end; ++i){
+      removeOne(*i);
+    }
+  }
 
   CountType count(Element x) const {
     if(d_map.isKey(x)){

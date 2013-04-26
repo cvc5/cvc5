@@ -371,8 +371,22 @@ void ConstraintValue::setAssertedToTheTheory(TNode witness) {
   d_database->pushAssertionOrderWatch(this, witness);
 }
 
-// bool ConstraintValue::isPseudoConstraint() const {
-//   return d_proof == d_database->d_pseudoConstraintProof;
+bool ConstraintValue::satisfiedBy(const DeltaRational& dr) const {
+  switch(getType()){
+  case LowerBound:
+    return getValue() <= dr;
+  case Equality:
+    return getValue() == dr;
+  case UpperBound:
+    return getValue() >= dr;
+  case Disequality:
+    return getValue() != dr;
+  }
+  Unreachable();
+}
+
+// bool ConstraintValue::isPsuedoConstraint() const {
+//   return d_proof == d_database->d_psuedoConstraintProof;
 // }
 
 bool ConstraintValue::isSelfExplaining() const {
@@ -394,7 +408,7 @@ bool ConstraintValue::sanityChecking(Node n) const {
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
 
-  const ArithVarNodeMap& av2node = d_database->getArithVarNodeMap();
+  const ArithVariables& avariables = d_database->getArithVariables();
 
   Debug("nf::tmp") << cmp.getNode() << endl;
   Debug("nf::tmp") << k << endl;
@@ -402,13 +416,13 @@ bool ConstraintValue::sanityChecking(Node n) const {
   Debug("nf::tmp") << left << endl;
   Debug("nf::tmp") << right << endl;
   Debug("nf::tmp") << getValue() << endl;
-  Debug("nf::tmp") << av2node.hasArithVar(left) << endl;
-  Debug("nf::tmp") << av2node.asArithVar(left) << endl;
+  Debug("nf::tmp") << avariables.hasArithVar(left) << endl;
+  Debug("nf::tmp") << avariables.asArithVar(left) << endl;
   Debug("nf::tmp") << getVariable() << endl;
 
 
-  if(av2node.hasArithVar(left) &&
-     av2node.asArithVar(left) == getVariable() &&
+  if(avariables.hasArithVar(left) &&
+     avariables.asArithVar(left) == getVariable() &&
      getValue() == right){
     switch(getType()){
     case LowerBound:
@@ -469,12 +483,12 @@ Constraint ConstraintValue::makeNegation(ArithVar v, ConstraintType t, const Del
   }
 }
 
-ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Context* userContext, const ArithVarNodeMap& av2nodeMap, ArithCongruenceManager& cm, NodeCallBack& raiseConflict)
+ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Context* userContext, const ArithVariables& avars, ArithCongruenceManager& cm, RaiseConflict raiseConflict)
   : d_varDatabases(),
     d_toPropagate(satContext),
     d_proofs(satContext, false),
     d_watches(new Watches(satContext, userContext)),
-    d_av2nodeMap(av2nodeMap),
+    d_avariables(avars),
     d_congruenceManager(cm),
     d_satContext(satContext),
     d_satAllocationLevel(d_satContext->getLevel()),
@@ -670,7 +684,7 @@ Constraint ConstraintDatabase::addLiteral(TNode literal){
 
   Polynomial nvp = posCmp.normalizedVariablePart();
   Debug("nf::tmp") << "here " <<  nvp.getNode() << " " << endl;
-  ArithVar v = d_av2nodeMap.asArithVar(nvp.getNode());
+  ArithVar v = d_avariables.asArithVar(nvp.getNode());
 
   DeltaRational posDR = posCmp.normalizedDeltaRational();
 

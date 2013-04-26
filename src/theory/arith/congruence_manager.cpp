@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, TNodeCallBack& setup, const ArithVarNodeMap& av2Node, NodeCallBack& raiseConflict)
+ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, SetupLiteralCallBack setup, const ArithVariables& avars, RaiseConflict raiseConflict)
   : d_inConflict(c),
     d_raiseConflict(raiseConflict),
     d_notify(*this),
@@ -33,7 +33,7 @@ ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDa
     d_explanationMap(c),
     d_constraintDatabase(cd),
     d_setupLiteral(setup),
-    d_av2Node(av2Node),
+    d_avariables(avars),
     d_ee(d_notify, c, "theory::arith::ArithCongruenceManager")
 {}
 
@@ -295,7 +295,7 @@ void ArithCongruenceManager::equalsConstant(Constraint c){
   Debug("equalsConstant") << "equals constant " << c << std::endl;
 
   ArithVar x = c->getVariable();
-  Node xAsNode = d_av2Node.asNode(x);
+  Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(c->getValue().getNoninfinitesimalPart());
 
 
@@ -321,7 +321,7 @@ void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
   ArithVar x = lb->getVariable();
   Node reason = ConstraintValue::explainConflict(lb,ub);
 
-  Node xAsNode = d_av2Node.asNode(x);
+  Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
 
   //No guarentee this is in normal form!

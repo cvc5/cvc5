@@ -66,6 +66,11 @@ libcvc4_noinst_la_LIBADD += \
 	@builddir@/lib/libreplacements.la
 endif
 
+if CVC4_USE_GLPK
+libcvc4_la_LIBADD += $(GLPK_LIBS)
+libcvc4_noinst_la_LIBADD += $(GLPK_LIBS)
+endif
+
 CLEANFILES = \
 	svn_versioninfo.cpp \
 	svninfo.tmp \

@@ -182,6 +182,12 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
     e = tmp;
     k = reverseRelationKind(k);
   }
+  //(ite (< x y) x y)
+  //(ite (x < y) x y)
+  //(ite (x - y < 0) x y)
+  // ----------------
+  // (ite (x - y < -c) )
+
   if(t == cleft && e == cright){
     // t == cleft && e == cright
     Assert( t == cleft );

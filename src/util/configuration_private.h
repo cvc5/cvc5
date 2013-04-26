@@ -101,6 +101,12 @@ namespace CVC4 {
 #  define IS_CLN_BUILD false
 #endif /* CVC4_CLN_IMP */
 
+#if CVC4_USE_GLPK
+#  define IS_GLPK_BUILD true
+#else /* CVC4_USE_GLPK */
+#  define IS_GLPK_BUILD false
+#endif /* CVC4_USE_GLPK */
+
 #ifdef TLS
 #  define USING_TLS true
 #else /* TLS */
@@ -124,13 +130,20 @@ Copyright (C) 2009, 2010, 2011, 2012, 2013\n\
 This CVC4 library uses CLN as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\
 However, CLN, the Class Library for Numbers, is covered by the GPLv3,\n\
-and so this \"combined\" work, CVC4+CLN, is covered by the GPLv3 as well\n\
+and so this \"combined\" work, CVC4+CLN, is covered by the GPLv3 as well.\n\
 Please consult the CVC4 documentation for instructions about building\n\
 without CLN if you want to license CVC4 under the (modified) BSD license.\n\n\
+" : ( IS_GLPK_BUILD ? "\
+This CVC4 library uses GLPK in its arithmetic solver.\n\n\
+CVC4 is open-source and is covered by the BSD license (modified).\n\
+However, GLPK, the GNU Linear Programming Kit, is covered by the GPLv3,\n\
+and so this \"combined\" work, CVC4+GLPK, is covered by the GPLv3 as well.\n\
+Please consult the CVC4 documentation for instructions about building\n\
+without GLPK if you want to license CVC4 under the (modified) BSD license.\n\n\
 " : \
 "This CVC4 library uses GMP as its multi-precision arithmetic library.\n\n\
 CVC4 is open-source and is covered by the BSD license (modified).\n\n\
-" ) + "\
+" ) ) + "\
 THIS SOFTWARE PROVIDED AS-IS, WITHOUT ANY WARRANTIES. USE AT YOUR OWN RISK.\n\n\
 See the file COPYING (distributed with the source code, and with all binaries)\n\
 for the full CVC4 copyright, licensing, and (lack of) warranty information.\n" )

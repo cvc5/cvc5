@@ -25,7 +25,7 @@ option arithHeuristicPivots --heuristic-pivots=N int16_t :default 0 :read-write
 expert-option arithStandardCheckVarOrderPivots --standard-effort-variable-order-pivots=N int16_t :default -1 :read-write
  limits the number of pivots in a single invocation of check() at a non-full effort level using Bland's pivot rule
 
-option arithHeuristicPivotRule --heuristic-pivot-rule=RULE ArithHeuristicPivotRule :handler CVC4::theory::arith::stringToArithHeuristicPivotRule :default MINIMUM :handler-include "theory/arith/options_handlers.h" :include "theory/arith/arith_heuristic_pivot_rule.h"
+option arithErrorSelectionRule --error-selection-rule=RULE ErrorSelectionRule :handler CVC4::theory::arith::stringToErrorSelectionRule :default MINIMUM_AMOUNT :handler-include "theory/arith/options_handlers.h" :include "theory/arith/arith_heuristic_pivot_rule.h"
  change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)
 
 # The number of pivots before simplex rechecks every basic variable for a conflict
@@ -51,6 +51,7 @@ option arithRewriteEq --enable-arith-rewrite-equalities/--disable-arith-rewrite-
  turns on the preprocessing rewrite turning equalities into a conjunction of inequalities
 /turns off the preprocessing rewrite turning equalities into a conjunction of inequalities
 
+
 option arithMLTrick miplib-trick --enable-miplib-trick/--disable-miplib-trick bool :default false
  turns on the preprocessing step of attempting to infer bounds on miplib problems
 /turns off the preprocessing step of attempting to infer bounds on miplib problems
@@ -58,7 +59,7 @@ option arithMLTrick miplib-trick --enable-miplib-trick/--disable-miplib-trick bo
 option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs unsigned :default 1
  do substitution for miplib 'tmp' vars if defined in <= N eliminated vars
 
-option doCutAllBounded --enable-cut-all-bounded/--disable-cut-all-bounded bool :default false :read-write
+option doCutAllBounded --cut-all-bounded bool :default false :read-write
  turns on the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
 /turns off the integer solving step of periodically cutting all integer variables that have both upper and lower bounds
 
@@ -67,5 +68,27 @@ option maxCutsInContext --maxCutsInContext unsigned :default 65535
 
 option revertArithModels --revert-arith-models-on-unsat bool :default false
  Revert the arithmetic model to a known safe model on unsat if one is cached
+
+option havePenalties --fc-penalties bool :default false :read-write
+ turns on degenerate pivot penalties
+/ turns off degenerate pivot penalties
+
+option useFC --use-fcsimplex bool :default false :read-write
+ use focusing and converging simplex (FMCAD 2013 submission)
+
+option useSOI --use-soi bool :default false :read-write
+ use sum of infeasibility simplex (FMCAD 2013 submission)
+
+option restrictedPivots --restrict-pivots bool :default true :read-write
+ have a pivot cap for simplex at effort levels below fullEffort.
+
+option collectPivots --collect-pivot-stats bool :default false :read-write
+ collect the pivot history
+
+option fancyFinal --fancy-final bool :default false :read-write
+ Tuning how final check works for really hard problems.
+
+option exportDioDecompositions --dio-decomps bool :default false :read-write
+ Let skolem variables for integer divisibility constraints leak from the dio solver.
 
 endmodule
