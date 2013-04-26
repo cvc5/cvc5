@@ -458,9 +458,8 @@ Lit Solver::pickBranchLit()
     }
 #endif /* CVC4_REPLAY */
 
-    // Theory/DE requests
-    bool stopSearch = false;
-    nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest(stopSearch));
+    // Theory requests
+    nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextTheoryDecisionRequest());
     while (nextLit != lit_Undef) {
       if(value(var(nextLit)) == l_Undef) {
         Debug("propagateAsDecision") << "propagateAsDecision(): now deciding on " << nextLit << std::endl;
@@ -469,12 +468,21 @@ Lit Solver::pickBranchLit()
       } else {
         Debug("propagateAsDecision") << "propagateAsDecision(): would decide on " << nextLit << " but it already has an assignment" << std::endl;
       }
-      nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionRequest(stopSearch));
+      nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextTheoryDecisionRequest());
     }
+    Debug("propagateAsDecision") << "propagateAsDecision(): decide on another literal" << std::endl;
+
+    // DE requests
+    bool stopSearch = false;
+    nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextDecisionEngineRequest(stopSearch));
     if(stopSearch) {
       return lit_Undef;
     }
-    Debug("propagateAsDecision") << "propagateAsDecision(): decide on another literal" << std::endl;
+    if(nextLit != lit_Undef) {
+      Assert(value(var(nextLit)) == l_Undef, "literal to decide already has value");
+      decisions++;
+      return nextLit;
+    }
 
     Var next = var_Undef;
 

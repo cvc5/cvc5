@@ -37,14 +37,23 @@ namespace CVC4 {
 namespace decision {
 
 class JustificationHeuristic : public ITEDecisionStrategy {
+  //                   TRUE           FALSE         MEH
+  enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
+
   typedef std::vector<pair<TNode,TNode> > IteList;
   typedef context::CDHashMap<TNode,IteList,TNodeHashFunction> IteCache;
+  typedef std::vector<TNode> ChildList;
+  typedef context::CDHashMap<TNode,pair<ChildList,ChildList>,TNodeHashFunction> ChildCache;
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
+  typedef context::CDHashMap<TNode,pair<DecisionWeight,DecisionWeight>,TNodeHashFunction> WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
   typedef context::CDHashSet<Node,NodeHashFunction> JustifiedSet;
   JustifiedSet d_justified;
+  typedef context::CDHashMap<Node,DecisionWeight,NodeHashFunction> ExploredThreshold;
+  ExploredThreshold d_exploredThreshold;
   context::CDO<unsigned>  d_prvsIndex;
+  context::CDO<unsigned>  d_threshPrvsIndex;
 
   IntStat d_helfulness;
   IntStat d_giveup;
@@ -80,6 +89,26 @@ class JustificationHeuristic : public ITEDecisionStrategy {
 
   /** current decision for the recursive call */
   SatLiteral d_curDecision;
+  /** current threshold for the recursive call */
+  DecisionWeight d_curThreshold;
+
+  /** child cache */
+  ChildCache d_childCache;
+
+  /** computed polarized weight cache */
+  WeightCache d_weightCache;
+
+
+  class myCompareClass {
+    JustificationHeuristic* d_jh;
+    bool d_b;
+  public:
+    myCompareClass(JustificationHeuristic* jh, bool b):d_jh(jh),d_b(b) {};
+    bool operator() (TNode n1, TNode n2) {
+      return d_jh->getWeightPolarized(n1, d_b) < d_jh->getWeightPolarized(n2, d_b);
+    }
+  };
+
 public:
   JustificationHeuristic(CVC4::DecisionEngine* de,
                          context::UserContext *uc,
@@ -94,17 +123,30 @@ public:
                      IteSkolemMap iteSkolemMap);
 
 private:
+  /* getNext with an option to specify threshold */
+  prop::SatLiteral getNextThresh(bool &stopSearch, DecisionWeight threshold);
+
   SatLiteral findSplitter(TNode node, SatValue desiredVal);
   
   /** 
    * Do all the hard work. 
    */ 
-  bool findSplitterRec(TNode node, SatValue value);
+  SearchResult findSplitterRec(TNode node, SatValue value);
 
   /* Helper functions */
   void setJustified(TNode);
   bool checkJustified(TNode);
-  
+  DecisionWeight getExploredThreshold(TNode);
+  void setExploredThreshold(TNode);
+  void setPrvsIndex(int);
+  int  getPrvsIndex();
+  DecisionWeight getWeightPolarized(TNode n, bool polarity);
+  DecisionWeight getWeightPolarized(TNode n, SatValue);
+  static DecisionWeight getWeight(TNode);
+  bool compareByWeightFalse(TNode, TNode);
+  bool compareByWeightTrue(TNode, TNode);
+  TNode getChildByWeight(TNode n, int i, bool polarity);
+
   /* If literal exists corresponding to the node return
      that. Otherwise an UNKNOWN */
   SatValue tryGetSatValue(Node n);
@@ -115,14 +157,14 @@ private:
   /* Compute all term-ITEs in a node recursively */
   void computeITEs(TNode n, IteList &l);
 
-  bool handleAndOrEasy(TNode node, SatValue desiredVal);
-  bool handleAndOrHard(TNode node, SatValue desiredVal);
-  bool handleBinaryEasy(TNode node1, SatValue desiredVal1,
+  SearchResult handleAndOrEasy(TNode node, SatValue desiredVal);
+  SearchResult handleAndOrHard(TNode node, SatValue desiredVal);
+  SearchResult handleBinaryEasy(TNode node1, SatValue desiredVal1,
                         TNode node2, SatValue desiredVal2);
-  bool handleBinaryHard(TNode node1, SatValue desiredVal1,
+  SearchResult handleBinaryHard(TNode node1, SatValue desiredVal1,
                         TNode node2, SatValue desiredVal2);
-  bool handleITE(TNode node, SatValue desiredVal);
-  bool handleEmbeddedITEs(TNode node);
+  SearchResult handleITE(TNode node, SatValue desiredVal);
+  SearchResult handleEmbeddedITEs(TNode node);
 };/* class JustificationHeuristic */
 
 }/* namespace decision */

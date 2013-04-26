@@ -27,6 +27,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
+#include "theory/decision_attributes.h"
 #include "util/ite_removal.h"
 #include "util/output.h"
 

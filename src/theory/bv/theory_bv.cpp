@@ -78,13 +78,15 @@ TheoryBV::Statistics::Statistics():
   d_solveSubstitutions("theory::bv::NumberOfSolveSubstitutions", 0),
   d_solveTimer("theory::bv::solveTimer"),
   d_numCallsToCheckFullEffort("theory::bv::NumberOfFullCheckCalls", 0),
-  d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0)
+  d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0),
+  d_weightComputationTimer("theory::bv::weightComputationTimer")
 {
   StatisticsRegistry::registerStat(&d_avgConflictSize);
   StatisticsRegistry::registerStat(&d_solveSubstitutions);
   StatisticsRegistry::registerStat(&d_solveTimer);
   StatisticsRegistry::registerStat(&d_numCallsToCheckFullEffort);
   StatisticsRegistry::registerStat(&d_numCallsToCheckStandardEffort);
+  StatisticsRegistry::registerStat(&d_weightComputationTimer);
 }
 
 TheoryBV::Statistics::~Statistics() {
@@ -93,6 +95,7 @@ TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_solveTimer);
   StatisticsRegistry::unregisterStat(&d_numCallsToCheckFullEffort);
   StatisticsRegistry::unregisterStat(&d_numCallsToCheckStandardEffort);
+  StatisticsRegistry::unregisterStat(&d_weightComputationTimer);
 }
 
 
@@ -205,6 +208,7 @@ void TheoryBV::propagate(Effort e) {
     TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
     // temporary fix for incremental bit-blasting 
     if (d_valuation.isSatLiteral(literal)) {
+      Debug("bitvector::propagate") << "TheoryBV:: propagating " << literal <<"\n";
       ok = d_out->propagate(literal);
     }
   }

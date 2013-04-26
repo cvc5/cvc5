@@ -20,4 +20,16 @@ option decisionMustRelevancy bool
 # only use DE to determine when to stop, not to make decisions
 option decisionStopOnly bool
 
+expert-option decisionThreshold --decision-threshold=N decision::DecisionWeight :default 0 :include "theory/decision_attributes.h"
+ ignore all nodes greater than threshold in first attempt to pick decision
+
+expert-option decisionUseWeight --decision-use-weight bool :default false
+ use the weight nodes (locally, by looking at children) to direct recursive search
+
+expert-option decisionRandomWeight --decision-random-weight=N int :default 0
+ assign random weights to nodes between 0 and N-1 (0: disable)
+
+expert-option decisionWeightInternal --decision-weight-internal=HOW decision::DecisionWeightInternal :handler CVC4::decision::stringToDecisionWeightInternal :default decision::DECISION_WEIGHT_INTERNAL_OFF :handler-include "decision/options_handlers.h"
+ computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)
+
 endmodule
