@@ -588,7 +588,10 @@ void TheoryArrays::computeCareGraph()
       }
     }
   }
-  if (options::arraysModelBased()) return;
+  if (options::arraysModelBased()) {
+    checkModel(EFFORT_COMBINATION);
+    return;
+  }
   if (d_sharedTerms) {
 
     vector< pair<TNode, TNode> > currentPairs;
@@ -1009,7 +1012,7 @@ void TheoryArrays::checkModel(Effort e)
   Assert(d_skolemAssertions.empty());
   Assert(d_lemmas.empty());
 
-  if (fullEffort(e)) {
+  if (combination(e)) {
     // Add constraints for shared terms
     context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end(), shared_it2;
     Node modelVal, modelVal2, d;
@@ -1294,7 +1297,7 @@ void TheoryArrays::checkModel(Effort e)
   d_skolemIndex = 0;
   while (!d_lemmas.empty()) {
     Debug("arrays-model-based") << "Sending lemma: " << d_lemmas.back() << endl;
-    d_out->lemma(d_lemmas.back());
+    d_out->splitLemma(d_lemmas.back());
 #ifdef CVC4_ASSERTIONS
     Assert(d_lemmasSaved.find(d_lemmas.back()) == d_lemmasSaved.end());
     d_lemmasSaved.insert(d_lemmas.back());
@@ -1633,9 +1636,14 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
           return true;
         }
       }
-      getSatContext()->push();
       Node d = node.eqNode(val);
-      d_decisions.push_back(invert ? d.notNode() : d);
+      Node r = Rewriter::rewrite(d);
+      if (r.isConst()) {
+        d_equalityEngine.assertEquality(d, r == d_true, d_true);
+        return ((r == d_true) == (!invert));
+      }
+      getSatContext()->push();
+      d_decisions.push_back(invert ? d.negate() : d);
       d_equalityEngine.assertEquality(d, !invert, d_decisions.back());
       Debug("arrays-model-based") << "Asserting " << d_decisions.back() << " with explanation " << d_decisions.back() << endl;
       ++d_numSetModelValSplits;

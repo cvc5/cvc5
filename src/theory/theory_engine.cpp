@@ -110,6 +110,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_propagationMapTimestamp(context, 0),
   d_propagatedLiterals(context),
   d_propagatedLiteralsIndex(context, 0),
+  d_atomRequests(context),
   d_iteRemover(iteRemover),
   d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
   d_true(),
@@ -411,43 +412,13 @@ void TheoryEngine::combineTheories() {
 
     Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
     Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
-    //AJR-temp Assert(!d_sharedTerms.areEqual(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
-    //AJR-temp Assert(!d_sharedTerms.areDisequal(carePair.a, carePair.b), "Please don't care about stuff you were notified about");
 
-    // The equality in question
-    Node equality = carePair.a < carePair.b ?
-        carePair.a.eqNode(carePair.b) :
-        carePair.b.eqNode(carePair.a);
-
-    // Normalize the equality
-    Node normalizedEquality = Rewriter::rewrite(equality);
-
-    // Check if the normalized equality already has a value (this also
-    // covers constants, since they always have values
-    if (d_propEngine->isSatLiteral(normalizedEquality)) {
-      bool value;
-      if (d_propEngine->hasValue(normalizedEquality, value)) {
-        Assert(equality != normalizedEquality);
-        Node literal = value ? equality : equality.notNode();
-        Node normalizedLiteral = value ? normalizedEquality : normalizedEquality.notNode();
-        // We're sending the original literal back, backed by the normalized one
-        if (markPropagation(literal, normalizedLiteral, /* to */ carePair.theory, /* from */ THEORY_SAT_SOLVER)) {
-          // We assert it, and we know it's preregistereed if it's the same theory
-          bool preregistered = Theory::theoryOf(literal) == carePair.theory;
-          theoryOf(carePair.theory)->assertFact(literal, preregistered);
-          // Mark that we have more information
-          d_factsAsserted = true;
-          continue;
-        } else {
-          Message() << "mark propagation fail: " << literal << " " << normalizedLiteral << " " << carePair.theory << std::endl;
-          Unreachable();
-        }
-      }
-    }
+    // The equality in question (order for no repetition)
+    Node equality = carePair.a.eqNode(carePair.b);
 
     // We need to split on it
     Debug("sharing") << "TheoryEngine::combineTheories(): requesting a split " << std::endl;
-    lemma(equality.orNode(equality.notNode()), false, false);
+    lemma(equality.orNode(equality.notNode()), false, false, carePair.theory);
   }
 }
 
@@ -893,7 +864,7 @@ bool TheoryEngine::markPropagation(TNode assertion, TNode originalAssertion, the
 }
 
 
-void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId) {
+void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId) {
 
   Trace("theory::assertToTheory") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << ")" << std::endl;
 
@@ -915,6 +886,7 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
 
   // If sharing is disabled, things are easy
   if (!d_logicInfo.isSharingEnabled()) {
+    Assert(assertion == originalAssertion);
     if (fromTheoryId == THEORY_SAT_SOLVER) {
       // Send to the apropriate theory
       theory::Theory* toTheory = theoryOf(toTheoryId);
@@ -948,7 +920,7 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
     Assert(atom.getKind() == kind::EQUAL, "atom should be an EQUALity, not `%s'", atom.toString().c_str());
-    if (markPropagation(assertion, assertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
     return;
@@ -958,9 +930,9 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
   // directly to the apropriate theory
   if (fromTheoryId == THEORY_SAT_SOLVER) {
     // We know that this is normalized, so just send it off to the theory
-    if (markPropagation(assertion, assertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       // We assert it, and we know it's preregistereed coming from the SAT solver directly
-      theoryOf(toTheoryId)->assertFact(assertion, true);
+      theoryOf(toTheoryId)->assertFact(assertion, assertion == originalAssertion);
       // Mark that we have more information
       d_factsAsserted = true;
     }
@@ -970,7 +942,7 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
   // Propagations to the SAT solver are just enqueued for pickup by
   // the SAT solver later
   if (toTheoryId == THEORY_SAT_SOLVER) {
-    if (markPropagation(assertion, assertion, toTheoryId, fromTheoryId)) {
+    if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       // Enqueue for propagation to the SAT solver
       d_propagatedLiterals.push_back(assertion);
       // Check for propositional conflicts
@@ -982,18 +954,16 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
     return;
   }
 
-  // See if it rewrites to true or false directly
+  Assert(atom.getKind() == kind::EQUAL);
+
+  // Normalize
   Node normalizedLiteral = Rewriter::rewrite(assertion);
+
+  // See if it rewrites false directly -> conflict
   if (normalizedLiteral.isConst()) {
-    if (normalizedLiteral.getConst<bool>()) {
-      // trivially true, but theories need to share even trivially true facts
-      // unless of course it is the theory that normalized it
-      if (Theory::theoryOf(atom) == toTheoryId) {
-      	return;
-      }
-    } else {
+    if (!normalizedLiteral.getConst<bool>()) {
       // Mark the propagation for explanations
-      if (markPropagation(normalizedLiteral, assertion, toTheoryId, fromTheoryId)) {
+      if (markPropagation(normalizedLiteral, originalAssertion, toTheoryId, fromTheoryId)) {
         // Get the explanation (conflict will figure out where it came from)
         conflict(normalizedLiteral, toTheoryId);
       } else {
@@ -1003,25 +973,12 @@ void TheoryEngine::assertToTheory(TNode assertion, theory::TheoryId toTheoryId, 
     }
   }
 
-  // Normalize to lhs < rhs if not a sat literal
-  Assert(atom.getKind() == kind::EQUAL);
-  Assert(atom[0] != atom[1]);
-
-  Node normalizedAtom = atom;
-  if (!d_propEngine->isSatLiteral(normalizedAtom)) {
-    Node reverse = atom[1].eqNode(atom[0]);
-    if (d_propEngine->isSatLiteral(reverse) || atom[0] > atom[1]) {
-      normalizedAtom = reverse;
-    }
-  }
-  Node normalizedAssertion = polarity ? normalizedAtom : normalizedAtom.notNode();
-
   // Try and assert (note that we assert the non-normalized one)
-  if (markPropagation(normalizedAssertion, assertion, toTheoryId, fromTheoryId)) {
+  if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
     // Check if has been pre-registered with the theory
-    bool preregistered = d_propEngine->isSatLiteral(normalizedAssertion) && Theory::theoryOf(normalizedAtom) == toTheoryId;
+    bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
     // Assert away
-    theoryOf(toTheoryId)->assertFact(normalizedAssertion, preregistered);
+    theoryOf(toTheoryId)->assertFact(assertion, preregistered);
     d_factsAsserted = true;
   }
 
@@ -1067,16 +1024,27 @@ void TheoryEngine::assertFact(TNode literal)
     // to the assert the equality to the interested theories
     if (atom.getKind() == kind::EQUAL) {
       // Assert it to the the owning theory
-      assertToTheory(literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+      assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
       // Shared terms manager will assert to interested theories directly, as the terms become shared
-      assertToTheory(literal, /* to */ THEORY_BUILTIN, /* from */ THEORY_SAT_SOLVER);
+      assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ THEORY_SAT_SOLVER);
+
+      // Now, let's check for any atom triggers from lemmas
+      AtomRequests::atom_iterator it = d_atomRequests.getAtomIterator(atom);
+      while (!it.done()) {
+        const AtomRequests::Request& request = it.get();
+        Node toAssert = polarity ? (Node) request.atom : request.atom.notNode();
+        Debug("theory::atoms") << "TheoryEngine::assertFact(" << literal << "): sending requested " << toAssert << std::endl;
+        assertToTheory(toAssert, literal, request.toTheory, THEORY_SAT_SOLVER);
+        it.next();
+      }
+
     } else {
       // Not an equality, just assert to the appropriate theory
-      assertToTheory(literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+      assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
     }
   } else {
     // Assert the fact to the appropriate theory directly
-    assertToTheory(literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
+    assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
   }
 }
 
@@ -1101,16 +1069,16 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   if (d_logicInfo.isSharingEnabled() && atom.getKind() == kind::EQUAL) {
     if (d_propEngine->isSatLiteral(literal)) {
       // We propagate SAT literals to SAT
-      assertToTheory(literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
+      assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
     }
     if (theory != THEORY_BUILTIN) {
       // Assert to the shared terms database
-      assertToTheory(literal, /* to */ THEORY_BUILTIN, /* from */ theory);
+      assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ theory);
     }
   } else {
     // Just send off to the SAT solver
     Assert(d_propEngine->isSatLiteral(literal));
-    assertToTheory(literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
+    assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
   }
 
   return !d_inConflict;
@@ -1193,7 +1161,104 @@ Node TheoryEngine::getExplanation(TNode node) {
   return explanation;
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable) {
+struct AtomsCollect {
+
+  std::vector<TNode> d_atoms;
+  std::hash_set<TNode, TNodeHashFunction> d_visited;
+
+public:
+
+  typedef void return_type;
+
+  bool alreadyVisited(TNode current, TNode parent) {
+    // Check if already visited
+    d_visited.find(current) != d_visited.end();
+    // Don't visit non-boolean
+    if (!current.getType().isBoolean()) return true;
+    // New node
+    return false;
+  }
+
+  void visit(TNode current, TNode parent) {
+    if (Theory::theoryOf(current) != theory::THEORY_BOOL) {
+      d_atoms.push_back(current);
+    }
+    d_visited.insert(current);
+  }
+
+  void start(TNode node) {}
+  void done(TNode node) {}
+
+  std::vector<TNode> getAtoms() const {
+    return d_atoms;
+  }
+};
+
+void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId atomsTo) {
+  for (unsigned i = 0; i < atoms.size(); ++ i) {
+
+    // Non-equality atoms are either owned by theory or they don't make sense
+    if (atoms[i].getKind() != kind::EQUAL) {
+      continue;
+    }
+
+    // The equality
+    Node eq = atoms[i];
+    // Simple normalization to not repeat stuff
+    if (eq[0] > eq[1]) {
+      eq = eq[1].eqNode(eq[0]);
+    }
+
+    // Rewrite the equality
+    Node eqNormalized = Rewriter::rewrite(atoms[i]);
+    // If the equality is a boolean constant, we send immediately
+    if (eqNormalized.isConst()) {
+      if (eqNormalized.getConst<bool>()) {
+        assertToTheory(eq, eqNormalized, /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
+      } else {
+        assertToTheory(eq.notNode(), eqNormalized.notNode(), /** to */ atomsTo, /** Sat solver */ theory::THEORY_SAT_SOLVER);
+      }
+      continue;
+    }
+
+    // If the normalization did the just flips, keep the flip
+    if (eqNormalized[0] == eq[1]) {
+      eq = eqNormalized;
+    }
+
+    // Check if the equality is already known by the sat solver
+    if (d_propEngine->isSatLiteral(eqNormalized)) {
+      bool value;
+      if (d_propEngine->hasValue(eqNormalized, value)) {
+        if (value) {
+          assertToTheory(eq, eqNormalized, atomsTo, theory::THEORY_SAT_SOLVER);
+          continue;
+        } else {
+          assertToTheory(eq.notNode(), eqNormalized.notNode(), atomsTo, theory::THEORY_SAT_SOLVER);
+          continue;
+        }
+      }
+    }
+
+    // If the theory is asking about a different form, or the form is ok but if will go to a different theory
+    // then we must figure it out
+    if (eqNormalized != eq || Theory::theoryOf(eq) != atomsTo) {
+      // If you get eqNormalized, send atoms[i] to atomsTo
+      d_atomRequests.add(eqNormalized, eq, atomsTo);
+    }
+  }
+}
+
+theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, theory::TheoryId atomsTo) {
+
+  // Do we need to check atoms
+  if (atomsTo != theory::THEORY_LAST) {
+    Debug("theory::atoms") << "TheoryEngine::lemma(" << node << ", " << atomsTo << ")" << std::endl;
+    AtomsCollect collectAtoms;
+    NodeVisitor<AtomsCollect>::run(collectAtoms, node);
+    ensureLemmaAtoms(collectAtoms.getAtoms(), atomsTo);
+  }
+
   if(Dump.isOn("t-lemmas")) {
     Node n = node;
     if (negated) {
@@ -1269,11 +1334,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << std::endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, true);
+    lemma(fullConflict, true, true, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, true);
+    lemma(conflict, true, true, THEORY_LAST);
   }
 }
 

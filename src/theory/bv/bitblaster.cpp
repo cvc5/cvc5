@@ -95,7 +95,10 @@ void Bitblaster::bbAtom(TNode node) {
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n"; 
   ++d_statistics.d_numAtoms;
   // the bitblasted definition of the atom
-  Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
+  Node normalized = Rewriter::rewrite(node);
+  Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
+      Rewriter::rewrite(d_atomBBStrategies[normalized.getKind()](normalized, this)) :
+      normalized;
   // asserting that the atom is true iff the definition holds
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
 

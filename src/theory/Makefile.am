@@ -42,7 +42,9 @@ libtheory_la_SOURCES = \
 	model.h \
 	model.cpp \
 	rep_set.h \
-	rep_set.cpp
+	rep_set.cpp \
+	atom_requests.h \
+	atom_requests.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \

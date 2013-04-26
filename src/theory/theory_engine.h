@@ -46,6 +46,7 @@
 #include "theory/unconstrained_simplifier.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/bv/bv_to_bool.h"
+#include "theory/atom_requests.h"
 
 namespace CVC4 {
 
@@ -74,6 +75,9 @@ struct NodeTheoryPairHashFunction {
     return hashFunction(pair.node)*0x9e3779b9 + pair.theory;
   }
 };/* struct NodeTheoryPairHashFunction */
+
+
+
 
 namespace theory {
   class TheoryModel;
@@ -293,7 +297,14 @@ class TheoryEngine {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable);
+      return d_engine->lemma(lemma, false, removable, theory::THEORY_LAST);
+    }
+
+    theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+      Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
+      ++ d_statistics.lemmas;
+      d_engine->d_outputChannelUsed = true;
+      return d_engine->lemma(lemma, false, removable, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {
@@ -430,10 +441,20 @@ class TheoryEngine {
    */
   bool d_outputChannelUsed;
 
+  /** Atom requests from lemmas */
+  AtomRequests d_atomRequests;
+
   /**
    * Adds a new lemma, returning its status.
+   * @param node the lemma
+   * @param negated should the lemma be asserted negated
+   * @param removable can the lemma be remove (restrictions apply)
+   * @param needAtoms if not THEORY_LAST, then
    */
-  theory::LemmaStatus lemma(TNode node, bool negated, bool removable);
+  theory::LemmaStatus lemma(TNode node, bool negated, bool removable, theory::TheoryId atomsTo);
+
+  /** Enusre that the given atoms are send to the given theory */
+  void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
   RemoveITE& d_iteRemover;
 
@@ -535,13 +556,18 @@ private:
   context::CDO<bool> d_factsAsserted;
 
   /**
+   * Map from equality atoms to theories that would like to be notified about them.
+   */
+
+
+  /**
    * Assert the formula to the given theory.
    * @param assertion the assertion to send (not necesserily normalized)
    * @param original the assertion as it was sent in from the propagating theory
    * @param toTheoryId the theory to assert to
    * @param fromTheoryId the theory that sent it
    */
-  void assertToTheory(TNode assertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
+  void assertToTheory(TNode assertion, TNode originalAssertion, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
 
   /**
    * Marks a theory propagation from a theory to a theory where a

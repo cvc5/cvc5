@@ -127,8 +127,11 @@ public:
    */
   LemmaStatus split(TNode n)
     throw(TypeCheckingExceptionPrivate, AssertionException) {
-    return lemma(n.orNode(n.notNode()));
+    return splitLemma(n.orNode(n.notNode()));
   }
+
+  virtual LemmaStatus splitLemma(TNode n, bool removable = false)
+    throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**
    * If a decision is made on n, it must be in the phase specified.
