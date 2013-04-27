@@ -9,14 +9,6 @@ module DECISION "decision/options.h" Decision heuristics
 option decisionMode --decision=MODE decision::DecisionMode :handler CVC4::decision::stringToDecisionMode :default decision::DECISION_STRATEGY_INTERNAL :read-write :include "decision/decision_mode.h" :handler-include "decision/options_handlers.h"
  choose decision mode, see --decision=help
 
-option decisionRelevancyLeaves bool
-# permille = part per thousand
-option decisionMaxRelTimeAsPermille --decision-budget=N "unsigned short" :read-write :predicate less_equal(1000L) :predicate CVC4::decision::checkDecisionBudget :predicate-include "decision/options_handlers.h"
- impose a budget for relevancy heuristic which increases linearly with each decision. N between 0 and 1000. (default: 1000, no budget)
-# if false, do justification stuff using relevancy.h
-option decisionComputeRelevancy bool
-# use the must be relevant
-option decisionMustRelevancy bool
 # only use DE to determine when to stop, not to make decisions
 option decisionStopOnly bool
 

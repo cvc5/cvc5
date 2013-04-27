@@ -83,7 +83,8 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
      userContext,
      // fullLitToNode Map = 
      options::threads() > 1 || 
-     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY);
+     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY
+     );
 
   d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream));
 

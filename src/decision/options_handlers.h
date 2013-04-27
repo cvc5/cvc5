@@ -37,31 +37,8 @@ justification\n\
 justification-stoponly\n\
 + Use the justification heuristic only to stop early, not for decisions\n\
 ";
-/** Under-development options, commenting out from help for the release */
-/*
-\n\
-relevancy\n\
-+ Under development may-relevancy\n\
-\n\
-relevancy-leaves\n\
-+ May-relevancy, but decide only on leaves\n\
-\n\
-Developer modes:\n\
-\n\
-justification-rel\n\
-+ Use the relevancy code to do the justification stuff\n\
-+ (This should do exact same thing as justification)\n\
-\n\
-justification-must\n\
-+ Start deciding on literals close to root instead of those\n\
-+ near leaves (don't expect it to work well) [Unimplemented]\n\
-";*/
 
 inline DecisionMode stringToDecisionMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  options::decisionRelevancyLeaves.set(false);
-  options::decisionMaxRelTimeAsPermille.set(1000);
-  options::decisionComputeRelevancy.set(true);
-  options::decisionMustRelevancy.set(false);
   options::decisionStopOnly.set(false);
 
   if(optarg == "internal") {
@@ -71,39 +48,12 @@ inline DecisionMode stringToDecisionMode(std::string option, std::string optarg,
   } else if(optarg == "justification-stoponly") {
     options::decisionStopOnly.set(true);
     return DECISION_STRATEGY_JUSTIFICATION;
-  } else if(optarg == "relevancy") {
-    options::decisionRelevancyLeaves.set(false);
-    return DECISION_STRATEGY_RELEVANCY;
-  } else if(optarg == "relevancy-leaves") {
-    options::decisionRelevancyLeaves.set(true);
-    Trace("options") << "version is " << options::version() << std::endl;
-    return DECISION_STRATEGY_RELEVANCY;
-  } else if(optarg == "justification-rel") {
-    // relevancyLeaves : irrelevant
-    // maxRelTimeAsPermille : irrelevant
-    options::decisionComputeRelevancy.set(false);
-    options::decisionMustRelevancy.set(false);
-    return DECISION_STRATEGY_RELEVANCY;
-  } else if(optarg == "justification-must") {
-    // relevancyLeaves : irrelevant
-    // maxRelTimeAsPermille : irrelevant
-    options::decisionComputeRelevancy.set(false);
-    options::decisionMustRelevancy.set(true);
-    return DECISION_STRATEGY_RELEVANCY;
   } else if(optarg == "help") {
     puts(decisionModeHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --decision: `") +
                           optarg + "'.  Try --decision help.");
-  }
-}
-
-inline void checkDecisionBudget(std::string option, unsigned short budget, SmtEngine* smt) throw(OptionException) {
-  if(budget == 0) {
-    Warning() << "Decision budget is 0. Consider using internal decision heuristic and "
-              << std::endl << " removing this option." << std::endl;
-              
   }
 }
 
