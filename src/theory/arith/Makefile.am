@@ -55,6 +55,7 @@ libarith_la_SOURCES = \
 	pure_update_simplex.cpp \
 	theory_arith.h \
 	theory_arith.cpp \
+	theory_arith_private_forward.h \
 	theory_arith_private.h \
 	theory_arith_private.cpp \
 	dio_solver.h \
