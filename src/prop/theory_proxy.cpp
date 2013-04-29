@@ -79,15 +79,12 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   d_queue.push(literalNode);
 }
 
-SatLiteral TheoryProxy::getNextDecisionRequest(bool &stopSearch) {
+SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
   TNode n = d_theoryEngine->getNextDecisionRequest();
-  if(not n.isNull()) {
-    return d_cnfStream->getLiteral(n);
-  }
+  return n.isNull() ? undefSatLiteral : d_cnfStream->getLiteral(n);
+}
 
-  // If theory doesn't give us a deicsion ask the decision engine. It
-  // may return in undefSatLiteral in which case the sat solver uses
-  // whatever default heuristic it has.
+SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);

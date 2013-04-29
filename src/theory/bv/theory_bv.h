@@ -78,6 +78,7 @@ private:
     TimerStat   d_solveTimer;
     IntStat d_numCallsToCheckFullEffort;
     IntStat d_numCallsToCheckStandardEffort; 
+    TimerStat   d_weightComputationTimer;
     Statistics();
     ~Statistics();
   };

@@ -23,7 +23,7 @@
 #include <vector>
 #include <sstream>
 #include "expr/node_manager.h"
-
+#include "theory/decision_attributes.h"
 
 
 namespace CVC4 {
@@ -492,6 +492,26 @@ inline T gcd(T a, T b) {
   return a;
 }
 
+
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
+inline uint64_t numNodesAux(TNode node, TNodeSet& seen) {
+  if (seen.find(node) != seen.end())
+    return 0;
+
+  uint64_t size = 1;
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    size += numNodesAux(node[i], seen);
+  }
+  seen.insert(node);
+  return size;
+}
+
+inline uint64_t numNodes(TNode node) {
+  TNodeSet seen;
+  uint64_t size = numNodesAux(node, seen);
+  return size;
+}
 
 }
 }
