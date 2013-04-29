@@ -9,6 +9,6 @@
 # Works only for tests in the default package.
 #
 args=("$@")
-args[$((${#args}))]="$(echo "${args[${#args}]}" | sed 's,\(.*\/\)\?\(.*\)\.class$,\2,')"
+args[$((${#args}))]="$(echo "${args[${#args}]}" | sed 's,\(.*/\)*\(.*\)\.class$,\2,')"
 echo "${args[@]}"
 exec "${args[@]}"

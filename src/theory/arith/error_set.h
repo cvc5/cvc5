@@ -29,6 +29,22 @@
 
 #include "util/statistics_registry.h"
 //#include <boost/heap/d_ary_heap.hpp>
+
+#if CVC4_GCC_HAS_PB_DS_BUG
+   // Unfortunate bug in some older GCCs (e.g., v4.2):
+   //   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36612
+   // Requires some header-hacking to work around
+#  define __throw_container_error inline __throw_container_error
+#  define __throw_insert_error inline __throw_insert_error
+#  define __throw_join_error inline __throw_join_error
+#  define __throw_resize_error inline __throw_resize_error
+#  include <ext/pb_ds/exception.hpp>
+#  undef __throw_container_error
+#  undef __throw_insert_error
+#  undef __throw_join_error
+#  undef __throw_resize_error
+#endif /* CVC4_GCC_HAS_PB_DS_BUG */
+
 #include <ext/pb_ds/priority_queue.hpp>
 
 #include <vector>

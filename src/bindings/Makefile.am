@@ -60,6 +60,7 @@ javalib_LTLIBRARIES += java/libcvc4jni.la
 javadata_DATA += CVC4.jar
 java_libcvc4jni_la_LDFLAGS = \
 	-module \
+	-shrext $(CVC4_JAVA_MODULE_EXT) \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 java_libcvc4jni_la_LIBADD = \
 	-L@builddir@/.. -lcvc4 \

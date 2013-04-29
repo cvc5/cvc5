@@ -18,7 +18,9 @@ if CVC4_LANGUAGE_BINDING_JAVA
 TESTS += CVC4JavaTest.class
 endif
 
-CLASS_LOG_COMPILER = @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_builddir@/src/bindings/CVC4.jar -Djava.library.path=$(abs_top_builddir)/src/bindings/java/.libs:$(abs_top_builddir)/src/.libs
+# we set the DYLD_LIBRARY_PATH in addition to -Djava.library.path, seems
+# to be necessary on Mac
+CLASS_LOG_COMPILER = env DYLD_LIBRARY_PATH=$(abs_top_builddir)/src/bindings/java/.libs:$(abs_top_builddir)/src/.libs:$(abs_top_builddir)/src/parser/.libs @srcdir@/run_java_test $(JAVA) -classpath .:@abs_top_builddir@/src/bindings/CVC4.jar -Djava.library.path=$(abs_top_builddir)/src/bindings/java/.libs:$(abs_top_builddir)/src/.libs:$(abs_top_builddir)/src/parser/.libs
 
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
