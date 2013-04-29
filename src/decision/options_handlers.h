@@ -107,6 +107,19 @@ inline void checkDecisionBudget(std::string option, unsigned short budget, SmtEn
   }
 }
 
+inline DecisionWeightInternal stringToDecisionWeightInternal(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "off")
+    return DECISION_WEIGHT_INTERNAL_OFF;
+  else if(optarg == "max")
+    return DECISION_WEIGHT_INTERNAL_MAX;
+  else if(optarg == "sum")
+    return DECISION_WEIGHT_INTERNAL_SUM;
+  else if(optarg == "usr1")
+    return DECISION_WEIGHT_INTERNAL_USR1;
+  else
+    throw OptionException(std::string("--decision-weight-internal must be off, max or sum."));
+}
+
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */
 

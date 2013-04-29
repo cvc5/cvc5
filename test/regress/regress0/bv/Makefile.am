@@ -20,6 +20,7 @@ MAKEFLAGS = -k
 # Regression tests for SMT inputs
 SMT_TESTS = \
 	fuzz01.smt \
+	fuzz02.delta01.smt \
 	fuzz02.smt \
 	fuzz03.smt \
 	fuzz04.smt \

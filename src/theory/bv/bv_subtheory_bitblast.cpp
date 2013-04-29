@@ -19,6 +19,8 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/bitblaster.h"
 #include "theory/bv/options.h"
+#include "theory/decision_attributes.h"
+#include "decision/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -58,7 +60,12 @@ void BitblastSolver::preRegister(TNode node) {
     if (options::bitvectorEagerBitblast()) {
       d_bitblaster->bbAtom(node);
     } else {
+      CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
       d_bitblastQueue.push_back(node);
+      if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
+          !node.hasAttribute(theory::DecisionWeightAttr())) {
+        node.setAttribute(theory::DecisionWeightAttr(), d_bitblaster->computeAtomWeight(node));
+      }
     }
   }
 }
