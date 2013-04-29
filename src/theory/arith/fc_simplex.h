@@ -146,9 +146,11 @@ private:
   LinearEqualityModule::UpdatePreferenceFunction selectLeavingFunction(ArithVar x){
     bool useBlands = d_leavingCountSinceImprovement.isKey(x) &&
       d_leavingCountSinceImprovement[x] >= s_maxDegeneratePivotsBeforeBlandsOnEntering;
-    return useBlands ?
-      &LinearEqualityModule::preferWitness<false>:
-      &LinearEqualityModule::preferWitness<true>;
+    if(useBlands) {
+      return &LinearEqualityModule::preferWitness<false>;
+    } else {
+      return &LinearEqualityModule::preferWitness<true>;
+    }
   }
 
   bool debugDualLike(WitnessImprovement w, std::ostream& out,
@@ -183,9 +185,12 @@ private:
   UpdateInfo selectUpdateForPrimal(ArithVar basic, bool useBlands){
     TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForPrimal);
 
-    LinearEqualityModule::UpdatePreferenceFunction upf = useBlands ?
-      &LinearEqualityModule::preferWitness<false>:
-      &LinearEqualityModule::preferWitness<true>;
+    LinearEqualityModule::UpdatePreferenceFunction upf;
+    if(useBlands) {
+      upf = &LinearEqualityModule::preferWitness<false>;
+    } else {
+      upf = &LinearEqualityModule::preferWitness<true>;
+    }
 
     LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
       &LinearEqualityModule::minVarOrder :

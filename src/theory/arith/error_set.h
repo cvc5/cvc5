@@ -87,10 +87,10 @@ public:
 //
 // typedef FocusSet::handle_type FocusSetHandle;
 
-typedef  __gnu_pbds::priority_queue<
+typedef CVC4_PB_DS_NAMESPACE::priority_queue<
   ArithVar,
   ComparatorPivotRule,
-  __gnu_pbds::pairing_heap_tag> FocusSet;
+  CVC4_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
 
 typedef FocusSet::point_iterator FocusSetHandle;
 

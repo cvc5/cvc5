@@ -751,6 +751,21 @@ void foo(int64_t) {}])],
 AC_LANG_POP([C++])
 AC_SUBST([CVC4_NEED_INT64_T_OVERLOADS])
 
+AC_MSG_CHECKING([for the pb_ds namespace])
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <ext/pb_ds/priority_queue.hpp>
+typedef pb_ds::priority_queue<void, void, void> pq;])],
+  [CVC4_PB_DS_NAMESPACE=pb_ds],
+  [AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+    #include <ext/pb_ds/priority_queue.hpp>
+    typedef __gnu_pbds::priority_queue<void, void, void> pq;])],
+      [CVC4_PB_DS_NAMESPACE=__gnu_pbds],
+      [AC_MSG_ERROR([can't find required priority_queue in either __gnu_pbds or pb_ds namespace])])])
+AC_LANG_POP([C++])
+AC_DEFINE_UNQUOTED(CVC4_PB_DS_NAMESPACE, ${CVC4_PB_DS_NAMESPACE}, [The namespace for pb_ds data structures.])
+AC_MSG_RESULT([$CVC4_PB_DS_NAMESPACE])
+
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 

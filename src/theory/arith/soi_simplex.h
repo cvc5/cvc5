@@ -122,9 +122,11 @@ private:
   LinearEqualityModule::UpdatePreferenceFunction selectLeavingFunction(ArithVar x){
     bool useBlands = d_leavingCountSinceImprovement.isKey(x) &&
       d_leavingCountSinceImprovement[x] >= s_maxDegeneratePivotsBeforeBlandsOnEntering;
-    return useBlands ?
-      &LinearEqualityModule::preferWitness<false>:
-      &LinearEqualityModule::preferWitness<true>;
+    if(useBlands) {
+      return &LinearEqualityModule::preferWitness<false>;
+    } else {
+      return &LinearEqualityModule::preferWitness<true>;
+    }
   }
 
   bool debugSOI(WitnessImprovement w, std::ostream& out, int instance) const;

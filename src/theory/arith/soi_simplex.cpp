@@ -674,9 +674,12 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
   Assert(d_soiVar != ARITHVAR_SENTINEL);
 
   bool useBlands = degeneratePivotsInARow() >= s_maxDegeneratePivotsBeforeBlandsOnLeaving;
-  LinearEqualityModule::UpdatePreferenceFunction upf = useBlands ?
-    &LinearEqualityModule::preferWitness<false>:
-    &LinearEqualityModule::preferWitness<true>;
+  LinearEqualityModule::UpdatePreferenceFunction upf;
+  if(useBlands) {
+    upf = &LinearEqualityModule::preferWitness<false>;
+  } else {
+    upf = &LinearEqualityModule::preferWitness<true>;
+  }
 
   LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
     &LinearEqualityModule::minVarOrder :
