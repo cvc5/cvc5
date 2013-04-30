@@ -9,6 +9,7 @@ DIST_SUBDIRS = $(SUBDIRS) example
 noinst_LTLIBRARIES = libtheory.la
 
 libtheory_la_SOURCES = \
+	decision_attributes.h \
 	logic_info.h \
 	logic_info.cpp \
 	output_channel.h \

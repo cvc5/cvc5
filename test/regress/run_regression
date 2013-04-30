@@ -10,6 +10,8 @@
 # Runs benchmark and checks for correct exit status and output.
 #
 
+# ulimit -t 1    # For detecting long running regressions
+
 prog=`basename "$0"`
 
 if [ $# -lt 2 ]; then
