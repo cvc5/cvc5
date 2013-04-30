@@ -83,7 +83,7 @@ namespace arith {
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
   d_containing(containing),
   d_nlIncomplete( false),
-  d_boundTracking(),
+  d_rowTracking(),
   d_constraintDatabase(c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
   d_qflraStatus(Result::SAT_UNKNOWN),
   d_unknownsInARow(0),
@@ -96,9 +96,9 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_currentPropagationList(),
   d_learnedBounds(c),
   d_partialModel(c, DeltaComputeCallback(*this)),
-  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(&d_boundTracking)),
+  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(&d_rowTracking, &d_tableau)),
   d_tableau(),
-  d_linEq(d_partialModel, d_tableau, d_boundTracking, BasicVarModelUpdateCallBack(*this)),
+  d_linEq(d_partialModel, d_tableau, d_rowTracking, BasicVarModelUpdateCallBack(*this)),
   d_diosolver(c),
   d_restartsCounter(0),
   d_tableauSizeHasBeenModified(false),
@@ -1100,7 +1100,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
     ArithVar varSlack = requestArithVar(polyNode, true);
     d_tableau.addRow(varSlack, coefficients, variables);
     setupBasicValue(varSlack);
-    d_linEq.trackVariable(varSlack);
+    d_linEq.trackRowIndex(d_tableau.basicToRowIndex(varSlack));
 
     //Add differences to the difference manager
     Polynomial::iterator i = poly.begin(), end = poly.end();
@@ -1176,7 +1176,6 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
   d_constraintDatabase.removeVariable(v);
   d_partialModel.releaseArithVar(v);
-  d_linEq.maybeRemoveTracking(v);
 }
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool slack){
@@ -1609,9 +1608,9 @@ void TheoryArithPrivate::branchVector(const std::vector<ArithVar>& lemmas){
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   Assert(d_qflraStatus != Result::SAT);
 
-  d_partialModel.stopQueueingAtBoundQueue();
+  d_partialModel.stopQueueingBoundCounts();
   UpdateTrackingCallback utcb(&d_linEq);
-  d_partialModel.processAtBoundQueue(utcb);
+  d_partialModel.processBoundsQueue(utcb);
   d_linEq.startTrackingBoundCounts();
 
   bool noPivotLimit = Theory::fullEffort(effortLevel) ||
@@ -1701,7 +1700,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
   // TODO Save zeroes with no conflicts
   d_linEq.stopTrackingBoundCounts();
-  d_partialModel.startQueueingAtBoundQueue();
+  d_partialModel.startQueueingBoundCounts();
 
   return emmittedConflictOrSplit;
 }
@@ -2432,37 +2431,6 @@ void TheoryArithPrivate::notifyRestart(){
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
   ++d_restartsCounter;
-#warning "removing restart"
-  // return;
-
-  // uint32_t currSize = d_tableau.size();
-  // uint32_t copySize = d_smallTableauCopy.size();
-
-  // Debug("arith::reset") << "resetting" << d_restartsCounter << endl;
-  // Debug("arith::reset") << "curr " << currSize << " copy " << copySize << endl;
-  // Debug("arith::reset") << "tableauSizeHasBeenModified " << d_tableauSizeHasBeenModified << endl;
-
-  // if(d_tableauSizeHasBeenModified){
-  //   Debug("arith::reset") << "row has been added must copy " << d_restartsCounter << endl;
-  //   d_smallTableauCopy = d_tableau;
-  //   d_tableauSizeHasBeenModified = false;
-  // }else if( d_restartsCounter >= RESET_START){
-  //   if(copySize >= currSize * 1.1 ){
-  //     Debug("arith::reset") << "size has shrunk " << d_restartsCounter << endl;
-  //     ++d_statistics.d_smallerSetToCurr;
-  //     d_smallTableauCopy = d_tableau;
-  //   }else if(d_tableauResetDensity * copySize <=  currSize){
-  //     d_errorSet.popAllSignals();
-  //     if(safeToReset()){
-  //       Debug("arith::reset") << "resetting " << d_restartsCounter << endl;
-  //       ++d_statistics.d_currSetToSmaller;
-  //       d_tableau = d_smallTableauCopy;
-  //     }else{
-  //       Debug("arith::reset") << "not safe to reset at the moment " << d_restartsCounter << endl;
-  //     }
-  //   }
-  // }
-  // Assert(unenqueuedVariablesAreConsistent());
 }
 
 bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
@@ -2631,7 +2599,13 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
         //d_learnedBounds.push(bestImplied);
         return true;
       }
+      cout << "failed " << basic << " " << bound << assertedToTheTheory << " " <<
+        canBePropagated << " " << hasProof << endl;
+      d_partialModel.printModel(basic, cout);
     }
+  }else{
+    cout << "false " << bound << " ";
+    d_partialModel.printModel(basic, cout);
   }
   return false;
 }
@@ -2685,6 +2659,22 @@ void TheoryArithPrivate::propagateCandidates(){
     Assert(d_tableau.isBasic(candidate));
     propagateCandidate(candidate);
   }
+}
+
+void TheoryArithPrivate::propagateCandidatesNew(){
+  /* Four criteria must be met for progagation on a variable to happen using a row:
+   * 0: A new bound has to have been added to the row.
+   * 1: The hasBoundsCount for the row must be "full" or be full minus one variable
+   *    (This is O(1) to check, but requires book keeping.)
+   * 2: The current assignment must be strictly smaller/greater than the current bound.
+   *    assign(x) < upper(x)
+   *    (This is O(1) to compute.)
+   * 3: There is a bound that is strictly smaller/greater than the current assignment.
+   *    assign(x) < c for some x <= c literal
+   *    (This is O(log n) to compute.)
+   * 4: The implied bound on x is strictly smaller/greater than the current bound.
+   *    (This is O(n) to compute.)
+   */
 }
 
 }/* CVC4::theory::arith namespace */

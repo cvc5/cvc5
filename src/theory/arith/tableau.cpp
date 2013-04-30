@@ -75,7 +75,7 @@ void Tableau::rowPivot(ArithVar basicOld, ArithVar basicNew, CoefficientChangeCa
   d_basic2RowIndex.set(basicNew, rid);
   d_rowIndex2basic.set(rid, basicNew);
 
-  cb.swap(basicOld, basicNew, a_rs_sgn);
+  cb.multiplyRow(rid, -a_rs_sgn);
 }
 
 

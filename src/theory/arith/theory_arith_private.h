@@ -105,7 +105,7 @@ private:
   // TODO A better would be:
   //context::CDO<bool> d_nlIncomplete;
 
-  BoundCountingVector d_boundTracking;
+  BoundInfoMap d_rowTracking;
 
   /**
    * The constraint database associated with the theory.
@@ -468,6 +468,8 @@ private:
   void clearUpdates();
 
   void revertOutOfConflict();
+
+  void propagateCandidatesNew();
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);

@@ -130,6 +130,8 @@ void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStat& timer, Ar
   Assert(tmp != ARITHVAR_SENTINEL);
   Assert(d_tableau.isBasic(tmp));
 
+  RowIndex ri = d_tableau.basicToRowIndex(tmp);
+  d_linEq.stopTrackingRowIndex(ri);
   d_tableau.removeBasicRow(tmp);
   releaseVariable(tmp);
 }
@@ -193,9 +195,10 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   DeltaRational newAssignment = d_linEq.computeRowValue(inf, false);
   d_variables.setAssignment(inf, newAssignment);
 
-  d_linEq.trackVariable(inf);
+  //d_linEq.trackVariable(inf);
+  d_linEq.trackRowIndex(d_tableau.basicToRowIndex(inf));
 
-  Debug("Inf") << inf << " " << newAssignment << endl;
+  Debug("constructInfeasiblityFunction") << inf << " " << newAssignment << endl;
 
   return inf;
 }

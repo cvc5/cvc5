@@ -237,7 +237,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
   Debug("soi::selectPrimalUpdate")
     << "selectPrimalUpdate " << instance << endl
     << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar)
-    << " " << d_linEq._countBounds(d_soiVar) << endl;
+    << " " << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
 
   typedef std::vector<Cand> CandVector;
   CandVector candidates;
@@ -349,7 +349,7 @@ void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
   int dir = !d_variables.assignmentIsConsistent(updated) ?
     d_errorSet.getSgn(updated) : 0;
   Debug("updateAndSignal") << " dir " << dir;
-  Debug("updateAndSignal") << " _countBounds " << d_linEq._countBounds(updated) << endl;
+  Debug("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
 
@@ -367,7 +367,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
       ArithVar leaving = selected.leaving();
       ss << "leaving " << leaving
          << " " << d_tableau.basicRowLength(leaving)
-         << " " << d_linEq._countBounds(leaving)
+         << " " << d_linEq.debugBasicAtBoundCount(leaving)
          << endl;
     }
     if(degenerate(w) && selected.describesPivot()){
@@ -376,7 +376,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
         << "degenerate " << leaving
         << ", atBounds " << d_linEq.basicsAtBounds(selected)
         << ", len " << d_tableau.basicRowLength(leaving)
-        << ", bc " << d_linEq._countBounds(leaving)
+        << ", bc " << d_linEq.debugBasicAtBoundCount(leaving)
         << endl;
     }
   }

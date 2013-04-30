@@ -175,7 +175,7 @@ bool PureUpdateSimplexDecisionProcedure::attemptPureUpdates(){
 
       worthwhile = proposal.errorsChange() < 0 ||
         (proposal.focusDirection() > 0 &&
-         d_variables.boundCounts(curr).isZero() &&
+         d_variables.atBoundCounts(curr).isZero() &&
          !proposal.describesPivot());
 
       Debug("pu::refined")
@@ -188,11 +188,11 @@ bool PureUpdateSimplexDecisionProcedure::attemptPureUpdates(){
     if(worthwhile){
       Debug("pu") << d_variables.getAssignment(d_focusErrorVar) << endl;
 
-      BoundCounts before = d_variables.boundCounts(curr);
+      BoundCounts before = d_variables.atBoundCounts(curr);
       DeltaRational newAssignment =
         d_variables.getAssignment(curr) + proposal.nonbasicDelta();
       d_linEq.updateTracked(curr, newAssignment);
-      BoundCounts after = d_variables.boundCounts(curr);
+      BoundCounts after = d_variables.atBoundCounts(curr);
 
       ++d_statistics.d_pureUpdates;
       ++boundImprovements;

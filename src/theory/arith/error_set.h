@@ -361,8 +361,8 @@ public:
 
   uint32_t sumMetric(ArithVar a) const{
     Assert(inError(a));
-    BoundCounts bcs = d_boundLookup.boundCounts(a);
-    uint32_t count = getSgn(a) > 0 ? bcs.atUpperBounds() : bcs.atLowerBounds();
+    BoundCounts bcs = d_boundLookup.atBounds(a);
+    uint32_t count = getSgn(a) > 0 ? bcs.upperBoundCount() : bcs.lowerBoundCount();
 
     uint32_t length = d_tableauSizes.getRowLength(a);
 
