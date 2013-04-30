@@ -2662,7 +2662,16 @@ bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
     ConstraintType t = ub ? UpperBound : LowerBound;
     const DeltaRational& a = d_partialModel.getAssignment(v);
 
-    return NullConstraint != d_constraintDatabase.getBestImpliedBound(v, t, a);
+    Constraint strongestPossible = d_constraintDatabase.getBestImpliedBound(v, t, a);
+    if(strongestPossible == NullConstraint){
+      return false;
+    }else{
+      bool assertedToTheTheory = strongestPossible->assertedToTheTheory();
+      bool canBePropagated = strongestPossible->canBePropagated();
+      bool hasProof = strongestPossible->hasProof();
+
+      return !assertedToTheTheory && canBePropagated && !hasProof;
+    }
   }else{
     return false;
   }
@@ -2799,6 +2808,10 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   static int instance = 0;
   ++instance;
   cout << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
+
+  if(rowLength >= options::arithPropagateMaxLength()){
+    return false;
+  }
 
   if(hasCount.lowerBoundCount() == rowLength){
     success |= attemptFull(ridx, false);
