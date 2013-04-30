@@ -101,6 +101,7 @@ void BVMinisatSatSolver::interrupt(){
 }
 
 SatValue BVMinisatSatSolver::solve(){
+  ++d_statistics.d_statCallsToSolve;
   return toSatLiteralValue(d_minisat->solve());
 }
 
@@ -120,30 +121,6 @@ SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "<MinisatSatSolver::solve(): it took " << resource << " conflicts" << std::endl;
   return result;
 }
-
-// SatValue BVMinisatSatSolver::solve(const context::CDList<SatLiteral> & assumptions, bool only_bcp){
-//   ++d_solveCount;
-//   ++d_statistics.d_statCallsToSolve;
-
-//   Debug("sat::minisat") << "Solve with assumptions ";
-//   context::CDList<SatLiteral>::const_iterator it = assumptions.begin();
-//   BVMinisat::vec<BVMinisat::Lit> assump;
-//   for(; it!= assumptions.end(); ++it) {
-//     SatLiteral lit = *it;
-//     Debug("sat::minisat") << lit <<" ";
-//     assump.push(toMinisatLit(lit));
-//   }
-//   Debug("sat::minisat") <<"\n";
-
-//   clock_t begin, end;
-//   begin = clock();
-//   d_minisat->setOnlyBCP(only_bcp); 
-//   SatLiteralValue result = toSatLiteralValue(d_minisat->solve(assump));
-//   end = clock();
-//   d_statistics.d_statSolveTime = d_statistics.d_statSolveTime.getData() + (end - begin)/(double)CLOCKS_PER_SEC; 
-//  return result;
-// }
-
 
 void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
   // TODO add assertion to check the call was after an unsat call

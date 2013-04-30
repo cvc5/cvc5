@@ -177,6 +177,11 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool preregister) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
+  // if (RewriteRule<ExtractSignExtend>::applies(node)) {
+  //   resultNode = RewriteRule<ExtractSignExtend>::run<false>(node);
+  //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  // }
+
   if (RewriteRule<ExtractBitwise>::applies(node)) {
     resultNode = RewriteRule<ExtractBitwise>::run<false>(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -223,14 +228,14 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool preregister){
   
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<AndSimplify>
-      // RewriteRule<EvalAnd>,
-      // RewriteRule<BitwiseIdemp>,
-      // //RewriteRule<BitwiseSlice>, -> might need rw again
-      // RewriteRule<AndZero>,
-      // RewriteRule<AndOne> 
+      RewriteRule<AndSimplify>//,
+      //      RewriteRule<BitwiseSlicing>
       >::apply(node);
 
+  if (resultNode.getKind() != node.getKind()) {
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  }
+  
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
@@ -239,8 +244,13 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool preregister){
 
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<OrSimplify>
+      RewriteRule<OrSimplify>//,
+      //      RewriteRule<BitwiseSlicing>
     >::apply(node);
+
+  if (resultNode.getKind() != node.getKind()) {
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  }
   
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
@@ -251,13 +261,18 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool preregister) {
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flatten the expression 
       RewriteRule<XorSimplify>,        // simplify duplicates and constants
-      RewriteRule<XorZero>             // checks if the constant part is zero and eliminates it
+      RewriteRule<XorZero>//,            // checks if the constant part is zero and eliminates it
+      //      RewriteRule<BitwiseSlicing>
     >::apply(node);
 
   // this simplification introduces new terms and might require further
   // rewriting
   if (RewriteRule<XorOne>::applies(resultNode)) {
     resultNode = RewriteRule<XorOne>::run<false> (resultNode);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  }
+
+  if (resultNode.getKind() != node.getKind()) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
@@ -301,7 +316,8 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool preregister) {
 
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flattens and sorts
-      RewriteRule<MultSimplify>        // multiplies constant part and checks for 0
+      RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
+      RewriteRule<MultPow2>            // replaces multiplication by a power of 2 by a shift
     >::apply(node);
 
   // only apply if every subterm was already rewritten 
@@ -317,7 +333,7 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool preregister) {
   if(resultNode == node) {
     return RewriteResponse(REWRITE_DONE, resultNode); 
   }
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool preregister) {

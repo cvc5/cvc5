@@ -52,6 +52,7 @@ enum RewriteRuleId {
   SubEliminate,
   SltEliminate,
   SleEliminate,
+  UleEliminate, 
   CompEliminate,
   RepeatEliminate,
   RotateLeftEliminate,
@@ -135,6 +136,7 @@ enum RewriteRuleId {
   ExtractNot,
   ExtractArith,
   ExtractArith2,
+  ExtractSignExtend,
   DoubleNeg,
   NegMult,
   NegSub,
@@ -152,7 +154,7 @@ enum RewriteRuleId {
   AndSimplify,
   OrSimplify,
   XorSimplify,
-  UleEliminate, 
+  BitwiseSlicing,
   // rules to simplify bitblasting
   BBPlusNeg
  };
@@ -270,7 +272,9 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
-  case UleEliminate : out << "UleEliminate"; return out; 
+  case UleEliminate : out << "UleEliminate"; return out;
+  case BitwiseSlicing : out << "BitwiseSlicing"; return out;
+  case ExtractSignExtend : out << "ExtractSignExtend"; return out; 
   default:
     Unreachable();
   }
