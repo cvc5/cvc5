@@ -132,16 +132,22 @@ void TheoryBV::checkForLemma(TNode fact) {
       TNode urem = fact[0];
       TNode result = fact[1];
       TNode divisor = urem[1]; 
-      Node result_ult_div = utils::mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node split = utils::mkNode(kind::OR, utils::mkNode(kind::NOT, fact), result_ult_div);
+      Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node divisor_eq_0 = mkNode(kind::EQUAL,
+                                 divisor,
+                                 mkConst(BitVector(getSize(divisor), 0u)));  
+      Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
     if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL) {
       TNode urem = fact[1];
       TNode result = fact[0];
       TNode divisor = urem[1]; 
-      Node result_ult_div = utils::mkNode(kind::BITVECTOR_ULT, result, divisor);
-      Node split = utils::mkNode(kind::OR, utils::mkNode(kind::NOT, fact), result_ult_div);
+      Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
+      Node divisor_eq_0 = mkNode(kind::EQUAL,
+                                  divisor,
+                                  mkConst(BitVector(getSize(divisor), 0u)));  
+      Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
   }

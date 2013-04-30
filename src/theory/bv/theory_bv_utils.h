@@ -84,6 +84,7 @@ inline Node mkSortedNode(Kind kind, std::vector<Node>& children) {
 
 
 inline Node mkNode(Kind kind, std::vector<Node>& children) {
+  Assert (children.size() > 0); 
   if (children.size() == 1) {
     return children[0]; 
   }
@@ -132,6 +133,12 @@ inline Node mkXor(TNode node1, TNode node2) {
   return NodeManager::currentNM()->mkNode(kind::XOR, node1, node2);
 }
 
+
+inline Node mkSignExtend(TNode node, unsigned ammount) {
+  NodeManager* nm = NodeManager::currentNM(); 
+  Node signExtendOp = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(ammount));
+  return nm->mkNode(signExtendOp, node); 
+}
 
 inline Node mkExtract(TNode node, unsigned high, unsigned low) {
   Node extractOp = NodeManager::currentNM()->mkConst<BitVectorExtract>(BitVectorExtract(high, low));

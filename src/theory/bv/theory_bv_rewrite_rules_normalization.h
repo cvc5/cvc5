@@ -72,6 +72,58 @@ Node RewriteRule<ExtractNot>::apply(TNode node) {
   return utils::mkNode(kind::BITVECTOR_NOT, a); 
 }
 
+/** 
+ * ExtractSignExtend
+ * 
+ * (sign_extend k x) [i:j] => pushes extract in
+ * 
+ * @return 
+ */
+
+template<> inline
+bool RewriteRule<ExtractSignExtend>::applies(TNode node) {
+  if (node.getKind() == kind::BITVECTOR_EXTRACT &&
+      node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND) {
+    return true; 
+  }
+  return false; 
+}
+
+template<> inline
+Node RewriteRule<ExtractSignExtend>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<ExtractSignExtend>(" << node << ")" << std::endl;
+  TNode extendee = node[0][0]; 
+  unsigned extendee_size = utils::getSize(extendee);
+
+  unsigned high = utils::getExtractHigh(node);
+  unsigned low = utils::getExtractLow(node); 
+
+  Node resultNode; 
+  // extract falls on extendee
+  if (high < extendee_size) {
+    resultNode = utils::mkExtract(extendee, high, low); 
+  } else if (low < extendee_size && high >= extendee_size) {
+    // if extract overlaps sign extend and extendee
+    Node low_extract = utils::mkExtract(extendee, extendee_size - 1, low);
+    unsigned new_ammount = high - extendee_size + 1;
+    resultNode = utils::mkSignExtend(low_extract, new_ammount); 
+  } else {
+    // extract only over sign extend
+    Assert (low >= extendee_size);
+    unsigned top = utils::getSize(extendee) - 1; 
+    Node most_significant_bit = utils::mkExtract(extendee, top, top);
+    std::vector<Node> bits;
+    for (unsigned i = 0; i < high - low + 1; ++i) {
+      bits.push_back(most_significant_bit); 
+    }
+    resultNode =  utils::mkNode(kind::BITVECTOR_CONCAT, bits);
+  }
+  Debug("bv-rewrite") << "                           =>" << resultNode << std::endl;
+  return resultNode; 
+}
+
+
+
 /**
  * ExtractArith
  * 
@@ -1032,19 +1084,84 @@ Node RewriteRule<XorSimplify>::apply(TNode node) {
 }
 
 
+/** 
+ * BitwiseSlicing
+ * 
+ * (a bvand c) ==> (concat (bvand a[i0:j0] c0) ... (bvand a[in:jn] cn))
+ *  where c0,..., cn are maximally continuous substrings of 0 or 1 in the constant c 
+ *
+ * Note: this rule assumes AndSimplify has already been called on the node
+ */
+template<> inline
+bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
+  if ((node.getKind() != kind::BITVECTOR_AND &&
+      node.getKind() != kind::BITVECTOR_OR &&
+      node.getKind() != kind::BITVECTOR_XOR) ||
+      utils::getSize(node) == 1)
+    return false; 
+  
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    if (node[i].getKind() == kind::CONST_BITVECTOR) {
+      BitVector constant = node[i].getConst<BitVector>();
+      // we do not apply the rule if the constant is all 0s or all 1s
+      if (constant == BitVector(utils::getSize(node), 0u)) 
+        return false; 
+      
+      for (unsigned i = 0; i < constant.getSize(); ++i) {
+        if (!constant.isBitSet(i)) 
+          return true; 
+      }
+    }
+  }
+  return false; 
+}
 
+template<> inline
+Node RewriteRule<BitwiseSlicing>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")" << std::endl;
+  // get the constant
+  bool found_constant = false;
+  TNode constant;
+  std::vector<Node> other_children; 
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    if (node[i].getKind() == kind::CONST_BITVECTOR) {
+      constant = node[i];
+      Assert (!found_constant); 
+      found_constant = true; 
+    } else {
+      other_children.push_back(node[i]); 
+    }
+  }
+  Assert (found_constant && other_children.size() == node.getNumChildren() - 1);
 
-// template<> inline
-// bool RewriteRule<AndSimplify>::applies(TNode node) {
-//   return (node.getKind() == kind::BITVECTOR_AND);
-// }
+  Node other = utils::mkNode(node.getKind(), other_children);
+  
+  BitVector bv_constant = constant.getConst<BitVector>();
+  std::vector<Node> concat_children; 
+  int start = bv_constant.getSize() - 1;
+  int end = start;
+  for (int i = end - 1; i >= 0; --i) {
+    if (bv_constant.isBitSet(i + 1) != bv_constant.isBitSet(i)) {
+      Node other_extract = utils::mkExtract(other, end, start);
+      Node const_extract = utils::mkExtract(constant, end, start);
+      Node bitwise_op = utils::mkNode(node.getKind(), const_extract, other_extract);
+      concat_children.push_back(bitwise_op);
+      start = end = i; 
+    } else {
+      start--; 
+    }
+    if (i == 0) {
+      Node other_extract = utils::mkExtract(other, end, 0);
+      Node const_extract = utils::mkExtract(constant, end, 0);
+      Node bitwise_op = utils::mkNode(node.getKind(), const_extract, other_extract);
+      concat_children.push_back(bitwise_op);
+    }
 
-// template<> inline
-// Node RewriteRule<AndSimplify>::apply(TNode node) {
-//   Debug("bv-rewrite") << "RewriteRule<AndSimplify>(" << node << ")" << std::endl;
-//   return resultNode;
-// }
-
+  }
+  Node result = utils::mkNode(kind::BITVECTOR_CONCAT, concat_children);
+  Debug("bv-rewrite") << "    =>" << result << std::endl;
+  return result;
+}
 
 // template<> inline
 // bool RewriteRule<>::applies(TNode node) {
