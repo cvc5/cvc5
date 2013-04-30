@@ -177,10 +177,10 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool preregister) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  // if (RewriteRule<ExtractSignExtend>::applies(node)) {
-  //   resultNode = RewriteRule<ExtractSignExtend>::run<false>(node);
-  //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // }
+  if (RewriteRule<ExtractSignExtend>::applies(node)) {
+    resultNode = RewriteRule<ExtractSignExtend>::run<false>(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  }
 
   if (RewriteRule<ExtractBitwise>::applies(node)) {
     resultNode = RewriteRule<ExtractBitwise>::run<false>(node);
@@ -228,8 +228,8 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool preregister){
   
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<AndSimplify>//,
-      //      RewriteRule<BitwiseSlicing>
+      RewriteRule<AndSimplify>,
+      RewriteRule<BitwiseSlicing>
       >::apply(node);
 
   if (resultNode.getKind() != node.getKind()) {
@@ -244,8 +244,8 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool preregister){
 
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<OrSimplify>//,
-      //      RewriteRule<BitwiseSlicing>
+      RewriteRule<OrSimplify>,
+      RewriteRule<BitwiseSlicing>
     >::apply(node);
 
   if (resultNode.getKind() != node.getKind()) {
@@ -261,8 +261,8 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool preregister) {
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flatten the expression 
       RewriteRule<XorSimplify>,        // simplify duplicates and constants
-      RewriteRule<XorZero>//,            // checks if the constant part is zero and eliminates it
-      //      RewriteRule<BitwiseSlicing>
+      RewriteRule<XorZero>,            // checks if the constant part is zero and eliminates it
+      RewriteRule<BitwiseSlicing>
     >::apply(node);
 
   // this simplification introduces new terms and might require further

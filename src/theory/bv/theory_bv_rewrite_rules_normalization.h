@@ -1120,7 +1120,7 @@ template<> inline
 Node RewriteRule<BitwiseSlicing>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")" << std::endl;
   // get the constant
-  bool found_constant = false;
+  bool found_constant CVC4_UNUSED = false ;
   TNode constant;
   std::vector<Node> other_children; 
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
