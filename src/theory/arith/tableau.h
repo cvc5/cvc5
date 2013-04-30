@@ -72,8 +72,12 @@ public:
     return getColumn(x).begin();
   }
 
+  RowIterator ridRowIterator(RowIndex rid) const {
+    return getRow(rid).begin();
+  }
+
   RowIterator basicRowIterator(ArithVar basic) const {
-    return getRow(basicToRowIndex(basic)).begin();
+    return ridRowIterator(basicToRowIndex(basic));
   }
 
   const Entry& basicFindEntry(ArithVar basic, ArithVar col) const {

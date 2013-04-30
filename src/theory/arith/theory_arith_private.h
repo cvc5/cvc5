@@ -463,6 +463,7 @@ private:
 
   /** Tracks the basic variables where propagation might be possible. */
   DenseSet d_candidateBasics;
+  DenseSet d_candidateRows;
 
   bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
   void clearUpdates();
@@ -470,6 +471,16 @@ private:
   void revertOutOfConflict();
 
   void propagateCandidatesNew();
+  void dumpUpdatedBoundsToRows();
+  bool propagateCandidateRow(RowIndex rid);
+  bool propagateMightSucceed(ArithVar v, bool ub) const;
+  /** Attempt to perform a row propagation where there is at most 1 possible variable.*/
+  bool attemptSingleton(RowIndex ridx, bool rowUp);
+  /** Attempt to perform a row propagation where every variable is a potential candidate.*/
+  bool attemptFull(RowIndex ridx, bool rowUp);
+  bool tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUp, const DeltaRational& bound);
+  bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint bestImplied);
+
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);

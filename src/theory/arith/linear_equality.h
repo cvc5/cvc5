@@ -255,20 +255,24 @@ public:
    * Updates the assignment of the other basic variables accordingly.
    */
   void pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
-  //void pivotAndUpdateAdj(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
 
   ArithVariables& getVariables() const{ return d_variables; }
   Tableau& getTableau() const{ return d_tableau; }
 
   void forceNewBasis(const DenseSet& newBasis);
 
+#warning "Remove legacy code."
   bool hasBounds(ArithVar basic, bool upperBound);
-  bool hasLowerBounds(ArithVar basic){
-    return hasBounds(basic, false);
-  }
-  bool hasUpperBounds(ArithVar basic){
-    return hasBounds(basic, true);
-  }
+
+  /**
+   * Returns a pointer to the first Tableau entry on the row ridx that does not
+   * have an either a lower bound/upper bound for proving a bound on skip.
+   * The variable skip is always excluded. Returns NULL if there is no such element.
+   *
+   * If skip == ARITHVAR_SENTINEL, this is equivalent to considering the whole row.
+   */
+  const Tableau::Entry* rowLacksBound(RowIndex ridx, bool upperBound, ArithVar skip);
+
 
   void startTrackingBoundCounts();
   void stopTrackingBoundCounts();
@@ -412,10 +416,7 @@ private:
   BoundInfoMap& d_btracking;
   bool d_areTracking;
 
-  /**
-   * Exports either the explanation of an upperbound or a lower bound
-   * of the basic variable basic, using the non-basic variables in the row.
-   */
+#warning "Remove legacy code"
   template <bool upperBound>
   void propagateNonbasics(ArithVar basic, Constraint c);
 
@@ -426,6 +427,11 @@ public:
   void propagateNonbasicsUpperBound(ArithVar basic, Constraint c){
     propagateNonbasics<true>(basic, c);
   }
+  /**
+   * Exports either the explanation of an upperbound or a lower bound
+   * of the basic variable basic, using the non-basic variables in the row.
+   */
+  void propagateRow(RowIndex ridx, bool rowUp, Constraint c);
 
   /**
    * Computes the value of a basic variable using the assignments
@@ -434,12 +440,12 @@ public:
    * - the the current assignment (useSafe=false) or
    * - the safe assignment (useSafe = true).
    */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe);
+  DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
 
-  inline DeltaRational computeLowerBound(ArithVar basic){
+  inline DeltaRational computeLowerBound(ArithVar basic) const{
     return computeBound(basic, false);
   }
-  inline DeltaRational computeUpperBound(ArithVar basic){
+  inline DeltaRational computeUpperBound(ArithVar basic) const{
     return computeBound(basic, true);
   }
 
@@ -542,18 +548,22 @@ public:
    */
   bool basicsAtBounds(const UpdateInfo& u) const;
 private:
-  //BoundCounts computeBasicAtBoundCounts(ArithVar x_i) const;
-  //BoundCounts computeRowAtBoundCounts(RowIndex ridx) const;
   BoundsInfo computeRowBoundInfo(RowIndex ridx, bool inQueue) const;
 public:
-  //BoundCounts cachingCountBounds(ArithVar x_i) const;
   BoundCounts debugBasicAtBoundCount(ArithVar x_i) const;
   void trackingCoefficientChange(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn);
   void trackingMultiplyRow(RowIndex ridx, int sgn);
 
+  BoundCounts hasBoundCount(RowIndex ri) const {
+    Assert(d_variables.boundsQueueEmpty());
+    return d_btracking[ri].hasBounds();
+  }
+
+#warning "Remove legacy code"
   bool nonbasicsAtLowerBounds(ArithVar x_i) const;
   bool nonbasicsAtUpperBounds(ArithVar x_i) const;
 
+#warning "Remove legacy code"
   ArithVar _anySlackLowerBound(ArithVar x_i) const {
     return selectSlack<true>(x_i, &LinearEqualityModule::noPreference);
   }
@@ -606,8 +616,10 @@ public:
     return minimallyWeakConflict(false, conflictVar);
   }
 
+  DeltaRational computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const;
+
 private:
-  DeltaRational computeBound(ArithVar basic, bool upperBound);
+  DeltaRational computeBound(ArithVar basic, bool upperBound) const;
 
 public:
   void substitutePlusTimesConstant(ArithVar to, ArithVar from, const Rational& mult);

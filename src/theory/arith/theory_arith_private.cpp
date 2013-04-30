@@ -489,9 +489,7 @@ bool TheoryArithPrivate::AssertUpper(Constraint constraint){
         }else if(!lb->negationHasProof()){
           Constraint negLb = lb->getNegation();
           negLb->impliedBy(constraint, diseq);
-          //if(!negLb->canBePropagated()){
           d_learnedBounds.push_back(negLb);
-          //}//otherwise let this be propagated/asserted later
         }
       }
     }
@@ -1187,69 +1185,18 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool slack){
   Assert(!d_partialModel.hasArithVar(x));
   Assert(x.getType().isReal()); // real or integer
 
-  // ArithVar varX = d_variables.size();
-  // d_variables.push_back(Node(x));
-
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, slack);
 
   bool reclaim =  max >= d_partialModel.getNumberOfVariables();;
 
-  if(reclaim){
-    // varX = d_pool.back();
-    // d_pool.pop_back();
-
-    // d_partialModel.setAssignment(varX, d_DELTA_ZERO, d_DELTA_ZERO);
-  }else{
-    // varX = d_numberOfVariables;
-    // ++d_numberOfVariables;
-
-    // d_slackVars.push_back(true);
-    // d_variableTypes.push_back(ATReal);
-
+  if(!reclaim){
     d_dualSimplex.increaseMax();
 
     d_tableau.increaseSize();
     d_tableauSizeHasBeenModified = true;
-
-    //d_partialModel.initialize(varX, d_DELTA_ZERO);
   }
-
-  // ArithType type;
-  // if(slack){
-  //   //The type computation is not quite accurate for Rationals that are integral.
-  //   //We'll use the isIntegral check from the polynomial package instead.
-  //   Polynomial p = Polynomial::parsePolynomial(x);
-  //   type = p.isIntegral() ? ATInteger : ATReal;
-  // }else{
-  //   type = nodeToArithType(x);
-  // }
-  // d_variableTypes[varX] = type;
-  // d_slackVars[varX] = slack;
-
   d_constraintDatabase.addVariable(varX);
-
-  //d_partialModel.setArithVar(x,varX);
-
-  // Debug("integers") << "isInteger[[" << x << "]]: " << x.getType().isInteger() << endl;
-
-  // if(slack){
-  //   //The type computation is not quite accurate for Rationals that are integral.
-  //   //We'll use the isIntegral check from the polynomial package instead.
-  //   Polynomial p = Polynomial::parsePolynomial(x);
-  //   d_variableTypes.push_back(p.isIntegral() ? ATInteger : ATReal);
-  // }else{
-  //   d_variableTypes.push_back(nodeToArithType(x));
-  // }
-
-  // d_slackVars.push_back(slack);
-
-  // d_simplex.increaseMax();
-
-  // d_tableau.increaseSize();
-  // d_tableauSizeHasBeenModified = true;
-
-  // d_constraintDatabase.addVariable(varX);
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
 
@@ -2160,7 +2107,11 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
      (options::arithPropagationMode() == BOUND_INFERENCE_PROP ||
       options::arithPropagationMode() == BOTH_PROP)
      && hasAnyUpdates()){
-    propagateCandidates();
+    if(options::newProp()){
+      propagateCandidatesNew();
+    }else{
+      propagateCandidates();
+    }
   }else{
     clearUpdates();
   }
@@ -2597,6 +2548,9 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
         }
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
+        cout << "success " << bestImplied << endl;
+        d_partialModel.printModel(basic, cout);
+
         return true;
       }
       cout << "failed " << basic << " " << bound << assertedToTheTheory << " " <<
@@ -2612,10 +2566,10 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
 
 void TheoryArithPrivate::propagateCandidate(ArithVar basic){
   bool success = false;
-  if(d_partialModel.strictlyAboveLowerBound(basic) && d_linEq.hasLowerBounds(basic)){
+  if(d_partialModel.strictlyAboveLowerBound(basic) && d_linEq.hasBounds(basic, false)){
     success |= propagateCandidateLowerBound(basic);
   }
-  if(d_partialModel.strictlyBelowUpperBound(basic) && d_linEq.hasUpperBounds(basic)){
+  if(d_partialModel.strictlyBelowUpperBound(basic) && d_linEq.hasBounds(basic, true)){
     success |= propagateCandidateUpperBound(basic);
   }
   if(success){
@@ -2625,6 +2579,8 @@ void TheoryArithPrivate::propagateCandidate(ArithVar basic){
 
 void TheoryArithPrivate::propagateCandidates(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
+
+  cout << "propagateCandidates begin" << endl;
 
   Assert(d_candidateBasics.empty());
 
@@ -2659,6 +2615,7 @@ void TheoryArithPrivate::propagateCandidates(){
     Assert(d_tableau.isBasic(candidate));
     propagateCandidate(candidate);
   }
+  cout << "propagateCandidates end" << endl << endl << endl;
 }
 
 void TheoryArithPrivate::propagateCandidatesNew(){
@@ -2675,6 +2632,207 @@ void TheoryArithPrivate::propagateCandidatesNew(){
    * 4: The implied bound on x is strictly smaller/greater than the current bound.
    *    (This is O(n) to compute.)
    */
+
+  TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
+  cout << "propagateCandidatesNew begin" << endl;
+
+  Assert(d_qflraStatus == Result::SAT);
+  if(d_updatedBounds.empty()){ return; }
+  dumpUpdatedBoundsToRows();
+  Assert(d_updatedBounds.empty());
+
+  if(!d_candidateRows.empty()){
+    UpdateTrackingCallback utcb(&d_linEq);
+    d_partialModel.processBoundsQueue(utcb);
+  }
+
+  while(!d_candidateRows.empty()){
+    RowIndex candidate = d_candidateRows.back();
+    d_candidateRows.pop_back();
+    propagateCandidateRow(candidate);
+  }
+  cout << "propagateCandidatesNew end" << endl << endl << endl;
+}
+
+bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
+  int cmp = ub ? d_partialModel.cmpAssignmentUpperBound(v)
+    : d_partialModel.cmpAssignmentLowerBound(v);
+  bool hasSlack = ub ? cmp < 0 : cmp > 0;
+  if(hasSlack){
+    ConstraintType t = ub ? UpperBound : LowerBound;
+    const DeltaRational& a = d_partialModel.getAssignment(v);
+
+    return NullConstraint != d_constraintDatabase.getBestImpliedBound(v, t, a);
+  }else{
+    return false;
+  }
+}
+
+bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
+  cout << "  attemptSingleton" << ridx;
+
+  const Tableau::Entry* ep;
+  ep = d_linEq.rowLacksBound(ridx, rowUp, ARITHVAR_SENTINEL);
+  Assert(ep != NULL);
+
+  ArithVar v = ep->getColVar();
+  const Rational& coeff = ep->getCoefficient();
+
+  // 0 = c * v + \sum rest
+  // Suppose rowUp
+  // - c * v = \sum rest \leq D
+  // if c > 0, v \geq -D/c so !vUp
+  // if c < 0, v \leq -D/c so  vUp
+  // Suppose not rowUp
+  // - c * v = \sum rest \geq D
+  // if c > 0, v \leq -D/c so  vUp
+  // if c < 0, v \geq -D/c so !vUp
+  bool vUp = (rowUp == ( coeff.sgn() < 0));
+
+  cout << "  " << rowUp << " " << v << " " << coeff << " " << vUp << endl;
+  cout << "  " << propagateMightSucceed(v, vUp) << endl;
+
+  if(propagateMightSucceed(v, vUp)){
+    DeltaRational dr = d_linEq.computeRowBound(ridx, rowUp, v);
+    DeltaRational bound = dr / (- coeff);
+    return tryToPropagate(ridx, rowUp, v, vUp, bound);
+  }
+  return false;
+}
+
+bool TheoryArithPrivate::attemptFull(RowIndex ridx, bool rowUp){
+  cout << "  attemptFull" << ridx << endl;
+
+  vector<const Tableau::Entry*> candidates;
+
+  for(Tableau::RowIterator i = d_tableau.ridRowIterator(ridx); !i.atEnd(); ++i){
+    const Tableau::Entry& e =*i;
+    const Rational& c = e.getCoefficient();
+    ArithVar v = e.getColVar();
+    bool vUp = (rowUp == (c.sgn() < 0));
+    if(propagateMightSucceed(v, vUp)){
+      candidates.push_back(&e);
+    }
+  }
+  if(candidates.empty()){ return false; }
+
+  const DeltaRational slack =
+    d_linEq.computeRowBound(ridx, rowUp, ARITHVAR_SENTINEL);
+  bool any = false;
+  vector<const Tableau::Entry*>::const_iterator i, iend;
+  for(i = candidates.begin(), iend = candidates.end(); i != iend; ++i){
+    const Tableau::Entry* ep = *i;
+    const Rational& c = ep->getCoefficient();
+    ArithVar v = ep->getColVar();
+
+    // See the comment for attemptSingleton()
+    bool activeUp = (rowUp == (c.sgn() > 0));
+    bool vUb = (rowUp == (c.sgn() < 0));
+
+    const DeltaRational& activeBound = activeUp ?
+      d_partialModel.getUpperBound(v):
+      d_partialModel.getLowerBound(v);
+
+    DeltaRational contribution = activeBound * c;
+    DeltaRational impliedBound = (slack - contribution)/(-c);
+
+    bool success = tryToPropagate(ridx, rowUp, v, vUb, impliedBound);
+    if(success){
+      cout << " success " << v << endl;
+    }else{
+      cout << " fail " << v << endl;
+    }
+    any |= success;
+  }
+  return any;
+}
+
+bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUb, const DeltaRational& bound){
+
+  bool weaker = vUb ? d_partialModel.strictlyLessThanUpperBound(v, bound):
+    d_partialModel.strictlyGreaterThanLowerBound(v, bound);
+  if(weaker){
+    ConstraintType t = vUb ? UpperBound : LowerBound;
+    Constraint implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
+    if(implied != NullConstraint){
+      return rowImplicationCanBeApplied(ridx, rowUp, implied);
+    }
+  }
+  return false;
+}
+
+bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint implied){
+  Assert(implied != NullConstraint);
+  ArithVar v = implied->getVariable();
+
+  bool assertedToTheTheory = implied->assertedToTheTheory();
+  bool canBePropagated = implied->canBePropagated();
+  bool hasProof = implied->hasProof();
+
+  Debug("arith::prop") << "arith::prop" << v
+                       << " " << assertedToTheTheory
+                       << " " << canBePropagated
+                       << " " << hasProof
+                       << endl;
+
+  if(implied->negationHasProof()){
+    Warning() << "the negation of " <<  implied << " : " << endl
+              << "has proof " << implied->getNegation() << endl
+              << implied->getNegation()->explainForConflict() << endl;
+  }
+
+  if(!assertedToTheTheory && canBePropagated && !hasProof ){
+    d_linEq.propagateRow(ridx, rowUp, implied);
+    return true;
+  }
+  cout << "failed " << v << " " << assertedToTheTheory << " " <<
+    canBePropagated << " " << hasProof << " " << implied << endl;
+  d_partialModel.printModel(v, cout);
+  return false;
+}
+
+bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
+  BoundCounts hasCount = d_linEq.hasBoundCount(ridx);
+  uint32_t rowLength = d_tableau.getRowLength(ridx);
+
+  bool success = false;
+  static int instance = 0;
+  ++instance;
+  cout << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
+
+  if(hasCount.lowerBoundCount() == rowLength){
+    success |= attemptFull(ridx, false);
+  }else if(hasCount.lowerBoundCount() + 1 == rowLength){
+    success |= attemptSingleton(ridx, false);
+  }
+
+  if(hasCount.upperBoundCount() == rowLength){
+    success |= attemptFull(ridx, true);
+  }else if(hasCount.upperBoundCount() + 1 == rowLength){
+    success |= attemptSingleton(ridx, true);
+  }
+  return success;
+}
+
+void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
+  Assert(d_candidateRows.empty());
+  DenseSet::const_iterator i = d_updatedBounds.begin();
+  DenseSet::const_iterator end = d_updatedBounds.end();
+  for(; i != end; ++i){
+    ArithVar var = *i;
+    if(d_tableau.isBasic(var)){
+      RowIndex ridx = d_tableau.basicToRowIndex(var);
+      d_candidateRows.softAdd(ridx);
+    }else{
+      Tableau::ColIterator basicIter = d_tableau.colIterator(var);
+      for(; !basicIter.atEnd(); ++basicIter){
+        const Tableau::Entry& entry = *basicIter;
+        RowIndex ridx = entry.getRowIndex();
+        d_candidateRows.softAdd(ridx);
+      }
+    }
+  }
+  d_updatedBounds.purge();
 }
 
 }/* CVC4::theory::arith namespace */

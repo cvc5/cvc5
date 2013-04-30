@@ -524,8 +524,12 @@ BoundsInfo ArithVariables::selectBoundsInfo(ArithVar v, bool old) const {
   }
 }
 
+bool ArithVariables::boundsQueueEmpty() const {
+  return d_boundsQueue.empty();
+}
+
 void ArithVariables::processBoundsQueue(BoundUpdateCallback& changed){
-  while(!d_boundsQueue.empty()){
+  while(!boundsQueueEmpty()){
     ArithVar v = d_boundsQueue.back();
     BoundsInfo prev = d_boundsQueue[v];
     d_boundsQueue.pop_back();

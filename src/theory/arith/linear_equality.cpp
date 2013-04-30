@@ -421,19 +421,42 @@ bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
   return result;
 }
 
-DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound){
-  DeltaRational sum(0,0);
-  for(Tableau::RowIterator i = d_tableau.basicRowIterator(basic); !i.atEnd(); ++i){
-    const Tableau::Entry& entry = (*i);
-    ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == basic) continue;
-    const Rational& coeff =  entry.getCoefficient();
-    int sgn = coeff.sgn();
-    bool ub = upperBound ? (sgn > 0) : (sgn < 0);
+// DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound){
+//   DeltaRational sum(0,0);
+//   for(Tableau::RowIterator i = d_tableau.basicRowIterator(basic); !i.atEnd(); ++i){
+//     const Tableau::Entry& entry = (*i);
+//     ArithVar nonbasic = entry.getColVar();
+//     if(nonbasic == basic) continue;
+//     const Rational& coeff =  entry.getCoefficient();
+//     int sgn = coeff.sgn();
+//     bool ub = upperBound ? (sgn > 0) : (sgn < 0);
 
-    const DeltaRational& bound = ub ?
-      d_variables.getUpperBound(nonbasic):
-      d_variables.getLowerBound(nonbasic);
+//     const DeltaRational& bound = ub ?
+//       d_variables.getUpperBound(nonbasic):
+//       d_variables.getLowerBound(nonbasic);
+
+//     DeltaRational diff = bound * coeff;
+//     sum = sum + diff;
+//   }
+//   return sum;
+// }
+DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound) const {
+  RowIndex rid = d_tableau.basicToRowIndex(basic);
+  return computeRowBound(rid, upperBound, basic);
+}
+DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const {
+  DeltaRational sum(0,0);
+  for(Tableau::RowIterator i = d_tableau.ridRowIterator(ridx); !i.atEnd(); ++i){
+    const Tableau::Entry& entry = (*i);
+    ArithVar v = entry.getColVar();
+    if(v == skip){ continue; }
+
+    const Rational& coeff =  entry.getCoefficient();
+    bool vUb = (rowUb == (coeff.sgn() > 0));
+
+    const DeltaRational& bound = vUb ?
+      d_variables.getUpperBound(v):
+      d_variables.getLowerBound(v);
 
     DeltaRational diff = bound * coeff;
     sum = sum + diff;
@@ -444,7 +467,7 @@ DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound
 /**
  * Computes the value of a basic variable using the current assignment.
  */
-DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
+DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe) const{
   Assert(d_tableau.isBasic(x));
   DeltaRational sum(0);
 
@@ -460,27 +483,53 @@ DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
   return sum;
 }
 
+// bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
+//   for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd(); ++iter){
+//     const Tableau::Entry& entry = *iter;
+
+//     ArithVar var = entry.getColVar();
+//     if(var == basic) continue;
+//     int sgn = entry.getCoefficient().sgn();
+//     if(upperBound){
+//       if( (sgn < 0 && !d_variables.hasLowerBound(var)) ||
+//           (sgn > 0 && !d_variables.hasUpperBound(var))){
+//         return false;
+//       }
+//     }else{
+//       if( (sgn < 0 && !d_variables.hasUpperBound(var)) ||
+//           (sgn > 0 && !d_variables.hasLowerBound(var))){
+//         return false;
+//       }
+//     }
+//   }
+//   return true;
+// }
+
 bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
-  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd(); ++iter){
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  return rowLacksBound(ridx, upperBound, basic) == NULL;
+}
+
+const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool rowUb, ArithVar skip){
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd(); ++iter){
     const Tableau::Entry& entry = *iter;
 
     ArithVar var = entry.getColVar();
-    if(var == basic) continue;
+    if(var == skip) { continue; }
+
     int sgn = entry.getCoefficient().sgn();
-    if(upperBound){
-      if( (sgn < 0 && !d_variables.hasLowerBound(var)) ||
-          (sgn > 0 && !d_variables.hasUpperBound(var))){
-        return false;
-      }
-    }else{
-      if( (sgn < 0 && !d_variables.hasUpperBound(var)) ||
-          (sgn > 0 && !d_variables.hasLowerBound(var))){
-        return false;
-      }
+    bool selectUb = (rowUb == (sgn > 0));
+    bool hasBound = selectUb ?
+      d_variables.hasUpperBound(var):
+      d_variables.hasLowerBound(var);
+    if(!hasBound){
+      return &entry;
     }
   }
-  return true;
+  return NULL;
 }
+
 
 template <bool upperBound>
 void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
@@ -530,6 +579,40 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
   c->impliedBy(bounds);
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << basic << ") done" << endl;
+}
+
+void LinearEqualityModule::propagateRow(RowIndex ridx, bool rowUp, Constraint c){
+  Assert(!c->assertedToTheTheory());
+  Assert(c->canBePropagated());
+  Assert(!c->hasProof());
+
+  ArithVar v = c->getVariable();
+  Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
+                                   << v <<") start" << endl;
+  vector<Constraint> bounds;
+
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd(); ++iter){
+    const Tableau::Entry& entry = *iter;
+    ArithVar nonbasic = entry.getColVar();
+    if(nonbasic == v){ continue; }
+
+    const Rational& a_ij = entry.getCoefficient();
+
+    int sgn = a_ij.sgn();
+    Assert(sgn != 0);
+    bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
+    Constraint bound = selectUb
+      ? d_variables.getUpperBoundConstraint(nonbasic)
+      : d_variables.getLowerBoundConstraint(nonbasic);
+
+    Assert(bound != NullConstraint);
+    Debug("arith::explainNonbasics") << "explainNonbasics" << bound << " for " << c << endl;
+    bounds.push_back(bound);
+  }
+  c->impliedBy(bounds);
+  Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
+                                   << v << ") done" << endl;
 }
 
 Constraint LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic) const {
@@ -749,7 +832,8 @@ void LinearEqualityModule::trackRowIndex(RowIndex ridx){
 BoundsInfo LinearEqualityModule::computeRowBoundInfo(RowIndex ridx, bool inQueue) const{
   BoundsInfo bi;
 
-  for(Tableau::RowIterator iter = d_tableau.getRow(ridx).begin(); !iter.atEnd();  ++iter){
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd();  ++iter){
     const Tableau::Entry& entry = *iter;
     ArithVar v = entry.getColVar();
     const Rational& a_ij = entry.getCoefficient();

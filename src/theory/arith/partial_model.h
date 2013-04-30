@@ -403,6 +403,7 @@ public:
 
   BoundsInfo selectBoundsInfo(ArithVar v, bool old) const;
 
+  bool boundsQueueEmpty() const;
   void processBoundsQueue(BoundUpdateCallback& changed);
 
   void printEntireModel(std::ostream& out) const;
