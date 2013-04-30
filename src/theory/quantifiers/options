@@ -31,6 +31,9 @@ option varElimQuant --var-elim-quant bool :default false
 option cnfQuant --cnf-quant bool :default false
  apply CNF conversion to quantified formulas
 
+option clauseSplit --clause-split bool :default false
+ apply clause splitting to quantified formulas
+
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x

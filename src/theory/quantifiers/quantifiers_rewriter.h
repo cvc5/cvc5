@@ -50,6 +50,7 @@ private:
   static Node computeVarElimination( Node body, std::vector< Node >& args, Node& ipl );
   static Node computeCNF( Node body, std::vector< Node >& args, NodeBuilder<>& defs, bool forcePred );
   static Node computePrenex( Node body, std::vector< Node >& args, bool pol );
+  static Node computeSplit( Node f, Node body, std::vector< Node >& args );
 private:
   enum{
     COMPUTE_MINISCOPING = 0,
@@ -60,6 +61,7 @@ private:
     COMPUTE_VAR_ELIMINATION,
     //COMPUTE_FLATTEN_ARGS_UF,
     COMPUTE_CNF,
+    COMPUTE_SPLIT,
     COMPUTE_LAST
   };
   static Node computeOperation( Node f, int computeOption );

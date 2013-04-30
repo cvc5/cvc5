@@ -537,6 +537,111 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
   }
 }
 
+Node QuantifiersRewriter::computeSplit( Node f, Node body, std::vector< Node >& vars ) {
+  if( body.getKind()==OR ){
+    size_t var_found_count = 0;
+    size_t eqc_count = 0;
+    size_t eqc_active = 0;
+    std::map< Node, int > var_to_eqc;
+    std::map< int, std::vector< Node > > eqc_to_var;
+    std::map< int, std::vector< Node > > eqc_to_lit;
+
+    std::vector<Node> lits;
+
+    for( size_t i=0; i<body.getNumChildren(); i++ ){
+      //get variables contained in the literal
+      Node n = body[i];
+      std::vector<Node> lit_vars;
+      computeArgs( vars, lit_vars, n);
+      //collectVars( n, vars, lit_vars );
+      if (lit_vars.empty()) {
+        lits.push_back(n);
+      }else {
+        std::vector<int> eqcs;
+        std::vector<Node> lit_new_vars;
+        //for each variable in literal
+        for( size_t j=0; j<lit_vars.size(); j++) {
+          //see if the variable has already been found
+          if (var_to_eqc.find(lit_vars[j])!=var_to_eqc.end()) {
+            int eqc = var_to_eqc[lit_vars[j]];
+            if (std::find(eqcs.begin(), eqcs.end(), eqc)==eqcs.end()) {
+              eqcs.push_back(eqc);
+            }
+          }
+          else {
+            var_found_count++;
+            lit_new_vars.push_back(lit_vars[j]);
+          }
+        }
+        if (eqcs.empty()) {
+          eqcs.push_back(eqc_count);
+          eqc_count++;
+          eqc_active++;
+        }
+
+        int eqcz = eqcs[0];
+        //merge equivalence classes with eqcz
+        for (unsigned j=1; j<eqcs.size(); j++) {
+          int eqc = eqcs[j];
+          //move all variables from equivalence class
+          for (unsigned k=0; k<eqc_to_var[eqc].size(); k++) {
+            Node v = eqc_to_var[eqc][k];
+            var_to_eqc[v] = eqcz;
+            eqc_to_var[eqcz].push_back(v);
+          }
+          eqc_to_var.erase(eqc);
+          //move all literals from equivalence class
+          for (unsigned k=0; k<eqc_to_lit[eqc].size(); k++) {
+            Node l = eqc_to_lit[eqc][k];
+            eqc_to_lit[eqcz].push_back(l);
+          }
+          eqc_to_lit.erase(eqc);
+          eqc_active--;
+        }
+        if (eqc_active==1 && var_found_count==vars.size()) {
+          return f;
+        }
+        //add variables to equivalence class
+        for (size_t j=0; j<lit_new_vars.size(); j++) {
+          var_to_eqc[lit_new_vars[j]] = eqcz;
+          eqc_to_var[eqcz].push_back(lit_new_vars[j]);
+        }
+        //add literal to equivalence class
+        eqc_to_lit[eqcz].push_back(n);
+      }
+    }
+    if (eqc_active>1) {
+      Trace("clause-split-debug") << "Split clause " << f << std::endl;
+      Trace("clause-split-debug") << "   Ground literals: " << std::endl;
+      for( size_t i=0; i<lits.size(); i++) {
+        Trace("clause-split-debug") << "      " << lits[i] << std::endl;
+      }
+      Trace("clause-split-debug") << std::endl;
+      Trace("clause-split-debug") << "Equivalence classes: " << std::endl;
+      for (std::map< int, std::vector< Node > >::iterator it = eqc_to_lit.begin(); it != eqc_to_lit.end(); ++it ){
+        Trace("clause-split-debug") << "   Literals: " << std::endl;
+        for (size_t i=0; i<it->second.size(); i++) {
+          Trace("clause-split-debug") << "      " << it->second[i] << std::endl;
+        }
+        int eqc = it->first;
+        Trace("clause-split-debug") << "   Variables: " << std::endl;
+        for (size_t i=0; i<eqc_to_var[eqc].size(); i++) {
+          Trace("clause-split-debug") << "      " << eqc_to_var[eqc][i] << std::endl;
+        }
+        Trace("clause-split-debug") << std::endl;
+        Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, eqc_to_var[eqc]);
+        Node body = it->second.size()==1 ? it->second[0] : NodeManager::currentNM()->mkNode(OR,it->second);
+        Node fa = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
+        lits.push_back(fa);
+      }
+      Node nf = NodeManager::currentNM()->mkNode(OR,lits);
+      Trace("clause-split-debug") << "Made node : " << nf << std::endl;
+      return nf;
+    }
+  }
+  return f;
+}
+
 //general method for computing various rewrites
 Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
   if( f.getKind()==FORALL ){
@@ -572,6 +677,8 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
       //n = computeNNF( n );
       n = computeCNF( n, args, defs, false );
       ipl = Node::null();
+    }else if( computeOption==COMPUTE_SPLIT ) {
+      return computeSplit(f, n, args );
     }
     Trace("quantifiers-rewrite-debug") << "Compute Operation: return " << n << ", " << args.size() << std::endl;
     if( f[1]==n && args.size()==f[0].getNumChildren() ){
@@ -811,13 +918,15 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
   }else if( computeOption==COMPUTE_NNF ){
     return false;//TODO: compute NNF (current bad idea since arithmetic rewrites equalities)
   }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
-    return true;
+    return !options::finiteModelFind();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant() && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     return options::varElimQuant();
   }else if( computeOption==COMPUTE_CNF ){
     return false;//return options::cnfQuant() ;
+  }else if( computeOption==COMPUTE_SPLIT ){
+    return options::clauseSplit();
   }else{
     return false;
   }
