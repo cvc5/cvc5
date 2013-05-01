@@ -85,7 +85,6 @@ Node RewriteRule<SgeEliminate>::apply(TNode node) {
   return result;
 }
 
-
 template <>
 bool RewriteRule<SltEliminate>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLT); 

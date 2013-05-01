@@ -1822,11 +1822,15 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
 
   hash_set<TNode, TNodeHashFunction> s;
+  Trace("debugging") << "NonClausal simplify pre-preprocess\n"; 
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Node assertion = d_assertionsToPreprocess[i];
     Node assertionNew = d_topLevelSubstitutions.apply(assertion);
+    Trace("debugging") << "assertion = " << assertion << endl;
+    Trace("debugging") << "assertionNew = " << assertionNew << endl; 
     if (assertion != assertionNew) {
       assertion = Rewriter::rewrite(assertionNew);
+      Trace("debugging") << "rewrite(assertion) = " << assertion << endl; 
     }
     Assert(Rewriter::rewrite(assertion) == assertion);
     for (;;) {
@@ -1835,8 +1839,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         break;
       }
       ++d_smt.d_stats->d_numConstantProps;
+      Trace("debugging") << "assertionNew = " << assertionNew << endl; 
       assertion = Rewriter::rewrite(assertionNew);
+      Trace("debugging") << "assertionNew = " << assertionNew << endl; 
     }
+    Trace("debugging") << "\n"; 
     s.insert(assertion);
     d_assertionsToCheck.push_back(assertion);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
