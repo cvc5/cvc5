@@ -94,4 +94,7 @@ option exportDioDecompositions --dio-decomps bool :default false :read-write
 option newProp --new-prop bool :default false :read-write
  Use the new row propagation system
 
+option arithPropAsLemmaLength --arith-prop-clauses int :default 8 :read-write
+ Rows shorter than this are propagated as clauses
+
 endmodule

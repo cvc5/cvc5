@@ -598,6 +598,8 @@ public:
   void impliedBy(Constraint a, Constraint b);
   void impliedBy(const std::vector<Constraint>& b);
 
+  Node makeImplication(const std::vector<Constraint>& b) const;
+  static Node makeConjunction(const std::vector<Constraint>& b);
 
   /** The node must have a proof already and be eligible for propagation! */
   void propagate();

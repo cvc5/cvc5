@@ -581,7 +581,7 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
                                    << basic << ") done" << endl;
 }
 
-void LinearEqualityModule::propagateRow(RowIndex ridx, bool rowUp, Constraint c){
+void LinearEqualityModule::propagateRow(vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c){
   Assert(!c->assertedToTheTheory());
   Assert(c->canBePropagated());
   Assert(!c->hasProof());
@@ -589,7 +589,7 @@ void LinearEqualityModule::propagateRow(RowIndex ridx, bool rowUp, Constraint c)
   ArithVar v = c->getVariable();
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << v <<") start" << endl;
-  vector<Constraint> bounds;
+  //vector<Constraint> bounds;
 
   Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
   for(; !iter.atEnd(); ++iter){
@@ -608,9 +608,8 @@ void LinearEqualityModule::propagateRow(RowIndex ridx, bool rowUp, Constraint c)
 
     Assert(bound != NullConstraint);
     Debug("arith::explainNonbasics") << "explainNonbasics" << bound << " for " << c << endl;
-    bounds.push_back(bound);
+    into.push_back(bound);
   }
-  c->impliedBy(bounds);
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << v << ") done" << endl;
 }

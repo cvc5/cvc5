@@ -116,6 +116,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_cutInContext(c),
   d_statistics()
 {
+  srand(79);
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){ }
@@ -2548,18 +2549,21 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
         }
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
-        cout << "success " << bestImplied << endl;
-        d_partialModel.printModel(basic, cout);
-
+        if(Debug.isOn("arith::prop")){
+          Debug("arith::prop") << "success " << bestImplied << endl;
+          d_partialModel.printModel(basic, Debug("arith::prop"));
+        }
         return true;
       }
-      cout << "failed " << basic << " " << bound << assertedToTheTheory << " " <<
-        canBePropagated << " " << hasProof << endl;
-      d_partialModel.printModel(basic, cout);
+      if(Debug.isOn("arith::prop")){
+        Debug("arith::prop") << "failed " << basic << " " << bound << assertedToTheTheory << " " <<
+          canBePropagated << " " << hasProof << endl;
+        d_partialModel.printModel(basic, Debug("arith::prop"));
+      }
     }
-  }else{
-    cout << "false " << bound << " ";
-    d_partialModel.printModel(basic, cout);
+  }else if(Debug.isOn("arith::prop")){
+    Debug("arith::prop") << "false " << bound << " ";
+    d_partialModel.printModel(basic, Debug("arith::prop"));
   }
   return false;
 }
@@ -2580,7 +2584,7 @@ void TheoryArithPrivate::propagateCandidate(ArithVar basic){
 void TheoryArithPrivate::propagateCandidates(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
 
-  cout << "propagateCandidates begin" << endl;
+  Debug("arith::prop") << "propagateCandidates begin" << endl;
 
   Assert(d_candidateBasics.empty());
 
@@ -2615,7 +2619,7 @@ void TheoryArithPrivate::propagateCandidates(){
     Assert(d_tableau.isBasic(candidate));
     propagateCandidate(candidate);
   }
-  cout << "propagateCandidates end" << endl << endl << endl;
+  Debug("arith::prop") << "propagateCandidates end" << endl << endl << endl;
 }
 
 void TheoryArithPrivate::propagateCandidatesNew(){
@@ -2634,7 +2638,7 @@ void TheoryArithPrivate::propagateCandidatesNew(){
    */
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
-  cout << "propagateCandidatesNew begin" << endl;
+  Debug("arith::prop") << "propagateCandidatesNew begin" << endl;
 
   Assert(d_qflraStatus == Result::SAT);
   if(d_updatedBounds.empty()){ return; }
@@ -2651,7 +2655,7 @@ void TheoryArithPrivate::propagateCandidatesNew(){
     d_candidateRows.pop_back();
     propagateCandidateRow(candidate);
   }
-  cout << "propagateCandidatesNew end" << endl << endl << endl;
+  Debug("arith::prop") << "propagateCandidatesNew end" << endl << endl << endl;
 }
 
 bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
@@ -2678,7 +2682,7 @@ bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
 }
 
 bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
-  cout << "  attemptSingleton" << ridx;
+  Debug("arith::prop") << "  attemptSingleton" << ridx;
 
   const Tableau::Entry* ep;
   ep = d_linEq.rowLacksBound(ridx, rowUp, ARITHVAR_SENTINEL);
@@ -2698,8 +2702,8 @@ bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
   // if c < 0, v \geq -D/c so !vUp
   bool vUp = (rowUp == ( coeff.sgn() < 0));
 
-  cout << "  " << rowUp << " " << v << " " << coeff << " " << vUp << endl;
-  cout << "  " << propagateMightSucceed(v, vUp) << endl;
+  Debug("arith::prop") << "  " << rowUp << " " << v << " " << coeff << " " << vUp << endl;
+  Debug("arith::prop") << "  " << propagateMightSucceed(v, vUp) << endl;
 
   if(propagateMightSucceed(v, vUp)){
     DeltaRational dr = d_linEq.computeRowBound(ridx, rowUp, v);
@@ -2710,7 +2714,7 @@ bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
 }
 
 bool TheoryArithPrivate::attemptFull(RowIndex ridx, bool rowUp){
-  cout << "  attemptFull" << ridx << endl;
+  Debug("arith::prop") << "  attemptFull" << ridx << endl;
 
   vector<const Tableau::Entry*> candidates;
 
@@ -2746,11 +2750,6 @@ bool TheoryArithPrivate::attemptFull(RowIndex ridx, bool rowUp){
     DeltaRational impliedBound = (slack - contribution)/(-c);
 
     bool success = tryToPropagate(ridx, rowUp, v, vUb, impliedBound);
-    if(success){
-      cout << " success " << v << endl;
-    }else{
-      cout << " fail " << v << endl;
-    }
     any |= success;
   }
   return any;
@@ -2768,6 +2767,30 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
     }
   }
   return false;
+}
+
+Node flattenImplication(Node imp){
+  NodeBuilder<> nb(kind::OR);
+  Node left = imp[0];
+  Node right = imp[1];
+
+  if(left.getKind() == kind::AND){
+    for(Node::iterator i = left.begin(), iend = left.end(); i != iend; ++i) {
+      nb << (*i).negate();
+    }
+  }else{
+    nb << left.negate();
+  }
+
+  if(right.getKind() == kind::OR){
+    for(Node::iterator i = right.begin(), iend = right.end(); i != iend; ++i) {
+      nb << *i;
+    }
+  }else{
+    nb << right;
+  }
+
+  return nb;
 }
 
 bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint implied){
@@ -2791,13 +2814,31 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
   }
 
   if(!assertedToTheTheory && canBePropagated && !hasProof ){
-    d_linEq.propagateRow(ridx, rowUp, implied);
+    vector<Constraint> explain;
+    d_linEq.propagateRow(explain, ridx, rowUp, implied);
+    if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
+      Node implication = implied->makeImplication(explain);
+      Node clause = flattenImplication(implication);
+      outputLemma(clause);
+    }else{
+      implied->impliedBy(explain);
+    }
     return true;
   }
-  cout << "failed " << v << " " << assertedToTheTheory << " " <<
-    canBePropagated << " " << hasProof << " " << implied << endl;
-  d_partialModel.printModel(v, cout);
+
+  if(Debug.isOn("arith::prop")){
+    Debug("arith::prop")
+      << "failed " << v << " " << assertedToTheTheory << " "
+      << canBePropagated << " " << hasProof << " " << implied << endl;
+    d_partialModel.printModel(v, Debug("arith::prop"));
+  }
   return false;
+}
+
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
 }
 
 bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
@@ -2807,10 +2848,14 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
   bool success = false;
   static int instance = 0;
   ++instance;
-  cout << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
+
+  Debug("arith::prop")
+    << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
 
   if(rowLength >= options::arithPropagateMaxLength()){
-    return false;
+    if(fRand(0.0,1.0) >= double(options::arithPropagateMaxLength())/rowLength){
+      return false;
+    }
   }
 
   if(hasCount.lowerBoundCount() == rowLength){

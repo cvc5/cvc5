@@ -431,7 +431,7 @@ public:
    * Exports either the explanation of an upperbound or a lower bound
    * of the basic variable basic, using the non-basic variables in the row.
    */
-  void propagateRow(RowIndex ridx, bool rowUp, Constraint c);
+  void propagateRow(std::vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c);
 
   /**
    * Computes the value of a basic variable using the assignments
