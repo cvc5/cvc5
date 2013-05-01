@@ -173,14 +173,9 @@ void TheoryBV::check(Effort e)
     return;
   }
 
-  if (Theory::fullEffort(e)) {
-    Trace("bitvector-fulleffort") << "TheoryBV::fullEffort \n"; 
-    printFacts( Trace("bitvector-fulleffort") ); 
-  }
-  
   while (!done()) {
     TNode fact = get().assertion;
-    checkForLemma(fact); 
+    // checkForLemma(fact); 
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->assertFact(fact); 
     }

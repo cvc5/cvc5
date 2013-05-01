@@ -95,6 +95,7 @@ public:
    * Notifies the engine of all the theories used.
    */
   bool done(TNode node);
+
 };
 
 

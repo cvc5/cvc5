@@ -103,24 +103,6 @@ Node RewriteRule<SltEliminate>::apply(TNode node) {
   
 }
 
-// template <>
-// bool RewriteRule<SleEliminate>::applies(TNode node) {
-//   return (node.getKind() == kind::BITVECTOR_SLE); 
-// }
-
-// template <>
-// Node RewriteRule<SleEliminate>::apply(TNode node) {
-//   Debug("bv-rewrite") << "RewriteRule<SleEliminate>(" << node << ")" << std::endl;
-  
-//   unsigned size = utils::getSize(node[0]);
-//   Node pow_two = utils::mkConst(BitVector(size, Integer(1).multiplyByPow2(size - 1)));
-//   Node a = utils::mkNode(kind::BITVECTOR_PLUS, node[0], pow_two);
-//   Node b = utils::mkNode(kind::BITVECTOR_PLUS, node[1], pow_two);
-  
-//   return utils::mkNode(kind::BITVECTOR_ULE, a, b); 
-
-// }
-
 template <>
 bool RewriteRule<SleEliminate>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_SLE); 
