@@ -23,5 +23,6 @@ regress test: check
 units systemtests:
 
 EXTRA_DIST = \
+	Makefile.levels \
 	run_regression \
 	README
