@@ -824,11 +824,11 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
 
     const Datatype & d = i->getDatatype();
 
-    out << "(" << d.getName() << "  ";
+    out << "(" << maybeQuoteSymbol(d.getName()) << "  ";
     for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
         ctor != ctor_end; ++ctor){
       if( ctor!=d.begin() ) out << " ";
-      out << "(" << ctor->getName();
+      out << "(" << maybeQuoteSymbol(ctor->getName());
 
       for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
           arg != arg_end; ++arg){
