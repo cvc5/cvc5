@@ -91,4 +91,7 @@ option fancyFinal --fancy-final bool :default false :read-write
 option exportDioDecompositions --dio-decomps bool :default false :read-write
  Let skolem variables for integer divisibility constraints leak from the dio solver.
 
+option soiQuickExplain --soi-qe bool :default false :read-write
+ Use quick explain to minimize the sum of infeasibility conflicts.
+
 endmodule

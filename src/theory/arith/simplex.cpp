@@ -168,6 +168,12 @@ void SimplexDecisionProcedure::addToInfeasFunc(TimerStat& timer, ArithVar inf, A
   adjustInfeasFunc(timer, inf, justE);
 }
 
+void SimplexDecisionProcedure::removeFromInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e){
+  AVIntPairVec justE;
+  int opSgn  = -d_errorSet.getSgn(e);
+  justE.push_back(make_pair(e, opSgn));
+  adjustInfeasFunc(timer, inf, justE);
+}
 
 ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set){
   TimerStat::CodeTimer codeTimer(timer);
@@ -226,7 +232,7 @@ void SimplexDecisionProcedure::addRowSgns(sgn_table& sgns, ArithVar basic, int n
   }
 }
 
-ArithVar SimplexDecisionProcedure::find_basic_outside(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m){
+ArithVar SimplexDecisionProcedure::find_basic_in_sgns(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m, bool inside){
   pair<ArithVar, int> p = make_pair(col, determinizeSgn(sgn));
   sgn_table::const_iterator i = sgns.find(p);
 
@@ -234,7 +240,7 @@ ArithVar SimplexDecisionProcedure::find_basic_outside(const sgn_table& sgns, Ari
     const ArithVarVec& vec = (*i).second;
     for(ArithVarVec::const_iterator viter = vec.begin(), vend = vec.end(); viter != vend; ++viter){
       ArithVar curr = *viter;
-      if(!m.isMember(curr)){
+      if(inside == m.isMember(curr)){
         return curr;
       }
     }
