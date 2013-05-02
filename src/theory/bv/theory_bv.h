@@ -99,8 +99,6 @@ private:
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
-
-  
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
    * properly.

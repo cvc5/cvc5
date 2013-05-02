@@ -156,7 +156,6 @@ void TheoryBV::checkForLemma(TNode fact) {
 
 void TheoryBV::check(Effort e)
 {
-  Trace("bitvector") <<"TheoryBV::check (" << e << ")\n"; 
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   if (options::bitvectorEagerBitblast()) {
     return;
@@ -175,7 +174,7 @@ void TheoryBV::check(Effort e)
 
   while (!done()) {
     TNode fact = get().assertion;
-    // checkForLemma(fact); 
+   	checkForLemma(fact); 
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->assertFact(fact); 
     }
@@ -280,7 +279,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
 Node TheoryBV::ppRewrite(TNode t)
 {
   if (RewriteRule<BitwiseEq>::applies(t)) {
-	Node result = RewriteRule<BitwiseEq>::run<false>(t);
+    Node result = RewriteRule<BitwiseEq>::run<false>(t);
     return Rewriter::rewrite(result);
   }
 
