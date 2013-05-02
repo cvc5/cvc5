@@ -294,11 +294,13 @@ public:
     if(i == super::end()) {
       return BitIterator();
     }
+    /*
     Debug.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (unsigned long long)((*i).second),
                  unsigned(k.first));
+    */
     return BitIterator(*i, k.first);
   }
 
@@ -316,11 +318,13 @@ public:
     if(i == super::end()) {
       return ConstBitIterator();
     }
+    /*
     Debug.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (unsigned long long)((*i).second),
                  unsigned(k.first));
+    */
     return ConstBitIterator(*i, k.first);
   }
 
@@ -409,9 +413,11 @@ class CDAttrHash<bool> :
       d_key(key),
       d_word(word),
       d_bit(bit) {
+      /*
       Debug.printf("cdboolattr",
                    "CDAttrHash<bool>::BitAccessor(%p, %p, %016llx, %u)\n",
                    &map, key, (unsigned long long) word, bit);
+      */
     }
 
     BitAccessor& operator=(bool b) {
@@ -419,25 +425,31 @@ class CDAttrHash<bool> :
         // set the bit
         d_word |= (1 << d_bit);
         d_map.insert(d_key, d_word);
+        /*
         Debug.printf("cdboolattr",
                      "CDAttrHash<bool>::BitAccessor::set(%p, %p, %016llx, %u)\n",
                      &d_map, d_key, (unsigned long long) d_word, d_bit);
+        */
       } else {
         // clear the bit
         d_word &= ~(1 << d_bit);
         d_map.insert(d_key, d_word);
+        /*
         Debug.printf("cdboolattr",
                      "CDAttrHash<bool>::BitAccessor::clr(%p, %p, %016llx, %u)\n",
                      &d_map, d_key, (unsigned long long) d_word, d_bit);
+        */
       }
 
       return *this;
     }
 
     operator bool() const {
+      /*
       Debug.printf("cdboolattr",
                    "CDAttrHash<bool>::BitAccessor::toBool(%p, %p, %016llx, %u)\n",
                    &d_map, d_key, (unsigned long long) d_word, d_bit);
+      */
       return (d_word & (1 << d_bit)) ? true : false;
     }
   };/* class CDAttrHash<bool>::BitAccessor */
@@ -503,10 +515,12 @@ public:
     if(i == super::end()) {
       return ConstBitIterator();
     }
+    /*
     Debug.printf("cdboolattr",
                  "underlying word at address looks like 0x%016llx, bit is %u\n",
                  (unsigned long long)((*i).second),
                  unsigned(k.first));
+    */
     return ConstBitIterator(*i, k.first);
   }
 

@@ -570,9 +570,11 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
 
     while (it != it_end){
       uint64_t id = (*it).first.first;
+      /*
       Debug("attrgc") << "id " << id
                       << " node_value: " << ((*it).first.second)
                       << std::endl;
+      */
       if(traits_t::cleanup[id] != NULL) {
         traits_t::cleanup[id]((*it).second);
       }

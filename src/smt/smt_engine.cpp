@@ -235,7 +235,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   unsigned d_realAssertionsEnd;
 
   /** The converter for Boolean terms -> BITVECTOR(1). */
-  BooleanTermConverter d_booleanTermConverter;
+  BooleanTermConverter* d_booleanTermConverter;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
@@ -390,7 +390,7 @@ public:
     d_assertionsToPreprocess(),
     d_nonClausalLearnedLiterals(),
     d_realAssertionsEnd(0),
-    d_booleanTermConverter(d_smt),
+    d_booleanTermConverter(NULL),
     d_propagator(d_nonClausalLearnedLiterals, true, true),
     d_propagatorNeedsFinish(false),
     d_assertionsToCheck(),
@@ -411,6 +411,10 @@ public:
     if(d_propagatorNeedsFinish) {
       d_propagator.finish();
       d_propagatorNeedsFinish = false;
+    }
+    if(d_booleanTermConverter != NULL) {
+      delete d_booleanTermConverter;
+      d_booleanTermConverter = NULL;
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
@@ -1213,7 +1217,8 @@ void SmtEngine::defineFunction(Expr func,
     stringstream ss;
     ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
        << func;
-    Dump("declarations") << DefineFunctionCommand(ss.str(), func, formals, formula);
+    DefineFunctionCommand c(ss.str(), func, formals, formula);
+    addToModelCommandAndDump(c, false, true, "declarations");
   }
   SmtScope smts(this);
 
@@ -2680,8 +2685,14 @@ void SmtEnginePrivate::processAssertions() {
   {
     Chat() << "rewriting Boolean terms..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
+    if(d_booleanTermConverter == NULL) {
+      // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
+      // to ExprManager notifications, etc.  Otherwise we might miss the "BooleanTerm" datatype
+      // definition, and not dump it properly.
+      d_booleanTermConverter = new BooleanTermConverter(d_smt);
+    }
     for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
-      Node n = d_booleanTermConverter.rewriteBooleanTerms(d_assertionsToPreprocess[i]);
+      Node n = d_booleanTermConverter->rewriteBooleanTerms(d_assertionsToPreprocess[i]);
       if(n != d_assertionsToPreprocess[i]) {
         switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
         case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:

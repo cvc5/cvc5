@@ -65,6 +65,8 @@ class BooleanTermConverter {
   /** The cache used during Boolean term datatype conversion */
   BooleanTermDatatypeCache d_datatypeCache;
 
+  Node rewriteAs(TNode in, TypeNode as) throw();
+
   /**
    * Scan a datatype for and convert as necessary.
    */
