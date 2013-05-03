@@ -76,6 +76,9 @@ class FakeOutputChannel : public OutputChannel {
   void handleUserAttribute( const char* attr, Theory* t ){
     Unimplemented();
   }
+  LemmaStatus splitLemma(TNode n, bool removable) throw(TypeCheckingExceptionPrivate, AssertionException){
+    Unimplemented();
+  }
 };/* class FakeOutputChannel */
 
 template<TheoryId theory>

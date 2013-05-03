@@ -107,6 +107,11 @@ public:
     d_callHistory.clear();
   }
 
+  LemmaStatus splitLemma(TNode n, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException){
+    push(LEMMA, n);
+    return LemmaStatus(Node::null(), 0);
+  }
+
   Node getIthNode(int i) {
     Node tmp = (d_callHistory[i]).second;
     return tmp;
