@@ -31,12 +31,6 @@ template void LinearEqualityModule::propagateNonbasics<false>(ArithVar basic, Co
 template ArithVar LinearEqualityModule::selectSlack<true>(ArithVar x_i, VarPreferenceFunction pf) const;
 template ArithVar LinearEqualityModule::selectSlack<false>(ArithVar x_i, VarPreferenceFunction pf) const;
 
-// template bool LinearEqualityModule::preferNonDegenerate<true>(const UpdateInfo& a, const UpdateInfo& b) const;
-// template bool LinearEqualityModule::preferNonDegenerate<false>(const UpdateInfo& a, const UpdateInfo& b) const;
-
-// template bool LinearEqualityModule::preferErrorsFixed<true>(const UpdateInfo& a, const UpdateInfo& b) const;
-// template bool LinearEqualityModule::preferErrorsFixed<false>(const UpdateInfo& a, const UpdateInfo& b) const;
-
 template bool LinearEqualityModule::preferWitness<true>(const UpdateInfo& a, const UpdateInfo& b) const;
 template bool LinearEqualityModule::preferWitness<false>(const UpdateInfo& a, const UpdateInfo& b) const;
 
@@ -57,14 +51,14 @@ void Border::output(std::ostream& out) const{
       << "}";
 }
 
-LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundCountingVector& boundTracking, BasicVarModelUpdateCallBack f):
+LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundInfoMap& boundsTracking, BasicVarModelUpdateCallBack f):
   d_variables(vars),
   d_tableau(t),
   d_basicVariableUpdates(f),
   d_increasing(1),
   d_decreasing(-1),
   d_relevantErrorBuffer(),
-  d_boundTracking(boundTracking),
+  d_btracking(boundsTracking),
   d_areTracking(false),
   d_trackCallback(this)
 {}
@@ -103,31 +97,24 @@ LinearEqualityModule::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_weakenings);
   StatisticsRegistry::unregisterStat(&d_weakenTime);
 }
-void LinearEqualityModule::includeBoundCountChange(ArithVar nb, BoundCounts prev){
-  if(d_tableau.isBasic(nb)){
-    return;
-  }
-  Assert(!d_tableau.isBasic(nb));
+void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
   Assert(!d_areTracking);
 
-  BoundCounts curr = d_variables.boundCounts(nb);
+  BoundsInfo curr = d_variables.boundsInfo(v);
 
   Assert(prev != curr);
-  Tableau::ColIterator basicIter = d_tableau.colIterator(nb);
+  Tableau::ColIterator basicIter = d_tableau.colIterator(v);
   for(; !basicIter.atEnd(); ++basicIter){
     const Tableau::Entry& entry = *basicIter;
-    Assert(entry.getColVar() == nb);
+    Assert(entry.getColVar() == v);
     int a_ijSgn = entry.getCoefficient().sgn();
 
-    ArithVar basic = d_tableau.rowIndexToBasic(entry.getRowIndex());
-
-    BoundCounts& counts = d_boundTracking.get(basic);
-    Debug("includeBoundCountChange") << basic << " " << counts << " to " ;
-    counts -= prev.multiplyBySgn(a_ijSgn);
-    counts += curr.multiplyBySgn(a_ijSgn);
-    Debug("includeBoundCountChange") << counts << " " << a_ijSgn << std::endl;
+    RowIndex ridx = entry.getRowIndex();
+    BoundsInfo& counts = d_btracking.get(ridx);
+    Debug("includeBoundUpdate") << d_tableau.rowIndexToBasic(ridx) << " " << counts << " to " ;
+    counts.addInChange(a_ijSgn, prev, curr);
+    Debug("includeBoundUpdate") << counts << " " << a_ijSgn << std::endl;
   }
-  d_boundTracking.set(nb, curr);
 }
 
 void LinearEqualityModule::updateMany(const DenseMap<DeltaRational>& many){
@@ -231,9 +218,9 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
                  << d_variables.getAssignment(x_i) << "|-> " << v << endl;
 
 
-  BoundCounts before = d_variables.boundCounts(x_i);
+  BoundCounts before = d_variables.atBoundCounts(x_i);
   d_variables.setAssignment(x_i, v);
-  BoundCounts after = d_variables.boundCounts(x_i);
+  BoundCounts after = d_variables.atBoundCounts(x_i);
 
   bool anyChange = before != after;
 
@@ -242,17 +229,24 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
     const Tableau::Entry& entry = *colIter;
     Assert(entry.getColVar() == x_i);
 
-    ArithVar x_j = d_tableau.rowIndexToBasic(entry.getRowIndex());
+    RowIndex ridx = entry.getRowIndex();
+    ArithVar x_j = d_tableau.rowIndexToBasic(ridx);
     const Rational& a_ji = entry.getCoefficient();
 
     const DeltaRational& assignment = d_variables.getAssignment(x_j);
     DeltaRational  nAssignment = assignment+(diff * a_ji);
     Debug("update") << x_j << " " << a_ji << assignment << " -> " << nAssignment << endl;
+    BoundCounts xjBefore = d_variables.atBoundCounts(x_j);
     d_variables.setAssignment(x_j, nAssignment);
+    BoundCounts xjAfter = d_variables.atBoundCounts(x_j);
 
-    if(anyChange && basicIsTracked(x_j)){
-      BoundCounts& next_bc_k = d_boundTracking.get(x_j);
-      next_bc_k.addInChange(a_ji.sgn(), before, after);
+    Assert(rowIndexIsTracked(ridx));
+    BoundsInfo& next_bc_k = d_btracking.get(ridx);
+    if(anyChange){
+      next_bc_k.addInAtBoundChange(a_ji.sgn(), before, after);
+    }
+    if(xjBefore != xjAfter){
+      next_bc_k.addInAtBoundChange(-1, xjBefore, xjAfter);
     }
 
     d_basicVariableUpdates(x_j);
@@ -332,7 +326,7 @@ void LinearEqualityModule::debugCheckTracking(){
       ArithVar var = entry.getColVar();
       const Rational& coeff = entry.getCoefficient();
       DeltaRational beta = d_variables.getAssignment(var);
-      Debug("arith::tracking") << var << " " << d_variables.boundCounts(var)
+      Debug("arith::tracking") << var << " " << d_variables.boundsInfo(var)
                                << " " << beta << coeff;
       if(d_variables.hasLowerBound(var)){
         Debug("arith::tracking") << "(lb " << d_variables.getLowerBound(var) << ")";
@@ -345,11 +339,12 @@ void LinearEqualityModule::debugCheckTracking(){
     Debug("arith::tracking") << "end row"<< endl;
 
     if(basicIsTracked(basic)){
-      BoundCounts computed = computeBoundCounts(basic);
+      RowIndex ridx = d_tableau.basicToRowIndex(basic);
+      BoundsInfo computed = computeRowBoundInfo(ridx, false);
       Debug("arith::tracking")
         << "computed " << computed
-        << " tracking " << d_boundTracking[basic] << endl;
-      Assert(computed == d_boundTracking[basic]);
+        << " tracking " << d_btracking[ridx] << endl;
+      Assert(computed == d_btracking[ridx]);
 
     }
   }
@@ -426,19 +421,42 @@ bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
   return result;
 }
 
-DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound){
-  DeltaRational sum(0,0);
-  for(Tableau::RowIterator i = d_tableau.basicRowIterator(basic); !i.atEnd(); ++i){
-    const Tableau::Entry& entry = (*i);
-    ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == basic) continue;
-    const Rational& coeff =  entry.getCoefficient();
-    int sgn = coeff.sgn();
-    bool ub = upperBound ? (sgn > 0) : (sgn < 0);
+// DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound){
+//   DeltaRational sum(0,0);
+//   for(Tableau::RowIterator i = d_tableau.basicRowIterator(basic); !i.atEnd(); ++i){
+//     const Tableau::Entry& entry = (*i);
+//     ArithVar nonbasic = entry.getColVar();
+//     if(nonbasic == basic) continue;
+//     const Rational& coeff =  entry.getCoefficient();
+//     int sgn = coeff.sgn();
+//     bool ub = upperBound ? (sgn > 0) : (sgn < 0);
 
-    const DeltaRational& bound = ub ?
-      d_variables.getUpperBound(nonbasic):
-      d_variables.getLowerBound(nonbasic);
+//     const DeltaRational& bound = ub ?
+//       d_variables.getUpperBound(nonbasic):
+//       d_variables.getLowerBound(nonbasic);
+
+//     DeltaRational diff = bound * coeff;
+//     sum = sum + diff;
+//   }
+//   return sum;
+// }
+DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound) const {
+  RowIndex rid = d_tableau.basicToRowIndex(basic);
+  return computeRowBound(rid, upperBound, basic);
+}
+DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const {
+  DeltaRational sum(0,0);
+  for(Tableau::RowIterator i = d_tableau.ridRowIterator(ridx); !i.atEnd(); ++i){
+    const Tableau::Entry& entry = (*i);
+    ArithVar v = entry.getColVar();
+    if(v == skip){ continue; }
+
+    const Rational& coeff =  entry.getCoefficient();
+    bool vUb = (rowUb == (coeff.sgn() > 0));
+
+    const DeltaRational& bound = vUb ?
+      d_variables.getUpperBound(v):
+      d_variables.getLowerBound(v);
 
     DeltaRational diff = bound * coeff;
     sum = sum + diff;
@@ -449,7 +467,7 @@ DeltaRational LinearEqualityModule::computeBound(ArithVar basic, bool upperBound
 /**
  * Computes the value of a basic variable using the current assignment.
  */
-DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
+DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe) const{
   Assert(d_tableau.isBasic(x));
   DeltaRational sum(0);
 
@@ -465,27 +483,53 @@ DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe){
   return sum;
 }
 
+// bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
+//   for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd(); ++iter){
+//     const Tableau::Entry& entry = *iter;
+
+//     ArithVar var = entry.getColVar();
+//     if(var == basic) continue;
+//     int sgn = entry.getCoefficient().sgn();
+//     if(upperBound){
+//       if( (sgn < 0 && !d_variables.hasLowerBound(var)) ||
+//           (sgn > 0 && !d_variables.hasUpperBound(var))){
+//         return false;
+//       }
+//     }else{
+//       if( (sgn < 0 && !d_variables.hasUpperBound(var)) ||
+//           (sgn > 0 && !d_variables.hasLowerBound(var))){
+//         return false;
+//       }
+//     }
+//   }
+//   return true;
+// }
+
 bool LinearEqualityModule::hasBounds(ArithVar basic, bool upperBound){
-  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(basic); !iter.atEnd(); ++iter){
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  return rowLacksBound(ridx, upperBound, basic) == NULL;
+}
+
+const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool rowUb, ArithVar skip){
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd(); ++iter){
     const Tableau::Entry& entry = *iter;
 
     ArithVar var = entry.getColVar();
-    if(var == basic) continue;
+    if(var == skip) { continue; }
+
     int sgn = entry.getCoefficient().sgn();
-    if(upperBound){
-      if( (sgn < 0 && !d_variables.hasLowerBound(var)) ||
-          (sgn > 0 && !d_variables.hasUpperBound(var))){
-        return false;
-      }
-    }else{
-      if( (sgn < 0 && !d_variables.hasUpperBound(var)) ||
-          (sgn > 0 && !d_variables.hasLowerBound(var))){
-        return false;
-      }
+    bool selectUb = (rowUb == (sgn > 0));
+    bool hasBound = selectUb ?
+      d_variables.hasUpperBound(var):
+      d_variables.hasLowerBound(var);
+    if(!hasBound){
+      return &entry;
     }
   }
-  return true;
+  return NULL;
 }
+
 
 template <bool upperBound>
 void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
@@ -535,6 +579,39 @@ void LinearEqualityModule::propagateNonbasics(ArithVar basic, Constraint c){
   c->impliedBy(bounds);
   Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
                                    << basic << ") done" << endl;
+}
+
+void LinearEqualityModule::propagateRow(vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c){
+  Assert(!c->assertedToTheTheory());
+  Assert(c->canBePropagated());
+  Assert(!c->hasProof());
+
+  ArithVar v = c->getVariable();
+  Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
+                                   << v <<") start" << endl;
+  //vector<Constraint> bounds;
+
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd(); ++iter){
+    const Tableau::Entry& entry = *iter;
+    ArithVar nonbasic = entry.getColVar();
+    if(nonbasic == v){ continue; }
+
+    const Rational& a_ij = entry.getCoefficient();
+
+    int sgn = a_ij.sgn();
+    Assert(sgn != 0);
+    bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
+    Constraint bound = selectUb
+      ? d_variables.getUpperBoundConstraint(nonbasic)
+      : d_variables.getLowerBoundConstraint(nonbasic);
+
+    Assert(bound != NullConstraint);
+    Debug("arith::explainNonbasics") << "explainNonbasics" << bound << " for " << c << endl;
+    into.push_back(bound);
+  }
+  Debug("arith::explainNonbasics") << "LinearEqualityModule::explainNonbasics("
+                                   << v << ") done" << endl;
 }
 
 Constraint LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic) const {
@@ -745,60 +822,35 @@ void LinearEqualityModule::stopTrackingBoundCounts(){
 }
 
 
-void LinearEqualityModule::trackVariable(ArithVar x_i){
-  Assert(!basicIsTracked(x_i));
-  BoundCounts counts(0,0);
+void LinearEqualityModule::trackRowIndex(RowIndex ridx){
+  Assert(!rowIndexIsTracked(ridx));
+  BoundsInfo bi = computeRowBoundInfo(ridx, true);
+  d_btracking.set(ridx, bi);
+}
 
-  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(x_i); !iter.atEnd();  ++iter){
+BoundsInfo LinearEqualityModule::computeRowBoundInfo(RowIndex ridx, bool inQueue) const{
+  BoundsInfo bi;
+
+  Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
+  for(; !iter.atEnd();  ++iter){
     const Tableau::Entry& entry = *iter;
-    ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == x_i) continue;
-
+    ArithVar v = entry.getColVar();
     const Rational& a_ij = entry.getCoefficient();
-    counts += (d_variables.oldBoundCounts(nonbasic)).multiplyBySgn(a_ij.sgn());
+    bi += (d_variables.selectBoundsInfo(v, inQueue)).multiplyBySgn(a_ij.sgn());
   }
-  d_boundTracking.set(x_i, counts);
+  return bi;
 }
 
-BoundCounts LinearEqualityModule::computeBoundCounts(ArithVar x_i) const{
-  BoundCounts counts(0,0);
-
-  for(Tableau::RowIterator iter = d_tableau.basicRowIterator(x_i); !iter.atEnd();  ++iter){
-    const Tableau::Entry& entry = *iter;
-    ArithVar nonbasic = entry.getColVar();
-    if(nonbasic == x_i) continue;
-
-    const Rational& a_ij = entry.getCoefficient();
-    counts += (d_variables.boundCounts(nonbasic)).multiplyBySgn(a_ij.sgn());
-  }
-
-  return counts;
+BoundCounts LinearEqualityModule::debugBasicAtBoundCount(ArithVar x_i) const {
+  return d_btracking[d_tableau.basicToRowIndex(x_i)].atBounds();
 }
 
-// BoundCounts LinearEqualityModule::cachingCountBounds(ArithVar x_i) const{
-//   if(d_boundTracking.isKey(x_i)){
-//     return d_boundTracking[x_i];
-//   }else{
-//     return computeBoundCounts(x_i);
-//   }
-// }
-BoundCounts LinearEqualityModule::_countBounds(ArithVar x_i) const {
-  Assert(d_boundTracking.isKey(x_i));
-  return d_boundTracking[x_i];
-}
-
-// BoundCounts LinearEqualityModule::countBounds(ArithVar x_i){
-//   if(d_boundTracking.isKey(x_i)){
-//     return d_boundTracking[x_i];
-//   }else{
-//     BoundCounts bc = computeBoundCounts(x_i);
-//     if(d_areTracking){
-//       d_boundTracking.set(x_i,bc);
-//     }
-//     return bc;
-//   }
-// }
-
+/**
+ * If the pivot described in u were performed,
+ * then the row would qualify as being either at the minimum/maximum
+ * to the non-basics being at their bounds.
+ * The minimum/maximum is determined by the direction the non-basic is changing.
+ */
 bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
   Assert(u.describesPivot());
 
@@ -814,79 +866,78 @@ bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
   int toLB = (c->getType() == LowerBound ||
               c->getType() == Equality) ? 1 : 0;
 
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
-  BoundCounts bcs = d_boundTracking[basic];
+  BoundCounts bcs = d_btracking[ridx].atBounds();
   // x = c*n + \sum d*m
-  // n = 1/c * x + -1/c * (\sum d*m)  
-  BoundCounts nonb = bcs - d_variables.boundCounts(nonbasic).multiplyBySgn(coeffSgn);
+  // 0 = -x + c*n + \sum d*m
+  // n = 1/c * x + -1/c * (\sum d*m)
+  BoundCounts nonb = bcs - d_variables.atBoundCounts(nonbasic).multiplyBySgn(coeffSgn);
+  nonb.addInChange(-1, d_variables.atBoundCounts(basic), BoundCounts(toLB, toUB));
   nonb = nonb.multiplyBySgn(-coeffSgn);
-  nonb += BoundCounts(toLB, toUB).multiplyBySgn(coeffSgn);
 
   uint32_t length = d_tableau.basicRowLength(basic);
   Debug("basicsAtBounds")
     << "bcs " << bcs
     << "nonb " << nonb
     << "length " << length << endl;
-
+  // nonb has nb excluded.
   if(nbdir < 0){
-    return bcs.atLowerBounds() + 1 == length;
+    return nonb.lowerBoundCount() + 1 == length;
   }else{
     Assert(nbdir > 0);
-    return bcs.atUpperBounds() + 1 == length;
+    return nonb.upperBoundCount() + 1 == length;
   }
 }
 
 bool LinearEqualityModule::nonbasicsAtLowerBounds(ArithVar basic) const {
   Assert(basicIsTracked(basic));
-  BoundCounts bcs = d_boundTracking[basic];
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+
+  BoundCounts bcs = d_btracking[ridx].atBounds();
   uint32_t length = d_tableau.basicRowLength(basic);
 
-  return bcs.atLowerBounds() + 1 == length;
+  // return true if excluding the basic is every element is at its "lowerbound"
+  // The psuedo code is:
+  //   bcs -= basic.count(basic, basic's sgn)
+  //   return bcs.lowerBoundCount() + 1 == length
+  // As basic's sign is always -1, we can pull out the pieces of the count:
+  //   bcs.lowerBoundCount() - basic.atUpperBoundInd() + 1 == length
+  // basic.atUpperBoundInd() is either 0 or 1
+  uint32_t lbc = bcs.lowerBoundCount();
+  return  (lbc == length) ||
+    (lbc + 1 == length && d_variables.cmpAssignmentUpperBound(basic) != 0);
 }
 
 bool LinearEqualityModule::nonbasicsAtUpperBounds(ArithVar basic) const {
   Assert(basicIsTracked(basic));
-  BoundCounts bcs = d_boundTracking[basic];
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  BoundCounts bcs = d_btracking[ridx].atBounds();
   uint32_t length = d_tableau.basicRowLength(basic);
+  uint32_t ubc = bcs.upperBoundCount();
+  // See the comment for nonbasicsAtLowerBounds()
 
-  return bcs.atUpperBounds() + 1 == length;
+  return (ubc == length) ||
+    (ubc + 1 == length && d_variables.cmpAssignmentLowerBound(basic) != 0);
 }
 
-void LinearEqualityModule::trackingSwap(ArithVar basic, ArithVar nb, int nbSgn) {
-  Assert(basicIsTracked(basic));
-
-  // z = a*x + \sum b*y
-  // x = (1/a) z + \sum (-1/a)*b*y
-  // basicCount(z) = bc(a*x) +  bc(\sum b y)
-  // basicCount(x) = bc(z/a) + bc(\sum -b/a * y)
-
-  // sgn(1/a) = sgn(a)
-  // bc(a*x) = bc(x).multiply(sgn(a))
-  // bc(z/a) = bc(z).multiply(sgn(a))
-  // bc(\sum -b/a * y) = bc(\sum b y).multiplyBySgn(-sgn(a))
-  // bc(\sum b y) = basicCount(z) - bc(a*x)
-  // basicCount(x) =
-  //  = bc(z).multiply(sgn(a)) + (basicCount(z) - bc(a*x)).multiplyBySgn(-sgn(a))
-
-  BoundCounts bc = d_boundTracking[basic];
-  bc -= (d_variables.boundCounts(nb)).multiplyBySgn(nbSgn);
-  bc = bc.multiplyBySgn(-nbSgn);
-  bc += d_variables.boundCounts(basic).multiplyBySgn(nbSgn);
-  d_boundTracking.set(nb, bc);
-  d_boundTracking.remove(basic);
+void LinearEqualityModule::trackingMultiplyRow(RowIndex ridx, int sgn) {
+  Assert(rowIndexIsTracked(ridx));
+  Assert(sgn != 0);
+  if(sgn < 0){
+    BoundsInfo& bi = d_btracking.get(ridx);
+    bi = bi.multiplyBySgn(sgn);
+  }
 }
 
 void LinearEqualityModule::trackingCoefficientChange(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn){
   Assert(oldSgn != currSgn);
-  BoundCounts nb_bc = d_variables.boundCounts(nb);
+  BoundsInfo nb_inf = d_variables.boundsInfo(nb);
 
-  if(!nb_bc.isZero()){
-    ArithVar basic = d_tableau.rowIndexToBasic(ridx);
-    Assert(basicIsTracked(basic));
+  Assert(rowIndexIsTracked(ridx));
 
-    BoundCounts& basic_bc = d_boundTracking.get(basic);
-    basic_bc.addInSgn(nb_bc, oldSgn, currSgn);
-  }
+  BoundsInfo& row_bi = d_btracking.get(ridx);
+  row_bi.addInSgn(nb_inf, oldSgn, currSgn);
 }
 
 void LinearEqualityModule::computeSafeUpdate(UpdateInfo& inf, VarPreferenceFunction pref){
@@ -894,9 +945,6 @@ void LinearEqualityModule::computeSafeUpdate(UpdateInfo& inf, VarPreferenceFunct
   int sgn = inf.nonbasicDirection();
   Assert(sgn != 0);
   Assert(!d_tableau.isBasic(nb));
-
-  //inf.setErrorsChange(0);
-  //inf.setlimiting = NullConstraint;
 
 
   // Error variables moving in the correct direction
@@ -1188,8 +1236,9 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
 
   // Assume past this point, nb will be in error if this pivot is done
   ArithVar nb = entry.getColVar();
-  ArithVar basic = d_tableau.rowIndexToBasic(entry.getRowIndex());
-  Assert(basicIsTracked(basic));
+  RowIndex ridx = entry.getRowIndex();
+  ArithVar basic = d_tableau.rowIndexToBasic(ridx);
+  Assert(rowIndexIsTracked(ridx));
   int coeffSgn = entry.getCoefficient().sgn();
 
 
@@ -1201,12 +1250,11 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
   // 2) -a * x = -y + \sum b * z
   // 3) x = (-1/a) * ( -y + \sum b * z)
 
-  Assert(basicIsTracked(basic));
-  BoundCounts bc = d_boundTracking[basic];
+  BoundCounts bc = d_btracking[ridx].atBounds();
 
   // 1) y = a * x + \sum b * z
   // Get bc(\sum b * z)
-  BoundCounts sumOnly = bc - d_variables.boundCounts(nb).multiplyBySgn(coeffSgn);
+  BoundCounts sumOnly = bc - d_variables.atBoundCounts(nb).multiplyBySgn(coeffSgn);
 
   // y's bounds in the proposed model
   int yWillBeAtUb = (bToUB || d_variables.boundsAreEqual(basic)) ? 1 : 0;
@@ -1215,19 +1263,19 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
 
   // 2) -a * x = -y + \sum b * z
   // Get bc(-y + \sum b * z)
-  BoundCounts withNegY = sumOnly + ysBounds.multiplyBySgn(-1);
+  sumOnly.addInChange(-1, d_variables.atBoundCounts(basic), ysBounds);
 
   // 3) x = (-1/a) * ( -y + \sum b * z)
   // Get bc((-1/a) * ( -y + \sum b * z))
-  BoundCounts xsBoundsAfterPivot = withNegY.multiplyBySgn(-coeffSgn);
+  BoundCounts xsBoundsAfterPivot = sumOnly.multiplyBySgn(-coeffSgn);
 
   uint32_t length = d_tableau.basicRowLength(basic);
   if(nbSgn > 0){
     // Only check for the upper bound being violated
-    return xsBoundsAfterPivot.atLowerBounds() + 1 == length;
+    return xsBoundsAfterPivot.lowerBoundCount() + 1 == length;
   }else{
     // Only check for the lower bound being violated
-    return xsBoundsAfterPivot.atUpperBounds() + 1 == length;
+    return xsBoundsAfterPivot.upperBoundCount() + 1 == length;
   }
 }
 

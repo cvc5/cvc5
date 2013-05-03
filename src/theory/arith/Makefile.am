@@ -11,6 +11,7 @@ libarith_la_SOURCES = \
 	arithvar.h \
 	arithvar.cpp \
 	bound_counts.h \
+	bound_counts.cpp \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
 	arith_static_learner.h \

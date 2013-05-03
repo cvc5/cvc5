@@ -44,6 +44,7 @@ namespace arith {
 
 class ArithVariables {
 private:
+
   class VarInfo {
     friend class ArithVariables;
     ArithVar d_var;
@@ -62,29 +63,36 @@ private:
   public:
     VarInfo();
 
-    bool setAssignment(const DeltaRational& r, BoundCounts& prev);
-    bool setLowerBound(Constraint c, BoundCounts& prev);
-    bool setUpperBound(Constraint c, BoundCounts& prev);
+    bool setAssignment(const DeltaRational& r, BoundsInfo& prev);
+    bool setLowerBound(Constraint c, BoundsInfo& prev);
+    bool setUpperBound(Constraint c, BoundsInfo& prev);
 
-    bool initialized() const {
-      return d_var != ARITHVAR_SENTINEL;
-    }
+    /** Returns true if this VarInfo has been initialized. */
+    bool initialized() const;
+
+    /**
+     * Initializes the VarInfo with the ArithVar index it is associated with,
+     * the node that the variable represents, and whether it is a slack variable.
+     */
     void initialize(ArithVar v, Node n, bool slack);
+    /** Uninitializes the VarInfo. */
     void uninitialize();
 
-    bool canBeReclaimed() const{
-      return d_pushCount == 0;
-    }
+    bool canBeReclaimed() const;
 
-    BoundCounts boundCounts() const {
-      uint32_t lbIndc = (d_cmpAssignmentLB == 0) ? 1 : 0;
-      uint32_t ubIndc = (d_cmpAssignmentUB == 0) ? 1 : 0;
-      return BoundCounts(lbIndc, ubIndc);
-    }
+    /** Indicator variables for if the assignment is equal to the upper and lower bounds. */
+    BoundCounts atBoundCounts() const;
+
+    /** Combination of indicator variables for whether it has upper and lower bounds.  */
+    BoundCounts hasBoundCounts() const;
+
+    /** Stores both atBoundCounts() and hasBoundCounts().  */
+    BoundsInfo boundsInfo() const;
   };
 
-  //Maps from ArithVar -> VarInfo
+  /**Maps from ArithVar -> VarInfo */
   typedef DenseMap<VarInfo> VarInfoVec;
+  /** This maps an ArithVar to its Variable information.*/
   VarInfoVec d_vars;
 
   // Partial Map from Arithvar -> PreviousAssignment
@@ -104,7 +112,15 @@ private:
   // Inverse of d_vars[x].d_node
   NodeToArithVarMap d_nodeToArithVarMap;
 
-  DenseMap<BoundCounts> d_atBoundsQueue;
+
+  /** The queue of constraints where the assignment is at the bound.*/
+  DenseMap<BoundsInfo> d_boundsQueue;
+
+  /**
+   * If this is true, record the incoming changes to the bound information.
+   * If this is false, the responsibility of recording the changes is LinearEqualities's.
+   */
+  bool d_enqueueingBoundCounts;
 
  public:
 
@@ -225,7 +241,6 @@ private:
   // Function to call if the value of delta needs to be recomputed.
   DeltaComputeCallback d_deltaComputingFunc;
 
-  bool d_enqueueingBoundCounts;
 
 public:
 
@@ -252,22 +267,7 @@ public:
     return d_vars[x].d_lb;
   }
 
-  /**
-   * This forces the lower bound for a variable to be relaxed in the current context.
-   * This is done by forcing the lower bound to be NullConstraint.
-   * This is an expert only operation! (See primal simplex for an example.)
-   */
-  //void forceRelaxLowerBound(ArithVar x);
-
-  /**
-   * This forces the upper bound for a variable to be relaxed in the current context.
-   * This is done by forcing the upper bound to be NullConstraint.
-   * This is an expert only operation! (See primal simplex for an example.)
-   */
-  //void forceRelaxUpperBound(ArithVar x);
-
   /* Initializes a variable to a safe value.*/
-  //void initialize(ArithVar x, const DeltaRational& r);
   void initialize(ArithVar x, Node n, bool slack);
 
   ArithVar allocate(Node n, bool slack = false);
@@ -360,8 +360,14 @@ public:
     return d_vars[x].d_cmpAssignmentUB;
   }
 
-  inline BoundCounts boundCounts(ArithVar x) const {
-    return d_vars[x].boundCounts();
+  inline BoundCounts atBoundCounts(ArithVar x) const {
+    return d_vars[x].atBoundCounts();
+  }
+  inline BoundCounts hasBoundCounts(ArithVar x) const {
+    return d_vars[x].hasBoundCounts();
+  }
+  inline BoundsInfo boundsInfo(ArithVar x) const{
+    return d_vars[x].boundsInfo();
   }
 
   bool strictlyBelowUpperBound(ArithVar x) const;
@@ -391,38 +397,14 @@ public:
     d_deltaIsSafe = true;
   }
 
-  // inline bool initialized(ArithVar x) const {
-  //   return d_vars[x].initialized();
-  // }
+  void startQueueingBoundCounts(){ d_enqueueingBoundCounts = true; }
+  void stopQueueingBoundCounts(){ d_enqueueingBoundCounts = false; }
+  void addToBoundQueue(ArithVar v, const BoundsInfo& prev);
 
-  void addToBoundQueue(ArithVar v, BoundCounts prev){
-    if(d_enqueueingBoundCounts && !d_atBoundsQueue.isKey(v)){
-      d_atBoundsQueue.set(v, prev);
-    }
-  }
+  BoundsInfo selectBoundsInfo(ArithVar v, bool old) const;
 
-  BoundCounts oldBoundCounts(ArithVar v) const {
-    if(d_atBoundsQueue.isKey(v)){
-      return d_atBoundsQueue[v];
-    }else{
-      return boundCounts(v);
-    }
-  }
-
-  void startQueueingAtBoundQueue(){ d_enqueueingBoundCounts = true; }
-  void stopQueueingAtBoundQueue(){ d_enqueueingBoundCounts = false; }
-
-  void processAtBoundQueue(BoundCountsCallback& changed){
-    while(!d_atBoundsQueue.empty()){
-      ArithVar v = d_atBoundsQueue.back();
-      BoundCounts prev = d_atBoundsQueue[v];
-      d_atBoundsQueue.pop_back();
-      BoundCounts curr = boundCounts(v);
-      if(prev != curr){
-        changed(v, prev);
-      }
-    }
-  }
+  bool boundsQueueEmpty() const;
+  void processBoundsQueue(BoundUpdateCallback& changed);
 
   void printEntireModel(std::ostream& out) const;
 
