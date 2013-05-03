@@ -584,7 +584,7 @@ uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
 
 void SumOfInfeasibilitiesSPD::quickExplain(){
   Assert(d_qeInSoi.empty());
-  Assert(d_soiVar.empty());
+  Assert(d_qeInUAndNotInSoi.empty());
   Assert(d_qeGreedyOrder.empty());
   Assert(d_soiVar == ARITHVAR_SENTINEL);
   Assert(d_qeSgns.empty());
@@ -615,7 +615,7 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
   cout << d_qeConflict.size() << endl;
 
   Assert(d_qeInSoi.empty());
-  Assert(d_soiVar.empty());
+  Assert(d_qeInUAndNotInSoi.empty());
   Assert(d_qeGreedyOrder.empty());
   Assert(d_soiVar == ARITHVAR_SENTINEL);
   Assert(d_qeSgns.empty());
