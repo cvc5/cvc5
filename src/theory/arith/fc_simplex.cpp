@@ -358,17 +358,8 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
     ArithVar curr = cand.d_nb;
     const Rational& coeff = *cand.d_coeff;
 
-#warning "Who is using computeSafeUpdate?"
     LinearEqualityModule::UpdatePreferenceFunction leavingPrefFunc = selectLeavingFunction(curr);
     UpdateInfo currProposal = d_linEq.speculativeUpdate(curr, coeff, leavingPrefFunc);
-
-    //int curr_movement = cand.d_sgn;
-    // if(isFocus){
-    //   currProposal = d_linEq.speculativeUpdate(curr, coeff, upf);
-    // }else{
-    //   currProposal = UpdateInfo(curr, curr_movement);
-    //   d_linEq.computeSafeUpdate(currProposal, bpf);
-    // }
 
     Debug("arith::selectPrimalUpdate")
       << "selected " << selected << endl

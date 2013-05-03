@@ -11,7 +11,6 @@ libarith_la_SOURCES = \
 	arithvar.h \
 	arithvar.cpp \
 	bound_counts.h \
-	bound_counts.cpp \
 	arith_rewriter.h \
 	arith_rewriter.cpp \
 	arith_static_learner.h \
@@ -52,8 +51,6 @@ libarith_la_SOURCES = \
 	soi_simplex.cpp \
 	approx_simplex.h \
 	approx_simplex.cpp \
-	pure_update_simplex.h \
-	pure_update_simplex.cpp \
 	theory_arith.h \
 	theory_arith.cpp \
 	theory_arith_private_forward.h \

@@ -26,9 +26,9 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_heuristic_pivot_rule.h"
 #include "theory/arith/tableau_sizes.h"
+#include "theory/arith/callbacks.h"
 
 #include "util/statistics_registry.h"
-//#include <boost/heap/d_ary_heap.hpp>
 
 #if CVC4_GCC_HAS_PB_DS_BUG
    // Unfortunate bug in some older GCCs (e.g., v4.2):

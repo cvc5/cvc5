@@ -3,10 +3,10 @@
 
 #include "expr/node.h"
 #include "util/rational.h"
-#include "context/cdlist.h"
 
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/arith/arithvar.h"
+#include "theory/arith/bound_counts.h"
 
 namespace CVC4 {
 namespace theory {
@@ -85,6 +85,20 @@ private:
 public:
   RaiseConflict(TheoryArithPrivate& ta) : d_ta(ta) {}
   void operator()(Node n);
+};
+
+class BoundCountingLookup {
+private:
+  TheoryArithPrivate& d_ta;
+public:
+  BoundCountingLookup(TheoryArithPrivate& ta) : d_ta(ta) {}
+  const BoundsInfo& boundsInfo(ArithVar basic) const;
+  BoundCounts atBounds(ArithVar basic) const{
+    return boundsInfo(basic).atBounds();
+  }
+  BoundCounts hasBounds(ArithVar basic) const {
+    return boundsInfo(basic).hasBounds();
+  }
 };
 
 }/* CVC4::theory::arith namespace */

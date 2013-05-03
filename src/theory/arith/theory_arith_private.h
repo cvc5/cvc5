@@ -58,7 +58,6 @@
 #include "theory/arith/dual_simplex.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/soi_simplex.h"
-#include "theory/arith/pure_update_simplex.h"
 
 #include "theory/arith/constraint.h"
 
@@ -316,7 +315,6 @@ private:
 
   /** This implements the Simplex decision procedure. */
   DualSimplexDecisionProcedure d_dualSimplex;
-  PureUpdateSimplexDecisionProcedure d_pureUpdate;
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
 
@@ -429,6 +427,10 @@ public:
    * except for setting up the initial.
    */
   ArithVar requestArithVar(TNode x, bool slack);
+
+public:
+  const BoundsInfo& boundsInfo(ArithVar basic) const;
+
 
 private:
   /** Initial (not context dependent) sets up for a variable.*/

@@ -32,6 +32,10 @@ void RaiseConflict::operator()(Node n){
   d_ta.raiseConflict(n);
 }
 
+const BoundsInfo& BoundCountingLookup::boundsInfo(ArithVar basic) const{
+  return d_ta.boundsInfo(basic);
+}
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

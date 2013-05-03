@@ -198,23 +198,6 @@ public:
 /** This is intended to map each row to its relevant bound information. */
 typedef DenseMap<BoundsInfo> BoundInfoMap;
 
-class Tableau;
-
-class BoundCountingLookup {
-private:
-  BoundInfoMap* d_bc;
-  Tableau* d_tab;
-public:
-  BoundCountingLookup(BoundInfoMap* bc, Tableau* tab) : d_bc(bc), d_tab(tab) {}
-  const BoundsInfo& boundsInfo(ArithVar basic) const;
-  BoundCounts atBounds(ArithVar basic) const{
-    return boundsInfo(basic).atBounds();
-  }
-  BoundCounts hasBounds(ArithVar basic) const {
-    return boundsInfo(basic).hasBounds();
-  }
-};
-
 inline std::ostream& operator<<(std::ostream& os, const BoundCounts& bc){
   os << "[bc " << bc.lowerBoundCount() << ", " << bc.upperBoundCount() << "]";
   return os;

@@ -96,7 +96,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_currentPropagationList(),
   d_learnedBounds(c),
   d_partialModel(c, DeltaComputeCallback(*this)),
-  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(&d_rowTracking, &d_tableau)),
+  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
   d_tableau(),
   d_linEq(d_partialModel, d_tableau, d_rowTracking, BasicVarModelUpdateCallBack(*this)),
   d_diosolver(c),
@@ -107,7 +107,6 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_conflicts(c),
   d_congruenceManager(c, d_constraintDatabase, SetupLiteralCallBack(*this), d_partialModel, RaiseConflict(*this)),
   d_dualSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_pureUpdate(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_fcSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_soiSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_DELTA_ZERO(0),
@@ -2880,6 +2879,11 @@ void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
     }
   }
   d_updatedBounds.purge();
+}
+
+const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  return d_rowTracking[ridx];
 }
 
 }/* CVC4::theory::arith namespace */

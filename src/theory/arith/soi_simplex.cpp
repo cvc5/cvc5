@@ -286,7 +286,6 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     ArithVar curr = cand.d_nb;
     const Rational& coeff = *cand.d_coeff;
 
-#warning "Who is using computeSafeUpdate?"
     LinearEqualityModule::UpdatePreferenceFunction leavingPrefFunc = selectLeavingFunction(curr);
     UpdateInfo currProposal = d_linEq.speculativeUpdate(curr, coeff, leavingPrefFunc);
 

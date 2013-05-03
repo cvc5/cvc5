@@ -277,8 +277,6 @@ public:
 
   void includeBoundUpdate(ArithVar nb, const BoundsInfo& prev);
 
-  void computeSafeUpdate(UpdateInfo& inf, VarPreferenceFunction basic);
-
 
   uint32_t updateProduct(const UpdateInfo& inf) const;
 
@@ -400,16 +398,12 @@ public:
   }
 
 private:
-  typedef std::vector<const Tableau::Entry*> EntryPointerVector;
-  EntryPointerVector d_relevantErrorBuffer;
-
-  //uint32_t computeUnconstrainedUpdate(ArithVar nb, int sgn,  DeltaRational& am);
-  //uint32_t computedFixed(ArithVar nb, int sgn, const DeltaRational& am);
-  void computedFixed(UpdateInfo&);
 
   /**
    * This maps each row index to its relevant bounds info.
-   * This tracks the */
+   * This tracks the count for how many variables on a row have bounds
+   * and how many are assigned at their bounds.
+   */
   BoundInfoMap& d_btracking;
   bool d_areTracking;
 
