@@ -196,19 +196,19 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     //DeltaRational beta_i = d_variables.getAssignment(x_i);
     ArithVar x_j = ARITHVAR_SENTINEL;
 
-    int32_t prevErrorSize = d_errorSet.errorSize();
+    int32_t prevErrorSize CVC4_UNUSED = d_errorSet.errorSize();
 
     if(d_variables.cmpAssignmentLowerBound(x_i) < 0 ){
       x_j = d_linEq.selectSlackUpperBound(x_i, pf);
       if(x_j == ARITHVAR_SENTINEL ){
         Unreachable();
-        ++(d_statistics.d_statUpdateConflicts);
-        reportConflict(x_i);
-        ++(d_statistics.d_simplexConflicts);
+        // ++(d_statistics.d_statUpdateConflicts);
+        // reportConflict(x_i);
+        // ++(d_statistics.d_simplexConflicts);
         // Node conflict = d_linEq.generateConflictBelowLowerBound(x_i); //unsat
         // d_conflictVariable = x_i;
         // reportConflict(conflict);
-        return true;
+        // return true;
       }else{
         const DeltaRational& l_i = d_variables.getLowerBound(x_i);
         d_linEq.pivotAndUpdate(x_i, x_j, l_i);
@@ -217,13 +217,13 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
       x_j = d_linEq.selectSlackLowerBound(x_i, pf);
       if(x_j == ARITHVAR_SENTINEL ){
         Unreachable();
-        ++(d_statistics.d_statUpdateConflicts);
-        reportConflict(x_i);
-        ++(d_statistics.d_simplexConflicts);
+        // ++(d_statistics.d_statUpdateConflicts);
+        // reportConflict(x_i);
+        // ++(d_statistics.d_simplexConflicts);
         // Node conflict = d_linEq.generateConflictAboveUpperBound(x_i); //unsat
         // d_conflictVariable = x_i;
         // reportConflict(conflict);
-        return true;
+        // return true;
       }else{
         const DeltaRational& u_i = d_variables.getUpperBound(x_i);
         d_linEq.pivotAndUpdate(x_i, x_j, u_i);
@@ -232,16 +232,19 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
     Assert(x_j != ARITHVAR_SENTINEL);
 
     bool conflict = processSignals();
-    int32_t currErrorSize = d_errorSet.errorSize();
+    int32_t currErrorSize CVC4_UNUSED = d_errorSet.errorSize();
     d_pivots++;
 
-    // cout << "#" << d_pivots
-    //      << " c" << conflict
-    //      << " d" << (prevErrorSize - currErrorSize)
-    //      << " f"  << d_errorSet.inError(x_j)
-    //      << " h" << d_conflictVariables.isMember(x_j)
-    //      << " " << x_i << "->" << x_j
-    //      << endl;
+    if(Debug.isOn("arith::dual")){
+      Debug("arith::dual")
+        << "#" << d_pivots
+        << " c" << conflict
+        << " d" << (prevErrorSize - currErrorSize)
+        << " f"  << d_errorSet.inError(x_j)
+        << " h" << d_conflictVariables.isMember(x_j)
+        << " " << x_i << "->" << x_j
+        << endl;
+    }
 
     if(conflict){
       return true;

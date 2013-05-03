@@ -147,6 +147,7 @@ public:
   }
   virtual void setOptCoeffs(const ArithRatPairVec& ref);
 
+  static void printGLPKStatus(int status, std::ostream& out);
 private:
   Solution extractSolution(bool mip) const;
 };
@@ -361,7 +362,7 @@ void ApproxGLPK::setOptCoeffs(const ArithRatPairVec& ref){
  *   check with FCSimplex
  */
 
-static void printGLPKStatus(int status, std::ostream& out){
+void ApproxGLPK::printGLPKStatus(int status, std::ostream& out){
   switch(status){
   case GLP_OPT:
     out << "GLP_OPT" << endl;

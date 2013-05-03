@@ -711,8 +711,6 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     underConstruction.push_back(v);
     d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, v);
 
-    bool uniqueChoices = true;
-
     //cout << "trying " << v << endl;
 
     const Tableau::Entry* spoiler = NULL;
