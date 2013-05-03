@@ -121,6 +121,7 @@ protected:
   void tearDownInfeasiblityFunction(TimerStat& timer, ArithVar inf);
   void adjustInfeasFunc(TimerStat& timer, ArithVar inf, const AVIntPairVec& focusChanges);
   void addToInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e);
+  void removeFromInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e);
   void shrinkInfeasFunc(TimerStat& timer, ArithVar inf, const ArithVarVec& dropped);
 
 public:
@@ -197,7 +198,8 @@ protected:
 
   void addSgn(sgn_table& sgns, ArithVar col, int sgn, ArithVar basic);
   void addRowSgns(sgn_table& sgns, ArithVar basic, int norm);
-  ArithVar find_basic_outside(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m);
+  ArithVar find_basic_in_sgns(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m, bool inside);
+
   sgn_table::const_iterator find_sgns(const sgn_table& sgns, ArithVar col, int sgn);
 
 };/* class SimplexDecisionProcedure */

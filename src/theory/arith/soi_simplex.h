@@ -195,6 +195,19 @@ private:
     IntStat& conflictStat  = d_statistics.d_initialConflicts;
     return standardProcessSignals(timer, conflictStat);
   }
+
+  void quickExplain();
+  DenseSet d_qeInSoi;
+  DenseSet d_qeInUAndNotInSoi;
+  ArithVarVec d_qeConflict;
+  ArithVarVec d_qeGreedyOrder;
+  sgn_table d_qeSgns;
+
+  uint32_t quickExplainRec(uint32_t cEnd, uint32_t uEnd);
+  void qeAddRange(uint32_t begin, uint32_t end);
+  void qeRemoveRange(uint32_t begin, uint32_t end);
+  void qeSwapRange(uint32_t N, uint32_t r, uint32_t s);
+
   unsigned trySet(const ArithVarVec& set);
   unsigned tryAllSubsets(const ArithVarVec& set, unsigned depth, ArithVarVec& tmp);
 
