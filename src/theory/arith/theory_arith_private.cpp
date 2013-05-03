@@ -1401,20 +1401,6 @@ Constraint TheoryArithPrivate::constraintFromFactQueue(){
     }
   }
 
-  // Kind simpleKind = Comparison::comparisonKind(assertion);
-  // Assert(simpleKind != UNDEFINED_KIND);
-  // Assert(constraint != NullConstraint ||
-  //        simpleKind == EQUAL ||
-  //        simpleKind == DISTINCT );
-  // if(simpleKind == EQUAL || simpleKind == DISTINCT){
-  //   Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
-
-  //   if(!isSetup(eq)){
-  //     //The previous code was equivalent to:
-  //     setupAtom(eq);
-  //     constraint = d_constraintDatabase.lookup(assertion);
-  //   }
-  // }
   Assert(constraint != NullConstraint);
 
   if(constraint->negationHasProof()){
@@ -2490,9 +2476,8 @@ EqualityStatus TheoryArithPrivate::getEqualityStatus(TNode a, TNode b) {
 bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound){
   ++d_statistics.d_boundComputations;
 
-  DeltaRational bound = upperBound ?
-    d_linEq.computeUpperBound(basic):
-    d_linEq.computeLowerBound(basic);
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  DeltaRational bound = d_linEq.computeRowBound(ridx, upperBound, basic);
 
   if((upperBound && d_partialModel.strictlyLessThanUpperBound(basic, bound)) ||
      (!upperBound && d_partialModel.strictlyGreaterThanLowerBound(basic, bound))){
@@ -2540,13 +2525,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        if(upperBound){
-          Assert(bestImplied != d_partialModel.getUpperBoundConstraint(basic));
-          d_linEq.propagateNonbasicsUpperBound(basic, bestImplied);
-        }else{
-          Assert(bestImplied != d_partialModel.getLowerBoundConstraint(basic));
-          d_linEq.propagateNonbasicsLowerBound(basic, bestImplied);
-        }
+        d_linEq.propagateBasicFromRow(bestImplied);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
         if(Debug.isOn("arith::prop")){
@@ -2570,10 +2549,20 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
 
 void TheoryArithPrivate::propagateCandidate(ArithVar basic){
   bool success = false;
-  if(d_partialModel.strictlyAboveLowerBound(basic) && d_linEq.hasBounds(basic, false)){
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+
+  bool tryLowerBound =
+    d_partialModel.strictlyAboveLowerBound(basic) &&
+    d_linEq.rowLacksBound(ridx, false, basic) == NULL;
+
+  bool tryUpperBound =
+    d_partialModel.strictlyBelowUpperBound(basic) &&
+    d_linEq.rowLacksBound(ridx, true, basic) == NULL;
+
+  if(tryLowerBound){
     success |= propagateCandidateLowerBound(basic);
   }
-  if(d_partialModel.strictlyBelowUpperBound(basic) && d_linEq.hasBounds(basic, true)){
+  if(tryUpperBound){
     success |= propagateCandidateUpperBound(basic);
   }
   if(success){
