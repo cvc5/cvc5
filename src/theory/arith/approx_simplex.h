@@ -50,11 +50,6 @@ public:
   virtual ApproxResult solveMIP() = 0;
   virtual Solution extractMIP() const = 0;
 
-  static void applySolution(LinearEqualityModule& linEq, const Solution& sol){
-    linEq.forceNewBasis(sol.newBasis);
-    linEq.updateMany(sol.newValues);
-  }
-
   /** UTILIES FOR DEALING WITH ESTIMATES */
 
   static const double SMALL_FIXED_DELTA;

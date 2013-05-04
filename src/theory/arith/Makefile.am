@@ -51,6 +51,8 @@ libarith_la_SOURCES = \
 	soi_simplex.cpp \
 	approx_simplex.h \
 	approx_simplex.cpp \
+	attempt_solution_simplex.h \
+	attempt_solution_simplex.cpp \
 	theory_arith.h \
 	theory_arith.cpp \
 	theory_arith_private_forward.h \

@@ -243,11 +243,6 @@ public:
   /** Specialization of update if the module is not tracking yet (for Simplex). */
   void updateTracked(ArithVar x_i, const DeltaRational& v);
 
-  /**
-   * Updates every non-basic to reflect the assignment in many.
-   * For use with ApproximateSimplex.
-   */
-  void updateMany(const DenseMap<DeltaRational>& many);
 
   /**
    * Updates the value of a basic variable x_i to v,
@@ -259,7 +254,14 @@ public:
   ArithVariables& getVariables() const{ return d_variables; }
   Tableau& getTableau() const{ return d_tableau; }
 
+  /**
+   * Updates every non-basic to reflect the assignment in many.
+   * For use with ApproximateSimplex.
+   */
+  void updateMany(const DenseMap<DeltaRational>& many);
   void forceNewBasis(const DenseSet& newBasis);
+  void applySolution(const DenseSet& newBasis, const DenseMap<DeltaRational>& newValues);
+
 
   /**
    * Returns a pointer to the first Tableau entry on the row ridx that does not
@@ -689,6 +691,7 @@ private:
 
     IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
     TimerStat d_weakenTime;
+    TimerStat d_forceTime;
 
     Statistics();
     ~Statistics();

@@ -132,6 +132,8 @@ private:
   bool d_solvedRelaxation;
   bool d_solvedMIP;
 
+  static int s_verbosity;
+
 public:
   ApproxGLPK(const ArithVariables& vars);
   ~ApproxGLPK();
@@ -151,6 +153,9 @@ public:
 private:
   Solution extractSolution(bool mip) const;
 };
+
+#warning "set back to 0"
+int ApproxGLPK::s_verbosity = 1;
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
@@ -221,8 +226,10 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& avars) :
   for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
     ArithVar v = *vi;
 
-    //cout << v  << " ";
-    //d_vars.printModel(v, cout);
+    if(s_verbosity >= 2){
+      Message() << v  << " ";
+      d_vars.printModel(v, Message());
+    }
 
     int type;
     double lb = 0.0;
@@ -407,77 +414,90 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const{
     int glpk_index = isSlack ? d_rowIndices[vi] : d_colIndices[vi];
 
     int status = isSlack ? glp_get_row_stat(d_prob, glpk_index) : glp_get_col_stat(d_prob, glpk_index);
-    //cout << "assignment " << vi << endl;
+    if(s_verbosity >= 2){
+      Message() << "assignment " << vi << endl;
+    }
+
+    bool useDefaultAssignment = false;
 
     switch(status){
     case GLP_BS:
       //cout << "basic" << endl;
       newBasis.add(vi);
+      useDefaultAssignment = true;
       break;
     case GLP_NL:
     case GLP_NS:
       if(!mip){
-        //cout << "non-basic lb" << endl;
+        if(s_verbosity >= 2){ Message() << "non-basic lb" << endl; }
         newValues.set(vi, d_vars.getLowerBound(vi));
-        break;
-      }// intentionally fall through otherwise
+      }else{// intentionally fall through otherwise
+        useDefaultAssignment = true;
+      }
+      break;
     case GLP_NU:
       if(!mip){
-        // cout << "non-basic ub" << endl;
+        if(s_verbosity >= 2){ Message() << "non-basic ub" << endl; }
         newValues.set(vi, d_vars.getUpperBound(vi));
-        break;
-      }// intentionally fall through otherwise
+      }else {// intentionally fall through otherwise
+        useDefaultAssignment = true;
+      }
+      break;
     default:
       {
-        // cout << "non-basic other" << endl;
+        useDefaultAssignment = true;
+      }
+      break;
+    }
 
-        double newAssign =
-          mip ?
-            (isSlack ? glp_mip_row_val(d_prob, glpk_index) :  glp_mip_col_val(d_prob, glpk_index))
-          : (isSlack ? glp_get_row_prim(d_prob, glpk_index) :  glp_get_col_prim(d_prob, glpk_index));
-        const DeltaRational& oldAssign = d_vars.getAssignment(vi);
+    if(useDefaultAssignment){
+      if(s_verbosity >= 2){ Message() << "non-basic other" << endl; }
+
+      double newAssign =
+        mip ?
+        (isSlack ? glp_mip_row_val(d_prob, glpk_index) :  glp_mip_col_val(d_prob, glpk_index))
+        : (isSlack ? glp_get_row_prim(d_prob, glpk_index) :  glp_get_col_prim(d_prob, glpk_index));
+      const DeltaRational& oldAssign = d_vars.getAssignment(vi);
 
 
-        if(d_vars.hasLowerBound(vi) &&
-           roughlyEqual(newAssign, d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA))){
-          //cout << "  to lb" << endl;
+      if(d_vars.hasLowerBound(vi) &&
+         roughlyEqual(newAssign, d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA))){
+        //cout << "  to lb" << endl;
 
-          newValues.set(vi, d_vars.getLowerBound(vi));
-        }else if(d_vars.hasUpperBound(vi) &&
-           roughlyEqual(newAssign, d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA))){
-          newValues.set(vi, d_vars.getUpperBound(vi));
-          // cout << "  to ub" << endl;
+        newValues.set(vi, d_vars.getLowerBound(vi));
+      }else if(d_vars.hasUpperBound(vi) &&
+               roughlyEqual(newAssign, d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA))){
+        newValues.set(vi, d_vars.getUpperBound(vi));
+        // cout << "  to ub" << endl;
+      }else{
+
+        double rounded = round(newAssign);
+        if(roughlyEqual(newAssign, rounded)){
+          // cout << "roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
+          newAssign = rounded;
         }else{
-
-          double rounded = round(newAssign);
-          if(roughlyEqual(newAssign, rounded)){
-            // cout << "roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
-            newAssign = rounded;
-          }else{
-            // cout << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
-          }
-
-          DeltaRational proposal = estimateWithCFE(newAssign);
-
-
-          if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
-            // cout << "  to prev value" << newAssign << " " << oldAssign << endl;
-            proposal = d_vars.getAssignment(vi);
-          }
-
-
-          if(d_vars.strictlyLessThanLowerBound(vi, proposal)){
-            //cout << "  round to lb " << d_vars.getLowerBound(vi) << endl;
-            proposal = d_vars.getLowerBound(vi);
-          }else if(d_vars.strictlyGreaterThanUpperBound(vi, proposal)){
-            //cout << "  round to ub " << d_vars.getUpperBound(vi) << endl;
-            proposal = d_vars.getUpperBound(vi);
-          }else{
-            //cout << "  use proposal" << proposal << " " << oldAssign  << endl;
-          }
-          newValues.set(vi, proposal);
+          // cout << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
         }
-        break;
+
+        DeltaRational proposal = estimateWithCFE(newAssign);
+
+
+        if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
+          // cout << "  to prev value" << newAssign << " " << oldAssign << endl;
+          proposal = d_vars.getAssignment(vi);
+        }
+
+
+        if(d_vars.strictlyLessThanLowerBound(vi, proposal)){
+          //cout << "  round to lb " << d_vars.getLowerBound(vi) << endl;
+          proposal = d_vars.getLowerBound(vi);
+        }else if(d_vars.strictlyGreaterThanUpperBound(vi, proposal)){
+          //cout << "  round to ub " << d_vars.getUpperBound(vi) << endl;
+          proposal = d_vars.getUpperBound(vi);
+        }else{
+          //cout << "  use proposal" << proposal << " " << oldAssign  << endl;
+        }
+        newValues.set(vi, proposal);
       }
     }
   }
@@ -493,8 +513,10 @@ ApproximateSimplex::ApproxResult ApproxGLPK::solveRelaxation(){
   parm.meth = GLP_PRIMAL;
   parm.pricing = GLP_PT_PSE;
   parm.it_lim = d_pivotLimit;
-  //parm.msg_lev = GLP_MSG_ALL;
   parm.msg_lev = GLP_MSG_OFF;
+  if(s_verbosity >= 1){
+    parm.msg_lev = GLP_MSG_ALL;
+  }
 
   int res = glp_simplex(d_prob, &parm);
   switch(res){
@@ -551,8 +573,10 @@ ApproximateSimplex::ApproxResult ApproxGLPK::solveMIP(){
   parm.cov_cuts = GLP_ON;
   parm.cb_func = stopAtBingoOrPivotLimit;
   parm.cb_info = &d_pivotLimit;
-  //parm.msg_lev = GLP_MSG_ALL;
   parm.msg_lev = GLP_MSG_OFF;
+  if(s_verbosity >= 1){
+    parm.msg_lev = GLP_MSG_ALL;
+  }
   int res = glp_intopt(d_prob, &parm);
 
   switch(res){

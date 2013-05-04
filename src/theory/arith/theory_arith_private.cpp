@@ -109,6 +109,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_dualSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_fcSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_soiSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+  d_attemptSolSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_DELTA_ZERO(0),
   d_fullCheckCounter(0),
   d_cutCount(c, 0),
@@ -1590,27 +1591,30 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
           approxSolver->setPivotLimit(mipLimit);
           mipRes = approxSolver->solveMIP();
           d_errorSet.reduceToSignals();
+          Message() << "here" << endl;
           if(mipRes == ApproximateSimplex::ApproxSat){
             mipSolution = approxSolver->extractMIP();
-            ApproximateSimplex::applySolution(d_linEq, mipSolution);
+            d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
+            //d_linEq.applySolution(mipSolution.newBasis, mipSolution.newValues);
           }else{
-            ApproximateSimplex::applySolution(d_linEq, relaxSolution);
+            d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
+            //d_linEq.applySolution(relaxSolution.newBasis, relaxSolution.newValues);
             // if(d_qflraStatus != UNSAT){
             //   d_likelyIntegerUnsat = true;
             // }
           }
           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
-          d_qflraStatus = simplex.findModel(false);
+          if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
         }
         break;
       case ApproximateSimplex::ApproxUnsat:
         {
           ApproximateSimplex::Solution sol = approxSolver->extractRelaxation();
-          d_errorSet.reduceToSignals();
-          ApproximateSimplex::applySolution(d_linEq, sol);
-          options::arithStandardCheckVarOrderPivots.set(100);
 
-          d_qflraStatus = simplex.findModel(false);
+          d_qflraStatus = d_attemptSolSimplex.attempt(sol);
+          options::arithStandardCheckVarOrderPivots.set(pass2Limit);
+
+          if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
         }
         break;
       default:
@@ -1620,6 +1624,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     }
 
     if(d_qflraStatus == Result::SAT_UNKNOWN){
+      Message() << "got sat unknown" << endl;
       vector<ArithVar> toCut = cutAllBounded();
       if(toCut.size() > 0){
         branchVector(toCut);

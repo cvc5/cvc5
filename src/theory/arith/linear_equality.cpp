@@ -68,7 +68,8 @@ LinearEqualityModule::Statistics::Statistics():
   d_weakeningAttempts("theory::arith::weakening::attempts",0),
   d_weakeningSuccesses("theory::arith::weakening::success",0),
   d_weakenings("theory::arith::weakening::total",0),
-  d_weakenTime("theory::arith::weakening::time")
+  d_weakenTime("theory::arith::weakening::time"),
+  d_forceTime("theory::arith::forcing::time")
 {
   StatisticsRegistry::registerStat(&d_statPivots);
   StatisticsRegistry::registerStat(&d_statUpdates);
@@ -80,6 +81,7 @@ LinearEqualityModule::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_weakeningSuccesses);
   StatisticsRegistry::registerStat(&d_weakenings);
   StatisticsRegistry::registerStat(&d_weakenTime);
+  StatisticsRegistry::registerStat(&d_forceTime);
 }
 
 LinearEqualityModule::Statistics::~Statistics(){
@@ -93,7 +95,9 @@ LinearEqualityModule::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_weakeningSuccesses);
   StatisticsRegistry::unregisterStat(&d_weakenings);
   StatisticsRegistry::unregisterStat(&d_weakenTime);
+  StatisticsRegistry::unregisterStat(&d_forceTime);
 }
+
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
   Assert(!d_areTracking);
 
@@ -117,19 +121,30 @@ void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev
 void LinearEqualityModule::updateMany(const DenseMap<DeltaRational>& many){
   for(DenseMap<DeltaRational>::const_iterator i = many.begin(), i_end = many.end(); i != i_end; ++i){
     ArithVar nb = *i;
-    Assert(!d_tableau.isBasic(nb));
-    const DeltaRational& newValue = many[nb];
-    if(newValue != d_variables.getAssignment(nb)){
-      Trace("arith::updateMany")
-        << "updateMany:" << nb << " "
-        << d_variables.getAssignment(nb) << " to "<< newValue << endl;
-      update(nb, newValue);
+    if(!d_tableau.isBasic(nb)){
+      Assert(!d_tableau.isBasic(nb));
+      const DeltaRational& newValue = many[nb];
+      if(newValue != d_variables.getAssignment(nb)){
+        Trace("arith::updateMany")
+          << "updateMany:" << nb << " "
+          << d_variables.getAssignment(nb) << " to "<< newValue << endl;
+        update(nb, newValue);
+      }
     }
   }
 }
 
 
+
+
+void LinearEqualityModule::applySolution(const DenseSet& newBasis, const DenseMap<DeltaRational>& newValues){
+  forceNewBasis(newBasis);
+  updateMany(newValues);
+}
+
 void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
+  TimerStat::CodeTimer codeTimer(d_statistics.d_forceTime);
+  cout << "force begin" << endl;
   DenseSet needsToBeAdded;
   for(DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end(); i != i_end; ++i){
     ArithVar b = *i;
@@ -163,10 +178,12 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
+    Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
+    Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }
