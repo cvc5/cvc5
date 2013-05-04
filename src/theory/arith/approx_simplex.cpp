@@ -155,7 +155,7 @@ private:
 };
 
 #warning "set back to 0"
-int ApproxGLPK::s_verbosity = 1;
+int ApproxGLPK::s_verbosity = 0;
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

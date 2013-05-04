@@ -114,6 +114,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_fullCheckCounter(0),
   d_cutCount(c, 0),
   d_cutInContext(c),
+  d_likelyIntegerInfeasible(c, false),
   d_statistics()
 {
   srand(79);
@@ -1574,9 +1575,11 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     static const int32_t relaxationLimit = 10000;
     static const int32_t mipLimit = 200000;
 
+    //cout << "start" << endl;
     d_qflraStatus = simplex.findModel(false);
+    //cout << "end" << endl;
     if(d_qflraStatus == Result::SAT_UNKNOWN ||
-       (d_qflraStatus == Result::SAT && !hasIntegerModel())){
+       (d_qflraStatus == Result::SAT && !hasIntegerModel() && !d_likelyIntegerInfeasible)){
 
       ApproximateSimplex* approxSolver = ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel);
       approxSolver->setPivotLimit(relaxationLimit);
@@ -1588,23 +1591,27 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
       case ApproximateSimplex::ApproxSat:
         {
           relaxSolution = approxSolver->extractRelaxation();
-          approxSolver->setPivotLimit(mipLimit);
-          mipRes = approxSolver->solveMIP();
-          d_errorSet.reduceToSignals();
-          Message() << "here" << endl;
-          if(mipRes == ApproximateSimplex::ApproxSat){
-            mipSolution = approxSolver->extractMIP();
-            d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
-            //d_linEq.applySolution(mipSolution.newBasis, mipSolution.newValues);
-          }else{
+
+          if(d_likelyIntegerInfeasible){
             d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
-            //d_linEq.applySolution(relaxSolution.newBasis, relaxSolution.newValues);
-            // if(d_qflraStatus != UNSAT){
-            //   d_likelyIntegerUnsat = true;
-            // }
+          }else{
+            approxSolver->setPivotLimit(mipLimit);
+            mipRes = approxSolver->solveMIP();
+            d_errorSet.reduceToSignals();
+            //Message() << "here" << endl;
+            if(mipRes == ApproximateSimplex::ApproxSat){
+              mipSolution = approxSolver->extractMIP();
+              d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
+            }else{
+              if(mipRes == ApproximateSimplex::ApproxUnsat){
+                d_likelyIntegerInfeasible = true;
+              }
+              d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
+            }
           }
           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
           if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
+          //Message() << "done" << endl;
         }
         break;
       case ApproximateSimplex::ApproxUnsat:
@@ -1624,12 +1631,14 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     }
 
     if(d_qflraStatus == Result::SAT_UNKNOWN){
-      Message() << "got sat unknown" << endl;
+      //Message() << "got sat unknown" << endl;
       vector<ArithVar> toCut = cutAllBounded();
       if(toCut.size() > 0){
         branchVector(toCut);
         emmittedConflictOrSplit = true;
       }else{
+        //Message() << "splitting" << endl;
+
         d_qflraStatus = simplex.findModel(noPivotLimit);
       }
     }
@@ -2659,6 +2668,10 @@ bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
     ConstraintType t = ub ? UpperBound : LowerBound;
     const DeltaRational& a = d_partialModel.getAssignment(v);
 
+    if(isInteger(v) && !a.isIntegral()){
+      return true;
+    }
+
     Constraint strongestPossible = d_constraintDatabase.getBestImpliedBound(v, t, a);
     if(strongestPossible == NullConstraint){
       return false;
@@ -2754,6 +2767,11 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
     d_partialModel.strictlyGreaterThanLowerBound(v, bound);
   if(weaker){
     ConstraintType t = vUb ? UpperBound : LowerBound;
+
+    if(isInteger(v)){
+      //cout << "maybe" << endl;
+      //cout << bound << endl;
+    }
     Constraint implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
     if(implied != NullConstraint){
       return rowImplicationCanBeApplied(ridx, rowUp, implied);

@@ -591,7 +591,7 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
   d_qeConflict.clear();
   d_errorSet.pushFocusInto(d_qeConflict);
 
-  cout <<  d_qeConflict.size() << " ";
+  //cout <<  d_qeConflict.size() << " ";
   uint32_t size = d_qeConflict.size();
 
   if(size > 2){
@@ -611,7 +611,7 @@ void SumOfInfeasibilitiesSPD::quickExplain(){
     d_qeSgns.clear();
   }
 
-  cout << d_qeConflict.size() << endl;
+  //cout << d_qeConflict.size() << endl;
 
   Assert(d_qeInSoi.empty());
   Assert(d_qeInUAndNotInSoi.empty());
@@ -813,7 +813,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
   if(options::soiQuickExplain()){
     quickExplain();
     Node conflict = generateSOIConflict(d_qeConflict);
-    cout << conflict << endl;
+    //cout << conflict << endl;
     d_conflictChannel(conflict);
   }else{
 

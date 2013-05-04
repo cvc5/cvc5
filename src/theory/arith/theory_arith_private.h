@@ -570,6 +570,8 @@ private:
   context::CDO<unsigned> d_cutCount;
   context::CDHashSet<ArithVar, std::hash<ArithVar> > d_cutInContext;
 
+  context::CDO<bool> d_likelyIntegerInfeasible;
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:

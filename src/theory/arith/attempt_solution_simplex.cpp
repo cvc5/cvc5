@@ -103,12 +103,12 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    Message() << toRemove << " " << toAdd << endl;
+    //Message() << toRemove << " " << toAdd << endl;
 
     d_linEq.pivotAndUpdate(toRemove, toAdd, newValues[toRemove]);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    Message() << needsToBeAdded.size() << "to go" << endl;
+    //Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
 
     bool conflict = processSignals();
