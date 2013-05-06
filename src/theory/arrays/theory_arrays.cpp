@@ -1064,9 +1064,9 @@ void TheoryArrays::checkModel(Effort e)
   unsigned constraintIdx;
   Node assertion, assertionToCheck;
   vector<TNode> assumptions;
-  //  int numrestarts = 0;
-  while (true) {
-    //    ++numrestarts;
+  int numrestarts = 0;
+  while (true || numrestarts < 1 || fullEffort(e) || combination(e)) {
+    ++numrestarts;
     int level = getSatContext()->getLevel();
     d_getModelValCache.clear();
     for (constraintIdx = 0; constraintIdx < d_modelConstraints.size(); ++constraintIdx) {
@@ -1205,20 +1205,20 @@ void TheoryArrays::checkModel(Effort e)
       }
       {
         // generate lemma
-        // if (all.size() == 0) {
-        //   d_lemmas.push_back(decision.negate());
-        // }
-        // else {
-        //   NodeBuilder<> disjunction(kind::OR);
-        //   std::set<TNode>::const_iterator it = all.begin();
-        //   std::set<TNode>::const_iterator it_end = all.end();
-        //   while (it != it_end) {
-        //     disjunction << (*it).negate();
-        //     ++it;
-        //   }
-        //   disjunction << decision.negate();
-        //   d_lemmas.push_back(disjunction);
-        // }
+        if (all.size() == 0) {
+          d_lemmas.push_back(decision.negate());
+        }
+        else {
+          NodeBuilder<> disjunction(kind::OR);
+          std::set<TNode>::const_iterator it = all.begin();
+          std::set<TNode>::const_iterator it_end = all.end();
+          while (it != it_end) {
+            disjunction << (*it).negate();
+            ++it;
+          }
+          disjunction << decision.negate();
+          d_lemmas.push_back(disjunction);
+        }
       }
       d_equalityEngine.assertEquality(decision, eq, explanation);
       if (!eq) decision = decision.notNode();
@@ -1271,6 +1271,13 @@ void TheoryArrays::checkModel(Effort e)
         }
         d_skolemIndex = d_skolemIndex + 1;
       }
+      // Reregister stores
+      if (assertionToCheck != assertion &&
+          assertionToCheck.getKind() == kind::AND &&
+          assertionToCheck[assertionToCheck.getNumChildren()-1].getKind() == kind::EQUAL) {
+        TNode s = assertionToCheck[assertionToCheck.getNumChildren()-1][0];
+        preRegisterStores(s);
+      }
     }
     if (d_conflict) {
       break;
@@ -1299,8 +1306,8 @@ void TheoryArrays::checkModel(Effort e)
     Debug("arrays-model-based") << "Sending lemma: " << d_lemmas.back() << endl;
     d_out->splitLemma(d_lemmas.back());
 #ifdef CVC4_ASSERTIONS
-    Assert(d_lemmasSaved.find(d_lemmas.back()) == d_lemmasSaved.end());
-    d_lemmasSaved.insert(d_lemmas.back());
+    //    Assert(d_lemmasSaved.find(d_lemmas.back()) == d_lemmasSaved.end());
+    //    d_lemmasSaved.insert(d_lemmas.back());
 #endif
     d_lemmas.pop_back();
   }
@@ -1675,7 +1682,7 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
         d_decisions.pop_back();
         d_permRef.push_back(explanation);
         d = d.negate();
-        Debug("arrays-model-based") << "Asserting learned literal " << d << " with explanation " << explanation << endl;
+        Debug("arrays-model-based") << "Asserting learned literal2 " << d << " with explanation " << explanation << endl;
         bool eq = true;
         if (d.getKind() == kind::NOT) {
           d = d[0];
