@@ -115,6 +115,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_cutCount(c, 0),
   d_cutInContext(c),
   d_likelyIntegerInfeasible(c, false),
+  d_guessedCoeffSet(c, false),
+  d_guessedCoeffs(),
   d_statistics()
 {
   srand(79);
@@ -1583,6 +1585,14 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
       ApproximateSimplex* approxSolver = ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel);
       approxSolver->setPivotLimit(relaxationLimit);
+
+      if(!d_guessedCoeffSet){
+        d_guessedCoeffs = approxSolver->heuristicOptCoeffs();
+        d_guessedCoeffSet = true;
+      }
+      if(!d_guessedCoeffs.empty()){
+        approxSolver->setOptCoeffs(d_guessedCoeffs);
+      }
 
       ApproximateSimplex::ApproxResult relaxRes, mipRes;
       ApproximateSimplex::Solution relaxSolution, mipSolution;

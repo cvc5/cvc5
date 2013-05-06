@@ -44,6 +44,8 @@ public:
   /** Sets a maximization criteria for the approximate solver.*/
   virtual void setOptCoeffs(const ArithRatPairVec& ref) = 0;
 
+  virtual ArithRatPairVec heuristicOptCoeffs() const = 0;
+
   virtual ApproxResult solveRelaxation() = 0;
   virtual Solution extractRelaxation() const = 0;
 

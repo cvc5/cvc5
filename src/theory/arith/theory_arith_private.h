@@ -572,6 +572,10 @@ private:
 
   context::CDO<bool> d_likelyIntegerInfeasible;
 
+
+  context::CDO<bool> d_guessedCoeffSet;
+  ArithRatPairVec d_guessedCoeffs;
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:

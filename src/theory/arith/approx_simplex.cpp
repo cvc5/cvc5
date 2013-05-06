@@ -2,6 +2,7 @@
 
 #include "theory/arith/approx_simplex.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/constraint.h"
 #include <math.h>
 #include <cmath>
 
@@ -94,6 +95,10 @@ public:
     return Solution();
   }
 
+  virtual ArithRatPairVec heuristicOptCoeffs() const{
+    return ArithRatPairVec();
+  }
+
   virtual ApproxResult solveMIP(){
     return ApproxError;
   }
@@ -143,6 +148,8 @@ public:
     return extractSolution(false);
   }
 
+  virtual ArithRatPairVec heuristicOptCoeffs() const;
+
   virtual ApproxResult solveMIP();
   virtual Solution extractMIP() const{
     return extractSolution(true);
@@ -152,10 +159,11 @@ public:
   static void printGLPKStatus(int status, std::ostream& out);
 private:
   Solution extractSolution(bool mip) const;
+  int guessDir(ArithVar v) const;
 };
 
 #warning "set back to 0"
-int ApproxGLPK::s_verbosity = 0;
+int ApproxGLPK::s_verbosity = 1;
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
@@ -309,6 +317,189 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& avars) :
   delete[] ja;
   delete[] ar;
 }
+int ApproxGLPK::guessDir(ArithVar v) const{
+  if(d_vars.hasUpperBound(v) && !d_vars.hasLowerBound(v)){
+    return -1;
+  }else if(!d_vars.hasUpperBound(v) && d_vars.hasLowerBound(v)){
+    return 1;
+  }else if(!d_vars.hasUpperBound(v) && !d_vars.hasLowerBound(v)){
+    return 0;
+  }else{
+    int ubSgn = d_vars.getUpperBound(v).sgn();
+    int lbSgn = d_vars.getLowerBound(v).sgn();
+
+    if(ubSgn != 0 && lbSgn == 0){
+      return -1;
+    }else if(ubSgn == 0 && lbSgn != 0){
+      return 1;
+    }
+
+    return 1;
+  }
+}
+
+ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
+  ArithRatPairVec ret;
+
+  // Strategies are guess:
+  // 1 simple shared "ceiling" variable: danoint, pk1
+  //  x1 >= c, x1 >= tmp1, x1 >= tmp2, ...
+  // 1 large row: fixnet, vpm2, pp08a
+  //  (+ .......... ) <= c
+  // Not yet supported:
+  // 1 complex shared "ceiling" variable: opt1217
+  //  x1 >= c, x1 >= (+ ..... ), x1 >= (+ ..... )
+  //  and all of the ... are the same sign
+
+
+  // Candidates:
+  // 1) Upper and lower bounds are not equal.
+  // 2) The variable is not integer
+  // 3a) For columns look for a ceiling variable
+  // 3B) For rows look for a large row with
+
+  DenseMap<BoundCounts> d_colCandidates;
+  DenseMap<uint32_t> d_rowCandidates;
+
+  double sumRowLength = 0.0;
+  uint32_t maxRowLength = 0;
+  for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
+    ArithVar v = *vi;
+
+    if(s_verbosity >= 2){
+      Message() << v  << " ";
+      d_vars.printModel(v, Message());
+    }
+
+    int type;
+    if(d_vars.hasUpperBound(v) && d_vars.hasLowerBound(v)){
+      if(d_vars.boundsAreEqual(v)){
+        type = GLP_FX;
+      }else{
+        type = GLP_DB;
+      }
+    }else if(d_vars.hasUpperBound(v) && !d_vars.hasLowerBound(v)){
+      type = GLP_UP;
+    }else if(!d_vars.hasUpperBound(v) && d_vars.hasLowerBound(v)){
+      type = GLP_LO;
+    }else{
+      type = GLP_FR;
+    }
+
+    if(type != GLP_FX && type != GLP_FR){
+
+      if(d_vars.isSlack(v)){
+        Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(v));
+        uint32_t len = p.size();
+        d_rowCandidates.set(v, len);
+        sumRowLength += len;
+        maxRowLength =std::max(maxRowLength, len);
+      }else if(!d_vars.isInteger(v)){
+        d_colCandidates.set(v, BoundCounts());
+      }
+    }
+  }
+
+  uint32_t maxCount = 0;
+  for(DenseMap<int>::const_iterator i = d_rowIndices.begin(), i_end = d_rowIndices.end(); i != i_end; ++i){
+    ArithVar v = *i;
+
+    bool lbCap = d_vars.hasLowerBound(v) && !d_vars.hasUpperBound(v);
+    bool ubCap = !d_vars.hasLowerBound(v) && d_vars.hasUpperBound(v);
+
+    if(lbCap || ubCap){
+      Constraint b = lbCap ? d_vars.getLowerBoundConstraint(v)
+        : d_vars.getUpperBoundConstraint(v);
+
+      if(!(b->getValue()).noninfinitesimalIsZero()){ continue; }
+
+      Polynomial poly = Polynomial::parsePolynomial(d_vars.asNode(v));
+      if(poly.size() != 2) { continue; }
+
+      Polynomial::iterator j = poly.begin();
+      Monomial first = *j;
+      ++j;
+      Monomial second = *j;
+
+      bool firstIsPos = first.constantIsPositive();
+      bool secondIsPos = second.constantIsPositive();
+
+      if(firstIsPos == secondIsPos){ continue; }
+
+      Monomial pos = firstIsPos == lbCap ? first : second;
+      Monomial neg = firstIsPos != lbCap ? first : second;
+      // pos >= neg
+      VarList p = pos.getVarList();
+      VarList n = neg.getVarList();
+      if(d_vars.hasArithVar(p.getNode())){
+        ArithVar ap = d_vars.asArithVar(p.getNode());
+        if( d_colCandidates.isKey(ap)){
+          BoundCounts bc = d_colCandidates.get(ap);
+          bc = BoundCounts(bc.lowerBoundCount(), bc.upperBoundCount()+1);
+          maxCount = std::max(maxCount, bc.upperBoundCount());
+          d_colCandidates.set(ap, bc);
+        }
+      }
+      if(d_vars.hasArithVar(n.getNode())){
+        ArithVar an = d_vars.asArithVar(n.getNode());
+        if( d_colCandidates.isKey(an)){
+          BoundCounts bc = d_colCandidates.get(an);
+          bc = BoundCounts(bc.lowerBoundCount()+1, bc.upperBoundCount());
+          maxCount = std::max(maxCount, bc.lowerBoundCount());
+          d_colCandidates.set(an, bc);
+        }
+      }
+    }
+  }
+
+  // Attempt row
+  double avgRowLength = d_rowCandidates.size() >= 1 ?
+    ( sumRowLength / d_rowCandidates.size() ) : 0.0;
+
+  // There is a large row among the candidates
+  bool guessARowCandidate = maxRowLength >= (10.0 * avgRowLength);
+
+  double rowLengthReq = (maxRowLength * .9);
+
+  if(guessARowCandidate){
+    for(DenseMap<uint32_t>::const_iterator i = d_rowCandidates.begin(), iend =d_rowCandidates.end(); i != iend; ++i ){
+      ArithVar r = *i;
+      uint32_t len = d_rowCandidates[r];
+
+      int dir = guessDir(r);
+      if(len >= rowLengthReq){
+        if(s_verbosity >= 1){
+          Message() << "high row " << r << " " << len << " " << avgRowLength << " " << dir<< endl;
+          d_vars.printModel(r, Message());
+        }
+        ret.push_back(ArithRatPair(r, Rational(dir)));
+      }
+    }
+  }
+
+  // Attempt columns
+  bool guessAColCandidate = maxCount >= 4;
+  if(guessAColCandidate){
+    for(DenseMap<BoundCounts>::const_iterator i = d_colCandidates.begin(), iend = d_colCandidates.end(); i != iend; ++i ){
+      ArithVar c = *i;
+      BoundCounts bc = d_colCandidates[c];
+
+      int dir = guessDir(c);
+      double ubScore = double(bc.upperBoundCount()) / maxCount;
+      double lbScore = double(bc.lowerBoundCount()) / maxCount;
+      if(ubScore  >= .9 || lbScore >= .9){
+        if(s_verbosity >= 1){
+          Message() << "high col " << c << " " << bc << " " << ubScore << " " << lbScore << " " << dir << endl;
+          d_vars.printModel(c, Message());
+        }
+        ret.push_back(ArithRatPair(c, Rational(c)));
+      }
+    }
+  }
+
+
+  return ret;
+}
 
 void ApproxGLPK::setOptCoeffs(const ArithRatPairVec& ref){
   DenseMap<double> nbCoeffs;
@@ -353,6 +544,7 @@ void ApproxGLPK::setOptCoeffs(const ArithRatPairVec& ref){
     glp_set_obj_coef(d_prob, colIndex, coeff);
   }
 }
+
 
 /*
  * rough strategy:
@@ -422,7 +614,7 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const{
 
     switch(status){
     case GLP_BS:
-      //cout << "basic" << endl;
+      //Message() << "basic" << endl;
       newBasis.add(vi);
       useDefaultAssignment = true;
       break;
@@ -462,40 +654,40 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const{
 
       if(d_vars.hasLowerBound(vi) &&
          roughlyEqual(newAssign, d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA))){
-        //cout << "  to lb" << endl;
+        //Message() << "  to lb" << endl;
 
         newValues.set(vi, d_vars.getLowerBound(vi));
       }else if(d_vars.hasUpperBound(vi) &&
                roughlyEqual(newAssign, d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA))){
         newValues.set(vi, d_vars.getUpperBound(vi));
-        // cout << "  to ub" << endl;
+        // Message() << "  to ub" << endl;
       }else{
 
         double rounded = round(newAssign);
         if(roughlyEqual(newAssign, rounded)){
-          // cout << "roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
+          // Message() << "roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
           newAssign = rounded;
         }else{
-          // cout << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
+          // Message() << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
         }
 
         DeltaRational proposal = estimateWithCFE(newAssign);
 
 
         if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
-          // cout << "  to prev value" << newAssign << " " << oldAssign << endl;
+          // Message() << "  to prev value" << newAssign << " " << oldAssign << endl;
           proposal = d_vars.getAssignment(vi);
         }
 
 
         if(d_vars.strictlyLessThanLowerBound(vi, proposal)){
-          //cout << "  round to lb " << d_vars.getLowerBound(vi) << endl;
+          //Message() << "  round to lb " << d_vars.getLowerBound(vi) << endl;
           proposal = d_vars.getLowerBound(vi);
         }else if(d_vars.strictlyGreaterThanUpperBound(vi, proposal)){
-          //cout << "  round to ub " << d_vars.getUpperBound(vi) << endl;
+          //Message() << "  round to ub " << d_vars.getUpperBound(vi) << endl;
           proposal = d_vars.getUpperBound(vi);
         }else{
-          //cout << "  use proposal" << proposal << " " << oldAssign  << endl;
+          //Message() << "  use proposal" << proposal << " " << oldAssign  << endl;
         }
         newValues.set(vi, proposal);
       }
