@@ -82,6 +82,13 @@ void DecisionEngine::enableStrategy(DecisionStrategy* ds)
   d_enabledStrategies.push_back(ds);
 }
 
+void DecisionEngine::clearStrategies(){
+  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
+    delete d_enabledStrategies[i];
+  }
+  d_enabledStrategies.clear();
+  d_needIteSkolemMap.clear();
+}
 
 bool DecisionEngine::isRelevant(SatVariable var)
 {

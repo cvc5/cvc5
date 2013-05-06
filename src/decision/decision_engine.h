@@ -96,6 +96,10 @@ public:
   /* enables decision stragies based on options */
   void init();
 
+  /* clears all of the strategies */
+  void clearStrategies();
+
+
   /**
    * This is called by SmtEngine, at shutdown time, just before
    * destruction.  It is important because there are destruction
@@ -106,8 +110,7 @@ public:
     d_engineState = 2;
 
     Trace("decision") << "Shutting down decision engine" << std::endl;
-    for(unsigned i = 0; i < d_enabledStrategies.size(); ++i)
-      delete d_enabledStrategies[i];
+    clearStrategies();
   }
 
   // Interface for External World to use our services

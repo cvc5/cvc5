@@ -292,13 +292,12 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   Node d_modZero;
 
+public:
   /**
    * Map from skolem variables to index in d_assertionsToCheck containing
    * corresponding introduced Boolean ite
    */
   IteSkolemMap d_iteSkolemMap;
-
-public:
 
   /** Instance of the ITE remover */
   RemoveITE d_iteRemover;
@@ -2533,6 +2532,21 @@ Result SmtEngine::check() {
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
   d_private->processAssertions();
+
+  // Turn off stop only for QF_LRA
+  // TODO: Bring up in a meeting where to put this
+  if(options::decisionStopOnly() && !options::decisionMode.wasSetByUser() ){
+    if( // QF_LRA
+       (not d_logic.isQuantified() &&
+        d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
+        )){
+      if(d_private->d_iteSkolemMap.empty()){
+        options::decisionStopOnly.set(false);
+        d_decisionEngine->clearStrategies();
+        Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
+      }
+    }
+  }
 
   unsigned long millis = 0;
   if(d_timeBudgetCumulative != 0) {
