@@ -931,8 +931,10 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   if (fromTheoryId == THEORY_SAT_SOLVER) {
     // We know that this is normalized, so just send it off to the theory
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      // We assert it, and we know it's preregistereed coming from the SAT solver directly
-      theoryOf(toTheoryId)->assertFact(assertion, assertion == originalAssertion);
+      // Is it preregistered
+      bool preregistered = d_propEngine->isSatLiteral(assertion) && Theory::theoryOf(assertion) == toTheoryId;
+      // We assert it
+      theoryOf(toTheoryId)->assertFact(assertion, preregistered);
       // Mark that we have more information
       d_factsAsserted = true;
     }
@@ -1211,6 +1213,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
     // Rewrite the equality
     Node eqNormalized = Rewriter::rewrite(atoms[i]);
+
+    Debug("theory::atoms") << "TheoryEngine::ensureLemmaAtoms(): " << eq << " with nf " << eqNormalized << std::endl;
+
     // If the equality is a boolean constant, we send immediately
     if (eqNormalized.isConst()) {
       if (eqNormalized.getConst<bool>()) {
@@ -1221,8 +1226,11 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
       continue;
     }
 
+    Assert(eqNormalized.getKind() == kind::EQUAL);
+
+
     // If the normalization did the just flips, keep the flip
-    if (eqNormalized[0] == eq[1]) {
+    if (eqNormalized[0] == eq[1] && eqNormalized[1] == eq[0]) {
       eq = eqNormalized;
     }
 
