@@ -67,6 +67,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
 
   if(processSignals()){
     Debug("arith::findModel") << "attemptSolution("<< instance <<") early conflict" << endl;
+    d_conflictVariables.purge();
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
     Debug("arith::findModel") << "attemptSolution("<< instance <<") fixed itself" << endl;
@@ -114,9 +115,12 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     bool conflict = processSignals();
     if(conflict){
       d_errorSet.reduceToSignals();
+      d_conflictVariables.purge();
+
       return Result::UNSAT;
     }
   }
+  Assert( d_conflictVariables.empty() );
 
   if(d_errorSet.errorEmpty()){
     return Result::SAT;
