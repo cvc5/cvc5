@@ -1867,7 +1867,6 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel)){
     emmittedConflictOrSplit = splitDisequalities();
   }
-  emmittedConflictOrSplit = false;
 
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
