@@ -1067,6 +1067,7 @@ void TheoryArrays::checkModel(Effort e)
   int numrestarts = 0;
   while (true || numrestarts < 1 || fullEffort(e) || combination(e)) {
     ++numrestarts;
+    d_out->safePoint();
     int level = getSatContext()->getLevel();
     d_getModelValCache.clear();
     for (constraintIdx = 0; constraintIdx < d_modelConstraints.size(); ++constraintIdx) {

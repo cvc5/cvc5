@@ -275,8 +275,10 @@ class TheoryEngine {
     }
 
     void safePoint() throw(theory::Interrupted, AssertionException) {
-      if (d_engine->d_interrupted)
+      spendResource();
+      if (d_engine->d_interrupted) {
         throw theory::Interrupted();
+      }
     }
 
     void conflict(TNode conflictNode) throw(AssertionException) {
@@ -340,6 +342,7 @@ class TheoryEngine {
     void spendResource() throw() {
       d_engine->spendResource();
     }
+
     void handleUserAttribute( const char* attr, theory::Theory* t ){
       d_engine->handleUserAttribute( attr, t );
     }

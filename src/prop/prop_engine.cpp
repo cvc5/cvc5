@@ -280,6 +280,7 @@ void PropEngine::interrupt() throw(ModalException) {
 
 void PropEngine::spendResource() throw() {
   // TODO implement me
+  checkTime();
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {
