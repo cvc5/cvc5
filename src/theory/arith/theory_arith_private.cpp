@@ -1721,7 +1721,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
 
   if(Debug.isOn("arith::print_assertions")) {
-    debugPrintAssertions();
+    debugPrintAssertions(Debug("arith::print_assertions"));
   }
 
   bool emmittedConflictOrSplit = false;
@@ -1922,7 +1922,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
-  if(Debug.isOn("arith::print_model")) { debugPrintModel(); }
+  if(Debug.isOn("arith::print_model")) {
+    debugPrintModel(Debug("arith::print_model"));
+  }
   Debug("arith") << "TheoryArithPrivate::check end" << std::endl;
 }
 
@@ -2043,37 +2045,38 @@ bool TheoryArithPrivate::splitDisequalities(){
  * Should be guarded by at least Debug.isOn("arith::print_assertions").
  * Prints to Debug("arith::print_assertions")
  */
-void TheoryArithPrivate::debugPrintAssertions() {
-  Debug("arith::print_assertions") << "Assertions:" << endl;
+void TheoryArithPrivate::debugPrintAssertions(std::ostream& out) const {
+  out << "Assertions:" << endl;
   for (var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar i = *vi;
     if (d_partialModel.hasLowerBound(i)) {
       Constraint lConstr = d_partialModel.getLowerBoundConstraint(i);
-      Debug("arith::print_assertions") << lConstr << endl;
+      out << lConstr << endl;
     }
 
     if (d_partialModel.hasUpperBound(i)) {
       Constraint uConstr = d_partialModel.getUpperBoundConstraint(i);
-      Debug("arith::print_assertions") << uConstr << endl;
+      out << uConstr << endl;
     }
   }
   context::CDQueue<Constraint>::const_iterator it = d_diseqQueue.begin();
   context::CDQueue<Constraint>::const_iterator it_end = d_diseqQueue.end();
   for(; it != it_end; ++ it) {
-    Debug("arith::print_assertions") << *it << endl;
+    out << *it << endl;
   }
 }
 
-void TheoryArithPrivate::debugPrintModel(){
-  Debug("arith::print_model") << "Model:" << endl;
+void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
+  out << "Model:" << endl;
   for (var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar i = *vi;
     if(d_partialModel.hasNode(i)){
-      Debug("arith::print_model") << d_partialModel.asNode(i) << " : " <<
+      out << d_partialModel.asNode(i) << " : " <<
         d_partialModel.getAssignment(i);
-      if(d_tableau.isBasic(i))
-        Debug("arith::print_model") << " (basic)";
-      Debug("arith::print_model") << endl;
+      if(d_tableau.isBasic(i)){
+        out << " (basic)";
+      }
+      out << endl;
     }
   }
 }
@@ -2401,6 +2404,14 @@ bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
       Warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
+      if(d_tableau.isBasic(var)){
+        Warning() << " (basic)";
+      }
+      Warning() << endl;
+      result = false;
+    }else if(d_partialModel.isInteger(var) && !d_partialModel.integralAssignment(var)){
+      d_partialModel.printModel(var);
+      Warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
         Warning() << " (basic)";
       }

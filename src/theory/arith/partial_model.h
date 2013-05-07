@@ -204,6 +204,11 @@ private:
   bool isSlack(ArithVar x) const {
     return d_vars[x].d_slack;
   }
+
+  bool integralAssignment(ArithVar x) const {
+    return getAssignment(x).isIntegral();
+  }
+
  private:
 
   typedef std::pair<ArithVar, Constraint> AVCPair;

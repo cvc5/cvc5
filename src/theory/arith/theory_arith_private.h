@@ -534,9 +534,9 @@ private:
                  std::vector<ArithVar>& variables);
 
   /** Routine for debugging. Print the assertions the theory is aware of. */
-  void debugPrintAssertions();
+  void debugPrintAssertions(std::ostream& out) const;
   /** Debugging only routine. Prints the model. */
-  void debugPrintModel();
+  void debugPrintModel(std::ostream& out) const;
 
   inline LogicInfo getLogicInfo() const { return d_containing.getLogicInfo(); }
   inline bool done() const { return d_containing.done(); }
