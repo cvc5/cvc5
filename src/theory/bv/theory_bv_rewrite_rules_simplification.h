@@ -45,7 +45,9 @@ template<> inline
 Node RewriteRule<ShlByConst>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<ShlByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
-  
+  if (amount == 0) {
+    return node[0]; 
+  }  
   Node a = node[0]; 
   uint32_t size = utils::getSize(a);
   
@@ -59,6 +61,7 @@ Node RewriteRule<ShlByConst>::apply(TNode node) {
   Assert(amount < Integer(1).multiplyByPow2(32));
   
   uint32_t uint32_amount = amount.toUnsignedInt();
+
   Node left = utils::mkExtract(a, size - 1 - uint32_amount, 0);
   Node right = utils::mkConst(BitVector(uint32_amount, Integer(0))); 
   return utils::mkConcat(left, right); 
@@ -81,6 +84,9 @@ template<> inline
 Node RewriteRule<LshrByConst>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<LshrByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
+  if (amount == 0) {
+    return node[0]; 
+  }  
   
   Node a = node[0]; 
   uint32_t size = utils::getSize(a);
@@ -117,7 +123,10 @@ template<> inline
 Node RewriteRule<AshrByConst>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<AshrByConst>(" << node << ")" << std::endl;
   Integer amount = node[1].getConst<BitVector>().toInteger();
-  
+  if (amount == 0) {
+    return node[0]; 
+  }  
+
   Node a = node[0]; 
   uint32_t size = utils::getSize(a);
   Node sign_bit = utils::mkExtract(a, size-1, size-1);
@@ -812,7 +821,9 @@ Node RewriteRule<UdivPow2>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<UdivPow2>(" << node << ")" << std::endl;
   Node a = node[0];
   unsigned power = utils::isPow2Const(node[1]) -1;
-
+  if (power == 0) {
+    return a; 
+  }
   Node extract = utils::mkExtract(a, utils::getSize(node) - 1, power);
   Node zeros = utils::mkConst(power, 0);
   

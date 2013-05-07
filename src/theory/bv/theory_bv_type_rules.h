@@ -29,6 +29,11 @@ class BitVectorConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if (check) {
+      if (n.getConst<BitVector>().getSize() == 0) {
+        throw TypeCheckingExceptionPrivate(n, "constant of size 0");
+      }
+    }
     return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
   }
 };
