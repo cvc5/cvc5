@@ -230,7 +230,7 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite) {
   if (!prerewrite) {
     resultNode = LinearRewriteStrategy
       < RewriteRule<BitwiseSlicing>
-        >::apply(node);
+        >::apply(resultNode);
   
     if (resultNode.getKind() != node.getKind()) {
       return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -250,7 +250,7 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite){
   if (!prerewrite) {
     resultNode = LinearRewriteStrategy
       < RewriteRule<BitwiseSlicing>
-        >::apply(node);
+        >::apply(resultNode);
     
     if (resultNode.getKind() != node.getKind()) {
       return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -273,7 +273,7 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite) {
     resultNode = LinearRewriteStrategy
       < RewriteRule<XorOne>, 
       RewriteRule <BitwiseSlicing>
-        >::apply(node);
+        >::apply(resultNode);
     
     if (resultNode.getKind() != node.getKind()) {
       return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -341,15 +341,24 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
 }
 
 RewriteResponse TheoryBVRewriter::RewritePlus(TNode node, bool prerewrite) {
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>, 
-      RewriteRule<PlusCombineLikeTerms>
-      >::apply(node);
-  if (prerewrite || node == resultNode) {
+  Node resultNode = node;
+  if (prerewrite) {
+    resultNode = LinearRewriteStrategy
+      < RewriteRule<FlattenAssocCommut>
+        >::apply(node);
     return RewriteResponse(REWRITE_DONE, resultNode);
   }
   
-  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  resultNode =  LinearRewriteStrategy
+    < RewriteRule<FlattenAssocCommut>,
+      RewriteRule<PlusCombineLikeTerms>
+      >::apply(node);
+
+  if (node != resultNode) {
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  
+  return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSub(TNode node, bool prerewrite){
