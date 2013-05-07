@@ -39,6 +39,12 @@ QF_AUFBV)
   trywith --tlimit-per=600000
   finishwith --decision=justification-stoponly
   ;;
+QF_BV)
+  trywith --bv-core --decision=justification --tlimit-per=10000
+  trywith --decision=justification --tlimit-per=60000
+  trywith --decision=internal --bitblast-eager --tlimit-per=600000
+  finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  ;;
 QF_AX)
   trywith --tlimit-per=2000
   finishwith --no-arrays-model-based
