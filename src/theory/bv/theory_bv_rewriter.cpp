@@ -222,15 +222,16 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool preregister) {
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool preregister){
   Node resultNode = node;
-  
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<AndSimplify>,
-      RewriteRule<BitwiseSlicing>
-      >::apply(node);
+  if (!preregister) {
+    resultNode = LinearRewriteStrategy
+      < RewriteRule<FlattenAssocCommut>,
+        RewriteRule<AndSimplify>,
+        RewriteRule<BitwiseSlicing>
+        >::apply(node);
 
-  if (resultNode.getKind() != node.getKind()) {
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    if (resultNode.getKind() != node.getKind()) {
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
   }
   
   return RewriteResponse(REWRITE_DONE, resultNode); 
@@ -238,39 +239,40 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool preregister){
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool preregister){
   Node resultNode = node;
+  if (! preregister) {
+    resultNode = LinearRewriteStrategy
+      < RewriteRule<FlattenAssocCommut>,
+        RewriteRule<OrSimplify>,
+        RewriteRule<BitwiseSlicing>
+        >::apply(node);
 
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
-      RewriteRule<OrSimplify>,
-      RewriteRule<BitwiseSlicing>
-    >::apply(node);
-
-  if (resultNode.getKind() != node.getKind()) {
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    if (resultNode.getKind() != node.getKind()) {
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
   }
-  
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool preregister) {
   Node resultNode = node;
-
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>, // flatten the expression 
-      RewriteRule<XorSimplify>,        // simplify duplicates and constants
-      RewriteRule<XorZero>,            // checks if the constant part is zero and eliminates it
-      RewriteRule<BitwiseSlicing>
-    >::apply(node);
-
-  // this simplification introduces new terms and might require further
-  // rewriting
-  if (RewriteRule<XorOne>::applies(resultNode)) {
-    resultNode = RewriteRule<XorOne>::run<false> (resultNode);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  }
-
-  if (resultNode.getKind() != node.getKind()) {
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  if (! preregister) {
+    resultNode = LinearRewriteStrategy
+      < RewriteRule<FlattenAssocCommut>, // flatten the expression 
+        RewriteRule<XorSimplify>,        // simplify duplicates and constants
+        RewriteRule<XorZero>,            // checks if the constant part is zero and eliminates it
+        RewriteRule<BitwiseSlicing>
+        >::apply(node);
+    
+    // this simplification introduces new terms and might require further
+    // rewriting
+    if (RewriteRule<XorOne>::applies(resultNode)) {
+      resultNode = RewriteRule<XorOne>::run<false> (resultNode);
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
+    
+    if (resultNode.getKind() != node.getKind()) {
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
   }
 
   return RewriteResponse(REWRITE_DONE, resultNode); 
