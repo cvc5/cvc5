@@ -25,10 +25,7 @@ function finishwith {
 case "$logic" in
 
 QF_LRA)
-  # 3 minutes with default decision heuristic
-  trywith --tlimit-per=180000
-  # switch to internal decision heuristic
-  finishwith --decision=internal
+  finishwith --no-restrict-pivots --enable-miplib-trick --miplib-trick-subs=2 --fc-penalties --collect-pivot-stats --use-soi --new-prop --dio-decomps --unconstrained-simp --fancy-final
   ;;
 AUFLIA)
   # 60 seconds with default decision heuristic
