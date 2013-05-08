@@ -848,11 +848,10 @@ void SmtEngine::setLogicInternal() throw() {
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf << endl;
     options::ufSymmetryBreaker.set(qf_uf);
   }
-  // by default, nonclausal simplification is off for QF_SAT and for quantifiers
+  // by default, nonclausal simplification is off for QF_SAT
   if(! options::simplificationMode.wasSetByUser()) {
     bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
-    bool quantifiers = d_logic.isQuantified();
-    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat && !quantifiers) << endl;
+    Trace("smt") << "setting simplification mode to <" << d_logic.getLogicString() << "> " << (!qf_sat) << endl;
     //simplification=none works better for SMT LIB benchmarks with quantifiers, not others
     //options::simplificationMode.set(qf_sat || quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
     options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
