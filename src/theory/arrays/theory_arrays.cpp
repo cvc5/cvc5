@@ -464,7 +464,9 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   }
   case kind::STORE: {
     // Invariant: array terms should be preregistered before being added to the equality engine
-    Assert(!d_equalityEngine.hasTerm(node));
+    if (d_equalityEngine.hasTerm(node)) {
+      break;
+    }
     d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
 
     TNode a = d_equalityEngine.getRepresentative(node[0]);
