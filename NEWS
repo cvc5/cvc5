@@ -3,7 +3,15 @@ This file contains a summary of important user-visible changes.
 Changes since 1.1
 =================
 
-* nothing notable yet
+* Real arithmetic now has three simplex solvers for exact precision linear
+  arithmetic: the classical dual solver and two new solvers based on
+  techniques for minimizing the sum of infeasibilities. GLPK can now be used
+  as a heuristic backup to the exact precision solvers.  GLPK must be enabled
+  at configure time. See --help for more information on enabling these solvers.
+* added support for "bit0" and "bit1" bitvector constants in SMT-LIB v1.2
+* support for theory "alternates": new ability to prototype new decision
+  procedures that are selectable at runtime
+* various bugfixes
 
 Changes since 1.0
 =================
