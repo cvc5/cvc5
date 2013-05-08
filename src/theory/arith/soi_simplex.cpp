@@ -873,7 +873,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
 }
 
 bool SumOfInfeasibilitiesSPD::debugSOI(WitnessImprovement w, ostream& out, int instance) const{
-#warning "Redo SOI"
+//#warning "Redo SOI"
   return true;
   // out << "DLV("<<instance<<") ";
   // switch(w){
