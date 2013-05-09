@@ -54,6 +54,8 @@ option smartTriggers /--disable-smart-triggers bool :default true
 # Whether to use relevent triggers
 option relevantTriggers /--disable-relevant-triggers bool :default true
  prefer triggers that are more relevant based on SInE style analysis
+option relationalTriggers --relational-triggers bool :default false
+ choose relational triggers such as x = f(y), x >= f(y)
 
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
@@ -88,6 +90,11 @@ option finiteModelFind --finite-model-find bool :default false
 option fmfModelBasedInst /--disable-fmf-mbqi bool :default true
  disable model-based quantifier instantiation for finite model finding
 
+option fmfFullModelCheck --fmf-fmc bool :default false
+ enable full model check for finite model finding
+option fmfFullModelCheckSimple /--disable-fmf-fmc-simple bool :default true
+ disable simple models in full model check for finite model finding
+
 option fmfOneInstPerRound --fmf-one-inst-per-round bool :default false
  only add one instantiation per quantifier per round for fmf
 option fmfOneQuantPerRound --fmf-one-quant-per-round bool :default false
@@ -98,8 +105,8 @@ option fmfRelevantDomain --fmf-relevant-domain bool :default false
  use relevant domain computation, similar to complete instantiation (Ge, deMoura 09)
 option fmfNewInstGen --fmf-new-inst-gen bool :default false
  use new inst gen technique for answering sat without exhaustive instantiation
-option fmfInstGen /--disable-fmf-inst-gen bool :default true
- disable Inst-Gen instantiation techniques for finite model finding
+option fmfInstGen --fmf-inst-gen/--disable-fmf-inst-gen bool :read-write :default true
+ enable/disable Inst-Gen instantiation techniques for finite model finding
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
  only perform Inst-Gen instantiation techniques on one quantifier per round
 option fmfFreshDistConst --fmf-fresh-dc bool :default false

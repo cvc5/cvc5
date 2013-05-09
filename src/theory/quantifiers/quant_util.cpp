@@ -22,6 +22,96 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
+
+bool QuantArith::getMonomial( Node n, std::map< Node, Node >& msum ) {
+  if ( n.getKind()==MULT ){
+    if( n.getNumChildren()==2 && msum.find(n[1])==msum.end() && n[0].isConst() ){
+      msum[n[1]] = n[0];
+      return true;
+    }
+  }else{
+    if( msum.find(n)==msum.end() ){
+      msum[n] = Node::null();
+      return true;
+    }
+  }
+  return false;
+}
+
+bool QuantArith::getMonomialSum( Node n, std::map< Node, Node >& msum ) {
+  if ( n.getKind()==PLUS ){
+    for( unsigned i=0; i<n.getNumChildren(); i++) {
+      if (!getMonomial( n[i], msum )){
+        return false;
+      }
+    }
+    return true;
+  }else{
+    return getMonomial( n, msum );
+  }
+}
+
+bool QuantArith::getMonomialSumLit( Node lit, std::map< Node, Node >& msum ) {
+  if( lit.getKind()==GEQ || lit.getKind()==EQUAL ){
+    if( getMonomialSum( lit[0], msum ) ){
+      if( lit[1].isConst() ){
+        if( !lit[1].getConst<Rational>().isZero() ){
+          msum[Node::null()] = negate( lit[1] );
+        }
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k ) {
+  if( msum.find(v)!=msum.end() ){
+    std::vector< Node > children;
+    Rational r = msum[v].isNull() ? Rational(1) : msum[v].getConst<Rational>();
+    if ( r.sgn()!=0 ){
+      for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
+        if( it->first!=v ){
+          Node m;
+          if( !it->first.isNull() ){
+            if ( !it->second.isNull() ){
+              m = NodeManager::currentNM()->mkNode( MULT, it->second, it->first );
+            }else{
+              m = it->first;
+            }
+          }else{
+            m = it->second;
+          }
+          children.push_back(m);
+        }
+      }
+      veq = children.size()>1 ? NodeManager::currentNM()->mkNode( PLUS, children ) :
+                                (children.size()==1 ? children[0] : NodeManager::currentNM()->mkConst( Rational(0) ));
+      if( !r.isNegativeOne() ){
+        if( r.isOne() ){
+          veq = negate(veq);
+        }else{
+          //TODO
+          return false;
+        }
+      }
+      veq = Rewriter::rewrite( veq );
+      veq = NodeManager::currentNM()->mkNode( k, r.sgn()==1 ? v : veq, r.sgn()==1 ? veq : v );
+      return true;
+    }
+    return false;
+  }else{
+    return false;
+  }
+}
+
+Node QuantArith::negate( Node t ) {
+  Node tt = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) ), t );
+  tt = Rewriter::rewrite( tt );
+  return tt;
+}
+
+
 void QuantRelevance::registerQuantifier( Node f ){
   //compute symbols in f
   std::vector< Node > syms;

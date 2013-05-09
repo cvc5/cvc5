@@ -134,16 +134,25 @@ Node InstMatch::getValue( Node var ) const{
   }
 }
 
+Node InstMatch::get( QuantifiersEngine* qe, Node f, int i ) {
+  return get( qe->getTermDatabase()->getInstantiationConstant( f, i ) );
+}
+
 void InstMatch::set(TNode var, TNode n){
   Assert( !var.isNull() );
-  if( !n.isNull() &&// For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
-  	//var.getType() == n.getType()
-  	!n.getType().isSubtypeOf( var.getType() ) ){
-    Trace("inst-match-warn") << var.getAttribute(InstConstantAttribute()) << std::endl;
-    Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
-    Assert(false);
+  if (Trace.isOn("inst-match-warn")) {
+    // For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
+    if( !n.isNull() && !n.getType().isSubtypeOf( var.getType() ) ){
+      Trace("inst-match-warn") << var.getAttribute(InstConstantAttribute()) << std::endl;
+      Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
+    }
   }
+  Assert( n.isNull() || n.getType().isSubtypeOf( var.getType() ) );
   d_map[var] = n;
+}
+
+void InstMatch::set( QuantifiersEngine* qe, Node f, int i, TNode n ) {
+  set( qe->getTermDatabase()->getInstantiationConstant( f, i ), n );
 }
 
 /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */

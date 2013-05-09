@@ -52,21 +52,27 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
       //we want to add the children of the NOT
       d_match_pattern = d_pattern[0];
     }
-    if( d_match_pattern.getKind()==IFF || d_match_pattern.getKind()==EQUAL ){
-      if( !d_match_pattern[0].hasAttribute(InstConstantAttribute()) ){
+    if( d_match_pattern.getKind()==IFF || d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
+      if( !d_match_pattern[0].hasAttribute(InstConstantAttribute()) ||
+          d_match_pattern[0].getKind()==INST_CONSTANT ){
         Assert( d_match_pattern[1].hasAttribute(InstConstantAttribute()) );
+        Node mp = d_match_pattern[1];
         //swap sides
         Node pat = d_pattern;
-        d_pattern = NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), d_match_pattern[1], d_match_pattern[0] );
-        d_pattern = pat.getKind()==NOT ? d_pattern.notNode() : d_pattern;
-        if( pat.getKind()!=NOT ){   //TEMPORARY until we do better implementation of disequality matching
-          d_match_pattern = d_match_pattern[1];
+        if(d_match_pattern.getKind()==GEQ){
+          d_pattern = NodeManager::currentNM()->mkNode( kind::GT, d_match_pattern[1], d_match_pattern[0] );
+          d_pattern = d_pattern.negate();
         }else{
-          d_match_pattern = d_pattern[0][0];
+          d_pattern = NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), d_match_pattern[1], d_match_pattern[0] );
         }
-      }else if( !d_match_pattern[1].hasAttribute(InstConstantAttribute()) ){
+        d_pattern = pat.getKind()==NOT ? d_pattern.negate() : d_pattern;
+        d_match_pattern = mp;
+      }else if( !d_match_pattern[1].hasAttribute(InstConstantAttribute()) ||
+                d_match_pattern[1].getKind()==INST_CONSTANT ){
         Assert( d_match_pattern[0].hasAttribute(InstConstantAttribute()) );
         if( d_pattern.getKind()!=NOT ){   //TEMPORARY until we do better implementation of disequality matching
+          d_match_pattern = d_match_pattern[0];
+        }else if( d_match_pattern[1].getKind()==INST_CONSTANT ){
           d_match_pattern = d_match_pattern[0];
         }
       }
@@ -96,17 +102,23 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
         //candidates will be all disequalities
         d_cg = new inst::CandidateGeneratorQELitDeq( qe, d_match_pattern );
       }
-    }else if( d_pattern.getKind()==EQUAL || d_pattern.getKind()==IFF || d_pattern.getKind()==NOT ){
+    }else if( d_pattern.getKind()==EQUAL || d_pattern.getKind()==IFF ||
+              d_pattern.getKind()==GEQ || d_pattern.getKind()==GT || d_pattern.getKind()==NOT ){
       Assert( d_matchPolicy==MATCH_GEN_DEFAULT );
       if( d_pattern.getKind()==NOT ){
-        Unimplemented("Disequal generator unimplemented");
+        if (d_pattern[0][1].getKind()!=INST_CONSTANT) {
+          Unimplemented("Disequal generator unimplemented");
+        }else{
+          d_eq_class = d_pattern[0][1];
+        }
       }else{
-        Assert( Trigger::isAtomicTrigger( d_match_pattern ) );
-        //we are matching only in a particular equivalence class
-        d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern.getOperator() );
         //store the equivalence class that we will call d_cg->reset( ... ) on
         d_eq_class = d_pattern[1];
       }
+      Assert( Trigger::isAtomicTrigger( d_match_pattern ) );
+      //we are matching only in a particular equivalence class
+      d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern.getOperator() );
+
     }else if( Trigger::isAtomicTrigger( d_match_pattern ) ){
       //if( d_matchPolicy==MATCH_GEN_EFFICIENT_E_MATCH ){
         //Warning() << "Currently efficient e matching is not taken into account for quantifiers: " << d_pattern << std::endl;
@@ -134,7 +146,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
 /** get match (not modulo equality) */
 bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngine* qe ){
   Debug("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
-                    << m << ")" << ", " << d_children.size() << std::endl;
+                    << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
   Assert( !d_match_pattern.isNull() );
   if( qe->d_optMatchIgnoreModelBasis && t.getAttribute(ModelBasisAttribute()) ){
     return true;
@@ -180,6 +192,36 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
           success = false;
           break;
         }
+      }
+    }
+    //for relational matching
+    if( !d_eq_class.isNull() && d_eq_class.getKind()==INST_CONSTANT ){
+      //also must fit match to equivalence class
+      bool pol = d_pattern.getKind()!=NOT;
+      Node pat = d_pattern.getKind()==NOT ? d_pattern[0] : d_pattern;
+      Node t_match;
+      if( pol ){
+        if (pat.getKind()==GT) {
+          Node r = NodeManager::currentNM()->mkConst( Rational(-1) );
+          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+        }else{
+          t_match = t;
+        }
+      }else{
+        if(pat.getKind()==EQUAL) {
+          Node r = NodeManager::currentNM()->mkConst( Rational(1) );
+          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+        }else if( pat.getKind()==IFF ){
+          t_match = NodeManager::currentNM()->mkConst( !q->areEqual( NodeManager::currentNM()->mkConst(true), t ) );
+        }else if( pat.getKind()==GEQ ){
+          Node r = NodeManager::currentNM()->mkConst( Rational(1) );
+          t_match = NodeManager::currentNM()->mkNode(PLUS, t, r);
+        }else if( pat.getKind()==GT ){
+          t_match = t;
+        }
+      }
+      if( !t_match.isNull() && !m.setMatch( q, d_eq_class, t_match ) ){
+        success = false;
       }
     }
     if( success ){
@@ -286,7 +328,7 @@ void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
   //we have a specific equivalence class in mind
   //we are producing matches for f(E) ~ t, where E is a non-ground vector of terms, and t is a ground term
   //just look in equivalence class of the RHS
-  d_cg->reset( d_eq_class );
+  d_cg->reset( d_eq_class.getKind()==INST_CONSTANT ? Node::null() : d_eq_class );
 }
 
 bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ){
@@ -306,7 +348,7 @@ bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* 
   if( !success ){
     //Debug("matching") << this << " failed, reset " << d_eq_class << std::endl;
     //we failed, must reset
-    reset( d_eq_class, qe );
+    reset( d_eq_class.getKind()==INST_CONSTANT ? Node::null() : d_eq_class, qe );
   }
   return success;
 }

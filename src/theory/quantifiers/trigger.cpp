@@ -28,8 +28,6 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
-//#define NESTED_PATTERN_SELECTION
-
 /** trigger class constructor */
 Trigger::Trigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, int matchOption, bool smartTriggers ) :
 d_quantEngine( qe ), d_f( f ){
@@ -249,11 +247,75 @@ bool Trigger::isUsable( Node n, Node f ){
   }
 }
 
-bool Trigger::isUsableTrigger( Node n, Node f ){
-  //return n.getAttribute(InstConstantAttribute())==f && n.getKind()==APPLY_UF;
+bool nodeContainsVar( Node n, Node v ){
+  if( n==v) {
+    return true;
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++) {
+      if( nodeContainsVar(n[i], v) ){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
+  if( options::relationalTriggers() ){
+    if( n.getKind()==EQUAL || n.getKind()==IFF || n.getKind()==GEQ ){
+      Node rtr;
+      for( unsigned i=0; i<2; i++) {
+        unsigned j = (i==0) ? 1 : 0;
+        if( n[j].getKind()==INST_CONSTANT && isUsableTrigger(n[i], f) && !nodeContainsVar( n[i], n[j] ) ) {
+          rtr = n;
+          break;
+        }
+      }
+      if( n[0].getType().isInteger() ){
+        //try to rearrange?
+        std::map< Node, Node > m;
+        if (QuantArith::getMonomialSumLit(n, m) ){
+          for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
+            if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
+              Node veq;
+              if( QuantArith::isolate( it->first, m, veq, n.getKind() ) ){
+                int vti = veq[0]==it->first ? 1 : 0;
+                if( isUsableTrigger(veq[vti], f) && !nodeContainsVar( veq[vti], veq[vti==0 ? 1 : 0]) ){
+                  rtr = veq;
+                  InstConstantAttribute ica;
+                  rtr.setAttribute(ica,veq[vti].getAttribute(InstConstantAttribute()) );
+                }
+              }
+            }
+          }
+        }
+      }
+      if( !rtr.isNull() ){
+        Trace("relational-trigger") << "Relational trigger : " << std::endl;
+        Trace("relational-trigger") << "    " << rtr << " (from " << n << ")" << std::endl;
+        Trace("relational-trigger") << "    in quantifier " << f << std::endl;
+        if( hasPol ){
+          Trace("relational-trigger") << "    polarity : " << pol << std::endl;
+        }
+        Node rtr2 = (hasPol && pol) ? rtr.negate() : rtr;
+        InstConstantAttribute ica;
+        rtr2.setAttribute(ica,rtr.getAttribute(InstConstantAttribute()) );
+        return rtr2;
+      }
+    }
+  }
   bool usable = n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
   Trace("usable") << n << " usable : " << usable << std::endl;
-  return usable;
+  if( usable ){
+    return n;
+  }else{
+    return Node::null();
+  }
+}
+
+bool Trigger::isUsableTrigger( Node n, Node f ){
+  Node nu = getIsUsableTrigger(n,f);
+  return !nu.isNull();
 }
 
 bool Trigger::isAtomicTrigger( Node n ){
@@ -274,55 +336,51 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 
-bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt ){
+bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, bool pol, bool hasPol ){
   if( patMap.find( n )==patMap.end() ){
     patMap[ n ] = false;
+    bool newHasPol = (n.getKind()==IFF || n.getKind()==XOR) ? false : hasPol;
+    bool newPol = n.getKind()==NOT ? !pol : pol;
     if( tstrt==TS_MIN_TRIGGER ){
       if( n.getKind()==FORALL ){
-#ifdef NESTED_PATTERN_SELECTION
-        //return collectPatTerms2( qe, f, qe->getOrCreateCounterexampleBody( n ), patMap, tstrt );
-        return collectPatTerms2( qe, f, qe->getBoundBody( n ), patMap, tstrt );
-#else
         return false;
-#endif
       }else{
         bool retVal = false;
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt ) ){
+          bool newPol2 = (n.getKind()==IMPLIES && i==0) ? !newPol : newPol;
+          bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
+          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, newPol2, newHasPol2 ) ){
             retVal = true;
           }
         }
         if( retVal ){
           return true;
-        }else if( isUsableTrigger( n, f ) ){
-          patMap[ n ] = true;
-          return true;
         }else{
-          return false;
+          Node nu = getIsUsableTrigger( n, f, pol, hasPol );
+          if( !nu.isNull() ){
+            patMap[ nu ] = true;
+            return true;
+          }else{
+            return false;
+          }
         }
       }
     }else{
       bool retVal = false;
-      if( isUsableTrigger( n, f ) ){
-        patMap[ n ] = true;
+      Node nu = getIsUsableTrigger( n, f, pol, hasPol );
+      if( !nu.isNull() ){
+        patMap[ nu ] = true;
         if( tstrt==TS_MAX_TRIGGER ){
           return true;
         }else{
           retVal = true;
         }
       }
-      if( n.getKind()==FORALL ){
-#ifdef NESTED_PATTERN_SELECTION
-        //if( collectPatTerms2( qe, f, qe->getOrCreateCounterexampleBody( n ), patMap, tstrt ) ){
-        //  retVal = true;
-        //}
-        if( collectPatTerms2( qe, f, qe->getBoundBody( n ), patMap, tstrt ) ){
-          retVal = true;
-        }
-#endif
-      }else{
+      if( n.getKind()!=FORALL ){
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt ) ){
+          bool newPol2 = (n.getKind()==IMPLIES && i==0) ? !newPol : newPol;
+          bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
+          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, newPol2, newHasPol2 ) ){
             retVal = true;
           }
         }
@@ -367,7 +425,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       }
     }
   }
-  collectPatTerms2( qe, f, n, patMap, tstrt );
+  collectPatTerms2( qe, f, n, patMap, tstrt, true, true );
   for( std::map< Node, bool >::iterator it = patMap.begin(); it != patMap.end(); ++it ){
     if( it->second ){
       patTerms.push_back( it->first );

@@ -56,7 +56,7 @@ public:
   virtual void assertNode( Node n ) = 0;
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
-  virtual Node explain(TNode n) = 0;
+  virtual Node explain(TNode n) { return TNode::null(); }
 };/* class QuantifiersModule */
 
 namespace quantifiers {
@@ -64,6 +64,7 @@ namespace quantifiers {
   class ModelEngine;
   class TermDb;
   class FirstOrderModel;
+  class BoundedIntegers;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -99,6 +100,8 @@ private:
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** efficient e-matcher */
   EfficientEMatcher* d_eem;
+  /** bounded integers utility */
+  quantifiers::BoundedIntegers * d_bint;
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;

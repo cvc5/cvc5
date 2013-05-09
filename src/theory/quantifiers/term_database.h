@@ -83,10 +83,15 @@ public:
 };/* class TermArgTrie */
 
 
+namespace fmcheck {
+  class FullModelChecker;
+}
+
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::rrinst::Trigger;
+  friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;

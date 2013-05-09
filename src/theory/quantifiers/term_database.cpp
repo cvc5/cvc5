@@ -254,8 +254,7 @@ void TermDb::computeModelBasisArgAttribute( Node n ){
     //determine if it has model basis attribute
     for( int j=0; j<(int)n.getNumChildren(); j++ ){
       if( n[j].getAttribute(ModelBasisAttribute()) ){
-        val = 1;
-        break;
+        val++;
       }
     }
     ModelBasisArgAttribute mbaa;

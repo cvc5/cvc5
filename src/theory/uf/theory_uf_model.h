@@ -153,9 +153,10 @@ public:
   static Node toIte( TypeNode type, Node fm_node, const char* argPrefix );
 };
 
+
 class UfModelTreeGenerator
 {
-private:
+public:
   //store for set values
   Node d_default_value;
   std::map< Node, Node > d_set_values[2][2];
