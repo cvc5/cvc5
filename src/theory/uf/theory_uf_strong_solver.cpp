@@ -595,9 +595,11 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           if( d_regions[i]->d_valid ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
-              //add clique lemma
-              addCliqueLemma( clique, out );
-              return;
+              if( options::ufssMinimalModel() ){
+                //add clique lemma
+                addCliqueLemma( clique, out );
+                return;
+              }
             }else{
               Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
             }
@@ -659,13 +661,17 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
               //naive strategy, force region combination involving the first valid region
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->d_valid ){
-                  forceCombineRegion( i, false );
-                  recheck = true;
-                  break;
+                  int fcr = forceCombineRegion( i, false );
+                  Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
+                  if( options::ufssMinimalModel() || fcr!=-1 ){
+                    recheck = true;
+                    break;
+                  }
                 }
               }
             }
             if( recheck ){
+              Trace("uf-ss-debug") << "Must recheck." << std::endl;
               check( level, out );
             }
           }
@@ -869,8 +875,10 @@ void StrongSolverTheoryUF::SortModel::checkRegion( int ri, bool checkCombine ){
     //now check if region is in conflict
     std::vector< Node > clique;
     if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
-      //explain clique
-      addCliqueLemma( clique, &d_thss->getOutputChannel() );
+      if( options::ufssMinimalModel() ){
+        //explain clique
+        addCliqueLemma( clique, &d_thss->getOutputChannel() );
+      }
     }
   }
 }
@@ -1013,8 +1021,8 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
 }
 
 bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
+  Node s;
   if( r->hasSplits() ){
-    Node s;
     if( !options::ufssSmartSplits() ){
       //take the first split you find
       for( NodeBoolMap::iterator it = r->d_splits.begin(); it != r->d_splits.end(); ++it ){
@@ -1038,8 +1046,26 @@ bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
         }
       }
     }
+    Assert( s!=Node::null() );
+  }else{
+    if( !options::ufssMinimalModel() ){
+      //since candidate clique is not reported, we may need to find splits manually
+      for ( std::map< Node, Region::RegionNodeInfo* >::iterator it = r->d_nodes.begin(); it != r->d_nodes.end(); ++it ){
+        if ( it->second->d_valid ){
+          for ( std::map< Node, Region::RegionNodeInfo* >::iterator it2 = r->d_nodes.begin(); it2 != r->d_nodes.end(); ++it2 ){
+            if ( it->second!=it2->second && it2->second->d_valid ){
+              if( !r->isDisequal( it->first, it2->first, 1 ) ){
+                s = NodeManager::currentNM()->mkNode( EQUAL, it->first, it2->first );
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!s.isNull() ){
     //add lemma to output channel
-    Assert( s!=Node::null() && s.getKind()==EQUAL );
+    Assert( s.getKind()==EQUAL );
     s = Rewriter::rewrite( s );
     Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
     if( options::sortInference()) {

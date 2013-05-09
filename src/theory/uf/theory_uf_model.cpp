@@ -17,6 +17,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/options.h"
 
 #define RECONSIDER_FUNC_DEFAULT_VALUE
 #define USE_PARTIAL_DEFAULT_VALUES
@@ -309,19 +310,21 @@ void UfModelTreeGenerator::setValue( TheoryModel* m, Node n, Node v, bool ground
     if( !ground ){
       int defSize = (int)d_defaults.size();
       for( int i=0; i<defSize; i++ ){
-        bool isGround;
         //for soundness, to allow variable order-independent function interpretations,
         //  we must ensure that the intersection of all default terms
         //  is also defined.
         //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
         //  then we must define f( b, a ).
-        Node ni = getIntersection( m, n, d_defaults[i], isGround );
-        if( !ni.isNull() ){
-          //if the intersection exists, and is not already defined
-          if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
-              d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
-            //use the current value
-            setValue( m, ni, v, isGround, false );
+        if (!options::fmfFullModelCheck()) {
+          bool isGround;
+          Node ni = getIntersection( m, n, d_defaults[i], isGround );
+          if( !ni.isNull() ){
+            //if the intersection exists, and is not already defined
+            if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
+                d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
+              //use the current value
+              setValue( m, ni, v, isGround, false );
+            }
           }
         }
       }

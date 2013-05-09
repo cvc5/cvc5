@@ -92,8 +92,11 @@ public:
   void erase(Node node){ d_map.erase(node); }
   /** get */
   Node get( TNode var ) { return d_map[var]; }
+  Node get( QuantifiersEngine* qe, Node f, int i );
   /** set */
   void set(TNode var, TNode n);
+  void set( QuantifiersEngine* qe, Node f, int i, TNode n );
+  /** size */
   size_t size(){ return d_map.size(); }
   /* iterator */
   std::map< Node, Node >::iterator begin(){ return d_map.begin(); };

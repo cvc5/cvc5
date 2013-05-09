@@ -192,6 +192,7 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
           Trace("model-engine-debug") << "Building model..." << std::endl;
           //build model for UF
           for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
+            Trace("model-engine-debug-uf") << "Building model for " << it->first << "..." << std::endl;
             constructModelUf( fm, it->first );
           }
           /*
@@ -273,7 +274,7 @@ void ModelEngineBuilder::analyzeModel( FirstOrderModel* fm ){
         }
       }
       //for calculating terms that we don't need to consider
-      if( !n.getAttribute(NoMatchAttribute()) || n.getAttribute(ModelBasisArgAttribute())==1 ){
+      if( !n.getAttribute(NoMatchAttribute()) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
         if( !n.getAttribute(BasisNoMatchAttribute()) ){
           //need to consider if it is not congruent modulo model basis
           if( !tabt.addTerm( fm, n ) ){
@@ -352,7 +353,7 @@ bool ModelEngineBuilder::isQuantifierActive( Node f ){
 
 bool ModelEngineBuilder::isTermActive( Node n ){
   return !n.getAttribute(NoMatchAttribute()) || //it is not congruent to another active term
-         ( n.getAttribute(ModelBasisArgAttribute())==1 && !n.getAttribute(BasisNoMatchAttribute()) ); //or it has model basis arguments
+         ( n.getAttribute(ModelBasisArgAttribute())!=0 && !n.getAttribute(BasisNoMatchAttribute()) ); //or it has model basis arguments
                                                                                                       //and is not congruent modulo model basis
                                                                                                       //to another active term
 }
@@ -597,7 +598,7 @@ void ModelEngineBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op )
         fm->d_uf_model_gen[op].setValue( fm, n, v );
         if( fm->d_uf_model_gen[op].optUsePartialDefaults() ){
           //also set as default value if necessary
-          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())==1 ){
+          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
             Trace("fmf-model-cons") << "  Set as default." << std::endl;
             fm->d_uf_model_gen[op].setValue( fm, n, v, false );
             if( n==defaultTerm ){
@@ -619,6 +620,13 @@ void ModelEngineBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op )
       Trace("fmf-model-cons") << "  Choose default value..." << std::endl;
       //chose defaultVal based on heuristic, currently the best ratio of "pro" responses
       Node defaultVal = d_uf_prefs[op].getBestDefaultValue( defaultTerm, fm );
+      if( defaultVal.isNull() ){
+        if (!fm->d_rep_set.hasType(defaultTerm.getType())) {
+          Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(defaultTerm.getType());
+          fm->d_rep_set.d_type_reps[defaultTerm.getType()].push_back(mbt);
+        }
+        defaultVal = fm->d_rep_set.d_type_reps[defaultTerm.getType()][0];
+      }
       Assert( !defaultVal.isNull() );
       Trace("fmf-model-cons") << "Set default term : " << fm->d_rep_set.getIndexFor( defaultVal ) << std::endl;
       fm->d_uf_model_gen[op].setValue( fm, defaultTerm, defaultVal, false );
@@ -935,7 +943,7 @@ void ModelEngineBuilderInstGen::setSelectedTerms( Node s ){
   if( s.getKind()==APPLY_UF ){
     Assert( s.hasAttribute(ModelBasisArgAttribute()) );
     if( !s.hasAttribute(ModelBasisArgAttribute()) ) std::cout << "no mba!! " << s << std::endl;
-    if( s.getAttribute(ModelBasisArgAttribute())==1 ){
+    if( s.getAttribute(ModelBasisArgAttribute())!=0 ){
       d_term_selected[ s ] = true;
       Trace("sel-form-term") << "  " << s << " is a selected term." << std::endl;
     }

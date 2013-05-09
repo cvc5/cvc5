@@ -44,7 +44,11 @@ libquantifiers_la_SOURCES = \
 	inst_strategy_e_matching.h \
 	inst_strategy_e_matching.cpp \
 	inst_strategy_cbqi.h \
-	inst_strategy_cbqi.cpp
+	inst_strategy_cbqi.cpp \
+	full_model_check.h \
+	full_model_check.cpp \
+	bounded_integers.h \
+	bounded_integers.cpp
 
 EXTRA_DIST = \
 	kinds \

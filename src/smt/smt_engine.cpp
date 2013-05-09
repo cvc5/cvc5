@@ -1018,9 +1018,16 @@ void SmtEngine::setLogicInternal() throw() {
 
   //for finite model finding
   if( ! options::instWhenMode.wasSetByUser()){
+    //instantiate only on last call
     if( options::fmfInstEngine() ){
       Trace("smt") << "setting inst when mode to LAST_CALL" << endl;
       options::instWhenMode.set( INST_WHEN_LAST_CALL );
+    }
+  }
+  if ( ! options::fmfInstGen.wasSetByUser()) {
+    //if full model checking is on, disable inst-gen techniques
+    if( options::fmfFullModelCheck() ){
+      options::fmfInstGen.set( false );
     }
   }
 
