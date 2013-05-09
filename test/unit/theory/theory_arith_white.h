@@ -60,6 +60,7 @@ class TheoryArithWhite : public CxxTest::TestSuite {
 
   TypeNode* d_booleanType;
   TypeNode* d_realType;
+  TypeNode* d_intType;
 
   const Rational d_zero;
   const Rational d_one;
@@ -120,10 +121,12 @@ public:
 
     d_booleanType = new TypeNode(d_nm->booleanType());
     d_realType = new TypeNode(d_nm->realType());
+    d_intType = new TypeNode(d_nm->integerType());
 
   }
 
   void tearDown() {
+    delete d_intType;
     delete d_realType;
     delete d_booleanType;
 
@@ -280,5 +283,38 @@ public:
 
     TS_ASSERT_EQUALS(d_outputChannel.getIthCallType(1), LEMMA);
     TS_ASSERT_EQUALS(d_outputChannel.getIthNode(1), geq0OrLeq1);
+  }
+
+  void testIntNormalForm() {
+    Node x = d_nm->mkVar(*d_intType);
+    Node c0 = d_nm->mkConst<Rational>(d_zero);
+    Node c1 = d_nm->mkConst<Rational>(d_one);
+    Node c2 = d_nm->mkConst<Rational>(Rational(2));
+
+
+    Node geq0 = d_nm->mkNode(GEQ, x, c0);
+    Node geq1 = d_nm->mkNode(GEQ, x, c1);
+    Node geq2 = d_nm->mkNode(GEQ, x, c2);
+
+    TS_ASSERT_EQUALS(Rewriter::rewrite(geq0), geq0);
+    TS_ASSERT_EQUALS(Rewriter::rewrite(geq1), geq1);
+
+    Node gt0 = d_nm->mkNode(GT, x, c0);
+    Node gt1 = d_nm->mkNode(GT, x, c1);
+
+    TS_ASSERT_EQUALS(Rewriter::rewrite(gt0), Rewriter::rewrite(geq1));
+    TS_ASSERT_EQUALS(Rewriter::rewrite(gt1), Rewriter::rewrite(geq2));
+
+    Node lt0 = d_nm->mkNode(LT, x, c0);
+    Node lt1 = d_nm->mkNode(LT, x, c1);
+
+    TS_ASSERT_EQUALS(Rewriter::rewrite(lt0), Rewriter::rewrite(geq0.notNode()));
+    TS_ASSERT_EQUALS(Rewriter::rewrite(lt1), Rewriter::rewrite(geq1.notNode()));
+
+    Node leq0 = d_nm->mkNode(LEQ, x, c0);
+    Node leq1 = d_nm->mkNode(LEQ, x, c1);
+
+    TS_ASSERT_EQUALS(Rewriter::rewrite(leq0), Rewriter::rewrite(geq1.notNode()));
+    TS_ASSERT_EQUALS(Rewriter::rewrite(leq1), Rewriter::rewrite(geq2.notNode()));
   }
 };

@@ -76,12 +76,13 @@ namespace arith {
  *     (exists realMonomial (monomialList qpolynomial))
  *     abs(monomialCoefficient (head (monomialList qpolynomial))) == 1
  *
- * integer_cmp := (<= zpolynomial constant)
+ * integer_cmp := (>= zpolynomial constant)
  *   where
  *     not (exists constantMonomial (monomialList zpolynomial))
  *     (forall integerMonomial (monomialList zpolynomial))
  *     the gcd of all numerators of coefficients is 1
  *     the denominator of all coefficients and the constant is 1
+ *     the leading coefficient is positive
  *
  * rational_eq := (= qvarlist qpolynomial)
  *   where
@@ -939,6 +940,10 @@ public:
   bool denominatorLCMIsOne() const;
   bool numeratorGCDIsOne() const;
 
+  bool signNormalizedReducedSum() const {
+    return leadingCoefficientIsPositive() && denominatorLCMIsOne() && numeratorGCDIsOne();
+  }
+
   /**
    * Returns the Least Common Multiple of the denominators of the coefficients
    * of the monomials.
@@ -1265,7 +1270,7 @@ private:
    * Creates a comparison equivalent to (k l 0).
    * k is either GT or GEQ.
    * It is not the case that all variables in l are integral.
-   */  
+   */
   static Node mkRatInequality(Kind k, const Polynomial& l);
 
 public:

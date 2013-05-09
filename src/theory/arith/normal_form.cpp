@@ -745,9 +745,8 @@ bool Comparison::isNormalGEQ() const {
       return false;
     }else{
       if(left.isIntegral()){
-        return left.denominatorLCMIsOne() && left.numeratorGCDIsOne();
+        return left.signNormalizedReducedSum();
       }else{
-        Debug("nf::tmp") << "imme sdfhkdjfh "<< left.leadingCoefficientIsAbsOne() << endl;
         return left.leadingCoefficientIsAbsOne();
       }
     }
@@ -768,7 +767,7 @@ bool Comparison::isNormalLT() const {
       return false;
     }else{
       if(left.isIntegral()){
-        return left.denominatorLCMIsOne() && left.numeratorGCDIsOne();
+        return left.signNormalizedReducedSum();
       }else{
         return left.leadingCoefficientIsAbsOne();
       }
@@ -889,6 +888,7 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
   Polynomial left = sp.getPolynomial();
   Rational right = - (sp.getConstant().getValue());
 
+
   Monomial m = left.getHead();
   Assert(!m.isConstant());
 
@@ -899,16 +899,31 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
   Polynomial newLeft = left * mult;
   Rational rightMult = right * mult;
 
+  bool negateResult = false;
+  if(!newLeft.leadingCoefficientIsPositive()){
+    // multiply by -1
+    // a: left >= right or b: left > right
+    // becomes
+    // a: -left <= -right or b: -left < -right
+    // a: not (-left > -right) or b: (not -left >= -right)
+    newLeft = -newLeft;
+    rightMult = -rightMult;
+    k = (kind::GT == k) ? kind::GEQ : kind::GT;
+    negateResult = true;
+    // the later stages handle:
+    // a: not (-left >= -right + 1) or b: (not -left >= -right)
+  }
 
+  Node result = Node::null();
   if(rightMult.isIntegral()){
     if(k == kind::GT){
       // (> p z)
       // (>= p (+ z 1))
       Constant rightMultPlusOne = Constant::mkConstant(rightMult + 1);
-      return toNode(kind::GEQ, newLeft, rightMultPlusOne);
+      result = toNode(kind::GEQ, newLeft, rightMultPlusOne);
     }else{
       Constant newRight = Constant::mkConstant(rightMult);
-      return toNode(kind::GEQ, newLeft, newRight);
+      result = toNode(kind::GEQ, newLeft, newRight);
     }
   }else{
     //(>= l (/ n d))
@@ -916,7 +931,13 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
     //This also hold for GT as (ceil (/ n d)) > (/ n d)
     Integer ceilr = rightMult.ceiling();
     Constant ceilRight = Constant::mkConstant(ceilr);
-    return toNode(kind::GEQ, newLeft, ceilRight);
+    result = toNode(kind::GEQ, newLeft, ceilRight);
+  }
+  Assert(!result.isNull());
+  if(negateResult){
+    return result.notNode();
+  }else{
+    return result;
   }
 }
 
