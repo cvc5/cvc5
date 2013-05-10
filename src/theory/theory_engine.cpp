@@ -187,7 +187,25 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       }
 
       // Pre-register the terms in the atom
-      bool multipleTheories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
+      Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
+      theories = Theory::setRemove(THEORY_BOOL, theories);
+      // Remove the top theory, if any more that means multiple theories were involved
+      bool multipleTheories = Theory::setRemove(Theory::theoryOf(preprocessed), theories);
+      TheoryId i;
+      while((i = Theory::setPop(theories)) != THEORY_LAST) {
+        if(!d_logicInfo.isTheoryEnabled(i)) {
+          LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
+          newLogicInfo.enableTheory(i);
+          newLogicInfo.lock();
+          stringstream ss;
+          ss << "The logic was specified as " << d_logicInfo.getLogicString()
+             << ", which doesn't include " << i
+             << ", but found a term in that theory." << endl
+             << "You might want to extend your logic to " << newLogicInfo
+             << endl;
+          throw LogicException(ss.str());
+        }
+      }
       if (multipleTheories) {
         // Collect the shared terms if there are multipe theories
         NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, preprocessed);
