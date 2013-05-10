@@ -74,6 +74,7 @@
 #include "util/sort_inference.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/datatypes/options.h"
+#include "theory/quantifiers/first_order_reasoning.h"
 
 using namespace std;
 using namespace CVC4;
@@ -349,8 +350,8 @@ private:
   bool checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, bool, NodeHashFunction>& cache);
 
   // Lift bit-vectors of size 1 to booleans
-  void bvToBool(); 
-  
+  void bvToBool();
+
   // Simplify ITE structure
   void simpITE();
 
@@ -1832,15 +1833,15 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
 
   hash_set<TNode, TNodeHashFunction> s;
-  Trace("debugging") << "NonClausal simplify pre-preprocess\n"; 
+  Trace("debugging") << "NonClausal simplify pre-preprocess\n";
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Node assertion = d_assertionsToPreprocess[i];
     Node assertionNew = d_topLevelSubstitutions.apply(assertion);
     Trace("debugging") << "assertion = " << assertion << endl;
-    Trace("debugging") << "assertionNew = " << assertionNew << endl; 
+    Trace("debugging") << "assertionNew = " << assertionNew << endl;
     if (assertion != assertionNew) {
       assertion = Rewriter::rewrite(assertionNew);
-      Trace("debugging") << "rewrite(assertion) = " << assertion << endl; 
+      Trace("debugging") << "rewrite(assertion) = " << assertion << endl;
     }
     Assert(Rewriter::rewrite(assertion) == assertion);
     for (;;) {
@@ -1849,11 +1850,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         break;
       }
       ++d_smt.d_stats->d_numConstantProps;
-      Trace("debugging") << "assertionNew = " << assertionNew << endl; 
+      Trace("debugging") << "assertionNew = " << assertionNew << endl;
       assertion = Rewriter::rewrite(assertionNew);
-      Trace("debugging") << "assertionNew = " << assertionNew << endl; 
+      Trace("debugging") << "assertionNew = " << assertionNew << endl;
     }
-    Trace("debugging") << "\n"; 
+    Trace("debugging") << "\n";
     s.insert(assertion);
     d_assertionsToCheck.push_back(assertion);
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
@@ -1944,7 +1945,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
   std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions); 
+  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions);
   for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
     d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]);
   }
@@ -2798,6 +2799,12 @@ void SmtEnginePrivate::processAssertions() {
     }while( success );
   }
 
+  Trace("fo-rsn-enable") << std::endl;
+  if( options::foPropQuant() ){
+    FirstOrderPropagation fop;
+    fop.simplify( d_assertionsToPreprocess );
+  }
+
   if( options::sortInference() ){
     //sort inference technique
     d_smt.d_theoryEngine->getSortInference()->simplify( d_assertionsToPreprocess );
@@ -2818,7 +2825,7 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-static-learning", d_assertionsToCheck);
 
-  // Lift bit-vectors of size 1 to bool 
+  // Lift bit-vectors of size 1 to bool
   if(options::bvToBool()) {
     Chat() << "...doing bvToBool..." << endl;
     bvToBool();
@@ -2828,7 +2835,7 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  
+
   dumpAssertions("pre-ite-removal", d_assertionsToCheck);
   {
     Chat() << "removing term ITEs..." << endl;

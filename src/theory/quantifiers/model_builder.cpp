@@ -92,12 +92,18 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* fm = (FirstOrderModel*)m;
   if( fullModel ){
     Assert( d_curr_model==fm );
-    //update models
-    for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
-      it->second.update( fm );
-      Trace("model-func") << "ModelEngineBuilder: Make function value from tree " << it->first << std::endl;
-      //construct function values
-      fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
+    if( d_qe->getModelEngine()->getFullModelChecker()->isActive() ){
+      for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
+        fm->d_uf_models[ it->first ] = d_qe->getModelEngine()->getFullModelChecker()->getFunctionValue( fm, it->first, "$x" );
+      }
+    }else{
+      //update models
+      for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
+        it->second.update( fm );
+        Trace("model-func") << "ModelEngineBuilder: Make function value from tree " << it->first << std::endl;
+        //construct function values
+        fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
+      }
     }
     TheoryEngineModelBuilder::processBuildModel( m, fullModel );
     //mark that the model has been set

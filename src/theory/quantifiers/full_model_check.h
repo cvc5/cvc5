@@ -140,6 +140,7 @@ public:
 
   bool isActive();
   bool useSimpleModels();
+  Node getFunctionValue(FirstOrderModel * fm, Node op, const char* argPrefix );
 };
 
 }

@@ -507,7 +507,7 @@ int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, int ef
       }
     }
   }else{
-    //TODO
+    Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
     Trace("fmc-exh") << "Definition was : " << std::endl;
     d_quant_models[f].debugPrint("fmc-exh", Node::null(), this);
     Trace("fmc-exh") << std::endl;
@@ -940,4 +940,37 @@ bool FullModelChecker::isActive() {
 
 bool FullModelChecker::useSimpleModels() {
   return options::fmfFullModelCheckSimple();
+}
+
+Node FullModelChecker::getFunctionValue(FirstOrderModel * fm, Node op, const char* argPrefix ) {
+  TypeNode type = op.getType();
+  std::vector< Node > vars;
+  for( size_t i=0; i<type.getNumChildren()-1; i++ ){
+    std::stringstream ss;
+    ss << argPrefix << (i+1);
+    vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
+  }
+  Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
+  Node curr;
+  for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
+    Node v = fm->getRepresentative( d_models[op]->d_value[i] );
+    if( curr.isNull() ){
+      curr = v;
+    }else{
+      //make the condition
+      Node cond = d_models[op]->d_cond[i];
+      std::vector< Node > children;
+      for( unsigned j=0; j<cond.getNumChildren(); j++) {
+        if (!isStar(cond[j])){
+          Node c = fm->getRepresentative( cond[j] );
+          children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
+        }
+      }
+      Assert( !children.empty() );
+      Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
+      curr = NodeManager::currentNM()->mkNode( ITE, cc, v, curr );
+    }
+  }
+  curr = Rewriter::rewrite( curr );
+  return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
 }

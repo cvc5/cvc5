@@ -144,13 +144,6 @@ public:
   void debugPrint( std::ostream& out, TheoryModel* m, int ind = 0 ){
     d_tree.debugPrint( out, m, d_index_order, ind );
   }
-private:
-  //helper for to ITE function.
-  static Node toIte2( Node fm_node, std::vector< Node >& args, int index, Node defaultNode );
-public:
-  /** to ITE function for function model nodes */
-  static Node toIte( Node fm_node, std::vector< Node >& args ) { return toIte2( fm_node, args, 0, Node::null() ); }
-  static Node toIte( TypeNode type, Node fm_node, const char* argPrefix );
 };
 
 

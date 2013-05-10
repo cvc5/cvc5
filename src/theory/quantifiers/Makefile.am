@@ -48,7 +48,9 @@ libquantifiers_la_SOURCES = \
 	full_model_check.h \
 	full_model_check.cpp \
 	bounded_integers.h \
-	bounded_integers.cpp
+	bounded_integers.cpp \
+	first_order_reasoning.h \
+	first_order_reasoning.cpp
 
 EXTRA_DIST = \
 	kinds \

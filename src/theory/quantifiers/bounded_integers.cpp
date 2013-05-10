@@ -77,6 +77,7 @@ void BoundedIntegers::check( Theory::Effort e ) {
 }
 
 void BoundedIntegers::registerQuantifier( Node f ) {
+  Trace("bound-integers") << "Register quantifier " << f << std::endl;
   bool hasIntType = false;
   for( unsigned i=0; i<f[0].getNumChildren(); i++) {
     if( f[0][i].getType().isInteger() ){

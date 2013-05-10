@@ -47,6 +47,9 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
 # Whether to perform quantifier macro expansion
 option macrosQuant --macros-quant bool :default false
  perform quantifiers macro expansions
+# Whether to perform first-order propagation
+option foPropQuant --fo-prop-quant bool :default false
+ perform first-order propagation on quantifiers
 
 # Whether to use smart triggers
 option smartTriggers /--disable-smart-triggers bool :default true
