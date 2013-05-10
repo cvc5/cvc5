@@ -175,7 +175,8 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
     d_temp_clauseId(),
     d_temp_idClause(),
     d_unitConflictId(),
-    d_storedUnitConflict(false)
+    d_storedUnitConflict(false),
+    d_atomToVar()
   {
     d_proxy = new ProofProxy(this); 
   }
@@ -592,6 +593,14 @@ void SatProof::markDeleted(CRef clause) {
   }
 }
 
+/// store mapping from theory atoms to new variables
+void SatProof::storeAtom(::Minisat::Lit literal, Expr atom) {
+  (d_atomToVar.find(atom) == d_atomToVar.end());
+  d_atomToVar[atom] = literal; 
+}
+
+
+
 /// LFSCSatProof class
 
 std::string LFSCSatProof::varName(::Minisat::Lit lit) {
@@ -720,6 +729,7 @@ void LFSCSatProof::printVariables() {
 
 
 void LFSCSatProof::flush(std::ostream& out) {
+  out << d_atomsSS.str(); 
   out << "(check \n";
   d_paren <<")"; 
   out << d_varSS.str();
@@ -733,7 +743,7 @@ void LFSCSatProof::flush(std::ostream& out) {
 
 void LFSCSatProof::toStream(std::ostream& out) {
   Debug("proof:sat") << " LFSCSatProof::printProof \n";
-
+  
   // first collect lemmas to print in reverse order
   collectLemmas(d_emptyClauseId); 
   for(IdSet::iterator it = d_seenLemmas.begin(); it!= d_seenLemmas.end(); ++it) {
@@ -741,13 +751,22 @@ void LFSCSatProof::toStream(std::ostream& out) {
       printResolution(*it);
     }
   }
+  printAtoms(); 
   // last resolution to be printed is the empty clause
   printResolution(d_emptyClauseId);
-
+  
   printClauses();
   printVariables();
   flush(out);
 }
+
+void LFSCSatProof::printAtoms() {
+  d_atomsSS << "; Mapping between boolean variables and theory atoms \n"; 
+  for (AtomToVar::iterator it = d_atomToVar.begin(); it != d_atomToVar.end(); ++it) {
+    d_atomsSS << "; " << it->first << " => v" << var(it->second) << "\n"; 
+  }
+}
+
 
 } /* CVC4 namespace */
 

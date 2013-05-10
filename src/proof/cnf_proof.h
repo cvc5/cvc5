@@ -17,7 +17,7 @@
  **/
 
 #include "cvc4_private.h"
-
+#include "util/proof.h"
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
