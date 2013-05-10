@@ -52,6 +52,7 @@ Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
         d_tptpDir.append("/");
       }
     }
+    d_hasConjecture = false;
 }
 
 void Tptp::addTheory(Theory theory) {

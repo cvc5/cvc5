@@ -77,6 +77,9 @@ class CVC4_PUBLIC ParserBuilder {
   /** Are we parsing only? */
   bool d_parseOnly;
 
+  /** hack for szs compliance */
+  bool d_szsCompliant;
+
   /** Initialize this parser builder */
   void init(ExprManager* exprManager, const std::string& filename);
 

@@ -11,17 +11,25 @@ filename=${file%.*}
 # which case this run script terminates immediately.  Otherwise, this
 # function returns normally.
 function trywith {
-  result="$($cvc4 -L tptp --no-checking --no-interactive "$@" $bench)"
+  result="$( ulimit -t "$1";shift;$cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat) echo "SZS Satisfiable for $filename"; exit 0;;
     unsat) echo "SZS Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "SZS CounterSatisfiable for $filename"; exit 0;;
+    conjecture-unsat) echo "SZS Theorem for $filename"; exit 0;;
+  esac
+}
+function finishwith {
+  result="$( $cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
+  case "$result" in
+    sat) echo "SZS Satisfiable for $filename"; exit 0;;
+    unsat) echo "SZS Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "SZS CounterSatisfiable for $filename"; exit 0;;
+    conjecture-unsat) echo "SZS Theorem for $filename"; exit 0;;
   esac
 }
 
-
-trywith --finite-model-find --uf-ss-totality --tlimit-per=10000
-trywith --finite-model-find --decision=justification --tlimit-per=10000
-trywith --finite-model-find --decision=justification --fmf-fmc
-;;
-
-
+trywith 15 --finite-model-find --uf-ss-totality
+trywith 15 --finite-model-find --decision=justification --fmf-fmc
+finishwith --finite-model-find --decision=justification
+echo "SZS GaveUp for $filename"

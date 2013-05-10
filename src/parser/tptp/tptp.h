@@ -24,6 +24,7 @@
 #include "util/hash.h"
 #include <ext/hash_set>
 #include <cassert>
+#include "parser/options.h"
 
 namespace CVC4 {
 
@@ -48,6 +49,11 @@ class Tptp : public Parser {
   //TPTP directory where to find includes
   // empty if none could be determined
   std::string d_tptpDir;
+
+  //hack to make output SZS ontology-compliant
+  bool d_hasConjecture;
+  // hack for szs compliance
+  bool d_szsCompliant;
 
 public:
   bool cnf; //in a cnf formula
@@ -181,6 +187,13 @@ inline void Tptp::makeApplication(Expr & expr, std::string & name,
 };
 
 inline Command* Tptp::makeCommand(FormulaRole fr, Expr & expr){
+  //hack for SZS ontology compliance
+  if(d_szsCompliant && (fr==FR_NEGATED_CONJECTURE || fr==FR_CONJECTURE)){
+    if( !d_hasConjecture ){
+      d_hasConjecture = true;
+      std::cout << "conjecture-";
+    }
+  }
   switch(fr){
   case FR_AXIOM:
   case FR_HYPOTHESIS:
