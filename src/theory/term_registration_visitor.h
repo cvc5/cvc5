@@ -55,25 +55,19 @@ class PreRegisterVisitor {
   theory::Theory::Set d_theories;
 
   /**
-   * Is true if the term we're traversing involves multiple theories.
-   */
-  bool d_multipleTheories;
-
-  /**
    * String representation of the visited map, for debugging purposes.
    */
   std::string toString() const;
 
 public:
 
-  /** Return type tells us if there are more than one theory or not */
-  typedef bool return_type;
+  /** Returned set tells us which theories there are */
+  typedef theory::Theory::Set return_type;
   
   PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
   : d_engine(engine)
   , d_visited(context)
   , d_theories(0)
-  , d_multipleTheories(false)
   {}
 
   /**
@@ -89,13 +83,12 @@ public:
   /**
    * Marks the node as the starting literal.
    */
-  void start(TNode node);
+  void start(TNode node) { }
 
   /**
    * Notifies the engine of all the theories used.
    */
-  bool done(TNode node);
-
+  theory::Theory::Set done(TNode node) { return d_theories; }
 };
 
 
