@@ -192,18 +192,23 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // Remove the top theory, if any more that means multiple theories were involved
       bool multipleTheories = Theory::setRemove(Theory::theoryOf(preprocessed), theories);
       TheoryId i;
-      while((i = Theory::setPop(theories)) != THEORY_LAST) {
-        if(!d_logicInfo.isTheoryEnabled(i)) {
-          LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
-          newLogicInfo.enableTheory(i);
-          newLogicInfo.lock();
-          stringstream ss;
-          ss << "The logic was specified as " << d_logicInfo.getLogicString()
-             << ", which doesn't include " << i
-             << ", but found a term in that theory." << endl
-             << "You might want to extend your logic to " << newLogicInfo
-             << endl;
-          throw LogicException(ss.str());
+      // These checks don't work with finite model finding, because it
+      // uses Rational constants to represent cardinality constraints,
+      // even though arithmetic isn't actually involved.
+      if(!options::finiteModelFind()) {
+        while((i = Theory::setPop(theories)) != THEORY_LAST) {
+          if(!d_logicInfo.isTheoryEnabled(i)) {
+            LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
+            newLogicInfo.enableTheory(i);
+            newLogicInfo.lock();
+            stringstream ss;
+            ss << "The logic was specified as " << d_logicInfo.getLogicString()
+               << ", which doesn't include " << i
+               << ", but found a term in that theory." << endl
+               << "You might want to extend your logic to "
+               << newLogicInfo.getLogicString() << endl;
+            throw LogicException(ss.str());
+          }
         }
       }
       if (multipleTheories) {
