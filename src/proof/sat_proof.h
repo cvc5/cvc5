@@ -124,7 +124,11 @@ protected:
   
   // temporary map for updating CRefs
   ClauseIdMap         d_temp_clauseId;
-  IdClauseMap         d_temp_idClause; 
+  IdClauseMap         d_temp_idClause;
+
+  // unit conflict
+  ClauseId d_unitConflictId;
+  bool d_storedUnitConflict; 
 public:  
   SatProof(::Minisat::Solver* solver, bool checkRes = false);
 protected:
@@ -197,6 +201,9 @@ public:
   /// clause registration methods 
   ClauseId registerClause(const ::Minisat::CRef clause, bool isInput = false);
   ClauseId registerUnitClause(const ::Minisat::Lit lit, bool isInput = false);
+
+  void storeUnitConflict(::Minisat::Lit lit); 
+  
   /** 
    * Marks the deleted clauses as deleted. Note we may still use them in the final
    * resolution. 

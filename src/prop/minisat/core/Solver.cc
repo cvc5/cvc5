@@ -261,6 +261,7 @@ CRef Solver::reason(Var x) {
 
     // Construct the reason
     CRef real_reason = ca.alloc(explLevel, explanation, true);
+    PROOF (ProofManager::getSatProof()->registerClause(real_reason, true); ); 
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
     attachClause(real_reason);
@@ -298,7 +299,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         continue;
       }
       // If a literals is false at 0 level (both sat and user level) we also ignore it
-      if (value(ps[i]) == l_False) {
+      if (value(ps[i]) == l_False && !PROOF_ON() )  {
         if (level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
           continue;
         } else {
@@ -789,7 +790,8 @@ CRef Solver::propagate(TheoryCheckType type)
       // If there are lemmas (or conflicts) update them
       if (lemmas.size() > 0) {
         recheck = true;
-        return updateLemmas();
+        confl = updateLemmas();
+        return confl; 
       } else {
         recheck = proxy->theoryNeedCheck();
         return confl;
@@ -801,7 +803,6 @@ CRef Solver::propagate(TheoryCheckType type)
     do {
         // Propagate on the clauses
         confl = propagateBool();
-
         // If no conflict, do the theory check
         if (confl == CRef_Undef && type != CHECK_WITHOUTH_THEORY) {
             // Do the theory check
@@ -836,7 +837,6 @@ CRef Solver::propagate(TheoryCheckType type)
           }
         }
     } while (confl == CRef_Undef && qhead < trail.size());
-
     return confl;
 }
 
@@ -1579,6 +1579,7 @@ CRef Solver::updateLemmas() {
       vec<Lit>& lemma = lemmas[i];
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
+        Assert (! PROOF_ON()); 
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -1628,6 +1629,7 @@ CRef Solver::updateLemmas() {
       }
 
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
+      PROOF (ProofManager::getSatProof()->registerClause(lemma_ref, true); ); 
       if (removable) {
         clauses_removable.push(lemma_ref);
       } else {
@@ -1647,6 +1649,7 @@ CRef Solver::updateLemmas() {
           } else {
             Debug("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
             conflict = CRef_Lazy;
+            PROOF(ProofManager::getSatProof()->storeUnitConflict(lemma[0]);); 
           }
         } else {
           Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;

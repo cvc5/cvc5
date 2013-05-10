@@ -173,7 +173,9 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
     d_emptyClauseId(-1),
     d_nullId(-2),
     d_temp_clauseId(),
-    d_temp_idClause()
+    d_temp_idClause(),
+    d_unitConflictId(),
+    d_storedUnitConflict(false)
   {
     d_proxy = new ProofProxy(this); 
   }
@@ -353,6 +355,7 @@ ClauseId SatProof::registerClause(::Minisat::CRef clause, bool isInput) {
        d_inputClauses.insert(newId); 
      }
    }
+   Debug("proof:sat:detailed") <<"registerClause " << d_clauseId[clause] << " " <<isInput << "\n"; 
    return d_clauseId[clause]; 
 }
 
@@ -367,6 +370,7 @@ ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, bool isInput) {
       d_inputClauses.insert(newId); 
     }
   }
+  Debug("proof:sat:detailed") <<"registerUnitClause " << d_unitId[toInt(lit)] << " " << isInput <<"\n"; 
   return d_unitId[toInt(lit)]; 
 }
 
@@ -527,10 +531,25 @@ void SatProof::toStream(std::ostream& out) {
   Unimplemented("native proof printing not supported yet");
 }
 
+void SatProof::storeUnitConflict(::Minisat::Lit conflict_lit) {
+  Assert (!d_storedUnitConflict); 
+  d_unitConflictId = registerUnitClause(conflict_lit);
+  d_storedUnitConflict = true;
+  Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n"; 
+}
+
 void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
   Assert(d_resStack.size() == 0);
-  //ClauseId conflict_id = getClauseId(conflict_ref); 
-  ClauseId conflict_id = registerClause(conflict_ref); //FIXME
+  Assert (conflict_ref != ::Minisat::CRef_Undef);
+  ClauseId conflict_id; 
+  if (conflict_ref == ::Minisat::CRef_Lazy) {
+    Assert (d_storedUnitConflict); 
+    conflict_id = d_unitConflictId; 
+  } else {
+    Assert (!d_storedUnitConflict); 
+    conflict_id = registerClause(conflict_ref); //FIXME
+  }
+
   Debug("proof:sat") << "proof::finalizeProof Final Conflict ";
   print(conflict_id);
   
@@ -613,6 +632,7 @@ void LFSCSatProof::collectLemmas(ClauseId id) {
     d_seenLemmas.insert(id); 
   }
 
+  Assert (d_resChains.find(id) != d_resChains.end()); 
   ResChain* res = d_resChains[id];
   ClauseId start = res->getStart();
   collectLemmas(start);
@@ -658,6 +678,14 @@ void LFSCSatProof::printResolution(ClauseId id) {
 
 
 void LFSCSatProof::printInputClause(ClauseId id) {
+  if (isUnit(id)) {
+    ::Minisat::Lit lit = getUnit(id); 
+    d_clauseSS << "(% " << clauseName(id) << " (holds (clc ";
+    d_clauseSS << varName(lit) << "cln ))";
+    d_paren << ")";
+    return; 
+  }
+  
   ostringstream os;
   CRef ref = getClauseRef(id);
   Assert (ref != CRef_Undef);
