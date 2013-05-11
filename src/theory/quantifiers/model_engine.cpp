@@ -216,7 +216,7 @@ int ModelEngine::checkModel( int checkOption ){
         }
         //if we need to consider this quantifier on this iteration
         if( checkQuant ){
-          addedLemmas += exhaustiveInstantiate( f, optUseRelevantDomain(), e );
+          addedLemmas += exhaustiveInstantiate( f, e );
           if( Trace.isOn("model-engine-warn") ){
             if( addedLemmas>10000 ){
               Debug("fmf-exit") << std::endl;
@@ -241,7 +241,7 @@ int ModelEngine::checkModel( int checkOption ){
   return addedLemmas;
 }
 
-int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain, int effort ){
+int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   int addedLemmas = 0;
 
   bool useModel = d_builder->optUseModel();
@@ -263,18 +263,16 @@ int ModelEngine::exhaustiveInstantiate( Node f, bool useRelInstDomain, int effor
     Debug("inst-fmf-ei") << std::endl;
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( &(d_quantEngine->getModel()->d_rep_set) );
-    if( riter.setQuantifier( f ) ){
-      Debug("inst-fmf-ei") << "Set domain..." << std::endl;
-      //set the domain for the iterator (the sufficient set of instantiations to try)
-      if( useRelInstDomain ){
-        riter.setDomain( d_rel_domain.d_quant_inst_domain[f] );
-      }
+    if( riter.setQuantifier( d_quantEngine, f ) ){
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       d_quantEngine->getModel()->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
       int tests = 0;
       int triedLemmas = 0;
       while( !riter.isFinished() && ( addedLemmas==0 || !optOneInstPerQuantRound() ) ){
+        for( int i=0; i<(int)riter.d_index.size(); i++ ){
+          Trace("try") << i << " : " << riter.d_index[i] << " : " << riter.getTerm( i ) << std::endl;
+        }
         d_testLemmas++;
         int eval = 0;
         int depIndex;

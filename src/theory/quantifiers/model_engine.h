@@ -54,7 +54,7 @@ private:
   //check model
   int checkModel( int checkOption );
   //exhaustively instantiate quantifier (possibly using mbqi), return number of lemmas produced
-  int exhaustiveInstantiate( Node f, bool useRelInstDomain = false, int effort = 0 );
+  int exhaustiveInstantiate( Node f, int effort = 0 );
 private:
   //temporary statistics
   int d_triedLemmas;

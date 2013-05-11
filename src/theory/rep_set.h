@@ -23,6 +23,8 @@
 namespace CVC4 {
 namespace theory {
 
+class QuantifiersEngine;
+
 /** this class stores a representative set */
 class RepSet {
 public:
@@ -53,15 +55,26 @@ typedef std::vector< int > RepDomain;
 /** this class iterates over a RepSet */
 class RepSetIterator {
 private:
+  enum {
+    ENUM_DOMAIN_ELEMENTS,
+    ENUM_RANGE,
+  };
+
   //initialize function
-  bool initialize();
+  bool initialize(QuantifiersEngine * qe, Node f);
+  //enumeration type?
+  std::vector< int > d_enum_type;
+  //for enum ranges
+  std::map< int, Node > d_lower_bounds;
+  //domain size
+  int domainSize( int i );
 public:
   RepSetIterator( RepSet* rs );
   ~RepSetIterator(){}
   //set that this iterator will be iterating over instantiations for a quantifier
-  bool setQuantifier( Node f );
+  bool setQuantifier( QuantifiersEngine * qe, Node f );
   //set that this iterator will be iterating over the domain of a function
-  bool setFunctionDomain( Node op );
+  bool setFunctionDomain( QuantifiersEngine * qe, Node op );
 public:
   //pointer to model
   RepSet* d_rep_set;
@@ -90,7 +103,7 @@ public:
   /** set index order */
   void setIndexOrder( std::vector< int >& indexOrder );
   /** set domain */
-  void setDomain( std::vector< RepDomain >& domain );
+  //void setDomain( std::vector< RepDomain >& domain );
   /** increment the iterator at index=counter */
   void increment2( int counter );
   /** increment the iterator */

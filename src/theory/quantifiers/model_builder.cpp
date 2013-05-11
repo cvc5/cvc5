@@ -69,7 +69,7 @@ void ModelEngineBuilder::debugModel( FirstOrderModel* fm ){
         vars.push_back( f[0][j] );
       }
       RepSetIterator riter( &(fm->d_rep_set) );
-      riter.setQuantifier( f );
+      riter.setQuantifier( d_qe, f );
       while( !riter.isFinished() ){
         std::vector< Node > terms;
         for( int i=0; i<riter.getNumTerms(); i++ ){

@@ -14,6 +14,7 @@
 
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
+#include "theory/quantifiers/bounded_integers.h"
 
 using namespace std;
 using namespace CVC4;
@@ -99,25 +100,33 @@ RepSetIterator::RepSetIterator( RepSet* rs ) : d_rep_set( rs ){
 
 }
 
-bool RepSetIterator::setQuantifier( Node f ){
+int RepSetIterator::domainSize( int i ) {
+  if( d_enum_type[i]==ENUM_DOMAIN_ELEMENTS ){
+    return d_domain[i].size();
+  }else{
+    return d_domain[i][0];
+  }
+}
+
+bool RepSetIterator::setQuantifier( QuantifiersEngine * qe, Node f ){
   Assert( d_types.empty() );
   //store indicies
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     d_types.push_back( f[0][i].getType() );
   }
-  return initialize();
+  return initialize(qe, f);
 }
 
-bool RepSetIterator::setFunctionDomain( Node op ){
+bool RepSetIterator::setFunctionDomain( QuantifiersEngine * qe, Node op ){
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
   }
-  return initialize();
+  return initialize(qe, Node::null());
 }
 
-bool RepSetIterator::initialize(){
+bool RepSetIterator::initialize(QuantifiersEngine * qe, Node f){
   for( size_t i=0; i<d_types.size(); i++ ){
     d_index.push_back( 0 );
     //store default index order
@@ -126,13 +135,48 @@ bool RepSetIterator::initialize(){
     //store default domain
     d_domain.push_back( RepDomain() );
     TypeNode tn = d_types[i];
+    bool isSet = false;
     if( tn.isSort() ){
       if( !d_rep_set->hasType( tn ) ){
         Node var = NodeManager::currentNM()->mkSkolem( "repSet_$$", tn, "is a variable created by the RepSetIterator" );
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( var );
       }
-    }else if( tn.isInteger() || tn.isReal() ){
+    }else if( tn.isInteger() ){
+      //check if it is bound
+      if( !f.isNull() && qe && qe->getBoundedIntegers() ){
+        Node l = qe->getBoundedIntegers()->getLowerBoundValue( f, f[0][i] );
+        Node u = qe->getBoundedIntegers()->getUpperBoundValue( f, f[0][i] );
+        if( !l.isNull() && !u.isNull() ){
+          Trace("bound-int-reps") << "Can limit bounds of " << f[0][i] << " to " << l << "..." << u << std::endl;
+          Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
+          Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+          if( ra==NodeManager::currentNM()->mkConst(true) ){
+            long rr = range.getConst<Rational>().getNumerator().getLong()+1;
+            if (rr<0) {
+              Trace("bound-int-reps")  << "Empty bound range." << std::endl;
+              //empty
+              d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
+            }else{
+              Trace("bound-int-reps")  << "Actual bound range is " << rr << std::endl;
+              d_lower_bounds[i] = l;
+              d_domain[i].push_back( (int)rr );
+              d_enum_type.push_back( ENUM_RANGE );
+            }
+            isSet = true;
+          }else{
+            Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big." << std::endl;
+            d_incomplete = true;
+          }
+        }else{
+          Trace("fmf-incomplete") << "Incomplete because of integer quantification, no bounds found." << std::endl;
+          d_incomplete = true;
+        }
+      }else{
+        Trace("fmf-incomplete") << "Incomplete because of integer quantification." << std::endl;
+        d_incomplete = true;
+      }
+    }else if( tn.isReal() ){
       Trace("fmf-incomplete") << "Incomplete because of infinite type " << tn << std::endl;
       d_incomplete = true;
     //enumerate if the sort is reasonably small, the upper bound of 128 is chosen arbitrarily for now
@@ -142,12 +186,15 @@ bool RepSetIterator::initialize(){
       Trace("fmf-incomplete") << "Incomplete because of unknown type " << tn << std::endl;
       d_incomplete = true;
     }
-    if( d_rep_set->hasType( tn ) ){
-      for( size_t j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
-        d_domain[i].push_back( j );
+    if( !isSet ){
+      d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
+      if( d_rep_set->hasType( tn ) ){
+        for( size_t j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
+          d_domain[i].push_back( j );
+        }
+      }else{
+        return false;
       }
-    }else{
-      return false;
     }
   }
   return true;
@@ -161,7 +208,7 @@ void RepSetIterator::setIndexOrder( std::vector< int >& indexOrder ){
     d_var_order[d_index_order[i]] = i;
   }
 }
-
+/*
 void RepSetIterator::setDomain( std::vector< RepDomain >& domain ){
   d_domain.clear();
   d_domain.insert( d_domain.begin(), domain.begin(), domain.end() );
@@ -172,14 +219,14 @@ void RepSetIterator::setDomain( std::vector< RepDomain >& domain ){
     }
   }
 }
-
+*/
 void RepSetIterator::increment2( int counter ){
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   counter = (int)d_index.size()-1;
 #endif
   //increment d_index
-  while( counter>=0 && d_index[counter]==(int)(d_domain[counter].size()-1) ){
+  while( counter>=0 && d_index[counter]==(int)(domainSize(counter)-1) ){
     counter--;
   }
   if( counter==-1 ){
@@ -203,10 +250,17 @@ bool RepSetIterator::isFinished(){
 }
 
 Node RepSetIterator::getTerm( int i ){
-  TypeNode tn = d_types[d_index_order[i]];
-  Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
   int index = d_index_order[i];
-  return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
+  if( d_enum_type[index]==ENUM_DOMAIN_ELEMENTS ){
+    TypeNode tn = d_types[index];
+    Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
+    return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
+  }else{
+    Node t = NodeManager::currentNM()->mkNode(PLUS, d_lower_bounds[index],
+                                                    NodeManager::currentNM()->mkConst( Rational(d_index[index]) ) );
+    t = Rewriter::rewrite( t );
+    return t;
+  }
 }
 
 void RepSetIterator::debugPrint( const char* c ){

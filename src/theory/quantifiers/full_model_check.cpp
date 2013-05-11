@@ -535,31 +535,33 @@ int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, Node c
   Trace("fmc-exh") << "Exhaustive instantiate based on index " << c_index << " : " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  if( riter.setQuantifier( f ) ){
+  if( riter.setQuantifier( d_qe, f ) ){
     std::vector< RepDomain > dom;
     for (unsigned i=0; i<c.getNumChildren(); i++) {
       TypeNode tn = c[i].getType();
       if( d_rep_ids.find(tn)!=d_rep_ids.end() ){
-        RepDomain rd;
+        //RepDomain rd;
         if( isStar(c[i]) ){
           //add the full range
-          for( std::map< Node, int >::iterator it = d_rep_ids[tn].begin();
-               it != d_rep_ids[tn].end(); ++it ){
-            rd.push_back(it->second);
-          }
+          //for( std::map< Node, int >::iterator it = d_rep_ids[tn].begin();
+          //     it != d_rep_ids[tn].end(); ++it ){
+          //  rd.push_back(it->second);
+          //}
         }else{
           if (d_rep_ids[tn].find(c[i])!=d_rep_ids[tn].end()) {
-            rd.push_back(d_rep_ids[tn][c[i]]);
+            //rd.push_back(d_rep_ids[tn][c[i]]);
+            riter.d_domain[i].clear();
+            riter.d_domain[i].push_back(d_rep_ids[tn][c[i]]);
           }else{
             return -1;
           }
         }
-        dom.push_back(rd);
+        //dom.push_back(rd);
       }else{
         return -1;
       }
     }
-    riter.setDomain(dom);
+    //riter.setDomain(dom);
     //now do full iteration
     while( !riter.isFinished() ){
       Trace("fmc-exh-debug") << "Inst : ";

@@ -132,7 +132,8 @@ private:
   /** Static learner. */
   ArithStaticLearner d_learner;
 
-
+  /** quantifiers engine */
+  QuantifiersEngine * d_quantEngine;
   //std::vector<ArithVar> d_pool;
 public:
   void releaseArithVar(ArithVar v);

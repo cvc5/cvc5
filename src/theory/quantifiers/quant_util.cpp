@@ -71,7 +71,7 @@ bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind
     Rational r = msum[v].isNull() ? Rational(1) : msum[v].getConst<Rational>();
     if ( r.sgn()!=0 ){
       for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-        if( it->first!=v ){
+        if( it->first.isNull() || it->first!=v ){
           Node m;
           if( !it->first.isNull() ){
             if ( !it->second.isNull() ){
@@ -107,6 +107,12 @@ bool QuantArith::isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind
 
 Node QuantArith::negate( Node t ) {
   Node tt = NodeManager::currentNM()->mkNode( MULT, NodeManager::currentNM()->mkConst( Rational(-1) ), t );
+  tt = Rewriter::rewrite( tt );
+  return tt;
+}
+
+Node QuantArith::offset( Node t, int i ) {
+  Node tt = NodeManager::currentNM()->mkNode( PLUS, NodeManager::currentNM()->mkConst( Rational(i) ), t );
   tt = Rewriter::rewrite( tt );
   return tt;
 }

@@ -67,6 +67,8 @@
 
 #include "theory/arith/options.h"
 
+#include "theory/quantifiers/bounded_integers.h"
+
 #include <stdint.h>
 
 #include <vector>
@@ -89,6 +91,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
   d_learner(u),
+  d_quantEngine(qe),
   d_assertionsThatDoNotMatchTheirLiterals(c),
   d_nextIntegerCheckVar(0),
   d_constantIntegerVariables(c),
@@ -1372,6 +1375,10 @@ Node TheoryArithPrivate::callDioSolver(){
 Constraint TheoryArithPrivate::constraintFromFactQueue(){
   Assert(!done());
   TNode assertion = get();
+
+  if( options::finiteModelFind() ){
+    d_quantEngine->getBoundedIntegers()->assertNode(assertion);
+  }
 
   Kind simpleKind = Comparison::comparisonKind(assertion);
   Constraint constraint = d_constraintDatabase.lookup(assertion);

@@ -158,6 +158,8 @@ public:
   void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
   /** get efficient e-matching utility */
   EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
+  /** get bounded integers utility */
+  quantifiers::BoundedIntegers * getBoundedIntegers() { return d_bint; }
 public:
   /** initialize */
   void finishInit();
