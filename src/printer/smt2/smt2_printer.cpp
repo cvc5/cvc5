@@ -214,7 +214,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   bool stillNeedToPrintParams = true;
   // operator
-  if(n.getNumChildren() != 0) out << '(';
+  if(n.getNumChildren() != 0 && n.getKind()!=kind::INST_PATTERN_LIST) out << '(';
   switch(Kind k = n.getKind()) {
     // builtin theory
   case kind::APPLY: break;
@@ -312,12 +312,29 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
 
     // quantifiers
-  case kind::FORALL: out << "forall "; break;
-  case kind::EXISTS: out << "exists "; break;
+  case kind::FORALL:
+  case kind::EXISTS:
+    if( k==kind::FORALL ){
+      out << "forall ";
+    }else{
+      out << "exists ";
+    }
+    for( unsigned i=0; i<2; i++) {
+      out << n[i] << " ";
+      if( i==0 && n.getNumChildren()==3 ){
+        out << "(! ";
+      }
+    }
+    if( n.getNumChildren()==3 ){
+      out << n[2];
+      out << ")";
+    }
+    out << ")";
+    return;
+    break;
   case kind::BOUND_VAR_LIST:
     // the left parenthesis is already printed (before the switch)
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
+    for(TNode::iterator i = n.begin(), iend = n.end();
         i != iend; ) {
       out << '(';
       toStream(out, (*i), toDepth < 0 ? toDepth : toDepth - 1, types);
@@ -334,8 +351,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     out << ')';
     return;
   case kind::INST_PATTERN:
+    break;
   case kind::INST_PATTERN_LIST:
     // TODO user patterns
+    for(unsigned i=0; i<n.getNumChildren(); i++) {
+      out << ":pattern " << n[i];
+    }
+    return;
     break;
 
   default:
