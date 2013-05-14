@@ -2,7 +2,7 @@
 
 cvc4=./cvc4
 bench="$1"
-let "to = $2 - 60"
+let "to = $2 - 75"
 
 file=${bench##*/}
 filename=${file%.*}
@@ -30,7 +30,8 @@ function finishwith {
   esac
 }
 
-trywith 30 --finite-model-find --uf-ss-totality
+trywith 30
+trywith 15 --finite-model-find --fmf-inst-engine
 trywith 30 --finite-model-find --decision=justification --fmf-fmc
-trywith $to --finite-model-find --decision=justification
+trywith $to --decision=justification
 echo "SZS GaveUp for $filename"
