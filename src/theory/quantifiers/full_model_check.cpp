@@ -186,65 +186,75 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe) : d_qe(qe){
+FullModelChecker::FullModelChecker(context::Context* c, QuantifiersEngine* qe) :
+QModelBuilder( c, qe ){
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void FullModelChecker::reset(FirstOrderModel * fm) {
-  Trace("fmc") << "---Full Model Check reset() " << std::endl;
-  for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
-    it->second->reset();
-  }
-  d_quant_models.clear();
-  d_models_init.clear();
-  d_rep_ids.clear();
-  d_model_basis_rep.clear();
-  d_star_insts.clear();
-  //process representatives
-  for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
-       it != fm->d_rep_set.d_type_reps.end(); ++it ){
-    if( it->first.isSort() ){
-      if( d_type_star.find(it->first)==d_type_star.end() ){
-        Node st = NodeManager::currentNM()->mkSkolem( "star_$$", it->first, "skolem created for full-model checking" );
-        d_type_star[it->first] = st;
-      }
-      Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
-      Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(it->first);
-      Node rmbt = fm->getRepresentative(mbt);
-      int mbt_index = -1;
-      Trace("fmc") << "  Model basis term : " << mbt << std::endl;
-      for( size_t a=0; a<it->second.size(); a++ ){
-        //Node r2 = ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getRepresentative( it->second[a] );
-        //Node ir = ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getInternalRepresentative( it->second[a], Node::null(), 0 );
-        Node r = fm->getRepresentative( it->second[a] );
-        std::vector< Node > eqc;
-        ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
-        Trace("fmc-model-debug") << "   " << (it->second[a]==r) << (r==mbt);
-        Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
-        //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
-        Trace("fmc-model-debug") << " {";
-        //find best selection for representative
-        for( size_t i=0; i<eqc.size(); i++ ){
-          Trace("fmc-model-debug") << eqc[i] << ", ";
-        }
-        Trace("fmc-model-debug") << "}" << std::endl;
 
-        //if this is the model basis eqc, replace with actual model basis term
-        if (r==rmbt || (mbt_index==-1 && a==(it->second.size()-1))) {
-          d_model_basis_rep[it->first] = r;
-          r = mbt;
-          mbt_index = a;
-        }
-        d_rep_ids[it->first][r] = (int)a;
-      }
-      Trace("fmc-model-debug") << std::endl;
+void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
+  d_addedLemmas = 0;
+  FirstOrderModel* fm = (FirstOrderModel*)m;
+  if( fullModel ){
+    //make function values
+    for( std::map< Node, std::vector< Node > >::iterator it = m->d_uf_terms.begin(); it != m->d_uf_terms.end(); ++it ){
+      m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
+    }
+    TheoryEngineModelBuilder::processBuildModel( m, fullModel );
+    //mark that the model has been set
+    fm->markModelSet();
+  }else{
+    Trace("fmc") << "---Full Model Check reset() " << std::endl;
+    for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
+      it->second->reset();
+    }
+    d_quant_models.clear();
+    d_models_init.clear();
+    d_rep_ids.clear();
+    d_model_basis_rep.clear();
+    d_star_insts.clear();
+    //process representatives
+    for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
+         it != fm->d_rep_set.d_type_reps.end(); ++it ){
+      if( it->first.isSort() ){
+        Trace("fmc") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
+        Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(it->first);
+        Node rmbt = fm->getRepresentative(mbt);
+        int mbt_index = -1;
+        Trace("fmc") << "  Model basis term : " << mbt << std::endl;
+        for( size_t a=0; a<it->second.size(); a++ ){
+          //Node r2 = ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getRepresentative( it->second[a] );
+          //Node ir = ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getInternalRepresentative( it->second[a], Node::null(), 0 );
+          Node r = fm->getRepresentative( it->second[a] );
+          std::vector< Node > eqc;
+          ((EqualityQueryQuantifiersEngine*)d_qe->getEqualityQuery())->getEquivalenceClass( r, eqc );
+          Trace("fmc-model-debug") << "   " << (it->second[a]==r) << (r==mbt);
+          Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
+          //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
+          Trace("fmc-model-debug") << " {";
+          //find best selection for representative
+          for( size_t i=0; i<eqc.size(); i++ ){
+            Trace("fmc-model-debug") << eqc[i] << ", ";
+          }
+          Trace("fmc-model-debug") << "}" << std::endl;
 
-      if (mbt_index==-1) {
-        std::cout << "   WARNING: model basis term is not a representative!" << std::endl;
-        exit(0);
-      }else{
-        Trace("fmc") << "Star index for " << it->first << " is " << mbt_index << std::endl;
+          //if this is the model basis eqc, replace with actual model basis term
+          if (r==rmbt || (mbt_index==-1 && a==(it->second.size()-1))) {
+            d_model_basis_rep[it->first] = r;
+            r = mbt;
+            mbt_index = a;
+          }
+          d_rep_ids[it->first][r] = (int)a;
+        }
+        Trace("fmc-model-debug") << std::endl;
+
+        if (mbt_index==-1) {
+          std::cout << "   WARNING: model basis term is not a representative!" << std::endl;
+          exit(0);
+        }else{
+          Trace("fmc") << "Star index for " << it->first << " is " << mbt_index << std::endl;
+        }
       }
     }
   }
@@ -286,7 +296,7 @@ void FullModelChecker::addEntry( FirstOrderModel * fm, Node op, Node c, Node v,
     Node ri = getRepresentative(fm, c[i]);
     children.push_back(ri);
     if (isModelBasisTerm(ri)) {
-      ri = d_type_star[ri.getType()];
+      ri = getStar( ri.getType() );
     }else{
       hasNonStar = true;
     }
@@ -307,14 +317,6 @@ Def * FullModelChecker::getModel(FirstOrderModel * fm, Node op) {
   if( d_models_init.find(op)==d_models_init.end() ){
     if( d_models.find(op)==d_models.end() ){
       d_models[op] = new Def;
-      //make sure star's are defined
-      TypeNode tn = op.getType();
-      for(unsigned i=0; i<tn.getNumChildren()-1; i++) {
-        if( d_type_star.find(tn[i])==d_type_star.end() ){
-          Node st = NodeManager::currentNM()->mkSkolem( "star_$$", tn[i], "skolem created for full-model checking" );
-          d_type_star[tn[i]] = st;
-        }
-      }
     }
     //reset the model
     d_models[op]->reset();
@@ -322,13 +324,14 @@ Def * FullModelChecker::getModel(FirstOrderModel * fm, Node op) {
     std::vector< Node > conds;
     std::vector< Node > values;
     std::vector< Node > entry_conds;
-    Trace("fmc-model-debug") << "Model values for " << op << " ... " << std::endl;
+    Trace("fmc-model-debug") << fm->d_uf_terms[op].size() << " model values for " << op << " ... " << std::endl;
     for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
       Node r = getRepresentative(fm, fm->d_uf_terms[op][i]);
       Trace("fmc-model-debug") << fm->d_uf_terms[op][i] << " -> " << r << std::endl;
     }
     Trace("fmc-model-debug") << std::endl;
     //initialize the model
+    /*
     for( int j=0; j<2; j++ ){
       for( int k=1; k>=0; k-- ){
         Trace("fmc-model-debug")<< "Set values " << j << " " << k << " : " << std::endl;
@@ -341,25 +344,23 @@ Def * FullModelChecker::getModel(FirstOrderModel * fm, Node op) {
         }
       }
     }
-    //add for default value
-    if (!fm->d_uf_model_gen[op].d_default_value.isNull()) {
-      Node n = d_qe->getTermDatabase()->getModelBasisOpTerm(op);
-      addEntry(fm, op, n, fm->d_uf_model_gen[op].d_default_value, conds, values, entry_conds);
+    */
+    for( size_t i=0; i<fm->d_uf_terms[op].size(); i++ ){
+      Node n = fm->d_uf_terms[op][i];
+      if( !n.getAttribute(NoMatchAttribute()) ){
+        addEntry(fm, op, n, n, conds, values, entry_conds);
+      }
     }
-
-    //find other default values (TODO: figure out why these entries are added to d_uf_model_gen)
-    if( conds.empty() ){
-      //for( std::map< Node, Node >::iterator it = fm->d_uf_model_gen[op].d_set_values[1][0].begin();
-      //     it != fm->d_uf_model_gen[op].d_set_values[1][0].end(); ++it ){
-      //  Trace("fmc-model-debug") << "   process : " << it->first << " -> " << it->second << std::endl;
-      //  addEntry(fm, op, it->first, it->second, conds, values, entry_conds);
-      //}
-      Trace("fmc-warn") << "WARNING: No entries for " << op << ", make default entry." << std::endl;
-      //choose a complete arbitrary term
-      Node n = d_qe->getTermDatabase()->getModelBasisOpTerm(op);
-      TypeNode tn = n.getType();
-      Node v = fm->d_rep_set.d_type_reps[tn][0];
-      addEntry(fm, op, n, v, conds, values, entry_conds);
+    Node nmb = d_qe->getTermDatabase()->getModelBasisOpTerm(op);
+    //add default value
+    if( fm->hasTerm( nmb ) ){
+      Trace("fmc-model-debug") << "Add default " << nmb << std::endl;
+      addEntry(fm, op, nmb, nmb, conds, values, entry_conds);
+    }else{
+      Node vmb = getSomeDomainElement( fm, nmb.getType() );
+      Trace("fmc-model-debug") << "Add default to default representative " << nmb << " ";
+      Trace("fmc-model-debug") << fm->d_rep_set.d_type_reps[nmb.getType()].size() << std::endl;
+      addEntry(fm, op, nmb, vmb, conds, values, entry_conds);
     }
 
     //sort based on # default arguments
@@ -391,7 +392,7 @@ Def * FullModelChecker::getModel(FirstOrderModel * fm, Node op) {
 
 
 bool FullModelChecker::isStar(Node n) {
-  return n==d_type_star[n.getType()];
+  return n==getStar(n.getType());
 }
 
 bool FullModelChecker::isModelBasisTerm(Node n) {
@@ -432,8 +433,7 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 }
 
 
-int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, int effort) {
-  int addedLemmas = 0;
+bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   if (effort==0) {
     //register the quantifier
@@ -491,14 +491,12 @@ int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, int ef
           for( unsigned j=0; j<inst.size(); j++) {
             m.set( d_qe, f, j, inst[j] );
           }
-          if (isActive()) {
-            if( d_qe->addInstantiation( f, m ) ){
-              addedLemmas++;
-            }else{
-              //this can happen if evaluation is unknown
-              //might try it next effort level
-              d_star_insts[f].push_back(i);
-            }
+          if( d_qe->addInstantiation( f, m ) ){
+            lemmas++;
+          }else{
+            //this can happen if evaluation is unknown
+            //might try it next effort level
+            d_star_insts[f].push_back(i);
           }
         }else{
           //might try it next effort level
@@ -507,26 +505,29 @@ int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, int ef
       }
     }
   }else{
-    Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
-    Trace("fmc-exh") << "Definition was : " << std::endl;
-    d_quant_models[f].debugPrint("fmc-exh", Node::null(), this);
-    Trace("fmc-exh") << std::endl;
-    Def temp;
-    //simplify the exceptions?
-    for( int i=(d_star_insts[f].size()-1); i>=0; i--) {
-      //get witness for d_star_insts[f][i]
-      int j = d_star_insts[f][i];
-      if( temp.addEntry( this, d_quant_models[f].d_cond[j], d_quant_models[f].d_value[j] ) ){
-        int lem = exhaustiveInstantiate(fm, f, d_quant_models[f].d_cond[j], j );
-        if( lem==-1 ){
-          return -1;
-        }else{
-          addedLemmas += lem;
+    if (!d_star_insts[f].empty()) {
+      Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
+      Trace("fmc-exh") << "Definition was : " << std::endl;
+      d_quant_models[f].debugPrint("fmc-exh", Node::null(), this);
+      Trace("fmc-exh") << std::endl;
+      Def temp;
+      //simplify the exceptions?
+      for( int i=(d_star_insts[f].size()-1); i>=0; i--) {
+        //get witness for d_star_insts[f][i]
+        int j = d_star_insts[f][i];
+        if( temp.addEntry( this, d_quant_models[f].d_cond[j], d_quant_models[f].d_value[j] ) ){
+          int lem = exhaustiveInstantiate(fm, f, d_quant_models[f].d_cond[j], j );
+          if( lem==-1 ){
+            //something went wrong, resort to exhaustive instantiation
+            return false;
+          }else{
+            lemmas += lem;
+          }
         }
       }
     }
   }
-  return addedLemmas;
+  return true;
 }
 
 int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, Node c, int c_index) {
@@ -599,15 +600,12 @@ void FullModelChecker::doCheck(FirstOrderModel * fm, Node f, Def & d, Node n ) {
   Trace("fmc-debug") << "Check " << n << " " << n.getKind() << std::endl;
   if( n.getKind() == kind::BOUND_VARIABLE ){
     d.addEntry(this, mkCondDefault(f), n);
+    Trace("fmc-debug") << "Done with " << n << " " << n.getKind() << std::endl;
   }
   else if( n.getNumChildren()==0 ){
     Node r = n;
     if( !fm->hasTerm(n) ){
-      if (fm->d_rep_set.hasType(n.getType())) {
-        r = fm->d_rep_set.d_type_reps[n.getType()][0];
-      }else{
-        //should never happen?
-      }
+      r = getSomeDomainElement( fm, n.getType() );
     }
     r = getRepresentative(fm, r);
     d.addEntry(this, mkCondDefault(f), r);
@@ -683,6 +681,9 @@ void FullModelChecker::doVariableEquality( FirstOrderModel * fm, Node f, Def & d
     int j = getVariableId(f, eq[0]);
     int k = getVariableId(f, eq[1]);
     TypeNode tn = eq[0].getType();
+    if( !fm->d_rep_set.hasType( tn ) ){
+      getSomeDomainElement( fm, tn );  //to verify the type is initialized
+    }
     for (unsigned i=0; i<fm->d_rep_set.d_type_reps[tn].size(); i++) {
       Node r = getRepresentative( fm, fm->d_rep_set.d_type_reps[tn][i] );
       cond[j+1] = r;
@@ -703,7 +704,7 @@ void FullModelChecker::doVariableRelation( FirstOrderModel * fm, Node f, Def & d
         mkCondVec(dc.d_cond[i],cond);
         cond[j+1] = val;
         d.addEntry(this, mkCond(cond), d_true);
-        cond[j+1] = d_type_star[val.getType()];
+        cond[j+1] = getStar(val.getType());
         d.addEntry(this, mkCond(cond), d_false);
       }else{
         d.addEntry( this, dc.d_cond[i], d_false);
@@ -715,6 +716,7 @@ void FullModelChecker::doVariableRelation( FirstOrderModel * fm, Node f, Def & d
 }
 
 void FullModelChecker::doUninterpretedCompose( FirstOrderModel * fm, Node f, Def & d, Node op, std::vector< Def > & dc ) {
+  getModel(fm, op);
   Trace("fmc-uf-debug") << "Definition : " << std::endl;
   d_models[op]->debugPrint("fmc-uf-debug", op, this);
   Trace("fmc-uf-debug") << std::endl;
@@ -801,7 +803,7 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModel * fm, Node f,
         Trace("fmc-uf-process") << "follow value..." << std::endl;
         doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[v]);
       }
-      Node st = d_type_star[v.getType()];
+      Node st = getStar(v.getType());
       if (curr.d_child.find(st)!=curr.d_child.end()) {
         Trace("fmc-uf-process") << "follow star..." << std::endl;
         doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[st]);
@@ -880,11 +882,33 @@ Node FullModelChecker::mkCondDefault( Node f) {
   return mkCond(cond);
 }
 
+Node FullModelChecker::getStar(TypeNode tn) {
+  if( d_type_star.find(tn)==d_type_star.end() ){
+    Node st = NodeManager::currentNM()->mkSkolem( "star_$$", tn, "skolem created for full-model checking" );
+    d_type_star[tn] = st;
+  }
+  return d_type_star[tn];
+}
+
+Node FullModelChecker::getSomeDomainElement(FirstOrderModel * fm, TypeNode tn){
+  //check if there is even any domain elements at all
+  if (!fm->d_rep_set.hasType(tn)) {
+    Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
+    Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    fm->d_rep_set.d_type_reps[tn].push_back(mbt);
+  }else if( fm->d_rep_set.d_type_reps[tn].size()==0 ){
+    Message() << "empty reps" << std::endl;
+    exit(0);
+  }
+  return fm->d_rep_set.d_type_reps[tn][0];
+}
+
 void FullModelChecker::mkCondDefaultVec( Node f, std::vector< Node > & cond ) {
   //get function symbol for f
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
-    cond.push_back(d_type_star[f[0][i].getType()]);
+    Node ts = getStar( f[0][i].getType() );
+    cond.push_back(ts);
   }
 }
 
@@ -936,15 +960,12 @@ Node FullModelChecker::evaluateInterpreted( Node n, std::vector< Node > & vals )
   }
 }
 
-bool FullModelChecker::isActive() {
-  return options::fmfFullModelCheck();
-}
-
 bool FullModelChecker::useSimpleModels() {
   return options::fmfFullModelCheckSimple();
 }
 
 Node FullModelChecker::getFunctionValue(FirstOrderModel * fm, Node op, const char* argPrefix ) {
+  getModel( fm, op );
   TypeNode type = op.getType();
   std::vector< Node > vars;
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){

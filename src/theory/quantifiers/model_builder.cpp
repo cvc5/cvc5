@@ -33,6 +33,19 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
+
+QModelBuilder::QModelBuilder( context::Context* c, QuantifiersEngine* qe ) :
+TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_curr_model( c, NULL ), d_qe( qe ){
+  d_considerAxioms = true;
+  d_addedLemmas = 0;
+}
+
+
+bool QModelBuilder::optUseModel() {
+  return options::fmfModelBasedInst();
+}
+
+
 bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
   if( argIndex<(int)n.getNumChildren() ){
     Node r;
@@ -53,13 +66,13 @@ bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
   }
 }
 
-ModelEngineBuilder::ModelEngineBuilder( context::Context* c, QuantifiersEngine* qe ) :
-TheoryEngineModelBuilder( qe->getTheoryEngine() ),
-d_qe( qe ), d_curr_model( c, NULL ){
-  d_considerAxioms = true;
+QModelBuilderIG::QModelBuilderIG( context::Context* c, QuantifiersEngine* qe ) :
+QModelBuilder( c, qe ) {
+
 }
 
-void ModelEngineBuilder::debugModel( FirstOrderModel* fm ){
+
+void QModelBuilderIG::debugModel( FirstOrderModel* fm ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
   if( Trace.isOn("quant-model-warn") ){
     for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -88,22 +101,16 @@ void ModelEngineBuilder::debugModel( FirstOrderModel* fm ){
   }
 }
 
-void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
+void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* fm = (FirstOrderModel*)m;
   if( fullModel ){
     Assert( d_curr_model==fm );
-    if( d_qe->getModelEngine()->getFullModelChecker()->isActive() ){
-      for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
-        fm->d_uf_models[ it->first ] = d_qe->getModelEngine()->getFullModelChecker()->getFunctionValue( fm, it->first, "$x" );
-      }
-    }else{
-      //update models
-      for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
-        it->second.update( fm );
-        Trace("model-func") << "ModelEngineBuilder: Make function value from tree " << it->first << std::endl;
-        //construct function values
-        fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
-      }
+    //update models
+    for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
+      it->second.update( fm );
+      Trace("model-func") << "QModelBuilder: Make function value from tree " << it->first << std::endl;
+      //construct function values
+      fm->d_uf_models[ it->first ] = it->second.getFunctionValue( "$x" );
     }
     TheoryEngineModelBuilder::processBuildModel( m, fullModel );
     //mark that the model has been set
@@ -192,7 +199,7 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
           }
         }
         //construct the model if necessary
-        if( d_addedLemmas==0 || optExhInstNonInstGenQuant() ){
+        if( d_addedLemmas==0 ){
           //if no immediate exceptions, build the model
           //  this model will be an approximation that will need to be tested via exhaustive instantiation
           Trace("model-engine-debug") << "Building model..." << std::endl;
@@ -218,7 +225,7 @@ void ModelEngineBuilder::processBuildModel( TheoryModel* m, bool fullModel ) {
   }
 }
 
-int ModelEngineBuilder::initializeQuantifier( Node f, Node fp ){
+int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
   if( d_quant_basis_match_added.find( f )==d_quant_basis_match_added.end() ){
     //create the basis match if necessary
     if( d_quant_basis_match.find( f )==d_quant_basis_match.end() ){
@@ -261,7 +268,7 @@ int ModelEngineBuilder::initializeQuantifier( Node f, Node fp ){
   return 0;
 }
 
-void ModelEngineBuilder::analyzeModel( FirstOrderModel* fm ){
+void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
   d_uf_model_constructed.clear();
   //determine if any functions are constant
   for( std::map< Node, uf::UfModelTree >::iterator it = fm->d_uf_model_tree.begin(); it != fm->d_uf_model_tree.end(); ++it ){
@@ -303,7 +310,7 @@ void ModelEngineBuilder::analyzeModel( FirstOrderModel* fm ){
   }
 }
 
-bool ModelEngineBuilder::hasConstantDefinition( Node n ){
+bool QModelBuilderIG::hasConstantDefinition( Node n ){
   Node lit = n.getKind()==NOT ? n[0] : n;
   if( lit.getKind()==APPLY_UF ){
     Node op = lit.getOperator();
@@ -314,31 +321,19 @@ bool ModelEngineBuilder::hasConstantDefinition( Node n ){
   return false;
 }
 
-bool ModelEngineBuilder::optUseModel() {
-  return options::fmfModelBasedInst();
-}
-
-bool ModelEngineBuilder::optInstGen(){
+bool QModelBuilderIG::optInstGen(){
   return options::fmfInstGen();
 }
 
-bool ModelEngineBuilder::optOneQuantPerRoundInstGen(){
+bool QModelBuilderIG::optOneQuantPerRoundInstGen(){
   return options::fmfInstGenOneQuantPerRound();
 }
 
-bool ModelEngineBuilder::optExhInstNonInstGenQuant(){
-  return options::fmfNewInstGen();
-}
-
-void ModelEngineBuilder::setEffort( int effort ){
-  d_considerAxioms = effort>=1;
-}
-
-ModelEngineBuilder::Statistics::Statistics():
-  d_num_quants_init("ModelEngineBuilder::Number_Quantifiers", 0),
-  d_num_partial_quants_init("ModelEngineBuilder::Number_Partial_Quantifiers", 0),
-  d_init_inst_gen_lemmas("ModelEngineBuilder::Initialize_Inst_Gen_Lemmas", 0 ),
-  d_inst_gen_lemmas("ModelEngineBuilder::Inst_Gen_Lemmas", 0 )
+QModelBuilderIG::Statistics::Statistics():
+  d_num_quants_init("QModelBuilder::Number_Quantifiers", 0),
+  d_num_partial_quants_init("QModelBuilder::Number_Partial_Quantifiers", 0),
+  d_init_inst_gen_lemmas("QModelBuilder::Initialize_Inst_Gen_Lemmas", 0 ),
+  d_inst_gen_lemmas("QModelBuilder::Inst_Gen_Lemmas", 0 )
 {
   StatisticsRegistry::registerStat(&d_num_quants_init);
   StatisticsRegistry::registerStat(&d_num_partial_quants_init);
@@ -346,18 +341,18 @@ ModelEngineBuilder::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_inst_gen_lemmas);
 }
 
-ModelEngineBuilder::Statistics::~Statistics(){
+QModelBuilderIG::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_num_quants_init);
   StatisticsRegistry::unregisterStat(&d_num_partial_quants_init);
   StatisticsRegistry::unregisterStat(&d_init_inst_gen_lemmas);
   StatisticsRegistry::unregisterStat(&d_inst_gen_lemmas);
 }
 
-bool ModelEngineBuilder::isQuantifierActive( Node f ){
+bool QModelBuilderIG::isQuantifierActive( Node f ){
   return ( d_considerAxioms || !f.getAttribute(AxiomAttribute()) ) && d_quant_sat.find( f )==d_quant_sat.end();
 }
 
-bool ModelEngineBuilder::isTermActive( Node n ){
+bool QModelBuilderIG::isTermActive( Node n ){
   return !n.getAttribute(NoMatchAttribute()) || //it is not congruent to another active term
          ( n.getAttribute(ModelBasisArgAttribute())!=0 && !n.getAttribute(BasisNoMatchAttribute()) ); //or it has model basis arguments
                                                                                                       //and is not congruent modulo model basis
@@ -367,7 +362,7 @@ bool ModelEngineBuilder::isTermActive( Node n ){
 
 
 
-void ModelEngineBuilderDefault::reset( FirstOrderModel* fm ){
+void QModelBuilderDefault::reset( FirstOrderModel* fm ){
   d_quant_selection_lit.clear();
   d_quant_selection_lit_candidates.clear();
   d_quant_selection_lit_terms.clear();
@@ -376,7 +371,7 @@ void ModelEngineBuilderDefault::reset( FirstOrderModel* fm ){
 }
 
 
-int ModelEngineBuilderDefault::getSelectionScore( std::vector< Node >& uf_terms ) {
+int QModelBuilderDefault::getSelectionScore( std::vector< Node >& uf_terms ) {
   /*
   size_t maxChildren = 0;
   for( size_t i=0; i<uf_terms.size(); i++ ){
@@ -390,7 +385,7 @@ int ModelEngineBuilderDefault::getSelectionScore( std::vector< Node >& uf_terms 
   return 0;
 }
 
-void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
+void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   Debug("fmf-model-prefs") << "Analyze quantifier " << f << std::endl;
   //the pro/con preferences for this quantifier
   std::vector< Node > pro_con[2];
@@ -520,7 +515,7 @@ void ModelEngineBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f )
   }
 }
 
-int ModelEngineBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
+int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
   int addedLemmas = 0;
   //we wish to add all known exceptions to our selection literal for f. this will help to refine our current model.
   //This step is advantageous over exhaustive instantiation, since we are adding instantiations that involve model basis terms,
@@ -571,7 +566,7 @@ int ModelEngineBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
   return addedLemmas;
 }
 
-void ModelEngineBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
+void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   if( optReconsiderFuncConstants() ){
     //reconsider constant functions that weren't necessary
     if( d_uf_model_constructed[op] ){
@@ -649,7 +644,7 @@ void ModelEngineBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op )
 
 //////////////////////  Inst-Gen style Model Builder ///////////
 
-void ModelEngineBuilderInstGen::reset( FirstOrderModel* fm ){
+void QModelBuilderInstGen::reset( FirstOrderModel* fm ){
   //for new inst gen
   d_quant_selection_formula.clear();
   d_term_selected.clear();
@@ -657,15 +652,15 @@ void ModelEngineBuilderInstGen::reset( FirstOrderModel* fm ){
   //d_sub_quant_inst_trie.clear();//*
 }
 
-int ModelEngineBuilderInstGen::initializeQuantifier( Node f, Node fp ){
-  int addedLemmas = ModelEngineBuilder::initializeQuantifier( f, fp );
+int QModelBuilderInstGen::initializeQuantifier( Node f, Node fp ){
+  int addedLemmas = QModelBuilderIG::initializeQuantifier( f, fp );
   for( size_t i=0; i<d_sub_quants[f].size(); i++ ){
     addedLemmas += initializeQuantifier( d_sub_quants[f][i], fp );
   }
   return addedLemmas;
 }
 
-void ModelEngineBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f ){
+void QModelBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //Node fp = getParentQuantifier( f );//*
   //bool quantRedundant = ( f!=fp && d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, d_sub_quant_inst[ f ], true ) );
   //if( f==fp || d_sub_quant_inst_trie[fp].addInstMatch( d_qe, fp, d_sub_quant_inst[ f ], true ) ){//*
@@ -699,7 +694,7 @@ void ModelEngineBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f )
 }
 
 
-int ModelEngineBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
+int QModelBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
   int addedLemmas = 0;
   if( d_quant_sat.find( f )==d_quant_sat.end() ){
     Node fp = d_sub_quant_parent.find( f )==d_sub_quant_parent.end() ? f : d_sub_quant_parent[f];
@@ -816,7 +811,7 @@ Node mkAndSelectionFormula( Node n1, Node n2 ){
 
 //if possible, returns a formula n' such that n' => ( n <=> polarity ), and n' is true in the current context,
 //   and NULL otherwise
-Node ModelEngineBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, int useOption ){
+Node QModelBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, int useOption ){
   Trace("sel-form-debug") << "Looking for selection formula " << n << " " << polarity << std::endl;
   Node ret;
   if( n.getKind()==NOT ){
@@ -925,7 +920,7 @@ Node ModelEngineBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polar
   return ret;
 }
 
-int ModelEngineBuilderInstGen::getSelectionFormulaScore( Node fn ){
+int QModelBuilderInstGen::getSelectionFormulaScore( Node fn ){
   if( fn.getType().isBoolean() ){
     if( fn.getKind()==APPLY_UF ){
       Node op = fn.getOperator();
@@ -943,7 +938,7 @@ int ModelEngineBuilderInstGen::getSelectionFormulaScore( Node fn ){
   }
 }
 
-void ModelEngineBuilderInstGen::setSelectedTerms( Node s ){
+void QModelBuilderInstGen::setSelectedTerms( Node s ){
 
   //if it is apply uf and has model basis arguments, then mark term as being "selected"
   if( s.getKind()==APPLY_UF ){
@@ -959,7 +954,7 @@ void ModelEngineBuilderInstGen::setSelectedTerms( Node s ){
   }
 }
 
-bool ModelEngineBuilderInstGen::isUsableSelectionLiteral( Node n, int useOption ){
+bool QModelBuilderInstGen::isUsableSelectionLiteral( Node n, int useOption ){
   if( n.getKind()==FORALL ){
     return false;
   }else if( n.getKind()!=APPLY_UF ){
@@ -978,7 +973,7 @@ bool ModelEngineBuilderInstGen::isUsableSelectionLiteral( Node n, int useOption 
   return true;
 }
 
-void ModelEngineBuilderInstGen::getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f ){
+void QModelBuilderInstGen::getParentQuantifierMatch( InstMatch& mp, Node fp, InstMatch& m, Node f ){
   if( f!=fp ){
     //std::cout << "gpqm " << fp << " " << f << " " << m << std::endl;
     //std::cout << "     " << fp[0].getNumChildren() << " " << f[0].getNumChildren() << std::endl;
@@ -1002,7 +997,7 @@ void ModelEngineBuilderInstGen::getParentQuantifierMatch( InstMatch& mp, Node fp
   }
 }
 
-void ModelEngineBuilderInstGen::constructModelUf( FirstOrderModel* fm, Node op ){
+void QModelBuilderInstGen::constructModelUf( FirstOrderModel* fm, Node op ){
   bool setDefaultVal = true;
   Node defaultTerm = d_qe->getTermDatabase()->getModelBasisOpTerm( op );
   //set the values in the model
@@ -1030,6 +1025,6 @@ void ModelEngineBuilderInstGen::constructModelUf( FirstOrderModel* fm, Node op )
   d_uf_model_constructed[op] = true;
 }
 
-bool ModelEngineBuilderInstGen::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
+bool QModelBuilderInstGen::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
   return d_child_sub_quant_inst_trie[f].existsInstMatch( d_qe, f, m, modEq, true );
 }

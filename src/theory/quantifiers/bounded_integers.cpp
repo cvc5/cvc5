@@ -138,21 +138,21 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
   if( lit.getKind()==GEQ && lit[0].getType().isInteger() ){
     std::map< Node, Node > msum;
     if (QuantArith::getMonomialSumLit( lit, msum )){
-      Trace("bound-integers") << "Literal (polarity = " << pol << ") " << lit << " is monomial sum : " << std::endl;
+      Trace("bound-integers-debug") << "Literal (polarity = " << pol << ") " << lit << " is monomial sum : " << std::endl;
       for(std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-        Trace("bound-integers") << "  ";
+        Trace("bound-integers-debug") << "  ";
         if( !it->second.isNull() ){
-          Trace("bound-integers") << it->second;
+          Trace("bound-integers-debug") << it->second;
           if( !it->first.isNull() ){
-            Trace("bound-integers") << " * ";
+            Trace("bound-integers-debug") << " * ";
           }
         }
         if( !it->first.isNull() ){
-          Trace("bound-integers") << it->first;
+          Trace("bound-integers-debug") << it->first;
         }
-        Trace("bound-integers") << std::endl;
+        Trace("bound-integers-debug") << std::endl;
       }
-      Trace("bound-integers") << std::endl;
+      Trace("bound-integers-debug") << std::endl;
       for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
         if ( !it->first.isNull() && it->first.getKind()==BOUND_VARIABLE ){
           Node veq;
@@ -170,11 +170,11 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
               }
               veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
             }
-            Trace("bound-integers") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
+            Trace("bound-integers-debug") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
             Node bv = n1.getKind()==BOUND_VARIABLE ? n1 : n2;
             if( !isBound( f, bv ) ){
               if( !hasNonBoundVar( f, n1.getKind()==BOUND_VARIABLE ? n2 : n1 ) ) {
-                Trace("bound-integers") << "The bound is relevant." << std::endl;
+                Trace("bound-integers-debug") << "The bound is relevant." << std::endl;
                 d_bounds[n1.getKind()==BOUND_VARIABLE ? 0 : 1][f][bv] = (n1.getKind()==BOUND_VARIABLE ? n2 : n1);
               }
             }

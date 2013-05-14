@@ -72,12 +72,11 @@ public:
 };
 
 
-class FullModelChecker
+class FullModelChecker : public QModelBuilder
 {
-private:
+protected:
   Node d_true;
   Node d_false;
-  QuantifiersEngine* d_qe;
   std::map<TypeNode, std::map< Node, int > > d_rep_ids;
   std::map<TypeNode, Node > d_model_basis_rep;
   std::map<Node, Def * > d_models;
@@ -121,26 +120,27 @@ private:
   void mkCondVec( Node n, std::vector< Node > & cond );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
 public:
-  FullModelChecker( QuantifiersEngine* qe );
+  FullModelChecker( context::Context* c, QuantifiersEngine* qe );
   ~FullModelChecker(){}
 
   int getVariableId(Node f, Node n) { return d_quant_var_id[f][n]; }
   bool isStar(Node n);
-  Node getStar(TypeNode tn) { return d_type_star[tn]; }
+  Node getStar(TypeNode tn);
+  Node getSomeDomainElement(FirstOrderModel * fm, TypeNode tn);
   bool isModelBasisTerm(Node n);
   Node getModelBasisTerm(TypeNode tn);
-  void reset(FirstOrderModel * fm);
   Def * getModel(FirstOrderModel * fm, Node op);
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
-  int exhaustiveInstantiate(FirstOrderModel * fm, Node f, int effort);
-  bool hasStarExceptions( Node f ) { return !d_star_insts[f].empty(); }
+  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas );
 
-  bool isActive();
   bool useSimpleModels();
   Node getFunctionValue(FirstOrderModel * fm, Node op, const char* argPrefix );
+
+  /** process build model */
+  void processBuildModel(TheoryModel* m, bool fullModel);
 };
 
 }
