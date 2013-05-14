@@ -22,5 +22,11 @@ option bitvectorCoreSolver --bv-core-solver bool
 
 option bvToBool --bv-to-bool bool
  lift bit-vectors of size 1 to booleans when possible
+
+option bvPropagate --bv-propagate bool :default true
+ use bit-vector propagation in the bit-blaster
+
+option bvEquality --bv-eq bool :default true
+ use the equality engine for the bit-vector theory
  
 endmodule

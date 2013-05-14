@@ -49,10 +49,11 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c)
   {
-    SubtheorySolver* core_solver = new CoreSolver(c, this); 
-    d_subtheories.push_back(core_solver);
-    d_subtheoryMap[SUB_CORE] = core_solver;
-
+    if (options::bvEquality()) {
+      SubtheorySolver* core_solver = new CoreSolver(c, this); 
+      d_subtheories.push_back(core_solver);
+      d_subtheoryMap[SUB_CORE] = core_solver;
+    }
     if (options::bitvectorInequalitySolver()) {
       SubtheorySolver* ineq_solver = new InequalitySolver(c, this); 
       d_subtheories.push_back(ineq_solver);
@@ -366,7 +367,7 @@ Node TheoryBV::explain(TNode node) {
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
-  if (!options::bitvectorEagerBitblast() && d_useEqualityEngine) {
+  if (!options::bitvectorEagerBitblast() && options::bvEquality()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->addSharedTerm(t);
     }

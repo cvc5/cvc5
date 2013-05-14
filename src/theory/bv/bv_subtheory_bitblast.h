@@ -47,6 +47,7 @@ class BitblastSolver : public SubtheorySolver {
   context::CDO<bool> d_validModelCache;
   Node getModelValueRec(TNode node);
 
+  bool  d_useSatPropagation; 
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();

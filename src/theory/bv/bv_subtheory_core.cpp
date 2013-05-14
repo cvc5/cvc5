@@ -37,40 +37,38 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_isCoreTheory(c, true),
     d_reasons(c)
 {
-  if (d_useEqualityEngine) {
 
-    // The kinds we are treating as function application in congruence
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_OR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NAND);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XNOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT, true);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UREM);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SDIV);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SREM);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SMOD);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SHL);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_LSHR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ASHR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGE);
-  }
+  // The kinds we are treating as function application in congruence
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_OR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NAND);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XNOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UREM);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SDIV);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SREM);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SMOD);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SHL);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_LSHR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ASHR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGE);
 }
 
 CoreSolver::~CoreSolver() {
@@ -81,9 +79,6 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 }
 
 void CoreSolver::preRegister(TNode node) {
-  if (!d_useEqualityEngine)
-    return;
-
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
       if (options::bitvectorCoreSolver()) {
@@ -291,7 +286,7 @@ void CoreSolver::buildModel() {
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // Notify the equality engine 
-  if (d_useEqualityEngine && !d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
+  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;

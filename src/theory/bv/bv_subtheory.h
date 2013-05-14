@@ -55,9 +55,6 @@ inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
 }
 
 
-const bool d_useEqualityEngine = true;
-const bool d_useSatPropagation = true;
-
 // forward declaration 
 class TheoryBV; 
 

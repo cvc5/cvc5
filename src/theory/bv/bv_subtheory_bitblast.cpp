@@ -34,7 +34,8 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_bitblaster(new Bitblaster(c, bv)),
     d_bitblastQueue(c),
     d_statistics(),
-    d_validModelCache(c, true)
+    d_validModelCache(c, true),
+    d_useSatPropagation(options::bvPropagate())
 {}
 
 BitblastSolver::~BitblastSolver() {
