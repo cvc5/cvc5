@@ -116,8 +116,14 @@ public:
 /* Begin the declaration of GLPK specific code. */
 #ifdef CVC4_USE_GLPK
 extern "C" {
-#include <glpk.h>
-}
+/* Sometimes the header is in a subdirectory glpk/, sometimes not.
+ * The configure script figures it out. */
+#ifdef HAVE_GLPK_GLPK_H
+#  include <glpk/glpk.h>
+#else /* HAVE_GLPK_GLPK_H */
+#  include <glpk.h>
+#endif /* HAVE_GLPK_GLPK_H */
+}/* extern "C" */
 
 namespace CVC4 {
 namespace theory {
