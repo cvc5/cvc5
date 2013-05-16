@@ -2,7 +2,11 @@
 #include "expr/type.h"
 %}
 
+#ifdef SWIGPYTHON
+%rename(doApply) CVC4::TypeHashFunction::operator()(const CVC4::Type&) const;
+#else /* SWIGPYTHON */
 %rename(apply) CVC4::TypeHashFunction::operator()(const CVC4::Type&) const;
+#endif /* SWIGPYTHON */
 
 %ignore CVC4::operator<<(std::ostream&, const Type&);
 

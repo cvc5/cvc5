@@ -10,6 +10,17 @@ AC_DEFUN([CVC4_SUPPORTED_BINDINGS],
 AC_DEFUN([CVC4_ALL_BINDINGS],
 [c,java,csharp,perl,php,python,ruby,tcl,ocaml])
 
+# CVC4_NEED_SWIG_FOR_BINDING
+# --------------------------
+# Used by CVC4_CHECK_BINDINGS to ensure swig is available (and correct
+# version) when a binding needs it
+AC_DEFUN([CVC4_NEED_SWIG_FOR_BINDING], [
+  if test -z "$SWIG"; then
+    AC_MSG_WARN([swig not available or incompatible version; $binding bindings require swig 2.0.0 or later])
+    binding_error=yes
+  fi
+])
+
 # CVC4_CHECK_BINDINGS(DEFAULT_BINDINGS_LIST)
 # ------------------------------------------
 # Check for user language binding preferences, and what is possible
@@ -41,7 +52,27 @@ else
     AC_CHECK_PROG(SWIG, "$SWIG", "$SWIG", [])
   fi
   if test -z "$SWIG"; then
+    AC_MSG_RESULT([not found])
     AC_MSG_WARN([language bindings for native API disabled, swig not found.])
+  else
+    AC_MSG_CHECKING([compatibility with version of swig])
+    cat > conftest.c << _CVC4EOF
+%module conftest
+#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x020000
+#error bad version
+#endif
+_CVC4EOF
+    if $SWIG conftest.c >&AS_MESSAGE_LOG_FD 2>&1; then
+      AC_MSG_RESULT([compatible version])
+    else
+      AC_MSG_RESULT([incompatible version])
+      AC_MSG_WARN([swig version 2.0.0 or later is required to build native API bindings])
+      SWIG=
+      echo '===Failed swig input was:' >&AS_MESSAGE_LOG_FD
+      cat conftest.c >&AS_MESSAGE_LOG_FD
+      echo '===End failed swig input' >&AS_MESSAGE_LOG_FD
+      rm -f conftest.c
+    fi
   fi
 fi
 
@@ -78,30 +109,35 @@ for binding in $try_bindings; do
       AC_MSG_RESULT([C support will be built]);;
     java)
       AC_MSG_RESULT([Java support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(JAVA_CPPFLAGS, [flags to pass to compiler when building Java bindings])
       CPPFLAGS="$CPPFLAGS $JAVA_CPPFLAGS"
       AC_CHECK_HEADER([jni.h], [cvc4_build_java_bindings=yes], [binding_error=yes])
       ;;
     csharp)
       AC_MSG_RESULT([[C# support will be built]])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(CSHARP_CPPFLAGS, [flags to pass to compiler when building C# bindings])
       CPPFLAGS="$CPPFLAGS $CSHARP_CPPFLAGS"
       cvc4_build_csharp_bindings=yes
       ;;
     perl)
       AC_MSG_RESULT([perl support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(PERL_CPPFLAGS, [flags to pass to compiler when building perl bindings])
       CPPFLAGS="$CPPFLAGS $PERL_CPPFLAGS"
       AC_CHECK_HEADER([EXTERN.h], [cvc4_build_perl_bindings=yes], [binding_error=yes])
       ;;
     php)
       AC_MSG_RESULT([php support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(PHP_CPPFLAGS, [flags to pass to compiler when building PHP bindings])
       CPPFLAGS="$CPPFLAGS $PHP_CPPFLAGS"
       AC_CHECK_HEADER([zend.h], [cvc4_build_php_bindings=yes], [binding_error=yes])
       ;;
     python)
       AC_MSG_RESULT([python support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AM_PATH_PYTHON([2.5], [cvc4_build_python_bindings=yes], [binding_error=yes])
       AC_ARG_VAR([PYTHON_INCLUDE], [Include flags for python, bypassing python-config])
       AC_ARG_VAR([PYTHON_CONFIG], [Path to python-config])
@@ -122,18 +158,21 @@ for binding in $try_bindings; do
       ;;
     ruby)
       AC_MSG_RESULT([ruby support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(RUBY_CPPFLAGS, [flags to pass to compiler when building ruby bindings])
       CPPFLAGS="$CPPFLAGS $RUBY_CPPFLAGS"
       AC_CHECK_HEADER([ruby.h], [cvc4_build_ruby_bindings=yes], [binding_error=yes])
       ;;
     tcl)
       AC_MSG_RESULT([tcl support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(TCL_CPPFLAGS, [flags to pass to compiler when building tcl bindings])
       CPPFLAGS="$CPPFLAGS $TCL_CPPFLAGS"
       AC_CHECK_HEADER([tcl.h], [cvc4_build_tcl_bindings=yes], [binding_error=yes])
       ;;
     ocaml)
       AC_MSG_RESULT([OCaml support will be built])
+      CVC4_NEED_SWIG_FOR_BINDING
       AC_ARG_VAR(TCL_CPPFLAGS, [flags to pass to compiler when building OCaml bindings])
       CPPFLAGS="$CPPFLAGS $OCAML_CPPFLAGS"
       AC_CHECK_HEADER([caml/misc.h], [cvc4_build_ocaml_bindings=yes], [binding_error=yes])
