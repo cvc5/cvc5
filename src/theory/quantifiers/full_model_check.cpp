@@ -163,7 +163,7 @@ void Def::simplify(FullModelChecker * m) {
   d_et.reset();
   for (unsigned i=0; i<d_status.size(); i++) {
     if( d_status[i]!=status_redundant ){
-      addEntry(m, d_cond[i], d_value[i]);
+      addEntry(m, cond[i], value[i]);
     }
   }
   d_status.clear();
