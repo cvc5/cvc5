@@ -3313,7 +3313,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   }
 
   if(d_assignments == NULL) {
-    return SExpr();
+    return SExpr(vector<SExpr>());
   }
 
   vector<SExpr> sexprs;
