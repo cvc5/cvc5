@@ -42,6 +42,7 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
+	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
