@@ -314,7 +314,9 @@ command returns [CVC4::Command* cmd = NULL]
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->pushScope();
-            seq->addCommand(new PushCommand());
+            Command* c = new PushCommand();
+            c->setMuted(n > 1);
+            seq->addCommand(c);
           } while(--n > 0);
           cmd = seq;
         }
@@ -337,7 +339,9 @@ command returns [CVC4::Command* cmd = NULL]
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->popScope();
-            seq->addCommand(new PopCommand());
+            Command* c = new PopCommand();
+            c->setMuted(n > 1);
+            seq->addCommand(c);
           } while(--n > 0);
           cmd = seq;
         }
