@@ -350,12 +350,12 @@ public:
   /**
    * Set the logic of the script.
    */
-  void setLogic(const std::string& logic) throw(ModalException);
+  void setLogic(const std::string& logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const char* logic) throw(ModalException);
+  void setLogic(const char* logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.

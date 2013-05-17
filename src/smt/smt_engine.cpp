@@ -791,21 +791,21 @@ SmtEngine::~SmtEngine() throw() {
 
 void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
   SmtScope smts(this);
-
   d_logic = logic;
   setLogicInternal();
 }
 
-void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
+void SmtEngine::setLogic(const std::string& s) throw(ModalException, LogicException) {
   SmtScope smts(this);
-
-  setLogic(LogicInfo(s));
+  try {
+    setLogic(LogicInfo(s));
+  } catch(IllegalArgumentException& e) {
+    throw LogicException(e.what());
+  }
 }
 
-void SmtEngine::setLogic(const char* logic) throw(ModalException){
-  SmtScope smts(this);
-
-  setLogic(LogicInfo(string(logic)));
+void SmtEngine::setLogic(const char* logic) throw(ModalException, LogicException) {
+  setLogic(string(logic));
 }
 
 LogicInfo SmtEngine::getLogicInfo() const {
