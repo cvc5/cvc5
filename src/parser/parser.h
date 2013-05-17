@@ -482,6 +482,7 @@ public:
     }
   }
 
+  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
   inline void pushScope() { d_symtab->pushScope(); }
   inline void popScope() { d_symtab->popScope(); }
 
