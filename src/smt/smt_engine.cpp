@@ -3625,6 +3625,11 @@ void SmtEngine::push() throw(ModalException, LogicException) {
     d_needPostsolve = false;
   }
 
+  // The problem isn't really "extended" yet, but this disallows
+  // get-model after a push, simplifying our lives somewhat and
+  // staying symmtric with pop.
+  d_problemExtended = true;
+
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
   Trace("userpushpop") << "SmtEngine: pushed to level "
@@ -3650,6 +3655,14 @@ void SmtEngine::pop() throw(ModalException) {
     d_theoryEngine->postsolve();
     d_needPostsolve = false;
   }
+
+  // The problem isn't really "extended" yet, but this disallows
+  // get-model after a pop, simplifying our lives somewhat.  It might
+  // not be strictly necessary to do so, since the pops occur lazily,
+  // but also it would be weird to have a legally-executed (get-model)
+  // that only returns a subset of the assignment (because the rest
+  // is no longer in scope!).
+  d_problemExtended = true;
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
