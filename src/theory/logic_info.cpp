@@ -241,7 +241,12 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   }
   if(*p != '\0') {
     stringstream err;
-    err << "LogicInfo::setLogicString(): junk (\"" << p << "\") at end of logic string: " << logicString;
+    err << "LogicInfo::setLogicString(): ";
+    if(p == logicString) {
+      err << "cannot parse logic string: " << logicString;
+    } else {
+      err << "junk (\"" << p << "\") at end of logic string: " << logicString;
+    }
     IllegalArgument(logicString, err.str().c_str());
   }
 
