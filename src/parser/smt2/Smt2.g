@@ -284,7 +284,7 @@ command returns [CVC4::Command* cmd = NULL]
     { $cmd = new GetValueCommand(terms); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetAssignmentCommand; }
+    { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[expr, expr2]
@@ -294,13 +294,13 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
   | /* get-assertions */
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetAssertionsCommand; }
+    { cmd = new GetAssertionsCommand(); }
   | /* get-proof */
     GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetProofCommand; }
+    { cmd = new GetProofCommand(); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetUnsatCoreCommand; }
+    { cmd = new GetUnsatCoreCommand(); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -324,12 +324,15 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to PUSH.  Maybe you want (push 1)?");
         } else {
-          cmd = new PushCommand;
+          cmd = new PushCommand();
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
+        if(n > PARSER_STATE->scopeLevel()) {
+          PARSER_STATE->parseError("Attempted to pop above the top stack frame.");
+        }
         if(n == 0) {
           cmd = new EmptyCommand();
         } else if(n == 1) {
@@ -349,11 +352,11 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to POP.  Maybe you want (pop 1)?");
         } else {
-          cmd = new PopCommand;
+          cmd = new PopCommand();
         }
       } )
   | EXIT_TOK
-    { cmd = new QuitCommand; }
+    { cmd = new QuitCommand(); }
 
     /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
@@ -400,7 +403,7 @@ extendedCommand[CVC4::Command*& cmd]
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | /* get model */
     GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetModelCommand; }
+    { cmd = new GetModelCommand(); }
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
       { std::stringstream ss;
