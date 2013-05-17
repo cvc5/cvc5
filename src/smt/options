@@ -24,6 +24,8 @@ common-option produceModels produce-models -m --produce-models bool :default fal
  support the get-value and get-model commands
 option checkModels check-models --check-models bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
+option dumpModels --dump-models bool :default false
+ output models after every SAT/INVALID/UNKNOWN response
 option proof produce-proofs --proof bool :default false :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on proof generation
 # this is just a placeholder for later; it doesn't show up in command-line options listings
