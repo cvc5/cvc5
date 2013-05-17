@@ -1372,7 +1372,7 @@ letDecl
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
       PARSER_STATE->defineVar(name, e);
-      Debug("parser") << "LET[" << PARSER_STATE->getDeclarationLevel() << "]: "
+      Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
                       << " ==>" << " " << e << std::endl;
     }

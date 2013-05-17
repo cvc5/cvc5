@@ -2273,7 +2273,7 @@ void ValidityChecker::popto(int stackLevel) {
 }
 
 int ValidityChecker::scopeLevel() {
-  return d_parserContext->getDeclarationLevel();
+  return d_parserContext->scopeLevel();
 }
 
 void ValidityChecker::pushScope() {
@@ -2287,12 +2287,12 @@ void ValidityChecker::popScope() {
 void ValidityChecker::poptoScope(int scopeLevel) {
   CVC4::CheckArgument(scopeLevel >= 0, scopeLevel,
                       "Cannot pop to a negative scope level %d", scopeLevel);
-  CVC4::CheckArgument(unsigned(scopeLevel) <= d_parserContext->getDeclarationLevel(),
+  CVC4::CheckArgument(unsigned(scopeLevel) <= d_parserContext->scopeLevel(),
                       scopeLevel,
                       "Cannot pop to a scope level higher than the current one!  "
                       "At scope level %u, user requested scope level %d",
-                      d_parserContext->getDeclarationLevel(), scopeLevel);
-  while(unsigned(scopeLevel) < d_parserContext->getDeclarationLevel()) {
+                      d_parserContext->scopeLevel(), scopeLevel);
+  while(unsigned(scopeLevel) < d_parserContext->scopeLevel()) {
     popScope();
   }
 }

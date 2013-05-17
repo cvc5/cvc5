@@ -251,7 +251,7 @@ command returns [CVC4::Command* cmd = NULL]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
-    { PARSER_STATE->pushScope();
+    { PARSER_STATE->pushScope(true);
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
           i != iend;
@@ -297,7 +297,7 @@ command returns [CVC4::Command* cmd = NULL]
         }
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -427,7 +427,7 @@ extendedCommand[CVC4::Command*& cmd]
      * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { /* open a scope to keep the UnresolvedTypes contained */
-      PARSER_STATE->pushScope(); }
+      PARSER_STATE->pushScope(true); }
     LPAREN_TOK 	/* parametric sorts */
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
         sorts.push_back( PARSER_STATE->mkSort(name) ); }
@@ -516,7 +516,7 @@ extendedCommand[CVC4::Command*& cmd]
       sortedVarList[sortedVarNames] RPAREN_TOK
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
-        PARSER_STATE->pushScope();
+        PARSER_STATE->pushScope(true);
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
               sortedVarNames.begin(), iend = sortedVarNames.end();
             i != iend;
@@ -563,7 +563,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       kind = CVC4::kind::RR_REWRITE;
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -604,7 +604,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
   | rewritePropaKind[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -792,7 +792,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | LPAREN_TOK quantOp[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -861,7 +861,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
-    { PARSER_STATE->pushScope(); }
+    { PARSER_STATE->pushScope(true); }
     ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] term[expr, f2] RPAREN_TOK
       // this is a parallel let, so we have to save up all the contributions
       // of the let and define them only later on
@@ -1043,10 +1043,8 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         }
         PARSER_STATE->parseError(ss.str());
       }
-      // check that sexpr is a fresh function symbol
-      // FIXME: this doesn't work if we're in a forall/exists/let, because then the function
-      // we make is in the subscope, and disappears, and can be re-bound with another :named.  :-(
-      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      // check that sexpr is a fresh function symbol, and reserve it
+      PARSER_STATE->reserveSymbolAtAssertionLevel(name);
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
       // bind name to expr with define-fun
@@ -1371,7 +1369,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& p
      * datatypes won't work, because this type will already be
      * "defined" as an unresolved type; don't worry, we check
      * below. */
-  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
+  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
    /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
         t = PARSER_STATE->mkSort(id2);
         params.push_back( t );

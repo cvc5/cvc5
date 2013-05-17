@@ -357,12 +357,17 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_symtab->isBound(name);
+    return d_reservedSymbols.find(name) != d_reservedSymbols.end() || d_symtab->isBound(name);
   case SYM_SORT:
     return d_symtab->isBoundType(name);
   }
   assert(false);//Unhandled(type);
   return false;
+}
+
+void Parser::reserveSymbolAtAssertionLevel(const std::string& varName) {
+  checkDeclaration(varName, CHECK_UNDECLARED, SYM_VARIABLE);
+  d_reservedSymbols.insert(varName);
 }
 
 void Parser::checkDeclaration(const std::string& varName,
