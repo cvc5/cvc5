@@ -822,15 +822,6 @@ void SmtEngine::setLogicInternal() throw() {
 
   d_logic.lock();
 
-  // may need to force uninterpreted functions to be on for non-linear
-  if(((d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ||
-      d_logic.isTheoryEnabled(THEORY_BV)) &&
-     !d_logic.isTheoryEnabled(THEORY_UF)){
-    d_logic = d_logic.getUnlockedCopy();
-    d_logic.enableTheory(THEORY_UF);
-    d_logic.lock();
-  }
-
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
     if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV)) {
@@ -1314,6 +1305,11 @@ Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
   Node divTotalNumDen = nm->mkNode(n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
                                    kind::BITVECTOR_UREM_TOTAL, num, den);
   Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+  if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+    d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+    d_smt.d_logic.enableTheory(THEORY_UF);
+    d_smt.d_logic.lock();
+  }
   return node;
 }
 
@@ -1364,13 +1360,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   }
   case kind::DIVISION: {
     // partial function: division
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_divByZero.isNull()) {
       d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
                                  "partial real division", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -1382,13 +1379,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   case kind::INTS_DIVISION: {
     // partial function: integer div
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_intDivByZero.isNull()) {
       d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
                                     "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -1400,13 +1398,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   case kind::INTS_MODULUS: {
     // partial function: mod
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_modZero.isNull()) {
       d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
                                "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
