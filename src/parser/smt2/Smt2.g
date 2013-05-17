@@ -133,6 +133,41 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
+static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
+  if(closedCache.find(e) != closedCache.end()) {
+    return true;
+  }
+
+  if(e.getKind() == kind::FORALL || e.getKind() == kind::EXISTS || e.getKind() == kind::LAMBDA) {
+    isClosed(e[1], free, closedCache);
+    for(Expr::const_iterator i = e[0].begin(); i != e[0].end(); ++i) {
+      free.erase((*i)[0]);
+    }
+  } else if(e.getKind() == kind::BOUND_VARIABLE) {
+    free.insert(e);
+    return false;
+  } else {
+    if(e.hasOperator()) {
+      isClosed(e.getOperator(), free, closedCache);
+    }
+    for(Expr::const_iterator i = e.begin(); i != e.end(); ++i) {
+      isClosed(*i, free, closedCache);
+    }
+  }
+
+  if(free.empty()) {
+    closedCache.insert(e);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+static inline bool isClosed(Expr e, std::set<Expr>& free) {
+  std::hash_set<Expr, ExprHashFunction> cache;
+  return isClosed(e, free, cache);
+}
+
 }/* parser::postinclude */
 
 /**
@@ -992,9 +1027,25 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
+      if(!sexpr.isKeyword()) {
+        PARSER_STATE->parseError("improperly formed :named annotation");
+      }
       std::string name = sexpr.getValue();
-      // FIXME ensure expr is a closed subterm
+      PARSER_STATE->checkUserSymbol(name);
+      // ensure expr is a closed subterm
+      std::set<Expr> freeVars;
+      if(!isClosed(expr, freeVars)) {
+        assert(!freeVars.empty());
+        std::stringstream ss;
+        ss << ":named annotations can only name terms that are closed; this one contains free variables:";
+        for(std::set<Expr>::const_iterator i = freeVars.begin(); i != freeVars.end(); ++i) {
+          ss << " " << *i;
+        }
+        PARSER_STATE->parseError(ss.str());
+      }
       // check that sexpr is a fresh function symbol
+      // FIXME: this doesn't work if we're in a forall/exists/let, because then the function
+      // we make is in the subscope, and disappears, and can be re-bound with another :named.  :-(
       PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
