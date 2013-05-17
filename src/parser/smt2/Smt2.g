@@ -711,13 +711,27 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
-        expr = EXPR_MANAGER->mkAssociative(kind,args);
+        expr = EXPR_MANAGER->mkAssociative(kind, args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
+      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS ) &&
+                 args.size() > 2 ) {
+        /* left-associative, but CVC4 internally only supports 2 args */
+        expr = args[0];
+        for(size_t i = 1; i < args.size(); ++i) {
+          expr = MK_EXPR(kind, expr, args[i]);
+        }
+      } else if( kind == CVC4::kind::IMPLIES && args.size() > 2 ) {
+        /* right-associative, but CVC4 internally only supports 2 args */
+        expr = args[args.size() - 1];
+        for(size_t i = args.size() - 1; i > 0;) {
+          expr = MK_EXPR(kind, args[--i], expr);
+        }
       } else if( ( kind == CVC4::kind::IFF || kind == CVC4::kind::EQUAL ||
                    kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
                  args.size() > 2 ) {
+        /* "chainable", but CVC4 internally only supports 2 args */
         expr = MK_EXPR(CVC4::kind::CHAIN, MK_CONST(kind), args);
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
