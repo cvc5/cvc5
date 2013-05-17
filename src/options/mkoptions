@@ -666,13 +666,40 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 
   if [ -n "$smtname" ]; then
     if [ "$internal" != - ]; then
-      smt_getoption_handlers="${smt_getoption_handlers}
+      case "$type" in
+      bool) smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExprKeyword(options::$internal() ? \"true\" : \"false\");
+  }";;
+      int|unsigned|int*_t|uint*_t|CVC4::Integer) smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExpr(Integer(options::$internal()));
+  }";;
+      float|double) smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    stringstream ss; ss << std::fixed << options::$internal();
+    return SExpr(Rational::fromDecimal(ss.str()));
+  }";;
+      CVC4::Rational) smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExpr(options::$internal());
+  }";;
+      *) smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     stringstream ss; ss << options::$internal();
     return SExpr(ss.str());
-  }"
+  }";;
+      esac
     fi
 
     if [ "$type" = bool ]; then
