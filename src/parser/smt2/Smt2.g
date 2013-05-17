@@ -1204,6 +1204,9 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         if( numerals.size() != 1 ) {
           PARSER_STATE->parseError("Illegal bitvector type.");
         }
+        if(numerals.front() == 0) {
+          PARSER_STATE->parseError("Illegal bitvector size: 0");
+        }
         t = EXPR_MANAGER->mkBitVectorType(numerals.front());
       } else {
         std::stringstream ss;

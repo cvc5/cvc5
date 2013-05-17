@@ -1184,7 +1184,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
-    { t = EXPR_MANAGER->mkBitVectorType(k); }
+    { if(k == 0) {
+        PARSER_STATE->parseError("Illegal bitvector size: 0");
+      }
+      t = EXPR_MANAGER->mkBitVectorType(k);
+    }
 
     /* basic types */
   | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
