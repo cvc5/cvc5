@@ -1228,11 +1228,9 @@ std::string GetOptionCommand::getFlag() const throw() {
 
 void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    vector<SExpr> v;
-    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
-    v.push_back(smtEngine->getOption(d_flag));
+    SExpr res = smtEngine->getOption(d_flag);
     stringstream ss;
-    ss << SExpr(v);
+    ss << res;
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(UnrecognizedOptionException&) {
