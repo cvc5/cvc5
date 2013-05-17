@@ -1346,6 +1346,8 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
+  | UNTERMINATED_QUOTED_SYMBOL EOF
+    { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
   ;
 
 /**
@@ -1538,6 +1540,9 @@ BVSGE_TOK : 'bvsge';
  */
 QUOTED_SYMBOL
   : '|' ~('|' | '\\')* '|'
+  ;
+UNTERMINATED_QUOTED_SYMBOL
+  : '|' ~('|' | '\\')*
   ;
 
 /**

@@ -462,6 +462,11 @@ public:
     d_input->parseError(msg);
   }
 
+  /** Unexpectedly encountered an EOF */
+  inline void unexpectedEOF(const std::string& msg) throw(ParserException) {
+    d_input->parseError(msg, true);
+  }
+
   /**
    * If we are parsing only, don't raise an exception; if we are not,
    * raise a parse error with the given message.  There is no actual
