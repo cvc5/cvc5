@@ -3,7 +3,10 @@ This file contains a summary of important user-visible changes.
 Changes since 1.2
 =================
 
-* nothing yet
+* We no longer permit model or proof generation if there's been an
+  intervening push/pop.
+* Increased compliance to SMT-LIBv2, numerous bugs and usability issues
+  resolved
 
 Changes since 1.1
 =================

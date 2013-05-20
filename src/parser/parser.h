@@ -126,6 +126,23 @@ class CVC4_PUBLIC Parser {
    */
   SymbolTable* d_symtab;
 
+  /**
+   * The level of the assertions in the declaration scope.  Things declared
+   * after this level are bindings from e.g. a let, a quantifier, or a
+   * lambda.
+   */
+  size_t d_assertionLevel;
+
+  /**
+   * Maintains a list of reserved symbols at the assertion level that might
+   * not occur in our symbol table.  This is necessary to e.g. support the
+   * proper behavior of the :named annotation in SMT-LIBv2 when used under
+   * a let or a quantifier, since inside a let/quant body the declaration
+   * scope is that of the let/quant body, but the defined name should be
+   * reserved at the assertion level.
+   */
+  std::set<std::string> d_reservedSymbols;
+
   /** How many anonymous functions we've created. */
   size_t d_anonymousFunctionCount;
 
@@ -286,6 +303,11 @@ public:
    */
   void checkDeclaration(const std::string& name, DeclarationCheck check,
                         SymbolType type = SYM_VARIABLE) throw(ParserException);
+
+  /**
+   * Reserve a symbol at the assertion level.
+   */
+  void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
    * Checks whether the given name is bound to a function.
@@ -462,6 +484,11 @@ public:
     d_input->parseError(msg);
   }
 
+  /** Unexpectedly encountered an EOF */
+  inline void unexpectedEOF(const std::string& msg) throw(ParserException) {
+    d_input->parseError(msg, true);
+  }
+
   /**
    * If we are parsing only, don't raise an exception; if we are not,
    * raise a parse error with the given message.  There is no actual
@@ -482,9 +509,25 @@ public:
     }
   }
 
+  /**
+   * Gets the current declaration level.
+   */
   inline size_t scopeLevel() const { return d_symtab->getLevel(); }
-  inline void pushScope() { d_symtab->pushScope(); }
-  inline void popScope() { d_symtab->popScope(); }
+
+  inline void pushScope(bool bindingLevel = false) {
+    d_symtab->pushScope();
+    if(!bindingLevel) {
+      d_assertionLevel = scopeLevel();
+    }
+  }
+
+  inline void popScope() {
+    d_symtab->popScope();
+    if(scopeLevel() < d_assertionLevel) {
+      d_assertionLevel = scopeLevel();
+      d_reservedSymbols.clear();
+    }
+  }
 
   /**
    * Set the current symbol table used by this parser.
@@ -525,13 +568,6 @@ public:
 
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
-  }
-
-  /**
-   * Gets the current declaration level.
-   */
-  inline size_t getDeclarationLevel() const throw() {
-    return d_symtab->getLevel();
   }
 
   /**
