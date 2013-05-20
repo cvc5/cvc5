@@ -12,25 +12,27 @@ filename=${file%.*}
 # which case this run script terminates immediately.  Otherwise, this
 # function returns normally.
 function trywith {
-  result="$( ulimit -t "$1";shift;$cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
+  limit=$1; shift;
+  (ulimit -t "$limit";$cvc4 -L tptp --szs-compliant --no-checking --no-interactive --dump-models --produce-models "$@" $bench) 2>/dev/null |
+  (read result;
   case "$result" in
-    sat) echo "SZS Satisfiable for $filename"; exit 0;;
-    unsat) echo "SZS Unsatisfiable for $filename"; exit 0;;
-    conjecture-sat) echo "SZS CounterSatisfiable for $filename"; exit 0;;
-    conjecture-unsat) echo "SZS Theorem for $filename"; exit 0;;
-  esac
-}
-function finishwith {
-  result="$( $cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
-  case "$result" in
-    sat) echo "SZS Satisfiable for $filename"; exit 0;;
-    unsat) echo "SZS Unsatisfiable for $filename"; exit 0;;
-    conjecture-sat) echo "SZS CounterSatisfiable for $filename"; exit 0;;
-    conjecture-unsat) echo "SZS Theorem for $filename"; exit 0;;
-  esac
+    sat) echo "% SZS Satisfiable for $filename";
+         echo "% SZS output start FiniteModel for $filename";
+         cat;
+         echo "% SZS output end FiniteModel for $filename";
+         exit 0;;
+    unsat) echo "% SZS Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "% SZS CounterSatisfiable for $filename";
+                    echo "% SZS output start FiniteModel for $filename";
+                    cat;
+                    echo "% SZS output end FiniteModel for $filename";
+                    exit 0;;
+    conjecture-unsat) echo "% SZS Theorem for $filename"; exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
 
 trywith 30 --finite-model-find --uf-ss-totality
 trywith 30 --finite-model-find --decision=justification --fmf-fmc
 trywith $to --finite-model-find --decision=justification
-echo "SZS GaveUp for $filename"
+echo "% SZS GaveUp for $filename"
