@@ -1311,6 +1311,18 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
+  if(Trace.isOn("lemma-ites")) {
+    Debug("lemma-ites") << "removed ITEs from lemma: " << node << std::endl;
+    Debug("lemma-ites") << " + now have the following "
+                        << additionalLemmas.size() << " lemma(s):" << std::endl;
+    for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
+        i != additionalLemmas.end();
+        ++i) {
+      Debug("lemma-ites") << " + " << *i << std::endl;
+    }
+    Debug("lemma-ites") << std::endl;
+  }
+
   // assert to prop engine
   d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
