@@ -42,6 +42,7 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
   d_input(input),
   d_symtabAllocated(),
   d_symtab(&d_symtabAllocated),
+  d_assertionLevel(0),
   d_anonymousFunctionCount(0),
   d_done(false),
   d_checksEnabled(true),
