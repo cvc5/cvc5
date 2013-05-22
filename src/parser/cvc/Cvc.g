@@ -1184,7 +1184,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
-    { t = EXPR_MANAGER->mkBitVectorType(k); }
+    { if(k == 0) {
+        PARSER_STATE->parseError("Illegal bitvector size: 0");
+      }
+      t = EXPR_MANAGER->mkBitVectorType(k);
+    }
 
     /* basic types */
   | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
@@ -1368,7 +1372,7 @@ letDecl
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
       PARSER_STATE->defineVar(name, e);
-      Debug("parser") << "LET[" << PARSER_STATE->getDeclarationLevel() << "]: "
+      Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
                       << " ==>" << " " << e << std::endl;
     }

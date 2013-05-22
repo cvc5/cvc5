@@ -30,7 +30,11 @@ void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
 {
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
     std::vector<Node> quantVar;
-    output[i] = run(output[i], output, iteSkolemMap, quantVar);
+    // Do this in two steps to avoid Node problems(?)
+    // Appears related to bug 512, splitting this into two lines
+    // fixes the bug on clang on Mac OS
+    Node itesRemoved = run(output[i], output, iteSkolemMap, quantVar);
+    output[i] = itesRemoved;
   }
 }
 

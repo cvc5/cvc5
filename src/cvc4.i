@@ -54,9 +54,11 @@ using namespace CVC4;
 #include "expr/expr.h"
 #include "util/datatype.h"
 #include "expr/command.h"
-#include "bindings/java_stream_adapters.h"
 
+#ifdef SWIGJAVA
+#include "bindings/java_stream_adapters.h"
 std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
+#endif
 %}
 
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;

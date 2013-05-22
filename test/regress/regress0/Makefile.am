@@ -1,5 +1,5 @@
-SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision
-DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision
+SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision fmf
+DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision fmf
 
 BINARY = cvc4
 LOG_COMPILER = @srcdir@/../run_regression
@@ -42,6 +42,7 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
+	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
@@ -114,6 +115,7 @@ TPTP_TESTS = \
 
 # Regression tests derived from bug reports
 BUG_TESTS = \
+	GEO123+1.minimized.smt2 \
 	smt2output.smt2 \
 	bug32.cvc \
 	bug49.smt \
@@ -149,7 +151,8 @@ BUG_TESTS = \
 	bug484.smt2 \
 	bug486.cvc \
 	bug497.cvc \
-	bug507.smt2
+	bug507.smt2 \
+	bug512.minimized.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

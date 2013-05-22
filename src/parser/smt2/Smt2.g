@@ -133,6 +133,41 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
+static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
+  if(closedCache.find(e) != closedCache.end()) {
+    return true;
+  }
+
+  if(e.getKind() == kind::FORALL || e.getKind() == kind::EXISTS || e.getKind() == kind::LAMBDA) {
+    isClosed(e[1], free, closedCache);
+    for(Expr::const_iterator i = e[0].begin(); i != e[0].end(); ++i) {
+      free.erase((*i)[0]);
+    }
+  } else if(e.getKind() == kind::BOUND_VARIABLE) {
+    free.insert(e);
+    return false;
+  } else {
+    if(e.hasOperator()) {
+      isClosed(e.getOperator(), free, closedCache);
+    }
+    for(Expr::const_iterator i = e.begin(); i != e.end(); ++i) {
+      isClosed(*i, free, closedCache);
+    }
+  }
+
+  if(free.empty()) {
+    closedCache.insert(e);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+static inline bool isClosed(Expr e, std::set<Expr>& free) {
+  std::hash_set<Expr, ExprHashFunction> cache;
+  return isClosed(e, free, cache);
+}
+
 }/* parser::postinclude */
 
 /**
@@ -216,7 +251,7 @@ command returns [CVC4::Command* cmd = NULL]
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     LPAREN_TOK symbolList[names,CHECK_NONE,SYM_SORT] RPAREN_TOK
-    { PARSER_STATE->pushScope();
+    { PARSER_STATE->pushScope(true);
       for(std::vector<std::string>::const_iterator i = names.begin(),
             iend = names.end();
           i != iend;
@@ -262,7 +297,7 @@ command returns [CVC4::Command* cmd = NULL]
         }
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -284,7 +319,7 @@ command returns [CVC4::Command* cmd = NULL]
     { $cmd = new GetValueCommand(terms); }
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetAssignmentCommand; }
+    { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[expr, expr2]
@@ -294,13 +329,13 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
   | /* get-assertions */
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetAssertionsCommand; }
+    { cmd = new GetAssertionsCommand(); }
   | /* get-proof */
     GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetProofCommand; }
+    { cmd = new GetProofCommand(); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetUnsatCoreCommand; }
+    { cmd = new GetUnsatCoreCommand(); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -314,7 +349,9 @@ command returns [CVC4::Command* cmd = NULL]
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->pushScope();
-            seq->addCommand(new PushCommand());
+            Command* c = new PushCommand();
+            c->setMuted(n > 1);
+            seq->addCommand(c);
           } while(--n > 0);
           cmd = seq;
         }
@@ -322,12 +359,15 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to PUSH.  Maybe you want (push 1)?");
         } else {
-          cmd = new PushCommand;
+          cmd = new PushCommand();
         }
       } )
   | POP_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
       { unsigned n = AntlrInput::tokenToUnsigned(k);
+        if(n > PARSER_STATE->scopeLevel()) {
+          PARSER_STATE->parseError("Attempted to pop above the top stack frame.");
+        }
         if(n == 0) {
           cmd = new EmptyCommand();
         } else if(n == 1) {
@@ -337,7 +377,9 @@ command returns [CVC4::Command* cmd = NULL]
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->popScope();
-            seq->addCommand(new PopCommand());
+            Command* c = new PopCommand();
+            c->setMuted(n > 1);
+            seq->addCommand(c);
           } while(--n > 0);
           cmd = seq;
         }
@@ -345,11 +387,11 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to POP.  Maybe you want (pop 1)?");
         } else {
-          cmd = new PopCommand;
+          cmd = new PopCommand();
         }
       } )
   | EXIT_TOK
-    { cmd = new QuitCommand; }
+    { cmd = new QuitCommand(); }
 
     /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
@@ -385,7 +427,7 @@ extendedCommand[CVC4::Command*& cmd]
      * --smtlib2 compliance mode. */
   : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { /* open a scope to keep the UnresolvedTypes contained */
-      PARSER_STATE->pushScope(); }
+      PARSER_STATE->pushScope(true); }
     LPAREN_TOK 	/* parametric sorts */
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
         sorts.push_back( PARSER_STATE->mkSort(name) ); }
@@ -396,7 +438,7 @@ extendedCommand[CVC4::Command*& cmd]
       cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   | /* get model */
     GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetModelCommand; }
+    { cmd = new GetModelCommand(); }
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
       { std::stringstream ss;
@@ -474,7 +516,7 @@ extendedCommand[CVC4::Command*& cmd]
       sortedVarList[sortedVarNames] RPAREN_TOK
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
-        PARSER_STATE->pushScope();
+        PARSER_STATE->pushScope(true);
         for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
               sortedVarNames.begin(), iend = sortedVarNames.end();
             i != iend;
@@ -521,7 +563,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       kind = CVC4::kind::RR_REWRITE;
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -562,7 +604,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
   | rewritePropaKind[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -704,13 +746,27 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
     	/* Special treatment for associative operators with lots of children */
-        expr = EXPR_MANAGER->mkAssociative(kind,args);
+        expr = EXPR_MANAGER->mkAssociative(kind, args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
+      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS ) &&
+                 args.size() > 2 ) {
+        /* left-associative, but CVC4 internally only supports 2 args */
+        expr = args[0];
+        for(size_t i = 1; i < args.size(); ++i) {
+          expr = MK_EXPR(kind, expr, args[i]);
+        }
+      } else if( kind == CVC4::kind::IMPLIES && args.size() > 2 ) {
+        /* right-associative, but CVC4 internally only supports 2 args */
+        expr = args[args.size() - 1];
+        for(size_t i = args.size() - 1; i > 0;) {
+          expr = MK_EXPR(kind, args[--i], expr);
+        }
       } else if( ( kind == CVC4::kind::IFF || kind == CVC4::kind::EQUAL ||
                    kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
                  args.size() > 2 ) {
+        /* "chainable", but CVC4 internally only supports 2 args */
         expr = MK_EXPR(CVC4::kind::CHAIN, MK_CONST(kind), args);
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
@@ -736,7 +792,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | LPAREN_TOK quantOp[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
-      PARSER_STATE->pushScope();
+      PARSER_STATE->pushScope(true);
       for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
             sortedVarNames.begin(), iend = sortedVarNames.end();
           i != iend;
@@ -805,7 +861,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
-    { PARSER_STATE->pushScope(); }
+    { PARSER_STATE->pushScope(true); }
     ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] term[expr, f2] RPAREN_TOK
       // this is a parallel let, so we have to save up all the contributions
       // of the let and define them only later on
@@ -971,10 +1027,24 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
+      if(!sexpr.isKeyword()) {
+        PARSER_STATE->parseError("improperly formed :named annotation");
+      }
       std::string name = sexpr.getValue();
-      // FIXME ensure expr is a closed subterm
-      // check that sexpr is a fresh function symbol
-      PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED, SYM_VARIABLE);
+      PARSER_STATE->checkUserSymbol(name);
+      // ensure expr is a closed subterm
+      std::set<Expr> freeVars;
+      if(!isClosed(expr, freeVars)) {
+        assert(!freeVars.empty());
+        std::stringstream ss;
+        ss << ":named annotations can only name terms that are closed; this one contains free variables:";
+        for(std::set<Expr>::const_iterator i = freeVars.begin(); i != freeVars.end(); ++i) {
+          ss << " " << *i;
+        }
+        PARSER_STATE->parseError(ss.str());
+      }
+      // check that sexpr is a fresh function symbol, and reserve it
+      PARSER_STATE->reserveSymbolAtAssertionLevel(name);
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
       // bind name to expr with define-fun
@@ -1200,6 +1270,9 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         if( numerals.size() != 1 ) {
           PARSER_STATE->parseError("Illegal bitvector type.");
         }
+        if(numerals.front() == 0) {
+          PARSER_STATE->parseError("Illegal bitvector size: 0");
+        }
         t = EXPR_MANAGER->mkBitVectorType(numerals.front());
       } else {
         std::stringstream ss;
@@ -1271,6 +1344,8 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
+  | UNTERMINATED_QUOTED_SYMBOL EOF
+    { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
   ;
 
 /**
@@ -1294,7 +1369,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& p
      * datatypes won't work, because this type will already be
      * "defined" as an unresolved type; don't worry, we check
      * below. */
-  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
+  : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
    /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
         t = PARSER_STATE->mkSort(id2);
         params.push_back( t );
@@ -1463,6 +1538,9 @@ BVSGE_TOK : 'bvsge';
  */
 QUOTED_SYMBOL
   : '|' ~('|' | '\\')* '|'
+  ;
+UNTERMINATED_QUOTED_SYMBOL
+  : '|' ~('|' | '\\')*
   ;
 
 /**

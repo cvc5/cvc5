@@ -795,17 +795,17 @@ const std::vector<Expr>& GetValueCommand::getTerms() const throw() {
 
 void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    vector<Node> result;
-    NodeManager* nm = NodeManager::fromExprManager(smtEngine->getExprManager());
+    vector<Expr> result;
+    ExprManager* em = smtEngine->getExprManager();
+    NodeManager* nm = NodeManager::fromExprManager(em);
     for(std::vector<Expr>::const_iterator i = d_terms.begin(); i != d_terms.end(); ++i) {
       Assert(nm == NodeManager::fromExprManager((*i).getExprManager()));
       smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(options::expandDefinitions() ? smtEngine->expandDefinitions(*i) : *i);
       Node value = Node::fromExpr(smtEngine->getValue(*i));
-      result.push_back(nm->mkNode(kind::SEXPR, request, value));
+      result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
     }
-    Node n = nm->mkNode(kind::SEXPR, result);
-    d_result = nm->toExpr(n);
+    d_result = em->mkExpr(kind::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -1228,11 +1228,9 @@ std::string GetOptionCommand::getFlag() const throw() {
 
 void GetOptionCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    vector<SExpr> v;
-    v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
-    v.push_back(smtEngine->getOption(d_flag));
+    SExpr res = smtEngine->getOption(d_flag);
     stringstream ss;
-    ss << SExpr(v);
+    ss << res;
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
   } catch(UnrecognizedOptionException&) {

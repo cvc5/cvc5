@@ -1376,7 +1376,7 @@ Constraint TheoryArithPrivate::constraintFromFactQueue(){
   Assert(!done());
   TNode assertion = get();
 
-  if( d_quantEngine && d_quantEngine->getBoundedIntegers() ){
+  if( options::finiteModelFind() && d_quantEngine && d_quantEngine->getBoundedIntegers() ){
     d_quantEngine->getBoundedIntegers()->assertNode(assertion);
   }
 

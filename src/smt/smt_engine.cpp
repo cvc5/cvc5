@@ -792,21 +792,21 @@ SmtEngine::~SmtEngine() throw() {
 
 void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
   SmtScope smts(this);
-
   d_logic = logic;
   setLogicInternal();
 }
 
-void SmtEngine::setLogic(const std::string& s) throw(ModalException) {
+void SmtEngine::setLogic(const std::string& s) throw(ModalException, LogicException) {
   SmtScope smts(this);
-
-  setLogic(LogicInfo(s));
+  try {
+    setLogic(LogicInfo(s));
+  } catch(IllegalArgumentException& e) {
+    throw LogicException(e.what());
+  }
 }
 
-void SmtEngine::setLogic(const char* logic) throw(ModalException){
-  SmtScope smts(this);
-
-  setLogic(LogicInfo(string(logic)));
+void SmtEngine::setLogic(const char* logic) throw(ModalException, LogicException) {
+  setLogic(string(logic));
 }
 
 LogicInfo SmtEngine::getLogicInfo() const {
@@ -822,15 +822,6 @@ void SmtEngine::setLogicInternal() throw() {
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already finished initializing for this run");
 
   d_logic.lock();
-
-  // may need to force uninterpreted functions to be on for non-linear
-  if(((d_logic.isTheoryEnabled(THEORY_ARITH) && !d_logic.isLinear()) ||
-      d_logic.isTheoryEnabled(THEORY_BV)) &&
-     !d_logic.isTheoryEnabled(THEORY_UF)){
-    d_logic = d_logic.getUnlockedCopy();
-    d_logic.enableTheory(THEORY_UF);
-    d_logic.lock();
-  }
 
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
@@ -1322,6 +1313,11 @@ Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
   Node divTotalNumDen = nm->mkNode(n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
                                    kind::BITVECTOR_UREM_TOTAL, num, den);
   Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+  if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+    d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+    d_smt.d_logic.enableTheory(THEORY_UF);
+    d_smt.d_logic.lock();
+  }
   return node;
 }
 
@@ -1372,13 +1368,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   }
   case kind::DIVISION: {
     // partial function: division
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_divByZero.isNull()) {
       d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
                                  "partial real division", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -1390,13 +1387,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   case kind::INTS_DIVISION: {
     // partial function: integer div
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_intDivByZero.isNull()) {
       d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
                                     "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -1408,13 +1406,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   case kind::INTS_MODULUS: {
     // partial function: mod
-    if(d_smt.d_logic.isLinear()) {
-      node = n;
-      break;
-    }
     if(d_modZero.isNull()) {
       d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
                                "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_UF);
+        d_smt.d_logic.lock();
+      }
     }
     TNode num = n[0], den = n[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
@@ -3327,7 +3326,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   }
 
   if(d_assignments == NULL) {
-    return SExpr();
+    return SExpr(vector<SExpr>());
   }
 
   vector<SExpr> sexprs;
@@ -3639,6 +3638,11 @@ void SmtEngine::push() throw(ModalException, LogicException) {
     d_needPostsolve = false;
   }
 
+  // The problem isn't really "extended" yet, but this disallows
+  // get-model after a push, simplifying our lives somewhat and
+  // staying symmtric with pop.
+  d_problemExtended = true;
+
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
   Trace("userpushpop") << "SmtEngine: pushed to level "
@@ -3664,6 +3668,14 @@ void SmtEngine::pop() throw(ModalException) {
     d_theoryEngine->postsolve();
     d_needPostsolve = false;
   }
+
+  // The problem isn't really "extended" yet, but this disallows
+  // get-model after a pop, simplifying our lives somewhat.  It might
+  // not be strictly necessary to do so, since the pops occur lazily,
+  // but also it would be weird to have a legally-executed (get-model)
+  // that only returns a subset of the assignment (because the rest
+  // is no longer in scope!).
+  d_problemExtended = true;
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());

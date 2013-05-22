@@ -19,6 +19,8 @@
 
 #include "main/main.h"
 
+#include "smt/options.h"
+
 namespace CVC4 {
 namespace main {
 
@@ -63,6 +65,17 @@ bool CommandExecutor::doCommandSingleton(Command *cmd)
     status = smtEngineInvoke(&d_smtEngine, cmd, d_options[options::out]);
   } else {
     status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
+  }
+  //dump the model if option is set
+  if(status && d_options[options::produceModels] && d_options[options::dumpModels]) {
+    CheckSatCommand *cs = dynamic_cast<CheckSatCommand*>(cmd);
+    if(cs != NULL) {
+      if(cs->getResult().asSatisfiabilityResult().isSat() == Result::SAT ||
+         (cs->getResult().isUnknown() && cs->getResult().whyUnknown() == Result::INCOMPLETE) ){
+        Command * gm = new GetModelCommand;
+        status = doCommandSingleton(gm);
+      }
+    }
   }
   return status;
 }

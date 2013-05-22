@@ -189,9 +189,9 @@ class CVC4_PUBLIC SmtEngine {
   bool d_fullyInited;
 
   /**
-   * Whether or not we have added any assertions/declarations/definitions
-   * since the last checkSat/query (and therefore we're not responsible
-   * for an assignment).
+   * Whether or not we have added any assertions/declarations/definitions,
+   * or done push/pop, since the last checkSat/query, and therefore we're
+   * not responsible for models or proofs.
    */
   bool d_problemExtended;
 
@@ -350,12 +350,12 @@ public:
   /**
    * Set the logic of the script.
    */
-  void setLogic(const std::string& logic) throw(ModalException);
+  void setLogic(const std::string& logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const char* logic) throw(ModalException);
+  void setLogic(const char* logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.

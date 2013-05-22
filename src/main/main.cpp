@@ -37,10 +37,12 @@
 #include "util/output.h"
 #include "util/result.h"
 #include "util/statistics.h"
+#include "util/language.h"
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::main;
+using namespace CVC4::language;
 
 /**
  * CVC4's main() routine is just an exception-safe wrapper around CVC4.
@@ -64,7 +66,11 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts[options::out] << "unknown" << endl;
 #endif
-    *opts[options::err] << "CVC4 Error:" << endl << e << endl;
+    if(opts[options::outputLanguage] == output::LANG_SMTLIB_V2) {
+      *opts[options::err] << "(error \"" << e << "\")" << endl;
+    } else {
+      *opts[options::err] << "CVC4 Error:" << endl << e << endl;
+    }
     if(opts[options::statistics] && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(*opts[options::err]);

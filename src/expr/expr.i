@@ -9,7 +9,11 @@
 #endif /* SWIGJAVA */
 %}
 
+#ifdef SWIGPYTHON
+%rename(doApply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
+#else /* SWIGPYTHON */
 %rename(apply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
+#endif /* SWIGPYTHON */
 
 %ignore CVC4::operator<<(std::ostream&, const Expr&);
 %ignore CVC4::operator<<(std::ostream&, const TypeCheckingException&);
