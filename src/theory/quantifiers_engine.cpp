@@ -62,8 +62,9 @@ d_lemmas_produced_c(u){
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
 
-    d_bint = new quantifiers::BoundedIntegers( c, this );
-    d_modules.push_back( d_bint );
+    //d_bint = new quantifiers::BoundedIntegers( c, this );
+    //d_modules.push_back( d_bint );
+    d_bint = NULL;
   }else{
     d_model_engine = NULL;
     d_bint = NULL;
