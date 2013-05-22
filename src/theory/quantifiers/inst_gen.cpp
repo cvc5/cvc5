@@ -29,10 +29,10 @@ using namespace CVC4::theory::quantifiers;
 
 
 InstGenProcess::InstGenProcess( Node n ) : d_node( n ){
-  Assert( n.hasAttribute(InstConstantAttribute()) );
+  Assert( TermDb::hasInstConstAttr(n) );
   int count = 0;
   for( size_t i=0; i<n.getNumChildren(); i++ ){
-    if( n[i].getKind()!=INST_CONSTANT && n[i].hasAttribute(InstConstantAttribute()) ){
+    if( n[i].getKind()!=INST_CONSTANT && TermDb::hasInstConstAttr(n[i]) ){
       d_children.push_back( InstGenProcess( n[i] ) );
       d_children_index.push_back( i );
       d_children_map[ i ] = count;

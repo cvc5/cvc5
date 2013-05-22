@@ -124,7 +124,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       qe->getTermDatabase()->computeVarContains( temp[i] );
       for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
         Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
-        if( v.getAttribute(InstConstantAttribute())==f ){
+        if( quantifiers::TermDb::getInstConstAttr(v)==f ){
           if( vars.find( v )==vars.end() ){
             varCount++;
             vars[ v ] = true;
@@ -223,7 +223,7 @@ bool Trigger::isUsableTrigger( std::vector< Node >& nodes, Node f ){
 }
 
 bool Trigger::isUsable( Node n, Node f ){
-  if( n.getAttribute(InstConstantAttribute())==f ){
+  if( quantifiers::TermDb::getInstConstAttr(n)==f ){
     if( isAtomicTrigger( n ) ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         if( !isUsable( n[i], f ) ){
@@ -282,8 +282,6 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
                 int vti = veq[0]==it->first ? 1 : 0;
                 if( isUsableTrigger(veq[vti], f) && !nodeContainsVar( veq[vti], veq[vti==0 ? 1 : 0]) ){
                   rtr = veq;
-                  InstConstantAttribute ica;
-                  rtr.setAttribute(ica,veq[vti].getAttribute(InstConstantAttribute()) );
                 }
               }
             }
@@ -298,13 +296,11 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
           Trace("relational-trigger") << "    polarity : " << pol << std::endl;
         }
         Node rtr2 = (hasPol && pol) ? rtr.negate() : rtr;
-        InstConstantAttribute ica;
-        rtr2.setAttribute(ica,rtr.getAttribute(InstConstantAttribute()) );
         return rtr2;
       }
     }
   }
-  bool usable = n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
+  bool usable = quantifiers::TermDb::getInstConstAttr(n)==f && isAtomicTrigger( n ) && isUsable( n, f );
   Trace("usable") << n << " usable : " << usable << std::endl;
   if( usable ){
     return n;
@@ -325,7 +321,7 @@ bool Trigger::isAtomicTrigger( Node n ){
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].getKind()!=INST_CONSTANT && n[i].hasAttribute(InstConstantAttribute()) ){
+      if( n[i].getKind()!=INST_CONSTANT && quantifiers::TermDb::hasInstConstAttr(n[i]) ){
         return false;
       }
     }
@@ -438,9 +434,9 @@ bool Trigger::isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeff
     Assert( coeffs.empty() );
     NodeBuilder<> t(kind::PLUS);
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(n[i]) ){
         if( n[i].getKind()==INST_CONSTANT ){
-          if( n[i].getAttribute(InstConstantAttribute())==f ){
+          if( quantifiers::TermDb::getInstConstAttr(n[i])==f ){
             coeffs[ n[i] ] = Node::null();
           }else{
             coeffs.clear();
@@ -463,13 +459,13 @@ bool Trigger::isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeff
     }
     return true;
   }else if( n.getKind()==MULT ){
-    if( n[0].getKind()==INST_CONSTANT && n[0].getAttribute(InstConstantAttribute())==f ){
-      if( !n[1].hasAttribute(InstConstantAttribute()) ){
+    if( n[0].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[0])==f ){
+      if( !quantifiers::TermDb::hasInstConstAttr(n[1]) ){
         coeffs[ n[0] ] = n[1];
         return true;
       }
-    }else if( n[1].getKind()==INST_CONSTANT && n[1].getAttribute(InstConstantAttribute())==f ){
-      if( !n[0].hasAttribute(InstConstantAttribute()) ){
+    }else if( n[1].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[1])==f ){
+      if( !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
         coeffs[ n[1] ] = n[0];
         return true;
       }

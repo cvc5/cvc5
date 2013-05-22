@@ -116,6 +116,9 @@ option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :defau
 option fmfFreshDistConst --fmf-fresh-dc bool :default false
  use fresh distinguished representative when applying Inst-Gen techniques
 
+option fmfBoundInt --fmf-bound-int bool :default false
+ finite model finding on bounded integer quantification
+
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms
 

@@ -65,8 +65,8 @@ public:
     d_has_simplified = false;
   }
   bool addEntry( FullModelChecker * m, Node c, Node v);
-  Node evaluate( FullModelChecker * m, std::vector<Node> inst );
-  int getGeneralizationIndex( FullModelChecker * m, std::vector<Node> inst );
+  Node evaluate( FullModelChecker * m, std::vector<Node>& inst );
+  int getGeneralizationIndex( FullModelChecker * m, std::vector<Node>& inst );
   void simplify( FullModelChecker * m );
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
 };
@@ -141,6 +141,8 @@ public:
 
   /** process build model */
   void processBuildModel(TheoryModel* m, bool fullModel);
+  /** get current model value */
+  Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial );
 };
 
 }

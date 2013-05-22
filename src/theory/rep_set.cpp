@@ -95,9 +95,8 @@ void RepSet::toStream(std::ostream& out){
 }
 
 
-RepSetIterator::RepSetIterator( RepSet* rs ) : d_rep_set( rs ){
+RepSetIterator::RepSetIterator( QuantifiersEngine * qe, RepSet* rs ) : d_qe(qe), d_rep_set( rs ){
   d_incomplete = false;
-
 }
 
 int RepSetIterator::domainSize( int i ) {
@@ -108,25 +107,29 @@ int RepSetIterator::domainSize( int i ) {
   }
 }
 
-bool RepSetIterator::setQuantifier( QuantifiersEngine * qe, Node f ){
+bool RepSetIterator::setQuantifier( Node f ){
+  Trace("rsi") << "Make rsi for " << f << std::endl;
   Assert( d_types.empty() );
   //store indicies
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     d_types.push_back( f[0][i].getType() );
   }
-  return initialize(qe, f);
+  d_owner = f;
+  return initialize();
 }
 
-bool RepSetIterator::setFunctionDomain( QuantifiersEngine * qe, Node op ){
+bool RepSetIterator::setFunctionDomain( Node op ){
+  Trace("rsi") << "Make rsi for " << op << std::endl;
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
   }
-  return initialize(qe, Node::null());
+  d_owner = op;
+  return initialize();
 }
 
-bool RepSetIterator::initialize(QuantifiersEngine * qe, Node f){
+bool RepSetIterator::initialize(){
   for( size_t i=0; i<d_types.size(); i++ ){
     d_index.push_back( 0 );
     //store default index order
@@ -144,30 +147,11 @@ bool RepSetIterator::initialize(QuantifiersEngine * qe, Node f){
       }
     }else if( tn.isInteger() ){
       //check if it is bound
-      if( !f.isNull() && qe && qe->getBoundedIntegers() ){
-        Node l = qe->getBoundedIntegers()->getLowerBoundValue( f, f[0][i] );
-        Node u = qe->getBoundedIntegers()->getUpperBoundValue( f, f[0][i] );
-        if( !l.isNull() && !u.isNull() ){
-          Trace("bound-int-reps") << "Can limit bounds of " << f[0][i] << " to " << l << "..." << u << std::endl;
-          Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
-          Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
-          if( ra==NodeManager::currentNM()->mkConst(true) ){
-            long rr = range.getConst<Rational>().getNumerator().getLong()+1;
-            if (rr<0) {
-              Trace("bound-int-reps")  << "Empty bound range." << std::endl;
-              //empty
-              d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
-            }else{
-              Trace("bound-int-reps")  << "Actual bound range is " << rr << std::endl;
-              d_lower_bounds[i] = l;
-              d_domain[i].push_back( (int)rr );
-              d_enum_type.push_back( ENUM_RANGE );
-            }
-            isSet = true;
-          }else{
-            Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big." << std::endl;
-            d_incomplete = true;
-          }
+      if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
+        if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][i] ) ){
+          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded integer." << std::endl;
+          d_enum_type.push_back( ENUM_RANGE );
+          isSet = true;
         }else{
           Trace("fmf-incomplete") << "Incomplete because of integer quantification, no bounds found." << std::endl;
           d_incomplete = true;
@@ -197,6 +181,40 @@ bool RepSetIterator::initialize(QuantifiersEngine * qe, Node f){
       }
     }
   }
+  //must set a variable index order
+  if (d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers()) {
+    Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
+    std::vector< int > varOrder;
+    for( unsigned i=0; i<d_qe->getBoundedIntegers()->getNumBoundVars(d_owner); i++ ){
+      varOrder.push_back(d_qe->getBoundedIntegers()->getBoundVarNum(d_owner,i));
+    }
+    for( unsigned i=0; i<d_owner[0].getNumChildren(); i++) {
+      if( !d_qe->getBoundedIntegers()->isBoundVar(d_owner, d_owner[0][i])) {
+        varOrder.push_back(i);
+      }
+    }
+    Trace("bound-int-rsi") << "Variable order : ";
+    for( unsigned i=0; i<varOrder.size(); i++) {
+      Trace("bound-int-rsi") << varOrder[i] << " ";
+    }
+    Trace("bound-int-rsi") << std::endl;
+    std::vector< int > indexOrder;
+    indexOrder.resize(varOrder.size());
+    for( unsigned i=0; i<varOrder.size(); i++){
+      indexOrder[varOrder[i]] = i;
+    }
+    Trace("bound-int-rsi") << "Will use index order : ";
+    for( unsigned i=0; i<indexOrder.size(); i++) {
+      Trace("bound-int-rsi") << indexOrder[i] << " ";
+    }
+    Trace("bound-int-rsi") << std::endl;
+    setIndexOrder(indexOrder);
+  }
+  for (unsigned i=0; i<d_index.size(); i++) {
+    if (!resetIndex(i, true)){
+      break;
+    }
+  }
   return true;
 }
 
@@ -220,22 +238,65 @@ void RepSetIterator::setDomain( std::vector< RepDomain >& domain ){
   }
 }
 */
+bool RepSetIterator::resetIndex( int i, bool initial ) {
+  d_index[i] = 0;
+  int ii = d_index_order[i];
+  Trace("bound-int-rsi") << "Reset " << i << " " << ii << " " << initial << std::endl;
+  //determine the current range
+  if( d_enum_type[ii]==ENUM_RANGE ){
+    if( initial || !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][ii] ) ){
+      Trace("bound-int-rsi") << "Getting range of " << d_owner[0][ii] << std::endl;
+      Node l, u;
+      d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][ii], this, l, u );
+      if( l.isNull() || u.isNull() ){
+        //failed, abort the iterator
+        d_index.clear();
+        return false;
+      }else{
+        Trace("bound-int-rsi") << "Can limit bounds of " << d_owner[0][ii] << " to " << l << "..." << u << std::endl;
+        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
+        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        d_domain[ii].clear();
+        d_lower_bounds[ii] = l;
+        if( ra==NodeManager::currentNM()->mkConst(true) ){
+          long rr = range.getConst<Rational>().getNumerator().getLong()+1;
+          Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
+          d_domain[ii].push_back( (int)rr );
+        }else{
+          Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big for " << d_owner[0][ii] << "." << std::endl;
+          d_incomplete = true;
+          d_domain[ii].push_back( 0 );
+        }
+      }
+    }else{
+      Trace("bound-int-rsi") << d_owner[0][ii] << " has ground range, skip." << std::endl;
+    }
+  }
+  return true;
+}
+
 void RepSetIterator::increment2( int counter ){
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   counter = (int)d_index.size()-1;
 #endif
   //increment d_index
-  while( counter>=0 && d_index[counter]==(int)(domainSize(counter)-1) ){
+  Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+  while( counter>=0 && d_index[counter]>=(int)(domainSize(counter)-1) ){
     counter--;
+    if( counter>=0){
+      Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+    }
   }
   if( counter==-1 ){
     d_index.clear();
   }else{
-    for( int i=(int)d_index.size()-1; i>counter; i-- ){
-      d_index[i] = 0;
-    }
     d_index[counter]++;
+    for( int i=(int)d_index.size()-1; i>counter; i-- ){
+      if (!resetIndex(i)){
+        break;
+      }
+    }
   }
 }
 
@@ -256,6 +317,7 @@ Node RepSetIterator::getTerm( int i ){
     Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
     return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
   }else{
+    Trace("rsi-debug") << index << " " << d_lower_bounds[index] << " " << d_index[index] << std::endl;
     Node t = NodeManager::currentNM()->mkNode(PLUS, d_lower_bounds[index],
                                                     NodeManager::currentNM()->mkConst( Rational(d_index[index]) ) );
     t = Rewriter::rewrite( t );

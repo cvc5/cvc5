@@ -147,7 +147,7 @@ bool RelevantDomain::computeRelevantInstantiationDomain( Node n, Node parent, in
 
 bool RelevantDomain::extendFunctionDomains( Node n, RepDomain& range ){
   if( n.getKind()==INST_CONSTANT ){
-    Node f = n.getAttribute(InstConstantAttribute());
+    Node f = TermDb::getInstConstAttr(n);
     int var = n.getAttribute(InstVarNumAttribute());
     range.insert( range.begin(), d_quant_inst_domain[f][var].begin(), d_quant_inst_domain[f][var].end() );
     return false;
@@ -177,7 +177,7 @@ bool RelevantDomain::extendFunctionDomains( Node n, RepDomain& range ){
       }
     }
     //get the range
-    if( n.hasAttribute(InstConstantAttribute()) ){
+    if( TermDb::hasInstConstAttr(n) ){
       if( n.getKind()==APPLY_UF && d_active_range.find( op )!=d_active_range.end() ){
         range.insert( range.end(), d_active_range[op].begin(), d_active_range[op].end() );
       }else{

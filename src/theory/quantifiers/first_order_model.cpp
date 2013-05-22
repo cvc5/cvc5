@@ -397,7 +397,7 @@ struct sortGetMaxVariableNum {
   int computeMaxVariableNum( Node n ){
     if( n.getKind()==INST_CONSTANT ){
       return n.getAttribute(InstVarNumAttribute());
-    }else if( n.hasAttribute(InstConstantAttribute()) ){
+    }else if( TermDb::hasInstConstAttr(n) ){
       int maxVal = -1;
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         int val = getMaxVariableNum( n[i] );

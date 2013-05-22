@@ -32,7 +32,7 @@ namespace inst {
 
 InstMatchGenerator::InstMatchGenerator( Node pat, int matchPolicy ) : d_matchPolicy( matchPolicy ){
   d_active_add = false;
-  Assert( pat.hasAttribute(InstConstantAttribute()) );
+  Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
   d_pattern = pat;
   d_match_pattern = pat;
   d_next = NULL;
@@ -53,9 +53,9 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
       d_match_pattern = d_pattern[0];
     }
     if( d_match_pattern.getKind()==IFF || d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
-      if( !d_match_pattern[0].hasAttribute(InstConstantAttribute()) ||
+      if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[0]) ||
           d_match_pattern[0].getKind()==INST_CONSTANT ){
-        Assert( d_match_pattern[1].hasAttribute(InstConstantAttribute()) );
+        Assert( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[1]) );
         Node mp = d_match_pattern[1];
         //swap sides
         Node pat = d_pattern;
@@ -67,9 +67,9 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
         }
         d_pattern = pat.getKind()==NOT ? d_pattern.negate() : d_pattern;
         d_match_pattern = mp;
-      }else if( !d_match_pattern[1].hasAttribute(InstConstantAttribute()) ||
+      }else if( !quantifiers::TermDb::hasInstConstAttr(d_match_pattern[1]) ||
                 d_match_pattern[1].getKind()==INST_CONSTANT ){
-        Assert( d_match_pattern[0].hasAttribute(InstConstantAttribute()) );
+        Assert( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[0]) );
         if( d_pattern.getKind()!=NOT ){   //TEMPORARY until we do better implementation of disequality matching
           d_match_pattern = d_match_pattern[0];
         }else if( d_match_pattern[1].getKind()==INST_CONSTANT ){
@@ -79,7 +79,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
     }
     int childMatchPolicy = MATCH_GEN_DEFAULT;
     for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
-      if( d_match_pattern[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[i]) ){
         if( d_match_pattern[i].getKind()!=INST_CONSTANT && !Trigger::isBooleanTermTrigger( d_match_pattern[i] ) ){
           InstMatchGenerator * cimg = new InstMatchGenerator( d_match_pattern[i], childMatchPolicy );
           d_children.push_back( cimg );
@@ -127,7 +127,7 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
       d_cg = new inst::CandidateGeneratorQE( qe, d_match_pattern.getOperator() );
     }else{
       d_cg = new CandidateGeneratorQueue;
-      if( !Trigger::isArithmeticTrigger( d_match_pattern.getAttribute(InstConstantAttribute()), d_match_pattern, d_arith_coeffs ) ){
+      if( !Trigger::isArithmeticTrigger( quantifiers::TermDb::getInstConstAttr(d_match_pattern), d_match_pattern, d_arith_coeffs ) ){
         Debug("inst-match-gen") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
         //Warning() << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
         d_matchPolicy = MATCH_GEN_INTERNAL_ERROR;
@@ -161,12 +161,12 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
     InstMatch prev( &m );
     //if t is null
     Assert( !t.isNull() );
-    Assert( !t.hasAttribute(InstConstantAttribute()) );
+    Assert( !quantifiers::TermDb::hasInstConstAttr(t) );
     Assert( t.getKind()==d_match_pattern.getKind() );
     Assert( !Trigger::isAtomicTrigger( d_match_pattern ) || t.getOperator()==d_match_pattern.getOperator() );
     //first, check if ground arguments are not equal, or a match is in conflict
     for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
-      if( d_match_pattern[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(d_match_pattern[i]) ){
         if( d_match_pattern[i].getKind()==INST_CONSTANT || Trigger::isBooleanTermTrigger( d_match_pattern[i] ) ){
           Node vv = d_match_pattern[i];
           Node tt = t[i];

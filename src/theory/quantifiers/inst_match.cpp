@@ -143,7 +143,7 @@ void InstMatch::set(TNode var, TNode n){
   if (Trace.isOn("inst-match-warn")) {
     // For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
     if( !n.isNull() && !n.getType().isSubtypeOf( var.getType() ) ){
-      Trace("inst-match-warn") << var.getAttribute(InstConstantAttribute()) << std::endl;
+      Trace("inst-match-warn") << quantifiers::TermDb::getInstConstAttr(var) << std::endl;
       Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
     }
   }

@@ -46,6 +46,37 @@ bool QModelBuilder::optUseModel() {
 }
 
 
+Node QModelBuilder::getCurrentModelValue( FirstOrderModel* fm, Node n, bool partial ) {
+  std::vector< Node > children;
+  if( n.getNumChildren()>0 ){
+    if( n.getKind()!=APPLY_UF && n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.push_back( n.getOperator() );
+    }
+    for (unsigned i=0; i<n.getNumChildren(); i++) {
+      Node nc = getCurrentModelValue( fm, n[i] );
+      if (nc.isNull()) {
+        return Node::null();
+      }else{
+        children.push_back( nc );
+      }
+    }
+    if( n.getKind()==APPLY_UF ){
+      return getCurrentUfModelValue( fm, n, children, partial );
+    }else{
+      Node nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      nn = Rewriter::rewrite( nn );
+      return nn;
+    }
+  }else{
+    if( n.getKind()==VARIABLE ){
+      return getCurrentUfModelValue( fm, n, children, partial );
+    }else{
+      return n;
+    }
+  }
+}
+
+
 bool TermArgBasisTrie::addTerm2( FirstOrderModel* fm, Node n, int argIndex ){
   if( argIndex<(int)n.getNumChildren() ){
     Node r;
@@ -71,6 +102,9 @@ QModelBuilder( c, qe ) {
 
 }
 
+Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) {
+  return n;
+}
 
 void QModelBuilderIG::debugModel( FirstOrderModel* fm ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
@@ -81,8 +115,8 @@ void QModelBuilderIG::debugModel( FirstOrderModel* fm ){
       for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      RepSetIterator riter( &(fm->d_rep_set) );
-      riter.setQuantifier( d_qe, f );
+      RepSetIterator riter( d_qe, &(fm->d_rep_set) );
+      riter.setQuantifier( f );
       while( !riter.isFinished() ){
         std::vector< Node > terms;
         for( int i=0; i<riter.getNumTerms(); i++ ){
@@ -410,7 +444,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
       //  constant definitions.
       bool isConst = true;
       std::vector< Node > uf_terms;
-      if( n.hasAttribute(InstConstantAttribute()) ){
+      if( TermDb::hasInstConstAttr(n) ){
         isConst = false;
         if( gn.getKind()==APPLY_UF ){
           uf_terms.push_back( gn );
@@ -418,7 +452,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         }else if( gn.getKind()==EQUAL ){
           isConst = true;
           for( int j=0; j<2; j++ ){
-            if( n[j].hasAttribute(InstConstantAttribute()) ){
+            if( TermDb::hasInstConstAttr(n[j]) ){
               if( n[j].getKind()==APPLY_UF &&
                   fm->d_uf_model_tree.find( gn[j].getOperator() )!=fm->d_uf_model_tree.end() ){
                 uf_terms.push_back( gn[j] );
@@ -525,17 +559,16 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
     for( size_t i=0; i<d_quant_selection_lit_candidates[f].size(); i++ ){
       bool phase = d_quant_selection_lit_candidates[f][i].getKind()!=NOT;
       Node lit = d_quant_selection_lit_candidates[f][i].getKind()==NOT ? d_quant_selection_lit_candidates[f][i][0] : d_quant_selection_lit_candidates[f][i];
-      Assert( lit.hasAttribute(InstConstantAttribute()) );
+      Assert( TermDb::hasInstConstAttr(lit) );
       std::vector< Node > tr_terms;
       if( lit.getKind()==APPLY_UF ){
         //only match predicates that are contrary to this one, use literal matching
         Node eq = NodeManager::currentNM()->mkNode( IFF, lit, !phase ? fm->d_true : fm->d_false );
-        d_qe->getTermDatabase()->setInstantiationConstantAttr( eq, f );
         tr_terms.push_back( eq );
       }else if( lit.getKind()==EQUAL ){
         //collect trigger terms
         for( int j=0; j<2; j++ ){
-          if( lit[j].hasAttribute(InstConstantAttribute()) ){
+          if( TermDb::hasInstConstAttr(lit[j]) ){
             if( lit[j].getKind()==APPLY_UF ){
               tr_terms.push_back( lit[j] );
             }else{
@@ -671,7 +704,6 @@ void QModelBuilderInstGen::analyzeQuantifier( FirstOrderModel* fm, Node f ){
   //if( !s.isNull() ){
   //  s = Rewriter::rewrite( s );
   //}
-  d_qe->getTermDatabase()->setInstantiationConstantAttr( s, f );
   Trace("sel-form-debug") << "Selection formula " << f << std::endl;
   Trace("sel-form-debug") << "                  " << s << std::endl;
   if( !s.isNull() ){

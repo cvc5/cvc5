@@ -65,7 +65,7 @@ bool Trigger::getNextMatch(){
 
 int Trigger::addInstantiations( InstMatch& baseMatch ){
   int addedLemmas = d_mg->addInstantiations( baseMatch,
-                                             d_nodes[0].getAttribute(InstConstantAttribute()),
+                                             quantifiers::TermDb::getInstConstAttr(d_nodes[0]),
                                              d_quantEngine);
   if( addedLemmas>0 ){
     Debug("inst-trigger") << "Added " << addedLemmas << " lemmas, trigger was ";
@@ -91,7 +91,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       qe->getTermDatabase()->computeVarContains( temp[i] );
       for( int j=0; j<(int)qe->getTermDatabase()->d_var_contains[ temp[i] ].size(); j++ ){
         Node v = qe->getTermDatabase()->d_var_contains[ temp[i] ][j];
-        if( v.getAttribute(InstConstantAttribute())==f ){
+        if( quantifiers::TermDb::getInstConstAttr(v)==f ){
           if( vars.find( v )==vars.end() ){
             vars[ v ] = true;
             foundVar = true;
@@ -181,7 +181,7 @@ bool Trigger::isUsableTrigger( std::vector< Node >& nodes, Node f ){
 }
 
 bool Trigger::isUsable( Node n, Node f ){
-  if( n.getAttribute(InstConstantAttribute())==f ){
+  if( quantifiers::TermDb::getInstConstAttr(n)==f ){
     if( !isAtomicTrigger( n ) && n.getKind()!=INST_CONSTANT ){
       std::map< Node, Node > coeffs;
       return getPatternArithmetic( f, n, coeffs );
@@ -201,7 +201,7 @@ bool Trigger::isUsable( Node n, Node f ){
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].getKind()!=INST_CONSTANT && n[i].hasAttribute(InstConstantAttribute()) ){
+      if( n[i].getKind()!=INST_CONSTANT && quantifiers::TermDb::hasInstConstAttr(n[i]) ){
         return false;
       }
     }
@@ -318,9 +318,9 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     Assert( coeffs.empty() );
     NodeBuilder<> t(kind::PLUS);
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(n[i]) ){
         if( n[i].getKind()==INST_CONSTANT ){
-          if( n[i].getAttribute(InstConstantAttribute())==f ){
+          if( quantifiers::TermDb::getInstConstAttr(n[i])==f ){
             coeffs[ n[i] ] = Node::null();
           }else{
             coeffs.clear();
@@ -343,12 +343,12 @@ bool Trigger::getPatternArithmetic( Node f, Node n, std::map< Node, Node >& coef
     }
     return true;
   }else if( n.getKind()==MULT ){
-    if( n[0].getKind()==INST_CONSTANT && n[0].getAttribute(InstConstantAttribute())==f ){
-      Assert( !n[1].hasAttribute(InstConstantAttribute()) );
+    if( n[0].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[0])==f ){
+      Assert( !quantifiers::TermDb::hasInstConstAttr(n[1]) );
       coeffs[ n[0] ] = n[1];
       return true;
-    }else if( n[1].getKind()==INST_CONSTANT && n[1].getAttribute(InstConstantAttribute())==f ){
-      Assert( !n[0].hasAttribute(InstConstantAttribute()) );
+    }else if( n[1].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[1])==f ){
+      Assert( !quantifiers::TermDb::hasInstConstAttr(n[0]) );
       coeffs[ n[1] ] = n[0];
       return true;
     }

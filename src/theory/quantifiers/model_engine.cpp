@@ -187,7 +187,7 @@ int ModelEngine::checkModel(){
   d_relevantLemmas = 0;
   d_totalLemmas = 0;
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::fmfFullModelCheck() ? 2 : 1;
+  int e_max = options::fmfFullModelCheck() && options::fmfModelBasedInst() ? 2 : 1;
   for( int e=0; e<e_max; e++) {
     if (addedLemmas==0) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -238,8 +238,8 @@ int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     Debug("inst-fmf-ei") << std::endl;
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    RepSetIterator riter( &(d_quantEngine->getModel()->d_rep_set) );
-    if( riter.setQuantifier( d_quantEngine, f ) ){
+    RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
+    if( riter.setQuantifier( f ) ){
       Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
       d_quantEngine->getModel()->resetEvaluate();
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;

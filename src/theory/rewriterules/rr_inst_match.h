@@ -67,7 +67,7 @@ public:
   /** legal candidate */
   static inline bool isLegalCandidate( TNode n ){
     return !n.getAttribute(NoMatchAttribute()) &&
-      ( !options::cbqi() || !n.hasAttribute(InstConstantAttribute())) &&
+      ( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(n)) &&
       ( !options::efficientEMatching() || n.hasAttribute(AvailableInTermDb()) );
 }
 

@@ -24,7 +24,11 @@
 
 namespace CVC4 {
 namespace theory {
+
+class RepSetIterator;
+
 namespace quantifiers {
+
 
 class BoundedIntegers : public QuantifiersModule
 {
@@ -37,7 +41,9 @@ private:
   bool hasNonBoundVar( Node f, Node b );
   std::map< Node, std::map< Node, Node > > d_bounds[2];
   std::map< Node, std::vector< Node > > d_set;
+  std::map< Node, std::vector< int > > d_set_nums;
   std::map< Node, std::map< Node, Node > > d_range;
+  std::map< Node, std::map< Node, Node > > d_nground_range;
   void hasFreeVar( Node f, Node n );
   void process( Node f, Node n, bool pol );
   void processLiteral( Node f, Node lit, bool pol );
@@ -62,7 +68,6 @@ private:
     void assertNode(Node n);
     Node getNextDecisionRequest();
   };
-  Node getValueInModel( Node n );
 private:
   //information for minimizing ranges
   std::vector< Node > d_ranges;
@@ -73,6 +78,25 @@ private:
   //list of currently asserted arithmetic literals
   NodeBoolMap d_assertions;
 private:
+  //class to store whether bounding lemmas have been added
+  class BoundInstTrie
+  {
+  public:
+    std::map< Node, BoundInstTrie > d_children;
+    bool hasInstantiated( std::vector< Node > & vals, int index = 0, bool madeNew = false ){
+      if( index>=(int)vals.size() ){
+        return !madeNew;
+      }else{
+        Node n = vals[index];
+        if( d_children.find(n)==d_children.end() ){
+          madeNew = true;
+        }
+        return d_children[n].hasInstantiated(vals,index+1,madeNew);
+      }
+    }
+  };
+  std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
+private:
   void addLiteralFromRange( Node lit, Node r );
 public:
   BoundedIntegers( context::Context* c, QuantifiersEngine* qe );
@@ -81,10 +105,14 @@ public:
   void registerQuantifier( Node f );
   void assertNode( Node n );
   Node getNextDecisionRequest();
+  bool isBoundVar( Node f, Node v ) { return std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end(); }
+  unsigned getNumBoundVars( Node f ) { return d_set[f].size(); }
+  Node getBoundVar( Node f, int i ) { return d_set[f][i]; }
+  int getBoundVarNum( Node f, int i ) { return d_set_nums[f][i]; }
   Node getLowerBound( Node f, Node v ){ return d_bounds[0][f][v]; }
   Node getUpperBound( Node f, Node v ){ return d_bounds[1][f][v]; }
-  Node getLowerBoundValue( Node f, Node v ){ return getValueInModel( d_bounds[0][f][v] ); }
-  Node getUpperBoundValue( Node f, Node v ){ return getValueInModel( d_bounds[1][f][v] ); }
+  void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
+  bool isGroundRange(Node f, Node v);
 };
 
 }

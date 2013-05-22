@@ -211,10 +211,6 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       if( in.hasAttribute(NestedQuantAttribute()) ){
         setNestedQuantifiers( ret, in.getAttribute(NestedQuantAttribute()) );
       }
-      if( in.hasAttribute(InstConstantAttribute()) ){
-        InstConstantAttribute ica;
-        ret.setAttribute(ica,in.getAttribute(InstConstantAttribute()) );
-      }
       Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
       Trace("quantifiers-rewrite") << " to " << std::endl;
       Trace("quantifiers-rewrite") << ret << std::endl;

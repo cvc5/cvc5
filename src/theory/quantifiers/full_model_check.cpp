@@ -139,7 +139,7 @@ bool Def::addEntry( FullModelChecker * m, Node c, Node v) {
   }
 }
 
-Node Def::evaluate( FullModelChecker * m, std::vector<Node> inst ) {
+Node Def::evaluate( FullModelChecker * m, std::vector<Node>& inst ) {
   int gindex = d_et.getGeneralizationIndex(m, inst);
   if (gindex!=-1) {
     return d_value[gindex];
@@ -148,7 +148,7 @@ Node Def::evaluate( FullModelChecker * m, std::vector<Node> inst ) {
   }
 }
 
-int Def::getGeneralizationIndex( FullModelChecker * m, std::vector<Node> inst ) {
+int Def::getGeneralizationIndex( FullModelChecker * m, std::vector<Node>& inst ) {
   return d_et.getGeneralizationIndex(m, inst);
 }
 
@@ -163,7 +163,7 @@ void Def::simplify(FullModelChecker * m) {
   d_et.reset();
   for (unsigned i=0; i<d_status.size(); i++) {
     if( d_status[i]!=status_redundant ){
-      addEntry(m, d_cond[i], d_value[i]);
+      addEntry(m, cond[i], value[i]);
     }
   }
   d_status.clear();
@@ -435,108 +435,112 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
-  if (effort==0) {
-    //register the quantifier
-    if (d_quant_cond.find(f)==d_quant_cond.end()) {
-      std::vector< TypeNode > types;
-      for(unsigned i=0; i<f[0].getNumChildren(); i++){
-        types.push_back(f[0][i].getType());
-        d_quant_var_id[f][f[0][i]] = i;
-      }
-      TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
-      Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
-      d_quant_cond[f] = op;
-    }
-
-    //model check the quantifier
-    doCheck(fm, f, d_quant_models[f], f[1]);
-    Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
-    d_quant_models[f].debugPrint("fmc", Node::null(), this);
-    Trace("fmc") << std::endl;
-    //consider all entries going to false
-    for (unsigned i=0; i<d_quant_models[f].d_cond.size(); i++) {
-      if( d_quant_models[f].d_value[i]!=d_true) {
-        Trace("fmc-inst") << "Instantiate based on " << d_quant_models[f].d_cond[i] << "..." << std::endl;
-        bool hasStar = false;
-        std::vector< Node > inst;
-        for (unsigned j=0; j<d_quant_models[f].d_cond[i].getNumChildren(); j++) {
-          if (isStar(d_quant_models[f].d_cond[i][j])) {
-            hasStar = true;
-            inst.push_back(getModelBasisTerm(d_quant_models[f].d_cond[i][j].getType()));
-          }else{
-            inst.push_back(d_quant_models[f].d_cond[i][j]);
-          }
+  if (!options::fmfModelBasedInst()) {
+    return false;
+  }else{
+    if (effort==0) {
+      //register the quantifier
+      if (d_quant_cond.find(f)==d_quant_cond.end()) {
+        std::vector< TypeNode > types;
+        for(unsigned i=0; i<f[0].getNumChildren(); i++){
+          types.push_back(f[0][i].getType());
+          d_quant_var_id[f][f[0][i]] = i;
         }
-        bool addInst = true;
-        if( hasStar ){
-          //try obvious (specified by inst)
-          Node ev = d_quant_models[f].evaluate(this, inst);
-          if (ev==d_true) {
-            addInst = false;
-          }
-        }else{
-          //for debugging
-          if (Trace.isOn("fmc-test-inst")) {
-            Node ev = d_quant_models[f].evaluate(this, inst);
-            if( ev==d_true ){
-              std::cout << "WARNING: instantiation was true! " << f << " " << d_quant_models[f].d_cond[i] << std::endl;
-              exit(0);
+        TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
+        Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
+        d_quant_cond[f] = op;
+      }
+
+      //model check the quantifier
+      doCheck(fm, f, d_quant_models[f], f[1]);
+      Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
+      d_quant_models[f].debugPrint("fmc", Node::null(), this);
+      Trace("fmc") << std::endl;
+      //consider all entries going to false
+      for (unsigned i=0; i<d_quant_models[f].d_cond.size(); i++) {
+        if( d_quant_models[f].d_value[i]!=d_true) {
+          Trace("fmc-inst") << "Instantiate based on " << d_quant_models[f].d_cond[i] << "..." << std::endl;
+          bool hasStar = false;
+          std::vector< Node > inst;
+          for (unsigned j=0; j<d_quant_models[f].d_cond[i].getNumChildren(); j++) {
+            if (isStar(d_quant_models[f].d_cond[i][j])) {
+              hasStar = true;
+              inst.push_back(getModelBasisTerm(d_quant_models[f].d_cond[i][j].getType()));
             }else{
-              Trace("fmc-test-inst") << "...instantiation evaluated to false." << std::endl;
+              inst.push_back(d_quant_models[f].d_cond[i][j]);
             }
           }
-        }
-        if( addInst ){
-          InstMatch m;
-          for( unsigned j=0; j<inst.size(); j++) {
-            m.set( d_qe, f, j, inst[j] );
-          }
-          if( d_qe->addInstantiation( f, m ) ){
-            lemmas++;
+          bool addInst = true;
+          if( hasStar ){
+            //try obvious (specified by inst)
+            Node ev = d_quant_models[f].evaluate(this, inst);
+            if (ev==d_true) {
+              addInst = false;
+            }
           }else{
-            //this can happen if evaluation is unknown
+            //for debugging
+            if (Trace.isOn("fmc-test-inst")) {
+              Node ev = d_quant_models[f].evaluate(this, inst);
+              if( ev==d_true ){
+                std::cout << "WARNING: instantiation was true! " << f << " " << d_quant_models[f].d_cond[i] << std::endl;
+                exit(0);
+              }else{
+                Trace("fmc-test-inst") << "...instantiation evaluated to false." << std::endl;
+              }
+            }
+          }
+          if( addInst ){
+            InstMatch m;
+            for( unsigned j=0; j<inst.size(); j++) {
+              m.set( d_qe, f, j, inst[j] );
+            }
+            if( d_qe->addInstantiation( f, m ) ){
+              lemmas++;
+            }else{
+              //this can happen if evaluation is unknown
+              //might try it next effort level
+              d_star_insts[f].push_back(i);
+            }
+          }else{
             //might try it next effort level
             d_star_insts[f].push_back(i);
           }
-        }else{
-          //might try it next effort level
-          d_star_insts[f].push_back(i);
         }
       }
-    }
-  }else{
-    if (!d_star_insts[f].empty()) {
-      Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
-      Trace("fmc-exh") << "Definition was : " << std::endl;
-      d_quant_models[f].debugPrint("fmc-exh", Node::null(), this);
-      Trace("fmc-exh") << std::endl;
-      Def temp;
-      //simplify the exceptions?
-      for( int i=(d_star_insts[f].size()-1); i>=0; i--) {
-        //get witness for d_star_insts[f][i]
-        int j = d_star_insts[f][i];
-        if( temp.addEntry( this, d_quant_models[f].d_cond[j], d_quant_models[f].d_value[j] ) ){
-          int lem = exhaustiveInstantiate(fm, f, d_quant_models[f].d_cond[j], j );
-          if( lem==-1 ){
-            //something went wrong, resort to exhaustive instantiation
-            return false;
-          }else{
-            lemmas += lem;
+    }else{
+      if (!d_star_insts[f].empty()) {
+        Trace("fmc-exh") << "Exhaustive instantiate " << f << std::endl;
+        Trace("fmc-exh") << "Definition was : " << std::endl;
+        d_quant_models[f].debugPrint("fmc-exh", Node::null(), this);
+        Trace("fmc-exh") << std::endl;
+        Def temp;
+        //simplify the exceptions?
+        for( int i=(d_star_insts[f].size()-1); i>=0; i--) {
+          //get witness for d_star_insts[f][i]
+          int j = d_star_insts[f][i];
+          if( temp.addEntry( this, d_quant_models[f].d_cond[j], d_quant_models[f].d_value[j] ) ){
+            int lem = exhaustiveInstantiate(fm, f, d_quant_models[f].d_cond[j], j );
+            if( lem==-1 ){
+              //something went wrong, resort to exhaustive instantiation
+              return false;
+            }else{
+              lemmas += lem;
+            }
           }
         }
       }
     }
+    return true;
   }
-  return true;
 }
 
 int FullModelChecker::exhaustiveInstantiate(FirstOrderModel * fm, Node f, Node c, int c_index) {
   int addedLemmas = 0;
-  RepSetIterator riter( &(fm->d_rep_set) );
+  RepSetIterator riter( d_qe, &(fm->d_rep_set) );
   Trace("fmc-exh") << "Exhaustive instantiate based on index " << c_index << " : " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  if( riter.setQuantifier( d_qe, f ) ){
+  if( riter.setQuantifier( f ) ){
     std::vector< RepDomain > dom;
     for (unsigned i=0; i<c.getNumChildren(); i++) {
       TypeNode tn = c[i].getType();
@@ -996,4 +1000,20 @@ Node FullModelChecker::getFunctionValue(FirstOrderModel * fm, Node op, const cha
   }
   curr = Rewriter::rewrite( curr );
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
+}
+
+Node FullModelChecker::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) {
+  Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
+  for(unsigned i=0; i<args.size(); i++) {
+    args[i] = getRepresentative(fm, args[i]);
+  }
+  if( n.getKind()==VARIABLE ){
+    Node r = getRepresentative(fm, n);
+    return r;
+  }else if( n.getKind()==APPLY_UF ){
+    getModel(fm, n.getOperator());
+    return d_models[n.getOperator()]->evaluate(this, args);
+  }else{
+    return Node::null();
+  }
 }

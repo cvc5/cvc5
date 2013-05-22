@@ -33,6 +33,8 @@ protected:
   context::CDO< FirstOrderModel* > d_curr_model;
   //quantifiers engine
   QuantifiersEngine* d_qe;
+  /** get current model value */
+  virtual Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial ) = 0;
 public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~QModelBuilder(){}
@@ -48,6 +50,8 @@ public:
   bool d_considerAxioms;
   /** exist instantiation ? */
   virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
+  /** get current model value */
+  Node getCurrentModelValue( FirstOrderModel* fm, Node n, bool partial = false );
 };
 
 
@@ -91,6 +95,8 @@ protected:
   bool d_didInstGen;
   /** process build model */
   virtual void processBuildModel( TheoryModel* m, bool fullModel );
+  /** get current model value */
+  Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial );
 protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;

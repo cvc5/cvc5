@@ -74,7 +74,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     //if this is an atomic trigger, consider adding it
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
-      if( !n.hasAttribute(InstConstantAttribute()) ){
+      if( !TermDb::hasInstConstAttr(n) ){
         Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
         Node op = n.getOperator();
@@ -117,7 +117,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
       }
     }
   }else{
-    if( options::efficientEMatching() && !n.hasAttribute(InstConstantAttribute())){
+    if( options::efficientEMatching() && !TermDb::hasInstConstAttr(n)){
       //Efficient e-matching must be notified
       //The term in triggers are not important here
       Debug("term-db") << "New in this branch term " << n << std::endl;
@@ -167,7 +167,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
        while( !eqc.isFinished() ){
          Node en = (*eqc);
          computeModelBasisArgAttribute( en );
-         if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
+         if( en.getKind()==APPLY_UF && !TermDb::hasInstConstAttr(en) ){
            if( !en.getAttribute(NoMatchAttribute()) ){
              Node op = en.getOperator();
              if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
@@ -275,32 +275,74 @@ void TermDb::makeInstantiationConstantsFor( Node f ){
       //set the var number attribute
       InstVarNumAttribute ivna;
       ic.setAttribute(ivna,i);
+      InstConstantAttribute ica;
+      ic.setAttribute(ica,f);
+      //also set the no-match attribute
+      NoMatchAttribute nma;
+      ic.setAttribute(nma,true);
     }
   }
 }
 
-void TermDb::setInstantiationConstantAttr( Node n, Node f ){
-  if( !n.hasAttribute(InstConstantAttribute()) ){
-    bool setAttr = false;
-    if( n.getKind()==INST_CONSTANT ){
-      setAttr = true;
-    }else{
-      for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        setInstantiationConstantAttr( n[i], f );
-        if( n[i].hasAttribute(InstConstantAttribute()) ){
-          setAttr = true;
-        }
+
+Node TermDb::getInstConstAttr( Node n ) {
+  if (!n.hasAttribute(InstConstantAttribute()) ){
+    Node f;
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      f = getInstConstAttr(n[i]);
+      if( !f.isNull() ){
+        break;
       }
     }
-    if( setAttr ){
-      InstConstantAttribute ica;
-      n.setAttribute(ica,f);
+    InstConstantAttribute ica;
+    n.setAttribute(ica,f);
+    if( !f.isNull() ){
       //also set the no-match attribute
       NoMatchAttribute nma;
       n.setAttribute(nma,true);
     }
   }
+  return n.getAttribute(InstConstantAttribute());
 }
+
+bool TermDb::hasInstConstAttr( Node n ) {
+  return !getInstConstAttr(n).isNull();
+}
+
+bool TermDb::hasBoundVarAttr( Node n ) {
+  if( !n.getAttribute(HasBoundVarComputedAttribute()) ){
+    bool hasBv = false;
+    if( n.getKind()==BOUND_VARIABLE ){
+      hasBv = true;
+    }else{
+      for (unsigned i=0; i<n.getNumChildren(); i++) {
+        if( hasBoundVarAttr(n[i]) ){
+          hasBv = true;
+          break;
+        }
+      }
+    }
+    HasBoundVarAttribute hbva;
+    n.setAttribute(hbva, hasBv);
+    HasBoundVarComputedAttribute hbvca;
+    n.setAttribute(hbvca, true);
+    Trace("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttribute()) << std::endl;
+  }
+  return n.getAttribute(HasBoundVarAttribute());
+}
+
+void TermDb::getBoundVars( Node n, std::vector< Node >& bvs) {
+  if (n.getKind()==BOUND_VARIABLE ){
+    if ( std::find( bvs.begin(), bvs.end(), n)==bvs.end() ){
+      bvs.push_back( n );
+    }
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++) {
+      getBoundVars(n[i], bvs);
+    }
+  }
+}
+
 
 /** get the i^th instantiation constant of f */
 Node TermDb::getInstantiationConstant( Node f, int i ) const {
@@ -347,7 +389,6 @@ Node TermDb::getCounterexampleLiteral( Node f ){
     //otherwise, ensure literal
     Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
     d_ce_lit[ f ] = ceLit;
-    setInstantiationConstantAttr( ceLit, f );
   }
   return d_ce_lit[ f ];
 }
@@ -361,7 +402,6 @@ Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & var
   Node n2 = n.substitute( vars.begin(), vars.end(),
                           inst_constants.begin(),
                           inst_constants.end() );
-  setInstantiationConstantAttr( n2, f );
   return n2;
 }
 

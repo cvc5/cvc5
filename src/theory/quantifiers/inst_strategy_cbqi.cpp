@@ -143,8 +143,8 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
 
 void InstStrategySimplex::addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder<>& t ){
   if( n.getKind()==MULT ){
-    if( n[1].hasAttribute(InstConstantAttribute()) ){
-      f = n[1].getAttribute(InstConstantAttribute());
+    if( TermDb::hasInstConstAttr(n[1]) ){
+      f = TermDb::getInstConstAttr(n[1]);
       if( n[1].getKind()==INST_CONSTANT ){
         d_ceTableaux[x][ n[1] ] = n[0];
       }else{
@@ -155,8 +155,8 @@ void InstStrategySimplex::addTermToRow( ArithVar x, Node n, Node& f, NodeBuilder
       t << n;
     }
   }else{
-    if( n.hasAttribute(InstConstantAttribute()) ){
-      f = n.getAttribute(InstConstantAttribute());
+    if( TermDb::hasInstConstAttr(n) ){
+      f = TermDb::getInstConstAttr(n);
       if( n.getKind()==INST_CONSTANT ){
         d_ceTableaux[x][ n ] = Node::null();
       }else{
@@ -327,81 +327,9 @@ int InstStrategyDatatypesValue::process( Node f, Theory::Effort effort, int e ){
 Node InstStrategyDatatypesValue::getValueFor( Node n ){
   //simply get the ground value for n in the current model, if it exists,
   //  or return an arbitrary ground term otherwise
-  if( !n.hasAttribute(InstConstantAttribute()) ){
+  if( !TermDb::hasInstConstAttr(n) ){
     return n;
   }else{
     return n;
   }
-  /*  FIXME
-
-  Debug("quant-datatypes-debug")  << "get value for " << n << std::endl;
-  if( !n.hasAttribute(InstConstantAttribute()) ){
-    return n;
-  }else{
-    Assert( n.getType().isDatatype() );
-    //check if in equivalence class with ground term
-    Node rep = getRepresentative( n );
-    Debug("quant-datatypes-debug") << "Rep is " << rep << std::endl;
-    if( !rep.hasAttribute(InstConstantAttribute()) ){
-      return rep;
-    }else{
-      if( !n.getType().isDatatype() ){
-        return n.getType().mkGroundTerm();
-      }else{
-        if( n.getKind()==APPLY_CONSTRUCTOR ){
-          std::vector< Node > children;
-          children.push_back( n.getOperator() );
-          for( int i=0; i<(int)n.getNumChildren(); i++ ){
-            children.push_back( getValueFor( n[i] ) );
-          }
-          return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
-        }else{
-          const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
-          TheoryDatatypes::EqLists* labels = &((TheoryDatatypes*)d_th)->d_labels;
-          //otherwise, use which constructor the inst constant is current chosen to be
-          if( labels->find( n )!=labels->end() ){
-            TheoryDatatypes::EqList* lbl = (*labels->find( n )).second;
-            int tIndex = -1;
-            if( !lbl->empty() && (*lbl)[ lbl->size()-1 ].getKind()==APPLY_TESTER ){
-              Debug("quant-datatypes-debug") << n << " tester is " << (*lbl)[ lbl->size()-1 ] << std::endl;
-              tIndex = Datatype::indexOf((*lbl)[ lbl->size()-1 ].getOperator().toExpr());
-            }else{
-              Debug("quant-datatypes-debug") << "find possible tester choice" << std::endl;
-              //must find a possible choice
-              vector< bool > possibleCons;
-              possibleCons.resize( dt.getNumConstructors(), true );
-              for( TheoryDatatypes::EqList::const_iterator j = lbl->begin(); j != lbl->end(); j++ ) {
-                Node leqn = (*j);
-                possibleCons[ Datatype::indexOf( leqn[0].getOperator().toExpr() ) ] = false;
-              }
-              for( unsigned int j=0; j<possibleCons.size(); j++ ) {
-                if( possibleCons[j] ){
-                  tIndex = j;
-                  break;
-                }
-              }
-            }
-            Assert( tIndex!=-1 );
-            Node cons = Node::fromExpr( dt[ tIndex ].getConstructor() );
-            Debug("quant-datatypes-debug") << n << " cons is " << cons << std::endl;
-            std::vector< Node > children;
-            children.push_back( cons );
-            for( int i=0; i<(int)dt[ tIndex ].getNumArgs(); i++ ) {
-              Node sn = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( dt[tIndex][i].getSelector() ), n );
-              if( n.hasAttribute(InstConstantAttribute()) ){
-                InstConstantAttribute ica;
-                sn.setAttribute(ica,n.getAttribute(InstConstantAttribute()) );
-              }
-              Node snn = getValueFor( sn );
-              children.push_back( snn );
-            }
-            return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
-          }else{
-            return n.getType().mkGroundTerm();
-          }
-        }
-      }
-    }
-  }
-  */
 }

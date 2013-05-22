@@ -61,9 +61,12 @@ d_lemmas_produced_c(u){
   if( options::finiteModelFind() ){
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
-
-    d_bint = new quantifiers::BoundedIntegers( c, this );
-    d_modules.push_back( d_bint );
+    if( options::fmfBoundInt() ){
+      d_bint = new quantifiers::BoundedIntegers( c, this );
+      d_modules.push_back( d_bint );
+    }else{
+      d_bint = NULL;
+    }
   }else{
     d_model_engine = NULL;
     d_bint = NULL;
@@ -256,7 +259,6 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
 
 bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
   Assert( f.getKind()==FORALL );
-  Assert( !f.hasAttribute(InstConstantAttribute()) );
   Assert( vars.size()==terms.size() );
   Node body = getInstantiation( f, vars, terms );
   //make the lemma
@@ -271,7 +273,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     uint64_t maxInstLevel = 0;
     for( int i=0; i<(int)terms.size(); i++ ){
-      if( terms[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
         Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
         for( int i=0; i<(int)terms.size(); i++ ){
           Debug("inst") << "   " << terms[i] << std::endl;
@@ -437,8 +439,6 @@ bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
 }
 
 bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool reqPhasePol ){
-  //Assert( !n1.hasAttribute(InstConstantAttribute()) );
-  //Assert( !n2.hasAttribute(InstConstantAttribute()) );
   //Assert( !areEqual( n1, n2 ) );
   //Assert( !areDisequal( n1, n2 ) );
   Kind knd = n1.getType()==NodeManager::currentNM()->booleanType() ? IFF : EQUAL;
@@ -468,7 +468,6 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
       if( d_phase_reqs[f]->isPhaseReq( nodes[i] ) ){
         bool preq = d_phase_reqs[f]->getPhaseReq( nodes[i] );
         nodes[i] = NodeManager::currentNM()->mkNode( IFF, nodes[i], NodeManager::currentNM()->mkConst<bool>(preq) );
-        d_term_db->setInstantiationConstantAttr( nodes[i], f );
         nodeChanged = true;
       }
       //else if( qe->isPhaseReqEquality( f, trNodes[i] ) ){

@@ -151,7 +151,7 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
     vars.push_back(*v);
   };
   /* Instantiation version */
-  std::vector<Node> inst_constants = createInstVariable(vars);
+  std::vector<Node> inst_constants = createInstVariable(r,vars);
   /* Body/Remove_term/Guards/Triggers */
   Node body = r[2][1];
   TNode new_terms = r[2][1];
@@ -376,7 +376,7 @@ bool TheoryRewriteRules::addRewritePattern(TNode pattern, TNode body,
 
 }
 
-std::vector<Node> TheoryRewriteRules::createInstVariable( std::vector<Node> & vars ){
+std::vector<Node> TheoryRewriteRules::createInstVariable( Node r, std::vector<Node> & vars ){
   std::vector<Node> inst_constant;
   inst_constant.reserve(vars.size());
   for( std::vector<Node>::const_iterator v = vars.begin();
@@ -384,6 +384,11 @@ std::vector<Node> TheoryRewriteRules::createInstVariable( std::vector<Node> & va
     //make instantiation constants
     Node ic = NodeManager::currentNM()->mkInstConstant( (*v).getType() );
     inst_constant.push_back( ic );
+    InstConstantAttribute ica;
+    ic.setAttribute(ica,r);
+    //also set the no-match attribute
+    NoMatchAttribute nma;
+    ic.setAttribute(nma,true);
   };
   return inst_constant;
 }

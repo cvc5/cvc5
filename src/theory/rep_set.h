@@ -59,22 +59,26 @@ private:
     ENUM_DOMAIN_ELEMENTS,
     ENUM_RANGE,
   };
-
+  QuantifiersEngine * d_qe;
   //initialize function
-  bool initialize(QuantifiersEngine * qe, Node f);
+  bool initialize();
   //enumeration type?
   std::vector< int > d_enum_type;
   //for enum ranges
   std::map< int, Node > d_lower_bounds;
   //domain size
   int domainSize( int i );
+  //node this is rep set iterator is for
+  Node d_owner;
+  //reset index
+  bool resetIndex( int i, bool initial = false );
 public:
-  RepSetIterator( RepSet* rs );
+  RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
   ~RepSetIterator(){}
   //set that this iterator will be iterating over instantiations for a quantifier
-  bool setQuantifier( QuantifiersEngine * qe, Node f );
+  bool setQuantifier( Node f );
   //set that this iterator will be iterating over the domain of a function
-  bool setFunctionDomain( QuantifiersEngine * qe, Node op );
+  bool setFunctionDomain( Node op );
 public:
   //pointer to model
   RepSet* d_rep_set;
