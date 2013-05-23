@@ -38,15 +38,34 @@ void FirstOrderModel::assertQuantifier( Node n ){
   }
 }
 
-void FirstOrderModel::reset(){
-  TheoryModel::reset();
+Node FirstOrderModel::getCurrentModelValue( Node n, bool partial ) {
+  std::vector< Node > children;
+  if( n.getNumChildren()>0 ){
+    if( n.getKind()!=APPLY_UF && n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.push_back( n.getOperator() );
+    }
+    for (unsigned i=0; i<n.getNumChildren(); i++) {
+      Node nc = getCurrentModelValue( n[i], partial );
+      if (nc.isNull()) {
+        return Node::null();
+      }else{
+        children.push_back( nc );
+      }
+    }
+    if( n.getKind()==APPLY_UF ){
+      return getCurrentUfModelValue( n, children, partial );
+    }else{
+      Node nn = NodeManager::currentNM()->mkNode( n.getKind(), children );
+      nn = Rewriter::rewrite( nn );
+      return nn;
+    }
+  }else{
+    return getRepresentative(n);
+  }
 }
 
-void FirstOrderModel::initialize( bool considerAxioms ){
-  //rebuild models
-  d_uf_model_tree.clear();
-  d_uf_model_gen.clear();
-  d_array_model.clear();
+void FirstOrderModel::initialize( bool considerAxioms ) {
+  processInitialize();
   //this is called after representatives have been chosen and the equality engine has been built
   //for each quantifier, collect all operators we care about
   for( int i=0; i<getNumAssertedQuantifiers(); i++ ){
@@ -59,6 +78,23 @@ void FirstOrderModel::initialize( bool considerAxioms ){
 }
 
 void FirstOrderModel::initializeModelForTerm( Node n ){
+  processInitializeModelForTerm( n );
+  for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    initializeModelForTerm( n[i] );
+  }
+}
+
+FirstOrderModelIG::FirstOrderModelIG(context::Context* c, std::string name) : FirstOrderModel(c,name) {
+
+}
+
+void FirstOrderModelIG::processInitialize(){
+  //rebuild models
+  d_uf_model_tree.clear();
+  d_uf_model_gen.clear();
+}
+
+void FirstOrderModelIG::processInitializeModelForTerm( Node n ){
   if( n.getKind()==APPLY_UF ){
     Node op = n.getOperator();
     if( d_uf_model_tree.find( op )==d_uf_model_tree.end() ){
@@ -82,14 +118,11 @@ void FirstOrderModel::initializeModelForTerm( Node n ){
     }
   }
   */
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    initializeModelForTerm( n[i] );
-  }
 }
 
 //for evaluation of quantifier bodies
 
-void FirstOrderModel::resetEvaluate(){
+void FirstOrderModelIG::resetEvaluate(){
   d_eval_uf_use_default.clear();
   d_eval_uf_model.clear();
   d_eval_term_index_order.clear();
@@ -107,7 +140,7 @@ void FirstOrderModel::resetEvaluate(){
 // if eVal = 0, then n' cannot be proven to be equal to phaseReq
 // if eVal is not 0, then
 //   each n{ri->d_index[0]/x_0...ri->d_index[depIndex]/x_depIndex, */x_(depIndex+1) ... */x_n } is equivalent in the current model
-int FirstOrderModel::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
+int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
   ++d_eval_formulas;
   //Debug("fmf-eval-debug") << "Evaluate " << n << " " << phaseReq << std::endl;
   //Notice() << "Eval " << n << std::endl;
@@ -226,7 +259,7 @@ int FirstOrderModel::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
   }
 }
 
-Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
+Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
   //Message() << "Eval term " << n << std::endl;
   Node val;
   depIndex = ri->getNumTerms()-1;
@@ -342,7 +375,7 @@ Node FirstOrderModel::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri ){
   return val;
 }
 
-Node FirstOrderModel::evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri ){
+Node FirstOrderModelIG::evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri ){
   depIndex = -1;
   if( n.getNumChildren()==0 ){
     return n;
@@ -372,14 +405,14 @@ Node FirstOrderModel::evaluateTermDefault( Node n, int& depIndex, std::vector< i
   }
 }
 
-void FirstOrderModel::clearEvalFailed( int index ){
+void FirstOrderModelIG::clearEvalFailed( int index ){
   for( int i=0; i<(int)d_eval_failed_lits[index].size(); i++ ){
     d_eval_failed[ d_eval_failed_lits[index][i] ] = false;
   }
   d_eval_failed_lits[index].clear();
 }
 
-void FirstOrderModel::makeEvalUfModel( Node n ){
+void FirstOrderModelIG::makeEvalUfModel( Node n ){
   if( d_eval_uf_model.find( n )==d_eval_uf_model.end() ){
     makeEvalUfIndexOrder( n );
     if( !d_eval_uf_use_default[n] ){
@@ -423,7 +456,7 @@ struct sortGetMaxVariableNum {
   bool operator() (Node i,Node j) { return (getMaxVariableNum(i)<getMaxVariableNum(j));}
 };
 
-void FirstOrderModel::makeEvalUfIndexOrder( Node n ){
+void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
   if( d_eval_term_index_order.find( n )==d_eval_term_index_order.end() ){
 #ifdef USE_INDEX_ORDERING
     //sort arguments in order of least significant vs. most significant variable in default ordering
@@ -458,5 +491,20 @@ void FirstOrderModel::makeEvalUfIndexOrder( Node n ){
 #else
     d_eval_uf_use_default[n] = true;
 #endif
+  }
+}
+
+Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
+  std::vector< Node > children;
+  children.push_back(n.getOperator());
+  children.insert(children.end(), args.begin(), args.end());
+  Node nv = NodeManager::currentNM()->mkNode(APPLY_UF, children);
+  //make the term model specifically for nv
+  makeEvalUfModel( nv );
+  int argDepIndex;
+  if( d_eval_uf_use_default[nv] ){
+    return d_uf_model_tree[ n.getOperator() ].getValue( this, nv, argDepIndex );
+  }else{
+    return d_eval_uf_model[ nv ].getValue( this, nv, argDepIndex );
   }
 }

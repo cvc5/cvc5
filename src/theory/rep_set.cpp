@@ -100,6 +100,7 @@ RepSetIterator::RepSetIterator( QuantifiersEngine * qe, RepSet* rs ) : d_qe(qe),
 }
 
 int RepSetIterator::domainSize( int i ) {
+  Assert(i>=0);
   if( d_enum_type[i]==ENUM_DOMAIN_ELEMENTS ){
     return d_domain[i].size();
   }else{
@@ -281,7 +282,9 @@ void RepSetIterator::increment2( int counter ){
   counter = (int)d_index.size()-1;
 #endif
   //increment d_index
-  Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+  if( counter>=0){
+    Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+  }
   while( counter>=0 && d_index[counter]>=(int)(domainSize(counter)-1) ){
     counter--;
     if( counter>=0){

@@ -355,8 +355,8 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
     }
   }
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
-  l = d_quantEngine->getModelEngine()->getModelBuilder()->getCurrentModelValue( d_quantEngine->getModel(), l );
-  u = d_quantEngine->getModelEngine()->getModelBuilder()->getCurrentModelValue( d_quantEngine->getModel(), u );
+  l = d_quantEngine->getModel()->getCurrentModelValue( l );
+  u = d_quantEngine->getModel()->getCurrentModelValue( u );
   Trace("bound-int-rsi") << "Value is " << l << " ... " << u << std::endl;
   return;
 }

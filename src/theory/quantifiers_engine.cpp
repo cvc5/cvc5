@@ -48,7 +48,11 @@ d_lemmas_produced_c(u){
   d_hasAddedLemma = false;
 
   //the model object
-  d_model = new quantifiers::FirstOrderModel( c, "FirstOrderModel" );
+  if( options::fmfFullModelCheck() ){
+    d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
+  }else{
+    d_model = new quantifiers::FirstOrderModelIG( c, "FirstOrderModelIG" );
+  }
 
   //add quantifiers modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){

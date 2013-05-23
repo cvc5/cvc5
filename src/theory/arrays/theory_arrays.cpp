@@ -21,7 +21,6 @@
 #include <map>
 #include "theory/rewriter.h"
 #include "expr/command.h"
-#include "theory/arrays/theory_arrays_model.h"
 #include "theory/model.h"
 #include "theory/arrays/options.h"
 #include "smt/logic_exception.h"
@@ -495,7 +494,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   }
   case kind::STORE_ALL: {
     throw LogicException("Array theory solver does not yet support assertions using constant array value");
-  }    
+  }
   default:
     // Variables etc
     if (node.getType().isArray()) {
@@ -1082,7 +1081,7 @@ void TheoryArrays::checkModel(Effort e)
     if (constraintIdx == d_modelConstraints.size()) {
       break;
     }
-    
+
     if (assertion.getKind() == kind::EQUAL && assertion[0].getType().isArray()) {
       assertionToCheck = solveWrite(expandStores(assertion[0], assumptions).eqNode(expandStores(assertion[1], assumptions)), true, true, false);
       if (assertionToCheck.getKind() == kind::AND &&
@@ -1429,7 +1428,7 @@ Node TheoryArrays::getModelValRec(TNode node)
             }
             ++d_numGetModelValConflicts;
             getSatContext()->pop();
-          } 
+          }
           ++te;
           if (te.isFinished()) {
             Assert(false);
@@ -1466,7 +1465,7 @@ bool TheoryArrays::hasLoop(TNode node, TNode target)
       return true;
     }
   }
-  
+
   return false;
 }
 

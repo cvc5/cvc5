@@ -20,7 +20,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/model_builder.h"
 #include "theory/model.h"
-#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/full_model_check.h"
 
 namespace CVC4 {
@@ -34,8 +33,6 @@ private:
   /** builder class */
   QModelBuilder* d_builder;
 private:    //analysis of current model:
-  //relevant domain
-  RelevantDomain d_rel_domain;
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;
 private:

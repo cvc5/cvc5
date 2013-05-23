@@ -14,6 +14,7 @@
 #define FULL_MODEL_CHECK
 
 #include "theory/quantifiers/model_builder.h"
+#include "theory/quantifiers/first_order_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -21,6 +22,7 @@ namespace quantifiers {
 namespace fmcheck {
 
 
+class FirstOrderModelFmc;
 class FullModelChecker;
 
 class EntryTrie
@@ -30,12 +32,10 @@ public:
   std::map<Node,EntryTrie> d_child;
   int d_data;
   void reset() { d_data = -1; d_child.clear(); }
-  void addEntry( FullModelChecker * m, Node c, Node v, int data, int index = 0 );
-  bool hasGeneralization( FullModelChecker * m, Node c, int index = 0 );
-  int getGeneralizationIndex( FullModelChecker * m, std::vector<Node> & inst, int index = 0 );
-  void getEntries( FullModelChecker * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
-  //if possible, get ground instance of c that evaluates to the entry
-  bool getWitness( FullModelChecker * m, FirstOrderModel * fm, Node c, std::vector<Node> & inst, int index = 0 );
+  void addEntry( FirstOrderModelFmc * m, Node c, Node v, int data, int index = 0 );
+  bool hasGeneralization( FirstOrderModelFmc * m, Node c, int index = 0 );
+  int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index = 0 );
+  void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
 };
 
 
@@ -64,11 +64,40 @@ public:
     d_status.clear();
     d_has_simplified = false;
   }
-  bool addEntry( FullModelChecker * m, Node c, Node v);
-  Node evaluate( FullModelChecker * m, std::vector<Node>& inst );
-  int getGeneralizationIndex( FullModelChecker * m, std::vector<Node>& inst );
-  void simplify( FullModelChecker * m );
+  bool addEntry( FirstOrderModelFmc * m, Node c, Node v);
+  Node evaluate( FirstOrderModelFmc * m, std::vector<Node>& inst );
+  int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst );
+  void simplify( FirstOrderModelFmc * m );
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
+};
+
+class FirstOrderModelFmc : public FirstOrderModel
+{
+  friend class FullModelChecker;
+private:
+  /** quant engine */
+  QuantifiersEngine * d_qe;
+  /** models for UF */
+  std::map<Node, Def * > d_models;
+  std::map<TypeNode, Node > d_model_basis_rep;
+  std::map<TypeNode, Node > d_type_star;
+  Node getUsedRepresentative(Node n);
+  /** get current model value */
+  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
+  void processInitializeModelForTerm(Node n);
+public:
+  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
+  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
+  // initialize the model
+  void processInitialize();
+
+  Node getFunctionValue(Node op, const char* argPrefix );
+
+  bool isStar(Node n);
+  Node getStar(TypeNode tn);
+  bool isModelBasisTerm(Node n);
+  Node getModelBasisTerm(TypeNode tn);
+  Node getSomeDomainElement(TypeNode tn);
 };
 
 
@@ -78,45 +107,41 @@ protected:
   Node d_true;
   Node d_false;
   std::map<TypeNode, std::map< Node, int > > d_rep_ids;
-  std::map<TypeNode, Node > d_model_basis_rep;
-  std::map<Node, Def * > d_models;
   std::map<Node, Def > d_quant_models;
-  std::map<Node, bool > d_models_init;
   std::map<Node, Node > d_quant_cond;
-  std::map<TypeNode, Node > d_type_star;
   std::map<Node, std::map< Node, int > > d_quant_var_id;
   std::map<Node, std::vector< int > > d_star_insts;
-  Node getRepresentative(FirstOrderModel * fm, Node n);
-  Node normalizeArgReps(FirstOrderModel * fm, Node op, Node n);
-  void addEntry( FirstOrderModel * fm, Node op, Node c, Node v,
+  Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
+  int exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
+protected:
+  void addEntry( FirstOrderModelFmc * fm, Node op, Node c, Node v,
                  std::vector< Node > & conds,
                  std::vector< Node > & values,
                  std::vector< Node > & entry_conds );
-  int exhaustiveInstantiate(FirstOrderModel * fm, Node f, Node c, int c_index);
 private:
-  void doCheck(FirstOrderModel * fm, Node f, Def & d, Node n );
+  void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
   void doNegate( Def & dc );
-  void doVariableEquality( FirstOrderModel * fm, Node f, Def & d, Node eq );
-  void doVariableRelation( FirstOrderModel * fm, Node f, Def & d, Def & dc, Node v);
-  void doUninterpretedCompose( FirstOrderModel * fm, Node f, Def & d, Node n, std::vector< Def > & dc );
+  void doVariableEquality( FirstOrderModelFmc * fm, Node f, Def & d, Node eq );
+  void doVariableRelation( FirstOrderModelFmc * fm, Node f, Def & d, Def & dc, Node v);
+  void doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node n, std::vector< Def > & dc );
 
-  void doUninterpretedCompose( FirstOrderModel * fm, Node f, Node op, Def & d,
+  void doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Node op, Def & d,
                                std::vector< Def > & dc, int index,
                                std::vector< Node > & cond, std::vector<Node> & val );
-  void doUninterpretedCompose2( FirstOrderModel * fm, Node f,
+  void doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
                                 std::map< int, Node > & entries, int index,
                                 std::vector< Node > & cond, std::vector< Node > & val,
                                 EntryTrie & curr);
 
-  void doInterpretedCompose( FirstOrderModel * fm, Node f, Def & d, Node n,
+  void doInterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node n,
                              std::vector< Def > & dc, int index,
                              std::vector< Node > & cond, std::vector<Node> & val );
-  int isCompat( std::vector< Node > & cond, Node c );
-  bool doMeet( std::vector< Node > & cond, Node c );
+  int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
+  bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   Node mkCond( std::vector< Node > & cond );
-  Node mkCondDefault( Node f );
-  void mkCondDefaultVec( Node f, std::vector< Node > & cond );
+  Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
+  void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
 public:
@@ -124,25 +149,20 @@ public:
   ~FullModelChecker(){}
 
   int getVariableId(Node f, Node n) { return d_quant_var_id[f][n]; }
-  bool isStar(Node n);
-  Node getStar(TypeNode tn);
-  Node getSomeDomainElement(FirstOrderModel * fm, TypeNode tn);
-  bool isModelBasisTerm(Node n);
-  Node getModelBasisTerm(TypeNode tn);
-  Def * getModel(FirstOrderModel * fm, Node op);
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
   bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas );
 
-  bool useSimpleModels();
-  Node getFunctionValue(FirstOrderModel * fm, Node op, const char* argPrefix );
+  Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
 
   /** process build model */
   void processBuildModel(TheoryModel* m, bool fullModel);
   /** get current model value */
-  Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial );
+  Node getCurrentUfModelValue( FirstOrderModelFmc* fm, Node n, std::vector< Node > & args, bool partial );
+
+  bool useSimpleModels();
 };
 
 }

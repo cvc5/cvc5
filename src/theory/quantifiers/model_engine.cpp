@@ -18,7 +18,6 @@
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/quantifiers/options.h"
-#include "theory/arrays/theory_arrays_model.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -35,8 +34,7 @@ using namespace CVC4::theory::inst;
 
 //Model Engine constructor
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
-QuantifiersModule( qe ),
-d_rel_domain( qe, qe->getModel() ){
+QuantifiersModule( qe ){
 
   if( options::fmfFullModelCheck() ){
     d_builder = new fmcheck::FullModelChecker( c, qe );
@@ -179,9 +177,8 @@ int ModelEngine::checkModel(){
   }
   */
   //compute the relevant domain if necessary
-  if( optUseRelevantDomain() ){
-    d_rel_domain.compute();
-  }
+  //if( optUseRelevantDomain() ){
+  //}
   d_triedLemmas = 0;
   d_testLemmas = 0;
   d_relevantLemmas = 0;
@@ -240,8 +237,12 @@ int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     RepSetIterator riter( d_quantEngine, &(d_quantEngine->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
-      Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
-      d_quantEngine->getModel()->resetEvaluate();
+      FirstOrderModelIG * fmig = NULL;
+      if( !options::fmfFullModelCheck() ){
+        fmig = (FirstOrderModelIG*)d_quantEngine->getModel();
+        Debug("inst-fmf-ei") << "Reset evaluate..." << std::endl;
+        fmig->resetEvaluate();
+      }
       Debug("inst-fmf-ei") << "Begin instantiation..." << std::endl;
       int tests = 0;
       int triedLemmas = 0;
@@ -252,7 +253,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         d_testLemmas++;
         int eval = 0;
         int depIndex;
-        if( d_builder->optUseModel() ){
+        if( d_builder->optUseModel() && fmig ){
           //see if instantiation is already true in current model
           Debug("fmf-model-eval") << "Evaluating ";
           riter.debugPrintSmall("fmf-model-eval");
@@ -261,7 +262,7 @@ int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           //if evaluate(...)==1, then the instantiation is already true in the model
           //  depIndex is the index of the least significant variable that this evaluation relies upon
           depIndex = riter.getNumTerms()-1;
-          eval = d_quantEngine->getModel()->evaluate( d_quantEngine->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
+          eval = fmig->evaluate( d_quantEngine->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
           if( eval==1 ){
             Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
           }else{
@@ -296,10 +297,12 @@ int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         }
       }
       //print debugging information
-      d_statistics.d_eval_formulas += d_quantEngine->getModel()->d_eval_formulas;
-      d_statistics.d_eval_uf_terms += d_quantEngine->getModel()->d_eval_uf_terms;
-      d_statistics.d_eval_lits += d_quantEngine->getModel()->d_eval_lits;
-      d_statistics.d_eval_lits_unknown += d_quantEngine->getModel()->d_eval_lits_unknown;
+      if( fmig ){
+        d_statistics.d_eval_formulas += fmig->d_eval_formulas;
+        d_statistics.d_eval_uf_terms += fmig->d_eval_uf_terms;
+        d_statistics.d_eval_lits += fmig->d_eval_lits;
+        d_statistics.d_eval_lits_unknown += fmig->d_eval_lits_unknown;
+      }
       int relevantInst = 1;
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
         relevantInst = relevantInst * (int)riter.d_domain[i].size();
