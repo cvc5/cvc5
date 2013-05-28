@@ -555,10 +555,10 @@ public:
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
-    TS_ASSERT( !info.isLinear() );
-    TS_ASSERT( !info.areIntegersUsed() );
-    TS_ASSERT( !info.isDifferenceLogic() );
-    TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT_THROWS( info.isLinear(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
 
     // check copy is unchanged
     info = info.getUnlockedCopy();
@@ -574,10 +574,10 @@ public:
     TS_ASSERT( !info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( !info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_BOOL ) );
-    TS_ASSERT( !info.isLinear() );
-    TS_ASSERT( !info.areIntegersUsed() );
-    TS_ASSERT( !info.isDifferenceLogic() );
-    TS_ASSERT( !info.areRealsUsed() );
+    TS_ASSERT_THROWS( info.isLinear(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.areIntegersUsed(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.isDifferenceLogic(), IllegalArgumentException );
+    TS_ASSERT_THROWS( info.areRealsUsed(), IllegalArgumentException );
 
     // check all-included logic
     info = info.getUnlockedCopy();

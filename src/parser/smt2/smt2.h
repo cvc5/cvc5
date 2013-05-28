@@ -21,6 +21,7 @@
 
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
 #include <sstream>
@@ -47,7 +48,7 @@ public:
 
 private:
   bool d_logicSet;
-  Smt1::Logic d_logic;
+  LogicInfo d_logic;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);

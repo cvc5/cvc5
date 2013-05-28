@@ -155,21 +155,25 @@ public:
   /** Are integers in this logic? */
   bool areIntegersUsed() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether integers are used");
     return d_integers;
   }
   /** Are reals in this logic? */
   bool areRealsUsed() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether reals are used");
     return d_reals;
   }
   /** Does this logic only linear arithmetic? */
   bool isLinear() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's linear");
     return d_linear || d_differenceLogic;
   }
   /** Does this logic only permit difference reasoning? (implies linear) */
   bool isDifferenceLogic() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
     return d_differenceLogic;
   }
 
