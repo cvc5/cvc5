@@ -36,7 +36,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::MINUS);
   addOperator(kind::UMINUS);
   addOperator(kind::MULT);
-  addOperator(kind::DIVISION);
   addOperator(kind::LT);
   addOperator(kind::LEQ);
   addOperator(kind::GT);
@@ -106,16 +105,20 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    // falling-through on purpose, to add Ints part of RealsInts
+    addOperator(kind::DIVISION);
+    // falling through on purpose, to add Ints part of Reals_Ints
 
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
+    addOperator(kind::INTS_DIVISION);
+    addOperator(kind::INTS_MODULUS);
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
+    addOperator(kind::DIVISION);
     break;
 
   case THEORY_BITVECTORS:
