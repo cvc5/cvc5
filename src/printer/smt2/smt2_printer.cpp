@@ -241,11 +241,16 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::MULT:
   case kind::MINUS:
   case kind::UMINUS:
-  case kind::DIVISION:
   case kind::LT:
   case kind::LEQ:
   case kind::GT:
-  case kind::GEQ: out << smtKindString(k) << " "; break;
+  case kind::GEQ:
+  case kind::DIVISION:
+  case kind::DIVISION_TOTAL:
+  case kind::INTS_DIVISION:
+  case kind::INTS_DIVISION_TOTAL:
+  case kind::INTS_MODULUS:
+  case kind::INTS_MODULUS_TOTAL: out << smtKindString(k) << " "; break;
 
     // arrays theory
   case kind::SELECT:
@@ -421,11 +426,16 @@ static string smtKindString(Kind k) throw() {
   case kind::MULT: return "*";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
-  case kind::DIVISION: return "/";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
   case kind::GEQ: return ">=";
+  case kind::DIVISION:
+  case kind::DIVISION_TOTAL: return "/";
+  case kind::INTS_DIVISION:
+  case kind::INTS_DIVISION_TOTAL: return "div";
+  case kind::INTS_MODULUS:
+  case kind::INTS_MODULUS_TOTAL: return "mod";
 
     // arrays theory
   case kind::SELECT: return "select";

@@ -36,7 +36,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::MINUS);
   addOperator(kind::UMINUS);
   addOperator(kind::MULT);
-  addOperator(kind::DIVISION);
   addOperator(kind::LT);
   addOperator(kind::LEQ);
   addOperator(kind::GT);
@@ -106,16 +105,20 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    // falling-through on purpose, to add Ints part of RealsInts
+    addOperator(kind::DIVISION);
+    // falling through on purpose, to add Ints part of Reals_Ints
 
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
+    addOperator(kind::INTS_DIVISION);
+    addOperator(kind::INTS_MODULUS);
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
+    addOperator(kind::DIVISION);
     break;
 
   case THEORY_BITVECTORS:
@@ -138,135 +141,35 @@ bool Smt2::logicIsSet() {
 
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
-  d_logic = Smt1::toLogic(name);
+  d_logic = name;
 
   // Core theory belongs to every logic
   addTheory(THEORY_CORE);
 
-  switch(d_logic) {
-  case Smt1::QF_SAT:
-    /* No extra symbols necessary */
-    break;
-
-  case Smt1::QF_AX:
-    addTheory(THEORY_ARRAYS);
-    break;
-
-  case Smt1::QF_IDL:
-  case Smt1::QF_LIA:
-  case Smt1::QF_NIA:
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_RDL:
-  case Smt1::QF_LRA:
-  case Smt1::QF_NRA:
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_UF:
+  if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
     addOperator(kind::APPLY_UF);
-    break;
+  }
 
-  case Smt1::QF_UFIDL:
-  case Smt1::QF_UFLIA:
-  case Smt1::QF_UFNIA:// nonstandard logic
-    addTheory(THEORY_INTS);
-    addOperator(kind::APPLY_UF);
-    break;
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
+    if(d_logic.areIntegersUsed()) {
+      addTheory(THEORY_INTS);
+    }
 
-  case Smt1::QF_UFLRA:
-  case Smt1::QF_UFNRA:
-    addTheory(THEORY_REALS);
-    addOperator(kind::APPLY_UF);
-    break;
-
-  case Smt1::QF_UFLIRA:// nonstandard logic
-  case Smt1::QF_UFNIRA:// nonstandard logic
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_BV:
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_ABV:
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_UFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_AUFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_AUFBVLIA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_AUFBVLRA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_AUFLIA:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_AUFLIRA:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::ALL_SUPPORTED:
-    addTheory(THEORY_QUANTIFIERS);
-    /* fall through */
-  case Smt1::QF_ALL_SUPPORTED:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::AUFLIA:
-  case Smt1::AUFLIRA:
-  case Smt1::AUFNIRA:
-  case Smt1::LRA:
-  case Smt1::UFNIA:
-  case Smt1::UFNIRA:
-  case Smt1::UFLRA:
-    if(d_logic != Smt1::AUFLIA && d_logic != Smt1::UFNIA) {
+    if(d_logic.areRealsUsed()) {
       addTheory(THEORY_REALS);
     }
-    if(d_logic != Smt1::LRA) {
-      addOperator(kind::APPLY_UF);
-      if(d_logic != Smt1::UFLRA) {
-        addTheory(THEORY_INTS);
-        if(d_logic != Smt1::UFNIA && d_logic != Smt1::UFNIRA) {
-          addTheory(THEORY_ARRAYS);
-        }
-      }
-    }
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAY)) {
+    addTheory(THEORY_ARRAYS);
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+    addTheory(THEORY_BITVECTORS);
+  }
+
+  if(d_logic.isQuantified()) {
     addTheory(THEORY_QUANTIFIERS);
-    break;
   }
 }/* Smt2::setLogic() */
 

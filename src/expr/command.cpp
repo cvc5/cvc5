@@ -1118,7 +1118,8 @@ void SetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
     smtEngine->setInfo(d_flag, d_sexpr);
     d_commandStatus = CommandSuccess::instance();
   } catch(UnrecognizedOptionException&) {
-    d_commandStatus = new CommandUnsupported();
+    // As per SMT-LIB spec, silently accept unknown set-info keys
+    d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
