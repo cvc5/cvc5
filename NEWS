@@ -12,6 +12,8 @@ Changes since 1.3
   version of CVC4.  However, the new configure option "--bsd" disables
   these GPL dependences and builds the best-performing BSD-licenced version
   of CVC4.
+* Small API adjustments to Datatypes to even out the API and make it
+  function better in Java.
 
 Changes since 1.2
 =================

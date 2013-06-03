@@ -44,7 +44,7 @@ namespace CVC4 {
     void addDeclaration(Expr atom);
   };
 
-  class LFSCTheoryProof: public TheoryProof {
+  class LFSCTheoryProof : public TheoryProof {
     void printDeclarations(std::ostream& os, std::ostream& paren);
   public:
     static void printTerm(Expr term, std::ostream& os);

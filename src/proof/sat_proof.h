@@ -253,7 +253,7 @@ public:
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
 };/* class SatProof */
 
-class LFSCSatProof: public SatProof {
+class LFSCSatProof : public SatProof {
 private:
   void printResolution(ClauseId id, std::ostream& out, std::ostream& paren);
 public:
