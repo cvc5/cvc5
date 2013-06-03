@@ -14,23 +14,23 @@ filename=${file%.*}
 function trywith {
   result="$( ulimit -t "$1";shift;$cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
   case "$result" in
-    sat) echo "% SZS Satisfiable for $filename"; exit 0;;
-    unsat) echo "% SZS Unsatisfiable for $filename"; exit 0;;
-    conjecture-sat) echo "% SZS CounterSatisfiable for $filename"; exit 0;;
-    conjecture-unsat) echo "% SZS Theorem for $filename"; exit 0;;
+    sat) echo "% SZS status" "Satisfiable for $filename"; exit 0;;
+    unsat) echo "% SZS status" "Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "% SZS status" "CounterSatisfiable for $filename"; exit 0;;
+    conjecture-unsat) echo "% SZS status" "Theorem for $filename"; exit 0;;
   esac
 }
 function finishwith {
   result="$( $cvc4 -L tptp --szs-compliant --no-checking --no-interactive "$@" $bench)"
   case "$result" in
-    sat) echo "% SZS Satisfiable for $filename"; exit 0;;
-    unsat) echo "% SZS Unsatisfiable for $filename"; exit 0;;
-    conjecture-sat) echo "% SZS CounterSatisfiable for $filename"; exit 0;;
-    conjecture-unsat) echo "% SZS Theorem for $filename"; exit 0;;
+    sat) echo "% SZS status" "Satisfiable for $filename"; exit 0;;
+    unsat) echo "% SZS status" "Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "% SZS status" "CounterSatisfiable for $filename"; exit 0;;
+    conjecture-unsat) echo "% SZS status" "Theorem for $filename"; exit 0;;
   esac
 }
 
 trywith 30 --finite-model-find --uf-ss-totality
 trywith 30 --finite-model-find --decision=justification --fmf-fmc
 trywith $to --finite-model-find --decision=justification
-echo "% SZS GaveUp for $filename"
+echo "% SZS status" "GaveUp for $filename"

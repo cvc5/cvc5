@@ -16,18 +16,18 @@ function trywith {
   (ulimit -t "$limit";$cvc4 -L tptp --szs-compliant --no-checking --no-interactive --dump-models --produce-models "$@" $bench) 2>/dev/null |
   (read result;
   case "$result" in
-    sat) echo "% SZS Satisfiable for $filename";
-         echo "% SZS output start FiniteModel for $filename";
+    sat) echo "% SZS status" "Satisfiable for $filename";
+         echo "% SZS output" "start FiniteModel for $filename";
          cat;
-         echo "% SZS output end FiniteModel for $filename";
+         echo "% SZS output" "end FiniteModel for $filename";
          exit 0;;
-    unsat) echo "% SZS Unsatisfiable for $filename"; exit 0;;
-    conjecture-sat) echo "% SZS CounterSatisfiable for $filename";
-                    echo "% SZS output start FiniteModel for $filename";
+    unsat) echo "% SZS status" "Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "% SZS status" "CounterSatisfiable for $filename";
+                    echo "% SZS output" "start FiniteModel for $filename";
                     cat;
-                    echo "% SZS output end FiniteModel for $filename";
+                    echo "% SZS output" "end FiniteModel for $filename";
                     exit 0;;
-    conjecture-unsat) echo "% SZS Theorem for $filename"; exit 0;;
+    conjecture-unsat) echo "% SZS status" "Theorem for $filename"; exit 0;;
   esac; exit 1)
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
@@ -35,4 +35,4 @@ function trywith {
 trywith 30 --finite-model-find --uf-ss-totality
 trywith 30 --finite-model-find --decision=justification --fmf-fmc
 trywith $to --finite-model-find --decision=justification
-echo "% SZS GaveUp for $filename"
+echo "% SZS status" "GaveUp for $filename"
