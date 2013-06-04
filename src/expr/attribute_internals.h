@@ -679,12 +679,11 @@ namespace attr {
  */
 template <class T, bool context_dep>
 struct LastAttributeId {
-  static uint64_t s_id;
+  static uint64_t& getId() {
+    static uint64_t s_id = 0;
+    return s_id;
+  }
 };
-
-/** Initially zero. */
-template <class T, bool context_dep>
-uint64_t LastAttributeId<T, context_dep>::s_id = 0;
 
 }/* CVC4::expr::attr namespace */
 
@@ -699,12 +698,11 @@ namespace attr {
 template <class T, bool context_dep>
 struct AttributeTraits {
   typedef void (*cleanup_t)(T);
-  static std::vector<cleanup_t> cleanup;
+  static std::vector<cleanup_t>& getCleanup() {
+    static std::vector<cleanup_t> cleanup;
+    return cleanup;
+  }
 };
-
-template <class T, bool context_dep>
-std::vector<typename AttributeTraits<T, context_dep>::cleanup_t>
-  AttributeTraits<T, context_dep>::cleanup;
 
 }/* CVC4::expr::attr namespace */
 
@@ -765,9 +763,9 @@ public:
     typedef typename attr::KindValueToTableValueMapping<value_t>::
                      table_value_type table_value_type;
     typedef attr::AttributeTraits<table_value_type, context_dep> traits;
-    uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::s_id++;
-    //Assert(traits::cleanup.size() == id);// sanity check
-    traits::cleanup.push_back(attr::getCleanupStrategy<value_t,
+    uint64_t id = attr::LastAttributeId<table_value_type, context_dep>::getId()++;
+    Assert(traits::getCleanup().size() == id);// sanity check
+    traits::getCleanup().push_back(attr::getCleanupStrategy<value_t,
                                                        CleanupStrategy>::fn);
     return id;
   }
@@ -827,7 +825,7 @@ public:
    * return the id.
    */
   static inline uint64_t registerAttribute() {
-    uint64_t id = attr::LastAttributeId<bool, context_dep>::s_id++;
+    uint64_t id = attr::LastAttributeId<bool, context_dep>::getId()++;
     AlwaysAssert( id <= 63,
                   "Too many boolean node attributes registered "
                   "during initialization !" );
@@ -876,7 +874,7 @@ template <class T, class value_t, class CleanupStrategy, bool context_dep>
 const uint64_t Attribute<T, value_t, CleanupStrategy, context_dep>::s_id =
   ( attr::AttributeTraits<typename attr::KindValueToTableValueMapping<value_t>::
                                    table_value_type,
-                          context_dep>::cleanup.size(),
+                          context_dep>::getCleanup().size(),
     Attribute<T, value_t, CleanupStrategy, context_dep>::registerAttribute() );
 
 /** Assign unique IDs to attributes at load time. */

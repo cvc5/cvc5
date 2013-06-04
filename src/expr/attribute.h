@@ -522,14 +522,14 @@ AttributeManager::setAttribute(NodeValue* nv,
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
                                               NodeValue* nv) {
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::s_id; ++id) {
+  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
     typedef AttributeTraits<T, false> traits_t;
     typedef AttrHash<T> hash_t;
     std::pair<uint64_t, NodeValue*> pr = std::make_pair(id, nv);
-    if(traits_t::cleanup[id] != NULL) {
+    if(traits_t::getCleanup()[id] != NULL) {
       typename hash_t::iterator i = table.find(pr);
       if(i != table.end()) {
-        traits_t::cleanup[id]((*i).second);
+        traits_t::getCleanup()[id]((*i).second);
         table.erase(pr);
       }
     } else {
@@ -544,7 +544,7 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
 template <class T>
 inline void AttributeManager::deleteFromTable(CDAttrHash<T>& table,
                                               NodeValue* nv) {
-  for(unsigned id = 0; id < attr::LastAttributeId<T, true>::s_id; ++id) {
+  for(unsigned id = 0; id < attr::LastAttributeId<T, true>::getId(); ++id) {
     table.obliterate(std::make_pair(id, nv));
   }
 }
@@ -558,8 +558,8 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
   bool anyRequireClearing = false;
   typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
-  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::s_id; ++id) {
-    if(traits_t::cleanup[id] != NULL) {
+  for(uint64_t id = 0; id < attr::LastAttributeId<T, false>::getId(); ++id) {
+    if(traits_t::getCleanup()[id] != NULL) {
       anyRequireClearing = true;
     }
   }
@@ -575,8 +575,8 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
                       << " node_value: " << ((*it).first.second)
                       << std::endl;
       */
-      if(traits_t::cleanup[id] != NULL) {
-        traits_t::cleanup[id]((*it).second);
+      if(traits_t::getCleanup()[id] != NULL) {
+        traits_t::getCleanup()[id]((*it).second);
       }
       ++it;
     }
