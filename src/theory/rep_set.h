@@ -54,16 +54,15 @@ typedef std::vector< int > RepDomain;
 
 /** this class iterates over a RepSet */
 class RepSetIterator {
-private:
+public:
   enum {
     ENUM_DOMAIN_ELEMENTS,
     ENUM_RANGE,
   };
+private:
   QuantifiersEngine * d_qe;
   //initialize function
   bool initialize();
-  //enumeration type?
-  std::vector< int > d_enum_type;
   //for enum ranges
   std::map< int, Node > d_lower_bounds;
   //domain size
@@ -82,6 +81,8 @@ public:
 public:
   //pointer to model
   RepSet* d_rep_set;
+  //enumeration type?
+  std::vector< int > d_enum_type;
   //index we are considering
   std::vector< int > d_index;
   //types we are considering

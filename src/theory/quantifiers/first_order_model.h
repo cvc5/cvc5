@@ -120,6 +120,42 @@ private:
 };
 
 
+namespace fmcheck {
+
+class Def;
+
+class FirstOrderModelFmc : public FirstOrderModel
+{
+  friend class FullModelChecker;
+private:
+  /** quant engine */
+  QuantifiersEngine * d_qe;
+  /** models for UF */
+  std::map<Node, Def * > d_models;
+  std::map<TypeNode, Node > d_model_basis_rep;
+  std::map<TypeNode, Node > d_type_star;
+  Node getUsedRepresentative(Node n, bool strict = false);
+  /** get current model value */
+  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
+  void processInitializeModelForTerm(Node n);
+public:
+  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
+  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
+  // initialize the model
+  void processInitialize();
+
+  Node getFunctionValue(Node op, const char* argPrefix );
+
+  bool isStar(Node n);
+  Node getStar(TypeNode tn);
+  bool isModelBasisTerm(Node n);
+  Node getModelBasisTerm(TypeNode tn);
+  Node getSomeDomainElement(TypeNode tn);
+};
+
+}
+
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

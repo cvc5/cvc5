@@ -184,7 +184,7 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
       }
     }
   }else if( lit.getKind()==LEQ || lit.getKind()==LT || lit.getKind()==GT ) {
-    std::cout << "BoundedIntegers : Bad kind for literal : " << lit << std::endl;
+    Message() << "BoundedIntegers : Bad kind for literal : " << lit << std::endl;
     exit(0);
   }
 }
@@ -283,11 +283,13 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           d_range[f][v] = new_range;
           r = new_range;
         }
-        if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
-          Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
-          d_ranges.push_back( r );
-          d_rms[r] = new RangeModel(this, r, d_quantEngine->getSatContext() );
-          d_rms[r]->initialize();
+        if( r.getKind()!=CONST_RATIONAL ){
+          if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
+            Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << " " << r.getKind() << std::endl;
+            d_ranges.push_back( r );
+            d_rms[r] = new RangeModel(this, r, d_quantEngine->getSatContext() );
+            d_rms[r]->initialize();
+          }
         }
       }
     }

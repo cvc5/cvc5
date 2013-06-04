@@ -71,35 +71,6 @@ public:
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
 };
 
-class FirstOrderModelFmc : public FirstOrderModel
-{
-  friend class FullModelChecker;
-private:
-  /** quant engine */
-  QuantifiersEngine * d_qe;
-  /** models for UF */
-  std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_model_basis_rep;
-  std::map<TypeNode, Node > d_type_star;
-  Node getUsedRepresentative(Node n);
-  /** get current model value */
-  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
-  void processInitializeModelForTerm(Node n);
-public:
-  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
-  // initialize the model
-  void processInitialize();
-
-  Node getFunctionValue(Node op, const char* argPrefix );
-
-  bool isStar(Node n);
-  Node getStar(TypeNode tn);
-  bool isModelBasisTerm(Node n);
-  Node getModelBasisTerm(TypeNode tn);
-  Node getSomeDomainElement(TypeNode tn);
-};
-
 
 class FullModelChecker : public QModelBuilder
 {
@@ -109,6 +80,8 @@ protected:
   std::map<TypeNode, std::map< Node, int > > d_rep_ids;
   std::map<Node, Def > d_quant_models;
   std::map<Node, Node > d_quant_cond;
+  std::map< TypeNode, Node > d_array_cond;
+  std::map< Node, Node > d_array_term_cond;
   std::map<Node, std::map< Node, int > > d_quant_var_id;
   std::map<Node, std::vector< int > > d_star_insts;
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
@@ -126,8 +99,8 @@ private:
   void doVariableRelation( FirstOrderModelFmc * fm, Node f, Def & d, Def & dc, Node v);
   void doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d, Node n, std::vector< Def > & dc );
 
-  void doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Node op, Def & d,
-                               std::vector< Def > & dc, int index,
+  void doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, Def & d,
+                               Def & df, std::vector< Def > & dc, int index,
                                std::vector< Node > & cond, std::vector<Node> & val );
   void doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
                                 std::map< int, Node > & entries, int index,
@@ -143,7 +116,9 @@ private:
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
   void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
+  Node mkArrayCond( Node a );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
+  Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:
   FullModelChecker( context::Context* c, QuantifiersEngine* qe );
   ~FullModelChecker(){}

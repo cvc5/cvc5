@@ -25,6 +25,7 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::quantifiers::fmcheck;
 
 FirstOrderModel::FirstOrderModel( context::Context* c, std::string name ) : TheoryModel( c, name, true ),
 d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c, false ){
@@ -507,4 +508,128 @@ Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & ar
   }else{
     return d_eval_uf_model[ nv ].getValue( this, nv, argDepIndex );
   }
+}
+
+
+
+
+
+
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name) :
+FirstOrderModel(c, name), d_qe(qe){
+
+}
+
+Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
+  //Assert( fm->hasTerm(n) );
+  TypeNode tn = n.getType();
+  if( tn.isBoolean() ){
+    return areEqual(n, d_true) ? d_true : d_false;
+  }else{
+    if( !hasTerm(n) ){
+      if( strict ){
+        return Node::null();
+      }else{
+        Trace("fmc-warn") << "WARNING : no representative for " << n << std::endl;
+      }
+    }
+    Node r = getRepresentative(n);
+    if( d_model_basis_rep.find(tn)!=d_model_basis_rep.end() ){
+      if (r==d_model_basis_rep[tn]) {
+        r = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+      }
+    }
+    return r;
+  }
+}
+
+Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
+  Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
+  for(unsigned i=0; i<args.size(); i++) {
+    args[i] = getUsedRepresentative(args[i]);
+  }
+  Assert( n.getKind()==APPLY_UF );
+  return d_models[n.getOperator()]->evaluate(this, args);
+}
+
+void FirstOrderModelFmc::processInitialize() {
+  for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
+    it->second->reset();
+  }
+  d_model_basis_rep.clear();
+}
+
+void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
+  if( n.getKind()==APPLY_UF ){
+    if( d_models.find(n.getOperator())==d_models.end()) {
+      d_models[n.getOperator()] = new Def;
+    }
+  }
+}
+
+Node FirstOrderModelFmc::getSomeDomainElement(TypeNode tn){
+  //check if there is even any domain elements at all
+  if (!d_rep_set.hasType(tn)) {
+    Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
+    Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    d_rep_set.d_type_reps[tn].push_back(mbt);
+  }else if( d_rep_set.d_type_reps[tn].size()==0 ){
+    Message() << "empty reps" << std::endl;
+    exit(0);
+  }
+  return d_rep_set.d_type_reps[tn][0];
+}
+
+
+bool FirstOrderModelFmc::isStar(Node n) {
+  return n==getStar(n.getType());
+}
+
+Node FirstOrderModelFmc::getStar(TypeNode tn) {
+  if( d_type_star.find(tn)==d_type_star.end() ){
+    Node st = NodeManager::currentNM()->mkSkolem( "star_$$", tn, "skolem created for full-model checking" );
+    d_type_star[tn] = st;
+  }
+  return d_type_star[tn];
+}
+
+bool FirstOrderModelFmc::isModelBasisTerm(Node n) {
+  return n==getModelBasisTerm(n.getType());
+}
+
+Node FirstOrderModelFmc::getModelBasisTerm(TypeNode tn) {
+  return d_qe->getTermDatabase()->getModelBasisTerm(tn);
+}
+
+Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
+  TypeNode type = op.getType();
+  std::vector< Node > vars;
+  for( size_t i=0; i<type.getNumChildren()-1; i++ ){
+    std::stringstream ss;
+    ss << argPrefix << (i+1);
+    vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
+  }
+  Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
+  Node curr;
+  for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
+    Node v = getUsedRepresentative( d_models[op]->d_value[i] );
+    if( curr.isNull() ){
+      curr = v;
+    }else{
+      //make the condition
+      Node cond = d_models[op]->d_cond[i];
+      std::vector< Node > children;
+      for( unsigned j=0; j<cond.getNumChildren(); j++) {
+        if (!isStar(cond[j])){
+          Node c = getUsedRepresentative( cond[j] );
+          children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
+        }
+      }
+      Assert( !children.empty() );
+      Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
+      curr = NodeManager::currentNM()->mkNode( ITE, cc, v, curr );
+    }
+  }
+  curr = Rewriter::rewrite( curr );
+  return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
 }
