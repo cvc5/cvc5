@@ -105,6 +105,9 @@ public:
         Assert(false, "expected an NoMoreValuesException to be thrown");
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
+        //
+        // This block can crash on clang 3.0 on Mac OS, perhaps related to
+        // bug:  http://llvm.org/bugs/show_bug.cgi?id=13359
       }
     } else {
       try {
