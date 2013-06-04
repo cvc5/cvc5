@@ -188,7 +188,23 @@ parseExpr returns [CVC4::parser::smt2::myExpr expr]
  * @return the parsed command, or NULL if we've reached the end of the input
  */
 parseCommand returns [CVC4::Command* cmd = NULL]
+@declarations {
+  std::string name;
+}
   : LPAREN_TOK c = command RPAREN_TOK { $cmd = c; }
+
+    /* This extended command has to be in the outermost production so that
+     * the RPAREN_TOK is properly eaten and we are in a good state to read
+     * the included file's tokens. */
+  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
+    { if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
+      }
+      PARSER_STATE->includeFile(name);
+      // The command of the included file will be produced at the next parseCommand() call
+      cmd = new EmptyCommand("include::" + name);
+    }
+
   | EOF { $cmd = 0; }
   ;
 
@@ -1464,6 +1480,7 @@ DECLARE_PREDS_TOK : 'declare-preds';
 DEFINE_TOK : 'define';
 DECLARE_CONST_TOK : 'declare-const';
 SIMPLIFY_TOK : 'simplify';
+INCLUDE_TOK : 'include-file';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';

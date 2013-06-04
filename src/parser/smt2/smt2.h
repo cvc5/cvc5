@@ -85,6 +85,8 @@ public:
     }
   }
 
+  void includeFile(const std::string& filename);
+
   bool isAbstractValue(const std::string& name) {
     return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
       name.find_first_not_of("0123456789", 1) == std::string::npos;
