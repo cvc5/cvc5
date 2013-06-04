@@ -125,9 +125,9 @@ public:
   /** getFunctionValue
     *   Returns a representation of this function.
     */
-  Node getFunctionValue( std::vector< Node >& args );
+  Node getFunctionValue( std::vector< Node >& args, bool simplify = true );
   /** getFunctionValue for args with set prefix */
-  Node getFunctionValue( const char* argPrefix );
+  Node getFunctionValue( const char* argPrefix, bool simplify = true );
   /** update
     *   This will update all values in the tree to be representatives in m.
     */

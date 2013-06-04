@@ -260,14 +260,16 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }
 }
 
-Node UfModelTree::getFunctionValue( std::vector< Node >& args ){
+Node UfModelTree::getFunctionValue( std::vector< Node >& args, bool simplify ){
   Node body = d_tree.getFunctionValue( args, 0, Node::null() );
-  body = Rewriter::rewrite( body );
+  if(simplify) {
+    body = Rewriter::rewrite( body );
+  }
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
 }
 
-Node UfModelTree::getFunctionValue( const char* argPrefix ){
+Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
   TypeNode type = d_op.getType();
   std::vector< Node > vars;
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){
@@ -275,7 +277,7 @@ Node UfModelTree::getFunctionValue( const char* argPrefix ){
     ss << argPrefix << (i+1);
     vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
   }
-  return getFunctionValue( vars );
+  return getFunctionValue( vars, simplify );
 }
 
 Node UfModelTreeGenerator::getIntersection( TheoryModel* m, Node n1, Node n2, bool& isGround ){

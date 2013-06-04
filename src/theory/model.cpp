@@ -19,6 +19,7 @@
 #include "smt/options.h"
 #include "smt/smt_engine.h"
 #include "theory/uf/theory_uf_model.h"
+#include "theory/uf/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -851,8 +852,10 @@ void TheoryEngineModelBuilder::processBuildModel(TheoryModel* m, bool fullModel)
           default_v = (*te);
         }
         ufmt.setDefaultValue( m, default_v );
-        ufmt.simplify();
-        Node val = ufmt.getFunctionValue( "_ufmt_" );
+        if(options::condenseFunctionValues()) {
+          ufmt.simplify();
+        }
+        Node val = ufmt.getFunctionValue( "_ufmt_", options::condenseFunctionValues() );
         Trace("model-builder") << "  Assigning (" << n << ") to (" << val << ")" << endl;
         m->d_uf_models[n] = val;
         //ufmt.debugPrint( std::cout, m );
