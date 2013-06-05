@@ -3,7 +3,7 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = builtin booleans uf arith bv arrays datatypes quantifiers rewriterules
+SUBDIRS = builtin booleans uf arith bv arrays datatypes quantifiers rewriterules idl
 DIST_SUBDIRS = $(SUBDIRS) example
 
 noinst_LTLIBRARIES = libtheory.la
@@ -60,7 +60,8 @@ libtheory_la_LIBADD = \
 	@builddir@/bv/libbv.la \
 	@builddir@/datatypes/libdatatypes.la \
 	@builddir@/quantifiers/libquantifiers.la \
-	@builddir@/rewriterules/librewriterules.la
+	@builddir@/rewriterules/librewriterules.la \
+	@builddir@/idl/libidl.la
 
 EXTRA_DIST = \
 	logic_info.i \

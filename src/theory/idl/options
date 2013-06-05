@@ -1,0 +1,10 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module IDL "theory/idl/options.h" Idl
+
+option idlRewriteEq --enable-idl-rewrite-equalities/--disable-idl-rewrite-equalities bool :default false :read-write
+
+endmodule
