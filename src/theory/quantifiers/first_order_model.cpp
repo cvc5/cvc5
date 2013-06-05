@@ -602,12 +602,14 @@ Node FirstOrderModelFmc::getModelBasisTerm(TypeNode tn) {
 }
 
 Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
+  Trace("fmc-model") << "Get function value for " << op << std::endl;
   TypeNode type = op.getType();
   std::vector< Node > vars;
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){
     std::stringstream ss;
     ss << argPrefix << (i+1);
-    vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
+    Node b = NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] );
+    vars.push_back( b );
   }
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
   Node curr;

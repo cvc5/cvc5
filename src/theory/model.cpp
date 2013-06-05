@@ -431,6 +431,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
+  Trace("model-builder") << "TheoryEngineModelBuilder: buildModel, fullModel = " << fullModel << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel with fullModel = true should only be called once in any context
@@ -719,6 +720,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   }
 
   if (!fullModel) {
+    Trace("model-builder") << "Make sure ECs have reps..." << std::endl;
     // Make sure every EC has a rep
     for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap ) {
       tm->d_reps[itMap->first] = itMap->second;

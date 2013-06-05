@@ -201,7 +201,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
   if( fullModel ){
     //make function values
-    for( std::map< Node, std::vector< Node > >::iterator it = m->d_uf_terms.begin(); it != m->d_uf_terms.end(); ++it ){
+    for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
       m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
     }
     TheoryEngineModelBuilder::processBuildModel( m, fullModel );
