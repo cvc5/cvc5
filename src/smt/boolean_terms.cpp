@@ -487,7 +487,39 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         } else if(t.isArray()) {
           TypeNode indexType = convertType(t.getArrayIndexType(), false);
           TypeNode constituentType = convertType(t.getArrayConstituentType(), false);
-          if(indexType != t.getArrayIndexType() || constituentType != t.getArrayConstituentType()) {
+          if(indexType != t.getArrayIndexType() && constituentType == t.getArrayConstituentType()) {
+            TypeNode newType = nm->mkArrayType(indexType, constituentType);
+            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
+                                  newType, "an array variable introduced by Boolean-term conversion",
+                                  NodeManager::SKOLEM_EXACT_NAME);
+            top.setAttribute(BooleanTermAttr(), n);
+            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+            Node n_ff = nm->mkNode(kind::SELECT, n, d_ff);
+            Node n_tt = nm->mkNode(kind::SELECT, n, d_tt);
+            Node base = nm->mkConst(ArrayStoreAll(ArrayType(top.getType().toType()), (*TypeEnumerator(n_ff.getType())).toExpr()));
+            Node repl = nm->mkNode(kind::STORE,
+                                   nm->mkNode(kind::STORE, base, nm->mkConst(true),
+                                              n_tt),
+                                   nm->mkConst(false), n_ff);
+            Debug("boolean-terms") << "array replacement: " << top << " => " << repl << endl;
+            d_smt.d_theoryEngine->getModel()->addSubstitution(top, repl);
+            d_termCache[make_pair(top, parentTheory)] = n;
+            result.top() << n;
+            worklist.pop();
+            goto next_worklist;
+          } else if(indexType == t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
+            TypeNode newType = nm->mkArrayType(indexType, constituentType);
+            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
+                                  newType, "an array variable introduced by Boolean-term conversion",
+                                  NodeManager::SKOLEM_EXACT_NAME);
+            top.setAttribute(BooleanTermAttr(), n);
+            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+            d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
+            d_termCache[make_pair(top, parentTheory)] = n;
+            result.top() << n;
+            worklist.pop();
+            goto next_worklist;
+          } else if(indexType != t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
             TypeNode newType = nm->mkArrayType(indexType, constituentType);
             Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
                                   newType, "an array variable introduced by Boolean-term conversion",

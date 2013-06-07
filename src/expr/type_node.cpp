@@ -123,6 +123,15 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
     }
     return true;
   }
+  if(isFunction()) {
+    // A function is a subtype of another if the args are the same type, and 
+    // the return type is a subtype of the other's.  This is enough for now
+    // (and it's necessary for model generation, since a Real-valued function
+    // might return a constant Int and thus the model value is typed differently).
+    return t.isFunction() &&
+           getArgTypes() == t.getArgTypes() &&
+           getRangeType().isSubtypeOf(t.getRangeType());
+  }
   if(isPredicateSubtype()) {
     return getSubtypeParentType().isSubtypeOf(t);
   }

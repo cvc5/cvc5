@@ -36,6 +36,10 @@ namespace attr {
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
 typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
 
+static inline Node mkEqNode(Node a, Node b) {
+  return a.getType().isBoolean() ? a.iffNode(b) : a.eqNode(b);
+}
+
 class TheoryArraysRewriter {
   static Node normalizeConstant(TNode node) {
     return normalizeConstant(node, node[1].getType().getCardinality());
@@ -244,7 +248,7 @@ public:
             val = false;
           }
           else {
-            n = Rewriter::rewrite(store[1].eqNode(index));
+            n = Rewriter::rewrite(mkEqNode(store[1], index));
             if (n.getKind() != kind::CONST_BOOLEAN) {
               break;
             }
@@ -301,7 +305,7 @@ public:
             val = false;
           }
           else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
+            Node eqRewritten = Rewriter::rewrite(mkEqNode(store[1], index));
             if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
               Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << node << std::endl;
               return RewriteResponse(REWRITE_DONE, node);
@@ -340,7 +344,7 @@ public:
                 val = false;
               }
               else {
-                n = Rewriter::rewrite(store[1].eqNode(index));
+                n = Rewriter::rewrite(mkEqNode(store[1], index));
                 if (n.getKind() != kind::CONST_BOOLEAN) {
                   break;
                 }
@@ -416,7 +420,7 @@ public:
             val = false;
           }
           else {
-            n = Rewriter::rewrite(store[1].eqNode(index));
+            n = Rewriter::rewrite(mkEqNode(store[1], index));
             if (n.getKind() != kind::CONST_BOOLEAN) {
               break;
             }
@@ -466,7 +470,7 @@ public:
             val = false;
           }
           else {
-            Node eqRewritten = Rewriter::rewrite(store[1].eqNode(index));
+            Node eqRewritten = Rewriter::rewrite(mkEqNode(store[1], index));
             if (eqRewritten.getKind() != kind::CONST_BOOLEAN) {
               break;
             }
