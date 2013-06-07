@@ -507,7 +507,19 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             result.top() << n;
             worklist.pop();
             goto next_worklist;
-          } else if(indexType != t.getArrayIndexType() || constituentType != t.getArrayConstituentType()) {
+          } else if(indexType == t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
+            TypeNode newType = nm->mkArrayType(indexType, constituentType);
+            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
+                                  newType, "an array variable introduced by Boolean-term conversion",
+                                  NodeManager::SKOLEM_EXACT_NAME);
+            top.setAttribute(BooleanTermAttr(), n);
+            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+            d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
+            d_termCache[make_pair(top, parentTheory)] = n;
+            result.top() << n;
+            worklist.pop();
+            goto next_worklist;
+          } else if(indexType != t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
             TypeNode newType = nm->mkArrayType(indexType, constituentType);
             Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
                                   newType, "an array variable introduced by Boolean-term conversion",
