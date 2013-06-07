@@ -106,7 +106,7 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
     // We parse the negation
     ok = parse(node[0], c, true);
     // Setup the kind
-    if(ok) {
+    if (ok) {
       d_op = negateOp(d_op);
     }
     break;
@@ -119,7 +119,7 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
     // All relation operators are parsed on both sides
     d_op = node.getKind();
     ok = parse(node[0], c, negated);
-    if(ok) {
+    if (ok) {
       ok = parse(node[1],-c, negated);
     }
     break;
@@ -137,10 +137,10 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
   }
   case kind::MULT: {
     // Only unit multiplication of variables
-    if(node.getNumChildren() == 2 && node[0].isConst()) {
+    if (node.getNumChildren() == 2 && node[0].isConst()) {
       Rational a = node[0].getConst<Rational>();
-      if(a == 1 || a == -1) {
-        return parse(node[1], c * a.sgn(), negated);
+      if (a == 1 || a == -1) {
+        ok = parse(node[1], c * a.sgn(), negated);
       } else {
         ok = false;
       }
@@ -152,7 +152,7 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
 
   case kind::PLUS: {
     for(unsigned i = 0; i < node.getNumChildren(); ++i) {
-      bool ok = parse(node[i], c, negated);
+      ok = parse(node[i], c, negated);
       if(!ok) {
         break;
       }
@@ -162,7 +162,7 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
 
   case kind::MINUS: {
     ok = parse(node[0], c, negated);
-    if(ok) {
+    if (ok) {
       ok = parse(node[1], -c, negated);
     }
     break;
@@ -174,14 +174,14 @@ bool IDLAssertion::parse(TNode node, int c, bool negated) {
   }
 
   default: {
-    if(c > 0) {
-      if(d_x.isNull()) {
+    if (c > 0) {
+      if (d_x.isNull()) {
         d_x = node;
       } else {
         ok = false;
       }
     } else {
-      if(d_y.isNull()) {
+      if (d_y.isNull()) {
         d_y = node;
       } else {
         ok = false;
