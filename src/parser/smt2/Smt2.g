@@ -197,7 +197,10 @@ parseCommand returns [CVC4::Command* cmd = NULL]
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
   | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
-    { if(PARSER_STATE->strictModeEnabled()) {
+    { if(!PARSER_STATE->canIncludeFile()) {
+        PARSER_STATE->parseError("include-file feature was disabled for this run.");
+      }
+      if(PARSER_STATE->strictModeEnabled()) {
         PARSER_STATE->parseError("Extended commands are not permitted while operating in strict compliance mode.");
       }
       PARSER_STATE->includeFile(name);

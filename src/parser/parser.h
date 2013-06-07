@@ -158,6 +158,12 @@ class CVC4_PUBLIC Parser {
   /** Are we only parsing? */
   bool d_parseOnly;
 
+  /**
+   * Can we include files?  (Set to false for security purposes in
+   * e.g. the online version.)
+   */
+  bool d_canIncludeFile;
+
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
 
@@ -251,6 +257,10 @@ public:
   void disableStrictMode() { d_strictMode = false; }
 
   bool strictModeEnabled() { return d_strictMode; }
+
+  bool allowIncludeFile() { d_canIncludeFile = true; }
+  bool disallowIncludeFile() { d_canIncludeFile = false; }
+  bool canIncludeFile() const { return d_canIncludeFile; }
 
   /**
    * Returns a variable, given a name.

@@ -242,6 +242,11 @@ static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
 }
 
 void Smt2::includeFile(const std::string& filename) {
+  // security for online version
+  if(!canIncludeFile()) {
+    parseError("include-file feature was disabled for this run.");
+  }
+
   // Get the lexer
   AntlrInput* ai = static_cast<AntlrInput*>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();

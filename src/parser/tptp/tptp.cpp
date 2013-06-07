@@ -128,6 +128,11 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer){
 
 
 void Tptp::includeFile(std::string fileName){
+  // security for online version
+  if(!canIncludeFile()) {
+    parseError("include-file feature was disabled for this run.");
+  }
+
   // Get the lexer
   AntlrInput * ai = static_cast<AntlrInput *>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
