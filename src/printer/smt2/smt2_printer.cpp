@@ -172,6 +172,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
 
+    case kind::STORE_ALL: {
+      ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
+      out << "(__array_store_all__ " << asa.getType() << " " << asa.getExpr() << ")";
+      break;
+    }
+
     case kind::SUBRANGE_TYPE: {
       const SubrangeBounds& bounds = n.getConst<SubrangeBounds>();
       // No way to represent subranges in SMT-LIBv2; this is inspired
@@ -255,7 +261,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // arrays theory
   case kind::SELECT:
   case kind::STORE:
-  case kind::STORE_ALL:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
     // bv theory
