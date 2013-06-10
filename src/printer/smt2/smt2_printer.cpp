@@ -255,6 +255,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     // arrays theory
   case kind::SELECT:
   case kind::STORE:
+  case kind::STORE_ALL:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
     // bv theory
@@ -440,6 +441,7 @@ static string smtKindString(Kind k) throw() {
     // arrays theory
   case kind::SELECT: return "select";
   case kind::STORE: return "store";
+  case kind::STORE_ALL: return "__array_store_all__";
   case kind::ARRAY_TYPE: return "Array";
 
     // bv theory
