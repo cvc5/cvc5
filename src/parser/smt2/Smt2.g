@@ -801,7 +801,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
                              MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
         v.insert(v.end(), f.begin(), f.end());
-        f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
       } else {
         if(f.getType() != type) {
           PARSER_STATE->parseError("Type ascription not satisfied.");
