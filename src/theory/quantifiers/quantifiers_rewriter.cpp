@@ -307,7 +307,7 @@ Node QuantifiersRewriter::computeSimpleIteLift( Node body ) {
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
-  Trace("var-elim-quant") << "Compute var elimination for " << body << std::endl;
+  Trace("var-elim-quant-debug") << "Compute var elimination for " << body << std::endl;
   QuantPhaseReq qpr( body );
   std::vector< Node > vars;
   std::vector< Node > subs;

@@ -24,8 +24,8 @@ option prenexQuant /--disable-prenex-quant bool :default true
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
-option varElimQuant --var-elim-quant bool :default false
- enable variable elimination of quantified formulas
+option varElimQuant /--disable-var-elim-quant bool :default true
+ disable simple variable elimination for quantified formulas
 
 # Whether to CNF quantifier bodies
 option cnfQuant --cnf-quant bool :default false

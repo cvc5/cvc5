@@ -232,7 +232,11 @@ void TheoryRewriteRules::addRewriteRule(const Node r)
     NodeBuilder<> patternListB(kind::INST_PATTERN_LIST);
     patternListB << static_cast<Node>(patternB);
     forallB << static_cast<Node>(patternListB);
-    getOutputChannel().lemma((Node) forallB);
+    Node lem = (Node) forallB;
+    lem = Rewriter::rewrite(lem);
+    QRewriteRuleAttribute qra;
+    lem.setAttribute(qra,r);
+    getOutputChannel().lemma(lem);
     return;
   }
 

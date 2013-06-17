@@ -60,11 +60,13 @@ public:
 };/* class QuantifiersModule */
 
 namespace quantifiers {
-  class InstantiationEngine;
-  class ModelEngine;
   class TermDb;
   class FirstOrderModel;
+  //modules
+  class InstantiationEngine;
+  class ModelEngine;
   class BoundedIntegers;
+  class RewriteEngine;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -88,10 +90,6 @@ private:
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
-  /** instantiation engine */
-  quantifiers::InstantiationEngine* d_inst_engine;
-  /** model engine */
-  quantifiers::ModelEngine* d_model_engine;
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
@@ -100,8 +98,14 @@ private:
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** efficient e-matcher */
   EfficientEMatcher* d_eem;
+  /** instantiation engine */
+  quantifiers::InstantiationEngine* d_inst_engine;
+  /** model engine */
+  quantifiers::ModelEngine* d_model_engine;
   /** bounded integers utility */
   quantifiers::BoundedIntegers * d_bint;
+  /** rewrite rules utility */
+  quantifiers::RewriteEngine * d_rr_engine;
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;

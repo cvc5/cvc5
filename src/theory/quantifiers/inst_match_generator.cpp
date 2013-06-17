@@ -38,10 +38,10 @@ InstMatchGenerator::InstMatchGenerator( Node pat, int matchPolicy ) : d_matchPol
   d_next = NULL;
 }
 
-void InstMatchGenerator::setActiveAdd(){
-  d_active_add = true;
+void InstMatchGenerator::setActiveAdd(bool val){
+  d_active_add = val;
   if( d_next!=NULL ){
-    d_next->setActiveAdd();
+    d_next->setActiveAdd(val);
   }
 }
 
@@ -310,18 +310,20 @@ bool InstMatchGenerator::getMatchArithmetic( Node t, InstMatch& m, QuantifiersEn
 
 /** reset instantiation round */
 void InstMatchGenerator::resetInstantiationRound( QuantifiersEngine* qe ){
-  if( d_match_pattern.isNull() ){
-    for( int i=0; i<(int)d_children.size(); i++ ){
-      d_children[i]->resetInstantiationRound( qe );
-    }
-  }else{
+  if( !d_match_pattern.isNull() ){
+    Debug("matching-debug2") << this << " reset instantiation round." << std::endl;
+    d_needsReset = true;
     if( d_cg ){
       d_cg->resetInstantiationRound();
     }
   }
+  if( d_next ){
+    d_next->resetInstantiationRound( qe );
+  }
 }
 
 void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
+  Debug("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !eqc.isNull() ){
     d_eq_class = eqc;
   }
@@ -329,16 +331,22 @@ void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
   //we are producing matches for f(E) ~ t, where E is a non-ground vector of terms, and t is a ground term
   //just look in equivalence class of the RHS
   d_cg->reset( d_eq_class.getKind()==INST_CONSTANT ? Node::null() : d_eq_class );
+  d_needsReset = false;
 }
 
 bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* qe ){
+  if( d_needsReset ){
+    Debug("matching") << "Reset not done yet, must do the reset..." << std::endl;
+    reset( d_eq_class.getKind()==INST_CONSTANT ? Node::null() : d_eq_class, qe );
+  }
   m.d_matched = Node::null();
-  //Debug("matching") << this << " " << d_pattern << " get next match 2 " << m << " in eq class " << d_eq_class << std::endl;
+  Debug("matching") << this << " " << d_match_pattern << " get next match " << m << " in eq class " << d_eq_class << std::endl;
   bool success = false;
   Node t;
   do{
     //get the next candidate term t
     t = d_cg->getNextCandidate();
+    Debug("matching-debug2") << "Matching candidate : " << t << std::endl;
     //if t not null, try to fit it into match m
     if( !t.isNull() && t.getType()==d_match_pattern.getType() ){
       success = getMatch( f, t, m, qe );
@@ -346,7 +354,7 @@ bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* 
   }while( !success && !t.isNull() );
   m.d_matched = t;
   if( !success ){
-    //Debug("matching") << this << " failed, reset " << d_eq_class << std::endl;
+    Debug("matching") << this << " failed, reset " << d_eq_class << std::endl;
     //we failed, must reset
     reset( d_eq_class.getKind()==INST_CONSTANT ? Node::null() : d_eq_class, qe );
   }

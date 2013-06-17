@@ -28,6 +28,7 @@
 #include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/rewriterules/rr_trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/rewrite_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -62,9 +63,15 @@ d_lemmas_produced_c(u){
   }else{
     d_inst_engine = NULL;
   }
-  if( options::finiteModelFind() ){
+  bool reqModel = options::finiteModelFind() || options::rewriteRulesAsAxioms();
+  if( reqModel ){
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
+  }else{
+    d_model_engine = NULL;
+  }
+
+  if( options::finiteModelFind() ){
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
@@ -72,8 +79,13 @@ d_lemmas_produced_c(u){
       d_bint = NULL;
     }
   }else{
-    d_model_engine = NULL;
     d_bint = NULL;
+  }
+  if( options::rewriteRulesAsAxioms() ){
+    d_rr_engine = new quantifiers::RewriteEngine( c, this );
+    d_modules.push_back(d_rr_engine);
+  }else{
+    d_rr_engine = NULL;
   }
 
   //options

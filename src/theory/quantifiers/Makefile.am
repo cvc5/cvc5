@@ -48,7 +48,9 @@ libquantifiers_la_SOURCES = \
 	bounded_integers.h \
 	bounded_integers.cpp \
 	first_order_reasoning.h \
-	first_order_reasoning.cpp
+	first_order_reasoning.cpp \
+	rewrite_engine.h \
+	rewrite_engine.cpp
 
 EXTRA_DIST = \
 	kinds \

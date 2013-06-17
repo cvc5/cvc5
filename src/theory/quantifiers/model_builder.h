@@ -37,7 +37,7 @@ public:
   QModelBuilder( context::Context* c, QuantifiersEngine* qe );
   virtual ~QModelBuilder(){}
   // is quantifier active?
-  virtual bool isQuantifierActive( Node f ) { return true; }
+  virtual bool isQuantifierActive( Node f );
   //do exhaustive instantiation
   virtual bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas ) { return false; }
   //whether to construct model

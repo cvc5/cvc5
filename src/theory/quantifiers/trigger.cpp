@@ -44,7 +44,7 @@ d_quantEngine( qe ), d_f( f ){
         d_mg = new InstMatchGeneratorSimple( f, d_nodes[0] );
       }else{
         d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes[0], qe );
-        d_mg->setActiveAdd();
+        d_mg->setActiveAdd(true);
       }
     }else{
       d_mg = new InstMatchGeneratorMulti( f, d_nodes, qe, matchOption );
@@ -53,7 +53,7 @@ d_quantEngine( qe ), d_f( f ){
     }
   }else{
     d_mg = InstMatchGenerator::mkInstMatchGenerator( d_nodes, qe );
-    d_mg->setActiveAdd();
+    d_mg->setActiveAdd(true);
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
@@ -301,7 +301,7 @@ Node Trigger::getIsUsableTrigger( Node n, Node f, bool pol, bool hasPol ) {
     }
   }
   bool usable = quantifiers::TermDb::getInstConstAttr(n)==f && isAtomicTrigger( n ) && isUsable( n, f );
-  Trace("usable") << n << " usable : " << usable << std::endl;
+  Trace("usable") << n << " usable : " << (quantifiers::TermDb::getInstConstAttr(n)==f) << " " << isAtomicTrigger( n ) << " " << isUsable( n, f ) << std::endl;
   if( usable ){
     return n;
   }else{

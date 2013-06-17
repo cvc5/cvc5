@@ -44,13 +44,14 @@ public:
   /** add ground term t, called when t is added to term db */
   virtual int addTerm( Node f, Node t, QuantifiersEngine* qe ) = 0;
   /** set active add */
-  virtual void setActiveAdd() {}
+  virtual void setActiveAdd( bool val ) {}
 };/* class IMGenerator */
 
 class CandidateGenerator;
 
 class InstMatchGenerator : public IMGenerator {
 private:
+  bool d_needsReset;
   /** candidate generator */
   CandidateGenerator* d_cg;
   /** policy to use for matching */
@@ -108,7 +109,7 @@ public:
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 
   bool d_active_add;
-  void setActiveAdd();
+  void setActiveAdd( bool val );
 
   static InstMatchGenerator* mkInstMatchGenerator( Node pat, QuantifiersEngine* qe );
   static InstMatchGenerator* mkInstMatchGenerator( std::vector< Node >& pats, QuantifiersEngine* qe );

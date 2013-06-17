@@ -168,14 +168,6 @@ int ModelEngine::checkModel(){
       }
     }
   }
-  //full model checking: construct models for all functions
-  /*
-  if( d_fmc.isActive() ){
-    for (std::map< Node, uf::UfModelTreeGenerator >::iterator it = fm->d_uf_model_gen.begin(); it != fm->d_uf_model_gen.end(); ++it) {
-      d_fmc.getModel(fm, it->first);
-    }
-  }
-  */
   //compute the relevant domain if necessary
   //if( optUseRelevantDomain() ){
   //}
@@ -227,6 +219,7 @@ int ModelEngine::checkModel(){
 
 int ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   int addedLemmas = 0;
+  //first check if the builder can do the exhaustive instantiation
   if( !d_builder->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort, addedLemmas ) ){
     Trace("inst-fmf-ei") << "Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
