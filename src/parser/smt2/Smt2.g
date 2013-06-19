@@ -1483,7 +1483,7 @@ DECLARE_PREDS_TOK : 'declare-preds';
 DEFINE_TOK : 'define';
 DECLARE_CONST_TOK : 'declare-const';
 SIMPLIFY_TOK : 'simplify';
-INCLUDE_TOK : 'include-file';
+INCLUDE_TOK : 'include';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';

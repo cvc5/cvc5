@@ -258,8 +258,8 @@ public:
 
   bool strictModeEnabled() { return d_strictMode; }
 
-  bool allowIncludeFile() { d_canIncludeFile = true; }
-  bool disallowIncludeFile() { d_canIncludeFile = false; }
+  void allowIncludeFile() { d_canIncludeFile = true; }
+  void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
 
   /**
