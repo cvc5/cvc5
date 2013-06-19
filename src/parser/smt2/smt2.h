@@ -97,6 +97,30 @@ public:
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
+  /**
+   * Smt2 parser provides its own checkDeclaration, which does the
+   * same as the base, but with some more helpful errors.
+   */
+  void checkDeclaration(const std::string& name, DeclarationCheck check,
+                        SymbolType type = SYM_VARIABLE,
+                        std::string notes = "") throw(ParserException) {
+    // if the symbol is something like "-1", we'll give the user a helpful
+    // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
+    if( check != CHECK_DECLARED ||
+        name[0] != '-' ||
+        name.find_first_not_of("0123456789", 1) != std::string::npos ) {
+      this->Parser::checkDeclaration(name, check, type, notes);
+      return;
+    }
+
+    std::stringstream ss;
+    ss << notes
+       << "You may have intended to apply unary minus: `(- "
+       << name.substr(1)
+       << ")'\n";
+    this->Parser::checkDeclaration(name, check, type, ss.str());
+  }
+
 private:
 
   void addArithmeticOperators();

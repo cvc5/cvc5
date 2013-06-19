@@ -374,7 +374,8 @@ void Parser::reserveSymbolAtAssertionLevel(const std::string& varName) {
 
 void Parser::checkDeclaration(const std::string& varName,
                               DeclarationCheck check,
-                              SymbolType type)
+                              SymbolType type,
+                              std::string notes)
     throw(ParserException) {
   if(!d_checksEnabled) {
     return;
@@ -384,14 +385,16 @@ void Parser::checkDeclaration(const std::string& varName,
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " not declared as a " +
-                 (type == SYM_VARIABLE ? "variable" : "type"));
+                 (type == SYM_VARIABLE ? "variable" : "type") +
+                 (notes.size() == 0 ? notes : "\n" + notes));
     }
     break;
 
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " previously declared as a " +
-                 (type == SYM_VARIABLE ? "variable" : "type"));
+                 (type == SYM_VARIABLE ? "variable" : "type") +
+                 (notes.size() == 0 ? notes : "\n" + notes));
     }
     break;
 

@@ -312,7 +312,8 @@ public:
    * @throws ParserException if checks are enabled and the check fails
    */
   void checkDeclaration(const std::string& name, DeclarationCheck check,
-                        SymbolType type = SYM_VARIABLE) throw(ParserException);
+                        SymbolType type = SYM_VARIABLE,
+                        std::string notes = "") throw(ParserException);
 
   /**
    * Reserve a symbol at the assertion level.
