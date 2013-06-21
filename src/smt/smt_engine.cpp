@@ -791,6 +791,9 @@ SmtEngine::~SmtEngine() throw() {
 
 void SmtEngine::setLogic(const LogicInfo& logic) throw(ModalException) {
   SmtScope smts(this);
+  if(d_fullyInited) {
+    throw ModalException("Cannot set logic in SmtEngine after the engine has finished initializing");
+  }
   d_logic = logic;
   setLogicInternal();
 }
