@@ -149,7 +149,7 @@ void CandidateGeneratorQELitEq::reset( Node eqc ){
   d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
 }
 Node CandidateGeneratorQELitEq::getNextCandidate(){
-  while( d_eq.isFinished() ){
+  while( !d_eq.isFinished() ){
     Node n = (*d_eq);
     ++d_eq;
     if( n.getType()==d_match_pattern[0].getType() ){
@@ -181,6 +181,32 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
       //found an iff or equality, try to match it
       //DO_THIS: cache to avoid redundancies?
       //DO_THIS: do we need to try the symmetric equality for n?  or will it also exist in the eq class of false?
+      return n;
+    }
+  }
+  return Node::null();
+}
+
+
+CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
+  d_match_pattern( mpat ), d_qe( qe ){
+
+}
+
+void CandidateGeneratorQEAll::resetInstantiationRound() {
+
+}
+
+void CandidateGeneratorQEAll::reset( Node eqc ) {
+  d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+}
+
+Node CandidateGeneratorQEAll::getNextCandidate() {
+  while( !d_eq.isFinished() ){
+    Node n = (*d_eq);
+    ++d_eq;
+    if( n.getType()==d_match_pattern.getType() ){
+      //an equivalence class with the same type as the pattern, return it
       return n;
     }
   }

@@ -295,10 +295,17 @@ void RepSetIterator::increment2( int counter ){
     d_index.clear();
   }else{
     d_index[counter]++;
+    bool emptyDomain = false;
     for( int i=(int)d_index.size()-1; i>counter; i-- ){
       if (!resetIndex(i)){
         break;
+      }else if( domainSize(i)<=0 ){
+        emptyDomain = true;
       }
+    }
+    if( emptyDomain ){
+      Trace("rsi-debug") << "This is an empty domain, increment again." << std::endl;
+      increment();
     }
   }
 }

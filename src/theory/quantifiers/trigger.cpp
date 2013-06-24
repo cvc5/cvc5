@@ -73,6 +73,7 @@ d_quantEngine( qe ), d_f( f ){
       qe->getTermDatabase()->registerTrigger( this, d_nodes[i].getOperator() );
     }
   }
+  Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
 void Trigger::resetInstantiationRound(){
@@ -144,6 +145,12 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
       }
     }
     if( varCount<f[0].getNumChildren() ){
+      Trace("trigger-debug") << "Don't consider trigger since it does not contain all variables in " << f << std::endl;
+      for( unsigned i=0; i<nodes.size(); i++) {
+        Trace("trigger-debug") << nodes[i] << " ";
+      }
+      Trace("trigger-debug") << std::endl;
+
       //do not generate multi-trigger if it does not contain all variables
       return NULL;
     }else{

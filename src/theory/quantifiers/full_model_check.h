@@ -27,15 +27,24 @@ class FullModelChecker;
 
 class EntryTrie
 {
+private:
+  int d_complete;
 public:
-  EntryTrie() : d_data(-1){}
+  EntryTrie() : d_complete(-1), d_data(-1){}
   std::map<Node,EntryTrie> d_child;
   int d_data;
-  void reset() { d_data = -1; d_child.clear(); }
+  void reset() { d_data = -1; d_child.clear(); d_complete = -1; }
   void addEntry( FirstOrderModelFmc * m, Node c, Node v, int data, int index = 0 );
   bool hasGeneralization( FirstOrderModelFmc * m, Node c, int index = 0 );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index = 0 );
   void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
+
+  bool isCovered(FirstOrderModelFmc * m, Node c, int index);
+
+  //void exhaustiveSimplify( FirstOrderModelFmc * m, Node c, int index, std::vector< int >& indices,
+  //                         std::map< int, std::vector< int > >& star_replace );
+  void collectIndices(Node c, int index, std::vector< int >& indices );
+  bool isComplete(FirstOrderModelFmc * m, Node c, int index);
 };
 
 
@@ -47,6 +56,7 @@ public:
   std::vector< Node > d_cond;
   //value is returned by FullModelChecker::getRepresentative
   std::vector< Node > d_value;
+  void basic_simplify( FirstOrderModelFmc * m );
 private:
   enum {
     status_unk,
@@ -67,7 +77,7 @@ public:
   bool addEntry( FirstOrderModelFmc * m, Node c, Node v);
   Node evaluate( FirstOrderModelFmc * m, std::vector<Node>& inst );
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst );
-  void simplify( FirstOrderModelFmc * m );
+  void simplify( FullModelChecker * mc, FirstOrderModelFmc * m );
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
 };
 

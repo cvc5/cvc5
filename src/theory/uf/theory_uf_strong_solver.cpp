@@ -322,6 +322,20 @@ bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int c
   return false;
 }
 
+bool StrongSolverTheoryUF::SortModel::Region::getCandidateClique( int cardinality, std::vector< Node >& clique ) {
+  if( d_testCliqueSize>=long(cardinality+1) ){
+    //test clique is a clique
+    for( NodeBoolMap::iterator it = d_testClique.begin(); it != d_testClique.end(); ++it ){
+      if( (*it).second ){
+        clique.push_back( (*it).first );
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+
 void StrongSolverTheoryUF::SortModel::Region::getRepresentatives( std::vector< Node >& reps ){
   for( std::map< Node, RegionNodeInfo* >::iterator it = d_nodes.begin(); it != d_nodes.end(); ++it ){
     RegionNodeInfo* rni = it->second;
@@ -625,11 +639,21 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           //see if we have any recommended splits from large regions
           for( int i=0; i<(int)d_regions_index; i++ ){
             if( d_regions[i]->d_valid && d_regions[i]->getNumReps()>d_cardinality ){
-              if( addSplit( d_regions[i], out ) ){
-                addedLemma = true;
+              //just add the clique lemma
+              if( level==Theory::EFFORT_FULL && options::ufssCliqueSplits() ){
+                std::vector< Node > clique;
+                if( d_regions[i]->getCandidateClique( d_cardinality, clique ) ){
+                  //add clique lemma
+                  addCliqueLemma( clique, out );
+                  return;
+                }
+              }else{
+                if( addSplit( d_regions[i], out ) ){
+                  addedLemma = true;
 #ifdef ONE_SPLIT_REGION
-                break;
+                  break;
 #endif
+                }
               }
             }
           }
@@ -977,14 +1001,14 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
       Node var;
-      if( d_aloc_cardinality==1 ){
+      //if( d_aloc_cardinality==1 ){
         //get arbitrary ground term
-        var = d_cardinality_term;
-      }else{
+        //var = d_cardinality_term;
+      //}else{
         std::stringstream ss;
         ss << "_c_" << d_aloc_cardinality;
         var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
-      }
+      //}
       d_totality_terms[0].push_back( var );
       Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " << d_type << std::endl;
       //must be distinct from all other cardinality terms
@@ -1097,6 +1121,12 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
+  //debugging information
+  if( Trace.isOn("uf-ss-cliques") ){
+    std::vector< Node > clique_vec;
+    clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
+    d_cliques[ d_cardinality ].push_back( clique_vec );
+  }
   if( options::ufssSimpleCliques() && !options::ufssExplainedCliques() ){
     //add as lemma
     std::vector< Node > eqs;
@@ -1109,16 +1139,10 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
     }
     eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
     Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
-    Trace("uf-ss-lemma") << "*** Add clique conflict " << lem << std::endl;
+    Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
     ++( d_thss->d_statistics.d_clique_lemmas );
     out->lemma( lem );
   }else{
-    //debugging information
-    if( Trace.isOn("uf-ss-cliques") ){
-      std::vector< Node > clique_vec;
-      clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
-      d_cliques[ d_cardinality ].push_back( clique_vec );
-    }
     //found a clique
     Debug("uf-ss-cliques") << "Found a clique (cardinality=" << d_cardinality << ") :" << std::endl;
     Debug("uf-ss-cliques") << "   ";
@@ -1243,17 +1267,39 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
 }
 
 void StrongSolverTheoryUF::SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
-  Node cardLit = d_cardinality_literal[ cardinality ];
-  std::vector< Node > eqs;
-  for( int i=0; i<cardinality; i++ ){
-    eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
+  if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
+    if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
+      d_totality_lems[n].push_back( cardinality );
+      Node cardLit = d_cardinality_literal[ cardinality ];
+      int sort_id = 0;
+      if( options::sortInference() ){
+        sort_id = d_thss->getTheory()->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId(n);
+      }
+      Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
+      int use_cardinality = cardinality;
+      if( options::ufssTotalitySymBreak() ){
+        if( d_sym_break_index.find(n)!=d_sym_break_index.end() ){
+          use_cardinality = d_sym_break_index[n];
+        }else if( (int)d_sym_break_terms[n.getType()][sort_id].size()<cardinality-1 ){
+          use_cardinality = d_sym_break_terms[n.getType()][sort_id].size() + 1;
+          d_sym_break_terms[n.getType()][sort_id].push_back( n );
+          d_sym_break_index[n] = use_cardinality;
+          Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
+        }
+      }
+
+      std::vector< Node > eqs;
+      for( int i=0; i<use_cardinality; i++ ){
+        eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
+      }
+      Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+      Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
+      Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
+      //send as lemma to the output channel
+      d_thss->getOutputChannel().lemma( lem );
+      ++( d_thss->d_statistics.d_totality_lemmas );
+    }
   }
-  Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
-  Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
-  Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
-  //send as lemma to the output channel
-  d_thss->getOutputChannel().lemma( lem );
-  ++( d_thss->d_statistics.d_totality_lemmas );
 }
 
 /** apply totality */

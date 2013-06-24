@@ -97,6 +97,8 @@ option fmfFullModelCheck --fmf-fmc bool :default false
  enable full model check for finite model finding
 option fmfFullModelCheckSimple /--disable-fmf-fmc-simple bool :default true
  disable simple models in full model check for finite model finding
+option fmfFmcCoverSimplify --fmf-fmc-cover-simplify bool :default false
+ apply covering simplification technique to fmc models
 
 option fmfOneInstPerRound --fmf-one-inst-per-round bool :default false
  only add one instantiation per quantifier per round for fmf

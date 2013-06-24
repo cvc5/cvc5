@@ -73,12 +73,8 @@ public:
     MATCH_GEN_DEFAULT = 0,
     MATCH_GEN_EFFICIENT_E_MATCH,   //generate matches via Efficient E-matching for SMT solvers
     //others (internally used)
-    MATCH_GEN_INTERNAL_ARITHMETIC,
     MATCH_GEN_INTERNAL_ERROR,
   };
-private:
-  /** for arithmetic */
-  bool getMatchArithmetic( Node t, InstMatch& m, QuantifiersEngine* qe );
 public:
   /** get the match against ground term or formula t.
       d_match_pattern and t should have the same shape.

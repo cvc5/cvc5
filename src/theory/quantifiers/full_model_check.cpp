@@ -44,7 +44,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
         return true;
       }
     }
-    if( d_child.find( c[index] )!=d_child.end() ){
+    if( c[index]!=st && d_child.find( c[index] )!=d_child.end() ){
       if( d_child[ c[index] ].hasGeneralization(m, c, index+1) ){
         return true;
       }
@@ -63,7 +63,7 @@ int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>
       minIndex = d_child[st].getGeneralizationIndex(m, inst, index+1);
     }
     Node cc = inst[index];
-    if( d_child.find( cc )!=d_child.end() ){
+    if( cc!=st && d_child.find( cc )!=d_child.end() ){
       int gindex = d_child[ cc ].getGeneralizationIndex(m, inst, index+1);
       if (minIndex==-1 || (gindex!=-1 && gindex<minIndex) ){
         minIndex = gindex;
@@ -81,6 +81,9 @@ void EntryTrie::addEntry( FirstOrderModelFmc * m, Node c, Node v, int data, int 
   }
   else {
     d_child[ c[index] ].addEntry(m,c,v,data,index+1);
+    if( d_complete==0 ){
+      d_complete = -1;
+    }
   }
 }
 
@@ -111,36 +114,102 @@ void EntryTrie::getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & c
 }
 
 
-bool Def::addEntry( FirstOrderModelFmc * m, Node c, Node v) {
-  if (!d_et.hasGeneralization(m, c)) {
-    int newIndex = (int)d_cond.size();
-    if (!d_has_simplified) {
-      std::vector<int> compat;
-      std::vector<int> gen;
-      d_et.getEntries(m, c, compat, gen);
-      for( unsigned i=0; i<compat.size(); i++) {
-        if( d_status[compat[i]]==status_unk ){
-          if( d_value[compat[i]]!=v ){
-            d_status[compat[i]] = status_non_redundant;
-          }
-        }
-      }
-      for( unsigned i=0; i<gen.size(); i++) {
-        if( d_status[gen[i]]==status_unk ){
-          if( d_value[gen[i]]==v ){
-            d_status[gen[i]] = status_redundant;
-          }
-        }
-      }
-      d_status.push_back( status_unk );
-    }
-    d_et.addEntry(m, c, v, newIndex);
-    d_cond.push_back(c);
-    d_value.push_back(v);
-    return true;
+bool EntryTrie::isCovered(FirstOrderModelFmc * m, Node c, int index) {
+  if (index==(int)c.getNumChildren()) {
+    return false;
   }else{
+    TypeNode tn = c[index].getType();
+    Node st = m->getStar(tn);
+    if( c[index]==st ){
+      //check if all children exist and are complete
+      int num_child_def = d_child.size() - (d_child.find(st)!=d_child.end() ? 1 : 0);
+      if( num_child_def==m->d_rep_set.getNumRepresentatives(tn) ){
+        bool complete = true;
+        for ( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
+          if( !m->isStar(it->first) ){
+            if( !it->second.isComplete(m, c, index+1) ){
+              complete = false;
+              break;
+            }
+          }
+        }
+        if( complete ){
+          return true;
+        }
+      }
+    }
+    if( d_child.find(c[index])!=d_child.end() ){
+      return d_child[c[index]].isCovered(m, c, index+1);
+    }else{
+      return false;
+    }
+  }
+}
+
+void EntryTrie::collectIndices(Node c, int index, std::vector< int >& indices ) {
+  if (index==(int)c.getNumChildren()) {
+    if( d_data!=-1 ){
+      indices.push_back( d_data );
+    }
+  }else{
+    for ( std::map<Node,EntryTrie>::iterator it = d_child.begin(); it != d_child.end(); ++it ){
+      it->second.collectIndices(c, index+1, indices );
+    }
+  }
+}
+
+bool EntryTrie::isComplete(FirstOrderModelFmc * m, Node c, int index) {
+  if( d_complete==-1 ){
+    d_complete = 1;
+    if (index<(int)c.getNumChildren()) {
+      Node st = m->getStar(c[index].getType());
+      if(d_child.find(st)!=d_child.end()) {
+        if (!d_child[st].isComplete(m, c, index+1)) {
+          d_complete = 0;
+        }
+      }else{
+        d_complete = 0;
+      }
+    }
+  }
+  return d_complete==1;
+}
+
+bool Def::addEntry( FirstOrderModelFmc * m, Node c, Node v) {
+  if (d_et.hasGeneralization(m, c)) {
     return false;
   }
+  if( options::fmfFmcCoverSimplify() ){
+    if( d_et.isCovered(m, c, 0) ){
+      Trace("fmc-cover-simplify") << "Entry " << c << " is covered." << std::endl;
+      return false;
+    }
+  }
+  int newIndex = (int)d_cond.size();
+  if (!d_has_simplified) {
+    std::vector<int> compat;
+    std::vector<int> gen;
+    d_et.getEntries(m, c, compat, gen);
+    for( unsigned i=0; i<compat.size(); i++) {
+      if( d_status[compat[i]]==status_unk ){
+        if( d_value[compat[i]]!=v ){
+          d_status[compat[i]] = status_non_redundant;
+        }
+      }
+    }
+    for( unsigned i=0; i<gen.size(); i++) {
+      if( d_status[gen[i]]==status_unk ){
+        if( d_value[gen[i]]==v ){
+          d_status[gen[i]] = status_redundant;
+        }
+      }
+    }
+    d_status.push_back( status_unk );
+  }
+  d_et.addEntry(m, c, v, newIndex);
+  d_cond.push_back(c);
+  d_value.push_back(v);
+  return true;
 }
 
 Node Def::evaluate( FirstOrderModelFmc * m, std::vector<Node>& inst ) {
@@ -156,7 +225,7 @@ int Def::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst
   return d_et.getGeneralizationIndex(m, inst);
 }
 
-void Def::simplify(FirstOrderModelFmc * m) {
+void Def::basic_simplify( FirstOrderModelFmc * m ) {
   d_has_simplified = true;
   std::vector< Node > cond;
   cond.insert( cond.end(), d_cond.begin(), d_cond.end() );
@@ -171,6 +240,111 @@ void Def::simplify(FirstOrderModelFmc * m) {
     }
   }
   d_status.clear();
+}
+
+void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
+  basic_simplify( m );
+
+  //check if the last entry is not all star, if so, we can make the last entry all stars
+  if( !d_cond.empty() ){
+    bool last_all_stars = true;
+    Node cc = d_cond[d_cond.size()-1];
+    for( unsigned i=0; i<cc.getNumChildren(); i++ ){
+      if( !m->isStar(cc[i]) ){
+        last_all_stars = false;
+        break;
+      }
+    }
+    if( !last_all_stars ){
+      Trace("fmc-cover-simplify") << "Need to modify last entry to be all stars." << std::endl;
+      Trace("fmc-cover-simplify") << "Beforehand: " << std::endl;
+      debugPrint("fmc-cover-simplify",Node::null(), mc);
+      Trace("fmc-cover-simplify") << std::endl;
+      std::vector< Node > cond;
+      cond.insert( cond.end(), d_cond.begin(), d_cond.end() );
+      d_cond.clear();
+      std::vector< Node > value;
+      value.insert( value.end(), d_value.begin(), d_value.end() );
+      d_value.clear();
+      d_et.reset();
+      d_has_simplified = false;
+      //change the last to all star
+      std::vector< Node > nc;
+      nc.push_back( cc.getOperator() );
+      for( unsigned j=0; j< cc.getNumChildren(); j++){
+        nc.push_back(m->getStar(cc[j].getType()));
+      }
+      cond[cond.size()-1] = NodeManager::currentNM()->mkNode( APPLY_UF, nc );
+      //re-add the entries
+      for (unsigned i=0; i<cond.size(); i++) {
+        addEntry(m, cond[i], value[i]);
+      }
+      Trace("fmc-cover-simplify") << "Finished re-adding entries." << std::endl;
+      basic_simplify( m );
+      Trace("fmc-cover-simplify") << "Afterhand: " << std::endl;
+      debugPrint("fmc-cover-simplify",Node::null(), mc);
+      Trace("fmc-cover-simplify") << std::endl;
+    }
+  }
+
+
+/*
+  //now do exhaustive covering simplification
+  if( options::fmfFmcCoverSimplify() && !d_cond.empty() ){
+    std::vector< int > indices;
+    std::map< int, std::vector< int > > star_replace;
+    d_et.exhaustiveSimplify( m, d_cond[0], 0, indices, star_replace );
+    if( !indices.empty() ){
+      static bool appSimp = false;
+      if( !appSimp ){
+        appSimp = true;
+        std::cout << "FMC-CS" << std::endl;
+      }
+      Trace("fmc-cover-simplify") << "Beforehand: " << std::endl;
+      debugPrint("fmc-cover-simplify",Node::null(), mc);
+      Trace("fmc-cover-simplify") << std::endl;
+      d_has_simplified = false;
+      Trace("fmc-cover-simplify") << "By exhaustive covering, these indices can be removed : ";
+      for( unsigned i=0; i<indices.size(); i++) {
+        Trace("fmc-cover-simplify") << indices[i] << " ";
+      }
+      Trace("fmc-cover-simplify") << std::endl;
+      std::vector< Node > cond;
+      cond.insert( cond.end(), d_cond.begin(), d_cond.end() );
+      d_cond.clear();
+      std::vector< Node > value;
+      value.insert( value.end(), d_value.begin(), d_value.end() );
+      d_value.clear();
+      d_et.reset();
+      d_has_simplified = false;
+      for (unsigned i=0; i<cond.size(); i++) {
+        if( std::find( indices.begin(), indices.end(), i )==indices.end() ){
+          Node cc = cond[i];
+          if(star_replace.find(i)!=star_replace.end()) {
+            std::vector< Node > nc;
+            nc.push_back( cc.getOperator() );
+            Trace("fmc-cover-simplify") << "Modify entry : " << cc << std::endl;
+            for( unsigned j=0; j< cc.getNumChildren(); j++){
+              if( std::find( star_replace[i].begin(), star_replace[i].end(), j )!=star_replace[i].end() ){
+                nc.push_back( m->getStar(cc[j].getType()) );
+              }else{
+                nc.push_back( cc[j] );
+              }
+            }
+            cc = NodeManager::currentNM()->mkNode( APPLY_UF, nc );
+            Trace("fmc-cover-simplify") << "Got : " << cc << std::endl;
+          }
+          addEntry(m, cc, value[i]);
+        }
+      }
+      Trace("fmc-cover-simplify") << "Finished re-adding entries." << std::endl;
+      basic_simplify( m );
+      Trace("fmc-cover-simplify") << "Afterhand: " << std::endl;
+      debugPrint("fmc-cover-simplify",Node::null(), mc);
+      Trace("fmc-cover-simplify") << std::endl;
+    }
+  }
+  */
 }
 
 void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
@@ -263,8 +437,15 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       for( unsigned i=0; i<tno.getNumChildren(); i++) {
         TypeNode tn = tno[i];
         if( fm->d_model_basis_rep.find( tn )==fm->d_model_basis_rep.end() ){
-          Node mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
-          fm->d_model_basis_rep[tn] = fm->getUsedRepresentative( mbn );
+          Node mbn;
+          if (!fm->d_rep_set.hasType(tn)) {
+            mbn = fm->getSomeDomainElement(tn);
+          }else{
+            mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+          }
+          Node mbnr = fm->getUsedRepresentative( mbn );
+          fm->d_model_basis_rep[tn] = mbnr;
+          Trace("fmc") << "Add model basis for type " << tn << " : " << mbn << " " << mbnr << std::endl;
         }
       }
     }
@@ -319,7 +500,8 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       fm->d_models[op]->debugPrint("fmc-model", op, this);
       Trace("fmc-model") << std::endl;
 
-      fm->d_models[op]->simplify( fm );
+      Trace("fmc-model-simplify") << "Simplifying " << op << "..." << std::endl;
+      fm->d_models[op]->simplify( this, fm );
       Trace("fmc-model-simplify") << "After simplification : " << std::endl;
       fm->d_models[op]->debugPrint("fmc-model-simplify", op, this);
       Trace("fmc-model-simplify") << std::endl;
@@ -617,7 +799,9 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
         doInterpretedCompose( fm, f, d, n, children, 0, cond, val );
       }
     }
-    d.simplify(fm);
+    Trace("fmc-debug") << "Simplify the definition..." << std::endl;
+    d.simplify(this, fm);
+    Trace("fmc-debug") << "Done simplifying" << std::endl;
   }
   Trace("fmc-debug") << "Definition for " << n << " is : " << std::endl;
   d.debugPrint("fmc-debug", Node::null(), this);
@@ -709,7 +893,9 @@ void FullModelChecker::doUninterpretedCompose( FirstOrderModelFmc * fm, Node f, 
       //add them to the definition
       for( unsigned e=0; e<df.d_cond.size(); e++ ){
         if ( entries.find(e)!=entries.end() ){
+          Trace("fmf-uf-process-debug") << "Add entry..." << std::endl;
           d.addEntry(fm, entries[e], df.d_value[e] );
+          Trace("fmf-uf-process-debug") << "Done add entry." << std::endl;
         }
       }
     }

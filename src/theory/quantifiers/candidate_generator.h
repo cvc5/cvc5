@@ -69,8 +69,7 @@ public:
   Node getNextCandidate();
 };/* class CandidateGeneratorQueue */
 
-class CandidateGeneratorQEDisequal;
-
+//the default generator
 class CandidateGeneratorQE : public CandidateGenerator
 {
   friend class CandidateGeneratorQEDisequal;
@@ -92,27 +91,6 @@ public:
   void reset( Node eqc );
   Node getNextCandidate();
 };
-
-
-//class CandidateGeneratorQEDisequal : public CandidateGenerator
-//{
-//private:
-//  //equivalence class
-//  Node d_eq_class;
-//  //equivalence class info
-//  EqClassInfo* d_eci;
-//  //equivalence class iterator
-//  EqClassInfo::BoolMap::const_iterator d_eqci_iter;
-//  //instantiator pointer
-//  QuantifiersEngine* d_qe;
-//public:
-//  CandidateGeneratorQEDisequal( QuantifiersEngine* qe, Node eqc );
-//  ~CandidateGeneratorQEDisequal(){}
-//
-//  void resetInstantiationRound();
-//  void reset( Node eqc );   //should be what you want to be disequal from
-//  Node getNextCandidate();
-//};
 
 class CandidateGeneratorQELitEq : public CandidateGenerator
 {
@@ -144,6 +122,24 @@ private:
 public:
   CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat );
   ~CandidateGeneratorQELitDeq(){}
+
+  void resetInstantiationRound();
+  void reset( Node eqc );
+  Node getNextCandidate();
+};
+
+class CandidateGeneratorQEAll : public CandidateGenerator
+{
+private:
+  //the equality classes iterator
+  eq::EqClassesIterator d_eq;
+  //equality you are trying to match equalities for
+  Node d_match_pattern;
+  //einstantiator pointer
+  QuantifiersEngine* d_qe;
+public:
+  CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
+  ~CandidateGeneratorQEAll(){}
 
   void resetInstantiationRound();
   void reset( Node eqc );

@@ -191,7 +191,10 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound ){
   int retType;
   if( n.getKind()==kind::EQUAL ){
     //we only require that the left and right hand side must be equal
-    setEqual( child_types[0], child_types[1] );
+    //setEqual( child_types[0], child_types[1] );
+    int eqType = getIdForType( n[0].getType() );
+    setEqual( child_types[0], eqType );
+    setEqual( child_types[1], eqType );
     retType = getIdForType( n.getType() );
   }else if( n.getKind()==kind::APPLY_UF ){
     Node op = n.getOperator();

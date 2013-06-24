@@ -36,7 +36,7 @@ void RewriteEngine::check( Theory::Effort e ) {
     for( unsigned i=0; i<d_rr_quant.size(); i++ ) {
       addedLemmas += checkRewriteRule( d_rr_quant[i] );
     }
-    Trace("rewrite-engine") << "Rewrite engine generated " << addedLemmas << " lemmas." << std::endl;
+    Trace("inst-engine") << "Rewrite engine added " << addedLemmas << " lemmas." << std::endl;
     if (addedLemmas==0) {
     }else{
       //otherwise, the search will continue
@@ -85,7 +85,7 @@ int RewriteEngine::checkRewriteRule( Node f ) {
         bool trueInModel = false;
 
         if( !trueInModel ){
-          Trace("rewrite-engine-inst") << "Add instantiation : " << m << std::endl;
+          Trace("rewrite-engine-inst-debug") << "Add instantiation : " << m << std::endl;
           if( d_quantEngine->addInstantiation( f, m ) ){
             addedLemmas++;
             Trace("rewrite-engine-inst-debug") << "success" << std::endl;
