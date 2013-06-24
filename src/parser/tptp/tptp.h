@@ -25,6 +25,7 @@
 #include <ext/hash_set>
 #include <cassert>
 #include "parser/options.h"
+#include "parser/antlr_input.h"
 
 namespace CVC4 {
 
@@ -46,51 +47,57 @@ class Tptp : public Parser {
   std::hash_set<Expr, ExprHashFunction> d_r_converted;
   std::hash_map<std::string, Expr, StringHashFunction> d_distinct_objects;
 
-  //TPTP directory where to find includes
+  // TPTP directory where to find includes;
   // empty if none could be determined
   std::string d_tptpDir;
 
-  //hack to make output SZS ontology-compliant
+  // hack to make output SZS ontology-compliant
   bool d_hasConjecture;
-  // hack for szs compliance
-  bool d_szsCompliant;
+
+  static void myPopCharStream(pANTLR3_LEXER lexer);
+  void (*d_oldPopCharStream)(pANTLR3_LEXER);
 
 public:
-  bool cnf; //in a cnf formula
 
-  void addFreeVar(Expr var){assert(cnf); d_freeVar.push_back(var); };
-  std::vector< Expr > getFreeVar(){
+  bool cnf; // in a cnf formula
+  bool fof; // in an fof formula
+
+  void addFreeVar(Expr var) {
+    assert(cnf);
+    d_freeVar.push_back(var);
+  }
+  std::vector< Expr > getFreeVar() {
     assert(cnf);
     std::vector< Expr > r;
     r.swap(d_freeVar);
     return r;
   }
 
-  inline Expr convertRatToUnsorted(Expr expr){
+  inline Expr convertRatToUnsorted(Expr expr) {
     ExprManager * em = getExprManager();
 
     // Create the conversion function If they doesn't exists
-    if(d_rtu_op.isNull()){
+    if(d_rtu_op.isNull()) {
       Type t;
-      //Conversion from rational to unsorted
+      // Conversion from rational to unsorted
       t = em->mkFunctionType(em->realType(), d_unsorted);
       d_rtu_op = em->mkVar("$$rtu",t);
       preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
-      //Conversion from unsorted to rational
+      // Conversion from unsorted to rational
       t = em->mkFunctionType(d_unsorted, em->realType());
       d_utr_op = em->mkVar("$$utr",t);
-      preemptCommand(new DeclareFunctionCommand("$$utur", d_utr_op, t));
+      preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
     }
     // Add the inverse in order to show that over the elements that
     // appear in the problem there is a bijection between unsorted and
     // rational
     Expr ret = em->mkExpr(kind::APPLY_UF,d_rtu_op,expr);
-    if ( d_r_converted.find(expr) == d_r_converted.end() ){
+    if(d_r_converted.find(expr) == d_r_converted.end()) {
       d_r_converted.insert(expr);
-      Expr eq = em->mkExpr(kind::EQUAL,expr,
-                           em->mkExpr(kind::APPLY_UF,d_utr_op,ret));
+      Expr eq = em->mkExpr(kind::EQUAL, expr,
+                           em->mkExpr(kind::APPLY_UF, d_utr_op, ret));
       preemptCommand(new AssertCommand(eq));
-    };
+    }
     return ret;
   }
 
@@ -104,12 +111,13 @@ public:
 
 public:
 
-  //TPTP (CNF and FOF) is unsorted so we define this common type
+  // CNF and FOF are unsorted so we define this common type.
+  // This is also the Type of $i in TFF.
   Type d_unsorted;
 
   enum Theory {
     THEORY_CORE,
-  };
+  };/* enum Theory */
 
   enum FormulaRole {
     FR_AXIOM,
@@ -126,8 +134,9 @@ public:
     FR_FI_FUNCTORS,
     FR_FI_PREDICATES,
     FR_TYPE,
-  };
+  };/* enum FormulaRole */
 
+  bool hasConjecture() const { return d_hasConjecture; }
 
 protected:
   Tptp(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -140,10 +149,30 @@ public:
    */
   void addTheory(Theory theory);
 
-  inline void makeApplication(Expr & expr, std::string & name,
-                              std::vector<Expr> & args, bool term);
+  inline void makeApplication(Expr& expr, std::string& name,
+                              std::vector<Expr>& args, bool term);
 
-  inline Command* makeCommand(FormulaRole fr, Expr & expr);
+  inline Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf);
+
+  inline Expr mkTffVar(std::string& name, const Type& type) {
+    std::string orig = name;
+    std::stringstream ss;
+    ss << name << "_0";
+    name = ss.str();
+    Expr var = mkVar(name, type);
+    defineFunction(orig, var);
+    return var;
+  }
+
+  inline Expr mkTffFunction(std::string& name, const FunctionType& type) {
+    std::string orig = name;
+    std::stringstream ss;
+    ss << name << "_" << type.getArity();
+    name = ss.str();
+    Expr fun = mkFunction(name, type);
+    defineFunction(orig, fun);
+    return fun;
+  }
 
   /** Ugly hack because I don't know how to return an expression from a
       token */
@@ -153,48 +182,57 @@ public:
       is reused */
   void includeFile(std::string fileName);
 
+  /** Check a TPTP let binding for well-formedness. */
+  void checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs, bool formula);
+
 private:
 
   void addArithmeticOperators();
 };/* class Tptp */
 
-inline void Tptp::makeApplication(Expr & expr, std::string & name,
-                           std::vector<Expr> & args, bool term){
+inline void Tptp::makeApplication(Expr& expr, std::string& name,
+                                  std::vector<Expr>& args, bool term) {
   // We distinguish the symbols according to their arities
   std::stringstream ss;
   ss << name << "_" << args.size();
   name = ss.str();
-  if(args.empty()){ // Its a constant
-    if(isDeclared(name)){ //already appeared
+  if(args.empty()) { // Its a constant
+    if(isDeclared(name)) { // already appeared
       expr = getVariable(name);
     } else {
       Type t = term ? d_unsorted : getExprManager()->booleanType();
-      expr = mkVar(name,t,true); //levelZero
+      expr = mkVar(name, t, true); // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr, t));
     }
   } else { // Its an application
-    if(isDeclared(name)){ //already appeared
+    if(isDeclared(name)) { // already appeared
       expr = getVariable(name);
     } else {
       std::vector<Type> sorts(args.size(), d_unsorted);
       Type t = term ? d_unsorted : getExprManager()->booleanType();
       t = getExprManager()->mkFunctionType(sorts, t);
-      expr = mkVar(name,t,true); //levelZero
+      expr = mkVar(name, t, true); // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr, t));
+    }
+    // args might be rationals, in which case we need to create
+    // distinct constants of the "unsorted" sort to represent them
+    for(size_t i = 0; i < args.size(); ++i) {
+      if(args[i].getType().isReal() && FunctionType(expr.getType()).getArgTypes()[i] == d_unsorted) {
+        args[i] = convertRatToUnsorted(args[i]);
+      }
     }
     expr = getExprManager()->mkExpr(kind::APPLY_UF, expr, args);
   }
-};
+}
 
-inline Command* Tptp::makeCommand(FormulaRole fr, Expr & expr){
-  //hack for SZS ontology compliance
-  if(d_szsCompliant && (fr==FR_NEGATED_CONJECTURE || fr==FR_CONJECTURE)){
-    if( !d_hasConjecture ){
-      d_hasConjecture = true;
-      std::cout << "conjecture-";
-    }
+inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
+  // For SZS ontology compliance.
+  // if we're in cnf() though, conjectures don't result in "Theorem" or
+  // "CounterSatisfiable".
+  if(!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
+    d_hasConjecture = true;
   }
-  switch(fr){
+  switch(fr) {
   case FR_AXIOM:
   case FR_HYPOTHESIS:
   case FR_DEFINITION:

@@ -1,5 +1,5 @@
-SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision fmf
-DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision fmf
+SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf
+DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf
 
 BINARY = cvc4
 LOG_COMPILER = @srcdir@/../run_regression
@@ -101,17 +101,7 @@ CVC_TESTS = \
 	print_lambda.cvc
 
 # Regression tests for TPTP inputs
-TPTP_TESTS = \
-	tptp_parser.p \
-	tptp_parser2.p \
-	tptp_parser3.p \
-	tptp_parser4.p \
-	tptp_parser5.p \
-	tptp_parser6.p \
-	tptp_parser7.p \
-	tptp_parser8.p \
-	tptp_parser9.p \
-	tptp_parser10.p
+TPTP_TESTS =
 
 # Regression tests derived from bug reports
 BUG_TESTS = \

@@ -786,7 +786,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
                  args.size() > 2 ) {
         /* "chainable", but CVC4 internally only supports 2 args */
-        expr = MK_EXPR(CVC4::kind::CHAIN, MK_CONST(kind), args);
+        expr = MK_EXPR(MK_CONST(Chain(kind)), args);
       } else if( PARSER_STATE->strictModeEnabled() && kind == CVC4::kind::ABS &&
                  args.size() == 1 && !args[0].getType().isInteger() ) {
         /* first, check that ABS is even defined in this logic */

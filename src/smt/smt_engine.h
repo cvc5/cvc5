@@ -234,6 +234,11 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
+   * The name of the input (if any).
+   */
+  std::string d_filename;
+
+  /**
    * A private utility class to SmtEngine.
    */
   smt::SmtEnginePrivate* d_private;

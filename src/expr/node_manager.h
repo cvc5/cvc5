@@ -353,6 +353,9 @@ public:
     d_listeners.erase(elt);
   }
 
+  /** Get a Kind from an operator expression */
+  static inline Kind operatorToKind(TNode n);
+
   // general expression-builders
 
   /** Create a node with one child. */
@@ -1280,6 +1283,10 @@ inline TypeNode NodeManager::mkSortConstructor(const std::string& name,
   return type;
 }
 
+inline Kind NodeManager::operatorToKind(TNode n) {
+  return kind::operatorToKind(n.d_nv);
+}
+
 inline Node NodeManager::mkNode(Kind kind, TNode child1) {
   NodeBuilder<1> nb(this, kind);
   nb << child1;
@@ -1367,80 +1374,114 @@ inline Node* NodeManager::mkNodePtr(Kind kind,
 
 // for operators
 inline Node NodeManager::mkNode(TNode opNode) {
-  NodeBuilder<1> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode;
+  NodeBuilder<1> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode) {
-  NodeBuilder<1> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode;
+  NodeBuilder<1> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
   return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1) {
-  NodeBuilder<2> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1;
+  NodeBuilder<2> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1;
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1) {
-  NodeBuilder<2> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1;
+  NodeBuilder<2> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1;
   return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2) {
-  NodeBuilder<3> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2;
+  NodeBuilder<3> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2;
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2) {
-  NodeBuilder<3> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2;
+  NodeBuilder<3> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2;
   return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3) {
-  NodeBuilder<4> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3;
+  NodeBuilder<4> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3;
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
                                 TNode child3) {
-  NodeBuilder<4> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3;
+  NodeBuilder<4> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3;
   return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3, TNode child4) {
-  NodeBuilder<5> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3 << child4;
+  NodeBuilder<5> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3 << child4;
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
                                 TNode child3, TNode child4) {
-  NodeBuilder<5> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3 << child4;
+  NodeBuilder<5> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3 << child4;
   return nb.constructNodePtr();
 }
 
 inline Node NodeManager::mkNode(TNode opNode, TNode child1, TNode child2,
                                 TNode child3, TNode child4, TNode child5) {
-  NodeBuilder<6> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3 << child4 << child5;
+  NodeBuilder<6> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3 << child4 << child5;
   return nb.constructNode();
 }
 
 inline Node* NodeManager::mkNodePtr(TNode opNode, TNode child1, TNode child2,
                                     TNode child3, TNode child4, TNode child5) {
-  NodeBuilder<6> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode << child1 << child2 << child3 << child4 << child5;
+  NodeBuilder<6> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
+  nb << child1 << child2 << child3 << child4 << child5;
   return nb.constructNodePtr();
 }
 
@@ -1449,8 +1490,10 @@ template <bool ref_count>
 inline Node NodeManager::mkNode(TNode opNode,
                                 const std::vector<NodeTemplate<ref_count> >&
                                 children) {
-  NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode;
+  NodeBuilder<> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
   nb.append(children);
   return nb.constructNode();
 }
@@ -1459,8 +1502,10 @@ template <bool ref_count>
 inline Node* NodeManager::mkNodePtr(TNode opNode,
                                     const std::vector<NodeTemplate<ref_count> >&
                                     children) {
-  NodeBuilder<> nb(this, kind::operatorKindToKind(opNode.getKind()));
-  nb << opNode;
+  NodeBuilder<> nb(this, operatorToKind(opNode));
+  if(opNode.getKind() != kind::BUILTIN) {
+    nb << opNode;
+  }
   nb.append(children);
   return nb.constructNodePtr();
 }

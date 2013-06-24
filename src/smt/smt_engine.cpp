@@ -1108,12 +1108,14 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if(key == "name" ||
-     key == "source" ||
+  if(key == "source" ||
      key == "category" ||
      key == "difficulty" ||
      key == "notes") {
     // ignore these
+    return;
+  } else if(key == "name") {
+    d_filename = value.getValue();
     return;
   } else if(key == "smt-lib-version") {
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
@@ -1133,7 +1135,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_status = Result(s);
+    d_status = Result(s, d_filename);
     return;
   }
   throw UnrecognizedOptionException();
@@ -2568,7 +2570,7 @@ Result SmtEngine::check() {
   if(d_timeBudgetCumulative != 0) {
     millis = getTimeRemaining();
     if(millis == 0) {
-      return Result(Result::VALIDITY_UNKNOWN, Result::TIMEOUT);
+      return Result(Result::VALIDITY_UNKNOWN, Result::TIMEOUT, d_filename);
     }
   }
   if(d_timeBudgetPerCall != 0 && (millis == 0 || d_timeBudgetPerCall < millis)) {
@@ -2579,7 +2581,7 @@ Result SmtEngine::check() {
   if(d_resourceBudgetCumulative != 0) {
     resource = getResourceRemaining();
     if(resource == 0) {
-      return Result(Result::VALIDITY_UNKNOWN, Result::RESOURCEOUT);
+      return Result(Result::VALIDITY_UNKNOWN, Result::RESOURCEOUT, d_filename);
     }
   }
   if(d_resourceBudgetPerCall != 0 && (resource == 0 || d_resourceBudgetPerCall < resource)) {
@@ -2600,13 +2602,13 @@ Result SmtEngine::check() {
   Trace("limit") << "SmtEngine::check(): cumulative millis " << d_cumulativeTimeUsed
                  << ", conflicts " << d_cumulativeResourceUsed << endl;
 
-  return result;
+  return Result(result, d_filename);
 }
 
 Result SmtEngine::quickCheck() {
   Assert(d_fullyInited);
   Trace("smt") << "SMT quickCheck()" << endl;
-  return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK);
+  return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
 
@@ -3427,7 +3429,9 @@ Model* SmtEngine::getModel() throw(ModalException) {
       "Cannot get model when produce-models options is off.";
     throw ModalException(msg);
   }
-  return d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getModel();
+  m->d_inputName = d_filename;
+  return m;
 }
 
 void SmtEngine::checkModel(bool hardFailure) {

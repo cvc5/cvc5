@@ -14,9 +14,6 @@ option memoryMap --mmap bool
 option semanticChecks /--no-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--no-type-checking
  disable ALL semantic checks, including type checks
 
-option szsCompliant --szs-compliant bool :default false
- temporary support for szs ontolotogy, print if conjecture is found
-
 # this is just to support security in the online version
 # (--no-include-file disables filesystem access in TPTP and SMT2 parsers)
 undocumented-option canIncludeFile /--no-include-file bool :default true

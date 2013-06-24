@@ -696,7 +696,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
 }
 
 void Smt2Printer::toStream(std::ostream& out, const Result& r) const throw() {
-  if (r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
+  if(r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
     out << "unknown";
   } else {
     Printer::toStream(out, r);

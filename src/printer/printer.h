@@ -45,6 +45,11 @@ protected:
   /** write model response to command */
   virtual void toStream(std::ostream& out, const Model& m, const Command* c) const throw() = 0;
 
+  /** write model response to command using another language printer */
+  void toStreamUsing(OutputLanguage lang, std::ostream& out, const Model& m, const Command* c) const throw() {
+    getPrinter(lang)->toStream(out, m, c);
+  }
+
 public:
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang) throw() {

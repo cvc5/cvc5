@@ -297,13 +297,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       opts.set(options::replayStream, NULL);
     }
 
-    string result = "unknown";
+    Result result;
     if(status) {
-      result = pExecutor->getSmtEngineStatus();
+      result = pExecutor->getResult();
 
-      if(result == "sat") {
+      if(result.asSatisfiabilityResult() == Result::SAT) {
         returnValue = 10;
-      } else if(result == "unsat") {
+      } else if(result.asSatisfiabilityResult() == Result::UNSAT) {
         returnValue = 20;
       } else {
         returnValue = 0;

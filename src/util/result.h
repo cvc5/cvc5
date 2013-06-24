@@ -71,47 +71,58 @@ private:
   enum Validity d_validity;
   enum Type d_which;
   enum UnknownExplanation d_unknownExplanation;
+  std::string d_inputName;
 
 public:
-  Result() :
+  Result(std::string inputName = "") :
     d_sat(SAT_UNKNOWN),
     d_validity(VALIDITY_UNKNOWN),
     d_which(TYPE_NONE),
-    d_unknownExplanation(UNKNOWN_REASON) {
+    d_unknownExplanation(UNKNOWN_REASON),
+    d_inputName(inputName) {
   }
-  Result(enum Sat s) :
+  Result(enum Sat s, std::string inputName = "") :
     d_sat(s),
     d_validity(VALIDITY_UNKNOWN),
     d_which(TYPE_SAT),
-    d_unknownExplanation(UNKNOWN_REASON) {
+    d_unknownExplanation(UNKNOWN_REASON),
+    d_inputName(inputName) {
     CheckArgument(s != SAT_UNKNOWN,
                   "Must provide a reason for satisfiability being unknown");
   }
-  Result(enum Validity v) :
+  Result(enum Validity v, std::string inputName = "") :
     d_sat(SAT_UNKNOWN),
     d_validity(v),
     d_which(TYPE_VALIDITY),
-    d_unknownExplanation(UNKNOWN_REASON) {
+    d_unknownExplanation(UNKNOWN_REASON),
+    d_inputName(inputName) {
     CheckArgument(v != VALIDITY_UNKNOWN,
                   "Must provide a reason for validity being unknown");
   }
-  Result(enum Sat s, enum UnknownExplanation unknownExplanation) :
+  Result(enum Sat s, enum UnknownExplanation unknownExplanation, std::string inputName = "") :
     d_sat(s),
     d_validity(VALIDITY_UNKNOWN),
     d_which(TYPE_SAT),
-    d_unknownExplanation(unknownExplanation) {
+    d_unknownExplanation(unknownExplanation),
+    d_inputName(inputName) {
     CheckArgument(s == SAT_UNKNOWN,
                   "improper use of unknown-result constructor");
   }
-  Result(enum Validity v, enum UnknownExplanation unknownExplanation) :
+  Result(enum Validity v, enum UnknownExplanation unknownExplanation, std::string inputName = "") :
     d_sat(SAT_UNKNOWN),
     d_validity(v),
     d_which(TYPE_VALIDITY),
-    d_unknownExplanation(unknownExplanation) {
+    d_unknownExplanation(unknownExplanation),
+    d_inputName(inputName) {
     CheckArgument(v == VALIDITY_UNKNOWN,
                   "improper use of unknown-result constructor");
   }
-  Result(const std::string& s);
+  Result(const std::string& s, std::string inputName = "");
+
+  Result(const Result& r, std::string inputName) {
+    *this = r;
+    d_inputName = inputName;
+  }
 
   enum Sat isSat() const {
     return d_which == TYPE_SAT ? d_sat : SAT_UNKNOWN;
@@ -141,6 +152,8 @@ public:
   Result asValidityResult() const throw();
 
   std::string toString() const;
+
+  std::string getInputName() const { return d_inputName; }
 
 };/* class Result */
 

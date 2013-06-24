@@ -1,10 +1,14 @@
-% EXPECT: unknown
-% EXIT: 0
+% Status: Satisfiable
 
 %--------------------------------------------------------------------------
-include('tptp_parser7.p').
 
-cnf(query_1,axiom, include('A') | b ).
+cnf(query_1,axiom, p( A, d ) | b ).
+
+cnf(query_1,axiom, b | c ).
+
+cnf(query_1,axiom, ~p(A, axiom) ).
+
+cnf(query_1,axiom, axiom != d ).
 
 cnf(query_1,negated_conjecture, ~ b ).
 

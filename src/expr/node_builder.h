@@ -660,6 +660,9 @@ public:
     Assert(!isUsed(), "NodeBuilder is one-shot only; "
            "attempt to access it after conversion");
     Assert(!n.isNull(), "Cannot use NULL Node as a child of a Node");
+    if(n.getKind() == kind::BUILTIN) {
+      return *this << NodeManager::operatorToKind(n);
+    }
     allocateNvIfNecessaryForAppend();
     expr::NodeValue* nv = n.d_nv;
     nv->inc();
@@ -980,7 +983,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
 #if 0
   // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
   Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
-         kind::operatorKindToKind(getOperator().getKind()) == getKind(),
+         NodeManager::operatorToKind(getOperator()) == getKind(),
          "Attempted to construct a parameterized kind `%s' with "
          "incorrectly-kinded operator `%s'",
          kind::kindToString(getKind()).c_str(),
@@ -1165,7 +1168,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
 #if 0
   // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
   Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
-         kind::operatorKindToKind(getOperator().getKind()) == getKind(),
+         NodeManager::operatorToKind(getOperator()) == getKind(),
          "Attempted to construct a parameterized kind `%s' with "
          "incorrectly-kinded operator `%s'",
          kind::kindToString(getKind()).c_str(),

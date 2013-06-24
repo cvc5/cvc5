@@ -126,18 +126,6 @@ ${metakind_kinds}
   return metaKinds[k + 1];
 }/* metaKindOf(k) */
 
-/**
- * Map a kind of the operator to the kind of the enclosing expression. For
- * example, since the kind of functions is just VARIABLE, it should map
- * VARIABLE to APPLY_UF.
- */
-static inline Kind operatorKindToKind(Kind k) {
-  switch (k) {
-${metakind_operatorKinds}
-  default:
-    return kind::UNDEFINED_KIND;  /* LAST_KIND */
-  };
-}
 }/* CVC4::kind namespace */
 
 namespace expr {
@@ -324,9 +312,29 @@ ${metakind_ubchildren}
 }
 
 }/* CVC4::kind::metakind namespace */
+
+/**
+ * Map a kind of the operator to the kind of the enclosing expression. For
+ * example, since the kind of functions is just VARIABLE, it should map
+ * VARIABLE to APPLY_UF.
+ */
+static inline Kind operatorToKind(::CVC4::expr::NodeValue* nv) {
+  if(nv->getKind() == kind::BUILTIN) {
+    return nv->getConst<Kind>();
+  } else if(nv->getKind() == kind::LAMBDA) {
+    return kind::APPLY_UF;
+  }
+
+  switch(Kind k CVC4_UNUSED = nv->getKind()) {
+${metakind_operatorKinds}
+  default:
+    return kind::UNDEFINED_KIND;  /* LAST_KIND */
+  };
+}
+
 }/* CVC4::kind namespace */
 
-#line 330 "${template}"
+#line 338 "${template}"
 
 namespace theory {
 

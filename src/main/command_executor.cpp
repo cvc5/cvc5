@@ -24,11 +24,12 @@
 namespace CVC4 {
 namespace main {
 
-CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options):
+CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
   d_exprMgr(exprMgr),
   d_smtEngine(SmtEngine(&exprMgr)),
   d_options(options),
-  d_stats("driver") {
+  d_stats("driver"),
+  d_result() {
 }
 
 bool CommandExecutor::doCommand(Command* cmd)
@@ -58,7 +59,7 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 }
 
-bool CommandExecutor::doCommandSingleton(Command *cmd)
+bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options[options::verbosity] >= -1) {
@@ -66,23 +67,25 @@ bool CommandExecutor::doCommandSingleton(Command *cmd)
   } else {
     status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
   }
-  //dump the model if option is set
-  if(status && d_options[options::produceModels] && d_options[options::dumpModels]) {
-    CheckSatCommand *cs = dynamic_cast<CheckSatCommand*>(cmd);
-    if(cs != NULL) {
-      if(cs->getResult().asSatisfiabilityResult().isSat() == Result::SAT ||
-         (cs->getResult().isUnknown() && cs->getResult().whyUnknown() == Result::INCOMPLETE) ){
-        Command * gm = new GetModelCommand;
-        status = doCommandSingleton(gm);
-      }
-    }
+  Result res;
+  CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
+  if(cs != NULL) {
+    d_result = res = cs->getResult();
+  }
+  QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
+  if(q != NULL) {
+    d_result = res = q->getResult();
+  }
+  // dump the model if option is set
+  if( status &&
+      d_options[options::produceModels] &&
+      d_options[options::dumpModels] &&
+      ( res.asSatisfiabilityResult() == Result::SAT ||
+        (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
+    Command* gm = new GetModelCommand();
+    status = doCommandSingleton(gm);
   }
   return status;
-}
-
-std::string CommandExecutor::getSmtEngineStatus()
-{
-  return d_smtEngine.getInfo("status").getValue();
 }
 
 bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)

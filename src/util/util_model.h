@@ -33,6 +33,10 @@ std::ostream& operator<<(std::ostream&, const Model&);
 
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
+  friend class SmtEngine;
+
+  /** the input name (file name, etc.) this model is associated to */
+  std::string d_inputName;
 
 protected:
   /** The SmtEngine we're associated with */
@@ -52,6 +56,8 @@ public:
   SmtEngine* getSmtEngine() { return &d_smt; }
   /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
   const SmtEngine* getSmtEngine() const { return &d_smt; }
+  /** get the input name (file name, etc.) this model is associated to */
+  std::string getInputName() const { return d_inputName; }
 
 public:
   /** get value for expression */

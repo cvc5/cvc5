@@ -20,6 +20,7 @@
 
 #include "printer/smt1/smt1_printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "printer/tptp/tptp_printer.h"
 #include "printer/cvc/cvc_printer.h"
 #include "printer/ast/ast_printer.h"
 
@@ -41,8 +42,8 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_SMTLIB_V2:
     return new printer::smt2::Smt2Printer();
 
-  case LANG_TPTP: //TODO the printer
-    return new printer::smt2::Smt2Printer();
+  case LANG_TPTP:
+    return new printer::tptp::TptpPrinter();
 
   case LANG_CVC4:
     return new printer::cvc::CvcPrinter();

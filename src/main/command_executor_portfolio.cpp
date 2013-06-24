@@ -184,7 +184,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // command
 
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-    dynamic_cast<QueryCommand*>(cmd) != NULL) {
+     dynamic_cast<QueryCommand*>(cmd) != NULL) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
@@ -298,6 +298,16 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     d_lastWinner = portfolioReturn.first;
 
+    CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
+    if(cs != NULL) {
+      d_result = cs->getResult();
+    }
+    QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
+    if(q != NULL) {
+      d_result = q->getResult();
+    }
+    dynamic_cast<QueryCommand*>(cmd) != NULL) {
+
     if(d_ostringstreams.size() != 0) {
       assert(d_numThreads == d_options[options::threads]);
       assert(portfolioReturn.first >= 0);
@@ -339,11 +349,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   }
 
 }/* CommandExecutorPortfolio::doCommandSingleton() */
-
-std::string CommandExecutorPortfolio::getSmtEngineStatus()
-{
-  return d_smts[d_lastWinner]->getInfo("status").getValue();
-}
 
 void CommandExecutorPortfolio::flushStatistics(std::ostream& out) const {
   assert(d_numThreads == d_exprMgrs.size() && d_exprMgrs.size() == d_smts.size());

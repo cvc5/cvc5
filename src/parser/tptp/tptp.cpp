@@ -33,26 +33,26 @@ Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
   /* Try to find TPTP dir */
   // From tptp4x FileUtilities
   //----Try the TPTP directory, and TPTP variations
-    char* home = getenv("TPTP");
-    if (home == NULL) {
-        home = getenv("TPTP_HOME");
+  char* home = getenv("TPTP");
+  if(home == NULL) {
+     home = getenv("TPTP_HOME");
 // //----If no TPTP_HOME, try the tptp user (aaargh)
-//         if (home == NULL && (PasswdEntry = getpwnam("tptp")) != NULL) {
-//             home = PasswdEntry->pw_dir;
+//         if(home == NULL && (PasswdEntry = getpwnam("tptp")) != NULL) {
+//            home = PasswdEntry->pw_dir;
 //         }
 //----Now look in the TPTP directory from there
-        if (home != NULL) {
-          d_tptpDir = home;
-          d_tptpDir.append("/TPTP/");
-        }
-    } else {
+    if(home != NULL) {
       d_tptpDir = home;
-      //add trailing "/"
-      if( d_tptpDir[d_tptpDir.size() - 1] != '/'){
-        d_tptpDir.append("/");
-      }
+      d_tptpDir.append("/TPTP/");
     }
-    d_hasConjecture = false;
+  } else {
+    d_tptpDir = home;
+    //add trailing "/"
+    if(d_tptpDir[d_tptpDir.size() - 1] != '/') {
+      d_tptpDir.append("/");
+    }
+  }
+  d_hasConjecture = false;
 }
 
 void Tptp::addTheory(Theory theory) {
@@ -92,7 +92,7 @@ void Tptp::addTheory(Theory theory) {
 /* The include are managed in the lexer but called in the parser */
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
-bool newInputStream(std::string fileName, pANTLR3_LEXER lexer){
+bool newInputStream(std::string fileName, pANTLR3_LEXER lexer) {
   Debug("parser") << "Including " << fileName << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
@@ -103,7 +103,7 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer){
 #else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
   in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
-  if( in == NULL ) {
+  if(in == NULL) {
     Debug("parser") << "Can't open " << fileName << std::endl;
     return false;
   }
@@ -126,8 +126,15 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer){
   return true;
 }
 
+/* overridden popCharStream for the lexer - necessary if we had symbol
+ * filtering in file inclusion.
+void Tptp::myPopCharStream(pANTLR3_LEXER lexer) {
+  ((Tptp*)lexer->super)->d_oldPopCharStream(lexer);
+  ((Tptp*)lexer->super)->popScope();
+}
+*/
 
-void Tptp::includeFile(std::string fileName){
+void Tptp::includeFile(std::string fileName) {
   // security for online version
   if(!canIncludeFile()) {
     parseError("include-file feature was disabled for this run.");
@@ -136,34 +143,76 @@ void Tptp::includeFile(std::string fileName){
   // Get the lexer
   AntlrInput * ai = static_cast<AntlrInput *>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
+
+  // set up popCharStream - would be necessary for handling symbol
+  // filtering in inclusions
+  /*
+  if(d_oldPopCharStream == NULL) {
+    d_oldPopCharStream = lexer->popCharStream;
+    lexer->popCharStream = myPopCharStream;
+  }
+  */
+
+  // push the inclusion scope; will be popped by our special popCharStream
+  // would be necessary for handling symbol filtering in inclusions
+  //pushScope();
+
   // get the name of the current stream "Does it work inside an include?"
   const std::string inputName = ai->getInputStreamName();
 
   // Test in the directory of the actual parsed file
   std::string currentDirFileName;
-  if( inputName != "<stdin>"){
+  if(inputName != "<stdin>") {
     // TODO: Use dirname ot Boost::filesystem?
     size_t pos = inputName.rfind('/');
-    if( pos != std::string::npos){
+    if(pos != std::string::npos) {
       currentDirFileName = std::string(inputName, 0, pos + 1);
     }
     currentDirFileName.append(fileName);
-    if( newInputStream(currentDirFileName,lexer) ){
+    if(newInputStream(currentDirFileName,lexer)) {
       return;
     }
   } else {
     currentDirFileName = "<unknown current directory for stdin>";
   }
 
-  if( d_tptpDir.empty() ){
+  if(d_tptpDir.empty()) {
     parseError("Couldn't open included file: " + fileName
                + " at " + currentDirFileName + " and the TPTP directory is not specified (environment variable TPTP)");
   };
 
   std::string tptpDirFileName = d_tptpDir + fileName;
-  if( !newInputStream(tptpDirFileName,lexer) ){
+  if(! newInputStream(tptpDirFileName,lexer)) {
     parseError("Couldn't open included file: " + fileName
                + " at " + currentDirFileName + " or " + tptpDirFileName);
+  }
+}
+
+void Tptp::checkLetBinding(std::vector<Expr>& bvlist, Expr lhs, Expr rhs, bool formula) {
+  if(lhs.getKind() != CVC4::kind::APPLY_UF) {
+    parseError("malformed let: LHS must be a flat function application");
+  }
+  std::vector<CVC4::Expr> v = lhs.getChildren();
+  if(formula && !lhs.getType().isBoolean()) {
+    parseError("malformed let: LHS must be formula");
+  }
+  for(size_t i = 0; i < v.size(); ++i) {
+    if(v[i].hasOperator()) {
+      parseError("malformed let: LHS must be flat, illegal child: " + v[i].toString());
+    }
+  }
+  std::sort(v.begin(), v.end());
+  std::sort(bvlist.begin(), bvlist.end());
+  // ensure all let-bound variables appear on the LHS, and appear only once
+  for(size_t i = 0; i < bvlist.size(); ++i) {
+    std::vector<CVC4::Expr>::const_iterator found = std::lower_bound(v.begin(), v.end(), bvlist[i]);
+    if(found == v.end() || *found != bvlist[i]) {
+      parseError("malformed let: LHS must make use of all quantified variables, missing `" + bvlist[i].toString() + "'");
+    }
+    std::vector<CVC4::Expr>::const_iterator found2 = found + 1;
+    if(found2 != v.end() && *found2 == *found) {
+      parseError("malformed let: LHS cannot use same bound variable twice: " + (*found).toString());
+    }
   }
 }
 

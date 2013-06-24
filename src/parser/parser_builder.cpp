@@ -90,11 +90,7 @@ Parser* ParserBuilder::build()
     parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   case language::input::LANG_TPTP:
-  {
-    Tptp * tparser = new Tptp(d_exprManager, input, d_strictMode, d_parseOnly);
-    tparser->d_szsCompliant = d_szsCompliant;
-    parser = tparser;
-  }
+    parser = new Tptp(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
   default:
     parser = new Parser(d_exprManager, input, d_strictMode, d_parseOnly);
@@ -152,7 +148,6 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 }
 
 ParserBuilder& ParserBuilder::withOptions(const Options& options) {
-  d_szsCompliant = options[options::szsCompliant];
   return
     withInputLanguage(options[options::inputLanguage])
       .withMmap(options[options::memoryMap])

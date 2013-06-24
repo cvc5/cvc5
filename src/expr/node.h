@@ -1337,7 +1337,11 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
   NodeBuilder<> nb(getKind());
   if(getMetaKind() == kind::metakind::PARAMETERIZED) {
     // push the operator
-    nb << getOperator();
+    if(getOperator() == node) {
+      nb << replacement;
+    } else {
+      nb << getOperator().substitute(node, replacement, cache);
+    }
   }
   for(const_iterator i = begin(),
         iend = end();

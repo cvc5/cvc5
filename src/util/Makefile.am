@@ -77,6 +77,7 @@ libutil_la_SOURCES = \
 	ite_removal.h \
 	ite_removal.cpp \
 	node_visitor.h \
+	chain.h \
 	index.h \
 	uninterpreted_constant.h \
 	uninterpreted_constant.cpp \
@@ -139,7 +140,8 @@ EXTRA_DIST = \
 	rational.i \
 	hash.i \
 	predicate.i \
-	uninterpreted_constant.i
+	uninterpreted_constant.i \
+	chain.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

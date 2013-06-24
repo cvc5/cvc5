@@ -4,7 +4,10 @@ Changes since 1.2
 =================
 
 * SMT-LIB support for abs, to_real, to_int, is_int
+* Expr::substitute() now capable of substituting operators (e.g.,
+  function symbols under an APPLY_UF)
 * Support in linear logics for /, div, and mod by constants.
+* Support for TPTP's TFF and TFA formats.
 * We no longer permit model or proof generation if there's been an
   intervening push/pop.
 * Increased compliance to SMT-LIBv2, numerous bugs and usability issues
