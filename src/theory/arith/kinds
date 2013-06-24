@@ -23,7 +23,15 @@ operator INTS_DIVISION 2 "ints division (user symbol)"
 operator INTS_DIVISION_TOTAL 2 "ints division with interpreted division by 0 (internal symbol)"
 operator INTS_MODULUS 2 "ints modulus (user symbol)"
 operator INTS_MODULUS_TOTAL 2 "ints modulus with interpreted division by 0 (internal symbol)"
+operator ABS 1 "absolute value"
+parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate"
 operator POW 2 "arithmetic power"
+
+constant DIVISIBLE_OP \
+        ::CVC4::Divisible \
+        ::CVC4::DivisibleHashFunction \
+        "util/divisible.h" \
+        "operator for the divisibility-by-k predicate"
 
 sort REAL_TYPE \
     Cardinality::REALS \
@@ -72,6 +80,10 @@ operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
 
+operator IS_INTEGER 1 "term is integer"
+operator TO_INTEGER 1 "cast term to integer"
+operator TO_REAL 1 "cast term to real"
+
 typerule PLUS ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule MULT ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule MINUS ::CVC4::theory::arith::ArithOperatorTypeRule
@@ -86,11 +98,17 @@ typerule LEQ ::CVC4::theory::arith::ArithPredicateTypeRule
 typerule GT ::CVC4::theory::arith::ArithPredicateTypeRule
 typerule GEQ ::CVC4::theory::arith::ArithPredicateTypeRule
 
-typerule INTS_DIVISION ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule INTS_MODULUS ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule TO_REAL ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule TO_INTEGER ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule IS_INTEGER ::CVC4::theory::arith::ArithUnaryPredicateTypeRule
+
+typerule ABS ::CVC4::theory::arith::IntOperatorTypeRule
+typerule INTS_DIVISION ::CVC4::theory::arith::IntOperatorTypeRule
+typerule INTS_MODULUS ::CVC4::theory::arith::IntOperatorTypeRule
+typerule DIVISIBLE ::CVC4::theory::arith::IntUnaryPredicateTypeRule
 
 typerule DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule INTS_DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule INTS_MODULUS_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
+typerule INTS_DIVISION_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
+typerule INTS_MODULUS_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
 
 endtheory

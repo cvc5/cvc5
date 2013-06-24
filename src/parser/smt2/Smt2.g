@@ -787,6 +787,11 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
                  args.size() > 2 ) {
         /* "chainable", but CVC4 internally only supports 2 args */
         expr = MK_EXPR(CVC4::kind::CHAIN, MK_CONST(kind), args);
+      } else if( PARSER_STATE->strictModeEnabled() && kind == CVC4::kind::ABS &&
+                 args.size() == 1 && !args[0].getType().isInteger() ) {
+        /* first, check that ABS is even defined in this logic */
+        PARSER_STATE->checkOperator(kind, args.size());
+        PARSER_STATE->parseError("abs can only be applied to Int, not Real, while in strict SMT-LIB compliance mode");
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);
@@ -876,8 +881,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | /* An indexed function application */
     LPAREN_TOK indexedFunctionName[op] termList[args,expr] RPAREN_TOK
-    { expr = MK_EXPR(op, args); }
-
+    { expr = MK_EXPR(op, args);
+      PARSER_STATE->checkOperator(expr.getKind(), args.size());
+    }
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
     { PARSER_STATE->pushScope(true); }
@@ -1092,6 +1098,8 @@ indexedFunctionName[CVC4::Expr& op]
       { op = MK_CONST(BitVectorRotateLeft(AntlrInput::tokenToUnsigned($n))); }
     | 'rotate_right' n=INTEGER_LITERAL
       { op = MK_CONST(BitVectorRotateRight(AntlrInput::tokenToUnsigned($n))); }
+    | DIVISIBLE_TOK n=INTEGER_LITERAL
+      { op = MK_CONST(Divisible(AntlrInput::tokenToUnsigned($n))); }
     | badIndexedFunctionName
    )
     RPAREN_TOK
@@ -1164,6 +1172,10 @@ builtinOp[CVC4::Kind& kind]
   | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
   | INTS_DIV_TOK      { $kind = CVC4::kind::INTS_DIVISION; }
   | INTS_MOD_TOK      { $kind = CVC4::kind::INTS_MODULUS; }
+  | ABS_TOK      { $kind = CVC4::kind::ABS; }
+  | IS_INT_TOK   { $kind = CVC4::kind::IS_INTEGER; }
+  | TO_INT_TOK   { $kind = CVC4::kind::TO_INTEGER; }
+  | TO_REAL_TOK  { $kind = CVC4::kind::TO_REAL; }
 
   | SELECT_TOK   { $kind = CVC4::kind::SELECT; }
   | STORE_TOK    { $kind = CVC4::kind::STORE; }
@@ -1502,6 +1514,7 @@ FORALL_TOK        : 'forall';
 GREATER_THAN_TOK  : '>';
 GREATER_THAN_EQUAL_TOK  : '>=';
 IMPLIES_TOK       : '=>';
+IS_INT_TOK        : 'is_int';
 LESS_THAN_TOK     : '<';
 LESS_THAN_EQUAL_TOK     : '<=';
 MINUS_TOK         : '-';
@@ -1514,10 +1527,15 @@ SELECT_TOK        : 'select';
 STAR_TOK          : '*';
 STORE_TOK         : 'store';
 // TILDE_TOK         : '~';
+TO_INT_TOK        : 'to_int';
+TO_REAL_TOK       : 'to_real';
 XOR_TOK           : 'xor';
 
 INTS_DIV_TOK : 'div';
 INTS_MOD_TOK : 'mod';
+ABS_TOK : 'abs';
+
+DIVISIBLE_TOK : 'divisible';
 
 CONCAT_TOK : 'concat';
 BVNOT_TOK : 'bvnot';

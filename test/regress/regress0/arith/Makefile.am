@@ -35,7 +35,6 @@ TESTS =	\
 	div.06.smt2 \
 	div.07.smt2 \
 	div.08.smt2 \
-	div.09.smt2 \
 	mult.01.smt2 \
 	mult.02.smt2 \
 	bug443.delta01.smt \
@@ -52,7 +51,8 @@ EXTRA_DIST = $(TESTS) \
 	miplib-pp08a-3000.smt \
 	miplib-pp08a-3000.smt2 \
 	miplib-opt1217--27.smt.expect \
-	miplib-pp08a-3000.smt.expect
+	miplib-pp08a-3000.smt.expect \
+	div.09.smt2
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

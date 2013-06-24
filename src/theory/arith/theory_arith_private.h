@@ -346,7 +346,8 @@ private:
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
-
+  // handle linear /, div, mod, and also is_int, to_int
+  Node ppRewriteTerms(TNode atom);
 
 public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);

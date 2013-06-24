@@ -1366,6 +1366,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     node = expandBVDivByZero(node);
     break;
   }
+
   case kind::DIVISION: {
     // partial function: division
     if(d_divByZero.isNull()) {
@@ -1421,6 +1422,12 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
     Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
     node = nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
     break;
+  }
+
+  case kind::ABS: {
+    Node out = nm->mkNode(kind::ITE, nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))), nm->mkNode(kind::UMINUS, node[0]), node[0]);
+    cache[n] = out;
+    return out;
   }
 
   case kind::APPLY: {
@@ -2691,7 +2698,7 @@ void SmtEnginePrivate::processAssertions() {
     Trace("simplify") << "SmtEnginePrivate::simplify(): expanding definitions" << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
     hash_map<Node, Node, NodeHashFunction> cache;
-    for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    for(unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       d_assertionsToPreprocess[i] =
         expandDefinitions(d_assertionsToPreprocess[i], cache);
     }

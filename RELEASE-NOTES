@@ -36,8 +36,8 @@ For example:
 
 This kind of problem can be identified by checking TCCs.  Though CVC4 does not
 (yet) support TCCs, CVC3 can be used to produce TCCs for this input (with the
-+dump-tcc option). The TCC can be checked by CVC3 or another solver.  (CVC3 can
-also check TCCs while solving with +tcc.)
++dump-tcc option). The TCC can then be checked by CVC4 or another solver.
+(CVC3 can also check TCCs at the same time it creates them, with +tcc.)
 
 ** Changes in CVC's Presentation Language
 
@@ -69,8 +69,8 @@ QUERY commands.
 CVC4 supports rational literals (of type REAL) in decimal; CVC3 did not
 support decimals.
 
-CVC4 does not have support for the IS_INTEGER predicate, or for predicate
-subtypes, although these are planned for future releases.
+CVC4 does not have support for predicate subtypes, although these are
+planned for future releases.
 
 ** SMT-LIB compliance
 

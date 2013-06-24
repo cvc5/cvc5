@@ -736,7 +736,8 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                     k != kind::TUPLE_SELECT &&
                     k != kind::TUPLE_UPDATE &&
                     k != kind::RECORD_SELECT &&
-                    k != kind::RECORD_UPDATE) {
+                    k != kind::RECORD_UPDATE &&
+                    k != kind::DIVISIBLE) {
             Debug("bt") << "rewriting: " << top.getOperator() << endl;
             result.top() << rewriteBooleanTermsRec(top.getOperator(), theory::THEORY_BUILTIN, quantBoolVars);
             Debug("bt") << "got: " << result.top().getOperator() << endl;

@@ -737,19 +737,142 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
   }
 }
 
+namespace attr {
+  struct ToIntegerTag { };
+  struct LinearIntDivTag { };
+}/* CVC4::theory::arith::attr namespace */
+
+/**
+ * This attribute maps the child of a to_int / is_int to the
+ * corresponding integer skolem.
+ */
+typedef expr::Attribute<attr::ToIntegerTag, Node> ToIntegerAttr;
+
+/**
+ * This attribute maps division-by-constant-k terms to a variable
+ * used to eliminate them.
+ */
+typedef expr::Attribute<attr::LinearIntDivTag, Node> LinearIntDivAttr;
+
+Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+  if(Theory::theoryOf(n) != THEORY_ARITH) {
+    return n;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  switch(Kind k = n.getKind()) {
+
+  case kind::TO_INTEGER:
+  case kind::IS_INTEGER: {
+    Node intVar;
+    if(!n[0].getAttribute(ToIntegerAttr(), intVar)) {
+      intVar = nm->mkSkolem("toInt", nm->integerType(), "a conversion of a Real term to its Integer part");
+      n[0].setAttribute(ToIntegerAttr(), intVar);
+      d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LT, nm->mkNode(kind::MINUS, n[0], nm->mkConst(Rational(1))), intVar), nm->mkNode(kind::LEQ, intVar, n[0])));
+    }
+    if(n.getKind() == kind::TO_INTEGER) {
+      Node node = intVar;
+      return node;
+    } else {
+      Node node = nm->mkNode(kind::EQUAL, node[0], intVar);
+      return node;
+    }
+    Unreachable();
+  }
+
+  case kind::INTS_DIVISION:
+  case kind::INTS_DIVISION_TOTAL: {
+    if(!options::rewriteDivk()) {
+      return n;
+    }
+    Node num = Rewriter::rewrite(n[0]);
+    Node den = Rewriter::rewrite(n[1]);
+    if(den.isConst()) {
+      const Rational& rat = den.getConst<Rational>();
+      Assert(!num.isConst());
+      if(rat != 0) {
+        Node intVar;
+        Node rw = nm->mkNode(k, num, den);
+        if(!rw.getAttribute(LinearIntDivAttr(), intVar)) {
+          intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
+          rw.setAttribute(LinearIntDivAttr(), intVar);
+          if(rat > 0) {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1)))))));
+          } else {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1)))))));
+          }
+        }
+        return intVar;
+      }
+    }
+    break;
+  }
+
+  case kind::INTS_MODULUS:
+  case kind::INTS_MODULUS_TOTAL: {
+    if(!options::rewriteDivk()) {
+      return n;
+    }
+    Node num = Rewriter::rewrite(n[0]);
+    Node den = Rewriter::rewrite(n[1]);
+    if(den.isConst()) {
+      const Rational& rat = den.getConst<Rational>();
+      Assert(!num.isConst());
+      if(rat != 0) {
+        Node intVar;
+        Node rw = nm->mkNode(k, num, den);
+        if(!rw.getAttribute(LinearIntDivAttr(), intVar)) {
+          intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
+          rw.setAttribute(LinearIntDivAttr(), intVar);
+          if(rat > 0) {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1)))))));
+          } else {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1)))))));
+          }
+        }
+        Node node = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
+        return node;
+      }
+    }
+    break;
+  }
+
+  default:
+    ;
+  }
+
+  for(TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
+    Node rewritten = ppRewriteTerms(*i);
+    if(rewritten != *i) {
+      NodeBuilder<> b(n.getKind());
+      b.append(n.begin(), i);
+      b << rewritten;
+      for(++i; i != n.end(); ++i) {
+        b << ppRewriteTerms(*i);
+      }
+      rewritten = b;
+      return rewritten;
+    }
+  }
+
+  return n;
+}
+
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
 
   if (atom.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
     Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
     Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+    leq = ppRewriteTerms(leq);
+    geq = ppRewriteTerms(geq);
     Node rewritten = Rewriter::rewrite(leq.andNode(geq));
     Debug("arith::preprocess") << "arith::preprocess() : returning "
                                << rewritten << endl;
     return rewritten;
   } else {
-    return atom;
+    return ppRewriteTerms(atom);
   }
 }
 
@@ -902,7 +1025,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     // vl is the product of at least 2 variables
     // vl : (* v1 v2 ...)
     if(getLogicInfo().isLinear()){
-      throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+      throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
 
     setIncomplete();
@@ -939,7 +1062,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   Assert(v.isDivLike());
 
   if(getLogicInfo().isLinear()){
-    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+    throw LogicException("A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic;\nif you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.");
   }
 
   Node vnode = v.getNode();
@@ -1161,16 +1284,22 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
 
-  if(isRelationOperator(n.getKind())){
-    if(!isSetup(n)){
-      setupAtom(n);
+  try {
+    if(isRelationOperator(n.getKind())){
+      if(!isSetup(n)){
+        setupAtom(n);
+      }
+      Constraint c = d_constraintDatabase.lookup(n);
+      Assert(c != NullConstraint);
+  
+      Debug("arith::preregister") << "setup constraint" << c << endl;
+      Assert(!c->canBePropagated());
+      c->setPreregistered();
     }
-    Constraint c = d_constraintDatabase.lookup(n);
-    Assert(c != NullConstraint);
-
-    Debug("arith::preregister") << "setup constraint" << c << endl;
-    Assert(!c->canBePropagated());
-    c->setPreregistered();
+  } catch(LogicException& le) {
+    std::stringstream ss;
+    ss << le.getMessage() << endl << "The fact in question: " << n << endl;
+    throw LogicException(ss.str());
   }
 
   Debug("arith::preregister") << "end arith::preRegisterTerm("<< n <<")" << endl;
@@ -1187,7 +1316,10 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool slack){
   //TODO : The VarList trick is good enough?
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS);
   if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
-    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+    stringstream ss;
+    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic: " << x << endl
+       << "if you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.";
+    throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
   Assert(x.getType().isReal()); // real or integer

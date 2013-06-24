@@ -42,6 +42,7 @@ private:
 
   TheoryArithPrivate* d_internal;
 
+  KEEP_STATISTIC(TimerStat, d_ppRewriteTimer, "theory::arith::ppRewriteTimer");
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);

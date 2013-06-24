@@ -62,11 +62,36 @@ public:
         }
       }
     }
-    Kind k = n.getKind();
-    bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
-    return (isInteger && !isDivision ? integerType : realType);
+    switch(Kind k = n.getKind()) {
+      case kind::TO_REAL:
+        return realType;
+      case kind::TO_INTEGER:
+        return integerType;
+      default: {
+        bool isDivision = k == kind::DIVISION || k == kind::DIVISION_TOTAL;
+        return (isInteger && !isDivision ? integerType : realType);
+      }
+    }
   }
 };/* class ArithOperatorTypeRule */
+
+class IntOperatorTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TNode::iterator child_it = n.begin();
+    TNode::iterator child_it_end = n.end();
+    if(check) {
+      for(; child_it != child_it_end; ++child_it) {
+        TypeNode childType = (*child_it).getType(check);
+        if (!childType.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer subterm");
+        }
+      }
+    }
+    return nodeManager->integerType();
+  }
+};/* class IntOperatorTypeRule */
 
 class ArithPredicateTypeRule {
 public:
@@ -86,6 +111,34 @@ public:
     return nodeManager->booleanType();
   }
 };/* class ArithPredicateTypeRule */
+
+class ArithUnaryPredicateTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isReal()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting an arithmetic term");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* class ArithUnaryPredicateTypeRule */
+
+class IntUnaryPredicateTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isInteger()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting an integer term");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* class IntUnaryPredicateTypeRule */
 
 class SubrangeProperties {
 public:

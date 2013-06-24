@@ -29,7 +29,8 @@ namespace theory {
 namespace arith {
 
 bool ArithRewriter::isAtom(TNode n) {
-  return arith::isRelationOperator(n.getKind());
+  Kind k = n.getKind();
+  return arith::isRelationOperator(k) || k == kind::IS_INTEGER || k == kind::DIVISIBLE;
 }
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){
@@ -98,11 +99,28 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       return preRewritePlus(t);
     case kind::MULT:
       return preRewriteMult(t);
-    //case kind::INTS_DIVISION:
-    //case kind::INTS_MODULUS:
+    case kind::INTS_DIVISION:
+    case kind::INTS_MODULUS:
+      return RewriteResponse(REWRITE_DONE, t);
     case kind::INTS_DIVISION_TOTAL:
     case kind::INTS_MODULUS_TOTAL:
       return rewriteIntsDivModTotal(t,true);
+    case kind::ABS:
+      if(t[0].isConst()) {
+        const Rational& rat = t[0].getConst<Rational>();
+        if(rat >= 0) {
+          return RewriteResponse(REWRITE_DONE, t[0]);
+        } else {
+          return RewriteResponse(REWRITE_DONE,
+                                 NodeManager::currentNM()->mkConst(-rat));
+        }
+      }
+      return RewriteResponse(REWRITE_DONE, t);
+    case kind::IS_INTEGER:
+    case kind::TO_INTEGER:
+      return RewriteResponse(REWRITE_DONE, t);
+    case kind::TO_REAL:
+      return RewriteResponse(REWRITE_DONE, t[0]);
     default:
       Unhandled(k);
     }
@@ -126,11 +144,44 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       return postRewritePlus(t);
     case kind::MULT:
       return postRewriteMult(t);
-      //case kind::INTS_DIVISION:
-      //case kind::INTS_MODULUS:
+    case kind::INTS_DIVISION:
+    case kind::INTS_MODULUS:
+      return RewriteResponse(REWRITE_DONE, t);
     case kind::INTS_DIVISION_TOTAL:
     case kind::INTS_MODULUS_TOTAL:
       return rewriteIntsDivModTotal(t, false);
+    case kind::ABS:
+      if(t[0].isConst()) {
+        const Rational& rat = t[0].getConst<Rational>();
+        if(rat >= 0) {
+          return RewriteResponse(REWRITE_DONE, t[0]);
+        } else {
+          return RewriteResponse(REWRITE_DONE,
+                                 NodeManager::currentNM()->mkConst(-rat));
+        }
+      }
+    case kind::TO_REAL:
+      return RewriteResponse(REWRITE_DONE, t[0]);
+    case kind::TO_INTEGER:
+      if(t[0].isConst()) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(Rational(t[0].getConst<Rational>().floor())));
+      }
+      if(t[0].getType().isInteger()) {
+        return RewriteResponse(REWRITE_DONE, t[0]);
+      }
+      //Unimplemented("TO_INTEGER, nonconstant");
+      //return rewriteToInteger(t);
+      return RewriteResponse(REWRITE_DONE, t);
+    case kind::IS_INTEGER:
+      if(t[0].isConst()) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(t[0].getConst<Rational>().getDenominator() == 1));
+      }
+      if(t[0].getType().isInteger()) {
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+      }
+      //Unimplemented("IS_INTEGER, nonconstant");
+      //return rewriteIsInteger(t);
+      return RewriteResponse(REWRITE_DONE, t);
     default:
       Unreachable();
     }
@@ -190,6 +241,25 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 }
 
 RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
+  if(atom.getKind() == kind::IS_INTEGER) {
+    if(atom[0].isConst()) {
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(atom[0].getConst<Rational>().isIntegral()));
+    }
+    if(atom[0].getType().isInteger()) {
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+    }
+    // not supported, but this isn't the right place to complain
+    return RewriteResponse(REWRITE_DONE, atom);
+  } else if(atom.getKind() == kind::DIVISIBLE) {
+    if(atom[0].isConst()) {
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(bool((atom[0].getConst<Rational>() / atom.getOperator().getConst<Divisible>().k).isIntegral())));
+    }
+    if(atom.getOperator().getConst<Divisible>().k.isOne()) {
+      return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
+    }
+    return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::EQUAL, NodeManager::currentNM()->mkNode(kind::INTS_MODULUS_TOTAL, atom[0], NodeManager::currentNM()->mkConst(Rational(atom.getOperator().getConst<Divisible>().k))), NodeManager::currentNM()->mkConst(Rational(0))));
+  }
+
   // left |><| right
   TNode left = atom[0];
   TNode right = atom[1];
@@ -217,6 +287,14 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
   }else if(atom.getKind() == kind::LT){
     Node geq = currNM->mkNode(kind::GEQ, atom[0], atom[1]);
     return RewriteResponse(REWRITE_DONE, currNM->mkNode(kind::NOT, geq));
+  }else if(atom.getKind() == kind::IS_INTEGER){
+    if(atom[0].getType().isInteger()){
+      return RewriteResponse(REWRITE_DONE, currNM->mkConst(true));
+    }
+  }else if(atom.getKind() == kind::DIVISIBLE){
+    if(atom.getOperator().getConst<Divisible>().k.isOne()){
+      return RewriteResponse(REWRITE_DONE, currNM->mkConst(true));
+    }
   }
 
   return RewriteResponse(REWRITE_DONE, atom);
@@ -328,6 +406,13 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
     }else{
       Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
       return RewriteResponse(REWRITE_AGAIN, n);
+    }
+  }else if(dIsConstant && d.getConst<Rational>().isNegativeOne()){
+    if(k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL){
+      return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
+    }else{
+      Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
+      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::UMINUS, n));
     }
   }else if(dIsConstant && n.getKind() == kind::CONST_RATIONAL){
     Assert(d.getConst<Rational>().isIntegral());

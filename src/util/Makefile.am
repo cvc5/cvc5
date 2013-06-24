@@ -39,9 +39,11 @@ libutil_la_SOURCES = \
 	datatype.h \
 	datatype.cpp \
 	tuple.h \
-	maybe.h \
 	record.h \
 	record.cpp \
+	divisible.h \
+	divisible.cpp \
+	maybe.h \
 	matcher.h \
 	gmp_util.h \
 	sexpr.h \
@@ -122,6 +124,7 @@ EXTRA_DIST = \
 	datatype.i \
 	tuple.i \
 	record.i \
+	divisible.i \
 	output.i \
 	cardinality.i \
 	result.i \

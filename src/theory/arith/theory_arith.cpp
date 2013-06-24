@@ -47,6 +47,7 @@ void TheoryArith::addSharedTerm(TNode n){
 }
 
 Node TheoryArith::ppRewrite(TNode atom) {
+  CodeTimer timer(d_ppRewriteTimer);
   return d_internal->ppRewrite(atom);
 }
 

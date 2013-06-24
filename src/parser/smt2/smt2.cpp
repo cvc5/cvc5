@@ -111,6 +111,9 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
     addOperator(kind::DIVISION);
+    addOperator(kind::TO_INTEGER);
+    addOperator(kind::IS_INTEGER);
+    addOperator(kind::TO_REAL);
     // falling through on purpose, to add Ints part of Reals_Ints
 
   case THEORY_INTS:
@@ -118,6 +121,8 @@ void Smt2::addTheory(Theory theory) {
     addArithmeticOperators();
     addOperator(kind::INTS_DIVISION);
     addOperator(kind::INTS_MODULUS);
+    addOperator(kind::ABS);
+    addOperator(kind::DIVISIBLE);
     break;
 
   case THEORY_REALS:
@@ -157,10 +162,12 @@ void Smt2::setLogic(const std::string& name) {
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
     if(d_logic.areIntegersUsed()) {
-      addTheory(THEORY_INTS);
-    }
-
-    if(d_logic.areRealsUsed()) {
+      if(d_logic.areRealsUsed()) {
+        addTheory(THEORY_REALS_INTS);
+      } else {
+        addTheory(THEORY_INTS);
+      }
+    } else if(d_logic.areRealsUsed()) {
       addTheory(THEORY_REALS);
     }
   }

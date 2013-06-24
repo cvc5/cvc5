@@ -3,6 +3,8 @@ This file contains a summary of important user-visible changes.
 Changes since 1.2
 =================
 
+* SMT-LIB support for abs, to_real, to_int, is_int
+* Support in linear logics for /, div, and mod by constants.
 * We no longer permit model or proof generation if there's been an
   intervening push/pop.
 * Increased compliance to SMT-LIBv2, numerous bugs and usability issues

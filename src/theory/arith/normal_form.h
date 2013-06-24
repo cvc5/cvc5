@@ -241,6 +241,11 @@ public:
     case kind::INTS_MODULUS_TOTAL:
     case kind::DIVISION_TOTAL:
       return isDivMember(n);
+    case kind::ABS:
+    case kind::TO_INTEGER:
+      // Treat to_int as a variable; it is replaced in early preprocessing
+      // by a variable.
+      return true;
     default:
       return (!isRelationOperator(k)) &&
         (Theory::isLeafOf(n, theory::THEORY_ARITH));
