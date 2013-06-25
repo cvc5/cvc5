@@ -40,9 +40,6 @@ public:
   void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
 
   bool isCovered(FirstOrderModelFmc * m, Node c, int index);
-
-  //void exhaustiveSimplify( FirstOrderModelFmc * m, Node c, int index, std::vector< int >& indices,
-  //                         std::map< int, std::vector< int > >& star_replace );
   void collectIndices(Node c, int index, std::vector< int >& indices );
   bool isComplete(FirstOrderModelFmc * m, Node c, int index);
 };
@@ -95,12 +92,12 @@ protected:
   std::map<Node, std::map< Node, int > > d_quant_var_id;
   std::map<Node, std::vector< int > > d_star_insts;
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
-  int exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
+  bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
 protected:
-  void addEntry( FirstOrderModelFmc * fm, Node op, Node c, Node v,
-                 std::vector< Node > & conds,
-                 std::vector< Node > & values,
-                 std::vector< Node > & entry_conds );
+  void makeIntervalModel2( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
+                          std::map< int, std::map< int, Node > >& changed_vals );
+  void makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
+                          std::map< int, std::map< int, Node > >& changed_vals );
 private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
@@ -138,7 +135,7 @@ public:
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
-  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort, int & lemmas );
+  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
 
   Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
 

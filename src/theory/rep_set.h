@@ -107,12 +107,10 @@ public:
 public:
   /** set index order */
   void setIndexOrder( std::vector< int >& indexOrder );
-  /** set domain */
-  //void setDomain( std::vector< RepDomain >& domain );
   /** increment the iterator at index=counter */
-  void increment2( int counter );
+  int increment2( int counter );
   /** increment the iterator */
-  void increment();
+  int increment();
   /** is the iterator finished? */
   bool isFinished();
   /** get the i_th term we are considering */

@@ -1001,14 +1001,14 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
       Node var;
-      //if( d_aloc_cardinality==1 ){
+      if( d_aloc_cardinality==1 && !options::ufssTotalitySymBreak() ){
         //get arbitrary ground term
-        //var = d_cardinality_term;
-      //}else{
+        var = d_cardinality_term;
+      }else{
         std::stringstream ss;
         ss << "_c_" << d_aloc_cardinality;
         var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
-      //}
+      }
       d_totality_terms[0].push_back( var );
       Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " << d_type << std::endl;
       //must be distinct from all other cardinality terms

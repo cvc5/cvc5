@@ -553,6 +553,14 @@ Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & a
 }
 
 void FirstOrderModelFmc::processInitialize() {
+  if( options::fmfFmcInterval() && intervalOp.isNull() ){
+    std::vector< TypeNode > types;
+    for(unsigned i=0; i<2; i++){
+      types.push_back(NodeManager::currentNM()->integerType());
+    }
+    TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->integerType() );
+    intervalOp = NodeManager::currentNM()->mkSkolem( "interval_$$", typ, "op representing interval" );
+  }
   for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
     it->second->reset();
   }
@@ -634,4 +642,12 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   }
   curr = Rewriter::rewrite( curr );
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
+}
+
+bool FirstOrderModelFmc::isInterval(Node n) {
+  return n.getKind()==APPLY_UF && n.getOperator()==intervalOp;
+}
+
+Node FirstOrderModelFmc::getInterval( Node lb, Node ub ){
+  return NodeManager::currentNM()->mkNode( APPLY_UF, intervalOp, lb, ub );
 }

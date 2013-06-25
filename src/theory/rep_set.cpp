@@ -276,7 +276,7 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
   return true;
 }
 
-void RepSetIterator::increment2( int counter ){
+int RepSetIterator::increment2( int counter ){
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   counter = (int)d_index.size()-1;
@@ -305,14 +305,17 @@ void RepSetIterator::increment2( int counter ){
     }
     if( emptyDomain ){
       Trace("rsi-debug") << "This is an empty domain, increment again." << std::endl;
-      increment();
+      return increment();
     }
   }
+  return counter;
 }
 
-void RepSetIterator::increment(){
+int RepSetIterator::increment(){
   if( !isFinished() ){
-    increment2( (int)d_index.size()-1 );
+    return increment2( (int)d_index.size()-1 );
+  }else{
+    return -1;
   }
 }
 

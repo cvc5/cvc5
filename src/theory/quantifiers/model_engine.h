@@ -33,25 +33,21 @@ private:
   /** builder class */
   QModelBuilder* d_builder;
 private:    //analysis of current model:
-  //is the exhaustive instantiation incomplete?
-  bool d_incomplete_check;
 private:
   //options
-  bool optOneInstPerQuantRound();
-  bool optUseRelevantDomain();
   bool optOneQuantPerRound();
-  bool optExhInstEvalSkipMultiple();
 private:
   //check model
   int checkModel();
-  //exhaustively instantiate quantifier (possibly using mbqi), return number of lemmas produced
-  int exhaustiveInstantiate( Node f, int effort = 0 );
+  //exhaustively instantiate quantifier (possibly using mbqi)
+  void exhaustiveInstantiate( Node f, int effort = 0 );
 private:
   //temporary statistics
+  //is the exhaustive instantiation incomplete?
+  bool d_incomplete_check;
+  int d_addedLemmas;
   int d_triedLemmas;
-  int d_testLemmas;
   int d_totalLemmas;
-  int d_relevantLemmas;
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
   ~ModelEngine(){}
@@ -68,10 +64,6 @@ public:
   class Statistics {
   public:
     IntStat d_inst_rounds;
-    IntStat d_eval_formulas;
-    IntStat d_eval_uf_terms;
-    IntStat d_eval_lits;
-    IntStat d_eval_lits_unknown;
     IntStat d_exh_inst_lemmas;
     Statistics();
     ~Statistics();

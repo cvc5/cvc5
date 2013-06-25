@@ -134,6 +134,7 @@ private:
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_model_basis_rep;
   std::map<TypeNode, Node > d_type_star;
+  Node intervalOp;
   Node getUsedRepresentative(Node n, bool strict = false);
   /** get current model value */
   Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
@@ -151,6 +152,8 @@ public:
   bool isModelBasisTerm(Node n);
   Node getModelBasisTerm(TypeNode tn);
   Node getSomeDomainElement(TypeNode tn);
+  bool isInterval(Node n);
+  Node getInterval( Node lb, Node ub );
 };
 
 }
