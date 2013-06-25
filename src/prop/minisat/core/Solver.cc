@@ -135,6 +135,8 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
+  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varTrue, false), true); )
+  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varFalse, true), true); )
 }
 
 
@@ -298,9 +300,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
       if (ps[i] == p) {
         continue;
       }
-      // If a literals is false at 0 level (both sat and user level) we also ignore it
-      if (value(ps[i]) == l_False && !PROOF_ON() )  {
-        if (level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
+      // If a literal is false at 0 level (both sat and user level) we also ignore it
+      if (value(ps[i]) == l_False) {
+        if (!PROOF_ON() && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
           continue;
         } else {
           // If we decide to keep it, we count it into the false literals
