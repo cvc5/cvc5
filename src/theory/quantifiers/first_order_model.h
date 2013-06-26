@@ -149,6 +149,7 @@ public:
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
+  Node getStarElement(TypeNode tn);
   bool isModelBasisTerm(Node n);
   Node getModelBasisTerm(TypeNode tn);
   Node getSomeDomainElement(TypeNode tn);

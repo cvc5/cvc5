@@ -45,8 +45,12 @@ private:
   std::map< Node, std::map< Node, Node > > d_range;
   std::map< Node, std::map< Node, Node > > d_nground_range;
   void hasFreeVar( Node f, Node n );
-  void process( Node f, Node n, bool pol );
-  void processLiteral( Node f, Node lit, bool pol );
+  void process( Node f, Node n, bool pol,
+                std::map< int, std::map< Node, Node > >& bound_lit_map,
+                std::map< int, std::map< Node, bool > >& bound_lit_pol_map );
+  void processLiteral( Node f, Node lit, bool pol,
+                       std::map< int, std::map< Node, Node > >& bound_lit_map,
+                       std::map< int, std::map< Node, bool > >& bound_lit_pol_map  );
   std::vector< Node > d_bound_quants;
 private:
   class RangeModel {

@@ -601,6 +601,14 @@ Node FirstOrderModelFmc::getStar(TypeNode tn) {
   return d_type_star[tn];
 }
 
+Node FirstOrderModelFmc::getStarElement(TypeNode tn) {
+  Node st = getStar(tn);
+  if( options::fmfFmcInterval() && tn.isInteger() ){
+    st = getInterval( st, st );
+  }
+  return st;
+}
+
 bool FirstOrderModelFmc::isModelBasisTerm(Node n) {
   return n==getModelBasisTerm(n.getType());
 }
@@ -630,7 +638,14 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       Node cond = d_models[op]->d_cond[i];
       std::vector< Node > children;
       for( unsigned j=0; j<cond.getNumChildren(); j++) {
-        if (!isStar(cond[j])){
+        if (isInterval(cond[j])){
+          if( !isStar(cond[j][0]) ){
+            children.push_back( NodeManager::currentNM()->mkNode( GEQ, vars[j], cond[j][0] ) );
+          }
+          if( !isStar(cond[j][1]) ){
+            children.push_back( NodeManager::currentNM()->mkNode( LT, vars[j], cond[j][1] ) );
+          }
+        }else if (!isStar(cond[j])){
           Node c = getUsedRepresentative( cond[j] );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
         }

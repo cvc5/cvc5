@@ -39,7 +39,6 @@ public:
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index = 0 );
   void getEntries( FirstOrderModelFmc * m, Node c, std::vector<int> & compat, std::vector<int> & gen, int index = 0, bool is_gen = true );
 
-  bool isCovered(FirstOrderModelFmc * m, Node c, int index);
   void collectIndices(Node c, int index, std::vector< int >& indices );
   bool isComplete(FirstOrderModelFmc * m, Node c, int index);
 };
@@ -118,6 +117,7 @@ private:
                              std::vector< Def > & dc, int index,
                              std::vector< Node > & cond, std::vector<Node> & val );
   int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
+  Node doIntervalMeet( FirstOrderModelFmc * fm, Node i1, Node i2, bool mk = true );
   bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   Node mkCond( std::vector< Node > & cond );
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );

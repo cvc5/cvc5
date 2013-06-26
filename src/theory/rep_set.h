@@ -71,6 +71,8 @@ private:
   Node d_owner;
   //reset index
   bool resetIndex( int i, bool initial = false );
+  /** set index order */
+  void setIndexOrder( std::vector< int >& indexOrder );
 public:
   RepSetIterator( QuantifiersEngine * qe, RepSet* rs );
   ~RepSetIterator(){}
@@ -104,9 +106,9 @@ public:
   //  for example, if d_index_order = { 2, 0, 1 }
   //    then d_var_order = { 0 -> 1, 1 -> 2, 2 -> 0 }
   std::map< int, int > d_var_order;
+  //intervals
+  std::map< int, Node > d_bounds[2];
 public:
-  /** set index order */
-  void setIndexOrder( std::vector< int >& indexOrder );
   /** increment the iterator at index=counter */
   int increment2( int counter );
   /** increment the iterator */

@@ -135,7 +135,9 @@ bool BoundedIntegers::hasNonBoundVar( Node f, Node b ) {
   return false;
 }
 
-void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
+void BoundedIntegers::processLiteral( Node f, Node lit, bool pol,
+                                      std::map< int, std::map< Node, Node > >& bound_lit_map,
+                                      std::map< int, std::map< Node, bool > >& bound_lit_pol_map ) {
   if( lit.getKind()==GEQ && lit[0].getType().isInteger() ){
     std::map< Node, Node > msum;
     if (QuantArith::getMonomialSumLit( lit, msum )){
@@ -176,7 +178,10 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
             if( !isBound( f, bv ) ){
               if( !hasNonBoundVar( f, n1.getKind()==BOUND_VARIABLE ? n2 : n1 ) ) {
                 Trace("bound-int-debug") << "The bound is relevant." << std::endl;
-                d_bounds[n1.getKind()==BOUND_VARIABLE ? 0 : 1][f][bv] = (n1.getKind()==BOUND_VARIABLE ? n2 : n1);
+                int loru = n1.getKind()==BOUND_VARIABLE ? 0 : 1;
+                d_bounds[loru][f][bv] = (n1.getKind()==BOUND_VARIABLE ? n2 : n1);
+                bound_lit_map[loru][bv] = lit;
+                bound_lit_pol_map[loru][bv] = pol;
               }
             }
           }
@@ -189,16 +194,18 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol ) {
   }
 }
 
-void BoundedIntegers::process( Node f, Node n, bool pol ){
+void BoundedIntegers::process( Node f, Node n, bool pol,
+                               std::map< int, std::map< Node, Node > >& bound_lit_map,
+                               std::map< int, std::map< Node, bool > >& bound_lit_pol_map ){
   if( (( n.getKind()==IMPLIES || n.getKind()==OR) && pol) || (n.getKind()==AND && !pol) ){
     for( unsigned i=0; i<n.getNumChildren(); i++) {
       bool newPol = n.getKind()==IMPLIES && i==0 ? !pol : pol;
-      process( f, n[i], newPol );
+      process( f, n[i], newPol, bound_lit_map, bound_lit_pol_map );
     }
   }else if( n.getKind()==NOT ){
-    process( f, n[0], !pol );
+    process( f, n[0], !pol, bound_lit_map, bound_lit_pol_map );
   }else {
-    processLiteral( f, n, pol );
+    processLiteral( f, n, pol, bound_lit_map, bound_lit_pol_map );
   }
 }
 
@@ -232,10 +239,10 @@ void BoundedIntegers::registerQuantifier( Node f ) {
   if( hasIntType ){
     bool success;
     do{
-      //std::map< int, std::map< Node, Node > > bound_lit_map;
-      //std::map< int, std::map< Node, bool > > bound_lit_pol_map;
+      std::map< int, std::map< Node, Node > > bound_lit_map;
+      std::map< int, std::map< Node, bool > > bound_lit_pol_map;
       success = false;
-      process( f, f[1], true );
+      process( f, f[1], true, bound_lit_map, bound_lit_pol_map );
       for( std::map< Node, Node >::iterator it = d_bounds[0][f].begin(); it != d_bounds[0][f].end(); ++it ){
         Node v = it->first;
         if( !isBound(f,v) ){
@@ -243,6 +250,14 @@ void BoundedIntegers::registerQuantifier( Node f ) {
             d_set[f].push_back(v);
             d_set_nums[f].push_back(numMap[v]);
             success = true;
+            //set Attributes on literals
+            for( unsigned b=0; b<2; b++ ){
+              Assert( bound_lit_map[b].find( v )!=bound_lit_map[b].end() );
+              Assert( bound_lit_pol_map[b].find( v )!=bound_lit_pol_map[b].end() );
+              BoundIntLitAttribute bila;
+              bound_lit_map[b][v].setAttribute( bila, bound_lit_pol_map[b][v] ? 1 : 0 );
+            }
+            Trace("bound-int") << "Variable " << v << " is bound because of literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }
       }
