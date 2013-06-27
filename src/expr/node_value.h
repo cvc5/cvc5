@@ -299,7 +299,7 @@ private:
     RefCountGuard(const NodeValue* nv) :
       d_nv(const_cast<NodeValue*>(nv)) {
       // inc()
-      if(EXPECT_TRUE( d_nv->d_rc < MAX_RC )) {
+      if(__builtin_expect( ( d_nv->d_rc < MAX_RC ), true )) {
         ++d_nv->d_rc;
       }
     }
@@ -309,7 +309,7 @@ private:
       // E.g., this can happen when debugging code calls the print
       // routines below.  As RefCountGuards are scoped on the stack,
       // this should be fine---but not in multithreaded contexts!
-      if(EXPECT_TRUE( d_nv->d_rc < MAX_RC )) {
+      if(__builtin_expect( ( d_nv->d_rc < MAX_RC ), true )) {
         --d_nv->d_rc;
       }
     }
@@ -400,16 +400,16 @@ inline void NodeValue::inc() {
          "NodeValue is currently being deleted "
          "and increment is being called on it. Don't Do That!");
   // FIXME multithreading
-  if(EXPECT_TRUE( d_rc < MAX_RC )) {
+  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
     ++d_rc;
   }
 }
 
 inline void NodeValue::dec() {
   // FIXME multithreading
-  if(EXPECT_TRUE( d_rc < MAX_RC )) {
+  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
     --d_rc;
-    if(EXPECT_FALSE( d_rc == 0 )) {
+    if(__builtin_expect( ( d_rc == 0 ), false )) {
       Assert(NodeManager::currentNM() != NULL,
              "No current NodeManager on destruction of NodeValue: "
              "maybe a public CVC4 interface function is missing a NodeManagerScope ?");

@@ -300,7 +300,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
   Assert(!t0.isNull());
   Assert(!t1.isNull());
 
-  if(EXPECT_TRUE(t0 == t1)) {
+  if(__builtin_expect( (t0 == t1), true )) {
     return t0;
   } else { // t0 != t1
     if(t0.getKind()== kind::TYPE_CONSTANT) {

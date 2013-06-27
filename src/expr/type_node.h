@@ -770,7 +770,7 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   Assert(typeNode.d_nv != NULL,
          "Expecting a non-NULL expression value on RHS!");
-  if(EXPECT_TRUE( d_nv != typeNode.d_nv )) {
+  if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;
     d_nv->inc();

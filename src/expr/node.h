@@ -1094,7 +1094,7 @@ NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate& e) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
-  if(EXPECT_TRUE( d_nv != e.d_nv )) {
+  if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
       Assert(d_nv->d_rc > 0,
@@ -1118,7 +1118,7 @@ NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate<!ref_count>& e) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   Assert(e.d_nv != NULL, "Expecting a non-NULL expression value on RHS!");
-  if(EXPECT_TRUE( d_nv != e.d_nv )) {
+  if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
       Assert(d_nv->d_rc > 0, "Node reference count would be negative");

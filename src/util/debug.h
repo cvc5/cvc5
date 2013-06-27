@@ -27,11 +27,11 @@
 
 #ifdef CVC4_ASSERTIONS
 // the __builtin_expect() helps us if assert is built-in or a macro
-#  define cvc4assert(x) assert(EXPECT_TRUE( x ))
+#  define cvc4assert(x) assert(__builtin_expect( ( x ), true ))
 #else
 // TODO: use a compiler annotation when assertions are off ?
 // (to improve optimization)
-#  define cvc4assert(x) /*EXPECT_TRUE( x )*/
+#  define cvc4assert(x) /*__builtin_expect( ( x ), true )*/
 #endif /* CVC4_ASSERTIONS */
 
 #endif /* __CVC4__DEBUG_H */

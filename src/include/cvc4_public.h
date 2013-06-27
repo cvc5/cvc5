@@ -68,7 +68,4 @@
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#define EXPECT_TRUE(x) __builtin_expect( (x), true )
-#define EXPECT_FALSE(x) __builtin_expect( (x), false )
-
 #endif /* __CVC4_PUBLIC_H */

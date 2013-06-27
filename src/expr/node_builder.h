@@ -228,7 +228,7 @@ class NodeBuilder {
    * Internally, this state is represented by d_nv pointing to NULL.
    */
   inline bool isUsed() const {
-    return EXPECT_FALSE( d_nv == NULL );
+    return __builtin_expect( ( d_nv == NULL ), false );
   }
 
   /**
@@ -259,7 +259,7 @@ class NodeBuilder {
    * heap-allocated by this class).
    */
   inline bool nvIsAllocated() const {
-    return EXPECT_FALSE( d_nv != &d_inlineNv ) && EXPECT_TRUE( d_nv != NULL );
+    return __builtin_expect( ( d_nv != &d_inlineNv ), false ) && __builtin_expect(( d_nv != NULL ), true );
   }
 
   /**
@@ -267,7 +267,7 @@ class NodeBuilder {
    * first.
    */
   inline bool nvNeedsToBeAllocated() const {
-    return EXPECT_FALSE( d_nv->d_nchildren == d_nvMaxChildren );
+    return __builtin_expect( ( d_nv->d_nchildren == d_nvMaxChildren ), false );
   }
 
   /**
@@ -279,7 +279,7 @@ class NodeBuilder {
   inline void realloc() {
     size_t newSize = 2 * size_t(d_nvMaxChildren);
     size_t hardLimit = (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
-    realloc(EXPECT_FALSE( newSize > hardLimit ) ? hardLimit : newSize);
+    realloc(__builtin_expect( ( newSize > hardLimit ), false ) ? hardLimit : newSize);
   }
 
   /**
@@ -297,7 +297,7 @@ class NodeBuilder {
    * double-decremented on destruction/clear.  Otherwise, do nothing.
    */
   inline void allocateNvIfNecessaryForAppend() {
-    if(EXPECT_FALSE( nvNeedsToBeAllocated() )) {
+    if(__builtin_expect( ( nvNeedsToBeAllocated() ), false )) {
       realloc();
     }
   }
@@ -331,8 +331,8 @@ class NodeBuilder {
    * @throws bad_alloc if the reallocation fails
    */
   void crop() {
-    if(EXPECT_FALSE( nvIsAllocated() ) &&
-       EXPECT_TRUE( d_nvMaxChildren > d_nv->d_nchildren )) {
+    if(__builtin_expect( ( nvIsAllocated() ), false ) &&
+       __builtin_expect( ( d_nvMaxChildren > d_nv->d_nchildren ), true )) {
       // Ensure d_nv is not modified on allocation failure
       expr::NodeValue* newBlock = (expr::NodeValue*)
         std::realloc(d_nv,
@@ -419,9 +419,9 @@ public:
   }
 
   inline ~NodeBuilder() {
-    if(EXPECT_FALSE( nvIsAllocated() )) {
+    if(__builtin_expect( ( nvIsAllocated() ), false )) {
       dealloc();
-    } else if(EXPECT_FALSE( !isUsed() )) {
+    } else if(__builtin_expect( ( !isUsed() ), false )) {
       decrRefCounts();
     }
   }
@@ -578,7 +578,7 @@ public:
     // NodeBuilder construction or at the last clear()), but we do
     // now.  That means we appended a Kind with operator<<(Kind),
     // which now (lazily) we'll collapse.
-    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
+    if(__builtin_expect( ( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND ), false )) {
       Node n2 = operator Node();
       clear();
       append(n2);
@@ -600,7 +600,7 @@ public:
     // NodeBuilder construction or at the last clear()), but we do
     // now.  That means we appended a Kind with operator<<(Kind),
     // which now (lazily) we'll collapse.
-    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
+    if(__builtin_expect( ( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND ), false )) {
       Node n2 = operator Node();
       clear();
       append(n2);
@@ -619,7 +619,7 @@ public:
     // NodeBuilder construction or at the last clear()), but we do
     // now.  That means we appended a Kind with operator<<(Kind),
     // which now (lazily) we'll collapse.
-    if(EXPECT_FALSE( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND )) {
+    if(__builtin_expect( ( d_nv->d_id == 0 && getKind() != kind::UNDEFINED_KIND ), false )) {
       Node n2 = operator Node();
       clear();
       append(n2);
@@ -756,9 +756,9 @@ template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::clear(Kind k) {
   Assert(k != kind::NULL_EXPR, "illegal Node-building clear kind");
 
-  if(EXPECT_FALSE( nvIsAllocated() )) {
+  if(__builtin_expect( ( nvIsAllocated() ), false )) {
     dealloc();
-  } else if(EXPECT_FALSE( !isUsed() )) {
+  } else if(__builtin_expect( ( !isUsed() ), false )) {
     decrRefCounts();
   } else {
     setUnused();
@@ -783,7 +783,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
           "attempt to realloc() a NodeBuilder to size %u (beyond hard limit of %u)",
           toSize, (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
 
-  if(EXPECT_FALSE( nvIsAllocated() )) {
+  if(__builtin_expect( ( nvIsAllocated() ), false )) {
     // Ensure d_nv is not modified on allocation failure
     expr::NodeValue* newBlock = (expr::NodeValue*)
       std::realloc(d_nv, sizeof(expr::NodeValue) +
@@ -992,7 +992,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   // NodeManager pool of Nodes.  See implementation notes at the top
   // of this file.
 
-  if(EXPECT_TRUE( ! nvIsAllocated() )) {
+  if(__builtin_expect( ( ! nvIsAllocated() ), true )) {
     /** Case 1.  d_nv points to d_inlineNv: it is the backing store
      ** allocated "inline" in this NodeBuilder. **/
 
@@ -1177,7 +1177,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   // NodeManager pool of Nodes.  See implementation notes at the top
   // of this file.
 
-  if(EXPECT_TRUE( ! nvIsAllocated() )) {
+  if(__builtin_expect( ( ! nvIsAllocated() ), true )) {
     /** Case 1.  d_nv points to d_inlineNv: it is the backing store
      ** allocated "inline" in this NodeBuilder. **/
 

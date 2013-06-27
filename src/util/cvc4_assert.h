@@ -252,7 +252,7 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
 // details of the exception
 #  define AlwaysAssert(cond, msg...)                                    \
     do {                                                                \
-      if(EXPECT_FALSE( ! (cond) )) {                                    \
+      if(__builtin_expect( ( ! (cond) ), false )) {                                    \
         /* save the last assertion failure */                           \
         const char* lastException = ::CVC4::s_debugLastException;       \
         ::CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
@@ -265,7 +265,7 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
 // will terminate() if thrown during stack unwinding.
 #  define AlwaysAssert(cond, msg...)                                    \
      do {                                                               \
-       if(EXPECT_FALSE( ! (cond) )) {                                   \
+       if(__builtin_expect( ( ! (cond) ), false )) {                                   \
          throw ::CVC4::AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
        }                                                                \
      } while(0)
@@ -283,13 +283,13 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
   throw ::CVC4::IllegalArgumentException("", #arg, __PRETTY_FUNCTION__, ## msg)
 #define CheckArgument(cond, arg, msg...)         \
   do { \
-    if(EXPECT_FALSE( ! (cond) )) { \
+    if(__builtin_expect( ( ! (cond) ), false )) { \
       throw ::CVC4::IllegalArgumentException(#cond, #arg, __PRETTY_FUNCTION__, ## msg); \
     } \
   } while(0)
 #define AlwaysAssertArgument(cond, arg, msg...)  \
   do { \
-    if(EXPECT_FALSE( ! (cond) )) { \
+    if(__builtin_expect( ( ! (cond) ), false )) { \
       throw ::CVC4::AssertArgumentException(#cond, #arg, __PRETTY_FUNCTION__, __FILE__, __LINE__, ## msg); \
     } \
   } while(0)
@@ -299,9 +299,9 @@ void debugAssertionFailed(const AssertionException& thisException, const char* l
 #  define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ## msg)
 #  define DebugCheckArgument(cond, arg, msg...) CheckArgument(cond, arg, ## msg)
 #else /* ! CVC4_ASSERTIONS */
-#  define Assert(cond, msg...) /*EXPECT_TRUE( cond )*/
-#  define AssertArgument(cond, arg, msg...) /*EXPECT_TRUE( cond )*/
-#  define DebugCheckArgument(cond, arg, msg...) /*EXPECT_TRUE( cond )*/
+#  define Assert(cond, msg...) /*__builtin_expect( ( cond ), true )*/
+#  define AssertArgument(cond, arg, msg...) /*__builtin_expect( ( cond ), true )*/
+#  define DebugCheckArgument(cond, arg, msg...) /*__builtin_expect( ( cond ), true )*/
 #endif /* CVC4_ASSERTIONS */
 
 }/* CVC4 namespace */
