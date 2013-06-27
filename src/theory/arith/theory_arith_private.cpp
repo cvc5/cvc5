@@ -775,7 +775,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       Node node = intVar;
       return node;
     } else {
-      Node node = nm->mkNode(kind::EQUAL, node[0], intVar);
+      Node node = nm->mkNode(kind::EQUAL, n[0], intVar);
       return node;
     }
     Unreachable();
