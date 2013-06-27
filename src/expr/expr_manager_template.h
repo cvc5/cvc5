@@ -468,10 +468,70 @@ public:
   Type getType(Expr e, bool check = false)
     throw(TypeCheckingException);
 
-  // variables are special, because duplicates are permitted
+  /**
+   * Create a new, fresh variable.  This variable is guaranteed to be
+   * distinct from every variable thus far in the ExprManager, even
+   * if it shares a name with another; this is to support any kind of
+   * scoping policy on top of ExprManager.  The SymbolTable class
+   * can be used to store and lookup symbols by name, if desired.
+   *
+   * @param name a name to associate to the fresh new variable
+   * @param type the type for the new variable
+   * @param isGlobal whether this variable is to be considered "global"
+   * or not.  Note that this information isn't used by the ExprManager,
+   * but is passed on to the ExprManager's event subscribers like the
+   * model-building service; if isGlobal is true, this newly-created
+   * variable will still available in models generated after an
+   * intervening pop.
+   */
   Expr mkVar(const std::string& name, Type type, bool isGlobal = false);
+
+  /**
+   * Create a (nameless) new, fresh variable.  This variable is guaranteed
+   * to be distinct from every variable thus far in the ExprManager.
+   *
+   * @param type the type for the new variable
+   * @param isGlobal whether this variable is to be considered "global"
+   * or not.  Note that this information isn't used by the ExprManager,
+   * but is passed on to the ExprManager's event subscribers like the
+   * model-building service; if isGlobal is true, this newly-created
+   * variable will still available in models generated after an
+   * intervening pop.
+   */
   Expr mkVar(Type type, bool isGlobal = false);
+
+  /**
+   * Create a new, fresh variable for use in a binder expression
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).  It is
+   * an error for this bound variable to exist outside of a binder,
+   * and it should also only be used in a single binder expression.
+   * That is, two distinct FORALL expressions should use entirely
+   * disjoint sets of bound variables (however, a single FORALL
+   * expression can be used in multiple places in a formula without
+   * a problem).  This newly-created bound variable is guaranteed to
+   * be distinct from every variable thus far in the ExprManager, even
+   * if it shares a name with another; this is to support any kind of
+   * scoping policy on top of ExprManager.  The SymbolTable class
+   * can be used to store and lookup symbols by name, if desired.
+   *
+   * @param name a name to associate to the fresh new bound variable
+   * @param type the type for the new bound variable
+   */
   Expr mkBoundVar(const std::string& name, Type type);
+
+  /**
+   * Create a (nameless) new, fresh variable for use in a binder
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).
+   * It is an error for this bound variable to exist outside of a
+   * binder, and it should also only be used in a single binder
+   * expression.  That is, two distinct FORALL expressions should use
+   * entirely disjoint sets of bound variables (however, a single FORALL
+   * expression can be used in multiple places in a formula without
+   * a problem).  This newly-created bound variable is guaranteed to
+   * be distinct from every variable thus far in the ExprManager.
+   *
+   * @param type the type for the new bound variable
+   */
   Expr mkBoundVar(Type type);
 
   /** Get a reference to the statistics registry for this ExprManager */
