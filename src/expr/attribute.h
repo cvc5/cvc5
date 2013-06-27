@@ -446,7 +446,7 @@ struct HasAttribute<false, AttrKind> {
   static inline bool hasAttribute(const AttributeManager* am,
                                   NodeValue* nv) {
     typedef typename AttrKind::value_type value_type;
-    typedef KindValueToTableValueMapping<value_type> mapping;
+    //typedef KindValueToTableValueMapping<value_type> mapping;
     typedef typename getTable<value_type, AttrKind::context_dependent>::
               table_type table_type;
 

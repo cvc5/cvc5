@@ -732,7 +732,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  Kind kind;
+  Kind kind = kind::NULL_EXPR;
   Expr op;
   std::string name;
   std::vector<Expr> args;
