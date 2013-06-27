@@ -257,7 +257,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::INTS_DIVISION_TOTAL:
   case kind::INTS_MODULUS:
   case kind::INTS_MODULUS_TOTAL:
-  case kind::ABS: out << smtKindString(k) << " "; break;
+  case kind::ABS:
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
   case kind::TO_REAL: out << smtKindString(k) << " "; break;
@@ -447,10 +447,10 @@ static string smtKindString(Kind k) throw() {
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION:
-  case kind::INTS_DIVISION_TOTAL: return "div";
-  case kind::INTS_MODULUS:
-  case kind::INTS_MODULUS_TOTAL: return "mod";
+  case kind::INTS_DIVISION: return "div";
+  case kind::INTS_DIVISION_TOTAL: return "INTS_DIVISION_TOTAL";
+  case kind::INTS_MODULUS: return "mod";
+  case kind::INTS_MODULUS_TOTAL: return "INTS_MODULUS_TOTAL";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
   case kind::TO_INTEGER: return "to_int";
