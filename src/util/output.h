@@ -14,7 +14,7 @@
  ** Output utility classes and functions.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private_library.h"
 
 #ifndef __CVC4__OUTPUT_H
 #define __CVC4__OUTPUT_H

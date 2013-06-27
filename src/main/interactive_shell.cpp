@@ -33,6 +33,7 @@
 #include "parser/parser_builder.h"
 #include "options/options.h"
 #include "util/language.h"
+#include "util/output.h"
 
 #include <string.h>
 #include <cassert>

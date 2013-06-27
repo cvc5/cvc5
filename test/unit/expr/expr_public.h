@@ -342,7 +342,7 @@ public:
   void testIsConst() {
     /* bool isConst() const; */
 
-    Debug.on("isConst");
+    //Debug.on("isConst");
 
     TS_ASSERT(!a_bool->isConst());
     TS_ASSERT(!b_bool->isConst());

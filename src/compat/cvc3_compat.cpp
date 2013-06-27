@@ -25,6 +25,7 @@
 #include "util/hash.h"
 #include "util/subrange_bound.h"
 #include "util/predicate.h"
+#include "util/output.h"
 
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
