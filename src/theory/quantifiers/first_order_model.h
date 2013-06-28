@@ -155,6 +155,7 @@ public:
   Node getSomeDomainElement(TypeNode tn);
   bool isInterval(Node n);
   Node getInterval( Node lb, Node ub );
+  bool isInRange( Node v, Node i );
 };
 
 }

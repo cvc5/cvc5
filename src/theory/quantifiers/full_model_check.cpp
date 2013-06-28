@@ -97,17 +97,7 @@ int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>
           exit( 11 );
         }
         //check if it is in the range
-        bool inRange = true;
-        for( unsigned b=0; b<2; b++ ){
-          if( !m->isStar( it->first[b] ) ){
-            if( ( b==0 && it->first[b].getConst<Rational>() > inst[index].getConst<Rational>() ) ||
-                ( b==1 && it->first[b].getConst<Rational>() <= inst[index].getConst<Rational>() ) ){
-              inRange = false;
-              break;
-            }
-          }
-        }
-        if( inRange ){
+        if( m->isInRange(inst[index], it->first )  ){
           int gindex = it->second.getGeneralizationIndex(m, inst, index+1);
           if( minIndex==-1 || (gindex!=-1 && gindex<minIndex) ){
             minIndex = gindex;
@@ -292,7 +282,7 @@ void Def::simplify(FullModelChecker * mc, FirstOrderModelFmc * m) {
       std::vector< Node > nc;
       nc.push_back( cc.getOperator() );
       for( unsigned j=0; j< cc.getNumChildren(); j++){
-        nc.push_back(m->getStar(cc[j].getType()));
+        nc.push_back(m->getStarElement(cc[j].getType()));
       }
       cond[cond.size()-1] = NodeManager::currentNM()->mkNode( APPLY_UF, nc );
       //re-add the entries
@@ -331,19 +321,15 @@ QModelBuilder( c, qe ){
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
+bool FullModelChecker::optBuildAtFullModel() {
+  //need to build after full model has taken effect if we are constructing interval models
+  //  this is because we need to have a constant in all integer equivalence classes
+  return options::fmfFmcInterval();
+}
+
 void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
-  if( fullModel ){
-    //make function values
-    for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
-      m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
-    }
-    TheoryEngineModelBuilder::processBuildModel( m, fullModel );
-    //mark that the model has been set
-    fm->markModelSet();
-    //debug the model
-    debugModel( fm );
-  }else{
+  if( fullModel==optBuildAtFullModel() ){
     Trace("fmc") << "---Full Model Check reset() " << std::endl;
     fm->initialize( d_considerAxioms );
     d_quant_models.clear();
@@ -464,6 +450,9 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
         bool hasNonStar = false;
         for( unsigned i=0; i<c.getNumChildren(); i++) {
           Node ri = fm->getUsedRepresentative( c[i]);
+          if( !ri.getType().isSort() && !ri.isConst() ){
+            Trace("fmc-warn") << "Warning : model has non-constant argument in model " << ri << std::endl;
+          }
           children.push_back(ri);
           if( !options::fmfFmcInterval() || !ri.getType().isInteger() ){
             if (fm->isModelBasisTerm(ri) ) {
@@ -475,7 +464,10 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
           entry_children.push_back(ri);
         }
         Node n = NodeManager::currentNM()->mkNode( APPLY_UF, children );
-        Node nv = fm->getUsedRepresentative( v);
+        Node nv = fm->getUsedRepresentative( v );
+        if( !nv.getType().isSort() && !nv.isConst() ){
+          Trace("fmc-warn") << "Warning : model has non-constant value in model " << nv << std::endl;
+        }
         Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
         if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
           Trace("fmc-model-debug") << "- add " << n << " -> " << nv << " (entry is " << en << ")" << std::endl;
@@ -554,6 +546,17 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       fm->d_models[op]->debugPrint("fmc-model", op, this);
       Trace("fmc-model") << std::endl;
     }
+  }
+  if( fullModel ){
+    //make function values
+    for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
+      m->d_uf_models[ it->first ] = getFunctionValue( fm, it->first, "$x" );
+    }
+    TheoryEngineModelBuilder::processBuildModel( m, fullModel );
+    //mark that the model has been set
+    fm->markModelSet();
+    //debug the model
+    debugModel( fm );
   }
 }
 
@@ -722,6 +725,9 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
           riter.d_bounds[b][i] = c[i][b];
         }
       }
+    }else if( !fm->isStar(c[i]) ){
+      riter.d_bounds[0][i] = c[i];
+      riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
     }
   }
   //initialize
@@ -915,19 +921,23 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
   if (eq[0]==eq[1]){
     d.addEntry(fm, mkCond(cond), d_true);
   }else{
-    int j = getVariableId(f, eq[0]);
-    int k = getVariableId(f, eq[1]);
     TypeNode tn = eq[0].getType();
-    if( !fm->d_rep_set.hasType( tn ) ){
-      getSomeDomainElement( fm, tn );  //to verify the type is initialized
+    if( tn.isSort() ){
+      int j = getVariableId(f, eq[0]);
+      int k = getVariableId(f, eq[1]);
+      if( !fm->d_rep_set.hasType( tn ) ){
+        getSomeDomainElement( fm, tn );  //to verify the type is initialized
+      }
+      for (unsigned i=0; i<fm->d_rep_set.d_type_reps[tn].size(); i++) {
+        Node r = fm->getUsedRepresentative( fm->d_rep_set.d_type_reps[tn][i] );
+        cond[j+1] = r;
+        cond[k+1] = r;
+        d.addEntry( fm, mkCond(cond), d_true);
+      }
+      d.addEntry( fm, mkCondDefault(fm, f), d_false);
+    }else{
+      d.addEntry( fm, mkCondDefault(fm, f), Node::null());
     }
-    for (unsigned i=0; i<fm->d_rep_set.d_type_reps[tn].size(); i++) {
-      Node r = fm->getUsedRepresentative( fm->d_rep_set.d_type_reps[tn][i] );
-      cond[j+1] = r;
-      cond[k+1] = r;
-      d.addEntry( fm, mkCond(cond), d_true);
-    }
-    d.addEntry( fm, mkCondDefault(fm, f), d_false);
   }
 }
 
@@ -1058,14 +1068,22 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
       }
     }else{
       if( !v.isNull() ){
-        if (curr.d_child.find(v)!=curr.d_child.end()) {
-          Trace("fmc-uf-process") << "follow value..." << std::endl;
-          doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[v]);
-        }
-        Node st = fm->getStarElement(v.getType());
-        if (curr.d_child.find(st)!=curr.d_child.end()) {
-          Trace("fmc-uf-process") << "follow star..." << std::endl;
-          doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[st]);
+        if( options::fmfFmcInterval() && v.getType().isInteger() ){
+          for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
+            if( fm->isInRange( v, it->first ) ){
+              doUninterpretedCompose2(fm, f, entries, index+1, cond, val, it->second);
+            }
+          }
+        }else{
+          if (curr.d_child.find(v)!=curr.d_child.end()) {
+            Trace("fmc-uf-process") << "follow value..." << std::endl;
+            doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[v]);
+          }
+          Node st = fm->getStarElement(v.getType());
+          if (curr.d_child.find(st)!=curr.d_child.end()) {
+            Trace("fmc-uf-process") << "follow star..." << std::endl;
+            doUninterpretedCompose2(fm, f, entries, index+1, cond, val, curr.d_child[st]);
+          }
         }
       }
     }
@@ -1187,6 +1205,7 @@ Node FullModelChecker::mkCondDefault( FirstOrderModelFmc * fm, Node f) {
 }
 
 void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond ) {
+  Trace("fmc-debug") << "Make default vec, intervals = " << options::fmfFmcInterval() << std::endl;
   //get function symbol for f
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
@@ -1277,7 +1296,7 @@ Node FullModelChecker::getFunctionValue(FirstOrderModelFmc * fm, Node op, const 
 
 
 bool FullModelChecker::useSimpleModels() {
-  return options::fmfFullModelCheckSimple();
+  return options::fmfFmcSimple();
 }
 
 void FullModelChecker::makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,

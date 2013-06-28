@@ -50,6 +50,9 @@ bool QModelBuilder::optUseModel() {
 void QModelBuilder::debugModel( FirstOrderModel* fm ){
   //debug the model: cycle through all instantiations for all quantifiers, report ones that are not true
   if( Trace.isOn("quant-model-warn") ){
+    Trace("quant-model-warn") << "Testing quantifier instantiations..." << std::endl;
+    int tests = 0;
+    int bad = 0;
     for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
@@ -57,20 +60,30 @@ void QModelBuilder::debugModel( FirstOrderModel* fm ){
         vars.push_back( f[0][j] );
       }
       RepSetIterator riter( d_qe, &(fm->d_rep_set) );
-      riter.setQuantifier( f );
-      while( !riter.isFinished() ){
-        std::vector< Node > terms;
-        for( int i=0; i<riter.getNumTerms(); i++ ){
-          terms.push_back( riter.getTerm( i ) );
+      if( riter.setQuantifier( f ) ){
+        while( !riter.isFinished() ){
+          tests++;
+          std::vector< Node > terms;
+          for( int i=0; i<riter.getNumTerms(); i++ ){
+            terms.push_back( riter.getTerm( i ) );
+          }
+          Node n = d_qe->getInstantiation( f, vars, terms );
+          Node val = fm->getValue( n );
+          if( val!=fm->d_true ){
+            Trace("quant-model-warn") << "*******  Instantiation " << n << " for " << std::endl;
+            Trace("quant-model-warn") << "         " << f << std::endl;
+            Trace("quant-model-warn") << "         Evaluates to " << val << std::endl;
+            bad++;
+          }
+          riter.increment();
         }
-        Node n = d_qe->getInstantiation( f, vars, terms );
-        Node val = fm->getValue( n );
-        if( val!=fm->d_true ){
-          Trace("quant-model-warn") << "*******  Instantiation " << n << " for " << std::endl;
-          Trace("quant-model-warn") << "         " << f << std::endl;
-          Trace("quant-model-warn") << "         Evaluates to " << val << std::endl;
+        Trace("quant-model-warn") << "Tested " << tests << " instantiations";
+        if( bad>0 ){
+          Trace("quant-model-warn") << ", " << bad << " failed" << std::endl;
         }
-        riter.increment();
+        Trace("quant-model-warn") << "." << std::endl;
+      }else{
+        Trace("quant-model-warn") << "Warning: Could not test quantifier " << f << std::endl;
       }
     }
   }

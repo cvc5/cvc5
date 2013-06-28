@@ -130,6 +130,8 @@ public:
   FullModelChecker( context::Context* c, QuantifiersEngine* qe );
   ~FullModelChecker(){}
 
+  bool optBuildAtFullModel();
+
   int getVariableId(Node f, Node n) { return d_quant_var_id[f][n]; }
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);

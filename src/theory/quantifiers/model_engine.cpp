@@ -55,6 +55,7 @@ void ModelEngine::check( Theory::Effort e ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
     ++(d_statistics.d_inst_rounds);
+    bool buildAtFullModel = d_builder->optBuildAtFullModel();
     //two effort levels: first try exhaustive instantiation without axioms, then with.
     int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
     for( int effort=startEffort; effort<2; effort++ ){
@@ -66,7 +67,7 @@ void ModelEngine::check( Theory::Effort e ){
         Trace("model-engine-debug") << "Build model..." << std::endl;
         d_builder->d_considerAxioms = effort>=1;
         d_builder->d_addedLemmas = 0;
-        d_builder->buildModel( fm, false );
+        d_builder->buildModel( fm, buildAtFullModel );
         addedLemmas += (int)d_builder->d_addedLemmas;
         //if builder has lemmas, add and return
         if( addedLemmas==0 ){
@@ -103,7 +104,7 @@ void ModelEngine::check( Theory::Effort e ){
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-      if( options::produceModels() ){
+      if( options::produceModels() && !buildAtFullModel ){
         // finish building the model
         d_builder->buildModel( fm, true );
       }

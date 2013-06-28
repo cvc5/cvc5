@@ -95,10 +95,10 @@ option fmfModelBasedInst /--disable-fmf-mbqi bool :default true
 
 option fmfFullModelCheck --fmf-fmc bool :default false
  enable full model check for finite model finding
-option fmfFullModelCheckSimple /--disable-fmf-fmc-simple bool :default true
+option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
  disable simple models in full model check for finite model finding
-option fmfFmcCoverSimplify --fmf-fmc-cover-simplify bool :default false
- apply covering simplification technique to fmc models
+option fmfFmcCoverSimplify /--disable-fmf-fmc-cover-simplify bool :default true
+ disable covering simplification of fmc models
 option fmfFmcInterval --fmf-fmc-interval bool :default false
  construct interval models for fmc models
 
