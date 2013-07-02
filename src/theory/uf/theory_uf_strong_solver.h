@@ -207,7 +207,7 @@ public:
     /** cardinality */
     context::CDO< int > d_cardinality;
     /** maximum allocated cardinality */
-    int d_aloc_cardinality;
+    context::CDO< int > d_aloc_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
@@ -228,7 +228,7 @@ public:
     /** get totality lemma terms */
     Node getTotalityLemmaTerm( int cardinality, int i );
   public:
-    SortModel( Node n, context::Context* c, StrongSolverTheoryUF* thss );
+    SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss );
     virtual ~SortModel(){}
     /** initialize */
     void initialize( OutputChannel* out );

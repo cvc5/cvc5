@@ -408,9 +408,9 @@ void StrongSolverTheoryUF::SortModel::Region::debugPrint( const char* c, bool in
 
 
 
-StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
+StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
           d_thss( thss ), d_regions_index( c, 0 ), d_regions_map( c ), d_split_score( c ), d_disequalities_index( c, 0 ),
-          d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( 0 ),
+          d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( u, 0 ),
           d_cardinality_assertions( c ), d_hasCard( c, false ){
   d_cardinality_term = n;
 }
@@ -990,7 +990,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
       }
     }
   }
-  d_aloc_cardinality++;
+  d_aloc_cardinality = d_aloc_cardinality + 1;
 
   //check for abort case
   if( options::ufssAbortCardinality()==d_aloc_cardinality ){
@@ -1574,7 +1574,7 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
     SortModel* rm = NULL;
     if( tn.isSort() ){
       Trace("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
-      rm  = new SortModel( n, d_th->getSatContext(), this );
+      rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
     }else{
       /*
       if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
