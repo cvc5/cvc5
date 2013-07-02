@@ -32,6 +32,8 @@ class RewriteEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   std::vector< Node > d_rr_quant;
+  std::map< Node, Node > d_rr_guard;
+  Node d_true;
   /** explicitly provided patterns */
   std::map< Node, std::vector< inst::Trigger* > > d_rr_triggers;
 private:

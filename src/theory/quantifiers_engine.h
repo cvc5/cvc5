@@ -83,6 +83,7 @@ class EqualityQueryQuantifiersEngine;
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
+  friend class quantifiers::RewriteEngine;
   friend class inst::InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;

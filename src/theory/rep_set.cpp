@@ -250,29 +250,31 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
   Trace("bound-int-rsi") << "Reset " << i << " " << ii << " " << initial << std::endl;
   //determine the current range
   if( d_enum_type[ii]==ENUM_RANGE ){
-    if( initial || !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][ii] ) ){
+    if( initial || ( d_qe->getBoundedIntegers() && !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][ii] ) ) ){
       Trace("bound-int-rsi") << "Getting range of " << d_owner[0][ii] << std::endl;
       Node l, u;
-      d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][ii], this, l, u );
+      if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][ii] ) ){
+        d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][ii], this, l, u );
+      }
+      for( unsigned b=0; b<2; b++ ){
+        if( d_bounds[b].find(ii)!=d_bounds[b].end() ){
+          Trace("bound-int-rsi") << "May further limit bound(" << b << ") based on " << d_bounds[b][ii] << std::endl;
+          if( b==0 && (l.isNull() || d_bounds[b][ii].getConst<Rational>() > l.getConst<Rational>()) ){
+            l = d_bounds[b][ii];
+          }else if( b==1 && (u.isNull() || d_bounds[b][ii].getConst<Rational>() <= u.getConst<Rational>()) ){
+            u = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][ii],
+                                                  NodeManager::currentNM()->mkConst( Rational(1) ) );
+            u = Rewriter::rewrite( u );
+          }
+        }
+      }
+
       if( l.isNull() || u.isNull() ){
         //failed, abort the iterator
         d_index.clear();
         return false;
       }else{
         Trace("bound-int-rsi") << "Can limit bounds of " << d_owner[0][ii] << " to " << l << "..." << u << std::endl;
-        for( unsigned b=0; b<2; b++ ){
-          if( d_bounds[b].find(ii)!=d_bounds[b].end() ){
-            Trace("bound-int-rsi") << "May further limit bound(" << b << ") based on " << d_bounds[b][ii] << std::endl;
-            if( b==0 && d_bounds[b][ii].getConst<Rational>() > l.getConst<Rational>() ){
-              l = d_bounds[b][ii];
-            }else if( b==1 && d_bounds[b][ii].getConst<Rational>() <= u.getConst<Rational>() ){
-              u = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][ii],
-                                                    NodeManager::currentNM()->mkConst( Rational(1) ) );
-              u = Rewriter::rewrite( u );
-            }
-          }
-        }
-
         Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
         Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
         d_domain[ii].clear();

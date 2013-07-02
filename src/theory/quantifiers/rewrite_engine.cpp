@@ -30,7 +30,10 @@ RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : Qua
 }
 
 void RewriteEngine::check( Theory::Effort e ) {
-  if( e==Theory::EFFORT_FULL ){
+  if( e==Theory::EFFORT_LAST_CALL ){
+    if( d_true.isNull() ){
+      d_true = NodeManager::currentNM()->mkConst( true );
+    }
     //apply rewrite rules
     int addedLemmas = 0;
     for( unsigned i=0; i<d_rr_quant.size(); i++ ) {
@@ -82,9 +85,19 @@ int RewriteEngine::checkRewriteRule( Node f ) {
       success = d_rr_triggers[f][i]->getNextMatch( f, m );
       if( success ){
         //see if instantiation is true in the model
-        bool trueInModel = false;
-
-        if( !trueInModel ){
+        Node rr = f.getAttribute(QRewriteRuleAttribute());
+        Node rrg = rr[1];
+        std::vector< Node > vars;
+        std::vector< Node > terms;
+        d_quantEngine->computeTermVector( f, m, vars, terms );
+        Trace("rewrite-engine-inst-debug") << "Instantiation : " << m << std::endl;
+        Node inst = d_rr_guard[f];
+        inst = inst.substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+        Trace("rewrite-engine-inst-debug") << "Try instantiation, guard : " << inst << std::endl;
+        FirstOrderModel * fm = d_quantEngine->getModel();
+        Node v = fm->getValue( inst );
+        Trace("rewrite-engine-inst-debug") << "Evaluated to " << v << std::endl;
+        if( v==d_true ){
           Trace("rewrite-engine-inst-debug") << "Add instantiation : " << m << std::endl;
           if( d_quantEngine->addInstantiation( f, m ) ){
             addedLemmas++;
@@ -106,6 +119,8 @@ void RewriteEngine::registerQuantifier( Node f ) {
     Node rr = f.getAttribute(QRewriteRuleAttribute());
     Trace("rewrite-engine") << "  rewrite rule is : " << rr << std::endl;
     d_rr_quant.push_back( f );
+    d_rr_guard[f] = rr[1];
+    Trace("rewrite-engine") << "  guard is : " << d_rr_guard[f] << std::endl;
   }
 }
 

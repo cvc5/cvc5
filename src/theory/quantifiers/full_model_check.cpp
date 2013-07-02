@@ -86,6 +86,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
 }
 
 int EntryTrie::getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node> & inst, int index ) {
+  Debug("fmc-entry-trie") << "Get generalization index " << inst.size() << " " << index << std::endl;
   if (index==(int)inst.size()) {
     return d_data;
   }else{
@@ -717,21 +718,26 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
   Trace("fmc-exh") << "Exhaustive instantiate based on index " << c_index << " : " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
+  Trace("fmc-exh-debug") << "Set interval domains..." << std::endl;
   //set the bounds on the iterator based on intervals
   for( unsigned i=0; i<c.getNumChildren(); i++ ){
-    if( fm->isInterval(c[i]) ){
-      for( unsigned b=0; b<2; b++ ){
-        if( !fm->isStar(c[i][b]) ){
-          riter.d_bounds[b][i] = c[i][b];
+    if( c[i].getType().isInteger() ){
+      if( fm->isInterval(c[i]) ){
+        for( unsigned b=0; b<2; b++ ){
+          if( !fm->isStar(c[i][b]) ){
+            riter.d_bounds[b][i] = c[i][b];
+          }
         }
+      }else if( !fm->isStar(c[i]) ){
+        riter.d_bounds[0][i] = c[i];
+        riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
       }
-    }else if( !fm->isStar(c[i]) ){
-      riter.d_bounds[0][i] = c[i];
-      riter.d_bounds[1][i] = QuantArith::offset( c[i], 1 );
     }
   }
+  Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
   if( riter.setQuantifier( f ) ){
+    Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     //set the domains based on the entry
     for (unsigned i=0; i<c.getNumChildren(); i++) {
       if (riter.d_enum_type[i]==RepSetIterator::ENUM_DOMAIN_ELEMENTS) {
@@ -765,9 +771,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         Trace("fmc-exh-debug") << " ";
         inst.push_back(r);
       }
-
       int ev_index = d_quant_models[f].getGeneralizationIndex(fm, inst);
-      Trace("fmc-exh-debug") << ", index = " << ev_index;
+      Trace("fmc-exh-debug") << ", index = " << ev_index << " / " << d_quant_models[f].d_value.size();
       Node ev = ev_index==-1 ? Node::null() : d_quant_models[f].d_value[ev_index];
       if (ev!=d_true) {
         InstMatch m;
@@ -780,6 +785,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
         }
+      }else{
+        Trace("fmc-exh-debug") << ", already true";
       }
       Trace("fmc-exh-debug") << std::endl;
       int index = riter.increment();
