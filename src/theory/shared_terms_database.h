@@ -13,9 +13,9 @@
  ** \todo document this file
  **/
 
-#pragma once
-
 #include "cvc4_private.h"
+
+#pragma once
 
 #include "expr/node.h"
 #include "theory/theory.h"

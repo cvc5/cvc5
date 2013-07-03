@@ -38,7 +38,7 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
     return PP_ASSERT_STATUS_CONFLICT;
   }
 
-  // Add the substitution from the variable to it's value
+  // Add the substitution from the variable to its value
   if (in.getKind() == kind::NOT) {
     if (in[0].getKind() == kind::VARIABLE) {
       outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));

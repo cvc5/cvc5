@@ -18,7 +18,7 @@
 #include "smt/boolean_terms.h"
 #include "smt/smt_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/booleans/boolean_term_conversion_mode.h"
 #include "theory/booleans/options.h"
 #include "expr/kind.h"

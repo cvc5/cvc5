@@ -24,7 +24,7 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/options.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 

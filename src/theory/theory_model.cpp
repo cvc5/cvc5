@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model.cpp
+/*! \file theory_model.cpp
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: Morgan Deters, Clark Barrett
@@ -12,7 +12,7 @@
  ** \brief Implementation of model class
  **/
 
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/type_enumerator.h"

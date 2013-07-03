@@ -148,8 +148,8 @@ libcvc4_la_SOURCES = \
 	theory/unconstrained_simplifier.cpp \
 	theory/quantifiers_engine.h \
 	theory/quantifiers_engine.cpp \
-	theory/model.h \
-	theory/model.cpp \
+	theory/theory_model.h \
+	theory/theory_model.cpp \
 	theory/rep_set.h \
 	theory/rep_set.cpp \
 	theory/atom_requests.h \

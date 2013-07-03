@@ -22,7 +22,7 @@
 #include "theory/substitutions.h"
 #include "smt/smt_engine.h"
 #include "smt/options.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "printer/dagification_visitor.h"
 #include "util/node_visitor.h"

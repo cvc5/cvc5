@@ -40,7 +40,8 @@
 #include "theory/ite_utilities.h"
 #include "theory/unconstrained_simplifier.h"
 
-#include "theory/model.h"
+#include "theory/theory_model.h"
+
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers/options.h"
@@ -1218,7 +1219,7 @@ public:
 
   bool alreadyVisited(TNode current, TNode parent) {
     // Check if already visited
-    d_visited.find(current) != d_visited.end();
+    if (d_visited.find(current) != d_visited.end()) return true;
     // Don't visit non-boolean
     if (!current.getType().isBoolean()) return true;
     // New node

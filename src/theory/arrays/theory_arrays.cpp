@@ -21,7 +21,7 @@
 #include <map>
 #include "theory/rewriter.h"
 #include "expr/command.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/arrays/options.h"
 #include "smt/logic_exception.h"
 

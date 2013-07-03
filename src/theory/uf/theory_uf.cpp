@@ -19,7 +19,7 @@
 #include "theory/uf/options.h"
 #include "theory/quantifiers/options.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;

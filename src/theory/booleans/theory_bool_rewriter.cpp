@@ -147,7 +147,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if ((*i).getKind() == kind::OR) done = false;
     }
     if (!done) {
-      return flattenNode(n, /*trivialNode = */ tt, /* skipNode = */ ff);
+      return flattenNode(n, /* trivialNode = */ tt, /* skipNode = */ ff);
     }
     break;
   }
@@ -160,7 +160,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if ((*i).getKind() == kind::AND) done = false;
     }
     if (!done) {
-      RewriteResponse ret = flattenNode(n, /*trivialNode = */ ff, /* skipNode = */ tt);
+      RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
       Debug("bool-flatten") << n << ": " << ret.node << std::endl;
       return ret;
     }

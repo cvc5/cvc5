@@ -17,7 +17,7 @@
 #ifndef __CVC4__THEORY_UF_MODEL_H
 #define __CVC4__THEORY_UF_MODEL_H
 
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {

@@ -17,9 +17,10 @@
  ** kinds files to produce the final header.
  **/
 
+#include "cvc4_private.h"
+
 #pragma once
 
-#include "cvc4_private.h"
 #include "theory/theory.h"
 #include "theory/options.h"
 

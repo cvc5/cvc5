@@ -22,7 +22,7 @@
 #include "util/cvc4_assert.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "smt/options.h"
 #include "smt/boolean_terms.h"
 #include "theory/quantifiers/options.h"

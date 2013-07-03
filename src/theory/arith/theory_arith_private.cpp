@@ -63,7 +63,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 #include "theory/arith/options.h"
 

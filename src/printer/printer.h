@@ -21,7 +21,7 @@
 
 #include "util/language.h"
 #include "util/sexpr.h"
-#include "util/util_model.h"
+#include "util/model.h"
 #include "expr/node.h"
 #include "expr/command.h"
 

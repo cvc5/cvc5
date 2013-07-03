@@ -70,7 +70,7 @@
 #include "theory/booleans/boolean_term_conversion_mode.h"
 #include "theory/booleans/options.h"
 #include "util/ite_removal.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "printer/printer.h"
 #include "prop/options.h"
 #include "theory/arrays/options.h"
@@ -1815,7 +1815,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     return false;
   }
 
-  // No, conflict, go through the literals and solve them
+  // No conflict, go through the literals and solve them
   SubstitutionMap constantPropagations(d_smt.d_context);
   SubstitutionMap newSubstitutions(d_smt.d_context);
   SubstitutionMap::iterator pos;
@@ -1904,7 +1904,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
           Assert(d_topLevelSubstitutions.apply(t) == t);
           Assert(newSubstitutions.apply(t) == t);
           constantPropagations.addSubstitution(t, c);
-          // vector<pair<Node,Node> > equations;a
+          // vector<pair<Node,Node> > equations;
           // constantPropagations.simplifyLHS(t, c, equations, true);
           // if (!equations.empty()) {
           //   Assert(equations[0].first.isConst() && equations[0].second.isConst() && equations[0].first != equations[0].second);
@@ -1951,7 +1951,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       // }
       Assert(constantPropagations.apply((*pos).second) == (*pos).second);
     }
-#endif
+#endif /* CVC4_ASSERTIONS */
   }
   // Resize the learnt
   d_nonClausalLearnedLiterals.resize(j);

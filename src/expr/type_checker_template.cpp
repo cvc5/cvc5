@@ -40,13 +40,10 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
   case kind::BUILTIN:
     typeNode = nodeManager->builtinOperatorType();
     break;
-  case kind::BITVECTOR_EXTRACT_OP :
-    typeNode = nodeManager->builtinOperatorType();
-    break; 
 
 ${typerules}
 
-#line 50 "${template}"
+#line 47 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
@@ -69,7 +66,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 73 "${template}"
+#line 70 "${template}"
 
   default:;
   }

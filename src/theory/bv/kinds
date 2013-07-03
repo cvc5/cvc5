@@ -167,6 +167,7 @@ typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 
+typerule BITVECTOR_EXTRACT_OP ::CVC4::theory::bv::BitVectorExtractOpTypeRule
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
 typerule BITVECTOR_BITOF   ::CVC4::theory::bv::BitVectorBitOfTypeRule
 typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatRule
