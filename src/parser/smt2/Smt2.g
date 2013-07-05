@@ -1313,21 +1313,20 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
-      if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT)) {
-        if( name == "Array" ) {
-          if( args.size() != 2 ) {
-            PARSER_STATE->parseError("Illegal array type.");
-          }
-          t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
-        } else {
-          t = PARSER_STATE->getSort(name, args);
+      if(name == "Array") {
+        if(args.size() != 2) {
+          PARSER_STATE->parseError("Illegal array type.");
         }
-      }else{
-        //make unresolved type
+        t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
+      } else if(check == CHECK_DECLARED ||
+                PARSER_STATE->isDeclared(name, SYM_SORT)) {
+        t = PARSER_STATE->getSort(name, args);
+      } else {
+        // make unresolved type
         if(args.empty()) {
           t = PARSER_STATE->mkUnresolvedType(name);
           Debug("parser-param") << "param: make unres type " << name << std::endl;
-        }else{
+        } else {
           t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
           t = SortConstructorType(t).instantiate( args );
           Debug("parser-param") << "param: make unres param type " << name << " " << args.size() << " "
@@ -1450,7 +1449,8 @@ selector[CVC4::DatatypeConstructor& ctor]
 }
   : symbol[id,CHECK_UNDECLARED,SYM_SORT] sortSymbol[t,CHECK_NONE]
     { ctor.addArg(id, t);
-      Debug("parser-idt") << "selector: " << id.c_str() << std::endl;
+      Debug("parser-idt") << "selector: " << id.c_str()
+                          << " of type " << t << std::endl;
     }
   ;
 
