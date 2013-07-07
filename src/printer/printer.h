@@ -43,7 +43,7 @@ protected:
   Printer() throw() {}
 
   /** write model response to command */
-  virtual void toStream(std::ostream& out, Model& m, const Command* c) const throw() = 0;
+  virtual void toStream(std::ostream& out, const Model& m, const Command* c) const throw() = 0;
 
 public:
   /** Get the Printer for a given OutputLanguage */
@@ -79,7 +79,7 @@ public:
   virtual void toStream(std::ostream& out, const Result& r) const throw();
 
   /** Write a Model out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, Model& m) const throw();
+  virtual void toStream(std::ostream& out, const Model& m) const throw();
 
 };/* class Printer */
 

@@ -185,11 +185,11 @@ void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* AstPrinter::toStream(CommandStatus*) */
 
-void AstPrinter::toStream(std::ostream& out, Model& m) const throw() {
+void AstPrinter::toStream(std::ostream& out, const Model& m) const throw() {
   out << "Model()";
 }
 
-void AstPrinter::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
+void AstPrinter::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }

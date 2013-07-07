@@ -606,15 +606,15 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, Model& m) const throw() {
+void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
   out << "(model" << std::endl;
   this->Printer::toStream(out, m);
   out << ")" << std::endl;
 }
 
 
-void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
-  theory::TheoryModel& tm = (theory::TheoryModel&) m;
+void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
+  const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( options::modelUninterpDtEnum() && tn.isSort() &&

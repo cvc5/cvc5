@@ -249,7 +249,7 @@ class CVC4_PUBLIC SmtEngine {
    * like turning datatypes back into tuples, length-1-bitvectors back
    * into booleans, etc.
    */
-  Node postprocess(TNode n, TypeNode expectedType);
+  Node postprocess(TNode n, TypeNode expectedType) const;
 
   /**
    * This is something of an "init" procedure, but is idempotent; call
@@ -444,7 +444,7 @@ public:
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) throw(ModalException, TypeCheckingException, LogicException);
+  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException);
 
   /**
    * Add a function to the set of expressions whose value is to be

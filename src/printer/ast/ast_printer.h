@@ -29,13 +29,13 @@ namespace ast {
 
 class AstPrinter : public CVC4::Printer {
   void toStream(std::ostream& out, TNode n, int toDepth, bool types) const throw();
-  void toStream(std::ostream& out, Model& m, const Command* c) const throw();
+  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
 public:
   using CVC4::Printer::toStream;
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
-  void toStream(std::ostream& out, Model& m) const throw();
+  void toStream(std::ostream& out, const Model& m) const throw();
 };/* class AstPrinter */
 
 }/* CVC4::printer::ast namespace */

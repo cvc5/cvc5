@@ -29,10 +29,10 @@ class Command;
 class SmtEngine;
 class Model;
 
-std::ostream& operator<<(std::ostream&, Model&);
+std::ostream& operator<<(std::ostream&, const Model&);
 
 class Model {
-  friend std::ostream& operator<<(std::ostream&, Model&);
+  friend std::ostream& operator<<(std::ostream&, const Model&);
 
 protected:
   /** The SmtEngine we're associated with */
@@ -50,6 +50,8 @@ public:
   const Command* getCommand(size_t i) const;
   /** get the smt engine that this model is hooked up to */
   SmtEngine* getSmtEngine() { return &d_smt; }
+  /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
+  const SmtEngine* getSmtEngine() const { return &d_smt; }
 
 public:
   /** get value for expression */

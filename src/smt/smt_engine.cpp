@@ -3166,7 +3166,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   return quickCheck().asValidityResult();
 }
 
-Node SmtEngine::postprocess(TNode node, TypeNode expectedType) {
+Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   ModelPostprocessor mpost;
   NodeVisitor<ModelPostprocessor> visitor;
   Node value = visitor.run(mpost, node);
@@ -3221,7 +3221,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   return n.toExpr();
 }
 
-Expr SmtEngine::getValue(const Expr& ex) throw(ModalException, TypeCheckingException, LogicException) {
+Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
@@ -3448,13 +3448,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   // Check individual theory assertions
   d_theoryEngine->checkTheoryAssertionsWithModel();
 
-  if(Notice.isOn()) {
-    // This operator<< routine is non-const (i.e., takes a non-const Model&).
-    // This confuses the Notice() output routines, so extract the ostream
-    // from it and output it "manually."  Should be fixed by making Model
-    // accessors const.
-    Notice.getStream() << *m;
-  }
+  // Output the model
+  Notice() << *m;
 
   // We have a "fake context" for the substitution map (we don't need it
   // to be context-dependent)
