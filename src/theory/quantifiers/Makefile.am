@@ -50,7 +50,9 @@ libquantifiers_la_SOURCES = \
 	first_order_reasoning.h \
 	first_order_reasoning.cpp \
 	rewrite_engine.h \
-	rewrite_engine.cpp
+	rewrite_engine.cpp \
+	relevant_domain.h \
+	relevant_domain.cpp
 
 EXTRA_DIST = \
 	kinds \

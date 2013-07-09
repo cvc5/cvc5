@@ -21,6 +21,7 @@
 #include "theory/quantifiers/model_builder.h"
 #include "theory/model.h"
 #include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,6 +34,7 @@ private:
   /** builder class */
   QModelBuilder* d_builder;
 private:    //analysis of current model:
+  RelevantDomain* d_rel_dom;
 private:
   //options
   bool optOneQuantPerRound();
@@ -51,8 +53,10 @@ private:
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
   ~ModelEngine(){}
+  //get relevant domain
+  RelevantDomain * getRelevantDomain() { return d_rel_dom; }
   //get the builder
-  QModelBuilder* getModelBuilder() { return d_builder; }
+  QModelBuilder * getModelBuilder() { return d_builder; }
 public:
   void check( Theory::Effort e );
   void registerQuantifier( Node f );
