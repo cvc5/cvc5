@@ -102,9 +102,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();
       Node body = getModelValue(n[1], true);
-      // This is a bit ugly, but cache inside simplifier can change, so can't be const
-      // The ite simplifier is needed to get rid of artifacts created by Boolean terms
-      body = const_cast<ITESimplifier*>(&d_iteSimp)->simpITE(body);
       body = Rewriter::rewrite(body);
       return nm->mkNode(kind::LAMBDA, n[0], body);
     }
