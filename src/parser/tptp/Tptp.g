@@ -631,9 +631,9 @@ tffTypedAtom[CVC4::Command*& cmd]
           // as yet, it's undeclared
           CVC4::Expr expr;
           if(type.isFunction()) {
-            expr = PARSER_STATE->mkTffFunction(name, type);
+            expr = PARSER_STATE->mkFunction(name, type);
           } else {
-            expr = PARSER_STATE->mkTffVar(name, type);
+            expr = PARSER_STATE->mkVar(name, type);
           }
           cmd = new DeclareFunctionCommand(name, expr, type);
         }

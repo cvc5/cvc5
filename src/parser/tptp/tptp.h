@@ -154,26 +154,6 @@ public:
 
   inline Command* makeCommand(FormulaRole fr, Expr& expr, bool cnf);
 
-  inline Expr mkTffVar(std::string& name, const Type& type) {
-    std::string orig = name;
-    std::stringstream ss;
-    ss << name << "_0";
-    name = ss.str();
-    Expr var = mkVar(name, type);
-    defineFunction(orig, var);
-    return var;
-  }
-
-  inline Expr mkTffFunction(std::string& name, const FunctionType& type) {
-    std::string orig = name;
-    std::stringstream ss;
-    ss << name << "_" << type.getArity();
-    name = ss.str();
-    Expr fun = mkFunction(name, type);
-    defineFunction(orig, fun);
-    return fun;
-  }
-
   /** Ugly hack because I don't know how to return an expression from a
       token */
   Expr d_tmp_expr;
@@ -192,10 +172,6 @@ private:
 
 inline void Tptp::makeApplication(Expr& expr, std::string& name,
                                   std::vector<Expr>& args, bool term) {
-  // We distinguish the symbols according to their arities
-  std::stringstream ss;
-  ss << name << "_" << args.size();
-  name = ss.str();
   if(args.empty()) { // Its a constant
     if(isDeclared(name)) { // already appeared
       expr = getVariable(name);
@@ -227,7 +203,7 @@ inline void Tptp::makeApplication(Expr& expr, std::string& name,
 
 inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
   // For SZS ontology compliance.
-  // if we're in cnf() though, conjectures don't result in "Theorem" or
+  // If we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".
   if(!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
     d_hasConjecture = true;
