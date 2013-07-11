@@ -649,9 +649,6 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         goto next_worklist;
       }
       switch(k) {
-      case kind::LAMBDA:
-        Unreachable("not expecting a LAMBDA in boolean-term conversion: %s", top.toString().c_str());
-
       case kind::BOUND_VAR_LIST:
         result.top() << top;
         worklist.pop();
