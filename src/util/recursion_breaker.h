@@ -86,7 +86,7 @@ class RecursionBreaker {
   static CVC4_THREADLOCAL(Map*) s_maps;
 
   std::string d_tag;
-  const T& d_item;
+  const T d_item;
   bool d_firstToTag;
   bool d_recursion;
 
