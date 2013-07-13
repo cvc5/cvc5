@@ -126,7 +126,6 @@ EXTRA_DIST = \
 	tuple.i \
 	record.i \
 	divisible.i \
-	output.i \
 	cardinality.i \
 	result.i \
 	configuration.i \

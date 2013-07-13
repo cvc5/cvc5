@@ -306,7 +306,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     if(q != NULL) {
       d_result = q->getResult();
     }
-    dynamic_cast<QueryCommand*>(cmd) != NULL) {
 
     if(d_ostringstreams.size() != 0) {
       assert(d_numThreads == d_options[options::threads]);

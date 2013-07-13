@@ -250,7 +250,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/bool.i"
 %include "util/sexpr.i"
 %include "util/statistics.i"
-%include "util/output.i"
 %include "util/result.i"
 %include "util/configuration.i"
 %include "util/bitvector.i"

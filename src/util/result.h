@@ -74,12 +74,12 @@ private:
   std::string d_inputName;
 
 public:
-  Result(std::string inputName = "") :
+  Result() :
     d_sat(SAT_UNKNOWN),
     d_validity(VALIDITY_UNKNOWN),
     d_which(TYPE_NONE),
     d_unknownExplanation(UNKNOWN_REASON),
-    d_inputName(inputName) {
+    d_inputName("") {
   }
   Result(enum Sat s, std::string inputName = "") :
     d_sat(s),
