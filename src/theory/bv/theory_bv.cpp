@@ -72,7 +72,9 @@ TheoryBV::~TheoryBV() {
 }
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  if (options::bvEquality()) {
+    dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  }
 }
 
 TheoryBV::Statistics::Statistics():
