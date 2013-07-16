@@ -394,6 +394,25 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
+RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){
+  Node resultNode = node;
+
+  if(node[1].isConst() && node[1].getConst<BitVector>().getValue() != 0) {
+    return RewriteUdivTotal(node, prerewrite);
+  }
+
+  return RewriteResponse(REWRITE_DONE, resultNode); 
+}
+
+RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite){
+  Node resultNode = node;
+
+  if(node[1].isConst() && node[1].getConst<BitVector>().getValue() != 0) {
+    return RewriteUremTotal(node, prerewrite);
+  }
+
+  return RewriteResponse(REWRITE_DONE, resultNode); 
+}
 
 RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
   Node resultNode = node;
@@ -605,8 +624,8 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_PLUS ] = RewritePlus;
   d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
-  // d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
-  // d_rewriteTable [ kind::BITVECTOR_UREM ] = RewriteUrem;
+  d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
+  d_rewriteTable [ kind::BITVECTOR_UREM ] = RewriteUrem;
   d_rewriteTable [ kind::BITVECTOR_UDIV_TOTAL ] = RewriteUdivTotal;
   d_rewriteTable [ kind::BITVECTOR_UREM_TOTAL ] = RewriteUremTotal;
   d_rewriteTable [ kind::BITVECTOR_SMOD ] = RewriteSmod;

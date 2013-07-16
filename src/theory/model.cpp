@@ -53,6 +53,8 @@ Node TheoryModel::getValue( TNode n ) const{
   Node nn = d_substitutions.apply( n );
   //get value in model
   nn = getModelValue( nn );
+  //normalize
+  nn = Rewriter::rewrite(nn);
   Assert(nn.isConst() || nn.getKind() == kind::LAMBDA);
   return nn;
 }

@@ -198,8 +198,9 @@ Node RewriteRule<EvalNeg>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUdiv>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          utils::isBVGroundTerm(node));
+  return (utils::isBVGroundTerm(node) &&
+          (node.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
+           (node.getKind() == kind::BITVECTOR_UDIV && node[1].isConst())));
 }
 
 template<> inline
@@ -213,8 +214,9 @@ Node RewriteRule<EvalUdiv>::apply(TNode node) {
 }
 template<> inline
 bool RewriteRule<EvalUrem>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UREM_TOTAL &&
-          utils::isBVGroundTerm(node));
+  return (utils::isBVGroundTerm(node) &&
+          (node.getKind() == kind::BITVECTOR_UREM_TOTAL ||
+           (node.getKind() == kind::BITVECTOR_UREM && node[1].isConst())));
 }
 
 template<> inline
