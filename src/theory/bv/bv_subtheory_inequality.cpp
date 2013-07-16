@@ -96,6 +96,9 @@ bool InequalitySolver::check(Theory::Effort e) {
 }
 
 EqualityStatus InequalitySolver::getEqualityStatus(TNode a, TNode b) {
+  if (!isComplete())
+    return EQUALITY_UNKNOWN;
+  
   Node a_lt_b = utils::mkNode(kind::BITVECTOR_ULT, a, b);
   Node b_lt_a = utils::mkNode(kind::BITVECTOR_ULT, b, a);
 
