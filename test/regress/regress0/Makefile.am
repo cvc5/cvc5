@@ -144,11 +144,16 @@ BUG_TESTS = \
 	bug507.smt2 \
 	bug512.smt2 \
 	bug512.minimized.smt2 \
-	bug519.smt2
+	bug516.smt2 \
+	bug519.smt2 \
+	bug520.smt2 \
+	bug522.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
 EXTRA_DIST = $(TESTS) \
+	bug521.smt2 \
+	bug521.minimized.smt2 \
 	simplification_bug4.smt2.expect \
 	bug216.smt2.expect
 

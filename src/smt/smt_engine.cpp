@@ -3541,6 +3541,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
+    if(Theory::theoryOf(n) != THEORY_REWRITERULES) {
+      // In case it's a quantifier (or contains one), look up its value before
+      // simplifying, or the quantifier might be irreparably altered.
+      n = m->getValue(n);
+    }
+
     // Simplify the result.
     n = d_private->simplify(n);
     Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
@@ -3562,6 +3568,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     // but don't show up in our substitution map above.
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
+    AlwaysAssert(n.isConst() || n.getKind() == kind::LAMBDA);
 
     // The result should be == true.
     if(n != NodeManager::currentNM()->mkConst(true)) {

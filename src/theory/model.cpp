@@ -28,7 +28,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
+  d_substitutions(c, false), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -48,14 +48,13 @@ void TheoryModel::reset(){
   d_uf_models.clear();
 }
 
-Node TheoryModel::getValue( TNode n ) const{
+Node TheoryModel::getValue(TNode n) const {
   //apply substitutions
-  Node nn = d_substitutions.apply( n );
+  Node nn = d_substitutions.apply(n);
   //get value in model
-  nn = getModelValue( nn );
+  nn = getModelValue(nn);
   //normalize
   nn = Rewriter::rewrite(nn);
-  Assert(nn.isConst() || nn.getKind() == kind::LAMBDA);
   return nn;
 }
 
@@ -97,8 +96,10 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // no good.  Instead, return the quantifier itself.  If we're in
     // checkModel(), and the quantifier actually matters, we'll get an
     // assert-fail since the quantifier isn't a constant.
-    if(!d_equalityEngine.hasTerm(n)) {
+    if(!d_equalityEngine.hasTerm(Rewriter::rewrite(n))) {
       return n;
+    } else {
+      n = Rewriter::rewrite(n);
     }
   } else {
     if(n.getKind() == kind::LAMBDA) {
