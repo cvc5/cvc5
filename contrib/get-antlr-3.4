@@ -25,8 +25,9 @@ function webget {
   fi
 }
 
-if [[ -z "${MACHINE_TYPE}" ]]; then
-  MACHINE_TYPE=`uname -m`
+if [ -z "${MACHINE_TYPE}" ]; then
+  # get first nibble from config.guess (x86_64, i686, ...)
+  MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
 fi
 
 set -x
@@ -59,8 +60,29 @@ cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make
 make install
+cd ../..
+mv lib/libantlr3c.a lib/libantlr3c-static.a
+
+cd src/libantlr3c-3.4
+make clean
+
+if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+  # 64-bit stuff here
+  ./configure --enable-64bit --with-pic --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+else
+  # 32-bit stuff here
+  ./configure --with-pic --disable-shared --disable-antlrdebug --prefix=`pwd`/../.. $ANTLR_CONFIGURE_ARGS
+fi
+
+cp Makefile Makefile.orig
+sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
+make
+make install
+cd ../..
+mv lib/libantlr3c.la lib/libantlr3c.la.orig
+awk '/^old_library=/ {print "old_library='\''libantlr3c-static.a'\''"} /^library_names=/ {print "library_names='\''libantlr3c.a'\''"} !/^old_library=/ && !/^library_names=/ {print}' < lib/libantlr3c.la.orig > lib/libantlr3c.la
 set +x
-cd ../../..
+cd ..
 
 echo
 echo Invalidating generated parsers..
