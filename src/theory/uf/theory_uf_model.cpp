@@ -19,6 +19,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/options.h"
 
+#include <vector>
+#include <stack>
+
 #define RECONSIDER_FUNC_DEFAULT_VALUE
 #define USE_PARTIAL_DEFAULT_VALUES
 
@@ -134,28 +137,60 @@ Node UfModelTreeNode::getValue( TheoryModel* m, Node n, std::vector< int >& inde
   }
 }
 
-Node UfModelTreeNode::getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue ){
-  if( !d_data.empty() ){
+Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node argDefaultValue, bool simplify) {
+  if(!d_data.empty()) {
     Node defaultValue = argDefaultValue;
-    if( d_data.find( Node::null() )!=d_data.end() ){
-      defaultValue = d_data[Node::null()].getFunctionValue( args, index+1, argDefaultValue );
+    if(d_data.find(Node::null()) != d_data.end()) {
+      defaultValue = d_data[Node::null()].getFunctionValue(args, index + 1, argDefaultValue, simplify);
     }
-    std::vector< Node > caseArgs;
-    std::map< Node, Node > caseValues;
-    for( std::map< Node, UfModelTreeNode >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
-      if( !it->first.isNull() ){
-        Node val = it->second.getFunctionValue( args, index+1, defaultValue );
-        caseArgs.push_back( it->first );
-        caseValues[ it->first ] = val;
+
+    vector<Node> caseArgs;
+    map<Node, Node> caseValues;
+
+    for(map< Node, UfModelTreeNode>::iterator it = d_data.begin(); it != d_data.end(); ++it) {
+      if(!it->first.isNull()) {
+        Node val = it->second.getFunctionValue(args, index + 1, defaultValue, simplify);
+        caseArgs.push_back(it->first);
+        caseValues[it->first] = val;
       }
     }
+
+    NodeManager* nm = NodeManager::currentNM();
     Node retNode = defaultValue;
-    for( int i=((int)caseArgs.size()-1); i>=0; i-- ){
-      retNode = NodeManager::currentNM()->mkNode( ITE, args[index].eqNode( caseArgs[ i ] ), caseValues[ caseArgs[ i ] ], retNode );
+
+    if(!simplify) {
+      // "non-simplifying" mode - expand function values to things like:
+      //   IF      (x=0 AND y=0 AND z=0) THEN value1
+      //   ELSE IF (x=0 AND y=0 AND z=1) THEN value2
+      //   [...etc...]
+      for(int i = (int)caseArgs.size() - 1; i >= 0; --i) {
+        Node val = caseValues[ caseArgs[ i ] ];
+        if(val.getKind() == ITE) {
+          // use a stack to reverse the order, since we're traversing outside-in
+          stack<TNode> stk;
+          do {
+            stk.push(val);
+            val = val[2];
+          } while(val.getKind() == ITE);
+          AlwaysAssert(val == defaultValue, "default values don't match when constructing function definition!");
+          while(!stk.empty()) {
+            val = stk.top();
+            stk.pop();
+            retNode = nm->mkNode(ITE, nm->mkNode(AND, args[index].eqNode(caseArgs[i]), val[0]), val[1], retNode);
+          }
+        } else {
+          retNode = nm->mkNode(ITE, args[index].eqNode(caseArgs[i]), caseValues[caseArgs[i]], retNode);
+        }
+      }
+    } else {
+      // "simplifying" mode - condense function values
+      for(int i = (int)caseArgs.size() - 1; i >= 0; --i) {
+        retNode = nm->mkNode(ITE, args[index].eqNode(caseArgs[i]), caseValues[caseArgs[i]], retNode);
+      }
     }
     return retNode;
-  }else{
-    Assert( !d_value.isNull() );
+  } else {
+    Assert(!d_value.isNull());
     return d_value;
   }
 }
@@ -261,7 +296,7 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
 }
 
 Node UfModelTree::getFunctionValue( std::vector< Node >& args, bool simplify ){
-  Node body = d_tree.getFunctionValue( args, 0, Node::null() );
+  Node body = d_tree.getFunctionValue( args, 0, Node::null(), simplify );
   if(simplify) {
     body = Rewriter::rewrite( body );
   }

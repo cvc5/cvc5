@@ -46,7 +46,7 @@ public:
   /** getConstant Value function */
   Node getConstantValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int argIndex );
   /** getFunctionValue */
-  Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue );
+  Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
   /** update function */
   void update( TheoryModel* m );
   /** simplify function */
