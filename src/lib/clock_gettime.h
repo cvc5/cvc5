@@ -30,7 +30,7 @@
 
 /* otherwise, we have to define it */
 
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(__WIN64__)
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,12 +45,12 @@ struct timespec {
 }/* extern "C" */
 #endif /* __cplusplus */
 
-#else /* ! __WIN32__ */
+#else /* !__WIN32__ || __WIN64__ */
 
 /* get timespec from <time.h> */
 #include <time.h>
 
-#endif /* __WIN32__ */
+#endif /* __WIN32__ && !__WIN64__ */
 
 #ifdef __cplusplus
 extern "C" {

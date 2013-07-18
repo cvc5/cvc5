@@ -14,14 +14,18 @@
  ** Contains code for handling command-line options
  **/
 
-#if !defined(_BSD_SOURCE) && (defined(__MINGW32__) || defined(__MINGW64__))
-// force use of optreset; mingw croaks on argv-switching otherwise
+#if !defined(_BSD_SOURCE) && defined(__MINGW32__) && !defined(__MINGW64__)
+// force use of optreset; mingw32 croaks on argv-switching otherwise
 #  include "cvc4autoconfig.h"
 #  define _BSD_SOURCE
 #  undef HAVE_DECL_OPTRESET
 #  define HAVE_DECL_OPTRESET 1
 #  define CVC4_IS_NOT_REALLY_BSD
-#endif /* !_BSD_SOURCE && (__MINGW32__ || __MINGW64__) */
+#endif /* !_BSD_SOURCE && __MINGW32__ && !__MINGW64__ */
+
+#ifdef __MINGW64__
+extern int optreset;
+#endif /* __MINGW64__ */
 
 #include <getopt.h>
 
