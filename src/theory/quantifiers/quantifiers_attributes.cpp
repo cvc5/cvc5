@@ -32,6 +32,10 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n ){
       Trace("quant-attr") << "Set conjecture " << n << std::endl;
       ConjectureAttribute ca;
       n.setAttribute( ca, true );
+    }else if( attr=="rr_priority" ){
+      //Trace("quant-attr") << "Set rr priority " << n << std::endl;
+      //RrPriorityAttribute rra;
+
     }
   }else{
     for( size_t i=0; i<n.getNumChildren(); i++ ){

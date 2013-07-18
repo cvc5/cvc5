@@ -36,6 +36,7 @@ class RewriteEngine : public QuantifiersModule
   Node d_true;
   /** explicitly provided patterns */
   std::map< Node, std::vector< inst::Trigger* > > d_rr_triggers;
+  double getPriority( Node f );
 private:
   int checkRewriteRule( Node f );
 public:

@@ -198,7 +198,9 @@ void InstantiationEngine::check( Theory::Effort e ){
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
       //it is not active if we have found the skolemized negation is unsat
-      if( options::cbqi() && hasAddedCbqiLemma( n ) ){
+      if( n.hasAttribute(QRewriteRuleAttribute()) ){
+        d_quant_active[n] = false;
+      }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );
         bool active, value;
         bool ceValue = false;
@@ -228,8 +230,6 @@ void InstantiationEngine::check( Theory::Effort e ){
         }
         Debug("quantifiers") << std::endl;
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
-      }else if( n.hasAttribute(QRewriteRuleAttribute()) ){
-        d_quant_active[n] = false;
       }else{
         d_quant_active[n] = true;
         quantActive = true;
@@ -238,6 +238,7 @@ void InstantiationEngine::check( Theory::Effort e ){
       Debug("quantifiers-relevance")  << "Quantifier : " << n << std::endl;
       Debug("quantifiers-relevance")  << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
       Debug("quantifiers") << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
+      Trace("inst-engine-debug") << "Process : " << n << " " << d_quant_active[n] << std::endl;
     }
     if( quantActive ){
       bool addedLemmas = doInstantiationRound( e );

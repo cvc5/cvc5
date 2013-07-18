@@ -433,16 +433,19 @@ Node TermDb::getSkolemizedBody( Node f ){
 Node TermDb::getFreeVariableForInstConstant( Node n ){
   TypeNode tn = n.getType();
   if( d_free_vars.find( tn )==d_free_vars.end() ){
-    //if integer or real, make zero
-    if( tn.isInteger() || tn.isReal() ){
-      Rational z(0);
-      d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
-    }else{
-      if( d_type_map[ tn ].empty() ){
-        d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
-        Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
+	for( unsigned i=0; i<d_type_map[ tn ].size(); i++ ){
+	  if( !quantifiers::TermDb::hasInstConstAttr(d_type_map[ tn ][ i ]) ){
+	    d_free_vars[tn] = d_type_map[ tn ][ i ];
+	  }
+	}
+	if( d_free_vars.find( tn )==d_free_vars.end() ){
+      //if integer or real, make zero
+      if( tn.isInteger() || tn.isReal() ){
+        Rational z(0);
+        d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
       }else{
-        d_free_vars[tn] = d_type_map[ tn ][ 0 ];
+	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
+	    Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }
     }
   }

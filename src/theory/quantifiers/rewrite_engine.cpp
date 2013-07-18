@@ -18,6 +18,7 @@
 #include "theory/quantifiers/model_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -25,20 +26,67 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
+struct PrioritySort {
+  std::vector< double > d_priority;
+  bool operator() (int i,int j) {
+    return d_priority[i] < d_priority[j];
+  }
+};
+
+
 RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : QuantifiersModule(qe) {
 
 }
 
+double RewriteEngine::getPriority( Node f ) {
+  Node rr = f.getAttribute(QRewriteRuleAttribute());
+  Node rrr = rr[2];
+  Trace("rr-priority") << "Get priority : " << rrr << " " << rrr.getKind() << std::endl;
+  bool deterministic = rrr[1].getKind()!=OR;
+  if( rrr.getKind()==RR_REWRITE ){
+    return deterministic ? 0.0 : 3.0;
+  }else if( rrr.getKind()==RR_DEDUCTION ){
+    return deterministic ? 1.0 : 4.0;
+  }else if( rrr.getKind()==RR_REDUCTION ){
+    return deterministic ? 2.0 : 5.0;
+  }else{
+    return 6.0;
+  }
+}
+
 void RewriteEngine::check( Theory::Effort e ) {
   if( e==Theory::EFFORT_LAST_CALL ){
+    if( !d_quantEngine->getModel()->isModelSet() ){
+      d_quantEngine->getTheoryEngine()->getModelBuilder()->buildModel( d_quantEngine->getModel(), true );
+    }
     if( d_true.isNull() ){
       d_true = NodeManager::currentNM()->mkConst( true );
     }
+    std::vector< Node > priority_order;
+    PrioritySort ps;
+    std::vector< int > indicies;
+    for( int i=0; i<(int)d_rr_quant.size(); i++ ){
+      ps.d_priority.push_back( getPriority( d_rr_quant[i] ) );
+      indicies.push_back( i );
+    }
+    std::sort( indicies.begin(), indicies.end(), ps );
+    for( unsigned i=0; i<indicies.size(); i++ ){
+      priority_order.push_back( d_rr_quant[indicies[i]] );
+    }
+
     //apply rewrite rules
     int addedLemmas = 0;
-    for( unsigned i=0; i<d_rr_quant.size(); i++ ) {
-      addedLemmas += checkRewriteRule( d_rr_quant[i] );
+    //per priority level
+    int index = 0;
+    bool success = true;
+    while( success && index<(int)priority_order.size() ) {
+      addedLemmas += checkRewriteRule( priority_order[index] );
+      index++;
+      if( index<(int)priority_order.size() ){
+        success = addedLemmas==0 || getPriority( priority_order[index] )==getPriority( priority_order[index-1] );
+      }
     }
+
     Trace("inst-engine") << "Rewrite engine added " << addedLemmas << " lemmas." << std::endl;
     if (addedLemmas==0) {
     }else{
@@ -49,7 +97,7 @@ void RewriteEngine::check( Theory::Effort e ) {
 }
 
 int RewriteEngine::checkRewriteRule( Node f ) {
-  Trace("rewrite-engine-inst") << "Check " << f << "..." << std::endl;
+  Trace("rewrite-engine-inst") << "Check " << f << ", priority = " << getPriority( f ) << "..." << std::endl;
   int addedLemmas = 0;
   //reset triggers
   Node rr = f.getAttribute(QRewriteRuleAttribute());
@@ -102,6 +150,12 @@ int RewriteEngine::checkRewriteRule( Node f ) {
           if( d_quantEngine->addInstantiation( f, m ) ){
             addedLemmas++;
             Trace("rewrite-engine-inst-debug") << "success" << std::endl;
+            //set the no-match attribute (the term is rewritten and can be ignored)
+            //Trace("rewrite-engine-inst-debug") << "We matched on : " << m.d_matched << std::endl;
+            //if( !m.d_matched.isNull() ){
+            //  NoMatchAttribute nma;
+            //  m.d_matched.setAttribute(nma,true);
+            //}
           }else{
             Trace("rewrite-engine-inst-debug") << "failure." << std::endl;
           }

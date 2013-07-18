@@ -34,6 +34,10 @@ typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
 struct ConjectureAttributeId {};
 typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
 
+/** Attribute priority for rewrite rules */
+//struct RrPriorityAttributeId {};
+//typedef expr::Attribute< RrPriorityAttributeId, uint64_t > RrPriorityAttribute;
+
 struct QuantifiersAttributes
 {
   /** set user attribute

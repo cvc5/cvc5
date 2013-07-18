@@ -63,15 +63,9 @@ d_lemmas_produced_c(u){
   }else{
     d_inst_engine = NULL;
   }
-  bool reqModel = options::finiteModelFind() || options::rewriteRulesAsAxioms();
-  if( reqModel ){
+  if( options::finiteModelFind()  ){
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
-  }else{
-    d_model_engine = NULL;
-  }
-
-  if( options::finiteModelFind() ){
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
@@ -79,6 +73,7 @@ d_lemmas_produced_c(u){
       d_bint = NULL;
     }
   }else{
+    d_model_engine = NULL;
     d_bint = NULL;
   }
   if( options::rewriteRulesAsAxioms() ){
@@ -652,18 +647,24 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         int r_best_score = -1;
         for( size_t i=0; i<eqc.size(); i++ ){
           int score = getRepScore( eqc[i], f, index );
-          if( optInternalRepSortInference() ){
-            int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i]);
-            if( score>=0 && e_sortId!=sortId ){
-              score += 100;
+          if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
+            if( optInternalRepSortInference() ){
+              int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i]);
+              if( score>=0 && e_sortId!=sortId ){
+                score += 100;
+              }
             }
-          }
-          //score prefers earliest use of this term as a representative
-          if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
-            r_best = eqc[i];
-            r_best_score = score;
-          }
+            //score prefers earliest use of this term as a representative
+            if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
+              r_best = eqc[i];
+              r_best_score = score;
+            }
+		  }
         }
+        if( r_best.isNull() ){
+	      Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
+		  r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+		}
         //now, make sure that no other member of the class is an instance
         if( !optInternalRepSortInference() ){
           r_best = getInstance( r_best, eqc );
