@@ -976,6 +976,11 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 #AC_TYPE_UINT64_T
 #AC_TYPE_SIZE_T
 
+# guard against double-inclusion of the autoheader
+AH_TOP([#ifndef __CVC4__CVC4AUTOCONFIG_H
+#define __CVC4__CVC4AUTOCONFIG_H])
+AH_BOTTOM([#endif /* __CVC4__CVC4AUTOCONFIG_H */])
+
 AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # check with which standard strerror_r() complies

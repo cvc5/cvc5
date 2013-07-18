@@ -14,6 +14,22 @@
  ** Contains code for handling command-line options
  **/
 
+#if !defined(_BSD_SOURCE) && (defined(__MINGW32__) || defined(__MINGW64__))
+// force use of optreset; mingw croaks on argv-switching otherwise
+#  include "cvc4autoconfig.h"
+#  define _BSD_SOURCE
+#  undef HAVE_DECL_OPTRESET
+#  define HAVE_DECL_OPTRESET 1
+#  define CVC4_IS_NOT_REALLY_BSD
+#endif /* !_BSD_SOURCE && (__MINGW32__ || __MINGW64__) */
+
+#include <getopt.h>
+
+// clean up
+#ifdef CVC4_IS_NOT_REALLY_BSD
+#  undef _BSD_SOURCE
+#endif /* CVC4_IS_NOT_REALLY_BSD */
+
 #include <cstdio>
 #include <cstdlib>
 #include <new>
@@ -25,8 +41,6 @@
 #include <stdint.h>
 #include <time.h>
 
-#include <getopt.h>
-
 #include "expr/expr.h"
 #include "util/configuration.h"
 #include "util/exception.h"
@@ -35,7 +49,7 @@
 
 ${include_all_option_headers}
 
-#line 39 "${template}"
+#line 53 "${template}"
 
 #include "util/output.h"
 #include "options/options_holder.h"
@@ -44,7 +58,7 @@ ${include_all_option_headers}
 
 ${option_handler_includes}
 
-#line 48 "${template}"
+#line 62 "${template}"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -181,7 +195,7 @@ void runBoolPredicates(T, std::string option, bool b, SmtEngine* smt) {
 
 ${all_custom_handlers}
 
-#line 185 "${template}"
+#line 199 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -211,18 +225,18 @@ options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 215 "${template}"
+#line 229 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 220 "${template}"
+#line 234 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 226 "${template}"
+#line 240 "${template}"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -293,7 +307,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 297 "${template}"
+#line 311 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -351,6 +365,8 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
 
   const char *progName = main_argv[0];
   SmtEngine* const smt = NULL;
+
+  Debug("options") << "main_argv == " << main_argv << std::endl;
 
   // Reset getopt(), in the case of multiple calls to parseOptions().
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
@@ -443,10 +459,33 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
         } while(main_optind < argc && main_argv[main_optind][0] != '-');
         continue;
       }
+      Debug("options") << "[ before, optind == " << optind << " ]" << std::endl;
+#if defined(__MINGW32__) || defined(__MINGW64__)
+      if(optreset == 1 && optind > 1) {
+        // on mingw, optreset will reset the optind, so we have to
+        // manually advance argc, argv
+        main_argv[optind - 1] = main_argv[0];
+        argv = main_argv += optind - 1;
+        argc -= optind - 1;
+        old_optind = optind = main_optind = 1;
+        if(argc > 0) {
+          Debug("options") << "looking at : " << argv[0] << std::endl;
+        }
+        /*c = getopt_long(argc, main_argv,
+                        "+:${all_modules_short_options}",
+                        cmdlineOptions, NULL);
+        Debug("options") << "pre-emptory c is " << c << " (" << char(c) << ")" << std::endl;
+        Debug("options") << "optind was reset to " << optind << std::endl;
+        optind = main_optind;
+        Debug("options") << "I restored optind to " << optind << std::endl;*/
+      }
+#endif /* __MINGW32__ || __MINGW64__ */
+      Debug("options") << "[ argc == " << argc << ", main_argv == " << main_argv << " ]" << std::endl;
       c = getopt_long(argc, main_argv,
                       "+:${all_modules_short_options}",
                       cmdlineOptions, NULL);
       main_optind = optind;
+      Debug("options") << "[ got " << int(c) << " (" << char(c) << ") ]" << std::endl;
       Debug("options") << "[ next option will be at pos: " << optind << " ]" << std::endl;
       if(c == -1) {
         Debug("options") << "done with option parsing" << std::endl;
@@ -461,7 +500,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 465 "${template}"
+#line 492 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
