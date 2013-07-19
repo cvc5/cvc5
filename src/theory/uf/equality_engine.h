@@ -211,11 +211,6 @@ public:
     }
   };/* struct EqualityEngine::statistics */
 
-  /**
-   * Store the application lookup, with enough information to backtrack
-   */
-  void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
-
 private:
 
   /** The context we are using */
@@ -253,6 +248,11 @@ private:
 
   /** Number of application lookups, for backtracking.  */
   context::CDO<DefaultSizeType> d_applicationLookupsCount;
+
+  /**
+   * Store the application lookup, with enough information to backtrack
+   */
+  void storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId);
 
   /** Map from ids to the nodes (these need to be nodes as we pick up the operators) */
   std::vector<Node> d_nodes;
