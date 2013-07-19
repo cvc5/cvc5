@@ -3571,7 +3571,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     // but don't show up in our substitution map above.
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
-    AlwaysAssert(n.isConst() || n.getKind() == kind::LAMBDA);
+    AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
 
     // The result should be == true.
     if(n != NodeManager::currentNM()->mkConst(true)) {

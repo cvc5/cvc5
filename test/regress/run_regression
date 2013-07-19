@@ -213,7 +213,7 @@ else
   echo "$expected_output" >"$expoutfile"
 fi
 check_models=false
-if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null; then
+if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
   if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
      ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models' &>/dev/null; then
     # later on, we'll run another test with --check-models on
