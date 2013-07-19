@@ -53,8 +53,10 @@ Node TheoryModel::getValue(TNode n) const {
   Node nn = d_substitutions.apply(n);
   //get value in model
   nn = getModelValue(nn);
-  //normalize
-  nn = Rewriter::rewrite(nn);
+  if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
+    //normalize
+    nn = Rewriter::rewrite(nn);
+  }
   return nn;
 }
 
