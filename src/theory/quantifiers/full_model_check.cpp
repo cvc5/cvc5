@@ -193,6 +193,7 @@ bool EntryTrie::isComplete(FirstOrderModelFmc * m, Node c, int index) {
 
 bool Def::addEntry( FirstOrderModelFmc * m, Node c, Node v) {
   if (d_et.hasGeneralization(m, c)) {
+    Trace("fmc-debug") << "Already has generalization, skip." << std::endl;
     return false;
   }
   int newIndex = (int)d_cond.size();
@@ -382,18 +383,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
       Node op = it->first;
       TypeNode tno = op.getType();
       for( unsigned i=0; i<tno.getNumChildren(); i++) {
-        TypeNode tn = tno[i];
-        if( fm->d_model_basis_rep.find( tn )==fm->d_model_basis_rep.end() ){
-          Node mbn;
-          if (!fm->d_rep_set.hasType(tn)) {
-            mbn = fm->getSomeDomainElement(tn);
-          }else{
-            mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
-          }
-          Node mbnr = fm->getUsedRepresentative( mbn );
-          fm->d_model_basis_rep[tn] = mbnr;
-          Trace("fmc") << "Add model basis for type " << tn << " : " << mbn << " " << mbnr << std::endl;
-        }
+        initializeType( fm, tno[i] );
       }
     }
     //now, make models
@@ -561,6 +551,21 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   }
 }
 
+void FullModelChecker::initializeType( FirstOrderModelFmc * fm, TypeNode tn ){
+  if( fm->d_model_basis_rep.find( tn )==fm->d_model_basis_rep.end() ){
+    Trace("fmc") << "Initialize type " << tn << std::endl;
+    Node mbn;
+    if (!fm->d_rep_set.hasType(tn)) {
+      mbn = fm->getSomeDomainElement(tn);
+    }else{
+      mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
+    }
+    Node mbnr = fm->getUsedRepresentative( mbn );
+    fm->d_model_basis_rep[tn] = mbnr;
+    Trace("fmc") << "Add model basis for type " << tn << " : " << mbn << " " << mbnr << std::endl;
+  }
+}
+
 void FullModelChecker::debugPrintCond(const char * tr, Node n, bool dispStar) {
   Trace(tr) << "(";
   for( unsigned j=0; j<n.getNumChildren(); j++) {
@@ -612,6 +617,10 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
         Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
         d_quant_cond[f] = op;
+      }
+      //make sure all types are set
+      for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+        initializeType( fmfmc, f[0][i].getType() );
       }
 
       //model check the quantifier
@@ -810,6 +819,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     Trace("fmc-debug") << "It is a bounding literal, polarity = " << n.getAttribute(BoundIntLitAttribute()) << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), n.getAttribute(BoundIntLitAttribute())==1 ? d_false : d_true );
   }else if( n.getKind() == kind::BOUND_VARIABLE ){
+    Trace("fmc-debug") << "Add default entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), n);
   }
   else if( n.getKind() == kind::NOT ){
@@ -856,6 +866,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       }
       r = fm->getUsedRepresentative( r );
     }
+    Trace("fmc-debug") << "Add constant entry..." << std::endl;
     d.addEntry(fm, mkCondDefault(fm, f), r);
   }
   else{
@@ -906,6 +917,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       }
     }
     Trace("fmc-debug") << "Simplify the definition..." << std::endl;
+    d.debugPrint("fmc-debug", Node::null(), this);
     d.simplify(this, fm);
     Trace("fmc-debug") << "Done simplifying" << std::endl;
   }

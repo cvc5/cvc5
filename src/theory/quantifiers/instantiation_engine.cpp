@@ -92,7 +92,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           NodeBuilder<> nb(kind::OR);
           nb << f << ceLit;
           Node lem = nb;
-          Debug("cbqi-debug") << "Counterexample lemma : " << lem << std::endl;
+          Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
           d_quantEngine->getOutputChannel().lemma( lem );
           addedLemma = true;
         }
@@ -213,7 +213,9 @@ void InstantiationEngine::check( Theory::Effort e ){
         d_quant_active[n] = active;
         if( active ){
           Debug("quantifiers") << "  Active : " << n;
-          quantActive = true;
+          if( !TermDb::hasInstConstAttr(n) ){
+            quantActive = true;
+          }
         }else{
           Debug("quantifiers") << "  NOT active : " << n;
           if( d_quantEngine->getValuation().isDecision( cel ) ){
@@ -232,7 +234,9 @@ void InstantiationEngine::check( Theory::Effort e ){
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       }else{
         d_quant_active[n] = true;
-        quantActive = true;
+        if( !TermDb::hasInstConstAttr(n) ){
+          quantActive = true;
+        }
         Debug("quantifiers") << "  Active : " << n << ", no ce assigned." << std::endl;
       }
       Debug("quantifiers-relevance")  << "Quantifier : " << n << std::endl;

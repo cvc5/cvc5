@@ -33,21 +33,21 @@ class BitblastSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
     Statistics();
-    ~Statistics(); 
-  }; 
+    ~Statistics();
+  };
   /** Bitblaster */
   Bitblaster* d_bitblaster;
 
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;
-  Statistics d_statistics; 
+  Statistics d_statistics;
 
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
   Node getModelValueRec(TNode node);
 
-  bool  d_useSatPropagation; 
+  bool  d_useSatPropagation;
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();
@@ -56,7 +56,7 @@ public:
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  void collectModelInfo(TheoryModel* m); 
+  void collectModelInfo(TheoryModel* m, bool fullModel);
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
   void bitblastQueue();

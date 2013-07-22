@@ -84,20 +84,20 @@ void BitblastSolver::bitblastQueue() {
 }
 
 bool BitblastSolver::check(Theory::Effort e) {
-  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n"; 
+  Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
   Assert(!options::bitvectorEagerBitblast());
 
-  ++(d_statistics.d_numCallstoCheck); 
+  ++(d_statistics.d_numCallstoCheck);
 
   //// Lazy bit-blasting
   // bit-blast enqueued nodes
   bitblastQueue();
 
-  // Processing assertions  
+  // Processing assertions
   while (!done()) {
     TNode fact = get();
     d_validModelCache = false;
-    Debug("bv-bitblast") << "  fact " << fact << ")\n"; 
+    Debug("bv-bitblast") << "  fact " << fact << ")\n";
     if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_BITBLAST)) {
       // Some atoms have not been bit-blasted yet
       d_bitblaster->bbAtom(fact);
@@ -144,8 +144,8 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
   return d_bitblaster->getEqualityStatus(a, b);
 }
 
-void BitblastSolver::collectModelInfo(TheoryModel* m) {
-  return d_bitblaster->collectModelInfo(m); 
+void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+  return d_bitblaster->collectModelInfo(m, fullModel);
 }
 
 Node BitblastSolver::getModelValue(TNode node)
@@ -189,5 +189,5 @@ Node BitblastSolver::getModelValueRec(TNode node)
   Assert(val.isConst());
   d_modelCache[node] = val;
   Debug("bitvector-model") << node << " => " << val <<"\n";
-  return val; 
+  return val;
 }

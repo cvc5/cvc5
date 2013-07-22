@@ -90,6 +90,7 @@ protected:
   std::map< Node, Node > d_array_term_cond;
   std::map<Node, std::map< Node, int > > d_quant_var_id;
   std::map<Node, std::vector< int > > d_star_insts;
+  void initializeType( FirstOrderModelFmc * fm, TypeNode tn );
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
   bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
 protected:

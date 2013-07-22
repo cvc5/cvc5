@@ -55,14 +55,14 @@ namespace bv {
 
 typedef std::vector<Node> Bits;
 
-std::string toString (Bits& bits); 
+std::string toString (Bits& bits);
 
 class TheoryBV;
 
-/** 
- * The Bitblaster that manages the mapping between Nodes 
- * and their bitwise definition 
- * 
+/**
+ * The Bitblaster that manages the mapping between Nodes
+ * and their bitwise definition
+ *
  */
 class Bitblaster {
 
@@ -79,26 +79,26 @@ class Bitblaster {
     void notify(prop::SatClause& clause);
     void safePoint();
   };
-  
-  
+
+
   typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction >              TermDefMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      AtomSet;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      VarSet; 
-  
-  typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*); 
-  typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*); 
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      VarSet;
+
+  typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*);
+  typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*);
 
   TheoryBV *d_bv;
-  
+
   // sat solver used for bitblasting and associated CnfStream
   theory::OutputChannel*             d_bvOutput;
-  prop::BVSatSolverInterface*        d_satSolver; 
+  prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
   // caches and mappings
   TermDefMap                   d_termCache;
   AtomSet                      d_bitblastedAtoms;
-  VarSet                       d_variables; 
+  VarSet                       d_variables;
   context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
                                                        currently asserted by the DPLL SAT solver. */
 
@@ -111,79 +111,79 @@ class Bitblaster {
 
   /// function tables for the various bitblasting strategies indexed by node kind
   TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
-  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND]; 
+  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
 
   // helper methods to initialize function tables
   void initAtomBBStrategies();
-  void initTermBBStrategies(); 
+  void initTermBBStrategies();
 
   // returns a node that might be easier to bitblast
-  Node bbOptimize(TNode node); 
-  
-  void addAtom(TNode atom); 
+  Node bbOptimize(TNode node);
+
+  void addAtom(TNode atom);
   // division is bitblasted in terms of constraints
   // so it needs to use private bitblaster interface
   void bbUdiv(TNode node, Bits& bits);
   void bbUrem(TNode node, Bits& bits);
-  bool hasValue(TNode a); 
+  bool hasValue(TNode a);
 public:
   void cacheTermDef(TNode node, Bits def); // public so we can cache remainder for division
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
-  
-  Bitblaster(context::Context* c, bv::TheoryBV* bv); 
+
+  Bitblaster(context::Context* c, bv::TheoryBV* bv);
   ~Bitblaster();
   bool assertToSat(TNode node, bool propagate = true);
   bool propagate();
   bool solve(bool quick_solve = false);
-  void getConflict(std::vector<TNode>& conflict); 
+  void getConflict(std::vector<TNode>& conflict);
   void explain(TNode atom, std::vector<TNode>& explanation);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  /** 
+  /**
    * Return a constant Node representing the value of a variable
-   * in the current model. 
-   * @param a 
-   * 
-   * @return 
+   * in the current model.
+   * @param a
+   *
+   * @return
    */
-  Node getVarValue(TNode a);
-  /** 
-   * Adds a constant value for each bit-blasted variable in the model. 
-   * 
-   * @param m the model 
+  Node getVarValue(TNode a, bool fullModel=true);
+  /**
+   * Adds a constant value for each bit-blasted variable in the model.
+   *
+   * @param m the model
    */
-  void collectModelInfo(TheoryModel* m); 
-  /** 
-   * Stores the variable (or non-bv term) and its corresponding bits. 
-   * 
-   * @param var 
-   * @param bits 
+  void collectModelInfo(TheoryModel* m, bool fullModel);
+  /**
+   * Stores the variable (or non-bv term) and its corresponding bits.
+   *
+   * @param var
+   * @param bits
    */
   void storeVariable(TNode var) {
-    d_variables.insert(var); 
+    d_variables.insert(var);
   }
 
   bool isSharedTerm(TNode node);
   uint64_t computeAtomWeight(TNode node);
 
 private:
- 
+
   class Statistics {
   public:
     IntStat d_numTermClauses, d_numAtomClauses;
-    IntStat d_numTerms, d_numAtoms; 
+    IntStat d_numTerms, d_numAtoms;
     TimerStat d_bitblastTimer;
     Statistics();
-    ~Statistics(); 
-  }; 
-  
+    ~Statistics();
+  };
+
   Statistics d_statistics;
 };
 
 
 
-} /* bv namespace */ 
+} /* bv namespace */
 
 } /* theory namespace */
 
