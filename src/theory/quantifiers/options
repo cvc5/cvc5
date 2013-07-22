@@ -77,6 +77,8 @@ option cbqi --enable-cbqi/--disable-cbqi bool :default false
  turns on counterexample-based quantifier instantiation [off by default]
 /turns off counterexample-based quantifier instantiation
 
+option recurseCbqi --cbqi-recurse bool :default false
+ turns on recursive counterexample-based quantifier instantiation
 
 option userPatternsQuant /--ignore-user-patterns bool :default true
  ignore user-provided patterns for quantifier instantiation
