@@ -181,12 +181,17 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         enableTheory(THEORY_UF);
         p += 2;
       }
+      // allow BV or DT in either order
       if(!strncmp(p, "BV", 2)) {
         enableTheory(THEORY_BV);
         p += 2;
       }
       if(!strncmp(p, "DT", 2)) {
         enableTheory(THEORY_DATATYPES);
+        p += 2;
+      }
+      if(!d_theories[THEORY_BV] && !strncmp(p, "BV", 2)) {
+        enableTheory(THEORY_BV);
         p += 2;
       }
       if(!strncmp(p, "IDL", 3)) {
