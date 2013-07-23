@@ -518,6 +518,48 @@ ${all_modules_option_handlers}
   return nonOptions;
 }
 
+std::vector<std::string> Options::suggestCommandLineOptions(const std::string& optionName) throw() {
+  std::vector<std::string> suggestions;
+
+  const char* opt;
+  for(size_t i = 0; (opt = cmdlineOptions[i].name) != NULL; ++i) {
+    if(std::strstr(opt, optionName.c_str()) != NULL) {
+      suggestions.push_back(opt);
+    }
+  }
+
+  return suggestions;
+}
+
+static const char* smtOptions[] = {
+  ${all_modules_smt_options},
+#line 547 "${template}"
+  NULL
+};/* smtOptions[] */
+
+std::vector<std::string> Options::suggestSmtOptions(const std::string& optionName) throw() {
+  std::vector<std::string> suggestions;
+
+  const char* opt;
+  for(size_t i = 0; (opt = smtOptions[i]) != NULL; ++i) {
+    if(std::strstr(opt, optionName.c_str()) != NULL) {
+      suggestions.push_back(opt);
+    }
+  }
+
+  return suggestions;
+}
+
+SExpr Options::getOptions() const throw() {
+  std::vector<SExpr> opts;
+
+  ${all_modules_get_options}
+
+#line 569 "${template}"
+
+  return SExpr(opts);
+}
+
 #undef USE_EARLY_TYPE_CHECKING_BY_DEFAULT
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 

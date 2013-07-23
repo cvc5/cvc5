@@ -1196,6 +1196,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       throw ModalException("Can't get-info :reason-unknown when the "
                            "last result wasn't unknown!");
     }
+  } else if(key == "all-options") {
+    // get the options, like all-statistics
+    return Options::current().getOptions();
   } else {
     throw UnrecognizedOptionException();
   }

@@ -73,7 +73,9 @@ options_cpp_template="$1"; shift
 all_modules_defaults=
 all_modules_short_options=
 all_modules_long_options=
+all_modules_smt_options=
 all_modules_option_handlers=
+all_modules_get_options=
 smt_getoption_handlers=
 smt_setoption_handlers=
 include_all_option_headers=
@@ -665,34 +667,57 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
   fi
 
   if [ -n "$smtname" ]; then
+    all_modules_smt_options="${all_modules_smt_options:+$all_modules_smt_options,}
+#line $lineno \"$kf\"
+  \"$smtname\""
     if [ "$internal" != - ]; then
       case "$type" in
-      bool) smt_getoption_handlers="${smt_getoption_handlers}
+      bool)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     return SExprKeyword(options::$internal() ? \"true\" : \"false\");
   }";;
-      int|unsigned|int*_t|uint*_t|CVC4::Integer) smt_getoption_handlers="${smt_getoption_handlers}
+      int|unsigned|int*_t|uint*_t|CVC4::Integer)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     return SExpr(Integer(options::$internal()));
   }";;
-      float|double) smt_getoption_handlers="${smt_getoption_handlers}
+      float|double)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(Rational::fromDouble(d_holder->$internal)); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     stringstream ss; ss << std::fixed << options::$internal();
     return SExpr(Rational::fromDecimal(ss.str()));
   }";;
-      CVC4::Rational) smt_getoption_handlers="${smt_getoption_handlers}
+      CVC4::Rational)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     return SExpr(options::$internal());
   }";;
-      *) smt_getoption_handlers="${smt_getoption_handlers}
+      *)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(ss.str()); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
@@ -1473,7 +1498,9 @@ for var in \
     all_modules_defaults \
     all_modules_short_options \
     all_modules_long_options \
+    all_modules_smt_options \
     all_modules_option_handlers \
+    all_modules_get_options \
     include_all_option_headers \
     all_modules_contributions \
     all_custom_handlers \
