@@ -49,7 +49,7 @@
 
 ${include_all_option_headers}
 
-#line 53 "${template}"
+#line 57 "${template}"
 
 #include "util/output.h"
 #include "options/options_holder.h"
@@ -58,7 +58,7 @@ ${include_all_option_headers}
 
 ${option_handler_includes}
 
-#line 62 "${template}"
+#line 66 "${template}"
 
 using namespace CVC4;
 using namespace CVC4::options;
@@ -195,7 +195,7 @@ void runBoolPredicates(T, std::string option, bool b, SmtEngine* smt) {
 
 ${all_custom_handlers}
 
-#line 199 "${template}"
+#line 203 "${template}"
 
 #ifdef CVC4_DEBUG
 #  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
@@ -225,18 +225,18 @@ options::OptionsHolder::OptionsHolder() : ${all_modules_defaults}
 {
 }
 
-#line 229 "${template}"
+#line 233 "${template}"
 
 static const std::string mostCommonOptionsDescription = "\
 Most commonly-used CVC4 options:${common_documentation}";
 
-#line 234 "${template}"
+#line 238 "${template}"
 
 static const std::string optionsDescription = mostCommonOptionsDescription + "\n\
 \n\
 Additional CVC4 options:${remaining_documentation}";
 
-#line 240 "${template}"
+#line 244 "${template}"
 
 static const std::string optionsFootnote = "\n\
 [*] Each of these options has a --no-OPTIONNAME variant, which reverses the\n\
@@ -307,7 +307,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 311 "${template}"
+#line 315 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -500,7 +500,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 492 "${template}"
+#line 508 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -572,7 +572,7 @@ std::vector<std::string> Options::suggestCommandLineOptions(const std::string& o
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 547 "${template}"
+#line 590 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -594,7 +594,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 569 "${template}"
+#line 612 "${template}"
 
   return SExpr(opts);
 }
