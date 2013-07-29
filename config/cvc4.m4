@@ -102,3 +102,19 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
 AC_LANG_POP([C++])
 CXXFLAGS="$cvc4_save_CXXFLAGS"
 ])# CVC4_CXX_OPTION
+
+# CVC4_C_OPTION(OPTION, VAR)
+# --------------------------
+# Run $(CC) $(CPPFLAGS) $(CFLAGS) OPTION and see if the compiler
+# likes it.  If so, add OPTION to shellvar VAR.
+AC_DEFUN([CVC4_C_OPTION], [
+AC_MSG_CHECKING([whether $CC supports $1])
+cvc4_save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS $C_WERROR $1"
+AC_LANG_PUSH([C])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
+                  [AC_MSG_RESULT([yes]); $2='$1'],
+                  [AC_MSG_RESULT([no])])
+AC_LANG_POP([C])
+CFLAGS="$cvc4_save_CFLAGS"
+])# CVC4_C_OPTION

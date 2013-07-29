@@ -6,5 +6,7 @@
 module IDL "theory/idl/options.h" Idl
 
 option idlRewriteEq --enable-idl-rewrite-equalities/--disable-idl-rewrite-equalities bool :default false :read-write
+ enable rewriting equalities into two inequalities in IDL solver (default is disabled)
+/disable rewriting equalities into two inequalities in IDL solver (default is disabled)
 
 endmodule

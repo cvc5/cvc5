@@ -1,7 +1,7 @@
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4PARSERLIB \
 	-I@builddir@/../.. -I@srcdir@/../../include -I@srcdir@/../.. $(ANTLR_INCLUDES)
-AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTHESES) $(WNO_TAUTOLOGICAL_COMPARE) -Wno-unused-function -Wno-unused-variable $(WNO_CONVERSION_NULL)
+AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN) $(WNO_PARENTHESES) $(WNO_TAUTOLOGICAL_COMPARE) -Wno-unused-function -Wno-unused-variable $(WNO_UNINITIALIZED) $(WNO_CONVERSION_NULL)
 
 # Compile generated C files using C++ compiler
 CC=$(CXX)

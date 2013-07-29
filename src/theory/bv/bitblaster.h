@@ -152,13 +152,14 @@ public:
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
+   * @param fullModel whether to create a "full model," i.e., add
+   * constants to equivalence classes that don't already have them
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
   /**
    * Stores the variable (or non-bv term) and its corresponding bits.
    *
    * @param var
-   * @param bits
    */
   void storeVariable(TNode var) {
     d_variables.insert(var);

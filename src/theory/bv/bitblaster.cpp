@@ -178,7 +178,7 @@ void Bitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
 }
 
 
-/**
+/*
  * Asserts the clauses corresponding to the atom to the Sat Solver
  * by turning on the marker literal (i.e. setting it to false)
  * @param node the atom to be asserted
@@ -444,6 +444,8 @@ bool Bitblaster::hasValue(TNode a) {
  * or null if the value is completely unassigned.
  *
  * @param a
+ * @param fullModel whether to create a "full model," i.e., add
+ * constants to equivalence classes that don't already have them
  *
  * @return
  */

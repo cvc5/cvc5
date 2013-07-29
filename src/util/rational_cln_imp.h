@@ -155,10 +155,10 @@ public:
 
 #ifdef CVC4_NEED_INT64_T_OVERLOADS
   Rational(int64_t n, int64_t d) : d_value(static_cast<long>(n)) {
-    d_value /= static_cast<long>(d);
+    d_value /= cln::cl_I(d);
   }
   Rational(uint64_t n, uint64_t d) : d_value(static_cast<unsigned long>(n)) {
-    d_value /= static_cast<unsigned long>(d);
+    d_value /= cln::cl_I(d);
   }
 #endif /* CVC4_NEED_INT64_T_OVERLOADS */
 

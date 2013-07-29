@@ -33,6 +33,8 @@ public:
    * Compute the type for (and optionally typecheck) a term belonging
    * to the theory of rewriterules.
    *
+   * @param nodeManager the NodeManager in use
+   * @param n the node to compute the type of
    * @param check if true, the node's type should be checked as well
    * as computed.
    */
