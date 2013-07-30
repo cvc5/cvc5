@@ -84,9 +84,9 @@ awk '/^old_library=/ {print "old_library='\''libantlr3c-static.a'\''"} /^library
 set +x
 cd ..
 
-echo
-echo Invalidating generated parsers..
-touch src/parser/*/*.g
+# echo
+# echo Invalidating generated parsers..
+# touch src/parser/*/*.g
 
 if [ ${MACHINE_TYPE} == 'x86_64' ]; then
   # 64-bit stuff here

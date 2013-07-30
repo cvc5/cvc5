@@ -109,7 +109,7 @@ namespace Java_cvc3_JniUtils {
   // embeds a c++ object into a jobject,
   // and takes over the responsibility to deallocate it
   template <class T> jobject embed_own(JNIEnv* env, T* cobj) {
-    DebugAssert(&cobj != NULL, "JniUtils::embed_own: null object given");
+    DebugAssert(cobj != NULL, "JniUtils::embed_own: null object given");
     return embed<T>(env, cobj, typeid(cobj), &DeleteEmbedded<T>::deleteEmbedded);
   }
 
