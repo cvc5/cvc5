@@ -1257,6 +1257,9 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
     v.push_back(smtEngine->getInfo(d_flag));
     stringstream ss;
+    if(d_flag == "all-options" || d_flag == "all-statistics") {
+      ss << PrettySExprs(true);
+    }
     ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();
