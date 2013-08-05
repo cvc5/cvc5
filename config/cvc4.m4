@@ -17,6 +17,7 @@ handle_option() {
   ac_option="$[]1"
   case $ac_option in
     --bsd) ac_option='CVC4_BSD_LICENSED_CODE_ONLY=1' ;;
+    -enable-proofs | --enable-proofs) ac_option='--enable-proof' ;;
     -*|*=*) ;;
     production|production-*|debug|debug-*|competition|competition-*)
       # regexp `\?' not supported on Mac OS X

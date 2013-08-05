@@ -108,6 +108,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       ! opts[options::threadArgv].empty() ) {
     throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
   }
+# else
+  if( opts[options::checkProofs] ) {
+    throw OptionException("Cannot run portfolio in check-proofs mode.");
+  }
 # endif
 
   progName = opts[options::binary_name].c_str();
@@ -201,8 +205,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
              << "Notice: ...the experimental --incremental-parallel option.\n";
     exprMgr = new ExprManager(opts);
     pExecutor = new CommandExecutor(*exprMgr, opts);
-  }
-  else {
+  } else {
     exprMgr = new ExprManager(threadOpts[0]);
     pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
   }

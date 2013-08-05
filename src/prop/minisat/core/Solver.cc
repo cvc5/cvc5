@@ -263,7 +263,7 @@ CRef Solver::reason(Var x) {
 
     // Construct the reason
     CRef real_reason = ca.alloc(explLevel, explanation, true);
-    PROOF (ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA); ); 
+    PROOF (ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA); );
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
     attachClause(real_reason);
@@ -324,7 +324,18 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
     } else {
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
+        if(PROOF_ON()) {
+          // Take care of false units here; otherwise, we need to
+          // construct the clause below to give to the proof manager
+          // as the final conflict.
+          if(falseLiteralsCount == 1) {
+            PROOF( ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT); )
+            PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+            return ok = false;
+          }
+        } else {
           return ok = false;
+        }
       }
 
       CRef cr = CRef_Undef;
@@ -339,7 +350,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         clauses_persistent.push(cr);
 	attachClause(cr);
 
-        PROOF( ProofManager::getSatProof()->registerClause(cr, INPUT); )
+        if(PROOF_ON()) {
+          PROOF( ProofManager::getSatProof()->registerClause(cr, INPUT); )
+          if(ps.size() == falseLiteralsCount) {
+            PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
+            return ok = false;
+          }
+        }
       }
 
       // Check if it propagates
@@ -347,8 +364,17 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          PROOF( if (ps.size() == 1) { ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT); } )
-          return ok = (propagate(CHECK_WITHOUT_THEORY) == CRef_Undef);
+          PROOF( if(ps.size() == 1) { ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT); } );
+          CRef confl = propagate(CHECK_WITHOUT_THEORY);
+          if(! (ok = (confl == CRef_Undef)) ) {
+            if(ca[confl].size() == 1) {
+              PROOF( ProofManager::getSatProof()->storeUnitConflict(ca[confl][0], LEARNT); );
+              PROOF( ProofManager::getSatProof()->finalizeProof(::Minisat::CRef_Lazy); )
+            } else {
+              PROOF( ProofManager::getSatProof()->finalizeProof(confl); );
+            }
+          }
+          return ok;
         } else return ok;
       }
     }
@@ -370,7 +396,7 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
-    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
+    PROOF( ProofManager::getSatProof()->markDeleted(cr); );
     Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
 
@@ -1580,7 +1606,7 @@ CRef Solver::updateLemmas() {
       vec<Lit>& lemma = lemmas[i];
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert (! PROOF_ON()); 
+        Assert (! PROOF_ON());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -1630,13 +1656,15 @@ CRef Solver::updateLemmas() {
       }
 
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
-      PROOF (ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA); ); 
+      PROOF( ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA); );
       if (removable) {
         clauses_removable.push(lemma_ref);
       } else {
         clauses_persistent.push(lemma_ref);
       }
       attachClause(lemma_ref);
+    } else {
+      PROOF( ProofManager::getSatProof()->registerUnitClause(lemma[0], THEORY_LEMMA); );
     }
 
     // If the lemma is propagating enqueue its literal (or set the conflict)
@@ -1650,7 +1678,7 @@ CRef Solver::updateLemmas() {
           } else {
             Debug("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
             conflict = CRef_Lazy;
-            PROOF(ProofManager::getSatProof()->storeUnitConflict(lemma[0]);); 
+            PROOF( ProofManager::getSatProof()->storeUnitConflict(lemma[0]); );
           }
         } else {
           Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;

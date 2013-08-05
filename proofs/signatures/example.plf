@@ -1,6 +1,6 @@
 ; to check, run : lfsc sat.plf smt.plf th_base.plf example.plf
 
-; -------------------------------------------------------------------------------- 
+; --------------------------------------------------------------------------------
 ; input :
 ; ( a = b )
 ; ( b = f(c) )
@@ -11,11 +11,11 @@
 
 
 ;  With the theory lemma, the input is unsatisfiable.
-; -------------------------------------------------------------------------------- 
+; --------------------------------------------------------------------------------
 
 
 
-(check 
+(check
 (% s sort
 (% a (term s)
 (% b (term s)
@@ -81,8 +81,8 @@
 ; this is done by natural deduction rules
 
    (contra _ A2 l2)
-   
-))) (\ C2 
+
+))) (\ C2
 ; C2 is the clause ( v2 )
 
 
@@ -91,20 +91,20 @@
 (ast _ _ _ a1 (\ l1
 (clausify_false
 
-; input formula A3 is ( ~a3 V ~a1 ) 
+; input formula A3 is ( ~a3 V ~a1 )
 ; the following should be a proof of a3 ^ a1 ^ ( ~a3 V ~a1 ) => false
 ; this is done by natural deduction rules
 
   (contra _ l1 (or_elim_1 _ _ (not_not_intro _ l3) A3))
 
-))))) (\ C3  
+))))) (\ C3
 ; C3 is the clause ( ~v3 V ~v1 )
 
 
 
 ; -------------------- resolution proof ------------------------------------------------------------
 
-(satlem_simplify _ _ _ 
+(satlem_simplify _ _ _
 
 (R _ _ C1
 (R _ _ C2

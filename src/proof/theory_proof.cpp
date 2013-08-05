@@ -26,9 +26,10 @@ TheoryProof::TheoryProof()
 {}
 
 void TheoryProof::addDeclaration(Expr term) {
-  if (d_declarationCache.count(term))
+  if (d_declarationCache.count(term)) {
     return;
-  
+  }
+
   Type type = term.getType();
   if (type.isSort())
     d_sortDeclarations.insert(type);
@@ -36,32 +37,14 @@ void TheoryProof::addDeclaration(Expr term) {
     Expr function = term.getOperator();
     d_termDeclarations.insert(function);
   } else if (term.isVariable()) {
-    Assert (type.isSort()); 
+    //Assert (type.isSort() || type.isBoolean());
     d_termDeclarations.insert(term);
   }
   // recursively declare all other terms
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    addDeclaration(term[i]); 
+    addDeclaration(term[i]);
   }
-  d_declarationCache.insert(term); 
-}
-
-void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
-  if (term.isVariable()) {
-    os << term; 
-    return;
-  }
-
-  Assert (term.getKind() == kind::APPLY_UF);
-  Expr func = term.getOperator();
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    os<< "(apply _ _ ";
-  }
-  os << func << " "; 
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    printTerm(term[i], os);
-    os << ")"; 
-  }
+  d_declarationCache.insert(term);
 }
 
 std::string toLFSCKind(Kind kind) {
@@ -70,71 +53,138 @@ std::string toLFSCKind(Kind kind) {
   case kind::AND: return "and";
   case kind::XOR: return "xor";
   case kind::EQUAL: return "=";
+  case kind::IFF: return "iff";
   case kind::IMPLIES: return "impl";
   case kind::NOT: return "not";
   default:
-    Unreachable(); 
+    Unreachable();
   }
 }
 
-void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
-  // should make this more general and overall sane
-  Assert (atom.getType().isBoolean() && "Only printing booleans." );
-  Kind kind = atom.getKind(); 
-  // this is the only predicate we have
-  if (kind == kind::EQUAL) {
+void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
+  if (term.isVariable()) {
+    if(term.getType().isBoolean()) {
+      os << "(p_app " << term << ")";
+    } else {
+      os << term;
+    }
+    return;
+  }
+
+  switch(Kind k = term.getKind()) {
+  case kind::APPLY_UF: {
+    if(term.getType().isBoolean()) {
+      os << "(p_app ";
+    }
+    Expr func = term.getOperator();
+    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+      os << "(apply _ _ ";
+    }
+    os << func << " ";
+    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+      printTerm(term[i], os);
+      os << ")";
+    }
+    if(term.getType().isBoolean()) {
+      os << ")";
+    }
+    return;
+  }
+
+  case kind::ITE:
+    os << (term.getType().isBoolean() ? "(ifte " : "(ite _ ");
+    printTerm(term[0], os);
+    os << " ";
+    printTerm(term[1], os);
+    os << " ";
+    printTerm(term[2], os);
+    os << ")";
+    return;
+
+  case kind::EQUAL:
     os << "(";
-    os <<"= ";
-    os << atom[0].getType() <<" "; 
-    printTerm(atom[0], os);
-    os <<" "; 
-    printTerm(atom[1], os);
-    os <<")"; 
-  } else if ( kind == kind::DISTINCT) {
-    os <<"(not (= ";
-    os << atom[0].getType() <<" "; 
-    printTerm(atom[0], os);
-    os <<" "; 
-    printTerm(atom[1], os);
-    os <<"))"; 
-  } else if ( kind == kind::OR ||
-              kind == kind::AND ||
-              kind == kind::XOR ||
-              kind == kind::IMPLIES ||
-              kind == kind::NOT) {
-    // print the boolean operators
-    os << "(";
-    os << toLFSCKind(kind);
-    if (atom.getNumChildren() > 2) {
+    os << "= ";
+    os << term[0].getType() << " ";
+    printTerm(term[0], os);
+    os << " ";
+    printTerm(term[1], os);
+    os << ")";
+    return;
+
+  case kind::DISTINCT:
+    os << "(not (= ";
+    os << term[0].getType() << " ";
+    printTerm(term[0], os);
+    os << " ";
+    printTerm(term[1], os);
+    os << "))";
+    return;
+
+  case kind::OR:
+  case kind::AND:
+  case kind::XOR:
+  case kind::IFF:
+  case kind::IMPLIES:
+  case kind::NOT:
+    // print the Boolean operators
+    os << "(" << toLFSCKind(k);
+    if(term.getNumChildren() > 2) {
+      // LFSC doesn't allow declarations with variable numbers of
+      // arguments, so we have to flatten these N-ary versions.
       std::ostringstream paren;
       os << " ";
-      for (unsigned i =0; i < atom.getNumChildren(); ++i) {
-        printFormula(atom[i], os);
+      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+        printTerm(term[i], os);
         os << " ";
-        if (i < atom.getNumChildren() - 2) {
-          os << "("<< toLFSCKind(kind) << " "; 
-          paren << ")"; 
+        if(i < term.getNumChildren() - 2) {
+          os << "(" << toLFSCKind(k) << " ";
+          paren << ")";
         }
       }
-      os << paren.str() <<")"; 
+      os << paren.str() << ")";
     } else {
-      // this is for binary and unary operators 
-      for (unsigned i = 0; i < atom.getNumChildren(); ++i) {
-        os <<" ";
-        printFormula(atom[i], os); 
+      // this is for binary and unary operators
+      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+        os << " ";
+        printTerm(term[i], os);
       }
-      os <<")"; 
+      os << ")";
     }
-  } else if (kind == kind::CONST_BOOLEAN) {
-    if (atom.getConst<bool>())
-      os << "true";
-    else
-      os << "false"; 
+    return;
+
+  case kind::CONST_BOOLEAN:
+    os << (term.getConst<bool>() ? "true" : "false");
+    return;
+
+  case kind::CHAIN: {
+    // LFSC doesn't allow declarations with variable numbers of
+    // arguments, so we have to flatten chained operators, like =.
+    Kind op = term.getOperator().getConst<Chain>().getOperator();
+    size_t n = term.getNumChildren();
+    std::ostringstream paren;
+    for(size_t i = 1; i < n; ++i) {
+      if(i + 1 < n) {
+        os << "(" << toLFSCKind(kind::AND) << " ";
+        paren << ")";
+      }
+      os << "(" << toLFSCKind(op) << " ";
+      printTerm(term[i - 1], os);
+      os << " ";
+      printTerm(term[i], os);
+      os << ")";
+      if(i + 1 < n) {
+        os << " ";
+      }
+    }
+    os << paren.str();
+    return;
   }
-  else {
-    std::cout << kind << "\n"; 
-    Assert (false && "Unsupported kind"); 
+
+  default:
+    Unhandled(k);
   }
+
+  Unreachable();
 }
 
 void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
@@ -142,56 +192,57 @@ void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
   ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
   ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
 
-  // collect declarations first 
+  // collect declarations first
   for(; it != end; ++it) {
-    addDeclaration(*it); 
+    addDeclaration(*it);
   }
   printDeclarations(os, paren);
 
   it = ProofManager::currentPM()->begin_assertions();
   for (; it != end; ++it) {
     os << "(% A" << counter++ << " (th_holds ";
-    printFormula(*it,  os);
+    printTerm(*it,  os);
     os << ")\n";
-    paren <<")"; 
+    paren << ")";
   }
 }
 
 void LFSCTheoryProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
   for (SortSet::const_iterator it = d_sortDeclarations.begin(); it != d_sortDeclarations.end(); ++it) {
-    os << "(% " << *it << " sort \n";
-    paren << ")"; 
+    os << "(% " << *it << " sort\n";
+    paren << ")";
   }
 
   // declaring the terms
   for (ExprSet::const_iterator it = d_termDeclarations.begin(); it != d_termDeclarations.end(); ++it) {
     Expr term = *it;
 
-    os << "(% " << term << " (term "; 
-    paren <<")"; 
+    os << "(% " << term << " ";
+    os << "(term ";
 
     Type type = term.getType();
     if (type.isFunction()) {
-      std::ostringstream fparen; 
+      std::ostringstream fparen;
       FunctionType ftype = (FunctionType)type;
       std::vector<Type> args = ftype.getArgTypes();
-      args.push_back(ftype.getRangeType()); 
-      os << "(arrow "; 
+      args.push_back(ftype.getRangeType());
+      os << "(arrow";
       for (unsigned i = 0; i < args.size(); i++) {
         Type arg_type = args[i];
-        Assert (arg_type.isSort());
-        os << arg_type << " ";  
+        //Assert (arg_type.isSort() || arg_type.isBoolean());
+        os << " " << arg_type;
         if (i < args.size() - 2) {
-          os << "(arrow ";
-          fparen <<")"; 
+          os << " (arrow";
+          fparen << ")";
         }
       }
-      os << fparen.str() << "))\n"; 
+      os << fparen.str() << "))\n";
     } else {
       Assert (term.isVariable());
-      Assert (type.isSort());
+      //Assert (type.isSort() || type.isBoolean());
       os << type << ")\n";
     }
+    paren << ")";
   }
-} 
+}

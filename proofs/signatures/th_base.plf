@@ -3,17 +3,17 @@
 ; Atomization / Clausification
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
- 
+
 ; binding between an LF var and an (atomic) formula
 (declare atom (! v var (! p formula type)))
 
 (declare decl_atom
   (! f formula
-  (! u (! v var 
+  (! u (! v var
        (! a (atom v f)
          (holds cln)))
     (holds cln))))
-    
+
 ; direct clausify
 (declare clausify_form
   (! f formula
@@ -21,7 +21,7 @@
   (! a (atom v f)
   (! u (th_holds f)
     (holds (clc (pos v) cln)))))))
-    
+
 (declare clausify_form_not
   (! f formula
   (! v var
@@ -33,7 +33,7 @@
   (! u (th_holds false)
     (holds cln)))
 
-    
+
 (declare th_let_pf
   (! f formula
   (! u (th_holds f)
@@ -73,7 +73,7 @@
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; temporary : 
+; temporary :
 (declare trust (th_holds false))
 
 (declare refl
@@ -104,4 +104,4 @@
               (! u1 (th_holds (= _ a1 b1))
               (! u2 (th_holds (= _ a2 b2))
                 (th_holds (= _ (apply _ _ a1 a2) (apply _ _ b1 b2))))))))))))
-                
+

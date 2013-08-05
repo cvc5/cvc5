@@ -2,7 +2,7 @@
 (declare tt bool)
 (declare ff bool)
 
-(declare var type) 
+(declare var type)
 
 (declare lit type)
 (declare pos (! x var lit))
@@ -15,7 +15,7 @@
 ; constructs for general clauses for R, Q, satlem
 
 (declare concat (! c1 clause (! c2 clause clause)))
-(declare clr (! l lit (! c clause clause))) 
+(declare clr (! l lit (! c clause clause)))
 
 ; code to check resolutions
 
@@ -33,21 +33,21 @@
     ((clc l c1)
       (match l
         ; Set mark 1 on v if it is not set, to indicate we should remove it.
-        ; After processing the rest of the clause, set mark 3 if we were already 
+        ; After processing the rest of the clause, set mark 3 if we were already
         ; supposed to remove v (so if mark 1 was set when we began).  Clear mark3
         ; if we were not supposed to be removing v when we began this call.
         ((pos v)
           (let m (ifmarked v tt (do (markvar v) ff))
           (let c' (simplify_clause c1)
             (match m
-              (tt (do (ifmarked3 v v (markvar3 v)) c'))                            
+              (tt (do (ifmarked3 v v (markvar3 v)) c'))
               (ff (do (ifmarked3 v (markvar3 v) v) (markvar v) (clc l c')))))))
         ; the same as the code for tt, but using different marks.
         ((neg v)
           (let m (ifmarked2 v tt (do (markvar2 v) ff))
           (let c' (simplify_clause c1)
             (match m
-              (tt (do (ifmarked4 v v (markvar4 v)) c'))                            
+              (tt (do (ifmarked4 v v (markvar4 v)) c'))
               (ff (do (ifmarked4 v (markvar4 v) v) (markvar2 v) (clc l c')))))))))
     ((concat c1 c2) (append (simplify_clause c1) (simplify_clause c2)))
     ((clr l c1)
@@ -74,23 +74,23 @@
 
 
 ; resolution proofs
-          
+
 (declare holds (! c clause type))
 
-(declare R (! c1 clause (! c2 clause 
+(declare R (! c1 clause (! c2 clause
            (! u1 (holds c1)
            (! u2 (holds c2)
            (! n var
             (holds (concat (clr (pos n) c1)
-                     (clr (neg n) c2)))))))))   
+                     (clr (neg n) c2)))))))))
 
-(declare Q (! c1 clause (! c2 clause 
+(declare Q (! c1 clause (! c2 clause
            (! u1 (holds c1)
            (! u2 (holds c2)
            (! n var
             (holds (concat (clr (neg n) c1)
                      (clr (pos n) c2)))))))))
-                     
+
 (declare satlem_simplify
                 (! c1 clause
                 (! c2 clause
@@ -99,7 +99,7 @@
                 (! r (^ (simplify_clause c1) c2)
                 (! u2 (! x (holds c2) (holds c3))
                    (holds c3))))))))
-                   
+
 (declare satlem
   (! c clause
   (! c2 clause
@@ -110,17 +110,17 @@
 ; A little example to demonstrate simplify_clause.
 ; It can handle nested clr's of both polarities,
 ; and correctly cleans up marks when it leaves a
-; clr or clc scope.  Uncomment and run with 
+; clr or clc scope.  Uncomment and run with
 ; --show-runs to see it in action.
-; 
-; (check 
+;
+; (check
 ;   (% v1 var
 ;   (% u1 (holds (concat (clr (neg v1) (clr (pos v1) (clc (pos v1) (clr (pos v1) (clc (pos v1) (clc (neg v1) cln))))))
 ;                    (clc (pos v1) (clc (pos v1) cln))))
 ;    (satlem _ _ _ u1 (\ x x))))))
 
 
-;(check 
+;(check
 ;   (% v1 var
 ;   (% u1 (holds (clr (neg v1) (concat (clc (neg v1) cln)
 ;                                      (clr (neg v1) (clc (neg v1) cln)))))
