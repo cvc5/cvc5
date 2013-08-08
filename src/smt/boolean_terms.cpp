@@ -288,7 +288,7 @@ TypeNode BooleanTermConverter::convertType(TypeNode type, bool datatypesContext)
     }
     return newRec;
   }
-  if(type.getNumChildren() > 0) {
+  if(!type.isSort() && type.getNumChildren() > 0) {
     Debug("boolean-terms") << "here at A for " << type << ":" << type.getId() << endl;
     // This should handle tuples and arrays ok.
     // Might handle function types too, but they can't go
@@ -626,7 +626,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             worklist.pop();
             goto next_worklist;
           }
-        } else if(t.getNumChildren() > 0) {
+        } else if(!t.isSort() && t.getNumChildren() > 0) {
           for(TypeNode::iterator i = t.begin(); i != t.end(); ++i) {
             if((*i).isBoolean()) {
               vector<TypeNode> argTypes(t.begin(), t.end());
