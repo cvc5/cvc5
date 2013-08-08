@@ -1970,8 +1970,7 @@ void SmtEnginePrivate::simpITE() {
 
   Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
 
-  for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-
+  for (unsigned i = 0; i < d_realAssertionsEnd; ++i) {
     d_assertionsToCheck[i] = d_smt.d_theoryEngine->ppSimpITE(d_assertionsToCheck[i]);
   }
 }
