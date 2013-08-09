@@ -110,7 +110,7 @@ svn_versioninfo.cpp: svninfo
 # This .tmp business is to keep from having to re-compile options.cpp
 # (and then re-link the libraries) if nothing has changed.
 svninfo: svninfo.tmp
-	$(AM_V_GEN)diff -q svninfo.tmp svninfo &>/dev/null || mv svninfo.tmp svninfo || true
+	$(AM_V_GEN)if diff -q svninfo.tmp svninfo &>/dev/null; then rm -f svninfo.tmp; else mv svninfo.tmp svninfo; fi
 # .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
 .PHONY: svninfo.tmp
 svninfo.tmp:
@@ -138,7 +138,7 @@ git_versioninfo.cpp: gitinfo
 # This .tmp business is to keep from having to re-compile options.cpp
 # (and then re-link the libraries) if nothing has changed.
 gitinfo: gitinfo.tmp
-	$(AM_V_GEN)diff -q gitinfo.tmp gitinfo &>/dev/null || mv gitinfo.tmp gitinfo || true
+	$(AM_V_GEN)if diff -q gitinfo.tmp gitinfo &>/dev/null; then rm -f gitinfo.tmp; else mv gitinfo.tmp gitinfo; fi || true
 # .PHONY ensures the .tmp version is always rebuilt (to check for any changes)
 .PHONY: gitinfo.tmp
 gitinfo.tmp:
@@ -163,15 +163,18 @@ install-data-local:
 		$(mkinstalldirs) "$$(dirname "$(DESTDIR)$(includedir)/cvc4/$$d")"; \
 		if [ -e "$$f" ]; then \
 			path="$$f"; \
-			fixpath="$$f.fix"; \
 		else \
 			path="$(srcdir)/$$f"; \
-			fixpath="$(builddir)/$$f.fix"; \
-			$(MKDIR_P) "`dirname "$$fixpath"`"; \
 		fi; \
+		fixpath="$(top_builddir)/header_install.fix"; \
 		sed 's,^\([ \t]*#[ \t]*include[ \t*]\)"\(.*\)"\([ \t]*\)$$,\1<cvc4/\2>\3,' "$$path" > "$$fixpath" || exit 1; \
 		echo $(INSTALL_DATA) "$$fixpath" "$(DESTDIR)$(includedir)/cvc4/$$d"; \
-		$(INSTALL_DATA) "$$fixpath" "$(DESTDIR)$(includedir)/cvc4/$$d" || exit 1; \
+		if $(INSTALL_DATA) "$$fixpath" "$(DESTDIR)$(includedir)/cvc4/$$d"; then \
+			rm -f "$$fixpath"; \
+		else \
+			rm -f "$$fixpath"; \
+			exit 1; \
+		fi; \
 	done
 
 uninstall-local:
@@ -196,34 +199,3 @@ uninstall-local:
 	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"
-
-# clean up the .fix files
-mostlyclean-local:
-	(echo include/cvc4.h; \
-	 echo include/cvc4_public.h; \
-	 echo include/cvc4parser_public.h; \
-	 echo util/tls.h; \
-	 echo util/integer.h; \
-	 echo util/rational.h; \
-	 find * -name '*.h.fix' | \
-		xargs grep -l '^# *include  *<cvc4/cvc4.*_public\.h>' | \
-		sed 's,\.fix$$,,'; \
-	(cd "$(srcdir)" && find * -name '*.h' | \
-		xargs grep -l '^# *include  *"cvc4.*_public\.h"')) | \
-	while read f; do \
-		if expr "$$f" : ".*_\(template\|private\|private_library\|test_utils\)\.h$$" &>/dev/null; then \
-			continue; \
-		fi; \
-		d="$$(echo "$$f" | sed 's,^include/,,')"; \
-		if [ -e "$$f" ]; then \
-			path="$$f"; \
-			fixpath="$$f.fix"; \
-		else \
-			path="$(srcdir)/$$f"; \
-			fixpath="$(builddir)/$$f.fix"; \
-			$(MKDIR_P) "`dirname "$$fixpath"`"; \
-		fi; \
-		echo rm -f "$$fixpath"; \
-		rm -f "$$fixpath"; \
-	done
-
