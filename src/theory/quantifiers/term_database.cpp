@@ -194,18 +194,20 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
-      if( tn.isInteger() || tn.isReal() ){
-        mbt = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-      }else{
+    if( tn.isInteger() || tn.isReal() ){
+      mbt = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+    }else if( !tn.isSort() ){
+      mbt = tn.mkGroundTerm();
+    }else{
+      if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
         std::stringstream ss;
         ss << Expr::setlanguage(options::outputLanguage());
         ss << "e_" << tn;
         mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
         Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
+      }else{
+        mbt = d_type_map[ tn ][ 0 ];
       }
-    }else{
-      mbt = d_type_map[ tn ][ 0 ];
     }
     ModelBasisAttribute mba;
     mbt.setAttribute(mba,true);

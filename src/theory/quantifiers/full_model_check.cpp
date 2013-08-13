@@ -553,7 +553,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
 
 void FullModelChecker::initializeType( FirstOrderModelFmc * fm, TypeNode tn ){
   if( fm->d_model_basis_rep.find( tn )==fm->d_model_basis_rep.end() ){
-    Trace("fmc") << "Initialize type " << tn << std::endl;
+    Trace("fmc") << "Initialize type " << tn << " hasType = " << fm->d_rep_set.hasType(tn) << std::endl;
     Node mbn;
     if (!fm->d_rep_set.hasType(tn)) {
       mbn = fm->getSomeDomainElement(tn);
@@ -684,13 +684,16 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
             }
             d_triedLemmas++;
             if( d_qe->addInstantiation( f, m ) ){
+              Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
               d_addedLemmas++;
             }else{
+              Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
               //this can happen if evaluation is unknown
               //might try it next effort level
               d_star_insts[f].push_back(i);
             }
           }else{
+            Trace("fmc-debug-inst") << "** Instantiation was already true." << std::endl;
             //might try it next effort level
             d_star_insts[f].push_back(i);
           }
@@ -1146,7 +1149,7 @@ void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, De
 }
 
 int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c ) {
-  Trace("fmc-debug2") << "isCompat " << c << std::endl;
+  Trace("fmc-debug3") << "isCompat " << c << std::endl;
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
     if( options::fmfFmcInterval() && cond[i].getType().isInteger() ){
@@ -1164,7 +1167,7 @@ int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & c
 }
 
 bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c ) {
-  Trace("fmc-debug2") << "doMeet " << c << std::endl;
+  Trace("fmc-debug3") << "doMeet " << c << std::endl;
   Assert(cond.size()==c.getNumChildren()+1);
   for (unsigned i=1; i<cond.size(); i++) {
     if( cond[i]!=c[i-1] ) {

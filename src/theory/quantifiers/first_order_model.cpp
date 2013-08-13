@@ -630,7 +630,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
   Node curr;
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
-    Node v = getUsedRepresentative( d_models[op]->d_value[i] );
+    Node v = getRepresentative( d_models[op]->d_value[i] );
     if( curr.isNull() ){
       curr = v;
     }else{
