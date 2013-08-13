@@ -123,7 +123,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     exit(0);
   }
 
-  segvNoSpin = opts[options::segvNoSpin];
+  segvSpin = opts[options::segvSpin];
 
   // If in competition mode, set output stream option to flush immediately
 #ifdef CVC4_COMPETITION_MODE
