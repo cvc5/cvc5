@@ -10,6 +10,8 @@
  ** \brief Full model check class
  **/
 
+#include "cvc4_private.h"
+
 #ifndef FULL_MODEL_CHECK
 #define FULL_MODEL_CHECK
 

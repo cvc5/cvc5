@@ -1,4 +1,3 @@
-
 /*********************                                                        */
 /*! \file full_model_check.cpp
  ** \verbatim
