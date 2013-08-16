@@ -237,16 +237,18 @@ cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
 if [ $dump = no ]; then
   echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
+  time ( :; \
   ( cd `dirname "$benchmark"`;
     $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
     echo $? >"$exitstatusfile"
-  ) > "$outfile" 2> "$errfile"
+  ) > "$outfile" 2> "$errfile" )
 else
   echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` \| $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
+  time ( :; \
   ( cd `dirname "$benchmark"`;
     $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` | $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
     echo $? >"$exitstatusfile"
-  ) > "$outfile" 2> "$errfile"
+  ) > "$outfile" 2> "$errfile" )
 fi
 
 diffs=`diff -u --strip-trailing-cr "$expoutfile" "$outfile"`
@@ -277,10 +279,11 @@ if [ "$proof" = yes -a "$expected_proof" = yes ]; then
   cp "$benchmark" "$pfbenchmark";
   echo "$proof_command" >>"$pfbenchmark";
   echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
+  time ( :; \
   ( cd `dirname "$pfbenchmark"`;
     $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"`;
     echo $? >"$exitstatusfile"
-  ) > "$outfile" 2> "$errfile"
+  ) > "$outfile" 2> "$errfile" )
 
   gettemp pfoutfile cvc4_proof.$$.XXXXXXXXXX
   diff --unchanged-group-format='' \

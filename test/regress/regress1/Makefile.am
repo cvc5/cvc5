@@ -18,6 +18,10 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	bug136.smt \
 	bug148.smt \
+	bug394.smt2 \
+	DTP_k2_n35_c175_s15.smt2 \
+	GEO123+1.minimized.smt2 \
+	error1.smt \
 	friedman_n4_i5.smt \
 	hole7.cvc \
 	hole8.cvc \
@@ -28,9 +32,19 @@ TESTS =	bug136.smt \
 	ooo.tag10.smt2 \
 	hash_sat_06_19.smt2 \
 	hash_sat_09_09.smt2 \
-	ooo.rf6.smt2
+	ooo.rf6.smt2 \
+	auflia-fuzz06.smt \
+	piVC_5581bd.smt2 \
+	typed_v1l50016-simp.cvc \
+	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2 \
+	xs-09-16-3-4-1-5.smt \
+	xs-09-16-3-4-1-5.decn.smt \
+	uflia-error0.smt2
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2.expect \
+	uflia-error0.smt2.expect \
+	xs-09-16-3-4-1-5.decn.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

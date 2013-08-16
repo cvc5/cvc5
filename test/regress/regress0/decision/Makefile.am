@@ -22,8 +22,6 @@ TESTS =	\
 	quant-Arrays_Q1-noinfer.smt2 \
 	quant-ex1.smt2 \
 	quant-ex1.disable_miniscope.smt2 \
-	uflia-error0.smt2 \
-	uflia-xs-09-16-3-4-1-5.smt \
 	uflia-xs-09-16-3-4-1-5.delta03.smt \
 	aufbv-fuzz01.smt \
 	bug347.smt \
@@ -38,20 +36,13 @@ TESTS =	\
 	pp-regfile.delta01.smt \
 	pp-regfile.delta02.smt
 
-# Correct, but takes too long:
-#	pp-regfile.smt \
-#
-
 EXTRA_DIST = $(TESTS) \
 	aufbv-fuzz01.smt.expect \
 	pp-regfile.delta01.smt.expect \
-	uflia-error0.smt2.expect \
 	bitvec0.delta01.smt.expect \
 	pp-regfile.delta02.smt.expect \
 	uflia-xs-09-16-3-4-1-5.delta03.smt.expect \
 	bitvec0.smt.expect \
-	pp-regfile.smt.expect \
-	uflia-xs-09-16-3-4-1-5.smt.expect \
 	bitvec5.smt.expect \
 	quant-Arrays_Q1-noinfer.smt2.expect \
 	wchains010ue.delta02.smt.expect \

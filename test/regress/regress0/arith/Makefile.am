@@ -23,7 +23,6 @@ TESTS =	\
 	delta-minimized-row-vector-bug.smt \
 	fuzz_3-eq.smt \
 	leq.01.smt \
-	DTP_k2_n35_c175_s15.smt2 \
 	mod.01.smt2 \
 	mod.02.smt2 \
 	mod.03.smt2 \

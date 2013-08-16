@@ -23,9 +23,14 @@ TESTS =	bmc-ibm-1.smt \
 	friedman_n6_i4.smt \
 	hole9.cvc \
 	qwh.35.405.shuffled-as.sat03-1651.smt \
-	eq_diamond14.smt
+	eq_diamond14.smt \
+	incorrect1.smt \
+	incorrect2.smt \
+	bug497.cvc \
+	pp-regfile.smt
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	pp-regfile.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

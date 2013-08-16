@@ -33,7 +33,6 @@ TESTS =	\
 	empty_tuprec.cvc \
 	mutually-recursive.cvc \
 	rewriter.cvc \
-	typed_v1l50016-simp.cvc \
 	typed_v10l30054.cvc \
 	typed_v1l80005.cvc \
 	typed_v2l30079.cvc \

@@ -35,9 +35,8 @@ TESTS =	\
 	smtlib384a03.smt2 \
 	smtlib46f14a.smt2 \
 	smtlibf957ea.smt2 \
-	gauss_init_0030.fof.smt2 \
-	piVC_5581bd.smt2 
-	 
+	gauss_init_0030.fof.smt2
+
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
 

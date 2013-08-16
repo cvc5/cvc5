@@ -105,7 +105,6 @@ TPTP_TESTS =
 
 # Regression tests derived from bug reports
 BUG_TESTS = \
-	GEO123+1.minimized.smt2 \
 	smt2output.smt2 \
 	bug32.cvc \
 	bug49.smt \
@@ -140,7 +139,6 @@ BUG_TESTS = \
 	bug480.smt2 \
 	bug484.smt2 \
 	bug486.cvc \
-	bug497.cvc \
 	bug507.smt2 \
 	bug512.smt2 \
 	bug512.minimized.smt2 \

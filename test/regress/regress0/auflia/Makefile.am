@@ -20,7 +20,6 @@ TESTS =	\
 	fuzz03.smt \
 	fuzz04.smt \
 	fuzz05.smt \
-	fuzz06.smt \
 	fuzz-error232.smt \
 	fuzz-error1099.smt \
 	a17.smt \

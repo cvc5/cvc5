@@ -31,8 +31,8 @@ TESTS =	\
 	arith-int-048.cvc \
 	arith-int-050.cvc \
 	arith-int-084.cvc \
-	arith-int-097.cvc \
-	arith-int-085.cvc
+	arith-int-085.cvc \
+	arith-int-097.cvc
 
 EXTRA_DIST = $(TESTS) \
 	arith-int-001.cvc \
@@ -120,7 +120,6 @@ EXTRA_DIST = $(TESTS) \
 	arith-int-098.cvc \
 	arith-int-099.cvc \
 	arith-int-100.cvc
-
 
 FAILING_TESTS = \
 	arith-int-007.cvc \
