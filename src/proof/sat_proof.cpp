@@ -595,7 +595,7 @@ void SatProof::markDeleted(CRef clause) {
 
 /// store mapping from theory atoms to new variables
 void SatProof::storeAtom(::Minisat::Lit literal, Expr atom) {
-  (d_atomToVar.find(atom) == d_atomToVar.end());
+  Assert(d_atomToVar.find(atom) == d_atomToVar.end());
   d_atomToVar[atom] = literal; 
 }
 
