@@ -43,6 +43,7 @@
 #include "util/ite_removal.h"
 
 namespace CVC4 {
+namespace theory {
 
 class ITESimplifier {
   Node d_true;
@@ -160,6 +161,7 @@ public:
 
 };
 
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
 #endif

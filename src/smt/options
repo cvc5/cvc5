@@ -69,7 +69,7 @@ common-option cumulativeMillisecondLimit tlimit --tlimit=MS "unsigned long"
 common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long"
  enable time limiting per query (give milliseconds)
 common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
- enable resource limiting
+ enable resource limiting (currently, roughly the number of SAT conflicts)
 common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
  enable resource limiting per query
 

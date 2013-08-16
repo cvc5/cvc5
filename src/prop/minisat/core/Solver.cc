@@ -231,7 +231,7 @@ CRef Solver::reason(Var x) {
     int i, j;
     Lit prev = lit_Undef;
     for (i = 0, j = 0; i < explanation.size(); ++ i) {
-      // This clause is valid theory propagation, so it's level is the level of the top literal
+      // This clause is valid theory propagation, so its level is the level of the top literal
       explLevel = std::max(explLevel, intro_level(var(explanation[i])));
 
       Assert(value(explanation[i]) != l_Undef);
@@ -348,7 +348,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
           PROOF( if (ps.size() == 1) { ProofManager::getSatProof()->registerUnitClause(ps[0], true); } )
-          return ok = (propagate(CHECK_WITHOUTH_THEORY) == CRef_Undef);
+          return ok = (propagate(CHECK_WITHOUT_THEORY) == CRef_Undef);
         } else return ok;
       }
     }
@@ -806,7 +806,7 @@ CRef Solver::propagate(TheoryCheckType type)
         // Propagate on the clauses
         confl = propagateBool();
         // If no conflict, do the theory check
-        if (confl == CRef_Undef && type != CHECK_WITHOUTH_THEORY) {
+        if (confl == CRef_Undef && type != CHECK_WITHOUT_THEORY) {
             // Do the theory check
             if (type == CHECK_FINAL_FAKE) {
               theoryCheck(CVC4::theory::Theory::EFFORT_FULL);
@@ -1019,8 +1019,8 @@ void Solver::removeClausesAboveLevel(vec<CRef>& cs, int level)
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
         if (c.level() > level) {
-          assert(!locked(c));
-          removeClause(cs[i]);
+            assert(!locked(c));
+            removeClause(cs[i]);
         } else {
             cs[j++] = cs[i];
         }
@@ -1050,7 +1050,7 @@ bool Solver::simplify()
 {
     assert(decisionLevel() == 0);
 
-    if (!ok || propagate(CHECK_WITHOUTH_THEORY) != CRef_Undef)
+    if (!ok || propagate(CHECK_WITHOUT_THEORY) != CRef_Undef)
         return ok = false;
 
     if (nAssigns() == simpDB_assigns || (simpDB_props > 0))
@@ -1212,7 +1212,7 @@ lbool Solver::search(int nof_conflicts)
 
                 if (next == lit_Undef) {
                     // We need to do a full theory check to confirm
-                  Debug("minisat::search") << "Doing a full theoy check..."
+                  Debug("minisat::search") << "Doing a full theory check..."
                                            << std::endl;
                     check_type = CHECK_FINAL;
                     continue;
@@ -1492,7 +1492,7 @@ void Solver::pop()
     Debug("minisat") << "== unassigning " << trail.last() << std::endl;
     Var      x  = var(trail.last());
     if (user_level(x) > assertionLevel) {
-      assigns [x] = l_Undef;
+      assigns[x] = l_Undef;
       vardata[x] = VarData(CRef_Undef, -1, -1, intro_level(x), -1);
       if(phase_saving >= 1 && (polarity[x] & 0x2) == 0)
         polarity[x] = sign(trail.last());
@@ -1505,7 +1505,7 @@ void Solver::pop()
   // The head should be at the trail top
   qhead = trail.size();
 
-  // Remove the clause
+  // Remove the clauses
   removeClausesAboveLevel(clauses_persistent, assertionLevel);
   removeClausesAboveLevel(clauses_removable, assertionLevel);
 

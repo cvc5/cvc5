@@ -12,8 +12,9 @@
 %ignore CVC4::operator<<(std::ostream&, enum Result::UnknownExplanation);
 
 %ignore CVC4::operator==(enum Result::Sat, const Result&);
-%ignore CVC4::operator==(enum Result::Validity, const Result&);
 %ignore CVC4::operator!=(enum Result::Sat, const Result&);
+
+%ignore CVC4::operator==(enum Result::Validity, const Result&);
 %ignore CVC4::operator!=(enum Result::Validity, const Result&);
 
 %include "util/result.h"

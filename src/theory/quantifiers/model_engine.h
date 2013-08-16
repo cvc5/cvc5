@@ -56,7 +56,7 @@ public:
   //get relevant domain
   RelevantDomain * getRelevantDomain() { return d_rel_dom; }
   //get the builder
-  QModelBuilder * getModelBuilder() { return d_builder; }
+  QModelBuilder* getModelBuilder() { return d_builder; }
 public:
   void check( Theory::Effort e );
   void registerQuantifier( Node f );

@@ -516,7 +516,7 @@ public:
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
 
   /**
-   * Return the model value of the give shared term (or null if not avalilable.
+   * Return the model value of the give shared term (or null if not available).
    */
   virtual Node getModelValue(TNode var) { return Node::null(); }
 

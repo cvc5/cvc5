@@ -72,7 +72,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
     // Variables
     if (node.isVar()) {
       if (theoryOf(node.getType()) != theory::THEORY_BOOL) {
-        // We treat the varibables as uninterpreted
+        // We treat the variables as uninterpreted
         return s_uninterpretedSortOwner;
       } else {
         // Except for the Boolean ones, which we just ignore anyhow

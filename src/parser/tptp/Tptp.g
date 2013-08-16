@@ -189,7 +189,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       }
       */
       PARSER_STATE->includeFile(name /* , inclArgs */ );
-      // The command of the included file will be produced at the new parseCommand call
+      // The command of the included file will be produced at the next parseCommand() call
       cmd = new EmptyCommand("include::" + name);
     }
   | EOF

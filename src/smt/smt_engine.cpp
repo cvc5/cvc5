@@ -684,7 +684,7 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  if (options::bitvectorEagerBitblast()) {
+  if(options::bitvectorEagerBitblast()) {
     // Eager solver should use the internal decision strategy
     options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
   }
@@ -1380,20 +1380,19 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       // otherwise expand it
 
       NodeManager* nm = d_smt.d_nodeManager;
-      // FIXME: this theory specific code should be factored out of the SmtEngine, somehow
+      // FIXME: this theory-specific code should be factored out of the
+      // SmtEngine, somehow
       switch(k) {
       case kind::BITVECTOR_SDIV:
       case kind::BITVECTOR_SREM:
-      case kind::BITVECTOR_SMOD: {
+      case kind::BITVECTOR_SMOD:
         node = bv::TheoryBVRewriter::eliminateBVSDiv(node);
         break;
-      }
 
       case kind::BITVECTOR_UDIV:
-      case kind::BITVECTOR_UREM: {
+      case kind::BITVECTOR_UREM:
         node = expandBVDivByZero(node);
         break;
-      }
 
       case kind::DIVISION: {
         // partial function: division
@@ -2961,7 +2960,7 @@ void SmtEnginePrivate::processAssertions() {
           Rewriter::rewrite(Node(builder));
       }
       // For some reason this is needed for some benchmarks, such as
-      // http://church.cims.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
+      // http://cvc4.cs.nyu.edu/benchmarks/smtlib2/QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
       // Figure it out later
       removeITEs();
       //      Assert(iteRewriteAssertionsEnd == d_assertionsToCheck.size());

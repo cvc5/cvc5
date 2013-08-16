@@ -107,7 +107,7 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer) {
     Debug("parser") << "Can't open " << fileName << std::endl;
     return false;
   }
-  // Samething than the predefined PUSHSTREAM(in);
+  // Same thing as the predefined PUSHSTREAM(in);
   lexer->pushCharStream(lexer,in);
   // restart it
   //lexer->rec->state->tokenStartCharIndex	= -10;
@@ -163,7 +163,7 @@ void Tptp::includeFile(std::string fileName) {
   // Test in the directory of the actual parsed file
   std::string currentDirFileName;
   if(inputName != "<stdin>") {
-    // TODO: Use dirname ot Boost::filesystem?
+    // TODO: Use dirname or Boost::filesystem?
     size_t pos = inputName.rfind('/');
     if(pos != std::string::npos) {
       currentDirFileName = std::string(inputName, 0, pos + 1);

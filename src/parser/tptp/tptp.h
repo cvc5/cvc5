@@ -203,7 +203,7 @@ inline void Tptp::makeApplication(Expr& expr, std::string& name,
 
 inline Command* Tptp::makeCommand(FormulaRole fr, Expr& expr, bool cnf) {
   // For SZS ontology compliance.
-  // If we're in cnf() though, conjectures don't result in "Theorem" or
+  // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".
   if(!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
     d_hasConjecture = true;

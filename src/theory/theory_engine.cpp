@@ -212,7 +212,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         }
       }
       if (multipleTheories) {
-        // Collect the shared terms if there are multipe theories
+        // Collect the shared terms if there are multiple theories
         NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, preprocessed);
       }
     }
@@ -1317,7 +1317,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
-  if(Trace.isOn("lemma-ites")) {
+  if(Debug.isOn("lemma-ites")) {
     Debug("lemma-ites") << "removed ITEs from lemma: " << node << endl;
     Debug("lemma-ites") << " + now have the following "
                         << additionalLemmas.size() << " lemma(s):" << endl;
@@ -1417,7 +1417,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
 
     Debug("theory::explain") << "TheoryEngine::explain(): processing [" << toExplain.timestamp << "] " << toExplain.node << " sent from " << toExplain.theory << endl;
 
-    // If a treu constant or a negation of a false constant we can ignore it
+    // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.node.isConst() && toExplain.node.getConst<bool>()) {
       ++ i;
       continue;

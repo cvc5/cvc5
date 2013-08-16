@@ -67,7 +67,7 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* c
     if(options::minisatUseElim() &&
        options::minisatUseElim.wasSetByUser() &&
        enableIncremental) {
-        WarningOnce() << "Incremental mode incompatible with --minisat-elimination" << std::endl;
+        WarningOnce() << "Incremental mode incompatible with --minisat-elim" << std::endl;
     }
 
     vec<Lit> dummy(1,lit_Undef);
@@ -239,7 +239,7 @@ bool SimpSolver::strengthenClause(CRef cr, Lit l)
         updateElimHeap(var(l));
     }
 
-    return c.size() == 1 ? enqueue(c[0]) && propagate(CHECK_WITHOUTH_THEORY) == CRef_Undef : true;
+    return c.size() == 1 ? enqueue(c[0]) && propagate(CHECK_WITHOUT_THEORY) == CRef_Undef : true;
 }
 
 
@@ -346,7 +346,7 @@ bool SimpSolver::implied(const vec<Lit>& c)
             uncheckedEnqueue(~c[i]);
         }
 
-    bool result = propagate(CHECK_WITHOUTH_THEORY) != CRef_Undef;
+    bool result = propagate(CHECK_WITHOUT_THEORY) != CRef_Undef;
     cancelUntil(0);
     return result;
 }
@@ -435,7 +435,7 @@ bool SimpSolver::asymm(Var v, CRef cr)
         else
             l = c[i];
 
-    if (propagate(CHECK_WITHOUTH_THEORY) != CRef_Undef){
+    if (propagate(CHECK_WITHOUT_THEORY) != CRef_Undef){
         cancelUntil(0);
         asymm_lits++;
         if (!strengthenClause(cr, l))

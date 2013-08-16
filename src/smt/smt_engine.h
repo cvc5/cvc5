@@ -507,9 +507,11 @@ public:
   /**
    * Set a resource limit for SmtEngine operations.  This is like a time
    * limit, but it's deterministic so that reproducible results can be
-   * obtained.  However, please note that it may not be deterministic
-   * between different versions of CVC4, or even the same version on
-   * different platforms.
+   * obtained.  Currently, it's based on the number of conflicts.
+   * However, please note that the definition may change between different
+   * versions of CVC4 (as may the number of conflicts required, anyway),
+   * and it might even be different between instances of the same version
+   * of CVC4 on different platforms.
    *
    * A cumulative and non-cumulative (per-call) resource limit can be
    * set at the same time.  A call to setResourceLimit() with

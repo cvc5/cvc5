@@ -342,7 +342,7 @@ command returns [CVC4::Command* cmd = NULL]
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[expr, expr2]
     { cmd = new AssertCommand(expr); }
-  | /* checksat */
+  | /* check-sat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( term[expr, expr2]
       { if(PARSER_STATE->strictModeEnabled()) {
@@ -781,7 +781,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           (kind == CVC4::kind::AND || kind == CVC4::kind::OR) &&
           args.size() == 1) {
         /* Unary AND/OR can be replaced with the argument.
-	       It just so happens expr should already by the only argument. */
+         * It just so happens expr should already be the only argument. */
         assert( expr == args[0] );
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {

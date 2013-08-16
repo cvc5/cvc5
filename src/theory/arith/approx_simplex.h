@@ -24,7 +24,7 @@ public:
 
   /**
    * If glpk is enabled, return a subclass that can do something.
-   * If glpk is disabled, return a sublass that does nothing.
+   * If glpk is disabled, return a subclass that does nothing.
    */
   static ApproximateSimplex* mkApproximateSimplexSolver(const ArithVariables& vars);
   ApproximateSimplex();
@@ -52,7 +52,7 @@ public:
   virtual ApproxResult solveMIP() = 0;
   virtual Solution extractMIP() const = 0;
 
-  /** UTILIES FOR DEALING WITH ESTIMATES */
+  /** UTILITIES FOR DEALING WITH ESTIMATES */
 
   static const double SMALL_FIXED_DELTA;
   static const double TOLERENCE;

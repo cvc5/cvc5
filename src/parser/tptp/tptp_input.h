@@ -64,7 +64,7 @@ public:
 
   /** Get the language that this Input is reading. */
   InputLanguage getLanguage() const throw() {
-    return language::input::LANG_SMTLIB_V2;
+    return language::input::LANG_TPTP;
   }
 
 protected:

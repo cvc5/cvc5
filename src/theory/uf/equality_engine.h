@@ -741,7 +741,7 @@ public:
   /**
    * Adds a predicate p with given polarity. The predicate asserted
    * should be in the congruence closure kinds (otherwise it's
-   * useless.
+   * useless).
    *
    * @param p the (non-negated) predicate
    * @param polarity true if asserting the predicate, false if
@@ -777,7 +777,7 @@ public:
   void getUseListTerms(TNode t, std::set<TNode>& output);
 
   /**
-   * Get an explanation of the equality t1 = t2 begin true of false.
+   * Get an explanation of the equality t1 = t2 being true or false.
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */

@@ -56,7 +56,7 @@ option arithMLTrick miplib-trick --enable-miplib-trick/--disable-miplib-trick bo
  turns on the preprocessing step of attempting to infer bounds on miplib problems
 /turns off the preprocessing step of attempting to infer bounds on miplib problems
 
-option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs unsigned :default 1
+option arithMLTrickSubstitutions miplib-trick-subs --miplib-trick-subs=N unsigned :default 1
  do substitution for miplib 'tmp' vars if defined in <= N eliminated vars
 
 option doCutAllBounded --cut-all-bounded bool :default false :read-write
@@ -67,11 +67,11 @@ option maxCutsInContext --maxCutsInContext unsigned :default 65535
  maximum cuts in a given context before signalling a restart
 
 option revertArithModels --revert-arith-models-on-unsat bool :default false
- Revert the arithmetic model to a known safe model on unsat if one is cached
+ revert the arithmetic model to a known safe model on unsat if one is cached
 
 option havePenalties --fc-penalties bool :default false :read-write
  turns on degenerate pivot penalties
-/ turns off degenerate pivot penalties
+/turns off degenerate pivot penalties
 
 option useFC --use-fcsimplex bool :default false :read-write
  use focusing and converging simplex (FMCAD 2013 submission)
@@ -80,25 +80,25 @@ option useSOI --use-soi bool :default false :read-write
  use sum of infeasibility simplex (FMCAD 2013 submission)
 
 option restrictedPivots --restrict-pivots bool :default true :read-write
- have a pivot cap for simplex at effort levels below fullEffort.
+ have a pivot cap for simplex at effort levels below fullEffort
 
 option collectPivots --collect-pivot-stats bool :default false :read-write
  collect the pivot history
 
 option fancyFinal --fancy-final bool :default false :read-write
- Tuning how final check works for really hard problems.
+ tuning how final check works for really hard problems
 
 option exportDioDecompositions --dio-decomps bool :default false :read-write
- Let skolem variables for integer divisibility constraints leak from the dio solver.
+ let skolem variables for integer divisibility constraints leak from the dio solver
 
 option newProp --new-prop bool :default false :read-write
- Use the new row propagation system
+ use the new row propagation system
 
 option arithPropAsLemmaLength --arith-prop-clauses uint16_t :default 8 :read-write
- Rows shorter than this are propagated as clauses
+ rows shorter than this are propagated as clauses
 
 option soiQuickExplain --soi-qe bool :default false :read-write
- Use quick explain to minimize the sum of infeasibility conflicts.
+ use quick explain to minimize the sum of infeasibility conflicts
 
 option rewriteDivk rewrite-divk --rewrite-divk bool :default false
  rewrite division and mod when by a constant into linear terms

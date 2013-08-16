@@ -773,7 +773,7 @@ private:
   void dumpAssertions(const char* tag);
 
   /** For preprocessing pass simplifying ITEs */
-  ITESimplifier d_iteSimplifier;
+  theory::ITESimplifier d_iteSimplifier;
 
   /** For preprocessing pass simplifying unconstrained expressions */
   UnconstrainedSimplifier d_unconstrainedSimp;

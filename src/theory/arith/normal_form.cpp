@@ -22,7 +22,7 @@
 using namespace std;
 
 namespace CVC4 {
-namespace theory{
+namespace theory {
 namespace arith {
 
 bool Variable::isDivMember(Node n){

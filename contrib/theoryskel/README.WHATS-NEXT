@@ -7,6 +7,11 @@ Your next steps will likely be:
   and constants
 * to write code in theory_$dir_rewriter.h to implement a normal form
   for your theory's terms
+* for any new types that you have introduced, add "mk*Type()" functions to
+  the NodeManager and ExprManager in src/expr/node_manager.{h,cpp} and
+  src/expr/expr_manager_template.{h,cpp}.  You may also want "is*()" testers
+  in src/expr/type_node.h and a corresponding Type derived class in
+  src/expr/type.h.
 * to write parser rules in src/parser/cvc/Cvc.g to support the CVC input
   language, src/parser/smt/Smt.g to support the (deprecated) SMT-LIBv1
   language, and src/parser/smt2/Smt2.g to support SMT-LIBv2
