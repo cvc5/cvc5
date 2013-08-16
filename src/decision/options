@@ -6,7 +6,7 @@
 module DECISION "decision/options.h" Decision heuristics
 
 # When/whether to use any decision strategies
-option decisionMode --decision=MODE decision::DecisionMode :handler CVC4::decision::stringToDecisionMode :default decision::DECISION_STRATEGY_INTERNAL :read-write :include "decision/decision_mode.h" :handler-include "decision/options_handlers.h"
+option decisionMode decision-mode --decision=MODE decision::DecisionMode :handler CVC4::decision::stringToDecisionMode :default decision::DECISION_STRATEGY_INTERNAL :read-write :include "decision/decision_mode.h" :handler-include "decision/options_handlers.h"
  choose decision mode, see --decision=help
 
 # only use DE to determine when to stop, not to make decisions
