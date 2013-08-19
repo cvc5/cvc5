@@ -344,7 +344,13 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new AssertCommand(expr); }
   | /* checksat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new CheckSatCommand(MK_CONST(bool(true))); }
+    ( term[expr, expr2]
+      { if(PARSER_STATE->strictModeEnabled()) {
+          PARSER_STATE->parseError("Extended commands (such as check-sat with an argument) are not permitted while operating in strict compliance mode.");
+        }
+      }
+    | { expr = MK_CONST(bool(true)); } )
+    { cmd = new CheckSatCommand(expr); }
   | /* get-assertions */
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd = new GetAssertionsCommand(); }
