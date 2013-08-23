@@ -468,6 +468,13 @@ public:
   Type getType(Expr e, bool check = false)
     throw(TypeCheckingException);
 
+  /** Bits for use in mkVar() flags. */
+  enum {
+    VAR_FLAG_NONE = 0,
+    VAR_FLAG_GLOBAL = 1,
+    VAR_FLAG_DEFINED = 2
+  };/* enum */
+
   /**
    * Create a new, fresh variable.  This variable is guaranteed to be
    * distinct from every variable thus far in the ExprManager, even
@@ -477,28 +484,33 @@ public:
    *
    * @param name a name to associate to the fresh new variable
    * @param type the type for the new variable
-   * @param isGlobal whether this variable is to be considered "global"
-   * or not.  Note that this information isn't used by the ExprManager,
-   * but is passed on to the ExprManager's event subscribers like the
-   * model-building service; if isGlobal is true, this newly-created
-   * variable will still available in models generated after an
-   * intervening pop.
+   * @param flags - VAR_FLAG_NONE - no flags;
+   * VAR_FLAG_GLOBAL - whether this variable is to be
+   * considered "global" or not.  Note that this information isn't
+   * used by the ExprManager, but is passed on to the ExprManager's
+   * event subscribers like the model-building service; if isGlobal
+   * is true, this newly-created variable will still available in
+   * models generated after an intervening pop.
+   * VAR_FLAG_DEFINED - if this is to be a "defined" symbol, e.g., for
+   * use with SmtEngine::defineFunction().  This keeps a declaration
+   * from being emitted in API dumps (since a subsequent definition is
+   * expected to be dumped instead).
    */
-  Expr mkVar(const std::string& name, Type type, bool isGlobal = false);
+  Expr mkVar(const std::string& name, Type type, uint32_t flags = VAR_FLAG_NONE);
 
   /**
    * Create a (nameless) new, fresh variable.  This variable is guaranteed
    * to be distinct from every variable thus far in the ExprManager.
    *
    * @param type the type for the new variable
-   * @param isGlobal whether this variable is to be considered "global"
+   * @param flags - VAR_FLAG_GLOBAL - whether this variable is to be considered "global"
    * or not.  Note that this information isn't used by the ExprManager,
    * but is passed on to the ExprManager's event subscribers like the
    * model-building service; if isGlobal is true, this newly-created
    * variable will still available in models generated after an
    * intervening pop.
    */
-  Expr mkVar(Type type, bool isGlobal = false);
+  Expr mkVar(Type type, uint32_t flags = VAR_FLAG_NONE);
 
   /**
    * Create a new, fresh variable for use in a binder expression

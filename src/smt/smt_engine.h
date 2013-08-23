@@ -331,7 +331,7 @@ class CVC4_PUBLIC SmtEngine {
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
-  void addToModelCommandAndDump(const Command& c, bool isGlobal = false, bool userVisible = true, const char* dumpTag = "declarations");
+  void addToModelCommandAndDump(const Command& c, uint32_t flags = ExprManager::VAR_FLAG_NONE, bool userVisible = true, const char* dumpTag = "declarations");
 
   /**
    * Get the model (only if immediately preceded by a SAT

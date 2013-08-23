@@ -556,6 +556,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
+     tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
      tryToStream<DeclareFunctionCommand>(out, c) ||
      tryToStream<DeclareTypeCommand>(out, c) ||
@@ -770,15 +771,26 @@ static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw()
 
 static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() {
   Expr func = c->getFunction();
-  const vector<Expr>& formals = c->getFormals();
+  const vector<Expr>* formals = &c->getFormals();
   out << "(define-fun " << func << " (";
   Type type = func.getType();
+  Expr formula = c->getFormula();
   if(type.isFunction()) {
-    vector<Expr>::const_iterator i = formals.begin();
+    vector<Expr> f;
+    if(formals->empty()) {
+      const vector<Type>& params = FunctionType(type).getArgTypes();
+      for(vector<Type>::const_iterator j = params.begin(); j != params.end(); ++j) {
+        f.push_back(NodeManager::currentNM()->mkSkolem("a", TypeNode::fromType(*j), "",
+                                                       NodeManager::SKOLEM_NO_NOTIFY).toExpr());
+      }
+      formula = NodeManager::currentNM()->toExprManager()->mkExpr(kind::APPLY_UF, formula, f);
+      formals = &f;
+    }
+    vector<Expr>::const_iterator i = formals->begin();
     for(;;) {
       out << "(" << (*i) << " " << (*i).getType() << ")";
       ++i;
-      if(i != formals.end()) {
+      if(i != formals->end()) {
         out << " ";
       } else {
         break;
@@ -786,7 +798,6 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
     }
     type = FunctionType(type).getRangeType();
   }
-  Expr formula = c->getFormula();
   out << ") " << type << " " << formula << ")";
 }
 

@@ -139,11 +139,10 @@ bool Parser::isPredicate(const std::string& name) {
 }
 
 Expr
-Parser::mkVar(const std::string& name, const Type& type,
-              bool levelZero) {
-  Debug("parser") << "mkVar(" << name << ", " << type << ", " << levelZero << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, levelZero);
-  defineVar(name, expr, levelZero);
+Parser::mkVar(const std::string& name, const Type& type, uint32_t flags) {
+  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
+  Expr expr = d_exprManager->mkVar(name, type, flags);
+  defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
   return expr;
 }
 
@@ -156,35 +155,31 @@ Parser::mkBoundVar(const std::string& name, const Type& type) {
 }
 
 Expr
-Parser::mkFunction(const std::string& name, const Type& type,
-                   bool levelZero) {
+Parser::mkFunction(const std::string& name, const Type& type, uint32_t flags) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, levelZero);
-  defineFunction(name, expr, levelZero);
+  Expr expr = d_exprManager->mkVar(name, type, flags);
+  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
   return expr;
 }
 
 Expr
-Parser::mkAnonymousFunction(const std::string& prefix, const Type& type) {
+Parser::mkAnonymousFunction(const std::string& prefix, const Type& type, uint32_t flags) {
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkFunction(name.str(), type);
+  return mkFunction(name.str(), type, flags);
 }
 
 std::vector<Expr>
-Parser::mkVars(const std::vector<std::string> names,
-               const Type& type,
-               bool levelZero) {
+Parser::mkVars(const std::vector<std::string> names, const Type& type, uint32_t flags) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type, levelZero));
+    vars.push_back(mkVar(names[i], type, flags));
   }
   return vars;
 }
 
 std::vector<Expr>
-Parser::mkBoundVars(const std::vector<std::string> names,
-                    const Type& type) {
+Parser::mkBoundVars(const std::vector<std::string> names, const Type& type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkBoundVar(names[i], type));
@@ -193,16 +188,14 @@ Parser::mkBoundVars(const std::vector<std::string> names,
 }
 
 void
-Parser::defineVar(const std::string& name, const Expr& val,
-                  bool levelZero) {
-  Debug("parser") << "defineVar( " << name << " := " << val << " , " << levelZero << ")" << std::endl;;
+Parser::defineVar(const std::string& name, const Expr& val, bool levelZero) {
+  Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;;
   d_symtab->bind(name, val, levelZero);
   assert( isDeclared(name) );
 }
 
 void
-Parser::defineFunction(const std::string& name, const Expr& val,
-                       bool levelZero) {
+Parser::defineFunction(const std::string& name, const Expr& val, bool levelZero) {
   d_symtab->bindDefinedFunction(name, val, levelZero);
   assert( isDeclared(name) );
 }

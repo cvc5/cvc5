@@ -177,7 +177,7 @@ inline void Tptp::makeApplication(Expr& expr, std::string& name,
       expr = getVariable(name);
     } else {
       Type t = term ? d_unsorted : getExprManager()->booleanType();
-      expr = mkVar(name, t, true); // levelZero
+      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL); // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr, t));
     }
   } else { // Its an application
@@ -187,7 +187,7 @@ inline void Tptp::makeApplication(Expr& expr, std::string& name,
       std::vector<Type> sorts(args.size(), d_unsorted);
       Type t = term ? d_unsorted : getExprManager()->booleanType();
       t = getExprManager()->mkFunctionType(sorts, t);
-      expr = mkVar(name, t, true); // levelZero
+      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL); // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr, t));
     }
     // args might be rationals, in which case we need to create

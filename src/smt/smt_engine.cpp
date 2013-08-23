@@ -438,17 +438,19 @@ public:
     d_smt.addToModelCommandAndDump(c);
   }
 
-  void nmNotifyNewVar(TNode n, bool isGlobal) {
+  void nmNotifyNewVar(TNode n, uint32_t flags) {
     DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
                              n.toExpr(),
                              n.getType().toType());
-    d_smt.addToModelCommandAndDump(c, isGlobal);
+    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
+      d_smt.addToModelCommandAndDump(c, flags);
+    }
     if(n.getType().isBoolean() && !options::incrementalSolving()) {
       d_boolVars.push_back(n);
     }
   }
 
-  void nmNotifyNewSkolem(TNode n, const std::string& comment, bool isGlobal) {
+  void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) {
     string id = n.getAttribute(expr::VarNameAttr());
     DeclareFunctionCommand c(id,
                              n.toExpr(),
@@ -456,7 +458,9 @@ public:
     if(Dump.isOn("skolems") && comment != "") {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
-    d_smt.addToModelCommandAndDump(c, isGlobal, false, "skolems");
+    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
+      d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
+    }
     if(n.getType().isBoolean() && !options::incrementalSolving()) {
       d_boolVars.push_back(n);
     }
@@ -1218,13 +1222,13 @@ void SmtEngine::defineFunction(Expr func,
       throw TypeCheckingException(func, ss.str());
     }
   }
-  if(Dump.isOn("declarations")) {
-    stringstream ss;
-    ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
-       << func;
-    DefineFunctionCommand c(ss.str(), func, formals, formula);
-    addToModelCommandAndDump(c, false, true, "declarations");
-  }
+
+  stringstream ss;
+  ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
+     << func;
+  DefineFunctionCommand c(ss.str(), func, formals, formula);
+  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_NONE, true, "declarations");
+
   SmtScope smts(this);
 
   // Substitute out any abstract values in formula
@@ -3412,7 +3416,7 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
   return SExpr(sexprs);
 }
 
-void SmtEngine::addToModelCommandAndDump(const Command& c, bool isGlobal, bool userVisible, const char* dumpTag) {
+void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {
   Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << endl;
   SmtScope smts(this);
   // If we aren't yet fully inited, the user might still turn on
@@ -3425,7 +3429,7 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, bool isGlobal, bool u
   // and expects to find their cardinalities in the model.
   if(/* userVisible && */ (!d_fullyInited || options::produceModels())) {
     doPendingPops();
-    if(isGlobal) {
+    if(flags & ExprManager::VAR_FLAG_GLOBAL) {
       d_modelGlobalCommands.push_back(c.clone());
     } else {
       d_modelCommands->push_back(c.clone());

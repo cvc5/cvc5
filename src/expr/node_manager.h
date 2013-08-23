@@ -79,8 +79,8 @@ public:
   virtual void nmNotifyNewSortConstructor(TypeNode tn) { }
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort) { }
   virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
-  virtual void nmNotifyNewVar(TNode n, bool isGlobal) { }
-  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, bool isGlobal) { }
+  virtual void nmNotifyNewVar(TNode n, uint32_t flags) { }
+  virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) { }
 };/* class NodeManagerListener */
 
 class NodeManager {
@@ -90,8 +90,8 @@ class NodeManager {
   friend class expr::TypeChecker;
 
   // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string&, Type, bool isGlobal);
-  friend Expr ExprManager::mkVar(Type, bool isGlobal);
+  friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
+  friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
   friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(const std::vector<Datatype>&, const std::set<Type>&);
@@ -309,12 +309,12 @@ class NodeManager {
    * version of this is private to avoid internal uses of mkVar() from
    * within CVC4.  Such uses should employ mkSkolem() instead.
    */
-  Node mkVar(const std::string& name, const TypeNode& type, bool isGlobal = false);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type, bool isGlobal = false);
+  Node mkVar(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type, bool isGlobal = false);
-  Node* mkVarPtr(const TypeNode& type, bool isGlobal = false);
+  Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
 public:
 
@@ -1532,27 +1532,27 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind,
 }
 
 
-inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type, bool isGlobal) {
+inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  setAttribute(n, expr::GlobalVarAttr(), isGlobal);
+  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, isGlobal);
+    (*i)->nmNotifyNewVar(n, flags);
   }
   return n;
 }
 
 inline Node* NodeManager::mkVarPtr(const std::string& name,
-                                   const TypeNode& type, bool isGlobal) {
+                                   const TypeNode& type, uint32_t flags) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
-  setAttribute(*n, expr::GlobalVarAttr(), isGlobal);
+  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, isGlobal);
+    (*i)->nmNotifyNewVar(*n, flags);
   }
   return n;
 }
@@ -1570,24 +1570,24 @@ inline Node* NodeManager::mkBoundVarPtr(const std::string& name,
   return n;
 }
 
-inline Node NodeManager::mkVar(const TypeNode& type, bool isGlobal) {
+inline Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::GlobalVarAttr(), isGlobal);
+  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, isGlobal);
+    (*i)->nmNotifyNewVar(n, flags);
   }
   return n;
 }
 
-inline Node* NodeManager::mkVarPtr(const TypeNode& type, bool isGlobal) {
+inline Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::GlobalVarAttr(), isGlobal);
+  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, isGlobal);
+    (*i)->nmNotifyNewVar(*n, flags);
   }
   return n;
 }

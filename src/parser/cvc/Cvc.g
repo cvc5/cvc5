@@ -953,7 +953,7 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              Expr func = PARSER_STATE->mkVar(*i, t, true);
+              Expr func = PARSER_STATE->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
               Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
@@ -968,13 +968,14 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           // like e.g. FORALL(x:INT = 4): [...]
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
-        Debug("parser") << "made " << idList.front() << " = " << f << std::endl;
+        assert(!idList.empty());
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
             i != i_end;
             ++i) {
+          Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          Expr func = EXPR_MANAGER->mkVar(*i, t, true);
+          Expr func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineFunction(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
@@ -1330,7 +1331,7 @@ prefixFormula[CVC4::Expr& f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
       std::string name = "lambda";
-      Expr func = PARSER_STATE->mkAnonymousFunction(name, t);
+      Expr func = PARSER_STATE->mkAnonymousFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       Command* cmd = new DefineFunctionCommand(name, func, terms, f);
       PARSER_STATE->preemptCommand(cmd);
       f = func;
@@ -1341,7 +1342,7 @@ prefixFormula[CVC4::Expr& f]
     boundVarDecl[ids,t] RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       UNSUPPORTED("array literals not supported yet");
-      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()), true);
+      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()), ExprManager::VAR_FLAG_GLOBAL);
     }
   ;
 

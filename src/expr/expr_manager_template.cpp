@@ -805,20 +805,20 @@ Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
   return t;
 }
 
-Expr ExprManager::mkVar(const std::string& name, Type type, bool isGlobal) {
+Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
   Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
-  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, isGlobal);
+  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
   INC_STAT_VAR(type, false);
   return Expr(this, n);
 }
 
-Expr ExprManager::mkVar(Type type, bool isGlobal) {
+Expr ExprManager::mkVar(Type type, uint32_t flags) {
   Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
-  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, isGlobal));
+  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));
 }
 
 Expr ExprManager::mkBoundVar(const std::string& name, Type type) {

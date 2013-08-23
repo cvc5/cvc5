@@ -146,7 +146,7 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
           bool isGlobal;
           Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
           NodeManagerScope nullScope(NULL);
-          to_e = to->mkVar(name, type, isGlobal);// FIXME thread safety
+          to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : ExprManager::VAR_FLAG_NONE);// FIXME thread safety
         } else if(n.getKind() == kind::SKOLEM) {
           // skolems are only available at the Node level (not the Expr level)
           TypeNode typeNode = TypeNode::fromType(type);

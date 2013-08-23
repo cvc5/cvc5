@@ -329,7 +329,7 @@ command returns [CVC4::Command* cmd = NULL]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      Expr func = PARSER_STATE->mkFunction(name, t);
+      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
   | /* value query */
@@ -526,7 +526,7 @@ extendedCommand[CVC4::Command*& cmd]
     ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { Expr func = PARSER_STATE->mkFunction(name, e.getType());
+      { Expr func = PARSER_STATE->mkFunction(name, e.getType(), ExprManager::VAR_FLAG_DEFINED);
         $cmd = new DefineFunctionCommand(name, func, e);
       }
     | LPAREN_TOK
@@ -560,7 +560,7 @@ extendedCommand[CVC4::Command*& cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkFunction(name, t);
+        Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
         $cmd = new DefineFunctionCommand(name, func, terms, e);
       }
     )
