@@ -27,6 +27,8 @@ TESTS =	\
 	uflia-xs-09-16-3-4-1-5.delta03.smt \
 	aufbv-fuzz01.smt \
 	bug347.smt \
+	bug374a.smt \
+	bug374b.smt2 \
 	error20.smt \
 	error20.delta01.smt \
 	error122.smt \
@@ -54,6 +56,8 @@ EXTRA_DIST = $(TESTS) \
 	quant-Arrays_Q1-noinfer.smt2.expect \
 	wchains010ue.delta02.smt.expect \
 	bug347.smt.expect \
+	bug374a.smt.expect \
+	bug374b.smt2.expect \
 	quant-ex1.disable_miniscope.smt2.expect \
 	wchains010ue.smt.expect \
 	just_sat.expect \
