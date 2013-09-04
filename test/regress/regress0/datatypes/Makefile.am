@@ -30,6 +30,7 @@ TESTS =	\
 	datatype3.cvc \
 	datatype4.cvc \
 	datatype13.cvc \
+	empty_tuprec.cvc \
 	mutually-recursive.cvc \
 	rewriter.cvc \
 	typed_v1l50016-simp.cvc \

@@ -88,7 +88,7 @@ typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionType
 # constructor applications are constant if they are applied only to constants
 construle APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
 
-operator TUPLE_TYPE 1: "tuple type"
+operator TUPLE_TYPE 0: "tuple type"
 cardinality TUPLE_TYPE \
     "::CVC4::theory::datatypes::TupleProperties::computeCardinality(%TYPE%)" \
     "theory/datatypes/theory_datatypes_type_rules.h"
@@ -100,7 +100,7 @@ enumerator TUPLE_TYPE \
     "::CVC4::theory::datatypes::TupleEnumerator" \
     "theory/datatypes/type_enumerator.h"
 
-operator TUPLE 1: "a tuple"
+operator TUPLE 0: "a tuple"
 typerule TUPLE ::CVC4::theory::datatypes::TupleTypeRule
 construle TUPLE ::CVC4::theory::datatypes::TupleProperties
 

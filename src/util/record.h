@@ -91,7 +91,6 @@ public:
 
   Record(const std::vector< std::pair<std::string, Type> >& fields) :
     d_fields(fields) {
-    CheckArgument(! fields.empty(), fields, "fields in record description cannot be empty");
   }
 
   const_iterator find(std::string name) const {

@@ -509,7 +509,6 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
 
 TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( types.size() >= 1 );
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
      typeNodes.push_back(*types[i].d_typeNode);

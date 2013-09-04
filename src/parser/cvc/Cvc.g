@@ -1163,15 +1163,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* tuple types / old-style function types */
-  | LBRACKET type[t,check] { types.push_back(t); }
-    ( COMMA type[t,check] { types.push_back(t); } )* RBRACKET
-    { if(types.size() == 1) {
-        if(types.front().isFunction()) {
-          // old style function syntax [ T -> U ]
-          PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
-        } else {
-          PARSER_STATE->parseError("I'm not sure what you're trying to do here; tuples must have > 1 type");
-        }
+  | LBRACKET ( type[t,check] { types.push_back(t); }
+    ( COMMA type[t,check] { types.push_back(t); } )* )? RBRACKET
+    { if(types.size() == 1 && types.front().isFunction()) {
+        // old style function syntax [ T -> U ]
+        PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
       } else {
         // tuple type [ T, U, V... ]
         t = EXPR_MANAGER->mkTupleType(types);
@@ -1179,8 +1175,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* record types */
-  | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
-    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* HASHSQ
+  | SQHASH ( identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
+    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* )? HASHSQ
     { t = EXPR_MANAGER->mkRecordType(typeIds); }
 
     /* bitvector types */
@@ -1845,6 +1841,10 @@ simpleTerm[CVC4::Expr& f]
         f = MK_EXPR(kind::TUPLE, args);
       }
     }
+
+    /* empty tuple literal */
+  | LPAREN RPAREN
+    { f = MK_EXPR(kind::TUPLE, std::vector<Expr>()); }
 
     /* boolean literals */
   | TRUE_TOK  { f = MK_CONST(bool(true)); }
