@@ -150,6 +150,7 @@ tokens {
   MOD_TOK = 'MOD';
   INTDIV_TOK = 'DIV';
   FLOOR_TOK = 'FLOOR';
+  DISTINCT_TOK = 'DISTINCT';
 
   // Bitvectors
 
@@ -270,8 +271,7 @@ int getOperatorPrecedence(int type) {
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
-  case GT_TOK:
-  case FLOOR_TOK: return 25;
+  case GT_TOK: return 25;
   case EQUAL_TOK:
   case DISEQUAL_TOK: return 26;
   case NOT_TOK: return 27;
@@ -1583,7 +1583,7 @@ postfixTerm[CVC4::Expr& f]
   std::string id;
   Type t;
 }
-  : bvTerm[f]
+  : ( bvTerm[f]
     ( /* array select / bitvector extract */
       LBRACKET
         ( formula[f2] { extract = false; }
@@ -1664,6 +1664,13 @@ postfixTerm[CVC4::Expr& f]
         }
       )
     )*
+    | FLOOR_TOK LPAREN formula[f] RPAREN
+      { f = MK_EXPR(CVC4::kind::TO_INTEGER, f); }
+    | DISTINCT_TOK LPAREN
+      formula[f] { args.push_back(f); }
+      ( COMMA formula[f] { args.push_back(f); } )* RPAREN
+      { f = (args.size() == 1) ? MK_CONST(bool(true)) : MK_EXPR(CVC4::kind::DISTINCT, args); }
+    )
     ( typeAscription[f, t]
       { if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && t.isDatatype()) {
           std::vector<CVC4::Expr> v;
