@@ -467,15 +467,19 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   CVC4_FOR_EACH_THEORY;
 
   if(Dump.isOn("missed-t-propagations")) {
-    for(unsigned i = 0; i < d_possiblePropagations.size(); ++ i) {
+    for(unsigned i = 0; i < d_possiblePropagations.size(); ++i) {
       Node atom = d_possiblePropagations[i];
       bool value;
-      if (!d_propEngine->hasValue(atom, value)) continue;
+      if(d_propEngine->hasValue(atom, value)) {
+        continue;
+      }
       // Doesn't have a value, check it (and the negation)
       if(d_hasPropagated.find(atom) == d_hasPropagated.end()) {
         Dump("missed-t-propagations")
           << CommentCommand("Completeness check for T-propagations; expect invalid")
+          << EchoCommand(atom.toString())
           << QueryCommand(atom.toExpr())
+          << EchoCommand(atom.notNode().toString())
           << QueryCommand(atom.notNode().toExpr());
       }
     }
