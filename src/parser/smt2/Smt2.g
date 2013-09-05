@@ -242,9 +242,8 @@ command returns [CVC4::Command* cmd = NULL]
     GET_INFO_TOK KEYWORD
     { cmd = new GetInfoCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* set-option */
-    SET_OPTION_TOK KEYWORD symbolicExpr[sexpr]
-    { name = AntlrInput::tokenText($KEYWORD);
-      PARSER_STATE->setOption(name.c_str() + 1, sexpr);
+    SET_OPTION_TOK keyword[name] symbolicExpr[sexpr]
+    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
       cmd = new SetOptionCommand(name.c_str() + 1, sexpr); }
   | /* get-option */
     GET_OPTION_TOK KEYWORD
@@ -701,11 +700,18 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(s); }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
+  | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
+    { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   | builtinOp[k]
     { std::stringstream ss;
       ss << Expr::setlanguage(CVC4::language::output::LANG_SMTLIB_V2) << EXPR_MANAGER->mkConst(k);
       sexpr = SExpr(ss.str());
     }
+  ;
+
+keyword[std::string& s]
+  : KEYWORD
+    { s = AntlrInput::tokenText($KEYWORD); }
   ;
 
 simpleSymbolicExpr[CVC4::SExpr& sexpr]

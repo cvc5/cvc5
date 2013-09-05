@@ -12,6 +12,8 @@ Changes since 1.2
   intervening push/pop.
 * Increased compliance to SMT-LIBv2, numerous bugs and usability issues
   resolved.
+* New :command-verbosity SMT option to silence success and error messages
+  on a per-command basis.  API changes to Command infrastructure to support.
 
 Changes since 1.1
 =================

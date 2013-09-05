@@ -239,6 +239,11 @@ class CVC4_PUBLIC SmtEngine {
   std::string d_filename;
 
   /**
+   * Verbosity of various commands.
+   */
+  std::map<std::string, Integer> d_commandVerbosity;
+
+  /**
    * A private utility class to SmtEngine.
    */
   smt::SmtEnginePrivate* d_private;
