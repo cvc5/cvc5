@@ -166,7 +166,7 @@ Expr
 Parser::mkAnonymousFunction(const std::string& prefix, const Type& type, uint32_t flags) {
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkFunction(name.str(), type, flags);
+  return d_exprManager->mkVar(name.str(), type, flags);
 }
 
 std::vector<Expr>
