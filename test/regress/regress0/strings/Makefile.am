@@ -1,6 +1,8 @@
-SUBDIRS = .
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
 
-BINARY = cvc4
 LOG_COMPILER = @srcdir@/../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
