@@ -718,9 +718,9 @@ TesterType ExprManager::mkTesterType(Type domain) const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkTesterType(*domain.d_typeNode)));
 }
 
-SortType ExprManager::mkSort(const std::string& name) const {
+SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
   NodeManagerScope nms(d_nodeManager);
-  return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name))));
+  return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name, flags))));
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,

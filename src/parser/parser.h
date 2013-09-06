@@ -411,7 +411,8 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  SortType mkSort(const std::string& name);
+  SortType mkSort(const std::string& name,
+                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new sort constructor with the given name and arity.

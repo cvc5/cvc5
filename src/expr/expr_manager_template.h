@@ -430,8 +430,14 @@ public:
   /** Make a type representing a tester with the given parameterization. */
   TesterType mkTesterType(Type domain) const;
 
+  /** Bits for use in mkSort() flags. */
+  enum {
+    SORT_FLAG_NONE = 0,
+    SORT_FLAG_PLACEHOLDER = 1
+  };/* enum */
+
   /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name) const;
+  SortType mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE) const;
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,

@@ -231,9 +231,9 @@ Parser::defineParameterizedType(const std::string& name,
 }
 
 SortType
-Parser::mkSort(const std::string& name) {
+Parser::mkSort(const std::string& name, uint32_t flags) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Type type = d_exprManager->mkSort(name);
+  Type type = d_exprManager->mkSort(name, flags);
   defineType(name, type);
   return type;
 }
@@ -248,7 +248,7 @@ Parser::mkSortConstructor(const std::string& name, size_t arity) {
 }
 
 SortType Parser::mkUnresolvedType(const std::string& name) {
-  SortType unresolved = mkSort(name);
+  SortType unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }

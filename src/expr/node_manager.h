@@ -75,9 +75,9 @@ typedef expr::Attribute<expr::attr::DatatypeRecordTag, TypeNode> DatatypeRecordA
 class NodeManagerListener {
 public:
   virtual ~NodeManagerListener() { }
-  virtual void nmNotifyNewSort(TypeNode tn) { }
+  virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) { }
   virtual void nmNotifyNewSortConstructor(TypeNode tn) { }
-  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort) { }
+  virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort, uint32_t flags) { }
   virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) { }
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) { }
@@ -778,14 +778,15 @@ public:
   inline TypeNode mkTesterType(TypeNode domain);
 
   /** Make a new (anonymous) sort of arity 0. */
-  inline TypeNode mkSort();
+  inline TypeNode mkSort(uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name of arity 0. */
-  inline TypeNode mkSort(const std::string& name);
+  inline TypeNode mkSort(const std::string& name, uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort by parameterizing the given sort constructor. */
   inline TypeNode mkSort(TypeNode constructor,
-                         const std::vector<TypeNode>& children);
+                         const std::vector<TypeNode>& children,
+                         uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
   inline TypeNode mkSortConstructor(const std::string& name, size_t arity);
@@ -1220,31 +1221,32 @@ inline bool NodeManager::hasOperator(Kind k) {
   }
 }
 
-inline TypeNode NodeManager::mkSort() {
+inline TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder<1> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn);
+    (*i)->nmNotifyNewSort(tn, flags);
   }
   return tn;
 }
 
-inline TypeNode NodeManager::mkSort(const std::string& name) {
+inline TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
   NodeBuilder<1> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
   nb << sortTag;
   TypeNode tn = nb.constructTypeNode();
   setAttribute(tn, expr::VarNameAttr(), name);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn);
+    (*i)->nmNotifyNewSort(tn, flags);
   }
   return tn;
 }
 
 inline TypeNode NodeManager::mkSort(TypeNode constructor,
-                                    const std::vector<TypeNode>& children) {
+                                    const std::vector<TypeNode>& children,
+                                    uint32_t flags) {
   Assert(constructor.getKind() == kind::SORT_TYPE &&
          constructor.getNumChildren() == 0,
          "expected a sort constructor");
@@ -1262,7 +1264,7 @@ inline TypeNode NodeManager::mkSort(TypeNode constructor,
   TypeNode type = nb.constructTypeNode();
   setAttribute(type, expr::VarNameAttr(), name);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type);
+    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
   }
   return type;
 }

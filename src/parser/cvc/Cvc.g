@@ -1951,15 +1951,15 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
      * below. */
   : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
+        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
         params.push_back( t );
       }
       ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
+        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(id,params));
+    { datatypes.push_back(Datatype(id, params));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

@@ -419,11 +419,13 @@ public:
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
-  void nmNotifyNewSort(TypeNode tn) {
+  void nmNotifyNewSort(TypeNode tn, uint32_t flags) {
     DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
                          0,
                          tn.toType());
-    d_smt.addToModelCommandAndDump(c);
+    if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
+      d_smt.addToModelCommandAndDump(c, flags);
+    }
   }
 
   void nmNotifyNewSortConstructor(TypeNode tn) {
