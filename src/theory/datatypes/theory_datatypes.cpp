@@ -117,80 +117,96 @@ void TheoryDatatypes::check(Effort e) {
 
   if( e == EFFORT_FULL ) {
     Debug("datatypes-split") << "Check for splits " << e << endl;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-    while( !eqcs_i.isFinished() ){
-      Node n = (*eqcs_i);
-      if( DatatypesRewriter::isTermDatatype( n ) ){
-        EqcInfo* eqc = getOrMakeEqcInfo( n, true );
-        //if there are more than 1 possible constructors for eqc
-        if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
-          const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
-          //if only one constructor, then this term must be this constructor
-          if( dt.getNumConstructors()==1 ){
-            Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[0].getTester() ), n );
-            d_pending.push_back( t );
-            d_pending_exp[ t ] = NodeManager::currentNM()->mkConst( true );
-            Trace("datatypes-infer") << "DtInfer : " << t << ", trivial" << std::endl;
-            d_infer.push_back( t );
-          }else{
-            std::vector< bool > pcons;
-            getPossibleCons( eqc, n, pcons );
-            //std::cout << "pcons " << n << " = ";
-            //for( int i=0; i<(int)pcons.size(); i++ ){ //std::cout << pcons[i] << " "; }
-            //std::cout << std::endl;
-            //check if we do not need to resolve the constructor type for this equivalence class.
-            // this is if there are no selectors for this equivalence class, its possible values are infinite,
-            //  and we are not producing a model, then do not split.
-            int consIndex = -1;
-            bool needSplit = true;
-            for( unsigned int j=0; j<pcons.size(); j++ ) {
-              if( pcons[j] ) {
-                if( consIndex==-1 ){
-                  consIndex = j;
-                }
-                if( !dt[ j ].isFinite() && !eqc->d_selectors ) {
-                  needSplit = false;
-                }
-              }
-            }
-            if( !needSplit && mustSpecifyAssignment() ){
-              //for the sake of termination, we must choose the constructor of a ground term
-              //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-              //** TODO: this is probably not good enough, actually need fair enumeration strategy
-              Node groundTerm = n.getType().mkGroundTerm();
-              int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-              if( pcons[index] ){
-                consIndex = index;
-              }
-              needSplit = true;
-            }
-            if( needSplit && consIndex!=-1 ) {
-              Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
-              Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
-              test = Rewriter::rewrite( test );
-              NodeBuilder<> nb(kind::OR);
-              nb << test << test.notNode();
-              Node lemma = nb;
-              d_out->lemma( lemma );
-              d_out->requirePhase( test, true );
-              return;
+    bool addedFact = false;
+    do {
+      eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
+      while( !eqcs_i.isFinished() ){
+        Node n = (*eqcs_i);
+        if( DatatypesRewriter::isTermDatatype( n ) ){
+          Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
+          EqcInfo* eqc = getOrMakeEqcInfo( n, true );
+          //if there are more than 1 possible constructors for eqc
+          if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
+            Trace("datatypes-debug") << "No constructor..." << std::endl;
+            const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+            //if only one constructor, then this term must be this constructor
+            if( dt.getNumConstructors()==1 ){
+              Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[0].getTester() ), n );
+              d_pending.push_back( t );
+              d_pending_exp[ t ] = NodeManager::currentNM()->mkConst( true );
+              Trace("datatypes-infer") << "DtInfer : " << t << ", trivial" << std::endl;
+              d_infer.push_back( t );
             }else{
-              Trace("dt-split") << "Do not split constructor for " << n << std::endl;
+              std::vector< bool > pcons;
+              getPossibleCons( eqc, n, pcons );
+              //std::cout << "pcons " << n << " = ";
+              //for( int i=0; i<(int)pcons.size(); i++ ){ //std::cout << pcons[i] << " "; }
+              //std::cout << std::endl;
+              //check if we do not need to resolve the constructor type for this equivalence class.
+              // this is if there are no selectors for this equivalence class, its possible values are infinite,
+              //  and we are not producing a model, then do not split.
+              int consIndex = -1;
+              bool needSplit = true;
+              for( unsigned int j=0; j<pcons.size(); j++ ) {
+                if( pcons[j] ) {
+                  if( consIndex==-1 ){
+                    consIndex = j;
+                  }
+                  if( !dt[ j ].isFinite() && !eqc->d_selectors ) {
+                    needSplit = false;
+                  }
+                }
+              }
+              if( !needSplit && mustSpecifyAssignment() ){
+                //for the sake of termination, we must choose the constructor of a ground term
+                //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
+                //** TODO: this is probably not good enough, actually need fair enumeration strategy
+                Node groundTerm = n.getType().mkGroundTerm();
+                int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
+                if( pcons[index] ){
+                  consIndex = index;
+                }
+                needSplit = true;
+              }
+              if( needSplit && consIndex!=-1 ) {
+                Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
+                Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
+                test = Rewriter::rewrite( test );
+                NodeBuilder<> nb(kind::OR);
+                nb << test << test.notNode();
+                Node lemma = nb;
+                d_out->lemma( lemma );
+                d_out->requirePhase( test, true );
+                return;
+              }else{
+                Trace("dt-split") << "Do not split constructor for " << n << std::endl;
+              }
             }
+          }else{
+            Trace("datatypes-debug") << "Has constructor " << eqc->d_constructor.get() << std::endl;
           }
         }
+        ++eqcs_i;
       }
-      ++eqcs_i;
-    }
-    flushPendingFacts();
-    if( !d_conflict ){
-      if( options::dtRewriteErrorSel() ){
-        collapseSelectors();
-        flushPendingFacts();
+      Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
+      addedFact = !d_pending.empty();
+      flushPendingFacts();
+      if( !d_conflict ){
+        if( options::dtRewriteErrorSel() ){
+          collapseSelectors();
+          flushPendingFacts();
+          if( d_conflict ){
+            return;
+          }
+        }
+      }else{
+        return;
       }
-    }
+    }while( addedFact );
+    Trace("datatypes-debug") << "Finished. " << d_conflict << std::endl;
     if( !d_conflict ){
-      //  printModelDebug();
+      Trace("dt-model-test") << std::endl;
+      printModelDebug("dt-model-test");
     }
   }
 
