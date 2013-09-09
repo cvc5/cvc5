@@ -1082,6 +1082,10 @@ Node TheoryDatatypes::getRepresentative( Node a ){
 
 
 void TheoryDatatypes::printModelDebug( const char* c ){
+  if(! (Trace.isOn(c))) {
+    return;
+  }
+
   Trace( c ) << "Datatypes model : " << std::endl;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
