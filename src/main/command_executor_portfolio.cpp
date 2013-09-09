@@ -187,6 +187,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
      dynamic_cast<QueryCommand*>(cmd) != NULL) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
+            dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
             dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetProofCommand*>(cmd) != NULL ||
