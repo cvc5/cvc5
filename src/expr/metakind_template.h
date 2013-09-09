@@ -337,6 +337,7 @@ static inline Kind operatorToKind(::CVC4::expr::NodeValue* nv) {
 
   switch(Kind k CVC4_UNUSED = nv->getKind()) {
 ${metakind_operatorKinds}
+
   default:
     return kind::UNDEFINED_KIND;  /* LAST_KIND */
   };
