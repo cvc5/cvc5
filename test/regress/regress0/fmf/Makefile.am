@@ -24,7 +24,8 @@ TESTS =	\
 	Arrow_Order-smtlib.778341.smt \
 	german73.smt2 \
 	PUZ001+1.smt2 \
-	refcount24.cvc.smt2
+	refcount24.cvc.smt2 \
+	bug0909.smt2 
 
 EXTRA_DIST = $(TESTS)
 

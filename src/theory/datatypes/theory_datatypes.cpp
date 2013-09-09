@@ -91,7 +91,7 @@ TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( Node n, bool doMake
 }
 
 void TheoryDatatypes::check(Effort e) {
-
+  Trace("datatypes-debug") << "Check effort " << e << std::endl;
   while(!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
@@ -189,20 +189,19 @@ void TheoryDatatypes::check(Effort e) {
         ++eqcs_i;
       }
       Trace("datatypes-debug") << "Flush pending facts..."  << std::endl;
-      addedFact = !d_pending.empty();
+      addedFact = !d_pending.empty() || !d_pending_merge.empty();
       flushPendingFacts();
       if( !d_conflict ){
         if( options::dtRewriteErrorSel() ){
-          collapseSelectors();
-          flushPendingFacts();
-          if( d_conflict ){
-            return;
-          }
+          bool innerAddedFact = false;
+          do {
+            collapseSelectors();
+            innerAddedFact = !d_pending.empty() || !d_pending_merge.empty();
+            flushPendingFacts();
+          }while( !d_conflict && innerAddedFact );
         }
-      }else{
-        return;
       }
-    }while( addedFact );
+    }while( !d_conflict && addedFact );
     Trace("datatypes-debug") << "Finished. " << d_conflict << std::endl;
     if( !d_conflict ){
       Trace("dt-model-test") << std::endl;
@@ -1019,8 +1018,8 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   //  (3) Instantiate : is_C( t ) => t = C( sel_1( t ) ... sel_n( t ) )
   //We may need to communicate (3) outwards if the conclusions involve other theories
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
+  bool addLemma = false;
   if( ( n.getKind()==EQUAL || n.getKind()==IFF) && n[1].getKind()==APPLY_CONSTRUCTOR && exp.getKind()!=EQUAL  ){
-    bool addLemma = false;
 #if 1
     const Datatype& dt = ((DatatypeType)(n[1].getType()).toType()).getDatatype();
     addLemma = dt.involvesExternalType();
@@ -1044,6 +1043,11 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
       }
     }
   }
+  //else if( exp.getKind()==APPLY_TESTER ){
+    //if( n.getKind()==EQUAL && !DatatypesRewriter::isTermDatatype( n[0] ) ){
+    //  return true;
+    //}
+  //}
   Trace("dt-lemma-debug") << "Do not need to communicate " << n << std::endl;
   return false;
 }
