@@ -292,6 +292,12 @@ bool Type::isArray() const {
   return d_typeNode->isArray();
 }
 
+/** Is this a Set type? */
+bool Type::isSet() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSet();
+}
+
 /** Is this a sort kind */
 bool Type::isSort() const {
   NodeManagerScope nms(d_nodeManager);
@@ -480,6 +486,11 @@ ArrayType::ArrayType(const Type& t) throw(IllegalArgumentException) :
   CheckArgument(isNull() || isArray(), this);
 }
 
+SetType::SetType(const Type& t) throw(IllegalArgumentException) :
+  Type(t) {
+  CheckArgument(isNull() || isSet(), this);
+}
+
 SortType::SortType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
   CheckArgument(isNull() || isSort(), this);
@@ -515,6 +526,10 @@ Type ArrayType::getIndexType() const {
 
 Type ArrayType::getConstituentType() const {
   return makeType(d_typeNode->getArrayConstituentType());
+}
+
+Type SetType::getElementType() const {
+  return makeType(d_typeNode->getSetElementType());
 }
 
 DatatypeType ConstructorType::getRangeType() const {

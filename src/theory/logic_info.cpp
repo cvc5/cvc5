@@ -122,6 +122,10 @@ std::string LogicInfo::getLogicString() const {
         }
         ++seen;
       }
+      if(d_theories[THEORY_SETS]) {
+        ss << "_SETS";
+        ++seen;
+      }
 
       if(seen != d_sharingTheories) {
         Unhandled("can't extract a logic string from LogicInfo; at least one "
@@ -255,6 +259,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         enableReals();
         arithNonLinear();
         p += 4;
+      }
+      if(!strncmp(p, "_SETS", 5)) {
+        enableTheory(THEORY_SETS);
+        p += 5;
       }
     }
   }

@@ -671,6 +671,7 @@ bool TheoryEngine::presolve() {
 void TheoryEngine::postsolve() {
   // Reset the interrupt flag
   d_interrupted = false;
+  bool CVC4_UNUSED wasInConflict = d_inConflict;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -680,7 +681,7 @@ void TheoryEngine::postsolve() {
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
     if (theory::TheoryTraits<THEORY>::hasPostsolve) { \
       theoryOf(THEORY)->postsolve(); \
-      Assert(! d_inConflict, "conflict raised during postsolve()"); \
+      Assert(! d_inConflict || wasInConflict, "conflict raised during postsolve()"); \
     }
 
     // Postsolve for each theory using the statement above
@@ -961,7 +962,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       bool value;
       if (d_propEngine->hasValue(assertion, value)) {
         if (!value) {
-          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict" << endl;
+          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
           d_inConflict = true;
         } else {
           return;
@@ -1011,6 +1012,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       // Check for propositional conflicts
       bool value;
       if (d_propEngine->hasValue(assertion, value) && !value) {
+          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)" << endl;
         d_inConflict = true;
       }
     }

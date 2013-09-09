@@ -620,6 +620,9 @@ public:
    * check() or propagate() method called.  A Theory may empty its
    * assertFact() queue using get().  A Theory can raise conflicts,
    * add lemmas, and propagate literals during presolve().
+   *
+   * NOTE: The presolve property must be added to the kinds file for
+   * the theory.
    */
   virtual void presolve() { }
 

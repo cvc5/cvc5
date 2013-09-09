@@ -833,12 +833,14 @@ public:
   void addTriggerPredicate(TNode predicate);
 
   /**
-   * Returns true if the two are currently in the database and equal.
+   * Returns true if the two terms are equal. Requires both terms to
+   * be in the database.
    */
   bool areEqual(TNode t1, TNode t2) const;
 
   /**
-   * Check whether the two term are dis-equal.
+   * Check whether the two term are dis-equal. Requires both terms to
+   * be in the database.
    */
   bool areDisequal(TNode t1, TNode t2, bool ensureProof) const;
 
