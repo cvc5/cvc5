@@ -326,23 +326,6 @@ well-founded SEXPR_TYPE \
     "::CVC4::theory::builtin::SExprProperties::mkGroundTerm(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 
-# These will eventually move to a theory of strings.
-#
-# For now these are unbounded strings over a fixed, finite alphabet
-# (this may change).
-sort STRING_TYPE \
-    Cardinality::INTEGERS \
-    well-founded \
-        "NodeManager::currentNM()->mkConst(::std::string())" \
-        "string" \
-    "String type"
-constant CONST_STRING \
-    ::std::string \
-    ::CVC4::StringHashFunction \
-    "util/hash.h" \
-    "a string of characters"
-typerule CONST_STRING ::CVC4::theory::builtin::StringConstantTypeRule
-
 typerule APPLY ::CVC4::theory::builtin::ApplyTypeRule
 typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
