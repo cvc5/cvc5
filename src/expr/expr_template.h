@@ -81,7 +81,7 @@ namespace expr {
   class CVC4_PUBLIC ExprDag;
   class CVC4_PUBLIC ExprSetLanguage;
 
-  NodeTemplate<true> exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
+  NodeTemplate<true> exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
 }/* CVC4::expr namespace */
 
 /**
@@ -510,7 +510,7 @@ public:
    * variableMap for the translation and extending it with any new
    * mappings.
    */
-  Expr exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) const;
+  Expr exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap, uint32_t flags = 0) const;
 
   /**
    * IOStream manipulator to set the maximum depth of Exprs when
@@ -591,7 +591,7 @@ private:
   friend class TypeCheckingException;
   friend class expr::pickle::Pickler;
   friend class prop::TheoryProxy;
-  friend NodeTemplate<true> expr::exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
+  friend NodeTemplate<true> expr::exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
 
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;

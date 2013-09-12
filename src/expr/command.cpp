@@ -467,6 +467,7 @@ Command* CommandSequence::exportTo(ExprManager* exprManager, ExprManagerMapColle
     Command* cmd_to_export = *i;
     Command* cmd = cmd_to_export->exportTo(exprManager, variableMap);
     seq->addCommand(cmd);
+    Debug("export") << "[export] so far coverted: " << seq << endl;
   }
   seq->d_index = d_index;
   return seq;
@@ -671,7 +672,7 @@ void DefineFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
 }
 
 Command* DefineFunctionCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  Expr func = d_func.exportTo(exprManager, variableMap);
+  Expr func = d_func.exportTo(exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
   vector<Expr> formals;
   transform(d_formals.begin(), d_formals.end(), back_inserter(formals),
             ExportTransformer(exprManager, variableMap));

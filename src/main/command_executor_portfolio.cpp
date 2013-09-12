@@ -187,7 +187,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
      dynamic_cast<QueryCommand*>(cmd) != NULL) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
-            dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
             dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetProofCommand*>(cmd) != NULL ||
@@ -198,6 +197,10 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
             false) {
     mode = 2;
   }
+
+  Debug("portfolio::outputmode") << "Mode is " << mode
+                                 << "lastWinner is " << d_lastWinner 
+                                 << "d_seq is " << d_seq << std::endl;
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
