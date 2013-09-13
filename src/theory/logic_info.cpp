@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic
+ ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -105,6 +105,10 @@ std::string LogicInfo::getLogicString() const {
         ss << "DT";
         ++seen;
       }
+      if(d_theories[THEORY_STRINGS]) {
+        ss << "S";
+        ++seen;
+      }
       if(d_theories[THEORY_ARITH]) {
         if(isDifferenceLogic()) {
           ss << (areIntegersUsed() ? "I" : "");
@@ -175,6 +179,16 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
     } else {
       if(*p == 'A') {
         enableTheory(THEORY_ARRAY);
+        ++p;
+      }
+      if(*p == 'S') {
+        // Strings requires arith for length constraints,
+        // and UF for equality (?)
+        enableTheory(THEORY_STRINGS);
+        enableTheory(THEORY_UF);
+        enableTheory(THEORY_ARITH);
+        enableIntegers();
+        arithOnlyLinear();
         ++p;
       }
       if(!strncmp(p, "UF", 2)) {

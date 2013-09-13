@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Christopher L. Conway
- ** Minor contributors (to current version): Clark Barrett
+ ** Minor contributors (to current version): Clark Barrett, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -52,6 +52,7 @@ public:
     QF_NIA,
     QF_NRA,
     QF_RDL,
+    QF_S, // nonstandard (for string theory)
     QF_SAT,
     QF_UF,
     QF_UFIDL,
@@ -82,6 +83,7 @@ public:
     THEORY_INT_INT_REAL_ARRAY_ARRAYS_EX,
     THEORY_REALS,
     THEORY_REALS_INTS,
+    THEORY_STRINGS,
     THEORY_QUANTIFIERS
   };
 

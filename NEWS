@@ -14,6 +14,7 @@ Changes since 1.2
   resolved.
 * New :command-verbosity SMT option to silence success and error messages
   on a per-command basis.  API changes to Command infrastructure to support.
+* A new theory of strings.  Currently, only word equations are supported.
 
 Changes since 1.1
 =================

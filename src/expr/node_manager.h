@@ -683,6 +683,9 @@ public:
   /** Get the (singleton) type for strings. */
   inline TypeNode stringType();
 
+  /** Get the (singleton) type for RegExp. */
+  inline TypeNode regexpType();
+
   /** Get the bound var list type. */
   inline TypeNode boundVarListType();
 
@@ -1028,6 +1031,11 @@ inline TypeNode NodeManager::realType() {
 /** Get the (singleton) type for strings. */
 inline TypeNode NodeManager::stringType() {
   return TypeNode(mkTypeConst<TypeConstant>(STRING_TYPE));
+}
+
+/** Get the (singleton) type for regexps. */
+inline TypeNode NodeManager::regexpType() {
+  return TypeNode(mkTypeConst<TypeConstant>(REGEXP_TYPE));
 }
 
 /** Get the bound var list type. */

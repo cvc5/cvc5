@@ -1066,8 +1066,8 @@ Type ValidityChecker::intType() {
 }
 
 Type ValidityChecker::subrangeType(const Expr& l, const Expr& r) {
-  bool noLowerBound = l.getType().isString() && l.getConst<string>() == "_NEGINF";
-  bool noUpperBound = r.getType().isString() && r.getConst<string>() == "_POSINF";
+  bool noLowerBound = l.getType().isString() && l.getConst<CVC4::String>() == "_NEGINF";
+  bool noUpperBound = r.getType().isString() && r.getConst<CVC4::String>() == "_POSINF";
   CVC4::CheckArgument(noLowerBound || (l.getKind() == CVC4::kind::CONST_RATIONAL && l.getConst<Rational>().isIntegral()), l);
   CVC4::CheckArgument(noUpperBound || (r.getKind() == CVC4::kind::CONST_RATIONAL && r.getConst<Rational>().isIntegral()), r);
   CVC4::SubrangeBound bl = noLowerBound ? CVC4::SubrangeBound() : CVC4::SubrangeBound(l.getConst<Rational>().getNumerator());
@@ -1197,7 +1197,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
       CVC4::CheckArgument(selectors[i][j].size() == types[i][j].size(), types, "expected sub-vectors in selectors and types vectors to match in size");
       for(unsigned k = 0; k < selectors[i][j].size(); ++k) {
         if(types[i][j][k].getType().isString()) {
-          ctor.addArg(selectors[i][j][k], CVC4::DatatypeUnresolvedType(types[i][j][k].getConst<string>()));
+          ctor.addArg(selectors[i][j][k], CVC4::DatatypeUnresolvedType(types[i][j][k].getConst<CVC4::String>().toString()));
         } else {
           ctor.addArg(selectors[i][j][k], exprToType(types[i][j][k]));
         }
@@ -1307,12 +1307,12 @@ Expr ValidityChecker::getTypePred(const Type&t, const Expr& e) {
 }
 
 Expr ValidityChecker::stringExpr(const std::string& str) {
-  return d_em->mkConst(str);
+  return d_em->mkConst(CVC4::String(str));
 }
 
 Expr ValidityChecker::idExpr(const std::string& name) {
   // represent as a string expr, CVC4 doesn't have id exprs
-  return d_em->mkConst(name);
+  return d_em->mkConst(CVC4::String(name));
 }
 
 Expr ValidityChecker::listExpr(const std::vector<Expr>& kids) {
@@ -1333,21 +1333,21 @@ Expr ValidityChecker::listExpr(const Expr& e1, const Expr& e2, const Expr& e3) {
 
 Expr ValidityChecker::listExpr(const std::string& op,
                                const std::vector<Expr>& kids) {
-  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), vector<CVC4::Expr>(kids.begin(), kids.end()));
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(CVC4::String(op)), vector<CVC4::Expr>(kids.begin(), kids.end()));
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1) {
-  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(CVC4::String(op)), e1);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2) {
-  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1, e2);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(CVC4::String(op)), e1, e2);
 }
 
 Expr ValidityChecker::listExpr(const std::string& op, const Expr& e1,
                                const Expr& e2, const Expr& e3) {
-  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(op), e1, e2, e3);
+  return d_em->mkExpr(CVC4::kind::SEXPR, d_em->mkConst(CVC4::String(op)), e1, e2, e3);
 }
 
 void ValidityChecker::printExpr(const Expr& e) {

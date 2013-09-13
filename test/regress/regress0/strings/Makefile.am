@@ -1,3 +1,5 @@
+SUBDIRS = .
+
 BINARY = cvc4
 LOG_COMPILER = @srcdir@/../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
@@ -15,31 +17,28 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	agree466.smt2 \
-	ALG008-1.smt2 \
-	german169.smt2 \
-	Hoare-z3.931718.smt \
-	QEpres-uf.855035.smt \
-	agree467.smt2 \
-	Arrow_Order-smtlib.778341.smt \
-	german73.smt2 \
-	PUZ001+1.smt2 \
-	refcount24.cvc.smt2 \
-	bug0909.smt2 
+  cardinality.smt2 \
+  str001.smt2 \
+  str002.smt2 \
+  str003.smt2 \
+  str004.smt2 \
+  str005.smt2 \
+  loop001.smt2
+# loop002.smt2 \
+# loop003.smt2 \
+# loop004.smt2 \
+# loop005.smt2 \
+# loop006.smt2
+
+FAILING_TESTS =
 
 EXTRA_DIST = $(TESTS)
 
-#if CVC4_BUILD_PROFILE_COMPETITION
-#else
-#TESTS += \
-#	error.cvc
-#endif
-#
-# and make sure to distribute it
-#EXTRA_DIST += \
-#	error.cvc
 
-# synonyms for "check" in this directory
+# and make sure to distribute it
+EXTRA_DIST +=
+
+# synonyms for "check"
 .PHONY: regress regress0 test
 regress regress0 test: check
 

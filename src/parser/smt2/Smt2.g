@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Christopher L. Conway
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic, Andrew Reynolds, Francois Bobot
+ ** Minor contributors (to current version): Dejan Jovanovic, Andrew Reynolds, Francois Bobot, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -452,7 +452,7 @@ extendedCommand[CVC4::Command*& cmd]
   : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { /* open a scope to keep the UnresolvedTypes contained */
       PARSER_STATE->pushScope(true); }
-    LPAREN_TOK 	/* parametric sorts */
+    LPAREN_TOK /* parametric sorts */
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
         sorts.push_back( PARSER_STATE->mkSort(name) ); }
       )*
@@ -697,6 +697,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 @declarations {
   CVC4::Kind k;
   std::string s;
+  std::vector<unsigned int> s_vec;
 }
   : INTEGER_LITERAL
     { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
@@ -704,6 +705,13 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
+//  | LPAREN_TOK STRCST_TOK 
+//      ( INTEGER_LITERAL { 
+//	    s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
+//	  } )* RPAREN_TOK
+//   { 
+//	sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
+//	}
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
   | tok=(ASSERT_TOK | CHECKSAT_TOK | DECLARE_FUN_TOK | DECLARE_SORT_TOK | DEFINE_FUN_TOK | DEFINE_SORT_TOK | GET_VALUE_TOK | GET_ASSIGNMENT_TOK | GET_ASSERTIONS_TOK | GET_PROOF_TOK | GET_UNSAT_CORE_TOK | EXIT_TOK | SET_LOGIC_TOK | SET_INFO_TOK | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
@@ -757,6 +765,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::hash_set<std::string, StringHashFunction> names;
   std::vector< std::pair<std::string, Expr> > binders;
   Type type;
+  std::string s;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -1011,6 +1020,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
 
+  | str[s]
+    { expr = MK_CONST( ::CVC4::String(s) ); }
+
     // NOTE: Theory constants go here
   ;
 
@@ -1221,6 +1233,17 @@ builtinOp[CVC4::Kind& kind]
   | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
   | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
   | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
+
+  | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
+  | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
+  | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
+  | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
+  | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
+  | REOR_TOK       { $kind = CVC4::kind::REGEXP_OR; }
+  | REINTER_TOK    { $kind = CVC4::kind::REGEXP_INTER; }
+  | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
+  | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
+  | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
 
   // NOTE: Theory operators go here
   ;
@@ -1578,6 +1601,19 @@ BVSLT_TOK : 'bvslt';
 BVSLE_TOK : 'bvsle';
 BVSGT_TOK : 'bvsgt';
 BVSGE_TOK : 'bvsge';
+
+//STRING
+STRCST_TOK : 'str.const';
+STRCON_TOK : 'str.++';
+STRLEN_TOK : 'str.len';
+STRINRE_TOK : 'str.in.re';
+STRTORE_TOK : 'str.to.re';
+RECON_TOK : 're.++';
+REOR_TOK : 're.or';
+REINTER_TOK : 're.inter';
+RESTAR_TOK : 're.*';
+REPLUS_TOK : 're.+';
+REOPT_TOK : 're.opt';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

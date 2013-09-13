@@ -511,6 +511,7 @@ public:
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
+    info.disableTheory(THEORY_STRINGS);
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
