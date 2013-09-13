@@ -27,6 +27,9 @@ option prenexQuant /--disable-prenex-quant bool :default true
 option varElimQuant /--disable-var-elim-quant bool :default true
  disable simple variable elimination for quantified formulas
 
+option simpleIteLiftQuant /--disable-ite-lift-quant bool :default true
+ disable simple ite lifting for quantified formulas
+
 # Whether to CNF quantifier bodies
 option cnfQuant --cnf-quant bool :default false
  apply CNF conversion to quantified formulas

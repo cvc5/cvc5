@@ -290,6 +290,8 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           }
         }
       }
+    }else{
+      Trace("bound-int-warn") << "Warning : Bounded Integers : Could not find bounds for " << f << std::endl;
     }
   }
 }

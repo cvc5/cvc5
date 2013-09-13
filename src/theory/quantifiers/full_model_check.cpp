@@ -854,6 +854,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       }
     }
     if( !success ){
+      Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
       Trace("fmc-debug") << "Can't process base array " << r << std::endl;
       //can't process this array
       d.reset();
