@@ -77,6 +77,20 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   NodeManagerScope nms(d_nodeManager);
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
+
+  if(key.length() >= 18 &&
+     key.compare(0, 18, "command-verbosity:") == 0) {
+    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
+    if(i != d_commandVerbosity.end()) {
+      return (*i).second;
+    }
+    i = d_commandVerbosity.find("*");
+    if(i != d_commandVerbosity.end()) {
+      return (*i).second;
+    }
+    return Integer(2);
+  }
+
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetOptionCommand(key);
   }
@@ -108,22 +122,11 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
       result.push_back(v);
     }
     return result;
-  } else if(key.length() >= 18 &&
-            key.compare(0, 18, "command-verbosity:") == 0) {
-    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
-    if(i != d_commandVerbosity.end()) {
-      return (*i).second;
-    }
-    i = d_commandVerbosity.find("*");
-    if(i != d_commandVerbosity.end()) {
-      return (*i).second;
-    }
-    return Integer(2);
   }
 
   ${smt_getoption_handlers}
 
-#line 127 "${template}"
+#line 130 "${template}"
 
   throw UnrecognizedOptionException(key);
 }
