@@ -28,9 +28,6 @@ namespace theory {
 /** Default value for the uninterpreted sorts is the UF theory */
 TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
 
-/** By default, we use the type based theoryOf */
-TheoryOfMode Theory::s_theoryOfMode = THEORY_OF_TYPE_BASED;
-
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
   case Theory::EFFORT_STANDARD:

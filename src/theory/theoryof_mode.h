@@ -14,9 +14,9 @@
  ** Option selection for theoryOf() operation.
  **/
 
-#pragma once
-
 #include "cvc4_public.h"
+
+#pragma once
 
 namespace CVC4 {
 namespace theory {
@@ -28,6 +28,18 @@ enum TheoryOfMode {
   /** Variables are uninterpreted, constants are with the type, equalities prefer parametric */
   THEORY_OF_TERM_BASED
 };/* enum TheoryOfMode */
+
+inline std::ostream& operator<<(std::ostream& out, TheoryOfMode m) throw() CVC4_PUBLIC;
+
+inline std::ostream& operator<<(std::ostream& out, TheoryOfMode m) throw() {
+  switch(m) {
+  case THEORY_OF_TYPE_BASED: return out << "THEORY_OF_TYPE_BASED";
+  case THEORY_OF_TERM_BASED: return out << "THEORY_OF_TERM_BASED";
+  default: return out << "TheoryOfMode!UNKNOWN";
+  }
+
+  Unreachable();
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

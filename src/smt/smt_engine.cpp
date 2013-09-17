@@ -835,12 +835,9 @@ void SmtEngine::setLogicInternal() throw() {
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
     if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV)) {
-      Theory::setTheoryOfMode(THEORY_OF_TERM_BASED);
-    } else {
-      Theory::setTheoryOfMode(THEORY_OF_TYPE_BASED);
+      Trace("smt") << "setting theoryof-mode to term-based" << endl;
+      options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
-  } else {
-    Theory::setTheoryOfMode(options::theoryOfMode());
   }
 
   // by default, symmetry breaker is on only for QF_UF

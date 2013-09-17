@@ -26,6 +26,7 @@
 #include "theory/substitutions.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
+#include "theory/options.h"
 #include "theory/theoryof_mode.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -298,9 +299,6 @@ protected:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /** Mode of the theoryOf operation */
-  static TheoryOfMode s_theoryOfMode;
-
 public:
 
   /**
@@ -333,12 +331,7 @@ public:
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    return theoryOf(s_theoryOfMode, node);
-  }
-
-  /** Set the theoryOf mode */
-  static void setTheoryOfMode(TheoryOfMode mode) {
-    s_theoryOfMode = mode;
+    return theoryOf(options::theoryOfMode(), node);
   }
 
   /**
@@ -349,7 +342,7 @@ public:
   }
 
   /**
-   * Set the owner of the uninterpreted sort.
+   * Get the owner of the uninterpreted sort.
    */
   static TheoryId getUninterpretedSortOwner() {
     return s_uninterpretedSortOwner;
