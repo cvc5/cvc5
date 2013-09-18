@@ -84,6 +84,9 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_SIGN_EXTEND);
   addOperator(kind::BITVECTOR_ROTATE_LEFT);
   addOperator(kind::BITVECTOR_ROTATE_RIGHT);
+
+  addOperator(kind::INT_TO_BITVECTOR);
+  addOperator(kind::BITVECTOR_TO_NAT);
 }
 
 void Smt2::addStringOperators() {

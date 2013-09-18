@@ -304,6 +304,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SLE: out << "bvsle "; break;
   case kind::BITVECTOR_SGT: out << "bvsgt "; break;
   case kind::BITVECTOR_SGE: out << "bvsge "; break;
+  case kind::BITVECTOR_TO_NAT: out << "bv2nat "; break;
 
   case kind::BITVECTOR_EXTRACT:
   case kind::BITVECTOR_REPEAT:
@@ -311,6 +312,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SIGN_EXTEND:
   case kind::BITVECTOR_ROTATE_LEFT:
   case kind::BITVECTOR_ROTATE_RIGHT:
+  case kind::INT_TO_BITVECTOR:
     printBvParameterizedOp(out, n);
     out << ' ';
     stillNeedToPrintParams = false;
@@ -534,6 +536,10 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
   case kind::BITVECTOR_ROTATE_RIGHT:
     out << "rotate_right "
         << n.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
+    break;
+  case kind::INT_TO_BITVECTOR:
+    out << "int2bv "
+        << n.getOperator().getConst<IntToBitVector>().size;
     break;
   default:
     out << n.getKind();

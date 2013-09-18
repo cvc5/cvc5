@@ -1124,6 +1124,11 @@ indexedFunctionName[CVC4::Expr& op]
       { op = MK_CONST(BitVectorRotateRight(AntlrInput::tokenToUnsigned($n))); }
     | DIVISIBLE_TOK n=INTEGER_LITERAL
       { op = MK_CONST(Divisible(AntlrInput::tokenToUnsigned($n))); }
+    | INT2BV_TOK n=INTEGER_LITERAL
+      { op = MK_CONST(IntToBitVector(AntlrInput::tokenToUnsigned($n)));
+        if(PARSER_STATE->strictModeEnabled()) {
+          PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
+        } }
     | badIndexedFunctionName
    )
     RPAREN_TOK
@@ -1233,6 +1238,11 @@ builtinOp[CVC4::Kind& kind]
   | BVSLE_TOK     { $kind = CVC4::kind::BITVECTOR_SLE; }
   | BVSGT_TOK     { $kind = CVC4::kind::BITVECTOR_SGT; }
   | BVSGE_TOK     { $kind = CVC4::kind::BITVECTOR_SGE; }
+
+  | BV2NAT_TOK     { $kind = CVC4::kind::BITVECTOR_TO_NAT;
+                     if(PARSER_STATE->strictModeEnabled()) {
+                       PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
+                     } }
 
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
@@ -1601,6 +1611,8 @@ BVSLT_TOK : 'bvslt';
 BVSLE_TOK : 'bvsle';
 BVSGT_TOK : 'bvsgt';
 BVSGE_TOK : 'bvsge';
+BV2NAT_TOK : 'bv2nat';
+INT2BV_TOK : 'int2bv';
 
 //STRING
 STRCST_TOK : 'str.const';

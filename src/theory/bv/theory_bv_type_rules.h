@@ -195,6 +195,29 @@ public:
   }
 };
 
+class BitVectorConversionTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if(n.getKind() == kind::BITVECTOR_TO_NAT) {
+      if(check && !n[0].getType(check).isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+      return nodeManager->integerType();
+    }
+
+    if(n.getKind() == kind::INT_TO_BITVECTOR) {
+      size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+      if(check && !n[0].getType(check).isInteger()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting integer term");
+      }
+      return nodeManager->mkBitVectorType(bvSize);
+    }
+
+    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+  }
+};
+
 class CardinalityComputer {
 public:
   inline static Cardinality computeCardinality(TypeNode type) {
