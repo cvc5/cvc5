@@ -308,16 +308,21 @@ private:
   SubstitutionMap d_topLevelSubstitutions;
 
   /**
-   * The last substitution that the SAT layer was told about.
-   * In incremental settings, substitutions cannot be performed
-   * "backward," only forward.  So SAT needs to be told of all
-   * substitutions that are going to be done.  This iterator
-   * holds the last substitution from d_topLevelSubstitutions
-   * that was pushed out to SAT.
-   * If d_lastSubstitutionPos == d_topLevelSubstitutions.end(),
-   * then nothing has been pushed out yet.
+   * d_lastSubstitutionPos points to the last
+   * substitution that was added to d_topLevelSubstitutions.
+   * If d_lastSubstitutionPos == d_topLevelSubstitutions.end(), there
+   * are no substitutions.
    */
   context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPos;
+  /**
+   * In incremental settings, substitutions cannot be performed
+   * "backward," only forward.  So we need to keep all substitutions
+   * around as assertions.  This iterator remembers the last
+   * substitution at the time processAssertions was called.  All
+   * substitutions added since then need to be included in the set of
+   * assertions in incremental mode.
+   */
+  context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPosAtEntryToProcessAssertions;
 
   static const bool d_doConstantProp = true;
 
@@ -403,7 +408,9 @@ public:
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
     d_topLevelSubstitutions(smt.d_userContext),
-    d_lastSubstitutionPos(smt.d_userContext, d_topLevelSubstitutions.end()) {
+    d_lastSubstitutionPos(smt.d_userContext, d_topLevelSubstitutions.end()),
+    d_lastSubstitutionPosAtEntryToProcessAssertions(smt.d_userContext, d_topLevelSubstitutions.end())
+  {
     d_smt.d_nodeManager->subscribeEvents(this);
   }
 
@@ -1771,7 +1778,19 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         return false;
       }
     }
-    // Solve it with the corresponding theory
+
+    SubstitutionMap::iterator pos = d_lastSubstitutionPos;
+#ifdef CVC4_ASSERTIONS
+    // Check that d_lastSubstitutionPos really points to the last substitution
+    if (pos != d_topLevelSubstitutions.end()) {
+      ++pos;
+      Assert(pos == d_topLevelSubstitutions.end());
+      pos = d_lastSubstitutionPos;
+    }
+#endif
+
+    // Solve it with the corresponding theory, possibly adding new
+    // substitutions to d_topLevelSubstitutions
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "solving " << learnedLiteral << endl;
     Theory::PPAssertStatus solveStatus =
@@ -1779,6 +1798,18 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
     switch (solveStatus) {
       case Theory::PP_ASSERT_STATUS_SOLVED: {
+        // Update d_lastSubstitutionPos
+        if (pos == d_topLevelSubstitutions.end()) {
+          pos = d_topLevelSubstitutions.begin();
+        }
+        SubstitutionMap::iterator next = pos;
+        ++next;
+        while (next != d_topLevelSubstitutions.end()) {
+          pos = next;
+          ++next;
+        }
+        d_lastSubstitutionPos = pos;
+
         // The literal should rewrite to true
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "solved " << learnedLiteral << endl;
@@ -1842,7 +1873,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     // 3. if l -> r is a constant propagation and l is a subterm of l' with l' -> r' another constant propagation, then l'[l/r] -> r' should be a
     //    constant propagation too
     // 4. each lhs of constantPropagations is different from each rhs
-    SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin();
+    pos = d_topLevelSubstitutions.begin();
     for (; pos != d_topLevelSubstitutions.end(); ++pos) {
       Assert((*pos).first.isVar());
       //      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
@@ -1918,7 +1949,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   if( options::incrementalSolving() ||
       options::simplificationMode() == SIMPLIFICATION_MODE_INCREMENTAL ) {
     // Keep substitutions
-    SubstitutionMap::iterator pos = d_lastSubstitutionPos;
+    SubstitutionMap::iterator pos = d_lastSubstitutionPosAtEntryToProcessAssertions;
     if(pos == d_topLevelSubstitutions.end()) {
       pos = d_topLevelSubstitutions.begin();
     } else {
@@ -1926,12 +1957,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     }
 
     while(pos != d_topLevelSubstitutions.end()) {
-      // Push out this substitution
-      TNode lhs = (*pos).first, rhs = (*pos).second;
+      // Add back this substitution as an assertion
+      TNode lhs = (*pos).first, rhs = d_topLevelSubstitutions.apply((*pos).second);
       Node n = NodeManager::currentNM()->mkNode(lhs.getType().isBoolean() ? kind::IFF : kind::EQUAL, lhs, rhs);
       learnedBuilder << n;
       Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
-      d_lastSubstitutionPos = pos;
       ++pos;
     }
   }
@@ -2808,6 +2838,9 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);
+
+  // Record current last substitution
+  d_lastSubstitutionPosAtEntryToProcessAssertions = d_lastSubstitutionPos.get();
   // Apply the substitutions we already have, and normalize
   Chat() << "applying substitutions..." << endl;
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
