@@ -307,23 +307,6 @@ private:
   /** The top level substitutions */
   SubstitutionMap d_topLevelSubstitutions;
 
-  /**
-   * d_lastSubstitutionPos points to the last
-   * substitution that was added to d_topLevelSubstitutions.
-   * If d_lastSubstitutionPos == d_topLevelSubstitutions.end(), there
-   * are no substitutions.
-   */
-  context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPos;
-  /**
-   * In incremental settings, substitutions cannot be performed
-   * "backward," only forward.  So we need to keep all substitutions
-   * around as assertions.  This iterator remembers the last
-   * substitution at the time processAssertions was called.  All
-   * substitutions added since then need to be included in the set of
-   * assertions in incremental mode.
-   */
-  context::CDO<SubstitutionMap::iterator> d_lastSubstitutionPosAtEntryToProcessAssertions;
-
   static const bool d_doConstantProp = true;
 
   /**
@@ -407,9 +390,7 @@ public:
     d_modZero(),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
-    d_topLevelSubstitutions(smt.d_userContext),
-    d_lastSubstitutionPos(smt.d_userContext, d_topLevelSubstitutions.end()),
-    d_lastSubstitutionPosAtEntryToProcessAssertions(smt.d_userContext, d_topLevelSubstitutions.end())
+    d_topLevelSubstitutions(smt.d_userContext, true, true)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
   }
@@ -1745,12 +1726,15 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   // No, conflict, go through the literals and solve them
   SubstitutionMap constantPropagations(d_smt.d_context);
+  SubstitutionMap newSubstitutions(d_smt.d_context, true, true);
+  SubstitutionMap::iterator pos;
   unsigned j = 0;
   for(unsigned i = 0, i_end = d_nonClausalLearnedLiterals.size(); i < i_end; ++ i) {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = d_nonClausalLearnedLiterals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
-    Node learnedLiteralNew = d_topLevelSubstitutions.apply(learnedLiteral);
+    Assert(d_topLevelSubstitutions.apply(learnedLiteral) == learnedLiteral);
+    Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
     if (learnedLiteral != learnedLiteralNew) {
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
@@ -1779,41 +1763,20 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       }
     }
 
-    SubstitutionMap::iterator pos = d_lastSubstitutionPos;
-#ifdef CVC4_ASSERTIONS
-    // Check that d_lastSubstitutionPos really points to the last substitution
-    if (pos != d_topLevelSubstitutions.end()) {
-      ++pos;
-      Assert(pos == d_topLevelSubstitutions.end());
-      pos = d_lastSubstitutionPos;
-    }
-#endif
-
     // Solve it with the corresponding theory, possibly adding new
-    // substitutions to d_topLevelSubstitutions
+    // substitutions to newSubstitutions
     Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                       << "solving " << learnedLiteral << endl;
+
     Theory::PPAssertStatus solveStatus =
-      d_smt.d_theoryEngine->solve(learnedLiteral, d_topLevelSubstitutions);
+      d_smt.d_theoryEngine->solve(learnedLiteral, newSubstitutions);
 
     switch (solveStatus) {
       case Theory::PP_ASSERT_STATUS_SOLVED: {
-        // Update d_lastSubstitutionPos
-        if (pos == d_topLevelSubstitutions.end()) {
-          pos = d_topLevelSubstitutions.begin();
-        }
-        SubstitutionMap::iterator next = pos;
-        ++next;
-        while (next != d_topLevelSubstitutions.end()) {
-          pos = next;
-          ++next;
-        }
-        d_lastSubstitutionPos = pos;
-
         // The literal should rewrite to true
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                           << "solved " << learnedLiteral << endl;
-        Assert(Rewriter::rewrite(d_topLevelSubstitutions.apply(learnedLiteral)).isConst());
+        Assert(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral)).isConst());
         //        vector<pair<Node, Node> > equations;
         //        constantPropagations.simplifyLHS(d_topLevelSubstitutions, equations, true);
         //        if (equations.empty()) {
@@ -1848,6 +1811,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
           Assert(!t.isConst());
           Assert(constantPropagations.apply(t) == t);
           Assert(d_topLevelSubstitutions.apply(t) == t);
+          Assert(newSubstitutions.apply(t) == t);
           constantPropagations.addSubstitution(t, c);
           // vector<pair<Node,Node> > equations;a
           // constantPropagations.simplifyLHS(t, c, equations, true);
@@ -1873,10 +1837,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     // 3. if l -> r is a constant propagation and l is a subterm of l' with l' -> r' another constant propagation, then l'[l/r] -> r' should be a
     //    constant propagation too
     // 4. each lhs of constantPropagations is different from each rhs
-    pos = d_topLevelSubstitutions.begin();
-    for (; pos != d_topLevelSubstitutions.end(); ++pos) {
+    for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
       Assert((*pos).first.isVar());
-      //      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
+      Assert(d_topLevelSubstitutions.apply((*pos).first) == (*pos).first);
+      Assert(d_topLevelSubstitutions.apply((*pos).second) == (*pos).second);
+      Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second)) == newSubstitutions.apply((*pos).second));
     }
     for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
       Assert((*pos).second.isConst());
@@ -1900,14 +1865,17 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   // Resize the learnt
   d_nonClausalLearnedLiterals.resize(j);
 
-  //must add substitutions to model
-  TheoryModel* m = d_smt.d_theoryEngine->getModel();
-  if(m != NULL) {
-    for( SubstitutionMap::iterator pos = d_topLevelSubstitutions.begin(); pos != d_topLevelSubstitutions.end(); ++pos) {
-      Node n = (*pos).first;
-      Node v = (*pos).second;
-      Trace("model") << "Add substitution : " << n << " " << v << endl;
-      m->addSubstitution( n, v );
+  // If not in incremental mode, must add substitutions to model
+  if( !options::incrementalSolving() &&
+      !options::simplificationMode() == SIMPLIFICATION_MODE_INCREMENTAL ) {
+    TheoryModel* m = d_smt.d_theoryEngine->getModel();
+    if(m != NULL) {
+      for(pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
+        Node n = (*pos).first;
+        Node v = newSubstitutions.apply((*pos).second);
+        Trace("model") << "Add substitution : " << n << " " << v << endl;
+        m->addSubstitution( n, v );
+      }
     }
   }
 
@@ -1915,7 +1883,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   Trace("debugging") << "NonClausal simplify pre-preprocess\n";
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     Node assertion = d_assertionsToPreprocess[i];
-    Node assertionNew = d_topLevelSubstitutions.apply(assertion);
+    Node assertionNew = newSubstitutions.apply(assertion);
     Trace("debugging") << "assertion = " << assertion << endl;
     Trace("debugging") << "assertionNew = " << assertionNew << endl;
     if (assertion != assertionNew) {
@@ -1946,29 +1914,23 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   Assert(d_realAssertionsEnd <= d_assertionsToCheck.size());
   learnedBuilder << d_assertionsToCheck[d_realAssertionsEnd - 1];
 
+  // If in incremental mode, add substitutions to the list of assertions
   if( options::incrementalSolving() ||
       options::simplificationMode() == SIMPLIFICATION_MODE_INCREMENTAL ) {
-    // Keep substitutions
-    SubstitutionMap::iterator pos = d_lastSubstitutionPosAtEntryToProcessAssertions;
-    if(pos == d_topLevelSubstitutions.end()) {
-      pos = d_topLevelSubstitutions.begin();
-    } else {
-      ++pos;
-    }
-
-    while(pos != d_topLevelSubstitutions.end()) {
+    pos = newSubstitutions.begin();
+    for (; pos != newSubstitutions.end(); ++pos) {
       // Add back this substitution as an assertion
-      TNode lhs = (*pos).first, rhs = d_topLevelSubstitutions.apply((*pos).second);
+      TNode lhs = (*pos).first, rhs = newSubstitutions.apply((*pos).second);
       Node n = NodeManager::currentNM()->mkNode(lhs.getType().isBoolean() ? kind::IFF : kind::EQUAL, lhs, rhs);
       learnedBuilder << n;
       Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
-      ++pos;
     }
   }
 
   for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
     Node learned = d_nonClausalLearnedLiterals[i];
-    Node learnedNew = d_topLevelSubstitutions.apply(learned);
+    Assert(d_topLevelSubstitutions.apply(learned) == learned);
+    Node learnedNew = newSubstitutions.apply(learned);
     if (learned != learnedNew) {
       learned = Rewriter::rewrite(learnedNew);
     }
@@ -1992,10 +1954,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
   d_nonClausalLearnedLiterals.clear();
 
-  SubstitutionMap::iterator pos = constantPropagations.begin();
-  for (; pos != constantPropagations.end(); ++pos) {
+  
+  for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
     Node cProp = (*pos).first.eqNode((*pos).second);
-    Node cPropNew = d_topLevelSubstitutions.apply(cProp);
+    Assert(d_topLevelSubstitutions.apply(cProp) == cProp);
+    Node cPropNew = newSubstitutions.apply(cProp);
     if (cProp != cPropNew) {
       cProp = Rewriter::rewrite(cPropNew);
       Assert(Rewriter::rewrite(cProp) == cProp);
@@ -2009,6 +1972,11 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                       << "non-clausal constant propagation : "
                       << cProp << endl;
   }
+
+  // Add new substitutions to topLevelSubstitutions
+  // Note that we don't have to keep rhs's in full solved form
+  // because SubstitutionMap::apply does a fixed-point iteration when substituting
+  d_topLevelSubstitutions.addSubstitutions(newSubstitutions);
 
   if(learnedBuilder.getNumChildren() > 1) {
     d_assertionsToCheck[d_realAssertionsEnd - 1] =
@@ -2839,8 +2807,6 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);
 
-  // Record current last substitution
-  d_lastSubstitutionPosAtEntryToProcessAssertions = d_lastSubstitutionPos.get();
   // Apply the substitutions we already have, and normalize
   Chat() << "applying substitutions..." << endl;
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "

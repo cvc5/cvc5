@@ -17,6 +17,7 @@
 #include "theory/theory.h"
 #include "theory/booleans/theory_bool.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/substitutions.h"
 #include "theory/valuation.h"
 #include "util/boolean_simplification.h"
 
