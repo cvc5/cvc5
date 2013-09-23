@@ -21,7 +21,6 @@
 #define __CVC4__THEORY__UF__THEORY_UF_REWRITER_H
 
 #include "theory/rewriter.h"
-#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace theory {

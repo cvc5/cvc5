@@ -29,7 +29,7 @@ struct substitution_stack_element {
   : node(node), children_added(false) {}
 };/* struct substitution_stack_element */
 
-Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
+Node SubstitutionMap::internalSubstitute(TNode t) {
 
   Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
@@ -50,8 +50,8 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): processing " << current << endl;
 
     // If node already in the cache we're done, pop from the stack
-    NodeCache::iterator find = cache.find(current);
-    if (find != cache.end()) {
+    NodeCache::iterator find = d_substitutionCache.find(current);
+    if (find != d_substitutionCache.end()) {
       toVisit.pop_back();
       continue;
     }
@@ -59,7 +59,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (!d_substituteUnderQuantifiers &&
         (current.getKind() == kind::FORALL || current.getKind() == kind::EXISTS)) {
       Debug("substitution::internal") << "--not substituting under quantifier" << endl;
-      cache[current] = current;
+      d_substitutionCache[current] = current;
       toVisit.pop_back();
       continue;
     }
@@ -68,9 +68,9 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
       Assert(rhs != current);
-      internalSubstitute(rhs, cache);
-      d_substitutions[current] = cache[rhs];
-      cache[current] = cache[rhs];
+      internalSubstitute(rhs);
+      d_substitutions[current] = d_substitutionCache[rhs];
+      d_substitutionCache[current] = d_substitutionCache[rhs];
       toVisit.pop_back();
       continue;
     }
@@ -80,17 +80,17 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       // Children have been processed, so substitute
       NodeBuilder<> builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
-        builder << Node(cache[current.getOperator()]);
+        builder << Node(d_substitutionCache[current.getOperator()]);
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
-        Assert(cache.find(current[i]) != cache.end());
-        builder << Node(cache[current[i]]);
+        Assert(d_substitutionCache.find(current[i]) != d_substitutionCache.end());
+        builder << Node(d_substitutionCache[current[i]]);
       }
       // Mark the substitution and continue
       Node result = builder;
       if (result != current) {
-        find = cache.find(result);
-        if (find != cache.end()) {
+        find = d_substitutionCache.find(result);
+        if (find != d_substitutionCache.end()) {
           result = find->second;
         }
         else {
@@ -98,15 +98,15 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
             Assert(rhs != result);
-            internalSubstitute(rhs, cache);
-            d_substitutions[result] = cache[rhs];
-            cache[result] = cache[rhs];
-            result = cache[rhs];
+            internalSubstitute(rhs);
+            d_substitutions[result] = d_substitutionCache[rhs];
+            d_substitutionCache[result] = d_substitutionCache[rhs];
+            result = d_substitutionCache[rhs];
           }
         }
       }
       Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
-      cache[current] = result;
+      d_substitutionCache[current] = result;
       toVisit.pop_back();
     } else {
       // Mark that we have added the children if any
@@ -115,33 +115,34 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
         // We need to add the operator, if any
         if(current.getMetaKind() == kind::metakind::PARAMETERIZED) {
           TNode opNode = current.getOperator();
-          NodeCache::iterator opFind = cache.find(opNode);
-          if (opFind == cache.end()) {
+          NodeCache::iterator opFind = d_substitutionCache.find(opNode);
+          if (opFind == d_substitutionCache.end()) {
             toVisit.push_back(opNode);
           }
         }
         // We need to add the children
         for(TNode::iterator child_it = current.begin(); child_it != current.end(); ++ child_it) {
           TNode childNode = *child_it;
-          NodeCache::iterator childFind = cache.find(childNode);
-          if (childFind == cache.end()) {
+          NodeCache::iterator childFind = d_substitutionCache.find(childNode);
+          if (childFind == d_substitutionCache.end()) {
             toVisit.push_back(childNode);
           }
         }
       } else {
         // No children, so we're done
         Debug("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
-        cache[current] = current;
+        d_substitutionCache[current] = current;
         toVisit.pop_back();
       }
     }
   }
 
   // Return the substituted version
-  return cache[t];
+  return d_substitutionCache[t];
 }/* SubstitutionMap::internalSubstitute() */
 
 
+  /*
 void SubstitutionMap::simplifyRHS(const SubstitutionMap& subMap)
 {
   // Put the new substitutions into the old ones
@@ -159,10 +160,10 @@ void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
   tempCache[x] = t;
 
   // Put the new substitution into the old ones
-  NodeMap::iterator it = d_substitutions.begin();
-  NodeMap::iterator it_end = d_substitutions.end();
+  NodeMap::iterator it = d_substitutionsOld.begin();
+  NodeMap::iterator it_end = d_substitutionsOld.end();
   for(; it != it_end; ++ it) {
-    d_substitutions[(*it).first] = internalSubstitute((*it).second, tempCache);
+    d_substitutionsOld[(*it).first] = internalSubstituteOld((*it).second, tempCache);
   }  
   // it = d_substitutionsLazy.begin();
   // it_end = d_substitutionsLazy.end();
@@ -170,7 +171,7 @@ void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
   //   d_substitutionsLazy[(*it).first] = internalSubstitute((*it).second, tempCache);
   // }  
 }
-
+*/
 
 /* We use subMap to simplify the left-hand sides of the current substitution map.  If rewrite is true,
  * we also apply the rewriter to the result.
@@ -282,24 +283,6 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   }
 }
 
-
-void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateCache)
-{
-  SubstitutionMap::NodeMap::const_iterator it = subMap.begin();
-  SubstitutionMap::NodeMap::const_iterator it_end = subMap.end();
-  for (; it != it_end; ++ it) {
-    Assert(d_substitutions.find((*it).first) == d_substitutions.end());
-    d_substitutions[(*it).first] = (*it).second;
-    if (!invalidateCache) {
-      d_substitutionCache[(*it).first] = d_substitutions[(*it).first];
-    }
-  }
-  if (invalidateCache) {
-    d_cacheInvalidated = true;
-  }
-}
-
-
 static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
 static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
   SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
@@ -328,7 +311,7 @@ Node SubstitutionMap::apply(TNode t) {
   }
 
   // Perform the substitution
-  Node result = internalSubstitute(t, d_substitutionCache);
+  Node result = internalSubstitute(t);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
   //  Assert(check(result, d_substitutions));

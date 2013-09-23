@@ -68,11 +68,8 @@ private:
   /** Has the cache been invalidated? */
   bool d_cacheInvalidated;
 
-  /** Whether to keep substitutions in solved form */
-  bool d_solvedForm;
-
   /** Internal method that performs substitution */
-  Node internalSubstitute(TNode t, NodeCache& cache);
+  Node internalSubstitute(TNode t);
 
   /** Helper class to invalidate cache on user pop */
   class CacheInvalidator : public context::ContextNotifyObj {
@@ -101,26 +98,19 @@ private:
 
 public:
 
-  SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true, bool solvedForm = false) :
+  SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true) :
     d_context(context),
     d_substitutions(context),
     d_substitutionCache(),
     d_substituteUnderQuantifiers(substituteUnderQuantifiers),
     d_cacheInvalidated(false),
-    d_solvedForm(solvedForm),
-    d_cacheInvalidator(context, d_cacheInvalidated)
-    {
+    d_cacheInvalidator(context, d_cacheInvalidated) {
   }
 
   /**
    * Adds a substitution from x to t.
    */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
-
-  /**
-   * Merge subMap into current set of substitutions
-   */
-  void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
 
   /**
    * Returns true iff x is in the substitution map
@@ -180,13 +170,13 @@ public:
   // should best interact with cache invalidation on context
   // pops.
 
+  /*
   // Simplify right-hand sides of current map using the given substitutions
   void simplifyRHS(const SubstitutionMap& subMap);
 
   // Simplify right-hand sides of current map with lhs -> rhs
   void simplifyRHS(TNode lhs, TNode rhs);
 
-  /*
   // Simplify left-hand sides of current map using the given substitutions
   void simplifyLHS(const SubstitutionMap& subMap,
                    std::vector<std::pair<Node,Node> >& equalities,
@@ -197,8 +187,6 @@ public:
                    std::vector<std::pair<Node,Node> >& equalities,
                    bool rewrite = true);
   */
-
-  bool isSolvedForm() const { return d_solvedForm; }
 
   /**
    * Print to the output stream
