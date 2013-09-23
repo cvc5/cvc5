@@ -113,7 +113,7 @@ class TheoryStrings : public Theory {
     eq::EqualityEngine d_equalityEngine;
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
-
+	std::vector< Node > d_length_intro_vars;
     Node d_emptyString;
     Node d_true;
     Node d_false;
@@ -210,6 +210,7 @@ protected:
   //do pending merges
   void doPendingFacts();
 
+  void sendLemma( Node ant, Node conc, const char * c );
   /** mkConcat **/
   Node mkConcat( std::vector< Node >& c );
   /** mkExplain **/
