@@ -122,13 +122,13 @@ public:
 
   String(const std::string &s) {
     for(unsigned int i=0; i<s.size(); ++i) {
-        d_str.push_back( (unsigned int)s[i] );
+        d_str.push_back( convertCharToUnsignedInt(s[i]) );
     }
   }
 
   String(const char* s) {
     for(unsigned int i=0,len=strlen(s); i<len; ++i) {
-        d_str.push_back( (unsigned int)s[i] );
+        d_str.push_back( convertCharToUnsignedInt(s[i]) );
     }
   }
 
@@ -207,7 +207,8 @@ public:
   std::string toString() const {
     std::string str;
     for(unsigned int i=0; i<d_str.size(); ++i) {
-      str += (char)d_str[i];
+      str += convertUnsignedIntToChar( d_str[i] );
+	  //TODO isPrintable: ( "\\" + (convertUnsignedIntToChar( d_str[i] ) );
     }
     return str;
   }
@@ -232,6 +233,22 @@ public:
     ret_vec.insert( ret_vec.end(), itr, itr + j );
       return String(ret_vec);
   }
+
+public:
+  static unsigned int convertCharToUnsignedInt( char c ) {
+	int i = (int)c;
+	i = i-65;
+	return (unsigned int)(i<0 ? i+256 : i);
+  }
+  static char convertUnsignedIntToChar( unsigned int i ){
+	int ii = i+65;
+	return (char)(ii>=256 ? ii-256 : ii);
+  }
+  static bool isPrintable( unsigned int i ){
+	char c = convertUnsignedIntToChar( i );
+	return isprint( (int)c );
+  }
+
 };/* class String */
 
 namespace strings {

@@ -87,6 +87,10 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   return d_internal->getEqualityStatus(a,b);
 }
 
+Node TheoryArith::getModelValue(TNode var) {
+  return d_internal->getModelValue( var );
+}
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

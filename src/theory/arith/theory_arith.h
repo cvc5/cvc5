@@ -74,6 +74,8 @@ public:
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void addSharedTerm(TNode n);
+
+  Node getModelValue(TNode var);
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */
