@@ -188,6 +188,7 @@ class TheoryStrings : public Theory {
     bool checkNormalForms();
     bool checkCardinality();
     bool checkInductiveEquations();
+	int gcd(int a, int b);
   public:
   void preRegisterTerm(TNode n);
   void check(Effort e);
@@ -213,6 +214,12 @@ protected:
   Node mkConcat( std::vector< Node >& c );
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
+
+  //get final normal form
+  void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
+
+  //seperate into collections with equal length
+  void seperateIntoCollections( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

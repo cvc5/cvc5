@@ -737,6 +737,35 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
   }
 }
 
+Node TheoryArithPrivate::getModelValue(TNode var) {
+	//if( d_partialModel.hasNode( var ) ){
+	if( var.getKind()==kind::STRING_LENGTH ){
+		Trace("strings-temp") << "Get model value of " << var << std::endl;
+		/*
+		ArithVar v;
+		bool foundV = false;
+	    ArithVariables& avnm = d_partialModel;
+	    ArithVariables::var_iterator vi, vend;
+	    for(vi = avnm.var_begin(), vend = avnm.var_end(); vi != vend; ++vi ){
+			if( avnm.asNode(*vi)==var ){
+				v = *vi;
+				foundV = true;
+				break;
+			}
+		}
+		if( foundV ){
+			*/
+		ArithVar v = d_partialModel.asArithVar( var );
+		DeltaRational drv = d_partialModel.getAssignment( v );
+		const Rational& delta = d_partialModel.getDelta();
+		Rational qmodel = drv.substituteDelta( delta );
+		Trace("strings-temp") << "Value is " << drv << ", after subs : " << qmodel << std::endl;
+		return mkRationalNode( qmodel );
+	}
+	//}
+	return var;
+}
+
 namespace attr {
   struct ToIntegerTag { };
   struct LinearIntDivTag { };
