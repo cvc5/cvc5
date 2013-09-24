@@ -186,6 +186,11 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
       } else if(!strcmp(p, "ite-removal")) {
       } else if(!strcmp(p, "repeat-simplify")) {
       } else if(!strcmp(p, "theory-preprocessing")) {
+      } else if(!strcmp(p, "nonclausal")) {
+      } else if(!strcmp(p, "theorypp")) {
+      } else if(!strcmp(p, "itesimp")) {
+      } else if(!strcmp(p, "unconstrained")) {
+      } else if(!strcmp(p, "repeatsimp")) {
       } else {
         throw OptionException(std::string("don't know how to dump `") +
                               optargPtr + "'.  Please consult --dump help.");
