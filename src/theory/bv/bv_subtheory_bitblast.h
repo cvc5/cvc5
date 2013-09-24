@@ -19,7 +19,6 @@
 #pragma once
 
 #include "theory/bv/bv_subtheory.h"
-#include "theory/substitutions.h"
 namespace CVC4 {
 namespace theory {
 namespace bv {

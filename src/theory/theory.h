@@ -23,7 +23,6 @@
 #include "expr/attribute.h"
 #include "expr/command.h"
 #include "theory/valuation.h"
-#include "theory/substitutions.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
 #include "theory/options.h"
@@ -50,6 +49,7 @@ namespace theory {
 
 class QuantifiersEngine;
 class TheoryModel;
+class SubstitutionMap;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -576,25 +576,7 @@ public:
    * Given a literal, add the solved substitutions to the map, if any.
    * The method should return true if the literal can be safely removed.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-    if (in.getKind() == kind::EQUAL) {
-      if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        return PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        return PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[0].isConst() && in[1].isConst()) {
-        if (in[0] != in[1]) {
-          return PP_ASSERT_STATUS_CONFLICT;
-        }
-      }
-    }
-
-    return PP_ASSERT_STATUS_UNSOLVED;
-  }
+  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

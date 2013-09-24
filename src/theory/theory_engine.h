@@ -28,7 +28,6 @@
 #include "prop/prop_engine.h"
 #include "context/cdhashset.h"
 #include "theory/theory.h"
-#include "theory/substitutions.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/shared_terms_database.h"

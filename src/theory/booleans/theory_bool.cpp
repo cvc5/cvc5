@@ -19,6 +19,7 @@
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/valuation.h"
 #include "util/boolean_simplification.h"
+#include "theory/substitutions.h"
 
 #include <vector>
 #include <stack>
