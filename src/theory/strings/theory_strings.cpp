@@ -860,7 +860,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y, d_emptyString);
 											//Node zz_imp_yz = NodeManager::currentNM()->mkNode( kind::IMPLIES, len_z_eq_zero, len_y_eq_zero);
 											
-											Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
+											//Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
 											//Node len_x_gt_len_y = NodeManager::currentNM()->mkNode( kind::GT, 
 											//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[other_n_index][other_index]),
 											//						sk_y_len );
@@ -868,9 +868,9 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											//Node x_eq_y_rest = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], 
 											//						NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_x_rest ) );
 											
-											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2, z_neq_empty );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
-											Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
-											conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
+											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2 );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
+											//Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
+											//conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
 
                                             
 											Node loop_x = normal_forms[other_n_index][other_index];
