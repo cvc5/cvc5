@@ -738,6 +738,16 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
 }
 
 Node TheoryArithPrivate::getModelValue(TNode var) {
+  /*try{
+    DeltaRational drv = getDeltaValue(term);
+    const Rational& delta = d_partialModel.getDelta();
+    Rational qmodel = drv.substituteDelta( delta );
+    return mkRationalNode( qmodel );
+  } catch (DeltaRationalException& dr) {
+    return Node::null();
+  } catch (ModelException& me) {
+    return Node::null();
+  }*/
 	//if( d_partialModel.hasNode( var ) ){
 	if( var.getKind()==kind::STRING_LENGTH ){
 		Trace("strings-temp") << "Get model value of " << var << std::endl;
