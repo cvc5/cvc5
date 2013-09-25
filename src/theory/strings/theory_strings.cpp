@@ -55,6 +55,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
+
+	//preRegisterTerm( d_emptyString );
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -510,7 +512,9 @@ void TheoryStrings::doPendingFacts() {
       bool polarity = fact.getKind() != kind::NOT;
       TNode atom = polarity ? fact : fact[0];
       if (atom.getKind() == kind::EQUAL) {
-        d_equalityEngine.assertEquality( atom, polarity, exp );
+		Assert( d_equalityEngine.hasTerm( atom[0] ) );
+		Assert( d_equalityEngine.hasTerm( atom[1] ) );
+		d_equalityEngine.assertEquality( atom, polarity, exp );
       }else{
         d_equalityEngine.assertPredicate( atom, polarity, exp );
       }
@@ -679,6 +683,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
                                     }
                                     Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, d_emptyString, normal_forms[k][index_k] );
                                     Trace("strings-lemma") << "Strings : Infer " << eq << " from " << eq_exp << std::endl;
+									Assert( !d_equalityEngine.areEqual( d_emptyString, normal_forms[k][index_k] ) );
                                     //d_equalityEngine.assertEquality( eq, true, eq_exp );
                                     d_pending.push_back( eq );
                                     d_pending_exp[eq] = eq_exp;
@@ -782,7 +787,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 										}
 										term_s = mkConcat( sc );
 										Trace("strings-loop") << "Find y,z from t,s = " << term_t << ", " << term_s << std::endl;
-										/*TODO: incomplete start*/
+										/*TODO: incomplete start */
 										if( term_t==term_s ){
 											found_size_y = -2;
 										}else if( term_t.getKind()==kind::STRING_CONCAT && term_s.getKind()==kind::STRING_CONCAT ){
@@ -848,26 +853,37 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
                                             Node conc2 = NodeManager::currentNM()->mkNode( kind::EQUAL, left2,
                                                             mkConcat( c3c ) );
                                             
-											//Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
+											Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
                                             //Node sk_z_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_z );
                                             //Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y_len, d_zero);
 											//Node len_z_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z_len, d_zero);
 											//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y, d_emptyString);
 											//Node zz_imp_yz = NodeManager::currentNM()->mkNode( kind::IMPLIES, len_z_eq_zero, len_y_eq_zero);
 											
-											//Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
-                                            //Node sk_x_rest = NodeManager::currentNM()->mkSkolem( "ldssym_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+											Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
+											//Node len_x_gt_len_y = NodeManager::currentNM()->mkNode( kind::GT, 
+											//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[other_n_index][other_index]),
+											//						sk_y_len );
+                                            //Node sk_x_rest = NodeManager::currentNM()->mkSkolem( "ldissym_$$", normal_forms[i][index_i].getType(), "created for induction" );
 											//Node x_eq_y_rest = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], 
 											//						NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_x_rest ) );
 											
-											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2 );//, z_neq_empty, x_eq_y_rest
-											//Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
-											//conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
+											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2, z_neq_empty );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
+											Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
+											conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
 
                                             
 											Node loop_x = normal_forms[other_n_index][other_index];
-                                            Node loop_y = sk_y;
-                                            Node loop_z = sk_z;
+											Node loop_y = sk_y;
+											Node loop_z = sk_z;
+
+											//Node loop_x = sk_x_rest;
+											//std::vector< Node > skc;
+											//skc.push_back( sk_y );
+											//skc.push_back( sk_z );
+                                            //Node loop_y = d_emptyString;
+                                            //Node loop_z = mkConcat( skc );
+
                                             //we will be done
                                             addNormalFormPair( normal_form_src[i], normal_form_src[j] );
 											Node ant = mkExplain( antec, antec_new_lits );
@@ -1415,7 +1431,7 @@ bool TheoryStrings::checkInductiveEquations() {
         NodeList* lst1 = (*it).second;
         NodeList* lst2 = (*d_ind_map2.find(x)).second;
         NodeList* lste = (*d_ind_map_exp.find(x)).second;
-        NodeList* lstl = (*d_ind_map_lemma.find(x)).second;
+        //NodeList* lstl = (*d_ind_map_lemma.find(x)).second;
         NodeList::const_iterator i1 = lst1->begin();
         NodeList::const_iterator i2 = lst2->begin();
         NodeList::const_iterator ie = lste->begin();

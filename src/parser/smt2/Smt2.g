@@ -870,6 +870,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
+  //| /* substring */
+    //LPAREN_TOK STRSUB_TOK n1=INTEGER_LITERAL n2=INTEGER_LITERAL RPAREN_TOK
+	//{
+	//}
   | /* A non-built-in function application */
     LPAREN_TOK
     functionName[name, CHECK_DECLARED]
@@ -1620,6 +1624,7 @@ STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
+//STRSUB_TOK : 'str.sub' ;
 RECON_TOK : 're.++';
 REOR_TOK : 're.or';
 REINTER_TOK : 're.inter';
