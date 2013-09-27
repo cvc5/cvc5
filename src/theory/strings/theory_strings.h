@@ -36,6 +36,7 @@ namespace strings {
 class TheoryStrings : public Theory {
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
+  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   public:
 
   TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -45,7 +46,7 @@ class TheoryStrings : public Theory {
 
   std::string identify() const { return std::string("TheoryStrings"); }
 
-
+  Node getRepresentative( Node t );
   public:
 
   void propagate(Effort e);
@@ -122,6 +123,8 @@ class TheoryStrings : public Theory {
       std::map< Node, Node > d_pending_exp;
       std::vector< Node > d_pending;
       std::vector< Node > d_lemma_cache;
+	  std::map< Node, bool > d_pending_req_phase;
+
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   /** inferences */
@@ -137,7 +140,11 @@ class TheoryStrings : public Theory {
   NodeListMap d_ind_map2;
   NodeListMap d_ind_map_exp;
   NodeListMap d_ind_map_lemma;
-  void addInductiveEquation( Node x, Node y, Node z, Node exp );
+  bool addInductiveEquation( Node x, Node y, Node z, Node exp, const char * c );
+
+  //for unrolling inductive equations
+  NodeBoolMap d_lit_to_unroll;
+
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION

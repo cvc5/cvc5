@@ -1619,15 +1619,15 @@ BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
 //STRING
-STRCST_TOK : 'str.const';
+//STRCST_TOK : 'str.cst';
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
+//STRSUB_TOK : 'str.sub' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
-//STRSUB_TOK : 'str.sub' ;
 RECON_TOK : 're.++';
 REOR_TOK : 're.or';
-REINTER_TOK : 're.inter';
+REINTER_TOK : 're.itr';
 RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';
