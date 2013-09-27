@@ -5,7 +5,7 @@
 
 module STRINGS "theory/strings/options.h" Strings theory
 
-option stringCharCardinality str-cardinality --str-cardinality=N int16_t :default 256 :read-write
+option stringCharCardinality str-alphabet-card --str-alphabet-card=N int16_t :default 256 :read-write
  the cardinality of the characters used by the theory of string, default 256
 
 endmodule

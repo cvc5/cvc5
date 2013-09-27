@@ -75,6 +75,7 @@
 #include "theory/quantifiers/macros.h"
 #include "theory/datatypes/options.h"
 #include "theory/quantifiers/first_order_reasoning.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace std;
 using namespace CVC4;
@@ -986,14 +987,16 @@ void SmtEngine::setLogicInternal() throw() {
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
          ) ||
         // Quantifiers
-        d_logic.isQuantified()
+        d_logic.isQuantified() ||
+		// Strings
+		d_logic.isTheoryEnabled(THEORY_STRINGS)
         ? decision::DECISION_STRATEGY_JUSTIFICATION
         : decision::DECISION_STRATEGY_INTERNAL
       );
 
     bool stoponly =
       // ALL_SUPPORTED
-      d_logic.hasEverything() ? false :
+      d_logic.hasEverything() || d_logic.isTheoryEnabled(THEORY_STRINGS) ? false :
       ( // QF_AUFLIA
         (not d_logic.isQuantified() &&
          d_logic.isTheoryEnabled(THEORY_ARRAY) &&
@@ -1005,7 +1008,7 @@ void SmtEngine::setLogicInternal() throw() {
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
          ) ||
         // Quantifiers
-        d_logic.isQuantified()
+        d_logic.isQuantified() 
         ? true : false
       );
 
@@ -2857,6 +2860,14 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-substitution", d_assertionsToPreprocess);
 
   // Assertions ARE guaranteed to be rewritten by this point
+
+  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ){
+	CVC4::theory::strings::StringsPreprocess sp;
+	sp.simplify( d_assertionsToPreprocess );
+    for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+		d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
+	}
+  }
 
   dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
   if( options::preSkolemQuant() ){

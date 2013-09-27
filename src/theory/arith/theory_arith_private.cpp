@@ -737,6 +737,19 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
   }
 }
 
+Node TheoryArithPrivate::getModelValue(TNode term) {
+  try{
+    DeltaRational drv = getDeltaValue(term);
+    const Rational& delta = d_partialModel.getDelta();
+    Rational qmodel = drv.substituteDelta( delta );
+    return mkRationalNode( qmodel );
+  } catch (DeltaRationalException& dr) {
+    return Node::null();
+  } catch (ModelException& me) {
+    return Node::null();
+  }
+}
+
 namespace attr {
   struct ToIntegerTag { };
   struct LinearIntDivTag { };

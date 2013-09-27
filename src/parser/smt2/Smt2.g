@@ -870,6 +870,10 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
+  //| /* substring */
+    //LPAREN_TOK STRSUB_TOK n1=INTEGER_LITERAL n2=INTEGER_LITERAL RPAREN_TOK
+	//{
+	//}
   | /* A non-built-in function application */
     LPAREN_TOK
     functionName[name, CHECK_DECLARED]
@@ -1615,14 +1619,15 @@ BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
 //STRING
-STRCST_TOK : 'str.const';
+//STRCST_TOK : 'str.cst';
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
+//STRSUB_TOK : 'str.sub' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';
 REOR_TOK : 're.or';
-REINTER_TOK : 're.inter';
+REINTER_TOK : 're.itr';
 RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';

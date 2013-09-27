@@ -383,6 +383,8 @@ public:
 
   void addSharedTerm(TNode n);
 
+  Node getModelValue(TNode var);
+
 private:
 
   /** The constant zero. */

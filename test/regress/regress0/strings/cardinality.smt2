@@ -1,7 +1,7 @@
-(set-logic ALL_SUPPORTED)
+(set-logic QF_S)
 (set-info :status unsat)
 
-(set-option :str-cardinality 2)
+(set-option :str-alphabet-card 2)
 
 (declare-fun x () String)
 (declare-fun y () String)

@@ -31,33 +31,97 @@ namespace theory {
 namespace strings {
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
-  unsigned d_int;
-
+	std::vector< unsigned > d_data;
+	unsigned d_cardinality;
+	Node d_curr;
+	void mkCurr() {
+		//make constant from d_data
+		d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
+	}
 public:
 
   StringEnumerator(TypeNode type) throw(AssertionException) :
-    TypeEnumeratorBase<StringEnumerator>(type),
-    d_int(0) {
+    TypeEnumeratorBase<StringEnumerator>(type) {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
+	d_cardinality = 256;
+	mkCurr();
   }
-
   Node operator*() throw() {
-    std::stringstream ss;
-    ss << d_int;
-    return NodeManager::currentNM()->mkConst( ::CVC4::String( ss.str() ) );
+    return d_curr;
   }
-
   StringEnumerator& operator++() throw() {
-    d_int++;
+	bool changed = false;
+	do{
+		for(unsigned i=0; i<d_data.size(); ++i) {
+			if( d_data[i] + 1 < d_cardinality ) {
+				++d_data[i]; changed = true;
+				break;
+			} else {
+				d_data[i] = 0;
+			}
+		}
+		
+		if(!changed) {
+			d_data.push_back( 0 );
+		}
+	}while(!changed);
+
+	mkCurr();
     return *this;
   }
 
   bool isFinished() throw() {
-    return false;
+    return d_curr.isNull();
   }
 
 };/* class StringEnumerator */
+
+
+class StringEnumeratorLength {
+private:
+	unsigned d_cardinality;
+	std::vector< unsigned > d_data;
+	Node d_curr;
+	void mkCurr() {
+		//make constant from d_data
+		d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
+	}
+public:
+  StringEnumeratorLength(unsigned length, unsigned card = 256) : d_cardinality(card) {
+     for( unsigned i=0; i<length; i++ ){
+		d_data.push_back( 0 );
+	 }
+	 mkCurr();
+  }
+
+  Node operator*() throw() {
+    return d_curr;
+  }
+
+  StringEnumeratorLength& operator++() throw() {
+	bool changed = false;
+	for(unsigned i=0; i<d_data.size(); ++i) {
+		if( d_data[i] + 1 < d_cardinality ) {
+			++d_data[i]; changed = true;
+			break;
+		} else {
+			d_data[i] = 0;
+		}
+	}
+	
+	if(!changed) {
+		d_curr = Node::null();
+	}else{
+		mkCurr();
+	}
+    return *this;
+  }
+
+  bool isFinished() throw() {
+    return d_curr.isNull();
+  }
+};
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

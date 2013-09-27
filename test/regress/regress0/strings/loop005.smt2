@@ -2,7 +2,7 @@
 ; EXPECT: sat
 ; EXIT: 10
 ;
-(set-logic ALL_SUPPORTED)
+(set-logic QF_S)
 (set-info :status sat)
 
 (declare-fun x () String)
