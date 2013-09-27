@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
+#include "util/hash.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -27,6 +28,8 @@ namespace theory {
 namespace strings {
 
 class StringsPreprocess {
+	// NOTE: this class is NOT context-dependent
+	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
 private:
 	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
 	Node simplify( Node t );

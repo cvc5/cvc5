@@ -371,7 +371,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( effort == Theory::EFFORT_FULL && ! d_inConflict && ! needCheck() ) {
-		//d_theoryTable[THEORY_STRINGS]->check(Theory::EFFORT_LAST_CALL);
+      //d_theoryTable[THEORY_STRINGS]->check(Theory::EFFORT_LAST_CALL);
       if(d_logicInfo.isQuantified()) {
         // quantifiers engine must pass effort last call check
         d_quantEngine->check(Theory::EFFORT_LAST_CALL);

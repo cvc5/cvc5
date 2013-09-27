@@ -85,13 +85,20 @@ void StringsPreprocess::simplifyRegExp( Node s, Node r, std::vector< Node > &ret
 }
 
 Node StringsPreprocess::simplify( Node t ) {
+    std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+    if(i != d_cache.end()) {
+      return (*i).second.isNull() ? t : (*i).second;
+    }
+
 	if( t.getKind() == kind::STRING_IN_REGEXP ){
 		// t0 in t1
 		//rewrite it
 		std::vector< Node > ret;
 		simplifyRegExp( t[0], t[1], ret );
 
-		return ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
+		Node n = ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
+		d_cache[t] = (t == n) ? Node::null() : n;
+		return n;
     }else if( t.getNumChildren()>0 ){
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -103,8 +110,16 @@ Node StringsPreprocess::simplify( Node t ) {
 			cc.push_back( tn );
 			changed = changed || tn!=t[i];
 		}
-		return changed ? NodeManager::currentNM()->mkNode( t.getKind(), cc ) : t;
+		if(changed) {
+			Node n = NodeManager::currentNM()->mkNode( t.getKind(), cc );
+			d_cache[t] = n;
+			return n;
+		} else {
+			d_cache[t] = Node::null();
+			return t;
+		}
 	}else{
+		d_cache[t] = Node::null();
 		return t;
 	}
 }

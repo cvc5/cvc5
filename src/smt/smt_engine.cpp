@@ -988,8 +988,8 @@ void SmtEngine::setLogicInternal() throw() {
          ) ||
         // Quantifiers
         d_logic.isQuantified() ||
-		// Strings
-		d_logic.isTheoryEnabled(THEORY_STRINGS)
+        // Strings
+        d_logic.isTheoryEnabled(THEORY_STRINGS)
         ? decision::DECISION_STRATEGY_JUSTIFICATION
         : decision::DECISION_STRATEGY_INTERNAL
       );
@@ -1008,7 +1008,7 @@ void SmtEngine::setLogicInternal() throw() {
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
          ) ||
         // Quantifiers
-        d_logic.isQuantified() 
+        d_logic.isQuantified()
         ? true : false
       );
 
@@ -2861,12 +2861,12 @@ void SmtEnginePrivate::processAssertions() {
 
   // Assertions ARE guaranteed to be rewritten by this point
 
-  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ){
-	CVC4::theory::strings::StringsPreprocess sp;
-	sp.simplify( d_assertionsToPreprocess );
+  if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+    CVC4::theory::strings::StringsPreprocess sp;
+    sp.simplify( d_assertionsToPreprocess );
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-		d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
-	}
+      d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
+    }
   }
 
   dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
