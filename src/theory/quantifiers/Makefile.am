@@ -52,7 +52,10 @@ libquantifiers_la_SOURCES = \
 	rewrite_engine.h \
 	rewrite_engine.cpp \
 	relevant_domain.h \
-	relevant_domain.cpp
+	relevant_domain.cpp \
+	symmetry_breaking.h \
+	symmetry_breaking.cpp
+
 
 EXTRA_DIST = \
 	kinds \

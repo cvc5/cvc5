@@ -1028,6 +1028,9 @@ void SmtEngine::setLogicInternal() throw() {
       options::fmfInstGen.set( false );
     }
   }
+  if( options::ufssSymBreak() ){
+    options::sortInference.set( true );
+  }
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){

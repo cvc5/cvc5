@@ -840,14 +840,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       Node i = fm->getUsedRepresentative( r[1] );
       Node e = fm->getUsedRepresentative( r[2] );
       d.addEntry(fm, mkArrayCond(i), e );
-      r = r[0];
+      r = fm->getRepresentative( r[0] );
     }
     Node defC = mkArrayCond(fm->getStar(n.getType().getArrayIndexType()));
     bool success = false;
+    Node odefaultValue;
     if( r.getKind() == kind::STORE_ALL ){
       ArrayStoreAll storeAll = r.getConst<ArrayStoreAll>();
-      Node defaultValue = Node::fromExpr(storeAll.getExpr());
-      defaultValue = fm->getUsedRepresentative( defaultValue, true );
+      odefaultValue = Node::fromExpr(storeAll.getExpr());
+      Node defaultValue = fm->getUsedRepresentative( odefaultValue, true );
       if( !defaultValue.isNull() ){
         d.addEntry(fm, defC, defaultValue);
         success = true;
@@ -855,6 +856,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
     }
     if( !success ){
       Trace("fmc-warn") << "WARNING : ARRAYS : Can't process base array " << r << std::endl;
+      Trace("fmc-warn") << "          Default value was : " << odefaultValue << std::endl;
       Trace("fmc-debug") << "Can't process base array " << r << std::endl;
       //can't process this array
       d.reset();
@@ -1191,28 +1193,34 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
 }
 
 Node FullModelChecker::doIntervalMeet( FirstOrderModelFmc * fm, Node i1, Node i2, bool mk ) {
-  if( !fm->isInterval( i1 ) || !fm->isInterval( i2 ) ){
-    std::cout << "Not interval during meet! " << i1 << " " << i2 << std::endl;
-    exit( 0 );
-  }
-  Node b[2];
-  for( unsigned j=0; j<2; j++ ){
-    Node b1 = i1[j];
-    Node b2 = i2[j];
-    if( fm->isStar( b1 ) ){
-      b[j] = b2;
-    }else if( fm->isStar( b2 ) ){
-      b[j] = b1;
-    }else if( b1.getConst<Rational>() < b2.getConst<Rational>() ){
-      b[j] = j==0 ? b2 : b1;
-    }else{
-      b[j] = j==0 ? b1 : b2;
-    }
-  }
-  if( fm->isStar( b[0] ) || fm->isStar( b[1] ) || b[0].getConst<Rational>() < b[1].getConst<Rational>() ){
-    return mk ? fm->getInterval( b[0], b[1] ) : i1;
+  if( fm->isStar( i1 ) ){
+    return i2;
+  }else if( fm->isStar( i2 ) ){
+    return i1;
   }else{
-    return Node::null();
+    if( !fm->isInterval( i1 ) || !fm->isInterval( i2 ) ){
+      std::cout << "Not interval during meet! " << i1 << " " << i2 << std::endl;
+      exit( 0 );
+    }
+    Node b[2];
+    for( unsigned j=0; j<2; j++ ){
+      Node b1 = i1[j];
+      Node b2 = i2[j];
+      if( fm->isStar( b1 ) ){
+        b[j] = b2;
+      }else if( fm->isStar( b2 ) ){
+        b[j] = b1;
+      }else if( b1.getConst<Rational>() < b2.getConst<Rational>() ){
+        b[j] = j==0 ? b2 : b1;
+      }else{
+        b[j] = j==0 ? b1 : b2;
+      }
+    }
+    if( fm->isStar( b[0] ) || fm->isStar( b[1] ) || b[0].getConst<Rational>() < b[1].getConst<Rational>() ){
+      return mk ? fm->getInterval( b[0], b[1] ) : i1;
+    }else{
+      return Node::null();
+    }
   }
 }
 

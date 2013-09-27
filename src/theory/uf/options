@@ -40,5 +40,7 @@ option ufssMinimalModel /--disable-uf-ss-min-model bool :default true
 option ufssCliqueSplits --uf-ss-clique-splits bool :default false
  use cliques instead of splitting on demand to shrink model
 
+option ufssSymBreak --uf-ss-sym-break bool :default false
+ finite model finding symmetry breaking techniques
 
 endmodule

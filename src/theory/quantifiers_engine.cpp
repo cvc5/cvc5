@@ -29,6 +29,7 @@
 #include "theory/rewriterules/rr_trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/uf/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -632,6 +633,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   }else{
     int sortId = 0;
     if( optInternalRepSortInference() ){
+    //if( options::ufssSymBreak() ){
       sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( f, f[0][index] );
     }
     if( d_int_rep[sortId].find( r )==d_int_rep[sortId].end() ){

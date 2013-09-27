@@ -115,6 +115,7 @@ public:
   int getBoundVarNum( Node f, int i ) { return d_set_nums[f][i]; }
   Node getLowerBound( Node f, Node v ){ return d_bounds[0][f][v]; }
   Node getUpperBound( Node f, Node v ){ return d_bounds[1][f][v]; }
+  void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   bool isGroundRange(Node f, Node v);
 };

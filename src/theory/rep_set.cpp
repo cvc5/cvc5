@@ -278,7 +278,12 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
         Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
         Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
         d_domain[ii].clear();
-        d_lower_bounds[ii] = l;
+        Node tl = l;
+        Node tu = u;
+        if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][ii] ) ){
+          d_qe->getBoundedIntegers()->getBounds( d_owner, d_owner[0][ii], this, tl, tu );
+        }
+        d_lower_bounds[ii] = tl;
         if( ra==NodeManager::currentNM()->mkConst(true) ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;

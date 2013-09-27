@@ -321,7 +321,7 @@ Node BoundedIntegers::getNextDecisionRequest() {
   return Node::null();
 }
 
-void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u ) {
+void BoundedIntegers::getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u ) {
   l = d_bounds[0][f][v];
   u = d_bounds[1][f][v];
   if( d_nground_range[f].find(v)!=d_nground_range[f].end() ){
@@ -356,6 +356,10 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
       l = l.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     }
   }
+}
+
+void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u ) {
+  getBounds( f, v, rsi, l, u );
   Trace("bound-int-rsi") << "Get value in model for..." << l << " and " << u << std::endl;
   l = d_quantEngine->getModel()->getCurrentModelValue( l );
   u = d_quantEngine->getModel()->getCurrentModelValue( u );
