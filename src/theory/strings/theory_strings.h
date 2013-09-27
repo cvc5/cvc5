@@ -47,6 +47,10 @@ class TheoryStrings : public Theory {
   std::string identify() const { return std::string("TheoryStrings"); }
 
   Node getRepresentative( Node t );
+  bool hasTerm( Node a );
+  bool areEqual( Node a, Node b );
+  bool areDisequal( Node a, Node b );
+  Node getLength( Node t );
   public:
 
   void propagate(Effort e);
@@ -124,9 +128,6 @@ class TheoryStrings : public Theory {
       std::vector< Node > d_pending;
       std::vector< Node > d_lemma_cache;
 	  std::map< Node, bool > d_pending_req_phase;
-
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
@@ -165,8 +166,8 @@ class TheoryStrings : public Theory {
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
   private:
-  void dealPositiveWordEquation(TNode n);
   void addSharedTerm(TNode n);
+  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   private:
   class EqcInfo
@@ -190,7 +191,7 @@ class TheoryStrings : public Theory {
     void getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
     std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
     void normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
-    bool areLengthsEqual( Node n1, Node n2 ); //TODO
+    bool normalizeDisequality( Node n1, Node n2 );
 
     bool checkNormalForms();
     bool checkCardinality();
@@ -216,18 +217,24 @@ protected:
 
   //do pending merges
   void doPendingFacts();
+  void doPendingLemmas();
 
   void sendLemma( Node ant, Node conc, const char * c );
+  void sendSplit( Node a, Node b, const char * c );
   /** mkConcat **/
   Node mkConcat( std::vector< Node >& c );
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
 
+  //get equivalence classes
+  void getEquivalenceClasses( std::vector< Node >& eqcs );
   //get final normal form
   void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
 
   //seperate into collections with equal length
-  void seperateIntoCollections( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
+  void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
+private:
+  void printConcat( std::vector< Node >& n, const char * c );
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

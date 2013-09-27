@@ -987,14 +987,16 @@ void SmtEngine::setLogicInternal() throw() {
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
          ) ||
         // Quantifiers
-        d_logic.isQuantified()
+        d_logic.isQuantified() ||
+		// Strings
+		d_logic.isTheoryEnabled(THEORY_STRINGS)
         ? decision::DECISION_STRATEGY_JUSTIFICATION
         : decision::DECISION_STRATEGY_INTERNAL
       );
 
     bool stoponly =
       // ALL_SUPPORTED
-      d_logic.hasEverything() ? false :
+      d_logic.hasEverything() || d_logic.isTheoryEnabled(THEORY_STRINGS) ? false :
       ( // QF_AUFLIA
         (not d_logic.isQuantified() &&
          d_logic.isTheoryEnabled(THEORY_ARRAY) &&
@@ -1006,7 +1008,7 @@ void SmtEngine::setLogicInternal() throw() {
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
          ) ||
         // Quantifiers
-        d_logic.isQuantified()
+        d_logic.isQuantified() 
         ? true : false
       );
 
