@@ -427,6 +427,7 @@ void TheoryStrings::check(Effort e) {
       }
   }
   }
+  Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Trace("strings-process") << "Theory of strings, done check : " << e << std::endl;
 }
 
@@ -768,6 +769,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
                                     d_infer.push_back(eq);
                                     d_infer_exp.push_back(eq_exp);
                                     return;
+									
 								}else if( ( normal_forms[i][index_i].getKind()!=kind::CONST_STRING && index_i==normal_forms[i].size()-1 ) || 
 										  ( normal_forms[j][index_j].getKind()!=kind::CONST_STRING && index_j==normal_forms[j].size()-1 ) ){
 									Trace("strings-solve-debug") << "Case 3 : at endpoint" << std::endl;
@@ -785,10 +787,14 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 										}
 										eqn.push_back( mkConcat( eqnc ) );
 									}
-									conc = eqn[0].eqNode( eqn[1] );
-									Node ant = mkExplain( antec, antec_new_lits );
-									sendLemma( ant, conc, "Endpoint" );
-									return;
+									if( areEqual( eqn[0], eqn[1] ) ){
+										addNormalFormPair( normal_form_src[i], normal_form_src[j] );
+									}else{
+										conc = eqn[0].eqNode( eqn[1] );
+										Node ant = mkExplain( antec, antec_new_lits );
+										sendLemma( ant, conc, "Endpoint" );
+										return;
+									}
 								}else{
                                     Trace("strings-solve-debug") << "Case 4 : must compare strings" << std::endl;
                                     Node conc;
