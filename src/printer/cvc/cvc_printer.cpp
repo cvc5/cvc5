@@ -813,8 +813,8 @@ void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const throw
 
 }/* CvcPrinter::toStream(CommandStatus*) */
 
-void CvcPrinter::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
-  theory::TheoryModel& tm = (theory::TheoryModel&) m;
+void CvcPrinter::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
+  const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( options::modelUninterpDtEnum() && tn.isSort() &&

@@ -34,6 +34,7 @@ protected:
   SmtEngine d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
+  Result d_result;
 
 public:
   CommandExecutor(ExprManager &exprMgr, Options &options);
@@ -47,7 +48,7 @@ public:
    */
   bool doCommand(CVC4::Command* cmd);
 
-  virtual std::string getSmtEngineStatus();
+  Result getResult() const { return d_result; }
 
   StatisticsRegistry& getStatisticsRegistry() {
     return d_stats;

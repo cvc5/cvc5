@@ -73,7 +73,9 @@ options_cpp_template="$1"; shift
 all_modules_defaults=
 all_modules_short_options=
 all_modules_long_options=
+all_modules_smt_options=
 all_modules_option_handlers=
+all_modules_get_options=
 smt_getoption_handlers=
 smt_setoption_handlers=
 include_all_option_headers=
@@ -665,14 +667,64 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
   fi
 
   if [ -n "$smtname" ]; then
+    all_modules_smt_options="${all_modules_smt_options:+$all_modules_smt_options,}
+#line $lineno \"$kf\"
+  \"$smtname\""
     if [ "$internal" != - ]; then
-      smt_getoption_handlers="${smt_getoption_handlers}
+      case "$type" in
+      bool)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(SExpr::Keyword(d_holder->$internal ? \"true\" : \"false\")); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExprKeyword(options::$internal() ? \"true\" : \"false\");
+  }";;
+      int|unsigned|int*_t|uint*_t|unsigned\ long|long|CVC4::Integer)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExpr(Integer(options::$internal()));
+  }";;
+      float|double)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(Rational::fromDouble(d_holder->$internal)); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    stringstream ss; ss << std::fixed << options::$internal();
+    return SExpr(Rational::fromDecimal(ss.str()));
+  }";;
+      CVC4::Rational)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(d_holder->$internal); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
+#line $lineno \"$kf\"
+  if(key == \"$smtname\") {
+#line $lineno \"$kf\"
+    return SExpr(options::$internal());
+  }";;
+      *)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<SExpr> v; v.push_back(\"$smtname\"); v.push_back(ss.str()); opts.push_back(v); }"
+        smt_getoption_handlers="${smt_getoption_handlers}
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
     stringstream ss; ss << options::$internal();
     return SExpr(ss.str());
-  }"
+  }";;
+      esac
     fi
 
     if [ "$type" = bool ]; then
@@ -731,6 +783,36 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
     return;
   }"
     fi
+  elif [ -n "$long_option" -o "$long_option_alternate" ] && [ "$internal" != - ]; then
+    case "$type" in
+    bool)
+      getoption_name="$long_option"
+      inv=
+      # case where we have a --disable but no corresponding --enable
+      if [ -z "$getoption_name" ]; then
+        getoption_name="$long_option_alternate"
+        inv='!'
+      fi
+      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$getoption_name\"); v.push_back(SExpr::Keyword((${inv}d_holder->$internal) ? \"true\" : \"false\")); opts.push_back(v); }";;
+    int|unsigned|int*_t|uint*_t|unsigned\ long|long|CVC4::Integer)
+        all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(d_holder->$internal); opts.push_back(v); }";;
+    float|double)
+      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(Rational::fromDouble(d_holder->$internal)); opts.push_back(v); }";;
+    CVC4::Rational)
+      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(d_holder->$internal); opts.push_back(v); }";;
+    *)
+      all_modules_get_options="${all_modules_get_options:+$all_modules_get_options
+#line $lineno \"$kf\"
+  }{ std::stringstream ss; ss << d_holder->$internal; std::vector<SExpr> v; v.push_back(\"$long_option\"); v.push_back(ss.str()); opts.push_back(v); }";;
+    esac
   fi
 
   if [ "$type" = bool ]; then
@@ -1446,7 +1528,9 @@ for var in \
     all_modules_defaults \
     all_modules_short_options \
     all_modules_long_options \
+    all_modules_smt_options \
     all_modules_option_handlers \
+    all_modules_get_options \
     include_all_option_headers \
     all_modules_contributions \
     all_custom_handlers \

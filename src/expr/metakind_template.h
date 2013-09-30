@@ -126,18 +126,6 @@ ${metakind_kinds}
   return metaKinds[k + 1];
 }/* metaKindOf(k) */
 
-/**
- * Map a kind of the operator to the kind of the enclosing expression. For
- * example, since the kind of functions is just VARIABLE, it should map
- * VARIABLE to APPLY_UF.
- */
-static inline Kind operatorKindToKind(Kind k) {
-  switch (k) {
-${metakind_operatorKinds}
-  default:
-    return kind::UNDEFINED_KIND;  /* LAST_KIND */
-  };
-}
 }/* CVC4::kind namespace */
 
 namespace expr {
@@ -282,6 +270,13 @@ inline void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
   toStream(out, n.d_nv);
 }
 
+// The reinterpret_cast of d_children to various constant payload types
+// in deleteNodeValueConstant(), below, can flag a "strict aliasing"
+// warning; it should actually be okay, because we never access the
+// embedded constant as a NodeValue* child, and never access an embedded
+// NodeValue* child as a constant.
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+
 /**
  * Cleanup to be performed when a NodeValue zombie is collected, and
  * it has CONSTANT metakind.  This calls the destructor for the underlying
@@ -300,6 +295,9 @@ ${metakind_constDeleters}
     Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
   }
 }
+
+// re-enable the strict-aliasing warning
+# pragma GCC diagnostic warning "-Wstrict-aliasing"
 
 inline unsigned getLowerBoundForKind(::CVC4::Kind k) {
   static const unsigned lbs[] = {
@@ -324,9 +322,30 @@ ${metakind_ubchildren}
 }
 
 }/* CVC4::kind::metakind namespace */
+
+/**
+ * Map a kind of the operator to the kind of the enclosing expression. For
+ * example, since the kind of functions is just VARIABLE, it should map
+ * VARIABLE to APPLY_UF.
+ */
+static inline Kind operatorToKind(::CVC4::expr::NodeValue* nv) {
+  if(nv->getKind() == kind::BUILTIN) {
+    return nv->getConst<Kind>();
+  } else if(nv->getKind() == kind::LAMBDA) {
+    return kind::APPLY_UF;
+  }
+
+  switch(Kind k CVC4_UNUSED = nv->getKind()) {
+${metakind_operatorKinds}
+
+  default:
+    return kind::UNDEFINED_KIND;  /* LAST_KIND */
+  };
+}
+
 }/* CVC4::kind namespace */
 
-#line 330 "${template}"
+#line 349 "${template}"
 
 namespace theory {
 

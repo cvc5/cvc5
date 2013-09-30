@@ -172,6 +172,12 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
 
+    case kind::STORE_ALL: {
+      ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
+      out << "(__array_store_all__ " << asa.getType() << " " << asa.getExpr() << ")";
+      break;
+    }
+
     case kind::SUBRANGE_TYPE: {
       const SubrangeBounds& bounds = n.getConst<SubrangeBounds>();
       // No way to represent subranges in SMT-LIBv2; this is inspired
@@ -214,7 +220,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
   bool stillNeedToPrintParams = true;
   // operator
-  if(n.getNumChildren() != 0) out << '(';
+  if(n.getNumChildren() != 0 && n.getKind()!=kind::INST_PATTERN_LIST) out << '(';
   switch(Kind k = n.getKind()) {
     // builtin theory
   case kind::APPLY: break;
@@ -241,11 +247,25 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::MULT:
   case kind::MINUS:
   case kind::UMINUS:
-  case kind::DIVISION:
   case kind::LT:
   case kind::LEQ:
   case kind::GT:
-  case kind::GEQ: out << smtKindString(k) << " "; break;
+  case kind::GEQ:
+  case kind::DIVISION:
+  case kind::DIVISION_TOTAL:
+  case kind::INTS_DIVISION:
+  case kind::INTS_DIVISION_TOTAL:
+  case kind::INTS_MODULUS:
+  case kind::INTS_MODULUS_TOTAL:
+  case kind::ABS:
+  case kind::IS_INTEGER:
+  case kind::TO_INTEGER:
+  case kind::TO_REAL: out << smtKindString(k) << " "; break;
+
+  case kind::DIVISIBLE:
+    out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
+    stillNeedToPrintParams = false;
+    break;
 
     // arrays theory
   case kind::SELECT:
@@ -284,6 +304,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SLE: out << "bvsle "; break;
   case kind::BITVECTOR_SGT: out << "bvsgt "; break;
   case kind::BITVECTOR_SGE: out << "bvsge "; break;
+  case kind::BITVECTOR_TO_NAT: out << "bv2nat "; break;
 
   case kind::BITVECTOR_EXTRACT:
   case kind::BITVECTOR_REPEAT:
@@ -291,6 +312,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::BITVECTOR_SIGN_EXTEND:
   case kind::BITVECTOR_ROTATE_LEFT:
   case kind::BITVECTOR_ROTATE_RIGHT:
+  case kind::INT_TO_BITVECTOR:
     printBvParameterizedOp(out, n);
     out << ' ';
     stillNeedToPrintParams = false;
@@ -312,12 +334,29 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     break;
 
     // quantifiers
-  case kind::FORALL: out << "forall "; break;
-  case kind::EXISTS: out << "exists "; break;
+  case kind::FORALL:
+  case kind::EXISTS:
+    if( k==kind::FORALL ){
+      out << "forall ";
+    }else{
+      out << "exists ";
+    }
+    for( unsigned i=0; i<2; i++) {
+      out << n[i] << " ";
+      if( i==0 && n.getNumChildren()==3 ){
+        out << "(! ";
+      }
+    }
+    if( n.getNumChildren()==3 ){
+      out << n[2];
+      out << ")";
+    }
+    out << ")";
+    return;
+    break;
   case kind::BOUND_VAR_LIST:
     // the left parenthesis is already printed (before the switch)
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
+    for(TNode::iterator i = n.begin(), iend = n.end();
         i != iend; ) {
       out << '(';
       toStream(out, (*i), toDepth < 0 ? toDepth : toDepth - 1, types);
@@ -334,8 +373,13 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     out << ')';
     return;
   case kind::INST_PATTERN:
+    break;
   case kind::INST_PATTERN_LIST:
     // TODO user patterns
+    for(unsigned i=0; i<n.getNumChildren(); i++) {
+      out << ":pattern " << n[i];
+    }
+    return;
     break;
 
   default:
@@ -399,15 +443,25 @@ static string smtKindString(Kind k) throw() {
   case kind::MULT: return "*";
   case kind::MINUS: return "-";
   case kind::UMINUS: return "-";
-  case kind::DIVISION: return "/";
   case kind::LT: return "<";
   case kind::LEQ: return "<=";
   case kind::GT: return ">";
   case kind::GEQ: return ">=";
+  case kind::DIVISION:
+  case kind::DIVISION_TOTAL: return "/";
+  case kind::INTS_DIVISION: return "div";
+  case kind::INTS_DIVISION_TOTAL: return "INTS_DIVISION_TOTAL";
+  case kind::INTS_MODULUS: return "mod";
+  case kind::INTS_MODULUS_TOTAL: return "INTS_MODULUS_TOTAL";
+  case kind::ABS: return "abs";
+  case kind::IS_INTEGER: return "is_int";
+  case kind::TO_INTEGER: return "to_int";
+  case kind::TO_REAL: return "to_real";
 
     // arrays theory
   case kind::SELECT: return "select";
   case kind::STORE: return "store";
+  case kind::STORE_ALL: return "__array_store_all__";
   case kind::ARRAY_TYPE: return "Array";
 
     // bv theory
@@ -483,6 +537,10 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
     out << "rotate_right "
         << n.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
     break;
+  case kind::INT_TO_BITVECTOR:
+    out << "int2bv "
+        << n.getOperator().getConst<IntToBitVector>().size;
+    break;
   default:
     out << n.getKind();
   }
@@ -504,6 +562,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
+     tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
      tryToStream<DeclareFunctionCommand>(out, c) ||
      tryToStream<DeclareTypeCommand>(out, c) ||
@@ -554,15 +613,15 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, Model& m) const throw() {
+void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
   out << "(model" << std::endl;
   this->Printer::toStream(out, m);
   out << ")" << std::endl;
 }
 
 
-void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
-  theory::TheoryModel& tm = (theory::TheoryModel&) m;
+void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
+  const theory::TheoryModel& tm = (const theory::TheoryModel&) m;
   if(dynamic_cast<const DeclareTypeCommand*>(c) != NULL) {
     TypeNode tn = TypeNode::fromType( ((const DeclareTypeCommand*)c)->getType() );
     if( options::modelUninterpDtEnum() && tn.isSort() &&
@@ -644,7 +703,7 @@ void Smt2Printer::toStream(std::ostream& out, Model& m, const Command* c) const 
 }
 
 void Smt2Printer::toStream(std::ostream& out, const Result& r) const throw() {
-  if (r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
+  if(r.getType() == Result::TYPE_SAT && r.isSat() == Result::SAT_UNKNOWN) {
     out << "unknown";
   } else {
     Printer::toStream(out, r);
@@ -718,15 +777,26 @@ static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw()
 
 static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() {
   Expr func = c->getFunction();
-  const vector<Expr>& formals = c->getFormals();
+  const vector<Expr>* formals = &c->getFormals();
   out << "(define-fun " << func << " (";
   Type type = func.getType();
+  Expr formula = c->getFormula();
   if(type.isFunction()) {
-    vector<Expr>::const_iterator i = formals.begin();
+    vector<Expr> f;
+    if(formals->empty()) {
+      const vector<Type>& params = FunctionType(type).getArgTypes();
+      for(vector<Type>::const_iterator j = params.begin(); j != params.end(); ++j) {
+        f.push_back(NodeManager::currentNM()->mkSkolem("a", TypeNode::fromType(*j), "",
+                                                       NodeManager::SKOLEM_NO_NOTIFY).toExpr());
+      }
+      formula = NodeManager::currentNM()->toExprManager()->mkExpr(kind::APPLY_UF, formula, f);
+      formals = &f;
+    }
+    vector<Expr>::const_iterator i = formals->begin();
     for(;;) {
       out << "(" << (*i) << " " << (*i).getType() << ")";
       ++i;
-      if(i != formals.end()) {
+      if(i != formals->end()) {
         out << " ";
       } else {
         break;
@@ -734,7 +804,6 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c) throw() 
     }
     type = FunctionType(type).getRangeType();
   }
-  Expr formula = c->getFormula();
   out << ") " << type << " " << formula << ")";
 }
 

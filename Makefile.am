@@ -33,6 +33,15 @@ LCOV_EXCLUDES = \
 	"/usr/include/*" \
 	"$(abs_top_builddir)/test/*"
 
+.PHONY: show-config
+show-config:
+	@echo
+	@echo '==============================================================================='
+	@echo 'This CVC4 build was configured with:'
+	@echo '  configure $(cvc4_config_cmdline)'
+	@echo '==============================================================================='
+	@echo
+
 .PHONY: lcov lcov-all lcov18
 if COVERAGE_ENABLED
 

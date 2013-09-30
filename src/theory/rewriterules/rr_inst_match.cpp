@@ -137,14 +137,13 @@ class DumbPatMatcher: public PatMatcher{
 /* The order of the matching is:
    reset arg1, nextMatch arg1, reset arg2, nextMatch arg2, ... */
 ApplyMatcher::ApplyMatcher( Node pat, QuantifiersEngine* qe): d_pattern(pat){
-  //  Assert( pat.hasAttribute(InstConstantAttribute()) );
 
   //set-up d_variables, d_constants, d_childrens
   for( size_t i=0; i< d_pattern.getNumChildren(); ++i ){
     //EqualityQuery* q = qe->getEqualityQuery(d_pattern[i].getType());
     EqualityQuery* q = qe->getEqualityQuery();
     Assert( q != NULL );
-    if( d_pattern[i].hasAttribute(InstConstantAttribute()) ){
+    if( quantifiers::TermDb::hasInstConstAttr(d_pattern[i]) ){
       if( d_pattern[i].getKind()==INST_CONSTANT ){
         //It's a variable
         d_variables.push_back(make_triple((TNode)d_pattern[i],i,q));
@@ -172,7 +171,7 @@ bool ApplyMatcher::reset(TNode t, InstMatch & m, QuantifiersEngine* qe){
 
   //if t is null
   Assert( !t.isNull() );
-  Assert( !t.hasAttribute(InstConstantAttribute()) );
+  Assert( !quantifiers::TermDb::hasInstConstAttr(t) );
   Assert( t.getKind()==d_pattern.getKind() );
   Assert( (t.getKind()!=APPLY_UF && t.getKind()!=APPLY_CONSTRUCTOR)
           || t.getOperator()==d_pattern.getOperator() );
@@ -411,7 +410,7 @@ public:
 size_t numFreeVar(TNode t){
   size_t n = 0;
   for( size_t i=0, size =t.getNumChildren(); i < size; ++i ){
-    if( t[i].hasAttribute(InstConstantAttribute()) ){
+    if( quantifiers::TermDb::hasInstConstAttr(t[i]) ){
       if( t[i].getKind()==INST_CONSTANT ){
         //variable
         ++n;
@@ -958,7 +957,7 @@ Matcher* mkMatcher( Node pat, QuantifiersEngine* qe ){
     /** TODO: something simpler to see if the pattern is a good
         arithmetic pattern */
     std::map< Node, Node > d_arith_coeffs;
-    if( !Trigger::getPatternArithmetic( pat.getAttribute(InstConstantAttribute()), pat, d_arith_coeffs ) ){
+    if( !Trigger::getPatternArithmetic( quantifiers::TermDb::getInstConstAttr(pat), pat, d_arith_coeffs ) ){
       Message() << "(?) Unknown matching pattern is " << pat << std::endl;
       Unimplemented("pattern not implemented");
       return new DumbMatcher();
@@ -983,17 +982,17 @@ Matcher* mkMatcher( Node pat, QuantifiersEngine* qe ){
 
 PatMatcher* mkPattern( Node pat, QuantifiersEngine* qe ){
   Debug("inst-match-gen") << "Pattern term is " << pat << std::endl;
-  Assert( pat.hasAttribute(InstConstantAttribute()) );
+  Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
 
   if( pat.getKind()==kind::NOT && pat[0].getKind() == kind::EQUAL){
     /* Difference */
     return new UfDeqMatcher(pat, qe);
   } else if (pat.getKind() == kind::EQUAL){
-    if( !pat[0].hasAttribute(InstConstantAttribute() )){
-        Assert(pat[1].hasAttribute(InstConstantAttribute()));
+    if( !quantifiers::TermDb::hasInstConstAttr(pat[0])){
+        Assert(quantifiers::TermDb::hasInstConstAttr(pat[1]));
         return new UfCstEqMatcher(pat[1], pat[0], qe);
-    }else if( !pat[1].hasAttribute(InstConstantAttribute() )){
-      Assert(pat[0].hasAttribute(InstConstantAttribute()));
+    }else if( !quantifiers::TermDb::hasInstConstAttr(pat[1] )){
+      Assert(quantifiers::TermDb::hasInstConstAttr(pat[0]));
       return new UfCstEqMatcher(pat[0], pat[1], qe);
     }else{
       std::vector< Node > pats(pat.begin(),pat.end());
@@ -1009,7 +1008,7 @@ PatMatcher* mkPattern( Node pat, QuantifiersEngine* qe ){
     /** TODO: something simpler to see if the pattern is a good
         arithmetic pattern */
     std::map< Node, Node > d_arith_coeffs;
-    if( !Trigger::getPatternArithmetic( pat.getAttribute(InstConstantAttribute()), pat, d_arith_coeffs ) ){
+    if( !Trigger::getPatternArithmetic( quantifiers::TermDb::getInstConstAttr(pat), pat, d_arith_coeffs ) ){
       Debug("inst-match-gen") << "(?) Unknown matching pattern is " << pat << std::endl;
       Message() << "(?) Unknown matching pattern is " << pat << std::endl;
       return new DumbPatMatcher();
@@ -1033,7 +1032,7 @@ PatMatcher* mkPattern( Node pat, QuantifiersEngine* qe ){
 
 ArithMatcher::ArithMatcher(Node pat, QuantifiersEngine* qe): d_pattern(pat){
 
-  if(Trigger::getPatternArithmetic(pat.getAttribute(InstConstantAttribute()), pat, d_arith_coeffs ) )
+  if(Trigger::getPatternArithmetic(quantifiers::TermDb::getInstConstAttr(pat), pat, d_arith_coeffs ) )
     {
     Debug("inst-match-gen") << "(?) Unknown matching pattern is " << d_pattern << std::endl;
     Assert(false);

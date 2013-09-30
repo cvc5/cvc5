@@ -28,11 +28,33 @@ namespace CVC4 {
 
 class SortInference{
 private:
-  //for debugging
-  //std::map< int, std::vector< Node > > d_type_eq_class;
+  //all subsorts
+  std::vector< int > d_sub_sorts;
+  std::map< int, bool > d_non_monotonic_sorts;
+  void recordSubsort( int s );
+public:
+  class UnionFind {
+  public:
+    UnionFind(){}
+    UnionFind( UnionFind& c ){
+      set( c );
+    }
+    std::map< int, int > d_eqc;
+    //pairs that must be disequal
+    std::vector< std::pair< int, int > > d_deq;
+    void print(const char * c);
+    void clear() { d_eqc.clear(); d_deq.clear(); }
+    void set( UnionFind& c );
+    int getRepresentative( int t );
+    void setEqual( int t1, int t2 );
+    void setDisequal( int t1, int t2 ){ d_deq.push_back( std::pair< int, int >( t1, t2 ) ); }
+    bool areEqual( int t1, int t2 ) { return getRepresentative( t1 )==getRepresentative( t2 ); }
+    bool isValid();
+  };
 private:
   int sortCount;
-  std::map< int, int > d_type_union_find;
+  int initialSortCount;
+  UnionFind d_type_union_find;
   std::map< int, TypeNode > d_type_types;
   std::map< TypeNode, int > d_id_for_types;
   //for apply uf operators
@@ -41,12 +63,17 @@ private:
   //for bound variables
   std::map< Node, std::map< Node, int > > d_var_types;
   //get representative
-  int getRepresentative( int t );
   void setEqual( int t1, int t2 );
   int getIdForType( TypeNode tn );
   void printSort( const char* c, int t );
   //process
   int process( Node n, std::map< Node, Node >& var_bound );
+
+//for monotonicity inference
+private:
+  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound );
+
+//for rewriting
 private:
   //mapping from old symbols to new symbols
   std::map< Node, Node > d_symbol_map;
@@ -60,15 +87,24 @@ private:
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
   Node simplify( Node n, std::map< Node, Node >& var_bound );
+
 public:
-  SortInference() : sortCount( 0 ){}
+  SortInference() : sortCount( 1 ){}
   ~SortInference(){}
 
   void simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  //get sort id for term n
   int getSortId( Node n );
+  //get sort id for variable of quantified formula f
   int getSortId( Node f, Node v );
   //set that sk is the skolem variable of v for quantifier f
   void setSkolemVar( Node f, Node v, Node sk );
+public:
+  //is well sorted
+  bool isWellSortedFormula( Node n );
+  bool isWellSorted( Node n );
+  //get constraints for being well-typed according to computed sub-types
+  void getSortConstraints( Node n, SortInference::UnionFind& uf );
 };
 
 }

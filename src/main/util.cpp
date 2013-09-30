@@ -54,7 +54,7 @@ namespace main {
  * Useful for nightly regressions, noninteractive performance runs
  * etc.
  */
-bool segvNoSpin = false;
+bool segvSpin = false;
 
 #ifndef __WIN32__
 
@@ -98,8 +98,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
     cerr << "Looks like a NULL pointer was dereferenced." << endl;
   }
 
-  if(segvNoSpin) {
-    fprintf(stderr, "No-spin requested, aborting...\n");
+  if(!segvSpin) {
     if((*pOptions)[options::statistics] && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);
@@ -133,8 +132,7 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
 void ill_handler(int sig, siginfo_t* info, void*) {
 #ifdef CVC4_DEBUG
   fprintf(stderr, "CVC4 executed an illegal instruction in DEBUG mode.\n");
-  if(segvNoSpin) {
-    fprintf(stderr, "No-spin requested, aborting...\n");
+  if(!segvSpin) {
     if((*pOptions)[options::statistics] && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);
@@ -174,8 +172,7 @@ void cvc4unexpected() {
     fprintf(stderr, "The exception is:\n%s\n\n",
             static_cast<const char*>(CVC4::s_debugLastException));
   }
-  if(segvNoSpin) {
-    fprintf(stderr, "No-spin requested.\n");
+  if(!segvSpin) {
     if((*pOptions)[options::statistics] && pExecutor != NULL) {
       pTotalTime->stop();
       pExecutor->flushStatistics(cerr);

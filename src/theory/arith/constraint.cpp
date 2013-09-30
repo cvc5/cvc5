@@ -922,6 +922,28 @@ bool ConstraintValue::proofIsEmpty() const{
   return result;
 }
 
+Node ConstraintValue::makeImplication(const std::vector<Constraint>& b) const{
+  Node antecedent = makeConjunction(b);
+  Node implied = getLiteral();
+  return antecedent.impNode(implied);
+}
+
+
+Node ConstraintValue::makeConjunction(const std::vector<Constraint>& b){
+  NodeBuilder<> nb(kind::AND);
+  for(vector<Constraint>::const_iterator i = b.begin(), end = b.end(); i != end; ++i){
+    Constraint b_i = *i;
+    b_i->explainBefore(nb, AssertionOrderSentinel);
+  }
+  if(nb.getNumChildren() >= 2){
+    return nb;
+  }else if(nb.getNumChildren() == 1){
+    return nb[0];
+  }else{
+    return mkBoolNode(true);
+  }
+}
+
 void ConstraintValue::explainBefore(NodeBuilder<>& nb, AssertionOrder order) const{
   Assert(hasProof());
   Assert(!isSelfExplaining() || assertedToTheTheory());

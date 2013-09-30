@@ -98,13 +98,21 @@ public:
   ~TypeEnumerator() { delete d_te; }
 
   bool isFinished() throw() {
-#ifdef CVC4_ASSERTIONS
+// On Mac clang, there appears to be a code generation bug in an exception
+// block here.  For now, there doesn't appear a good workaround; just disable
+// assertions on that setup.
+#if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
     if(d_te->isFinished()) {
       try {
         **d_te;
         Assert(false, "expected an NoMoreValuesException to be thrown");
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
+        //
+        // This block can crash on clang 3.0 on Mac OS, perhaps related to
+        // bug:  http://llvm.org/bugs/show_bug.cgi?id=13359
+        //
+        // Hence the #if !(defined(__APPLE__) && defined(__clang__)) above
       }
     } else {
       try {
@@ -113,11 +121,14 @@ public:
         Assert(false, "didn't expect a NoMoreValuesException to be thrown");
       }
     }
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
     return d_te->isFinished();
   }
   Node operator*() throw(NoMoreValuesException) {
-#ifdef CVC4_ASSERTIONS
+// On Mac clang, there appears to be a code generation bug in an exception
+// block above (and perhaps here, too).  For now, there doesn't appear a
+// good workaround; just disable assertions on that setup.
+#if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
     try {
       Node n = **d_te;
       Assert(n.isConst());
@@ -127,9 +138,9 @@ public:
       Assert(isFinished());
       throw;
     }
-#else /* CVC4_ASSERTIONS */
+#else /* CVC4_ASSERTIONS && !(APPLE || clang) */
     return **d_te;
-#endif /* CVC4_ASSERTIONS */
+#endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
   }
   TypeEnumerator& operator++() throw() { ++*d_te; return *this; }
   TypeEnumerator operator++(int) throw() { TypeEnumerator te = *this; ++*d_te; return te; }

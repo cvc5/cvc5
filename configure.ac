@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 m4_define(_CVC4_MAJOR,          1)       dnl version (major)
-m4_define(_CVC4_MINOR,          2)       dnl version (minor)
+m4_define(_CVC4_MINOR,          3)       dnl version (minor)
 m4_define(_CVC4_RELEASE,        0)       dnl version (alpha)
 m4_define(_CVC4_EXTRAVERSION,   [-prerelease])      dnl version (extra)
 m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[0],,[.]_CVC4_RELEASE)_CVC4_EXTRAVERSION) dnl version string
@@ -69,6 +69,7 @@ CVC4_BINDINGS_LIBRARY_VERSION=_CVC4_BINDINGS_LIBRARY_VERSION
 # included in the output... autoconf overrides us on the orderings of
 # some things.)
 config_cmdline=("$@")
+cvc4_config_cmdline="${config_cmdline[[@]]}"
 
 # remember if the user set these explicitly (or whether autoconf does)
 user_specified_enable_or_disable_static=${enable_static+yes}
@@ -106,7 +107,7 @@ fi
 AC_MSG_CHECKING([for requested build profile])
 AC_ARG_WITH([build],
   [AS_HELP_STRING([--with-build=profile],
-     [for profile in {production,debug,default,competition}])])
+     [for profile in {production,debug,default,competition,personal}])])
 
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
@@ -786,6 +787,9 @@ AC_DEFINE_UNQUOTED(CVC4_GCC_HAS_PB_DS_BUG, ${CVC4_GCC_HAS_PB_DS_BUG}, [Whether l
 AC_PROG_ANTLR
 
 CVC4_CXX_OPTION([-Werror], [WERROR])
+CVC4_C_OPTION([-Werror], [C_WERROR])
+CVC4_CXX_OPTION([-Wno-deprecated], [WNO_DEPRECATED])
+CVC4_C_OPTION([-Wno-deprecated], [C_WNO_DEPRECATED])
 CVC4_CXX_OPTION([-Wno-conversion-null], [WNO_CONVERSION_NULL])
 CVC4_CXX_OPTION([-Wno-tautological-compare], [WNO_TAUTOLOGICAL_COMPARE])
 CVC4_CXX_OPTION([-Wno-parentheses], [WNO_PARENTHESES])
@@ -807,6 +811,21 @@ AC_SUBST([FNO_STRICT_ALIASING])
 # --enable-libstdcxx-visibility (?)
 if test "$target_vendor" = apple; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-D_GLIBCXX_VISIBILITY_DEFAULT=\"__attribute__((__visibility__(\\\"default\\\")))\""
+fi
+
+# Tell top-level Makefile to include $(top_srcdir)/personal.mk
+AC_ARG_ENABLE([personal-make-rules],
+  [AS_HELP_STRING([--enable-personal-make-rules],
+     [include top-level personal.mk (if it exists)])])
+if test "$enable_personal_make_rules" = yes; then
+  # This allows us to include a personal.mk makefile from every
+  # generated makefile.  Named zz_* in order to make sure this
+  # comes last, so it gets other definitions (in particular top_srcdir).
+  zz_cvc4_use_personal_make_rules='yes
+
+include $(top_srcdir)/personal.mk
+$(top_srcdir)/personal.mk:; @touch "$@"'
+  AC_SUBST([zz_cvc4_use_personal_make_rules])
 fi
 
 # Doxygen configuration
@@ -976,6 +995,11 @@ AC_CHECK_HEADERS([getopt.h unistd.h])
 #AC_TYPE_UINT64_T
 #AC_TYPE_SIZE_T
 
+# guard against double-inclusion of the autoheader
+AH_TOP([#ifndef __CVC4__CVC4AUTOCONFIG_H
+#define __CVC4__CVC4AUTOCONFIG_H])
+AH_BOTTOM([#endif /* __CVC4__CVC4AUTOCONFIG_H */])
+
 AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # check with which standard strerror_r() complies
@@ -1032,8 +1056,8 @@ cvc4_rlcheck_save_CXXFLAGS="$CXXFLAGS"
 cvc4_rlcheck_save_CFLAGS="$CFLAGS"
 cvc4_rlcheck_save_LDFLAGS="$LDFLAGS"
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAGS"
-CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
-CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
+CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS $WNO_DEPRECATED"
+CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS $C_WNO_DEPRECATED -fexceptions"
 LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
 CVC4_CHECK_FOR_READLINE
 CPPFLAGS="$cvc4_rlcheck_save_CPPFLAGS"
@@ -1188,6 +1212,9 @@ AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
 AC_SUBST(pcvc4_LDFLAGS)
 
+# remember the command line used for configure
+AC_SUBST(cvc4_config_cmdline)
+
 # mk_include
 #
 # When automake scans Makefiles, it complains about non-standard make
@@ -1203,6 +1230,11 @@ AC_SUBST(pcvc4_LDFLAGS)
 # makefiles with GNU extensions; this hides them from automake.
 mk_include=include
 AC_SUBST(mk_include)
+# Similar trickery for "if"
+mk_if=if
+AC_SUBST(mk_if)
+mk_empty=
+AC_SUBST(mk_empty)
 
 # CVC4_FALSE
 #

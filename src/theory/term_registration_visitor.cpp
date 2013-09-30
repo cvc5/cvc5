@@ -127,15 +127,6 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   Assert(alreadyVisited(current, parent));
 }
 
-void PreRegisterVisitor::start(TNode node) {
-  d_multipleTheories = false;
-}
-
-bool PreRegisterVisitor::done(TNode node) {
-  // We have multiple theories if removing the node theory from others is non-empty
-  return Theory::setRemove(Theory::theoryOf(node), d_theories);
-}
-
 std::string SharedTermsVisitor::toString() const {
   std::stringstream ss;
   TNodeVisitedMap::const_iterator it = d_visited.begin();

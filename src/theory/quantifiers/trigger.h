@@ -92,8 +92,9 @@ public:
 private:
   /** is subterm of trigger usable */
   static bool isUsable( Node n, Node f );
+  static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt );
+  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, bool pol, bool hasPol );
 public:
   //different strategies for choosing trigger terms
   enum {

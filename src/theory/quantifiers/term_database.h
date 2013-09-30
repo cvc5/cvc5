@@ -59,6 +59,19 @@ typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 struct ModelBasisArgAttributeId {};
 typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
 
+struct HasBoundVarAttributeId {};
+typedef expr::Attribute<HasBoundVarAttributeId, bool> HasBoundVarAttribute;
+struct HasBoundVarComputedAttributeId {};
+typedef expr::Attribute<HasBoundVarComputedAttributeId, bool> HasBoundVarComputedAttribute;
+
+//for rewrite rules
+struct QRewriteRuleAttributeId {};
+typedef expr::Attribute<QRewriteRuleAttributeId, Node> QRewriteRuleAttribute;
+
+//for bounded integers
+struct BoundIntLitAttributeId {};
+typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
+
 
 class QuantifiersEngine;
 
@@ -83,10 +96,15 @@ public:
 };/* class TermArgTrie */
 
 
+namespace fmcheck {
+  class FullModelChecker;
+}
+
 class TermDb {
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::rrinst::Trigger;
+  friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -181,9 +199,15 @@ public:
   Node convertNodeToPattern( Node n, Node f,
                              const std::vector<Node> & vars,
                              const std::vector<Node> & nvars);
-  /** set instantiation constant attr */
-  void setInstantiationConstantAttr( Node n, Node f );
 
+  static Node getInstConstAttr( Node n );
+  static bool hasInstConstAttr( Node n );
+//for bound variables
+public:
+  //does n have bound variables?
+  static bool hasBoundVarAttr( Node n );
+  //get bound variables in n
+  static void getBoundVars( Node n, std::vector< Node >& bvs);
 //for skolem
 private:
   /** map from universal quantifiers to the list of skolem constants */

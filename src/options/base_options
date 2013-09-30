@@ -103,7 +103,7 @@ common-option - -v --verbose void :handler CVC4::options::increaseVerbosity
 common-option - -q --quiet void :handler CVC4::options::decreaseVerbosity
  decrease verbosity (may be repeated)
 
-common-option statistics statistics --stats bool
+common-option statistics statistics --stats bool :predicate CVC4::smt::statsEnabledBuild :predicate-include "smt/options_handlers.h"
  give statistics on exit
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
@@ -113,9 +113,6 @@ option parseOnly parse-only --parse-only bool :read-write
 
 option preprocessOnly preprocess-only --preprocess-only bool
  exit after preprocessing input
-
-option segvNoSpin --segv-nospin bool
- don't spin on segfault waiting for gdb
 
 option - trace -t --trace=TAG argument :handler CVC4::options::addTraceTag
  trace something (e.g. -t pushpop), can repeat

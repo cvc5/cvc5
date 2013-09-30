@@ -65,7 +65,7 @@ void TheoryQuantifiers::notifyEq(TNode lhs, TNode rhs) {
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
   Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
-  if( n.getKind()==FORALL && !n.hasAttribute(InstConstantAttribute()) ){
+  if( n.getKind()==FORALL && !TermDb::hasInstConstAttr(n) ){
     getQuantifiersEngine()->registerQuantifier( n );
   }
 }
@@ -149,7 +149,7 @@ Node TheoryQuantifiers::getNextDecisionRequest(){
 
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
-  if( !n.hasAttribute(InstConstantAttribute()) ){
+  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
     getQuantifiersEngine()->registerQuantifier( n );
     getQuantifiersEngine()->assertNode( n );
   }
@@ -157,13 +157,13 @@ void TheoryQuantifiers::assertUniversal( Node n ){
 
 void TheoryQuantifiers::assertExistential( Node n ){
   Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
-  if( !n[0].hasAttribute(InstConstantAttribute()) ){
+  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
     if( d_skolemized.find( n )==d_skolemized.end() ){
       Node body = getQuantifiersEngine()->getTermDatabase()->getSkolemizedBody( n[0] );
       NodeBuilder<> nb(kind::OR);
       nb << n[0] << body.notNode();
       Node lem = nb;
-      Debug("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
+      Trace("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
       d_out->lemma( lem );
       d_skolemized[n] = true;
     }

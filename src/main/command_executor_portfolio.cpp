@@ -184,7 +184,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   // command
 
   if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-    dynamic_cast<QueryCommand*>(cmd) != NULL) {
+     dynamic_cast<QueryCommand*>(cmd) != NULL) {
     mode = 1;
   } else if(dynamic_cast<GetValueCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
@@ -197,6 +197,10 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
             false) {
     mode = 2;
   }
+
+  Debug("portfolio::outputmode") << "Mode is " << mode
+                                 << "lastWinner is " << d_lastWinner 
+                                 << "d_seq is " << d_seq << std::endl;
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
@@ -214,7 +218,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     // We currently don't support changing number of threads for each
     // command, but things have been architected in a way so that this
-    // can be acheived with not a lot of work
+    // can be achieved without a lot of work.
     Command *seqs[d_numThreads];
 
     if(d_lastWinner == 0)
@@ -238,7 +242,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
           int(i) == d_lastWinner ?
           cmd->exportTo(d_exprMgrs[i], *(d_vmaps[i])) :
           d_seq->exportTo(d_exprMgrs[i], *(d_vmaps[i]) );
-      }catch(ExportUnsupportedException& e){
+      } catch(ExportUnsupportedException& e) {
         if(d_options[options::fallbackSequential]) {
           Notice() << "Unsupported theory encountered, switching to sequential mode.";
           return CommandExecutor::doCommandSingleton(cmd);
@@ -292,11 +296,11 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         runPortfolio(d_numThreads, smFn, fns,
                      d_options[options::waitToJoin]);
 
-    d_seq = NULL;
     delete d_seq;
     d_seq = new CommandSequence();
 
     d_lastWinner = portfolioReturn.first;
+    d_result = d_smts[d_lastWinner]->getStatusOfLastCommand();
 
     if(d_ostringstreams.size() != 0) {
       assert(d_numThreads == d_options[options::threads]);
@@ -339,11 +343,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   }
 
 }/* CommandExecutorPortfolio::doCommandSingleton() */
-
-std::string CommandExecutorPortfolio::getSmtEngineStatus()
-{
-  return d_smts[d_lastWinner]->getInfo("status").getValue();
-}
 
 void CommandExecutorPortfolio::flushStatistics(std::ostream& out) const {
   assert(d_numThreads == d_exprMgrs.size() && d_exprMgrs.size() == d_smts.size());

@@ -1,0 +1,11 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module STRINGS "theory/strings/options.h" Strings theory
+
+option stringCharCardinality str-alphabet-card --str-alphabet-card=N int16_t :default 256 :read-write
+ the cardinality of the characters used by the theory of string, default 256
+
+endmodule

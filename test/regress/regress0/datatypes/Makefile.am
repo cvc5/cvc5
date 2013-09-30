@@ -1,6 +1,10 @@
 SUBDIRS = .
 
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -30,9 +34,9 @@ TESTS =	\
 	datatype3.cvc \
 	datatype4.cvc \
 	datatype13.cvc \
+	empty_tuprec.cvc \
 	mutually-recursive.cvc \
 	rewriter.cvc \
-	typed_v1l50016-simp.cvc \
 	typed_v10l30054.cvc \
 	typed_v1l80005.cvc \
 	typed_v2l30079.cvc \

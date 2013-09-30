@@ -54,6 +54,7 @@ void ParserBuilder::init(ExprManager* exprManager,
   d_exprManager = exprManager;
   d_checksEnabled = true;
   d_strictMode = false;
+  d_canIncludeFile = true;
   d_mmap = false;
   d_parseOnly = false;
 }
@@ -102,6 +103,12 @@ Parser* ParserBuilder::build()
     parser->disableChecks();
   }
 
+  if( d_canIncludeFile ) {
+    parser->allowIncludeFile();
+  } else {
+    parser->disallowIncludeFile();
+  }
+
   return parser;
 }
 
@@ -146,11 +153,17 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
       .withMmap(options[options::memoryMap])
       .withChecks(options[options::semanticChecks])
       .withStrictMode(options[options::strictParsing])
-      .withParseOnly(options[options::parseOnly]);
+      .withParseOnly(options[options::parseOnly])
+      .withIncludeFile(options[options::canIncludeFile]);
   }
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   d_strictMode = flag;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
+  d_canIncludeFile = flag;
   return *this;
 }
 

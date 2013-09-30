@@ -67,6 +67,8 @@
 
 #include "theory/arith/options.h"
 
+#include "theory/quantifiers/bounded_integers.h"
+
 #include <stdint.h>
 
 #include <vector>
@@ -83,12 +85,13 @@ namespace arith {
 TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
   d_containing(containing),
   d_nlIncomplete( false),
-  d_boundTracking(),
+  d_rowTracking(),
   d_constraintDatabase(c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this)),
   d_qflraStatus(Result::SAT_UNKNOWN),
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
   d_learner(u),
+  d_quantEngine(qe),
   d_assertionsThatDoNotMatchTheirLiterals(c),
   d_nextIntegerCheckVar(0),
   d_constantIntegerVariables(c),
@@ -96,9 +99,9 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_currentPropagationList(),
   d_learnedBounds(c),
   d_partialModel(c, DeltaComputeCallback(*this)),
-  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(&d_boundTracking)),
+  d_errorSet(d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
   d_tableau(),
-  d_linEq(d_partialModel, d_tableau, d_boundTracking, BasicVarModelUpdateCallBack(*this)),
+  d_linEq(d_partialModel, d_tableau, d_rowTracking, BasicVarModelUpdateCallBack(*this)),
   d_diosolver(c),
   d_restartsCounter(0),
   d_tableauSizeHasBeenModified(false),
@@ -107,15 +110,19 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_conflicts(c),
   d_congruenceManager(c, d_constraintDatabase, SetupLiteralCallBack(*this), d_partialModel, RaiseConflict(*this)),
   d_dualSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-  d_pureUpdate(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_fcSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_soiSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
+  d_attemptSolSimplex(d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
   d_DELTA_ZERO(0),
   d_fullCheckCounter(0),
   d_cutCount(c, 0),
   d_cutInContext(c),
+  d_likelyIntegerInfeasible(c, false),
+  d_guessedCoeffSet(c, false),
+  d_guessedCoeffs(),
   d_statistics()
 {
+  srand(79);
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){ }
@@ -489,9 +496,7 @@ bool TheoryArithPrivate::AssertUpper(Constraint constraint){
         }else if(!lb->negationHasProof()){
           Constraint negLb = lb->getNegation();
           negLb->impliedBy(constraint, diseq);
-          //if(!negLb->canBePropagated()){
           d_learnedBounds.push_back(negLb);
-          //}//otherwise let this be propagated/asserted later
         }
       }
     }
@@ -732,19 +737,155 @@ void TheoryArithPrivate::addSharedTerm(TNode n){
   }
 }
 
+Node TheoryArithPrivate::getModelValue(TNode term) {
+  try{
+    DeltaRational drv = getDeltaValue(term);
+    const Rational& delta = d_partialModel.getDelta();
+    Rational qmodel = drv.substituteDelta( delta );
+    return mkRationalNode( qmodel );
+  } catch (DeltaRationalException& dr) {
+    return Node::null();
+  } catch (ModelException& me) {
+    return Node::null();
+  }
+}
+
+namespace attr {
+  struct ToIntegerTag { };
+  struct LinearIntDivTag { };
+}/* CVC4::theory::arith::attr namespace */
+
+/**
+ * This attribute maps the child of a to_int / is_int to the
+ * corresponding integer skolem.
+ */
+typedef expr::Attribute<attr::ToIntegerTag, Node> ToIntegerAttr;
+
+/**
+ * This attribute maps division-by-constant-k terms to a variable
+ * used to eliminate them.
+ */
+typedef expr::Attribute<attr::LinearIntDivTag, Node> LinearIntDivAttr;
+
+Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+  if(Theory::theoryOf(n) != THEORY_ARITH) {
+    return n;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  switch(Kind k = n.getKind()) {
+
+  case kind::TO_INTEGER:
+  case kind::IS_INTEGER: {
+    Node intVar;
+    if(!n[0].getAttribute(ToIntegerAttr(), intVar)) {
+      intVar = nm->mkSkolem("toInt", nm->integerType(), "a conversion of a Real term to its Integer part");
+      n[0].setAttribute(ToIntegerAttr(), intVar);
+      d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LT, nm->mkNode(kind::MINUS, n[0], nm->mkConst(Rational(1))), intVar), nm->mkNode(kind::LEQ, intVar, n[0])));
+    }
+    if(n.getKind() == kind::TO_INTEGER) {
+      Node node = intVar;
+      return node;
+    } else {
+      Node node = nm->mkNode(kind::EQUAL, n[0], intVar);
+      return node;
+    }
+    Unreachable();
+  }
+
+  case kind::INTS_DIVISION:
+  case kind::INTS_DIVISION_TOTAL: {
+    if(!options::rewriteDivk()) {
+      return n;
+    }
+    Node num = Rewriter::rewrite(n[0]);
+    Node den = Rewriter::rewrite(n[1]);
+    if(den.isConst()) {
+      const Rational& rat = den.getConst<Rational>();
+      Assert(!num.isConst());
+      if(rat != 0) {
+        Node intVar;
+        Node rw = nm->mkNode(k, num, den);
+        if(!rw.getAttribute(LinearIntDivAttr(), intVar)) {
+          intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
+          rw.setAttribute(LinearIntDivAttr(), intVar);
+          if(rat > 0) {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1)))))));
+          } else {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1)))))));
+          }
+        }
+        return intVar;
+      }
+    }
+    break;
+  }
+
+  case kind::INTS_MODULUS:
+  case kind::INTS_MODULUS_TOTAL: {
+    if(!options::rewriteDivk()) {
+      return n;
+    }
+    Node num = Rewriter::rewrite(n[0]);
+    Node den = Rewriter::rewrite(n[1]);
+    if(den.isConst()) {
+      const Rational& rat = den.getConst<Rational>();
+      Assert(!num.isConst());
+      if(rat != 0) {
+        Node intVar;
+        Node rw = nm->mkNode(k, num, den);
+        if(!rw.getAttribute(LinearIntDivAttr(), intVar)) {
+          intVar = nm->mkSkolem("linearIntDiv", nm->integerType(), "the result of an intdiv-by-k term");
+          rw.setAttribute(LinearIntDivAttr(), intVar);
+          if(rat > 0) {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(1)))))));
+          } else {
+            d_containing.d_out->lemma(nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1)))))));
+          }
+        }
+        Node node = nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
+        return node;
+      }
+    }
+    break;
+  }
+
+  default:
+    ;
+  }
+
+  for(TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
+    Node rewritten = ppRewriteTerms(*i);
+    if(rewritten != *i) {
+      NodeBuilder<> b(n.getKind());
+      b.append(n.begin(), i);
+      b << rewritten;
+      for(++i; i != n.end(); ++i) {
+        b << ppRewriteTerms(*i);
+      }
+      rewritten = b;
+      return rewritten;
+    }
+  }
+
+  return n;
+}
+
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
-
 
   if (atom.getKind() == kind::EQUAL  && options::arithRewriteEq()) {
     Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
     Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+    leq = ppRewriteTerms(leq);
+    geq = ppRewriteTerms(geq);
     Node rewritten = Rewriter::rewrite(leq.andNode(geq));
     Debug("arith::preprocess") << "arith::preprocess() : returning "
                                << rewritten << endl;
     return rewritten;
   } else {
-    return atom;
+    return ppRewriteTerms(atom);
   }
 }
 
@@ -897,7 +1038,7 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
     // vl is the product of at least 2 variables
     // vl : (* v1 v2 ...)
     if(getLogicInfo().isLinear()){
-      throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+      throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
 
     setIncomplete();
@@ -934,7 +1075,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   Assert(v.isDivLike());
 
   if(getLogicInfo().isLinear()){
-    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+    throw LogicException("A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic;\nif you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.");
   }
 
   Node vnode = v.getNode();
@@ -1100,7 +1241,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
     ArithVar varSlack = requestArithVar(polyNode, true);
     d_tableau.addRow(varSlack, coefficients, variables);
     setupBasicValue(varSlack);
-    d_linEq.trackVariable(varSlack);
+    d_linEq.trackRowIndex(d_tableau.basicToRowIndex(varSlack));
 
     //Add differences to the difference manager
     Polynomial::iterator i = poly.begin(), end = poly.end();
@@ -1156,16 +1297,22 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
 
-  if(isRelationOperator(n.getKind())){
-    if(!isSetup(n)){
-      setupAtom(n);
+  try {
+    if(isRelationOperator(n.getKind())){
+      if(!isSetup(n)){
+        setupAtom(n);
+      }
+      Constraint c = d_constraintDatabase.lookup(n);
+      Assert(c != NullConstraint);
+  
+      Debug("arith::preregister") << "setup constraint" << c << endl;
+      Assert(!c->canBePropagated());
+      c->setPreregistered();
     }
-    Constraint c = d_constraintDatabase.lookup(n);
-    Assert(c != NullConstraint);
-
-    Debug("arith::preregister") << "setup constraint" << c << endl;
-    Assert(!c->canBePropagated());
-    c->setPreregistered();
+  } catch(LogicException& le) {
+    std::stringstream ss;
+    ss << le.getMessage() << endl << "The fact in question: " << n << endl;
+    throw LogicException(ss.str());
   }
 
   Debug("arith::preregister") << "end arith::preRegisterTerm("<< n <<")" << endl;
@@ -1176,81 +1323,32 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
   d_constraintDatabase.removeVariable(v);
   d_partialModel.releaseArithVar(v);
-  d_linEq.maybeRemoveTracking(v);
 }
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool slack){
   //TODO : The VarList trick is good enough?
   Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS);
   if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
-    throw LogicException("Non-linear term was asserted to arithmetic in a linear logic.");
+    stringstream ss;
+    ss << "A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic: " << x << endl
+       << "if you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.";
+    throw LogicException(ss.str());
   }
   Assert(!d_partialModel.hasArithVar(x));
   Assert(x.getType().isReal()); // real or integer
-
-  // ArithVar varX = d_variables.size();
-  // d_variables.push_back(Node(x));
 
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, slack);
 
   bool reclaim =  max >= d_partialModel.getNumberOfVariables();;
 
-  if(reclaim){
-    // varX = d_pool.back();
-    // d_pool.pop_back();
-
-    // d_partialModel.setAssignment(varX, d_DELTA_ZERO, d_DELTA_ZERO);
-  }else{
-    // varX = d_numberOfVariables;
-    // ++d_numberOfVariables;
-
-    // d_slackVars.push_back(true);
-    // d_variableTypes.push_back(ATReal);
-
+  if(!reclaim){
     d_dualSimplex.increaseMax();
 
     d_tableau.increaseSize();
     d_tableauSizeHasBeenModified = true;
-
-    //d_partialModel.initialize(varX, d_DELTA_ZERO);
   }
-
-  // ArithType type;
-  // if(slack){
-  //   //The type computation is not quite accurate for Rationals that are integral.
-  //   //We'll use the isIntegral check from the polynomial package instead.
-  //   Polynomial p = Polynomial::parsePolynomial(x);
-  //   type = p.isIntegral() ? ATInteger : ATReal;
-  // }else{
-  //   type = nodeToArithType(x);
-  // }
-  // d_variableTypes[varX] = type;
-  // d_slackVars[varX] = slack;
-
   d_constraintDatabase.addVariable(varX);
-
-  //d_partialModel.setArithVar(x,varX);
-
-  // Debug("integers") << "isInteger[[" << x << "]]: " << x.getType().isInteger() << endl;
-
-  // if(slack){
-  //   //The type computation is not quite accurate for Rationals that are integral.
-  //   //We'll use the isIntegral check from the polynomial package instead.
-  //   Polynomial p = Polynomial::parsePolynomial(x);
-  //   d_variableTypes.push_back(p.isIntegral() ? ATInteger : ATReal);
-  // }else{
-  //   d_variableTypes.push_back(nodeToArithType(x));
-  // }
-
-  // d_slackVars.push_back(slack);
-
-  // d_simplex.increaseMax();
-
-  // d_tableau.increaseSize();
-  // d_tableauSizeHasBeenModified = true;
-
-  // d_constraintDatabase.addVariable(varX);
 
   Debug("arith::arithvar") << x << " |-> " << varX << endl;
 
@@ -1423,6 +1521,10 @@ Constraint TheoryArithPrivate::constraintFromFactQueue(){
   Assert(!done());
   TNode assertion = get();
 
+  if( options::finiteModelFind() && d_quantEngine && d_quantEngine->getBoundedIntegers() ){
+    d_quantEngine->getBoundedIntegers()->assertNode(assertion);
+  }
+
   Kind simpleKind = Comparison::comparisonKind(assertion);
   Constraint constraint = d_constraintDatabase.lookup(assertion);
   if(constraint == NullConstraint){
@@ -1454,20 +1556,6 @@ Constraint TheoryArithPrivate::constraintFromFactQueue(){
     }
   }
 
-  // Kind simpleKind = Comparison::comparisonKind(assertion);
-  // Assert(simpleKind != UNDEFINED_KIND);
-  // Assert(constraint != NullConstraint ||
-  //        simpleKind == EQUAL ||
-  //        simpleKind == DISTINCT );
-  // if(simpleKind == EQUAL || simpleKind == DISTINCT){
-  //   Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
-
-  //   if(!isSetup(eq)){
-  //     //The previous code was equivalent to:
-  //     setupAtom(eq);
-  //     constraint = d_constraintDatabase.lookup(assertion);
-  //   }
-  // }
   Assert(constraint != NullConstraint);
 
   if(constraint->negationHasProof()){
@@ -1609,9 +1697,9 @@ void TheoryArithPrivate::branchVector(const std::vector<ArithVar>& lemmas){
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   Assert(d_qflraStatus != Result::SAT);
 
-  d_partialModel.stopQueueingAtBoundQueue();
+  d_partialModel.stopQueueingBoundCounts();
   UpdateTrackingCallback utcb(&d_linEq);
-  d_partialModel.processAtBoundQueue(utcb);
+  d_partialModel.processBoundsQueue(utcb);
   d_linEq.startTrackingBoundCounts();
 
   bool noPivotLimit = Theory::fullEffort(effortLevel) ||
@@ -1641,12 +1729,22 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     static const int32_t relaxationLimit = 10000;
     static const int32_t mipLimit = 200000;
 
+    //cout << "start" << endl;
     d_qflraStatus = simplex.findModel(false);
+    //cout << "end" << endl;
     if(d_qflraStatus == Result::SAT_UNKNOWN ||
-       (d_qflraStatus == Result::SAT && !hasIntegerModel())){
+       (d_qflraStatus == Result::SAT && !hasIntegerModel() && !d_likelyIntegerInfeasible)){
 
       ApproximateSimplex* approxSolver = ApproximateSimplex::mkApproximateSimplexSolver(d_partialModel);
       approxSolver->setPivotLimit(relaxationLimit);
+
+      if(!d_guessedCoeffSet){
+        d_guessedCoeffs = approxSolver->heuristicOptCoeffs();
+        d_guessedCoeffSet = true;
+      }
+      if(!d_guessedCoeffs.empty()){
+        approxSolver->setOptCoeffs(d_guessedCoeffs);
+      }
 
       ApproximateSimplex::ApproxResult relaxRes, mipRes;
       ApproximateSimplex::Solution relaxSolution, mipSolution;
@@ -1655,30 +1753,37 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
       case ApproximateSimplex::ApproxSat:
         {
           relaxSolution = approxSolver->extractRelaxation();
-          approxSolver->setPivotLimit(mipLimit);
-          mipRes = approxSolver->solveMIP();
-          d_errorSet.reduceToSignals();
-          if(mipRes == ApproximateSimplex::ApproxSat){
-            mipSolution = approxSolver->extractMIP();
-            ApproximateSimplex::applySolution(d_linEq, mipSolution);
+
+          if(d_likelyIntegerInfeasible){
+            d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
           }else{
-            ApproximateSimplex::applySolution(d_linEq, relaxSolution);
-            // if(d_qflraStatus != UNSAT){
-            //   d_likelyIntegerUnsat = true;
-            // }
+            approxSolver->setPivotLimit(mipLimit);
+            mipRes = approxSolver->solveMIP();
+            d_errorSet.reduceToSignals();
+            //Message() << "here" << endl;
+            if(mipRes == ApproximateSimplex::ApproxSat){
+              mipSolution = approxSolver->extractMIP();
+              d_qflraStatus = d_attemptSolSimplex.attempt(mipSolution);
+            }else{
+              if(mipRes == ApproximateSimplex::ApproxUnsat){
+                d_likelyIntegerInfeasible = true;
+              }
+              d_qflraStatus = d_attemptSolSimplex.attempt(relaxSolution);
+            }
           }
           options::arithStandardCheckVarOrderPivots.set(pass2Limit);
-          d_qflraStatus = simplex.findModel(false);
+          if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
+          //Message() << "done" << endl;
         }
         break;
       case ApproximateSimplex::ApproxUnsat:
         {
           ApproximateSimplex::Solution sol = approxSolver->extractRelaxation();
-          d_errorSet.reduceToSignals();
-          ApproximateSimplex::applySolution(d_linEq, sol);
-          options::arithStandardCheckVarOrderPivots.set(100);
 
-          d_qflraStatus = simplex.findModel(false);
+          d_qflraStatus = d_attemptSolSimplex.attempt(sol);
+          options::arithStandardCheckVarOrderPivots.set(pass2Limit);
+
+          if(d_qflraStatus != Result::UNSAT){ d_qflraStatus = simplex.findModel(false); }
         }
         break;
       default:
@@ -1688,11 +1793,14 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     }
 
     if(d_qflraStatus == Result::SAT_UNKNOWN){
+      //Message() << "got sat unknown" << endl;
       vector<ArithVar> toCut = cutAllBounded();
       if(toCut.size() > 0){
         branchVector(toCut);
         emmittedConflictOrSplit = true;
       }else{
+        //Message() << "splitting" << endl;
+
         d_qflraStatus = simplex.findModel(noPivotLimit);
       }
     }
@@ -1701,7 +1809,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 
   // TODO Save zeroes with no conflicts
   d_linEq.stopTrackingBoundCounts();
-  d_partialModel.startQueueingAtBoundQueue();
+  d_partialModel.startQueueingBoundCounts();
 
   return emmittedConflictOrSplit;
 }
@@ -1765,7 +1873,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
 
   if(Debug.isOn("arith::print_assertions")) {
-    debugPrintAssertions();
+    debugPrintAssertions(Debug("arith::print_assertions"));
   }
 
   bool emmittedConflictOrSplit = false;
@@ -1911,7 +2019,6 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel)){
     emmittedConflictOrSplit = splitDisequalities();
   }
-  emmittedConflictOrSplit = false;
 
   if(!emmittedConflictOrSplit && Theory::fullEffort(effortLevel) && !hasIntegerModel()){
     Node possibleConflict = Node::null();
@@ -1967,7 +2074,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
-  if(Debug.isOn("arith::print_model")) { debugPrintModel(); }
+  if(Debug.isOn("arith::print_model")) {
+    debugPrintModel(Debug("arith::print_model"));
+  }
   Debug("arith") << "TheoryArithPrivate::check end" << std::endl;
 }
 
@@ -2088,37 +2197,38 @@ bool TheoryArithPrivate::splitDisequalities(){
  * Should be guarded by at least Debug.isOn("arith::print_assertions").
  * Prints to Debug("arith::print_assertions")
  */
-void TheoryArithPrivate::debugPrintAssertions() {
-  Debug("arith::print_assertions") << "Assertions:" << endl;
+void TheoryArithPrivate::debugPrintAssertions(std::ostream& out) const {
+  out << "Assertions:" << endl;
   for (var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar i = *vi;
     if (d_partialModel.hasLowerBound(i)) {
       Constraint lConstr = d_partialModel.getLowerBoundConstraint(i);
-      Debug("arith::print_assertions") << lConstr << endl;
+      out << lConstr << endl;
     }
 
     if (d_partialModel.hasUpperBound(i)) {
       Constraint uConstr = d_partialModel.getUpperBoundConstraint(i);
-      Debug("arith::print_assertions") << uConstr << endl;
+      out << uConstr << endl;
     }
   }
   context::CDQueue<Constraint>::const_iterator it = d_diseqQueue.begin();
   context::CDQueue<Constraint>::const_iterator it_end = d_diseqQueue.end();
   for(; it != it_end; ++ it) {
-    Debug("arith::print_assertions") << *it << endl;
+    out << *it << endl;
   }
 }
 
-void TheoryArithPrivate::debugPrintModel(){
-  Debug("arith::print_model") << "Model:" << endl;
+void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
+  out << "Model:" << endl;
   for (var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar i = *vi;
     if(d_partialModel.hasNode(i)){
-      Debug("arith::print_model") << d_partialModel.asNode(i) << " : " <<
+      out << d_partialModel.asNode(i) << " : " <<
         d_partialModel.getAssignment(i);
-      if(d_tableau.isBasic(i))
-        Debug("arith::print_model") << " (basic)";
-      Debug("arith::print_model") << endl;
+      if(d_tableau.isBasic(i)){
+        out << " (basic)";
+      }
+      out << endl;
     }
   }
 }
@@ -2161,7 +2271,11 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
      (options::arithPropagationMode() == BOUND_INFERENCE_PROP ||
       options::arithPropagationMode() == BOTH_PROP)
      && hasAnyUpdates()){
-    propagateCandidates();
+    if(options::newProp()){
+      propagateCandidatesNew();
+    }else{
+      propagateCandidates();
+    }
   }else{
     clearUpdates();
   }
@@ -2432,37 +2546,6 @@ void TheoryArithPrivate::notifyRestart(){
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
   ++d_restartsCounter;
-#warning "removing restart"
-  // return;
-
-  // uint32_t currSize = d_tableau.size();
-  // uint32_t copySize = d_smallTableauCopy.size();
-
-  // Debug("arith::reset") << "resetting" << d_restartsCounter << endl;
-  // Debug("arith::reset") << "curr " << currSize << " copy " << copySize << endl;
-  // Debug("arith::reset") << "tableauSizeHasBeenModified " << d_tableauSizeHasBeenModified << endl;
-
-  // if(d_tableauSizeHasBeenModified){
-  //   Debug("arith::reset") << "row has been added must copy " << d_restartsCounter << endl;
-  //   d_smallTableauCopy = d_tableau;
-  //   d_tableauSizeHasBeenModified = false;
-  // }else if( d_restartsCounter >= RESET_START){
-  //   if(copySize >= currSize * 1.1 ){
-  //     Debug("arith::reset") << "size has shrunk " << d_restartsCounter << endl;
-  //     ++d_statistics.d_smallerSetToCurr;
-  //     d_smallTableauCopy = d_tableau;
-  //   }else if(d_tableauResetDensity * copySize <=  currSize){
-  //     d_errorSet.popAllSignals();
-  //     if(safeToReset()){
-  //       Debug("arith::reset") << "resetting " << d_restartsCounter << endl;
-  //       ++d_statistics.d_currSetToSmaller;
-  //       d_tableau = d_smallTableauCopy;
-  //     }else{
-  //       Debug("arith::reset") << "not safe to reset at the moment " << d_restartsCounter << endl;
-  //     }
-  //   }
-  // }
-  // Assert(unenqueuedVariablesAreConsistent());
 }
 
 bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
@@ -2473,6 +2556,14 @@ bool TheoryArithPrivate::entireStateIsConsistent(const string& s){
     if(!d_partialModel.assignmentIsConsistent(var)){
       d_partialModel.printModel(var);
       Warning() << s << ":" << "Assignment is not consistent for " << var << d_partialModel.asNode(var);
+      if(d_tableau.isBasic(var)){
+        Warning() << " (basic)";
+      }
+      Warning() << endl;
+      result = false;
+    }else if(d_partialModel.isInteger(var) && !d_partialModel.integralAssignment(var)){
+      d_partialModel.printModel(var);
+      Warning() << s << ":" << "Assignment is not integer for integer variable " << var << d_partialModel.asNode(var);
       if(d_tableau.isBasic(var)){
         Warning() << " (basic)";
       }
@@ -2570,9 +2661,8 @@ EqualityStatus TheoryArithPrivate::getEqualityStatus(TNode a, TNode b) {
 bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound){
   ++d_statistics.d_boundComputations;
 
-  DeltaRational bound = upperBound ?
-    d_linEq.computeUpperBound(basic):
-    d_linEq.computeLowerBound(basic);
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  DeltaRational bound = d_linEq.computeRowBound(ridx, upperBound, basic);
 
   if((upperBound && d_partialModel.strictlyLessThanUpperBound(basic, bound)) ||
      (!upperBound && d_partialModel.strictlyGreaterThanLowerBound(basic, bound))){
@@ -2620,28 +2710,44 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
       }
 
       if(!assertedToTheTheory && canBePropagated && !hasProof ){
-        if(upperBound){
-          Assert(bestImplied != d_partialModel.getUpperBoundConstraint(basic));
-          d_linEq.propagateNonbasicsUpperBound(basic, bestImplied);
-        }else{
-          Assert(bestImplied != d_partialModel.getLowerBoundConstraint(basic));
-          d_linEq.propagateNonbasicsLowerBound(basic, bestImplied);
-        }
+        d_linEq.propagateBasicFromRow(bestImplied);
         // I think this can be skipped if canBePropagated is true
         //d_learnedBounds.push(bestImplied);
+        if(Debug.isOn("arith::prop")){
+          Debug("arith::prop") << "success " << bestImplied << endl;
+          d_partialModel.printModel(basic, Debug("arith::prop"));
+        }
         return true;
       }
+      if(Debug.isOn("arith::prop")){
+        Debug("arith::prop") << "failed " << basic << " " << bound << assertedToTheTheory << " " <<
+          canBePropagated << " " << hasProof << endl;
+        d_partialModel.printModel(basic, Debug("arith::prop"));
+      }
     }
+  }else if(Debug.isOn("arith::prop")){
+    Debug("arith::prop") << "false " << bound << " ";
+    d_partialModel.printModel(basic, Debug("arith::prop"));
   }
   return false;
 }
 
 void TheoryArithPrivate::propagateCandidate(ArithVar basic){
   bool success = false;
-  if(d_partialModel.strictlyAboveLowerBound(basic) && d_linEq.hasLowerBounds(basic)){
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+
+  bool tryLowerBound =
+    d_partialModel.strictlyAboveLowerBound(basic) &&
+    d_linEq.rowLacksBound(ridx, false, basic) == NULL;
+
+  bool tryUpperBound =
+    d_partialModel.strictlyBelowUpperBound(basic) &&
+    d_linEq.rowLacksBound(ridx, true, basic) == NULL;
+
+  if(tryLowerBound){
     success |= propagateCandidateLowerBound(basic);
   }
-  if(d_partialModel.strictlyBelowUpperBound(basic) && d_linEq.hasUpperBounds(basic)){
+  if(tryUpperBound){
     success |= propagateCandidateUpperBound(basic);
   }
   if(success){
@@ -2651,6 +2757,8 @@ void TheoryArithPrivate::propagateCandidate(ArithVar basic){
 
 void TheoryArithPrivate::propagateCandidates(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
+
+  Debug("arith::prop") << "propagateCandidates begin" << endl;
 
   Assert(d_candidateBasics.empty());
 
@@ -2685,6 +2793,292 @@ void TheoryArithPrivate::propagateCandidates(){
     Assert(d_tableau.isBasic(candidate));
     propagateCandidate(candidate);
   }
+  Debug("arith::prop") << "propagateCandidates end" << endl << endl << endl;
+}
+
+void TheoryArithPrivate::propagateCandidatesNew(){
+  /* Four criteria must be met for progagation on a variable to happen using a row:
+   * 0: A new bound has to have been added to the row.
+   * 1: The hasBoundsCount for the row must be "full" or be full minus one variable
+   *    (This is O(1) to check, but requires book keeping.)
+   * 2: The current assignment must be strictly smaller/greater than the current bound.
+   *    assign(x) < upper(x)
+   *    (This is O(1) to compute.)
+   * 3: There is a bound that is strictly smaller/greater than the current assignment.
+   *    assign(x) < c for some x <= c literal
+   *    (This is O(log n) to compute.)
+   * 4: The implied bound on x is strictly smaller/greater than the current bound.
+   *    (This is O(n) to compute.)
+   */
+
+  TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
+  Debug("arith::prop") << "propagateCandidatesNew begin" << endl;
+
+  Assert(d_qflraStatus == Result::SAT);
+  if(d_updatedBounds.empty()){ return; }
+  dumpUpdatedBoundsToRows();
+  Assert(d_updatedBounds.empty());
+
+  if(!d_candidateRows.empty()){
+    UpdateTrackingCallback utcb(&d_linEq);
+    d_partialModel.processBoundsQueue(utcb);
+  }
+
+  while(!d_candidateRows.empty()){
+    RowIndex candidate = d_candidateRows.back();
+    d_candidateRows.pop_back();
+    propagateCandidateRow(candidate);
+  }
+  Debug("arith::prop") << "propagateCandidatesNew end" << endl << endl << endl;
+}
+
+bool TheoryArithPrivate::propagateMightSucceed(ArithVar v, bool ub) const{
+  int cmp = ub ? d_partialModel.cmpAssignmentUpperBound(v)
+    : d_partialModel.cmpAssignmentLowerBound(v);
+  bool hasSlack = ub ? cmp < 0 : cmp > 0;
+  if(hasSlack){
+    ConstraintType t = ub ? UpperBound : LowerBound;
+    const DeltaRational& a = d_partialModel.getAssignment(v);
+
+    if(isInteger(v) && !a.isIntegral()){
+      return true;
+    }
+
+    Constraint strongestPossible = d_constraintDatabase.getBestImpliedBound(v, t, a);
+    if(strongestPossible == NullConstraint){
+      return false;
+    }else{
+      bool assertedToTheTheory = strongestPossible->assertedToTheTheory();
+      bool canBePropagated = strongestPossible->canBePropagated();
+      bool hasProof = strongestPossible->hasProof();
+
+      return !assertedToTheTheory && canBePropagated && !hasProof;
+    }
+  }else{
+    return false;
+  }
+}
+
+bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
+  Debug("arith::prop") << "  attemptSingleton" << ridx;
+
+  const Tableau::Entry* ep;
+  ep = d_linEq.rowLacksBound(ridx, rowUp, ARITHVAR_SENTINEL);
+  Assert(ep != NULL);
+
+  ArithVar v = ep->getColVar();
+  const Rational& coeff = ep->getCoefficient();
+
+  // 0 = c * v + \sum rest
+  // Suppose rowUp
+  // - c * v = \sum rest \leq D
+  // if c > 0, v \geq -D/c so !vUp
+  // if c < 0, v \leq -D/c so  vUp
+  // Suppose not rowUp
+  // - c * v = \sum rest \geq D
+  // if c > 0, v \leq -D/c so  vUp
+  // if c < 0, v \geq -D/c so !vUp
+  bool vUp = (rowUp == ( coeff.sgn() < 0));
+
+  Debug("arith::prop") << "  " << rowUp << " " << v << " " << coeff << " " << vUp << endl;
+  Debug("arith::prop") << "  " << propagateMightSucceed(v, vUp) << endl;
+
+  if(propagateMightSucceed(v, vUp)){
+    DeltaRational dr = d_linEq.computeRowBound(ridx, rowUp, v);
+    DeltaRational bound = dr / (- coeff);
+    return tryToPropagate(ridx, rowUp, v, vUp, bound);
+  }
+  return false;
+}
+
+bool TheoryArithPrivate::attemptFull(RowIndex ridx, bool rowUp){
+  Debug("arith::prop") << "  attemptFull" << ridx << endl;
+
+  vector<const Tableau::Entry*> candidates;
+
+  for(Tableau::RowIterator i = d_tableau.ridRowIterator(ridx); !i.atEnd(); ++i){
+    const Tableau::Entry& e =*i;
+    const Rational& c = e.getCoefficient();
+    ArithVar v = e.getColVar();
+    bool vUp = (rowUp == (c.sgn() < 0));
+    if(propagateMightSucceed(v, vUp)){
+      candidates.push_back(&e);
+    }
+  }
+  if(candidates.empty()){ return false; }
+
+  const DeltaRational slack =
+    d_linEq.computeRowBound(ridx, rowUp, ARITHVAR_SENTINEL);
+  bool any = false;
+  vector<const Tableau::Entry*>::const_iterator i, iend;
+  for(i = candidates.begin(), iend = candidates.end(); i != iend; ++i){
+    const Tableau::Entry* ep = *i;
+    const Rational& c = ep->getCoefficient();
+    ArithVar v = ep->getColVar();
+
+    // See the comment for attemptSingleton()
+    bool activeUp = (rowUp == (c.sgn() > 0));
+    bool vUb = (rowUp == (c.sgn() < 0));
+
+    const DeltaRational& activeBound = activeUp ?
+      d_partialModel.getUpperBound(v):
+      d_partialModel.getLowerBound(v);
+
+    DeltaRational contribution = activeBound * c;
+    DeltaRational impliedBound = (slack - contribution)/(-c);
+
+    bool success = tryToPropagate(ridx, rowUp, v, vUb, impliedBound);
+    any |= success;
+  }
+  return any;
+}
+
+bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUb, const DeltaRational& bound){
+
+  bool weaker = vUb ? d_partialModel.strictlyLessThanUpperBound(v, bound):
+    d_partialModel.strictlyGreaterThanLowerBound(v, bound);
+  if(weaker){
+    ConstraintType t = vUb ? UpperBound : LowerBound;
+
+    if(isInteger(v)){
+      //cout << "maybe" << endl;
+      //cout << bound << endl;
+    }
+    Constraint implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
+    if(implied != NullConstraint){
+      return rowImplicationCanBeApplied(ridx, rowUp, implied);
+    }
+  }
+  return false;
+}
+
+Node flattenImplication(Node imp){
+  NodeBuilder<> nb(kind::OR);
+  Node left = imp[0];
+  Node right = imp[1];
+
+  if(left.getKind() == kind::AND){
+    for(Node::iterator i = left.begin(), iend = left.end(); i != iend; ++i) {
+      nb << (*i).negate();
+    }
+  }else{
+    nb << left.negate();
+  }
+
+  if(right.getKind() == kind::OR){
+    for(Node::iterator i = right.begin(), iend = right.end(); i != iend; ++i) {
+      nb << *i;
+    }
+  }else{
+    nb << right;
+  }
+
+  return nb;
+}
+
+bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint implied){
+  Assert(implied != NullConstraint);
+  ArithVar v = implied->getVariable();
+
+  bool assertedToTheTheory = implied->assertedToTheTheory();
+  bool canBePropagated = implied->canBePropagated();
+  bool hasProof = implied->hasProof();
+
+  Debug("arith::prop") << "arith::prop" << v
+                       << " " << assertedToTheTheory
+                       << " " << canBePropagated
+                       << " " << hasProof
+                       << endl;
+
+  if(implied->negationHasProof()){
+    Warning() << "the negation of " <<  implied << " : " << endl
+              << "has proof " << implied->getNegation() << endl
+              << implied->getNegation()->explainForConflict() << endl;
+  }
+
+  if(!assertedToTheTheory && canBePropagated && !hasProof ){
+    vector<Constraint> explain;
+    d_linEq.propagateRow(explain, ridx, rowUp, implied);
+    if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
+      Node implication = implied->makeImplication(explain);
+      Node clause = flattenImplication(implication);
+      outputLemma(clause);
+    }else{
+      implied->impliedBy(explain);
+    }
+    return true;
+  }
+
+  if(Debug.isOn("arith::prop")){
+    Debug("arith::prop")
+      << "failed " << v << " " << assertedToTheTheory << " "
+      << canBePropagated << " " << hasProof << " " << implied << endl;
+    d_partialModel.printModel(v, Debug("arith::prop"));
+  }
+  return false;
+}
+
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
+
+bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
+  BoundCounts hasCount = d_linEq.hasBoundCount(ridx);
+  uint32_t rowLength = d_tableau.getRowLength(ridx);
+
+  bool success = false;
+  static int instance = 0;
+  ++instance;
+
+  Debug("arith::prop")
+    << "propagateCandidateRow " << instance << " attempt " << rowLength << " " <<  hasCount << endl;
+
+  if(rowLength >= options::arithPropagateMaxLength()){
+    if(fRand(0.0,1.0) >= double(options::arithPropagateMaxLength())/rowLength){
+      return false;
+    }
+  }
+
+  if(hasCount.lowerBoundCount() == rowLength){
+    success |= attemptFull(ridx, false);
+  }else if(hasCount.lowerBoundCount() + 1 == rowLength){
+    success |= attemptSingleton(ridx, false);
+  }
+
+  if(hasCount.upperBoundCount() == rowLength){
+    success |= attemptFull(ridx, true);
+  }else if(hasCount.upperBoundCount() + 1 == rowLength){
+    success |= attemptSingleton(ridx, true);
+  }
+  return success;
+}
+
+void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
+  Assert(d_candidateRows.empty());
+  DenseSet::const_iterator i = d_updatedBounds.begin();
+  DenseSet::const_iterator end = d_updatedBounds.end();
+  for(; i != end; ++i){
+    ArithVar var = *i;
+    if(d_tableau.isBasic(var)){
+      RowIndex ridx = d_tableau.basicToRowIndex(var);
+      d_candidateRows.softAdd(ridx);
+    }else{
+      Tableau::ColIterator basicIter = d_tableau.colIterator(var);
+      for(; !basicIter.atEnd(); ++basicIter){
+        const Tableau::Entry& entry = *basicIter;
+        RowIndex ridx = entry.getRowIndex();
+        d_candidateRows.softAdd(ridx);
+      }
+    }
+  }
+  d_updatedBounds.purge();
+}
+
+const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
+  RowIndex ridx = d_tableau.basicToRowIndex(basic);
+  return d_rowTracking[ridx];
 }
 
 }/* CVC4::theory::arith namespace */

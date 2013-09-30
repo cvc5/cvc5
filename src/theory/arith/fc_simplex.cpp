@@ -289,7 +289,7 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
   Debug("arith::selectPrimalUpdate")
     << "selectPrimalUpdate " << instance << endl
     << basic << " " << d_tableau.basicRowLength(basic)
-    << " " << d_linEq._countBounds(basic) << endl;
+    << " " << d_linEq.debugBasicAtBoundCount(basic) << endl;
 
   static const int s_maxCandidatesAfterImprove = 3;
   bool isFocus = basic == d_focusErrorVar;
@@ -358,17 +358,8 @@ UpdateInfo FCSimplexDecisionProcedure::selectPrimalUpdate(ArithVar basic, Linear
     ArithVar curr = cand.d_nb;
     const Rational& coeff = *cand.d_coeff;
 
-#warning "Who is using computeSafeUpdate?"
     LinearEqualityModule::UpdatePreferenceFunction leavingPrefFunc = selectLeavingFunction(curr);
     UpdateInfo currProposal = d_linEq.speculativeUpdate(curr, coeff, leavingPrefFunc);
-
-    //int curr_movement = cand.d_sgn;
-    // if(isFocus){
-    //   currProposal = d_linEq.speculativeUpdate(curr, coeff, upf);
-    // }else{
-    //   currProposal = UpdateInfo(curr, curr_movement);
-    //   d_linEq.computeSafeUpdate(currProposal, bpf);
-    // }
 
     Debug("arith::selectPrimalUpdate")
       << "selected " << selected << endl
@@ -505,7 +496,7 @@ void FCSimplexDecisionProcedure::debugPrintSignal(ArithVar updated) const{
   int dir = !d_variables.assignmentIsConsistent(updated) ?
     d_errorSet.getSgn(updated) : 0;
   Debug("updateAndSignal") << " dir " << dir;
-  Debug("updateAndSignal") << " _countBounds " << d_linEq._countBounds(updated) << endl;
+  Debug("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
 bool debugUpdatedBasic(const UpdateInfo& selected, ArithVar updated){
@@ -530,7 +521,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
       ArithVar leaving = selected.leaving();
       ss << "leaving " << leaving
          << " " << d_tableau.basicRowLength(leaving)
-         << " " << d_linEq._countBounds(leaving)
+         << " " << d_linEq.debugBasicAtBoundCount(leaving)
          << endl;
     }
     if(degenerate(w) && selected.describesPivot()){
@@ -539,7 +530,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
         << "degenerate " << leaving
         << ", atBounds " << d_linEq.basicsAtBounds(selected)
         << ", len " << d_tableau.basicRowLength(leaving)
-        << ", bc " << d_linEq._countBounds(leaving)
+        << ", bc " << d_linEq.debugBasicAtBoundCount(leaving)
         << endl;
     }
   }

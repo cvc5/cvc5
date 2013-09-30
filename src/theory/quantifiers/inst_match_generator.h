@@ -44,13 +44,14 @@ public:
   /** add ground term t, called when t is added to term db */
   virtual int addTerm( Node f, Node t, QuantifiersEngine* qe ) = 0;
   /** set active add */
-  virtual void setActiveAdd() {}
+  virtual void setActiveAdd( bool val ) {}
 };/* class IMGenerator */
 
 class CandidateGenerator;
 
 class InstMatchGenerator : public IMGenerator {
 private:
+  bool d_needsReset;
   /** candidate generator */
   CandidateGenerator* d_cg;
   /** policy to use for matching */
@@ -72,12 +73,8 @@ public:
     MATCH_GEN_DEFAULT = 0,
     MATCH_GEN_EFFICIENT_E_MATCH,   //generate matches via Efficient E-matching for SMT solvers
     //others (internally used)
-    MATCH_GEN_INTERNAL_ARITHMETIC,
     MATCH_GEN_INTERNAL_ERROR,
   };
-private:
-  /** for arithmetic */
-  bool getMatchArithmetic( Node t, InstMatch& m, QuantifiersEngine* qe );
 public:
   /** get the match against ground term or formula t.
       d_match_pattern and t should have the same shape.
@@ -108,7 +105,7 @@ public:
   int addTerm( Node f, Node t, QuantifiersEngine* qe );
 
   bool d_active_add;
-  void setActiveAdd();
+  void setActiveAdd( bool val );
 
   static InstMatchGenerator* mkInstMatchGenerator( Node pat, QuantifiersEngine* qe );
   static InstMatchGenerator* mkInstMatchGenerator( std::vector< Node >& pats, QuantifiersEngine* qe );

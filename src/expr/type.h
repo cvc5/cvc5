@@ -415,6 +415,9 @@ public:
   /** Construct from the base type */
   FunctionType(const Type& type = Type()) throw(IllegalArgumentException);
 
+  /** Get the arity of the function type */
+  size_t getArity() const;
+
   /** Get the argument types */
   std::vector<Type> getArgTypes() const;
 

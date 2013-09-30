@@ -19,7 +19,6 @@
 #ifndef __CVC4__DUMP_H
 #define __CVC4__DUMP_H
 
-#include "util/output.h"
 #include "expr/command.h"
 
 namespace CVC4 {

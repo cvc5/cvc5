@@ -94,7 +94,7 @@ public:
     // and that the next ID to be assigned is strictly greater than
     // those that have already been assigned.
 
-    unsigned lastId = attr::LastAttributeId<string, false>::s_id;
+    unsigned lastId = attr::LastAttributeId<string, false>::getId();
     TS_ASSERT_LESS_THAN(VarNameAttr::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestStringAttr1::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestStringAttr2::s_id, lastId);
@@ -103,10 +103,10 @@ public:
     TS_ASSERT_DIFFERS(VarNameAttr::s_id, TestStringAttr2::s_id);
     TS_ASSERT_DIFFERS(TestStringAttr1::s_id, TestStringAttr2::s_id);
 
-    //lastId = attr::LastAttributeId<void*, false>::s_id;
+    //lastId = attr::LastAttributeId<void*, false>::getId();
     //TS_ASSERT_LESS_THAN(theory::uf::ECAttr::s_id, lastId);
 
-    lastId = attr::LastAttributeId<bool, false>::s_id;
+    lastId = attr::LastAttributeId<bool, false>::getId();
     TS_ASSERT_LESS_THAN(TestFlag1::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag3::s_id, lastId);
@@ -123,14 +123,14 @@ public:
     TS_ASSERT_DIFFERS(TestFlag3::s_id, TestFlag5::s_id);
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
 
-    lastId = attr::LastAttributeId<bool, true>::s_id;
+    lastId = attr::LastAttributeId<bool, true>::getId();
     TS_ASSERT_LESS_THAN(TestFlag1cd::s_id, lastId);
     TS_ASSERT_LESS_THAN(TestFlag2cd::s_id, lastId);
     TS_ASSERT_DIFFERS(TestFlag1cd::s_id, TestFlag2cd::s_id);
     cout << "1: " << TestFlag1cd::s_id << endl;
     cout << "2: " << TestFlag2cd::s_id << endl;
 
-    lastId = attr::LastAttributeId<Node, false>::s_id;
+    lastId = attr::LastAttributeId<Node, false>::getId();
 //    TS_ASSERT_LESS_THAN(theory::PreRewriteCache::s_id, lastId);
 //    TS_ASSERT_LESS_THAN(theory::PostRewriteCache::s_id, lastId);
 //    TS_ASSERT_LESS_THAN(theory::PreRewriteCacheTop::s_id, lastId);
@@ -142,7 +142,7 @@ public:
 //    TS_ASSERT_DIFFERS(theory::PostRewriteCache::s_id, theory::PostRewriteCacheTop::s_id);
 //    TS_ASSERT_DIFFERS(theory::PreRewriteCacheTop::s_id, theory::PostRewriteCacheTop::s_id);
 
-    lastId = attr::LastAttributeId<TypeNode, false>::s_id;
+    lastId = attr::LastAttributeId<TypeNode, false>::getId();
     TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
 
   }

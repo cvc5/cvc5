@@ -136,7 +136,7 @@ void debugAssertionFailed(const AssertionException& thisException,
                           const char* propagatingException) {
   static CVC4_THREADLOCAL(bool) alreadyFired = false;
 
-  if(EXPECT_TRUE( !std::uncaught_exception() ) || alreadyFired) {
+  if(__builtin_expect( ( !std::uncaught_exception() ), true ) || alreadyFired) {
     throw thisException;
   }
 

@@ -1,4 +1,8 @@
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -20,6 +24,7 @@ TESTS =	\
 	bug347.smt \
 	bug348.smt \
 	bug451.smt \
+	bug509.smt \
 	try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smt \
 	try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smt \
 	diseqprop.01.smt \

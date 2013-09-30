@@ -16,7 +16,6 @@
 
 #include "decision/decision_engine.h"
 #include "decision/justification_heuristic.h"
-#include "decision/relevancy.h"
 
 #include "expr/node.h"
 #include "decision/options.h"
@@ -62,18 +61,6 @@ void DecisionEngine::init()
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
-  if(options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY) {
-    if(options::incrementalSolving()) {
-      Warning() << "Relevancy decision heuristic and incremental not supported together"
-                << std::endl;
-      return; // Currently not supported with incremental
-    }
-    RelevancyStrategy* ds = 
-      new decision::Relevancy(this, d_satContext);
-    enableStrategy(ds);
-    d_needIteSkolemMap.push_back(ds);
-    d_relevancyStrategy = ds;
-  }
 }
 
 
@@ -82,6 +69,13 @@ void DecisionEngine::enableStrategy(DecisionStrategy* ds)
   d_enabledStrategies.push_back(ds);
 }
 
+void DecisionEngine::clearStrategies(){
+  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
+    delete d_enabledStrategies[i];
+  }
+  d_enabledStrategies.clear();
+  d_needIteSkolemMap.clear();
+}
 
 bool DecisionEngine::isRelevant(SatVariable var)
 {
@@ -104,13 +98,6 @@ SatValue DecisionEngine::getPolarity(SatVariable var)
     return SAT_VALUE_UNKNOWN;
   }
 }
-
-
-
-
-
-
-
 
 void DecisionEngine::addAssertions(const vector<Node> &assertions)
 {
@@ -138,16 +125,5 @@ void DecisionEngine::addAssertions(const vector<Node> &assertions,
     d_needIteSkolemMap[i]->
       addAssertions(assertions, assertionsEnd, iteSkolemMap);
 }
-
-// void DecisionEngine::addAssertion(Node n)
-// {
-//   d_result = SAT_VALUE_UNKNOWN;
-//   if(needIteSkolemMap()) {
-//     d_assertions.push_back(n);
-//   }
-//   for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
-//     d_needIteSkolemMap[i]->notifyAssertionsAvailable();
-// }
-  
 
 }/* CVC4 namespace */

@@ -29,6 +29,11 @@ class BitVectorConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if (check) {
+      if (n.getConst<BitVector>().getSize() == 0) {
+        throw TypeCheckingExceptionPrivate(n, "constant of size 0");
+      }
+    }
     return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
   }
 };
@@ -187,6 +192,29 @@ public:
         (unsigned) n.getOperator().getConst<BitVectorSignExtend>() :
         (unsigned) n.getOperator().getConst<BitVectorZeroExtend>();
     return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
+  }
+};
+
+class BitVectorConversionTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if(n.getKind() == kind::BITVECTOR_TO_NAT) {
+      if(check && !n[0].getType(check).isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+      return nodeManager->integerType();
+    }
+
+    if(n.getKind() == kind::INT_TO_BITVECTOR) {
+      size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+      if(check && !n[0].getType(check).isInteger()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting integer term");
+      }
+      return nodeManager->mkBitVectorType(bvSize);
+    }
+
+    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
   }
 };
 

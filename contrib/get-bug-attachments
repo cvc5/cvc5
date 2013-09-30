@@ -70,14 +70,14 @@ function webget {
 
 count=0
 for attachment in $(\
-  webcat "http://church.cims.nyu.edu/bugs/show_bug.cgi?id=$bugid" 2>/dev/null \
+  webcat "http://cvc4.cs.nyu.edu/bugs/show_bug.cgi?id=$bugid" 2>/dev/null \
   | grep ' href="attachment.cgi?id=[0-9][0-9]*' \
   | sed 's,.* href="attachment.cgi?id=\([0-9][0-9]*\).*,\1,' \
   | sort -nu); do
 
   let count++
   printf "%-30s " "Downloading attachment $attachment..."
-  webget "http://church.cims.nyu.edu/bugs/attachment.cgi?id=$attachment" "test/regress/regress0/bug$bugid"
+  webget "http://cvc4.cs.nyu.edu/bugs/attachment.cgi?id=$attachment" "test/regress/regress0/bug$bugid"
 
 done
 

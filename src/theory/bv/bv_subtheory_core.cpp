@@ -37,53 +37,48 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_isCoreTheory(c, true),
     d_reasons(c)
 {
-  if (d_useEqualityEngine) {
 
-    // The kinds we are treating as function application in congruence
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_OR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NAND);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XNOR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
-    d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT, true);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UREM);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SDIV);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SREM);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SMOD);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SHL);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_LSHR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ASHR);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLE);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGT);
-    //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGE);
-  }
+  // The kinds we are treating as function application in congruence
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_OR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NAND);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_XNOR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_COMP);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_MULT, true);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_PLUS, true);
+  d_equalityEngine.addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SUB);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_NEG);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UDIV);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UREM);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SDIV);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SREM);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SMOD);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SHL);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_LSHR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ASHR);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_ULE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_UGE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SLE);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGT);
+  //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_SGE);
 }
 
 CoreSolver::~CoreSolver() {
-  delete d_slicer; 
+  delete d_slicer;
 }
 void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
 void CoreSolver::preRegister(TNode node) {
-  if (!d_useEqualityEngine)
-    return;
-
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
       if (options::bitvectorCoreSolver()) {
@@ -109,51 +104,51 @@ Node CoreSolver::getBaseDecomposition(TNode a) {
   std::vector<Node> a_decomp;
   d_slicer->getBaseDecomposition(a, a_decomp);
   Node new_a = utils::mkConcat(a_decomp);
-  Debug("bv-slicer") << "CoreSolver::getBaseDecomposition " << a <<" => " << new_a << "\n"; 
-  return new_a; 
+  Debug("bv-slicer") << "CoreSolver::getBaseDecomposition " << a <<" => " << new_a << "\n";
+  return new_a;
 }
 
 bool CoreSolver::decomposeFact(TNode fact) {
-  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;  
+  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
   // assert decompositions since the equality engine does not know the semantics of
   // concat:
   //   a == a_1 concat ... concat a_k
   //   b == b_1 concat ... concat b_k
-  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;  
-  // FIXME: are this the right things to assert? 
+  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
+  // FIXME: are this the right things to assert?
   // assert decompositions since the equality engine does not know the semantics of
   // concat:
   //   a == a_1 concat ... concat a_k
   //   b == b_1 concat ... concat b_k
-  TNode eq = fact.getKind() == kind::NOT? fact[0] : fact; 
+  TNode eq = fact.getKind() == kind::NOT? fact[0] : fact;
 
   TNode a = eq[0];
   TNode b = eq[1];
   Node new_a = getBaseDecomposition(a);
-  Node new_b = getBaseDecomposition(b); 
-  
+  Node new_b = getBaseDecomposition(b);
+
   Assert (utils::getSize(new_a) == utils::getSize(new_b) &&
-          utils::getSize(new_a) == utils::getSize(a)); 
-  
+          utils::getSize(new_a) == utils::getSize(a));
+
   NodeManager* nm = NodeManager::currentNM();
   Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
   Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
 
   bool ok = true;
   ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
-  if (!ok) return false; 
+  if (!ok) return false;
   ok = assertFactToEqualityEngine(b_eq_new_b, utils::mkTrue());
-  if (!ok) return false; 
+  if (!ok) return false;
   ok = assertFactToEqualityEngine(fact, fact);
   if (!ok) return false;
-  
+
   if (fact.getKind() == kind::EQUAL) {
     // assert the individual equalities as well
     //    a_i == b_i
     if (new_a.getKind() == kind::BITVECTOR_CONCAT &&
         new_b.getKind() == kind::BITVECTOR_CONCAT) {
-      
-      Assert (new_a.getNumChildren() == new_b.getNumChildren()); 
+
+      Assert (new_a.getNumChildren() == new_b.getNumChildren());
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
         ok = assertFactToEqualityEngine(eq_i, fact);
@@ -161,23 +156,23 @@ bool CoreSolver::decomposeFact(TNode fact) {
       }
     }
   }
-  return true; 
+  return true;
 }
 
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
   Assert (!d_bv->inConflict());
-  ++(d_statistics.d_numCallstoCheck); 
-  bool ok = true; 
+  ++(d_statistics.d_numCallstoCheck);
+  bool ok = true;
   std::vector<Node> core_eqs;
   while (! done()) {
-    TNode fact = get(); 
-    
+    TNode fact = get();
+
     // update whether we are in the core fragment
     if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
-      d_isCoreTheory = false; 
+      d_isCoreTheory = false;
     }
-    
+
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
       if (options::bitvectorCoreSolver()) {
@@ -186,31 +181,31 @@ bool CoreSolver::check(Theory::Effort e) {
         ok = assertFactToEqualityEngine(fact, fact);
       }
     } else {
-      ok = assertFactToEqualityEngine(fact, fact); 
+      ok = assertFactToEqualityEngine(fact, fact);
     }
     if (!ok)
-      return false; 
+      return false;
   }
-  
+
   if (Theory::fullEffort(e) && isComplete()) {
     buildModel();
   }
-  
+
   return true;
 }
 
 void CoreSolver::buildModel() {
   if (options::bitvectorCoreSolver()) {
     // FIXME
-    Unreachable(); 
-    return; 
+    Unreachable();
+    return;
   }
-  Debug("bv-core") << "CoreSolver::buildModel() \n"; 
-  d_modelValues.clear(); 
+  Debug("bv-core") << "CoreSolver::buildModel() \n";
+  d_modelValues.clear();
   TNodeSet constants;
-  TNodeSet constants_in_eq_engine; 
+  TNodeSet constants_in_eq_engine;
   // collect constants in equality engine
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine); 
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
   while (!eqcs_i.isFinished()) {
     TNode repr = *eqcs_i;
     if  (repr.getKind() == kind::CONST_BITVECTOR) {
@@ -218,39 +213,39 @@ void CoreSolver::buildModel() {
       eq::EqClassIterator it(repr, &d_equalityEngine);
       if (!(++it).isFinished() || true) {
         constants.insert(repr);
-        constants_in_eq_engine.insert(repr); 
+        constants_in_eq_engine.insert(repr);
       }
     }
-    ++eqcs_i; 
+    ++eqcs_i;
   }
   // build repr to value map
-  
+
   eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
   while (!eqcs_i.isFinished()) {
     TNode repr = *eqcs_i;
     ++eqcs_i;
-    
+
     if (repr.getKind() != kind::VARIABLE &&
         repr.getKind() != kind::SKOLEM &&
         repr.getKind() != kind::CONST_BITVECTOR &&
         !d_bv->isSharedTerm(repr)) {
-      continue; 
+      continue;
     }
-  
-    TypeNode type = repr.getType(); 
+
+    TypeNode type = repr.getType();
     if (type.isBitVector() && repr.getKind()!= kind::CONST_BITVECTOR) {
-      Debug("bv-core-model") << "   processing " << repr <<"\n"; 
+      Debug("bv-core-model") << "   processing " << repr <<"\n";
       // we need to assign a value for it
       TypeEnumerator te(type);
-      Node val; 
+      Node val;
       do {
-        val = *te; 
+        val = *te;
         ++te;
         // Debug("bv-core-model") << "  trying value " << val << "\n";
         // Debug("bv-core-model") << "  is in set? " << constants.count(val) << "\n";
-        // Debug("bv-core-model") << "  enumerator done? " << te.isFinished() << "\n"; 
+        // Debug("bv-core-model") << "  enumerator done? " << te.isFinished() << "\n";
       } while (constants.count(val) != 0 && !(te.isFinished()));
-      
+
       if (te.isFinished() && constants.count(val) != 0) {
         // if we cannot enumerate anymore values we just return the lemma stating that
         // at least two of the representatives are equal.
@@ -259,15 +254,15 @@ void CoreSolver::buildModel() {
 
         for (TNodeSet::const_iterator it = constants_in_eq_engine.begin();
              it != constants_in_eq_engine.end(); ++it) {
-          TNode constant = *it; 
+          TNode constant = *it;
           if (utils::getSize(constant) == utils::getSize(repr)) {
-            representatives.push_back(constant); 
+            representatives.push_back(constant);
           }
         }
         for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
           representatives.push_back(it->first);
         }
-        std::vector<Node> equalities; 
+        std::vector<Node> equalities;
         for (unsigned i = 0; i < representatives.size(); ++i) {
           for (unsigned j = i + 1; j < representatives.size(); ++j) {
             TNode a = representatives[i];
@@ -279,19 +274,19 @@ void CoreSolver::buildModel() {
         }
         Node lemma = utils::mkOr(equalities);
         d_bv->lemma(lemma);
-        Debug("bv-core") << "  lemma: " << lemma << "\n"; 
-        return; 
+        Debug("bv-core") << "  lemma: " << lemma << "\n";
+        return;
       }
       Debug("bv-core-model") << "   " << repr << " => " << val <<"\n" ;
       constants.insert(val);
-      d_modelValues[repr] = val; 
+      d_modelValues[repr] = val;
     }
   }
 }
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
-  // Notify the equality engine 
-  if (d_useEqualityEngine && !d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
+  // Notify the equality engine
+  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || !d_bv->getPropagatingSubtheory(fact) == SUB_CORE)) {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;
@@ -315,8 +310,8 @@ bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // checking for a conflict
   if (d_bv->inConflict()) {
     return false;
-  }  
-  return true; 
+  }
+  return true;
 }
 
 bool CoreSolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value) {
@@ -361,10 +356,10 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
-void CoreSolver::collectModelInfo(TheoryModel* m) {
+void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   if (options::bitvectorCoreSolver()) {
     Unreachable();
-    return; 
+    return;
   }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
@@ -377,11 +372,11 @@ void CoreSolver::collectModelInfo(TheoryModel* m) {
   d_bv->computeRelevantTerms(termSet);
   m->assertEqualityEngine(&d_equalityEngine, &termSet);
   if (isComplete()) {
-    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete."; 
+    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
-      m->assertEquality(a, b, true); 
+      m->assertEquality(a, b, true);
     }
   }
 }
@@ -390,23 +385,23 @@ Node CoreSolver::getModelValue(TNode var) {
   // we don't need to evaluate bv expressions and only look at variable values
   // because this only gets called when the core theory is complete (i.e. no other bv
   // function symbols are currently asserted)
-  Assert (d_slicer->isCoreTerm(var)); 
-  
-  Debug("bitvector-model") << "CoreSolver::getModelValue (" << var <<")";  
+  Assert (d_slicer->isCoreTerm(var));
+
+  Debug("bitvector-model") << "CoreSolver::getModelValue (" << var <<")";
   Assert (isComplete());
   TNode repr = d_equalityEngine.getRepresentative(var);
-  Node result = Node(); 
+  Node result = Node();
   if (repr.getKind() == kind::CONST_BITVECTOR) {
-    result = repr; 
+    result = repr;
   } else if (d_modelValues.find(repr) == d_modelValues.end()) {
     // it may be a shared term that never gets asserted
     // result is just Null
     Assert(d_bv->isSharedTerm(var));
   } else {
-    result = d_modelValues[repr]; 
+    result = d_modelValues[repr];
   }
-  Debug("bitvector-model") << " => " << result <<"\n"; 
-  return result; 
+  Debug("bitvector-model") << " => " << result <<"\n";
+  return result;
 }
 
 CoreSolver::Statistics::Statistics()

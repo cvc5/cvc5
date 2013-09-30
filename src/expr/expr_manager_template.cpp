@@ -304,8 +304,8 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, const std::vector<Expr>& otherC
 
 Expr ExprManager::mkExpr(Expr opExpr) {
   const unsigned n = 0;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -323,8 +323,8 @@ Expr ExprManager::mkExpr(Expr opExpr) {
 
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1) {
   const unsigned n = 1;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -342,8 +342,8 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1) {
 
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2) {
   const unsigned n = 2;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -363,8 +363,8 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2) {
 
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3) {
   const unsigned n = 3;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -386,8 +386,8 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3) {
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
                          Expr child4) {
   const unsigned n = 4;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -410,8 +410,8 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
 Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
                          Expr child4, Expr child5) {
   const unsigned n = 5;
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -434,8 +434,8 @@ Expr ExprManager::mkExpr(Expr opExpr, Expr child1, Expr child2, Expr child3,
 
 Expr ExprManager::mkExpr(Expr opExpr, const std::vector<Expr>& children) {
   const unsigned n = children.size();
-  Kind kind = kind::operatorKindToKind(opExpr.getKind());
-  CheckArgument(kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
+  Kind kind = NodeManager::operatorToKind(opExpr.getNode());
+  CheckArgument(opExpr.getKind() == kind::BUILTIN || kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED, opExpr,
                 "This Expr constructor is for parameterized kinds only");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
@@ -509,7 +509,6 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
 
 TupleType ExprManager::mkTupleType(const std::vector<Type>& types) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( types.size() >= 1 );
   std::vector<TypeNode> typeNodes;
   for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
      typeNodes.push_back(*types[i].d_typeNode);
@@ -719,9 +718,9 @@ TesterType ExprManager::mkTesterType(Type domain) const {
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkTesterType(*domain.d_typeNode)));
 }
 
-SortType ExprManager::mkSort(const std::string& name) const {
+SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
   NodeManagerScope nms(d_nodeManager);
-  return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name))));
+  return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name, flags))));
 }
 
 SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
@@ -805,20 +804,20 @@ Type ExprManager::getType(Expr e, bool check) throw (TypeCheckingException) {
   return t;
 }
 
-Expr ExprManager::mkVar(const std::string& name, Type type, bool isGlobal) {
+Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
   Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
-  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, isGlobal);
+  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
   INC_STAT_VAR(type, false);
   return Expr(this, n);
 }
 
-Expr ExprManager::mkVar(Type type, bool isGlobal) {
+Expr ExprManager::mkVar(Type type, uint32_t flags) {
   Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
-  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, isGlobal));
+  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));
 }
 
 Expr ExprManager::mkBoundVar(const std::string& name, Type type) {

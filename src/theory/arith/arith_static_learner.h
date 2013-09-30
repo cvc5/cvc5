@@ -23,7 +23,6 @@
 
 #include "util/statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/substitutions.h"
 
 #include "context/context.h"
 #include "context/cdlist.h"

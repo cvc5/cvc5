@@ -142,7 +142,7 @@ endif
 endif
 
 nodist_java_libcvc4jni_la_SOURCES = java.cpp
-java_libcvc4jni_la_CXXFLAGS = @FNO_STRICT_ALIASING@ @WNO_UNUSED_VARIABLE@ @WNO_UNINITIALIZED@
+java_libcvc4jni_la_CXXFLAGS = -Wno-all @FNO_STRICT_ALIASING@ @WNO_UNUSED_VARIABLE@ @WNO_UNINITIALIZED@
 nodist_csharp_CVC4_la_SOURCES = csharp.cpp
 nodist_perl_CVC4_la_SOURCES = perl.cpp
 nodist_php_CVC4_la_SOURCES = php.cpp
@@ -171,7 +171,9 @@ MOSTLYCLEANFILES = \
 	$(patsubst %,%.d,$(filter-out c c++,$(CVC4_LANGUAGE_BINDINGS))) \
 	CVC4.jar
 
-java_libcvc4jni_la-java.lo java.lo: java.cpp
+java_libcvc4jni_la-java.lo: java.cpp
+	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) $(java_libcvc4jni_la_CXXFLAGS) -o $@ $<
+java.lo: java.cpp
 	$(AM_V_CXX)$(LTCXXCOMPILE) -c $(JAVA_CPPFLAGS) $(java_libcvc4jni_la_CXXFLAGS) -o $@ $<
 CVC4.jar: java.cpp
 	$(AM_V_GEN) \

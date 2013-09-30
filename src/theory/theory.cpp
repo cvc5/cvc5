@@ -17,6 +17,7 @@
 #include "theory/theory.h"
 #include "util/cvc4_assert.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/substitutions.h"
 
 #include <vector>
 
@@ -27,9 +28,6 @@ namespace theory {
 
 /** Default value for the uninterpreted sorts is the UF theory */
 TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
-
-/** By default, we use the type based theoryOf */
-TheoryOfMode Theory::s_theoryOfMode = THEORY_OF_TYPE_BASED;
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
@@ -72,7 +70,7 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
     // Variables
     if (node.isVar()) {
       if (theoryOf(node.getType()) != theory::THEORY_BOOL) {
-        // We treat the varibables as uninterpreted
+        // We treat the variables as uninterpreted
         return s_uninterpretedSortOwner;
       } else {
         // Except for the Boolean ones, which we just ignore anyhow
@@ -206,6 +204,28 @@ void Theory::computeRelevantTerms(set<Node>& termSet)
   for (; shared_it != shared_it_end; ++shared_it) {
     collectTerms(*shared_it, termSet);
   }
+}
+
+
+Theory::PPAssertStatus Theory::ppAssert(TNode in, SubstitutionMap& outSubstitutions)
+{
+  if (in.getKind() == kind::EQUAL) {
+    if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
+      outSubstitutions.addSubstitution(in[0], in[1]);
+      return PP_ASSERT_STATUS_SOLVED;
+    }
+    if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
+      outSubstitutions.addSubstitution(in[1], in[0]);
+      return PP_ASSERT_STATUS_SOLVED;
+    }
+    if (in[0].isConst() && in[1].isConst()) {
+      if (in[0] != in[1]) {
+        return PP_ASSERT_STATUS_CONFLICT;
+      }
+    }
+  }
+
+  return PP_ASSERT_STATUS_UNSOLVED;
 }
 
 

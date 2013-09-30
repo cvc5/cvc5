@@ -1,6 +1,10 @@
 SUBDIRS = .
 
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -20,9 +24,9 @@ MAKEFLAGS = -k
 
 TESTS =	\
 	arith-int-004.cvc \
-	arith-int-007.cvc \
 	arith-int-011.cvc \
 	arith-int-012.cvc \
+	arith-int-013.cvc \
 	arith-int-022.cvc \
 	arith-int-024.cvc \
 	arith-int-042.cvc \
@@ -31,10 +35,10 @@ TESTS =	\
 	arith-int-048.cvc \
 	arith-int-050.cvc \
 	arith-int-084.cvc \
-	arith-int-097.cvc \
-	arith-int-085.cvc
+	arith-int-085.cvc \
+	arith-int-097.cvc
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
 	arith-int-001.cvc \
 	arith-int-002.cvc \
 	arith-int-003.cvc \
@@ -105,7 +109,6 @@ EXTRA_DIST = $(TESTS)
 	arith-int-079.cvc \
 	arith-int-080.cvc \
 	arith-int-081.cvc \
-	arith-int-082.cvc \
 	arith-int-083.cvc \
 	arith-int-086.cvc \
 	arith-int-087.cvc \
@@ -123,8 +126,9 @@ EXTRA_DIST = $(TESTS)
 	arith-int-100.cvc
 
 FAILING_TESTS = \
-	arith-int-024.cvc \
-	arith-int-013.cvc
+	arith-int-007.cvc \
+	arith-int-082.cvc \
+	arith-int-098.cvc
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

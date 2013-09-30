@@ -16,6 +16,7 @@
  **/
 
 #include "theory/builtin/theory_builtin_rewriter.h"
+#include "util/chain.h"
 
 using namespace std;
 
@@ -53,7 +54,7 @@ Node TheoryBuiltinRewriter::blastChain(TNode in) {
 
   Assert(in.getKind() == kind::CHAIN);
 
-  Kind chainedOp = in.getOperator().getConst<Kind>();
+  Kind chainedOp = in.getOperator().getConst<Chain>().getOperator();
 
   if(in.getNumChildren() == 2) {
     // if this is the case exactly 1 pair will be generated so the

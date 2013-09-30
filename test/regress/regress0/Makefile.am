@@ -1,7 +1,11 @@
-SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision
-DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess unconstrained decision
+SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings
+DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings
 
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -42,6 +46,7 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
+	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
@@ -100,17 +105,7 @@ CVC_TESTS = \
 	print_lambda.cvc
 
 # Regression tests for TPTP inputs
-TPTP_TESTS = \
-	tptp_parser.p \
-	tptp_parser2.p \
-	tptp_parser3.p \
-	tptp_parser4.p \
-	tptp_parser5.p \
-	tptp_parser6.p \
-	tptp_parser7.p \
-	tptp_parser8.p \
-	tptp_parser9.p \
-	tptp_parser10.p
+TPTP_TESTS =
 
 # Regression tests derived from bug reports
 BUG_TESTS = \
@@ -148,8 +143,15 @@ BUG_TESTS = \
 	bug480.smt2 \
 	bug484.smt2 \
 	bug486.cvc \
-	bug497.cvc \
-	bug507.smt2
+	bug507.smt2 \
+	bug512.smt2 \
+	bug512.minimized.smt2 \
+	bug516.smt2 \
+	bug519.smt2 \
+	bug520.smt2 \
+	bug521.smt2 \
+	bug521.minimized.smt2 \
+	bug522.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

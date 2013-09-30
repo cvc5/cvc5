@@ -19,7 +19,9 @@ libprinter_la_SOURCES = \
 	smt2/smt2_printer.h \
 	smt2/smt2_printer.cpp \
 	cvc/cvc_printer.h \
-	cvc/cvc_printer.cpp
+	cvc/cvc_printer.cpp \
+	tptp/tptp_printer.h \
+	tptp/tptp_printer.cpp
 
 EXTRA_DIST = \
 	options_handlers.h

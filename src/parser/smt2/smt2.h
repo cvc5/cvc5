@@ -21,6 +21,7 @@
 
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
 #include <sstream>
@@ -43,11 +44,12 @@ public:
     THEORY_REALS,
     THEORY_REALS_INTS,
     THEORY_QUANTIFIERS,
+    THEORY_STRINGS
   };
 
 private:
   bool d_logicSet;
-  Smt1::Logic d_logic;
+  LogicInfo d_logic;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -84,6 +86,8 @@ public:
     }
   }
 
+  void includeFile(const std::string& filename);
+
   bool isAbstractValue(const std::string& name) {
     return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&
       name.find_first_not_of("0123456789", 1) == std::string::npos;
@@ -94,11 +98,37 @@ public:
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
+  /**
+   * Smt2 parser provides its own checkDeclaration, which does the
+   * same as the base, but with some more helpful errors.
+   */
+  void checkDeclaration(const std::string& name, DeclarationCheck check,
+                        SymbolType type = SYM_VARIABLE,
+                        std::string notes = "") throw(ParserException) {
+    // if the symbol is something like "-1", we'll give the user a helpful
+    // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
+    if( check != CHECK_DECLARED ||
+        name[0] != '-' ||
+        name.find_first_not_of("0123456789", 1) != std::string::npos ) {
+      this->Parser::checkDeclaration(name, check, type, notes);
+      return;
+    }
+
+    std::stringstream ss;
+    ss << notes
+       << "You may have intended to apply unary minus: `(- "
+       << name.substr(1)
+       << ")'\n";
+    this->Parser::checkDeclaration(name, check, type, ss.str());
+  }
+
 private:
 
   void addArithmeticOperators();
 
   void addBitvectorOperators();
+
+  void addStringOperators();
 
 };/* class Smt2 */
 

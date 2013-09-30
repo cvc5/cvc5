@@ -74,7 +74,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     //if this is an atomic trigger, consider adding it
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
-      if( !n.hasAttribute(InstConstantAttribute()) ){
+      if( !TermDb::hasInstConstAttr(n) ){
         Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
         Node op = n.getOperator();
@@ -117,7 +117,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
       }
     }
   }else{
-    if( options::efficientEMatching() && !n.hasAttribute(InstConstantAttribute())){
+    if( options::efficientEMatching() && !TermDb::hasInstConstAttr(n)){
       //Efficient e-matching must be notified
       //The term in triggers are not important here
       Debug("term-db") << "New in this branch term " << n << std::endl;
@@ -167,7 +167,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
        while( !eqc.isFinished() ){
          Node en = (*eqc);
          computeModelBasisArgAttribute( en );
-         if( en.getKind()==APPLY_UF && !en.hasAttribute(InstConstantAttribute()) ){
+         if( en.getKind()==APPLY_UF && !TermDb::hasInstConstAttr(en) ){
            if( !en.getAttribute(NoMatchAttribute()) ){
              Node op = en.getOperator();
              if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
@@ -194,14 +194,20 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
   if( d_model_basis_term.find( tn )==d_model_basis_term.end() ){
     Node mbt;
-    if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
-      std::stringstream ss;
-      ss << Expr::setlanguage(options::outputLanguage());
-      ss << "e_" << tn;
-      mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
-      Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
+    if( tn.isInteger() || tn.isReal() ){
+      mbt = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+    }else if( !tn.isSort() ){
+      mbt = tn.mkGroundTerm();
     }else{
-      mbt = d_type_map[ tn ][ 0 ];
+      if( options::fmfFreshDistConst() || d_type_map[ tn ].empty() ){
+        std::stringstream ss;
+        ss << Expr::setlanguage(options::outputLanguage());
+        ss << "e_" << tn;
+        mbt = NodeManager::currentNM()->mkSkolem( ss.str(), tn, "is a model basis term" );
+        Trace("mkVar") << "ModelBasis:: Make variable " << mbt << " : " << tn << std::endl;
+      }else{
+        mbt = d_type_map[ tn ][ 0 ];
+      }
     }
     ModelBasisAttribute mba;
     mbt.setAttribute(mba,true);
@@ -254,8 +260,7 @@ void TermDb::computeModelBasisArgAttribute( Node n ){
     //determine if it has model basis attribute
     for( int j=0; j<(int)n.getNumChildren(); j++ ){
       if( n[j].getAttribute(ModelBasisAttribute()) ){
-        val = 1;
-        break;
+        val++;
       }
     }
     ModelBasisArgAttribute mbaa;
@@ -276,32 +281,74 @@ void TermDb::makeInstantiationConstantsFor( Node f ){
       //set the var number attribute
       InstVarNumAttribute ivna;
       ic.setAttribute(ivna,i);
+      InstConstantAttribute ica;
+      ic.setAttribute(ica,f);
+      //also set the no-match attribute
+      NoMatchAttribute nma;
+      ic.setAttribute(nma,true);
     }
   }
 }
 
-void TermDb::setInstantiationConstantAttr( Node n, Node f ){
-  if( !n.hasAttribute(InstConstantAttribute()) ){
-    bool setAttr = false;
-    if( n.getKind()==INST_CONSTANT ){
-      setAttr = true;
-    }else{
-      for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        setInstantiationConstantAttr( n[i], f );
-        if( n[i].hasAttribute(InstConstantAttribute()) ){
-          setAttr = true;
-        }
+
+Node TermDb::getInstConstAttr( Node n ) {
+  if (!n.hasAttribute(InstConstantAttribute()) ){
+    Node f;
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      f = getInstConstAttr(n[i]);
+      if( !f.isNull() ){
+        break;
       }
     }
-    if( setAttr ){
-      InstConstantAttribute ica;
-      n.setAttribute(ica,f);
+    InstConstantAttribute ica;
+    n.setAttribute(ica,f);
+    if( !f.isNull() ){
       //also set the no-match attribute
       NoMatchAttribute nma;
       n.setAttribute(nma,true);
     }
   }
+  return n.getAttribute(InstConstantAttribute());
 }
+
+bool TermDb::hasInstConstAttr( Node n ) {
+  return !getInstConstAttr(n).isNull();
+}
+
+bool TermDb::hasBoundVarAttr( Node n ) {
+  if( !n.getAttribute(HasBoundVarComputedAttribute()) ){
+    bool hasBv = false;
+    if( n.getKind()==BOUND_VARIABLE ){
+      hasBv = true;
+    }else{
+      for (unsigned i=0; i<n.getNumChildren(); i++) {
+        if( hasBoundVarAttr(n[i]) ){
+          hasBv = true;
+          break;
+        }
+      }
+    }
+    HasBoundVarAttribute hbva;
+    n.setAttribute(hbva, hasBv);
+    HasBoundVarComputedAttribute hbvca;
+    n.setAttribute(hbvca, true);
+    Trace("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttribute()) << std::endl;
+  }
+  return n.getAttribute(HasBoundVarAttribute());
+}
+
+void TermDb::getBoundVars( Node n, std::vector< Node >& bvs) {
+  if (n.getKind()==BOUND_VARIABLE ){
+    if ( std::find( bvs.begin(), bvs.end(), n)==bvs.end() ){
+      bvs.push_back( n );
+    }
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++) {
+      getBoundVars(n[i], bvs);
+    }
+  }
+}
+
 
 /** get the i^th instantiation constant of f */
 Node TermDb::getInstantiationConstant( Node f, int i ) const {
@@ -348,7 +395,6 @@ Node TermDb::getCounterexampleLiteral( Node f ){
     //otherwise, ensure literal
     Node ceLit = d_quantEngine->getValuation().ensureLiteral( ceBody.notNode() );
     d_ce_lit[ f ] = ceLit;
-    setInstantiationConstantAttr( ceLit, f );
   }
   return d_ce_lit[ f ];
 }
@@ -362,7 +408,6 @@ Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & var
   Node n2 = n.substitute( vars.begin(), vars.end(),
                           inst_constants.begin(),
                           inst_constants.end() );
-  setInstantiationConstantAttr( n2, f );
   return n2;
 }
 
@@ -390,16 +435,19 @@ Node TermDb::getSkolemizedBody( Node f ){
 Node TermDb::getFreeVariableForInstConstant( Node n ){
   TypeNode tn = n.getType();
   if( d_free_vars.find( tn )==d_free_vars.end() ){
-    //if integer or real, make zero
-    if( tn.isInteger() || tn.isReal() ){
-      Rational z(0);
-      d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
-    }else{
-      if( d_type_map[ tn ].empty() ){
-        d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
-        Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
+	for( unsigned i=0; i<d_type_map[ tn ].size(); i++ ){
+	  if( !quantifiers::TermDb::hasInstConstAttr(d_type_map[ tn ][ i ]) ){
+	    d_free_vars[tn] = d_type_map[ tn ][ i ];
+	  }
+	}
+	if( d_free_vars.find( tn )==d_free_vars.end() ){
+      //if integer or real, make zero
+      if( tn.isInteger() || tn.isReal() ){
+        Rational z(0);
+        d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
       }else{
-        d_free_vars[tn] = d_type_map[ tn ][ 0 ];
+	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
+	    Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }
     }
   }

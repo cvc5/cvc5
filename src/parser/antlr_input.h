@@ -14,12 +14,21 @@
  ** Base for ANTLR parser classes.
  **/
 
+#include <antlr3.h>
+
+// ANTLR3 headers define these in our space :(
+// undef them so that we don't get multiple-definition warnings
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+
 #include "cvc4parser_private.h"
 
 #ifndef __CVC4__PARSER__ANTLR_INPUT_H
 #define __CVC4__PARSER__ANTLR_INPUT_H
 
-#include <antlr3.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -34,6 +43,7 @@
 #include "util/bitvector.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "util/output.h"
 
 namespace CVC4 {
 

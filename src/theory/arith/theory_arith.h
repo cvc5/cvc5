@@ -42,6 +42,7 @@ private:
 
   TheoryArithPrivate* d_internal;
 
+  KEEP_STATISTIC(TimerStat, d_ppRewriteTimer, "theory::arith::ppRewriteTimer");
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -73,6 +74,8 @@ public:
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void addSharedTerm(TNode n);
+
+  Node getModelValue(TNode var);
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

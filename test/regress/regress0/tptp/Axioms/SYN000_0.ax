@@ -1,0 +1,47 @@
+%------------------------------------------------------------------------------
+% File     : SYN000_0 : TPTP v5.5.0. Released v5.0.0.
+% Domain   : Syntactic
+% Axioms   : A simple include file for TFF
+% Version  : Biased.
+% English  :
+
+% Refs     :
+% Source   : [TPTP]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of formulae    :    6 (   6 unit;   3 type)
+%            Number of atoms       :    6 (   0 equality)
+%            Maximal formula depth :    2 (   2 average)
+%            Number of connectives :    0 (   0   ~;   0   |;   0   &)
+%                                         (   0 <=>;   0  =>;   0  <=;   0 <~>)
+%                                         (   0  ~|;   0  ~&)
+%            Number of type conns  :    0 (   0   >;   0   *;   0   +;   0  <<)
+%            Number of predicates  :    4 (   4 propositional; 0-0 arity)
+%            Number of functors    :    0 (   0 constant; --- arity)
+%            Number of variables   :    0 (   0 sgn;   0   !;   0   ?)
+%            Maximal term depth    :    0 (   0 average)
+% SPC      : 
+
+% Comments :
+%------------------------------------------------------------------------------
+%----Some axioms to include
+tff(ia1_type,type,(
+    ia1: $o )).
+
+tff(ia2_type,type,(
+    ia2: $o )).
+
+tff(ia3_type,type,(
+    ia3: $o )).
+
+tff(ia1,axiom,(
+    ia1 )).
+
+tff(ia2,axiom,(
+    ia2 )).
+
+tff(ia3,axiom,(
+    ia3 )).
+
+%------------------------------------------------------------------------------

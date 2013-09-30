@@ -317,6 +317,10 @@ bool Type::isSubrange() const {
   return d_typeNode->isSubrange();
 }
 
+size_t FunctionType::getArity() const {
+  return d_typeNode->getNumChildren() - 1;
+}
+
 vector<Type> FunctionType::getArgTypes() const {
   NodeManagerScope nms(d_nodeManager);
   vector<Type> args;

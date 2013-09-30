@@ -26,6 +26,8 @@
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include <sstream>
+#include "expr/expr.h"
+
 
 namespace Minisat {
   class Solver;
@@ -90,6 +92,8 @@ typedef std::vector   < ResChain* >               ResStack;
 typedef std::hash_set < int >                     VarSet; 
 typedef std::set < ClauseId >                     IdSet; 
 typedef std::vector < ::Minisat::Lit >              LitVector; 
+typedef __gnu_cxx::hash_map<Expr, ::Minisat::Lit, ExprHashFunction >  AtomToVar; 
+
 class SatProof; 
 
 class ProofProxy : public ProofProxyAbstract {
@@ -124,7 +128,14 @@ protected:
   
   // temporary map for updating CRefs
   ClauseIdMap         d_temp_clauseId;
-  IdClauseMap         d_temp_idClause; 
+  IdClauseMap         d_temp_idClause;
+
+  // unit conflict
+  ClauseId d_unitConflictId;
+  bool d_storedUnitConflict;
+
+  // atom mapping
+  AtomToVar d_atomToVar;
 public:  
   SatProof(::Minisat::Solver* solver, bool checkRes = false);
 protected:
@@ -197,6 +208,9 @@ public:
   /// clause registration methods 
   ClauseId registerClause(const ::Minisat::CRef clause, bool isInput = false);
   ClauseId registerUnitClause(const ::Minisat::Lit lit, bool isInput = false);
+
+  void storeUnitConflict(::Minisat::Lit lit); 
+  
   /** 
    * Marks the deleted clauses as deleted. Note we may still use them in the final
    * resolution. 
@@ -216,12 +230,20 @@ public:
    */
   void     storeUnitResolution(::Minisat::Lit lit); 
   
-  ProofProxy* getProxy() {return d_proxy; } 
+  ProofProxy* getProxy() {return d_proxy; }
+  /** 
+   * At mapping between literal and theory-atom it represents
+   * 
+   * @param literal 
+   * @param atom 
+   */
+  void storeAtom(::Minisat::Lit literal, Expr atom);
 };/* class SatProof */
 
 class LFSCSatProof: public SatProof {
 private:
-  VarSet             d_seenVars; 
+  VarSet             d_seenVars;
+  std::ostringstream d_atomsSS;
   std::ostringstream d_varSS;
   std::ostringstream d_lemmaSS;
   std::ostringstream d_clauseSS;
@@ -239,11 +261,12 @@ private:
   void printVariables();
   void printClauses();
   void flush(std::ostream& out);
-  
+  void printAtoms(); 
 public:
   LFSCSatProof(::Minisat::Solver* solver, bool checkRes = false):
     SatProof(solver, checkRes),
     d_seenVars(),
+    d_atomsSS(), 
     d_varSS(),
     d_lemmaSS(),
     d_paren(),

@@ -430,8 +430,14 @@ public:
   /** Make a type representing a tester with the given parameterization. */
   TesterType mkTesterType(Type domain) const;
 
+  /** Bits for use in mkSort() flags. */
+  enum {
+    SORT_FLAG_NONE = 0,
+    SORT_FLAG_PLACEHOLDER = 1
+  };/* enum */
+
   /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name) const;
+  SortType mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE) const;
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
@@ -468,10 +474,82 @@ public:
   Type getType(Expr e, bool check = false)
     throw(TypeCheckingException);
 
-  // variables are special, because duplicates are permitted
-  Expr mkVar(const std::string& name, Type type, bool isGlobal = false);
-  Expr mkVar(Type type, bool isGlobal = false);
+  /** Bits for use in mkVar() flags. */
+  enum {
+    VAR_FLAG_NONE = 0,
+    VAR_FLAG_GLOBAL = 1,
+    VAR_FLAG_DEFINED = 2
+  };/* enum */
+
+  /**
+   * Create a new, fresh variable.  This variable is guaranteed to be
+   * distinct from every variable thus far in the ExprManager, even
+   * if it shares a name with another; this is to support any kind of
+   * scoping policy on top of ExprManager.  The SymbolTable class
+   * can be used to store and lookup symbols by name, if desired.
+   *
+   * @param name a name to associate to the fresh new variable
+   * @param type the type for the new variable
+   * @param flags - VAR_FLAG_NONE - no flags;
+   * VAR_FLAG_GLOBAL - whether this variable is to be
+   * considered "global" or not.  Note that this information isn't
+   * used by the ExprManager, but is passed on to the ExprManager's
+   * event subscribers like the model-building service; if isGlobal
+   * is true, this newly-created variable will still available in
+   * models generated after an intervening pop.
+   * VAR_FLAG_DEFINED - if this is to be a "defined" symbol, e.g., for
+   * use with SmtEngine::defineFunction().  This keeps a declaration
+   * from being emitted in API dumps (since a subsequent definition is
+   * expected to be dumped instead).
+   */
+  Expr mkVar(const std::string& name, Type type, uint32_t flags = VAR_FLAG_NONE);
+
+  /**
+   * Create a (nameless) new, fresh variable.  This variable is guaranteed
+   * to be distinct from every variable thus far in the ExprManager.
+   *
+   * @param type the type for the new variable
+   * @param flags - VAR_FLAG_GLOBAL - whether this variable is to be considered "global"
+   * or not.  Note that this information isn't used by the ExprManager,
+   * but is passed on to the ExprManager's event subscribers like the
+   * model-building service; if isGlobal is true, this newly-created
+   * variable will still available in models generated after an
+   * intervening pop.
+   */
+  Expr mkVar(Type type, uint32_t flags = VAR_FLAG_NONE);
+
+  /**
+   * Create a new, fresh variable for use in a binder expression
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).  It is
+   * an error for this bound variable to exist outside of a binder,
+   * and it should also only be used in a single binder expression.
+   * That is, two distinct FORALL expressions should use entirely
+   * disjoint sets of bound variables (however, a single FORALL
+   * expression can be used in multiple places in a formula without
+   * a problem).  This newly-created bound variable is guaranteed to
+   * be distinct from every variable thus far in the ExprManager, even
+   * if it shares a name with another; this is to support any kind of
+   * scoping policy on top of ExprManager.  The SymbolTable class
+   * can be used to store and lookup symbols by name, if desired.
+   *
+   * @param name a name to associate to the fresh new bound variable
+   * @param type the type for the new bound variable
+   */
   Expr mkBoundVar(const std::string& name, Type type);
+
+  /**
+   * Create a (nameless) new, fresh variable for use in a binder
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).
+   * It is an error for this bound variable to exist outside of a
+   * binder, and it should also only be used in a single binder
+   * expression.  That is, two distinct FORALL expressions should use
+   * entirely disjoint sets of bound variables (however, a single FORALL
+   * expression can be used in multiple places in a formula without
+   * a problem).  This newly-created bound variable is guaranteed to
+   * be distinct from every variable thus far in the ExprManager.
+   *
+   * @param type the type for the new bound variable
+   */
   Expr mkBoundVar(Type type);
 
   /** Get a reference to the statistics registry for this ExprManager */

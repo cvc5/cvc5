@@ -19,6 +19,7 @@
 #include "smt/options.h"
 #include "smt/smt_engine.h"
 #include "theory/uf/theory_uf_model.h"
+#include "theory/uf/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -27,7 +28,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
+  d_substitutions(c, false), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -47,12 +48,15 @@ void TheoryModel::reset(){
   d_uf_models.clear();
 }
 
-Node TheoryModel::getValue( TNode n ) const{
+Node TheoryModel::getValue(TNode n) const {
   //apply substitutions
-  Node nn = d_substitutions.apply( n );
+  Node nn = d_substitutions.apply(n);
   //get value in model
-  nn = getModelValue( nn );
-  Assert(nn.isConst() || nn.getKind() == kind::LAMBDA);
+  nn = getModelValue(nn);
+  if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
+    //normalize
+    nn = Rewriter::rewrite(nn);
+  }
   return nn;
 }
 
@@ -94,16 +98,15 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // no good.  Instead, return the quantifier itself.  If we're in
     // checkModel(), and the quantifier actually matters, we'll get an
     // assert-fail since the quantifier isn't a constant.
-    if(!d_equalityEngine.hasTerm(n)) {
+    if(!d_equalityEngine.hasTerm(Rewriter::rewrite(n))) {
       return n;
+    } else {
+      n = Rewriter::rewrite(n);
     }
   } else {
     if(n.getKind() == kind::LAMBDA) {
       NodeManager* nm = NodeManager::currentNM();
       Node body = getModelValue(n[1], true);
-      // This is a bit ugly, but cache inside simplifier can change, so can't be const
-      // The ite simplifier is needed to get rid of artifacts created by Boolean terms
-      body = const_cast<ITESimplifier*>(&d_iteSimp)->simpITE(body);
       body = Rewriter::rewrite(body);
       return nm->mkNode(kind::LAMBDA, n[0], body);
     }
@@ -430,6 +433,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
 
 void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 {
+  Trace("model-builder") << "TheoryEngineModelBuilder: buildModel, fullModel = " << fullModel << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel with fullModel = true should only be called once in any context
@@ -718,6 +722,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   }
 
   if (!fullModel) {
+    Trace("model-builder") << "Make sure ECs have reps..." << std::endl;
     // Make sure every EC has a rep
     for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap ) {
       tm->d_reps[itMap->first] = itMap->second;
@@ -851,8 +856,10 @@ void TheoryEngineModelBuilder::processBuildModel(TheoryModel* m, bool fullModel)
           default_v = (*te);
         }
         ufmt.setDefaultValue( m, default_v );
-        ufmt.simplify();
-        Node val = ufmt.getFunctionValue( "_ufmt_" );
+        if(options::condenseFunctionValues()) {
+          ufmt.simplify();
+        }
+        Node val = ufmt.getFunctionValue( "_ufmt_", options::condenseFunctionValues() );
         Trace("model-builder") << "  Assigning (" << n << ") to (" << val << ")" << endl;
         m->d_uf_models[n] = val;
         //ufmt.debugPrint( std::cout, m );

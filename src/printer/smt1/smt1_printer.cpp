@@ -49,11 +49,11 @@ void Smt1Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() 
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
 }/* Smt1Printer::toStream() */
 
-void Smt1Printer::toStream(std::ostream& out, Model& m) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const Model& m) const throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, m);
 }
 
-void Smt1Printer::toStream(std::ostream& out, Model& m, const Command* c) const throw() {
+void Smt1Printer::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }

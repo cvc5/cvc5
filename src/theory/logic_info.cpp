@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic
+ ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -105,6 +105,10 @@ std::string LogicInfo::getLogicString() const {
         ss << "DT";
         ++seen;
       }
+      if(d_theories[THEORY_STRINGS]) {
+        ss << "S";
+        ++seen;
+      }
       if(d_theories[THEORY_ARITH]) {
         if(isDifferenceLogic()) {
           ss << (areIntegersUsed() ? "I" : "");
@@ -177,16 +181,31 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         enableTheory(THEORY_ARRAY);
         ++p;
       }
+      if(*p == 'S') {
+        // Strings requires arith for length constraints,
+        // and UF for equality (?)
+        enableTheory(THEORY_STRINGS);
+        enableTheory(THEORY_UF);
+        enableTheory(THEORY_ARITH);
+        enableIntegers();
+        arithOnlyLinear();
+        ++p;
+      }
       if(!strncmp(p, "UF", 2)) {
         enableTheory(THEORY_UF);
         p += 2;
       }
+      // allow BV or DT in either order
       if(!strncmp(p, "BV", 2)) {
         enableTheory(THEORY_BV);
         p += 2;
       }
       if(!strncmp(p, "DT", 2)) {
         enableTheory(THEORY_DATATYPES);
+        p += 2;
+      }
+      if(!d_theories[THEORY_BV] && !strncmp(p, "BV", 2)) {
+        enableTheory(THEORY_BV);
         p += 2;
       }
       if(!strncmp(p, "IDL", 3)) {
@@ -241,7 +260,12 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   }
   if(*p != '\0') {
     stringstream err;
-    err << "LogicInfo::setLogicString(): junk (\"" << p << "\") at end of logic string: " << logicString;
+    err << "LogicInfo::setLogicString(): ";
+    if(p == logicString) {
+      err << "cannot parse logic string: " << logicString;
+    } else {
+      err << "junk (\"" << p << "\") at end of logic string: " << logicString;
+    }
     IllegalArgument(logicString, err.str().c_str());
   }
 

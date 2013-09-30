@@ -25,21 +25,21 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class Slicer; 
-class Base; 
+class Slicer;
+class Base;
 /**
  * Bitvector equality solver
  */
 class CoreSolver : public SubtheorySolver {
   typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
   struct Statistics {
     IntStat d_numCallstoCheck;
     Statistics();
-    ~Statistics(); 
-  }; 
-  
+    ~Statistics();
+  };
+
   // NotifyClass: handles call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify {
     CoreSolver& d_solver;
@@ -59,13 +59,13 @@ class CoreSolver : public SubtheorySolver {
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-  
+
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
   /** Store a propagation to the bv solver */
   bool storePropagation(TNode literal);
-  
+
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
 
@@ -74,12 +74,12 @@ class CoreSolver : public SubtheorySolver {
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
   ModelValue d_modelValues;
-  void buildModel(); 
-  bool assertFactToEqualityEngine(TNode fact, TNode reason);  
+  void buildModel();
+  bool assertFactToEqualityEngine(TNode fact, TNode reason);
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a);
-  Statistics d_statistics; 
-public: 
+  Statistics d_statistics;
+public:
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
   bool  isComplete() { return d_isCoreTheory; }
@@ -87,8 +87,8 @@ public:
   void  preRegister(TNode node);
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions);
-  void  collectModelInfo(TheoryModel* m);
-  Node  getModelValue(TNode var); 
+  void  collectModelInfo(TheoryModel* m, bool fullModel);
+  Node  getModelValue(TNode var);
   void  addSharedTerm(TNode t) {
     d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }

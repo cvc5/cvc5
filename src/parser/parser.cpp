@@ -42,11 +42,13 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
   d_input(input),
   d_symtabAllocated(),
   d_symtab(&d_symtabAllocated),
+  d_assertionLevel(0),
   d_anonymousFunctionCount(0),
   d_done(false),
   d_checksEnabled(true),
   d_strictMode(strictMode),
-  d_parseOnly(parseOnly) {
+  d_parseOnly(parseOnly),
+  d_canIncludeFile(true) {
   d_input->setParser(*this);
 }
 
@@ -137,11 +139,10 @@ bool Parser::isPredicate(const std::string& name) {
 }
 
 Expr
-Parser::mkVar(const std::string& name, const Type& type,
-              bool levelZero) {
-  Debug("parser") << "mkVar(" << name << ", " << type << ", " << levelZero << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, levelZero);
-  defineVar(name, expr, levelZero);
+Parser::mkVar(const std::string& name, const Type& type, uint32_t flags) {
+  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
+  Expr expr = d_exprManager->mkVar(name, type, flags);
+  defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
   return expr;
 }
 
@@ -154,35 +155,31 @@ Parser::mkBoundVar(const std::string& name, const Type& type) {
 }
 
 Expr
-Parser::mkFunction(const std::string& name, const Type& type,
-                   bool levelZero) {
+Parser::mkFunction(const std::string& name, const Type& type, uint32_t flags) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, levelZero);
-  defineFunction(name, expr, levelZero);
+  Expr expr = d_exprManager->mkVar(name, type, flags);
+  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL);
   return expr;
 }
 
 Expr
-Parser::mkAnonymousFunction(const std::string& prefix, const Type& type) {
+Parser::mkAnonymousFunction(const std::string& prefix, const Type& type, uint32_t flags) {
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkFunction(name.str(), type);
+  return d_exprManager->mkVar(name.str(), type, flags);
 }
 
 std::vector<Expr>
-Parser::mkVars(const std::vector<std::string> names,
-               const Type& type,
-               bool levelZero) {
+Parser::mkVars(const std::vector<std::string> names, const Type& type, uint32_t flags) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(mkVar(names[i], type, levelZero));
+    vars.push_back(mkVar(names[i], type, flags));
   }
   return vars;
 }
 
 std::vector<Expr>
-Parser::mkBoundVars(const std::vector<std::string> names,
-                    const Type& type) {
+Parser::mkBoundVars(const std::vector<std::string> names, const Type& type) {
   std::vector<Expr> vars;
   for(unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkBoundVar(names[i], type));
@@ -191,16 +188,14 @@ Parser::mkBoundVars(const std::vector<std::string> names,
 }
 
 void
-Parser::defineVar(const std::string& name, const Expr& val,
-                  bool levelZero) {
-  Debug("parser") << "defineVar( " << name << " := " << val << " , " << levelZero << ")" << std::endl;;
+Parser::defineVar(const std::string& name, const Expr& val, bool levelZero) {
+  Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;;
   d_symtab->bind(name, val, levelZero);
   assert( isDeclared(name) );
 }
 
 void
-Parser::defineFunction(const std::string& name, const Expr& val,
-                       bool levelZero) {
+Parser::defineFunction(const std::string& name, const Expr& val, bool levelZero) {
   d_symtab->bindDefinedFunction(name, val, levelZero);
   assert( isDeclared(name) );
 }
@@ -236,9 +231,9 @@ Parser::defineParameterizedType(const std::string& name,
 }
 
 SortType
-Parser::mkSort(const std::string& name) {
+Parser::mkSort(const std::string& name, uint32_t flags) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Type type = d_exprManager->mkSort(name);
+  Type type = d_exprManager->mkSort(name, flags);
   defineType(name, type);
   return type;
 }
@@ -253,7 +248,7 @@ Parser::mkSortConstructor(const std::string& name, size_t arity) {
 }
 
 SortType Parser::mkUnresolvedType(const std::string& name) {
-  SortType unresolved = mkSort(name);
+  SortType unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -357,7 +352,7 @@ Parser::mkMutualDatatypeTypes(const std::vector<Datatype>& datatypes) {
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
-    return d_symtab->isBound(name);
+    return d_reservedSymbols.find(name) != d_reservedSymbols.end() || d_symtab->isBound(name);
   case SYM_SORT:
     return d_symtab->isBoundType(name);
   }
@@ -365,9 +360,15 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
   return false;
 }
 
+void Parser::reserveSymbolAtAssertionLevel(const std::string& varName) {
+  checkDeclaration(varName, CHECK_UNDECLARED, SYM_VARIABLE);
+  d_reservedSymbols.insert(varName);
+}
+
 void Parser::checkDeclaration(const std::string& varName,
                               DeclarationCheck check,
-                              SymbolType type)
+                              SymbolType type,
+                              std::string notes)
     throw(ParserException) {
   if(!d_checksEnabled) {
     return;
@@ -377,14 +378,16 @@ void Parser::checkDeclaration(const std::string& varName,
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " not declared as a " +
-                 (type == SYM_VARIABLE ? "variable" : "type"));
+                 (type == SYM_VARIABLE ? "variable" : "type") +
+                 (notes.size() == 0 ? notes : "\n" + notes));
     }
     break;
 
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
       parseError("Symbol " + varName + " previously declared as a " +
-                 (type == SYM_VARIABLE ? "variable" : "type"));
+                 (type == SYM_VARIABLE ? "variable" : "type") +
+                 (notes.size() == 0 ? notes : "\n" + notes));
     }
     break;
 

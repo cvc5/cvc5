@@ -9,7 +9,7 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Algebraic solver. 
+ ** \brief Algebraic solver.
  **
  ** Algebraic solver.
  **/
@@ -46,7 +46,7 @@ inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
     out << "BV_CORE_SUBTHEORY";
     break;
   case SUB_INEQUALITY:
-    out << "BV_INEQUALITY_SUBTHEORY"; 
+    out << "BV_INEQUALITY_SUBTHEORY";
   default:
     Unreachable();
     break;
@@ -55,13 +55,10 @@ inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
 }
 
 
-const bool d_useEqualityEngine = true;
-const bool d_useSatPropagation = true;
+// forward declaration
+class TheoryBV;
 
-// forward declaration 
-class TheoryBV; 
-
-typedef context::CDQueue<Node> AssertionQueue; 
+typedef context::CDQueue<Node> AssertionQueue;
 /**
  * Abstract base class for bit-vector subtheory solvers
  *
@@ -78,7 +75,7 @@ protected:
   AssertionQueue d_assertionQueue;
   context::CDO<uint32_t>  d_assertionIndex;
 public:
-  
+
   SubtheorySolver(context::Context* c, TheoryBV* bv) :
     d_context(c),
     d_bv(bv),
@@ -86,24 +83,24 @@ public:
     d_assertionIndex(c, 0)
   {}
   virtual ~SubtheorySolver() {}
-  virtual bool check(Theory::Effort e) = 0; 
+  virtual bool check(Theory::Effort e) = 0;
   virtual void explain(TNode literal, std::vector<TNode>& assumptions) = 0;
   virtual void preRegister(TNode node) {}
   virtual void propagate(Theory::Effort e) {}
-  virtual void collectModelInfo(TheoryModel* m) = 0;
-  virtual Node getModelValue(TNode var) = 0; 
+  virtual void collectModelInfo(TheoryModel* m, bool fullModel) = 0;
+  virtual Node getModelValue(TNode var) = 0;
   virtual bool isComplete() = 0;
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) = 0;
-  virtual void addSharedTerm(TNode node) {} 
+  virtual void addSharedTerm(TNode node) {}
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
-    Assert (!done()); 
+    Assert (!done());
     TNode res = d_assertionQueue[d_assertionIndex];
     d_assertionIndex = d_assertionIndex + 1;
-    return res; 
+    return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-}; 
+};
 
 }
 }

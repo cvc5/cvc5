@@ -28,6 +28,18 @@ namespace CVC4 {
 namespace theory {
 
 
+class QuantArith
+{
+public:
+  static bool getMonomial( Node n, std::map< Node, Node >& msum );
+  static bool getMonomialSum( Node n, std::map< Node, Node >& msum );
+  static bool getMonomialSumLit( Node lit, std::map< Node, Node >& msum );
+  static bool isolate( Node v, std::map< Node, Node >& msum, Node & veq, Kind k );
+  static Node negate( Node t );
+  static Node offset( Node t, int i );
+};
+
+
 class QuantRelevance
 {
 private:

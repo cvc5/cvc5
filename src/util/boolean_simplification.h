@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 #include "util/cvc4_assert.h"
 
@@ -202,6 +203,7 @@ public:
    * @param e the Expr to negate (cannot be the null Expr)
    */
   static Expr negate(Expr e) throw(AssertionException) {
+    ExprManagerScope ems(e);
     return negate(Node::fromExpr(e)).toExpr();
   }
 

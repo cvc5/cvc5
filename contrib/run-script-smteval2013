@@ -1,16 +1,16 @@
 #!/bin/bash
 
-cat >bench-$$.smt2
-trap 'rm bench-$$.smt2' EXIT
+cvc4=./cvc4
+bench="$1"
 
-logic=$(expr "$(head -n 1 bench-$$.smt2)" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
 # use: trywith [params..]
 # to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
 # which case this run script terminates immediately.  Otherwise, this
 # function returns normally.
 function trywith {
-  result="$(./cvc4 -L smt2 --no-checking --no-interactive "$@" bench-$$.smt2)"
+  result="$($cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
   esac
@@ -19,28 +19,34 @@ function trywith {
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  ./cvc4 -L smt2 --no-checking --no-interactive "$@" bench-$$.smt2
+  $cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench
 }
 
 case "$logic" in
 
 QF_LRA)
-  # 3 minutes with default decision heuristic
-  trywith --tlimit-per=180000
-  # switch to internal decision heuristic
-  finishwith --decision=internal
+  finishwith --no-restrict-pivots --enable-miplib-trick --miplib-trick-subs=2 --fc-penalties --collect-pivot-stats --use-soi --new-prop --dio-decomps --unconstrained-simp --fancy-final
   ;;
-AUFLIA)
+AUFLIA|AUFLIRA|AUFNIRA|UFLRA|UFNIA)
   # 60 seconds with default decision heuristic
-  trywith --tlimit-per=60000
+  trywith --simplification=none --tlimit-per=60000
   # try simplification for 60 seconds, default decision heuristic
-  trywith --simplification=batch --tlimit-per=60000
+  trywith --tlimit-per=60000
   # switch to internal decision heuristic
-  finishwith --decision=internal
+  finishwith --simplification=none --decision=internal
+  ;;
+LRA)
+  finishwith --enable-cbqi
   ;;
 QF_AUFBV)
   trywith --tlimit-per=600000
   finishwith --decision=justification-stoponly
+  ;;
+QF_BV)
+  trywith --bv-core --decision=justification --tlimit-per=10000
+  trywith --decision=justification --tlimit-per=60000
+  trywith --decision=internal --bitblast-eager --tlimit-per=600000
+  finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
 QF_AX)
   trywith --tlimit-per=2000

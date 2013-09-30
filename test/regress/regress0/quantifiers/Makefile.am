@@ -1,4 +1,8 @@
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -35,9 +39,8 @@ TESTS =	\
 	smtlib384a03.smt2 \
 	smtlib46f14a.smt2 \
 	smtlibf957ea.smt2 \
-	gauss_init_0030.fof.smt2 \
-	piVC_5581bd.smt2 
-	 
+	gauss_init_0030.fof.smt2
+
 # regression can be solved with --finite-model-find --fmf-inst-engine
 # set3.smt2
 

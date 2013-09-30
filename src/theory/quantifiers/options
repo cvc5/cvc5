@@ -24,8 +24,11 @@ option prenexQuant /--disable-prenex-quant bool :default true
 # Whether to variable-eliminate quantifiers.
 # For example, forall x y. ( P( x, y ) V x != c ) will be rewritten to
 #   forall y. P( c, y )
-option varElimQuant --var-elim-quant bool :default false
- enable variable elimination of quantified formulas
+option varElimQuant /--disable-var-elim-quant bool :default true
+ disable simple variable elimination for quantified formulas
+
+option simpleIteLiftQuant /--disable-ite-lift-quant bool :default true
+ disable simple ite lifting for quantified formulas
 
 # Whether to CNF quantifier bodies
 option cnfQuant --cnf-quant bool :default false
@@ -47,6 +50,9 @@ option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
 # Whether to perform quantifier macro expansion
 option macrosQuant --macros-quant bool :default false
  perform quantifiers macro expansions
+# Whether to perform first-order propagation
+option foPropQuant --fo-prop-quant bool :default false
+ perform first-order propagation on quantifiers
 
 # Whether to use smart triggers
 option smartTriggers /--disable-smart-triggers bool :default true
@@ -54,6 +60,8 @@ option smartTriggers /--disable-smart-triggers bool :default true
 # Whether to use relevent triggers
 option relevantTriggers /--disable-relevant-triggers bool :default true
  prefer triggers that are more relevant based on SInE style analysis
+option relationalTriggers --relational-triggers bool :default false
+ choose relational triggers such as x = f(y), x >= f(y)
 
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
@@ -72,6 +80,8 @@ option cbqi --enable-cbqi/--disable-cbqi bool :default false
  turns on counterexample-based quantifier instantiation [off by default]
 /turns off counterexample-based quantifier instantiation
 
+option recurseCbqi --cbqi-recurse bool :default false
+ turns on recursive counterexample-based quantifier instantiation
 
 option userPatternsQuant /--ignore-user-patterns bool :default true
  ignore user-provided patterns for quantifier instantiation
@@ -88,6 +98,15 @@ option finiteModelFind --finite-model-find bool :default false
 option fmfModelBasedInst /--disable-fmf-mbqi bool :default true
  disable model-based quantifier instantiation for finite model finding
 
+option fmfFullModelCheck --fmf-fmc bool :default false
+ enable full model check for finite model finding
+option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
+ disable simple models in full model check for finite model finding
+option fmfFmcCoverSimplify /--disable-fmf-fmc-cover-simplify bool :default true
+ disable covering simplification of fmc models
+option fmfFmcInterval --fmf-fmc-interval bool :default false
+ construct interval models for fmc models
+
 option fmfOneInstPerRound --fmf-one-inst-per-round bool :default false
  only add one instantiation per quantifier per round for fmf
 option fmfOneQuantPerRound --fmf-one-quant-per-round bool :default false
@@ -98,12 +117,16 @@ option fmfRelevantDomain --fmf-relevant-domain bool :default false
  use relevant domain computation, similar to complete instantiation (Ge, deMoura 09)
 option fmfNewInstGen --fmf-new-inst-gen bool :default false
  use new inst gen technique for answering sat without exhaustive instantiation
-option fmfInstGen /--disable-fmf-inst-gen bool :default true
- disable Inst-Gen instantiation techniques for finite model finding
+option fmfInstGen --fmf-inst-gen/--disable-fmf-inst-gen bool :read-write :default true
+ enable Inst-Gen instantiation techniques for finite model finding (default)
+/disable Inst-Gen instantiation techniques for finite model finding
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
  only perform Inst-Gen instantiation techniques on one quantifier per round
 option fmfFreshDistConst --fmf-fresh-dc bool :default false
  use fresh distinguished representative when applying Inst-Gen techniques
+
+option fmfBoundInt --fmf-bound-int bool :default false
+ finite model finding on bounded integer quantification
 
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms

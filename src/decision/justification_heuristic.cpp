@@ -96,7 +96,8 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
     Debug("decision") << "---" << std::endl << d_assertions[i] << std::endl;
 
     // Sanity check: if it was false, aren't we inconsistent?
-    Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
+    // Commenting out. See bug 374. In short, to do with how CNF stream works.
+    // Assert( tryGetSatValue(d_assertions[i]) != SAT_VALUE_FALSE);
 
     SatValue desiredVal = SAT_VALUE_TRUE;
     SatLiteral litDecision;
@@ -105,6 +106,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
     if(litDecision != undefSatLiteral) {
       setPrvsIndex(i);
+      Trace("decision") << "jh: spliting on " << litDecision << std::endl;
       return litDecision;
     }
   }
@@ -441,8 +443,9 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   Assert(desiredVal != SAT_VALUE_UNKNOWN, "expected known value");
 
   /* Good luck, hope you can get what you want */
-  Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN,
-         "invariant violated");
+  // See bug 374
+  // Assert(litVal == desiredVal || litVal == SAT_VALUE_UNKNOWN,
+  //       "invariant violated");
 
   /* What type of node is this */
   Kind k = node.getKind();	
@@ -458,12 +461,12 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
    * If not in theory of booleans, check if this is something to split-on.
    */
   if(tId != theory::THEORY_BOOL) {
-
     // if node has embedded ites, resolve that first
     if(handleEmbeddedITEs(node) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
 
     if(litVal != SAT_VALUE_UNKNOWN) {
+      Assert(litVal == desiredVal);
       setJustified(node);
       return NO_SPLITTER;
     } 

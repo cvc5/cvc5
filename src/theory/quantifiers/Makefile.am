@@ -23,8 +23,6 @@ libquantifiers_la_SOURCES = \
 	model_engine.cpp \
 	modes.cpp \
 	modes.h \
-	relevant_domain.h \
-	relevant_domain.cpp \
 	term_database.h \
 	term_database.cpp \
 	first_order_model.h \
@@ -44,7 +42,20 @@ libquantifiers_la_SOURCES = \
 	inst_strategy_e_matching.h \
 	inst_strategy_e_matching.cpp \
 	inst_strategy_cbqi.h \
-	inst_strategy_cbqi.cpp
+	inst_strategy_cbqi.cpp \
+	full_model_check.h \
+	full_model_check.cpp \
+	bounded_integers.h \
+	bounded_integers.cpp \
+	first_order_reasoning.h \
+	first_order_reasoning.cpp \
+	rewrite_engine.h \
+	rewrite_engine.cpp \
+	relevant_domain.h \
+	relevant_domain.cpp \
+	symmetry_breaking.h \
+	symmetry_breaking.cpp
+
 
 EXTRA_DIST = \
 	kinds \

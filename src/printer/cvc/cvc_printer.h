@@ -29,7 +29,7 @@ namespace cvc {
 
 class CvcPrinter : public CVC4::Printer {
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const throw();
-  void toStream(std::ostream& out, Model& m, const Command* c) const throw();
+  void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
 public:
   using CVC4::Printer::toStream;
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();

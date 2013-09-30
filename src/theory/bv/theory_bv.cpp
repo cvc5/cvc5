@@ -49,29 +49,32 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c)
   {
-    SubtheorySolver* core_solver = new CoreSolver(c, this); 
-    d_subtheories.push_back(core_solver);
-    d_subtheoryMap[SUB_CORE] = core_solver;
-
+    if (options::bvEquality()) {
+      SubtheorySolver* core_solver = new CoreSolver(c, this);
+      d_subtheories.push_back(core_solver);
+      d_subtheoryMap[SUB_CORE] = core_solver;
+    }
     if (options::bitvectorInequalitySolver()) {
-      SubtheorySolver* ineq_solver = new InequalitySolver(c, this); 
+      SubtheorySolver* ineq_solver = new InequalitySolver(c, this);
       d_subtheories.push_back(ineq_solver);
       d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
     }
-    
-    SubtheorySolver* bb_solver = new BitblastSolver(c, this); 
+
+    SubtheorySolver* bb_solver = new BitblastSolver(c, this);
     d_subtheories.push_back(bb_solver);
     d_subtheoryMap[SUB_BITBLAST] = bb_solver;
   }
 
 TheoryBV::~TheoryBV() {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    delete d_subtheories[i]; 
+    delete d_subtheories[i];
   }
 }
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  if (options::bvEquality()) {
+    dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  }
 }
 
 TheoryBV::Statistics::Statistics():
@@ -110,7 +113,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
     return;
   }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    d_subtheories[i]->preRegister(node); 
+    d_subtheories[i]->preRegister(node);
   }
 }
 
@@ -131,22 +134,22 @@ void TheoryBV::checkForLemma(TNode fact) {
     if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL) {
       TNode urem = fact[0];
       TNode result = fact[1];
-      TNode divisor = urem[1]; 
+      TNode divisor = urem[1];
       Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
       Node divisor_eq_0 = mkNode(kind::EQUAL,
                                  divisor,
-                                 mkConst(BitVector(getSize(divisor), 0u)));  
+                                 mkConst(BitVector(getSize(divisor), 0u)));
       Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
     if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL) {
       TNode urem = fact[1];
       TNode result = fact[0];
-      TNode divisor = urem[1]; 
+      TNode divisor = urem[1];
       Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
       Node divisor_eq_0 = mkNode(kind::EQUAL,
                                   divisor,
-                                  mkConst(BitVector(getSize(divisor), 0u)));  
+                                  mkConst(BitVector(getSize(divisor), 0u)));
       Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
@@ -162,9 +165,9 @@ void TheoryBV::check(Effort e)
   }
 
   if (Theory::fullEffort(e)) {
-    ++(d_statistics.d_numCallsToCheckFullEffort); 
+    ++(d_statistics.d_numCallsToCheckFullEffort);
   } else {
-    ++(d_statistics.d_numCallsToCheckStandardEffort); 
+    ++(d_statistics.d_numCallsToCheckStandardEffort);
   }
   // if we are already in conflict just return the conflict
   if (inConflict()) {
@@ -174,28 +177,29 @@ void TheoryBV::check(Effort e)
 
   while (!done()) {
     TNode fact = get().assertion;
-    checkForLemma(fact); 
+    checkForLemma(fact);
+
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-      d_subtheories[i]->assertFact(fact); 
+      d_subtheories[i]->assertFact(fact);
     }
   }
 
   bool ok = true;
   bool complete = false;
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    Assert (!inConflict()); 
+    Assert (!inConflict());
     ok = d_subtheories[i]->check(e);
-    complete = d_subtheories[i]->isComplete(); 
+    complete = d_subtheories[i]->isComplete();
 
     if (!ok) {
       // if we are in a conflict no need to check with other theories
       Assert (inConflict());
       sendConflict();
-      return; 
+      return;
     }
     if (complete) {
       // if the last subtheory was complete we stop
-      return; 
+      return;
     }
   }
 }
@@ -205,8 +209,8 @@ void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   //  Assert (fullModel); // can only query full model
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
-      d_subtheories[i]->collectModelInfo(m);
-      return; 
+      d_subtheories[i]->collectModelInfo(m, fullModel);
+      return;
     }
   }
 }
@@ -215,10 +219,10 @@ Node TheoryBV::getModelValue(TNode var) {
   Assert(!inConflict());
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
-      return d_subtheories[i]->getModelValue(var); 
+      return d_subtheories[i]->getModelValue(var);
     }
   }
-  Unreachable(); 
+  Unreachable();
 }
 
 void TheoryBV::propagate(Effort e) {
@@ -236,7 +240,7 @@ void TheoryBV::propagate(Effort e) {
   bool ok = true;
   for (; d_literalsToPropagateIndex < d_literalsToPropagate.size() && ok; d_literalsToPropagateIndex = d_literalsToPropagateIndex + 1) {
     TNode literal = d_literalsToPropagate[d_literalsToPropagateIndex];
-    // temporary fix for incremental bit-blasting 
+    // temporary fix for incremental bit-blasting
     if (d_valuation.isSatLiteral(literal)) {
       Debug("bitvector::propagate") << "TheoryBV:: propagating " << literal <<"\n";
       ok = d_out->propagate(literal);
@@ -286,14 +290,14 @@ Node TheoryBV::ppRewrite(TNode t)
   if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
-    return utils::mkAnd(equalities); 
+    return utils::mkAnd(equalities);
   }
-  
+
   return t;
 }
 
 void TheoryBV::presolve() {
-  Debug("bitvector") << "TheoryBV::presolve" << endl; 
+  Debug("bitvector") << "TheoryBV::presolve" << endl;
 }
 
 bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
@@ -318,7 +322,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
       // Safe to ignore this one, subtheory should produce a conflict
       return true;
     }
- 
+
     d_propagatedBy[literal] = subtheory;
   }
 
@@ -366,7 +370,7 @@ Node TheoryBV::explain(TNode node) {
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
-  if (!options::bitvectorEagerBitblast() && d_useEqualityEngine) {
+  if (!options::bitvectorEagerBitblast() && options::bvEquality()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->addSharedTerm(t);
     }
@@ -379,11 +383,11 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   if (options::bitvectorEagerBitblast()) {
     return EQUALITY_UNKNOWN;
   }
-  
+
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {
-      return status; 
+      return status;
     }
   }
   return EQUALITY_UNKNOWN; ;

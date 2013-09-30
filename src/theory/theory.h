@@ -23,9 +23,9 @@
 #include "expr/attribute.h"
 #include "expr/command.h"
 #include "theory/valuation.h"
-#include "theory/substitutions.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
+#include "theory/options.h"
 #include "theory/theoryof_mode.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -49,6 +49,7 @@ namespace theory {
 
 class QuantifiersEngine;
 class TheoryModel;
+class SubstitutionMap;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -298,9 +299,6 @@ protected:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-  /** Mode of the theoryOf operation */
-  static TheoryOfMode s_theoryOfMode;
-
 public:
 
   /**
@@ -333,12 +331,7 @@ public:
    * Returns the ID of the theory responsible for the given node.
    */
   static inline TheoryId theoryOf(TNode node) {
-    return theoryOf(s_theoryOfMode, node);
-  }
-
-  /** Set the theoryOf mode */
-  static void setTheoryOfMode(TheoryOfMode mode) {
-    s_theoryOfMode = mode;
+    return theoryOf(options::theoryOfMode(), node);
   }
 
   /**
@@ -349,7 +342,7 @@ public:
   }
 
   /**
-   * Set the owner of the uninterpreted sort.
+   * Get the owner of the uninterpreted sort.
    */
   static TheoryId getUninterpretedSortOwner() {
     return s_uninterpretedSortOwner;
@@ -516,7 +509,7 @@ public:
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b) { return EQUALITY_UNKNOWN; }
 
   /**
-   * Return the model value of the give shared term (or null if not avalilable.
+   * Return the model value of the give shared term (or null if not available).
    */
   virtual Node getModelValue(TNode var) { return Node::null(); }
 
@@ -583,25 +576,7 @@ public:
    * Given a literal, add the solved substitutions to the map, if any.
    * The method should return true if the literal can be safely removed.
    */
-  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-    if (in.getKind() == kind::EQUAL) {
-      if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        return PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        return PP_ASSERT_STATUS_SOLVED;
-      }
-      if (in[0].isConst() && in[1].isConst()) {
-        if (in[0] != in[1]) {
-          return PP_ASSERT_STATUS_CONFLICT;
-        }
-      }
-    }
-
-    return PP_ASSERT_STATUS_UNSOLVED;
-  }
+  virtual PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
   /**
    * Given an atom of the theory coming from the input formula, this

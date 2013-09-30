@@ -58,7 +58,7 @@
 #include "theory/arith/dual_simplex.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/soi_simplex.h"
-#include "theory/arith/pure_update_simplex.h"
+#include "theory/arith/attempt_solution_simplex.h"
 
 #include "theory/arith/constraint.h"
 
@@ -105,7 +105,7 @@ private:
   // TODO A better would be:
   //context::CDO<bool> d_nlIncomplete;
 
-  BoundCountingVector d_boundTracking;
+  BoundInfoMap d_rowTracking;
 
   /**
    * The constraint database associated with the theory.
@@ -132,7 +132,8 @@ private:
   /** Static learner. */
   ArithStaticLearner d_learner;
 
-
+  /** quantifiers engine */
+  QuantifiersEngine * d_quantEngine;
   //std::vector<ArithVar> d_pool;
 public:
   void releaseArithVar(ArithVar v);
@@ -316,9 +317,9 @@ private:
 
   /** This implements the Simplex decision procedure. */
   DualSimplexDecisionProcedure d_dualSimplex;
-  PureUpdateSimplexDecisionProcedure d_pureUpdate;
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
+  AttemptSolutionSDP d_attemptSolSimplex;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
@@ -345,7 +346,8 @@ private:
   Node axiomIteForTotalDivision(Node div_tot);
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
-
+  // handle linear /, div, mod, and also is_int, to_int
+  Node ppRewriteTerms(TNode atom);
 
 public:
   TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -380,6 +382,8 @@ public:
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void addSharedTerm(TNode n);
+
+  Node getModelValue(TNode var);
 
 private:
 
@@ -430,6 +434,10 @@ public:
    */
   ArithVar requestArithVar(TNode x, bool slack);
 
+public:
+  const BoundsInfo& boundsInfo(ArithVar basic) const;
+
+
 private:
   /** Initial (not context dependent) sets up for a variable.*/
   void setupBasicValue(ArithVar x);
@@ -463,11 +471,24 @@ private:
 
   /** Tracks the basic variables where propagation might be possible. */
   DenseSet d_candidateBasics;
+  DenseSet d_candidateRows;
 
   bool hasAnyUpdates() { return !d_updatedBounds.empty(); }
   void clearUpdates();
 
   void revertOutOfConflict();
+
+  void propagateCandidatesNew();
+  void dumpUpdatedBoundsToRows();
+  bool propagateCandidateRow(RowIndex rid);
+  bool propagateMightSucceed(ArithVar v, bool ub) const;
+  /** Attempt to perform a row propagation where there is at most 1 possible variable.*/
+  bool attemptSingleton(RowIndex ridx, bool rowUp);
+  /** Attempt to perform a row propagation where every variable is a potential candidate.*/
+  bool attemptFull(RowIndex ridx, bool rowUp);
+  bool tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUp, const DeltaRational& bound);
+  bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint bestImplied);
+
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);
@@ -517,9 +538,9 @@ private:
                  std::vector<ArithVar>& variables);
 
   /** Routine for debugging. Print the assertions the theory is aware of. */
-  void debugPrintAssertions();
+  void debugPrintAssertions(std::ostream& out) const;
   /** Debugging only routine. Prints the model. */
-  void debugPrintModel();
+  void debugPrintModel(std::ostream& out) const;
 
   inline LogicInfo getLogicInfo() const { return d_containing.getLogicInfo(); }
   inline bool done() const { return d_containing.done(); }
@@ -552,6 +573,12 @@ private:
 
   context::CDO<unsigned> d_cutCount;
   context::CDHashSet<ArithVar, std::hash<ArithVar> > d_cutInContext;
+
+  context::CDO<bool> d_likelyIntegerInfeasible;
+
+
+  context::CDO<bool> d_guessedCoeffSet;
+  ArithRatPairVec d_guessedCoeffs;
 
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {

@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 
 void NoEffectCCCB::update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) {}
-void NoEffectCCCB::swap(ArithVar basic, ArithVar nb, int nbSgn){}
+void NoEffectCCCB::multiplyRow(RowIndex ridx, int sgn){}
 bool NoEffectCCCB::canUseRow(RowIndex ridx) const { return false; }
 
 }/* CVC4::theory::arith namespace */

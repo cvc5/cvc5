@@ -27,7 +27,9 @@
 #include "expr/expr.h"
 #include "prop/theory_proxy.h"
 #include "theory/bv/options.h"
-
+#include "proof/proof_manager.h"
+#include "proof/sat_proof.h"
+#include "prop/minisat/minisat.h"
 #include <queue>
 
 using namespace std;
@@ -236,7 +238,7 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   // Make a new literal (variables are not considered theory literals)
   SatLiteral lit = newLiteral(node, theoryLiteral, preRegister, canEliminate);
-
+  PROOF (ProofManager::getSatProof()->storeAtom(MinisatSatSolver::toMinisatLit(lit), node.toExpr()); ); 
   // Return the resulting literal
   return lit;
 }

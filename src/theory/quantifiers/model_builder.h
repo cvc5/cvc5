@@ -25,6 +25,42 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+
+class QModelBuilder : public TheoryEngineModelBuilder
+{
+protected:
+  //the model we are working with
+  context::CDO< FirstOrderModel* > d_curr_model;
+  //quantifiers engine
+  QuantifiersEngine* d_qe;
+public:
+  QModelBuilder( context::Context* c, QuantifiersEngine* qe );
+  virtual ~QModelBuilder(){}
+  // is quantifier active?
+  virtual bool isQuantifierActive( Node f );
+  //do exhaustive instantiation
+  virtual bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+  //whether to construct model
+  virtual bool optUseModel();
+  //whether to construct model at fullModel = true
+  virtual bool optBuildAtFullModel() { return false; }
+  //consider axioms
+  bool d_considerAxioms;
+  /** number of lemmas generated while building model */
+  //is the exhaustive instantiation incomplete?
+  bool d_incomplete_check;
+  int d_addedLemmas;
+  int d_triedLemmas;
+  /** exist instantiation ? */
+  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
+  //debug model
+  void debugModel( FirstOrderModel* fm );
+};
+
+
+
+
+
 /** Attribute true for nodes that should not be used when considered for inst-gen basis */
 struct BasisNoMatchAttributeId {};
 /** use the special for boolean flag */
@@ -47,17 +83,13 @@ public:
 /** model builder class
   *  This class is capable of building candidate models based on the current quantified formulas
   *  that are asserted.  Use:
-  *  (1) call ModelEngineBuilder::buildModel( m, false );, where m is a FirstOrderModel
+  *  (1) call QModelBuilder::buildModel( m, false );, where m is a FirstOrderModel
   *  (2) if candidate model is determined to be a real model,
-           then call ModelEngineBuilder::buildModel( m, true );
+           then call QModelBuilder::buildModel( m, true );
   */
-class ModelEngineBuilder : public TheoryEngineModelBuilder
+class QModelBuilderIG : public QModelBuilder
 {
 protected:
-  //quantifiers engine
-  QuantifiersEngine* d_qe;
-  //the model we are working with
-  context::CDO< FirstOrderModel* > d_curr_model;
   //map from operators to model preference data
   std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
   //built model uf
@@ -66,6 +98,8 @@ protected:
   bool d_didInstGen;
   /** process build model */
   virtual void processBuildModel( TheoryModel* m, bool fullModel );
+  /** get current model value */
+  Node getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::vector< Node > & args, bool partial );
 protected:
   //reset
   virtual void reset( FirstOrderModel* fm ) = 0;
@@ -90,25 +124,13 @@ protected:  //helper functions
   /** term has constant definition */
   bool hasConstantDefinition( Node n );
 public:
-  ModelEngineBuilder( context::Context* c, QuantifiersEngine* qe );
-  virtual ~ModelEngineBuilder(){}
-  /** number of lemmas generated while building model */
-  int d_addedLemmas;
-  //consider axioms
-  bool d_considerAxioms;
-  // set effort
-  void setEffort( int effort );
-  //debug model
-  void debugModel( FirstOrderModel* fm );
+  QModelBuilderIG( context::Context* c, QuantifiersEngine* qe );
+  virtual ~QModelBuilderIG(){}
 public:
-  //whether to construct model
-  virtual bool optUseModel();
   //whether to add inst-gen lemmas
   virtual bool optInstGen();
   //whether to only consider only quantifier per round of inst-gen
   virtual bool optOneQuantPerRoundInstGen();
-  //whether we should exhaustively instantiate quantifiers where inst-gen is not working
-  virtual bool optExhInstNonInstGenQuant();
   /** statistics class */
   class Statistics {
   public:
@@ -116,22 +138,26 @@ public:
     IntStat d_num_partial_quants_init;
     IntStat d_init_inst_gen_lemmas;
     IntStat d_inst_gen_lemmas;
+    IntStat d_eval_formulas;
+    IntStat d_eval_uf_terms;
+    IntStat d_eval_lits;
+    IntStat d_eval_lits_unknown;
     Statistics();
     ~Statistics();
   };
   Statistics d_statistics;
-  // is quantifier active?
-  bool isQuantifierActive( Node f );
   // is term active
   bool isTermActive( Node n );
   // is term selected
   virtual bool isTermSelected( Node n ) { return false; }
-  /** exist instantiation ? */
-  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
   /** quantifier has inst-gen definition */
   virtual bool hasInstGen( Node f ) = 0;
   /** did inst gen this round? */
   bool didInstGen() { return d_didInstGen; }
+  // is quantifier active?
+  bool isQuantifierActive( Node f );
+  //do exhaustive instantiation
+  bool doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort );
 
   //temporary stats
   int d_numQuantSat;
@@ -140,10 +166,10 @@ public:
   int d_numQuantNoSelForm;
   //temporary stat
   int d_instGenMatches;
-};/* class ModelEngineBuilder */
+};/* class QModelBuilder */
 
 
-class ModelEngineBuilderDefault : public ModelEngineBuilder
+class QModelBuilderDefault : public QModelBuilderIG
 {
 private:    ///information for (old) InstGen
   //map from quantifiers to their selection literals
@@ -167,15 +193,15 @@ protected:
   //theory-specific build models
   void constructModelUf( FirstOrderModel* fm, Node op );
 public:
-  ModelEngineBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
-  ~ModelEngineBuilderDefault(){}
+  QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
+  ~QModelBuilderDefault(){}
   //options
   bool optReconsiderFuncConstants() { return true; }
   //has inst gen
   bool hasInstGen( Node f ) { return !d_quant_selection_lit[f].isNull(); }
 };
 
-class ModelEngineBuilderInstGen : public ModelEngineBuilder
+class QModelBuilderInstGen : public QModelBuilderIG
 {
 private:    ///information for (new) InstGen
   //map from quantifiers to their selection formulas
@@ -217,8 +243,8 @@ private:
   //get parent quantifier
   Node getParentQuantifier( Node f ) { return d_sub_quant_parent.find( f )==d_sub_quant_parent.end() ? f : d_sub_quant_parent[f]; }
 public:
-  ModelEngineBuilderInstGen( context::Context* c, QuantifiersEngine* qe ) : ModelEngineBuilder( c, qe ){}
-  ~ModelEngineBuilderInstGen(){}
+  QModelBuilderInstGen( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
+  ~QModelBuilderInstGen(){}
   // is term selected
   bool isTermSelected( Node n ) { return d_term_selected.find( n )!=d_term_selected.end(); }
   /** exist instantiation ? */

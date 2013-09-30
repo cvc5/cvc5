@@ -76,6 +76,11 @@ public:
     return LemmaStatus(Node::null(), 0);
   }
 
+  LemmaStatus splitLemma(TNode n, bool removable) throw (TypeCheckingExceptionPrivate, AssertionException){
+    push(LEMMA, n);
+    return LemmaStatus(Node::null(), 0);
+  }
+
   void requirePhase(TNode, bool)
     throw(Interrupted, AssertionException) {
     Unreachable();

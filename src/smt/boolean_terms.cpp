@@ -288,7 +288,7 @@ TypeNode BooleanTermConverter::convertType(TypeNode type, bool datatypesContext)
     }
     return newRec;
   }
-  if(type.getNumChildren() > 0) {
+  if(!type.isSort() && type.getNumChildren() > 0) {
     Debug("boolean-terms") << "here at A for " << type << ":" << type.getId() << endl;
     // This should handle tuples and arrays ok.
     // Might handle function types too, but they can't go
@@ -487,7 +487,39 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         } else if(t.isArray()) {
           TypeNode indexType = convertType(t.getArrayIndexType(), false);
           TypeNode constituentType = convertType(t.getArrayConstituentType(), false);
-          if(indexType != t.getArrayIndexType() || constituentType != t.getArrayConstituentType()) {
+          if(indexType != t.getArrayIndexType() && constituentType == t.getArrayConstituentType()) {
+            TypeNode newType = nm->mkArrayType(indexType, constituentType);
+            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
+                                  newType, "an array variable introduced by Boolean-term conversion",
+                                  NodeManager::SKOLEM_EXACT_NAME);
+            top.setAttribute(BooleanTermAttr(), n);
+            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+            Node n_ff = nm->mkNode(kind::SELECT, n, d_ff);
+            Node n_tt = nm->mkNode(kind::SELECT, n, d_tt);
+            Node base = nm->mkConst(ArrayStoreAll(ArrayType(top.getType().toType()), (*TypeEnumerator(n_ff.getType())).toExpr()));
+            Node repl = nm->mkNode(kind::STORE,
+                                   nm->mkNode(kind::STORE, base, nm->mkConst(true),
+                                              n_tt),
+                                   nm->mkConst(false), n_ff);
+            Debug("boolean-terms") << "array replacement: " << top << " => " << repl << endl;
+            d_smt.d_theoryEngine->getModel()->addSubstitution(top, repl);
+            d_termCache[make_pair(top, parentTheory)] = n;
+            result.top() << n;
+            worklist.pop();
+            goto next_worklist;
+          } else if(indexType == t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
+            TypeNode newType = nm->mkArrayType(indexType, constituentType);
+            Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
+                                  newType, "an array variable introduced by Boolean-term conversion",
+                                  NodeManager::SKOLEM_EXACT_NAME);
+            top.setAttribute(BooleanTermAttr(), n);
+            Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
+            d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
+            d_termCache[make_pair(top, parentTheory)] = n;
+            result.top() << n;
+            worklist.pop();
+            goto next_worklist;
+          } else if(indexType != t.getArrayIndexType() && constituentType != t.getArrayConstituentType()) {
             TypeNode newType = nm->mkArrayType(indexType, constituentType);
             Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
                                   newType, "an array variable introduced by Boolean-term conversion",
@@ -594,7 +626,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             worklist.pop();
             goto next_worklist;
           }
-        } else if(t.getNumChildren() > 0) {
+        } else if(!t.isSort() && t.getNumChildren() > 0) {
           for(TypeNode::iterator i = t.begin(); i != t.end(); ++i) {
             if((*i).isBoolean()) {
               vector<TypeNode> argTypes(t.begin(), t.end());
@@ -617,9 +649,6 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         goto next_worklist;
       }
       switch(k) {
-      case kind::LAMBDA:
-        Unreachable("not expecting a LAMBDA in boolean-term conversion: %s", top.toString().c_str());
-
       case kind::BOUND_VAR_LIST:
         result.top() << top;
         worklist.pop();
@@ -704,7 +733,8 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                     k != kind::TUPLE_SELECT &&
                     k != kind::TUPLE_UPDATE &&
                     k != kind::RECORD_SELECT &&
-                    k != kind::RECORD_UPDATE) {
+                    k != kind::RECORD_UPDATE &&
+                    k != kind::DIVISIBLE) {
             Debug("bt") << "rewriting: " << top.getOperator() << endl;
             result.top() << rewriteBooleanTermsRec(top.getOperator(), theory::THEORY_BUILTIN, quantBoolVars);
             Debug("bt") << "got: " << result.top().getOperator() << endl;
@@ -715,7 +745,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
         // push children
         for(int i = top.getNumChildren() - 1; i >= 0; --i) {
           Debug("bt") << "rewriting: " << top[i] << endl;
-          worklist.push(triple<TNode, theory::TheoryId, bool>(top[i], isBoolean(top, i) ? theory::THEORY_BOOL : (top.getKind() == kind::APPLY_CONSTRUCTOR ? theory::THEORY_DATATYPES : theory::THEORY_BUILTIN), false));
+          worklist.push(triple<TNode, theory::TheoryId, bool>(top[i], top.getKind() == kind::CHAIN ? parentTheory : (isBoolean(top, i) ? theory::THEORY_BOOL : (top.getKind() == kind::APPLY_CONSTRUCTOR ? theory::THEORY_DATATYPES : theory::THEORY_BUILTIN)), false));
           //b << rewriteBooleanTermsRec(top[i], isBoolean(top, i) ? , quantBoolVars);
           //Debug("bt") << "got: " << b[b.getNumChildren() - 1] << endl;
         }

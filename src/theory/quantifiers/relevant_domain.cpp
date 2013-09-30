@@ -24,175 +24,159 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
+void RelevantDomain::RDomain::merge( RDomain * r ) {
+  Assert( !d_parent );
+  Assert( !r->d_parent );
+  d_parent = r;
+  for( unsigned i=0; i<d_terms.size(); i++ ){
+    r->addTerm( d_terms[i] );
+  }
+  d_terms.clear();
+}
+
+void RelevantDomain::RDomain::addTerm( Node t ) {
+  if( std::find( d_terms.begin(), d_terms.end(), t )==d_terms.end() ){
+    d_terms.push_back( t );
+  }
+}
+
+RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
+  if( !d_parent ){
+    return this;
+  }else{
+    RDomain * p = d_parent->getParent();
+    d_parent = p;
+    return p;
+  }
+}
+
+void RelevantDomain::RDomain::removeRedundantTerms( FirstOrderModel * fm ) {
+  std::map< Node, Node > rterms;
+  for( unsigned i=0; i<d_terms.size(); i++ ){
+    Node r = d_terms[i];
+    if( !TermDb::hasInstConstAttr( d_terms[i] ) ){
+      r = fm->getRepresentative( d_terms[i] );
+    }
+    if( rterms.find( r )==rterms.end() ){
+      rterms[r] = d_terms[i];
+    }
+  }
+  d_terms.clear();
+  for( std::map< Node, Node >::iterator it = rterms.begin(); it != rterms.end(); ++it ){
+    d_terms.push_back( it->second );
+  }
+}
+
+
+
 RelevantDomain::RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m ) : d_qe( qe ), d_model( m ){
 
 }
 
+RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i ) {
+  if( d_rel_doms.find( n )==d_rel_doms.end() || d_rel_doms[n].find( i )==d_rel_doms[n].end() ){
+    d_rel_doms[n][i] = new RDomain;
+    d_rn_map[d_rel_doms[n][i]] = n;
+    d_ri_map[d_rel_doms[n][i]] = i;
+  }
+  return d_rel_doms[n][i]->getParent();
+}
+
 void RelevantDomain::compute(){
-  Trace("rel-dom") << "compute relevant domain" << std::endl;
-  d_quant_inst_domain.clear();
+  for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
+    for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+      it2->second->reset();
+    }
+  }
   for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
     Node f = d_model->getAssertedQuantifier( i );
-    d_quant_inst_domain[f].resize( f[0].getNumChildren() );
+    Node icf = d_qe->getTermDatabase()->getInstConstantBody( f );
+    Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
+    computeRelevantDomain( icf, true, true );
   }
-  Trace("rel-dom") << "account for ground terms" << std::endl;
-  //add ground terms to domain (rule 1 of complete instantiation essentially uf fragment)
-  for( std::map< Node, uf::UfModelTree >::iterator it = d_model->d_uf_model_tree.begin();
-       it != d_model->d_uf_model_tree.end(); ++it ){
+
+  Trace("rel-dom-debug") << "account for ground terms" << std::endl;
+  for( std::map< Node, std::vector< Node > >::iterator it = d_model->d_uf_terms.begin(); it != d_model->d_uf_terms.end(); ++it ){
     Node op = it->first;
-    for( size_t i=0; i<d_model->d_uf_terms[op].size(); i++ ){
-      Node n = d_model->d_uf_terms[op][i];
-      //add arguments to domain
-      for( int j=0; j<(int)n.getNumChildren(); j++ ){
-        if( d_model->d_rep_set.hasType( n[j].getType() ) ){
-          Node ra = d_model->getRepresentative( n[j] );
-          int raIndex = d_model->d_rep_set.getIndexFor( ra );
-          if( raIndex==-1 ) Trace("rel-dom-warn") << "WARNING: Ground domain: rep set does not contain : " << ra << std::endl;
-          Assert( raIndex!=-1 );
-          if( std::find( d_active_domain[op][j].begin(), d_active_domain[op][j].end(), raIndex )==d_active_domain[op][j].end() ){
-            d_active_domain[op][j].push_back( raIndex );
-          }
+    for( unsigned i=0; i<it->second.size(); i++ ){
+      Node n = it->second[i];
+      //if it is a non-redundant term
+      if( !n.getAttribute(NoMatchAttribute()) ){
+        for( unsigned j=0; j<n.getNumChildren(); j++ ){
+          RDomain * rf = getRDomain( op, j );
+          rf->addTerm( n[j] );
         }
       }
-      //add to range
-      Node r = d_model->getRepresentative( n );
-      int raIndex = d_model->d_rep_set.getIndexFor( r );
-      if( raIndex==-1 ) Trace("rel-dom-warn") << "WARNING: Ground range: rep set does not contain : " << r << std::endl;
-      Assert( raIndex!=-1 );
-      if( std::find( d_active_range[op].begin(), d_active_range[op].end(), raIndex )==d_active_range[op].end() ){
-        d_active_range[op].push_back( raIndex );
-      }
     }
   }
-  Trace("rel-dom") << "do quantifiers" << std::endl;
-  //find fixed point for relevant domain computation
-  bool success;
-  do{
-    success = true;
-    for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
-      Node f = d_model->getAssertedQuantifier( i );
-      //compute the domain of relevant instantiations (rule 3 of complete instantiation, essentially uf fragment)
-      if( computeRelevantInstantiationDomain( d_qe->getTermDatabase()->getInstConstantBody( f ), Node::null(), -1, f ) ){
-        success = false;
-      }
-      //extend the possible domain for functions (rule 2 of complete instantiation, essentially uf fragment)
-      RepDomain range;
-      if( extendFunctionDomains( d_qe->getTermDatabase()->getInstConstantBody( f ), range ) ){
-        success = false;
-      }
-    }
-  }while( !success );
-  Trace("rel-dom") << "done compute relevant domain" << std::endl;
-  /*
-  //debug printing
-  Trace("rel-dom") << "Exhaustive instantiate " << f << std::endl;
-  if( useRelInstDomain ){
-    Trace("rel-dom") << "Relevant domain : " << std::endl;
-    for( size_t i=0; i<d_rel_domain.d_quant_inst_domain[f].size(); i++ ){
-      Trace("rel-dom") << "   " << i << " : ";
-      for( size_t j=0; j<d_rel_domain.d_quant_inst_domain[f][i].size(); j++ ){
-        Trace("rel-dom") << d_rel_domain.d_quant_inst_domain[f][i][j] << " ";
+  //print debug
+  for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
+    Trace("rel-dom") << "Relevant domain for " << it->first << " : " << std::endl;
+    for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+      Trace("rel-dom") << "   " << it2->first << " : ";
+      RDomain * r = it2->second;
+      RDomain * rp = r->getParent();
+      if( r==rp ){
+        r->removeRedundantTerms( d_model );
+        for( unsigned i=0; i<r->d_terms.size(); i++ ){
+          Trace("rel-dom") << r->d_terms[i] << " ";
+        }
+      }else{
+        Trace("rel-dom") << "Dom( " << d_rn_map[rp] << ", " << d_ri_map[rp] << " ) ";
       }
       Trace("rel-dom") << std::endl;
     }
   }
-  */
+
 }
 
-bool RelevantDomain::computeRelevantInstantiationDomain( Node n, Node parent, int arg, Node f ){
-  bool domainChanged = false;
-  if( n.getKind()==INST_CONSTANT ){
-    bool domainSet = false;
-    int vi = n.getAttribute(InstVarNumAttribute());
-    Assert( !parent.isNull() );
-    if( parent.getKind()==APPLY_UF ){
-      //if the child of APPLY_UF term f( ... ), only consider the active domain of f at given argument
-      Node op = parent.getOperator();
-      if( d_active_domain.find( op )!=d_active_domain.end() ){
-        for( size_t i=0; i<d_active_domain[op][arg].size(); i++ ){
-          int d = d_active_domain[op][arg][i];
-          if( std::find( d_quant_inst_domain[f][vi].begin(), d_quant_inst_domain[f][vi].end(), d )==
-              d_quant_inst_domain[f][vi].end() ){
-            d_quant_inst_domain[f][vi].push_back( d );
-            domainChanged = true;
-          }
+void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
+
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    if( n.getKind()==APPLY_UF ){
+      RDomain * rf = getRDomain( n.getOperator(), i );
+      if( n[i].getKind()==INST_CONSTANT ){
+        Node q = d_qe->getTermDatabase()->getInstConstAttr( n[i] );
+        //merge the RDomains
+        unsigned id = n[i].getAttribute(InstVarNumAttribute());
+        Trace("rel-dom-debug") << n[i] << " is variable # " << id << " for " << q;
+        Trace("rel-dom-debug") << " with body : " << d_qe->getTermDatabase()->getInstConstantBody( q ) << std::endl;
+        RDomain * rq = getRDomain( q, id );
+        if( rf!=rq ){
+          rq->merge( rf );
         }
-        domainSet = true;
+      }else{
+        //term to add
+        rf->addTerm( n[i] );
       }
     }
-    if( !domainSet ){
-      //otherwise, we must consider the entire domain
-      TypeNode tn = n.getType();
-      if( d_quant_inst_domain_complete[f].find( vi )==d_quant_inst_domain_complete[f].end() ){
-        if( d_model->d_rep_set.hasType( tn ) ){
-          //it is the complete domain
-          d_quant_inst_domain[f][vi].clear();
-          for( size_t i=0; i<d_model->d_rep_set.d_type_reps[tn].size(); i++ ){
-            d_quant_inst_domain[f][vi].push_back( i );
-          }
-          domainChanged = true;
-        }
-        d_quant_inst_domain_complete[f][vi] = true;
-      }
-    }
-  }else{
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( computeRelevantInstantiationDomain( n[i], n, i, f ) ){
-        domainChanged = true;
-      }
+
+    //TODO
+    if( n[i].getKind()!=FORALL ){
+      bool newHasPol = hasPol;
+      bool newPol = pol;
+      computeRelevantDomain( n[i], newHasPol, newPol );
     }
   }
-  return domainChanged;
 }
 
-bool RelevantDomain::extendFunctionDomains( Node n, RepDomain& range ){
-  if( n.getKind()==INST_CONSTANT ){
-    Node f = n.getAttribute(InstConstantAttribute());
-    int var = n.getAttribute(InstVarNumAttribute());
-    range.insert( range.begin(), d_quant_inst_domain[f][var].begin(), d_quant_inst_domain[f][var].end() );
-    return false;
+Node RelevantDomain::getRelevantTerm( Node f, int i, Node r ) {
+  RDomain * rf = getRDomain( f, i );
+  Trace("rel-dom-debug") << "Get relevant domain " << rf << " " << r << std::endl;
+  if( !d_qe->getEqualityQuery()->getEngine()->hasTerm( r ) || rf->hasTerm( r ) ){
+    return r;
   }else{
-    Node op;
-    if( n.getKind()==APPLY_UF ){
-      op = n.getOperator();
+    Node rr = d_model->getRepresentative( r );
+    eq::EqClassIterator eqc( rr, d_qe->getEqualityQuery()->getEngine() );
+    while( !eqc.isFinished() ){
+      Node en = (*eqc);
+      if( rf->hasTerm( en ) ){
+        return en;
+      }
+      ++eqc;
     }
-    bool domainChanged = false;
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      RepDomain childRange;
-      if( extendFunctionDomains( n[i], childRange ) ){
-        domainChanged = true;
-      }
-      if( n.getKind()==APPLY_UF ){
-        if( d_active_domain.find( op )!=d_active_domain.end() ){
-          for( int j=0; j<(int)childRange.size(); j++ ){
-            int v = childRange[j];
-            if( std::find( d_active_domain[op][i].begin(), d_active_domain[op][i].end(), v )==d_active_domain[op][i].end() ){
-              d_active_domain[op][i].push_back( v );
-              domainChanged = true;
-            }
-          }
-        }else{
-          //do this?
-        }
-      }
-    }
-    //get the range
-    if( n.hasAttribute(InstConstantAttribute()) ){
-      if( n.getKind()==APPLY_UF && d_active_range.find( op )!=d_active_range.end() ){
-        range.insert( range.end(), d_active_range[op].begin(), d_active_range[op].end() );
-      }else{
-        //infinite range?
-      }
-    }else{
-      Node r = d_model->getRepresentative( n );
-      int index = d_model->d_rep_set.getIndexFor( r );
-      if( index==-1 ){
-        //we consider all ground terms in bodies of quantifiers to be the first ground representative
-        range.push_back( 0 );
-      }else{
-        range.push_back( index );
-      }
-    }
-    return domainChanged;
+    //otherwise, may be equal to some non-ground term
+
+    return r;
   }
 }

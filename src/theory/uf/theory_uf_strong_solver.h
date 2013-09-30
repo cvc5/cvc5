@@ -26,7 +26,13 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class SortInference;
+
 namespace theory {
+
+class SubsortSymmetryBreaker;
+
 namespace uf {
 
 class TheoryUF;
@@ -40,11 +46,14 @@ protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
-  typedef context::CDList<bool> IntList;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 public:
   /** information for incremental conflict/clique finding for a particular sort */
   class SortModel {
+  private:
+    std::map< Node, std::vector< int > > d_totality_lems;
+    std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
+    std::map< Node, int > d_sym_break_index;
   public:
     /** a partition of the current equality graph for which cliques can occur internally */
     class Region {
@@ -146,6 +155,8 @@ public:
     public:
       /** check for cliques */
       bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
+      /** get candidate clique */
+      bool getCandidateClique( int cardinality, std::vector< Node >& clique );
       //print debug
       void debugPrint( const char* c, bool incClique = false );
     };
@@ -196,12 +207,29 @@ public:
     /** add totality axiom */
     void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
   private:
+    class NodeTrie {
+      std::map< Node, NodeTrie > d_children;
+    public:
+      bool add( std::vector< Node >& n, unsigned i = 0 ){
+        Assert( i<n.size() );
+        if( i==(n.size()-1) ){
+          bool ret = d_children.find( n[i] )==d_children.end();
+          d_children[n[i]].d_children.clear();
+          return ret;
+        }else{
+          return d_children[n[i]].add( n, i+1 );
+        }
+      }
+    };
+    std::map< int, NodeTrie > d_clique_trie;
+    void addClique( int c, std::vector< Node >& clique );
+  private:
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
     /** cardinality */
     context::CDO< int > d_cardinality;
     /** maximum allocated cardinality */
-    int d_aloc_cardinality;
+    context::CDO< int > d_aloc_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
@@ -222,7 +250,7 @@ public:
     /** get totality lemma terms */
     Node getTotalityLemmaTerm( int cardinality, int i );
   public:
-    SortModel( Node n, context::Context* c, StrongSolverTheoryUF* thss );
+    SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss );
     virtual ~SortModel(){}
     /** initialize */
     void initialize( OutputChannel* out );
@@ -280,6 +308,8 @@ private:
   TermDisambiguator* d_term_amb;
   /** disequality propagator */
   DisequalityPropagator* d_deq_prop;
+  /** symmetry breaking techniques */
+  SubsortSymmetryBreaker* d_sym_break;
 public:
   StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th);
   ~StrongSolverTheoryUF() {}
@@ -289,6 +319,10 @@ public:
   TermDisambiguator* getTermDisambiguator() { return d_term_amb; }
   /** disequality propagator */
   DisequalityPropagator* getDisequalityPropagator() { return d_deq_prop; }
+  /** symmetry breaker */
+  SubsortSymmetryBreaker* getSymmetryBreaker() { return d_sym_break; }
+  /** get sort inference module */
+  SortInference* getSortInference();
   /** get default sat context */
   context::Context* getSatContext();
   /** get default output channel */
@@ -330,8 +364,10 @@ public:
   TypeNode getCardinalityType( int i ) { return d_conf_types[i]; }
   /** get is in conflict */
   bool isConflict() { return d_conflict; }
-  /** get cardinality for sort */
+  /** get cardinality for node */
   int getCardinality( Node n );
+  /** get cardinality for type */
+  int getCardinality( TypeNode tn );
   /** get representatives */
   void getRepresentatives( Node n, std::vector< Node >& reps );
   /** minimize */
@@ -343,6 +379,7 @@ public:
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_disamb_term_lemmas;
+    IntStat d_sym_break_lemmas;
     IntStat d_totality_lemmas;
     IntStat d_max_model_size;
     Statistics();

@@ -51,7 +51,7 @@ extern CVC4::TimerStat* pTotalTime;
  * Useful for nightly regressions, noninteractive performance runs
  * etc.  See util.cpp.
  */
-extern bool segvNoSpin;
+extern bool segvSpin;
 
 /** A pointer to the options in play */
 extern CVC4_THREADLOCAL(Options*) pOptions;

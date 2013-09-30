@@ -76,12 +76,13 @@ namespace arith {
  *     (exists realMonomial (monomialList qpolynomial))
  *     abs(monomialCoefficient (head (monomialList qpolynomial))) == 1
  *
- * integer_cmp := (<= zpolynomial constant)
+ * integer_cmp := (>= zpolynomial constant)
  *   where
  *     not (exists constantMonomial (monomialList zpolynomial))
  *     (forall integerMonomial (monomialList zpolynomial))
  *     the gcd of all numerators of coefficients is 1
  *     the denominator of all coefficients and the constant is 1
+ *     the leading coefficient is positive
  *
  * rational_eq := (= qvarlist qpolynomial)
  *   where
@@ -240,6 +241,11 @@ public:
     case kind::INTS_MODULUS_TOTAL:
     case kind::DIVISION_TOTAL:
       return isDivMember(n);
+    case kind::ABS:
+    case kind::TO_INTEGER:
+      // Treat to_int as a variable; it is replaced in early preprocessing
+      // by a variable.
+      return true;
     default:
       return (!isRelationOperator(k)) &&
         (Theory::isLeafOf(n, theory::THEORY_ARITH));
@@ -939,6 +945,10 @@ public:
   bool denominatorLCMIsOne() const;
   bool numeratorGCDIsOne() const;
 
+  bool signNormalizedReducedSum() const {
+    return leadingCoefficientIsPositive() && denominatorLCMIsOne() && numeratorGCDIsOne();
+  }
+
   /**
    * Returns the Least Common Multiple of the denominators of the coefficients
    * of the monomials.
@@ -1265,7 +1275,7 @@ private:
    * Creates a comparison equivalent to (k l 0).
    * k is either GT or GEQ.
    * It is not the case that all variables in l are integral.
-   */  
+   */
   static Node mkRatInequality(Kind k, const Polynomial& l);
 
 public:

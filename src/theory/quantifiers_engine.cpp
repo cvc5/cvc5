@@ -27,6 +27,9 @@
 #include "theory/quantifiers/trigger.h"
 #include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/rewriterules/rr_trigger.h"
+#include "theory/quantifiers/bounded_integers.h"
+#include "theory/quantifiers/rewrite_engine.h"
+#include "theory/uf/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -47,7 +50,11 @@ d_lemmas_produced_c(u){
   d_hasAddedLemma = false;
 
   //the model object
-  d_model = new quantifiers::FirstOrderModel( c, "FirstOrderModel" );
+  if( options::fmfFullModelCheck() ){
+    d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
+  }else{
+    d_model = new quantifiers::FirstOrderModelIG( c, "FirstOrderModelIG" );
+  }
 
   //add quantifiers modules
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
@@ -57,11 +64,24 @@ d_lemmas_produced_c(u){
   }else{
     d_inst_engine = NULL;
   }
-  if( options::finiteModelFind() ){
+  if( options::finiteModelFind()  ){
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
+    if( options::fmfBoundInt() ){
+      d_bint = new quantifiers::BoundedIntegers( c, this );
+      d_modules.push_back( d_bint );
+    }else{
+      d_bint = NULL;
+    }
   }else{
     d_model_engine = NULL;
+    d_bint = NULL;
+  }
+  if( options::rewriteRulesAsAxioms() ){
+    d_rr_engine = new quantifiers::RewriteEngine( c, this );
+    d_modules.push_back(d_rr_engine);
+  }else{
+    d_rr_engine = NULL;
   }
 
   //options
@@ -251,7 +271,6 @@ void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< No
 
 bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
   Assert( f.getKind()==FORALL );
-  Assert( !f.hasAttribute(InstConstantAttribute()) );
   Assert( vars.size()==terms.size() );
   Node body = getInstantiation( f, vars, terms );
   //make the lemma
@@ -266,7 +285,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
     uint64_t maxInstLevel = 0;
     for( int i=0; i<(int)terms.size(); i++ ){
-      if( terms[i].hasAttribute(InstConstantAttribute()) ){
+      if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
         Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
         for( int i=0; i<(int)terms.size(); i++ ){
           Debug("inst") << "   " << terms[i] << std::endl;
@@ -432,8 +451,6 @@ bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
 }
 
 bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool reqPhasePol ){
-  //Assert( !n1.hasAttribute(InstConstantAttribute()) );
-  //Assert( !n2.hasAttribute(InstConstantAttribute()) );
   //Assert( !areEqual( n1, n2 ) );
   //Assert( !areDisequal( n1, n2 ) );
   Kind knd = n1.getType()==NodeManager::currentNM()->booleanType() ? IFF : EQUAL;
@@ -463,7 +480,6 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
       if( d_phase_reqs[f]->isPhaseReq( nodes[i] ) ){
         bool preq = d_phase_reqs[f]->getPhaseReq( nodes[i] );
         nodes[i] = NodeManager::currentNM()->mkNode( IFF, nodes[i], NodeManager::currentNM()->mkConst<bool>(preq) );
-        d_term_db->setInstantiationConstantAttr( nodes[i], f );
         nodeChanged = true;
       }
       //else if( qe->isPhaseReqEquality( f, trNodes[i] ) ){
@@ -617,35 +633,48 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   }else{
     int sortId = 0;
     if( optInternalRepSortInference() ){
+    //if( options::ufssSymBreak() ){
       sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( f, f[0][index] );
     }
     if( d_int_rep[sortId].find( r )==d_int_rep[sortId].end() ){
-      std::vector< Node > eqc;
-      getEquivalenceClass( r, eqc );
       //find best selection for representative
       Node r_best;
-      int r_best_score = -1;
-      for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore( eqc[i], f, index );
-        if( optInternalRepSortInference() ){
-          int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i]);
-          if( score>=0 && e_sortId!=sortId ){
-            score += 100;
-          }
+      if( options::fmfRelevantDomain() ){
+        Trace("internal-rep-debug") << "Consult relevant domain to mkRep " << r << std::endl;
+        r_best = d_qe->getModelEngine()->getRelevantDomain()->getRelevantTerm( f, index, r );
+        Trace("internal-rep-debug") << "Returned " << r_best << " " << r << std::endl;
+      }else{
+        std::vector< Node > eqc;
+        getEquivalenceClass( r, eqc );
+        int r_best_score = -1;
+        for( size_t i=0; i<eqc.size(); i++ ){
+          int score = getRepScore( eqc[i], f, index );
+          if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
+            if( optInternalRepSortInference() ){
+              int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i]);
+              if( score>=0 && e_sortId!=sortId ){
+                score += 100;
+              }
+            }
+            //score prefers earliest use of this term as a representative
+            if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
+              r_best = eqc[i];
+              r_best_score = score;
+            }
+		  }
         }
-        //score prefers earliest use of this term as a representative
-        if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
-          r_best = eqc[i];
-          r_best_score = score;
+        if( r_best.isNull() ){
+	      Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
+		  r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+		}
+        //now, make sure that no other member of the class is an instance
+        if( !optInternalRepSortInference() ){
+          r_best = getInstance( r_best, eqc );
         }
-      }
-      //now, make sure that no other member of the class is an instance
-      if( !optInternalRepSortInference() ){
-        r_best = getInstance( r_best, eqc );
-      }
-      //store that this representative was chosen at this point
-      if( d_rep_score.find( r_best )==d_rep_score.end() ){
-        d_rep_score[ r_best ] = d_reset_count;
+        //store that this representative was chosen at this point
+        if( d_rep_score.find( r_best )==d_rep_score.end() ){
+          d_rep_score[ r_best ] = d_reset_count;
+        }
       }
       d_int_rep[sortId][r] = r_best;
       if( r_best!=a ){

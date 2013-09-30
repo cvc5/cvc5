@@ -189,9 +189,9 @@ class CVC4_PUBLIC SmtEngine {
   bool d_fullyInited;
 
   /**
-   * Whether or not we have added any assertions/declarations/definitions
-   * since the last checkSat/query (and therefore we're not responsible
-   * for an assignment).
+   * Whether or not we have added any assertions/declarations/definitions,
+   * or done push/pop, since the last checkSat/query, and therefore we're
+   * not responsible for models or proofs.
    */
   bool d_problemExtended;
 
@@ -234,6 +234,16 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
+   * The name of the input (if any).
+   */
+  std::string d_filename;
+
+  /**
+   * Verbosity of various commands.
+   */
+  std::map<std::string, Integer> d_commandVerbosity;
+
+  /**
    * A private utility class to SmtEngine.
    */
   smt::SmtEnginePrivate* d_private;
@@ -249,7 +259,7 @@ class CVC4_PUBLIC SmtEngine {
    * like turning datatypes back into tuples, length-1-bitvectors back
    * into booleans, etc.
    */
-  Node postprocess(TNode n, TypeNode expectedType);
+  Node postprocess(TNode n, TypeNode expectedType) const;
 
   /**
    * This is something of an "init" procedure, but is idempotent; call
@@ -326,7 +336,7 @@ class CVC4_PUBLIC SmtEngine {
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
-  void addToModelCommandAndDump(const Command& c, bool isGlobal = false, bool userVisible = true, const char* dumpTag = "declarations");
+  void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
 
   /**
    * Get the model (only if immediately preceded by a SAT
@@ -350,12 +360,12 @@ public:
   /**
    * Set the logic of the script.
    */
-  void setLogic(const std::string& logic) throw(ModalException);
+  void setLogic(const std::string& logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.
    */
-  void setLogic(const char* logic) throw(ModalException);
+  void setLogic(const char* logic) throw(ModalException, LogicException);
 
   /**
    * Set the logic of the script.
@@ -444,7 +454,7 @@ public:
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
    */
-  Expr getValue(const Expr& e) throw(ModalException, TypeCheckingException, LogicException);
+  Expr getValue(const Expr& e) const throw(ModalException, TypeCheckingException, LogicException);
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -497,9 +507,11 @@ public:
   /**
    * Set a resource limit for SmtEngine operations.  This is like a time
    * limit, but it's deterministic so that reproducible results can be
-   * obtained.  However, please note that it may not be deterministic
-   * between different versions of CVC4, or even the same version on
-   * different platforms.
+   * obtained.  Currently, it's based on the number of conflicts.
+   * However, please note that the definition may change between different
+   * versions of CVC4 (as may the number of conflicts required, anyway),
+   * and it might even be different between instances of the same version
+   * of CVC4 on different platforms.
    *
    * A cumulative and non-cumulative (per-call) resource limit can be
    * set at the same time.  A call to setResourceLimit() with

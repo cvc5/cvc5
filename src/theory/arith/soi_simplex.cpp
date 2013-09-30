@@ -22,6 +22,8 @@
 
 #include "util/statistics_registry.h"
 
+#include <algorithm>
+
 using namespace std;
 
 namespace CVC4 {
@@ -237,7 +239,7 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
   Debug("soi::selectPrimalUpdate")
     << "selectPrimalUpdate " << instance << endl
     << d_soiVar << " " << d_tableau.basicRowLength(d_soiVar)
-    << " " << d_linEq._countBounds(d_soiVar) << endl;
+    << " " << d_linEq.debugBasicAtBoundCount(d_soiVar) << endl;
 
   typedef std::vector<Cand> CandVector;
   CandVector candidates;
@@ -284,7 +286,6 @@ UpdateInfo SumOfInfeasibilitiesSPD::selectUpdate(LinearEqualityModule::UpdatePre
     ArithVar curr = cand.d_nb;
     const Rational& coeff = *cand.d_coeff;
 
-#warning "Who is using computeSafeUpdate?"
     LinearEqualityModule::UpdatePreferenceFunction leavingPrefFunc = selectLeavingFunction(curr);
     UpdateInfo currProposal = d_linEq.speculativeUpdate(curr, coeff, leavingPrefFunc);
 
@@ -349,7 +350,7 @@ void SumOfInfeasibilitiesSPD::debugPrintSignal(ArithVar updated) const{
   int dir = !d_variables.assignmentIsConsistent(updated) ?
     d_errorSet.getSgn(updated) : 0;
   Debug("updateAndSignal") << " dir " << dir;
-  Debug("updateAndSignal") << " _countBounds " << d_linEq._countBounds(updated) << endl;
+  Debug("updateAndSignal") << " debugBasicAtBoundCount " << d_linEq.debugBasicAtBoundCount(updated) << endl;
 }
 
 
@@ -367,7 +368,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
       ArithVar leaving = selected.leaving();
       ss << "leaving " << leaving
          << " " << d_tableau.basicRowLength(leaving)
-         << " " << d_linEq._countBounds(leaving)
+         << " " << d_linEq.debugBasicAtBoundCount(leaving)
          << endl;
     }
     if(degenerate(w) && selected.describesPivot()){
@@ -376,7 +377,7 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
         << "degenerate " << leaving
         << ", atBounds " << d_linEq.basicsAtBounds(selected)
         << ", len " << d_tableau.basicRowLength(leaving)
-        << ", bc " << d_linEq._countBounds(leaving)
+        << ", bc " << d_linEq.debugBasicAtBoundCount(leaving)
         << endl;
     }
   }
@@ -433,6 +434,192 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
   adjustFocusAndError(selected, focusChanges);
 }
 
+void SumOfInfeasibilitiesSPD::qeAddRange(uint32_t begin, uint32_t end){
+  Assert(!d_qeInSoi.empty());
+  for(uint32_t i = begin; i != end; ++i){
+    ArithVar v = d_qeConflict[i];
+    addToInfeasFunc(d_statistics.d_soiConflictMinimization, d_soiVar, v);
+    d_qeInSoi.add(v);
+  }
+}
+
+void SumOfInfeasibilitiesSPD::qeRemoveRange(uint32_t begin, uint32_t end){
+  for(uint32_t i = begin; i != end; ++i){
+    ArithVar v = d_qeConflict[i];
+    removeFromInfeasFunc(d_statistics.d_soiConflictMinimization, d_soiVar, v);
+    d_qeInSoi.remove(v);
+  }
+  Assert(!d_qeInSoi.empty());
+}
+
+void SumOfInfeasibilitiesSPD::qeSwapRange(uint32_t N, uint32_t r, uint32_t s){
+  for(uint32_t i = 0; i < N; ++i){
+    std::swap(d_qeConflict[r+i], d_qeConflict[s+i]);
+  }
+}
+
+/**
+ * Region notation:
+ * A region is either
+ *  - A single element X@i with the name X at the position i
+ *  - A sequence of indices X@[i,j) with the name X and the elements between i [inclusive] and j exclusive
+ *  - A concatenation of regions R1 and R2, R1;R2
+ *
+ * Given the fixed assumptions C @ [0,cEnd) and a set of candidate minimizations U@[cEnd, uEnd)
+ * s.t. C \cup U is known to be in conflict ([0,uEnd) has a conflict), find a minimal
+ * subset of U, Delta, s.t. C \cup Delta is in conflict.
+ *
+ * Pre:
+ *  [0, uEnd) is a set and is in conflict.
+ *    uEnd <= assumptions.size()
+ *  [0, cEnd) is in d_inSoi.
+ *
+ * Invariants: [0,cEnd) is never modified
+ *
+ * Post:
+ *  [0, cEnd); [cEnd, deltaEnd) is in conflict
+ *  [0, deltaEnd) is a set
+ *  [0, deltaEnd) is in d_inSoi
+ */
+uint32_t SumOfInfeasibilitiesSPD::quickExplainRec(uint32_t cEnd, uint32_t uEnd){
+  Assert(cEnd <= uEnd);
+  Assert(d_qeInUAndNotInSoi.empty());
+  Assert(d_qeGreedyOrder.empty());
+
+  const Tableau::Entry* spoiler = NULL;
+
+  if(d_soiVar != ARITHVAR_SENTINEL && d_linEq.selectSlackEntry(d_soiVar, false) == NULL){
+    // already in conflict
+    return cEnd;
+  }
+
+  Assert(cEnd < uEnd);
+
+  // Phase 1 : Construct the conflict greedily
+
+  for(uint32_t i = cEnd; i < uEnd; ++i){
+    d_qeInUAndNotInSoi.add(d_qeConflict[i]);
+  }
+  if(d_soiVar == ARITHVAR_SENTINEL){ // special case for d_soiVar being empty
+    ArithVar first = d_qeConflict[cEnd];
+    d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, first);
+    d_qeInSoi.add(first);
+    d_qeInUAndNotInSoi.remove(first);
+    d_qeGreedyOrder.push_back(first);
+  }
+  while((spoiler = d_linEq.selectSlackEntry(d_soiVar, false)) != NULL){
+    Assert(!d_qeInUAndNotInSoi.empty());
+
+    ArithVar nb = spoiler->getColVar();
+    int oppositeSgn = -(spoiler->getCoefficient().sgn());
+    Assert(oppositeSgn != 0);
+
+    ArithVar basicWithOp = find_basic_in_sgns(d_qeSgns, nb, oppositeSgn, d_qeInUAndNotInSoi, true);
+    Assert(basicWithOp != ARITHVAR_SENTINEL);
+
+    addToInfeasFunc(d_statistics.d_soiConflictMinimization, d_soiVar, basicWithOp);
+    d_qeInSoi.add(basicWithOp);
+    d_qeInUAndNotInSoi.remove(basicWithOp);
+    d_qeGreedyOrder.push_back(basicWithOp);
+  }
+  Assert(spoiler == NULL);
+
+  // Compact the set u
+  uint32_t newEnd = cEnd + d_qeGreedyOrder.size();
+  std::copy(d_qeGreedyOrder.begin(), d_qeGreedyOrder.end(), d_qeConflict.begin()+cEnd);
+
+  d_qeInUAndNotInSoi.purge();
+  d_qeGreedyOrder.clear();
+
+   // Phase 2 : Recursively determine the minimal set of rows
+
+  uint32_t xPos = cEnd;
+  std::swap(d_qeGreedyOrder[xPos], d_qeGreedyOrder[newEnd - 1]);
+  uint32_t uBegin = xPos + 1;
+  uint32_t split = (newEnd - uBegin)/2 + uBegin;
+
+  //assumptions : C @ [0, cEnd); X @ xPos; U1 @ [u1Begin, split); U2 @ [split, newEnd)
+  // [0, newEnd) == d_inSoi
+
+  uint32_t compactU2;
+  if(split == newEnd){ // U2 is empty
+    compactU2 = newEnd;
+  }else{
+    // Remove U2 from Soi
+    qeRemoveRange(split, newEnd);
+    // [0, split) == d_inSoi
+
+    // pre assumptions: C + X + U1 @ [0,split); U2 [split, newEnd)
+    compactU2 = quickExplainRec(split, newEnd);
+    // post:
+    //  assumptions: C + X + U1 @ [0, split); delta2 @ [split - compactU2)
+    //  d_inSoi = [0, compactU2)
+  }
+  uint32_t deltaSize = compactU2 - split;
+  qeSwapRange(deltaSize, uBegin, split);
+  uint32_t d2End = uBegin+deltaSize;
+  // assumptions : C @ [0, cEnd); X @ xPos; delta2 @ [uBegin, d2End); U1 @ [d2End, compactU2)
+  //  d_inSoi == [0, compactU2)
+
+  uint32_t d1End;
+  if(d2End == compactU2){ // U1 is empty
+    d1End = d2End;
+  }else{
+    qeRemoveRange(d2End, compactU2);
+
+    //pre assumptions : C + X + delta2 @ [0, d2End); U1 @ [d2End, compactU2);
+    d1End = quickExplainRec(d2End, compactU2);
+    //post:
+    // assumptions : C + X + delta2 @ [0, d2End); delta1 @ [d2End, d1End);
+    // d_inSoi = [0, d1End)
+  }
+  //After both:
+  // d_inSoi == [0, d1End), C @ [0, cEnd); X + delta2 + delta 1 @ [xPos, d1End);
+
+  Assert(d_qeInUAndNotInSoi.empty());
+  Assert(d_qeGreedyOrder.empty());
+  return d1End;
+}
+
+void SumOfInfeasibilitiesSPD::quickExplain(){
+  Assert(d_qeInSoi.empty());
+  Assert(d_qeInUAndNotInSoi.empty());
+  Assert(d_qeGreedyOrder.empty());
+  Assert(d_soiVar == ARITHVAR_SENTINEL);
+  Assert(d_qeSgns.empty());
+
+  d_qeConflict.clear();
+  d_errorSet.pushFocusInto(d_qeConflict);
+
+  //cout <<  d_qeConflict.size() << " ";
+  uint32_t size = d_qeConflict.size();
+
+  if(size > 2){
+    for(ErrorSet::focus_iterator iter = d_errorSet.focusBegin(), end = d_errorSet.focusEnd(); iter != end; ++iter){
+      ArithVar e = *iter;
+      addRowSgns(d_qeSgns, e, d_errorSet.getSgn(e));
+    }
+    uint32_t end = quickExplainRec(0u, size);
+    Assert(end <= d_qeConflict.size());
+    Assert(d_soiVar != ARITHVAR_SENTINEL);
+    Assert(!d_qeInSoi.empty());
+
+    d_qeConflict.resize(end);
+    tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
+    d_soiVar = ARITHVAR_SENTINEL;
+    d_qeInSoi.purge();
+    d_qeSgns.clear();
+  }
+
+  //cout << d_qeConflict.size() << endl;
+
+  Assert(d_qeInSoi.empty());
+  Assert(d_qeInUAndNotInSoi.empty());
+  Assert(d_qeGreedyOrder.empty());
+  Assert(d_soiVar == ARITHVAR_SENTINEL);
+  Assert(d_qeSgns.empty());
+}
+
 unsigned SumOfInfeasibilitiesSPD::trySet(const ArithVarVec& set){
   Assert(d_soiVar == ARITHVAR_SENTINEL);
   bool success = false;
@@ -444,30 +631,6 @@ unsigned SumOfInfeasibilitiesSPD::trySet(const ArithVarVec& set){
     d_soiVar = ARITHVAR_SENTINEL;
   }
   return success ? set.size() : std::numeric_limits<int>::max();
-}
-
-unsigned SumOfInfeasibilitiesSPD::tryAllSubsets(const ArithVarVec& set, unsigned depth, ArithVarVec& tmp) {
-  if(depth < set.size()){
-    unsigned resWithout = tryAllSubsets(set, depth+1, tmp);
-    if(resWithout == tmp.size() &&  resWithout < set.size()){
-      for(unsigned i = 0; i < tmp.size(); ++i){
-        cout << tmp[i] << " ";
-      }
-      cout << endl;
-    }
-    tmp.push_back(set[depth]);
-    unsigned resWith = tryAllSubsets(set, depth+1, tmp);
-    if(resWith == tmp.size() && resWith < set.size()){
-      for(unsigned i = 0; i < tmp.size(); ++i){
-        cout << tmp[i] << " ";
-      }
-      cout << endl;
-    }
-    tmp.pop_back();
-    return std::min(resWith, resWithout);
-  }else{
-    return trySet(tmp);
-  }
 }
 
 std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
@@ -547,8 +710,6 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
     underConstruction.push_back(v);
     d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization, v);
 
-    bool uniqueChoices = true;
-
     //cout << "trying " << v << endl;
 
     const Tableau::Entry* spoiler = NULL;
@@ -559,7 +720,7 @@ std::vector< ArithVarVec > SumOfInfeasibilitiesSPD::greedyConflictSubsets(){
 
       //cout << "looking for " << nb << " " << oppositeSgn << endl;
 
-      ArithVar basicWithOp = find_basic_outside(sgns, nb, oppositeSgn, hasParticipated);
+      ArithVar basicWithOp = find_basic_in_sgns(sgns, nb, oppositeSgn, hasParticipated, false);
 
       if(basicWithOp == ARITHVAR_SENTINEL){
         //cout << "search did not work  for " << nb << endl;
@@ -648,17 +809,26 @@ WitnessImprovement SumOfInfeasibilitiesSPD::SOIConflict(){
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);
   d_soiVar = ARITHVAR_SENTINEL;
-  vector<ArithVarVec> subsets = greedyConflictSubsets();
-  Assert(  d_soiVar == ARITHVAR_SENTINEL);
 
-  Assert(!subsets.empty());
-  for(vector<ArithVarVec>::const_iterator i = subsets.begin(), end = subsets.end(); i != end; ++i){
-    const ArithVarVec& subset = *i;
-    Node conflict = generateSOIConflict(subset);
+  if(options::soiQuickExplain()){
+    quickExplain();
+    Node conflict = generateSOIConflict(d_qeConflict);
     //cout << conflict << endl;
-
-    //reportConflict(conf); do not do this. We need a custom explanations!
     d_conflictChannel(conflict);
+  }else{
+
+    vector<ArithVarVec> subsets = greedyConflictSubsets();
+    Assert(  d_soiVar == ARITHVAR_SENTINEL);
+
+    Assert(!subsets.empty());
+    for(vector<ArithVarVec>::const_iterator i = subsets.begin(), end = subsets.end(); i != end; ++i){
+      const ArithVarVec& subset = *i;
+      Node conflict = generateSOIConflict(subset);
+      //cout << conflict << endl;
+
+      //reportConflict(conf); do not do this. We need a custom explanations!
+      d_conflictChannel(conflict);
+    }
   }
   Assert(  d_soiVar == ARITHVAR_SENTINEL);
   d_soiVar = constructInfeasiblityFunction(d_statistics.d_soiConflictMinimization);
@@ -703,7 +873,7 @@ WitnessImprovement SumOfInfeasibilitiesSPD::soiRound() {
 }
 
 bool SumOfInfeasibilitiesSPD::debugSOI(WitnessImprovement w, ostream& out, int instance) const{
-#warning "Redo SOI"
+//#warning "Redo SOI"
   return true;
   // out << "DLV("<<instance<<") ";
   // switch(w){

@@ -3,7 +3,7 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = builtin booleans uf arith bv arrays datatypes quantifiers rewriterules
+SUBDIRS = builtin booleans uf arith bv arrays datatypes quantifiers rewriterules idl strings
 DIST_SUBDIRS = $(SUBDIRS) example
 
 noinst_LTLIBRARIES = libtheory.la
@@ -42,7 +42,9 @@ libtheory_la_SOURCES = \
 	model.h \
 	model.cpp \
 	rep_set.h \
-	rep_set.cpp
+	rep_set.cpp \
+	atom_requests.h \
+	atom_requests.cpp
 
 nodist_libtheory_la_SOURCES = \
 	rewriter_tables.h \
@@ -58,7 +60,9 @@ libtheory_la_LIBADD = \
 	@builddir@/bv/libbv.la \
 	@builddir@/datatypes/libdatatypes.la \
 	@builddir@/quantifiers/libquantifiers.la \
-	@builddir@/rewriterules/librewriterules.la
+	@builddir@/rewriterules/librewriterules.la \
+	@builddir@/idl/libidl.la \
+	@builddir@/strings/libstrings.la
 
 EXTRA_DIST = \
 	logic_info.i \

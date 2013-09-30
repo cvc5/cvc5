@@ -396,7 +396,7 @@ struct CVC4_PUBLIC BitVectorHashFunction {
 
 /**
  * The structure representing the extraction operation for bit-vectors. The
- * operation map bit-vectors to bit-vector of size <code>high - low + 1</code>
+ * operation maps bit-vectors to bit-vector of size <code>high - low + 1</code>
  * by taking the bits at indices <code>high ... low</code>
  */
 struct CVC4_PUBLIC BitVectorExtract {
@@ -492,6 +492,13 @@ struct CVC4_PUBLIC BitVectorRotateRight {
   operator unsigned () const { return rotateRightAmount; }
 };/* struct BitVectorRotateRight */
 
+struct CVC4_PUBLIC IntToBitVector {
+  unsigned size;
+  IntToBitVector(unsigned size)
+  : size(size) {}
+  operator unsigned () const { return size; }
+};/* struct IntToBitVector */
+
 template <typename T>
 struct CVC4_PUBLIC UnsignedHashFunction {
   inline size_t operator()(const T& x) const {
@@ -512,6 +519,11 @@ inline std::ostream& operator <<(std::ostream& os, const BitVectorExtract& bv) {
 inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const BitVectorBitOf& bv) {
   return os << "[" << bv.bitIndex << "]";
+}
+
+inline std::ostream& operator <<(std::ostream& os, const IntToBitVector& bv) CVC4_PUBLIC;
+inline std::ostream& operator <<(std::ostream& os, const IntToBitVector& bv) {
+  return os << "[" << bv.size << "]";
 }
 
 }/* CVC4 namespace */

@@ -150,6 +150,7 @@ tokens {
   MOD_TOK = 'MOD';
   INTDIV_TOK = 'DIV';
   FLOOR_TOK = 'FLOOR';
+  DISTINCT_TOK = 'DISTINCT';
 
   // Bitvectors
 
@@ -270,8 +271,7 @@ int getOperatorPrecedence(int type) {
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
-  case GT_TOK:
-  case FLOOR_TOK: return 25;
+  case GT_TOK: return 25;
   case EQUAL_TOK:
   case DISEQUAL_TOK: return 26;
   case NOT_TOK: return 27;
@@ -953,7 +953,7 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              Expr func = PARSER_STATE->mkVar(*i, t, true);
+              Expr func = PARSER_STATE->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
               Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
@@ -968,13 +968,14 @@ declareVariables[CVC4::Command*& cmd, CVC4::Type& t, const std::vector<std::stri
           // like e.g. FORALL(x:INT = 4): [...]
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
-        Debug("parser") << "made " << idList.front() << " = " << f << std::endl;
+        assert(!idList.empty());
         for(std::vector<std::string>::const_iterator i = idList.begin(),
               i_end = idList.end();
             i != i_end;
             ++i) {
+          Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          Expr func = EXPR_MANAGER->mkVar(*i, t, true);
+          Expr func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineFunction(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
@@ -1162,15 +1163,11 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* tuple types / old-style function types */
-  | LBRACKET type[t,check] { types.push_back(t); }
-    ( COMMA type[t,check] { types.push_back(t); } )* RBRACKET
-    { if(types.size() == 1) {
-        if(types.front().isFunction()) {
-          // old style function syntax [ T -> U ]
-          PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
-        } else {
-          PARSER_STATE->parseError("I'm not sure what you're trying to do here; tuples must have > 1 type");
-        }
+  | LBRACKET ( type[t,check] { types.push_back(t); }
+    ( COMMA type[t,check] { types.push_back(t); } )* )? RBRACKET
+    { if(types.size() == 1 && types.front().isFunction()) {
+        // old style function syntax [ T -> U ]
+        PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
       } else {
         // tuple type [ T, U, V... ]
         t = EXPR_MANAGER->mkTupleType(types);
@@ -1178,13 +1175,17 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     }
 
     /* record types */
-  | SQHASH identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
-    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* HASHSQ
+  | SQHASH ( identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
+    ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* )? HASHSQ
     { t = EXPR_MANAGER->mkRecordType(typeIds); }
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
-    { t = EXPR_MANAGER->mkBitVectorType(k); }
+    { if(k == 0) {
+        PARSER_STATE->parseError("Illegal bitvector size: 0");
+      }
+      t = EXPR_MANAGER->mkBitVectorType(k);
+    }
 
     /* basic types */
   | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
@@ -1326,7 +1327,7 @@ prefixFormula[CVC4::Expr& f]
     { PARSER_STATE->popScope();
       Type t = EXPR_MANAGER->mkFunctionType(types, f.getType());
       std::string name = "lambda";
-      Expr func = PARSER_STATE->mkAnonymousFunction(name, t);
+      Expr func = PARSER_STATE->mkAnonymousFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       Command* cmd = new DefineFunctionCommand(name, func, terms, f);
       PARSER_STATE->preemptCommand(cmd);
       f = func;
@@ -1337,7 +1338,7 @@ prefixFormula[CVC4::Expr& f]
     boundVarDecl[ids,t] RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
       UNSUPPORTED("array literals not supported yet");
-      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()), true);
+      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()), ExprManager::VAR_FLAG_GLOBAL);
     }
   ;
 
@@ -1368,7 +1369,7 @@ letDecl
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
     { Debug("parser") << Expr::setlanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
       PARSER_STATE->defineVar(name, e);
-      Debug("parser") << "LET[" << PARSER_STATE->getDeclarationLevel() << "]: "
+      Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
                       << " ==>" << " " << e << std::endl;
     }
@@ -1578,7 +1579,7 @@ postfixTerm[CVC4::Expr& f]
   std::string id;
   Type t;
 }
-  : bvTerm[f]
+  : ( bvTerm[f]
     ( /* array select / bitvector extract */
       LBRACKET
         ( formula[f2] { extract = false; }
@@ -1659,6 +1660,13 @@ postfixTerm[CVC4::Expr& f]
         }
       )
     )*
+    | FLOOR_TOK LPAREN formula[f] RPAREN
+      { f = MK_EXPR(CVC4::kind::TO_INTEGER, f); }
+    | DISTINCT_TOK LPAREN
+      formula[f] { args.push_back(f); }
+      ( COMMA formula[f] { args.push_back(f); } )* RPAREN
+      { f = (args.size() == 1) ? MK_CONST(bool(true)) : MK_EXPR(CVC4::kind::DISTINCT, args); }
+    )
     ( typeAscription[f, t]
       { if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && t.isDatatype()) {
           std::vector<CVC4::Expr> v;
@@ -1834,6 +1842,10 @@ simpleTerm[CVC4::Expr& f]
       }
     }
 
+    /* empty tuple literal */
+  | LPAREN RPAREN
+    { f = MK_EXPR(kind::TUPLE, std::vector<Expr>()); }
+
     /* boolean literals */
   | TRUE_TOK  { f = MK_CONST(bool(true)); }
   | FALSE_TOK { f = MK_CONST(bool(false)); }
@@ -1939,15 +1951,15 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
      * below. */
   : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
+        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
         params.push_back( t );
       }
       ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2);
+        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(id,params));
+    { datatypes.push_back(Datatype(id, params));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

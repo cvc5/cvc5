@@ -26,25 +26,33 @@ namespace quantifiers {
 class RelevantDomain
 {
 private:
+  class RDomain
+  {
+  public:
+    RDomain() : d_parent( NULL ) {}
+    void reset() { d_parent = NULL; d_terms.clear(); }
+    RDomain * d_parent;
+    std::vector< Node > d_terms;
+    void merge( RDomain * r );
+    void addTerm( Node t );
+    RDomain * getParent();
+    void removeRedundantTerms( FirstOrderModel * fm );
+    bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
+  };
+  std::map< Node, std::map< int, RDomain * > > d_rel_doms;
+  std::map< RDomain *, Node > d_rn_map;
+  std::map< RDomain *, int > d_ri_map;
+  RDomain * getRDomain( Node n, int i );
   QuantifiersEngine* d_qe;
   FirstOrderModel* d_model;
-
-  //the domain of the arguments for each operator
-  std::map< Node, std::map< int, RepDomain > > d_active_domain;
-  //the range for each operator
-  std::map< Node, RepDomain > d_active_range;
-  //for computing relevant instantiation domain, return true if changed
-  bool computeRelevantInstantiationDomain( Node n, Node parent, int arg, Node f );
-  //for computing extended
-  bool extendFunctionDomains( Node n, RepDomain& range );
+  void computeRelevantDomain( Node n, bool hasPol, bool pol );
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
   //compute the relevant domain
   void compute();
-  //relevant instantiation domain for each quantifier
-  std::map< Node, std::vector< RepDomain > > d_quant_inst_domain;
-  std::map< Node, std::map< int, bool > > d_quant_inst_domain_complete;
+
+  Node getRelevantTerm( Node f, int i, Node r );
 };/* class RelevantDomain */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -146,14 +146,6 @@ public:
   }
 };/* class AbstractValueTypeRule */
 
-class StringConstantTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    Assert(n.getKind() == kind::CONST_STRING);
-    return nodeManager->stringType();
-  }
-};/* class StringConstantTypeRule */
-
 class LambdaTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
@@ -219,6 +211,14 @@ public:
     return nodeManager->booleanType();
   }
 };/* class ChainTypeRule */
+
+class ChainedOperatorTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    Assert(n.getKind() == kind::CHAIN_OP);
+    return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
+  }
+};/* class ChainedOperatorTypeRule */
 
 class SortProperties {
 public:

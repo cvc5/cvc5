@@ -39,9 +39,11 @@ libutil_la_SOURCES = \
 	datatype.h \
 	datatype.cpp \
 	tuple.h \
-	maybe.h \
 	record.h \
 	record.cpp \
+	divisible.h \
+	divisible.cpp \
+	maybe.h \
 	matcher.h \
 	gmp_util.h \
 	sexpr.h \
@@ -75,6 +77,7 @@ libutil_la_SOURCES = \
 	ite_removal.h \
 	ite_removal.cpp \
 	node_visitor.h \
+	chain.h \
 	index.h \
 	uninterpreted_constant.h \
 	uninterpreted_constant.cpp \
@@ -85,7 +88,8 @@ libutil_la_SOURCES = \
 	util_model.h \
 	util_model.cpp \
 	sort_inference.h \
-	sort_inference.cpp
+	sort_inference.cpp \
+	regexp.h
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
@@ -122,7 +126,7 @@ EXTRA_DIST = \
 	datatype.i \
 	tuple.i \
 	record.i \
-	output.i \
+	divisible.i \
 	cardinality.i \
 	result.i \
 	configuration.i \
@@ -136,7 +140,8 @@ EXTRA_DIST = \
 	rational.i \
 	hash.i \
 	predicate.i \
-	uninterpreted_constant.i
+	uninterpreted_constant.i \
+	chain.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

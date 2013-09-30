@@ -20,6 +20,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/options.h"
 #include "theory/model.h"
+#include "theory/quantifiers/symmetry_breaking.h"
+
 
 //#define ONE_SPLIT_REGION
 //#define DISABLE_QUICK_CLIQUE_CHECKS
@@ -116,6 +118,9 @@ void StrongSolverTheoryUF::SortModel::Region::setEqual( Node a, Node b ){
           //notify the disequality propagator
           if( options::ufssDiseqPropagation() ){
             d_cf->d_thss->getDisequalityPropagator()->assertDisequal(a, n, Node::null());
+          }
+          if( options::ufssSymBreak() ){
+            d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
           }
         }
         setDisequal( b, n, t, false );
@@ -322,6 +327,20 @@ bool StrongSolverTheoryUF::SortModel::Region::check( Theory::Effort level, int c
   return false;
 }
 
+bool StrongSolverTheoryUF::SortModel::Region::getCandidateClique( int cardinality, std::vector< Node >& clique ) {
+  if( d_testCliqueSize>=long(cardinality+1) ){
+    //test clique is a clique
+    for( NodeBoolMap::iterator it = d_testClique.begin(); it != d_testClique.end(); ++it ){
+      if( (*it).second ){
+        clique.push_back( (*it).first );
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+
 void StrongSolverTheoryUF::SortModel::Region::getRepresentatives( std::vector< Node >& reps ){
   for( std::map< Node, RegionNodeInfo* >::iterator it = d_nodes.begin(); it != d_nodes.end(); ++it ){
     RegionNodeInfo* rni = it->second;
@@ -394,9 +413,9 @@ void StrongSolverTheoryUF::SortModel::Region::debugPrint( const char* c, bool in
 
 
 
-StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
+StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
           d_thss( thss ), d_regions_index( c, 0 ), d_regions_map( c ), d_split_score( c ), d_disequalities_index( c, 0 ),
-          d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( 0 ),
+          d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( u, 0 ),
           d_cardinality_assertions( c ), d_hasCard( c, false ){
   d_cardinality_term = n;
 }
@@ -501,9 +520,14 @@ void StrongSolverTheoryUF::SortModel::merge( Node a, Node b ){
       }
       d_reps = d_reps - 1;
 
-      if( options::ufssDiseqPropagation() && !d_conflict ){
-        //notify the disequality propagator
-        d_thss->getDisequalityPropagator()->merge(a, b);
+      if( !d_conflict ){
+        if( options::ufssDiseqPropagation() ){
+          //notify the disequality propagator
+          d_thss->getDisequalityPropagator()->merge(a, b);
+        }
+        if( options::ufssSymBreak() ){
+          d_thss->getSymmetryBreaker()->merge(a, b);
+        }
       }
     }
   }
@@ -551,9 +575,14 @@ void StrongSolverTheoryUF::SortModel::assertDisequal( Node a, Node b, Node reaso
           checkRegion( bi );
         }
 
-        if( options::ufssDiseqPropagation() && !d_conflict ){
-          //notify the disequality propagator
-          d_thss->getDisequalityPropagator()->assertDisequal(a, b, Node::null());
+        if( !d_conflict ){
+          if( options::ufssDiseqPropagation() ){
+            //notify the disequality propagator
+            d_thss->getDisequalityPropagator()->assertDisequal(a, b, Node::null());
+          }
+          if( options::ufssSymBreak() ){
+            d_thss->getSymmetryBreaker()->assertDisequal(a, b);
+          }
         }
       }
     }
@@ -595,9 +624,11 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           if( d_regions[i]->d_valid ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
-              //add clique lemma
-              addCliqueLemma( clique, out );
-              return;
+              if( options::ufssMinimalModel() ){
+                //add clique lemma
+                addCliqueLemma( clique, out );
+                return;
+              }
             }else{
               Trace("uf-ss-debug") << "No clique in Region #" << i << std::endl;
             }
@@ -623,11 +654,21 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           //see if we have any recommended splits from large regions
           for( int i=0; i<(int)d_regions_index; i++ ){
             if( d_regions[i]->d_valid && d_regions[i]->getNumReps()>d_cardinality ){
-              if( addSplit( d_regions[i], out ) ){
-                addedLemma = true;
+              //just add the clique lemma
+              if( level==Theory::EFFORT_FULL && options::ufssCliqueSplits() ){
+                std::vector< Node > clique;
+                if( d_regions[i]->getCandidateClique( d_cardinality, clique ) ){
+                  //add clique lemma
+                  addCliqueLemma( clique, out );
+                  return;
+                }
+              }else{
+                if( addSplit( d_regions[i], out ) ){
+                  addedLemma = true;
 #ifdef ONE_SPLIT_REGION
-                break;
+                  break;
 #endif
+                }
               }
             }
           }
@@ -644,7 +685,7 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->d_valid ){
                   Node op = d_regions[i]->d_nodes.begin()->first;
-                  int sort_id = d_thss->getTheory()->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId(op);
+                  int sort_id = d_thss->getSortInference()->getSortId(op);
                   if( sortsFound.find( sort_id )!=sortsFound.end() ){
                     combineRegions( sortsFound[sort_id], i );
                     recheck = true;
@@ -659,13 +700,17 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
               //naive strategy, force region combination involving the first valid region
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->d_valid ){
-                  forceCombineRegion( i, false );
-                  recheck = true;
-                  break;
+                  int fcr = forceCombineRegion( i, false );
+                  Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
+                  if( options::ufssMinimalModel() || fcr!=-1 ){
+                    recheck = true;
+                    break;
+                  }
                 }
               }
             }
             if( recheck ){
+              Trace("uf-ss-debug") << "Must recheck." << std::endl;
               check( level, out );
             }
           }
@@ -869,8 +914,10 @@ void StrongSolverTheoryUF::SortModel::checkRegion( int ri, bool checkCombine ){
     //now check if region is in conflict
     std::vector< Node > clique;
     if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
-      //explain clique
-      addCliqueLemma( clique, &d_thss->getOutputChannel() );
+      if( options::ufssMinimalModel() ){
+        //explain clique
+        addCliqueLemma( clique, &d_thss->getOutputChannel() );
+      }
     }
   }
 }
@@ -947,18 +994,33 @@ void StrongSolverTheoryUF::SortModel::moveNode( Node n, int ri ){
 void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
   if( d_aloc_cardinality>0 ){
     Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists for type " << d_type << " in this branch" << std::endl;
-    if( Trace.isOn("uf-ss-cliques") ){
-      Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << " : " << std::endl;
-      for( size_t i=0; i<d_cliques[ d_aloc_cardinality ].size(); i++ ){
-        Trace("uf-ss-cliques") << "  ";
-        for( size_t j=0; j<d_cliques[ d_aloc_cardinality ][i].size(); j++ ){
-          Trace("uf-ss-cliques") << d_cliques[ d_aloc_cardinality ][i][j] << " ";
-        }
-        Trace("uf-ss-cliques") << std::endl;
+  }
+  if( Trace.isOn("uf-ss-cliques") ){
+    Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << " for " << d_type << " : " << std::endl;
+    for( size_t i=0; i<d_cliques[ d_aloc_cardinality ].size(); i++ ){
+      Trace("uf-ss-cliques") << "  ";
+      for( size_t j=0; j<d_cliques[ d_aloc_cardinality ][i].size(); j++ ){
+        Trace("uf-ss-cliques") << d_cliques[ d_aloc_cardinality ][i][j] << " ";
       }
+      Trace("uf-ss-cliques") << std::endl;
     }
   }
-  d_aloc_cardinality++;
+  /*
+  if( options::ufssSymBreak() ){
+    std::vector< Node > reps;
+    getRepresentatives( reps );
+    if( d_aloc_cardinality>0 ){
+      d_thss->getSymmetryBreaker()->allocateCardinality( out, d_type, d_aloc_cardinality+1, d_cliques[ d_aloc_cardinality ], reps );
+    }else{
+      std::vector< Node > clique;
+      clique.push_back( d_cardinality_term );
+      std::vector< std::vector< Node > > cliques;
+      cliques.push_back( clique );
+      d_thss->getSymmetryBreaker()->allocateCardinality( out, d_type, 1, cliques, reps );
+    }
+  }
+  */
+  d_aloc_cardinality = d_aloc_cardinality + 1;
 
   //check for abort case
   if( options::ufssAbortCardinality()==d_aloc_cardinality ){
@@ -969,7 +1031,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
       Node var;
-      if( d_aloc_cardinality==1 ){
+      if( d_aloc_cardinality==1 && !options::ufssTotalitySymBreak() ){
         //get arbitrary ground term
         var = d_cardinality_term;
       }else{
@@ -1013,8 +1075,8 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
 }
 
 bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
+  Node s;
   if( r->hasSplits() ){
-    Node s;
     if( !options::ufssSmartSplits() ){
       //take the first split you find
       for( NodeBoolMap::iterator it = r->d_splits.begin(); it != r->d_splits.end(); ++it ){
@@ -1038,13 +1100,31 @@ bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
         }
       }
     }
+    Assert( s!=Node::null() );
+  }else{
+    if( !options::ufssMinimalModel() ){
+      //since candidate clique is not reported, we may need to find splits manually
+      for ( std::map< Node, Region::RegionNodeInfo* >::iterator it = r->d_nodes.begin(); it != r->d_nodes.end(); ++it ){
+        if ( it->second->d_valid ){
+          for ( std::map< Node, Region::RegionNodeInfo* >::iterator it2 = r->d_nodes.begin(); it2 != r->d_nodes.end(); ++it2 ){
+            if ( it->second!=it2->second && it2->second->d_valid ){
+              if( !r->isDisequal( it->first, it2->first, 1 ) ){
+                s = NodeManager::currentNM()->mkNode( EQUAL, it->first, it2->first );
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!s.isNull() ){
     //add lemma to output channel
-    Assert( s!=Node::null() && s.getKind()==EQUAL );
+    Assert( s.getKind()==EQUAL );
     s = Rewriter::rewrite( s );
     Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
     if( options::sortInference()) {
       for( int i=0; i<2; i++ ){
-        int si = d_thss->getTheory()->getQuantifiersEngine()->getTheoryEngine()->getSortInference()->getSortId( s[i] );
+        int si = d_thss->getSortInference()->getSortId( s[i] );
         Trace("uf-ss-split-si") << si << " ";
       }
       Trace("uf-ss-split-si")  << std::endl;
@@ -1071,6 +1151,12 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
   while( clique.size()>size_t(d_cardinality+1) ){
     clique.pop_back();
   }
+  //debugging information
+  if( options::ufssSymBreak() ){
+    std::vector< Node > clique_vec;
+    clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
+    addClique( d_cardinality, clique_vec );
+  }
   if( options::ufssSimpleCliques() && !options::ufssExplainedCliques() ){
     //add as lemma
     std::vector< Node > eqs;
@@ -1083,16 +1169,10 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
     }
     eqs.push_back( d_cardinality_literal[ d_cardinality ].notNode() );
     Node lem = NodeManager::currentNM()->mkNode( OR, eqs );
-    Trace("uf-ss-lemma") << "*** Add clique conflict " << lem << std::endl;
+    Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
     ++( d_thss->d_statistics.d_clique_lemmas );
     out->lemma( lem );
   }else{
-    //debugging information
-    if( Trace.isOn("uf-ss-cliques") ){
-      std::vector< Node > clique_vec;
-      clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
-      d_cliques[ d_cardinality ].push_back( clique_vec );
-    }
     //found a clique
     Debug("uf-ss-cliques") << "Found a clique (cardinality=" << d_cardinality << ") :" << std::endl;
     Debug("uf-ss-cliques") << "   ";
@@ -1217,18 +1297,48 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
 }
 
 void StrongSolverTheoryUF::SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
-  Node cardLit = d_cardinality_literal[ cardinality ];
-  std::vector< Node > eqs;
-  for( int i=0; i<cardinality; i++ ){
-    eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
+  if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
+    if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
+      d_totality_lems[n].push_back( cardinality );
+      Node cardLit = d_cardinality_literal[ cardinality ];
+      int sort_id = 0;
+      if( options::sortInference() ){
+        sort_id = d_thss->getSortInference()->getSortId(n);
+      }
+      Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
+      int use_cardinality = cardinality;
+      if( options::ufssTotalitySymBreak() ){
+        if( d_sym_break_index.find(n)!=d_sym_break_index.end() ){
+          use_cardinality = d_sym_break_index[n];
+        }else if( (int)d_sym_break_terms[n.getType()][sort_id].size()<cardinality-1 ){
+          use_cardinality = d_sym_break_terms[n.getType()][sort_id].size() + 1;
+          d_sym_break_terms[n.getType()][sort_id].push_back( n );
+          d_sym_break_index[n] = use_cardinality;
+          Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
+        }
+      }
+
+      std::vector< Node > eqs;
+      for( int i=0; i<use_cardinality; i++ ){
+        eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
+      }
+      Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+      Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
+      Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
+      //send as lemma to the output channel
+      d_thss->getOutputChannel().lemma( lem );
+      ++( d_thss->d_statistics.d_totality_lemmas );
+    }
   }
-  Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
-  Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
-  Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
-  //send as lemma to the output channel
-  d_thss->getOutputChannel().lemma( lem );
-  ++( d_thss->d_statistics.d_totality_lemmas );
 }
+
+void StrongSolverTheoryUF::SortModel::addClique( int c, std::vector< Node >& clique ) {
+
+  if( d_clique_trie[c].add( clique ) ){
+    d_cliques[ c ].push_back( clique );
+  }
+}
+
 
 /** apply totality */
 bool StrongSolverTheoryUF::SortModel::applyTotality( int cardinality ){
@@ -1307,22 +1417,16 @@ int StrongSolverTheoryUF::SortModel::getNumRegions(){
 }
 
 void StrongSolverTheoryUF::SortModel::getRepresentatives( std::vector< Node >& reps ){
-  //if( !options::ufssColoringSat() ){
-    bool foundRegion = false;
-    for( int i=0; i<(int)d_regions_index; i++ ){
-      //should not have multiple regions at this point
-      if( foundRegion ){
-        Assert( !d_regions[i]->d_valid );
-      }
-      if( d_regions[i]->d_valid ){
-        //this is the only valid region
-        d_regions[i]->getRepresentatives( reps );
-        foundRegion = true;
-      }
+  for( int i=0; i<(int)d_regions_index; i++ ){
+    //should not have multiple regions at this point
+    //if( foundRegion ){
+    //  Assert( !d_regions[i]->d_valid );
+    //}
+    if( d_regions[i]->d_valid ){
+      //this is the only valid region
+      d_regions[i]->getRepresentatives( reps );
     }
-  //}else{
-  //  Unimplemented("Build representatives for fmf region sat is not implemented");
-  //}
+  }
 }
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
@@ -1343,6 +1447,15 @@ d_rep_model_init( c )
   }else{
     d_deq_prop = NULL;
   }
+  if( options::ufssSymBreak() ){
+    d_sym_break = new SubsortSymmetryBreaker( th->getQuantifiersEngine(), c );
+  }else{
+    d_sym_break = NULL;
+  }
+}
+
+SortInference* StrongSolverTheoryUF::getSortInference() {
+  return d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference();
 }
 
 /** get default sat context */
@@ -1361,6 +1474,9 @@ void StrongSolverTheoryUF::newEqClass( Node n ){
   if( c ){
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << n << " : " << n.getType() << std::endl;
     c->newEqClass( n );
+    if( options::ufssSymBreak() ){
+      d_sym_break->newEqClass( n );
+    }
   }
 }
 
@@ -1467,6 +1583,10 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
         break;
       }
     }
+    //check symmetry breaker
+    if( !d_conflict && options::ufssSymBreak() ){
+      d_sym_break->check( level );
+    }
     //disambiguate terms if necessary
     //if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
     //  Assert( d_term_amb!=NULL );
@@ -1502,7 +1622,7 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
     SortModel* rm = NULL;
     if( tn.isSort() ){
       Trace("uf-ss-register") << "Preregister sort " << tn << "." << std::endl;
-      rm  = new SortModel( n, d_th->getSatContext(), this );
+      rm  = new SortModel( n, d_th->getSatContext(), d_th->getUserContext(), this );
     }else{
       /*
       if( tn==NodeManager::currentNM()->integerType() || tn==NodeManager::currentNM()->realType() ){
@@ -1572,6 +1692,14 @@ int StrongSolverTheoryUF::getCardinality( Node n ) {
   }
 }
 
+int StrongSolverTheoryUF::getCardinality( TypeNode tn ) {
+  std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
+  if( it!=d_rep_model.end() && it->second ){
+    return it->second->getCardinality();
+  }
+  return -1;
+}
+
 void StrongSolverTheoryUF::getRepresentatives( Node n, std::vector< Node >& reps ){
   SortModel* c = getSortModel( n );
   if( c ){
@@ -1626,6 +1754,7 @@ StrongSolverTheoryUF::Statistics::Statistics():
   d_clique_lemmas("StrongSolverTheoryUF::Clique_Lemmas", 0),
   d_split_lemmas("StrongSolverTheoryUF::Split_Lemmas", 0),
   d_disamb_term_lemmas("StrongSolverTheoryUF::Disambiguate_Term_Lemmas", 0),
+  d_sym_break_lemmas("StrongSolverTheoryUF::Symmetry_Breaking_Lemmas", 0),
   d_totality_lemmas("StrongSolverTheoryUF::Totality_Lemmas", 0),
   d_max_model_size("StrongSolverTheoryUF::Max_Model_Size", 1)
 {
@@ -1633,6 +1762,7 @@ StrongSolverTheoryUF::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_clique_lemmas);
   StatisticsRegistry::registerStat(&d_split_lemmas);
   StatisticsRegistry::registerStat(&d_disamb_term_lemmas);
+  StatisticsRegistry::registerStat(&d_sym_break_lemmas);
   StatisticsRegistry::registerStat(&d_totality_lemmas);
   StatisticsRegistry::registerStat(&d_max_model_size);
 }
@@ -1642,6 +1772,7 @@ StrongSolverTheoryUF::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_clique_lemmas);
   StatisticsRegistry::unregisterStat(&d_split_lemmas);
   StatisticsRegistry::unregisterStat(&d_disamb_term_lemmas);
+  StatisticsRegistry::unregisterStat(&d_sym_break_lemmas);
   StatisticsRegistry::unregisterStat(&d_totality_lemmas);
   StatisticsRegistry::unregisterStat(&d_max_model_size);
 }

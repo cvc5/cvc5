@@ -127,8 +127,11 @@ public:
    */
   LemmaStatus split(TNode n)
     throw(TypeCheckingExceptionPrivate, AssertionException) {
-    return lemma(n.orNode(n.notNode()));
+    return splitLemma(n.orNode(n.notNode()));
   }
+
+  virtual LemmaStatus splitLemma(TNode n, bool removable = false)
+    throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**
    * If a decision is made on n, it must be in the phase specified.
@@ -219,7 +222,7 @@ public:
 
   /** Demands that the search restart from sat search level 0.
    * Using this leads to non-termination issues.
-   * It is appropraite for prototyping for theories.
+   * It is appropriate for prototyping for theories.
    */
   virtual void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {}
 

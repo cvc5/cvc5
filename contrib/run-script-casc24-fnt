@@ -1,0 +1,38 @@
+#!/bin/bash
+
+cvc4=./cvc4
+bench="$1"
+let "to = $2 - 60"
+
+file=${bench##*/}
+filename=${file%.*}
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  (ulimit -t "$limit";$cvc4 -L tptp --szs-compliant --no-checking --no-interactive --dump-models --produce-models "$@" $bench) 2>/dev/null |
+  (read result;
+  case "$result" in
+    sat) echo "% SZS status" "Satisfiable for $filename";
+         echo "% SZS output" "start FiniteModel for $filename";
+         cat;
+         echo "% SZS output" "end FiniteModel for $filename";
+         exit 0;;
+    unsat) echo "% SZS status" "Unsatisfiable for $filename"; exit 0;;
+    conjecture-sat) echo "% SZS status" "CounterSatisfiable for $filename";
+                    echo "% SZS output" "start FiniteModel for $filename";
+                    cat;
+                    echo "% SZS output" "end FiniteModel for $filename";
+                    exit 0;;
+    conjecture-unsat) echo "% SZS status" "Theorem for $filename"; exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+
+trywith 30 --finite-model-find --uf-ss-totality
+trywith 30 --finite-model-find --decision=justification --fmf-fmc
+trywith $to --finite-model-find --decision=justification
+echo "% SZS status" "GaveUp for $filename"

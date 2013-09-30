@@ -66,6 +66,9 @@ enum RewriteRuleId {
   SremEliminate,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  BVToNatEliminate,
+  IntToBVEliminate,
+
   /// ground term evaluation
   EvalEquals,
   EvalConcat, 
@@ -173,13 +176,15 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case FailEq:              out << "FailEq";              return out;
   case SimplifyEq:          out << "SimplifyEq";          return out;
   case ReflexivityEq:       out << "ReflexivityEq";       return out;
-  case UgtEliminate:            out << "UgtEliminate";            return out;
-  case SgtEliminate:            out << "SgtEliminate";            return out;
-  case UgeEliminate:            out << "UgeEliminate";            return out;
-  case SgeEliminate:            out << "SgeEliminate";            return out;
+  case UgtEliminate:        out << "UgtEliminate";        return out;
+  case SgtEliminate:        out << "SgtEliminate";        return out;
+  case UgeEliminate:        out << "UgeEliminate";        return out;
+  case SgeEliminate:        out << "SgeEliminate";        return out;
   case RepeatEliminate:     out << "RepeatEliminate";     return out;
   case RotateLeftEliminate: out << "RotateLeftEliminate"; return out;
   case RotateRightEliminate:out << "RotateRightEliminate";return out;
+  case BVToNatEliminate:    out << "BVToNatEliminate";    return out;
+  case IntToBVEliminate:    out << "IntToBVEliminate";    return out;
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
@@ -214,7 +219,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ExtractBitwise :     out << "ExtractBitwise";      return out;
   case ExtractNot :         out << "ExtractNot";          return out;
   case ExtractArith :       out << "ExtractArith";        return out;
-  case ExtractArith2 :       out << "ExtractArith2";       return out;
+  case ExtractArith2 :      out << "ExtractArith2";       return out;
   case DoubleNeg :          out << "DoubleNeg";           return out;
   case NotConcat :          out << "NotConcat";           return out;
   case NotAnd :             out << "NotAnd";              return out;
@@ -226,7 +231,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BitwiseNotOr :       out << "BitwiseNotOr";        return out;
   case XorNot :             out << "XorNot";              return out;
   case LtSelf :             out << "LtSelf";              return out;
-  case LteSelf :            out << "LteSelf";              return out;
+  case LteSelf :            out << "LteSelf";             return out;
   case UltZero :            out << "UltZero";             return out;
   case UleZero :            out << "UleZero";             return out;
   case ZeroUle :            out << "ZeroUle";             return out;
@@ -491,7 +496,8 @@ struct AllRewriteRules {
   RewriteRule<BitwiseEq> rule113;
   RewriteRule<UltOne> rule114;
   RewriteRule<SltZero> rule115;
-  
+  RewriteRule<BVToNatEliminate>  rule116;
+  RewriteRule<IntToBVEliminate>  rule117;
 };
 
 template<> inline

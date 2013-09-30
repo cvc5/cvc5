@@ -22,7 +22,7 @@ This manual page refers to
 version @VERSION@.
 .SH BUGS
 A Bugzilla for the CVC4 project is maintained at
-.BR http://church.cims.nyu.edu/bugzilla3/ .
+.BR http://cvc4.cs.nyu.edu/bugzilla3/ .
 .SH AUTHORS
 .B CVC4
 is developed by a team of researchers at New York University
@@ -36,4 +36,4 @@ contributors.
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at
-.BR http://church.cims.nyu.edu/wiki/ .
+.BR http://cvc4.cs.nyu.edu/wiki/ .

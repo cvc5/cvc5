@@ -19,6 +19,11 @@
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2.h"
+#include "parser/antlr_input.h"
+
+// ANTLR defines these, which is really bad!
+#undef true
+#undef false
 
 namespace CVC4 {
 namespace parser {
@@ -36,7 +41,6 @@ void Smt2::addArithmeticOperators() {
   addOperator(kind::MINUS);
   addOperator(kind::UMINUS);
   addOperator(kind::MULT);
-  addOperator(kind::DIVISION);
   addOperator(kind::LT);
   addOperator(kind::LEQ);
   addOperator(kind::GT);
@@ -80,6 +84,15 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_SIGN_EXTEND);
   addOperator(kind::BITVECTOR_ROTATE_LEFT);
   addOperator(kind::BITVECTOR_ROTATE_RIGHT);
+
+  addOperator(kind::INT_TO_BITVECTOR);
+  addOperator(kind::BITVECTOR_TO_NAT);
+}
+
+void Smt2::addStringOperators() {
+  addOperator(kind::STRING_CONCAT);
+  addOperator(kind::STRING_LENGTH);
+  //addOperator(kind::STRING_IN_REGEXP);
 }
 
 void Smt2::addTheory(Theory theory) {
@@ -106,20 +119,34 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    // falling-through on purpose, to add Ints part of RealsInts
+    addOperator(kind::DIVISION);
+    addOperator(kind::TO_INTEGER);
+    addOperator(kind::IS_INTEGER);
+    addOperator(kind::TO_REAL);
+    // falling through on purpose, to add Ints part of Reals_Ints
 
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
+    addOperator(kind::INTS_DIVISION);
+    addOperator(kind::INTS_MODULUS);
+    addOperator(kind::ABS);
+    addOperator(kind::DIVISIBLE);
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
+    addOperator(kind::DIVISION);
     break;
 
   case THEORY_BITVECTORS:
     addBitvectorOperators();
+    break;
+
+  case THEORY_STRINGS:
+    defineType("String", getExprManager()->stringType());
+    addStringOperators();
     break;
 
   case THEORY_QUANTIFIERS:
@@ -138,135 +165,41 @@ bool Smt2::logicIsSet() {
 
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
-  d_logic = Smt1::toLogic(name);
+  d_logic = name;
 
   // Core theory belongs to every logic
   addTheory(THEORY_CORE);
 
-  switch(d_logic) {
-  case Smt1::QF_SAT:
-    /* No extra symbols necessary */
-    break;
-
-  case Smt1::QF_AX:
-    addTheory(THEORY_ARRAYS);
-    break;
-
-  case Smt1::QF_IDL:
-  case Smt1::QF_LIA:
-  case Smt1::QF_NIA:
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_RDL:
-  case Smt1::QF_LRA:
-  case Smt1::QF_NRA:
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_UF:
+  if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
     addOperator(kind::APPLY_UF);
-    break;
+  }
 
-  case Smt1::QF_UFIDL:
-  case Smt1::QF_UFLIA:
-  case Smt1::QF_UFNIA:// nonstandard logic
-    addTheory(THEORY_INTS);
-    addOperator(kind::APPLY_UF);
-    break;
-
-  case Smt1::QF_UFLRA:
-  case Smt1::QF_UFNRA:
-    addTheory(THEORY_REALS);
-    addOperator(kind::APPLY_UF);
-    break;
-
-  case Smt1::QF_UFLIRA:// nonstandard logic
-  case Smt1::QF_UFNIRA:// nonstandard logic
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_BV:
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_ABV:
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_UFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_AUFBV:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::QF_AUFBVLIA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_AUFBVLRA:
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_ARRAYS);
-    addTheory(THEORY_BITVECTORS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::QF_AUFLIA:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    break;
-
-  case Smt1::QF_AUFLIRA:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    break;
-
-  case Smt1::ALL_SUPPORTED:
-    addTheory(THEORY_QUANTIFIERS);
-    /* fall through */
-  case Smt1::QF_ALL_SUPPORTED:
-    addTheory(THEORY_ARRAYS);
-    addOperator(kind::APPLY_UF);
-    addTheory(THEORY_INTS);
-    addTheory(THEORY_REALS);
-    addTheory(THEORY_BITVECTORS);
-    break;
-
-  case Smt1::AUFLIA:
-  case Smt1::AUFLIRA:
-  case Smt1::AUFNIRA:
-  case Smt1::LRA:
-  case Smt1::UFNIA:
-  case Smt1::UFNIRA:
-  case Smt1::UFLRA:
-    if(d_logic != Smt1::AUFLIA && d_logic != Smt1::UFNIA) {
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
+    if(d_logic.areIntegersUsed()) {
+      if(d_logic.areRealsUsed()) {
+        addTheory(THEORY_REALS_INTS);
+      } else {
+        addTheory(THEORY_INTS);
+      }
+    } else if(d_logic.areRealsUsed()) {
       addTheory(THEORY_REALS);
     }
-    if(d_logic != Smt1::LRA) {
-      addOperator(kind::APPLY_UF);
-      if(d_logic != Smt1::UFLRA) {
-        addTheory(THEORY_INTS);
-        if(d_logic != Smt1::UFNIA && d_logic != Smt1::UFNIRA) {
-          addTheory(THEORY_ARRAYS);
-        }
-      }
-    }
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_ARRAY)) {
+    addTheory(THEORY_ARRAYS);
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
+    addTheory(THEORY_BITVECTORS);
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
+    addTheory(THEORY_STRINGS);
+  }
+
+  if(d_logic.isQuantified()) {
     addTheory(THEORY_QUANTIFIERS);
-    break;
   }
 }/* Smt2::setLogic() */
 
@@ -294,6 +227,66 @@ void Smt2::checkThatLogicIsSet() {
       c->setMuted(true);
       preemptCommand(c);
     }
+  }
+}
+
+/* The include are managed in the lexer but called in the parser */
+// Inspired by http://www.antlr3.org/api/C/interop.html
+
+static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
+  Debug("parser") << "Including " << filename << std::endl;
+  // Create a new input stream and take advantage of built in stream stacking
+  // in C target runtime.
+  //
+  pANTLR3_INPUT_STREAM    in;
+#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename.c_str());
+#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+  in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
+#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+  if( in == NULL ) {
+    Debug("parser") << "Can't open " << filename << std::endl;
+    return false;
+  }
+  // Same thing as the predefined PUSHSTREAM(in);
+  lexer->pushCharStream(lexer, in);
+  // restart it
+  //lexer->rec->state->tokenStartCharIndex      = -10;
+  //lexer->emit(lexer);
+
+  // Note that the input stream is not closed when it EOFs, I don't bother
+  // to do it here, but it is up to you to track streams created like this
+  // and destroy them when the whole parse session is complete. Remember that you
+  // don't want to do this until all tokens have been manipulated all the way through
+  // your tree parsers etc as the token does not store the text it just refers
+  // back to the input stream and trying to get the text for it will abort if you
+  // close the input stream too early.
+
+  //TODO what said before
+  return true;
+}
+
+void Smt2::includeFile(const std::string& filename) {
+  // security for online version
+  if(!canIncludeFile()) {
+    parseError("include-file feature was disabled for this run.");
+  }
+
+  // Get the lexer
+  AntlrInput* ai = static_cast<AntlrInput*>(getInput());
+  pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
+  // get the name of the current stream "Does it work inside an include?"
+  const std::string inputName = ai->getInputStreamName();
+
+  // Find the directory of the current input file
+  std::string path;
+  size_t pos = inputName.rfind('/');
+  if(pos != std::string::npos) {
+    path = std::string(inputName, 0, pos + 1);
+  }
+  path.append(filename);
+  if(!newInputStream(path, lexer)) {
+    parseError("Couldn't open include file `" + path + "'");
   }
 }
 

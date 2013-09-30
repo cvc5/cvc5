@@ -22,8 +22,8 @@ option satRestartFirst --restart-int-base=N unsigned :default 25
 option satRestartInc --restart-int-inc=F double :default 3.0 :predicate greater_equal(0.0)
  sets the restart interval increase factor for the sat solver (F=3.0 by default)
 
-option sat_refine_conflicts --refine-conflicts bool
- refine theory conflict clauses
+option sat_refine_conflicts --refine-conflicts bool :default false
+ refine theory conflict clauses (default false)
 
 option minisatUseElim --minisat-elimination bool :default true :read-write 
  use Minisat elimination

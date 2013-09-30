@@ -173,7 +173,10 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
     d_emptyClauseId(-1),
     d_nullId(-2),
     d_temp_clauseId(),
-    d_temp_idClause()
+    d_temp_idClause(),
+    d_unitConflictId(),
+    d_storedUnitConflict(false),
+    d_atomToVar()
   {
     d_proxy = new ProofProxy(this); 
   }
@@ -353,6 +356,7 @@ ClauseId SatProof::registerClause(::Minisat::CRef clause, bool isInput) {
        d_inputClauses.insert(newId); 
      }
    }
+   Debug("proof:sat:detailed") <<"registerClause " << d_clauseId[clause] << " " <<isInput << "\n"; 
    return d_clauseId[clause]; 
 }
 
@@ -367,6 +371,7 @@ ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, bool isInput) {
       d_inputClauses.insert(newId); 
     }
   }
+  Debug("proof:sat:detailed") <<"registerUnitClause " << d_unitId[toInt(lit)] << " " << isInput <<"\n"; 
   return d_unitId[toInt(lit)]; 
 }
 
@@ -527,10 +532,25 @@ void SatProof::toStream(std::ostream& out) {
   Unimplemented("native proof printing not supported yet");
 }
 
+void SatProof::storeUnitConflict(::Minisat::Lit conflict_lit) {
+  Assert (!d_storedUnitConflict); 
+  d_unitConflictId = registerUnitClause(conflict_lit);
+  d_storedUnitConflict = true;
+  Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n"; 
+}
+
 void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
   Assert(d_resStack.size() == 0);
-  //ClauseId conflict_id = getClauseId(conflict_ref); 
-  ClauseId conflict_id = registerClause(conflict_ref); //FIXME
+  Assert (conflict_ref != ::Minisat::CRef_Undef);
+  ClauseId conflict_id; 
+  if (conflict_ref == ::Minisat::CRef_Lazy) {
+    Assert (d_storedUnitConflict); 
+    conflict_id = d_unitConflictId; 
+  } else {
+    Assert (!d_storedUnitConflict); 
+    conflict_id = registerClause(conflict_ref); //FIXME
+  }
+
   Debug("proof:sat") << "proof::finalizeProof Final Conflict ";
   print(conflict_id);
   
@@ -573,6 +593,14 @@ void SatProof::markDeleted(CRef clause) {
   }
 }
 
+/// store mapping from theory atoms to new variables
+void SatProof::storeAtom(::Minisat::Lit literal, Expr atom) {
+  Assert(d_atomToVar.find(atom) == d_atomToVar.end());
+  d_atomToVar[atom] = literal; 
+}
+
+
+
 /// LFSCSatProof class
 
 std::string LFSCSatProof::varName(::Minisat::Lit lit) {
@@ -613,6 +641,7 @@ void LFSCSatProof::collectLemmas(ClauseId id) {
     d_seenLemmas.insert(id); 
   }
 
+  Assert (d_resChains.find(id) != d_resChains.end()); 
   ResChain* res = d_resChains[id];
   ClauseId start = res->getStart();
   collectLemmas(start);
@@ -658,6 +687,14 @@ void LFSCSatProof::printResolution(ClauseId id) {
 
 
 void LFSCSatProof::printInputClause(ClauseId id) {
+  if (isUnit(id)) {
+    ::Minisat::Lit lit = getUnit(id); 
+    d_clauseSS << "(% " << clauseName(id) << " (holds (clc ";
+    d_clauseSS << varName(lit) << "cln ))";
+    d_paren << ")";
+    return; 
+  }
+  
   ostringstream os;
   CRef ref = getClauseRef(id);
   Assert (ref != CRef_Undef);
@@ -692,6 +729,7 @@ void LFSCSatProof::printVariables() {
 
 
 void LFSCSatProof::flush(std::ostream& out) {
+  out << d_atomsSS.str(); 
   out << "(check \n";
   d_paren <<")"; 
   out << d_varSS.str();
@@ -705,7 +743,7 @@ void LFSCSatProof::flush(std::ostream& out) {
 
 void LFSCSatProof::toStream(std::ostream& out) {
   Debug("proof:sat") << " LFSCSatProof::printProof \n";
-
+  
   // first collect lemmas to print in reverse order
   collectLemmas(d_emptyClauseId); 
   for(IdSet::iterator it = d_seenLemmas.begin(); it!= d_seenLemmas.end(); ++it) {
@@ -713,13 +751,22 @@ void LFSCSatProof::toStream(std::ostream& out) {
       printResolution(*it);
     }
   }
+  printAtoms(); 
   // last resolution to be printed is the empty clause
   printResolution(d_emptyClauseId);
-
+  
   printClauses();
   printVariables();
   flush(out);
 }
+
+void LFSCSatProof::printAtoms() {
+  d_atomsSS << "; Mapping between boolean variables and theory atoms \n"; 
+  for (AtomToVar::iterator it = d_atomToVar.begin(); it != d_atomToVar.end(); ++it) {
+    d_atomsSS << "; " << it->first << " => v" << var(it->second) << "\n"; 
+  }
+}
+
 
 } /* CVC4 namespace */
 

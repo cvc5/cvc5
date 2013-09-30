@@ -33,7 +33,6 @@ namespace CVC4 {
 
 #include "expr/expr.h"
 #include "expr/type.h"
-#include "util/output.h"
 #include "util/hash.h"
 #include "util/exception.h"
 

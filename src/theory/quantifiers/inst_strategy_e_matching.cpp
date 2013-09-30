@@ -144,7 +144,11 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
     }
     if( gen ){
       generateTriggers( f, effort, e, status );
+      if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
+        Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
+      }
     }
+
     //if( e==4 ){
     //  d_processed_trigger.clear();
     //  d_quantEngine->getEqualityQuery()->setLiberal( true );

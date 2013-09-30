@@ -21,6 +21,7 @@
 
 #include "theory/rewriter.h"
 #include "theory/datatypes/options.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -137,10 +138,16 @@ public:
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }else{
         if( options::dtRewriteErrorSel() ){
-          Node gt = in.getType().mkGroundTerm();
+          Node gt;
+          if( in.getType().isSort() ){
+            TypeEnumerator te(in.getType());
+            gt = *te;
+          }else{
+            gt = in.getType().mkGroundTerm();
+          }
           TypeNode gtt = gt.getType();
           //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-          if( !gtt.isInstantiatedDatatype() ){
+          if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
             gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
                                                   NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
           }

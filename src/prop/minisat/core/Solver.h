@@ -266,7 +266,7 @@ protected:
       int level;
       // User level when the literal was added to the trail
       int user_level;
-      // Use level at which this literal was introduced
+      // User level at which this literal was introduced
       int intro_level;
       // The index in the trail
       int trail_index;
@@ -335,7 +335,7 @@ protected:
 
     enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning
-      CHECK_WITHOUTH_THEORY,
+      CHECK_WITHOUT_THEORY,
       // Check and perform theory reasoning
       CHECK_WITH_THEORY,
       // The SAT abstraction of the problem is satisfiable, perform a full theory check

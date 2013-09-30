@@ -303,8 +303,9 @@ struct ConstantMapReverse< ::CVC4::kind::$1 > {
 function registerOperatorToKind {
   operatorKind=$1
   applyKind=$2
-  metakind_operatorKinds="${metakind_operatorKinds}    case kind::$applyKind: return kind::$operatorKind;
-";
+  metakind_operatorKinds="${metakind_operatorKinds}
+#line $lineno \"$kf\"
+    case kind::$applyKind: return kind::$operatorKind;";
 }
 
 function register_metakind {
@@ -381,8 +382,8 @@ while [ $# -gt 0 ]; do
     /* from $b */
 "
   metakind_operatorKinds="${metakind_operatorKinds}
-    /* from $b */
-"
+
+    /* from $b */"
   source "$kf"
   if ! $seen_theory; then
     echo "$kf: error: no theory content found in file!" >&2

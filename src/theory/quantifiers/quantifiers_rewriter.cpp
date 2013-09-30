@@ -211,10 +211,6 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       if( in.hasAttribute(NestedQuantAttribute()) ){
         setNestedQuantifiers( ret, in.getAttribute(NestedQuantAttribute()) );
       }
-      if( in.hasAttribute(InstConstantAttribute()) ){
-        InstConstantAttribute ica;
-        ret.setAttribute(ica,in.getAttribute(InstConstantAttribute()) );
-      }
       Trace("quantifiers-rewrite") << "*** rewrite " << in << std::endl;
       Trace("quantifiers-rewrite") << " to " << std::endl;
       Trace("quantifiers-rewrite") << ret << std::endl;
@@ -311,7 +307,7 @@ Node QuantifiersRewriter::computeSimpleIteLift( Node body ) {
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, Node& ipl ){
-  Trace("var-elim-quant") << "Compute var elimination for " << body << std::endl;
+  Trace("var-elim-quant-debug") << "Compute var elimination for " << body << std::endl;
   QuantPhaseReq qpr( body );
   std::vector< Node > vars;
   std::vector< Node > subs;
@@ -918,7 +914,7 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
   }else if( computeOption==COMPUTE_NNF ){
     return false;//TODO: compute NNF (current bad idea since arithmetic rewrites equalities)
   }else if( computeOption==COMPUTE_SIMPLE_ITE_LIFT ){
-    return !options::finiteModelFind();
+    return options::simpleIteLiftQuant();//!options::finiteModelFind();
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant() && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){

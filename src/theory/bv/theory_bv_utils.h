@@ -357,7 +357,7 @@ inline Node flattenAnd(std::vector<TNode>& queue) {
 }
 
 
-// neeed a better name, this is not technically a ground term 
+// need a better name, this is not technically a ground term 
 inline bool isBVGroundTerm(TNode node) {
   if (node.getNumChildren() == 0) {
     return node.isConst(); 

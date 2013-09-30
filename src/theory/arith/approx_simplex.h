@@ -24,7 +24,7 @@ public:
 
   /**
    * If glpk is enabled, return a subclass that can do something.
-   * If glpk is disabled, return a sublass that does nothing.
+   * If glpk is disabled, return a subclass that does nothing.
    */
   static ApproximateSimplex* mkApproximateSimplexSolver(const ArithVariables& vars);
   ApproximateSimplex();
@@ -44,18 +44,15 @@ public:
   /** Sets a maximization criteria for the approximate solver.*/
   virtual void setOptCoeffs(const ArithRatPairVec& ref) = 0;
 
+  virtual ArithRatPairVec heuristicOptCoeffs() const = 0;
+
   virtual ApproxResult solveRelaxation() = 0;
   virtual Solution extractRelaxation() const = 0;
 
   virtual ApproxResult solveMIP() = 0;
   virtual Solution extractMIP() const = 0;
 
-  static void applySolution(LinearEqualityModule& linEq, const Solution& sol){
-    linEq.forceNewBasis(sol.newBasis);
-    linEq.updateMany(sol.newValues);
-  }
-
-  /** UTILIES FOR DEALING WITH ESTIMATES */
+  /** UTILITIES FOR DEALING WITH ESTIMATES */
 
   static const double SMALL_FIXED_DELTA;
   static const double TOLERENCE;

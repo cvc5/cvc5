@@ -39,15 +39,15 @@ const RowIndex ROW_INDEX_SENTINEL  = std::numeric_limits<RowIndex>::max();
 
 class CoefficientChangeCallback {
 public:
-  virtual void update(RowIndex basic, ArithVar nb, int oldSgn, int currSgn) = 0;
-  virtual void swap(ArithVar basic, ArithVar nb, int nbSgn) = 0;
+  virtual void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) = 0;
+  virtual void multiplyRow(RowIndex ridx, int Sgn) = 0;
   virtual bool canUseRow(RowIndex ridx) const = 0;
 };
 
 class NoEffectCCCB : public CoefficientChangeCallback {
 public:
   void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn);
-  void swap(ArithVar basic, ArithVar nb, int nbSgn);
+  void multiplyRow(RowIndex ridx, int Sgn);
   bool canUseRow(RowIndex ridx) const;
 };
 

@@ -126,6 +126,23 @@ class CVC4_PUBLIC Parser {
    */
   SymbolTable* d_symtab;
 
+  /**
+   * The level of the assertions in the declaration scope.  Things declared
+   * after this level are bindings from e.g. a let, a quantifier, or a
+   * lambda.
+   */
+  size_t d_assertionLevel;
+
+  /**
+   * Maintains a list of reserved symbols at the assertion level that might
+   * not occur in our symbol table.  This is necessary to e.g. support the
+   * proper behavior of the :named annotation in SMT-LIBv2 when used under
+   * a let or a quantifier, since inside a let/quant body the declaration
+   * scope is that of the let/quant body, but the defined name should be
+   * reserved at the assertion level.
+   */
+  std::set<std::string> d_reservedSymbols;
+
   /** How many anonymous functions we've created. */
   size_t d_anonymousFunctionCount;
 
@@ -140,6 +157,12 @@ class CVC4_PUBLIC Parser {
 
   /** Are we only parsing? */
   bool d_parseOnly;
+
+  /**
+   * Can we include files?  (Set to false for security purposes in
+   * e.g. the online version.)
+   */
+  bool d_canIncludeFile;
 
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
@@ -235,6 +258,10 @@ public:
 
   bool strictModeEnabled() { return d_strictMode; }
 
+  void allowIncludeFile() { d_canIncludeFile = true; }
+  void disallowIncludeFile() { d_canIncludeFile = false; }
+  bool canIncludeFile() const { return d_canIncludeFile; }
+
   /**
    * Returns a variable, given a name.
    *
@@ -285,7 +312,13 @@ public:
    * @throws ParserException if checks are enabled and the check fails
    */
   void checkDeclaration(const std::string& name, DeclarationCheck check,
-                        SymbolType type = SYM_VARIABLE) throw(ParserException);
+                        SymbolType type = SYM_VARIABLE,
+                        std::string notes = "") throw(ParserException);
+
+  /**
+   * Reserve a symbol at the assertion level.
+   */
+  void reserveSymbolAtAssertionLevel(const std::string& name);
 
   /**
    * Checks whether the given name is bound to a function.
@@ -326,14 +359,14 @@ public:
 
   /** Create a new CVC4 variable expression of the given type. */
   Expr mkVar(const std::string& name, const Type& type,
-             bool levelZero = false);
+             uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
    */
   std::vector<Expr>
     mkVars(const std::vector<std::string> names, const Type& type,
-           bool levelZero = false);
+           uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new CVC4 bound variable expression of the given type. */
   Expr mkBoundVar(const std::string& name, const Type& type);
@@ -345,18 +378,19 @@ public:
 
   /** Create a new CVC4 function expression of the given type. */
   Expr mkFunction(const std::string& name, const Type& type,
-                  bool levelZero = false);
+                  uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /**
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
    * difference between mkAnonymousFunction() and mkFunction()).
    */
-  Expr mkAnonymousFunction(const std::string& prefix, const Type& type);
+  Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
+                           uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). */
   void defineVar(const std::string& name, const Expr& val,
-                       bool levelZero = false);
+                 bool levelZero = false);
 
   /** Create a new function definition (e.g., from a define-fun). */
   void defineFunction(const std::string& name, const Expr& val,
@@ -377,7 +411,8 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  SortType mkSort(const std::string& name);
+  SortType mkSort(const std::string& name,
+                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new sort constructor with the given name and arity.
@@ -462,6 +497,11 @@ public:
     d_input->parseError(msg);
   }
 
+  /** Unexpectedly encountered an EOF */
+  inline void unexpectedEOF(const std::string& msg) throw(ParserException) {
+    d_input->parseError(msg, true);
+  }
+
   /**
    * If we are parsing only, don't raise an exception; if we are not,
    * raise a parse error with the given message.  There is no actual
@@ -482,8 +522,25 @@ public:
     }
   }
 
-  inline void pushScope() { d_symtab->pushScope(); }
-  inline void popScope() { d_symtab->popScope(); }
+  /**
+   * Gets the current declaration level.
+   */
+  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+
+  inline void pushScope(bool bindingLevel = false) {
+    d_symtab->pushScope();
+    if(!bindingLevel) {
+      d_assertionLevel = scopeLevel();
+    }
+  }
+
+  inline void popScope() {
+    d_symtab->popScope();
+    if(scopeLevel() < d_assertionLevel) {
+      d_assertionLevel = scopeLevel();
+      d_reservedSymbols.clear();
+    }
+  }
 
   /**
    * Set the current symbol table used by this parser.
@@ -524,13 +581,6 @@ public:
 
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
-  }
-
-  /**
-   * Gets the current declaration level.
-   */
-  inline size_t getDeclarationLevel() const throw() {
-    return d_symtab->getLevel();
   }
 
   /**

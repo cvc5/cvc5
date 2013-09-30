@@ -33,7 +33,7 @@ bool ITESimplifier::containsTermITE(TNode e)
   }
 
   hash_map<Node, bool, NodeHashFunction>::iterator it;
-  it = d_containsTermITECache.find(e); 
+  it = d_containsTermITECache.find(e);
   if (it != d_containsTermITECache.end()) {
     return (*it).second;
   }
@@ -60,7 +60,7 @@ bool ITESimplifier::leavesAreConst(TNode e, TheoryId tid)
   }
 
   hash_map<Node, bool, NodeHashFunction>::iterator it;
-  it = d_leavesConstCache.find(e); 
+  it = d_leavesConstCache.find(e);
   if (it != d_leavesConstCache.end()) {
     return (*it).second;
   }

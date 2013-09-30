@@ -24,7 +24,7 @@ using namespace std;
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, Model& m) {
+std::ostream& operator<<(std::ostream& out, const Model& m) {
   smt::SmtScope smts(&m.d_smt);
   Expr::dag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, m);

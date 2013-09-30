@@ -231,6 +231,57 @@ Node RewriteRule<RotateRightEliminate>::apply(TNode node) {
 }
 
 template<>
+bool RewriteRule<BVToNatEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::BITVECTOR_TO_NAT);
+}
+
+template<>
+Node RewriteRule<BVToNatEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
+
+  const unsigned size = utils::getSize(node[0]);
+  NodeManager* const nm = NodeManager::currentNM();
+  const Node z = nm->mkConst(Rational(0));
+  const Node bvone = nm->mkConst(BitVector(1u, 1u));
+
+  NodeBuilder<> result(kind::PLUS);
+  Integer i = 1;
+  for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
+    Node cond = nm->mkNode(kind::EQUAL, nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]), bvone);
+    result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
+  }
+
+  return Node(result);
+}
+
+template<>
+bool RewriteRule<IntToBVEliminate>::applies(TNode node) {
+  return (node.getKind() == kind::INT_TO_BITVECTOR);
+}
+
+template<>
+Node RewriteRule<IntToBVEliminate>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
+
+  const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
+  NodeManager* const nm = NodeManager::currentNM();
+  const Node bvzero = nm->mkConst(BitVector(1u, 0u));
+  const Node bvone = nm->mkConst(BitVector(1u, 1u));
+
+  std::vector<Node> v;
+  Integer i = 2;
+  while(v.size() < size) {
+    Node cond = nm->mkNode(kind::GEQ, nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))), nm->mkConst(Rational(i, 2)));
+    v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
+    i *= 2;
+  }
+
+  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
+  result.append(v.rbegin(), v.rend());
+  return Node(result);
+}
+
+template<>
 bool RewriteRule<NandEliminate>::applies(TNode node) {
   return (node.getKind() == kind::BITVECTOR_NAND &&
           node.getNumChildren() == 2);

@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file arith_priority_queue.h
+/*! \file error_set.h
  ** \verbatim
- ** Original author: taking
+ ** Original author: Tim King
  ** Major contributors: none
- ** Minor contributors (to current version): mdeters
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Minor contributors (to current version): Morgan Deters
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -26,9 +26,9 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/arith_heuristic_pivot_rule.h"
 #include "theory/arith/tableau_sizes.h"
+#include "theory/arith/callbacks.h"
 
 #include "util/statistics_registry.h"
-//#include <boost/heap/d_ary_heap.hpp>
 
 #if CVC4_GCC_HAS_PB_DS_BUG
    // Unfortunate bug in some older GCCs (e.g., v4.2):
@@ -377,8 +377,8 @@ public:
 
   uint32_t sumMetric(ArithVar a) const{
     Assert(inError(a));
-    BoundCounts bcs = d_boundLookup.boundCounts(a);
-    uint32_t count = getSgn(a) > 0 ? bcs.atUpperBounds() : bcs.atLowerBounds();
+    BoundCounts bcs = d_boundLookup.atBounds(a);
+    uint32_t count = getSgn(a) > 0 ? bcs.upperBoundCount() : bcs.lowerBoundCount();
 
     uint32_t length = d_tableauSizes.getRowLength(a);
 

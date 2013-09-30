@@ -34,6 +34,10 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::UninterpretedConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::kind::Kind_t>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Predicate>;

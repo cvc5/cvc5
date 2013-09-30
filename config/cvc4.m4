@@ -13,9 +13,8 @@ dnl _AS_ME_PREPARE
 AC_DEFUN([CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE],
 [m4_divert_push([PARSE_ARGS])dnl
 
-unset ac_cvc4_rewritten_args
-for ac_option
-do
+handle_option() {
+  ac_option="$[]1"
   case $ac_option in
     -*|*=*) ;;
     production|production-*|debug|debug-*|default|default-*|competition|competition-*)
@@ -55,6 +54,24 @@ do
       ac_option="--with-build=$ac_option_build"
   esac
   eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }'\'\$ac_option\'\"
+}
+
+unset ac_cvc4_rewritten_args
+for ac_option
+do
+  if test "$ac_option" = personal; then
+    if test -e personal.conf; then
+      handle_option --enable-personal-make-rules
+      while read arg; do
+        handle_option "$arg"
+      done < personal.conf
+    else
+      AC_MSG_ERROR([personal build profile selected, but cannot find personal.conf])
+    fi
+  else
+echo "calling for $ac_option"
+    handle_option "$ac_option"
+  fi
 done
 eval set x $ac_cvc4_rewritten_args
 shift
@@ -102,3 +119,19 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
 AC_LANG_POP([C++])
 CXXFLAGS="$cvc4_save_CXXFLAGS"
 ])# CVC4_CXX_OPTION
+
+# CVC4_C_OPTION(OPTION, VAR)
+# --------------------------
+# Run $(CC) $(CPPFLAGS) $(CFLAGS) OPTION and see if the compiler
+# likes it.  If so, add OPTION to shellvar VAR.
+AC_DEFUN([CVC4_C_OPTION], [
+AC_MSG_CHECKING([whether $CC supports $1])
+cvc4_save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS $C_WERROR $1"
+AC_LANG_PUSH([C])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main() { return 0; }])],
+                  [AC_MSG_RESULT([yes]); $2='$1'],
+                  [AC_MSG_RESULT([no])])
+AC_LANG_POP([C])
+CFLAGS="$cvc4_save_CFLAGS"
+])# CVC4_C_OPTION

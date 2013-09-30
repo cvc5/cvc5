@@ -1,0 +1,8 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+alternate THEORY_ARITH "idl" ::CVC4::theory::idl::TheoryIdl "theory/idl/theory_idl.h"
+

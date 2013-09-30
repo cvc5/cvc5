@@ -1,6 +1,10 @@
 SUBDIRS = .
 
-BINARY = cvc4
+# don't override a BINARY imported from a personal.mk
+@mk_if@eq ($(BINARY),)
+@mk_empty@BINARY = cvc4
+end@mk_if@
+
 LOG_COMPILER = @srcdir@/../run_regression
 AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
@@ -23,9 +27,14 @@ TESTS =	bmc-ibm-1.smt \
 	friedman_n6_i4.smt \
 	hole9.cvc \
 	qwh.35.405.shuffled-as.sat03-1651.smt \
-	eq_diamond14.smt
+	eq_diamond14.smt \
+	incorrect1.smt \
+	incorrect2.smt \
+	bug497.cvc \
+	pp-regfile.smt
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = $(TESTS) \
+	pp-regfile.smt.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

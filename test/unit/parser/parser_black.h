@@ -395,7 +395,7 @@ public:
 #ifndef CVC4_COMPETITION_MODE
     tryBadInput("(assert)"); // no args
     tryBadInput("(set-info :notes |Symbols can't contain the | character|)");
-    tryBadInput("(set-logic QF_UF) (check-sat true)"); // shouldn't have an arg
+    tryBadInput("(set-logic QF_UF) (check-sat true)", true); // check-sat shouldn't have an arg
     tryBadInput("(declare-sort a)"); // no arg
     tryBadInput("(declare-sort a 0) (declare-sort a 0)"); // double decl
     tryBadInput("(set-logic QF_UF) (declare-fun p Bool)"); // should be "p () Bool"

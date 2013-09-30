@@ -27,6 +27,7 @@
 #include "options/option_exception.h"
 #include "util/language.h"
 #include "util/tls.h"
+#include "util/sexpr.h"
 
 namespace CVC4 {
 
@@ -118,11 +119,32 @@ public:
   static void printLanguageHelp(std::ostream& out);
 
   /**
+   * Look up long command-line option names that bear some similarity to
+   * the given name.  Don't include the initial "--".  This might be
+   * useful in case of typos.  Can return an empty vector if there are
+   * no suggestions.
+   */
+  static std::vector<std::string> suggestCommandLineOptions(const std::string& optionName) throw();
+
+  /**
+   * Look up SMT option names that bear some similarity to
+   * the given name.  Don't include the initial ":".  This might be
+   * useful in case of typos.  Can return an empty vector if there are
+   * no suggestions.
+   */
+  static std::vector<std::string> suggestSmtOptions(const std::string& optionName) throw();
+
+  /**
    * Initialize the options based on the given command-line arguments.
    * The return value is what's left of the command line (that is, the
    * non-option arguments).
    */
   std::vector<std::string> parseOptions(int argc, char* argv[]) throw(OptionException);
+
+  /**
+   * Get the setting for all options.
+   */
+  SExpr getOptions() const throw();
 
 };/* class Options */
 

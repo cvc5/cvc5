@@ -120,6 +120,14 @@ parameterized BITVECTOR_SIGN_EXTEND BITVECTOR_SIGN_EXTEND_OP 1 "bit-vector sign-
 parameterized BITVECTOR_ROTATE_LEFT BITVECTOR_ROTATE_LEFT_OP 1 "bit-vector rotate left"
 parameterized BITVECTOR_ROTATE_RIGHT BITVECTOR_ROTATE_RIGHT_OP 1 "bit-vector rotate right"
 
+constant INT_TO_BITVECTOR_OP \
+	::CVC4::IntToBitVector \
+	"::CVC4::UnsignedHashFunction< ::CVC4::IntToBitVector >" \
+	"util/bitvector.h" \
+	"operator for the integer conversion to bit-vector"
+parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector"
+operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer"
+
 typerule CONST_BITVECTOR ::CVC4::theory::bv::BitVectorConstantTypeRule
 
 typerule BITVECTOR_AND ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
@@ -165,5 +173,8 @@ typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatRule
 typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
 typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
+
+typerule BITVECTOR_TO_NAT ::CVC4::theory::bv::BitVectorConversionTypeRule
+typerule INT_TO_BITVECTOR ::CVC4::theory::bv::BitVectorConversionTypeRule
 
 endtheory

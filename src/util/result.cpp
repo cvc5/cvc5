@@ -27,11 +27,12 @@ using namespace std;
 
 namespace CVC4 {
 
-Result::Result(const std::string& instr) :
+Result::Result(const std::string& instr, std::string inputName) :
   d_sat(SAT_UNKNOWN),
   d_validity(VALIDITY_UNKNOWN),
   d_which(TYPE_NONE),
-  d_unknownExplanation(UNKNOWN_REASON) {
+  d_unknownExplanation(UNKNOWN_REASON),
+  d_inputName(inputName) {
   string s = instr;
   transform(s.begin(), s.end(), s.begin(), ::tolower);
   if(s == "sat" || s == "satisfiable") {
@@ -115,13 +116,13 @@ Result Result::asSatisfiabilityResult() const throw() {
     switch(d_validity) {
 
     case INVALID:
-      return Result(SAT);
+      return Result(SAT, d_inputName);
 
     case VALID:
-      return Result(UNSAT);
+      return Result(UNSAT, d_inputName);
 
     case VALIDITY_UNKNOWN:
-      return Result(SAT_UNKNOWN, d_unknownExplanation);
+      return Result(SAT_UNKNOWN, d_unknownExplanation, d_inputName);
 
     default:
       Unhandled(d_validity);
@@ -129,7 +130,7 @@ Result Result::asSatisfiabilityResult() const throw() {
   }
 
   // TYPE_NONE
-  return Result(SAT_UNKNOWN, NO_STATUS);
+  return Result(SAT_UNKNOWN, NO_STATUS, d_inputName);
 }
 
 Result Result::asValidityResult() const throw() {
@@ -141,13 +142,13 @@ Result Result::asValidityResult() const throw() {
     switch(d_sat) {
 
     case SAT:
-      return Result(INVALID);
+      return Result(INVALID, d_inputName);
 
     case UNSAT:
-      return Result(VALID);
+      return Result(VALID, d_inputName);
 
     case SAT_UNKNOWN:
-      return Result(VALIDITY_UNKNOWN, d_unknownExplanation);
+      return Result(VALIDITY_UNKNOWN, d_unknownExplanation, d_inputName);
 
     default:
       Unhandled(d_sat);
@@ -155,7 +156,7 @@ Result Result::asValidityResult() const throw() {
   }
 
   // TYPE_NONE
-  return Result(VALIDITY_UNKNOWN, NO_STATUS);
+  return Result(VALIDITY_UNKNOWN, NO_STATUS, d_inputName);
 }
 
 string Result::toString() const {

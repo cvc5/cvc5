@@ -50,13 +50,15 @@
 
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "context/context.h"
+#include "context/cdlist.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace uf {
 
-class SymmetryBreaker {
+class SymmetryBreaker : public context::ContextNotifyObj {
 
   class Template {
     Node d_template;
@@ -92,6 +94,19 @@ public:
 
 private:
 
+  /**
+   * This class wasn't initially built to be incremental.  It should
+   * be attached to a UserContext so that it clears everything when
+   * a pop occurs.  This "assertionsToRerun" is a set of assertions to
+   * feed back through assertFormula() when we started getting things
+   * again.  It's not just a matter of effectiveness, but also soundness;
+   * if some assertions (still in scope) are not seen by a symmetry-breaking
+   * round, then some symmetries that don't actually exist might be broken,
+   * leading to unsound results!
+   */
+  context::CDList<Node> d_assertionsToRerun;
+  bool d_rerunningAssertions;
+
   std::vector<Node> d_phi;
   std::set<TNode> d_phiSet;
   Permutations d_permutations;
@@ -101,6 +116,7 @@ private:
   TermEqs d_termEqs;
 
   void clear();
+  void rerunAssertionsIfNecessary();
 
   void guessPermutations();
   bool invariantByPermutations(const Permutation& p);
@@ -140,9 +156,17 @@ private:
                  d_initNormalizationTimer,
                  "theory::uf::symmetry_breaker::timers::initNormalization");
 
+protected:
+
+  void contextNotifyPop() {
+    Debug("ufsymm") << "UFSYMM: clearing state due to pop" << std::endl;
+    clear();
+  }
+
 public:
 
-  SymmetryBreaker();
+  SymmetryBreaker(context::Context* context);
+  ~SymmetryBreaker() throw() {}
   void assertFormula(TNode phi);
   void apply(std::vector<Node>& newClauses);
 

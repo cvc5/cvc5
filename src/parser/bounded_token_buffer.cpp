@@ -241,7 +241,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
   }
 
   /* Initialize the buffer on our first call. */
-  if( EXPECT_FALSE(buffer->empty == ANTLR3_TRUE) ) {
+  if( __builtin_expect( (buffer->empty == ANTLR3_TRUE), false ) ) {
     assert( buffer->tokenBuffer != NULL );
     buffer->tokenBuffer[ 0 ] = nextToken(buffer);
     buffer->maxIndex = 0;

@@ -56,14 +56,17 @@ public:
   virtual void assertNode( Node n ) = 0;
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
-  virtual Node explain(TNode n) = 0;
+  virtual Node explain(TNode n) { return TNode::null(); }
 };/* class QuantifiersModule */
 
 namespace quantifiers {
-  class InstantiationEngine;
-  class ModelEngine;
   class TermDb;
   class FirstOrderModel;
+  //modules
+  class InstantiationEngine;
+  class ModelEngine;
+  class BoundedIntegers;
+  class RewriteEngine;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -80,6 +83,7 @@ class EqualityQueryQuantifiersEngine;
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
+  friend class quantifiers::RewriteEngine;
   friend class inst::InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -87,10 +91,6 @@ private:
   TheoryEngine* d_te;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
-  /** instantiation engine */
-  quantifiers::InstantiationEngine* d_inst_engine;
-  /** model engine */
-  quantifiers::ModelEngine* d_model_engine;
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
@@ -99,6 +99,14 @@ private:
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** efficient e-matcher */
   EfficientEMatcher* d_eem;
+  /** instantiation engine */
+  quantifiers::InstantiationEngine* d_inst_engine;
+  /** model engine */
+  quantifiers::ModelEngine* d_model_engine;
+  /** bounded integers utility */
+  quantifiers::BoundedIntegers * d_bint;
+  /** rewrite rules utility */
+  quantifiers::RewriteEngine * d_rr_engine;
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;
@@ -155,6 +163,8 @@ public:
   void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
   /** get efficient e-matching utility */
   EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
+  /** get bounded integers utility */
+  quantifiers::BoundedIntegers * getBoundedIntegers() { return d_bint; }
 public:
   /** initialize */
   void finishInit();

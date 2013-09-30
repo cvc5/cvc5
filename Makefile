@@ -14,6 +14,7 @@ all install examples install-examples .DEFAULT:
 		cd $(builddir); \
 		echo $(MAKE) $@; \
 		$(MAKE) $@ || exit 1; \
+		$(MAKE) show-config; \
 	else \
 		echo; \
 		echo 'Run configure first, or type "make" in a configured build directory.'; \

@@ -115,7 +115,7 @@ namespace expr {
 
 static Node exportConstant(TNode n, NodeManager* to);
 
-Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap) {
+Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags) {
   if(n.isNull()) return Node::null();
   if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
     throw ExportUnsupportedException
@@ -146,7 +146,7 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
           bool isGlobal;
           Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
           NodeManagerScope nullScope(NULL);
-          to_e = to->mkVar(name, type, isGlobal);// FIXME thread safety
+          to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
         } else if(n.getKind() == kind::SKOLEM) {
           // skolems are only available at the Node level (not the Expr level)
           TypeNode typeNode = TypeNode::fromType(type);
@@ -178,13 +178,13 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       Debug("export") << "+ parameterized, op is " << n.getOperator() << std::endl;
       children.reserve(n.getNumChildren() + 1);
-      children.push_back(exportInternal(n.getOperator(), from, to, vmap));
+      children.push_back(exportInternal(n.getOperator(), from, to, vmap, flags));
     } else {
       children.reserve(n.getNumChildren());
     }
     for(TNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
       Debug("export") << "+ child: " << *i << std::endl;
-      children.push_back(exportInternal(*i, from, to, vmap));
+      children.push_back(exportInternal(*i, from, to, vmap, flags));
     }
     if(Debug.isOn("export")) {
       ExprManagerScope ems(*to);
@@ -199,11 +199,12 @@ Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapC
 
 }/* CVC4::expr namespace */
 
-Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) const {
+Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap,
+                    uint32_t flags /* = 0 */) const {
   Assert(d_exprManager != exprManager,
          "No sense in cloning an Expr in the same ExprManager");
   ExprManagerScope ems(*this);
-  return Expr(exprManager, new Node(expr::exportInternal(*d_node, d_exprManager, exprManager, variableMap)));
+  return Expr(exprManager, new Node(expr::exportInternal(*d_node, d_exprManager, exprManager, variableMap, flags)));
 }
 
 Expr& Expr::operator=(const Expr& e) {

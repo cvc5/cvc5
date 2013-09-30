@@ -33,6 +33,7 @@
 #include "parser/parser_builder.h"
 #include "options/options.h"
 #include "util/language.h"
+#include "util/output.h"
 
 #include <string.h>
 #include <cassert>
@@ -313,7 +314,11 @@ restart:
     line += "\n";
     goto restart;
   } catch(ParserException& pe) {
-    d_out << pe << endl;
+    if(d_options[options::outputLanguage] == output::LANG_SMTLIB_V2) {
+      d_out << "(error \"" << pe << "\")" << endl;
+    } else {
+      d_out << pe << endl;
+    }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
     // line.  The first ones haven't yet been executed by the SmtEngine,

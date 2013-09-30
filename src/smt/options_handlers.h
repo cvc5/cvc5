@@ -186,6 +186,11 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
       } else if(!strcmp(p, "ite-removal")) {
       } else if(!strcmp(p, "repeat-simplify")) {
       } else if(!strcmp(p, "theory-preprocessing")) {
+      } else if(!strcmp(p, "nonclausal")) {
+      } else if(!strcmp(p, "theorypp")) {
+      } else if(!strcmp(p, "itesimp")) {
+      } else if(!strcmp(p, "unconstrained")) {
+      } else if(!strcmp(p, "repeatsimp")) {
       } else {
         throw OptionException(std::string("don't know how to dump `") +
                               optargPtr + "'.  Please consult --dump help.");
@@ -407,6 +412,17 @@ inline std::ostream* checkReplayLogFilename(std::string option, std::string opta
 #else /* CVC4_REPLAY */
   throw OptionException("The replay feature was disabled in this build of CVC4.");
 #endif /* CVC4_REPLAY */
+}
+
+// ensure we are a stats-enabled build of CVC4
+inline void statsEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
+#ifndef CVC4_STATISTICS_ON
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires a statistics-enabled build of CVC4; this binary was not built with statistics support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_STATISTICS_ON */
 }
 
 }/* CVC4::smt namespace */

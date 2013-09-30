@@ -46,9 +46,10 @@ namespace parser {
 AntlrInputStream::AntlrInputStream(std::string name, 
                                    pANTLR3_INPUT_STREAM input,
                                    bool fileIsTemporary) :
-  InputStream(name,fileIsTemporary),
+  InputStream(name, fileIsTemporary),
   d_input(input) {
   assert( input != NULL );
+  input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
 
 AntlrInputStream::~AntlrInputStream() {
@@ -286,16 +287,18 @@ void AntlrInput::warning(const std::string& message) {
 void AntlrInput::parseError(const std::string& message, bool eofException)
   throw (ParserException) {
   Debug("parser") << "Throwing exception: "
-      << getInputStream()->getName() << ":"
+      << (const char*)d_lexer->rec->state->tokSource->fileName->chars << ":"
       << d_lexer->getLine(d_lexer) << "."
       << d_lexer->getCharPositionInLine(d_lexer) << ": "
       << message << endl;
   if(eofException) {
-    throw ParserEndOfFileException(message, getInputStream()->getName(),
+    throw ParserEndOfFileException(message,
+                                   (const char*)d_lexer->rec->state->tokSource->fileName->chars,
                                    d_lexer->getLine(d_lexer),
                                    d_lexer->getCharPositionInLine(d_lexer));
   } else {
-    throw ParserException(message, getInputStream()->getName(),
+    throw ParserException(message,
+                          (const char*)d_lexer->rec->state->tokSource->fileName->chars,
                           d_lexer->getLine(d_lexer),
                           d_lexer->getCharPositionInLine(d_lexer));
   }

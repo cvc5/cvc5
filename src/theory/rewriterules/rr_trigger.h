@@ -94,8 +94,7 @@ public:
 public:
   /** is usable trigger */
   static inline bool isUsableTrigger( TNode n, TNode f ){
-    //return n.getAttribute(InstConstantAttribute())==f && n.getKind()==APPLY_UF;
-    return n.getAttribute(InstConstantAttribute())==f && isAtomicTrigger( n ) && isUsable( n, f );
+    return quantifiers::TermDb::getInstConstAttr(n)==f && isAtomicTrigger( n ) && isUsable( n, f );
   }
   static inline bool isAtomicTrigger( TNode n ){
     return

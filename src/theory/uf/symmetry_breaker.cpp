@@ -52,6 +52,8 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
+using namespace ::CVC4::context;
+
 SymmetryBreaker::Template::Template() :
   d_template(),
   d_sets(),
@@ -165,7 +167,10 @@ void SymmetryBreaker::Template::reset() {
   d_reps.clear();
 }
 
-SymmetryBreaker::SymmetryBreaker() :
+SymmetryBreaker::SymmetryBreaker(context::Context* context) :
+  ContextNotifyObj(context),
+  d_assertionsToRerun(context),
+  d_rerunningAssertions(false),
   d_phi(),
   d_phiSet(),
   d_permutations(),
@@ -173,6 +178,31 @@ SymmetryBreaker::SymmetryBreaker() :
   d_template(),
   d_normalizationCache(),
   d_termEqs() {
+}
+
+class SBGuard {
+  bool& d_ref;
+  bool d_old;
+public:
+  SBGuard(bool& b) : d_ref(b), d_old(b) {}
+  ~SBGuard() { Debug("uf") << "reset to " << d_old << std::endl; d_ref = d_old; }
+};/* class SBGuard */
+
+void SymmetryBreaker::rerunAssertionsIfNecessary() {
+  if(d_rerunningAssertions || !d_phi.empty() || d_assertionsToRerun.empty()) {
+    return;
+  }
+
+  SBGuard g(d_rerunningAssertions);
+  d_rerunningAssertions = true;
+
+  Debug("ufsymm") << "UFSYMM: rerunning assertions..." << std::endl;
+  for(CDList<Node>::const_iterator i = d_assertionsToRerun.begin();
+      i != d_assertionsToRerun.end();
+      ++i) {
+    assertFormula(*i);
+  }
+  Debug("ufsymm") << "UFSYMM: DONE rerunning assertions..." << std::endl;
 }
 
 Node SymmetryBreaker::norm(TNode phi) {
@@ -254,6 +284,10 @@ Node SymmetryBreaker::normInternal(TNode n) {
 }
 
 void SymmetryBreaker::assertFormula(TNode phi) {
+  rerunAssertionsIfNecessary();
+  if(!d_rerunningAssertions) {
+    d_assertionsToRerun.push_back(phi);
+  }
   // use d_phi, put into d_permutations
   Debug("ufsymm") << "UFSYMM assertFormula(): phi is " << phi << endl;
   d_phi.push_back(phi);
@@ -322,6 +356,7 @@ void SymmetryBreaker::clear() {
 }
 
 void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
+  rerunAssertionsIfNecessary();
   guessPermutations();
   Debug("ufsymm") << "UFSYMM =====================================================" << endl
                   << "UFSYMM have " << d_permutations.size() << " permutation sets" << endl;

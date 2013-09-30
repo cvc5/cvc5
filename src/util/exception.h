@@ -138,13 +138,13 @@ namespace CVC4 {
 #ifndef CheckArgument
 template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
 template <class T> inline void CheckArgument(bool cond, const T& arg, const char* fmt, ...) {
-  if(EXPECT_FALSE( !cond )) { \
+  if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
 template <class T> inline void CheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
 template <class T> inline void CheckArgument(bool cond, const T& arg) {
-  if(EXPECT_FALSE( !cond )) { \
+  if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
@@ -153,13 +153,13 @@ template <class T> inline void CheckArgument(bool cond, const T& arg) {
 #ifndef DebugCheckArgument
 template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) CVC4_PUBLIC;
 template <class T> inline void DebugCheckArgument(bool cond, const T& arg, const char* fmt, ...) {
-  if(EXPECT_FALSE( !cond )) { \
+  if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
 template <class T> inline void DebugCheckArgument(bool cond, const T& arg) CVC4_PUBLIC;
 template <class T> inline void DebugCheckArgument(bool cond, const T& arg) {
-  if(EXPECT_FALSE( !cond )) { \
+  if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }

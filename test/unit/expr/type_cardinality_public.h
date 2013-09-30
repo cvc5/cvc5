@@ -200,7 +200,7 @@ public:
   }
 
   void testBitvectors() {
-    Debug.on("bvcard");
+    //Debug.on("bvcard");
     TS_ASSERT( d_em->mkBitVectorType(0).getCardinality().compare(0) == Cardinality::EQUAL );
     Cardinality lastCard = 0;
     for(unsigned i = 1; i <= 65; ++i) {

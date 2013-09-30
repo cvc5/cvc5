@@ -47,6 +47,7 @@ void TheoryArith::addSharedTerm(TNode n){
 }
 
 Node TheoryArith::ppRewrite(TNode atom) {
+  CodeTimer timer(d_ppRewriteTimer);
   return d_internal->ppRewrite(atom);
 }
 
@@ -84,6 +85,10 @@ void TheoryArith::presolve(){
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   return d_internal->getEqualityStatus(a,b);
+}
+
+Node TheoryArith::getModelValue(TNode var) {
+  return d_internal->getModelValue( var );
 }
 
 }/* CVC4::theory::arith namespace */

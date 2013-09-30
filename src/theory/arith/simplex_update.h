@@ -318,7 +318,7 @@ private:
   }
 
   /**
-   * Determines the appropraite WitnessImprovement for the update.
+   * Determines the appropriate WitnessImprovement for the update.
    * useBlands breaks ties for degenerate pivots.
    *
    * This is safe if:

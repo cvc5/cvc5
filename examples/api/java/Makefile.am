@@ -2,6 +2,7 @@ noinst_DATA =
 
 if CVC4_LANGUAGE_BINDING_JAVA
 noinst_DATA += \
+	CVC4Streams.class \
 	BitVectors.class \
 	BitVectorsAndArrays.class \
 	Combination.class \
@@ -14,6 +15,7 @@ endif
 	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../../../src/bindings/CVC4.jar" -d "@builddir@" $<
 
 EXTRA_DIST = \
+	CVC4Streams.java \
 	BitVectors.java \
 	BitVectorsAndArrays.java \
 	Combination.java \

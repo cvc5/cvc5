@@ -554,6 +554,9 @@ public:
   /** Get the constituent types of a symbolic expression type */
   std::vector<TypeNode> getSExprTypes() const;
 
+  /** Is this a regexp type */
+  bool isRegExp() const;
+
   /** Is this a bit-vector type */
   bool isBitVector() const;
 
@@ -619,7 +622,7 @@ public:
    * If this is \top, i.e. there is no inhabited type that contains both,
    * a TypeNode such that isNull() is true is returned.
    *
-   * For more information see: http://church.cims.nyu.edu/wiki/Cvc4_Type_Lattice
+   * For more information see: http://cvc4.cs.nyu.edu/wiki/Cvc4_Type_Lattice
    */
   static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
 
@@ -770,7 +773,7 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
   Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
   Assert(typeNode.d_nv != NULL,
          "Expecting a non-NULL expression value on RHS!");
-  if(EXPECT_TRUE( d_nv != typeNode.d_nv )) {
+  if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;
     d_nv->inc();
@@ -840,6 +843,12 @@ inline bool TypeNode::isReal() const {
 inline bool TypeNode::isString() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == STRING_TYPE;
+}
+
+/** Is this a regexp type */
+inline bool TypeNode::isRegExp() const {
+  return getKind() == kind::TYPE_CONSTANT &&
+    getConst<TypeConstant>() == REGEXP_TYPE;
 }
 
 inline bool TypeNode::isArray() const {

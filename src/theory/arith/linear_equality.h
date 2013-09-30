@@ -192,9 +192,6 @@ public:
 };
 
 
-
-
-
 class LinearEqualityModule {
 public:
   typedef ArithVar (LinearEqualityModule::*VarPreferenceFunction)(ArithVar, ArithVar) const;
@@ -226,14 +223,12 @@ public:
    * Initializes a LinearEqualityModule with a partial model, a tableau,
    * and a callback function for when basic variables update their values.
    */
-  LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundCountingVector& boundTracking, BasicVarModelUpdateCallBack f);
+  LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundInfoMap& boundTracking, BasicVarModelUpdateCallBack f);
 
   /**
    * Updates the assignment of a nonbasic variable x_i to v.
    * Also updates the assignment of basic variables accordingly.
    */
-  void updateUntracked(ArithVar x_i, const DeltaRational& v);
-  void updateTracked(ArithVar x_i, const DeltaRational& v);
   void update(ArithVar x_i, const DeltaRational& v){
     if(d_areTracking){
       updateTracked(x_i,v);
@@ -241,7 +236,13 @@ public:
       updateUntracked(x_i,v);
     }
   }
-  void updateMany(const DenseMap<DeltaRational>& many);
+
+  /** Specialization of update if the module is not tracking yet (for Assert*). */
+  void updateUntracked(ArithVar x_i, const DeltaRational& v);
+
+  /** Specialization of update if the module is not tracking yet (for Simplex). */
+  void updateTracked(ArithVar x_i, const DeltaRational& v);
+
 
   /**
    * Updates the value of a basic variable x_i to v,
@@ -249,28 +250,34 @@ public:
    * Updates the assignment of the other basic variables accordingly.
    */
   void pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
-  //void pivotAndUpdateAdj(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
 
   ArithVariables& getVariables() const{ return d_variables; }
   Tableau& getTableau() const{ return d_tableau; }
 
+  /**
+   * Updates every non-basic to reflect the assignment in many.
+   * For use with ApproximateSimplex.
+   */
+  void updateMany(const DenseMap<DeltaRational>& many);
   void forceNewBasis(const DenseSet& newBasis);
+  void applySolution(const DenseSet& newBasis, const DenseMap<DeltaRational>& newValues);
 
-  bool hasBounds(ArithVar basic, bool upperBound);
-  bool hasLowerBounds(ArithVar basic){
-    return hasBounds(basic, false);
-  }
-  bool hasUpperBounds(ArithVar basic){
-    return hasBounds(basic, true);
-  }
+
+  /**
+   * Returns a pointer to the first Tableau entry on the row ridx that does not
+   * have an either a lower bound/upper bound for proving a bound on skip.
+   * The variable skip is always excluded. Returns NULL if there is no such element.
+   *
+   * If skip == ARITHVAR_SENTINEL, this is equivalent to considering the whole row.
+   */
+  const Tableau::Entry* rowLacksBound(RowIndex ridx, bool upperBound, ArithVar skip);
+
 
   void startTrackingBoundCounts();
   void stopTrackingBoundCounts();
 
 
-  void includeBoundCountChange(ArithVar nb, BoundCounts prev);
-
-  void computeSafeUpdate(UpdateInfo& inf, VarPreferenceFunction basic);
+  void includeBoundUpdate(ArithVar nb, const BoundsInfo& prev);
 
 
   uint32_t updateProduct(const UpdateInfo& inf) const;
@@ -334,40 +341,6 @@ public:
     }
   }
 
-  // template<bool heuristic>
-  // bool preferNonDegenerate(const UpdateInfo& a, const UpdateInfo& b) const{
-  //   if(a.focusDirection() == b.focusDirection()){
-  //     if(heuristic){
-  //       return preferNeitherBound(a,b);
-  //     }else{
-  //       return minNonBasicVarOrder(a,b);
-  //     }
-  //   }else{
-  //     return a.focusDirection() < b.focusDirection();
-  //   }
-  // }
-
-  // template <bool heuristic>
-  // bool preferErrorsFixed(const UpdateInfo& a, const UpdateInfo& b) const{
-  //   if( a.errorsChange() == b.errorsChange() ){
-  //     return preferNonDegenerate<heuristic>(a,b);
-  //   }else{
-  //     return a.errorsChange() > b.errorsChange();
-  //   }
-  // }
-
-  // template <bool heuristic>
-  // bool preferConflictFound(const UpdateInfo& a, const UpdateInfo& b) const{
-  //   if(a.d_foundConflict && b.d_foundConflict){
-  //     // if both are true, determinize the preference
-  //     return minNonBasicVarOrder(a,b);
-  //   }else if( a.d_foundConflict || b.d_foundConflict ){
-  //     return b.d_foundConflict;
-  //   }else{
-  //     return preferErrorsFixed<heuristic>(a,b);
-  //   }
-  // }
-
   bool modifiedBlands(const UpdateInfo& a, const UpdateInfo& b) const {
     Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
     Assert(a.describesPivot());
@@ -427,31 +400,27 @@ public:
   }
 
 private:
-  typedef std::vector<const Tableau::Entry*> EntryPointerVector;
-  EntryPointerVector d_relevantErrorBuffer;
 
-  //uint32_t computeUnconstrainedUpdate(ArithVar nb, int sgn,  DeltaRational& am);
-  //uint32_t computedFixed(ArithVar nb, int sgn, const DeltaRational& am);
-  void computedFixed(UpdateInfo&);
-
-  // RowIndex -> BoundCount
-  BoundCountingVector& d_boundTracking;
+  /**
+   * This maps each row index to its relevant bounds info.
+   * This tracks the count for how many variables on a row have bounds
+   * and how many are assigned at their bounds.
+   */
+  BoundInfoMap& d_btracking;
   bool d_areTracking;
+
+public:
+  /**
+   * The constraint on a basic variable b is implied by the constraints
+   * on its row.  This is a wrapper for propagateRow().
+   */
+  void propagateBasicFromRow(Constraint c);
 
   /**
    * Exports either the explanation of an upperbound or a lower bound
    * of the basic variable basic, using the non-basic variables in the row.
    */
-  template <bool upperBound>
-  void propagateNonbasics(ArithVar basic, Constraint c);
-
-public:
-  void propagateNonbasicsLowerBound(ArithVar basic, Constraint c){
-    propagateNonbasics<false>(basic, c);
-  }
-  void propagateNonbasicsUpperBound(ArithVar basic, Constraint c){
-    propagateNonbasics<true>(basic, c);
-  }
+  void propagateRow(std::vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c);
 
   /**
    * Computes the value of a basic variable using the assignments
@@ -460,14 +429,7 @@ public:
    * - the the current assignment (useSafe=false) or
    * - the safe assignment (useSafe = true).
    */
-  DeltaRational computeRowValue(ArithVar x, bool useSafe);
-
-  inline DeltaRational computeLowerBound(ArithVar basic){
-    return computeBound(basic, false);
-  }
-  inline DeltaRational computeUpperBound(ArithVar basic){
-    return computeBound(basic, true);
-  }
+  DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
 
   /**
    * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
@@ -548,41 +510,64 @@ public:
 
   const Tableau::Entry* selectSlackEntry(ArithVar x_i, bool above) const;
 
+  inline bool rowIndexIsTracked(RowIndex ridx) const {
+    return d_btracking.isKey(ridx);
+  }
   inline bool basicIsTracked(ArithVar v) const {
-    return d_boundTracking.isKey(v);
+    return rowIndexIsTracked(d_tableau.basicToRowIndex(v));
   }
-  void trackVariable(ArithVar x_i);
-
-  void maybeRemoveTracking(ArithVar v){
-    Assert(!d_tableau.isBasic(v));
-    if(d_boundTracking.isKey(v)){
-      d_boundTracking.remove(v);
-    }
+  void trackRowIndex(RowIndex ridx);
+  void stopTrackingRowIndex(RowIndex ridx){
+    Assert(rowIndexIsTracked(ridx));
+    d_btracking.remove(ridx);
   }
 
-  // void trackVariable(ArithVar x_i){
-  //   Assert(!basicIsTracked(x_i));
-  //   d_boundTracking.set(x_i,computeBoundCounts(x_i));
-  // }
+  /**
+   * If the pivot described in u were performed,
+   * then the row would qualify as being either at the minimum/maximum
+   * to the non-basics being at their bounds.
+   * The minimum/maximum is determined by the direction the non-basic is changing.
+   */
   bool basicsAtBounds(const UpdateInfo& u) const;
+
 private:
-  BoundCounts computeBoundCounts(ArithVar x_i) const;
+
+  /**
+   * Recomputes the bound info for a row using either the information
+   * in the bounds queue or the current information.
+   * O(row length of ridx)
+   */
+  BoundsInfo computeRowBoundInfo(RowIndex ridx, bool inQueue) const;
+
 public:
-  //BoundCounts cachingCountBounds(ArithVar x_i) const;
-  BoundCounts _countBounds(ArithVar x_i) const;
+  /** Debug only routine. */
+  BoundCounts debugBasicAtBoundCount(ArithVar x_i) const;
+
+  /** Track the effect of the change of coefficient for bound counting. */
   void trackingCoefficientChange(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn);
 
-  void trackingSwap(ArithVar basic, ArithVar nb, int sgn);
+  /** Track the effect of multiplying a row by a sign for bound counting. */
+  void trackingMultiplyRow(RowIndex ridx, int sgn);
 
+  /** Count for how many on a row have *an* upper/lower bounds. */
+  BoundCounts hasBoundCount(RowIndex ri) const {
+    Assert(d_variables.boundsQueueEmpty());
+    return d_btracking[ri].hasBounds();
+  }
+
+  /**
+   * Are there any non-basics on x_i's row that are not at
+   * their respective lower bounds (mod sgns).
+   * O(1) time due to the atBound() count.
+   */
   bool nonbasicsAtLowerBounds(ArithVar x_i) const;
-  bool nonbasicsAtUpperBounds(ArithVar x_i) const;
 
-  ArithVar _anySlackLowerBound(ArithVar x_i) const {
-    return selectSlack<true>(x_i, &LinearEqualityModule::noPreference);
-  }
-  ArithVar _anySlackUpperBound(ArithVar x_i) const {
-    return selectSlack<false>(x_i, &LinearEqualityModule::noPreference);
-  }
+  /**
+   * Are there any non-basics on x_i's row that are not at
+   * their respective upper bounds (mod sgns).
+   * O(1) time due to the atBound() count.
+   */
+  bool nonbasicsAtUpperBounds(ArithVar x_i) const;
 
 private:
   class TrackingCallback : public CoefficientChangeCallback {
@@ -593,8 +578,8 @@ private:
     void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn){
       d_linEq->trackingCoefficientChange(ridx, nb, oldSgn, currSgn);
     }
-    void swap(ArithVar basic, ArithVar nb, int oldNbSgn){
-      d_linEq->trackingSwap(basic, nb, oldNbSgn);
+    void multiplyRow(RowIndex ridx, int sgn){
+      d_linEq->trackingMultiplyRow(ridx, sgn);
     }
     bool canUseRow(RowIndex ridx) const {
       ArithVar basic = d_linEq->getTableau().rowIndexToBasic(ridx);
@@ -629,8 +614,11 @@ public:
     return minimallyWeakConflict(false, conflictVar);
   }
 
-private:
-  DeltaRational computeBound(ArithVar basic, bool upperBound);
+  /**
+   * Computes the sum of the upper/lower bound of row.
+   * The variable skip is not included in the sum.
+   */
+  DeltaRational computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const;
 
 public:
   void substitutePlusTimesConstant(ArithVar to, ArithVar from, const Rational& mult);
@@ -703,6 +691,7 @@ private:
 
     IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
     TimerStat d_weakenTime;
+    TimerStat d_forceTime;
 
     Statistics();
     ~Statistics();
@@ -737,13 +726,13 @@ public:
   }
 };
 
-class UpdateTrackingCallback : public BoundCountsCallback {
+class UpdateTrackingCallback : public BoundUpdateCallback {
 private:
   LinearEqualityModule* d_mod;
 public:
   UpdateTrackingCallback(LinearEqualityModule* mod): d_mod(mod){}
-  void operator()(ArithVar v, BoundCounts bc){
-    d_mod->includeBoundCountChange(v, bc);
+  void operator()(ArithVar v, const BoundsInfo& bi){
+    d_mod->includeBoundUpdate(v, bi);
   }
 };
 

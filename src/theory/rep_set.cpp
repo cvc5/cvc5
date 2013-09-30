@@ -14,6 +14,7 @@
 
 #include "theory/rep_set.h"
 #include "theory/type_enumerator.h"
+#include "theory/quantifiers/bounded_integers.h"
 
 using namespace std;
 using namespace CVC4;
@@ -94,26 +95,38 @@ void RepSet::toStream(std::ostream& out){
 }
 
 
-RepSetIterator::RepSetIterator( RepSet* rs ) : d_rep_set( rs ){
+RepSetIterator::RepSetIterator( QuantifiersEngine * qe, RepSet* rs ) : d_qe(qe), d_rep_set( rs ){
   d_incomplete = false;
+}
 
+int RepSetIterator::domainSize( int i ) {
+  Assert(i>=0);
+  if( d_enum_type[i]==ENUM_DOMAIN_ELEMENTS ){
+    return d_domain[i].size();
+  }else{
+    return d_domain[i][0];
+  }
 }
 
 bool RepSetIterator::setQuantifier( Node f ){
+  Trace("rsi") << "Make rsi for " << f << std::endl;
   Assert( d_types.empty() );
   //store indicies
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     d_types.push_back( f[0][i].getType() );
   }
+  d_owner = f;
   return initialize();
 }
 
 bool RepSetIterator::setFunctionDomain( Node op ){
+  Trace("rsi") << "Make rsi for " << op << std::endl;
   Assert( d_types.empty() );
   TypeNode tn = op.getType();
   for( size_t i=0; i<tn.getNumChildren()-1; i++ ){
     d_types.push_back( tn[i] );
   }
+  d_owner = op;
   return initialize();
 }
 
@@ -132,22 +145,80 @@ bool RepSetIterator::initialize(){
         Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn << std::endl;
         d_rep_set->add( var );
       }
-    }else if( tn.isInteger() || tn.isReal() ){
-      Trace("fmf-incomplete") << "Incomplete because of infinite type " << tn << std::endl;
-      d_incomplete = true;
-    //enumerate if the sort is reasonably small, the upper bound of 128 is chosen arbitrarily for now
-    }else if( tn.getCardinality().isFinite() && tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=128 ){
+    }else if( tn.isInteger() ){
+      bool inc = false;
+      //check if it is bound
+      if( d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers() ){
+        if( d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][i] ) ){
+          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded integer." << std::endl;
+          d_enum_type.push_back( ENUM_RANGE );
+        }else{
+          inc = true;
+        }
+      }else{
+        inc = true;
+      }
+      if( inc ){
+        //check if it is otherwise bound
+        if( d_bounds[0].find(i)!=d_bounds[0].end() && d_bounds[1].find(i)!=d_bounds[1].end() ){
+          Trace("bound-int-rsi") << "Rep set iterator: variable #" << i << " is bounded." << std::endl;
+          d_enum_type.push_back( ENUM_RANGE );
+        }else{
+          Trace("fmf-incomplete") << "Incomplete because of integer quantification of " << d_owner[0][i] << "." << std::endl;
+          d_incomplete = true;
+        }
+      }
+    //enumerate if the sort is reasonably small, the upper bound of 1000 is chosen arbitrarily for now
+    }else if( tn.getCardinality().isFinite() && tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
       d_rep_set->complete( tn );
     }else{
-      Trace("fmf-incomplete") << "Incomplete because of unknown type " << tn << std::endl;
+      Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
       d_incomplete = true;
     }
-    if( d_rep_set->hasType( tn ) ){
-      for( size_t j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
-        d_domain[i].push_back( j );
+    if( d_enum_type.size()<=i ){
+      d_enum_type.push_back( ENUM_DOMAIN_ELEMENTS );
+      if( d_rep_set->hasType( tn ) ){
+        for( size_t j=0; j<d_rep_set->d_type_reps[tn].size(); j++ ){
+          d_domain[i].push_back( j );
+        }
+      }else{
+        return false;
       }
-    }else{
-      return false;
+    }
+  }
+  //must set a variable index order based on bounded integers
+  if (d_owner.getKind()==FORALL && d_qe && d_qe->getBoundedIntegers()) {
+    Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
+    std::vector< int > varOrder;
+    for( unsigned i=0; i<d_qe->getBoundedIntegers()->getNumBoundVars(d_owner); i++ ){
+      varOrder.push_back(d_qe->getBoundedIntegers()->getBoundVarNum(d_owner,i));
+    }
+    for( unsigned i=0; i<d_owner[0].getNumChildren(); i++) {
+      if( !d_qe->getBoundedIntegers()->isBoundVar(d_owner, d_owner[0][i])) {
+        varOrder.push_back(i);
+      }
+    }
+    Trace("bound-int-rsi") << "Variable order : ";
+    for( unsigned i=0; i<varOrder.size(); i++) {
+      Trace("bound-int-rsi") << varOrder[i] << " ";
+    }
+    Trace("bound-int-rsi") << std::endl;
+    std::vector< int > indexOrder;
+    indexOrder.resize(varOrder.size());
+    for( unsigned i=0; i<varOrder.size(); i++){
+      indexOrder[varOrder[i]] = i;
+    }
+    Trace("bound-int-rsi") << "Will use index order : ";
+    for( unsigned i=0; i<indexOrder.size(); i++) {
+      Trace("bound-int-rsi") << indexOrder[i] << " ";
+    }
+    Trace("bound-int-rsi") << std::endl;
+    setIndexOrder(indexOrder);
+  }
+  //now reset the indices
+  for (unsigned i=0; i<d_index.size(); i++) {
+    if (!resetIndex(i, true)){
+      break;
     }
   }
   return true;
@@ -161,7 +232,7 @@ void RepSetIterator::setIndexOrder( std::vector< int >& indexOrder ){
     d_var_order[d_index_order[i]] = i;
   }
 }
-
+/*
 void RepSetIterator::setDomain( std::vector< RepDomain >& domain ){
   d_domain.clear();
   d_domain.insert( d_domain.begin(), domain.begin(), domain.end() );
@@ -172,29 +243,104 @@ void RepSetIterator::setDomain( std::vector< RepDomain >& domain ){
     }
   }
 }
+*/
+bool RepSetIterator::resetIndex( int i, bool initial ) {
+  d_index[i] = 0;
+  int ii = d_index_order[i];
+  Trace("bound-int-rsi") << "Reset " << i << " " << ii << " " << initial << std::endl;
+  //determine the current range
+  if( d_enum_type[ii]==ENUM_RANGE ){
+    if( initial || ( d_qe->getBoundedIntegers() && !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][ii] ) ) ){
+      Trace("bound-int-rsi") << "Getting range of " << d_owner[0][ii] << std::endl;
+      Node l, u;
+      if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][ii] ) ){
+        d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][ii], this, l, u );
+      }
+      for( unsigned b=0; b<2; b++ ){
+        if( d_bounds[b].find(ii)!=d_bounds[b].end() ){
+          Trace("bound-int-rsi") << "May further limit bound(" << b << ") based on " << d_bounds[b][ii] << std::endl;
+          if( b==0 && (l.isNull() || d_bounds[b][ii].getConst<Rational>() > l.getConst<Rational>()) ){
+            l = d_bounds[b][ii];
+          }else if( b==1 && (u.isNull() || d_bounds[b][ii].getConst<Rational>() <= u.getConst<Rational>()) ){
+            u = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][ii],
+                                                  NodeManager::currentNM()->mkConst( Rational(1) ) );
+            u = Rewriter::rewrite( u );
+          }
+        }
+      }
 
-void RepSetIterator::increment2( int counter ){
+      if( l.isNull() || u.isNull() ){
+        //failed, abort the iterator
+        d_index.clear();
+        return false;
+      }else{
+        Trace("bound-int-rsi") << "Can limit bounds of " << d_owner[0][ii] << " to " << l << "..." << u << std::endl;
+        Node range = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MINUS, u, l ) );
+        Node ra = Rewriter::rewrite( NodeManager::currentNM()->mkNode( LEQ, range, NodeManager::currentNM()->mkConst( Rational( 9999 ) ) ) );
+        d_domain[ii].clear();
+        Node tl = l;
+        Node tu = u;
+        if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][ii] ) ){
+          d_qe->getBoundedIntegers()->getBounds( d_owner, d_owner[0][ii], this, tl, tu );
+        }
+        d_lower_bounds[ii] = tl;
+        if( ra==NodeManager::currentNM()->mkConst(true) ){
+          long rr = range.getConst<Rational>().getNumerator().getLong()+1;
+          Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
+          d_domain[ii].push_back( (int)rr );
+        }else{
+          Trace("fmf-incomplete") << "Incomplete because of integer quantification, bounds are too big for " << d_owner[0][ii] << "." << std::endl;
+          d_incomplete = true;
+          d_domain[ii].push_back( 0 );
+        }
+      }
+    }else{
+      Trace("bound-int-rsi") << d_owner[0][ii] << " has ground range, skip." << std::endl;
+    }
+  }
+  return true;
+}
+
+int RepSetIterator::increment2( int counter ){
   Assert( !isFinished() );
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   counter = (int)d_index.size()-1;
 #endif
   //increment d_index
-  while( counter>=0 && d_index[counter]==(int)(d_domain[counter].size()-1) ){
+  if( counter>=0){
+    Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+  }
+  while( counter>=0 && d_index[counter]>=(int)(domainSize(counter)-1) ){
     counter--;
+    if( counter>=0){
+      Trace("rsi-debug") << "domain size of " << counter << " is " << domainSize(counter) << std::endl;
+    }
   }
   if( counter==-1 ){
     d_index.clear();
   }else{
-    for( int i=(int)d_index.size()-1; i>counter; i-- ){
-      d_index[i] = 0;
-    }
     d_index[counter]++;
+    bool emptyDomain = false;
+    for( int i=(int)d_index.size()-1; i>counter; i-- ){
+      if (!resetIndex(i)){
+        break;
+      }else if( domainSize(i)<=0 ){
+        emptyDomain = true;
+      }
+    }
+    if( emptyDomain ){
+      Trace("rsi-debug") << "This is an empty domain, increment again." << std::endl;
+      return increment();
+    }
   }
+  return counter;
 }
 
-void RepSetIterator::increment(){
+int RepSetIterator::increment(){
   if( !isFinished() ){
-    increment2( (int)d_index.size()-1 );
+    return increment2( (int)d_index.size()-1 );
+  }else{
+    return -1;
   }
 }
 
@@ -203,10 +349,18 @@ bool RepSetIterator::isFinished(){
 }
 
 Node RepSetIterator::getTerm( int i ){
-  TypeNode tn = d_types[d_index_order[i]];
-  Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
   int index = d_index_order[i];
-  return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
+  if( d_enum_type[index]==ENUM_DOMAIN_ELEMENTS ){
+    TypeNode tn = d_types[index];
+    Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
+    return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
+  }else{
+    Trace("rsi-debug") << index << " " << d_lower_bounds[index] << " " << d_index[index] << std::endl;
+    Node t = NodeManager::currentNM()->mkNode(PLUS, d_lower_bounds[index],
+                                                    NodeManager::currentNM()->mkConst( Rational(d_index[index]) ) );
+    t = Rewriter::rewrite( t );
+    return t;
+  }
 }
 
 void RepSetIterator::debugPrint( const char* c ){

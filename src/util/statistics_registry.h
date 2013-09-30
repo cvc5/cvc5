@@ -847,7 +847,7 @@ public:
  * like in this example, which takes the place of the declaration of a
  * statistics field "d_checkTimer":
  *
- *   KEEP_STATISTIC(TimerStat, d_checkTimer, "theory::uf::morgan::checkTime");
+ *   KEEP_STATISTIC(TimerStat, d_checkTimer, "theory::uf::checkTime");
  *
  * If any args need to be passed to the constructor, you can specify
  * them after the string.

@@ -130,6 +130,8 @@ void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStat& timer, Ar
   Assert(tmp != ARITHVAR_SENTINEL);
   Assert(d_tableau.isBasic(tmp));
 
+  RowIndex ri = d_tableau.basicToRowIndex(tmp);
+  d_linEq.stopTrackingRowIndex(ri);
   d_tableau.removeBasicRow(tmp);
   releaseVariable(tmp);
 }
@@ -168,6 +170,12 @@ void SimplexDecisionProcedure::addToInfeasFunc(TimerStat& timer, ArithVar inf, A
   adjustInfeasFunc(timer, inf, justE);
 }
 
+void SimplexDecisionProcedure::removeFromInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e){
+  AVIntPairVec justE;
+  int opSgn  = -d_errorSet.getSgn(e);
+  justE.push_back(make_pair(e, opSgn));
+  adjustInfeasFunc(timer, inf, justE);
+}
 
 ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set){
   TimerStat::CodeTimer codeTimer(timer);
@@ -193,9 +201,10 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   DeltaRational newAssignment = d_linEq.computeRowValue(inf, false);
   d_variables.setAssignment(inf, newAssignment);
 
-  d_linEq.trackVariable(inf);
+  //d_linEq.trackVariable(inf);
+  d_linEq.trackRowIndex(d_tableau.basicToRowIndex(inf));
 
-  Debug("Inf") << inf << " " << newAssignment << endl;
+  Debug("constructInfeasiblityFunction") << inf << " " << newAssignment << endl;
 
   return inf;
 }
@@ -226,7 +235,7 @@ void SimplexDecisionProcedure::addRowSgns(sgn_table& sgns, ArithVar basic, int n
   }
 }
 
-ArithVar SimplexDecisionProcedure::find_basic_outside(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m){
+ArithVar SimplexDecisionProcedure::find_basic_in_sgns(const sgn_table& sgns, ArithVar col, int sgn, const DenseSet& m, bool inside){
   pair<ArithVar, int> p = make_pair(col, determinizeSgn(sgn));
   sgn_table::const_iterator i = sgns.find(p);
 
@@ -234,7 +243,7 @@ ArithVar SimplexDecisionProcedure::find_basic_outside(const sgn_table& sgns, Ari
     const ArithVarVec& vec = (*i).second;
     for(ArithVarVec::const_iterator viter = vec.begin(), vend = vec.end(); viter != vend; ++viter){
       ArithVar curr = *viter;
-      if(!m.isMember(curr)){
+      if(inside == m.isMember(curr)){
         return curr;
       }
     }
