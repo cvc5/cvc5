@@ -824,7 +824,26 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
                                         int index = has_loop[0]!=-1 ? index_i : index_j;
                                         int other_index = has_loop[0]!=-1 ? index_j : index_i;
                                         Trace("strings-loop") << "Detected possible loop for " << normal_forms[loop_n_index][loop_index];
-                                        Trace("strings-loop") << " ... " << normal_forms[other_n_index][other_index] << std::endl;
+                                        Trace("strings-loop") << " ... (X)= " << normal_forms[other_n_index][other_index] << std::endl;
+										
+										Trace("strings-loop") << " ... T(Y.Z)= ";
+										for(int lp=index; lp<loop_index; ++lp) {
+											if(lp != index) Trace("strings-loop") << " ++ ";
+											Trace("strings-loop") << normal_forms[loop_n_index][lp];
+										}
+										Trace("strings-loop") << std::endl;
+										Trace("strings-loop") << " ... S(Z.Y)= ";
+										for(int lp=other_index+1; lp<(int)normal_forms[other_n_index].size(); ++lp) {
+											if(lp != other_index+1) Trace("strings-loop") << " ++ ";
+											Trace("strings-loop") << normal_forms[other_n_index][lp];
+										}
+										Trace("strings-loop") << std::endl;
+										Trace("strings-loop") << " ... R= ";
+										for(int lp=loop_index+1; lp<(int)normal_forms[loop_n_index].size(); ++lp) {
+											if(lp != loop_index+1) Trace("strings-loop") << " ++ ";
+											Trace("strings-loop") << normal_forms[loop_n_index][lp];
+										}
+										Trace("strings-loop") << std::endl;
 
                                         //we have x * s1 * .... * sm = t1 * ... * tn * x * r1 * ... * rp
                                         //check if
@@ -934,12 +953,11 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 												Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
 													NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
 												//split the string
-												Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for split" );
+												Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
 
 												Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str, d_emptyString );
-												Node eq2_m = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
+												Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
 															NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, sk ) );
-												Node eq2 = eq2_m;//NodeManager::currentNM()->mkNode( kind::AND, eq2_m, sk_len_geq_zero );
 												conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
                                                 Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
 
@@ -956,7 +974,17 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											}else{
 												antec_new_lits.push_back(ldeq);
 											}
-											Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for split" );
+											// first, M |=/= |x|=|y|, then x=y
+											Node len_x = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[i][index_i] );
+											Node len_y = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[j][index_j] );
+											if( !areDisequal( len_x, len_y ) ) {
+												Node x_eq_y = Rewriter::rewrite( normal_forms[i][index_i].eqNode( normal_forms[j][index_j] ) );
+												antec_new_lits.push_back( x_eq_y.negate() );
+												d_pending_req_phase[ x_eq_y ] = true;
+											}
+
+											// second, split
+											Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
 											Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
 														NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) );
 											Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[j][index_j],
@@ -1019,7 +1047,7 @@ bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 			Node i = d_normal_forms[ni][index];
 			Node j = d_normal_forms[nj][index];
 			Trace("strings-solve-debug")  << "...Processing " << i << " " << j << std::endl;
-			if( !areEqual( i, j ) ){
+			if( !areEqual( i, j ) ) {
 				Node li = getLength( i );
 				Node lj = getLength( j );
 				if( !areEqual(li, lj) ){
@@ -1030,7 +1058,7 @@ bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 					antec.insert( antec.end(), d_normal_forms_exp[ni].begin(), d_normal_forms_exp[ni].end() );
 					antec.insert( antec.end(), d_normal_forms_exp[nj].begin(), d_normal_forms_exp[nj].end() );
 					antec.push_back( ni.eqNode( nj ).negate() );
-					antec_new_lits.push_back( li.eqNode( lj ) );
+					antec_new_lits.push_back( li.eqNode( lj ).negate() );
 					std::vector< Node > conc;
 					Node sk1 = NodeManager::currentNM()->mkSkolem( "w1sym_$$", ni.getType(), "created for disequality normalization" );
 					Node sk2 = NodeManager::currentNM()->mkSkolem( "w2sym_$$", ni.getType(), "created for disequality normalization" );
