@@ -62,11 +62,14 @@ public:
 
 private:
   class TypeInfo {
-  private:
-    SubsortSymmetryBreaker * d_ssb;
-    //bool isActive( Node n, unsigned & deq );
   public:
-    TypeInfo( SubsortSymmetryBreaker * ssb, context::Context* c );
+    TypeInfo( context::Context* c );
+    context::CDO< int > d_max_dom_const_sort;
+    context::CDO< bool > d_has_dom_const_sort;
+  };
+  class SubSortInfo {
+  public:
+    SubSortInfo( context::Context* c );
     //list of all nodes from this (sub)type
     std::vector< Node > d_nodes;
     //the current domain constants for this (sub)type
@@ -81,36 +84,30 @@ private:
     bool hasDomainConstant( Node n );
     unsigned getNumDomainConstants();
     Node getDomainConstant( int i );
-    Node getFirstActive();
+    Node getFirstActive(eq::EqualityEngine * ee);
   };
   std::map< TypeNode, std::vector< int > > d_sub_sorts;
   std::map< int, TypeNode > d_sid_to_type;
-  std::map< int, TypeInfo * > d_type_info;
+  std::map< TypeNode, TypeInfo * > d_t_info;
+  std::map< int, SubSortInfo * > d_type_info;
 
-  //maximum domain constants sort
-  context::CDO< int > d_max_dom_const_sort;
-  context::CDO< bool > d_has_dom_const_sort;
-
-  TypeInfo * getTypeInfo( TypeNode tn, int sid );
+  TypeInfo * getTypeInfo( TypeNode tn );
+  SubSortInfo * getSubSortInfo( TypeNode tn, int sid );
 
   void processFirstActive( TypeNode tn, int sid, int curr_card );
 private:
   //void printDebugNodeInfo( const char * c, Node n );
-  void printDebugTypeInfo( const char * c, TypeNode tn, int sid );
+  void printDebugSubSortInfo( const char * c, TypeNode tn, int sid );
+  /** fact list */
+  std::vector< Node > d_pending_lemmas;
+  std::vector< Node > d_lemmas;
+public:
   /** new node */
   void newEqClass( Node n );
   /** merge */
   void merge( Node a, Node b );
   /** assert disequal */
   void assertDisequal( Node a, Node b );
-  /** fact list */
-  context::CDO< unsigned > d_fact_index;
-  NodeList d_fact_list;
-  std::vector< Node > d_pending_lemmas;
-  std::vector< Node > d_lemmas;
-public:
-  /** queue fact */
-  void queueFact( Node n );
   /** check */
   bool check( Theory::Effort level );
 };

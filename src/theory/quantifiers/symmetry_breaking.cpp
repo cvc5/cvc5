@@ -29,6 +29,12 @@ using namespace std;
 
 namespace CVC4 {
 
+
+SubsortSymmetryBreaker::SubsortSymmetryBreaker(QuantifiersEngine* qe, context::Context* c) :
+d_qe(qe), d_conflict(c,false) {
+  d_true =  NodeManager::currentNM()->mkConst( true );
+}
+
 eq::EqualityEngine * SubsortSymmetryBreaker::getEqualityEngine() {
   return ((uf::TheoryUF*)d_qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ))->getEqualityEngine();
 }
@@ -50,18 +56,16 @@ uf::StrongSolverTheoryUF * SubsortSymmetryBreaker::getStrongSolver() {
   return ((uf::TheoryUF*)d_qe->getTheoryEngine()->theoryOf( theory::THEORY_UF ))->getStrongSolver();
 }
 
-SubsortSymmetryBreaker::SubsortSymmetryBreaker(QuantifiersEngine* qe, context::Context* c) :
-d_qe(qe), d_conflict(c,false), d_max_dom_const_sort(c,0), d_has_dom_const_sort(c,false),
-d_fact_index(c,0), d_fact_list(c) {
-  d_true =  NodeManager::currentNM()->mkConst( true );
+SubsortSymmetryBreaker::TypeInfo::TypeInfo( context::Context * c ) :
+d_max_dom_const_sort(c,0), d_has_dom_const_sort(c,false) {
 }
 
-SubsortSymmetryBreaker::TypeInfo::TypeInfo( SubsortSymmetryBreaker * ssb, context::Context * c ) :
-d_ssb( ssb ), d_dom_constants( c ), d_first_active( c, 0 ){
+SubsortSymmetryBreaker::SubSortInfo::SubSortInfo( context::Context * c ) :
+d_dom_constants( c ), d_first_active( c, 0 ){
   d_dc_nodes = 0;
 }
 
-unsigned SubsortSymmetryBreaker::TypeInfo::getNumDomainConstants() {
+unsigned SubsortSymmetryBreaker::SubSortInfo::getNumDomainConstants() {
   if( d_nodes.empty() ){
     return 0;
   }else{
@@ -69,7 +73,7 @@ unsigned SubsortSymmetryBreaker::TypeInfo::getNumDomainConstants() {
   }
 }
 
-Node SubsortSymmetryBreaker::TypeInfo::getDomainConstant( int i ) {
+Node SubsortSymmetryBreaker::SubSortInfo::getDomainConstant( int i ) {
   if( i==0 ){
     return d_nodes[0];
   }else{
@@ -78,18 +82,25 @@ Node SubsortSymmetryBreaker::TypeInfo::getDomainConstant( int i ) {
   }
 }
 
-Node SubsortSymmetryBreaker::TypeInfo::getFirstActive() {
+Node SubsortSymmetryBreaker::SubSortInfo::getFirstActive(eq::EqualityEngine * ee) {
   if( d_first_active.get()<(int)d_nodes.size() ){
     Node fa = d_nodes[d_first_active.get()];
-    return d_ssb->getEqualityEngine()->hasTerm( fa ) ? fa : Node::null();
+    return ee->hasTerm( fa ) ? fa : Node::null();
   }else{
     return Node::null();
   }
 }
 
-SubsortSymmetryBreaker::TypeInfo * SubsortSymmetryBreaker::getTypeInfo( TypeNode tn, int sid ) {
+SubsortSymmetryBreaker::TypeInfo * SubsortSymmetryBreaker::getTypeInfo( TypeNode tn ) {
+  if( d_t_info.find( tn )==d_t_info.end() ){
+    d_t_info[tn] = new TypeInfo( d_qe->getSatContext() );
+  }
+  return d_t_info[tn];
+}
+
+SubsortSymmetryBreaker::SubSortInfo * SubsortSymmetryBreaker::getSubSortInfo( TypeNode tn, int sid ) {
   if( d_type_info.find( sid )==d_type_info.end() ){
-    d_type_info[sid] = new TypeInfo( this, d_qe->getSatContext() );
+    d_type_info[sid] = new SubSortInfo( d_qe->getSatContext() );
     d_sub_sorts[tn].push_back( sid );
     d_sid_to_type[sid] = tn;
   }
@@ -104,7 +115,7 @@ void SubsortSymmetryBreaker::newEqClass( Node n ) {
     if( si->isWellSorted( n ) ){
       int sid = si->getSortId( n );
       Trace("sym-break-debug") << "SSB: New eq class " << n << " : " << n.getType() << " : " << sid << std::endl;
-      TypeInfo * ti = getTypeInfo( tn, sid );
+      SubSortInfo * ti = getSubSortInfo( tn, sid );
       if( std::find( ti->d_nodes.begin(), ti->d_nodes.end(), n )==ti->d_nodes.end() ){
         if( ti->d_nodes.empty() ){
           //for first subsort, we add unit equality
@@ -123,9 +134,10 @@ void SubsortSymmetryBreaker::newEqClass( Node n ) {
         ti->d_node_to_id[n] = ti->d_nodes.size();
         ti->d_nodes.push_back( n );
       }
-      if( !d_has_dom_const_sort.get() ){
-        d_has_dom_const_sort.set( true );
-        d_max_dom_const_sort.set( sid );
+      TypeInfo * tti = getTypeInfo( tn );
+      if( !tti->d_has_dom_const_sort.get() ){
+        tti->d_has_dom_const_sort.set( true );
+        tti->d_max_dom_const_sort.set( sid );
       }
     }
   }
@@ -135,19 +147,37 @@ void SubsortSymmetryBreaker::newEqClass( Node n ) {
 
 
 void SubsortSymmetryBreaker::merge( Node a, Node b ) {
-
+  if( Trace.isOn("sym-break-debug") ){
+    SortInference * si = d_qe->getTheoryEngine()->getSortInference();
+    int as = si->getSortId( a );
+    int bs = si->getSortId( b );
+    Trace("sym-break-debug") << "SSB: New merge " << a.getType() << " :: " << a << " : " << as;
+    Trace("sym-break-debug") << " == " << b << " : " << bs << std::endl;
+  }
 }
 
 void SubsortSymmetryBreaker::assertDisequal( Node a, Node b ) {
-
+  if( Trace.isOn("sym-break-debug") ){
+    SortInference * si = d_qe->getTheoryEngine()->getSortInference();
+    int as = si->getSortId( a );
+    int bs = si->getSortId( b );
+    Trace("sym-break-debug") << "SSB: New assert disequal " << a.getType() << " :: " << a << " : " << as;
+    Trace("sym-break-debug") << " != " << b << " : " << bs << std::endl;
+  }
 }
 
 void SubsortSymmetryBreaker::processFirstActive( TypeNode tn, int sid, int curr_card ){
-  TypeInfo * ti = getTypeInfo( tn, sid );
+  SubSortInfo * ti = getSubSortInfo( tn, sid );
   if( (int)ti->getNumDomainConstants()<curr_card ){
+      //static int checkCount = 0;
+      //checkCount++;
+      //if( checkCount%1000==0 ){
+      //  std::cout << "Check count = " << checkCount << std::endl;
+      //}
+
     Trace("sym-break-dc-debug") << "Check for domain constants " << tn << " : " << sid << ", curr_card = " << curr_card << ", ";
     Trace("sym-break-dc-debug") << "#domain constants = " << ti->getNumDomainConstants() << std::endl;
-    Node fa = ti->getFirstActive();
+    Node fa = ti->getFirstActive(getEqualityEngine());
     bool invalid = true;
     while( invalid && !fa.isNull() && (int)ti->getNumDomainConstants()<curr_card ){
       invalid = false;
@@ -179,14 +209,15 @@ void SubsortSymmetryBreaker::processFirstActive( TypeNode tn, int sid, int curr_
         }
         ti->d_dc_nodes++;
         Trace("sym-break-dc-debug") << "Get max type info..." << std::endl;
-        Assert( d_has_dom_const_sort.get() );
-        int msid = d_max_dom_const_sort.get();
-        TypeInfo * max_ti = getTypeInfo( d_sid_to_type[msid], msid );
+        TypeInfo * tti = getTypeInfo( tn );
+        Assert( tti->d_has_dom_const_sort.get() );
+        int msid = tti->d_max_dom_const_sort.get();
+        SubSortInfo * max_ti = getSubSortInfo( d_sid_to_type[msid], msid );
         Trace("sym-break-dc-debug") << "Swap nodes..." << std::endl;
         //now, check if we can apply symmetry breaking to another sort
         if( ti->getNumDomainConstants()>max_ti->getNumDomainConstants() ){
           Trace("sym-break-dc") << "Max domain constant subsort for " << tn << " becomes " << sid << std::endl;
-          d_max_dom_const_sort.set( sid );
+          tti->d_max_dom_const_sort.set( sid );
         }else if( ti!=max_ti ){
           //construct symmetry breaking lemma
           //current domain constant must be disequal from all current ones
@@ -199,7 +230,7 @@ void SubsortSymmetryBreaker::processFirstActive( TypeNode tn, int sid, int curr_
           for( unsigned r=0; r<2; r++ ){
             Node n = ((r==0)==(msid>sid)) ? fa : m;
             Node on = ((r==0)==(msid>sid)) ? m : fa;
-            TypeInfo * t = ((r==0)==(msid>sid)) ? max_ti : ti;
+            SubSortInfo * t = ((r==0)==(msid>sid)) ? max_ti : ti;
             for( unsigned i=0; i<t->d_node_to_id[on]; i++ ){
               cc.push_back( n.eqNode( t->d_nodes[i] ) );
             }
@@ -210,7 +241,7 @@ void SubsortSymmetryBreaker::processFirstActive( TypeNode tn, int sid, int curr_
           lem = Rewriter::rewrite( lem );
           if( std::find( d_lemmas.begin(), d_lemmas.end(), lem )==d_lemmas.end() ){
             d_lemmas.push_back( lem );
-            Trace("sym-break-lemma") << "*** Symmetry break lemma for " << tn << " (" << sid << "==" << d_max_dom_const_sort.get() << ") : ";
+            Trace("sym-break-lemma") << "*** Symmetry break lemma for " << tn << " (" << sid << "==" << tti->d_max_dom_const_sort.get() << ") : ";
             Trace("sym-break-lemma") << lem << std::endl;
             d_pending_lemmas.push_back( lem );
           }
@@ -219,42 +250,28 @@ void SubsortSymmetryBreaker::processFirstActive( TypeNode tn, int sid, int curr_
       }
       if( invalid ){
         ti->d_first_active.set( ti->d_first_active + 1 );
-        fa = ti->getFirstActive();
+        fa = ti->getFirstActive(getEqualityEngine());
       }
     }
   }
 }
 
-void SubsortSymmetryBreaker::printDebugTypeInfo( const char * c, TypeNode tn, int sid ) {
-  Trace(c) << "TypeInfo( " << tn << ", " << sid << " ) = " << std::endl;
+void SubsortSymmetryBreaker::printDebugSubSortInfo( const char * c, TypeNode tn, int sid ) {
+  Trace(c) << "SubSortInfo( " << tn << ", " << sid << " ) = " << std::endl;
   Trace(c) << "  Domain constants : ";
-  TypeInfo * ti = getTypeInfo( tn, sid );
+  SubSortInfo * ti = getSubSortInfo( tn, sid );
   for( NodeList::const_iterator it = ti->d_dom_constants.begin(); it != ti->d_dom_constants.end(); ++it ){
     Node dc = *it;
     Trace(c) << dc << " ";
   }
   Trace(c) << std::endl;
-  Trace(c) << "  First active node : " << ti->getFirstActive() << std::endl;
-}
-
-
-void SubsortSymmetryBreaker::queueFact( Node n ) {
-  d_fact_list.push_back( n );
-  /*
-  if( n.getKind()==EQUAL ){
-    merge( n[0], n[1] );
-  }else if( n.getKind()==NOT && n[0].getKind()==EQUAL ){
-    assertDisequal( n[0][0], n[0][1] );
-  }else{
-    newEqClass( n );
-  }
-  */
+  Trace(c) << "  First active node : " << ti->getFirstActive(getEqualityEngine()) << std::endl;
 }
 
 bool SubsortSymmetryBreaker::check( Theory::Effort level ) {
-  d_pending_lemmas.clear();
 
   Trace("sym-break-debug") << "SymBreak : check " << level << std::endl;
+  /*
   while( d_fact_index.get()<d_fact_list.size() ){
     Node f = d_fact_list[d_fact_index.get()];
     d_fact_index.set( d_fact_index.get() + 1 );
@@ -266,6 +283,7 @@ bool SubsortSymmetryBreaker::check( Theory::Effort level ) {
       newEqClass( f );
     }
   }
+  */
   Trace("sym-break-debug") << "SymBreak : update first actives" << std::endl;
   for( std::map< TypeNode, std::vector< int > >::iterator it = d_sub_sorts.begin(); it != d_sub_sorts.end(); ++it ){
     int card = getStrongSolver()->getCardinality( it->first );

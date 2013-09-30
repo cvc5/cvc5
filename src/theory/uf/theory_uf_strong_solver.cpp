@@ -120,8 +120,7 @@ void StrongSolverTheoryUF::SortModel::Region::setEqual( Node a, Node b ){
             d_cf->d_thss->getDisequalityPropagator()->assertDisequal(a, n, Node::null());
           }
           if( options::ufssSymBreak() ){
-            //d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
-            d_cf->d_thss->getSymmetryBreaker()->queueFact( a.eqNode( n ).negate() );
+            d_cf->d_thss->getSymmetryBreaker()->assertDisequal( a, n );
           }
         }
         setDisequal( b, n, t, false );
@@ -527,8 +526,7 @@ void StrongSolverTheoryUF::SortModel::merge( Node a, Node b ){
           d_thss->getDisequalityPropagator()->merge(a, b);
         }
         if( options::ufssSymBreak() ){
-          //d_thss->getSymmetryBreaker()->merge(a, b);
-          d_thss->getSymmetryBreaker()->queueFact( a.eqNode( b ) );
+          d_thss->getSymmetryBreaker()->merge(a, b);
         }
       }
     }
@@ -583,8 +581,7 @@ void StrongSolverTheoryUF::SortModel::assertDisequal( Node a, Node b, Node reaso
             d_thss->getDisequalityPropagator()->assertDisequal(a, b, Node::null());
           }
           if( options::ufssSymBreak() ){
-            //d_thss->getSymmetryBreaker()->assertDisequal(a, b);
-            d_thss->getSymmetryBreaker()->queueFact( a.eqNode( b ).negate() );
+            d_thss->getSymmetryBreaker()->assertDisequal(a, b);
           }
         }
       }
@@ -1478,8 +1475,7 @@ void StrongSolverTheoryUF::newEqClass( Node n ){
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: New eq class " << n << " : " << n.getType() << std::endl;
     c->newEqClass( n );
     if( options::ufssSymBreak() ){
-      //d_sym_break->newEqClass( n );
-      d_sym_break->queueFact( n );
+      d_sym_break->newEqClass( n );
     }
   }
 }

@@ -28,8 +28,10 @@ namespace CVC4 {
 
 class SortInference{
 private:
-  //for debugging
-  //std::map< int, std::vector< Node > > d_type_eq_class;
+  //all subsorts
+  std::vector< int > d_sub_sorts;
+  std::map< int, bool > d_non_monotonic_sorts;
+  void recordSubsort( int s );
 public:
   class UnionFind {
   public:
@@ -66,6 +68,12 @@ private:
   void printSort( const char* c, int t );
   //process
   int process( Node n, std::map< Node, Node >& var_bound );
+
+//for monotonicity inference
+private:
+  void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound );
+
+//for rewriting
 private:
   //mapping from old symbols to new symbols
   std::map< Node, Node > d_symbol_map;
@@ -79,6 +87,7 @@ private:
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
   Node simplify( Node n, std::map< Node, Node >& var_bound );
+
 public:
   SortInference() : sortCount( 1 ){}
   ~SortInference(){}
