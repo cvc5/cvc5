@@ -141,7 +141,7 @@ static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashF
   if(e.getKind() == kind::FORALL || e.getKind() == kind::EXISTS || e.getKind() == kind::LAMBDA) {
     isClosed(e[1], free, closedCache);
     for(Expr::const_iterator i = e[0].begin(); i != e[0].end(); ++i) {
-      free.erase((*i)[0]);
+      free.erase(*i);
     }
   } else if(e.getKind() == kind::BOUND_VARIABLE) {
     free.insert(e);
