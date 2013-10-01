@@ -1,7 +1,3 @@
-; COMMAND-LINE: --no-check-models
-; EXPECT: sat
-; EXIT: 10
-;
 (set-logic QF_S)
 (set-info :status sat)
 

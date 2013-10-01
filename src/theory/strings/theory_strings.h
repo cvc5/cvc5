@@ -222,6 +222,7 @@ protected:
   void sendLemma( Node ant, Node conc, const char * c );
   void sendSplit( Node a, Node b, const char * c );
   /** mkConcat **/
+  Node mkConcat( Node n1, Node n2 );
   Node mkConcat( std::vector< Node >& c );
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );

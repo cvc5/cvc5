@@ -752,24 +752,36 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
                             }else{
 								Node length_term_i = getLength( normal_forms[i][index_i] );
 								Node length_term_j = getLength( normal_forms[j][index_j] );
-                                //check if length(normal_forms[i][index]) == length(normal_forms[j][index])
-                                if( areEqual(length_term_i, length_term_j)  ){
-                                    Trace("strings-solve-debug") << "Case 2 : string lengths are equal" << std::endl;
-                                    //length terms are equal, merge equivalence classes if not already done so
-                                    Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i], normal_forms[j][index_j] );
-                                    std::vector< Node > temp_exp;
-                                    temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
-                                    temp_exp.push_back(NodeManager::currentNM()->mkNode( kind::EQUAL, length_term_i, length_term_j ));
-                                    Node eq_exp = temp_exp.empty() ? d_true :
-                                                    temp_exp.size() == 1 ? temp_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, temp_exp );
-                                    Trace("strings-lemma") << "Strings : Infer " << eq << " from " << eq_exp << std::endl;
-                                    //d_equalityEngine.assertEquality( eq, true, eq_exp );
-                                    d_pending.push_back( eq );
-                                    d_pending_exp[eq] = eq_exp;
-                                    d_infer.push_back(eq);
-                                    d_infer_exp.push_back(eq_exp);
-                                    return;
-									
+                                //check  length(normal_forms[i][index]) == length(normal_forms[j][index])
+                                if( !areDisequal(length_term_i, length_term_j) &&
+									normal_forms[i][index_i].getKind()!=kind::CONST_STRING && 
+									normal_forms[j][index_j].getKind()!=kind::CONST_STRING ) {
+		
+									//length terms are equal, merge equivalence classes if not already done so
+									Node length_eq = NodeManager::currentNM()->mkNode( kind::EQUAL, length_term_i, length_term_j );
+									if( !areEqual(length_term_i, length_term_j) ) {
+										Trace("strings-solve-debug") << "Case 2.1 : string lengths neither equal nor disequal" << std::endl;
+										//try to make the lengths equal via splitting on demand
+										sendSplit( length_term_i, length_term_j, "Length" );
+										length_eq = Rewriter::rewrite( length_eq  );
+										d_pending_req_phase[ length_eq ] = true;
+										return;
+									}else{
+										Trace("strings-solve-debug") << "Case 2.2 : string lengths are explicitly equal" << std::endl;
+										//lengths are already equal, do unification
+										Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i], normal_forms[j][index_j] );
+										std::vector< Node > temp_exp;
+										temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
+										temp_exp.push_back(length_eq);
+										Node eq_exp = temp_exp.empty() ? d_true :
+														temp_exp.size() == 1 ? temp_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, temp_exp );
+										Trace("strings-lemma") << "Strings : Infer " << eq << " from " << eq_exp << std::endl;
+										d_pending.push_back( eq );
+										d_pending_exp[eq] = eq_exp;
+										d_infer.push_back(eq);
+										d_infer_exp.push_back(eq_exp);
+										return;
+									}
 								}else if( ( normal_forms[i][index_i].getKind()!=kind::CONST_STRING && index_i==normal_forms[i].size()-1 ) || 
 										  ( normal_forms[j][index_j].getKind()!=kind::CONST_STRING && index_j==normal_forms[j].size()-1 ) ){
 									Trace("strings-solve-debug") << "Case 3 : at endpoint" << std::endl;
@@ -974,16 +986,6 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											}else{
 												antec_new_lits.push_back(ldeq);
 											}
-											// first, M |=/= |x|=|y|, then x=y
-											Node len_x = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[i][index_i] );
-											Node len_y = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[j][index_j] );
-											if( !areDisequal( len_x, len_y ) ) {
-												Node x_eq_y = Rewriter::rewrite( normal_forms[i][index_i].eqNode( normal_forms[j][index_j] ) );
-												antec_new_lits.push_back( x_eq_y.negate() );
-												d_pending_req_phase[ x_eq_y ] = true;
-											}
-
-											// second, split
 											Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
 											Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
 														NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) );
@@ -1042,52 +1044,107 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 	//Assert( areDisequal( ni, nj ) );
 	if( d_normal_forms[ni].size()>1 || d_normal_forms[nj].size()>1 ){
+		std::vector< Node > nfi;
+		nfi.insert( nfi.end(), d_normal_forms[ni].begin(), d_normal_forms[ni].end() );
+		std::vector< Node > nfj;
+		nfj.insert( nfj.end(), d_normal_forms[nj].begin(), d_normal_forms[nj].end() );
+
 		unsigned index = 0;
-		while( index<d_normal_forms[ni].size() ){
-			Node i = d_normal_forms[ni][index];
-			Node j = d_normal_forms[nj][index];
+		while( index<nfi.size() ){
+			Node i = nfi[index];
+			Node j = nfj[index];
 			Trace("strings-solve-debug")  << "...Processing " << i << " " << j << std::endl;
 			if( !areEqual( i, j ) ) {
-				Node li = getLength( i );
-				Node lj = getLength( j );
-				if( !areEqual(li, lj) ){
-					Trace("strings-solve") << "Case 2 : add lemma " << std::endl;
-					//must add lemma
-					std::vector< Node > antec;
-					std::vector< Node > antec_new_lits;
-					antec.insert( antec.end(), d_normal_forms_exp[ni].begin(), d_normal_forms_exp[ni].end() );
-					antec.insert( antec.end(), d_normal_forms_exp[nj].begin(), d_normal_forms_exp[nj].end() );
-					antec.push_back( ni.eqNode( nj ).negate() );
-					antec_new_lits.push_back( li.eqNode( lj ).negate() );
-					std::vector< Node > conc;
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "w1sym_$$", ni.getType(), "created for disequality normalization" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "w2sym_$$", ni.getType(), "created for disequality normalization" );
-					Node sk3 = NodeManager::currentNM()->mkSkolem( "w3sym_$$", ni.getType(), "created for disequality normalization" );
-					Node sk4 = NodeManager::currentNM()->mkSkolem( "w4sym_$$", ni.getType(), "created for disequality normalization" );
-					Node sk5 = NodeManager::currentNM()->mkSkolem( "w5sym_$$", ni.getType(), "created for disequality normalization" );
-					Node w1w2w3 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 );
-					Node w1w4w5 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk4, sk5 );
-					Node s_eq_w1w2w3 = NodeManager::currentNM()->mkNode( kind::EQUAL, ni, w1w2w3 );
-					conc.push_back( s_eq_w1w2w3 );
-					Node t_eq_w1w4w5 = NodeManager::currentNM()->mkNode( kind::EQUAL, nj, w1w4w5 );
-					conc.push_back( t_eq_w1w4w5 );
-					Node w2_neq_w4 = sk2.eqNode( sk4 ).negate();
-					conc.push_back( w2_neq_w4 );
-					Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
-					Node w2_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2), one);
-					conc.push_back( w2_len_one );
-					Node w4_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4), one);
-					conc.push_back( w4_len_one );
-
-					//Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2),
-					//													     NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4) );
-					//conc.push_back( eq );
-					sendLemma( mkExplain( antec, antec_new_lits ), NodeManager::currentNM()->mkNode( kind::AND, conc ), "Disequality Normalize" );
-					return true;
-				}else if( areDisequal( i, j ) ){
-					Trace("strings-solve") << "Case 1 : found equal length disequal sub strings " << i << " " << j << std::endl;
-					//we are done
-					return false;
+				if( i.getKind()==kind::CONST_STRING && j.getKind()==kind::CONST_STRING ){
+					unsigned int len_short = i.getConst<String>().size() < j.getConst<String>().size() ? i.getConst<String>().size() : j.getConst<String>().size();
+					String si = i.getConst<String>().substr(0, len_short);
+					String sj = j.getConst<String>().substr(0, len_short);
+					if(si == sj) {
+						if( i.getConst<String>().size() < j.getConst<String>().size() ) {
+							Node remainderStr = NodeManager::currentNM()->mkConst( j.getConst<String>().substr(len_short) );
+							Trace("strings-solve-debug-test") << "Break normal form of " << nfj[index] << " into " << nfi[index] << ", " << remainderStr << std::endl;
+							nfj.insert( nfj.begin() + index + 1, remainderStr );
+							nfj[index] = nfi[index];
+						} else {
+							Node remainderStr = NodeManager::currentNM()->mkConst( i.getConst<String>().substr(len_short) );
+							Trace("strings-solve-debug-test") << "Break normal form of " << nfi[index] << " into " << nfj[index] << ", " << remainderStr << std::endl;
+							nfi.insert( nfi.begin() + index + 1, remainderStr );
+							nfi[index] = nfj[index];
+						}
+					} else {
+						//conflict
+						return false;
+					}
+				}else{
+					Node li = getLength( i );
+					Node lj = getLength( j );
+					if( areDisequal(li, lj) ){
+						Trace("strings-solve") << "Case 2 : add lemma " << std::endl;
+						//must add lemma
+						std::vector< Node > antec;
+						std::vector< Node > antec_new_lits;
+						antec.insert( antec.end(), d_normal_forms_exp[ni].begin(), d_normal_forms_exp[ni].end() );
+						antec.insert( antec.end(), d_normal_forms_exp[nj].begin(), d_normal_forms_exp[nj].end() );
+						antec.push_back( ni.eqNode( nj ).negate() );
+						antec_new_lits.push_back( li.eqNode( lj ).negate() );
+						std::vector< Node > conc;
+						Node sk1 = NodeManager::currentNM()->mkSkolem( "xpdsym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk2 = NodeManager::currentNM()->mkSkolem( "ypdsym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk3 = NodeManager::currentNM()->mkSkolem( "zpdsym_$$", ni.getType(), "created for disequality normalization" );
+						Node lsk1 = getLength( sk1 );
+						conc.push_back( lsk1.eqNode( li ) );
+						Node lsk2 = getLength( sk2 );
+						conc.push_back( lsk2.eqNode( lj ) );
+						conc.push_back( NodeManager::currentNM()->mkNode( kind::OR,
+											j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
+						
+						/*
+						Node sk1 = NodeManager::currentNM()->mkSkolem( "w1sym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk2 = NodeManager::currentNM()->mkSkolem( "w2sym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk3 = NodeManager::currentNM()->mkSkolem( "w3sym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk4 = NodeManager::currentNM()->mkSkolem( "w4sym_$$", ni.getType(), "created for disequality normalization" );
+						Node sk5 = NodeManager::currentNM()->mkSkolem( "w5sym_$$", ni.getType(), "created for disequality normalization" );
+						Node w1w2w3 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 );
+						Node w1w4w5 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk4, sk5 );
+						Node s_eq_w1w2w3 = NodeManager::currentNM()->mkNode( kind::EQUAL, ni, w1w2w3 );
+						conc.push_back( s_eq_w1w2w3 );
+						Node t_eq_w1w4w5 = NodeManager::currentNM()->mkNode( kind::EQUAL, nj, w1w4w5 );
+						conc.push_back( t_eq_w1w4w5 );
+						Node w2_neq_w4 = sk2.eqNode( sk4 ).negate();
+						conc.push_back( w2_neq_w4 );
+						Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
+						Node w2_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2), one);
+						conc.push_back( w2_len_one );
+						Node w4_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4), one);
+						conc.push_back( w4_len_one );
+						Node c = NodeManager::currentNM()->mkNode( kind::AND, conc );
+						*/
+						//Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2),
+						//													     NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4) );
+						//conc.push_back( eq );
+						sendLemma( mkExplain( antec, antec_new_lits ), NodeManager::currentNM()->mkNode( kind::AND, conc ), "Disequality Normalize" );
+						return true;
+					}else if( areEqual( li, lj ) ){
+						if( areDisequal( i, j ) ){
+							Trace("strings-solve") << "Case 1 : found equal length disequal sub strings " << i << " " << j << std::endl;
+							//we are done
+							return false;
+						} else {
+							//splitting on demand : try to make them disequal
+							Node eq = i.eqNode( j );
+							sendSplit( i, j, "Disequality : disequal terms" );
+							eq = Rewriter::rewrite( eq );
+							d_pending_req_phase[ eq ] = false;
+							return true;
+						}
+					}else{
+						//splitting on demand : try to make lengths equal
+						Node eq = li.eqNode( lj );
+						sendSplit( li, lj, "Disequality : equal length" );
+						eq = Rewriter::rewrite( eq );
+						d_pending_req_phase[ eq ] = true;
+						return true;
+					}
 				}
 			}
 			index++;
@@ -1236,6 +1293,13 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c ) {
 	Trace("strings-lemma") << "Strings " << c << " split lemma : " << lemma_or << std::endl;
 	d_lemma_cache.push_back(lemma_or);
 	d_pending_req_phase[eq] = true;
+}
+
+Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
+	std::vector< Node > c;
+	c.push_back( n1 );
+	c.push_back( n2 );
+	return mkConcat( c );
 }
 
 Node TheoryStrings::mkConcat( std::vector< Node >& c ) {
