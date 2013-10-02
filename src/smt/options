@@ -49,7 +49,7 @@ option repeatSimp --repeat-simp bool :read-write
  make multiple passes with nonclausal simplifier
 
 option sortInference --sort-inference bool :read-write :default false
- apply sort inference to input problem
+ calculate sort inference of input problem, convert the input based on monotonic sorts
 
 common-option incrementalSolving incremental -i --incremental bool
  enable incremental solving
