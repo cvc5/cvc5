@@ -31,7 +31,8 @@ private:
   //all subsorts
   std::vector< int > d_sub_sorts;
   std::map< int, bool > d_non_monotonic_sorts;
-  void recordSubsort( int s );
+  std::map< TypeNode, std::vector< int > > d_type_sub_sorts;
+  void recordSubsort( TypeNode tn, int s );
 public:
   class UnionFind {
   public:
@@ -79,20 +80,21 @@ private:
   std::map< Node, Node > d_symbol_map;
   //mapping from constants to new symbols
   std::map< TypeNode, std::map< Node, Node > > d_const_map;
-  //number of subtypes generated
-  std::map< TypeNode, int > d_subtype_count;
   //helper functions for simplify
   TypeNode getOrCreateTypeForId( int t, TypeNode pref );
   TypeNode getTypeForId( int t );
   Node getNewSymbol( Node old, TypeNode tn );
   //simplify
   Node simplify( Node n, std::map< Node, Node >& var_bound );
-
+  //make injection
+  Node mkInjection( TypeNode tn1, TypeNode tn2 );
+  //reset
+  void reset();
 public:
   SortInference() : sortCount( 1 ){}
   ~SortInference(){}
 
-  void simplify( std::vector< Node >& assertions, bool doRewrite = false );
+  bool simplify( std::vector< Node >& assertions );
   //get sort id for term n
   int getSortId( Node n );
   //get sort id for variable of quantified formula f
