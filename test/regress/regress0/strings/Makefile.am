@@ -26,6 +26,7 @@ TESTS =	\
   str004.smt2 \
   str005.smt2 \
   model001.smt2 \
+  substr001.smt2 \
   loop001.smt2 \
   loop002.smt2 \
   loop003.smt2 \
