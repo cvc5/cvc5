@@ -364,7 +364,7 @@ void TheoryStrings::check(Effort e) {
   bool addedLemma = false;
   if( e == EFFORT_FULL && !d_conflict ) {
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-      while( !eqcs_i.isFinished() ){
+      while( !eqcs_i.isFinished() ) {
         Node eqc = (*eqcs_i);
         //if eqc.getType is string
         if (eqc.getType().isString()) {
@@ -372,60 +372,59 @@ void TheoryStrings::check(Effort e) {
             //get the constant for the equivalence class
             //int c_len = ...;
             eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-            while( !eqc_i.isFinished() ){
-              Node n = (*eqc_i);
-
-              //if n is concat, and
-              //if n has not instantiatied the concat..length axiom
-              //then, add lemma
-              if( n.getKind() == kind::STRING_CONCAT || n.getKind() == kind::CONST_STRING ){
-                if( d_length_inst.find(n)==d_length_inst.end() ){
-                    d_length_inst[n] = true;
-                    Trace("strings-debug") << "get n: " << n << endl;
-                    Node sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for concat lemma" );
-					d_length_intro_vars.push_back( sk );
-                    Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, n );
-                    eq = Rewriter::rewrite(eq);
-                    Trace("strings-lemma") << "Strings: Add lemma " << eq << std::endl;
-                    d_out->lemma(eq);
-                    Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
-                    Node lsum;
-                    if( n.getKind() == kind::STRING_CONCAT ){
-                        //add lemma
-                        std::vector<Node> node_vec;
-                        for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-                            Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
-                            node_vec.push_back(lni);
-                        }
-                        lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
-                    }else{
-                        //add lemma
-                        lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
-                    }
-                    Node ceq = NodeManager::currentNM()->mkNode( kind::EQUAL, skl, lsum );
-                    ceq = Rewriter::rewrite(ceq);
-                    Trace("strings-lemma") << "Strings: Add lemma " << ceq << std::endl;
-                    d_out->lemma(ceq);
-                    addedLemma = true;
-                }
-              }
-              ++eqc_i;
-            }
+			while( !eqc_i.isFinished() ){
+				Node n = (*eqc_i);
+				//if n is concat, and
+				//if n has not instantiatied the concat..length axiom
+				//then, add lemma
+				if( n.getKind() == kind::STRING_CONCAT || n.getKind() == kind::CONST_STRING ){
+					if( d_length_inst.find(n)==d_length_inst.end() ){
+						d_length_inst[n] = true;
+						Trace("strings-debug") << "get n: " << n << endl;
+						Node sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for concat lemma" );
+						d_length_intro_vars.push_back( sk );
+						Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, n );
+						eq = Rewriter::rewrite(eq);
+						Trace("strings-lemma") << "Strings: Add term lemma " << eq << std::endl;
+						d_out->lemma(eq);
+						Node skl = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
+						Node lsum;
+						if( n.getKind() == kind::STRING_CONCAT ){
+							//add lemma
+							std::vector<Node> node_vec;
+							for( unsigned i=0; i<n.getNumChildren(); i++ ) {
+								Node lni = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[i] );
+								node_vec.push_back(lni);
+							}
+							lsum = NodeManager::currentNM()->mkNode( kind::PLUS, node_vec );
+						}else{
+							//add lemma
+							lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
+						}
+						Node ceq = NodeManager::currentNM()->mkNode( kind::EQUAL, skl, lsum );
+						ceq = Rewriter::rewrite(ceq);
+						Trace("strings-lemma") << "Strings: Add length lemma " << ceq << std::endl;
+						d_out->lemma(ceq);
+						addedLemma = true;
+					}
+				}
+				++eqc_i;
+			}
         }
         ++eqcs_i;
-  }
-  if( !addedLemma ){
-      addedLemma = checkNormalForms();
-	  Trace("strings-process") << "Done check normal forms, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-      if(!d_conflict && !addedLemma) {
-          addedLemma = checkCardinality();
-		  Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-          if( !d_conflict && !addedLemma ){
-            addedLemma = checkInductiveEquations();
-			Trace("strings-process") << "Done check inductive equations, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-          }
-      }
-  }
+	  }
+	  if( !addedLemma ){
+		  addedLemma = checkNormalForms();
+		  Trace("strings-process") << "Done check normal forms, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+		  if(!d_conflict && !addedLemma) {
+			  addedLemma = checkCardinality();
+			  Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+			  if( !d_conflict && !addedLemma ){
+				addedLemma = checkInductiveEquations();
+				Trace("strings-process") << "Done check inductive equations, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+			  }
+		  }
+	  }
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Trace("strings-process") << "Theory of strings, done check : " << e << std::endl;

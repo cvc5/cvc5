@@ -137,7 +137,20 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
                 retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
             }
         }
-    }
+    } else if(node.getKind() == kind::STRING_SUBSTR) {
+		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
+			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+			if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
+				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
+			} else {
+				// TODO: some issues, must be guarded by users
+				retNode = NodeManager::currentNM()->mkConst( false );
+			}
+		} else {
+			//handled by preprocess
+		}
+	}
 
   Trace("strings-postrewrite") << "Strings::postRewrite returning " << node << std::endl;
   return RewriteResponse(REWRITE_DONE, retNode);

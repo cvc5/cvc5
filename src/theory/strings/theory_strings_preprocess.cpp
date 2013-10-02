@@ -84,7 +84,8 @@ void StringsPreprocess::simplifyRegExp( Node s, Node r, std::vector< Node > &ret
 	}
 }
 
-Node StringsPreprocess::simplify( Node t ) {
+
+Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
     if(i != d_cache.end()) {
       return (*i).second.isNull() ? t : (*i).second;
@@ -92,21 +93,39 @@ Node StringsPreprocess::simplify( Node t ) {
 
 	if( t.getKind() == kind::STRING_IN_REGEXP ){
 		// t0 in t1
+		Node t0 = simplify( t[0], new_nodes );
 		//rewrite it
 		std::vector< Node > ret;
-		simplifyRegExp( t[0], t[1], ret );
+		simplifyRegExp( t0, t[1], ret );
 
 		Node n = ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
 		d_cache[t] = (t == n) ? Node::null() : n;
 		return n;
-    }else if( t.getNumChildren()>0 ){
+	}else if( t.getKind() == kind::STRING_SUBSTR ){
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "st1sym_$$", t.getType(), "created for substr" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "st2sym_$$", t.getType(), "created for substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "st3sym_$$", t.getType(), "created for substr" );
+		Node x = simplify( t[0], new_nodes );
+		Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
+		new_nodes.push_back( x_eq_123 );
+		Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		new_nodes.push_back( len_sk1_eq_i );
+		Node len_sk2_eq_j = NodeManager::currentNM()->mkNode( kind::EQUAL, t[2],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
+		new_nodes.push_back( len_sk2_eq_j );
+
+		d_cache[t] = sk2;
+		return sk2;
+	} else if( t.getNumChildren()>0 ){
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
 			cc.push_back(t.getOperator());
 		}
 		bool changed = false;
 		for( unsigned i=0; i<t.getNumChildren(); i++ ){
-			Node tn = simplify( t[i] );
+			Node tn = simplify( t[i], new_nodes );
 			cc.push_back( tn );
 			changed = changed || tn!=t[i];
 		}
@@ -125,9 +144,11 @@ Node StringsPreprocess::simplify( Node t ) {
 }
 
 void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
+	std::vector< Node > new_nodes;
 	for( unsigned i=0; i<vec_node.size(); i++ ){
-		vec_node[i] = simplify( vec_node[i] );
+		vec_node[i] = simplify( vec_node[i], new_nodes );
 	}
+	vec_node.insert( vec_node.end(), new_nodes.begin(), new_nodes.end() );
 }
 
 }/* CVC4::theory::strings namespace */
