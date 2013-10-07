@@ -1031,6 +1031,10 @@ void SmtEngine::setLogicInternal() throw() {
       options::fmfInstGen.set( false );
     }
   }
+  if ( options::fmfBoundInt() ){
+    //if bounded integers are set, must use full model check for MBQI
+    options::fmfFullModelCheck.set( true );
+  }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
   }

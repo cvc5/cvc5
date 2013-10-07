@@ -139,6 +139,11 @@ bool ModelEngine::optOneQuantPerRound(){
 
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
+
+  //flatten the representatives
+  //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
+  //d_quantEngine->getEqualityQuery()->flattenRepresentatives( fm->d_rep_set.d_type_reps );
+
   //for debugging
   if( Trace.isOn("model-engine") || Trace.isOn("model-engine-debug") ){
     for( std::map< TypeNode, std::vector< Node > >::iterator it = fm->d_rep_set.d_type_reps.begin();
@@ -149,7 +154,7 @@ int ModelEngine::checkModel(){
         Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
         for( size_t i=0; i<it->second.size(); i++ ){
           //Trace("model-engine-debug") << it->second[i] << "  ";
-          Node r = ((EqualityQueryQuantifiersEngine*)d_quantEngine->getEqualityQuery())->getRepresentative( it->second[i] );
+          Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
           Trace("model-engine-debug") << r << " ";
         }
         Trace("model-engine-debug") << std::endl;

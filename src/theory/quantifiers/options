@@ -98,7 +98,7 @@ option finiteModelFind --finite-model-find bool :default false
 option fmfModelBasedInst /--disable-fmf-mbqi bool :default true
  disable model-based quantifier instantiation for finite model finding
 
-option fmfFullModelCheck --fmf-fmc bool :default false
+option fmfFullModelCheck --fmf-fmc bool :default false :read-write
  enable full model check for finite model finding
 option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
  disable simple models in full model check for finite model finding

@@ -102,7 +102,7 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_eq_query;
 }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery() {
+EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
   return d_eq_query;
 }
 
@@ -594,8 +594,9 @@ Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
   eq::EqualityEngine* ee = getEngine();
   if( ee->hasTerm( a ) ){
     return ee->getRepresentative( a );
+  }else{
+    return a;
   }
-  return a;
 }
 
 bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
@@ -631,14 +632,10 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
   if( !options::internalReps() ){
     return r;
   }else{
-    int sortId = 0;
-    if( optInternalRepSortInference() && !f.isNull() ){
-      sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( f, f[0][index] );
-    }
-    if( d_int_rep[sortId].find( r )==d_int_rep[sortId].end() ){
+    if( d_int_rep.find( r )==d_int_rep.end() ){
       //find best selection for representative
       Node r_best;
-      if( options::fmfRelevantDomain() ){
+      if( options::fmfRelevantDomain() && !f.isNull() ){
         Trace("internal-rep-debug") << "Consult relevant domain to mkRep " << r << std::endl;
         r_best = d_qe->getModelEngine()->getRelevantDomain()->getRelevantTerm( f, index, r );
         Trace("internal-rep-debug") << "Returned " << r_best << " " << r << std::endl;
@@ -656,13 +653,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
           //if cbqi is active, do not choose instantiation constant terms
           if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
             int score = getRepScore( eqc[i], f, index );
-            //base it on sort information as well
-            if( sortId!=0 ){
-              int e_sortId = d_qe->getTheoryEngine()->getSortInference()->getSortId( eqc[i] );
-              if( score>=0 && e_sortId!=sortId ){
-                score += 100;
-              }
-            }
             //score prefers earliest use of this term as a representative
             if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
               r_best = eqc[i];
@@ -671,34 +661,97 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
 		      }
         }
         if( r_best.isNull() ){
-	        Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
-		      r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+          if( !f.isNull() ){
+            Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
+            r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+          }else{
+            r_best = a;
+          }
 		    }
         //now, make sure that no other member of the class is an instance
-        if( !optInternalRepSortInference() ){
-          r_best = getInstance( r_best, eqc );
-        }
+        r_best = getInstance( r_best, eqc );
         //store that this representative was chosen at this point
         if( d_rep_score.find( r_best )==d_rep_score.end() ){
           d_rep_score[ r_best ] = d_reset_count;
         }
         Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
       }
-      d_int_rep[sortId][r] = r_best;
+      d_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
         Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
       }
-      if( optInternalRepSortInference() ){
-        int sortIdBest = d_qe->getTheoryEngine()->getSortInference()->getSortId( r_best );
-        if( sortId!=sortIdBest ){
-          Trace("sort-inf-rep") << "Choosing representative with bad type " << r_best << " " << sortId << " " << sortIdBest << std::endl;
-        }
-      }
       return r_best;
     }else{
-      return d_int_rep[sortId][r];
+      return d_int_rep[r];
     }
+  }
+}
+
+void EqualityQueryQuantifiersEngine::flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps ) {
+  //make sure internal representatives currently exist
+  for( std::map< TypeNode, std::vector< Node > >::iterator it = reps.begin(); it != reps.end(); ++it ){
+    if( it->first.isSort() ){
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        Node r = getInternalRepresentative( it->second[i], Node::null(), 0 );
+      }
+    }
+  }
+  Trace("internal-rep-flatten") << "---Flattening representatives : " << std::endl;
+  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
+    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
+  }
+  //store representatives for newly created terms
+  std::map< Node, Node > temp_rep_map;
+
+  bool success;
+  do {
+    success = false;
+    for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
+      if( it->second.getKind()==APPLY_UF && it->second.getType().isSort() ){
+        Node ni = it->second;
+        std::vector< Node > cc;
+        cc.push_back( it->second.getOperator() );
+        bool changed = false;
+        for( unsigned j=0; j<ni.getNumChildren(); j++ ){
+          if( ni[j].getType().isSort() ){
+            Node r = getRepresentative( ni[j] );
+            if( d_int_rep.find( r )==d_int_rep.end() ){
+              Assert( temp_rep_map.find( r )!=temp_rep_map.end() );
+              r = temp_rep_map[r];
+            }
+            if( r==ni ){
+              //found sub-term as instance
+              Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to subterm " << ni[j] << std::endl;
+              d_int_rep[it->first] = ni[j];
+              changed = false;
+              success = true;
+              break;
+            }else{
+              Node ir = d_int_rep[r];
+              cc.push_back( ir );
+              if( ni[j]!=ir ){
+                changed = true;
+              }
+            }
+          }else{
+            changed = false;
+            break;
+          }
+        }
+        if( changed ){
+          Node n = NodeManager::currentNM()->mkNode( APPLY_UF, cc );
+          Trace("internal-rep-flatten-debug") << "...Changed " << it->second << " to " << n << std::endl;
+          success = true;
+          d_int_rep[it->first] = n;
+          temp_rep_map[n] = it->first;
+        }
+      }
+    }
+  }while( success );
+  Trace("internal-rep-flatten") << "---After flattening : " << std::endl;
+  for( std::map< Node, Node >::iterator it = d_int_rep.begin(); it != d_int_rep.end(); ++it ){
+    Trace("internal-rep-flatten") << it->first.getType() << " : irep( " << it->first << " ) = " << it->second << std::endl;
   }
 }
 
@@ -758,6 +811,3 @@ int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
   //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }
 
-bool EqualityQueryQuantifiersEngine::optInternalRepSortInference() {
-  return false; //shown to be not effective
-}
