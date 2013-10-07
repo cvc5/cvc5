@@ -835,7 +835,7 @@ void SmtEngine::setLogicInternal() throw() {
 
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
-    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV)) {
+    if(d_logic.isSharingEnabled() && !d_logic.isTheoryEnabled(THEORY_BV) && !d_logic.isTheoryEnabled(THEORY_STRINGS)) {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
@@ -1030,6 +1030,10 @@ void SmtEngine::setLogicInternal() throw() {
     if( options::fmfFullModelCheck() ){
       options::fmfInstGen.set( false );
     }
+  }
+  if ( options::fmfBoundInt() ){
+    //if bounded integers are set, must use full model check for MBQI
+    options::fmfFullModelCheck.set( true );
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
@@ -1979,7 +1983,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   }
   d_nonClausalLearnedLiterals.clear();
 
-  
+
   for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
     Node cProp = (*pos).first.eqNode((*pos).second);
     Assert(d_topLevelSubstitutions.apply(cProp) == cProp);

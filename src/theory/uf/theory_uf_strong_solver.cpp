@@ -1152,7 +1152,7 @@ void StrongSolverTheoryUF::SortModel::addCliqueLemma( std::vector< Node >& cliqu
     clique.pop_back();
   }
   //debugging information
-  if( options::ufssSymBreak() ){
+  if( Trace.isOn("uf-ss-cliques") ){
     std::vector< Node > clique_vec;
     clique_vec.insert( clique_vec.begin(), clique.begin(), clique.end() );
     addClique( d_cardinality, clique_vec );

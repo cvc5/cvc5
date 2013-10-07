@@ -142,7 +142,7 @@ public:
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object for the given type. The default is the
       generic one */
-  EqualityQuery* getEqualityQuery();
+  EqualityQueryQuantifiersEngine* getEqualityQuery();
   /** get instantiation engine */
   quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
   /** get model engine */
@@ -277,7 +277,7 @@ private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
   /** internal representatives */
-  std::map< int, std::map< Node, Node > > d_int_rep;
+  std::map< Node, Node > d_int_rep;
   /** rep score */
   std::map< Node, int > d_rep_score;
   /** reset count */
@@ -289,8 +289,6 @@ private:
   Node getInstance( Node n, std::vector< Node >& eqc );
   /** get score */
   int getRepScore( Node n, Node f, int index );
-  /** choose rep based on sort inference */
-  bool optInternalRepSortInference();
 public:
   EqualityQueryQuantifiersEngine( QuantifiersEngine* qe ) : d_qe( qe ), d_reset_count( 0 ), d_liberal( false ){}
   ~EqualityQueryQuantifiersEngine(){}
@@ -308,6 +306,8 @@ public:
       not contain instantiation constants, if such a term exists.
    */
   Node getInternalRepresentative( Node a, Node f, int index );
+  /** flatten representatives */
+  void flattenRepresentatives( std::map< TypeNode, std::vector< Node > >& reps );
 
   void setLiberal( bool l ) { d_liberal = l; }
 }; /* EqualityQueryQuantifiersEngine */

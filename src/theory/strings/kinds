@@ -16,6 +16,8 @@ operator STRING_IN_REGEXP 2 "membership"
 
 operator STRING_LENGTH 1 "string length"
 
+operator STRING_SUBSTR 3 "string substr"
+
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
 #    well-founded \
@@ -99,6 +101,7 @@ typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
 
 typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
+typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 

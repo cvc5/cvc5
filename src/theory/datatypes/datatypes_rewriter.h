@@ -32,7 +32,7 @@ class DatatypesRewriter {
 public:
 
   static RewriteResponse postRewrite(TNode in) {
-    Trace("datatypes-rewrite") << "post-rewriting " << in << std::endl;
+    Trace("datatypes-rewrite-debug") << "post-rewriting " << in << std::endl;
 
     if(in.getKind() == kind::APPLY_CONSTRUCTOR ){
       Type t = in.getType().toType();
@@ -41,7 +41,7 @@ public:
       // to ensure a normal form, all parameteric datatype constructors must have a type ascription
       if( dt.isParametric() ){
         if( in.getOperator().getKind()!=kind::APPLY_TYPE_ASCRIPTION ){
-          Trace("datatypes-rewrite") << "Ascribing type to parametric datatype constructor " << in << std::endl;
+          Trace("datatypes-rewrite-debug") << "Ascribing type to parametric datatype constructor " << in << std::endl;
           Node op = in.getOperator();
           //get the constructor object
           const DatatypeConstructor& dtc = Datatype::datatypeOf(op.toExpr())[Datatype::indexOf(op.toExpr())];
@@ -53,7 +53,7 @@ public:
           children.push_back( op_new );
           children.insert( children.end(), in.begin(), in.end() );
           Node inr = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
-          Trace("datatypes-rewrite") << "Created " << inr << std::endl;
+          Trace("datatypes-rewrite-debug") << "Created " << inr << std::endl;
           return RewriteResponse(REWRITE_DONE, inr);
         }
       }
@@ -214,7 +214,7 @@ public:
   }
 
   static RewriteResponse preRewrite(TNode in) {
-    Trace("datatypes-rewrite") << "pre-rewriting " << in << std::endl;
+    Trace("datatypes-rewrite-debug") << "pre-rewriting " << in << std::endl;
     return RewriteResponse(REWRITE_DONE, in);
   }
 

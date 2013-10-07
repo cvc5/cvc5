@@ -37,6 +37,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   size_t d_zeroCtor;
   /** Delegate enumerators for the arguments of the current constructor */
   TypeEnumerator** d_argEnumerators;
+  /** type */
+  TypeNode d_type;
 
   /** Allocate and initialize the delegate enumerators */
   void newEnumerators() {
@@ -65,7 +67,8 @@ public:
     d_datatype(DatatypeType(type.toType()).getDatatype()),
     d_ctor(0),
     d_zeroCtor(0),
-    d_argEnumerators(NULL) {
+    d_argEnumerators(NULL),
+    d_type(type) {
 
     //Assert(type.isDatatype());
     Debug("te") << "datatype is datatype? " << type.isDatatype() << std::endl;
@@ -76,8 +79,21 @@ public:
     /* FIXME: this isn't sufficient for mutually-recursive datatypes! */
     while(d_zeroCtor < d_datatype.getNumConstructors()) {
       bool recursive = false;
-      for(size_t a = 0; a < d_datatype[d_zeroCtor].getNumArgs() && !recursive; ++a) {
-        recursive = (Node::fromExpr(d_datatype[d_zeroCtor][a].getSelector()).getType()[1] == type);
+      if( d_datatype.isParametric() ){
+        TypeNode tn = TypeNode::fromType( d_datatype[d_zeroCtor].getSpecializedConstructorType(d_type.toType()) );
+        for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
+          if( tn[i]==type ){
+            recursive = true;
+            break;
+          }
+        }
+      }else{
+        for(size_t a = 0; a < d_datatype[d_zeroCtor].getNumArgs() && !recursive; ++a) {
+          if(Node::fromExpr(d_datatype[d_zeroCtor][a].getSelector()).getType()[1] == type) {
+            recursive = true;
+            break;
+          }
+        }
       }
       if(!recursive) {
         break;
@@ -97,7 +113,8 @@ public:
     d_datatype(de.d_datatype),
     d_ctor(de.d_ctor),
     d_zeroCtor(de.d_zeroCtor),
-    d_argEnumerators(NULL) {
+    d_argEnumerators(NULL),
+    d_type(de.d_type) {
 
     if(de.d_argEnumerators != NULL) {
       newEnumerators();
@@ -117,18 +134,33 @@ public:
     if(d_ctor < d_datatype.getNumConstructors()) {
       DatatypeConstructor ctor = d_datatype[d_ctor];
       NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-      b << ctor.getConstructor();
+      Type typ;
+      if( d_datatype.isParametric() ){
+        typ = d_datatype[d_ctor].getSpecializedConstructorType(d_type.toType());
+        b << NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                              NodeManager::currentNM()->mkConst(AscriptionType(typ)), Node::fromExpr( ctor.getConstructor() ) );
+      }else{
+        b << ctor.getConstructor();
+      }
       try {
         for(size_t a = 0; a < d_datatype[d_ctor].getNumArgs(); ++a) {
           if(d_argEnumerators[a] == NULL) {
-            d_argEnumerators[a] = new TypeEnumerator(Node::fromExpr(d_datatype[d_ctor][a].getSelector()).getType()[1]);
+            if( d_datatype.isParametric() ){
+              d_argEnumerators[a] = new TypeEnumerator(TypeNode::fromType( typ )[a]);
+            }else{
+              d_argEnumerators[a] = new TypeEnumerator(Node::fromExpr(d_datatype[d_ctor][a].getSelector()).getType()[1]);
+            }
           }
           b << **d_argEnumerators[a];
         }
       } catch(NoMoreValuesException&) {
         InternalError();
       }
-      return Node(b);
+      Node nnn = Node(b);
+      //if( nnn.getType()!=d_type || !nnn.getType().isComparableTo(d_type) ){
+      //  Debug("dt-warn") << "WARNING : Enum : " << nnn << " bad type : " << nnn.getType() << " " << d_type << std::endl;
+      //}
+      return nnn;
     } else {
       throw NoMoreValuesException(getType());
     }

@@ -1,4 +1,4 @@
-(set-logic ALL_SUPPORTED)
+(set-logic QF_S)
 (set-info :status sat)
 (set-option :produce-models true)
 

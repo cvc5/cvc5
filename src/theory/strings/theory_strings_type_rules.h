@@ -61,6 +61,28 @@ public:
   }
 };
 
+class StringSubstrTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ){
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting string terms in substr");
+        }
+		t = n[1].getType(check);
+        if (!t.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting start int terms in substr");
+        }
+		t = n[2].getType(check);
+        if (!t.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting length int terms in substr");
+        }
+    }
+    return nodeManager->stringType();
+  }
+};
+
 class RegExpConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

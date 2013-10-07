@@ -141,7 +141,7 @@ static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashF
   if(e.getKind() == kind::FORALL || e.getKind() == kind::EXISTS || e.getKind() == kind::LAMBDA) {
     isClosed(e[1], free, closedCache);
     for(Expr::const_iterator i = e[0].begin(); i != e[0].end(); ++i) {
-      free.erase((*i)[0]);
+      free.erase(*i);
     }
   } else if(e.getKind() == kind::BOUND_VARIABLE) {
     free.insert(e);
@@ -870,10 +870,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  //| /* substring */
-    //LPAREN_TOK STRSUB_TOK n1=INTEGER_LITERAL n2=INTEGER_LITERAL RPAREN_TOK
-	//{
-	//}
   | /* A non-built-in function application */
     LPAREN_TOK
     functionName[name, CHECK_DECLARED]
@@ -1250,6 +1246,7 @@ builtinOp[CVC4::Kind& kind]
 
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
+  | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
@@ -1622,7 +1619,7 @@ INT2BV_TOK : 'int2bv';
 //STRCST_TOK : 'str.cst';
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
-//STRSUB_TOK : 'str.sub' ;
+STRSUB_TOK : 'str.sub' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';

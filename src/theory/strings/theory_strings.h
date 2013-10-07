@@ -50,6 +50,7 @@ class TheoryStrings : public Theory {
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
+  Node getLengthTerm( Node t );
   Node getLength( Node t );
   public:
 
@@ -131,6 +132,10 @@ class TheoryStrings : public Theory {
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
+  /** normal forms */
+  std::map< Node, Node > d_normal_forms_base;
+  std::map< Node, std::vector< Node > > d_normal_forms;
+  std::map< Node, std::vector< Node > > d_normal_forms_exp;
   //map of pairs of terms that have the same normal form
   NodeListMap d_nf_pairs;
   void addNormalFormPair( Node n1, Node n2 );
@@ -179,6 +184,8 @@ class TheoryStrings : public Theory {
     context::CDO< Node > d_const_term;
     context::CDO< Node > d_length_term;
     context::CDO< unsigned > d_cardinality_lem_k;
+	// 1 = added length lemma
+	context::CDO< Node > d_normalized_length;
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -186,14 +193,14 @@ class TheoryStrings : public Theory {
   //maintain which concat terms have the length lemma instantiatied
   std::map< Node, bool > d_length_inst;
   private:
-    std::map< Node, std::vector< Node > > d_normal_forms;
-    std::map< Node, std::vector< Node > > d_normal_forms_exp;
-    void getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
+    bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
     std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
-    void normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
+    bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
 
+	bool checkLengths();
     bool checkNormalForms();
+	bool checkLengthsEqc();
     bool checkCardinality();
     bool checkInductiveEquations();
 	int gcd(int a, int b);
@@ -222,8 +229,10 @@ protected:
   void sendLemma( Node ant, Node conc, const char * c );
   void sendSplit( Node a, Node b, const char * c );
   /** mkConcat **/
+  Node mkConcat( Node n1, Node n2 );
   Node mkConcat( std::vector< Node >& c );
   /** mkExplain **/
+  Node mkExplain( std::vector< Node >& a );
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
 
   //get equivalence classes

@@ -226,6 +226,8 @@ private:
   void collectTerms( Node n );
   /** get instantiate cons */
   Node getInstantiateCons( Node n, const Datatype& dt, int index );
+  /** apply type ascriptions */
+  //Node applyTypeAscriptions( Node n, TypeNode tn );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */
