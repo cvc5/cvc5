@@ -34,8 +34,6 @@ ProofManager::ProofManager(ProofFormat format):
   d_fullProof(NULL),
   d_format(format)
 {
-  // FIXME this is until it actually has theory references
-  initTheoryProof(); 
 }
 
 ProofManager::~ProofManager() {

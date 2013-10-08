@@ -19,6 +19,7 @@
 #include "prop/theory_proxy.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
+#include "proof/proof_manager.h"
 
 #include "decision/decision_engine.h"
 #include "decision/options.h"
@@ -90,6 +91,7 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
+  PROOF (ProofManager::currentPM()->initCnfProof(d_cnfStream); ); 
 }
 
 PropEngine::~PropEngine() {
