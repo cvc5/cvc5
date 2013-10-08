@@ -28,28 +28,33 @@
 
 namespace CVC4 {
 
-  typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > AtomSet;
-  typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > TermSet; 
+  typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
   typedef __gnu_cxx::hash_set<Type, TypeHashFunction > SortSet; 
   
   class TheoryProof {
   protected:
-    AtomSet d_atomSet;
-    TermSet d_termDeclarations;
+    ExprSet d_atomSet;
+    ExprSet d_inputFormulas;
+    ExprSet d_termDeclarations;
     SortSet d_sortDeclarations; 
+    ExprSet d_declarationCache;
+    
     void addDeclaration(Expr atom); 
   public:
     TheoryProof();
     void addAtom(Expr atom); 
+    void assertFormula(Expr formula); 
     virtual void printFormula(Expr atom, std::ostream& os) = 0;
-    virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0; 
+    virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+    virtual void printAssertions(std::ostream& os, std::ostream& paren) = 0;
   };
 
   class LFSCTheoryProof: public TheoryProof {
     void printTerm(Expr term, std::ostream& os); 
   public:
     virtual void printFormula(Expr atom, std::ostream& os);
-    virtual void printDeclarations(std::ostream& os, std::ostream& paren); 
+    virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+    virtual void printAssertions(std::ostream& os, std::ostream& paren);
   }; 
 } /* CVC4 namespace */
 #endif /* __CVC4__THEORY_PROOF_H */

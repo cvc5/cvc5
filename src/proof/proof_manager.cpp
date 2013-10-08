@@ -131,6 +131,7 @@ void LFSCProof::toStream(std::ostream& out) {
   std::ostringstream paren;
   out << "(check \n";
   d_theoryProof->printDeclarations(out, paren);
+  d_theoryProof->printAssertions(out, paren); 
   out << "(: (holds cln) \n";
   d_cnfProof->printAtomMapping(out, paren);
   d_cnfProof->printClauses(out, paren);

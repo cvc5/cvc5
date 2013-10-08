@@ -38,6 +38,7 @@
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "prop/prop_engine.h"
+#include "proof/theory_proof.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -46,6 +47,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
+#include "proof/proof.h"
 #include "util/boolean_simplification.h"
 #include "util/node_visitor.h"
 #include "util/configuration.h"
@@ -3103,6 +3105,11 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
 
 Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException, LogicException) {
   Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
+  // PROOF (
+  ProofManager* pm = ProofManager::currentPM();
+  TheoryProof* pf = pm->getTheoryProof();
+  pf->assertFormula(ex);
+         //  ); 
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -3246,6 +3253,8 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
 
 Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
+  //PROOF (
+  ProofManager::currentPM()->getTheoryProof()->assertFormula(ex); //); 
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
