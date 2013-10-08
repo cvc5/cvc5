@@ -89,10 +89,10 @@ typedef std::hash_map < ClauseId, ResChain*>      IdResMap;
 typedef std::hash_set < ClauseId >                IdHashSet;
 typedef std::vector   < ResChain* >               ResStack; 
 
-typedef std::hash_set < int >                     VarSet; 
+typedef std::hash_set < unsigned >                     VarSet; 
 typedef std::set < ClauseId >                     IdSet; 
 typedef std::vector < ::Minisat::Lit >              LitVector; 
-typedef __gnu_cxx::hash_map<Expr, ::Minisat::Lit, ExprHashFunction >  AtomToVar; 
+typedef __gnu_cxx::hash_map<ClauseId, ::Minisat::Clause& > IdToMinisatClause;
 
 class SatProof; 
 
@@ -104,7 +104,16 @@ public:
   void updateCRef(::Minisat::CRef oldref, ::Minisat::CRef newref);
 };/* class ProofProxy */
 
-class SatProof : public Proof {
+
+enum ClauseKind {
+  INPUT,
+  THEORY_LEMMA,
+  LEARNT
+};
+
+class CnfProof; 
+
+class SatProof {
 protected:
   ::Minisat::Solver*    d_solver;
   // clauses 
@@ -114,7 +123,7 @@ protected:
   UnitIdMap           d_unitId;
   IdHashSet           d_deleted;
   IdHashSet           d_inputClauses; 
-  
+  IdHashSet           d_lemmaClauses; 
   // resolutions 
   IdResMap            d_resChains;
   ResStack            d_resStack; 
@@ -133,9 +142,6 @@ protected:
   // unit conflict
   ClauseId d_unitConflictId;
   bool d_storedUnitConflict;
-
-  // atom mapping
-  AtomToVar d_atomToVar;
 public:  
   SatProof(::Minisat::Solver* solver, bool checkRes = false);
 protected:
@@ -143,7 +149,8 @@ protected:
   void printRes(ClauseId id);
   void printRes(ResChain* res); 
   
-  bool isInputClause(ClauseId id); 
+  bool isInputClause(ClauseId id);
+  bool isLemmaClause(ClauseId id);
   bool isUnit(ClauseId id);
   bool isUnit(::Minisat::Lit lit); 
   bool hasResolution(ClauseId id); 
@@ -155,7 +162,7 @@ protected:
   ::Minisat::CRef getClauseRef(ClauseId id);
   ::Minisat::Lit  getUnit(ClauseId id);
   ClauseId      getUnitId(::Minisat::Lit lit); 
-  ::Minisat::Clause& getClause(ClauseId id);
+  ::Minisat::Clause& getClause(::Minisat::CRef ref);
   virtual void toStream(std::ostream& out);
 
   bool checkResolution(ClauseId id);
@@ -206,8 +213,8 @@ public:
   void finalizeProof(::Minisat::CRef conflict);
 
   /// clause registration methods 
-  ClauseId registerClause(const ::Minisat::CRef clause, bool isInput = false);
-  ClauseId registerUnitClause(const ::Minisat::Lit lit, bool isInput = false);
+  ClauseId registerClause(const ::Minisat::CRef clause, ClauseKind kind = LEARNT);
+  ClauseId registerUnitClause(const ::Minisat::Lit lit, ClauseKind kind = LEARNT);
 
   void storeUnitConflict(::Minisat::Lit lit); 
   
@@ -231,49 +238,36 @@ public:
   void     storeUnitResolution(::Minisat::Lit lit); 
   
   ProofProxy* getProxy() {return d_proxy; }
-  /** 
-   * At mapping between literal and theory-atom it represents
-   * 
-   * @param literal 
-   * @param atom 
+
+  /**
+     Constructs the SAT proof identifying the needed lemmas 
    */
-  void storeAtom(::Minisat::Lit literal, Expr atom);
+  void constructProof();
+  
+protected:
+  IdSet              d_seenLearnt;
+  IdHashSet          d_seenInput;
+  IdHashSet          d_seenLemmas; 
+  
+  inline std::string varName(::Minisat::Lit lit);
+  inline std::string clauseName(ClauseId id); 
+
+  void collectClauses(ClauseId id);
+  CnfProof* d_cnfProof; 
+  CnfProof* getCnfProof();
+public:
+  void setCnfProof(CnfProof* cnfProof);
+  virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
 };/* class SatProof */
 
 class LFSCSatProof: public SatProof {
 private:
-  VarSet             d_seenVars;
-  std::ostringstream d_atomsSS;
-  std::ostringstream d_varSS;
-  std::ostringstream d_lemmaSS;
-  std::ostringstream d_clauseSS;
-  std::ostringstream d_paren; 
-  IdSet              d_seenLemmas;
-  IdHashSet          d_seenInput; 
-
-  inline std::string varName(::Minisat::Lit lit);
-  inline std::string clauseName(ClauseId id); 
-
-  void collectLemmas(ClauseId id);
-  void printResolution(ClauseId id);
-  void printInputClause(ClauseId id);
-
-  void printVariables();
-  void printClauses();
-  void flush(std::ostream& out);
-  void printAtoms(); 
+  void printResolution(ClauseId id, std::ostream& out, std::ostream& paren);
 public:
-  LFSCSatProof(::Minisat::Solver* solver, bool checkRes = false):
-    SatProof(solver, checkRes),
-    d_seenVars(),
-    d_atomsSS(), 
-    d_varSS(),
-    d_lemmaSS(),
-    d_paren(),
-    d_seenLemmas(),
-    d_seenInput()
-  {} 
-  virtual void toStream(std::ostream& out);  
+  LFSCSatProof(::Minisat::Solver* solver, bool checkRes = false)
+    : SatProof(solver, checkRes)
+  {}
+  virtual void printResolutions(std::ostream& out, std::ostream& paren);
 };/* class LFSCSatProof */
 
 }/* CVC4 namespace */

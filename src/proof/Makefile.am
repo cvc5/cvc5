@@ -13,6 +13,8 @@ libproof_la_SOURCES = \
 	sat_proof.cpp \
 	cnf_proof.h \
 	cnf_proof.cpp \
+	theory_proof.h \
+	theory_proof.cpp \
 	proof_manager.h \
 	proof_manager.cpp
 

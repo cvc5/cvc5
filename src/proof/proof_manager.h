@@ -23,6 +23,7 @@
 
 #include <iostream> 
 #include "proof/proof.h"
+#include "util/proof.h"
 
 // forward declarations
 namespace Minisat {
@@ -38,7 +39,12 @@ namespace prop {
 class Proof;
 class SatProof;
 class CnfProof;
+class TheoryProof;
 
+class LFSCSatProof;
+class LFSCCnfProof;
+class LFSCTheoryProof;
+  
 // different proof modes
 enum ProofFormat {
   LFSC,
@@ -48,23 +54,44 @@ enum ProofFormat {
 class ProofManager {
   SatProof*   d_satProof;
   CnfProof*   d_cnfProof;
+  TheoryProof* d_theoryProof; 
+
+  Proof* d_fullProof; 
   ProofFormat d_format;
   
   static ProofManager* proofManager; 
   static bool isInitialized; 
   ProofManager(ProofFormat format = LFSC);
+  ~ProofManager(); 
 public:
   static ProofManager* currentPM();
-
   static void      initSatProof(Minisat::Solver* solver); 
   static void      initCnfProof(CVC4::prop::CnfStream* cnfStream);
-
-  static Proof* getProof();
+  static void      initTheoryProof();
+  static Proof*    getProof();
   static SatProof* getSatProof();
   static CnfProof* getCnfProof();
+  static TheoryProof* getTheoryProof();
 
+  // variable prefixes
+  static std::string getInputClausePrefix() { return "pb"; }
+  static std::string getLemmaClausePrefix() { return "lem"; }
+  static std::string getLearntClausePrefix() { return "cl"; }
+  static std::string getVarPrefix() { return "v"; }
+  static std::string getAtomPrefix() { return "a"; }
+  static std::string getLitPrefix() {return "l"; }
 };/* class ProofManager */
 
+class LFSCProof : public Proof {
+  LFSCSatProof* d_satProof;
+  LFSCCnfProof* d_cnfProof;
+  LFSCTheoryProof* d_theoryProof; 
+public:
+  LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory); 
+  virtual void toStream(std::ostream& out);
+  virtual ~LFSCProof() {}
+};
+  
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROOF_MANAGER_H */

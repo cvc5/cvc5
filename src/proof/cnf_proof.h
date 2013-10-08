@@ -16,20 +16,58 @@
  ** 
  **/
 
-#include "cvc4_private.h"
-#include "util/proof.h"
 #ifndef __CVC4__CNF_PROOF_H
 #define __CVC4__CNF_PROOF_H
 
+#include "cvc4_private.h"
+#include "util/proof.h"
+#include "proof/sat_proof.h"
+
+#include <ext/hash_set>
+#include <ext/hash_map>
 #include <iostream> 
+
 namespace CVC4 {
 namespace prop {
 class CnfStream;
 }
+
+typedef __gnu_cxx::hash_map < ClauseId, ::Minisat::Clause > IdToClause; 
+typedef __gnu_cxx::hash_set<unsigned > VarSet;
+
+class TheoryProof; 
+  
 class CnfProof {
+protected:
   CVC4::prop::CnfStream* d_cnfStream;
+  IdToClause d_inputClauses;
+  IdToClause d_theoryLemmas;
+  VarSet     d_propVars;
+  TheoryProof* d_theoryProof;
+  TheoryProof* getTheoryProof();
+
+  Expr getAtom(unsigned var);
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);
+  void addInputClause(ClauseId id, const ::Minisat::Clause& clause);
+  void addTheoryLemma(ClauseId id, const ::Minisat::Clause& clause);
+  void addVariable(unsigned var); 
+  void setTheoryProof(TheoryProof* theory_proof);
+  virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
+
+};
+
+class LFSCCnfProof: public CnfProof {
+  void printInputClauses(std::ostream& os, std::ostream& paren);
+  void printTheoryLemmas(std::ostream& os, std::ostream& paren);
+  void printClause(const Minisat::Clause& clause, std::ostream& os, std::ostream& paren);
+public:
+  LFSCCnfProof(CVC4::prop::CnfStream* cnfStream)
+    : CnfProof(cnfStream)
+  {}
+  virtual void printAtomMapping(std::ostream& os, std::ostream& paren);
+  virtual void printClauses(std::ostream& os, std::ostream& paren);
 };
 
 } /* CVC4 namespace */
