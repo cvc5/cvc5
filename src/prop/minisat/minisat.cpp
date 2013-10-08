@@ -103,6 +103,13 @@ void MinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
+void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
+                                       SatClause& sat_clause) {
+  for (int i = 0; i < clause.size(); ++i) {
+    sat_clause.push_back(toSatLiteral(clause[i]));
+  }
+  Assert((unsigned)clause.size() == sat_clause.size());
+}
 
 void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy)
 {

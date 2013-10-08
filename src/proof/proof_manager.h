@@ -25,6 +25,7 @@
 #include "proof/proof.h"
 #include "util/proof.h"
 
+
 // forward declarations
 namespace Minisat {
   class Solver;
@@ -35,6 +36,7 @@ namespace CVC4 {
 namespace prop {
   class CnfStream;
 }
+typedef int ClauseId;
 
 class Proof;
 class SatProof;
@@ -44,12 +46,19 @@ class TheoryProof;
 class LFSCSatProof;
 class LFSCCnfProof;
 class LFSCTheoryProof;
-  
+
+namespace prop {
+typedef uint64_t SatVariable;
+class SatLiteral;
+}
+
 // different proof modes
 enum ProofFormat {
   LFSC,
   NATIVE
 };/* enum ProofFormat */
+
+std::string append(const std::string& str, uint64_t num);
 
 class ProofManager {
   SatProof*   d_satProof;
@@ -74,12 +83,13 @@ public:
   static TheoryProof* getTheoryProof();
 
   // variable prefixes
-  static std::string getInputClausePrefix() { return "pb"; }
-  static std::string getLemmaClausePrefix() { return "lem"; }
-  static std::string getLearntClausePrefix() { return "cl"; }
-  static std::string getVarPrefix() { return "v"; }
-  static std::string getAtomPrefix() { return "a"; }
-  static std::string getLitPrefix() {return "l"; }
+  static std::string printInputClauseName(ClauseId id);
+  static std::string printLemmaClauseName(ClauseId id);
+  static std::string printLearntClauseName(ClauseId id);
+
+  static std::string printVarName(prop::SatVariable var);
+  static std::string printAtomName(prop::SatVariable var);
+  static std::string printLitName(prop::SatLiteral lit);
 };/* class ProofManager */
 
 class LFSCProof : public Proof {

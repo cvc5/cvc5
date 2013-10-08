@@ -24,6 +24,13 @@
 
 namespace CVC4 {
 
+std::string append(const std::string& str, uint64_t num) {
+  std::ostringstream os;
+  os << str << num; 
+  return os.str(); 
+}
+
+
 bool          ProofManager::isInitialized = false;
 ProofManager* ProofManager::proofManager = NULL;
 
@@ -98,6 +105,15 @@ void ProofManager::initTheoryProof() {
   currentPM()->d_theoryProof = new LFSCTheoryProof();
 }
 
+
+std::string ProofManager::printInputClauseName(ClauseId id) {return append("pb", id); }
+std::string ProofManager::printLemmaClauseName(ClauseId id) { return append("lem", id); }
+std::string ProofManager::printLearntClauseName(ClauseId id) { return append("cl", id); }
+std::string ProofManager::printVarName(prop::SatVariable var) { return append("v", var); }
+std::string ProofManager::printAtomName(prop::SatVariable var) { return append("a", var); }
+std::string ProofManager::printLitName(prop::SatLiteral lit) {return append("l", lit.toInt()); }
+
+
 LFSCProof::LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
@@ -119,7 +135,7 @@ void LFSCProof::toStream(std::ostream& out) {
   d_cnfProof->printAtomMapping(out, paren);
   d_cnfProof->printClauses(out, paren);
   d_satProof->printResolutions(out, paren); 
-  paren <<"))";
+  paren <<")))\n;;";
   out << paren.str(); 
 }
 

@@ -35,7 +35,9 @@ void TheoryProof::addDeclaration(Expr term) {
     d_sortDeclarations.insert(type);
   if (term.getKind() == kind::APPLY_UF) {
     Expr function = term.getOperator();
-    d_termDeclarations.insert(function); 
+    d_termDeclarations.insert(function);
+    Assert (term.getNumChildren() == 1);
+    addDeclaration(term[0]); 
   } else {
     Assert (term.isVariable()); 
     Assert (type.isSort()); 
@@ -48,10 +50,8 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
     os << term; 
     return;
   }
-  Assert (term.getKind() == kind::APPLY_UF);
+  Assert (term.getKind() == kind::APPLY_UF && term.getNumChildren() == 1);
   Expr func = term.getOperator();
-  // only support unary functions so far
-  Assert (func.getNumChildren() == 1); 
   os << "(apply _ _ " << func << " ";
   printTerm(term[0], os);
   os <<")"; 
@@ -61,6 +61,7 @@ void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
   // should make this more general 
   Assert (atom.getKind() == kind::EQUAL);
   os << "(= ";
+  os << atom[0].getType() <<" "; 
   printTerm(atom[0], os);
   os << " ";
   printTerm(atom[1], os);
@@ -70,7 +71,7 @@ void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
 void LFSCTheoryProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the sorts
   for (SortSet::const_iterator it = d_sortDeclarations.begin(); it != d_sortDeclarations.end(); ++it) {
-    os << "(% " << *it << "sort \n";
+    os << "(% " << *it << " sort \n";
     paren << ")"; 
   }
 
@@ -78,13 +79,13 @@ void LFSCTheoryProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   for (TermSet::const_iterator it = d_termDeclarations.begin(); it != d_termDeclarations.end(); ++it) {
     Expr term = *it;
     
-    os << "(% " << term << "(term "; 
+    os << "(% " << term << " (term "; 
     paren <<")"; 
 
     Type type = term.getType();
     if (type.isFunction()) {
       FunctionType ftype = (FunctionType)type; 
-      Assert (ftype.getArity() == 2);
+      Assert (ftype.getArity() == 1);
       Type arg_type = ftype.getArgTypes()[0];
       Type result_type = ftype.getRangeType();
       os << "(arrow " << arg_type << " " << result_type << "))\n"; 

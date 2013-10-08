@@ -36,7 +36,7 @@ namespace Minisat {
 
 #include "prop/minisat/core/SolverTypes.h"
 #include "util/proof.h"
-
+#include "prop/sat_solver_types.h"
 namespace std {
   using namespace __gnu_cxx;
 }/* std namespace */
@@ -89,7 +89,6 @@ typedef std::hash_map < ClauseId, ResChain*>      IdResMap;
 typedef std::hash_set < ClauseId >                IdHashSet;
 typedef std::vector   < ResChain* >               ResStack; 
 
-typedef std::hash_set < unsigned >                     VarSet; 
 typedef std::set < ClauseId >                     IdSet; 
 typedef std::vector < ::Minisat::Lit >              LitVector; 
 typedef __gnu_cxx::hash_map<ClauseId, ::Minisat::Clause& > IdToMinisatClause;
@@ -255,6 +254,7 @@ protected:
   void collectClauses(ClauseId id);
   CnfProof* d_cnfProof; 
   CnfProof* getCnfProof();
+  void addClauseToCnfProof(ClauseId id, ClauseKind kind);
 public:
   void setCnfProof(CnfProof* cnfProof);
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;

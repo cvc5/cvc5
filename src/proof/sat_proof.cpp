@@ -19,10 +19,11 @@
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "prop/minisat/core/Solver.h"
+#include "prop/minisat/minisat.h"
 
 using namespace std;
 using namespace Minisat;
-
+using namespace CVC4::prop;
 namespace CVC4 {
 
 /// some helper functions 
@@ -277,7 +278,7 @@ ClauseId SatProof::getClauseId(::Minisat::Lit lit) {
   return d_unitId[toInt(lit)]; 
 }
 
-::Minisat::CRef SatProof::getClauseRef(ClauseId id) {
+Minisat::CRef SatProof::getClauseRef(ClauseId id) {
   if (d_idClause.find(id) == d_idClause.end()) {
     Debug("proof:sat") << "proof:getClauseRef cannot find clause "<<id<<" "
                        << ((d_deleted.find(id) != d_deleted.end()) ? "deleted" : "")
@@ -290,7 +291,7 @@ ClauseId SatProof::getClauseId(::Minisat::Lit lit) {
 Clause& SatProof::getClause(CRef ref) {
   return d_solver->ca[ref]; 
 }
-::Minisat::Lit SatProof::getUnit(ClauseId id) {
+Minisat::Lit SatProof::getUnit(ClauseId id) {
   Assert (d_idUnit.find(id) != d_idUnit.end());
   return d_idUnit[id]; 
 }
@@ -379,7 +380,7 @@ ClauseId SatProof::registerClause(::Minisat::CRef clause, ClauseKind kind) {
        d_lemmaClauses.insert(newId); 
      }
    }
-   Debug("proof:sat:detailed") <<"registerClause " << d_clauseId[clause] << " " << kind << "\n"; 
+   Debug("proof:sat:detailed") <<"registerClause CRef:" << clause <<" id:" << d_clauseId[clause] << " " << kind << "\n"; 
    return d_clauseId[clause]; 
 }
 
@@ -575,7 +576,7 @@ void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
     Assert (d_storedUnitConflict); 
     conflict_id = d_unitConflictId; 
   } else {
-    Assert (!d_storedUnitConflict); 
+    Assert (!d_storedUnitConflict);
     conflict_id = registerClause(conflict_ref); //FIXME
   }
 
@@ -625,6 +626,12 @@ void SatProof::markDeleted(CRef clause) {
 }
 
 void SatProof::constructProof() {
+  // if (isLemmaClause(d_conflictId)) {
+  //   addClauseToCnfProof(d_emptyClauseId, THEORY_LEMMA);
+  // }
+  // if (isInputClause(d_emptyClauseId)) {
+  //   addClauseToCnfProof(d_emptyClauseId, INPUT); 
+  // }
   collectClauses(d_emptyClauseId); 
 }
 
@@ -643,16 +650,32 @@ void SatProof::constructProof() {
 std::string SatProof::clauseName(ClauseId id) {
   ostringstream os;
   if (isInputClause(id)) {
-    os << ProofManager::getInputClausePrefix()<<id;
+    os << ProofManager::printInputClauseName(id); 
     return os.str(); 
   } else 
   if (isLemmaClause(id)) {
-    os << ProofManager::getLemmaClausePrefix()<<id;
+    os << ProofManager::printLemmaClauseName(id); 
     return os.str(); 
   }else {
-    os << ProofManager::getLearntClausePrefix()<<id;
+    os << ProofManager::printLearntClauseName(id);
     return os.str(); 
   }
+}
+
+void SatProof::addClauseToCnfProof(ClauseId id, ClauseKind kind) {
+  if (isUnit(id)) {
+    Minisat::Lit lit = getUnit(id);
+    prop::SatLiteral sat_lit = MinisatSatSolver::toSatLiteral(lit);
+    prop::SatClause* clause = new SatClause();
+    clause->push_back(sat_lit); 
+    getCnfProof()->addClause(id, clause, kind); 
+    return; 
+  }
+  CRef ref = getClauseRef(id);
+  const Clause& minisat_cl = getClause(ref);
+  SatClause* clause = new SatClause();
+  MinisatSatSolver::toSatClause(minisat_cl, *clause);  
+  getCnfProof()->addClause(id, clause, kind); 
 }
 
 void SatProof::collectClauses(ClauseId id) {
@@ -667,17 +690,14 @@ void SatProof::collectClauses(ClauseId id) {
   }
 
   if (isInputClause(id)) {
-    CRef input_ref = getClauseRef(id);
-    const Clause& cl = getClause(input_ref);
-    getCnfProof()->addInputClause(id, cl); 
+    addClauseToCnfProof(id, INPUT); 
     d_seenInput.insert(id);
     return; 
   }
   else if (isLemmaClause(id)) {
-    CRef lemma_ref = getClauseRef(id);
-    const Clause& cl = getClause(lemma_ref);
-    getCnfProof()->addTheoryLemma(id, cl); 
-    d_seenLemmas.insert(id); 
+    addClauseToCnfProof(id, THEORY_LEMMA); 
+    d_seenLemmas.insert(id);
+    return; 
   } 
   else {
     d_seenLearnt.insert(id); 
@@ -716,7 +736,7 @@ void LFSCSatProof::printResolution(ClauseId id, std::ostream& out, std::ostream&
   out << clauseName(start_id) << " ";
   
   for(unsigned i = 0; i < steps.size(); i++) {
-    out << clauseName(steps[i].id) << " "<<ProofManager::getVarPrefix() << var(steps[i].lit) <<")"; 
+    out << clauseName(steps[i].id) << " "<<ProofManager::printVarName(MinisatSatSolver::toSatVariable(var(steps[i].lit))) <<")"; 
   }
   
   if (id == d_emptyClauseId) {

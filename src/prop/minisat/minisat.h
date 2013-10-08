@@ -51,7 +51,7 @@ public:
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (Minisat::vec<Minisat::Lit>& clause, SatClause& sat_clause);
-
+  static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
   void addClause(SatClause& clause, bool removable);

@@ -32,8 +32,8 @@ namespace prop {
 class CnfStream;
 }
 
-typedef __gnu_cxx::hash_map < ClauseId, ::Minisat::Clause > IdToClause; 
-typedef __gnu_cxx::hash_set<unsigned > VarSet;
+typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause; 
+typedef __gnu_cxx::hash_set<prop::SatVariable > VarSet;
 
 class TheoryProof; 
   
@@ -46,22 +46,21 @@ protected:
   TheoryProof* d_theoryProof;
   TheoryProof* getTheoryProof();
 
-  Expr getAtom(unsigned var);
+  Expr getAtom(prop::SatVariable var);
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);
-  void addInputClause(ClauseId id, const ::Minisat::Clause& clause);
-  void addTheoryLemma(ClauseId id, const ::Minisat::Clause& clause);
-  void addVariable(unsigned var); 
+  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
+  void addVariable(prop::SatVariable var); 
   void setTheoryProof(TheoryProof* theory_proof);
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
-
+  virtual ~CnfProof(); 
 };
 
 class LFSCCnfProof: public CnfProof {
   void printInputClauses(std::ostream& os, std::ostream& paren);
   void printTheoryLemmas(std::ostream& os, std::ostream& paren);
-  void printClause(const Minisat::Clause& clause, std::ostream& os, std::ostream& paren);
+  void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren);
 public:
   LFSCCnfProof(CVC4::prop::CnfStream* cnfStream)
     : CnfProof(cnfStream)
