@@ -219,7 +219,7 @@ private:
   void merge( Node t1, Node t2 );
   /** for checking if cycles exist */
   void checkCycles();
-  bool searchForCycle( Node n, Node on,
+  Node searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
   /** collect terms */

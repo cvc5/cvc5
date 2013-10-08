@@ -118,6 +118,12 @@ void TheoryDatatypes::check(Effort e) {
   }
 
   if( e == EFFORT_FULL ) {
+    //check for cycles
+    checkCycles();
+    if( d_conflict ){
+      return;
+    }
+    //check for splits
     Debug("datatypes-split") << "Check for splits " << e << endl;
     bool addedFact = false;
     do {
@@ -159,20 +165,19 @@ void TheoryDatatypes::check(Effort e) {
                   }
                 }
               }
+              /*
               if( !needSplit && mustSpecifyAssignment() ){
-                // &&
                 //for the sake of termination, we must choose the constructor of a ground term
                 //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-                //** TODO: this is probably not good enough, actually need fair enumeration strategy
-                /*
+                // TODO: this is probably not good enough, actually need fair enumeration strategy
                 Node groundTerm = n.getType().mkGroundTerm();
                 int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
                 if( pcons[index] ){
                   consIndex = index;
                 }
                 needSplit = true;
-                */
               }
+              */
               if( needSplit && consIndex!=-1 ) {
                 Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
                 Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
@@ -446,10 +451,16 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   Debug("datatypes-explain") << "Explain " << literal << std::endl;
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
+  std::vector<TNode> tassumptions;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine.explainPredicate(atom, polarity, tassumptions);
+  }
+  for( unsigned i=0; i<tassumptions.size(); i++ ){
+    if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
+      assumptions.push_back( tassumptions[i] );
+    }
   }
 }
 
@@ -472,7 +483,7 @@ void TheoryDatatypes::conflict(TNode a, TNode b){
   } else {
     d_conflictNode = explain( a.eqNode(b) );
   }
-  Debug("datatypes-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
+  Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
   d_out->conflict( d_conflictNode );
   d_conflict = true;
 }
@@ -523,7 +534,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           if( cons1.getOperator()!=cons2.getOperator() ){
             //check for clash
             d_conflictNode = explain( cons1.eqNode( cons2 ) );
-            Debug("datatypes-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
+            Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
             d_out->conflict( d_conflictNode );
             d_conflict = true;
             return;
@@ -559,8 +570,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
                   explain( *i, assumptions );
                   explain( cons2.eqNode( (*i)[0][0] ), assumptions );
                   d_conflictNode = NodeManager::currentNM()->mkNode( AND, assumptions );
-                  Debug("datatypes-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
-                  Debug("datatypes-conflict-temp") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
+                  Trace("dt-conflict") << "CONFLICT: Tester merge eq conflict : " << d_conflictNode << std::endl;
                   d_out->conflict( d_conflictNode );
                   d_conflict = true;
                   return;
@@ -615,12 +625,16 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       newRep = trep2;
     }
     bool result = d_cycle_check.addEdgeNode( oldRep, newRep );
-    d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
-    Debug("datatypes-cycles") << "DtCyc: Equal " << oldRep << " -> " << newRep << " " << d_hasSeenCycle.get() << endl;
-    if( d_hasSeenCycle.get() ){
+    //d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
+    Debug("datatypes-cycles") << "DtCyc: Equal " << oldRep << " -> " << newRep << " " << result << " " << d_hasSeenCycle.get() << endl;
+    if( result ){
       checkCycles();
       if( d_conflict ){
+        Debug("datatypes-cycles-find") << "Cycle found." << std::endl;
         return;
+      }else{
+        Debug("datatypes-cycles-find") << "WARNING : no cycle found." << std::endl;
+        d_cycle_check.debugPrint();
       }
     }
   }
@@ -694,7 +708,7 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
           explain( t, assumptions );
           explain( eqc->d_constructor.get().eqNode( tt[0] ), assumptions );
           d_conflictNode = NodeManager::currentNM()->mkNode( AND, assumptions );
-          Debug("datatypes-conflict") << "CONFLICT: Tester eq conflict : " << d_conflictNode << std::endl;
+          Trace("dt-conflict") << "CONFLICT: Tester eq conflict : " << d_conflictNode << std::endl;
           d_out->conflict( d_conflictNode );
           return;
         }else{
@@ -775,7 +789,7 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
       explain( t, assumptions );
       explain( jt[0].eqNode( tt[0] ), assumptions );
       d_conflictNode = NodeManager::currentNM()->mkNode( AND, assumptions );
-      Debug("datatypes-conflict") << "CONFLICT: Tester conflict : " << d_conflictNode << std::endl;
+      Trace("dt-conflict") << "CONFLICT: Tester conflict : " << d_conflictNode << std::endl;
       d_out->conflict( d_conflictNode );
     }
   }
@@ -912,8 +926,11 @@ void TheoryDatatypes::collectTerms( Node n ) {
     if( n.getKind() == APPLY_CONSTRUCTOR ){
       //we must take into account subterm relation when checking for cycles
       for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-        Debug("datatypes-cycles") << "DtCyc: Subterm " << n << " -> " << n[i] << endl;
         bool result = d_cycle_check.addEdgeNode( n, n[i] );
+        Debug("datatypes-cycles") << "DtCyc: Subterm " << n << " -> " << n[i] << " " << result << endl;
+        if( result && !d_hasSeenCycle.get() ){
+          Debug("datatypes-cycles") << "FOUND CYCLE" << std::endl;
+        }
         d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
       }
     }else if( n.getKind() == APPLY_SELECTOR ){
@@ -941,7 +958,7 @@ void TheoryDatatypes::processNewTerm( Node n ){
   Trace("dt-terms") << "Created term : " << n << std::endl;
   //see if it is rewritten to be something different
   Node rn = Rewriter::rewrite( n );
-  if( rn!=n ){
+  if( rn!=n && !areEqual( rn, n ) ){
     Node eq = n.getType().isBoolean() ? rn.iffNode( n ) : rn.eqNode( n );
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = NodeManager::currentNM()->mkConst( true );
@@ -1059,21 +1076,21 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     int index = getLabelIndex( eqc, n );
     const Datatype& dt = ((DatatypeType)(tt.getType()).toType()).getDatatype();
     //must be finite or have a selector
-    //if( eqc->d_selectors || dt[ index ].isFinite() || mustSpecifyAssignment() ){
-      //instantiate this equivalence class
-      eqc->d_inst = true;
-      Node tt_cons = getInstantiateCons( tt, dt, index );
-      Node eq;
-      if( tt!=tt_cons ){
-        eq = tt.eqNode( tt_cons );
-        Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq << std::endl;
-        d_pending.push_back( eq );
-        d_pending_exp[ eq ] = exp;
-        Trace("datatypes-infer") << "DtInfer : " << eq << " by " << exp << std::endl;
-        //eqc->d_inst.set( eq );
-        d_infer.push_back( eq );
-        d_infer_exp.push_back( exp );
-      }
+    //if( eqc->d_selectors || dt[ index ].isFinite() ){ // || mustSpecifyAssignment()
+    //instantiate this equivalence class
+    eqc->d_inst = true;
+    Node tt_cons = getInstantiateCons( tt, dt, index );
+    Node eq;
+    if( tt!=tt_cons ){
+      eq = tt.eqNode( tt_cons );
+      Debug("datatypes-inst") << "DtInstantiate : " << eqc << " " << eq << std::endl;
+      d_pending.push_back( eq );
+      d_pending_exp[ eq ] = exp;
+      Trace("datatypes-infer") << "DtInfer : " << eq << " by " << exp << std::endl;
+      //eqc->d_inst.set( eq );
+      d_infer.push_back( eq );
+      d_infer_exp.push_back( exp );
+    }
     //}
     //else{
     //  Debug("datatypes-inst") << "Do not instantiate" << std::endl;
@@ -1086,26 +1103,38 @@ void TheoryDatatypes::checkCycles() {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    map< Node, bool > visited;
-    std::vector< TNode > expl;
-    if( searchForCycle( eqc, eqc, visited, expl ) ) {
-      Assert( expl.size()>0 );
-      if( expl.size() == 1 ){
-        d_conflictNode = expl[ 0 ];
-      }else{
-        d_conflictNode = NodeManager::currentNM()->mkNode( AND, expl );
+    if( eqc.getType().isDatatype() ) {
+      map< Node, bool > visited;
+      std::vector< TNode > expl;
+      Node cn = searchForCycle( eqc, eqc, visited, expl );
+      //if we discovered a different cycle while searching this one
+      if( !cn.isNull() && cn!=eqc ){
+        visited.clear();
+        expl.clear();
+        Node prev = cn;
+        cn = searchForCycle( cn, cn, visited, expl );
+        Assert( prev==cn );
       }
-      Debug("datatypes-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
-      d_out->conflict( d_conflictNode );
-      d_conflict = true;
-      return;
+
+      if( !cn.isNull() ) {
+        Assert( expl.size()>0 );
+        if( expl.size() == 1 ){
+          d_conflictNode = expl[ 0 ];
+        }else{
+          d_conflictNode = NodeManager::currentNM()->mkNode( AND, expl );
+        }
+        Trace("dt-conflict") << "CONFLICT: Cycle conflict : " << d_conflictNode << std::endl;
+        d_out->conflict( d_conflictNode );
+        d_conflict = true;
+        return;
+      }
     }
     ++eqcs_i;
   }
 }
 
 //postcondition: if cycle detected, explanation is why n is a subterm of on
-bool TheoryDatatypes::searchForCycle( Node n, Node on,
+Node TheoryDatatypes::searchForCycle( Node n, Node on,
                                       map< Node, bool >& visited,
                                       std::vector< TNode >& explanation, bool firstTime ) {
   Debug("datatypes-cycle-check") << "Search for cycle " << n << " " << on << endl;
@@ -1116,19 +1145,20 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
     if( nn==on ){
       Node lit = NodeManager::currentNM()->mkNode( EQUAL, n, nn );
       explain( lit, explanation );
-      return true;
+      return on;
     }
   }else{
     nn = n;
   }
   if( visited.find( nn ) == visited.end() ) {
     visited[nn] = true;
-    EqcInfo* eqc = getOrMakeEqcInfo( nn );
+    EqcInfo* eqc = getOrMakeEqcInfo( nn, false );
     if( eqc ){
       Node ncons = eqc->d_constructor.get();
       if( !ncons.isNull() ) {
         for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
-          if( searchForCycle( ncons[i], on, visited, explanation, false ) ) {
+          Node cn = searchForCycle( ncons[i], on, visited, explanation, false );
+          if( cn==on ) {
             if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
               Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
             }
@@ -1137,13 +1167,18 @@ bool TheoryDatatypes::searchForCycle( Node n, Node on,
               Node lit = NodeManager::currentNM()->mkNode( EQUAL, n, ncons );
               explain( lit, explanation );
             }
-            return true;
+            return on;
+          }else if( !cn.isNull() ){
+            return cn;
           }
         }
       }
     }
+    visited.erase( nn );
+    return Node::null();
+  }else{
+    return nn;
   }
-  return false;
 }
 
 bool TheoryDatatypes::mustSpecifyAssignment(){
