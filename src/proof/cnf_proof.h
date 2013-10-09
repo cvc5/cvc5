@@ -32,26 +32,13 @@ namespace prop {
 class CnfStream;
 }
 
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause; 
-typedef __gnu_cxx::hash_set<prop::SatVariable > VarSet;
-
-class TheoryProof; 
-  
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
-  IdToClause d_inputClauses;
-  IdToClause d_theoryLemmas;
-  VarSet     d_propVars;
-  TheoryProof* d_theoryProof;
-  TheoryProof* getTheoryProof();
-
   Expr getAtom(prop::SatVariable var);
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);
-  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
-  void addVariable(prop::SatVariable var); 
-  void setTheoryProof(TheoryProof* theory_proof);
+
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
   virtual ~CnfProof(); 

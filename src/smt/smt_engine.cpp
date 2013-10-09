@@ -3107,7 +3107,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
 #ifdef CVC4_PROOF
   //  if (options::proof()) { <-- SEGFAULT!!
-    ProofManager::currentPM()->getTheoryProof()->assertFormula(ex);
+    ProofManager::currentPM()->addAssertion(ex);
   //}
 #endif  
   SmtScope smts(this);
@@ -3255,7 +3255,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   Assert(ex.getExprManager() == d_exprManager);
 #ifdef CVC4_PROOF
   // if (options::proof()) { <-- SEGFAULT!!!
-    ProofManager::currentPM()->getTheoryProof()->assertFormula(ex);
+    ProofManager::currentPM()->addAssertion(ex);
   // }
 #endif
   SmtScope smts(this);

@@ -47,7 +47,15 @@ ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
   delete d_theoryProof;
-  delete d_fullProof; 
+  delete d_fullProof;
+  for (IdToClause::iterator it = d_inputClauses.begin(); it != d_inputClauses.end(); ++it) {
+    delete it->second; 
+  }
+  for (IdToClause::iterator it = d_theoryLemmas.begin(); it != d_theoryLemmas.end(); ++it) {
+    delete it->second; 
+  }
+  // FIXME: memory leak because there are deleted theory lemmas that were not used in the
+  // SatProof 
 }
 
 ProofManager* ProofManager::currentPM() {
@@ -106,12 +114,29 @@ void ProofManager::initTheoryProof() {
 }
 
 
-std::string ProofManager::printInputClauseName(ClauseId id) {return append("pb", id); }
-std::string ProofManager::printLemmaClauseName(ClauseId id) { return append("lem", id); }
-std::string ProofManager::printLearntClauseName(ClauseId id) { return append("cl", id); }
-std::string ProofManager::printVarName(prop::SatVariable var) { return append("v", var); }
-std::string ProofManager::printAtomName(prop::SatVariable var) { return append("a", var); }
-std::string ProofManager::printLitName(prop::SatLiteral lit) {return append("l", lit.toInt()); }
+std::string ProofManager::getInputClauseName(ClauseId id) {return append("pb", id); }
+std::string ProofManager::getLemmaClauseName(ClauseId id) { return append("lem", id); }
+std::string ProofManager::getLearntClauseName(ClauseId id) { return append("cl", id); }
+std::string ProofManager::getVarName(prop::SatVariable var) { return append("v", var); }
+std::string ProofManager::getAtomName(prop::SatVariable var) { return append("a", var); }
+std::string ProofManager::getLitName(prop::SatLiteral lit) {return append("l", lit.toInt()); }
+
+void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind) {
+  for (unsigned i = 0; i < clause->size(); ++i) {
+    prop::SatLiteral lit = clause->operator[](i); 
+    d_propVars.insert(lit.getSatVariable()); 
+  }
+  if (kind == INPUT) {
+    d_inputClauses.insert(std::make_pair(id, clause));
+    return;
+  }
+  Assert (kind == THEORY_LEMMA);
+  d_theoryLemmas.insert(std::make_pair(id, clause));
+}
+
+void ProofManager::addAssertion(Expr formula) {
+  d_inputFormulas.insert(formula); 
+}
 
 
 LFSCProof::LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)
@@ -119,18 +144,12 @@ LFSCProof::LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theo
   , d_cnfProof(cnf)
   , d_theoryProof(theory)
 {
-  // link the proofs
-  d_satProof->setCnfProof(d_cnfProof);
-  d_cnfProof->setTheoryProof(d_theoryProof);
-  // build the resolution proof out of the traces
-  // this sets up the other proofs with the necessary information
   d_satProof->constructProof();
 }
 
 void LFSCProof::toStream(std::ostream& out) {
   std::ostringstream paren;
   out << "(check \n";
-  d_theoryProof->printDeclarations(out, paren);
   d_theoryProof->printAssertions(out, paren); 
   out << "(: (holds cln) \n";
   d_cnfProof->printAtomMapping(out, paren);
@@ -139,17 +158,6 @@ void LFSCProof::toStream(std::ostream& out) {
   paren <<")))\n;;";
   out << paren.str(); 
 }
-
-// void ProofManager::declareAtom(Expr atom, SatLiteral lit) {
-//   ::Minisat::Lit mlit = toMinisatLit(lit); 
-//   d_satProof->addLiteral(mlit);
-//   d_cnfProof->declareAtom(atom, mlit); 
-// }
-
-// void ProofManager::addInputClause(SatClause clause) {
-//   d_satProof->registerClause(clause, true); 
-//   d_cnfProof->registerClause(clause, true); 
-// }
 
 
 } /* CVC4  namespace */ 

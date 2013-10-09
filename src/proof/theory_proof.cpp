@@ -16,28 +16,14 @@
  **/
 
 #include "proof/theory_proof.h"
-
+#include "proof/proof_manager.h"
 using namespace CVC4;
 
 TheoryProof::TheoryProof()
-  : d_atomSet()
-  , d_inputFormulas()
-  , d_termDeclarations()
+  : d_termDeclarations()
   , d_sortDeclarations()
   , d_declarationCache()
 {}
-
-void TheoryProof::addAtom(Expr atom) {
-  d_atomSet.insert(atom); 
-  Assert (atom.getKind() == kind::EQUAL);
-  addDeclaration(atom[0]);
-  addDeclaration(atom[1]); 
-}
-
-void TheoryProof::assertFormula(Expr formula) {
-  d_inputFormulas.insert(formula);
-  addDeclaration(formula); 
-}
 
 void TheoryProof::addDeclaration(Expr term) {
   if (d_declarationCache.count(term))
@@ -152,8 +138,18 @@ void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
 }
 
 void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
-  unsigned counter = 0; 
-  for (ExprSet::const_iterator it = d_inputFormulas.begin(); it != d_inputFormulas.end(); ++it) {
+  unsigned counter = 0;
+  ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
+  ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
+
+  // collect declarations first 
+  for(; it != end; ++it) {
+    addDeclaration(*it); 
+  }
+  printDeclarations(os, paren);
+
+  it = ProofManager::currentPM()->begin_assertions();
+  for (; it != end; ++it) {
     os << "(% A" << counter++ << " (th_holds ";
     printFormula(*it,  os);
     os << ")\n";

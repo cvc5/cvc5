@@ -27,7 +27,7 @@
 #include <ext/hash_set>
 #include <sstream>
 #include "expr/expr.h"
-
+#include "proof/proof_manager.h"
 
 namespace Minisat {
   class Solver;
@@ -49,7 +49,6 @@ namespace CVC4 {
 void printDebug(::Minisat::Lit l);
 void printDebug(::Minisat::Clause& c); 
 
-typedef int ClauseId;
 struct ResStep {
   ::Minisat::Lit lit;
   ClauseId id;
@@ -103,12 +102,6 @@ public:
   void updateCRef(::Minisat::CRef oldref, ::Minisat::CRef newref);
 };/* class ProofProxy */
 
-
-enum ClauseKind {
-  INPUT,
-  THEORY_LEMMA,
-  LEARNT
-};
 
 class CnfProof; 
 
@@ -254,11 +247,8 @@ protected:
   inline std::string clauseName(ClauseId id); 
 
   void collectClauses(ClauseId id);
-  CnfProof* d_cnfProof; 
-  CnfProof* getCnfProof();
-  void addClauseToCnfProof(ClauseId id, ClauseKind kind);
+  void addToProofManager(ClauseId id, ClauseKind kind);
 public:
-  void setCnfProof(CnfProof* cnfProof);
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
 };/* class SatProof */
 

@@ -16,7 +16,6 @@
  **/
 
 #include "proof/sat_proof.h"
-#include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/minisat.h"
@@ -182,21 +181,10 @@ SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
     d_storedUnitConflict(false),
     d_seenLearnt(),
     d_seenInput(),
-    d_seenLemmas(),
-    d_cnfProof(NULL)
+    d_seenLemmas()
   {
     d_proxy = new ProofProxy(this); 
   }
-
-CnfProof* SatProof::getCnfProof() {
-  Assert (d_cnfProof);
-  return d_cnfProof; 
-}
-
-void SatProof::setCnfProof(CnfProof* cnfProof) {
-  Assert (d_cnfProof == NULL);
-  d_cnfProof = cnfProof; 
-}
 
 /** 
  * Returns true if the resolution chain corresponding to id
@@ -638,32 +626,32 @@ void SatProof::constructProof() {
 std::string SatProof::clauseName(ClauseId id) {
   ostringstream os;
   if (isInputClause(id)) {
-    os << ProofManager::printInputClauseName(id); 
+    os << ProofManager::getInputClauseName(id); 
     return os.str(); 
   } else 
   if (isLemmaClause(id)) {
-    os << ProofManager::printLemmaClauseName(id); 
+    os << ProofManager::getLemmaClauseName(id); 
     return os.str(); 
   }else {
-    os << ProofManager::printLearntClauseName(id);
+    os << ProofManager::getLearntClauseName(id);
     return os.str(); 
   }
 }
 
-void SatProof::addClauseToCnfProof(ClauseId id, ClauseKind kind) {
+void SatProof::addToProofManager(ClauseId id, ClauseKind kind) {
   if (isUnit(id)) {
     Minisat::Lit lit = getUnit(id);
     prop::SatLiteral sat_lit = MinisatSatSolver::toSatLiteral(lit);
     prop::SatClause* clause = new SatClause();
     clause->push_back(sat_lit); 
-    getCnfProof()->addClause(id, clause, kind); 
+    ProofManager::currentPM()->addClause(id, clause, kind); 
     return; 
   }
   
   if (isDeleted(id)) {
     Assert (kind == THEORY_LEMMA);
     SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
-    getCnfProof()->addClause(id, clause, kind);  
+    ProofManager::currentPM()->addClause(id, clause, kind);  
     return; 
   }
   
@@ -671,7 +659,7 @@ void SatProof::addClauseToCnfProof(ClauseId id, ClauseKind kind) {
   const Clause& minisat_cl = getClause(ref);
   SatClause* clause = new SatClause();
   MinisatSatSolver::toSatClause(minisat_cl, *clause);  
-  getCnfProof()->addClause(id, clause, kind); 
+  ProofManager::currentPM()->addClause(id, clause, kind); 
 }
 
 void SatProof::collectClauses(ClauseId id) {
@@ -686,12 +674,12 @@ void SatProof::collectClauses(ClauseId id) {
   }
 
   if (isInputClause(id)) {
-    addClauseToCnfProof(id, INPUT); 
+    addToProofManager(id, INPUT); 
     d_seenInput.insert(id);
     return; 
   }
   else if (isLemmaClause(id)) {
-    addClauseToCnfProof(id, THEORY_LEMMA); 
+    addToProofManager(id, THEORY_LEMMA); 
     d_seenLemmas.insert(id);
     return; 
   } 
@@ -732,7 +720,7 @@ void LFSCSatProof::printResolution(ClauseId id, std::ostream& out, std::ostream&
   out << clauseName(start_id) << " ";
   
   for(unsigned i = 0; i < steps.size(); i++) {
-    out << clauseName(steps[i].id) << " "<<ProofManager::printVarName(MinisatSatSolver::toSatVariable(var(steps[i].lit))) <<")"; 
+    out << clauseName(steps[i].id) << " "<<ProofManager::getVarName(MinisatSatSolver::toSatVariable(var(steps[i].lit))) <<")"; 
   }
   
   if (id == d_emptyClauseId) {

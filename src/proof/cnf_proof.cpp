@@ -28,37 +28,8 @@ namespace CVC4 {
 
 CnfProof::CnfProof(CnfStream* stream)
   : d_cnfStream(stream)
-  , d_theoryProof(NULL)
 {}
 
-TheoryProof* CnfProof::getTheoryProof() {
-  Assert (d_theoryProof);
-  return d_theoryProof; 
-}
-
-void CnfProof::setTheoryProof(TheoryProof* theory_proof) {
-  Assert (d_theoryProof == NULL);
-  d_theoryProof = theory_proof; 
-}
-
-void CnfProof::addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind) {
-  for (unsigned i = 0; i < clause->size(); ++i) {
-    SatLiteral lit = clause->operator[](i); 
-    addVariable(lit.getSatVariable()); 
-  }
-  if (kind == INPUT) {
-    d_inputClauses.insert(std::make_pair(id, clause));
-    return;
-  }
-  Assert (kind == THEORY_LEMMA);
-  d_theoryLemmas.insert(std::make_pair(id, clause));
-}
-
-void CnfProof::addVariable(prop::SatVariable var) {
-  d_propVars.insert(var); 
-  Expr atom = getAtom(var); 
-  getTheoryProof()->addAtom(atom); 
-}
 
 Expr CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var); 
@@ -67,20 +38,17 @@ Expr CnfProof::getAtom(prop::SatVariable var) {
 }
 
 CnfProof::~CnfProof() {
-  for (IdToClause::iterator it = d_inputClauses.begin(); it != d_inputClauses.end(); ++it) {
-    delete it->second; 
-  }
-  for (IdToClause::iterator it = d_theoryLemmas.begin(); it != d_theoryLemmas.end(); ++it) {
-    delete it->second; 
-  }
 }
 
 void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
-  for (VarSet::iterator it = d_propVars.begin();it != d_propVars.end();  ++it) {
+  ProofManager::var_iterator it = ProofManager::currentPM()->begin_vars();
+  ProofManager::var_iterator end = ProofManager::currentPM()->end_vars();
+  
+  for (;it != end;  ++it) {
     Expr atom = getAtom(*it);
     os << "(decl_atom ";
-    getTheoryProof()->printFormula(atom, os);
-    os << " (\\ " << ProofManager::printVarName(*it) << " (\\ " << ProofManager::printAtomName(*it) << "\n";
+    LFSCTheoryProof::printFormula(atom, os);
+    os << " (\\ " << ProofManager::getVarName(*it) << " (\\ " << ProofManager::getAtomName(*it) << "\n";
     paren << ")))"; 
   }
 }
@@ -91,15 +59,18 @@ void LFSCCnfProof::printClauses(std::ostream& os, std::ostream& paren) {
 }
 
 void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
-  os << " ;; Input Clauses \n";  
-  for (IdToClause::const_iterator it = d_inputClauses.begin(); it != d_inputClauses.end(); ++it) {
+  os << " ;; Input Clauses \n";
+  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_input_clauses();
+  ProofManager::clause_iterator end = ProofManager::currentPM()->end_input_clauses();
+  
+  for (; it != end; ++it) {
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
     os << "(satlem _ _ ";
     std::ostringstream clause_paren; 
     printClause(*clause, os, clause_paren);
     os << " (clausify_false trust)" << clause_paren.str();
-    os << "( \\ " << ProofManager::printInputClauseName(id) << "\n"; 
+    os << "( \\ " << ProofManager::getInputClauseName(id) << "\n"; 
     paren << "))"; 
   }
 }
@@ -107,14 +78,17 @@ void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
 
 void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
   os << " ;; Theory Lemmas \n";  
-  for (IdToClause::const_iterator it = d_theoryLemmas.begin(); it != d_theoryLemmas.end(); ++it) {
+  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_lemmas();
+  ProofManager::clause_iterator end = ProofManager::currentPM()->end_lemmas();
+  
+  for (; it != end; ++it) {
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
     os << "(satlem _ _ ";
     std::ostringstream clause_paren; 
     printClause(*clause, os, clause_paren);
     os << " (clausify_false trust)" << clause_paren.str();
-    os << "( \\ " << ProofManager::printLemmaClauseName(id) <<"\n"; 
+    os << "( \\ " << ProofManager::getLemmaClauseName(id) <<"\n"; 
     paren << "))"; 
   }
 }
@@ -124,10 +98,10 @@ void LFSCCnfProof::printClause(const prop::SatClause& clause, std::ostream& os, 
     prop::SatLiteral lit = clause[i];
     prop::SatVariable var = lit.getSatVariable(); 
     if (lit.isNegated()) {
-      os << "(ast _ _ _ " << ProofManager::printAtomName(var) <<" (\\ " << ProofManager::printLitName(lit) << " ";
+      os << "(ast _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
       paren << "))"; 
     } else {
-      os << "(asf _ _ _ " << ProofManager::printAtomName(var) <<" (\\ " << ProofManager::printLitName(lit) << " ";
+      os << "(asf _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
       paren << "))"; 
     }
   }
