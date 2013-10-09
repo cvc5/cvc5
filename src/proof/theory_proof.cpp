@@ -65,19 +65,17 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
     os << term; 
     return;
   }
-  std::ostringstream paren; 
+
   Assert (term.getKind() == kind::APPLY_UF);
   Expr func = term.getOperator();
-  os << "(apply _ _ " << func << " ";
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    os<< "(apply _ _ ";
+  }
+  os << func << " "; 
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     printTerm(term[i], os);
-    if (i < term.getNumChildren() - 1) {
-      os << "(apply _ _ " << func << " ";
-      paren << ")"; 
-    }
-    os << ")" ; 
+    os << ")"; 
   }
-  os << paren.str(); 
 }
 
 std::string toLFSCKind(Kind kind) {
@@ -95,7 +93,7 @@ std::string toLFSCKind(Kind kind) {
 
 void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
   // should make this more general and overall sane
-  Assert (atom.getType().isBoolean());
+  Assert (atom.getType().isBoolean() && "Only printing booleans." );
   Kind kind = atom.getKind(); 
   // this is the only predicate we have
   if (kind == kind::EQUAL) {
@@ -106,6 +104,13 @@ void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
     os <<" "; 
     printTerm(atom[1], os);
     os <<")"; 
+  } else if ( kind == kind::DISTINCT) {
+    os <<"(not (= ";
+    os << atom[0].getType() <<" "; 
+    printTerm(atom[0], os);
+    os <<" "; 
+    printTerm(atom[1], os);
+    os <<"))"; 
   } else if ( kind == kind::OR ||
               kind == kind::AND ||
               kind == kind::XOR ||
@@ -134,8 +139,15 @@ void LFSCTheoryProof::printFormula(Expr atom, std::ostream& os) {
       }
       os <<")"; 
     }
-  } else {
-    Assert (false); 
+  } else if (kind == kind::CONST_BOOLEAN) {
+    if (atom.getConst<bool>())
+      os << "true";
+    else
+      os << "false"; 
+  }
+  else {
+    std::cout << kind << "\n"; 
+    Assert (false && "Unsupported kind"); 
   }
 }
 

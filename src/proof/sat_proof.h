@@ -81,14 +81,14 @@ public:
   LitSet*   getRedundant() { return d_redundantLits; }
 };/* class ResChain */
 
-typedef std::hash_map < ClauseId, ::Minisat::CRef > IdClauseMap;
+typedef std::hash_map < ClauseId, ::Minisat::CRef > IdCRefMap;
 typedef std::hash_map < ::Minisat::CRef, ClauseId > ClauseIdMap;
 typedef std::hash_map < ClauseId, ::Minisat::Lit>   IdUnitMap;
 typedef std::hash_map < int, ClauseId>            UnitIdMap; //FIXME 
 typedef std::hash_map < ClauseId, ResChain*>      IdResMap; 
 typedef std::hash_set < ClauseId >                IdHashSet;
 typedef std::vector   < ResChain* >               ResStack; 
-
+typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;             
 typedef std::set < ClauseId >                     IdSet; 
 typedef std::vector < ::Minisat::Lit >              LitVector; 
 typedef __gnu_cxx::hash_map<ClauseId, ::Minisat::Clause& > IdToMinisatClause;
@@ -116,11 +116,12 @@ class SatProof {
 protected:
   ::Minisat::Solver*    d_solver;
   // clauses 
-  IdClauseMap         d_idClause;
+  IdCRefMap           d_idClause;
   ClauseIdMap         d_clauseId;
   IdUnitMap           d_idUnit;
   UnitIdMap           d_unitId;
   IdHashSet           d_deleted;
+  IdToSatClause       d_deletedTheoryLemmas; 
   IdHashSet           d_inputClauses; 
   IdHashSet           d_lemmaClauses; 
   // resolutions 
@@ -136,7 +137,7 @@ protected:
   
   // temporary map for updating CRefs
   ClauseIdMap         d_temp_clauseId;
-  IdClauseMap         d_temp_idClause;
+  IdCRefMap         d_temp_idClause;
 
   // unit conflict
   ClauseId d_unitConflictId;
@@ -223,6 +224,7 @@ public:
    * @param clause 
    */
   void markDeleted(::Minisat::CRef clause);
+  bool isDeleted(ClauseId id) { return d_deleted.find(id) != d_deleted.end(); }
   /** 
    * Constructs the resolution of ~q and resolves it with the current
    * resolution thus eliminating q from the current clause

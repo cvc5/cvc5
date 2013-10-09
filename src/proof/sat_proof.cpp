@@ -621,31 +621,19 @@ void SatProof::markDeleted(CRef clause) {
   if (d_clauseId.find(clause) != d_clauseId.end()) {
     ClauseId id = getClauseId(clause);
     Assert (d_deleted.find(id) == d_deleted.end()); 
-    d_deleted.insert(id); 
+    d_deleted.insert(id);
+    if (isLemmaClause(id)) {
+      const Clause& minisat_cl = getClause(clause);
+      SatClause* sat_cl = new SatClause(); 
+      MinisatSatSolver::toSatClause(minisat_cl, *sat_cl);  
+      d_deletedTheoryLemmas.insert(std::make_pair(id, sat_cl)); 
+    }
   }
 }
 
 void SatProof::constructProof() {
-  // if (isLemmaClause(d_conflictId)) {
-  //   addClauseToCnfProof(d_emptyClauseId, THEORY_LEMMA);
-  // }
-  // if (isInputClause(d_emptyClauseId)) {
-  //   addClauseToCnfProof(d_emptyClauseId, INPUT); 
-  // }
   collectClauses(d_emptyClauseId); 
 }
-
-// std::string SatProof::varName(::Minisat::Lit lit) {
-//   ostringstream os;
-//   if (sign(lit)) {
-//     os << "(neg "<< ProofManager::getVarPrefix() <<var(lit) << ")" ; 
-//   }
-//   else {
-//     os << "(pos "<< ProofManager::getVarPrefix() <<var(lit) << ")"; 
-//   }
-//   return os.str(); 
-// }
-
 
 std::string SatProof::clauseName(ClauseId id) {
   ostringstream os;
@@ -671,6 +659,14 @@ void SatProof::addClauseToCnfProof(ClauseId id, ClauseKind kind) {
     getCnfProof()->addClause(id, clause, kind); 
     return; 
   }
+  
+  if (isDeleted(id)) {
+    Assert (kind == THEORY_LEMMA);
+    SatClause* clause = d_deletedTheoryLemmas.find(id)->second;
+    getCnfProof()->addClause(id, clause, kind);  
+    return; 
+  }
+  
   CRef ref = getClauseRef(id);
   const Clause& minisat_cl = getClause(ref);
   SatClause* clause = new SatClause();
@@ -748,54 +744,6 @@ void LFSCSatProof::printResolution(ClauseId id, std::ostream& out, std::ostream&
   paren << "))";                            // closing parethesis for lemma binding and satlem
 }
 
-
-// void LFSCSatProof::printInputClause(ClauseId id) {
-//   if (isUnit(id)) {
-//     ::Minisat::Lit lit = getUnit(id); 
-//     d_clauseSS << "(% " << clauseName(id) << " (holds (clc ";
-//     d_clauseSS << varName(lit) << "cln ))";
-//     d_paren << ")";
-//     return; 
-//   }
-  
-//   ostringstream os;
-//   CRef ref = getClauseRef(id);
-//   Assert (ref != CRef_Undef);
-//   Clause& c = getClause(ref);
-
-//   d_clauseSS << "(% " << clauseName(id) << " (holds ";
-//   os << ")"; // closing paren for holds
-//   d_paren << ")"; // closing paren for (%
-
-//   for(int i = 0; i < c.size(); i++) {
-//     d_clauseSS << " (clc " << varName(c[i]) <<" ";
-//     os <<")";
-//     d_seenVars.insert(var(c[i])); 
-//   }
-//   d_clauseSS << "cln";
-//   d_clauseSS << os.str() << "\n";  
-// } 
-
-
-// void LFSCSatProof::printInputClauses() {
-//   for (IdHashSet::iterator it = d_seenInput.begin(); it!= d_seenInput.end(); ++it) {
-//     printInputClause(*it);
-//   }
-// }
-
-
-// void LFSCSatProof::flush(std::ostream& out) {
-//   out << "(check \n";
-//   d_paren <<")"; 
-//   out << d_varSS.str();
-//   out << d_clauseSS.str();
-//   out << "(: (holds cln) \n"; 
-//   out << d_learntSS.str(); 
-//   d_paren << "))";
-//   out << d_paren.str();
-//   out << "\n";
-// }
-
 void LFSCSatProof::printResolutions(std::ostream& out, std::ostream& paren) {
   for(IdSet::iterator it = d_seenLearnt.begin(); it!= d_seenLearnt.end(); ++it) {
     if(*it != d_emptyClauseId) {
@@ -804,13 +752,6 @@ void LFSCSatProof::printResolutions(std::ostream& out, std::ostream& paren) {
   }
   printResolution(d_emptyClauseId, out, paren);
 }
-
-// void LFSCSatProof::printVariables(std::ostream& out, std::ostream& paren) {
-//   for (VarSet::iterator it = d_seenVars.begin(); it != d_seenVars.end(); ++it) {
-//     out << "(% " << ProofManager::getVarPrefix() << *it <<" var \n";
-//     paren << ")"; 
-//   }
-// }
 
 
 } /* CVC4 namespace */

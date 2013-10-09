@@ -369,9 +369,8 @@ void Solver::attachClause(CRef cr) {
 
 
 void Solver::detachClause(CRef cr, bool strict) {
-    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
-
     const Clause& c = ca[cr];
+    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
     Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
 

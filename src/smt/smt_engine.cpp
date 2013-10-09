@@ -3105,11 +3105,11 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
 
 Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException, LogicException) {
   Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
-  // PROOF (
-  ProofManager* pm = ProofManager::currentPM();
-  TheoryProof* pf = pm->getTheoryProof();
-  pf->assertFormula(ex);
-         //  ); 
+#ifdef CVC4_PROOF
+  //  if (options::proof()) { <-- SEGFAULT!!
+    ProofManager::currentPM()->getTheoryProof()->assertFormula(ex);
+  //}
+#endif  
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -3253,8 +3253,11 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
 
 Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
-  //PROOF (
-  ProofManager::currentPM()->getTheoryProof()->assertFormula(ex); //); 
+#ifdef CVC4_PROOF
+  // if (options::proof()) { <-- SEGFAULT!!!
+    ProofManager::currentPM()->getTheoryProof()->assertFormula(ex);
+  // }
+#endif
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
