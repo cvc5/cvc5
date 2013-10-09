@@ -332,6 +332,12 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
       // creating new terms that might simplify further
       return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
     }
+    if(RewriteRule<MultDistribVariable>::applies(resultNode)) {
+      resultNode = RewriteRule<MultDistribVariable>::run<false>(resultNode);
+      // creating new terms that might simplify further
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
+
   }
 
   if(resultNode == node) {

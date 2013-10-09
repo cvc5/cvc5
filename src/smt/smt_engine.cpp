@@ -3105,14 +3105,13 @@ void SmtEngine::ensureBoolean(const Expr& e) throw(TypeCheckingException) {
 
 Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalException, LogicException) {
   Assert(ex.isNull() || ex.getExprManager() == d_exprManager);
-#ifdef CVC4_PROOF
-  //  if (options::proof()) { <-- SEGFAULT!!
-    ProofManager::currentPM()->addAssertion(ex);
-  //}
-#endif  
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+
+
+  PROOF( ProofManager::currentPM()->addAssertion(ex); ); 
+
   Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
 
   if(d_queryMade && !options::incrementalSolving()) {
@@ -3253,14 +3252,10 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
 
 Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, LogicException) {
   Assert(ex.getExprManager() == d_exprManager);
-#ifdef CVC4_PROOF
-  // if (options::proof()) { <-- SEGFAULT!!!
-    ProofManager::currentPM()->addAssertion(ex);
-  // }
-#endif
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+  PROOF( ProofManager::currentPM()->addAssertion(ex);); 
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex
