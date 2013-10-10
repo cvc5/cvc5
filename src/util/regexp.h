@@ -28,81 +28,6 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC Char {
-
-private:
-  unsigned int d_char;
-
-public:
-  Char() {}
-
-  Char(const unsigned int c)
-      : d_char(c) {}
-
-  ~Char() {}
-
-  Char& operator =(const Char& y) {
-    if(this != &y) d_char = y.d_char;
-    return *this;
-  }
-
-  bool operator ==(const Char& y) const {
-    return d_char == y.d_char ;
-  }
-
-  bool operator !=(const Char& y) const {
-    return d_char != y.d_char ;
-  }
-
-  bool operator <(const Char& y) const {
-    return d_char < y.d_char;
-  }
-
-  bool operator >(const Char& y) const {
-    return d_char > y.d_char ;
-  }
-
-  bool operator <=(const Char& y) const {
-    return d_char <= y.d_char;
-  }
-
-  bool operator >=(const Char& y) const {
-    return d_char >= y.d_char ;
-  }
-
-  /*
-   * Convenience functions
-   */
-  std::string toString() const {
-    std::string str = "1";
-    str[0] = (char) d_char;
-    return str;
-  }
-
-  unsigned size() const {
-    return 1;
-  }
-
-  const char* c_str() const {
-    return toString().c_str();
-  }
-};/* class Char */
-
-namespace strings {
-
-struct CharHashFunction {
-  size_t operator()(const ::CVC4::Char& c) const {
-    return __gnu_cxx::hash<const char*>()(c.toString().c_str());
-  }
-};/* struct CharHashFunction */
-
-}
-
-inline std::ostream& operator <<(std::ostream& os, const Char& c) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const Char& c) {
-  return os << "\"" << c.toString() << "\"";
-}
-
 class CVC4_PUBLIC String {
 
 private:
@@ -330,9 +255,6 @@ public:
     return d_str;
   }
 
-  unsigned size() const {
-    return d_str.size();
-  }
 };/* class String */
 
 /**
