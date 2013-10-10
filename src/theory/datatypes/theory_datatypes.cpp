@@ -685,11 +685,11 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
   Node tt = ( t.getKind() == NOT ) ? t[0] : t;
   int ttindex = Datatype::indexOf( tt.getOperator().toExpr() );
   Node j, jt;
+  bool makeConflict = false;
   if( hasLabel( eqc, n ) ){
     //if we already know the constructor type, check whether it is in conflict or redundant
     int jtindex = getLabelIndex( eqc, n );
     if( (jtindex==ttindex)!=tpolarity ){
-      d_conflict = true;
       if( !eqc->d_constructor.get().isNull() ){
         //conflict because equivalence class contains a constructor
         std::vector< TNode > assumptions;
@@ -698,8 +698,10 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
         d_conflictNode = mkAnd( assumptions );
         Trace("dt-conflict") << "CONFLICT: Tester eq conflict : " << d_conflictNode << std::endl;
         d_out->conflict( d_conflictNode );
+        d_conflict = true;
         return;
       }else{
+        makeConflict = true;
         //conflict because the existing label is contradictory
         j = getLabel( n );
         jt = j;
@@ -719,14 +721,14 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
       int jtindex = Datatype::indexOf( jt.getOperator().toExpr() );
       if( jtindex==ttindex ){
         if( tpolarity ){  //we are in conflict
-          d_conflict = true;
+          makeConflict = true;
           break;
         }else{            //it is redundant
           return;
         }
       }
     }
-    if( !d_conflict ){
+    if( !makeConflict ){
       Debug("datatypes-labels") << "Add to labels " << t << std::endl;
       lbl->push_back( t );
       const Datatype& dt = ((DatatypeType)(tt[0].getType()).toType()).getDatatype();
@@ -771,7 +773,9 @@ void TheoryDatatypes::addTester( Node t, EqcInfo* eqc, Node n ){
       }
     }
   }
-  if( d_conflict ){
+  if( makeConflict ){
+    d_conflict = true;
+    Debug("datatypes-labels") << "Explain " << j << " " << t << std::endl;
     std::vector< TNode > assumptions;
     explain( j, assumptions );
     explain( t, assumptions );
@@ -879,11 +883,11 @@ void TheoryDatatypes::computeCareGraph(){
 }
 
 void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
+  Trace("dt-cmi") << "Datatypes : Collect model info " << d_equalityEngine.consistent() << std::endl;
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
   m->assertEqualityEngine( &d_equalityEngine );
-  Trace("dt-cmi") << "Datatypes : Collect model info " << std::endl;
 /*
   std::vector< TypeEnumerator > vec;
   std::map< TypeNode, int > tes;
