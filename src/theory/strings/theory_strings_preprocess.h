@@ -31,6 +31,7 @@ class StringsPreprocess {
 	// NOTE: this class is NOT context-dependent
 	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
 private:
+	bool checkStarPlus( Node t );
 	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
