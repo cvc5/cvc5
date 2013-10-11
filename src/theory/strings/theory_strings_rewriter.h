@@ -29,9 +29,12 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-
 public:
+  static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, Node r );
+  static void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
+
   static Node rewriteConcatString(TNode node);
+  static Node rewriteMembership(TNode node);
 
   static RewriteResponse postRewrite(TNode node);
 

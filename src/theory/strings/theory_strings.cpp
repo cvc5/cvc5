@@ -49,6 +49,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_ind_map_lemma(c),
 	//d_lit_to_decide_index( c, 0 ),
 	//d_lit_to_decide( c ),
+	d_reg_exp_mem( c ),
 	d_lit_to_unroll( c )
 {
     // The kinds we are treating as function application in congruence
@@ -374,6 +375,11 @@ void TheoryStrings::check(Effort e) {
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
+	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
+		if(fact[0].getKind() != kind::CONST_STRING) {
+			d_reg_exp_mem.push_back( assertion );
+		}
+	}
 #ifdef STR_UNROLL_INDUCTION
 	//check if it is a literal to unroll?
 	if( d_lit_to_unroll.find( atom )!=d_lit_to_unroll.end() ){
@@ -400,6 +406,10 @@ void TheoryStrings::check(Effort e) {
 				  if( !d_conflict && !addedLemma ){
 					addedLemma = checkInductiveEquations();
 					Trace("strings-process") << "Done check inductive equations, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+					  if( !d_conflict && !addedLemma ){
+						addedLemma = checkMemberships();
+						Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+					  }
 				  }
 			  }
 		  }
@@ -1851,14 +1861,14 @@ bool TheoryStrings::checkInductiveEquations() {
 				++i2;
 				++ie;
 				//++il;
-				if( !d_equalityEngine.hasTerm( d_emptyString ) || !d_equalityEngine.areEqual( y, d_emptyString ) || !d_equalityEngine.areEqual( x, d_emptyString ) ){
+				if( !areEqual( y, d_emptyString ) || !areEqual( x, d_emptyString ) ){
 					hasEq = true;
 				}
 			}
 		}
 	}
     if( hasEq ){
-		Trace("strings-ind") << "It is incomplete." << std::endl;
+		Trace("strings-ind") << "Induction is incomplete." << std::endl;
         d_out->setIncomplete();
     }else{
 		Trace("strings-ind") << "We can answer SAT." << std::endl;
@@ -1954,6 +1964,36 @@ void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {
 		if( i>0 ) Trace(c) << " ++ ";
 		Trace(c) << n[i];
 	}
+}
+
+
+bool TheoryStrings::checkMemberships() {
+	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
+		//check regular expression membership
+		Node assertion = d_reg_exp_mem[i];
+		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
+		bool polarity = assertion.getKind()!=kind::NOT;
+		bool is_unk = false;
+		if( polarity ){
+			Assert( atom.getKind()==kind::STRING_IN_REGEXP );
+			Node x = atom[0];
+			Node r = atom[1];
+			//TODO
+			Assert( r.getKind()==kind::REGEXP_STAR );
+			if( !areEqual( x, d_emptyString ) ){
+				//add lemma?
+				is_unk = true;
+			}
+		}else{
+			//TODO: negative membership
+			is_unk = true;
+		}
+		if( is_unk ){
+			Trace("strings-regex") << "RegEx is incomplete due to " << assertion << "." << std::endl;
+			//d_out->setIncomplete();
+		}
+	}
+	return false;
 }
 
 /*
