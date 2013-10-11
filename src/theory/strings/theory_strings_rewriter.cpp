@@ -131,6 +131,21 @@ void TheoryStringsRewriter::simplifyRegExp( Node s, Node r, std::vector< Node > 
 			break;
 	}
 }
+bool TheoryStringsRewriter::checkConstRegExp( Node t ) {
+	if( t.getKind() != kind::STRING_TO_REGEXP ) {
+		for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
+			if( !checkConstRegExp(t[i]) ) return false;
+		}
+		return true;
+	} else {
+		if( t[0].getKind() == kind::CONST_STRING ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+}
+
 bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, Node r ) {
 	Assert( index_start <= s.size() );
 	int k = r.getKind();
@@ -138,8 +153,11 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 		case kind::STRING_TO_REGEXP:
 		{
 			CVC4::String s2 = s.substr( index_start, s.size() - index_start );
-			CVC4::String t = r[0].getConst<String>();
-			return s2 == r[0].getConst<String>();
+			if(r[0].getKind() == kind::CONST_STRING) {
+				return ( s2 == r[0].getConst<String>() );
+			} else {
+				Assert( false, "RegExp contains variable" );
+			}
 		}
 		case kind::REGEXP_CONCAT:
 		{
@@ -199,7 +217,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 				for(unsigned int k=s.size() - index_start; k>0; --k) {
 					CVC4::String t = s.substr(index_start, k);
 					if( testConstStringInRegExp( t, 0, r[0] ) ) {
-						if( index_start + k == s.size() || testConstStringInRegExp( s, index_start + k, r[0] ) ) {
+						if( index_start + k == s.size() || testConstStringInRegExp( s, index_start + k, r ) ) {
 							return true;
 						}
 					}
@@ -228,7 +246,8 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 		x = node[0];
 	}
 
-	if( x.getKind() == kind::CONST_STRING ) {
+	if( x.getKind() == kind::CONST_STRING && checkConstRegExp(node[1]) ) {
+		//TODO x \in R[y]
 		//test whether x in node[1]
 		CVC4::String s = x.getConst<String>();
 		retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, node[1] ) );
@@ -257,6 +276,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   Trace("strings-postrewrite") << "Strings::postRewrite start " << node << std::endl;
   Node retNode = node;
+  Node orig = retNode;
 
     if(node.getKind() == kind::STRING_CONCAT) {
         retNode = rewriteConcatString(node);
@@ -317,11 +337,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 	}
 
   Trace("strings-postrewrite") << "Strings::postRewrite returning " << retNode << std::endl;
-  return RewriteResponse(REWRITE_DONE, retNode);
+  return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
 RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     Node retNode = node;
+	Node orig = retNode;
     Trace("strings-prerewrite") << "Strings::preRewrite start " << node << std::endl;
 
     if(node.getKind() == kind::STRING_CONCAT) {
@@ -336,5 +357,5 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 	}
 
     Trace("strings-prerewrite") << "Strings::preRewrite returning " << retNode << std::endl;
-    return RewriteResponse(REWRITE_DONE, retNode);
+    return RewriteResponse(orig==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }

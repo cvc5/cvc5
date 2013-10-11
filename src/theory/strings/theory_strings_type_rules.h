@@ -203,9 +203,9 @@ public:
     if (!t.isString()) {
       throw TypeCheckingExceptionPrivate(n, "expecting string terms");
     }
-    if( (*it).getKind() != kind::CONST_STRING ) {
-      throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
-    }
+    //if( (*it).getKind() != kind::CONST_STRING ) {
+    //  throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
+    //}
     if(++it != it_end) {
       throw TypeCheckingExceptionPrivate(n, "too many terms");
     }

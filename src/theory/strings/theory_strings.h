@@ -37,6 +37,7 @@ class TheoryStrings : public Theory {
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   public:
 
   TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -124,6 +125,8 @@ class TheoryStrings : public Theory {
     Node d_true;
     Node d_false;
     Node d_zero;
+	// RegExp depth
+	int d_regexp_unroll_depth;
     //list of pairs of nodes to merge
       std::map< Node, Node > d_pending_exp;
       std::vector< Node > d_pending;
@@ -142,18 +145,10 @@ class TheoryStrings : public Theory {
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
 
-  //inductive equations
-  NodeListMap d_ind_map1;
-  NodeListMap d_ind_map2;
-  NodeListMap d_ind_map_exp;
-  NodeListMap d_ind_map_lemma;
   //regular expression memberships
   NodeList d_reg_exp_mem;
-  bool addInductiveEquation( Node x, Node y, Node z, Node exp, const char * c );
-
-  //for unrolling inductive equations
-  NodeBoolMap d_lit_to_unroll;
-
+  std::map< Node, bool > d_reg_exp_unroll;
+  std::map< Node, int > d_reg_exp_unroll_depth;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
@@ -200,6 +195,7 @@ class TheoryStrings : public Theory {
     std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
+	bool unrollStar( Node atom );
 
 	bool checkLengths();
     bool checkNormalForms();

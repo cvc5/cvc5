@@ -26,8 +26,6 @@
 #include "theory/strings/type_enumerator.h"
 #include <cmath>
 
-#define STR_UNROLL_INDUCTION
-
 using namespace std;
 using namespace CVC4::context;
 
@@ -43,17 +41,16 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_infer(c),
     d_infer_exp(c),
     d_nf_pairs(c),
-    d_ind_map1(c),
-    d_ind_map2(c),
-    d_ind_map_exp(c),
-    d_ind_map_lemma(c),
+    //d_ind_map1(c),
+    //d_ind_map2(c),
+    //d_ind_map_exp(c),
+    //d_ind_map_lemma(c),
 	//d_lit_to_decide_index( c, 0 ),
 	//d_lit_to_decide( c ),
-	d_reg_exp_mem( c ),
-	d_lit_to_unroll( c )
+	d_reg_exp_mem( c )
 {
     // The kinds we are treating as function application in congruence
-    d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
+    //d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
     d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
 
@@ -61,6 +58,9 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
+
+	//option
+	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -328,7 +328,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     d_equalityEngine.addTriggerEquality(n);
     break;
   case kind::STRING_IN_REGEXP:
-    d_equalityEngine.addTriggerPredicate(n);
+    //d_equalityEngine.addTriggerPredicate(n);
     break;
   default:
     if(n.getKind() == kind::VARIABLE || n.getKind()==kind::SKOLEM) {
@@ -370,22 +370,16 @@ void TheoryStrings::check(Effort e) {
 
     polarity = fact.getKind() != kind::NOT;
     atom = polarity ? fact : fact[0];
-    if (atom.getKind() == kind::EQUAL) {
+	//must record string in regular expressions
+	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
+		//if(fact[0].getKind() != kind::CONST_STRING) {
+		 d_reg_exp_mem.push_back( assertion );
+		//}
+	}else if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
-	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
-		if(fact[0].getKind() != kind::CONST_STRING) {
-			d_reg_exp_mem.push_back( assertion );
-		}
-	}
-#ifdef STR_UNROLL_INDUCTION
-	//check if it is a literal to unroll?
-	if( d_lit_to_unroll.find( atom )!=d_lit_to_unroll.end() ){
-		Trace("strings-ind") << "Strings-ind : Possibly unroll for : " << atom << ", polarity = " << polarity << std::endl;
-	}
-#endif
   }
   doPendingFacts();
 
@@ -404,12 +398,8 @@ void TheoryStrings::check(Effort e) {
 				  addedLemma = checkCardinality();
 				  Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 				  if( !d_conflict && !addedLemma ){
-					addedLemma = checkInductiveEquations();
-					Trace("strings-process") << "Done check inductive equations, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-					  if( !d_conflict && !addedLemma ){
-						addedLemma = checkMemberships();
-						Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-					  }
+					addedLemma = checkMemberships();
+					Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 				  }
 			  }
 		  }
@@ -447,7 +437,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
   } else {
     conflictNode = explain( a.eqNode(b) );
   }
-  Debug("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+  Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
   d_out->conflict( conflictNode );
   d_conflict = true;
 }
@@ -883,7 +873,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											int loop_index = has_loop[0]!=-1 ? has_loop[0] : has_loop[1];
 											int index = has_loop[0]!=-1 ? index_i : index_j;
 											int other_index = has_loop[0]!=-1 ? index_j : index_i;
-											Trace("strings-loop") << "Detected possible loop for " << normal_forms[loop_n_index][loop_index];
+											Trace("strings-loop") << "Detected possible loop for " << normal_forms[loop_n_index][loop_index] << std::endl;
 											Trace("strings-loop") << " ... (X)= " << normal_forms[other_n_index][other_index] << std::endl;
 											
 											Trace("strings-loop") << " ... T(Y.Z)= ";
@@ -914,8 +904,9 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 
 											Trace("strings-loop") << "Must add lemma." << std::endl;
 											//need to break
-											Node sk_y= NodeManager::currentNM()->mkSkolem( "ysym_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
-											Node sk_z= NodeManager::currentNM()->mkSkolem( "zsym_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+											Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+											Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+											Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
 
 											antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
 											//require that x is non-empty
@@ -953,6 +944,11 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											}
 											Node conc2 = NodeManager::currentNM()->mkNode( kind::EQUAL, left2,
 															mkConcat( c3c ) );
+											Node conc3 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( sk_y, sk_w ) );
+											Node conc4 = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w, 
+															NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
+																NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, mkConcat( sk_z, sk_y ) ) ) );
+											unrollStar( conc4 );
 											
 											Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
 											//Node sk_z_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_z );
@@ -966,7 +962,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[other_n_index][other_index]),
 											//						sk_y_len );
 											Node ant = mkExplain( antec, antec_new_lits );
-											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2 );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
+											conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2, conc3, conc4 );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
 
 											//Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
 											//conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
@@ -974,7 +970,6 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											//we will be done
 											addNormalFormPair( normal_form_src[i], normal_form_src[j] );
 											sendLemma( ant, conc, "Loop" );
-											addInductiveEquation( normal_forms[other_n_index][other_index], sk_y, sk_z, ant, "Loop Induction" );
 											return true;
 										}else{
 											Trace("strings-solve-debug") << "No loops detected." << std::endl;
@@ -1013,7 +1008,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 													Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
 														NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
 													//split the string
-													Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
+													Node sk = NodeManager::currentNM()->mkSkolem( "c_split_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
 
 													Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str, d_emptyString );
 													Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
@@ -1034,7 +1029,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 												}else{
 													antec_new_lits.push_back(ldeq);
 												}
-												Node sk = NodeManager::currentNM()->mkSkolem( "ssym_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
+												Node sk = NodeManager::currentNM()->mkSkolem( "v_split_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
 												Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
 															NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) );
 												Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[j][index_j],
@@ -1158,9 +1153,9 @@ bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 							antec.push_back( ni.eqNode( nj ).negate() );
 							antec_new_lits.push_back( li.eqNode( lj ).negate() );
 							std::vector< Node > conc;
-							Node sk1 = NodeManager::currentNM()->mkSkolem( "xpdsym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk2 = NodeManager::currentNM()->mkSkolem( "ypdsym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk3 = NodeManager::currentNM()->mkSkolem( "zpdsym_$$", ni.getType(), "created for disequality normalization" );
+							Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit_$$", ni.getType(), "created for disequality normalization" );
+							Node sk2 = NodeManager::currentNM()->mkSkolem( "y_dsplit_$$", ni.getType(), "created for disequality normalization" );
+							Node sk3 = NodeManager::currentNM()->mkSkolem( "z_dsplit_$$", ni.getType(), "created for disequality normalization" );
 							Node lsk1 = getLength( sk1 );
 							conc.push_back( lsk1.eqNode( li ) );
 							Node lsk2 = getLength( sk2 );
@@ -1168,30 +1163,6 @@ bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 							conc.push_back( NodeManager::currentNM()->mkNode( kind::OR,
 												j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
 							
-							/*
-							Node sk1 = NodeManager::currentNM()->mkSkolem( "w1sym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk2 = NodeManager::currentNM()->mkSkolem( "w2sym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk3 = NodeManager::currentNM()->mkSkolem( "w3sym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk4 = NodeManager::currentNM()->mkSkolem( "w4sym_$$", ni.getType(), "created for disequality normalization" );
-							Node sk5 = NodeManager::currentNM()->mkSkolem( "w5sym_$$", ni.getType(), "created for disequality normalization" );
-							Node w1w2w3 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 );
-							Node w1w4w5 = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk4, sk5 );
-							Node s_eq_w1w2w3 = NodeManager::currentNM()->mkNode( kind::EQUAL, ni, w1w2w3 );
-							conc.push_back( s_eq_w1w2w3 );
-							Node t_eq_w1w4w5 = NodeManager::currentNM()->mkNode( kind::EQUAL, nj, w1w4w5 );
-							conc.push_back( t_eq_w1w4w5 );
-							Node w2_neq_w4 = sk2.eqNode( sk4 ).negate();
-							conc.push_back( w2_neq_w4 );
-							Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
-							Node w2_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2), one);
-							conc.push_back( w2_len_one );
-							Node w4_len_one = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4), one);
-							conc.push_back( w4_len_one );
-							Node c = NodeManager::currentNM()->mkNode( kind::AND, conc );
-							*/
-							//Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2),
-							//													     NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk4) );
-							//conc.push_back( eq );
 							sendLemma( mkExplain( antec, antec_new_lits ), NodeManager::currentNM()->mkNode( kind::AND, conc ), "Disequality Normalize" );
 							return true;
 						}else if( areEqual( li, lj ) ){
@@ -1267,81 +1238,6 @@ bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
     }
   }
   return false;
-}
-
-bool TheoryStrings::addInductiveEquation( Node x, Node y, Node z, Node exp, const char * c ) {
-    Trace("strings-solve-debug") << "add inductive equation for " << x << " = (" << y << " " << z << ")* " << y << std::endl;
-#ifdef STR_UNROLL_INDUCTION
-	Node w = NodeManager::currentNM()->mkSkolem( "wsym_$$", x.getType(), "created for induction" );
-	Node x_eq_y_w = NodeManager::currentNM()->mkNode( kind::EQUAL, x, 
-							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, y, w ) );
-	Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, x_eq_y_w );
-	Trace("strings-lemma") << "Strings " << c << " lemma : " << lem << std::endl;
-	d_lemma_cache.push_back( lem );
-
-	//add initial induction
-	Node lit1 = w.eqNode( d_emptyString );
-	lit1 = Rewriter::rewrite( lit1 );
-	Node wp = NodeManager::currentNM()->mkSkolem( "wpsym_$$", x.getType(), "created for induction" );
-	Node lit2 = w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, z, y, wp ) );
-	lit2 = Rewriter::rewrite( lit2 );
-	Node split_lem = NodeManager::currentNM()->mkNode( kind::OR, lit1, lit2 );
-	Trace("strings-ind") << "Strings : Lemma " << c << " for unrolling " << split_lem << std::endl;
-	Trace("strings-lemma") << "Strings : Lemma " << c << " for unrolling " << split_lem << std::endl;
-	d_lemma_cache.push_back( split_lem );
-
-	//d_lit_to_decide.push_back( lit1 );
-	d_lit_to_unroll[lit2] = true;
-	d_pending_req_phase[lit1] = true;
-	d_pending_req_phase[lit2] = false;
-
-	x = w;
-	std::vector< Node > skc;
-	skc.push_back( y );
-	skc.push_back( z );
-	y = d_emptyString;
-	z = mkConcat( skc );
-#endif
-
-    NodeListMap::iterator itr_x_y = d_ind_map1.find(x);
-    NodeList* lst1;
-    NodeList* lst2;
-    NodeList* lste;
-    NodeList* lstl;
-    if( itr_x_y == d_ind_map1.end() ) {
-        // add x->y
-        lst1 = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-        d_ind_map1.insertDataFromContextMemory( x, lst1 );
-        // add x->z
-        lst2 = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-        d_ind_map2.insertDataFromContextMemory( x, lst2 );
-        // add x->exp
-        lste = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-        d_ind_map_exp.insertDataFromContextMemory( x, lste );
-        // add x->hasLemma false
-        lstl = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-                                                                ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-        d_ind_map_lemma.insertDataFromContextMemory( x, lstl );
-    } else {
-        //TODO: x in (yz)*y (exp) vs  x in (y1 z1)*y1 (exp1)
-        lst1 = (*itr_x_y).second;
-        lst2 = (*d_ind_map2.find(x)).second;
-        lste = (*d_ind_map_exp.find(x)).second;
-        lstl = (*d_ind_map_lemma.find(x)).second;
-        Trace("strings-solve-debug") << "Already in maps " << x << " = (" << lst1 << " " << lst2 << ")* " << lst1 << std::endl;
-        Trace("strings-solve-debug") << "... with exp = " << lste << std::endl;
-    }
-    lst1->push_back( y );
-    lst2->push_back( z );
-    lste->push_back( exp );
-#ifdef STR_UNROLL_INDUCTION
-	return true;
-#else
-	return false;
-#endif
 }
 
 void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
@@ -1517,6 +1413,7 @@ bool TheoryStrings::checkNormalForms() {
 		Trace("strings-nf") << std::endl;
 	}
 	Trace("strings-nf") << std::endl;
+	/*
 	Trace("strings-nf") << "Current inductive equations : " << std::endl;
 	for( NodeListMap::const_iterator it = d_ind_map1.begin(); it != d_ind_map1.end(); ++it ){
         Node x = (*it).first;
@@ -1532,6 +1429,7 @@ bool TheoryStrings::checkNormalForms() {
             ++i2;
         }
     }
+	*/
 
   bool addedFact;
   do {
@@ -1757,125 +1655,6 @@ int TheoryStrings::gcd ( int a, int b ) {
   return b;
 }
 
-bool TheoryStrings::checkInductiveEquations() {
-    bool hasEq = false;
-	if(d_ind_map1.size() != 0){
-		Trace("strings-ind")  << "We are sat, with these inductive equations : " << std::endl;
-		for( NodeListMap::const_iterator it = d_ind_map1.begin(); it != d_ind_map1.end(); ++it ){
-			Node x = (*it).first;
-			Trace("strings-ind-debug") << "Check eq for " << x << std::endl;
-			NodeList* lst1 = (*it).second;
-			NodeList* lst2 = (*d_ind_map2.find(x)).second;
-			NodeList* lste = (*d_ind_map_exp.find(x)).second;
-			//NodeList* lstl = (*d_ind_map_lemma.find(x)).second;
-			NodeList::const_iterator i1 = lst1->begin();
-			NodeList::const_iterator i2 = lst2->begin();
-			NodeList::const_iterator ie = lste->begin();
-			//NodeList::const_iterator il = lstl->begin();
-			while( i1!=lst1->end() ){
-				Node y = *i1;
-				Node z = *i2;
-				//Trace("strings-ind-debug") << "Check y=" << y << " , z=" << z << std::endl;
-				//if( il==lstl->end() ) {
-					std::vector< Node > nf_y, nf_z, exp_y, exp_z;
-					
-					//getFinalNormalForm( y, nf_y, exp_y);
-					//getFinalNormalForm( z, nf_z, exp_z);
-					//std::vector< Node > vec_empty;
-					//Node nexp_y = mkExplain( exp_y, vec_empty );
-					//Trace("strings-ind-debug") << "Check nexp_y=" << nexp_y << std::endl;
-					//Node nexp_z = mkExplain( exp_z, vec_empty );
-
-					//Node exp = *ie;
-					//Trace("strings-ind-debug") << "Check exp=" << exp << std::endl;
-
-					//exp = NodeManager::currentNM()->mkNode( kind::AND, exp, nexp_y, nexp_z );
-					//exp = Rewriter::rewrite( exp );
-
-					Trace("strings-ind") << "Inductive equation : " << x << " = ( " << y << " ++ " << z << " )* " << y << std::endl;
-					/*
-					for( std::vector< Node >::const_iterator itr = nf_y.begin(); itr != nf_y.end(); ++itr) {
-						Trace("strings-ind") << (*itr) << " ";
-					}
-					Trace("strings-ind") << " ++ ";
-					for( std::vector< Node >::const_iterator itr = nf_z.begin(); itr != nf_z.end(); ++itr) {
-						Trace("strings-ind") << (*itr) << " ";
-					}
-					Trace("strings-ind") << " )* ";
-					for( std::vector< Node >::const_iterator itr = nf_y.begin(); itr != nf_y.end(); ++itr) {
-						Trace("strings-ind") << (*itr) << " ";
-					}
-					Trace("strings-ind") << std::endl;
-					*/
-					/*
-					Trace("strings-ind") << "Explanation is : " << exp << std::endl;
-					std::vector< Node > nf_yz;
-					nf_yz.insert( nf_yz.end(), nf_y.begin(), nf_y.end() );
-					nf_yz.insert( nf_yz.end(), nf_z.begin(), nf_z.end() );
-					std::vector< std::vector< Node > > cols;
-					std::vector< Node > lts;
-					seperateByLength( nf_yz, cols, lts );
-					Trace("strings-ind") << "This can be grouped into collections : " << std::endl;
-					for( unsigned j=0; j<cols.size(); j++ ){
-						Trace("strings-ind") << "  : ";
-						for( unsigned k=0; k<cols[j].size(); k++ ){
-							Trace("strings-ind") << cols[j][k] << " ";
-						}
-						Trace("strings-ind") << std::endl;
-					}
-					Trace("strings-ind") << std::endl;
-					
-					Trace("strings-ind") << "Add length lemma..." << std::endl;
-					std::vector< int > co;
-					co.push_back(0);
-					for(unsigned int k=0; k<lts.size(); ++k) {
-						if(lts[k].isConst() && lts[k].getType().isInteger()) {
-							int len = lts[k].getConst<Rational>().getNumerator().toUnsignedInt();
-							co[0] += cols[k].size() * len;
-						} else {
-							co.push_back( cols[k].size() );
-						}
-					}
-					int g_co = co[0];
-					for(unsigned k=1; k<co.size(); ++k) {
-						g_co = gcd(g_co, co[k]);
-					}
-					Node lemma_len;
-					// both constants
-					Node len_x = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x );
-					Node sk = NodeManager::currentNM()->mkSkolem( "argsym_$$", NodeManager::currentNM()->integerType(), "created for length inductive lemma" );
-					Node g_co_node = NodeManager::currentNM()->mkConst( CVC4::Rational(g_co) );
-					Node sk_m_gcd = NodeManager::currentNM()->mkNode( kind::MULT, g_co_node, sk );
-					Node len_y = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, y );
-					Node sk_m_g_p_y =    NodeManager::currentNM()->mkNode( kind::PLUS, sk_m_gcd, len_y );
-					lemma_len =     NodeManager::currentNM()->mkNode( kind::EQUAL, sk_m_g_p_y, len_x );
-					//Node sk_geq_zero = NodeManager::currentNM()->mkNode( kind::GEQ, sk, d_zero );
-					//lemma_len = NodeManager::currentNM()->mkNode( kind::AND, lemma_len, sk_geq_zero );
-					lemma_len =     NodeManager::currentNM()->mkNode( kind::IMPLIES, exp, lemma_len );
-					Trace("strings-lemma") << "Strings: Add lemma " << lemma_len << std::endl;
-					d_out->lemma(lemma_len);
-					lstl->push_back( d_true );
-					return true;*/
-				//}
-				++i1;
-				++i2;
-				++ie;
-				//++il;
-				if( !areEqual( y, d_emptyString ) || !areEqual( x, d_emptyString ) ){
-					hasEq = true;
-				}
-			}
-		}
-	}
-    if( hasEq ){
-		Trace("strings-ind") << "Induction is incomplete." << std::endl;
-        d_out->setIncomplete();
-    }else{
-		Trace("strings-ind") << "We can answer SAT." << std::endl;
-	}
-  return false;
-}
-
 void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ) {
@@ -1966,34 +1745,79 @@ void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {
 	}
 }
 
+bool TheoryStrings::unrollStar( Node atom ) {
+	Node x = atom[0];
+	Node r = atom[1];
+	int depth = d_reg_exp_unroll_depth.find( atom )==d_reg_exp_unroll_depth.end() ? 0 : d_reg_exp_unroll_depth[atom];
+	if( depth <= d_regexp_unroll_depth ){
+		Trace("strings-regex") << "...unroll " << atom << " now." << std::endl;
+		d_reg_exp_unroll[atom] = true;
+		//add lemma?
+		Node xeqe = x.eqNode( d_emptyString );
+		xeqe = Rewriter::rewrite( xeqe );
+		d_pending_req_phase[xeqe] = true;
+		Node sk_s= NodeManager::currentNM()->mkSkolem( "s_unroll_$$", x.getType(), "created for unrolling" );
+		Node sk_xp= NodeManager::currentNM()->mkSkolem( "x_unroll_$$", x.getType(), "created for unrolling" );
+		Node unr0 = sk_s.eqNode( d_emptyString ).negate();
+		Node unr1 = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_s, r[0] );
+		Node unr2 = x.eqNode( mkConcat( sk_s, sk_xp ) );
+		Node unr3 = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_xp, r );
+		unr3 = Rewriter::rewrite( unr3 );
+		d_reg_exp_unroll_depth[unr3] = depth + 1;
+		Node unr = NodeManager::currentNM()->mkNode( kind::AND, unr0, unr1, unr2, unr3 );
+		Node lem = NodeManager::currentNM()->mkNode( kind::OR, xeqe, unr );
+		sendLemma( atom, lem, "Unroll" );
+		return true;
+	}else{
+		return false;
+	}
+}
 
 bool TheoryStrings::checkMemberships() {
+	bool is_unk = false;
+	bool addedLemma = false;
 	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
 		//check regular expression membership
 		Node assertion = d_reg_exp_mem[i];
+		Trace("strings-regex") << "We have regular expression assertion : " << assertion << std::endl;
 		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
-		bool polarity = assertion.getKind()!=kind::NOT;
-		bool is_unk = false;
-		if( polarity ){
-			Assert( atom.getKind()==kind::STRING_IN_REGEXP );
-			Node x = atom[0];
-			Node r = atom[1];
-			//TODO
-			Assert( r.getKind()==kind::REGEXP_STAR );
-			if( !areEqual( x, d_emptyString ) ){
-				//add lemma?
+		if( d_reg_exp_unroll.find(atom)==d_reg_exp_unroll.end() ){
+			bool polarity = assertion.getKind()!=kind::NOT;
+			if( polarity ){
+				Assert( atom.getKind()==kind::STRING_IN_REGEXP );
+				Node x = atom[0];
+				Node r = atom[1];
+				//TODO
+				Assert( r.getKind()==kind::REGEXP_STAR );
+				if( !areEqual( x, d_emptyString ) ){
+					if( unrollStar( atom ) ){
+						addedLemma = true;
+					}else{
+						Trace("strings-regex") << "RegEx is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
+						is_unk = true;
+					}
+				}else{
+					Trace("strings-regex") << "...is satisfied." << std::endl;
+				}
+			}else{
+				//TODO: negative membership
+				Trace("strings-regex") << "RegEx is incomplete due to " << assertion << "." << std::endl;
 				is_unk = true;
 			}
 		}else{
-			//TODO: negative membership
-			is_unk = true;
-		}
-		if( is_unk ){
-			Trace("strings-regex") << "RegEx is incomplete due to " << assertion << "." << std::endl;
-			//d_out->setIncomplete();
+			Trace("strings-regex") << "...Already unrolled." << std::endl;
 		}
 	}
-	return false;
+	if( addedLemma ){
+		doPendingLemmas();
+		return true;
+	}else{
+		if( is_unk ){
+			Trace("strings-regex") << "SET INCOMPLETE" << std::endl;
+			d_out->setIncomplete();
+		}
+		return false;
+	}
 }
 
 /*

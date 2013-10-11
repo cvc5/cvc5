@@ -30,6 +30,7 @@ namespace strings {
 
 class TheoryStringsRewriter {
 public:
+  static bool checkConstRegExp( Node t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, Node r );
   static void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
 
