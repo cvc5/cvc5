@@ -142,10 +142,13 @@ class TheoryStrings : public Theory {
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
 
+  //inductive equations
   NodeListMap d_ind_map1;
   NodeListMap d_ind_map2;
   NodeListMap d_ind_map_exp;
   NodeListMap d_ind_map_lemma;
+  //regular expression memberships
+  NodeList d_reg_exp_mem;
   bool addInductiveEquation( Node x, Node y, Node z, Node exp, const char * c );
 
   //for unrolling inductive equations
@@ -203,6 +206,7 @@ class TheoryStrings : public Theory {
 	bool checkLengthsEqc();
     bool checkCardinality();
     bool checkInductiveEquations();
+	bool checkMemberships();
 	int gcd(int a, int b);
   public:
   void preRegisterTerm(TNode n);

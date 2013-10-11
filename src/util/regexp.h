@@ -22,7 +22,7 @@
 
 #include <iostream>
 #include <string>
-//#include "util/exception.h"
+//#include "util/cvc4_assert.h"
 //#include "util/integer.h"
 #include "util/hash.h"
 
@@ -126,6 +126,15 @@ public:
       return true;
   }
 
+
+  bool isEmptyString() const {
+	  return ( d_str.size() == 0 );
+  }
+
+  unsigned int operator[] (const unsigned int i) const {
+	//Assert( i < d_str.size() && i >= 0);
+    return d_str[i];
+  }
   /*
    * Convenience functions
    */
