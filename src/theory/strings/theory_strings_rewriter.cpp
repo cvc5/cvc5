@@ -21,7 +21,7 @@ using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
-Node TheoryStringsRewriter::rewriteConcatString(TNode node) {
+Node TheoryStringsRewriter::rewriteConcatString( TNode node ) {
     Trace("strings-prerewrite") << "Strings::rewriteConcatString start " << node << std::endl;
     Node retNode = node;
     std::vector<Node> node_vec;
@@ -81,6 +81,70 @@ Node TheoryStringsRewriter::rewriteConcatString(TNode node) {
     return retNode;
 }
 
+Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
+	Assert( node.getKind() == kind::REGEXP_CONCAT );
+    Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp start " << node << std::endl;
+    Node retNode = node;
+    std::vector<Node> node_vec;
+    Node preNode = Node::null();
+    for(unsigned int i=0; i<node.getNumChildren(); ++i) {
+		Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp preNode: " << preNode << std::endl;
+        Node tmpNode = node[i];
+        if(node[i].getKind() == kind::REGEXP_CONCAT) {
+            tmpNode = prerewriteConcatRegExp(node[i]);
+            if(tmpNode.getKind() == kind::REGEXP_CONCAT) {
+                unsigned int j=0;
+                if(!preNode.isNull()) {
+                    if(tmpNode[0].getKind() == kind::STRING_TO_REGEXP) {
+                        preNode = rewriteConcatString(
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0][0] ) );
+                        node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+                        preNode = Node::null();
+                        ++j;
+                    } else {
+                        node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+                        preNode = Node::null();
+                        node_vec.push_back( tmpNode[0] );
+                        ++j;
+                    }
+                }
+                for(; j<tmpNode.getNumChildren() - 1; ++j) {
+                    node_vec.push_back( tmpNode[j] );
+                }
+                tmpNode = tmpNode[j];
+            }
+        }
+        if( tmpNode.getKind() == kind::STRING_TO_REGEXP ) {
+            if(preNode.isNull()) {
+                preNode = tmpNode[0];
+            } else {
+				preNode = rewriteConcatString(
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, preNode, tmpNode[0] ) );
+            }
+        } else {
+            if(!preNode.isNull()) {
+                if(preNode.getKind() == kind::CONST_STRING && preNode.getConst<String>().isEmptyString() ) {
+                    preNode = Node::null();
+                } else {
+                    node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+                    preNode = Node::null();
+                }
+            }
+            node_vec.push_back( tmpNode );
+        }
+    }
+    if(!preNode.isNull()) {
+        node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
+    }
+    if(node_vec.size() > 1) {
+        retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, node_vec);
+    } else {
+        retNode = node_vec[0];
+    }
+    Trace("strings-prerewrite") << "Strings::prerewriteConcatRegExp end " << retNode << std::endl;
+    return retNode;
+}
+
 void TheoryStringsRewriter::simplifyRegExp( Node s, Node r, std::vector< Node > &ret ) {
 	int k = r.getKind();
 	switch( k ) {
@@ -131,7 +195,7 @@ void TheoryStringsRewriter::simplifyRegExp( Node s, Node r, std::vector< Node > 
 			break;
 	}
 }
-bool TheoryStringsRewriter::checkConstRegExp( Node t ) {
+bool TheoryStringsRewriter::checkConstRegExp( TNode t ) {
 	if( t.getKind() != kind::STRING_TO_REGEXP ) {
 		for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
 			if( !checkConstRegExp(t[i]) ) return false;
@@ -146,7 +210,7 @@ bool TheoryStringsRewriter::checkConstRegExp( Node t ) {
 	}
 }
 
-bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, Node r ) {
+bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
 	Assert( index_start <= s.size() );
 	int k = r.getKind();
 	switch( k ) {
@@ -247,17 +311,17 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 	}
 
 	if( x.getKind() == kind::CONST_STRING && checkConstRegExp(node[1]) ) {
-		//TODO x \in R[y]
 		//test whether x in node[1]
 		CVC4::String s = x.getConst<String>();
 		retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, node[1] ) );
 	} else {
-		if( node[1].getKind() == kind::REGEXP_STAR ) {
+		//if( node[1].getKind() == kind::REGEXP_STAR ) {
 			if( x == node[0] ) {
 				retNode = node;
 			} else {
 				retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, node[1] );
 			}
+		/*
 		} else {
 			std::vector<Node> node_vec;
 			simplifyRegExp( x, node[1], node_vec );
@@ -268,6 +332,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 				retNode = node_vec[0];
 			}
 		}
+		*/
 	}
     //Trace("strings-prerewrite") << "Strings::rewriteMembership end " << retNode << std::endl;
     return retNode;
@@ -347,7 +412,9 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 
     if(node.getKind() == kind::STRING_CONCAT) {
         retNode = rewriteConcatString(node);
-    } else if(node.getKind() == kind::REGEXP_PLUS) {
+    } else if(node.getKind() == kind::REGEXP_CONCAT) {
+		retNode = prerewriteConcatRegExp(node);
+	} else if(node.getKind() == kind::REGEXP_PLUS) {
 		retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0],
 					NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, node[0]));
 	} else if(node.getKind() == kind::REGEXP_OPT) {

@@ -21,6 +21,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 #include "context/cdchunk_list.h"
 
