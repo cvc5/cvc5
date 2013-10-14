@@ -159,6 +159,9 @@ void TheoryBV::checkForLemma(TNode fact) {
 
 void TheoryBV::check(Effort e)
 {
+  // if (Theory::fullEffort(e)) {
+  //   std::cout << "BITVECTOR Check!\n";
+  // }
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   if (options::bitvectorEagerBitblast()) {
     return;
@@ -177,7 +180,21 @@ void TheoryBV::check(Effort e)
 
   while (!done()) {
     TNode fact = get().assertion;
-   	checkForLemma(fact);
+    // if (fact.getKind() == kind::EQUAL) {
+    //   if (fact[0].getKind() != kind::CONST_BITVECTOR &&
+    //       fact[1].getKind() != kind::CONST_BITVECTOR) {
+    //     std::cout << fact << "\n"; 
+    //   } else {
+    //     TNode c = fact[0].getKind() == kind::CONST_BITVECTOR ? fact[0] : fact[1];
+    //     if (c.getConst<BitVector>() != BitVector(8, 0u)) {
+    //       std::cout << fact << "\n"; 
+    //     }
+    //   }
+    // }
+    // if (fact.getKind() == kind::NOT && fact[0].getKind() == kind::BITVECTOR_SLT) {
+    //   std::cout << fact << "\n"; 
+    // }
+    checkForLemma(fact);
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->assertFact(fact);
     }

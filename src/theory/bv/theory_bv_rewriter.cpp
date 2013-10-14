@@ -154,10 +154,10 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
   Node resultNode = node;
   
-  if(RewriteRule<NotXor>::applies(node)) {
-    resultNode = RewriteRule<NotXor>::run<false>(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  }
+  // // if(RewriteRule<NotXor>::applies(node)) {
+  // //   resultNode = RewriteRule<NotXor>::run<false>(node);
+  // //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  // // }
   resultNode = LinearRewriteStrategy
     < RewriteRule<EvalNot>,
       RewriteRule<NotIdemp>
@@ -332,6 +332,13 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
       // creating new terms that might simplify further
       return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
     }
+    // distributes multiplication by a term that is not a sum, over +, -
+    if(RewriteRule<MultDistrib>::applies(resultNode)) {
+      resultNode = RewriteRule<MultDistrib>::run<false>(resultNode);
+      // creating new terms that might simplify further
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+    }
+
   }
 
   if(resultNode == node) {

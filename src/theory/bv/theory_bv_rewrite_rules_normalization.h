@@ -471,6 +471,40 @@ Node RewriteRule<MultDistribConst>::apply(TNode node) {
   return utils::mkNode(factor.getKind(), children); 
 }
 
+template<> inline
+bool RewriteRule<MultDistrib>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_MULT ||
+      node.getNumChildren() != 2) {
+    return false;
+  }
+  if (node[0].getKind() == kind::BITVECTOR_PLUS ||
+      node[0].getKind() == kind::BITVECTOR_SUB) {
+    return node[1].getKind() != kind::BITVECTOR_PLUS &&
+           node[1].getKind() != kind::BITVECTOR_SUB;
+  }
+  return node[1].getKind() == kind::BITVECTOR_PLUS ||
+         node[1].getKind() == kind::BITVECTOR_SUB; 
+}
+
+template<> inline
+Node RewriteRule<MultDistrib>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")" << std::endl;
+
+  TNode factor = node[0].getKind() != kind::BITVECTOR_PLUS ? node[0] : node[1];
+  TNode sum = node[0].getKind() == kind::BITVECTOR_PLUS? node[0] : node[1];
+  Assert (factor.getKind() != kind::BITVECTOR_PLUS &&
+          factor.getKind() != kind::BITVECTOR_SUB &&
+          sum.getKind() == kind::BITVECTOR_PLUS &&
+          sum.getKind() == kind::BITVECTOR_SUB);
+
+  std::vector<Node> children;
+  for(unsigned i = 0; i < sum.getNumChildren(); ++i) {
+    children.push_back(utils::mkNode(kind::BITVECTOR_MULT, sum[i], factor));
+  }
+  
+  return utils::mkNode(sum.getKind(), children); 
+}
+
 
 template<> inline
 bool RewriteRule<SolveEq>::applies(TNode node) {

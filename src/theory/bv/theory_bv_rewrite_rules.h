@@ -152,6 +152,7 @@ enum RewriteRuleId {
   PlusCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
+  MultDistrib,
   SolveEq,
   BitwiseEq,
   AndSimplify,
@@ -279,7 +280,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ZeroUlt : out << "ZeroUlt"; return out;
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
-  case ExtractSignExtend : out << "ExtractSignExtend"; return out; 
+  case ExtractSignExtend : out << "ExtractSignExtend"; return out;
+  case MultDistrib: out << "MultDistrib"; return out;
   default:
     Unreachable();
   }
@@ -498,6 +500,7 @@ struct AllRewriteRules {
   RewriteRule<SltZero> rule115;
   RewriteRule<BVToNatEliminate>  rule116;
   RewriteRule<IntToBVEliminate>  rule117;
+  RewriteRule<MultDistrib> rule118;
 };
 
 template<> inline
