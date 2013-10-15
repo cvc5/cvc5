@@ -60,6 +60,7 @@ class TheoryStrings : public Theory {
   bool propagate(TNode literal);
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
+  Node getNextDecisionRequest();
 
 
   // NotifyClass for equality engine
@@ -126,6 +127,9 @@ class TheoryStrings : public Theory {
     Node d_true;
     Node d_false;
     Node d_zero;
+	// Finite Model Finding
+	bool d_fmf;
+	std::vector< Node > d_in_vars;
 	// RegExp depth
 	int d_regexp_unroll_depth;
     //list of pairs of nodes to merge

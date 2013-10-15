@@ -61,6 +61,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 
 	//option
 	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
+	d_fmf = options::stringFMF();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -342,6 +343,12 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::GEQ, n_len, d_zero);
 		  Trace("strings-lemma") << "Strings: Add lemma " << n_len_geq_zero << std::endl;
 		  d_out->lemma(n_len_geq_zero);
+	  }
+	  // FMF
+	  if( d_fmf && n.getKind() == kind::VARIABLE ) {
+		  if( std::find(d_in_vars.begin(), d_in_vars.end(), n) == d_in_vars.end() ) {
+			  d_in_vars.push_back( n );
+		  }
 	  }
     }
     if (n.getType().isBoolean()) {
@@ -1343,7 +1350,7 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an )
         } else if( a[i].getKind()==kind::NOT && a[i][0].getKind()==kind::EQUAL ){
             Assert( hasTerm(a[i][0][0]) );
             Assert( hasTerm(a[i][0][1]) );
-            Assert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
+            AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
         }
 		if( exp ){
 			unsigned ps = antec_exp.size();
@@ -1900,18 +1907,20 @@ bool TheoryStrings::checkMemberships() {
 	}
 }
 
-/*
 Node TheoryStrings::getNextDecisionRequest() {
-	if( d_lit_to_decide_index.get()<d_lit_to_decide.size() ){
-		Node l = d_lit_to_decide[d_lit_to_decide_index.get()];
-		d_lit_to_decide_index.set( d_lit_to_decide_index.get() + 1 );
-		Trace("strings-ind") << "Strings-ind : decide on " << l << std::endl;
-		return l;
-	}else{
-		return Node::null();
+	if(d_fmf) {
+		Trace("strings-decide") << "Get next decision request." << std::endl;
+		Trace("strings-fmf-debug") << "Input variables: ";
+		for(std::vector< Node >::iterator itr = d_in_vars.begin();
+			itr != d_in_vars.end(); ++itr) {
+				Trace("strings-fmf-debug") << " " << (*itr) ;
+			}
+		Trace("strings-fmf-debug") << std::endl;
 	}
+
+	return Node::null();
 }
-*/
+
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
