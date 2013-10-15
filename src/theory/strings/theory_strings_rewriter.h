@@ -32,7 +32,6 @@ class TheoryStringsRewriter {
 public:
   static bool checkConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
-  static void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
 
   static Node rewriteConcatString(TNode node);
   static Node prerewriteConcatRegExp(TNode node);
