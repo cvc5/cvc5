@@ -25,6 +25,7 @@ TESTS =	\
   str003.smt2 \
   str004.smt2 \
   str005.smt2 \
+  str006.smt2 \
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
