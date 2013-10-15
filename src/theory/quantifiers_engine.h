@@ -111,7 +111,7 @@ private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;
   /** list of all lemmas produced */
-  std::map< Node, bool > d_lemmas_produced;
+  //std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
   /** lemmas waiting */
   std::vector< Node > d_lemmas_waiting;
@@ -187,6 +187,8 @@ private:
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** set instantiation level attr */
   void setInstantiationLevelAttr( Node n, uint64_t level );
+  /** do substitution */
+  Node doSubstitute( Node n, std::vector< Node >& terms );
 public:
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
@@ -234,12 +236,8 @@ public:
     IntStat d_instantiation_rounds;
     IntStat d_instantiation_rounds_lc;
     IntStat d_instantiations;
-    IntStat d_max_instantiation_level;
-    IntStat d_splits;
-    IntStat d_total_inst_var;
-    IntStat d_total_inst_var_unspec;
-    IntStat d_inst_unspec;
     IntStat d_inst_duplicate;
+    IntStat d_inst_duplicate_eq;
     IntStat d_lit_phase_req;
     IntStat d_lit_phase_nreq;
     IntStat d_triggers;

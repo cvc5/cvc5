@@ -283,32 +283,32 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     d_temp_inst_debug[f]++;
     d_total_inst_count_debug++;
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
-    uint64_t maxInstLevel = 0;
-    for( int i=0; i<(int)terms.size(); i++ ){
-      if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
-        Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
-        for( int i=0; i<(int)terms.size(); i++ ){
-          Debug("inst") << "   " << terms[i] << std::endl;
-        }
-        Unreachable("Bad instantiation");
-      }else{
-        Trace("inst") << "   " << terms[i];
-        //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
-        Trace("inst") << std::endl;
-        if( terms[i].hasAttribute(InstLevelAttribute()) ){
-          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
-            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+    //uint64_t maxInstLevel = 0;
+    if( options::cbqi() ){
+      for( int i=0; i<(int)terms.size(); i++ ){
+        if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
+          Debug("inst")<< "***& Bad Instantiate " << f << " with " << std::endl;
+          for( int i=0; i<(int)terms.size(); i++ ){
+            Debug("inst") << "   " << terms[i] << std::endl;
           }
+          Unreachable("Bad instantiation");
         }else{
-          setInstantiationLevelAttr( terms[i], 0 );
+          Trace("inst") << "   " << terms[i];
+          //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
+          Trace("inst") << std::endl;
+          //if( terms[i].hasAttribute(InstLevelAttribute()) ){
+            //if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
+            //  maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+            //}
+          //}else{
+            //setInstantiationLevelAttr( terms[i], 0 );
+          //}
         }
       }
     }
     Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
-    setInstantiationLevelAttr( body, maxInstLevel+1 );
+    //setInstantiationLevelAttr( body, maxInstLevel+1 );
     ++(d_statistics.d_instantiations);
-    d_statistics.d_total_inst_var += (int)terms.size();
-    d_statistics.d_max_instantiation_level.maxAssign( maxInstLevel+1 );
     return true;
   }else{
     ++(d_statistics.d_inst_duplicate);
@@ -326,10 +326,32 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
   }
 }
 
+Node QuantifiersEngine::doSubstitute( Node n, std::vector< Node >& terms ){
+  if( n.getKind()==INST_CONSTANT ){
+    Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
+    return terms[n.getAttribute(InstVarNumAttribute())];
+  }else if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
+    Debug("check-inst") << "No inst const attr : " << n << std::endl;
+    return n;
+  }else{
+    Debug("check-inst") << "Recurse on : " << n << std::endl;
+    std::vector< Node > cc;
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      cc.push_back( n.getOperator() );
+    }
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      cc.push_back( doSubstitute( n[i], terms ) );
+    }
+    return NodeManager::currentNM()->mkNode( n.getKind(), cc );
+  }
+}
+
+
 Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms ){
-  Node body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+  Node body;
   //process partial instantiation if necessary
   if( d_term_db->d_vars[f].size()!=vars.size() ){
+    body = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     std::vector< Node > uninst_vars;
     //doing a partial instantiation, must add quantifier for all uninstantiated variables
     for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
@@ -341,6 +363,16 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std
     body = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
     Trace("partial-inst") << "Partial instantiation : " << f << std::endl;
     Trace("partial-inst") << "                      : " << body << std::endl;
+  }else{
+    //do optimized version
+    Node icb = d_term_db->getInstConstantBody( f );
+    body = doSubstitute( icb, terms );
+    if( Debug.isOn("check-inst") ){
+      Node body2 = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
+      if( body!=body2 ){
+        Debug("check-inst") << "Substitution is wrong : " << body << " " << body2 << std::endl;
+      }
+    }
   }
   return body;
 }
@@ -440,11 +472,7 @@ bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
   n = Rewriter::rewrite( n );
   Node lem = NodeManager::currentNM()->mkNode( OR, n, n.notNode() );
   if( addLemma( lem ) ){
-    ++(d_statistics.d_splits);
     Debug("inst") << "*** Add split " << n<< std::endl;
-    //if( reqPhase ){
-    //  d_curr_out->requirePhase( n, reqPhasePol );
-    //}
     return true;
   }
   return false;
@@ -503,12 +531,8 @@ QuantifiersEngine::Statistics::Statistics():
   d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
   d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
   d_instantiations("QuantifiersEngine::Instantiations_Total", 0),
-  d_max_instantiation_level("QuantifiersEngine::Max_Instantiation_Level", 0),
-  d_splits("QuantifiersEngine::Total_Splits", 0),
-  d_total_inst_var("QuantifiersEngine::Vars_Inst", 0),
-  d_total_inst_var_unspec("QuantifiersEngine::Vars_Inst_Unspecified", 0),
-  d_inst_unspec("QuantifiersEngine::Unspecified_Inst", 0),
   d_inst_duplicate("QuantifiersEngine::Duplicate_Inst", 0),
+  d_inst_duplicate_eq("QuantifiersEngine::Duplicate_Inst_Eq", 0),
   d_lit_phase_req("QuantifiersEngine::lit_phase_req", 0),
   d_lit_phase_nreq("QuantifiersEngine::lit_phase_nreq", 0),
   d_triggers("QuantifiersEngine::Triggers", 0),
@@ -528,12 +552,8 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
   StatisticsRegistry::registerStat(&d_instantiation_rounds_lc);
   StatisticsRegistry::registerStat(&d_instantiations);
-  StatisticsRegistry::registerStat(&d_max_instantiation_level);
-  StatisticsRegistry::registerStat(&d_splits);
-  StatisticsRegistry::registerStat(&d_total_inst_var);
-  StatisticsRegistry::registerStat(&d_total_inst_var_unspec);
-  StatisticsRegistry::registerStat(&d_inst_unspec);
   StatisticsRegistry::registerStat(&d_inst_duplicate);
+  StatisticsRegistry::registerStat(&d_inst_duplicate_eq);
   StatisticsRegistry::registerStat(&d_lit_phase_req);
   StatisticsRegistry::registerStat(&d_lit_phase_nreq);
   StatisticsRegistry::registerStat(&d_triggers);
@@ -555,12 +575,8 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiation_rounds);
   StatisticsRegistry::unregisterStat(&d_instantiation_rounds_lc);
   StatisticsRegistry::unregisterStat(&d_instantiations);
-  StatisticsRegistry::unregisterStat(&d_max_instantiation_level);
-  StatisticsRegistry::unregisterStat(&d_splits);
-  StatisticsRegistry::unregisterStat(&d_total_inst_var);
-  StatisticsRegistry::unregisterStat(&d_total_inst_var_unspec);
-  StatisticsRegistry::unregisterStat(&d_inst_unspec);
   StatisticsRegistry::unregisterStat(&d_inst_duplicate);
+  StatisticsRegistry::unregisterStat(&d_inst_duplicate_eq);
   StatisticsRegistry::unregisterStat(&d_lit_phase_req);
   StatisticsRegistry::unregisterStat(&d_lit_phase_nreq);
   StatisticsRegistry::unregisterStat(&d_triggers);
