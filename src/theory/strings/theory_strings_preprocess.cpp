@@ -34,9 +34,13 @@ void StringsPreprocess::simplifyRegExp( Node s, Node r, std::vector< Node > &ret
 		{
 			std::vector< Node > cc;
 			for(unsigned i=0; i<r.getNumChildren(); ++i) {
-				Node sk = NodeManager::currentNM()->mkSkolem( "recsym_$$", s.getType(), "created for regular expression concat" );
-				simplifyRegExp( sk, r[i], ret, nn );
-				cc.push_back( sk );
+				if(r[i].getKind() == kind::STRING_TO_REGEXP) {
+					cc.push_back( r[i][0] );
+				} else {
+					Node sk = NodeManager::currentNM()->mkSkolem( "recsym_$$", s.getType(), "created for regular expression concat" );
+					simplifyRegExp( sk, r[i], ret, nn );
+					cc.push_back( sk );
+				}
 			}
 			Node cc_eq = NodeManager::currentNM()->mkNode( kind::EQUAL, s, 
 						NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, cc ) );
