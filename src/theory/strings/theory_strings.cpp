@@ -1908,7 +1908,7 @@ bool TheoryStrings::checkMemberships() {
 }
 
 Node TheoryStrings::getNextDecisionRequest() {
-	if(d_fmf) {
+	if(d_fmf && !d_conflict) {
 		Trace("strings-decide") << "Get next decision request." << std::endl;
 		Trace("strings-fmf-debug") << "Input variables: ";
 		for(std::vector< Node >::iterator itr = d_in_vars.begin();
@@ -1916,6 +1916,8 @@ Node TheoryStrings::getNextDecisionRequest() {
 				Trace("strings-fmf-debug") << " " << (*itr) ;
 			}
 		Trace("strings-fmf-debug") << std::endl;
+
+
 	}
 
 	return Node::null();
