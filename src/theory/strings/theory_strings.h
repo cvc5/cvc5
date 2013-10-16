@@ -60,7 +60,6 @@ class TheoryStrings : public Theory {
   bool propagate(TNode literal);
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
-  Node getNextDecisionRequest();
 
 
   // NotifyClass for equality engine
@@ -127,9 +126,6 @@ class TheoryStrings : public Theory {
     Node d_true;
     Node d_false;
     Node d_zero;
-	// Finite Model Finding
-	bool d_fmf;
-	std::vector< Node > d_in_vars;
 	// RegExp depth
 	int d_regexp_unroll_depth;
     //list of pairs of nodes to merge
@@ -249,8 +245,20 @@ protected:
 
   //seperate into collections with equal length
   void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
-private:
   void printConcat( std::vector< Node >& n, const char * c );
+
+private:
+	// Finite Model Finding
+	//bool d_fmf;
+	std::vector< Node > d_in_vars;
+	Node d_in_var_lsum;
+	std::map< int, Node > d_cardinality_lits;
+	context::CDO< int > d_curr_cardinality;
+public:
+	//for finite model finding
+    Node getNextDecisionRequest();
+	void assertNode( Node lit );
+
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

@@ -47,7 +47,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     //d_ind_map_lemma(c),
 	//d_lit_to_decide_index( c, 0 ),
 	//d_lit_to_decide( c ),
-	d_reg_exp_mem( c )
+	d_reg_exp_mem( c ),
+	d_curr_cardinality( c, 0 )
 {
     // The kinds we are treating as function application in congruence
     //d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
@@ -61,7 +62,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 
 	//option
 	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
-	d_fmf = options::stringFMF();
+	//d_fmf = options::stringFMF();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -345,7 +346,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		  d_out->lemma(n_len_geq_zero);
 	  }
 	  // FMF
-	  if( d_fmf && n.getKind() == kind::VARIABLE ) {
+	  if( options::stringFMF() && n.getKind() == kind::VARIABLE ) {
 		  if( std::find(d_in_vars.begin(), d_in_vars.end(), n) == d_in_vars.end() ) {
 			  d_in_vars.push_back( n );
 		  }
@@ -1908,19 +1909,60 @@ bool TheoryStrings::checkMemberships() {
 }
 
 Node TheoryStrings::getNextDecisionRequest() {
-	if(d_fmf && !d_conflict) {
-		Trace("strings-decide") << "Get next decision request." << std::endl;
-		Trace("strings-fmf-debug") << "Input variables: ";
-		for(std::vector< Node >::iterator itr = d_in_vars.begin();
-			itr != d_in_vars.end(); ++itr) {
+	if(options::stringFMF() && !d_conflict) {
+		//initialize the term we will minimize
+		if( d_in_var_lsum.isNull() && !d_in_vars.empty() ){
+			Trace("strings-fmf-debug") << "Input variables: ";
+			std::vector< Node > ll;
+			for(std::vector< Node >::iterator itr = d_in_vars.begin();
+				itr != d_in_vars.end(); ++itr) {
 				Trace("strings-fmf-debug") << " " << (*itr) ;
+				ll.push_back( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr ) );
 			}
-		Trace("strings-fmf-debug") << std::endl;
-
-
+			Trace("strings-fmf-debug") << std::endl;
+			d_in_var_lsum = ll.size()==1 ? ll[0] : NodeManager::currentNM()->mkNode( kind::PLUS, ll );
+			d_in_var_lsum = Rewriter::rewrite( d_in_var_lsum );
+		}
+		if( !d_in_var_lsum.isNull() ){
+			//Trace("strings-fmf") << "Get next decision request." << std::endl;
+			//check if we need to decide on something
+			int decideCard = d_curr_cardinality.get();
+			if( d_cardinality_lits.find( decideCard )!=d_cardinality_lits.end() ){
+				bool value;
+				if( d_valuation.hasSatValue( d_cardinality_lits[ d_curr_cardinality.get() ], value ) ) {
+					if( !value ){
+						d_curr_cardinality.set( d_curr_cardinality.get() + 1 );
+						decideCard = d_curr_cardinality.get();
+						Trace("strings-fmf-debug") << "Has false SAT value, increment and decide." << std::endl;
+					}else{
+						decideCard = -1;
+						Trace("strings-fmf-debug") << "Has true SAT value, do not decide." << std::endl;
+					}
+				}else{
+					Trace("strings-fmf-debug") << "No SAT value, decide." << std::endl;
+				}
+			}
+			if( decideCard!=-1 ){
+				if( d_cardinality_lits.find( decideCard )==d_cardinality_lits.end() ){
+					Node lit = NodeManager::currentNM()->mkNode( kind::LEQ, d_in_var_lsum, NodeManager::currentNM()->mkConst( Rational( decideCard ) ) );
+					lit = Rewriter::rewrite( lit );
+					d_cardinality_lits[decideCard] = lit;
+					Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
+					Trace("strings-fmf") << "Strings FMF: Add split lemma " << lem << ", decideCard = " << decideCard << std::endl;
+					d_out->lemma( lem );
+					d_out->requirePhase( lit, true );
+				}
+				Trace("strings-fmf") << "Strings FMF: Decide positive on " << d_cardinality_lits[ decideCard ] << std::endl;
+				return d_cardinality_lits[ decideCard ];
+			}
+		}
 	}
 
 	return Node::null();
+}
+
+void TheoryStrings::assertNode( Node lit ) {
+	
 }
 
 }/* CVC4::theory::strings namespace */
