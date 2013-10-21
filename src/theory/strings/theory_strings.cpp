@@ -61,7 +61,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_false = NodeManager::currentNM()->mkConst( false );
 
 	//option
-	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
+	//d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
 	//d_fmf = options::stringFMF();
 }
 
@@ -950,23 +950,24 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 
 
 											//need to break
-											Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
 											Node ant = mkExplain( antec, antec_new_lits );
 											Node str_in_re;
 											if(index == loop_index - 1 && 
 												other_index + 2 == (int) normal_forms[other_n_index].size() && 
 												loop_index + 1 == (int) normal_forms[loop_n_index].size() &&
 												normal_forms[loop_n_index][index] == normal_forms[other_n_index][other_index + 1] &&
-												normal_forms[loop_n_index][index].isConst() ) {
+												normal_forms[loop_n_index][index].isConst() &&
+												normal_forms[loop_n_index][index].getConst<String>().size() == 1 ) {
 												Trace("strings-loop") << "Special case (X)=" << normal_forms[other_n_index][other_index] << " " << std::endl;
 												Trace("strings-loop") << "... (C)=" << normal_forms[loop_n_index][index] << " " << std::endl;
 												//special case
-												Node conc3 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( normal_forms[loop_n_index][index], sk_w ) );
-												str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w, 
+												//Node conc3 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( normal_forms[loop_n_index][index], sk_w ) );
+												str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, normal_forms[other_n_index][other_index], 
 															  NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
 																NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, normal_forms[loop_n_index][index] ) ) );
 												conc = str_in_re;
 											} else {
+												Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
 												Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
 												Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
 												//t1 * ... * tn = y * z
@@ -1812,7 +1813,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 	Node x = atom[0];
 	Node r = atom[1];
 	int depth = d_reg_exp_unroll_depth.find( atom )==d_reg_exp_unroll_depth.end() ? 0 : d_reg_exp_unroll_depth[atom];
-	if( depth <= d_regexp_unroll_depth ){
+	if( depth <= options::stringRegExpUnrollDepth() ){
 		Trace("strings-regex") << "...unroll " << atom << " now." << std::endl;
 		d_reg_exp_unroll[atom] = true;
 		//add lemma?
@@ -1881,7 +1882,7 @@ bool TheoryStrings::checkMemberships() {
 					if( unrollStar( atom ) ){
 						addedLemma = true;
 					}else{
-						Trace("strings-regex") << "RegEx is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
+						Trace("strings-regex") << "RegEx is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
 						is_unk = true;
 					}
 				}else{
