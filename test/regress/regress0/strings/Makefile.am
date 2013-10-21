@@ -39,7 +39,8 @@ TESTS =	\
   loop005.smt2 \
   loop006.smt2 \
   loop007.smt2 \
-  loop008.smt2
+  loop008.smt2 \
+  loop009.smt2
 
 FAILING_TESTS =
 
