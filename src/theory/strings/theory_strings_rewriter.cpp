@@ -351,6 +351,19 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 		retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_OR,
 					NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( ::CVC4::String("") ) ),
 					node[0]);
+	} else if(node.getKind() == kind::REGEXP_RANGE) {
+		std::vector< Node > vec_nodes;
+		char c = node[0].getConst<String>().getFirstChar();
+		char end = node[1].getConst<String>().getFirstChar();
+		for(; c<=end; ++c) {
+			Node n = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst( ::CVC4::String( c ) ) );
+			vec_nodes.push_back( n );
+		}
+		if(vec_nodes.size() == 1) {
+			retNode = vec_nodes[0];
+		} else {
+			retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_OR, vec_nodes );
+		}
 	}
 
     Trace("strings-prerewrite") << "Strings::preRewrite returning " << retNode << std::endl;
