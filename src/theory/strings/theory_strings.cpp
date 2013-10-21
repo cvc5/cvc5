@@ -548,8 +548,13 @@ void TheoryStrings::doPendingFacts() {
       bool polarity = fact.getKind() != kind::NOT;
       TNode atom = polarity ? fact : fact[0];
       if (atom.getKind() == kind::EQUAL) {
-		Assert( d_equalityEngine.hasTerm( atom[0] ) );
-		Assert( d_equalityEngine.hasTerm( atom[1] ) );
+		//Assert( d_equalityEngine.hasTerm( atom[0] ) );
+		//Assert( d_equalityEngine.hasTerm( atom[1] ) );
+		for( unsigned j=0; j<2; j++ ){
+			if( !d_equalityEngine.hasTerm( atom[j] ) ){
+				d_equalityEngine.addTerm( atom[j] );
+			}
+		}
 		d_equalityEngine.assertEquality( atom, polarity, exp );
       }else{
         d_equalityEngine.assertPredicate( atom, polarity, exp );
@@ -797,7 +802,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 										}
 										Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, d_emptyString, normal_forms[k][index_k] );
 										Trace("strings-lemma") << "Strings : Infer " << eq << " from " << eq_exp << std::endl;
-										Assert( !d_equalityEngine.areEqual( d_emptyString, normal_forms[k][index_k] ) );
+										Assert( !areEqual( d_emptyString, normal_forms[k][index_k] ) );
 										d_pending.push_back( eq );
 										d_pending_exp[eq] = eq_exp;
 										d_infer.push_back(eq);
