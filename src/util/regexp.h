@@ -57,6 +57,10 @@ public:
     }
   }
 
+  String(const char c) {
+    d_str.push_back( convertCharToUnsignedInt(c) );
+  }
+
   String(const std::vector<unsigned int> &s) : d_str(s) { }
 
   ~String() {}
@@ -149,6 +153,10 @@ public:
 
   unsigned size() const {
     return d_str.size();
+  }
+
+  char getFirstChar() const {
+    return convertUnsignedIntToChar( d_str[0] );
   }
 
   String substr(unsigned i) const {

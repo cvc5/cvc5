@@ -70,6 +70,7 @@ operator REGEXP_INTER 2: "regexp intersection"
 operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
+operator REGEXP_RANGE 2 "regexp range"
 
 #constant REGEXP_EMPTY \
 #	::CVC4::RegExp \
@@ -95,6 +96,7 @@ typerule REGEXP_INTER ::CVC4::theory::strings::RegExpInterTypeRule
 typerule REGEXP_STAR ::CVC4::theory::strings::RegExpStarTypeRule
 typerule REGEXP_PLUS ::CVC4::theory::strings::RegExpPlusTypeRule
 typerule REGEXP_OPT ::CVC4::theory::strings::RegExpOptTypeRule
+typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
 
 typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
 
