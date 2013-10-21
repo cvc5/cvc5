@@ -127,7 +127,7 @@ class TheoryStrings : public Theory {
     Node d_false;
     Node d_zero;
 	// RegExp depth
-	int d_regexp_unroll_depth;
+	//int d_regexp_unroll_depth;
     //list of pairs of nodes to merge
       std::map< Node, Node > d_pending_exp;
       std::vector< Node > d_pending;
