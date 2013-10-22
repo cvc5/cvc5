@@ -159,6 +159,30 @@ public:
     return convertUnsignedIntToChar( d_str[0] );
   }
 
+  bool isRepeated() const {
+	if(d_str.size() > 1) {
+		unsigned int f = d_str[0];
+		for(unsigned i=1; i<d_str.size(); ++i) {
+			if(f != d_str[i]) return false;
+		}
+	}
+	return true;
+  }
+
+  bool tailcmp(const String &y, int &c) const {
+	  int id_x = d_str.size() - 1;
+	  int id_y = y.d_str.size() - 1;
+	  while(id_x>=0 && id_y>=0) {
+		  if(d_str[id_x] != y.d_str[id_y]) {
+			  c = id_x;
+			  return false;
+		  }
+		  --id_x; --id_y;
+	  }
+	  c = id_x == -1 ? ( - id_y) : id_x;
+	  return true;
+  }
+
   String substr(unsigned i) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;

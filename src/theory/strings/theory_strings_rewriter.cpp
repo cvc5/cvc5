@@ -145,6 +145,30 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
     return retNode;
 }
 
+Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
+	Assert( node.getKind() == kind::REGEXP_OR );
+    Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp start " << node << std::endl;
+    Node retNode = node;
+    std::vector<Node> node_vec;
+	bool flag = true;
+    for(unsigned int i=0; i<node.getNumChildren(); ++i) {
+		if(node[i].getKind() == kind::REGEXP_OR) {
+			Node tmpNode = prerewriteOrRegExp( node[i] );
+			for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
+				node_vec.push_back( tmpNode[i] );
+			}
+			flag = false;
+		} else {
+			node_vec.push_back( node[i] );
+		}
+	}
+	if(flag) {
+		retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_OR, node_vec);
+	}
+	Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp end " << retNode << std::endl;
+    return retNode;
+}
+
 bool TheoryStringsRewriter::checkConstRegExp( TNode t ) {
 	if( t.getKind() != kind::STRING_TO_REGEXP ) {
 		for( unsigned i = 0; i<t.getNumChildren(); ++i ) {
@@ -344,6 +368,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
         retNode = rewriteConcatString(node);
     } else if(node.getKind() == kind::REGEXP_CONCAT) {
 		retNode = prerewriteConcatRegExp(node);
+    } else if(node.getKind() == kind::REGEXP_OR) {
+		retNode = prerewriteOrRegExp(node);
 	} else if(node.getKind() == kind::REGEXP_PLUS) {
 		retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0],
 					NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, node[0]));

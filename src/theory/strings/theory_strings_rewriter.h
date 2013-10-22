@@ -35,6 +35,7 @@ public:
 
   static Node rewriteConcatString(TNode node);
   static Node prerewriteConcatRegExp(TNode node);
+  static Node prerewriteOrRegExp(TNode node);
   static Node rewriteMembership(TNode node);
 
   static RewriteResponse postRewrite(TNode node);
