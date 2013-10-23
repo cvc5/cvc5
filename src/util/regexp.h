@@ -179,7 +179,7 @@ public:
 		  }
 		  --id_x; --id_y;
 	  }
-	  c = id_x == -1 ? ( - id_y) : id_x;
+	  c = id_x == -1 ? ( - (id_y+1) ) : (id_x + 1);
 	  return true;
   }
 

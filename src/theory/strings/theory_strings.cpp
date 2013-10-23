@@ -165,10 +165,16 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions){
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
   unsigned ps = assumptions.size();
+  std::vector< TNode > tassumptions;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine.explainPredicate(atom, polarity, tassumptions);
+  }
+  for( unsigned i=0; i<tassumptions.size(); i++ ){
+	if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
+		assumptions.push_back( tassumptions[i] );
+	}
   }
   Debug("strings-explain-debug") << "Explanation for " << literal << " was " << std::endl;
   for( unsigned i=ps; i<assumptions.size(); i++ ){
@@ -951,7 +957,7 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 												bool flag = true;
 												if(s_zy.getConst<String>().tailcmp( r.getConst<String>(), c ) ) {
 													if(c >= 0) {
-														s_zy = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, c + 1) );
+														s_zy = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, c) );
 														r = d_emptyString;
 														vec_r.clear();
 														Trace("strings-loop") << "Refactor : S(Z.Y)= " << s_zy << ", c=" << c << std::endl;
@@ -1091,9 +1097,10 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 													//split the string
 													Node sk = NodeManager::currentNM()->mkSkolem( "c_split_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
 
-													Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str, d_emptyString );
-													Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
-																NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, sk ) );
+													Node eq1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, other_str, d_emptyString ) );
+													Node eq2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
+																NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, sk ) ) );
+													d_pending_req_phase[ eq1 ] = true;
 													conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
 													Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
 
@@ -1364,34 +1371,38 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a ) {
 Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an ) {
     std::vector< TNode > antec_exp;
     for( unsigned i=0; i<a.size(); i++ ){
-		bool exp = true;
-        Trace("strings-solve-debug") << "Ask for explanation of " << a[i] << std::endl;
-        //assert
-        if(a[i].getKind() == kind::EQUAL) {
-            //assert( hasTerm(a[i][0]) );
-            //assert( hasTerm(a[i][1]) );
-            Assert( areEqual(a[i][0], a[i][1]) );
-			if( a[i][0]==a[i][1] ){
-				exp = false;
+		if( std::find( a.begin(), a.begin() + i, a[i] )==a.begin() + i ){
+			bool exp = true;
+			Trace("strings-solve-debug") << "Ask for explanation of " << a[i] << std::endl;
+			//assert
+			if(a[i].getKind() == kind::EQUAL) {
+				//assert( hasTerm(a[i][0]) );
+				//assert( hasTerm(a[i][1]) );
+				Assert( areEqual(a[i][0], a[i][1]) );
+				if( a[i][0]==a[i][1] ){
+					exp = false;
+				}
+			} else if( a[i].getKind()==kind::NOT && a[i][0].getKind()==kind::EQUAL ){
+				Assert( hasTerm(a[i][0][0]) );
+				Assert( hasTerm(a[i][0][1]) );
+				AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
 			}
-        } else if( a[i].getKind()==kind::NOT && a[i][0].getKind()==kind::EQUAL ){
-            Assert( hasTerm(a[i][0][0]) );
-            Assert( hasTerm(a[i][0][1]) );
-            AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
-        }
-		if( exp ){
-			unsigned ps = antec_exp.size();
-			explain(a[i], antec_exp);
-			Trace("strings-solve-debug") << "Done, explanation was : " << std::endl;
-			for( unsigned j=ps; j<antec_exp.size(); j++ ){
-				Trace("strings-solve-debug") << "  " << antec_exp[j] << std::endl;
+			if( exp ){
+				unsigned ps = antec_exp.size();
+				explain(a[i], antec_exp);
+				Trace("strings-solve-debug") << "Done, explanation was : " << std::endl;
+				for( unsigned j=ps; j<antec_exp.size(); j++ ){
+					Trace("strings-solve-debug") << "  " << antec_exp[j] << std::endl;
+				}
+				Trace("strings-solve-debug") << std::endl;
 			}
-			Trace("strings-solve-debug") << std::endl;
 		}
     }
     for( unsigned i=0; i<an.size(); i++ ){
-		Trace("strings-solve-debug") << "Add to explanation (new literal) " << an[i] << std::endl;
-        antec_exp.push_back(an[i]);
+		if( std::find( an.begin(), an.begin() + i, an[i] )==an.begin() + i ){
+			Trace("strings-solve-debug") << "Add to explanation (new literal) " << an[i] << std::endl;
+			antec_exp.push_back(an[i]);
+		}
     }
     Node ant;
     if( antec_exp.empty() ) {
