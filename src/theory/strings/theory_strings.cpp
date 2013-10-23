@@ -1451,7 +1451,7 @@ bool TheoryStrings::checkLengths() {
 			//if n is concat, and
 			//if n has not instantiatied the concat..length axiom
 			//then, add lemma
-			if( n.getKind() == kind::CONST_STRING ) { // || n.getKind() == kind::STRING_CONCAT ){
+			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT ) { // || n.getKind() == kind::STRING_CONCAT ){
 				if( d_length_inst.find(n)==d_length_inst.end() ){
 					d_length_inst[n] = true;
 					Trace("strings-debug") << "get n: " << n << endl;
