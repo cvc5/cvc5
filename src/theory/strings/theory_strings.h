@@ -146,6 +146,9 @@ class TheoryStrings : public Theory {
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
 
+  //loop
+  //std::map< Node, bool > d_loop_processed;
+
   //regular expression memberships
   NodeList d_reg_exp_mem;
   std::map< Node, bool > d_reg_exp_unroll;
@@ -237,6 +240,8 @@ protected:
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a );
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
+  /** get concat vector */
+  void getConcatVec( Node n, std::vector< Node >& c );
 
   //get equivalence classes
   void getEquivalenceClasses( std::vector< Node >& eqcs );
