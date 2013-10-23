@@ -991,8 +991,15 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 												//try to make normal_forms[loop_n_index][loop_index] equal to empty to avoid loop
 												sendSplit( normal_forms[loop_n_index][loop_index], d_emptyString, "Loop Empty" );
 												return true;
-											}else{
+											} else if( !areDisequal( t_yz, d_emptyString ) ) {
+												//TODO...........
+												//try to make normal_forms[loop_n_index][loop_index] equal to empty to avoid loop
+												sendSplit( t_yz, d_emptyString, "Loop Empty" );
+												return true;
+											} else {
 												//need to break
+												antec.push_back( normal_forms[loop_n_index][loop_index].eqNode( d_emptyString ).negate() );
+												antec.push_back( t_yz.eqNode( d_emptyString ).negate() );
 												Node ant = mkExplain( antec, antec_new_lits );
 												Node str_in_re;
 												if( s_zy == t_yz &&
