@@ -1382,7 +1382,7 @@ void StrongSolverTheoryUF::SortModel::debugPrint( const char* c ){
 void StrongSolverTheoryUF::SortModel::debugModel( TheoryModel* m ){
   if( Trace.isOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &m->d_equalityEngine );
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( m->d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       if( eqc.getType()==d_type ){
