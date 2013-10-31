@@ -68,9 +68,10 @@ class TheoryBV;
 class Bitblaster {
 public:
   virtual ~Bitblaster() {}
+  virtual void bbAtom(TNode node) = 0; 
   virtual void bbTerm(TNode node, Bits&  bits) = 0;
   virtual void cacheTermDef(TNode node, Bits def) = 0; 
-  virtual void storeVariable(TNode node) = 0; 
+  virtual void storeVariable(TNode node) = 0;
 }; 
 
 class LazyBitblaster :  public Bitblaster {
