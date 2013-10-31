@@ -25,6 +25,7 @@
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
+#include "theory/bv/bv_eager_solver.h"
 #include "theory/model.h"
 
 using namespace CVC4;
@@ -42,6 +43,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_sharedTermsSet(c),
     d_subtheories(),
     d_subtheoryMap(),
+    d_eagerBBSolver(new EagerBitblastSolver()), 
     d_statistics(),
     d_lemmasAdded(c, false),
     d_conflict(c, false),

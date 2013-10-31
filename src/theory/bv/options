@@ -5,6 +5,9 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
+option bitvectorNewEagerBitblast --new-bitblast-eager bool
+ eagerly bitblast the bitvectors to the main SAT solver
+
 option bitvectorEagerBitblast --bitblast-eager bool
  eagerly bitblast the bitvectors to the main SAT solver
 

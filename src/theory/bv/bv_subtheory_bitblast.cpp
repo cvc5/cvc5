@@ -31,7 +31,7 @@ using namespace CVC4::theory::bv::utils;
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
-    d_bitblaster(new Bitblaster(c, bv)),
+    d_bitblaster(new LazyBitblaster(c, bv)),
     d_bitblastQueue(c),
     d_statistics(),
     d_validModelCache(c, true),

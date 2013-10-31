@@ -52,7 +52,7 @@ std::string toString(Bits&  bits) {
 }
 /////// Bitblaster
 
-Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
+LazyBitblaster::LazyBitblaster(context::Context* c, bv::TheoryBV* bv) :
     d_bv(bv),
     d_bvOutput(bv->d_out),
     d_termCache(),
@@ -70,7 +70,7 @@ Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
     initTermBBStrategies();
   }
 
-Bitblaster::~Bitblaster() {
+LazyBitblaster::~LazyBitblaster() {
   delete d_cnfStream;
   delete d_satSolver;
 }
@@ -82,7 +82,7 @@ Bitblaster::~Bitblaster() {
  * @param node the atom to be bitblasted
  *
  */
-void Bitblaster::bbAtom(TNode node) {
+void LazyBitblaster::bbAtom(TNode node) {
   node = node.getKind() == kind::NOT?  node[0] : node;
 
   if (hasBBAtom(node)) {
@@ -111,7 +111,7 @@ void Bitblaster::bbAtom(TNode node) {
   }
 }
 
-uint64_t Bitblaster::computeAtomWeight(TNode node) {
+uint64_t LazyBitblaster::computeAtomWeight(TNode node) {
   node = node.getKind() == kind::NOT?  node[0] : node;
 
   Node atom_bb = Rewriter::rewrite(d_atomBBStrategies[node.getKind()](node, this));
@@ -119,7 +119,7 @@ uint64_t Bitblaster::computeAtomWeight(TNode node) {
   return size;
 }
 
-void Bitblaster::bbTerm(TNode node, Bits& bits) {
+void LazyBitblaster::bbTerm(TNode node, Bits& bits) {
 
   if (hasBBTerm(node)) {
     getBBTerm(node, bits);
@@ -136,7 +136,7 @@ void Bitblaster::bbTerm(TNode node, Bits& bits) {
   cacheTermDef(node, bits);
 }
 
-Node Bitblaster::bbOptimize(TNode node) {
+Node LazyBitblaster::bbOptimize(TNode node) {
   std::vector<Node> children;
 
    if (node.getKind() == kind::BITVECTOR_PLUS) {
@@ -161,7 +161,7 @@ Node Bitblaster::bbOptimize(TNode node) {
 
 /// Public methods
 
-void Bitblaster::addAtom(TNode atom) {
+void LazyBitblaster::addAtom(TNode atom) {
   if (!options::bitvectorEagerBitblast()) {
     d_cnfStream->ensureLiteral(atom);
     SatLiteral lit = d_cnfStream->getLiteral(atom);
@@ -169,7 +169,7 @@ void Bitblaster::addAtom(TNode atom) {
   }
 }
 
-void Bitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
+void LazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
   std::vector<SatLiteral> literal_explanation;
   d_satSolver->explain(d_cnfStream->getLiteral(atom), literal_explanation);
   for (unsigned i = 0; i < literal_explanation.size(); ++i) {
@@ -185,11 +185,11 @@ void Bitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
  *
  */
 
-bool Bitblaster::propagate() {
+bool LazyBitblaster::propagate() {
   return d_satSolver->propagate() == prop::SAT_VALUE_TRUE;
 }
 
-bool Bitblaster::assertToSat(TNode lit, bool propagate) {
+bool LazyBitblaster::assertToSat(TNode lit, bool propagate) {
   // strip the not
   TNode atom;
   if (lit.getKind() == kind::NOT) {
@@ -206,8 +206,8 @@ bool Bitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
 
-  Debug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat asserting node: " << atom <<"\n";
-  Debug("bitvector-bb") << "TheoryBV::Bitblaster::assertToSat with literal:   " << markerLit << "\n";
+  Debug("bitvector-bb") << "TheoryBV::LazyBitblaster::assertToSat asserting node: " << atom <<"\n";
+  Debug("bitvector-bb") << "TheoryBV::LazyBitblaster::assertToSat with literal:   " << markerLit << "\n";
 
   SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -224,19 +224,19 @@ bool Bitblaster::assertToSat(TNode lit, bool propagate) {
  * @return true for sat, and false for unsat
  */
 
-bool Bitblaster::solve(bool quick_solve) {
+bool LazyBitblaster::solve(bool quick_solve) {
   if (Trace.isOn("bitvector")) {
-    Trace("bitvector") << "Bitblaster::solve() asserted atoms ";
+    Trace("bitvector") << "LazyBitblaster::solve() asserted atoms ";
     context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms.begin();
     for (; it != d_assertedAtoms.end(); ++it) {
       Trace("bitvector") << "     " << d_cnfStream->getNode(*it) << "\n";
     }
   }
-  Debug("bitvector") << "Bitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n";
+  Debug("bitvector") << "LazyBitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n";
   return SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
-void Bitblaster::getConflict(std::vector<TNode>& conflict) {
+void LazyBitblaster::getConflict(std::vector<TNode>& conflict) {
   SatClause conflictClause;
   d_satSolver->getUnsatCore(conflictClause);
 
@@ -257,7 +257,7 @@ void Bitblaster::getConflict(std::vector<TNode>& conflict) {
 /// Helper methods
 
 
-void Bitblaster::initAtomBBStrategies() {
+void LazyBitblaster::initAtomBBStrategies() {
   for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
     d_atomBBStrategies[i] = UndefinedAtomBBStrategy;
   }
@@ -275,7 +275,7 @@ void Bitblaster::initAtomBBStrategies() {
 
 }
 
-void Bitblaster::initTermBBStrategies() {
+void LazyBitblaster::initTermBBStrategies() {
   // Changed this to DefaultVarBB because any foreign kind should be treated as a variable
   // TODO: check this is OK
   for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
@@ -317,26 +317,26 @@ void Bitblaster::initTermBBStrategies() {
 
 }
 
-bool Bitblaster::hasBBAtom(TNode atom) const {
+bool LazyBitblaster::hasBBAtom(TNode atom) const {
   return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
 }
 
-void Bitblaster::cacheTermDef(TNode term, Bits def) {
+void LazyBitblaster::cacheTermDef(TNode term, Bits def) {
   Assert (d_termCache.find(term) == d_termCache.end());
   d_termCache[term] = def;
 }
 
-bool Bitblaster::hasBBTerm(TNode node) const {
+bool LazyBitblaster::hasBBTerm(TNode node) const {
   return d_termCache.find(node) != d_termCache.end();
 }
 
-void Bitblaster::getBBTerm(TNode node, Bits& bits) const {
+void LazyBitblaster::getBBTerm(TNode node, Bits& bits) const {
   Assert (hasBBTerm(node));
   // copy?
   bits = d_termCache.find(node)->second;
 }
 
-Bitblaster::Statistics::Statistics() :
+LazyBitblaster::Statistics::Statistics() :
   d_numTermClauses("theory::bv::NumberOfTermSatClauses", 0),
   d_numAtomClauses("theory::bv::NumberOfAtomSatClauses", 0),
   d_numTerms("theory::bv::NumberOfBitblastedTerms", 0),
@@ -351,7 +351,7 @@ Bitblaster::Statistics::Statistics() :
 }
 
 
-Bitblaster::Statistics::~Statistics() {
+LazyBitblaster::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numTermClauses);
   StatisticsRegistry::unregisterStat(&d_numAtomClauses);
   StatisticsRegistry::unregisterStat(&d_numTerms);
@@ -359,11 +359,11 @@ Bitblaster::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_bitblastTimer);
 }
 
-bool Bitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
+bool LazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
   return d_bv->storePropagation(d_cnf->getNode(lit), SUB_BITBLAST);
 };
 
-void Bitblaster::MinisatNotify::notify(prop::SatClause& clause) {
+void LazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   if (clause.size() > 1) {
     NodeBuilder<> lemmab(kind::OR);
     for (unsigned i = 0; i < clause.size(); ++ i) {
@@ -376,11 +376,11 @@ void Bitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   }
 };
 
-void Bitblaster::MinisatNotify::safePoint() {
+void LazyBitblaster::MinisatNotify::safePoint() {
   d_bv->d_out->safePoint();
 }
 
-EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
+EqualityStatus LazyBitblaster::getEqualityStatus(TNode a, TNode b) {
 
   // We don't want to bit-blast every possibly expensive term for the sake of equality checking
   if (hasBBTerm(a) && hasBBTerm(b)) {
@@ -419,11 +419,11 @@ EqualityStatus Bitblaster::getEqualityStatus(TNode a, TNode b) {
 }
 
 
-bool Bitblaster::isSharedTerm(TNode node) {
+bool LazyBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
 }
 
-bool Bitblaster::hasValue(TNode a) {
+bool LazyBitblaster::hasValue(TNode a) {
   Assert (d_termCache.find(a) != d_termCache.end());
   Bits bits = d_termCache[a];
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -449,7 +449,7 @@ bool Bitblaster::hasValue(TNode a) {
  *
  * @return
  */
-Node Bitblaster::getVarValue(TNode a, bool fullModel) {
+Node LazyBitblaster::getVarValue(TNode a, bool fullModel) {
   if (d_termCache.find(a) == d_termCache.end()) {
     Assert(isSharedTerm(a));
     return Node();
@@ -473,7 +473,7 @@ Node Bitblaster::getVarValue(TNode a, bool fullModel) {
   return utils::mkConst(BitVector(bits.size(), value));
 }
 
-void Bitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
+void LazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
   __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
@@ -486,7 +486,7 @@ void Bitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
         }
       }
       if(const_value != Node()) {
-        Debug("bitvector-model") << "Bitblaster::collectModelInfo (assert (= "
+        Debug("bitvector-model") << "LazyBitblaster::collectModelInfo (assert (= "
                                   << var << " "
                                   << const_value << "))\n";
         m->assertEquality(var, const_value, true);

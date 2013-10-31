@@ -2655,11 +2655,20 @@ Result SmtEngine::check() {
   }
 
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
-
   Chat() << "solving..." << endl;
   Trace("smt") << "SmtEngine::check(): running check" << endl;
-  Result result = d_propEngine->checkSat(millis, resource);
-
+  
+  Result result;
+  
+  // FIXME: hack for eager bit-blasting using separate SAT solver
+  // stats will be broken
+  if (options::bitvectorNewEagerBitblast() &&
+      d_logic.getLogicString().compare("QF_BV") == 0) {
+    result = d_theoryEngine->eagerBBCheckSat();
+  } else {
+    result = d_propEngine->checkSat(millis, resource);
+  }
+  
   // PropEngine::checkSat() returns the actual amount used in these
   // variables.
   d_cumulativeTimeUsed += millis;
@@ -3054,6 +3063,13 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("post-everything", d_assertionsToCheck);
 
+  // FIXME: hack for eager bit-blasting using separate SAT solver
+  if (options::bitvectorNewEagerBitblast() &&
+      d_smt.getLogicInfo().getLogicString().compare("QF_BV") == 0) {
+    d_smt.d_theoryEngine->eagerBBAssertFormulas(d_assertionsToCheck); 
+  }
+      
+  
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;

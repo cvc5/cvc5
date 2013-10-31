@@ -34,6 +34,7 @@ namespace bv {
 class CoreSolver;
 class InequalitySolver;
 class BitblastSolver; 
+class EagerBitblastSolver;
 
 class TheoryBV : public Theory {
 
@@ -46,11 +47,14 @@ class TheoryBV : public Theory {
   
   std::vector<SubtheorySolver*> d_subtheories;
   __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
+  EagerBitblastSolver* d_eagerBBSolver; 
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryBV();
 
+  EagerBitblastSolver* getEagerBBSolver() { return d_eagerBBSolver; }
+  
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void preRegisterTerm(TNode n);
@@ -153,7 +157,7 @@ private:
 
   void checkForLemma(TNode node); 
   
-  friend class Bitblaster;
+  friend class LazyBitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;

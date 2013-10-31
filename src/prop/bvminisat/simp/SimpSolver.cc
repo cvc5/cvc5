@@ -55,7 +55,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)
-  , total_eliminate_time("theory::bv::bvminisat::TotalVariableEliminationTime")
+    //  , total_eliminate_time("theory::bv::bvminisat::TotalVariableEliminationTime")
   , elimorder          (1)
   , use_simplification (true)
   , occurs             (ClauseDeleted(ca))
@@ -63,7 +63,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , bwdsub_assigns     (0)
   , n_touched          (0)
 {
-    CVC4::StatisticsRegistry::registerStat(&total_eliminate_time);
+  //    CVC4::StatisticsRegistry::registerStat(&total_eliminate_time);
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(dummy);
@@ -87,7 +87,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
 
 SimpSolver::~SimpSolver()
 {
-  CVC4::StatisticsRegistry::unregisterStat(&total_eliminate_time); 
+  //  CVC4::StatisticsRegistry::unregisterStat(&total_eliminate_time); 
 }
 
 
@@ -606,7 +606,7 @@ void SimpSolver::extendModel()
 bool SimpSolver::eliminate(bool turn_off_elim)
 {
 
-  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
+  //  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
   
     if (!simplify())
         return false;

@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class Bitblaster;
+class LazyBitblaster;
 
 /**
  * BitblastSolver
@@ -35,7 +35,7 @@ class BitblastSolver : public SubtheorySolver {
     ~Statistics();
   };
   /** Bitblaster */
-  Bitblaster* d_bitblaster;
+  LazyBitblaster* d_bitblaster;
 
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;

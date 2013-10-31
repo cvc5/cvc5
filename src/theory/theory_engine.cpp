@@ -43,7 +43,7 @@
 #include "theory/quantifiers/first_order_model.h"
 
 #include "theory/uf/equality_engine.h"
-
+#include "theory/bv/bv_eager_solver.h"
 #include "theory/rewriterules/efficient_e_matching.h"
 
 using namespace std;
@@ -1395,6 +1395,23 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   d_bvToBoolPreprocessor.liftBoolToBV(assertions, new_assertions);
 }
+
+void TheoryEngine::eagerBBAssertFormulas(const std::vector<Node>& assertionsToCheck) {
+  Theory* bitvector_theory = d_theoryTable[theory::THEORY_BV]; 
+  bv::EagerBitblastSolver* eager = ((bv::TheoryBV*)bitvector_theory)->getEagerBBSolver();
+  for (unsigned i = 0; i < assertionsToCheck.size(); ++i) {
+    eager->assertFormula(assertionsToCheck[i]); 
+  }
+}
+
+Result TheoryEngine::eagerBBCheckSat() {
+  Theory* bitvector_theory = d_theoryTable[theory::THEORY_BV]; 
+  bv::EagerBitblastSolver* eager = ((bv::TheoryBV*)bitvector_theory)->getEagerBBSolver();
+  if (eager->checkSat())
+    return Result(Result::SAT);
+  return Result(Result::UNSAT); 
+}
+
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {

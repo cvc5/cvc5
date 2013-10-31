@@ -22,14 +22,15 @@
 using namespace CVC4;
 using namespace prop;
 
-BVMinisatSatSolver::BVMinisatSatSolver(context::Context* mainSatContext)
+BVMinisatSatSolver::BVMinisatSatSolver(context::Context* mainSatContext, const std::string& name)
 : context::ContextNotifyObj(mainSatContext, false),
   d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
   d_minisatNotify(0),
   d_solveCount(0),
   d_assertionsCount(0),
   d_assertionsRealCount(mainSatContext, 0),
-  d_lastPropagation(mainSatContext, 0)
+  d_lastPropagation(mainSatContext, 0),
+  d_statistics(name)
 {
   d_statistics.init(d_minisat); 
 }
@@ -211,19 +212,19 @@ void BVMinisatSatSolver::toSatClause(BVMinisat::vec<BVMinisat::Lit>& clause,
 
 // Satistics for BVMinisatSatSolver
 
-BVMinisatSatSolver::Statistics::Statistics() :
-  d_statStarts("theory::bv::bvminisat::starts"),
-  d_statDecisions("theory::bv::bvminisat::decisions"),
-  d_statRndDecisions("theory::bv::bvminisat::rnd_decisions"),
-  d_statPropagations("theory::bv::bvminisat::propagations"),
-  d_statConflicts("theory::bv::bvminisat::conflicts"),
-  d_statClausesLiterals("theory::bv::bvminisat::clauses_literals"),
-  d_statLearntsLiterals("theory::bv::bvminisat::learnts_literals"),
-  d_statMaxLiterals("theory::bv::bvminisat::max_literals"),
-  d_statTotLiterals("theory::bv::bvminisat::tot_literals"),
-  d_statEliminatedVars("theory::bv::bvminisat::eliminated_vars"),
-  d_statCallsToSolve("theory::bv::bvminisat::calls_to_solve", 0),
-  d_statSolveTime("theory::bv::bvminisat::solve_time", 0)
+BVMinisatSatSolver::Statistics::Statistics(const std::string& prefix) :
+  d_statStarts("theory::bv::"+prefix+"bvminisat::starts"),
+  d_statDecisions("theory::bv::"+prefix+"bvminisat::decisions"),
+  d_statRndDecisions("theory::bv::"+prefix+"bvminisat::rnd_decisions"),
+  d_statPropagations("theory::bv::"+prefix+"bvminisat::propagations"),
+  d_statConflicts("theory::bv::"+prefix+"bvminisat::conflicts"),
+  d_statClausesLiterals("theory::bv::"+prefix+"bvminisat::clauses_literals"),
+  d_statLearntsLiterals("theory::bv::"+prefix+"bvminisat::learnts_literals"),
+  d_statMaxLiterals("theory::bv::"+prefix+"bvminisat::max_literals"),
+  d_statTotLiterals("theory::bv::"+prefix+"bvminisat::tot_literals"),
+  d_statEliminatedVars("theory::bv::"+prefix+"bvminisat::eliminated_vars"),
+  d_statCallsToSolve("theory::bv::"+prefix+"bvminisat::calls_to_solve", 0),
+  d_statSolveTime("theory::bv::"+prefix+"bvminisat::solve_time", 0)
 {
   StatisticsRegistry::registerStat(&d_statStarts);
   StatisticsRegistry::registerStat(&d_statDecisions);

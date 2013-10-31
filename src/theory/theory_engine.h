@@ -781,6 +781,8 @@ private:
   theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor; 
 public:
 
+  void   eagerBBAssertFormulas(const std::vector<Node>& assertionsToCheck);
+  Result eagerBBCheckSat();
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
   Node ppSimpITE(TNode assertion);
   void ppUnconstrainedSimp(std::vector<Node>& assertions);

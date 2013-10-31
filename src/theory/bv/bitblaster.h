@@ -64,7 +64,16 @@ class TheoryBV;
  * and their bitwise definition
  *
  */
+
 class Bitblaster {
+public:
+  virtual ~Bitblaster() {}
+  virtual void bbTerm(TNode node, Bits&  bits) = 0;
+  virtual void cacheTermDef(TNode node, Bits def) = 0; 
+  virtual void storeVariable(TNode node) = 0; 
+}; 
+
+class LazyBitblaster :  public Bitblaster {
 
   /** This class gets callbacks from minisat on propagations */
   class MinisatNotify : public prop::BVSatSolverInterface::Notify {
@@ -121,18 +130,14 @@ class Bitblaster {
   Node bbOptimize(TNode node);
 
   void addAtom(TNode atom);
-  // division is bitblasted in terms of constraints
-  // so it needs to use private bitblaster interface
-  void bbUdiv(TNode node, Bits& bits);
-  void bbUrem(TNode node, Bits& bits);
   bool hasValue(TNode a);
 public:
   void cacheTermDef(TNode node, Bits def); // public so we can cache remainder for division
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
 
-  Bitblaster(context::Context* c, bv::TheoryBV* bv);
-  ~Bitblaster();
+  LazyBitblaster(context::Context* c, bv::TheoryBV* bv);
+  ~LazyBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
   bool propagate();
   bool solve(bool quick_solve = false);
