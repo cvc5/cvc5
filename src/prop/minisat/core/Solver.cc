@@ -135,8 +135,8 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varTrue, false), true); )
-  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varFalse, true), true); )
+  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
+  PROOF( ProofManager::getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
 }
 
 
@@ -263,7 +263,7 @@ CRef Solver::reason(Var x) {
 
     // Construct the reason
     CRef real_reason = ca.alloc(explLevel, explanation, true);
-    PROOF (ProofManager::getSatProof()->registerClause(real_reason, true); ); 
+    PROOF (ProofManager::getSatProof()->registerClause(real_reason, THEORY_LEMMA); ); 
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
     attachClause(real_reason);
@@ -339,7 +339,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         clauses_persistent.push(cr);
 	attachClause(cr);
 
-        PROOF( ProofManager::getSatProof()->registerClause(cr, true); )
+        PROOF( ProofManager::getSatProof()->registerClause(cr, INPUT); )
       }
 
       // Check if it propagates
@@ -347,7 +347,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          PROOF( if (ps.size() == 1) { ProofManager::getSatProof()->registerUnitClause(ps[0], true); } )
+          PROOF( if (ps.size() == 1) { ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT); } )
           return ok = (propagate(CHECK_WITHOUT_THEORY) == CRef_Undef);
         } else return ok;
       }
@@ -369,9 +369,8 @@ void Solver::attachClause(CRef cr) {
 
 
 void Solver::detachClause(CRef cr, bool strict) {
-    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
-
     const Clause& c = ca[cr];
+    PROOF( ProofManager::getSatProof()->markDeleted(cr); ) 
     Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
     assert(c.size() > 1);
 
@@ -1631,7 +1630,7 @@ CRef Solver::updateLemmas() {
       }
 
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
-      PROOF (ProofManager::getSatProof()->registerClause(lemma_ref, true); ); 
+      PROOF (ProofManager::getSatProof()->registerClause(lemma_ref, THEORY_LEMMA); ); 
       if (removable) {
         clauses_removable.push(lemma_ref);
       } else {

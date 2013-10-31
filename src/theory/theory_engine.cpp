@@ -46,6 +46,8 @@
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/rewriterules/efficient_e_matching.h"
 
+#include "proof/proof_manager.h"
+
 using namespace std;
 
 using namespace CVC4;
@@ -138,6 +140,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  PROOF (ProofManager::currentPM()->initTheoryProof(); ); 
 }
 
 TheoryEngine::~TheoryEngine() {

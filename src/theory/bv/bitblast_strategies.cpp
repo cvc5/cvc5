@@ -18,6 +18,7 @@
 #include "bitblaster.h"
 #include "prop/sat_solver.h"
 #include "theory/booleans/theory_bool_rewriter.h"
+#include <cmath>
 
 using namespace CVC4::prop; 
 using namespace CVC4::theory::bv::utils;
@@ -717,10 +718,18 @@ void DefaultShlBB (TNode node, Bits& res, Bitblaster* bb) {
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
-  res = a;
-  Bits prev_res;
+  // check for b < log2(n)
+  unsigned size = utils::getSize(node);
+  unsigned log2_size = std::ceil(log2((double)size));
+  Node a_size = utils::mkConst(BitVector(size, size)); 
+  Node b_ult_a_size = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  // ensure that the inequality is bit-blasted
+  bb->bbAtom(b_ult_a_size); 
   
-  for(unsigned s = 0; s < b.size(); ++s) {
+  Bits prev_res;
+  res = a; 
+  // we only need to look at the bits bellow log2_a_size
+  for(unsigned s = 0; s < log2_size; ++s) {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
     prev_res = res; 
@@ -733,10 +742,16 @@ void DefaultShlBB (TNode node, Bits& res, Bitblaster* bb) {
       } else {
         // if b[s]= 0, use previous value, otherwise shift by threshold  bits
         Assert(i >= threshold); 
-        res[i] = mkNode(kind::ITE, mkNot(b[s]), prev_res[i], prev_res[i-threshold]); 
+        res[i] = mkNode(kind::ITE, b[s], prev_res[i-threshold], prev_res[i]); 
       }
     }
   }
+  prev_res = res;
+  for (unsigned i = 0; i < b.size(); ++i) {
+    // this is fine  because b_ult_a_size has been bit-blasted
+    res[i] = utils::mkNode(kind::ITE, b_ult_a_size, prev_res[i], utils::mkFalse()); 
+  }
+  
   if(Debug.isOn("bitvector-bb")) {
     Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
   }
@@ -750,10 +765,18 @@ void DefaultLshrBB (TNode node, Bits& res, Bitblaster* bb) {
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
+  // check for b < log2(n)
+  unsigned size = utils::getSize(node);
+  unsigned log2_size = std::ceil(log2((double)size));
+  Node a_size = utils::mkConst(BitVector(size, size)); 
+  Node b_ult_a_size = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  // ensure that the inequality is bit-blasted
+  bb->bbAtom(b_ult_a_size); 
+  
   res = a;
   Bits prev_res;
   
-  for(unsigned s = 0; s < b.size(); ++s) {
+  for(unsigned s = 0; s < log2_size; ++s) {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
     prev_res = res; 
@@ -770,6 +793,13 @@ void DefaultLshrBB (TNode node, Bits& res, Bitblaster* bb) {
       }
     }
   }
+  
+  prev_res = res;
+  for (unsigned i = 0; i < b.size(); ++i) {
+    // this is fine  because b_ult_a_size has been bit-blasted
+    res[i] = utils::mkNode(kind::ITE, b_ult_a_size, prev_res[i], utils::mkFalse()); 
+  }
+
   if(Debug.isOn("bitvector-bb")) {
     Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
   }
@@ -784,11 +814,19 @@ void DefaultAshrBB (TNode node, Bits& res, Bitblaster* bb) {
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
+  //   check for b < n
+  unsigned size = utils::getSize(node);
+  unsigned log2_size = std::ceil(log2((double)size));
+  Node a_size = utils::mkConst(BitVector(size, size)); 
+  Node b_ult_a_size = utils::mkNode(kind::BITVECTOR_ULT, node[1], a_size);
+  // ensure that the inequality is bit-blasted
+  bb->bbAtom(b_ult_a_size); 
+  
   res = a;
   TNode sign_bit = a.back();
   Bits prev_res;
 
-  for(unsigned s = 0; s < b.size(); ++s) {
+  for(unsigned s = 0; s < log2_size; ++s) {
     // barrel shift stage: at each stage you can either shift by 2^s bits
     // or leave the previous stage untouched
     prev_res = res; 
@@ -805,6 +843,13 @@ void DefaultAshrBB (TNode node, Bits& res, Bitblaster* bb) {
       }
     }
   }
+
+  prev_res = res;
+  for (unsigned i = 0; i < b.size(); ++i) {
+    // this is fine  because b_ult_a_size has been bit-blasted
+    res[i] = utils::mkNode(kind::ITE, b_ult_a_size, prev_res[i], sign_bit); 
+  }
+
   if(Debug.isOn("bitvector-bb")) {
     Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
   }

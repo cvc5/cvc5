@@ -266,6 +266,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
+  case MultDistribVariable: out << "MultDistribConst"; return out;
   case SolveEq : out << "SolveEq"; return out;
   case BitwiseEq : out << "BitwiseEq"; return out;
   case NegMult : out << "NegMult"; return out;

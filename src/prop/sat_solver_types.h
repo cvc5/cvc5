@@ -135,6 +135,10 @@ public:
     return (size_t)d_value;
   }
 
+  uint64_t toInt() const {
+    return d_value; 
+  }
+  
   /**
    * Returns true if the literal is undefined.
    */

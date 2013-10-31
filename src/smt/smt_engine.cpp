@@ -38,6 +38,7 @@
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
 #include "prop/prop_engine.h"
+#include "proof/theory_proof.h"
 #include "smt/modal_exception.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -46,6 +47,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "proof/proof_manager.h"
 #include "util/proof.h"
+#include "proof/proof.h"
 #include "util/boolean_simplification.h"
 #include "util/node_visitor.h"
 #include "util/configuration.h"
@@ -3122,6 +3124,10 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+
+
+  PROOF( ProofManager::currentPM()->addAssertion(ex); ); 
+
   Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
 
   if(d_queryMade && !options::incrementalSolving()) {
@@ -3265,6 +3271,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
+  PROOF( ProofManager::currentPM()->addAssertion(ex);); 
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex

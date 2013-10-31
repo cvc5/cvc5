@@ -238,7 +238,6 @@ SatLiteral CnfStream::convertAtom(TNode node) {
 
   // Make a new literal (variables are not considered theory literals)
   SatLiteral lit = newLiteral(node, theoryLiteral, preRegister, canEliminate);
-  PROOF (ProofManager::getSatProof()->storeAtom(MinisatSatSolver::toMinisatLit(lit), node.toExpr()); ); 
   // Return the resulting literal
   return lit;
 }

@@ -432,6 +432,36 @@ Node RewriteRule<MultSimplify>::apply(TNode node) {
 }
 
 template<> inline
+bool RewriteRule<MultDistribVariable>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_MULT ||
+      node.getNumChildren() != 2) {
+    return false;
+  }
+  Assert(!node[0].isConst());
+  if (!node[1].getNumChildren() == 0) {
+    return false;
+  }
+  TNode factor = node[0];
+  return (factor.getKind() == kind::BITVECTOR_PLUS ||
+          factor.getKind() == kind::BITVECTOR_SUB); 
+}
+
+template<> inline
+Node RewriteRule<MultDistribVariable>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")" << std::endl;
+  TNode var = node[1];
+  TNode factor = node[0];
+
+  std::vector<Node> children;
+  for(unsigned i = 0; i < factor.getNumChildren(); ++i) {
+    children.push_back(utils::mkNode(kind::BITVECTOR_MULT, factor[i], var));
+  }
+  
+  return utils::mkNode(factor.getKind(), children); 
+}
+
+
+template<> inline
 bool RewriteRule<MultDistribConst>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_MULT ||
       node.getNumChildren() != 2) {

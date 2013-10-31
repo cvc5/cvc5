@@ -16,11 +16,97 @@
  **/
 
 #include "proof/cnf_proof.h"
+#include "proof/theory_proof.h"
+#include "proof/proof_manager.h"
+#include "prop/sat_solver_types.h"
+#include "prop/minisat/minisat.h"
+#include "prop/cnf_stream.h"
+
 using namespace CVC4::prop;
 
 namespace CVC4 {
 
-CnfProof::CnfProof(CnfStream* stream) :
-  d_cnfStream(stream) {}
+CnfProof::CnfProof(CnfStream* stream)
+  : d_cnfStream(stream)
+{}
+
+
+Expr CnfProof::getAtom(prop::SatVariable var) {
+  prop::SatLiteral lit (var); 
+  Expr atom = d_cnfStream->getNode(lit).toExpr();
+  return atom; 
+}
+
+CnfProof::~CnfProof() {
+}
+
+void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
+  ProofManager::var_iterator it = ProofManager::currentPM()->begin_vars();
+  ProofManager::var_iterator end = ProofManager::currentPM()->end_vars();
+  
+  for (;it != end;  ++it) {
+    Expr atom = getAtom(*it);
+    os << "(decl_atom ";
+    LFSCTheoryProof::printFormula(atom, os);
+    os << " (\\ " << ProofManager::getVarName(*it) << " (\\ " << ProofManager::getAtomName(*it) << "\n";
+    paren << ")))"; 
+  }
+}
+
+void LFSCCnfProof::printClauses(std::ostream& os, std::ostream& paren) {
+  printInputClauses(os, paren); 
+  printTheoryLemmas(os, paren);
+}
+
+void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
+  os << " ;; Input Clauses \n";
+  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_input_clauses();
+  ProofManager::clause_iterator end = ProofManager::currentPM()->end_input_clauses();
+  
+  for (; it != end; ++it) {
+    ClauseId id = it->first;
+    const prop::SatClause* clause = it->second;
+    os << "(satlem _ _ ";
+    std::ostringstream clause_paren; 
+    printClause(*clause, os, clause_paren);
+    os << " (clausify_false trust)" << clause_paren.str();
+    os << "( \\ " << ProofManager::getInputClauseName(id) << "\n"; 
+    paren << "))"; 
+  }
+}
+
+
+void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
+  os << " ;; Theory Lemmas \n";  
+  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_lemmas();
+  ProofManager::clause_iterator end = ProofManager::currentPM()->end_lemmas();
+  
+  for (; it != end; ++it) {
+    ClauseId id = it->first;
+    const prop::SatClause* clause = it->second;
+    os << "(satlem _ _ ";
+    std::ostringstream clause_paren; 
+    printClause(*clause, os, clause_paren);
+    os << " (clausify_false trust)" << clause_paren.str();
+    os << "( \\ " << ProofManager::getLemmaClauseName(id) <<"\n"; 
+    paren << "))"; 
+  }
+}
+
+void LFSCCnfProof::printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren) {
+  for (unsigned i = 0; i < clause.size(); ++i) {
+    prop::SatLiteral lit = clause[i];
+    prop::SatVariable var = lit.getSatVariable(); 
+    if (lit.isNegated()) {
+      os << "(ast _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
+      paren << "))"; 
+    } else {
+      os << "(asf _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
+      paren << "))"; 
+    }
+  }
+}
+
 
 } /* CVC4 namespace */
+
