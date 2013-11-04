@@ -25,15 +25,22 @@ TESTS =	\
   str003.smt2 \
   str004.smt2 \
   str005.smt2 \
+  str006.smt2 \
+  fmf001.smt2 \
+  fmf002.smt2 \
   model001.smt2 \
   substr001.smt2 \
+  regexp001.smt2 \
+  regexp002.smt2 \
   loop001.smt2 \
   loop002.smt2 \
   loop003.smt2 \
   loop004.smt2 \
   loop005.smt2 \
   loop006.smt2 \
-  loop007.smt2
+  loop007.smt2 \
+  loop008.smt2 \
+  loop009.smt2
 
 FAILING_TESTS =
 

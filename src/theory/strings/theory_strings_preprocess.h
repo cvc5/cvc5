@@ -31,10 +31,11 @@ class StringsPreprocess {
 	// NOTE: this class is NOT context-dependent
 	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
 private:
-	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret );
+	bool checkStarPlus( Node t );
+	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
-void simplify(std::vector< Node > &vec_node);
+    void simplify(std::vector< Node > &vec_node);
 };
 
 }/* CVC4::theory::strings namespace */

@@ -9,9 +9,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief 
+ ** \brief
  **
- ** 
+ **
  **/
 
 #include "smt/model_postprocessor.h"
@@ -92,6 +92,9 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     return n;
   }
   NodeBuilder<> b(n.getKind());
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    b << n.getOperator();
+  }
   TypeNode::iterator t = asType.begin();
   for(TNode::iterator i = n.begin(); i != n.end(); ++i, ++t) {
     Assert(t != asType.end());

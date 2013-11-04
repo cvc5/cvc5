@@ -21,6 +21,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 #include "context/cdchunk_list.h"
 
@@ -37,6 +38,7 @@ class TheoryStrings : public Theory {
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   public:
 
   TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -124,6 +126,8 @@ class TheoryStrings : public Theory {
     Node d_true;
     Node d_false;
     Node d_zero;
+	// RegExp depth
+	//int d_regexp_unroll_depth;
     //list of pairs of nodes to merge
       std::map< Node, Node > d_pending_exp;
       std::vector< Node > d_pending;
@@ -142,15 +146,15 @@ class TheoryStrings : public Theory {
   bool isNormalFormPair( Node n1, Node n2 );
   bool isNormalFormPair2( Node n1, Node n2 );
 
-  NodeListMap d_ind_map1;
-  NodeListMap d_ind_map2;
-  NodeListMap d_ind_map_exp;
-  NodeListMap d_ind_map_lemma;
-  bool addInductiveEquation( Node x, Node y, Node z, Node exp, const char * c );
+  //loop
+  //std::map< Node, bool > d_loop_processed;
 
-  //for unrolling inductive equations
-  NodeBoolMap d_lit_to_unroll;
-
+  //regular expression memberships
+  NodeList d_reg_exp_mem;
+  std::map< Node, bool > d_reg_exp_unroll;
+  std::map< Node, int > d_reg_exp_unroll_depth;
+  //antecedant for why reg exp membership must be true
+  std::map< Node, Node > d_reg_exp_ant;
 
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
@@ -197,12 +201,14 @@ class TheoryStrings : public Theory {
     std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
+	bool unrollStar( Node atom );
 
 	bool checkLengths();
     bool checkNormalForms();
 	bool checkLengthsEqc();
     bool checkCardinality();
     bool checkInductiveEquations();
+	bool checkMemberships();
 	int gcd(int a, int b);
   public:
   void preRegisterTerm(TNode n);
@@ -234,6 +240,8 @@ protected:
   /** mkExplain **/
   Node mkExplain( std::vector< Node >& a );
   Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
+  /** get concat vector */
+  void getConcatVec( Node n, std::vector< Node >& c );
 
   //get equivalence classes
   void getEquivalenceClasses( std::vector< Node >& eqcs );
@@ -242,8 +250,20 @@ protected:
 
   //seperate into collections with equal length
   void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
-private:
   void printConcat( std::vector< Node >& n, const char * c );
+
+private:
+	// Finite Model Finding
+	//bool d_fmf;
+	std::vector< Node > d_in_vars;
+	Node d_in_var_lsum;
+	std::map< int, Node > d_cardinality_lits;
+	context::CDO< int > d_curr_cardinality;
+public:
+	//for finite model finding
+    Node getNextDecisionRequest();
+	void assertNode( Node lit );
+
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

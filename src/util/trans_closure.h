@@ -57,17 +57,17 @@ protected:
   CDBV* next() { return d_next; }
 
 public:
-  CDBV(context::Context* context) : 
+  CDBV(context::Context* context) :
     ContextObj(context), d_data(0), d_next(NULL)
   {}
 
-  ~CDBV() { 
+  ~CDBV() {
     if (d_next != NULL) {
       d_next->deleteSelf();
     }
     destroy();
   }
-
+  void clear() { d_data = 0; if( d_next ) d_next->clear(); }
   bool read(unsigned index) {
     if (index < 64) return (d_data & (uint64_t(1) << index)) != 0;
     else if (d_next == NULL) return false;
@@ -88,7 +88,7 @@ public:
       makeCurrent();
       d_next = new(true) CDBV(getContext());
       d_next->write(index - 64);
-    }      
+    }
   }
 
   void merge(CDBV* pcdbv) {
@@ -108,9 +108,10 @@ public:
 class TransitiveClosure {
   context::Context* d_context;
   std::vector<CDBV* > adjMatrix;
+  context::CDO<unsigned> adjIndex;
 
 public:
-  TransitiveClosure(context::Context* context) : d_context(context) {}
+  TransitiveClosure(context::Context* context) : d_context(context), adjIndex(context,0) {}
   virtual ~TransitiveClosure();
 
   /* Add an edge from node i to node j.  Return false if successful, true if this edge would create a cycle */
@@ -130,7 +131,7 @@ class TransitiveClosureNode : public TransitiveClosure{
   //for debugging
   context::CDList< std::pair< Node, Node > > currEdges;
 public:
-  TransitiveClosureNode(context::Context* context) : 
+  TransitiveClosureNode(context::Context* context) :
     TransitiveClosure(context), d_counter( context, 0 ), nodeMap( context ), currEdges(context) {}
   ~TransitiveClosureNode(){}
 

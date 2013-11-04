@@ -1255,6 +1255,7 @@ builtinOp[CVC4::Kind& kind]
   | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
+  | RERANGE_TOK      { $kind = CVC4::kind::REGEXP_RANGE; }
 
   // NOTE: Theory operators go here
   ;
@@ -1628,6 +1629,7 @@ REINTER_TOK : 're.itr';
 RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';
+RERANGE_TOK : 're.range';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

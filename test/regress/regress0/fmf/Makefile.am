@@ -19,6 +19,7 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
+	array_card.smt2 \
 	agree466.smt2 \
 	ALG008-1.smt2 \
 	german169.smt2 \
@@ -29,7 +30,7 @@ TESTS =	\
 	german73.smt2 \
 	PUZ001+1.smt2 \
 	refcount24.cvc.smt2 \
-	bug0909.smt2 
+	bug0909.smt2
 
 EXTRA_DIST = $(TESTS)
 

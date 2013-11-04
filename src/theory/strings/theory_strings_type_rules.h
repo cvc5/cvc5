@@ -37,12 +37,17 @@ public:
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
+	int size = 0;
     for (; it != it_end; ++ it) {
        TypeNode t = (*it).getType(check);
        if (!t.isString()) {
          throw TypeCheckingExceptionPrivate(n, "expecting string terms in string concat");
        }
+	   ++size;
     }
+	if(size < 2) {
+       throw TypeCheckingExceptionPrivate(n, "expecting at least 2 terms in string concat");
+	}
     return nodeManager->stringType();
   }
 };
@@ -97,12 +102,17 @@ public:
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     TNode::iterator it = n.begin();
     TNode::iterator it_end = n.end();
+	int size = 0;
     for (; it != it_end; ++ it) {
        TypeNode t = (*it).getType(check);
        if (!t.isRegExp()) {
-         throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
+         throw TypeCheckingExceptionPrivate(n, "expecting regexp terms in regexp concat");
        }
+	   ++size;
     }
+	if(size < 2) {
+       throw TypeCheckingExceptionPrivate(n, "expecting at least 2 terms in regexp concat");
+	}
     return nodeManager->regexpType();
   }
 };
@@ -193,6 +203,40 @@ public:
   }
 };
 
+class RegExpRangeTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TNode::iterator it = n.begin();
+    TNode::iterator it_end = n.end();
+	char ch[2];
+
+	for(int i=0; i<2; ++i) {
+		TypeNode t = (*it).getType(check);
+		if (!t.isString()) {
+		  throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
+		}
+		if( (*it).getKind() != kind::CONST_STRING ) {
+		  throw TypeCheckingExceptionPrivate(n, "expecting a constant string term in regexp range");
+		}
+		if( (*it).getConst<String>().size() != 1 ) {
+		  throw TypeCheckingExceptionPrivate(n, "expecting a single constant string term in regexp range");
+		}
+		ch[i] = (*it).getConst<String>().getFirstChar();
+		++it;
+	}
+	if(ch[0] > ch[1]) {
+		throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
+	}
+
+    if( it != it_end ) {
+      throw TypeCheckingExceptionPrivate(n, "too many terms in regexp range");
+    }
+
+    return nodeManager->regexpType();
+  }
+};
+
 class StringToRegExpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -203,9 +247,9 @@ public:
     if (!t.isString()) {
       throw TypeCheckingExceptionPrivate(n, "expecting string terms");
     }
-    if( (*it).getKind() != kind::CONST_STRING ) {
-      throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
-    }
+    //if( (*it).getKind() != kind::CONST_STRING ) {
+    //  throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
+    //}
     if(++it != it_end) {
       throw TypeCheckingExceptionPrivate(n, "too many terms");
     }

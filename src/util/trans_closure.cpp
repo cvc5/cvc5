@@ -37,16 +37,22 @@ TransitiveClosure::~TransitiveClosure() {
 
 bool TransitiveClosure::addEdge(unsigned i, unsigned j)
 {
+  Debug("trans-closure") << "Add edge " << i << " -> " << j << std::endl;
   // Check for loops
   Assert(i != j, "Cannot add self-loop");
-  if (adjMatrix.size() > j && adjMatrix[j] != NULL && adjMatrix[j]->read(i)) {
+  if (adjIndex.get() > j && adjMatrix[j] != NULL && adjMatrix[j]->read(i)) {
     return true;
   }
 
   // Grow matrix if necessary
   unsigned maxSize = ((i > j) ? i : j) + 1;
-  while (maxSize > adjMatrix.size()) {
-    adjMatrix.push_back(NULL);
+  while (maxSize > adjIndex.get()) {
+    if( maxSize > adjMatrix.size() ){
+      adjMatrix.push_back(NULL);
+    }else if( adjMatrix[adjIndex.get()]!=NULL ){
+      adjMatrix[adjIndex.get()]->clear();
+    }
+    adjIndex.set( adjIndex.get() + 1 );
   }
 
   // Add edge from i to j and everything j can reach
@@ -60,7 +66,7 @@ bool TransitiveClosure::addEdge(unsigned i, unsigned j)
 
   // Add edges from everything that can reach i to j and everything that j can reach
   unsigned k;
-  for (k = 0; k < adjMatrix.size(); ++k) {
+  for (k = 0; k < adjIndex.get(); ++k) {
     if (adjMatrix[k] != NULL && adjMatrix[k]->read(i)) {
       adjMatrix[k]->write(j);
       if (adjMatrix[j] != NULL) {
@@ -74,7 +80,7 @@ bool TransitiveClosure::addEdge(unsigned i, unsigned j)
 
 bool TransitiveClosure::isConnected(unsigned i, unsigned j)
 {
-  if( i>=adjMatrix.size() || j>adjMatrix.size() ){
+  if( i>=adjIndex.get() || j>adjIndex.get() ){//adjMatrix.size() ){
     return false;
   }else{
     return adjMatrix[i] != NULL && adjMatrix[i]->read(j);
@@ -84,15 +90,15 @@ bool TransitiveClosure::isConnected(unsigned i, unsigned j)
 void TransitiveClosure::debugPrintMatrix()
 {
   unsigned i,j;
-  for (i = 0; i < adjMatrix.size(); ++i) {
-    for (j = 0; j < adjMatrix.size(); ++j) {
+  for (i = 0; i < adjIndex.get(); ++i) {
+    for (j = 0; j < adjIndex.get(); ++j) {
       if (adjMatrix[i] != NULL && adjMatrix[i]->read(j)) {
         Debug("trans-closure") << "1 ";
       }
       else Debug("trans-closure") << "0 ";
     }
     Debug("trans-closure") << endl;
-  }      
+  }
 }
 
 unsigned TransitiveClosureNode::getId( Node i ){
@@ -108,10 +114,14 @@ unsigned TransitiveClosureNode::getId( Node i ){
 
 void TransitiveClosureNode::debugPrint(){
   for( int i=0; i<(int)currEdges.size(); i++ ){
-    Debug("trans-closure") << "currEdges[ " << i << " ] = " 
+    Debug("trans-closure") << "currEdges[ " << i << " ] = "
                            << currEdges[i].first << " -> " << currEdges[i].second;
+    int id1 = getId( currEdges[i].first );
+    int id2 = getId( currEdges[i].second );
+    Debug("trans-closure") << " { " << id1 << " -> " << id2 << " } ";
     Debug("trans-closure") << std::endl;
   }
+  debugPrintMatrix();
 }
 
 
