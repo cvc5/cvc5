@@ -22,6 +22,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/regexp_operation.h"
 
 #include "context/cdchunk_list.h"
 
@@ -251,6 +252,12 @@ protected:
   //seperate into collections with equal length
   void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
   void printConcat( std::vector< Node >& n, const char * c );
+
+	// Regular Expression
+private:
+	RegExpOpr d_regexp_opr;
+	CVC4::String getHeadConst( Node x );
+	bool splitRegExp( Node x, Node r, Node ant );
 
 private:
 	// Finite Model Finding
