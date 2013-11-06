@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "expr/attribute.h"
+
 namespace CVC4 {
 namespace theory {
 

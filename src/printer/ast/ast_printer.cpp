@@ -17,7 +17,7 @@
 #include "printer/ast/ast_printer.h"
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "util/language.h" // for LANG_AST
-#include "expr/node_manager.h" // for VarNameAttr
+#include "expr/node_manager_attributes.h" // for VarNameAttr
 #include "expr/command.h"
 #include "printer/dagification_visitor.h"
 #include "util/node_visitor.h"

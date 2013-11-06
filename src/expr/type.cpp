@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
 #include "util/exception.h"

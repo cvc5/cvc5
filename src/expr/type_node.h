@@ -916,17 +916,6 @@ inline bool TypeNode::isSExpr() const {
     ( isPredicateSubtype() && getSubtypeParentType().isSExpr() );
 }
 
-/** Is this a sort kind */
-inline bool TypeNode::isSort() const {
-  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) ) ||
-    ( isPredicateSubtype() && getSubtypeParentType().isSort() );
-}
-
-/** Is this a sort constructor kind */
-inline bool TypeNode::isSortConstructor() const {
-  return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
-}
-
 /** Is this a predicate subtype */
 inline bool TypeNode::isPredicateSubtype() const {
   return getKind() == kind::SUBTYPE_TYPE;

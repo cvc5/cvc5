@@ -12,6 +12,7 @@
  ** \brief Implementation of Theory UF Model
  **/
 
+#include "expr/attribute.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
 #include "theory/uf/equality_engine.h"

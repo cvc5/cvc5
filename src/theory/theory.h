@@ -20,7 +20,7 @@
 #define __CVC4__THEORY__THEORY_H
 
 #include "expr/node.h"
-#include "expr/attribute.h"
+//#include "expr/attribute.h"
 #include "expr/command.h"
 #include "theory/valuation.h"
 #include "theory/output_channel.h"

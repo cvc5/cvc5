@@ -1,5 +1,11 @@
 # All unit tests
 UNIT_TESTS = \
+	expr/expr_public \
+	expr/expr_manager_public \
+	expr/type_cardinality_public \
+	util/cardinality_public
+if WHITE_AND_BLACK_TESTS
+UNIT_TESTS += \
 	theory/logic_info_white \
 	theory/theory_engine_white \
 	theory/theory_black \
@@ -7,8 +13,6 @@ UNIT_TESTS = \
 	theory/theory_arith_white \
 	theory/theory_bv_white \
 	theory/type_enumerator_white \
-	expr/expr_public \
-	expr/expr_manager_public \
 	expr/node_white \
 	expr/node_black \
 	expr/kind_black \
@@ -20,7 +24,6 @@ UNIT_TESTS = \
 	expr/attribute_black \
 	expr/symbol_table_black \
 	expr/node_self_iterator_black \
-	expr/type_cardinality_public \
 	expr/type_node_white \
 	parser/parser_black \
 	parser/parser_builder_black \
@@ -51,9 +54,9 @@ UNIT_TESTS = \
 	util/trans_closure_black \
 	util/boolean_simplification_black \
 	util/subrange_bound_white \
-	util/cardinality_public \
 	util/recursion_breaker_black \
 	main/interactive_shell_black
+endif
 
 export VERBOSE = 1
 
@@ -88,12 +91,12 @@ AM_LDFLAGS_BLACK =
 AM_LDFLAGS_PUBLIC =
 AM_LIBADD_WHITE = \
 	@abs_top_builddir@/src/main/libmain.a \
-	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la
+	@abs_top_builddir@/src/parser/libcvc4parser.la \
+	@abs_top_builddir@/src/libcvc4.la
 AM_LIBADD_BLACK = \
 	@abs_top_builddir@/src/main/libmain.a \
-	@abs_top_builddir@/src/parser/libcvc4parser_noinst.la \
-	@abs_top_builddir@/src/libcvc4_noinst.la
+	@abs_top_builddir@/src/parser/libcvc4parser.la \
+	@abs_top_builddir@/src/libcvc4.la
 AM_LIBADD_PUBLIC = \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la

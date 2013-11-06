@@ -22,19 +22,15 @@
 
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arrays {
 
-namespace attr {
-  struct ArrayConstantMostFrequentValueTag { };
-  struct ArrayConstantMostFrequentValueCountTag { };
-}/* CVC4::theory::arrays::attr namespace */
-
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueCountTag, uint64_t> ArrayConstantMostFrequentValueCountAttr;
-typedef expr::Attribute<attr::ArrayConstantMostFrequentValueTag, Node> ArrayConstantMostFrequentValueAttr;
+Node getMostFrequentValue(TNode store);
+uint64_t getMostFrequentValueCount(TNode store);
+void setMostFrequentValue(TNode store, TNode value);
+void setMostFrequentValueCount(TNode store, uint64_t count);
 
 static inline Node mkEqNode(Node a, Node b) {
   return a.getType().isBoolean() ? a.iffNode(b) : a.eqNode(b);
@@ -132,8 +128,8 @@ public:
     unsigned mostFrequentValueCount = 0;
     store = node[0];
     if (store.getKind() == kind::STORE) {
-      mostFrequentValue = store.getAttribute(ArrayConstantMostFrequentValueAttr());
-      mostFrequentValueCount = store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
+      mostFrequentValue = getMostFrequentValue(store);
+      mostFrequentValueCount = getMostFrequentValueCount(store);
     }
 
     // Compute the most frequently written value for n
