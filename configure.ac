@@ -1212,6 +1212,8 @@ AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
 AC_SUBST(pcvc4_LDFLAGS)
 
+AM_CONDITIONAL(WHITE_AND_BLACK_TESTS, [test -z "$FLAG_VISIBILITY_HIDDEN"])
+
 # remember the command line used for configure
 AC_SUBST(cvc4_config_cmdline)
 

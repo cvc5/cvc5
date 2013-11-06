@@ -19,7 +19,7 @@
 #pragma once
 
 #include "expr/node.h"
-#include "expr/attribute.h"
+//#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {

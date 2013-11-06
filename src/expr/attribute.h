@@ -587,6 +587,85 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
 
 }/* CVC4::expr::attr namespace */
 }/* CVC4::expr namespace */
+
+template <class AttrKind>
+inline typename AttrKind::value_type
+NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&) const {
+  return d_attrManager->getAttribute(nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool NodeManager::hasAttribute(expr::NodeValue* nv,
+                                      const AttrKind&) const {
+  return d_attrManager->hasAttribute(nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
+  return d_attrManager->getAttribute(nv, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void
+NodeManager::setAttribute(expr::NodeValue* nv, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
+  d_attrManager->setAttribute(nv, AttrKind(), value);
+}
+
+template <class AttrKind>
+inline typename AttrKind::value_type
+NodeManager::getAttribute(TNode n, const AttrKind&) const {
+  return d_attrManager->getAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::hasAttribute(TNode n, const AttrKind&) const {
+  return d_attrManager->hasAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::getAttribute(TNode n, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
+  return d_attrManager->getAttribute(n.d_nv, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void
+NodeManager::setAttribute(TNode n, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
+  d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
+}
+
+template <class AttrKind>
+inline typename AttrKind::value_type
+NodeManager::getAttribute(TypeNode n, const AttrKind&) const {
+  return d_attrManager->getAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::hasAttribute(TypeNode n, const AttrKind&) const {
+  return d_attrManager->hasAttribute(n.d_nv, AttrKind());
+}
+
+template <class AttrKind>
+inline bool
+NodeManager::getAttribute(TypeNode n, const AttrKind&,
+                          typename AttrKind::value_type& ret) const {
+  return d_attrManager->getAttribute(n.d_nv, AttrKind(), ret);
+}
+
+template <class AttrKind>
+inline void
+NodeManager::setAttribute(TypeNode n, const AttrKind&,
+                          const typename AttrKind::value_type& value) {
+  d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
+}
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__EXPR__ATTRIBUTE_H */

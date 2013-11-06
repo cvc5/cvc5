@@ -19,7 +19,7 @@
 #include "cvc4_private.h"
 
 /* circular dependency; force node.h first */
-#include "expr/attribute.h"
+//#include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "expr/expr.h"
@@ -45,27 +45,11 @@ namespace CVC4 {
 class StatisticsRegistry;
 
 namespace expr {
+  namespace attr {
+    class AttributeManager;
+  }/* CVC4::expr::attr namespace */
 
-class TypeChecker;
-
-// Definition of an attribute for the variable name.
-// TODO: hide this attribute behind a NodeManager interface.
-namespace attr {
-  struct VarNameTag { };
-  struct GlobalVarTag { };
-  struct SortArityTag { };
-  struct DatatypeTupleTag { };
-  struct DatatypeRecordTag { };
-}/* CVC4::expr::attr namespace */
-
-typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
-typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
-typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
-/** Attribute true for datatype types that are replacements for tuple types */
-typedef expr::Attribute<expr::attr::DatatypeTupleTag, TypeNode> DatatypeTupleAttr;
-/** Attribute true for datatype types that are replacements for record types */
-typedef expr::Attribute<expr::attr::DatatypeRecordTag, TypeNode> DatatypeRecordAttr;
-
+  class TypeChecker;
 }/* CVC4::expr namespace */
 
 /**
@@ -117,7 +101,7 @@ class NodeManager {
 
   size_t next_id;
 
-  expr::attr::AttributeManager d_attrManager;
+  expr::attr::AttributeManager* d_attrManager;
 
   /** The associated ExprManager */
   ExprManager* d_exprManager;
@@ -273,15 +257,6 @@ class NodeManager {
     expr::NodeValue nv;
     expr::NodeValue* child[N];
   };/* struct NodeManager::NVStorage<N> */
-
-  // attribute tags
-  struct TypeTag { };
-  struct TypeCheckedTag { };
-
-  // NodeManager's attributes.  These aren't exposed outside of this
-  // class; use the getters.
-  typedef expr::Attribute<TypeTag, TypeNode> TypeAttr;
-  typedef expr::Attribute<TypeCheckedTag, bool> TypeCheckedAttr;
 
   /* A note on isAtomic() and isAtomicFormula() (in CVC3 parlance)..
    *
@@ -781,18 +756,18 @@ public:
   inline TypeNode mkTesterType(TypeNode domain);
 
   /** Make a new (anonymous) sort of arity 0. */
-  inline TypeNode mkSort(uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name of arity 0. */
-  inline TypeNode mkSort(const std::string& name, uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(const std::string& name, uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort by parameterizing the given sort constructor. */
-  inline TypeNode mkSort(TypeNode constructor,
-                         const std::vector<TypeNode>& children,
-                         uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(TypeNode constructor,
+                  const std::vector<TypeNode>& children,
+                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
-  inline TypeNode mkSortConstructor(const std::string& name, size_t arity);
+  TypeNode mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Make a predicate subtype type defined by the given LAMBDA
@@ -932,86 +907,6 @@ public:
                      << "returning to " << NodeManager::s_current << "\n";
   }
 };/* class NodeManagerScope */
-
-
-template <class AttrKind>
-inline typename AttrKind::value_type
-NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&) const {
-  return d_attrManager.getAttribute(nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool NodeManager::hasAttribute(expr::NodeValue* nv,
-                                      const AttrKind&) const {
-  return d_attrManager.hasAttribute(nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool
-NodeManager::getAttribute(expr::NodeValue* nv, const AttrKind&,
-                          typename AttrKind::value_type& ret) const {
-  return d_attrManager.getAttribute(nv, AttrKind(), ret);
-}
-
-template <class AttrKind>
-inline void
-NodeManager::setAttribute(expr::NodeValue* nv, const AttrKind&,
-                          const typename AttrKind::value_type& value) {
-  d_attrManager.setAttribute(nv, AttrKind(), value);
-}
-
-template <class AttrKind>
-inline typename AttrKind::value_type
-NodeManager::getAttribute(TNode n, const AttrKind&) const {
-  return d_attrManager.getAttribute(n.d_nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool
-NodeManager::hasAttribute(TNode n, const AttrKind&) const {
-  return d_attrManager.hasAttribute(n.d_nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool
-NodeManager::getAttribute(TNode n, const AttrKind&,
-                          typename AttrKind::value_type& ret) const {
-  return d_attrManager.getAttribute(n.d_nv, AttrKind(), ret);
-}
-
-template <class AttrKind>
-inline void
-NodeManager::setAttribute(TNode n, const AttrKind&,
-                          const typename AttrKind::value_type& value) {
-  d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
-}
-
-template <class AttrKind>
-inline typename AttrKind::value_type
-NodeManager::getAttribute(TypeNode n, const AttrKind&) const {
-  return d_attrManager.getAttribute(n.d_nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool
-NodeManager::hasAttribute(TypeNode n, const AttrKind&) const {
-  return d_attrManager.hasAttribute(n.d_nv, AttrKind());
-}
-
-template <class AttrKind>
-inline bool
-NodeManager::getAttribute(TypeNode n, const AttrKind&,
-                          typename AttrKind::value_type& ret) const {
-  return d_attrManager.getAttribute(n.d_nv, AttrKind(), ret);
-}
-
-template <class AttrKind>
-inline void
-NodeManager::setAttribute(TypeNode n, const AttrKind&,
-                          const typename AttrKind::value_type& value) {
-  d_attrManager.setAttribute(n.d_nv, AttrKind(), value);
-}
-
 
 /** Get the (singleton) type for booleans. */
 inline TypeNode NodeManager::booleanType() {
@@ -1227,69 +1122,6 @@ inline bool NodeManager::hasOperator(Kind k) {
   default:
     Unhandled(mk);
   }
-}
-
-inline TypeNode NodeManager::mkSort(uint32_t flags) {
-  NodeBuilder<1> nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
-  nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
-}
-
-inline TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
-  NodeBuilder<1> nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
-  nb << sortTag;
-  TypeNode tn = nb.constructTypeNode();
-  setAttribute(tn, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSort(tn, flags);
-  }
-  return tn;
-}
-
-inline TypeNode NodeManager::mkSort(TypeNode constructor,
-                                    const std::vector<TypeNode>& children,
-                                    uint32_t flags) {
-  Assert(constructor.getKind() == kind::SORT_TYPE &&
-         constructor.getNumChildren() == 0,
-         "expected a sort constructor");
-  Assert(children.size() > 0, "expected non-zero # of children");
-  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) &&
-          hasAttribute(constructor.d_nv, expr::VarNameAttr()),
-          "expected a sort constructor" );
-  std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
-  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size(),
-         "arity mismatch in application of sort constructor");
-  NodeBuilder<> nb(this, kind::SORT_TYPE);
-  Node sortTag = Node(constructor.d_nv->d_children[0]);
-  nb << sortTag;
-  nb.append(children);
-  TypeNode type = nb.constructTypeNode();
-  setAttribute(type, expr::VarNameAttr(), name);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
-  }
-  return type;
-}
-
-inline TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                               size_t arity) {
-  Assert(arity > 0);
-  NodeBuilder<> nb(this, kind::SORT_TYPE);
-  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
-  nb << sortTag;
-  TypeNode type = nb.constructTypeNode();
-  setAttribute(type, expr::VarNameAttr(), name);
-  setAttribute(type, expr::SortArityAttr(), arity);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type);
-  }
-  return type;
 }
 
 inline Kind NodeManager::operatorToKind(TNode n) {
@@ -1538,95 +1370,6 @@ inline TypeNode NodeManager::mkTypeNode(Kind kind, TypeNode child1,
 inline TypeNode NodeManager::mkTypeNode(Kind kind,
                                         const std::vector<TypeNode>& children) {
   return NodeBuilder<>(this, kind).append(children).constructTypeNode();
-}
-
-
-inline Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
-  Node n = NodeBuilder<0>(this, kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::VarNameAttr(), name);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
-  }
-  return n;
-}
-
-inline Node* NodeManager::mkVarPtr(const std::string& name,
-                                   const TypeNode& type, uint32_t flags) {
-  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::VarNameAttr(), name);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
-  }
-  return n;
-}
-
-inline Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type) {
-  Node n = mkBoundVar(type);
-  setAttribute(n, expr::VarNameAttr(), name);
-  return n;
-}
-
-inline Node* NodeManager::mkBoundVarPtr(const std::string& name,
-                                        const TypeNode& type) {
-  Node* n = mkBoundVarPtr(type);
-  setAttribute(*n, expr::VarNameAttr(), name);
-  return n;
-}
-
-inline Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
-  Node n = NodeBuilder<0>(this, kind::VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
-  }
-  return n;
-}
-
-inline Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
-  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
-  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
-  }
-  return n;
-}
-
-inline Node NodeManager::mkBoundVar(const TypeNode& type) {
-  Node n = NodeBuilder<0>(this, kind::BOUND_VARIABLE);
-  setAttribute(n, TypeAttr(), type);
-  setAttribute(n, TypeCheckedAttr(), true);
-  return n;
-}
-
-inline Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
-  Node* n = NodeBuilder<0>(this, kind::BOUND_VARIABLE).constructNodePtr();
-  setAttribute(*n, TypeAttr(), type);
-  setAttribute(*n, TypeCheckedAttr(), true);
-  return n;
-}
-
-inline Node NodeManager::mkInstConstant(const TypeNode& type) {
-  Node n = NodeBuilder<0>(this, kind::INST_CONSTANT);
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
-}
-
-inline Node NodeManager::mkAbstractValue(const TypeNode& type) {
-  Node n = mkConst(AbstractValue(++d_abstractValueCount));
-  n.setAttribute(TypeAttr(), type);
-  n.setAttribute(TypeCheckedAttr(), true);
-  return n;
 }
 
 template <class T>

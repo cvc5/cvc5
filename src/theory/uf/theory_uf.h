@@ -21,7 +21,7 @@
 #define __CVC4__THEORY__UF__THEORY_UF_H
 
 #include "expr/node.h"
-#include "expr/attribute.h"
+//#include "expr/attribute.h"
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"

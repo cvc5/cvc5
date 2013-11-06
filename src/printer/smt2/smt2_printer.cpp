@@ -28,6 +28,7 @@
 #include "util/language.h"
 #include "smt/smt_engine.h"
 #include "smt/options.h"
+#include "expr/node_manager_attributes.h"
 
 #include "theory/model.h"
 #include "theory/arrays/theory_arrays_rewriter.h"

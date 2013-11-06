@@ -17,7 +17,9 @@
  **/
 
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 
+#include "expr/attribute.h"
 #include "util/cvc4_assert.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
@@ -83,7 +85,7 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_options(new Options()),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
-  d_attrManager(ctxt),
+  d_attrManager(new expr::attr::AttributeManager(ctxt)),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
@@ -97,7 +99,7 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_options(new Options(options)),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
-  d_attrManager(ctxt),
+  d_attrManager(new expr::attr::AttributeManager(ctxt)),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
@@ -105,7 +107,7 @@ NodeManager::NodeManager(context::Context* ctxt,
   init();
 }
 
-inline void NodeManager::init() {
+void NodeManager::init() {
   poolInsert( &expr::NodeValue::s_null );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
@@ -125,7 +127,7 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
-    d_attrManager.deleteAllAttributes();
+    d_attrManager->deleteAllAttributes();
   }
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
@@ -153,6 +155,7 @@ NodeManager::~NodeManager() {
   }
 
   delete d_statisticsRegistry;
+  delete d_attrManager;
   delete d_options;
 }
 
@@ -216,7 +219,7 @@ void NodeManager::reclaimZombies() {
       d_nodeUnderDeletion = nv;
 
       // remove attributes
-      d_attrManager.deleteAllAttributes(nv);
+      d_attrManager->deleteAllAttributes(nv);
 
       // decr ref counts of children
       nv->decrRefCounts();
@@ -430,6 +433,157 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
   }
   Assert(!dtt.isNull());
   return dtt;
+}
+
+TypeNode NodeManager::mkSort(uint32_t flags) {
+  NodeBuilder<1> nb(this, kind::SORT_TYPE);
+  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
+  nb << sortTag;
+  TypeNode tn = nb.constructTypeNode();
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSort(tn, flags);
+  }
+  return tn;
+}
+
+TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
+  NodeBuilder<1> nb(this, kind::SORT_TYPE);
+  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
+  nb << sortTag;
+  TypeNode tn = nb.constructTypeNode();
+  setAttribute(tn, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSort(tn, flags);
+  }
+  return tn;
+}
+
+TypeNode NodeManager::mkSort(TypeNode constructor,
+                                    const std::vector<TypeNode>& children,
+                                    uint32_t flags) {
+  Assert(constructor.getKind() == kind::SORT_TYPE &&
+         constructor.getNumChildren() == 0,
+         "expected a sort constructor");
+  Assert(children.size() > 0, "expected non-zero # of children");
+  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) &&
+          hasAttribute(constructor.d_nv, expr::VarNameAttr()),
+          "expected a sort constructor" );
+  std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
+  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size(),
+         "arity mismatch in application of sort constructor");
+  NodeBuilder<> nb(this, kind::SORT_TYPE);
+  Node sortTag = Node(constructor.d_nv->d_children[0]);
+  nb << sortTag;
+  nb.append(children);
+  TypeNode type = nb.constructTypeNode();
+  setAttribute(type, expr::VarNameAttr(), name);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyInstantiateSortConstructor(constructor, type, flags);
+  }
+  return type;
+}
+
+TypeNode NodeManager::mkSortConstructor(const std::string& name,
+                                        size_t arity) {
+  Assert(arity > 0);
+  NodeBuilder<> nb(this, kind::SORT_TYPE);
+  Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
+  nb << sortTag;
+  TypeNode type = nb.constructTypeNode();
+  setAttribute(type, expr::VarNameAttr(), name);
+  setAttribute(type, expr::SortArityAttr(), arity);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewSortConstructor(type);
+  }
+  return type;
+}
+
+Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
+  Node n = NodeBuilder<0>(this, kind::VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  setAttribute(n, expr::VarNameAttr(), name);
+  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(n, flags);
+  }
+  return n;
+}
+
+Node* NodeManager::mkVarPtr(const std::string& name,
+                            const TypeNode& type, uint32_t flags) {
+  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
+  setAttribute(*n, expr::VarNameAttr(), name);
+  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(*n, flags);
+  }
+  return n;
+}
+
+Node NodeManager::mkBoundVar(const std::string& name, const TypeNode& type) {
+  Node n = mkBoundVar(type);
+  setAttribute(n, expr::VarNameAttr(), name);
+  return n;
+}
+
+Node* NodeManager::mkBoundVarPtr(const std::string& name,
+                                 const TypeNode& type) {
+  Node* n = mkBoundVarPtr(type);
+  setAttribute(*n, expr::VarNameAttr(), name);
+  return n;
+}
+
+Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
+  Node n = NodeBuilder<0>(this, kind::VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(n, flags);
+  }
+  return n;
+}
+
+Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
+  Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
+  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
+  for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+    (*i)->nmNotifyNewVar(*n, flags);
+  }
+  return n;
+}
+
+Node NodeManager::mkBoundVar(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::BOUND_VARIABLE);
+  setAttribute(n, TypeAttr(), type);
+  setAttribute(n, TypeCheckedAttr(), true);
+  return n;
+}
+
+Node* NodeManager::mkBoundVarPtr(const TypeNode& type) {
+  Node* n = NodeBuilder<0>(this, kind::BOUND_VARIABLE).constructNodePtr();
+  setAttribute(*n, TypeAttr(), type);
+  setAttribute(*n, TypeCheckedAttr(), true);
+  return n;
+}
+
+Node NodeManager::mkInstConstant(const TypeNode& type) {
+  Node n = NodeBuilder<0>(this, kind::INST_CONSTANT);
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  return n;
+}
+
+Node NodeManager::mkAbstractValue(const TypeNode& type) {
+  Node n = mkConst(AbstractValue(++d_abstractValueCount));
+  n.setAttribute(TypeAttr(), type);
+  n.setAttribute(TypeCheckedAttr(), true);
+  return n;
 }
 
 }/* CVC4 namespace */

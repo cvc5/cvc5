@@ -22,8 +22,7 @@
 #include "theory/booleans/boolean_term_conversion_mode.h"
 #include "theory/booleans/options.h"
 #include "expr/kind.h"
-#include "util/hash.h"
-#include "util/bool.h"
+#include "expr/node_manager_attributes.h"
 #include "util/ntuple.h"
 #include <string>
 #include <algorithm>

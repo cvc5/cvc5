@@ -18,10 +18,11 @@
 
 #include "expr/type_checker.h"
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 
 ${typechecker_includes}
 
-#line 25 "${template}"
+#line 26 "${template}"
 
 namespace CVC4 {
 namespace expr {
@@ -34,7 +35,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
   switch(n.getKind()) {
   case kind::VARIABLE:
   case kind::SKOLEM:
-    typeNode = nodeManager->getAttribute(n, NodeManager::TypeAttr());
+    typeNode = nodeManager->getAttribute(n, TypeAttr());
     break;
   case kind::BUILTIN:
     typeNode = nodeManager->builtinOperatorType();
@@ -45,16 +46,16 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 ${typerules}
 
-#line 49 "${template}"
+#line 50 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
     Unhandled(n.getKind());
   }
 
-  nodeManager->setAttribute(n, NodeManager::TypeAttr(), typeNode);
-  nodeManager->setAttribute(n, NodeManager::TypeCheckedAttr(),
-                            check || nodeManager->getAttribute(n, NodeManager::TypeCheckedAttr()));
+  nodeManager->setAttribute(n, TypeAttr(), typeNode);
+  nodeManager->setAttribute(n, TypeCheckedAttr(),
+                            check || nodeManager->getAttribute(n, TypeCheckedAttr()));
 
   return typeNode;
 
@@ -68,7 +69,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 72 "${template}"
+#line 73 "${template}"
 
   default:;
   }

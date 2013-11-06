@@ -17,6 +17,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 #define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
+#include "expr/attribute.h"
 #include "theory/theory.h"
 
 #include <map>

@@ -23,6 +23,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/attribute.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/node.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -143,7 +144,7 @@ public:
 //    TS_ASSERT_DIFFERS(theory::PreRewriteCacheTop::s_id, theory::PostRewriteCacheTop::s_id);
 
     lastId = attr::LastAttributeId<TypeNode, false>::getId();
-    TS_ASSERT_LESS_THAN(NodeManager::TypeAttr::s_id, lastId);
+    TS_ASSERT_LESS_THAN(TypeAttr::s_id, lastId);
 
   }
 

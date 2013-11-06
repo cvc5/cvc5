@@ -16,6 +16,7 @@
 
 #include "smt/model_postprocessor.h"
 #include "smt/boolean_terms.h"
+#include "expr/node_manager_attributes.h"
 
 using namespace std;
 using namespace CVC4;
