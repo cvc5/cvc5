@@ -190,7 +190,6 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol,
     }
   }else if( lit.getKind()==LEQ || lit.getKind()==LT || lit.getKind()==GT ) {
     Message() << "BoundedIntegers : Bad kind for literal : " << lit << std::endl;
-    exit(0);
   }
 }
 
@@ -232,7 +231,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
     if( f[0][i].getType().isInteger() ){
       hasIntType = true;
     }
-    else if( f[0][i].getType().isSort() ){
+    else if( f[0][i].getType().isSort() || f[0][i].getType().getCardinality().isFinite() ){
       finiteTypes++;
     }
   }
@@ -292,6 +291,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
       }
     }else{
       Trace("bound-int-warn") << "Warning : Bounded Integers : Could not find bounds for " << f << std::endl;
+      //Message() << "Bound integers : Cannot infer bounds of " << f << std::endl;
     }
   }
 }

@@ -44,7 +44,7 @@ bool QModelBuilder::isQuantifierActive( Node f ) {
 
 
 bool QModelBuilder::optUseModel() {
-  return options::fmfModelBasedInst();
+  return options::fmfModelBasedInst() || options::fmfBoundInt();
 }
 
 void QModelBuilder::debugModel( FirstOrderModel* fm ){

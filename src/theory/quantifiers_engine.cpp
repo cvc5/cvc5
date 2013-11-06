@@ -50,7 +50,7 @@ d_lemmas_produced_c(u){
   d_hasAddedLemma = false;
 
   //the model object
-  if( options::fmfFullModelCheck() ){
+  if( options::fmfFullModelCheck() || options::fmfBoundInt() ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
   }else{
     d_model = new quantifiers::FirstOrderModelIG( c, "FirstOrderModelIG" );
@@ -283,6 +283,10 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
     d_temp_inst_debug[f]++;
     d_total_inst_count_debug++;
     Trace("inst") << "*** Instantiate " << f << " with " << std::endl;
+    for( int i=0; i<(int)terms.size(); i++ ){
+      Trace("inst") << "   " << terms[i];
+      Trace("inst") << std::endl;
+    }
     //uint64_t maxInstLevel = 0;
     if( options::cbqi() ){
       for( int i=0; i<(int)terms.size(); i++ ){

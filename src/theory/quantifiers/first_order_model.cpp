@@ -668,13 +668,19 @@ Node FirstOrderModelFmc::getInterval( Node lb, Node ub ){
 }
 
 bool FirstOrderModelFmc::isInRange( Node v, Node i ) {
-  for( unsigned b=0; b<2; b++ ){
-    if( !isStar( i[b] ) ){
-      if( ( b==0 && i[b].getConst<Rational>() > v.getConst<Rational>() ) ||
-          ( b==1 && i[b].getConst<Rational>() <= v.getConst<Rational>() ) ){
-        return false;
+  if( isStar( i ) ){
+    return true;
+  }else if( isInterval( i ) ){
+    for( unsigned b=0; b<2; b++ ){
+      if( !isStar( i[b] ) ){
+        if( ( b==0 && i[b].getConst<Rational>() > v.getConst<Rational>() ) ||
+            ( b==1 && i[b].getConst<Rational>() <= v.getConst<Rational>() ) ){
+          return false;
+        }
       }
     }
+    return true;
+  }else{
+    return v==i;
   }
-  return true;
 }
