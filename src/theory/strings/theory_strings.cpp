@@ -1017,17 +1017,19 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 											//d_pending_req_phase[ x_empty ] = true;
 											if( !areDisequal( normal_forms[loop_n_index][loop_index], d_emptyString ) ){
 												//try to make normal_forms[loop_n_index][loop_index] equal to empty to avoid loop
-												sendSplit( normal_forms[loop_n_index][loop_index], d_emptyString, "Loop Empty" );
+												sendSplit( normal_forms[loop_n_index][loop_index], d_emptyString, "Loop Empty x" );
 												return true;
-											} else if( !areDisequal( t_yz, d_emptyString ) ) {
+											} else if( !areDisequal( t_yz, d_emptyString ) && t_yz.getKind()!=kind::CONST_STRING  ) {
 												//TODO...........
 												//try to make normal_forms[loop_n_index][loop_index] equal to empty to avoid loop
-												sendSplit( t_yz, d_emptyString, "Loop Empty" );
+												sendSplit( t_yz, d_emptyString, "Loop Empty yz" );
 												return true;
 											} else {
 												//need to break
 												antec.push_back( normal_forms[loop_n_index][loop_index].eqNode( d_emptyString ).negate() );
-												antec.push_back( t_yz.eqNode( d_emptyString ).negate() );
+												if( t_yz.getKind()!=kind::CONST_STRING ){
+													antec.push_back( t_yz.eqNode( d_emptyString ).negate() );
+												}
 												Node ant = mkExplain( antec, antec_new_lits );
 												Node str_in_re;
 												if( s_zy == t_yz &&
@@ -1977,7 +1979,6 @@ bool TheoryStrings::checkMemberships() {
 				Assert( atom.getKind()==kind::STRING_IN_REGEXP );
 				Node x = atom[0];
 				Node r = atom[1];
-				//TODO
 				Assert( r.getKind()==kind::REGEXP_STAR );
 				if( !areEqual( x, d_emptyString ) ){
 					//if(splitRegExp( x, r, atom )) {
@@ -2039,11 +2040,11 @@ bool TheoryStrings::checkMemberships() {
 }
 
 CVC4::String TheoryStrings::getHeadConst( Node x ) {
-	if( x.isConst() && x != d_emptyString ) {
+	if( x.isConst() ) {
 		return x.getConst< String >();
 	} else if( x.getKind() == kind::STRING_CONCAT ) {
-		if( x[0].isConst() && x[0] != d_emptyString ) {
-			return x.getConst< String >();
+		if( x[0].isConst() ) {
+			return x[0].getConst< String >();
 		} else {
 			return d_emptyString.getConst< String >();
 		}
@@ -2053,47 +2054,65 @@ CVC4::String TheoryStrings::getHeadConst( Node x ) {
 }
 
 bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
-	x =  Rewriter::rewrite( x );
-	if(x == d_emptyString) {
-		if(d_regexp_opr.delta( r ) == 1) {
-		}
-		return false;
-	} else {
-		CVC4::String s = getHeadConst( x );
-		if( !s.isEmptyString() && d_regexp_opr.checkConstRegExp( r ) ) {
-			Node conc = Node::null();
-			Node dc = r;
-			bool flag = true;
-			for(unsigned i=0; i<s.size(); ++i) {
-				CVC4::String c = s.substr(i, 1);
-				dc = d_regexp_opr.derivativeSingle(dc, c);
-				if(dc.isNull()) {
-					// CONFLICT
-					flag = false;
-					break;
-				}
+	// TODO cstr in vre
+	Assert(x != d_emptyString);
+	Trace("strings-regexp-split") << "TheoryStrings::splitRegExp: x=" << x << ", r= " << r << std::endl;
+	CVC4::String s = getHeadConst( x );
+	if( !s.isEmptyString() && d_regexp_opr.checkConstRegExp( r ) ) {
+		Node conc = Node::null();
+		Node dc = r;
+		bool flag = true;
+		for(unsigned i=0; i<s.size(); ++i) {
+			CVC4::String c = s.substr(i, 1);
+			dc = d_regexp_opr.derivativeSingle(dc, c);
+			if(dc.isNull()) {
+				// CONFLICT
+				flag = false;
+				break;
 			}
-			// send lemma
-			if(flag) {
-				Node left = Node::null();
-				if(x.isConst()) {
-					left = d_emptyString;
-					if(d_regexp_opr.delta(dc)) {
-						//TODO yes
-					} else {
-						// TODO conflict
-					}
+		}
+		// send lemma
+		if(flag) {
+			if(x.isConst()) {
+				/*
+				left = d_emptyString;
+				if(d_regexp_opr.delta(dc) == 1) {
+					//TODO yes possible?
+				} else if(d_regexp_opr.delta(dc) == 0) {
+					//TODO possible?
 				} else {
-					//TODO find x rest
-					conc = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, dc );
+					// TODO conflict possible?
+				}*/
+				Assert(false, "Impossible: TheoryStrings::splitRegExp: const string in const regular expression.");
+				return false;
+			} else {
+				Assert( x.getKind() == kind::STRING_CONCAT );
+				std::vector< Node > vec_nodes;
+				for(unsigned int i=1; i<x.getNumChildren(); ++i ) {
+					vec_nodes.push_back( x[i] );
 				}
+				Node left = vec_nodes.size() == 1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec_nodes );
+				left = Rewriter::rewrite( left );
+				conc = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, left, dc );
+
+				std::vector< Node > sdc;
+				sdc.push_back( conc );
+
+				StringsPreprocess spp;
+				spp.simplify( sdc );
+				for( unsigned i=1; i<sdc.size(); i++ ){
+					//add the others as lemmas
+					sendLemma( d_true, sdc[i], "RegExp Definition");
+				}
+				
+				conc = sdc[0];
 			}
-			sendLemma(ant, conc, "RegExp Const Split");
-		} else {
-			return false;
 		}
+		sendLemma(ant, conc, "RegExp Const Split");
+		return true;
+	} else {
+		return false;
 	}
-	return false;
 }
 
 Node TheoryStrings::getNextDecisionRequest() {
