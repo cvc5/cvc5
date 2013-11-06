@@ -31,6 +31,7 @@ RegExpOpr::RegExpOpr() {
 }
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
+	Trace("strings-regexp-cstre") << "RegExp-CheckConstRegExp starts with " << mkString( r ) << std::endl;
 	bool ret = true;
 	if( d_cstre_cache.find( r ) != d_cstre_cache.end() ) {
 		ret = d_cstre_cache[r];
@@ -159,7 +160,7 @@ int RegExpOpr::delta( Node r ) {
 //null - no solution
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 	Assert( c.size() < 2 );
-	Trace("strings-regexp-derivative") << "RegExp-derivative starts with " << mkString( r ) << ", c=" << c << std::endl;
+	Trace("strings-regexp-derivative") << "RegExp-derivative starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
 	Node retNode = Node::null();
 	PairDvStr dv = std::make_pair( r, c );
 	if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
@@ -236,7 +237,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 							vec_nodes.push_back( dc );
 						}
 					}
-
+					Trace("strings-regexp-derivative") << "RegExp-derivative OR R[" << i << "]{ " << mkString(r[i]) << " returns " << (dc.isNull() ?  "NULL" : mkString(dc) ) << std::endl;
 				}
 				retNode = vec_nodes.size() == 0 ? Node::null() :
 							( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_OR, vec_nodes ) );
@@ -296,16 +297,16 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 				break;
 			case kind::REGEXP_OPT:
 			{
-				return derivativeSingle(r[0], c);
+				retNode = derivativeSingle(r[0], c);
 			}
 				break;
 			case kind::REGEXP_RANGE:
 			{
 				char ch = c.getFirstChar();
 				if (ch >= r[0].getConst< CVC4::String >().getFirstChar() && ch <= r[1].getConst< CVC4::String >().getFirstChar() ) {
-					return d_emptyString;
+					retNode = d_emptyString;
 				} else {
-					return Node::null();
+					retNode = Node::null();
 				}
 			}
 				break;
@@ -314,6 +315,9 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 				Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
 				//AlwaysAssert( false );
 				//return Node::null();
+		}
+		if(!retNode.isNull()) {
+			retNode = Rewriter::rewrite( retNode );
 		}
 		d_dv_cache[dv] = retNode;
 	}
