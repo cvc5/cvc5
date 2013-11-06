@@ -192,6 +192,17 @@ Node TheoryStrings::explain( TNode literal ){
 }
 
 /////////////////////////////////////////////////////////////////////////////
+// NOTIFICATIONS
+/////////////////////////////////////////////////////////////////////////////
+
+
+void TheoryStrings::presolve()
+{
+  Trace("strings-presolve") << "TheoryStrings : Presolving " << std::endl;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
@@ -2044,8 +2055,8 @@ CVC4::String TheoryStrings::getHeadConst( Node x ) {
 bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 	x =  Rewriter::rewrite( x );
 	if(x == d_emptyString) {
-		//if(d_regexp_opr.delta() == 1) {
-		//}
+		if(d_regexp_opr.delta( r ) == 1) {
+		}
 		return false;
 	} else {
 		CVC4::String s = getHeadConst( x );
