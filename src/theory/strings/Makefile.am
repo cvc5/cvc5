@@ -13,7 +13,8 @@ libstrings_la_SOURCES = \
 	theory_strings_type_rules.h \
 	type_enumerator.h \
 	theory_strings_preprocess.h \
-	theory_strings_preprocess.cpp
+	theory_strings_preprocess.cpp \
+	regexp_operation.cpp
 
 EXTRA_DIST = \
 	kinds

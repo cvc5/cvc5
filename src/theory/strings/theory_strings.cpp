@@ -60,9 +60,6 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
 
-	//option
-	//d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
-	//d_fmf = options::stringFMF();
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -394,7 +391,27 @@ void TheoryStrings::check(Effort e) {
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
 		//if(fact[0].getKind() != kind::CONST_STRING) {
-		 d_reg_exp_mem.push_back( assertion );
+		//if(polarity) {
+			d_reg_exp_mem.push_back( assertion );
+		/*} else {
+			Node r = Rewriter::rewrite( atom[1] );
+			r = d_regexp_opr.complement( r );
+			r = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, atom[0], r );
+			std::vector< Node > vec_r;
+			vec_r.push_back( r );
+
+			StringsPreprocess spp;
+			spp.simplify( vec_r );
+			for( unsigned i=1; i<vec_r.size(); i++ ){
+				if(vec_r[i].getKind() == kind::STRING_IN_REGEXP) {
+					d_reg_exp_mem.push_back( vec_r[i] );
+				} else if(vec_r[i].getKind() == kind::EQUAL) {
+					d_equalityEngine.assertEquality(vec_r[i], true, vec_r[i]);
+				} else {
+					Assert(false);
+				}
+			}
+		}*/
 		//}
 	}else if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
@@ -1869,7 +1886,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 	Node r = atom[1];
 	int depth = d_reg_exp_unroll_depth.find( atom )==d_reg_exp_unroll_depth.end() ? 0 : d_reg_exp_unroll_depth[atom];
 	if( depth <= options::stringRegExpUnrollDepth() ) {
-		Trace("strings-regex") << "Strings::regex: Unroll " << atom << " for " << ( depth + 1 ) << " times." << std::endl;
+		Trace("strings-regexp") << "Strings::regexp: Unroll " << atom << " for " << ( depth + 1 ) << " times." << std::endl;
 		d_reg_exp_unroll[atom] = true;
 		//add lemma?
 		Node xeqe = x.eqNode( d_emptyString );
@@ -1930,7 +1947,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 		sendLemma( ant, lem, "Unroll" );
 		return true;
 	}else{
-		Trace("strings-regex") << "Strings::regex: Stop unrolling " << atom << " the max (" << depth << ") is reached." << std::endl;
+		Trace("strings-regexp") << "Strings::regexp: Stop unrolling " << atom << " the max (" << depth << ") is reached." << std::endl;
 		return false;
 	}
 }
@@ -1941,7 +1958,7 @@ bool TheoryStrings::checkMemberships() {
 	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
 		//check regular expression membership
 		Node assertion = d_reg_exp_mem[i];
-		Trace("strings-regex") << "We have regular expression assertion : " << assertion << std::endl;
+		Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
 		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
 		bool polarity = assertion.getKind()!=kind::NOT;
 		if( polarity ){
@@ -1952,21 +1969,49 @@ bool TheoryStrings::checkMemberships() {
 				//TODO
 				Assert( r.getKind()==kind::REGEXP_STAR );
 				if( !areEqual( x, d_emptyString ) ){
-					if( unrollStar( atom ) ){
+					//if(splitRegExp( x, r, atom )) {
+					//	addedLemma = true;
+					//} else 
+					if( unrollStar( atom ) ) {
 						addedLemma = true;
-					}else{
-						Trace("strings-regex") << "RegEx is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
+					} else {
+						Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
 						is_unk = true;
 					}
 				}else{
-					Trace("strings-regex") << "...is satisfied." << std::endl;
+					Trace("strings-regexp") << "...is satisfied." << std::endl;
 				}
 			}else{
-				Trace("strings-regex") << "...Already unrolled." << std::endl;
+				Trace("strings-regexp") << "...Already unrolled." << std::endl;
 			}
 		}else{
 			//TODO: negative membership
-			Trace("strings-regex") << "RegEx is incomplete due to " << assertion << "." << std::endl;
+			//Node r = Rewriter::rewrite( atom[1] );
+			//r = d_regexp_opr.complement( r );
+			//Trace("strings-regexp-test") << "Compl( " << d_regexp_opr.mkString( atom[1] ) << " ) is " << d_regexp_opr.mkString( r ) << std::endl;
+			//Trace("strings-regexp-test") << "Delta( " << d_regexp_opr.mkString( atom[1] ) << " ) is " << d_regexp_opr.delta( atom[1] ) << std::endl;
+			//Trace("strings-regexp-test") << "Delta( " << d_regexp_opr.mkString( r ) << " ) is " << d_regexp_opr.delta( r ) << std::endl;
+			//Trace("strings-regexp-test") << "Deriv( " << d_regexp_opr.mkString( r ) << ", c='b' ) is " << d_regexp_opr.mkString( d_regexp_opr.derivativeSingle( r, ::CVC4::String("b") ) ) << std::endl;
+			//Trace("strings-regexp-test") << "FHC( " << d_regexp_opr.mkString( r ) <<" ) is " << std::endl;
+			//d_regexp_opr.firstChar( r );
+			//r = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, atom[0], r );
+			/*
+			std::vector< Node > vec_r;
+			vec_r.push_back( r );
+
+			StringsPreprocess spp;
+			spp.simplify( vec_r );
+			for( unsigned i=1; i<vec_r.size(); i++ ){
+				if(vec_r[i].getKind() == kind::STRING_IN_REGEXP) {
+					d_reg_exp_mem.push_back( vec_r[i] );
+				} else if(vec_r[i].getKind() == kind::EQUAL) {
+					d_equalityEngine.assertEquality(vec_r[i], true, vec_r[i]);
+				} else {
+					Assert(false);
+				}
+			}
+			*/
+			Trace("strings-regexp") << "RegEx is incomplete due to " << assertion << "." << std::endl;
 			is_unk = true;
 		}
 	}
@@ -1975,11 +2020,69 @@ bool TheoryStrings::checkMemberships() {
 		return true;
 	}else{
 		if( is_unk ){
-			Trace("strings-regex") << "SET INCOMPLETE" << std::endl;
+			Trace("strings-regexp") << "SET INCOMPLETE" << std::endl;
 			d_out->setIncomplete();
 		}
 		return false;
 	}
+}
+
+CVC4::String TheoryStrings::getHeadConst( Node x ) {
+	if( x.isConst() && x != d_emptyString ) {
+		return x.getConst< String >();
+	} else if( x.getKind() == kind::STRING_CONCAT ) {
+		if( x[0].isConst() && x[0] != d_emptyString ) {
+			return x.getConst< String >();
+		} else {
+			return d_emptyString.getConst< String >();
+		}
+	} else {
+		return d_emptyString.getConst< String >();
+	}
+}
+
+bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
+	x =  Rewriter::rewrite( x );
+	if(x == d_emptyString) {
+		//if(d_regexp_opr.delta() == 1) {
+		//}
+		return false;
+	} else {
+		CVC4::String s = getHeadConst( x );
+		if( !s.isEmptyString() && d_regexp_opr.checkConstRegExp( r ) ) {
+			Node conc = Node::null();
+			Node dc = r;
+			bool flag = true;
+			for(unsigned i=0; i<s.size(); ++i) {
+				CVC4::String c = s.substr(i, 1);
+				dc = d_regexp_opr.derivativeSingle(dc, c);
+				if(dc.isNull()) {
+					// CONFLICT
+					flag = false;
+					break;
+				}
+			}
+			// send lemma
+			if(flag) {
+				Node left = Node::null();
+				if(x.isConst()) {
+					left = d_emptyString;
+					if(d_regexp_opr.delta(dc)) {
+						//TODO yes
+					} else {
+						// TODO conflict
+					}
+				} else {
+					//TODO find x rest
+					conc = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, dc );
+				}
+			}
+			sendLemma(ant, conc, "RegExp Const Split");
+		} else {
+			return false;
+		}
+	}
+	return false;
 }
 
 Node TheoryStrings::getNextDecisionRequest() {
