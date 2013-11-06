@@ -3069,15 +3069,14 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitvectorNewEagerBitblast() &&
       d_smt.getLogicInfo().getLogicString().compare("QF_BV") == 0) {
     d_smt.d_theoryEngine->eagerBBAssertFormulas(d_assertionsToCheck); 
-  }
-      
-  
-  // Push the formula to SAT
-  {
-    Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-      d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
+  } else {
+    // Push the formula to SAT
+    {
+      Chat() << "converting to CNF..." << endl;
+      TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
+      for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+        d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
+      }
     }
   }
 
