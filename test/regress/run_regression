@@ -112,7 +112,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
   proof_command='(get-proof)'
   lang=smt2
   if test -e "$benchmark.expect"; then
-    expected_proof=`grep '^% PROOF' "$benchmark.expect" &>/dev/null && echo yes`
+    expected_proof=`grep '^[%;] PROOF' "$benchmark.expect" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -140,7 +140,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_exit_status=10
     command_line=
   elif grep '^ *( *set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_proof=
+    expected_proof=`grep '^; PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=unsat
     expected_exit_status=20
     command_line=
@@ -276,8 +276,15 @@ fi
 
 if [ "$proof" = yes -a "$expected_proof" = yes ]; then
   gettemp pfbenchmark cvc4_pfbenchmark.$$.XXXXXXXXXX
-  cp "$benchmark" "$pfbenchmark";
-  echo "$proof_command" >>"$pfbenchmark";
+  # remove exit command to add proof command for smt2 benchmarks
+  if expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
+      head -n -0 "$benchmark" > "$pfbenchmark";
+      echo "$proof_command" >>"$pfbenchmark";
+      echo "(exit)" >> "$pfbenchmark";
+  else
+      cp $benchmark $pfbenchmark
+      echo "$proof_command" >>"$pfbenchmark";
+  fi
   echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
   time ( :; \
   ( cd `dirname "$pfbenchmark"`;
@@ -286,6 +293,7 @@ if [ "$proof" = yes -a "$expected_proof" = yes ]; then
   ) > "$outfile" 2> "$errfile" )
 
   gettemp pfoutfile cvc4_proof.$$.XXXXXXXXXX
+  
   diff --unchanged-group-format='' \
        --old-group-format='' \
        --new-group-format='%>' \

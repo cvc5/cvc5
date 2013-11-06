@@ -36,6 +36,9 @@ namespace CVC4 {
 namespace prop {
   class CnfStream;
 }
+
+class SmtEngine; 
+
 typedef int ClauseId;
 
 class Proof;
@@ -91,6 +94,8 @@ class ProofManager {
   static bool isInitialized; 
   ProofManager(ProofFormat format = LFSC);
   ~ProofManager(); 
+protected:
+  std::string d_logic;
 public:
   static ProofManager* currentPM();
   // initialization 
@@ -98,7 +103,7 @@ public:
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
   static void         initTheoryProof();
   
-  static Proof*       getProof();
+  static Proof*       getProof(SmtEngine* smt);
   static SatProof*    getSatProof();
   static CnfProof*    getCnfProof();
   static TheoryProof* getTheoryProof();
@@ -131,14 +136,18 @@ public:
   static std::string getVarName(prop::SatVariable var);
   static std::string getAtomName(prop::SatVariable var);
   static std::string getLitName(prop::SatLiteral lit);
+  
+  void setLogic(const std::string& logic_string);
+  const std::string getLogic() const { return d_logic; }
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
   LFSCSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
-  LFSCTheoryProof* d_theoryProof; 
+  LFSCTheoryProof* d_theoryProof;
+  SmtEngine* d_smtEngine; 
 public:
-  LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory); 
+  LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory); 
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}
 };

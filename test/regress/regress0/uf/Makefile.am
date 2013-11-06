@@ -42,7 +42,8 @@ TESTS =	\
 	simple.01.cvc \
 	simple.02.cvc \
 	simple.03.cvc \
-	simple.04.cvc
+	simple.04.cvc \
+	proof00.smt2
 
 EXTRA_DIST = $(TESTS) \
 	mkpidgeon

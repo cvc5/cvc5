@@ -680,6 +680,7 @@ void SmtEngine::finishInit() {
   if(options::cumulativeMillisecondLimit() != 0) {
     setTimeLimit(options::cumulativeMillisecondLimit(), true);
   }
+  PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); ); 
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -3713,7 +3714,7 @@ Proof* SmtEngine::getProof() throw(ModalException) {
     throw ModalException(msg);
   }
 
-  return ProofManager::getProof();
+  return ProofManager::getProof(this);
 #else /* CVC4_PROOF */
   throw ModalException("This build of CVC4 doesn't have proof support.");
 #endif /* CVC4_PROOF */

@@ -167,7 +167,7 @@ void LFSCTheoryProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   // declaring the terms
   for (ExprSet::const_iterator it = d_termDeclarations.begin(); it != d_termDeclarations.end(); ++it) {
     Expr term = *it;
-    
+
     os << "(% " << term << " (term "; 
     paren <<")"; 
 
