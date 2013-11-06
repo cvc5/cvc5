@@ -542,7 +542,9 @@ void StrongSolverTheoryUF::SortModel::assertDisequal( Node a, Node b, Node reaso
       //if they are not already disequal
       a = d_thss->getTheory()->d_equalityEngine.getRepresentative( a );
       b = d_thss->getTheory()->d_equalityEngine.getRepresentative( b );
-      if( !d_thss->getTheory()->d_equalityEngine.areDisequal( a, b, true ) ){
+      int ai = d_regions_map[a];
+      int bi = d_regions_map[b];
+      if( !d_regions[ai]->isDisequal( a, b, ai==bi ) ){
         Debug("uf-ss") << "Assert disequal " << a << " != " << b << "..." << std::endl;
         //if( reason.getKind()!=NOT || ( reason[0].getKind()!=EQUAL && reason[0].getKind()!=IFF ) ||
         //    a!=reason[0][0] || b!=reason[0][1] ){
@@ -559,8 +561,6 @@ void StrongSolverTheoryUF::SortModel::assertDisequal( Node a, Node b, Node reaso
         //now, add disequalities to regions
         Assert( d_regions_map.find( a )!=d_regions_map.end() );
         Assert( d_regions_map.find( b )!=d_regions_map.end() );
-        int ai = d_regions_map[a];
-        int bi = d_regions_map[b];
         Debug("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
         if( ai==bi ){
           //internal disequality
@@ -663,11 +663,15 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
                   return;
                 }
               }else{
-                if( addSplit( d_regions[i], out ) ){
+                int sp = addSplit( d_regions[i], out );
+                if( sp==1 ){
                   addedLemma = true;
 #ifdef ONE_SPLIT_REGION
                   break;
 #endif
+                }else if( sp==-1 ){
+                  check( level, out );
+                  return;
                 }
               }
             }
@@ -771,6 +775,7 @@ bool StrongSolverTheoryUF::SortModel::minimize( OutputChannel* out, TheoryModel*
       }
 #endif
     }else{
+      Trace("uf-ss-debug")  << "Minimize the UF model..." << std::endl;
       //internal minimize, ensure that model forms a clique:
       // if two equivalence classes are neither equal nor disequal, add a split
       int validRegionIndex = -1;
@@ -778,7 +783,7 @@ bool StrongSolverTheoryUF::SortModel::minimize( OutputChannel* out, TheoryModel*
         if( d_regions[i]->d_valid ){
           if( validRegionIndex!=-1 ){
             combineRegions( validRegionIndex, i );
-            if( addSplit( d_regions[validRegionIndex], out ) ){
+            if( addSplit( d_regions[validRegionIndex], out )!=0 ){
               return false;
             }
           }else{
@@ -786,7 +791,7 @@ bool StrongSolverTheoryUF::SortModel::minimize( OutputChannel* out, TheoryModel*
           }
         }
       }
-      if( addSplit( d_regions[validRegionIndex], out ) ){
+      if( addSplit( d_regions[validRegionIndex], out )!=0 ){
         return false;
       }
     }
@@ -1074,7 +1079,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
   }
 }
 
-bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
+int StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
   Node s;
   if( r->hasSplits() ){
     if( !options::ufssSmartSplits() ){
@@ -1120,11 +1125,26 @@ bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
   if (!s.isNull() ){
     //add lemma to output channel
     Assert( s.getKind()==EQUAL );
-    s = Rewriter::rewrite( s );
     Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
+    Node ss = Rewriter::rewrite( s );
+    if( ss.getKind()!=EQUAL ){
+      Node b_t = NodeManager::currentNM()->mkConst( true );
+      Node b_f = NodeManager::currentNM()->mkConst( false );
+      if( ss==b_f ){
+        Trace("uf-ss-lemma") << "....Assert disequal directly : " << s[0] << " " << s[1] << std::endl;
+        assertDisequal( s[0], s[1], b_t );
+        return -1;
+      }else{
+        Trace("uf-ss-warn") << "Split on unknown literal : " << ss << std::endl;
+      }
+      if( ss==b_t ){
+        Message() << "Bad split " << s << std::endl;
+        exit( 16 );
+      }
+    }
     if( options::sortInference()) {
       for( int i=0; i<2; i++ ){
-        int si = d_thss->getSortInference()->getSortId( s[i] );
+        int si = d_thss->getSortInference()->getSortId( ss[i] );
         Trace("uf-ss-split-si") << si << " ";
       }
       Trace("uf-ss-split-si")  << std::endl;
@@ -1134,13 +1154,13 @@ bool StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
     //Trace("uf-ss-lemma") << s[0].getType() << " " << s[1].getType() << std::endl;
     //Notice() << "*** Split on " << s << std::endl;
     //split on the equality s
-    out->split( s );
+    out->split( ss );
     //tell the sat solver to explore the equals branch first
-    out->requirePhase( s, true );
+    out->requirePhase( ss, true );
     ++( d_thss->d_statistics.d_split_lemmas );
-    return true;
+    return 1;
   }else{
-    return false;
+    return 0;
   }
 }
 

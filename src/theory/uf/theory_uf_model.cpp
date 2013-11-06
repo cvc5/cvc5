@@ -345,14 +345,14 @@ void UfModelTreeGenerator::setValue( TheoryModel* m, Node n, Node v, bool ground
   d_set_values[ isReq ? 1 : 0 ][ ground ? 1 : 0 ][n] = v;
   if( optUsePartialDefaults() ){
     if( !ground ){
-      int defSize = (int)d_defaults.size();
-      for( int i=0; i<defSize; i++ ){
-        //for soundness, to allow variable order-independent function interpretations,
-        //  we must ensure that the intersection of all default terms
-        //  is also defined.
-        //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
-        //  then we must define f( b, a ).
-        if (!options::fmfFullModelCheck()) {
+      if (!options::fmfFullModelCheck()) {
+        int defSize = (int)d_defaults.size();
+        for( int i=0; i<defSize; i++ ){
+          //for soundness, to allow variable order-independent function interpretations,
+          //  we must ensure that the intersection of all default terms
+          //  is also defined.
+          //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
+          //  then we must define f( b, a ).
           bool isGround;
           Node ni = getIntersection( m, n, d_defaults[i], isGround );
           if( !ni.isNull() ){
