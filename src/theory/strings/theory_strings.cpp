@@ -48,6 +48,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	//d_lit_to_decide_index( c, 0 ),
 	//d_lit_to_decide( c ),
 	d_reg_exp_mem( c ),
+	//d_reg_exp_deriv( c ),
 	d_curr_cardinality( c, 0 )
 {
     // The kinds we are treating as function application in congruence
@@ -919,20 +920,22 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 										//check for loops
 										//Trace("strings-loop") << "Check for loops i,j = " << (index_i+1) << "/" << normal_forms[i].size() << " " << (index_j+1) << "/" << normal_forms[j].size() << std::endl;
 										int has_loop[2] = { -1, -1 };
-										for( unsigned r=0; r<2; r++ ){
-											int index = (r==0 ? index_i : index_j);
-											int other_index = (r==0 ? index_j : index_i );
-											int n_index = (r==0 ? i : j);
-											int other_n_index = (r==0 ? j : i);
-											if( normal_forms[other_n_index][other_index].getKind() != kind::CONST_STRING ) {
-												for( unsigned lp = index+1; lp<normal_forms[n_index].size(); lp++ ){
-													if( normal_forms[n_index][lp]==normal_forms[other_n_index][other_index] ){
-														has_loop[r] = lp;
-														break;
+										//if( !options::stringFMF() ) {
+											for( unsigned r=0; r<2; r++ ){
+												int index = (r==0 ? index_i : index_j);
+												int other_index = (r==0 ? index_j : index_i );
+												int n_index = (r==0 ? i : j);
+												int other_n_index = (r==0 ? j : i);
+												if( normal_forms[other_n_index][other_index].getKind() != kind::CONST_STRING ) {
+													for( unsigned lp = index+1; lp<normal_forms[n_index].size(); lp++ ){
+														if( normal_forms[n_index][lp]==normal_forms[other_n_index][other_index] ){
+															has_loop[r] = lp;
+															break;
+														}
 													}
 												}
 											}
-										}
+										//}
 										if( has_loop[0]!=-1 || has_loop[1]!=-1 ){
 											int loop_n_index = has_loop[0]!=-1 ? i : j;
 											int other_n_index = has_loop[0]!=-1 ? j : i;
@@ -1373,6 +1376,9 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
 		d_conflict = true;
 	}else{
 		Node lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, ant, conc );
+		if( ant == d_true ) {
+			lem = conc;
+		}
 		Trace("strings-lemma") << "Strings " << c << " lemma : " << lem << std::endl;
 		d_lemma_cache.push_back( lem );
 	}
@@ -1974,29 +1980,36 @@ bool TheoryStrings::checkMemberships() {
 		Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
 		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
 		bool polarity = assertion.getKind()!=kind::NOT;
-		if( polarity ){
-			if( d_reg_exp_unroll.find(atom)==d_reg_exp_unroll.end() ){
-				Assert( atom.getKind()==kind::STRING_IN_REGEXP );
-				Node x = atom[0];
-				Node r = atom[1];
-				Assert( r.getKind()==kind::REGEXP_STAR );
-				if( !areEqual( x, d_emptyString ) ){
-					//if(splitRegExp( x, r, atom )) {
-					//	addedLemma = true;
-					//} else 
-					if( unrollStar( atom ) ) {
-						addedLemma = true;
-					} else {
-						Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
-						is_unk = true;
+		if( polarity ) {
+			Assert( atom.getKind()==kind::STRING_IN_REGEXP );
+			Node x = atom[0];
+			Node r = atom[1];
+			Assert( r.getKind()==kind::REGEXP_STAR );
+			if( !areEqual( x, d_emptyString ) ) {
+				bool flag = true;
+				if( d_reg_exp_deriv.find(atom)==d_reg_exp_deriv.end() ) {
+					if(splitRegExp( x, r, atom )) {
+						addedLemma = true; flag = false;
+						d_reg_exp_deriv[ atom ] = true;
 					}
-				}else{
-					Trace("strings-regexp") << "...is satisfied." << std::endl;
+				} else {
+					flag = false;
+					Trace("strings-regexp-derivative") << "... is processed by deriv." << std::endl;
 				}
-			}else{
-				Trace("strings-regexp") << "...Already unrolled." << std::endl;
+				if( flag && d_reg_exp_unroll.find(atom)==d_reg_exp_unroll.end() ) {
+						if( unrollStar( atom ) ) {
+							addedLemma = true;
+						} else {
+							Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
+							is_unk = true;
+						}
+				} else {
+					Trace("strings-regexp") << "...is already unrolled or splitted." << std::endl;
+				}
+			} else {
+				Trace("strings-regexp") << "...is satisfied." << std::endl;
 			}
-		}else{
+		} else {
 			//TODO: negative membership
 			//Node r = Rewriter::rewrite( atom[1] );
 			//r = d_regexp_opr.complement( r );
