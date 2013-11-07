@@ -14,6 +14,7 @@ libstrings_la_SOURCES = \
 	type_enumerator.h \
 	theory_strings_preprocess.h \
 	theory_strings_preprocess.cpp \
+	regexp_operation.h \
 	regexp_operation.cpp
 
 EXTRA_DIST = \

@@ -154,6 +154,7 @@ class TheoryStrings : public Theory {
   NodeList d_reg_exp_mem;
   std::map< Node, bool > d_reg_exp_unroll;
   std::map< Node, int > d_reg_exp_unroll_depth;
+  std::map< Node, bool > d_reg_exp_deriv;
   //antecedant for why reg exp membership must be true
   std::map< Node, Node > d_reg_exp_ant;
 
