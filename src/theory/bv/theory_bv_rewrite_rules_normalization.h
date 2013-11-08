@@ -489,14 +489,14 @@ bool RewriteRule<MultDistrib>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<MultDistrib>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<MultDistribConst>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<MultDistrib>(" << node << ")" << std::endl;
 
   TNode factor = node[0].getKind() != kind::BITVECTOR_PLUS ? node[0] : node[1];
   TNode sum = node[0].getKind() == kind::BITVECTOR_PLUS? node[0] : node[1];
   Assert (factor.getKind() != kind::BITVECTOR_PLUS &&
           factor.getKind() != kind::BITVECTOR_SUB &&
-          sum.getKind() == kind::BITVECTOR_PLUS &&
-          sum.getKind() == kind::BITVECTOR_SUB);
+          (sum.getKind() == kind::BITVECTOR_PLUS ||
+           sum.getKind() == kind::BITVECTOR_SUB));
 
   std::vector<Node> children;
   for(unsigned i = 0; i < sum.getNumChildren(); ++i) {

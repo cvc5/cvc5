@@ -70,6 +70,8 @@ operator BITVECTOR_SLE 2 "bit-vector signed less than or equal"
 operator BITVECTOR_SGT 2 "bit-vector signed greater than"
 operator BITVECTOR_SGE 2 "signed greater than or equal"
 
+operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bit-blasting"
+
 constant BITVECTOR_BITOF_OP \
 	::CVC4::BitVectorBitOf \
 	::CVC4::BitVectorBitOfHashFunction \
@@ -166,6 +168,8 @@ typerule BITVECTOR_SLT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+
+typerule BITVECTOR_EAGER_ATOM ::CVC4::theory::bv::BitVectorEagerAtomTypeRule
 
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
 typerule BITVECTOR_BITOF   ::CVC4::theory::bv::BitVectorBitOfTypeRule

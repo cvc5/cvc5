@@ -21,6 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "simp/SimpSolver.h"
 #include "utils/System.h"
+#include "theory/bv/options.h"
 
 using namespace BVMinisat;
 
@@ -51,7 +52,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , simp_garbage_frac  (opt_simp_garbage_frac)
   , use_asymm          (opt_use_asymm)
   , use_rcheck         (opt_use_rcheck)
-  , use_elim           (opt_use_elim)
+  , use_elim           (opt_use_elim && CVC4::options::bitvectorNewEagerBitblast())
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)

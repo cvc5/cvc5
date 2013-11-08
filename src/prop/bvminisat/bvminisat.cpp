@@ -62,6 +62,7 @@ SatValue BVMinisatSatSolver::propagate() {
 
 void BVMinisatSatSolver::addMarkerLiteral(SatLiteral lit) {
   d_minisat->addMarkerLiteral(BVMinisat::var(toMinisatLit(lit)));
+  markUnremovable(lit); 
 }
 
 void BVMinisatSatSolver::explain(SatLiteral lit, std::vector<SatLiteral>& explanation) {

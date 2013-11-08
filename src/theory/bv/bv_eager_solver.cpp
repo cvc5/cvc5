@@ -278,18 +278,30 @@ void EagerBitblaster::getBBTerm(TNode node, Bits& bits) const {
 
 EagerBitblastSolver::EagerBitblastSolver()
   : d_bitblaster(new EagerBitblaster())
-  , d_assertionList()
+  , d_assertionSet()
 {}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
   delete d_bitblaster; 
 }
 
-void EagerBitblastSolver::assertFormula(Node formula) {
-  d_assertionList.push_back(formula);
+void EagerBitblastSolver::assertFormula(TNode formula) {
+  d_assertionSet.insert(formula);
   d_bitblaster->bbFormula(formula); 
 }
 
 bool EagerBitblastSolver::checkSat() {
   return d_bitblaster->solve(); 
+}
+
+bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {
+  if (formulas.size() != d_assertionSet.size())
+    return false; 
+  for (unsigned i = 0; i < formulas.size(); ++i) {
+    Assert (formulas[i].getKind() == kind::BITVECTOR_EAGER_ATOM);
+    TNode formula = formulas[i][0];
+    if (d_assertionSet.find(formula) == d_assertionSet.end())
+      return false; 
+  }
+  return true; 
 }

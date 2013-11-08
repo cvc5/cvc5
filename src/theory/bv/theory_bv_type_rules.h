@@ -114,6 +114,21 @@ public:
   }
 };
 
+class BitVectorEagerAtomTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode lhsType = n[0].getType(check);
+      if (!lhsType.isBoolean()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting boolean term");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};
+
+
 class BitVectorExtractTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

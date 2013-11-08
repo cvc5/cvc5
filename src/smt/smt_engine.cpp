@@ -687,7 +687,8 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  if(options::bitvectorEagerBitblast()) {
+  if(options::bitvectorEagerBitblast() ||
+     options::bitvectorNewEagerBitblast()) {
     // Eager solver should use the internal decision strategy
     options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
   }
@@ -2660,16 +2661,7 @@ Result SmtEngine::check() {
   Chat() << "solving..." << endl;
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   
-  Result result;
-  
-  // FIXME: hack for eager bit-blasting using separate SAT solver
-  // stats will be broken
-  if (options::bitvectorNewEagerBitblast() &&
-      d_logic.getLogicString().compare("QF_BV") == 0) {
-    result = d_theoryEngine->eagerBBCheckSat();
-  } else {
-    result = d_propEngine->checkSat(millis, resource);
-  }
+  Result result = d_propEngine->checkSat(millis, resource);
   
   // PropEngine::checkSat() returns the actual amount used in these
   // variables.
@@ -3065,20 +3057,27 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("post-everything", d_assertionsToCheck);
 
-  // FIXME: hack for eager bit-blasting using separate SAT solver
-  if (options::bitvectorNewEagerBitblast() &&
-      d_smt.getLogicInfo().getLogicString().compare("QF_BV") == 0) {
-    d_smt.d_theoryEngine->eagerBBAssertFormulas(d_assertionsToCheck); 
-  } else {
-    // Push the formula to SAT
-    {
-      Chat() << "converting to CNF..." << endl;
-      TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-      for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-        d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
-      }
+  // Eagerly bit-blast to bvminisat
+  if (options::bitvectorNewEagerBitblast()) {
+    if (d_smt.getLogicInfo().getLogicString().compare("QF_BV") != 0) {
+      std::cout << "Probably DIVISION. \n";
+      exit(57); 
+    }
+      
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
+      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
+      d_assertionsToCheck[i] = eager_atom; 
     }
   }
+
+  {
+    Chat() << "converting to CNF..." << endl;
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+      d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
+    }
+  }
+  
 
   d_assertionsProcessed = true;
 

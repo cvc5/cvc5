@@ -47,14 +47,12 @@ class TheoryBV : public Theory {
   
   std::vector<SubtheorySolver*> d_subtheories;
   __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
-  EagerBitblastSolver* d_eagerBBSolver; 
+
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
   ~TheoryBV();
 
-  EagerBitblastSolver* getEagerBBSolver() { return d_eagerBBSolver; }
-  
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void preRegisterTerm(TNode n);
@@ -110,6 +108,8 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
+  EagerBitblastSolver* d_eagerSolver; 
+  
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 
   }

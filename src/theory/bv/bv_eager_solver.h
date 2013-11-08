@@ -32,12 +32,14 @@ class EagerBitblaster;
 class EagerBitblastSolver {
   /** Bitblaster */
   EagerBitblaster* d_bitblaster;
-  std::vector<Node> d_assertionList; 
+  __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_assertionSet;
 public:
   EagerBitblastSolver(); 
   ~EagerBitblastSolver();
   bool checkSat();
-  void assertFormula(Node formula); 
+  void assertFormula(TNode formula);
+  // purely for debugging purposes
+  bool hasAssertions(const std::vector<TNode> &formulas);
 };
 
 }

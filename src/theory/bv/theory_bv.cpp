@@ -43,14 +43,18 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_sharedTermsSet(c),
     d_subtheories(),
     d_subtheoryMap(),
-    d_eagerBBSolver(new EagerBitblastSolver()), 
     d_statistics(),
     d_lemmasAdded(c, false),
     d_conflict(c, false),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
-    d_propagatedBy(c)
+    d_propagatedBy(c),
+    d_eagerSolver()
   {
+    if (options::bitvectorNewEagerBitblast()) {
+      d_eagerSolver = new EagerBitblastSolver();
+      return; 
+    }
     if (options::bvEquality()) {
       SubtheorySolver* core_solver = new CoreSolver(c, this);
       d_subtheories.push_back(core_solver);
@@ -74,6 +78,9 @@ TheoryBV::~TheoryBV() {
 }
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  if (options::bitvectorNewEagerBitblast()) {
+    return; 
+  }
   if (options::bvEquality()) {
     dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
   }
@@ -109,6 +116,15 @@ TheoryBV::Statistics::~Statistics() {
 void TheoryBV::preRegisterTerm(TNode node) {
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
+  if (options::bitvectorNewEagerBitblast()) {
+    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
+      Node formula = node[0]; 
+      d_eagerSolver->assertFormula(formula);
+    }
+    // nothing to do for the other terms
+    return; 
+  }
+  
   if (options::bitvectorEagerBitblast()) {
     // don't use the equality engine in the eager bit-blasting
     d_subtheoryMap[SUB_BITBLAST]->preRegister(node);
@@ -161,14 +177,38 @@ void TheoryBV::checkForLemma(TNode fact) {
 
 void TheoryBV::check(Effort e)
 {
-  // if (Theory::fullEffort(e)) {
-  //   std::cout << "BITVECTOR Check!\n";
-  // }
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
+  
   if (options::bitvectorEagerBitblast()) {
     return;
   }
 
+  if (options::bitvectorNewEagerBitblast()) {
+    if (!Theory::fullEffort(e))
+      return;
+
+    std::vector<TNode> assertions; 
+    while (!done()) {
+      TNode fact = get().assertion;
+      Assert (fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
+      assertions.push_back(fact); 
+    }
+    Assert (d_eagerSolver->hasAssertions(assertions)); 
+    
+    bool ok = d_eagerSolver->checkSat();
+    if (!ok) {
+      if (assertions.size() == 1) {
+        d_out->conflict(assertions[0]);
+        return; 
+      }
+      Node conflict = NodeManager::currentNM()->mkNode(kind::AND, assertions);
+      d_out->conflict(conflict);
+      return; 
+    }
+    return;
+  }
+  
+  
   if (Theory::fullEffort(e)) {
     ++(d_statistics.d_numCallsToCheckFullEffort);
   } else {
