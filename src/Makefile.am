@@ -566,6 +566,12 @@ uninstall-local:
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"
 
+# This rule is ugly.  It's needed to ensure that automake's dependence
+# includes are available during distclean, even though they come from
+# directories that are cleaned first.  Without this rule, "distclean"
+# fails.
+%.Plo:; $(MKDIR_P) "$(dir $@)" && : > "$@"
+
 include @top_srcdir@/src/theory/Makefile.subdirs
 
 theory/rewriter_tables.h: theory/rewriter_tables_template.h theory/mkrewriter @top_builddir@/src/theory/.subdirs @top_srcdir@/src/theory/*/kinds
