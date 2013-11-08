@@ -179,20 +179,10 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
 
-  if (RewriteRule<ExtractBitwise>::applies(node)) {
-    resultNode = RewriteRule<ExtractBitwise>::run<false>(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  }
-  
   if (RewriteRule<ExtractNot>::applies(node)) {
     resultNode = RewriteRule<ExtractNot>::run<false>(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
   }
-
-  // if (RewriteRule<ExtractArith>::applies(node)) {
-  //   resultNode = RewriteRule<ExtractArith>::run<false>(node);
-  //   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  // }
 
   resultNode = LinearRewriteStrategy
     < RewriteRule<ExtractConstant>, 
