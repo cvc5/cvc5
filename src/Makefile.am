@@ -597,4 +597,3 @@ theory/type_enumerator.cpp: theory/type_enumerator_template.cpp theory/mktheoryt
 		$< \
 		`cat @top_builddir@/src/theory/.subdirs` \
 	> $@) || (rm -f $@ && exit 1)
-

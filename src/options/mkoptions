@@ -1346,6 +1346,7 @@ function output_module {
   nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
     awk '{OFS="";if($1+1!=$3) print "'"$template"':",$1,": warning: incorrect annotation \"#line ",$3,"\" (it should be \"#line ",($1+1),"\")"}' >&2
 
+  mkdir -p "`dirname "$output"`"
   cp "$template" "$output.working"
   echo -n > "$output.sed"
   for var in \

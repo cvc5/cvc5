@@ -69,7 +69,6 @@ do
       AC_MSG_ERROR([personal build profile selected, but cannot find personal.conf])
     fi
   else
-echo "calling for $ac_option"
     handle_option "$ac_option"
   fi
 done
