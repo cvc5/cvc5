@@ -2,4 +2,3 @@ a, b, c : BOOLEAN;
 
 % EXPECT: valid
 QUERY a OR a <=> a;
-% EXIT: 20

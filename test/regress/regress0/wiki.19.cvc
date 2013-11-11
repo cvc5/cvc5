@@ -2,4 +2,3 @@ a, b, c : BOOLEAN;
 
 % EXPECT: valid
 QUERY NOT (a OR b) <=> NOT a AND NOT b;
-% EXIT: 20

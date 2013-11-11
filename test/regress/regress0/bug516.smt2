@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find --fmf-bound-int
 ; EXPECT: sat
-; EXIT: 10
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (set-option :incremental true)

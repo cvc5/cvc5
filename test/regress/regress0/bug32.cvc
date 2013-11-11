@@ -4,4 +4,3 @@ b:BOOLEAN;
 ASSERT(a);
 QUERY(a OR b);
 
-% EXIT: 20

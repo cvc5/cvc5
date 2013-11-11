@@ -300,14 +300,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Result result;
     if(status) {
       result = pExecutor->getResult();
-
-      if(result.asSatisfiabilityResult() == Result::SAT) {
-        returnValue = 10;
-      } else if(result.asSatisfiabilityResult() == Result::UNSAT) {
-        returnValue = 20;
-      } else {
-        returnValue = 0;
-      }
+      returnValue = 0;
     } else {
       // there was some kind of error
       returnValue = 1;

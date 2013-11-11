@@ -8,5 +8,4 @@ ASSERT ((0 = IF b THEN x - y ELSE 2*x ENDIF));
 
 CHECKSAT;
 
-% EXIT: 10
 

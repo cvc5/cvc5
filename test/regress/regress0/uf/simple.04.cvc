@@ -9,4 +9,3 @@ f: A -> B;
 ASSERT (x = a OR x = b) AND (y = b OR y = a);
 QUERY (f(x) = f(y));
 
-% EXIT: 10

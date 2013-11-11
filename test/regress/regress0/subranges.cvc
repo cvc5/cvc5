@@ -1,5 +1,4 @@
 % EXPECT: valid
-% EXIT: 20
 
 A : [0..0];
 B : [ -5 .. 8];

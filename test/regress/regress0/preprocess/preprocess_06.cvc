@@ -11,5 +11,4 @@ ASSERT a0;
 
 QUERY (a0 <=> a5);
 
-% EXIT: 20
 

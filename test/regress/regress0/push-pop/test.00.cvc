@@ -9,4 +9,3 @@ POP;
 ASSERT (NOT x);
 % EXPECT: sat
 CHECKSAT;
-% EXIT: 10

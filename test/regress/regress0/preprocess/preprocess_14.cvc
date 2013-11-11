@@ -8,5 +8,4 @@ ASSERT (a0 OR (a1 AND (a2 OR (a3 AND (a4 AND (a5 AND (TRUE AND (a6 AND (a7 AND (
 
 CHECKSAT;
 
-% EXIT: 10
 

@@ -1,3 +1,2 @@
 % COMMAND-LINE: --decision=justification --no-unconstrained
 % EXPECT: unsat
-% EXIT: 20

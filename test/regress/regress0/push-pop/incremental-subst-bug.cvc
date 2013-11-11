@@ -19,4 +19,3 @@ QUERY z /= x;
 POP;
 % EXPECT: invalid
 QUERY z /= x;
-% EXIT: 10

@@ -1,3 +1,2 @@
 % COMMAND-LINE: --enable-miplib-trick
 % EXPECT: unsat
-% EXIT: 20

@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: unsat
-; EXIT: 20
 (set-logic QF_LIA)
 (declare-fun x0 () Bool)
 (assert (not (not (or x0 x0))))

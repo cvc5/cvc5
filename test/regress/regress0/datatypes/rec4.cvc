@@ -1,5 +1,4 @@
 % EXPECT: valid
-% EXIT: 20
 a : BOOLEAN;
 a49 : BOOLEAN = (
           IF a THEN (# _a := 1 #)

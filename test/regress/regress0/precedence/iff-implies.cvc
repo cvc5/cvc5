@@ -4,4 +4,3 @@
 A, B, C: BOOLEAN;
 
 QUERY (A <=> B => C) <=> ((A <=> (B => C)));
-% EXIT: 20

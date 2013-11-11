@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
-; EXIT: 20
 ; Preamble  --------------
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)

@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 DATATYPE list[T] = cons(car:T, cdr:list[T]) | nil END;
 x : list[REAL];
 ASSERT x = cons(1.0,nil::list[REAL]);

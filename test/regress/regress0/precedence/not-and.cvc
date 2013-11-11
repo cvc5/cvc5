@@ -4,4 +4,3 @@
 A, B, C: BOOLEAN;
 
 QUERY (NOT A AND B) <=> ((NOT A) AND B);
-% EXIT: 20

@@ -11,5 +11,4 @@ ASSERT (NOT a5);
 
 CHECKSAT;
 
-% EXIT: 10
 

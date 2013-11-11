@@ -4,4 +4,3 @@
 x , y, z: INT;
 
 QUERY (x > y AND y = z OR x < z) <=> (((x > y) AND (y = z)) OR (x < z));
-% EXIT: 20

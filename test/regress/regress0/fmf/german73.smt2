@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
-; EXIT: 20
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
 (declare-datatypes () ((UNIT (Unit))))

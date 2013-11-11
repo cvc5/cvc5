@@ -1,6 +1,5 @@
 % COMMAND-LINE: --enable-miplib-trick
 % EXPECT: sat
-% EXIT: 10
 
 tmp1 : INT;
 x, y : BOOLEAN;

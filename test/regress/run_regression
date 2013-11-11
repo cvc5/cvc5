@@ -79,7 +79,7 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
     if [ -z "$expected_exit_status" ]; then
-      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+      expected_exit_status=0
     fi
   elif grep '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
     expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
@@ -92,18 +92,18 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     gettemp tmpbenchmark cvc4_benchmark.smt.$$.XXXXXXXXXX
     grep -v '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
-      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+      expected_exit_status=0
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
     expected_proof=
     expected_output=sat
-    expected_exit_status=10
+    expected_exit_status=0
     command_line=
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
     expected_proof=
     expected_output=unsat
-    expected_exit_status=20
+    expected_exit_status=0
     command_line=
   else
     error "cannot determine status of \`$benchmark'"
@@ -118,7 +118,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
     if [ -z "$expected_exit_status" ]; then
-      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+      expected_exit_status=0
     fi
   elif grep '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
     expected_proof=`grep '^[%;] PROOF' "$benchmark" &>/dev/null && echo yes`
@@ -131,18 +131,18 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX
     grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
     if [ -z "$expected_exit_status" ]; then
-      error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+      expected_exit_status=0
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *( *set-info  *:status  *sat' "$benchmark" &>/dev/null; then
     expected_proof=
     expected_output=sat
-    expected_exit_status=10
+    expected_exit_status=0
     command_line=
   elif grep '^ *( *set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
     expected_proof=`grep '^; PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=unsat
-    expected_exit_status=20
+    expected_exit_status=0
     command_line=
   else
     error "cannot determine status of \`$benchmark'"
@@ -160,7 +160,7 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   expected_output=$(echo "$expected_output" | perl -pe 's,^% EXPECT: ,,;s,\r,,')
   expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
   if [ -z "$expected_exit_status" ]; then
-    error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    expected_exit_status=0
   fi
   command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
 elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
@@ -174,8 +174,8 @@ elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
     if grep -q '^% Status *: ' "$benchmark"; then
       expected_output="$(grep '^% *Status *: ' "$benchmark" | head -1 | awk '{print$NF}')"
       case "$expected_output" in
-        Theorem|Unsatisfiable) expected_exit_status=20 ;;
-        CounterSatisfiable|Satisfiable) expected_exit_status=10 ;;
+        Theorem|Unsatisfiable) expected_exit_status=0 ;;
+        CounterSatisfiable|Satisfiable) expected_exit_status=0 ;;
         GaveUp) expected_exit_status=0 ;;
       esac
       expected_output="% SZS status $expected_output for $(basename "$benchmark" | sed 's,\.p$,,')"
@@ -188,7 +188,7 @@ elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
   fi
   if [ -z "$expected_exit_status" ]; then
-    error "cannot determine expected exit status of \`$benchmark': please use \`% EXIT:' gesture"
+    expected_exit_status=0
   fi
   if grep -q '^% COMMAND-LINE: ' "$benchmark"; then
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`

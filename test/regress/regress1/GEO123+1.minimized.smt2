@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: sat
-; EXIT: 10
 ;
 ; This is a benchmark demonstrating a nasty incremental bug in the UF
 ; symmetry breaker, now fixed.
