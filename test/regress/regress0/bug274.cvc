@@ -1,5 +1,4 @@
 % EXPECT: unsat
-% EXIT: 20
 DATATYPE DT1 = 
   DT1_a |
   DT1_b |

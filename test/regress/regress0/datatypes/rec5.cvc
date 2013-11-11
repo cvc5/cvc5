@@ -1,5 +1,4 @@
 % EXPECT: invalid
-% EXIT: 10
 bit__ty: TYPE = [0..1];
 bc1553__lru_name: TYPE = [0..11];
 bus__inputs__type: TYPE;

@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-; EXIT: 10
 (set-logic AUFLIA)
 (set-option :produce-models true)
 (declare-sort U 0)

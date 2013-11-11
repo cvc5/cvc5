@@ -7,5 +7,4 @@ ASSERT (a4);
 
 CHECKSAT;
 
-% EXIT: 10
 

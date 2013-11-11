@@ -5,4 +5,3 @@ x, y, z: INT;
 
 QUERY (x + y - z > 0 AND 0 < x - y + z) <=> 
   ((((x + y) - z) > 0) AND (0 < ((x - y) + z)));
-% EXIT: 20

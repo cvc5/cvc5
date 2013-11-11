@@ -1,5 +1,4 @@
 % EXPECT: unsat
-% EXIT: 20
 x1, x2: REAL;
 y1, y2: REAL;
 f: REAL -> REAL;

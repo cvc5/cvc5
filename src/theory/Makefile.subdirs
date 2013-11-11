@@ -1,7 +1,7 @@
 $(top_builddir)/src/theory/.subdirs: $(top_srcdir)/src/Makefile.am
+	$(AM_V_at)test -d $(top_builddir)/src/theory || mkdir $(top_builddir)/src/theory
 	$(AM_V_at)grep '^THEORIES = ' $(abs_top_srcdir)/src/Makefile.am | cut -d' ' -f3- | tr ' ' "\n" | xargs -I__D__ echo $(abs_top_srcdir)/src/theory/__D__/kinds >$(abs_top_builddir)/src/theory/.subdirs.tmp
 	@if ! diff -q $(abs_top_builddir)/src/theory/.subdirs $(abs_top_builddir)/src/theory/.subdirs.tmp &>/dev/null; then \
 		echo "  GEN   " $@; \
 		$(am__mv) $(abs_top_builddir)/src/theory/.subdirs.tmp $(abs_top_builddir)/src/theory/.subdirs; \
 	fi
-

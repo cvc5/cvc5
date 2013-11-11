@@ -2,7 +2,6 @@
 ; (sometimes they have to be |quoted| with pipes).
 ;
 ; COMMAND-LINE: -qm
-; EXIT: 10
 (declare-fun |toto| () Bool)
 (declare-fun |to to| () Bool)
 (assert (and toto |to to|))

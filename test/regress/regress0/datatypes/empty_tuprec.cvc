@@ -17,4 +17,3 @@ QUERY c1 = c2;
 % EXPECT: valid
 QUERY d1 = d2;
 
-% EXIT: 20

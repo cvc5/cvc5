@@ -1,6 +1,5 @@
 ; EXPECT: sat
 ; EXPECT: sat
-; EXIT: 10
 (set-option :incremental "true")
 (set-logic QF_UF)
 

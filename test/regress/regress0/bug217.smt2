@@ -1,5 +1,4 @@
 ; EXPECT: unsat
-; EXIT: 20
 (set-logic QF_UF)
 (set-info :status sat)
 (set-option :produce-models true)

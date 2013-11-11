@@ -1,5 +1,4 @@
 ; EXPECT: unknown
-; EXIT: 0
 (set-logic UF)
 (declare-sort T 0)
 (declare-fun bool_2_U (Bool) T)

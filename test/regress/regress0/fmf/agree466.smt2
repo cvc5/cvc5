@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-; EXIT: 10
 ; Preamble  --------------
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)

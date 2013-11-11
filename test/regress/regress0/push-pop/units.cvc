@@ -17,4 +17,3 @@ PUSH;
 POP;
 % EXPECT: sat
 CHECKSAT;
-% EXIT: 10

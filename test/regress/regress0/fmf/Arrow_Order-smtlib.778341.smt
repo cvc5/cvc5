@@ -1,6 +1,5 @@
 % COMMAND-LINE: --finite-model-find
 % EXPECT: unsat
-% EXIT: 20
 (benchmark Isabelle
 :status sat
 :logic AUFLIA

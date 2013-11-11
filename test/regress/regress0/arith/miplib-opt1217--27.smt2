@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --enable-miplib-trick
 ; EXPECT: unsat
-; EXIT: 20
 (set-logic QF_LRA)
 (set-info :source |
 Relaxation of the Mixed-Integer Programming

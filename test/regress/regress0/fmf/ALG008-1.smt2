@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
-; EXIT: 10
 ;%--------------------------------------------------------------------------
 ;% File     : ALG008-1 : TPTP v5.4.0. Released v2.2.0.
 ;% Domain   : General Algebra

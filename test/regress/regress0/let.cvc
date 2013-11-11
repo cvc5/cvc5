@@ -5,4 +5,3 @@ b: U;
 f: U -> U;
 QUERY LET v_0 = (a = b)
 IN NOT (v_0 AND NOT v_0);
-% EXIT: 20

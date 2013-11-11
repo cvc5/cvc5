@@ -1,7 +1,6 @@
 % COMMAND-LINE: --produce-models
 % EXPECT: sat
 % EXPECT: f : (INT) -> INT = (LAMBDA(_ufmt_1:INT): 0);
-% EXIT: 10
 
 f : INT -> INT;
 ASSERT f(1) = 0;

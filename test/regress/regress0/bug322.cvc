@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 % Preamble  --------------
 DATATYPE UNIT = Unit END;
 DATATYPE BOOL = Truth | Falsity END;

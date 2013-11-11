@@ -1,5 +1,4 @@
 % EXPECT: unsat
-% EXIT: 20
 x: REAL;
 f: REAL -> REAL;
 ASSERT NOT (f(1) = f(x));

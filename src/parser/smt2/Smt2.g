@@ -236,6 +236,9 @@ command returns [CVC4::Command* cmd = NULL]
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
+      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
+        PARSER_STATE->setLogic(sexpr.getValue());
+      }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd = new SetInfoCommand(name.c_str() + 1, sexpr); }
   | /* get-info */
