@@ -14,8 +14,8 @@ LIBCVC4_VERSION = @CVC4_LIBRARY_VERSION@
 
 AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
-        -D __STDC_LIMIT_MACROS \
-        -D __STDC_FORMAT_MACROS \
+	-D __STDC_LIMIT_MACROS \
+	-D __STDC_FORMAT_MACROS \
 	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
@@ -449,10 +449,10 @@ EXTRA_DIST = \
 	theory/rewriterules/kinds \
 	theory/arith/kinds \
 	theory/booleans/kinds \
-        theory/example/ecdata.h \
-        theory/example/ecdata.cpp \
-        theory/example/theory_uf_tim.h \
-        theory/example/theory_uf_tim.cpp
+	theory/example/ecdata.h \
+	theory/example/ecdata.cpp \
+	theory/example/theory_uf_tim.h \
+	theory/example/theory_uf_tim.cpp
 
 svn_versioninfo.cpp: svninfo
 	$(AM_V_GEN)( \
