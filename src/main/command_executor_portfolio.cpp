@@ -270,7 +270,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     lemmaSharingInit();
 
     /* Portfolio */
-    boost::function<bool()> fns[d_numThreads];
+    boost::function<bool()>* fns = new boost::function<bool()>[d_numThreads];
     for(unsigned i = 0; i < d_numThreads; ++i) {
       fns[i] = boost::bind(smtEngineInvoke,
                            d_smts[i],
@@ -326,6 +326,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     /* cleanup this check sat specific stuff */
     lemmaSharingCleanup();
 
+    delete[] fns;
     return portfolioReturn.second;
   } else if(mode == 2) {
     Command* cmdExported = 
