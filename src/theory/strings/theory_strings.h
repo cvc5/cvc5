@@ -114,6 +114,8 @@ private:
     Node d_true;
     Node d_false;
     Node d_zero;
+	// Options
+	bool d_opt_fmf;
 	// Helper functions
 	Node getRepresentative( Node t );
 	bool hasTerm( Node a );
@@ -147,6 +149,8 @@ private:
 	void addNormalFormPair( Node n1, Node n2 );
 	bool isNormalFormPair( Node n1, Node n2 );
 	bool isNormalFormPair2( Node n1, Node n2 );
+	// loop ant
+	std::map< Node, bool > d_loop_antec;
 
 	/////////////////////////////////////////////////////////////////////////////
 	// MODEL GENERATION
@@ -244,11 +248,9 @@ protected:
 
 	// Measurement
 private:
-	//NodeIntMap d_mpl;
-	//void updateMpl(Node n, int b);
-
 	//NodeIntMap d_var_lmin;
 	//NodeIntMap d_var_lmax;
+	//Node mkSplitEq( const char * c, TypeNode tn, const char * info, Node lhs, Node rhs, bool lgtZero );
 
 	// Regular Expression
 private:
@@ -258,6 +260,9 @@ private:
 	std::map< Node, Node > d_reg_exp_ant;
 	std::map< Node, bool > d_reg_exp_unroll;
 	std::map< Node, int > d_reg_exp_unroll_depth;
+	bool d_regexp_incomplete;
+	int d_regexp_unroll_depth;
+	int d_regexp_max_depth;
 	// regular expression derivative
 	std::map< Node, bool > d_reg_exp_deriv;
 	// regular expression operations

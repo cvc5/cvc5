@@ -41,7 +41,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_infer(c),
     d_infer_exp(c),
     d_nf_pairs(c),
-	//d_mpl( c ),
+	//d_var_lmin( c ),
+	//d_var_lmax( c ),
 	d_reg_exp_mem( c ),
 	d_curr_cardinality( c, 0 )
 {
@@ -55,6 +56,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
 
+	d_regexp_incomplete = false;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -191,9 +193,12 @@ Node TheoryStrings::explain( TNode literal ){
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheoryStrings::presolve()
-{
-  Trace("strings-presolve") << "TheoryStrings : Presolving " << std::endl;
+void TheoryStrings::presolve() {
+	Trace("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
+	Trace("strings-presolve") << "TheoryStrings::Presolving : get unroll depth options " << options::stringRegExpUnrollDepth() << std::endl;
+	d_opt_fmf = options::stringFMF();
+	d_regexp_max_depth = options::stringRegExpUnrollDepth();
+	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
 }
 
 
@@ -362,7 +367,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		  d_out->lemma(n_len_imp_empty);
 	  }
 	  // FMF
-	  if( options::stringFMF() && n.getKind() == kind::VARIABLE ) {
+	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() && 
 		  if( std::find(d_in_vars.begin(), d_in_vars.end(), n) == d_in_vars.end() ) {
 			  d_in_vars.push_back( n );
 		  }
@@ -1013,69 +1018,76 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 													antec.push_back( t_yz.eqNode( d_emptyString ).negate() );
 												}
 												Node ant = mkExplain( antec, antec_new_lits );
-												Node str_in_re;
-												if( s_zy == t_yz &&
-													r == d_emptyString &&
-													s_zy.isConst() &&
-													s_zy.getConst<String>().isRepeated()
-													) {
-													Node rep_c = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, 1) );
-													Trace("strings-loop") << "Special case (X)=" << normal_forms[other_n_index][other_index] << " " << std::endl;
-													Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
-													//special case
-													//conc = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( rep_c, sk_w ) );
-													str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, normal_forms[other_n_index][other_index], 
-																  NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
-																	NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
-													//conc = NodeManager::currentNM()->mkNode( kind::AND, conc, str_in_re );
-													conc = str_in_re;
+												if(d_loop_antec.find(ant) == d_loop_antec.end()) {
+													d_loop_antec[ant] = true;
+
+													Node str_in_re;
+													if( s_zy == t_yz &&
+														r == d_emptyString &&
+														s_zy.isConst() &&
+														s_zy.getConst<String>().isRepeated()
+														) {
+														Node rep_c = NodeManager::currentNM()->mkConst( s_zy.getConst<String>().substr(0, 1) );
+														Trace("strings-loop") << "Special case (X)=" << normal_forms[other_n_index][other_index] << " " << std::endl;
+														Trace("strings-loop") << "... (C)=" << rep_c << " " << std::endl;
+														//special case
+														//conc = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( rep_c, sk_w ) );
+														str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, normal_forms[other_n_index][other_index], 
+																	  NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
+																		NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
+														//conc = NodeManager::currentNM()->mkNode( kind::AND, conc, str_in_re );
+														conc = str_in_re;
+													} else {
+														Trace("strings-loop") << "Strings::loop: ...Normal Splitting." << std::endl;
+														Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+														Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+														Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
+														//t1 * ... * tn = y * z
+														Node conc1 = NodeManager::currentNM()->mkNode( kind::EQUAL, t_yz,
+																		NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_z ) );
+														// s1 * ... * sk = z * y * r
+														vec_r.insert(vec_r.begin(), sk_y);
+														vec_r.insert(vec_r.begin(), sk_z);
+														Node conc2 = NodeManager::currentNM()->mkNode( kind::EQUAL, s_zy,
+																		mkConcat( vec_r ) );
+														Node conc3 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( sk_y, sk_w ) );
+														str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w, 
+																		NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
+																			NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, mkConcat( sk_z, sk_y ) ) ) );
+														
+														//Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
+														//Node sk_z_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_z );
+														//Node len_z_gt_zero = NodeManager::currentNM()->mkNode( kind::GT, sk_z_len, d_zero );
+														//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y_len, d_zero);
+														//Node len_z_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z_len, d_zero);
+														//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y, d_emptyString);
+														//Node zz_imp_yz = NodeManager::currentNM()->mkNode( kind::IMPLIES, sk_z.eqNode(d_emptyString), sk_y.eqNode(d_emptyString));
+														
+														//Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
+														//Node len_x_gt_len_y = NodeManager::currentNM()->mkNode( kind::GT, 
+														//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[other_n_index][other_index]),
+														//						sk_y_len );
+														conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2, conc3, str_in_re );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
+
+														//Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
+														//conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
+													} // normal case
+
+													//set its antecedant to ant, to say when it is relevant
+													d_reg_exp_ant[str_in_re] = ant;
+													//unroll the str in re constraint once
+													unrollStar( str_in_re );
+													//conc = NodeManager::currentNM()->mkNode( kind::OR, x_empty, conc );
+													sendLemma( ant, conc, "LOOP-BREAK" );
+
+													//we will be done
+													addNormalFormPair( normal_form_src[i], normal_form_src[j] );
+													//Assert( isNormalFormPair( normal_form_src[i], normal_form_src[j] ) );
+													return true;
 												} else {
-													Trace("strings-loop") << "Strings::loop: ...Normal Splitting." << std::endl;
-													Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
-													Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
-													Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[i][index_i].getType(), "created for loop detection split" );
-													//t1 * ... * tn = y * z
-													Node conc1 = NodeManager::currentNM()->mkNode( kind::EQUAL, t_yz,
-																	NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_z ) );
-													// s1 * ... * sk = z * y * r
-													vec_r.insert(vec_r.begin(), sk_y);
-													vec_r.insert(vec_r.begin(), sk_z);
-													Node conc2 = NodeManager::currentNM()->mkNode( kind::EQUAL, s_zy,
-																	mkConcat( vec_r ) );
-													Node conc3 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], mkConcat( sk_y, sk_w ) );
-													str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w, 
-																	NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
-																		NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, mkConcat( sk_z, sk_y ) ) ) );
-													
-													//Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
-													//Node sk_z_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_z );
-													//Node len_z_gt_zero = NodeManager::currentNM()->mkNode( kind::GT, sk_z_len, d_zero );
-													//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y_len, d_zero);
-													//Node len_z_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z_len, d_zero);
-													//Node len_y_eq_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_y, d_emptyString);
-													//Node zz_imp_yz = NodeManager::currentNM()->mkNode( kind::IMPLIES, sk_z.eqNode(d_emptyString), sk_y.eqNode(d_emptyString));
-													
-													//Node z_neq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, sk_z, d_emptyString).negate();
-													//Node len_x_gt_len_y = NodeManager::currentNM()->mkNode( kind::GT, 
-													//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, normal_forms[other_n_index][other_index]),
-													//						sk_y_len );
-													conc = NodeManager::currentNM()->mkNode( kind::AND, conc1, conc2, conc3, str_in_re );//, x_eq_y_rest );// , z_neq_empty //, len_x_gt_len_y
-
-													//Node x_eq_empty = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[other_n_index][other_index], d_emptyString);
-													//conc = NodeManager::currentNM()->mkNode( kind::OR, x_eq_empty, conc );
-												} // normal case
-
-												//set its antecedant to ant, to say when it is relevant
-												d_reg_exp_ant[str_in_re] = ant;
-												//unroll the str in re constraint once
-												unrollStar( str_in_re );
-												//conc = NodeManager::currentNM()->mkNode( kind::OR, x_empty, conc );
-												sendLemma( ant, conc, "LOOP-BREAK" );
-
-												//we will be done
-												addNormalFormPair( normal_form_src[i], normal_form_src[j] );
-												//Assert( isNormalFormPair( normal_form_src[i], normal_form_src[j] ) );
-												return true;
+													Trace("strings-loop") << "Strings::Loop: loop lemma for " << ant << " has already added." << std::endl;
+													addNormalFormPair( normal_form_src[i], normal_form_src[j] );
+												}
 											}
 										} else {
 											Trace("strings-solve-debug") << "No loops detected." << std::endl;
@@ -1909,8 +1921,8 @@ bool TheoryStrings::unrollStar( Node atom ) {
 	Node x = atom[0];
 	Node r = atom[1];
 	int depth = d_reg_exp_unroll_depth.find( atom )==d_reg_exp_unroll_depth.end() ? 0 : d_reg_exp_unroll_depth[atom];
-	if( depth <= options::stringRegExpUnrollDepth() ) {
-		Trace("strings-regexp") << "Strings::regexp: Unroll " << atom << " for " << ( depth + 1 ) << " times." << std::endl;
+	if( depth <= d_regexp_unroll_depth ) {
+		Trace("strings-regexp") << "Strings::Regexp: Unroll " << atom << " for " << ( depth + 1 ) << " times." << std::endl;
 		d_reg_exp_unroll[atom] = true;
 		//add lemma?
 		Node xeqe = x.eqNode( d_emptyString );
@@ -1953,14 +1965,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ),
 								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_xp ) );
 
-		//Node len_x_eq_s_xp = NodeManager::currentNM()->mkNode( kind::EQUAL, 
-		//						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ),
-		//						NodeManager::currentNM()->mkNode( kind::PLUS,
-		//							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_s ),
-		//							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_xp ) ));
-
 		cc.push_back(unr2); cc.push_back(unr3); cc.push_back(len_x_gt_len_xp);
-		//cc.push_back(len_x_eq_s_xp);
 
 		Node unr = NodeManager::currentNM()->mkNode( kind::AND, cc );
 		Node lem = NodeManager::currentNM()->mkNode( kind::OR, xeqe, unr );
@@ -2005,7 +2010,7 @@ bool TheoryStrings::checkMemberships() {
 						if( unrollStar( atom ) ) {
 							addedLemma = true;
 						} else {
-							Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << options::stringRegExpUnrollDepth() << std::endl;
+							Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
 							is_unk = true;
 						}
 				} else {
@@ -2050,8 +2055,16 @@ bool TheoryStrings::checkMemberships() {
 		return true;
 	}else{
 		if( is_unk ){
-			Trace("strings-regexp") << "SET INCOMPLETE" << std::endl;
-			d_out->setIncomplete();
+			//if(!d_opt_fmf) {
+			//	d_opt_fmf = true;
+				//d_regexp_unroll_depth += 2;
+			//	Node t = getNextDecisionRequest();
+			//	return !t.isNull();
+			//} else {
+				Trace("strings-regexp") << "Strings::regexp: possibly incomplete." << std::endl;
+				//d_regexp_incomplete = true;
+				d_out->setIncomplete();
+			//}
 		}
 		return false;
 	}
@@ -2136,7 +2149,7 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 //// Finite Model Finding
 
 Node TheoryStrings::getNextDecisionRequest() {
-	if(options::stringFMF() && !d_conflict) {
+	if(d_opt_fmf && !d_conflict) {
 		//Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
 		//initialize the term we will minimize
 		if( d_in_var_lsum.isNull() && !d_in_vars.empty() ){
@@ -2190,8 +2203,31 @@ Node TheoryStrings::getNextDecisionRequest() {
 }
 
 void TheoryStrings::assertNode( Node lit ) {
-	
 }
+
+/*
+Node TheoryStrings::mkSplitEq( const char * c, TypeNode tn, const char * info, Node lhs, Node rhs, bool lgtZero ) {
+	Node sk = NodeManager::currentNM()->mkSkolem( c, lhs.getType(), info );
+	Node eq = lhs.eqNode( mkConcat( rhs, sk ) );
+	eq = Rewriter::rewrite( eq );
+	if( lgtZero ){
+		d_var_lgtz[sk] = true;
+		Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, d_emptyString).negate();
+		Trace("strings-lemma") << "Strings lemma : " << sk_gt_zero << std::endl;
+		d_lemma_cache.push_back( sk_gt_zero );
+	}
+	//store it in proper map
+	if( options::stringFMF() ){
+		d_var_split_graph_lhs[sk] = lhs;
+		d_var_split_graph_rhs[sk] = rhs;
+		d_var_split_eq[sk] = eq;
+		
+		int mpl = getMaxPossibleLength( sk );
+
+	}
+	return eq;
+}
+*/
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
