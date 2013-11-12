@@ -250,7 +250,11 @@ protected:
 private:
 	//NodeIntMap d_var_lmin;
 	//NodeIntMap d_var_lmax;
-	//Node mkSplitEq( const char * c, TypeNode tn, const char * info, Node lhs, Node rhs, bool lgtZero );
+	std::map< Node, Node > d_var_split_graph_lhs;
+	std::map< Node, Node > d_var_split_graph_rhs;
+	std::map< Node, bool > d_var_lgtz;
+	Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
+	int getMaxPossibleLength( Node x );
 
 	// Regular Expression
 private:

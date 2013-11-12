@@ -361,10 +361,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 			NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
 		  Trace("strings-lemma") << "Strings::Lemma LENGTH geq 0 : " << n_len_geq_zero << std::endl;
 		  d_out->lemma(n_len_geq_zero);
-
-		  Node n_len_imp_empty = NodeManager::currentNM()->mkNode( kind::IMPLIES, n_len.eqNode( d_zero ), n.eqNode( d_emptyString) );
-		  Trace("strings-lemma") << "Strings::Lemma ZERO: " << n_len_geq_zero << std::endl;
-		  d_out->lemma(n_len_imp_empty);
 	  }
 	  // FMF
 	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() && 
@@ -533,7 +529,7 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
                     d_pending.push_back( eq );
                     Node eq_exp = NodeManager::currentNM()->mkNode( kind::EQUAL, n, d_zero );
                     d_pending_exp[eq] = eq_exp;
-                    Trace("strings-infer") << "Strings : Infer " << eq << " from " << eq_exp << std::endl;
+                    Trace("strings-infer") << "Strings : Infer Empty : " << eq << " from " << eq_exp << std::endl;
                     d_infer.push_back(eq);
                     d_infer_exp.push_back(eq_exp);
                 }
@@ -1126,11 +1122,12 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 													Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
 														NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
 													//split the string
-													Node sk = NodeManager::currentNM()->mkSkolem( "c_split_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
+													//Node sk = NodeManager::currentNM()->mkSkolem( "c_spt_$$", normal_forms[i][index_i].getType(), "created for v/c split" );
 
 													Node eq1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, other_str, d_emptyString ) );
-													Node eq2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
-																NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, sk ) ) );
+													Node eq2 = mkSplitEq( "c_spt_$$", "created for v/c split", other_str, firstChar, false );
+													//Node eq2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, other_str,
+													//			NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, sk ) ) );
 													d_pending_req_phase[ eq1 ] = true;
 													conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
 													Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
@@ -1160,19 +1157,21 @@ bool TheoryStrings::normalizeEquivalenceClass( Node eqc, std::vector< Node > & v
 													}
 												}
 
-												Node sk = NodeManager::currentNM()->mkSkolem( "v_split_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
-												Node eq1 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
-															NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) );
-												Node eq2 = NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[j][index_j],
-															NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[i][index_i], sk ) );
+												//Node sk = NodeManager::currentNM()->mkSkolem( "v_spt_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
+												//Node eq1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
+												//			NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) ) );
+												//Node eq2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[j][index_j],
+												//			NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[i][index_i], sk ) ) );
+												Node eq1 = mkSplitEq( "v_spt_l_$$", "created for v/v split", normal_forms[i][index_i], normal_forms[j][index_j], true );
+												Node eq2 = mkSplitEq( "v_spt_r_$$", "created for v/v split", normal_forms[j][index_j], normal_forms[i][index_i], true );
 												conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
 												// |sk| > 0
-												//Node sk_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
-												//Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::GT, sk_len, d_zero);
-												Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, d_emptyString).negate();
-												Trace("strings-lemma") << "Strings lemma : " << sk_gt_zero << std::endl;
-												//d_out->lemma(sk_gt_zero);
-												d_lemma_cache.push_back( sk_gt_zero );
+												////Node sk_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk );
+												////Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::GT, sk_len, d_zero);
+												//Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, d_emptyString).negate();
+												//Trace("strings-lemma") << "Strings lemma : " << sk_gt_zero << std::endl;
+												////d_out->lemma(sk_gt_zero);
+												//d_lemma_cache.push_back( sk_gt_zero );
 
 												Node ant = mkExplain( antec, antec_new_lits );
 												sendLemma( ant, conc, "VAR-SPLIT" );
@@ -2205,29 +2204,41 @@ Node TheoryStrings::getNextDecisionRequest() {
 void TheoryStrings::assertNode( Node lit ) {
 }
 
-/*
-Node TheoryStrings::mkSplitEq( const char * c, TypeNode tn, const char * info, Node lhs, Node rhs, bool lgtZero ) {
+Node TheoryStrings::mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero ) {
 	Node sk = NodeManager::currentNM()->mkSkolem( c, lhs.getType(), info );
 	Node eq = lhs.eqNode( mkConcat( rhs, sk ) );
 	eq = Rewriter::rewrite( eq );
-	if( lgtZero ){
+	if( lgtZero ) {
 		d_var_lgtz[sk] = true;
 		Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, d_emptyString).negate();
-		Trace("strings-lemma") << "Strings lemma : " << sk_gt_zero << std::endl;
+		Trace("strings-lemma") << "Strings::Lemma sk GT zero: " << sk_gt_zero << std::endl;
 		d_lemma_cache.push_back( sk_gt_zero );
 	}
 	//store it in proper map
 	if( options::stringFMF() ){
 		d_var_split_graph_lhs[sk] = lhs;
 		d_var_split_graph_rhs[sk] = rhs;
-		d_var_split_eq[sk] = eq;
+		//d_var_split_eq[sk] = eq;
 		
-		int mpl = getMaxPossibleLength( sk );
-
+		//int mpl = getMaxPossibleLength( sk );
+		Trace("strings-progress") << "Strings::Progress: Because of " << eq << std::endl;
+		Trace("strings-progress") << "Strings::Progress: \t" << lhs << "(up:" << getMaxPossibleLength(lhs) << ") is removed" << std::endl;
+		Trace("strings-progress") << "Strings::Progress: \t" << sk << "(up:" << getMaxPossibleLength(sk) << ") is added" << std::endl;
 	}
 	return eq;
 }
-*/
+
+int TheoryStrings::getMaxPossibleLength( Node x ) {
+	if( d_var_split_graph_lhs.find( x )==d_var_split_graph_lhs.end() ){
+		if( x.getKind()==kind::CONST_STRING ){
+			return x.getConst<String>().size();
+		}else{
+			return d_curr_cardinality.get();
+		}
+	}else{
+		return getMaxPossibleLength( d_var_split_graph_lhs[x] ) - 1;
+	}
+}
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
