@@ -347,7 +347,7 @@ void DefaultVarBB (TNode node, Bits& bits, Bitblaster* bb) {
     Debug("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
 
-   bb->storeVariable(node);
+  bb->storeVariable(node);
 }
 
 void DefaultConstBB (TNode node, Bits& bits, Bitblaster* bb) {
@@ -663,7 +663,7 @@ void DefaultUdivBB (TNode node, Bits& q, Bitblaster* bb) {
 
   // cache the remainder in case we need it later
   Node remainder = mkNode(kind::BITVECTOR_UREM_TOTAL, node[0], node[1]);
-  bb->cacheTermDef(remainder, r);
+  bb->storeBBTerm(remainder, r);
 }
 
 void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
@@ -690,7 +690,7 @@ void DefaultUremBB (TNode node, Bits& rem, Bitblaster* bb) {
 
   // cache the quotient in case we need it later
   Node quotient = mkNode(kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]);
-  bb->cacheTermDef(quotient, q);
+  bb->storeBBTerm(quotient, q);
 }
 
 

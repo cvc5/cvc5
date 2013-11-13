@@ -25,14 +25,18 @@ namespace theory {
 namespace bv {
 
 class EagerBitblaster;
-
+class AigBitblaster;
+class AigSimplifier; 
 /**
  * BitblastSolver
  */
 class EagerBitblastSolver {
   /** Bitblaster */
-  EagerBitblaster* d_bitblaster;
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction> d_assertionSet;
+  // EagerBitblaster* d_bitblaster;
+  AigBitblaster* d_bitblaster;
+  AigSimplifier* d_aigSimplifer;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AssertionSet; 
+  AssertionSet d_assertionSet;
 public:
   EagerBitblastSolver(); 
   ~EagerBitblastSolver();

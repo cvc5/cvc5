@@ -20,7 +20,7 @@
 #include "theory/theory_registrar.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/options.h"
-
+#include "theory/bv/aig.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 
@@ -34,58 +34,26 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+/** Dummy class to pass to Minisat constructor */
+class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
+public:
+  MinisatEmptyNotify() {}
+  bool notify(prop::SatLiteral lit) { return true; }
+  void notify(prop::SatClause& clause) { }
+  void safePoint() {}
+};
+
+
 
 class EagerBitblaster : public Bitblaster {
-
-  /** Dummy class to pass to Minisat constructor */
-  class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
-  public:
-    MinisatEmptyNotify() {}
-    bool notify(prop::SatLiteral lit) { return true; }
-    void notify(prop::SatClause& clause) { }
-    void safePoint() {}
-  };
-
-
-  typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        AtomSet;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        VarSet;
-
-  typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*);
-  typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*);
 
   // sat solver used for bitblasting and associated CnfStream
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
-  // caches and mappings
-  TermDefMap                   d_termCache;
-  AtomSet                      d_bitblastedAtoms;
-  VarSet                       d_variables;
-
-  /// helper methods
 public:
-  bool          hasBBAtom(TNode node) const;
-  private:
-  bool          hasBBTerm(TNode node) const;
-  void          getBBTerm(TNode node, Bits& bits) const;
-
-  /// function tables for the various bitblasting strategies indexed by node kind
-  TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
-  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
-
-  // helper methods to initialize function tables
-  void initAtomBBStrategies();
-  void initTermBBStrategies();
-
   void addAtom(TNode atom);
-  // division is bitblasted in terms of constraints
-  // so it needs to use private bitblaster interface
-  void bbUdiv(TNode node, Bits& bits);
-  void bbUrem(TNode node, Bits& bits);
-public:
   void storeVariable(TNode node) {} // not implemented for the eager solver
-  void cacheTermDef(TNode node, Bits def); // public so we can cache remainder for division
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
   void bbFormula(TNode formula);
@@ -113,19 +81,15 @@ public:
 }
 }
 
-EagerBitblaster::EagerBitblaster() :
-    d_termCache(),
-    d_bitblastedAtoms()
-  {
-    d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "eager");
-    d_cnfStream = new prop::TseitinCnfStream(d_satSolver, new BitblastingRegistrar(this), new context::Context());
-
-    MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-    d_satSolver->setNotify(notify);
-    // initializing the bit-blasting strategies
-    initAtomBBStrategies();
-    initTermBBStrategies();
-  }
+EagerBitblaster::EagerBitblaster()
+  : Bitblaster()
+{
+  d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "eager");
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, new BitblastingRegistrar(this), new context::Context());
+  
+  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+  d_satSolver->setNotify(notify);
+}
 
 EagerBitblaster::~EagerBitblaster() {
   delete d_cnfStream;
@@ -161,9 +125,8 @@ void EagerBitblaster::bbAtom(TNode node) {
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
 
   Assert (options::bitvectorNewEagerBitblast());
-  
+  storeBBAtom(node);
   d_cnfStream->convertAndAssert(atom_definition, false, false);
-  d_bitblastedAtoms.insert(node);
 }
 
 void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
@@ -178,7 +141,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
 
   Assert (bits.size() == utils::getSize(node));
 
-  cacheTermDef(node, bits);
+  storeBBTerm(node, bits);
 }
 
 
@@ -197,101 +160,39 @@ bool EagerBitblaster::solve() {
 }
 
 
-/// Helper methods
-
-
-void EagerBitblaster::initAtomBBStrategies() {
-  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
-    d_atomBBStrategies[i] = UndefinedAtomBBStrategy;
-  }
-
-  /// setting default bb strategies for atoms
-  d_atomBBStrategies [ kind::EQUAL ]           = DefaultEqBB;
-  d_atomBBStrategies [ kind::BITVECTOR_ULT ]   = DefaultUltBB;
-  d_atomBBStrategies [ kind::BITVECTOR_ULE ]   = DefaultUleBB;
-  d_atomBBStrategies [ kind::BITVECTOR_UGT ]   = DefaultUgtBB;
-  d_atomBBStrategies [ kind::BITVECTOR_UGE ]   = DefaultUgeBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SLT ]   = DefaultSltBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SLE ]   = DefaultSleBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SGT ]   = DefaultSgtBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SGE ]   = DefaultSgeBB;
-
-}
-
-void EagerBitblaster::initTermBBStrategies() {
-  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
-    d_termBBStrategies[i] = DefaultVarBB;
-  }
-
-  /// setting default bb strategies for terms:
-  d_termBBStrategies [ kind::CONST_BITVECTOR ]        = DefaultConstBB;
-  d_termBBStrategies [ kind::BITVECTOR_NOT ]          = DefaultNotBB;
-  d_termBBStrategies [ kind::BITVECTOR_CONCAT ]       = DefaultConcatBB;
-  d_termBBStrategies [ kind::BITVECTOR_AND ]          = DefaultAndBB;
-  d_termBBStrategies [ kind::BITVECTOR_OR ]           = DefaultOrBB;
-  d_termBBStrategies [ kind::BITVECTOR_XOR ]          = DefaultXorBB;
-  d_termBBStrategies [ kind::BITVECTOR_XNOR ]         = DefaultXnorBB;
-  d_termBBStrategies [ kind::BITVECTOR_NAND ]         = DefaultNandBB ;
-  d_termBBStrategies [ kind::BITVECTOR_NOR ]          = DefaultNorBB;
-  d_termBBStrategies [ kind::BITVECTOR_COMP ]         = DefaultCompBB ;
-  d_termBBStrategies [ kind::BITVECTOR_MULT ]         = DefaultMultBB;
-  d_termBBStrategies [ kind::BITVECTOR_PLUS ]         = DefaultPlusBB;
-  d_termBBStrategies [ kind::BITVECTOR_SUB ]          = DefaultSubBB;
-  d_termBBStrategies [ kind::BITVECTOR_NEG ]          = DefaultNegBB;
-  d_termBBStrategies [ kind::BITVECTOR_UDIV ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_UREM ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_UDIV_TOTAL ]   = DefaultUdivBB;
-  d_termBBStrategies [ kind::BITVECTOR_UREM_TOTAL ]   = DefaultUremBB;
-  d_termBBStrategies [ kind::BITVECTOR_SDIV ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SREM ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SMOD ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SHL ]          = DefaultShlBB;
-  d_termBBStrategies [ kind::BITVECTOR_LSHR ]         = DefaultLshrBB;
-  d_termBBStrategies [ kind::BITVECTOR_ASHR ]         = DefaultAshrBB;
-  d_termBBStrategies [ kind::BITVECTOR_EXTRACT ]      = DefaultExtractBB;
-  d_termBBStrategies [ kind::BITVECTOR_REPEAT ]       = DefaultRepeatBB;
-  d_termBBStrategies [ kind::BITVECTOR_ZERO_EXTEND ]  = DefaultZeroExtendBB;
-  d_termBBStrategies [ kind::BITVECTOR_SIGN_EXTEND ]  = DefaultSignExtendBB;
-  d_termBBStrategies [ kind::BITVECTOR_ROTATE_RIGHT ] = DefaultRotateRightBB;
-  d_termBBStrategies [ kind::BITVECTOR_ROTATE_LEFT ]  = DefaultRotateLeftBB;
-
-}
-
-bool EagerBitblaster::hasBBAtom(TNode atom) const {
-  return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
-}
-
-void EagerBitblaster::cacheTermDef(TNode term, Bits def) {
-  Assert (d_termCache.find(term) == d_termCache.end());
-  d_termCache[term] = def;
-}
-
-bool EagerBitblaster::hasBBTerm(TNode node) const {
-  return d_termCache.find(node) != d_termCache.end();
-}
-
-void EagerBitblaster::getBBTerm(TNode node, Bits& bits) const {
-  Assert (hasBBTerm(node));
-  bits = d_termCache.find(node)->second;
-}
-
-
 EagerBitblastSolver::EagerBitblastSolver()
-  : d_bitblaster(new EagerBitblaster())
-  , d_assertionSet()
-{}
+  : d_assertionSet()
+{
+  prop::BVSatSolverInterface* satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "eager");
+  MinisatEmptyNotify* notify = new MinisatEmptyNotify();
+  satSolver->setNotify(notify);
+  d_aigSimplifer = new AigSimplifier(satSolver);
+  d_bitblaster = new AigBitblaster(d_aigSimplifer);
+}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
+  delete d_aigSimplifer; 
   delete d_bitblaster; 
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
   d_assertionSet.insert(formula);
-  d_bitblaster->bbFormula(formula); 
+  //ensures all atoms are bit-blasted and converted to AIG
+  d_bitblaster->bbFormula(formula);
 }
 
 bool EagerBitblastSolver::checkSat() {
-  return d_bitblaster->solve(); 
+  std::vector<TNode> assertions; 
+  for (AssertionSet::const_iterator it = d_assertionSet.begin(); it != d_assertionSet.end(); ++it) {
+    assertions.push_back(*it); 
+  }
+  Assert (assertions.size());
+  // negate it due to ABC's cnf conversion?
+  Node query = utils::mkNode(kind::NOT, utils::mkAnd(assertions)); 
+  d_aigSimplifer->setOutput(query); 
+  d_aigSimplifer->simplifyAig();
+  d_aigSimplifer->convertToCnfAndAssert(); 
+  return d_aigSimplifer->solve(); 
 }
 
 bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {

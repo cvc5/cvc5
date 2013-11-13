@@ -36,7 +36,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv{
 
-std::string toString(Bits&  bits) {
+std::string toString(const Bits&  bits) {
   ostringstream os;
   for (int i = bits.size() - 1; i >= 0; --i) {
     TNode bit = bits[i];
@@ -52,22 +52,107 @@ std::string toString(Bits&  bits) {
 }
 /////// Bitblaster
 
-LazyBitblaster::LazyBitblaster(context::Context* c, bv::TheoryBV* bv) :
-    d_bv(bv),
-    d_bvOutput(bv->d_out),
-    d_termCache(),
-    d_bitblastedAtoms(),
-    d_assertedAtoms(c),
-    d_statistics()
-  {
+Bitblaster::Bitblaster()
+  : d_termCache()
+  , d_bitblastedAtoms()
+{
+  initAtomBBStrategies();
+  initTermBBStrategies(); 
+}
+
+void Bitblaster::initAtomBBStrategies() {
+  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
+    d_atomBBStrategies[i] = UndefinedAtomBBStrategy;
+  }
+  /// setting default bb strategies for atoms
+  d_atomBBStrategies [ kind::EQUAL ]           = DefaultEqBB;
+  d_atomBBStrategies [ kind::BITVECTOR_ULT ]   = DefaultUltBB;
+  d_atomBBStrategies [ kind::BITVECTOR_ULE ]   = DefaultUleBB;
+  d_atomBBStrategies [ kind::BITVECTOR_UGT ]   = DefaultUgtBB;
+  d_atomBBStrategies [ kind::BITVECTOR_UGE ]   = DefaultUgeBB;
+  d_atomBBStrategies [ kind::BITVECTOR_SLT ]   = DefaultSltBB;
+  d_atomBBStrategies [ kind::BITVECTOR_SLE ]   = DefaultSleBB;
+  d_atomBBStrategies [ kind::BITVECTOR_SGT ]   = DefaultSgtBB;
+  d_atomBBStrategies [ kind::BITVECTOR_SGE ]   = DefaultSgeBB;
+
+}
+
+void Bitblaster::initTermBBStrategies() {
+  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
+    d_termBBStrategies[i] = DefaultVarBB;
+  }
+  /// setting default bb strategies for terms:
+  d_termBBStrategies [ kind::CONST_BITVECTOR ]        = DefaultConstBB;
+  d_termBBStrategies [ kind::BITVECTOR_NOT ]          = DefaultNotBB;
+  d_termBBStrategies [ kind::BITVECTOR_CONCAT ]       = DefaultConcatBB;
+  d_termBBStrategies [ kind::BITVECTOR_AND ]          = DefaultAndBB;
+  d_termBBStrategies [ kind::BITVECTOR_OR ]           = DefaultOrBB;
+  d_termBBStrategies [ kind::BITVECTOR_XOR ]          = DefaultXorBB;
+  d_termBBStrategies [ kind::BITVECTOR_XNOR ]         = DefaultXnorBB;
+  d_termBBStrategies [ kind::BITVECTOR_NAND ]         = DefaultNandBB ;
+  d_termBBStrategies [ kind::BITVECTOR_NOR ]          = DefaultNorBB;
+  d_termBBStrategies [ kind::BITVECTOR_COMP ]         = DefaultCompBB ;
+  d_termBBStrategies [ kind::BITVECTOR_MULT ]         = DefaultMultBB;
+  d_termBBStrategies [ kind::BITVECTOR_PLUS ]         = DefaultPlusBB;
+  d_termBBStrategies [ kind::BITVECTOR_SUB ]          = DefaultSubBB;
+  d_termBBStrategies [ kind::BITVECTOR_NEG ]          = DefaultNegBB;
+  d_termBBStrategies [ kind::BITVECTOR_UDIV ]         = UndefinedTermBBStrategy;
+  d_termBBStrategies [ kind::BITVECTOR_UREM ]         = UndefinedTermBBStrategy;
+  d_termBBStrategies [ kind::BITVECTOR_UDIV_TOTAL ]   = DefaultUdivBB;
+  d_termBBStrategies [ kind::BITVECTOR_UREM_TOTAL ]   = DefaultUremBB;
+  d_termBBStrategies [ kind::BITVECTOR_SDIV ]         = UndefinedTermBBStrategy;
+  d_termBBStrategies [ kind::BITVECTOR_SREM ]         = UndefinedTermBBStrategy;
+  d_termBBStrategies [ kind::BITVECTOR_SMOD ]         = UndefinedTermBBStrategy;
+  d_termBBStrategies [ kind::BITVECTOR_SHL ]          = DefaultShlBB;
+  d_termBBStrategies [ kind::BITVECTOR_LSHR ]         = DefaultLshrBB;
+  d_termBBStrategies [ kind::BITVECTOR_ASHR ]         = DefaultAshrBB;
+  d_termBBStrategies [ kind::BITVECTOR_EXTRACT ]      = DefaultExtractBB;
+  d_termBBStrategies [ kind::BITVECTOR_REPEAT ]       = DefaultRepeatBB;
+  d_termBBStrategies [ kind::BITVECTOR_ZERO_EXTEND ]  = DefaultZeroExtendBB;
+  d_termBBStrategies [ kind::BITVECTOR_SIGN_EXTEND ]  = DefaultSignExtendBB;
+  d_termBBStrategies [ kind::BITVECTOR_ROTATE_RIGHT ] = DefaultRotateRightBB;
+  d_termBBStrategies [ kind::BITVECTOR_ROTATE_LEFT ]  = DefaultRotateLeftBB;
+
+}
+
+bool Bitblaster::hasBBAtom(TNode atom) const {
+  return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
+}
+
+void Bitblaster::storeBBTerm(TNode term, const Bits& def) {
+  Assert (d_termCache.find(term) == d_termCache.end());
+  d_termCache[term] = def;
+}
+
+bool Bitblaster::hasBBTerm(TNode node) const {
+  return d_termCache.find(node) != d_termCache.end();
+}
+
+void Bitblaster::getBBTerm(TNode node, Bits& bits) const {
+  Assert (hasBBTerm(node));
+  bits = d_termCache.find(node)->second;
+}
+
+void Bitblaster::storeBBAtom(TNode atom) {
+  Assert (!hasBBAtom(atom));
+  d_bitblastedAtoms.insert(atom);
+}
+
+/////// LazyBitblaster
+
+LazyBitblaster::LazyBitblaster(context::Context* c, bv::TheoryBV* bv)
+  : Bitblaster()
+  , d_bv(bv)
+  , d_bvOutput(bv->d_out)
+  , d_assertedAtoms(c)
+  , d_variables()
+  , d_statistics()
+{
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
     d_cnfStream = new TseitinCnfStream(d_satSolver, new NullRegistrar(), new Context());
 
     MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
     d_satSolver->setNotify(notify);
-    // initializing the bit-blasting strategies
-    initAtomBBStrategies();
-    initTermBBStrategies();
   }
 
 LazyBitblaster::~LazyBitblaster() {
@@ -101,13 +186,12 @@ void LazyBitblaster::bbAtom(TNode node) {
       normalized;
   // asserting that the atom is true iff the definition holds
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
-
+  storeBBAtom(node);
+    
   if (!options::bitvectorEagerBitblast()) {
     d_cnfStream->convertAndAssert(atom_definition, false, false);
-    d_bitblastedAtoms.insert(node);
   } else {
     d_bvOutput->lemma(atom_definition, false);
-    d_bitblastedAtoms.insert(node);
   }
 }
 
@@ -133,7 +217,7 @@ void LazyBitblaster::bbTerm(TNode node, Bits& bits) {
 
   Assert (bits.size() == utils::getSize(node));
 
-  cacheTermDef(node, bits);
+  storeBBTerm(node, bits);
 }
 
 Node LazyBitblaster::bbOptimize(TNode node) {
@@ -253,89 +337,6 @@ void LazyBitblaster::getConflict(std::vector<TNode>& conflict) {
   }
 }
 
-
-/// Helper methods
-
-
-void LazyBitblaster::initAtomBBStrategies() {
-  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
-    d_atomBBStrategies[i] = UndefinedAtomBBStrategy;
-  }
-
-  /// setting default bb strategies for atoms
-  d_atomBBStrategies [ kind::EQUAL ]           = DefaultEqBB;
-  d_atomBBStrategies [ kind::BITVECTOR_ULT ]   = DefaultUltBB;
-  d_atomBBStrategies [ kind::BITVECTOR_ULE ]   = DefaultUleBB;
-  d_atomBBStrategies [ kind::BITVECTOR_UGT ]   = DefaultUgtBB;
-  d_atomBBStrategies [ kind::BITVECTOR_UGE ]   = DefaultUgeBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SLT ]   = DefaultSltBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SLE ]   = DefaultSleBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SGT ]   = DefaultSgtBB;
-  d_atomBBStrategies [ kind::BITVECTOR_SGE ]   = DefaultSgeBB;
-
-}
-
-void LazyBitblaster::initTermBBStrategies() {
-  // Changed this to DefaultVarBB because any foreign kind should be treated as a variable
-  // TODO: check this is OK
-  for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
-    d_termBBStrategies[i] = DefaultVarBB;
-  }
-
-  /// setting default bb strategies for terms:
-  //  d_termBBStrategies [ kind::VARIABLE ]               = DefaultVarBB;
-  d_termBBStrategies [ kind::CONST_BITVECTOR ]        = DefaultConstBB;
-  d_termBBStrategies [ kind::BITVECTOR_NOT ]          = DefaultNotBB;
-  d_termBBStrategies [ kind::BITVECTOR_CONCAT ]       = DefaultConcatBB;
-  d_termBBStrategies [ kind::BITVECTOR_AND ]          = DefaultAndBB;
-  d_termBBStrategies [ kind::BITVECTOR_OR ]           = DefaultOrBB;
-  d_termBBStrategies [ kind::BITVECTOR_XOR ]          = DefaultXorBB;
-  d_termBBStrategies [ kind::BITVECTOR_XNOR ]         = DefaultXnorBB;
-  d_termBBStrategies [ kind::BITVECTOR_NAND ]         = DefaultNandBB ;
-  d_termBBStrategies [ kind::BITVECTOR_NOR ]          = DefaultNorBB;
-  d_termBBStrategies [ kind::BITVECTOR_COMP ]         = DefaultCompBB ;
-  d_termBBStrategies [ kind::BITVECTOR_MULT ]         = DefaultMultBB;
-  d_termBBStrategies [ kind::BITVECTOR_PLUS ]         = DefaultPlusBB;
-  d_termBBStrategies [ kind::BITVECTOR_SUB ]          = DefaultSubBB;
-  d_termBBStrategies [ kind::BITVECTOR_NEG ]          = DefaultNegBB;
-  d_termBBStrategies [ kind::BITVECTOR_UDIV ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_UREM ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_UDIV_TOTAL ]   = DefaultUdivBB;
-  d_termBBStrategies [ kind::BITVECTOR_UREM_TOTAL ]   = DefaultUremBB;
-  d_termBBStrategies [ kind::BITVECTOR_SDIV ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SREM ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SMOD ]         = UndefinedTermBBStrategy;
-  d_termBBStrategies [ kind::BITVECTOR_SHL ]          = DefaultShlBB;
-  d_termBBStrategies [ kind::BITVECTOR_LSHR ]         = DefaultLshrBB;
-  d_termBBStrategies [ kind::BITVECTOR_ASHR ]         = DefaultAshrBB;
-  d_termBBStrategies [ kind::BITVECTOR_EXTRACT ]      = DefaultExtractBB;
-  d_termBBStrategies [ kind::BITVECTOR_REPEAT ]       = DefaultRepeatBB;
-  d_termBBStrategies [ kind::BITVECTOR_ZERO_EXTEND ]  = DefaultZeroExtendBB;
-  d_termBBStrategies [ kind::BITVECTOR_SIGN_EXTEND ]  = DefaultSignExtendBB;
-  d_termBBStrategies [ kind::BITVECTOR_ROTATE_RIGHT ] = DefaultRotateRightBB;
-  d_termBBStrategies [ kind::BITVECTOR_ROTATE_LEFT ]  = DefaultRotateLeftBB;
-
-}
-
-bool LazyBitblaster::hasBBAtom(TNode atom) const {
-  return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
-}
-
-void LazyBitblaster::cacheTermDef(TNode term, Bits def) {
-  Assert (d_termCache.find(term) == d_termCache.end());
-  d_termCache[term] = def;
-}
-
-bool LazyBitblaster::hasBBTerm(TNode node) const {
-  return d_termCache.find(node) != d_termCache.end();
-}
-
-void LazyBitblaster::getBBTerm(TNode node, Bits& bits) const {
-  Assert (hasBBTerm(node));
-  // copy?
-  bits = d_termCache.find(node)->second;
-}
-
 LazyBitblaster::Statistics::Statistics() :
   d_numTermClauses("theory::bv::NumberOfTermSatClauses", 0),
   d_numAtomClauses("theory::bv::NumberOfAtomSatClauses", 0),
@@ -424,8 +425,9 @@ bool LazyBitblaster::isSharedTerm(TNode node) {
 }
 
 bool LazyBitblaster::hasValue(TNode a) {
-  Assert (d_termCache.find(a) != d_termCache.end());
-  Bits bits = d_termCache[a];
+  Assert (hasBBTerm(a)); 
+  Bits bits;
+  getBBTerm(a, bits); 
   for (int i = bits.size() -1; i >= 0; --i) {
     SatValue bit_value;
     if (d_cnfStream->hasLiteral(bits[i])) {
@@ -450,11 +452,12 @@ bool LazyBitblaster::hasValue(TNode a) {
  * @return
  */
 Node LazyBitblaster::getVarValue(TNode a, bool fullModel) {
-  if (d_termCache.find(a) == d_termCache.end()) {
+  if (!hasBBTerm(a)) {
     Assert(isSharedTerm(a));
     return Node();
   }
-  Bits bits = d_termCache[a];
+  Bits bits;
+  getBBTerm(a, bits);
   Integer value(0);
   for (int i = bits.size() -1; i >= 0; --i) {
     SatValue bit_value;

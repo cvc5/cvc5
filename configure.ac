@@ -250,6 +250,9 @@ AC_ARG_WITH(
   ]
 )
 
+# latest error: cannot find dlopen despite of -ldl being linked
+AC_CHECK_LIB(abc, Abc_Start, , [AC_MSG_ERROR([abc not found])], [-lm -ldl -rdynamic -lreadline -ltermcap -lpthread -lrt])
+
 # [chris 8/24/2010] --with-gmp has no practical effect, since GMP is
 # the default. Could be useful if other options are added later.
 
@@ -1198,7 +1201,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full releas
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
 CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
-LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
+LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS -ldl"
 
 # visibility flag not supported for Windows builds
 # also increase default stack size for Windows binaries

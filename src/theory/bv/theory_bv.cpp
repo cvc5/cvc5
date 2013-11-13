@@ -27,6 +27,8 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/model.h"
+#include "/home/lianah/tools/abc/src/base/main/main.h"
+#include "/home/lianah/tools/abc/src/base/abc/abc.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -51,6 +53,13 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_propagatedBy(c),
     d_eagerSolver()
   {
+
+    Abc_Start();
+    Abc_Ntk_t* pAig;
+    pAig = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1); 
+    // std::cout << pAig <<" pointer to network \n"; 
+    Abc_Stop();
+
     if (options::bitvectorNewEagerBitblast()) {
       d_eagerSolver = new EagerBitblastSolver();
       return; 

@@ -55,9 +55,11 @@ namespace bv {
 
 typedef std::vector<Node> Bits;
 
-std::string toString (Bits& bits);
+std::string toString (const Bits& bits);
 
 class TheoryBV;
+
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
 
 /**
  * The Bitblaster that manages the mapping between Nodes
@@ -66,12 +68,36 @@ class TheoryBV;
  */
 
 class Bitblaster {
+  typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction>  TermDefMap;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        AtomSet;
+
+  typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*);
+  typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*);
+
+  // caches and mappings
+  TermDefMap                   d_termCache;
+  AtomSet                      d_bitblastedAtoms;
+
+  void initAtomBBStrategies();
+  void initTermBBStrategies();
+protected:
+  /// function tables for the various bitblasting strategies indexed by node kind
+  TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
+  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
+  
 public:
+  Bitblaster(); 
   virtual ~Bitblaster() {}
   virtual void bbAtom(TNode node) = 0; 
   virtual void bbTerm(TNode node, Bits&  bits) = 0;
-  virtual void cacheTermDef(TNode node, Bits def) = 0; 
   virtual void storeVariable(TNode node) = 0;
+
+  bool hasBBAtom(TNode atom) const;
+  bool hasBBTerm(TNode node) const;
+  void getBBTerm(TNode node, Bits& bits) const;
+  void storeBBAtom(TNode atom);
+  void storeBBTerm(TNode term, const Bits& bits); 
+
 }; 
 
 class LazyBitblaster :  public Bitblaster {
@@ -91,13 +117,6 @@ class LazyBitblaster :  public Bitblaster {
   };
 
 
-  typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction >              TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      AtomSet;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>                      VarSet;
-
-  typedef void   (*TermBBStrategy) (TNode, Bits&, Bitblaster*);
-  typedef Node   (*AtomBBStrategy) (TNode, Bitblaster*);
-
   TheoryBV *d_bv;
 
   // sat solver used for bitblasting and associated CnfStream
@@ -105,35 +124,15 @@ class LazyBitblaster :  public Bitblaster {
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
-  // caches and mappings
-  TermDefMap                   d_termCache;
-  AtomSet                      d_bitblastedAtoms;
-  VarSet                       d_variables;
   context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
                                                        currently asserted by the DPLL SAT solver. */
-
-  /// helper methods
-  public:
-  bool          hasBBAtom(TNode node) const;
-  private:
-  bool          hasBBTerm(TNode node) const;
-  void          getBBTerm(TNode node, Bits& bits) const;
-
-  /// function tables for the various bitblasting strategies indexed by node kind
-  TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
-  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
-
-  // helper methods to initialize function tables
-  void initAtomBBStrategies();
-  void initTermBBStrategies();
-
+  VarSet d_variables;
   // returns a node that might be easier to bitblast
   Node bbOptimize(TNode node);
 
   void addAtom(TNode atom);
   bool hasValue(TNode a);
 public:
-  void cacheTermDef(TNode node, Bits def); // public so we can cache remainder for division
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
 

@@ -112,7 +112,8 @@ public:
    * 
    * @return 
    */
-  bool solve(); 
+  bool solve();
+  friend class AigBitblaster; 
 };
 }
 }

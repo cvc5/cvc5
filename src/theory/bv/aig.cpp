@@ -80,7 +80,9 @@ void AigBitblaster::bbAtom(TNode node) {
       normalized;
 
   // converting the atom to Aig
-  d_aigSimplifer->convertToAig(atom_bb);
+  Abc_Obj_t* result = d_aigSimplifer->convertToAig(atom_bb);
+  // cache the atom as well
+  d_aigSimplifer->cacheAig(node, result); 
   storeBBAtom(node);
 }
 
@@ -110,11 +112,10 @@ AigSimplifier::AigSimplifier(prop::BVSatSolverInterface* solver)
 
   Abc_Start();
   d_abcAigNetwork = Abc_NtkAlloc( ABC_NTK_STRASH, ABC_FUNC_AIG, 1); 
-  char* pName("CVC4::theory::bv::AigNetwork");
+  char pName[] = "CVC4::theory::bv::AigNetwork";
   d_abcAigNetwork->pName = Extra_UtilStrsav(pName);
   d_trueAigNode = Abc_AigConst1(d_abcAigNetwork);
   d_falseAigNode = Abc_ObjNot(d_trueAigNode); 
-  delete pName; 
 }
 
 AigSimplifier::~AigSimplifier() {
@@ -125,7 +126,7 @@ AigSimplifier::~AigSimplifier() {
 Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
   if (hasAig(node))
     return getAig(node);
-
+  
   Abc_Aig_t* man = (Abc_Aig_t*)d_abcAigNetwork->pManFunc;
   Abc_Obj_t* result; 
   switch (node.getKind()) {
