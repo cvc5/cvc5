@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 x1, y1, z1: REAL;
 x2, y2, z2: REAL;
 f: REAL -> REAL;

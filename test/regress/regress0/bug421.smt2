@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --incremental --abstract-values
 ; EXPECT: sat
 ; EXPECT: ((a @1) (b @2))
-; EXIT: 10
 (set-logic QF_AUFLIA)
 (set-option :produce-models true)
 (declare-fun a () (Array Int Int))

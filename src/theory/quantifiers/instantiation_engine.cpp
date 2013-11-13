@@ -181,6 +181,16 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
   }else{
     d_performCheck = true;
   }
+  static int ierCounter2 = 0;
+  if( e==Theory::EFFORT_LAST_CALL ){
+    ierCounter2++;
+    //with bounded integers, skip every other last call,
+    // since matching loops may occur with infinite quantification
+    if( ierCounter2%2==0 && options::fmfBoundInt() ){
+      d_performCheck = false;
+    }
+  }
+
   return d_performCheck;
 }
 

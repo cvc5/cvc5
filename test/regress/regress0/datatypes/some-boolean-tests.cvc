@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 DATATYPE list[T] = cons(car:T, care:BOOLEAN, cdr:list[T]) | nil END;
 x : list[REAL];
 

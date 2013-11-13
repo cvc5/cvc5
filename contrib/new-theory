@@ -5,6 +5,11 @@
 
 cd "`dirname "$0"`/.."
 
+if ! perl -v &>/dev/null; then
+  echo "ERROR: perl is required to run this script." >&2
+  exit 1
+fi
+
 if [ ! -e src/theory/theory_engine.h ]; then
   echo "ERROR: This script doesn't appear to be the contrib/ subdirectory" >&2
   echo "ERROR: of the CVC4 source tree." >&2
@@ -126,34 +131,36 @@ else
 fi
 
 echo
-echo "Adding $dir to SUBDIRS to src/theory/Makefile.am..."
-if grep -q '^SUBDIRS = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/theory/Makefile.am &>/dev/null; then
-  echo "NOTE: src/theory/Makefile.am already descends into dir $dir"
+echo "Adding $dir to THEORIES to src/Makefile.am..."
+if grep -q '^THEORIES = .*[^a-zA-Z0-9_]'"$dir"'\([^a-zA-Z0-9_]\|$\)' src/Makefile.am &>/dev/null; then
+  echo "NOTE: src/Makefile.am already lists theory $dir"
 else
-  awk '/^SUBDIRS = / {print $0,"'"$dir"'"} !/^SUBDIRS = / {print$0}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
-  if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
-    echo "ERROR: cannot copy src/theory/Makefile.am !" >&2
+  awk '/^THEORIES = / {print $0,"'"$dir"'"} !/^THEORIES = / {print$0}' src/Makefile.am > src/Makefile.am.new-theory
+  if ! cp -f src/Makefile.am src/Makefile.am~; then
+    echo "ERROR: cannot copy src/Makefile.am !" >&2
     exit 1
   fi
-  if ! mv -f src/theory/Makefile.am.new-theory src/theory/Makefile.am; then
-    echo "ERROR: cannot replace src/theory/Makefile.am !" >&2
+  if ! mv -f src/Makefile.am.new-theory src/Makefile.am; then
+    echo "ERROR: cannot replace src/Makefile.am !" >&2
     exit 1
   fi
 fi
 
-echo "Adding lib$dir.la to LIBADD to src/theory/Makefile.am..."
-if grep -q '^	@builddir@/'"$dir"'/lib'"$dir"'\.la\>' src/theory/Makefile.am &>/dev/null; then
-  echo "NOTE: src/theory/Makefile.am already seems to include lib$dir.la"
-else
-  awk '!/^libtheory_la_LIBADD = / {print$0} /^libtheory_la_LIBADD = / {while(/\\ *$/){print $0;getline} print $0,"\\";print "\t@builddir@/'"$dir"'/lib'"$dir"'.la"}' src/theory/Makefile.am > src/theory/Makefile.am.new-theory
-  if ! cp -f src/theory/Makefile.am src/theory/Makefile.am~; then
-    echo "ERROR: cannot copy src/theory/Makefile.am !" >&2
-    exit 1
-  fi
-  if ! mv -f src/theory/Makefile.am.new-theory src/theory/Makefile.am; then
-    echo "ERROR: cannot replace src/theory/Makefile.am !" >&2
-    exit 1
-  fi
+echo "Adding sources to src/Makefile.am..."
+
+perl -e '
+  while(<>) { print; last if /^libcvc4_la_SOURCES = /; }
+  if('$alternate') {
+    while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/theory_'"$dir"'.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'.cpp\n"; last; } else { print; } }
+  } else {
+    while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/theory_'"$dir"'.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'.cpp \\\n\ttheory/'"$dir"'/theory_'"$dir"'_rewriter.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'_type_rules.h\n"; last; } else { print; } }
+  }
+  while(<>) { print; last if /^EXTRA_DIST = /; }
+  while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/kinds \\\n\ttheory/'"$dir"'/options_handlers.h\n"; last; } else { print; } }
+  while(<>) { print; }' src/Makefile.am > src/Makefile.am.new-theory
+if ! mv -f src/Makefile.am.new-theory src/Makefile.am; then
+  echo "ERROR: cannot replace src/Makefile.am !" >&2
+  exit 1
 fi
 
 echo "Adding ../theory/$dir/options.cpp to OPTIONS_FILES_SRCS"

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node_manager.h"
+#include "expr/node_manager_attributes.h"
 #include "context/context.h"
 
 #include "util/rational.h"

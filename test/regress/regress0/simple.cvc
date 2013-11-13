@@ -5,4 +5,3 @@ ASSERT x3 OR x2;
 ASSERT x1 AND NOT x1;
 % EXPECT: valid
 QUERY x2;
-% EXIT: 20

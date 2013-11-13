@@ -3,4 +3,3 @@
 % EXPECT: sat
 % EXPECT: unsat
 % EXPECT: unsat
-% EXIT: 20

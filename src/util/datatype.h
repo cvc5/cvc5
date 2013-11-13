@@ -404,6 +404,7 @@ private:
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
+  Cardinality d_card;
 
   /**
    * Datatypes refer to themselves, recursively, and we have a
@@ -616,7 +617,8 @@ inline Datatype::Datatype(std::string name) :
   d_params(),
   d_constructors(),
   d_resolved(false),
-  d_self() {
+  d_self(),
+  d_card(1) {
 }
 
 inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
@@ -624,7 +626,8 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
   d_params(params),
   d_constructors(),
   d_resolved(false),
-  d_self() {
+  d_self(),
+  d_card(1) {
 }
 
 inline std::string Datatype::getName() const throw() {

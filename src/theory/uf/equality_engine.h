@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "expr/kind_map.h"
 #include "context/cdo.h"
+#include "context/cdhashmap.h"
 #include "util/output.h"
 #include "util/statistics_registry.h"
 #include "theory/rewriter.h"

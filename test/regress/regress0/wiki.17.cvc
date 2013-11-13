@@ -2,4 +2,3 @@ a, b, c : BOOLEAN;
 
 % EXPECT: valid
 QUERY NOT FALSE <=> TRUE;
-% EXIT: 20

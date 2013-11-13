@@ -7,5 +7,4 @@ ASSERT (NOT a1);
 
 CHECKSAT;
 
-% EXIT: 10
 

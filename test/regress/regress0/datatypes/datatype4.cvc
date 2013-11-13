@@ -1,5 +1,4 @@
 % EXPECT: invalid
-% EXIT: 10
 DATATYPE
    TypeGeneric = generic
 END;

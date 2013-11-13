@@ -21,6 +21,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
+#include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
 
 #include "util/statistics_registry.h"
@@ -200,8 +201,8 @@ public:
   private:
     /** allocate cardinality */
     void allocateCardinality( OutputChannel* out );
-    /** add split */
-    bool addSplit( Region* r, OutputChannel* out );
+    /** add split 0 = no split, -1 = entailed disequality added, 1 = split added */
+    int addSplit( Region* r, OutputChannel* out );
     /** add clique lemma */
     void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
     /** add totality axiom */

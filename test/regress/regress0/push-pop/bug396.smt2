@@ -9,7 +9,6 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
-; EXIT: 20
 ;(set-option :produce-unsat-cores true)
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)

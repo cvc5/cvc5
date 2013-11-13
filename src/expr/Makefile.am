@@ -15,13 +15,14 @@ libexpr_la_SOURCES = \
 	type.h \
 	type.cpp \
 	node_value.h \
+	node_value.cpp \
 	node_manager.h \
+	node_manager.cpp \
+	node_manager_attributes.h \
 	type_checker.h \
 	attribute.h \
 	attribute_internals.h \
 	attribute.cpp \
-	node_manager.cpp \
-	node_value.cpp \
 	command.h \
 	command.cpp \
 	symbol_table.h \

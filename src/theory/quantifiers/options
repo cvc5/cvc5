@@ -58,7 +58,7 @@ option foPropQuant --fo-prop-quant bool :default false
 option smartTriggers /--disable-smart-triggers bool :default true
  disable smart triggers
 # Whether to use relevent triggers
-option relevantTriggers /--disable-relevant-triggers bool :default true
+option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
  choose relational triggers such as x = f(y), x >= f(y)

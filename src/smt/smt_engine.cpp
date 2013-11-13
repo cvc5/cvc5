@@ -680,6 +680,7 @@ void SmtEngine::finishInit() {
   if(options::cumulativeMillisecondLimit() != 0) {
     setTimeLimit(options::cumulativeMillisecondLimit(), true);
   }
+  PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); ); 
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -884,16 +885,16 @@ void SmtEngine::setLogicInternal() throw() {
     }
   }
   // Turn on model-based arrays for QF_AX (unless models are enabled)
-  if(! options::arraysModelBased.wasSetByUser()) {
-    if (not d_logic.isQuantified() &&
-        d_logic.isTheoryEnabled(THEORY_ARRAY) &&
-        d_logic.isPure(THEORY_ARRAY) &&
-        !options::produceModels() &&
-        !options::checkModels()) {
-      Trace("smt") << "turning on model-based array solver" << endl;
-      options::arraysModelBased.set(true);
-    }
-  }
+  // if(! options::arraysModelBased.wasSetByUser()) {
+  //   if (not d_logic.isQuantified() &&
+  //       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+  //       d_logic.isPure(THEORY_ARRAY) &&
+  //       !options::produceModels() &&
+  //       !options::checkModels()) {
+  //     Trace("smt") << "turning on model-based array solver" << endl;
+  //     options::arraysModelBased.set(true);
+  //   }
+  // }
   // Turn on multiple-pass non-clausal simplification for QF_AUFBV
   if(! options::repeatSimp.wasSetByUser()) {
     bool repeatSimp = !d_logic.isQuantified() &&
@@ -3727,7 +3728,7 @@ Proof* SmtEngine::getProof() throw(ModalException) {
     throw ModalException(msg);
   }
 
-  return ProofManager::getProof();
+  return ProofManager::getProof(this);
 #else /* CVC4_PROOF */
   throw ModalException("This build of CVC4 doesn't have proof support.");
 #endif /* CVC4_PROOF */

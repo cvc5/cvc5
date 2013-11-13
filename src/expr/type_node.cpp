@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include "expr/node_manager_attributes.h"
 #include "expr/type_node.h"
 #include "expr/type_properties.h"
 
@@ -480,6 +481,17 @@ TypeNode TypeNode::leastCommonPredicateSubtype(TypeNode t0, TypeNode t1){
   }else{
     return leastCommonTypeNode(t0stack.back(), t1stack.back());
   }
+}
+
+/** Is this a sort kind */
+bool TypeNode::isSort() const {
+  return ( getKind() == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()) ) ||
+    ( isPredicateSubtype() && getSubtypeParentType().isSort() );
+}
+
+/** Is this a sort constructor kind */
+bool TypeNode::isSortConstructor() const {
+  return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
 }/* CVC4 namespace */

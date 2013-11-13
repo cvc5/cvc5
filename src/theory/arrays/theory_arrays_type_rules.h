@@ -127,8 +127,8 @@ struct ArrayStoreTypeRule {
     unsigned mostFrequentValueCount = 0;
     store = n[0];
     if (store.getKind() == kind::STORE) {
-      mostFrequentValue = store.getAttribute(ArrayConstantMostFrequentValueAttr());
-      mostFrequentValueCount = store.getAttribute(ArrayConstantMostFrequentValueCountAttr());
+      mostFrequentValue = getMostFrequentValue(store);
+      mostFrequentValueCount = getMostFrequentValueCount(store);
     }
 
     // Compute the most frequently written value for n
@@ -145,8 +145,8 @@ struct ArrayStoreTypeRule {
         (compare == Cardinality::EQUAL && (!(defaultValue < mostFrequentValue)))) {
       return false;
     }
-    n.setAttribute(ArrayConstantMostFrequentValueAttr(), mostFrequentValue);
-    n.setAttribute(ArrayConstantMostFrequentValueCountAttr(), mostFrequentValueCount);
+    setMostFrequentValue(n, mostFrequentValue);
+    setMostFrequentValueCount(n, mostFrequentValueCount);
     return true;
   }
 

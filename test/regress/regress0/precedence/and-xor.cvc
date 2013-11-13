@@ -4,4 +4,3 @@
 A, B, C: BOOLEAN;
 
 QUERY (A AND B XOR C) <=> ((A AND B) XOR C);
-% EXIT: 20

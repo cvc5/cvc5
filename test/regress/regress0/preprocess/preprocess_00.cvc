@@ -6,5 +6,4 @@ ASSERT (a5);
 
 QUERY (a0 OR a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9);
 
-% EXIT: 20
 

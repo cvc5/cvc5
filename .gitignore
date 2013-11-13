@@ -27,3 +27,5 @@ generated/
 config.reconfig
 *.swp
 /debug/
+/personal.conf
+/personal.mk

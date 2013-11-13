@@ -11,7 +11,6 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
-; EXIT: 10
 ;(set-option :produce-unsat-cores true)
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)

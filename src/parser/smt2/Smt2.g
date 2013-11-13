@@ -236,6 +236,9 @@ command returns [CVC4::Command* cmd = NULL]
       $cmd = new SetBenchmarkLogicCommand(name); }
   | SET_INFO_TOK KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
+      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
+        PARSER_STATE->setLogic(sexpr.getValue());
+      }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd = new SetInfoCommand(name.c_str() + 1, sexpr); }
   | /* get-info */
@@ -1255,6 +1258,7 @@ builtinOp[CVC4::Kind& kind]
   | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
+  | RERANGE_TOK      { $kind = CVC4::kind::REGEXP_RANGE; }
 
   // NOTE: Theory operators go here
   ;
@@ -1628,6 +1632,7 @@ REINTER_TOK : 're.itr';
 RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';
+RERANGE_TOK : 're.range';
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

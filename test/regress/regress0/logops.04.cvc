@@ -1,4 +1,3 @@
 a, b, c: BOOLEAN;
 % EXPECT: valid
 QUERY (a => b) <=> (NOT a OR b);
-% EXIT: 20

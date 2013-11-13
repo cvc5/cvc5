@@ -252,6 +252,7 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
   if( d_enum_type[ii]==ENUM_RANGE ){
     if( initial || ( d_qe->getBoundedIntegers() && !d_qe->getBoundedIntegers()->isGroundRange( d_owner, d_owner[0][ii] ) ) ){
       Trace("bound-int-rsi") << "Getting range of " << d_owner[0][ii] << std::endl;
+      Node actual_l;
       Node l, u;
       if( d_qe->getBoundedIntegers() && d_qe->getBoundedIntegers()->isBoundVar( d_owner, d_owner[0][ii] ) ){
         d_qe->getBoundedIntegers()->getBoundValues( d_owner, d_owner[0][ii], this, l, u );
@@ -260,6 +261,10 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
         if( d_bounds[b].find(ii)!=d_bounds[b].end() ){
           Trace("bound-int-rsi") << "May further limit bound(" << b << ") based on " << d_bounds[b][ii] << std::endl;
           if( b==0 && (l.isNull() || d_bounds[b][ii].getConst<Rational>() > l.getConst<Rational>()) ){
+            if( !l.isNull() ){
+              //bound was limited externally, record that the value lower bound is not equal to the term lower bound
+              actual_l = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][ii], l );
+            }
             l = d_bounds[b][ii];
           }else if( b==1 && (u.isNull() || d_bounds[b][ii].getConst<Rational>() <= u.getConst<Rational>()) ){
             u = NodeManager::currentNM()->mkNode( MINUS, d_bounds[b][ii],
@@ -284,6 +289,10 @@ bool RepSetIterator::resetIndex( int i, bool initial ) {
           d_qe->getBoundedIntegers()->getBounds( d_owner, d_owner[0][ii], this, tl, tu );
         }
         d_lower_bounds[ii] = tl;
+        if( !actual_l.isNull() ){
+          //if bound was limited externally, must consider the offset
+          d_lower_bounds[ii] = Rewriter::rewrite( NodeManager::currentNM()->mkNode( PLUS, tl, actual_l ) );
+        }
         if( ra==NodeManager::currentNM()->mkConst(true) ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
@@ -355,7 +364,7 @@ Node RepSetIterator::getTerm( int i ){
     Assert( d_rep_set->d_type_reps.find( tn )!=d_rep_set->d_type_reps.end() );
     return d_rep_set->d_type_reps[tn][d_domain[index][d_index[index]]];
   }else{
-    Trace("rsi-debug") << index << " " << d_lower_bounds[index] << " " << d_index[index] << std::endl;
+    Trace("rsi-debug") << "Get, with offset : " << index << " " << d_lower_bounds[index] << " " << d_index[index] << std::endl;
     Node t = NodeManager::currentNM()->mkNode(PLUS, d_lower_bounds[index],
                                                     NodeManager::currentNM()->mkConst( Rational(d_index[index]) ) );
     t = Rewriter::rewrite( t );

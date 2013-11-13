@@ -100,6 +100,7 @@ protected:
                           std::map< int, std::map< int, Node > >& changed_vals );
   void makeIntervalModel( FirstOrderModelFmc * fm, Node op, std::vector< int > & indices, int index,
                           std::map< int, std::map< int, Node > >& changed_vals );
+  void convertIntervalModel( FirstOrderModelFmc * fm, Node op );
 private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 

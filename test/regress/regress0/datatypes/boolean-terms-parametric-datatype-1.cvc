@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 
 DATATYPE RightistTree[T] =
   node(left:BOOLEAN, right:RightistTree[T]) |

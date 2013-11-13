@@ -34,7 +34,7 @@ using namespace CVC4::theory::inst;
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ){
 
-  if( options::fmfFullModelCheck() ){
+  if( options::fmfFullModelCheck() || options::fmfBoundInt() ){
     d_builder = new fmcheck::FullModelChecker( c, qe );
   }else if( options::fmfNewInstGen() ){
     d_builder = new QModelBuilderInstGen( c, qe );

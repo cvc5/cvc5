@@ -2,7 +2,6 @@
 % EXPECT: valid
 % EXPECT: valid
 % EXPECT: valid
-% EXIT: 20
 x : INT;
 y : INT = x + 1;
 z : INT = -10;

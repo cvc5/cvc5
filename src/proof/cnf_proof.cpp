@@ -33,7 +33,8 @@ CnfProof::CnfProof(CnfStream* stream)
 
 Expr CnfProof::getAtom(prop::SatVariable var) {
   prop::SatLiteral lit (var); 
-  Expr atom = d_cnfStream->getNode(lit).toExpr();
+  Node node = d_cnfStream->getNode(lit); 
+  Expr atom = node.toExpr();
   return atom; 
 }
 
@@ -45,9 +46,16 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
   ProofManager::var_iterator end = ProofManager::currentPM()->end_vars();
   
   for (;it != end;  ++it) {
-    Expr atom = getAtom(*it);
     os << "(decl_atom ";
-    LFSCTheoryProof::printFormula(atom, os);
+    
+    if (ProofManager::currentPM()->getLogic().compare("QF_UF") == 0) {
+      Expr atom = getAtom(*it);
+      LFSCTheoryProof::printFormula(atom, os);
+    } else {
+      // print fake atoms for all other logics
+      os << "true "; 
+    }
+
     os << " (\\ " << ProofManager::getVarName(*it) << " (\\ " << ProofManager::getAtomName(*it) << "\n";
     paren << ")))"; 
   }

@@ -7,4 +7,3 @@ ASSERT a OR NOT b OR c;
 % EXPECT: invalid
 QUERY FALSE;
 
-% EXIT: 10

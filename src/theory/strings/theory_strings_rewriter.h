@@ -29,9 +29,14 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-
 public:
+  static bool checkConstRegExp( TNode t );
+  static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
+
   static Node rewriteConcatString(TNode node);
+  static Node prerewriteConcatRegExp(TNode node);
+  static Node prerewriteOrRegExp(TNode node);
+  static Node rewriteMembership(TNode node);
 
   static RewriteResponse postRewrite(TNode node);
 

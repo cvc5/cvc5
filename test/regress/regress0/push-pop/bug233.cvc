@@ -9,4 +9,3 @@ QUERY (a AND b) OR NOT (a AND b);
 % EXPECT: invalid
 QUERY (a OR b);
 
-% EXIT: 10

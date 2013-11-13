@@ -28,17 +28,22 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels) :
-  d_substitutions(c, false), d_equalityEngine(c, name), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
+  d_substitutions(c, false), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+
+  d_eeContext = new context::Context();
+  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name);
+
   // The kinds we are treating as function application in congruence
-  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
-  d_equalityEngine.addFunctionKind(kind::SELECT);
-  // d_equalityEngine.addFunctionKind(kind::STORE);
-  d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR);
-  d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(kind::APPLY_UF);
+  d_equalityEngine->addFunctionKind(kind::SELECT);
+  // d_equalityEngine->addFunctionKind(kind::STORE);
+  d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
+  d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_eeContext->push();
 }
 
 void TheoryModel::reset(){
@@ -46,6 +51,8 @@ void TheoryModel::reset(){
   d_rep_set.clear();
   d_uf_terms.clear();
   d_uf_models.clear();
+  d_eeContext->pop();
+  d_eeContext->push();
 }
 
 Node TheoryModel::getValue(TNode n) const {
@@ -98,7 +105,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     // no good.  Instead, return the quantifier itself.  If we're in
     // checkModel(), and the quantifier actually matters, we'll get an
     // assert-fail since the quantifier isn't a constant.
-    if(!d_equalityEngine.hasTerm(Rewriter::rewrite(n))) {
+    if(!d_equalityEngine->hasTerm(Rewriter::rewrite(n))) {
       return n;
     } else {
       n = Rewriter::rewrite(n);
@@ -158,13 +165,13 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       return val;
     }
 
-    if (!d_equalityEngine.hasTerm(n)) {
+    if (!d_equalityEngine->hasTerm(n)) {
       // Unknown term - return first enumerated value for this type
       TypeEnumerator te(n.getType());
       return *te;
     }
   }
-  Node val = d_equalityEngine.getRepresentative(n);
+  Node val = d_equalityEngine->getRepresentative(n);
   Assert(d_reps.find(val) != d_reps.end());
   std::map< Node, Node >::const_iterator it = d_reps.find( val );
   if( it!=d_reps.end() ){
@@ -237,7 +244,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 
 /** add term */
 void TheoryModel::addTerm(TNode n ){
-  Assert(d_equalityEngine.hasTerm(n));
+  Assert(d_equalityEngine->hasTerm(n));
   //must collect UF terms
   if (n.getKind()==APPLY_UF) {
     Node op = n.getOperator();
@@ -254,8 +261,8 @@ void TheoryModel::assertEquality(TNode a, TNode b, bool polarity ){
     return;
   }
   Trace("model-builder-assertions") << "(assert " << (polarity ? "(= " : "(not (= ") << a << " " << b << (polarity ? "));" : ")));") << endl;
-  d_equalityEngine.assertEquality( a.eqNode(b), polarity, Node::null() );
-  Assert(d_equalityEngine.consistent());
+  d_equalityEngine->assertEquality( a.eqNode(b), polarity, Node::null() );
+  Assert(d_equalityEngine->consistent());
 }
 
 /** assert predicate */
@@ -266,11 +273,11 @@ void TheoryModel::assertPredicate(TNode a, bool polarity ){
   }
   if (a.getKind() == EQUAL) {
     Trace("model-builder-assertions") << "(assert " << (polarity ? " " : "(not ") << a << (polarity ? ");" : "));") << endl;
-    d_equalityEngine.assertEquality( a, polarity, Node::null() );
+    d_equalityEngine->assertEquality( a, polarity, Node::null() );
   } else {
     Trace("model-builder-assertions") << "(assert " << (polarity ? "" : "(not ") << a << (polarity ? ");" : "));") << endl;
-    d_equalityEngine.assertPredicate( a, polarity, Node::null() );
-    Assert(d_equalityEngine.consistent());
+    d_equalityEngine->assertPredicate( a, polarity, Node::null() );
+    Assert(d_equalityEngine->consistent());
   }
 }
 
@@ -309,8 +316,8 @@ void TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee, set<Node>* 
           }
           else {
             Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
-            d_equalityEngine.mergePredicates(*eqc_i, rep, Node::null());
-            Assert(d_equalityEngine.consistent());
+            d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
+            Assert(d_equalityEngine->consistent());
           }
         }
       } else {
@@ -334,13 +341,13 @@ void TheoryModel::assertRepresentative(TNode n )
 
 bool TheoryModel::hasTerm(TNode a)
 {
-  return d_equalityEngine.hasTerm( a );
+  return d_equalityEngine->hasTerm( a );
 }
 
 Node TheoryModel::getRepresentative(TNode a)
 {
-  if( d_equalityEngine.hasTerm( a ) ){
-    Node r = d_equalityEngine.getRepresentative( a );
+  if( d_equalityEngine->hasTerm( a ) ){
+    Node r = d_equalityEngine->getRepresentative( a );
     if( d_reps.find( r )!=d_reps.end() ){
       return d_reps[ r ];
     }else{
@@ -355,8 +362,8 @@ bool TheoryModel::areEqual(TNode a, TNode b)
 {
   if( a==b ){
     return true;
-  }else if( d_equalityEngine.hasTerm( a ) && d_equalityEngine.hasTerm( b ) ){
-    return d_equalityEngine.areEqual( a, b );
+  }else if( d_equalityEngine->hasTerm( a ) && d_equalityEngine->hasTerm( b ) ){
+    return d_equalityEngine->areEqual( a, b );
   }else{
     return false;
   }
@@ -364,8 +371,8 @@ bool TheoryModel::areEqual(TNode a, TNode b)
 
 bool TheoryModel::areDisequal(TNode a, TNode b)
 {
-  if( d_equalityEngine.hasTerm( a ) && d_equalityEngine.hasTerm( b ) ){
-    return d_equalityEngine.areDisequal( a, b, false );
+  if( d_equalityEngine->hasTerm( a ) && d_equalityEngine->hasTerm( b ) ){
+    return d_equalityEngine->areDisequal( a, b, false );
   }else{
     return false;
   }
@@ -422,7 +429,7 @@ void TheoryEngineModelBuilder::checkTerms(TNode n, TheoryModel* tm, NodeSet& cac
     return;
   }
   if (isAssignable(n)) {
-    tm->d_equalityEngine.addTerm(n);
+    tm->d_equalityEngine->addTerm(n);
   }
   for(TNode::iterator child_it = n.begin(); child_it != n.end(); ++child_it) {
     checkTerms(*child_it, tm, cache);
@@ -448,11 +455,11 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   d_te->collectModelInfo(tm, fullModel);
 
   // Loop through all terms and make sure that assignable sub-terms are in the equality engine
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &tm->d_equalityEngine );
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( tm->d_equalityEngine );
   {
     NodeSet cache;
     for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), &tm->d_equalityEngine);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i),tm->d_equalityEngine);
       for ( ; !eqc_i.isFinished(); ++eqc_i) {
         checkTerms(*eqc_i, tm, cache);
       }
@@ -465,20 +472,20 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   std::map< Node, Node > assertedReps, constantReps;
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
   std::set< TypeNode > allTypes;
-  eqcs_i = eq::EqClassesIterator(&tm->d_equalityEngine);
+  eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   for ( ; !eqcs_i.isFinished(); ++eqcs_i) {
 
     // eqc is the equivalence class representative
     Node eqc = (*eqcs_i);
     Trace("model-builder") << "Processing EC: " << eqc << endl;
-    Assert(tm->d_equalityEngine.getRepresentative(eqc) == eqc);
+    Assert(tm->d_equalityEngine->getRepresentative(eqc) == eqc);
     TypeNode eqct = eqc.getType();
     Assert(assertedReps.find(eqc) == assertedReps.end());
     Assert(constantReps.find(eqc) == constantReps.end());
 
     // Loop through terms in this EC
     Node rep, const_rep;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &tm->d_equalityEngine);
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for ( ; !eqc_i.isFinished(); ++eqc_i) {
       Node n = *eqc_i;
       Trace("model-builder") << "  Processing Term: " << n << endl;
@@ -556,7 +563,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
             assignable = false;
             evaluable = false;
             evaluated = false;
-            eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, &tm->d_equalityEngine);
+            eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, tm->d_equalityEngine);
             for ( ; !eqc_i.isFinished(); ++eqc_i) {
               Node n = *eqc_i;
               if (isAssignable(n)) {
@@ -653,7 +660,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
       for (i = noRepSet.begin(); i != noRepSet.end(); ) {
         i2 = i;
         ++i;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, &tm->d_equalityEngine);
+        eq::EqClassIterator eqc_i = eq::EqClassIterator(*i2, tm->d_equalityEngine);
         assignable = false;
         evaluable = false;
         for ( ; !eqc_i.isFinished(); ++eqc_i) {
@@ -744,7 +751,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
 #ifdef CVC4_ASSERTIONS
   if (fullModel) {
     // Check that every term evaluates to its representative in the model
-    for (eqcs_i = eq::EqClassesIterator(&tm->d_equalityEngine); !eqcs_i.isFinished(); ++eqcs_i) {
+    for (eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine); !eqcs_i.isFinished(); ++eqcs_i) {
       // eqc is the equivalence class representative
       Node eqc = (*eqcs_i);
       Node rep;
@@ -757,7 +764,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
         Assert(itMap != constantReps.end());
         rep = itMap->second;
       }
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &tm->d_equalityEngine);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
       for ( ; !eqc_i.isFinished(); ++eqc_i) {
         Node n = *eqc_i;
         static int repCheckInstance = 0;
@@ -795,18 +802,19 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, std::map< Node
     bool childrenConst = true;
     for (size_t i=0; i < r.getNumChildren(); ++i) {
       Node ri = r[i];
+      bool recurse = true;
       if (!ri.isConst()) {
-        if (m->d_equalityEngine.hasTerm(ri)) {
-          ri = m->d_equalityEngine.getRepresentative(ri);
-          itMap = constantReps.find(ri);
+        if (m->d_equalityEngine->hasTerm(ri)) {
+          itMap = constantReps.find(m->d_equalityEngine->getRepresentative(ri));
           if (itMap != constantReps.end()) {
             ri = (*itMap).second;
+	    recurse = false;
           }
-          else if (evalOnly) {
-            ri = normalize(m, r[i], constantReps, evalOnly);
-          }
+          else if (!evalOnly) {
+	    recurse = false;
+	  }
         }
-        else {
+        if (recurse) {
           ri = normalize(m, ri, constantReps, evalOnly);
         }
         if (!ri.isConst()) {

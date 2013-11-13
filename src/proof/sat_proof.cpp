@@ -579,9 +579,9 @@ void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
     res->addStep(lit, res_id, !sign(lit)); 
   }
   registerResolution(d_emptyClauseId, res);
-  // FIXME: massive hack
-  Proof* proof = ProofManager::getProof();
-  proof->toStream(std::cout); 
+  // // FIXME: massive hack
+  // Proof* proof = ProofManager::getProof();
+  // proof->toStream(std::cout); 
 }
 
 /// CRef manager

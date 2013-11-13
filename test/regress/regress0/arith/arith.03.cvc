@@ -3,4 +3,3 @@ x : REAL;
 y : REAL;
 
 QUERY (x + y)*(x + y) = x*x + 2*x*y + y*y;
-% EXIT: 20

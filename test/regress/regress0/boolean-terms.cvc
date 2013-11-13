@@ -1,5 +1,4 @@
 % EXPECT: sat
-% EXIT: 10
 %OPTION "produce-models";
 
 f : BOOLEAN -> INT;

@@ -765,7 +765,13 @@ typedef pb_ds::priority_queue<void, void, void> pq;])],
     #include <ext/pb_ds/priority_queue.hpp>
     typedef __gnu_pbds::priority_queue<void, void, void> pq;])],
       [CVC4_PB_DS_NAMESPACE=__gnu_pbds],
-      [AC_MSG_ERROR([cannot find required priority_queue in either __gnu_pbds or pb_ds namespace])])])
+      [AC_MSG_ERROR([cannot find required priority_queue in either __gnu_pbds or pb_ds namespace.
+
+If you're using a non-GCC compiler (such as clang), you may need to explicitly
+use the GNU standard C++ library by passing:
+    CXXFLAGS='-stdlib=libstdc++'
+as an argument to this configure script.
+This is the case on Mac OS Mavericks, for example.])])])
 AC_LANG_POP([C++])
 AC_MSG_RESULT([$CVC4_PB_DS_NAMESPACE])
 AC_DEFINE_UNQUOTED(CVC4_PB_DS_NAMESPACE, ${CVC4_PB_DS_NAMESPACE}, [The namespace for pb_ds data structures.])
@@ -1214,6 +1220,8 @@ esac
 AC_SUBST(FLAG_VISIBILITY_HIDDEN)
 AC_SUBST(cvc4_LDFLAGS)
 AC_SUBST(pcvc4_LDFLAGS)
+
+AM_CONDITIONAL(WHITE_AND_BLACK_TESTS, [test -z "$FLAG_VISIBILITY_HIDDEN"])
 
 # remember the command line used for configure
 AC_SUBST(cvc4_config_cmdline)

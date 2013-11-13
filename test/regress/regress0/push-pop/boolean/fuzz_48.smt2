@@ -3,7 +3,6 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
-; EXIT: 20
 (set-logic QF_LIA)
 (declare-fun x0 () Bool)
 (declare-fun x1 () Bool)

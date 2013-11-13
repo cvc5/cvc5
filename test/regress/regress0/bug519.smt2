@@ -1,7 +1,6 @@
 ; COMMAND-LINE: -mi
 ; EXPECT: unknown
 ; EXPECT: unsat
-; EXIT: 20
 
 (set-logic ALL_SUPPORTED)
 

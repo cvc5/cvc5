@@ -22,86 +22,11 @@
 
 #include <iostream>
 #include <string>
-//#include "util/exception.h"
+//#include "util/cvc4_assert.h"
 //#include "util/integer.h"
 #include "util/hash.h"
 
 namespace CVC4 {
-
-class CVC4_PUBLIC Char {
-
-private:
-  unsigned int d_char;
-
-public:
-  Char() {}
-
-  Char(const unsigned int c)
-      : d_char(c) {}
-
-  ~Char() {}
-
-  Char& operator =(const Char& y) {
-    if(this != &y) d_char = y.d_char;
-    return *this;
-  }
-
-  bool operator ==(const Char& y) const {
-    return d_char == y.d_char ;
-  }
-
-  bool operator !=(const Char& y) const {
-    return d_char != y.d_char ;
-  }
-
-  bool operator <(const Char& y) const {
-    return d_char < y.d_char;
-  }
-
-  bool operator >(const Char& y) const {
-    return d_char > y.d_char ;
-  }
-
-  bool operator <=(const Char& y) const {
-    return d_char <= y.d_char;
-  }
-
-  bool operator >=(const Char& y) const {
-    return d_char >= y.d_char ;
-  }
-
-  /*
-   * Convenience functions
-   */
-  std::string toString() const {
-    std::string str = "1";
-    str[0] = (char) d_char;
-    return str;
-  }
-
-  unsigned size() const {
-    return 1;
-  }
-
-  const char* c_str() const {
-    return toString().c_str();
-  }
-};/* class Char */
-
-namespace strings {
-
-struct CharHashFunction {
-  size_t operator()(const ::CVC4::Char& c) const {
-    return __gnu_cxx::hash<const char*>()(c.toString().c_str());
-  }
-};/* struct CharHashFunction */
-
-}
-
-inline std::ostream& operator <<(std::ostream& os, const Char& c) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const Char& c) {
-  return os << "\"" << c.toString() << "\"";
-}
 
 class CVC4_PUBLIC String {
 
@@ -130,6 +55,10 @@ public:
     for(unsigned int i=0,len=strlen(s); i<len; ++i) {
         d_str.push_back( convertCharToUnsignedInt(s[i]) );
     }
+  }
+
+  String(const char c) {
+    d_str.push_back( convertCharToUnsignedInt(c) );
   }
 
   String(const std::vector<unsigned int> &s) : d_str(s) { }
@@ -201,6 +130,15 @@ public:
       return true;
   }
 
+
+  bool isEmptyString() const {
+	  return ( d_str.size() == 0 );
+  }
+
+  unsigned int operator[] (const unsigned int i) const {
+	//Assert( i < d_str.size() && i >= 0);
+    return d_str[i];
+  }
   /*
    * Convenience functions
    */
@@ -215,6 +153,34 @@ public:
 
   unsigned size() const {
     return d_str.size();
+  }
+
+  char getFirstChar() const {
+    return convertUnsignedIntToChar( d_str[0] );
+  }
+
+  bool isRepeated() const {
+	if(d_str.size() > 1) {
+		unsigned int f = d_str[0];
+		for(unsigned i=1; i<d_str.size(); ++i) {
+			if(f != d_str[i]) return false;
+		}
+	}
+	return true;
+  }
+
+  bool tailcmp(const String &y, int &c) const {
+	  int id_x = d_str.size() - 1;
+	  int id_y = y.d_str.size() - 1;
+	  while(id_x>=0 && id_y>=0) {
+		  if(d_str[id_x] != y.d_str[id_y]) {
+			  c = id_x;
+			  return false;
+		  }
+		  --id_x; --id_y;
+	  }
+	  c = id_x == -1 ? ( - (id_y+1) ) : (id_x + 1);
+	  return true;
   }
 
   String substr(unsigned i) const {
@@ -330,9 +296,6 @@ public:
     return d_str;
   }
 
-  unsigned size() const {
-    return d_str.size();
-  }
 };/* class String */
 
 /**

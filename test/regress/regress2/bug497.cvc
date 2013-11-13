@@ -1,7 +1,6 @@
 % COMMAND-LINE: --decision=justification --incremental
 % EXPECT: sat
 % EXPECT: sat
-% EXIT: 10
 OPTION "logic" "QF_UFLIA";
 _nat : TYPE = INT;
 _base : INT;

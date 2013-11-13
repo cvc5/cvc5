@@ -24,6 +24,7 @@
 #include "expr/expr_manager_scope.h"
 #include "expr/node_manager.h"
 #include "expr/node.h"
+#include "expr/attribute.h"
 #include "util/recursion_breaker.h"
 #include "util/matcher.h"
 #include "util/cvc4_assert.h"
@@ -107,6 +108,7 @@ void Datatype::resolve(ExprManager* em,
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
   }
   d_self = self;
+  //d_card = getCardinality();
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -125,6 +127,10 @@ Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     c += (*i).getCardinality();
   }
+  //if( d_card!=c ){
+    //std::cout << "Bad card " << std::endl;
+  //}
+
   return c;
 }
 

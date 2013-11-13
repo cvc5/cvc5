@@ -1,5 +1,4 @@
 ; EXPECT: unknown
-; EXIT: 0
 (set-logic QF_NIA)
 (set-info :smt-lib-version 2.0)
 (set-info :status unknown)

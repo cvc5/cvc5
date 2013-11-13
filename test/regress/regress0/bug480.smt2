@@ -1,6 +1,5 @@
 ; EXPECT: sat
 ; EXPECT: ((foo true) (bar false) (baz true))
-; EXIT: 10
 (set-logic QF_LIA)
 (set-option :produce-assignments true)
 (declare-fun x () Int)

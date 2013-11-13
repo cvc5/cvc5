@@ -19,6 +19,7 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
+#include "context/cdhashmap.h"
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"

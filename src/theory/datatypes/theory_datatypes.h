@@ -51,6 +51,8 @@ private:
   NodeList d_infer;
   NodeList d_infer_exp;
 
+  /** mkAnd */
+  Node mkAnd( std::vector< TNode >& assumptions );
 private:
   //notification class for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -137,7 +139,7 @@ private:
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** selector applications */
-  BoolMap d_selector_apps;
+  //BoolMap d_selector_apps;
   /** map from nodes to their instantiated equivalent for each constructor type */
   std::map< Node, std::map< int, Node > > d_inst_map;
   /** which instantiation lemmas we have sent */
@@ -152,6 +154,8 @@ private:
    *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
   */
   NodeListMap d_labels;
+  /** selector apps for eqch equivalence class */
+  NodeListMap d_selector_apps;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   /** The conflict node */
@@ -215,25 +219,27 @@ public:
 private:
   /** add tester to equivalence class info */
   void addTester( Node t, EqcInfo* eqc, Node n );
+  /** add selector to equivalence class info */
+  void addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts = true );
+  /** add constructor */
+  void addConstructor( Node c, EqcInfo* eqc, Node n );
   /** merge the equivalence class info of t1 and t2 */
   void merge( Node t1, Node t2 );
+  /** collapse selector, s is of the form sel( n ) where n = c */
+  void collapseSelector( Node s, Node c );
   /** for checking if cycles exist */
   void checkCycles();
-  bool searchForCycle( Node n, Node on,
+  Node searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index );
-  /** apply type ascriptions */
-  //Node applyTypeAscriptions( Node n, TypeNode tn );
+  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar = false, bool isActive = true );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
-  /** collapse selectors */
-  void collapseSelectors();
   /** must specify model
     *  This returns true when the datatypes theory is expected to specify the constructor
     *  type for all equivalence classes.

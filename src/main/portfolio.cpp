@@ -62,8 +62,8 @@ std::pair<int, S> runPortfolio(int numThreads,
                                boost::function<S()> threadFns[],
                                bool optionWaitToJoin) {
   boost::thread thread_driver;
-  boost::thread threads[numThreads];
-  S threads_returnValue[numThreads];
+  boost::thread* threads = new boost::thread[numThreads];
+  S* threads_returnValue = new S[numThreads];
 
   global_flag_done = false;
   global_winner = -1;
@@ -78,8 +78,9 @@ std::pair<int, S> runPortfolio(int numThreads,
     thread_driver = boost::thread(driverFn);
 
   boost::unique_lock<boost::mutex> lock(mutex_main_wait);
-  while(global_flag_done == false)
+  while(global_flag_done == false) {
     condition_var_main_wait.wait(lock);
+  }
 
   if(not driverFn.empty()) {
     thread_driver.interrupt();
@@ -92,7 +93,12 @@ std::pair<int, S> runPortfolio(int numThreads,
     }
   }
 
-  return std::pair<int, S>(global_winner,threads_returnValue[global_winner]);
+  std::pair<int, S> retval(global_winner, threads_returnValue[global_winner]);
+
+  delete[] threads;
+  delete[] threads_returnValue;
+
+  return retval;
 }
 
 // instantiation

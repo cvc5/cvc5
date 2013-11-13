@@ -22,6 +22,7 @@
 #include "theory/rewriter.h"
 #include "theory/datatypes/options.h"
 #include "theory/type_enumerator.h"
+#include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
 namespace theory {

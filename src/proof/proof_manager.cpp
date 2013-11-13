@@ -21,6 +21,8 @@
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "util/cvc4_assert.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
 
@@ -68,12 +70,13 @@ ProofManager* ProofManager::currentPM() {
   }
 }
 
-Proof* ProofManager::getProof() {
+Proof* ProofManager::getProof(SmtEngine* smt) {
   if (currentPM()->d_fullProof != NULL)
     return currentPM()->d_fullProof;
   Assert (currentPM()->d_format == LFSC);
 
-  currentPM()->d_fullProof = new LFSCProof((LFSCSatProof*)getSatProof(),
+  currentPM()->d_fullProof = new LFSCProof(smt,
+                                           (LFSCSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
                                            (LFSCTheoryProof*)getTheoryProof()); 
   return currentPM()->d_fullProof;
@@ -138,19 +141,27 @@ void ProofManager::addAssertion(Expr formula) {
   d_inputFormulas.insert(formula); 
 }
 
+void ProofManager::setLogic(const std::string& logic_string) {
+  d_logic = logic_string; 
+}
 
-LFSCProof::LFSCProof(LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)
+
+LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
   , d_theoryProof(theory)
+  , d_smtEngine(smtEngine)
 {
   d_satProof->constructProof();
 }
 
 void LFSCProof::toStream(std::ostream& out) {
+  smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check \n";
-  d_theoryProof->printAssertions(out, paren); 
+  if (ProofManager::currentPM()->getLogic().compare("QF_UF") == 0) {
+    d_theoryProof->printAssertions(out, paren);
+  }
   out << "(: (holds cln) \n";
   d_cnfProof->printAtomMapping(out, paren);
   d_cnfProof->printClauses(out, paren);

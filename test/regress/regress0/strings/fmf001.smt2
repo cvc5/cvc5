@@ -1,0 +1,19 @@
+(set-logic QF_S)
+(set-option :fmf-strings true)
+(set-info :status sat)
+
+(declare-fun x () String)
+(declare-fun y () String)
+
+(assert (str.in.re x
+		(re.* (re.++ (re.* (str.to.re "a") ) (str.to.re "b") ))
+	))
+
+(assert (str.in.re y
+		(re.* (re.++ (re.* (str.to.re "a") ) (str.to.re "b") ))
+	))
+
+(assert (not (= x y)))
+(assert (= (str.len x) (str.len y)))
+
+(check-sat)

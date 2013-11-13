@@ -20,25 +20,16 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 if CVC4_BUILD_LIBCOMPAT
 
 lib_LTLIBRARIES = libcvc4compat.la
-if HAVE_CXXTESTGEN
-check_LTLIBRARIES = libcvc4compat_noinst.la
-endif
 
 libcvc4compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4COMPAT_VERSION)
-libcvc4compat_noinst_la_LDFLAGS =
 
 libcvc4compat_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
-libcvc4compat_noinst_la_LIBADD = \
 	-L@builddir@/.. -lcvc4 \
 	-L@builddir@/../parser -lcvc4parser
 
 if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4compat_la_LIBADD += \
-	@builddir@/../lib/libreplacements.la
-libcvc4compat_noinst_la_LIBADD += \
 	@builddir@/../lib/libreplacements.la
 endif
 
@@ -46,11 +37,6 @@ libcvc4compat_la_SOURCES = \
 	cvc3_compat.h \
 	cvc3_compat.cpp
 libcvc4compat_la_CXXFLAGS = -fno-strict-aliasing
-
-libcvc4compat_noinst_la_SOURCES = \
-	cvc3_compat.h \
-	cvc3_compat.cpp
-libcvc4compat_noinst_la_CXXFLAGS = -fno-strict-aliasing
 
 else
 

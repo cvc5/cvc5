@@ -3,7 +3,6 @@
 ; EXPECT: ((x 0))
 ; EXPECT: (((f x) 0))
 ; EXPECT: (((f x) 0))
-; EXIT: 10
 (set-option :produce-models true)
 (set-logic QF_UFLIA)
 (declare-fun f (Int) Int)

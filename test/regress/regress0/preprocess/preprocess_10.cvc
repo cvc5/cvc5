@@ -7,6 +7,5 @@ ASSERT b;
 
 CHECKSAT;
 
-% EXIT: 10
 
 

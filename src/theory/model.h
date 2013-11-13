@@ -42,8 +42,11 @@ protected:
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel(){}
+
+  /** special local context for our equalityEngine so we can clear it independently of search context */
+  context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
-  eq::EqualityEngine d_equalityEngine;
+  eq::EqualityEngine* d_equalityEngine;
   /** map of representatives of equality engine to used representatives in representative set */
   std::map< Node, Node > d_reps;
   /** stores set of representatives for each type */

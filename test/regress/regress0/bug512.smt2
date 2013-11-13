@@ -2,7 +2,6 @@
 ; EXPECT: unknown
 ; EXPECT: (:reason-unknown timeout)
 ; EXPECT: unsat
-; EXIT: 20
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)
 ;(set-option :AUTO_CONFIG false)
