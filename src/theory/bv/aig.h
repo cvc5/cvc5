@@ -56,10 +56,10 @@ class AigSimplifier {
   prop::BVSatSolverInterface* d_satSolver;
   // invalidates all the maps and caches
   bool d_asserted;
-  typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
+  typedef std::hash_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
   // typedef std::hash_map<Abc_Obj_t*, TNode > AigTNodeMap;
-  TNodeAigMap d_aigCache;
-  TNodeAigMap d_nodeToAigInput;
+  NodeAigMap d_aigCache;
+  NodeAigMap d_nodeToAigInput;
   // AigTNodeMap d_aigInputToNode;
   
   Abc_Obj_t* d_trueAigNode;

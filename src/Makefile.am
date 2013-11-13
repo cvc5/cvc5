@@ -173,6 +173,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/type_enumerator.h \
 	theory/bv/bitblaster.h \
 	theory/bv/bitblaster.cpp \
+	theory/bv/aig.h \
+	theory/bv/aig.cpp \
 	theory/bv/bv_to_bool.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_subtheory.h \
@@ -184,6 +186,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_inequality_graph.h \
 	theory/bv/bv_inequality_graph.cpp \
+	theory/bv/bv_eager_solver.h \
+	theory/bv/bv_eager_solver.cpp \
 	theory/bv/bitblast_strategies.h \
 	theory/bv/bitblast_strategies.cpp \
 	theory/bv/slicer.h \

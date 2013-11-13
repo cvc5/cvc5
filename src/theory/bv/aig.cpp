@@ -20,10 +20,80 @@
 #include "theory/rewriter.h"
 #include "prop/bvminisat/bvminisat.h"
 
+extern "C" {
+#include "/home/lianah/tools/abc/src/sat/cnf/cnf.h"
+}
+
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv; 
 using namespace std;
+
+/** 
+ * Abc CNF conversion utilities
+ * 
+  */
+
+// FIXME: sketchy copy paste because the function is defined as static in ABC
+static inline int Cnf_Lit2Var( int Lit ) { return (Lit & 1)? -(Lit >> 1)-1 : (Lit >> 1)+1;  }
+
+extern "C" {
+extern Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
+}
+
+void AbcAssertToSatSolver(Cnf_Dat_t* pCnf, prop::BVSatSolverInterface* satSolver) {
+  unsigned numVariables = pCnf->nVars;
+  unsigned numClauses = pCnf->nClauses;
+  
+  // create variables in the sat solver
+  std::vector<prop::SatVariable> sat_variables;
+  for (unsigned i = 0; i < numVariables; ++i) {
+    sat_variables.push_back(satSolver->newVar(false, false, false)); 
+  }
+
+  // construct clauses and add to sat solver
+  int * pLit, * pStop;
+  for (unsigned i = 0; i < numClauses; i++ ) {
+    prop::SatClause clause; 
+    for (pLit = pCnf->pClauses[i], pStop = pCnf->pClauses[i+1]; pLit < pStop; pLit++ ) {
+      int int_lit = Cnf_Lit2Var(*pLit);
+      Assert (int_lit != 0); 
+      unsigned index = int_lit < 0? -int_lit : int_lit;
+      Assert (index - 1 < sat_variables.size()); 
+      prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
+      clause.push_back(lit); 
+    }
+    satSolver->addClause(clause, false); 
+  }
+}
+
+void AbcConvertToCnf(Abc_Ntk_t * pNtk, prop::BVSatSolverInterface* satSolver) {
+    Aig_Man_t * pMan;
+    Cnf_Dat_t * pCnf = NULL;
+    assert( Abc_NtkIsStrash(pNtk) );
+
+    // convert to the AIG manager
+    pMan = Abc_NtkToDar( pNtk, 0, 0 );
+    Assert (pMan != NULL);
+    Assert (Aig_ManCheck(pMan));
+    // TODO: figure out meaning of this
+    bool fFastAlgo = true; 
+    // derive CNF
+    if ( fFastAlgo )
+        pCnf = Cnf_DeriveFast( pMan, 0 );
+    else
+        pCnf = Cnf_Derive( pMan, 0 );
+    
+    // Cnf_DataTranformPolarity( pCnf, 0 );
+    // TODO collect stats
+    // pCnf->nVars, pCnf->nClauses, pCnf->nLiterals 
+
+    AbcAssertToSatSolver( pCnf, satSolver);
+    
+    Cnf_DataFree( pCnf );
+    Cnf_ManFree();
+    Aig_ManStop( pMan );
+}
 
 
 AigBitblaster::AigBitblaster(AigSimplifier* aigSimplifier)
@@ -41,26 +111,27 @@ void AigBitblaster::storeVariable(TNode var) {
 
 void AigBitblaster::bbFormula(TNode node) {
   Assert (node.getType().isBoolean());
-
+  Debug("bitvector-bitblast") << "AigBitblaster::bbFormula "<< node << "\n"; 
   switch (node.getKind()) {
   case kind::AND:
   case kind::OR:
   case kind::IFF:
   case kind::XOR:
   case kind::IMPLIES:
-    bbFormula(node[0]);
-    bbFormula(node[1]); 
-    break;
   case kind::ITE:
-    bbFormula(node[0]);
-    bbFormula(node[1]);
-    bbFormula(node[2]); 
-    break;
   case kind::NOT:
-    bbFormula(node[0]); 
+    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+      bbFormula(node[i]); 
+    }
     break;
   case kind::CONST_BOOLEAN:
     break;
+  case kind::VARIABLE:
+    // must be a boolean variable
+    if (!d_aigSimplifer->hasAig(node)) {
+      d_aigSimplifer->mkInput(node);
+    }
+    break; 
   default:
     bbAtom(node); 
   }
@@ -71,7 +142,7 @@ void AigBitblaster::bbAtom(TNode node) {
     return;
   }
 
-  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
+  Debug("bitvector-bitblast") << "Bitblasting atom " << node <<"\n";
 
   // the bitblasted definition of the atom
   Node normalized = Rewriter::rewrite(node);
@@ -84,6 +155,7 @@ void AigBitblaster::bbAtom(TNode node) {
   // cache the atom as well
   d_aigSimplifer->cacheAig(node, result); 
   storeBBAtom(node);
+  Debug("bitvector-bitblast") << "Done bitblasting atom " << node <<"\n";
 }
 
 void AigBitblaster::bbTerm(TNode node, Bits& bits) {
@@ -92,7 +164,7 @@ void AigBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
+  Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   d_termBBStrategies[node.getKind()] (node, bits, this);
 
   Assert (bits.size() == utils::getSize(node));
@@ -126,13 +198,15 @@ AigSimplifier::~AigSimplifier() {
 Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
   if (hasAig(node))
     return getAig(node);
-  
+
   Abc_Aig_t* man = (Abc_Aig_t*)d_abcAigNetwork->pManFunc;
-  Abc_Obj_t* result; 
+  Abc_Obj_t* result = NULL;
+  
+  Debug("bitvector-aig") << "AigSimplifier::convertToAig " << node <<"\n"; 
   switch (node.getKind()) {
   case kind::AND:
     {
-      Abc_Obj_t* result = convertToAig(node[0]);
+      result = convertToAig(node[0]);
       for (unsigned i = 1; i < node.getNumChildren(); ++i) {
         Abc_Obj_t* child = convertToAig(node[i]);
         result = Abc_AigAnd(man, result, child);
@@ -141,7 +215,7 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
     }
   case kind::OR:
     {
-      Abc_Obj_t* result = convertToAig(node[0]);
+      result = convertToAig(node[0]);
       for (unsigned i = 1; i < node.getNumChildren(); ++i) {
         Abc_Obj_t* child = convertToAig(node[i]);
         result = Abc_AigOr(man, result, child);
@@ -161,7 +235,7 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
     }
   case kind::XOR:
     {
-      Abc_Obj_t* result = convertToAig(node[0]);
+      result = convertToAig(node[0]);
       for (unsigned i = 1; i < node.getNumChildren(); ++i) {
         Abc_Obj_t* child = convertToAig(node[i]);
         result = Abc_AigXor(man, result, child);
@@ -173,8 +247,8 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
       Assert (node.getNumChildren() == 2); 
       Abc_Obj_t* child1 = convertToAig(node[0]);
       Abc_Obj_t* child2 = convertToAig(node[1]);
-      Abc_Obj_t* not_child2 = Abc_ObjNot(child2);
-      result = Abc_AigOr(man, child1, not_child2);
+      Abc_Obj_t* not_child1 = Abc_ObjNot(child1);
+      result = Abc_AigOr(man, not_child1, child2);
       break;
     }
   case kind::ITE:
@@ -202,6 +276,7 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
   }
 
   cacheAig(node, result);
+  Debug("bitvector-aig") << "AigSimplifier::convertToAig done " << node << " => " << result <<"\n"; 
   return result; 
 }
 
@@ -214,6 +289,7 @@ bool AigSimplifier::hasAig(TNode node) {
 }
 Abc_Obj_t* AigSimplifier::getAig(TNode node) {
   Assert(hasAig(node));
+  Debug("bitvector-aig") << "AigSimplifer::getAig " << node << " => " << d_aigCache.find(node)->second <<"\n"; 
   return d_aigCache.find(node)->second; 
 }
 
@@ -225,6 +301,7 @@ void AigSimplifier::mkInput(TNode input) {
   Abc_Obj_t* aig_input = Abc_NtkCreatePi(d_abcAigNetwork);
   d_aigCache.insert(make_pair(input, aig_input));
   d_nodeToAigInput.insert(make_pair(input, aig_input));
+  Debug("bitvector-aig") << "AigSimplifer::mkInput " << input << " " << aig_input <<"\n"; 
   // d_aigInputToNode.insert(make_pair(aig_input, input)); 
 }
 
@@ -236,19 +313,30 @@ void AigSimplifier::simplifyAig() {
   Assert (!d_asserted);
   Abc_AigCleanup((Abc_Aig_t*)d_abcAigNetwork->pManFunc);
   Assert (Abc_NtkCheck(d_abcAigNetwork));
-  
+
+ 
   // run simplifications
-  // dump to cnf
   
   d_asserted = true; 
 }
 
 void AigSimplifier::convertToCnfAndAssert() {
-  // TODO convert to cnf and assert to current sat solver
+  // char fileName[] = "temp.dimacs";
+  // char command[100];
+  // Abc_Frame_t* pAbc = Abc_FrameGetGlobalFrame();
+  // Abc_FrameSetCurrentNetwork(pAbc, d_abcAigNetwork);
+  // sprintf( command, "write_cnf %s", fileName );
+  // if ( Cmd_CommandExecute( pAbc, command ) ) {
+  //   fprintf( stdout, "Cannot execute command \"%s\".\n", command );
+  //   exit(-1); 
+  // }
+  AbcConvertToCnf(d_abcAigNetwork, d_satSolver);
 }
 
 bool AigSimplifier::solve() {
-  return d_satSolver->solve(); 
+  prop::SatValue result = d_satSolver->solve();
+  Assert (result != prop::SAT_VALUE_UNKNOWN); 
+  return result == prop::SAT_VALUE_TRUE; 
 }
 
 void AigSimplifier::setOutput(TNode query) {

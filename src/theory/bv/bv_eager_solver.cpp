@@ -176,6 +176,7 @@ EagerBitblastSolver::~EagerBitblastSolver() {
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
+  Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
   d_bitblaster->bbFormula(formula);
@@ -187,8 +188,9 @@ bool EagerBitblastSolver::checkSat() {
     assertions.push_back(*it); 
   }
   Assert (assertions.size());
-  // negate it due to ABC's cnf conversion?
-  Node query = utils::mkNode(kind::NOT, utils::mkAnd(assertions)); 
+
+  Node query = utils::mkAnd(assertions);
+  Debug("bitvector-eager") << "EagerBitblastSolver::checkSat "<< query <<"\n"; 
   d_aigSimplifer->setOutput(query); 
   d_aigSimplifer->simplifyAig();
   d_aigSimplifer->convertToCnfAndAssert(); 
