@@ -41,60 +41,6 @@ extern "C" {
 extern Aig_Man_t * Abc_NtkToDar( Abc_Ntk_t * pNtk, int fExors, int fRegisters );
 }
 
-void AbcAssertToSatSolver(Cnf_Dat_t* pCnf, prop::BVSatSolverInterface* satSolver) {
-  unsigned numVariables = pCnf->nVars;
-  unsigned numClauses = pCnf->nClauses;
-  
-  // create variables in the sat solver
-  std::vector<prop::SatVariable> sat_variables;
-  for (unsigned i = 0; i < numVariables; ++i) {
-    sat_variables.push_back(satSolver->newVar(false, false, false)); 
-  }
-
-  // construct clauses and add to sat solver
-  int * pLit, * pStop;
-  for (unsigned i = 0; i < numClauses; i++ ) {
-    prop::SatClause clause; 
-    for (pLit = pCnf->pClauses[i], pStop = pCnf->pClauses[i+1]; pLit < pStop; pLit++ ) {
-      int int_lit = Cnf_Lit2Var(*pLit);
-      Assert (int_lit != 0); 
-      unsigned index = int_lit < 0? -int_lit : int_lit;
-      Assert (index - 1 < sat_variables.size()); 
-      prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
-      clause.push_back(lit); 
-    }
-    satSolver->addClause(clause, false); 
-  }
-}
-
-void AbcConvertToCnf(Abc_Ntk_t * pNtk, prop::BVSatSolverInterface* satSolver) {
-    Aig_Man_t * pMan;
-    Cnf_Dat_t * pCnf = NULL;
-    assert( Abc_NtkIsStrash(pNtk) );
-
-    // convert to the AIG manager
-    pMan = Abc_NtkToDar( pNtk, 0, 0 );
-    Assert (pMan != NULL);
-    Assert (Aig_ManCheck(pMan));
-    // TODO: figure out meaning of this
-    bool fFastAlgo = true; 
-    // derive CNF
-    if ( fFastAlgo )
-        pCnf = Cnf_DeriveFast( pMan, 0 );
-    else
-        pCnf = Cnf_Derive( pMan, 0 );
-    
-    // Cnf_DataTranformPolarity( pCnf, 0 );
-    // TODO collect stats
-    // pCnf->nVars, pCnf->nClauses, pCnf->nLiterals 
-
-    AbcAssertToSatSolver( pCnf, satSolver);
-    
-    Cnf_DataFree( pCnf );
-    Cnf_ManFree();
-    Aig_ManStop( pMan );
-}
-
 
 AigBitblaster::AigBitblaster(AigSimplifier* aigSimplifier)
   : d_aigSimplifer(aigSimplifier)
@@ -179,7 +125,8 @@ AigSimplifier::AigSimplifier(prop::BVSatSolverInterface* solver)
   , d_aigCache()
   , d_nodeToAigInput()
     //  , d_aigInputToNode()
-  , d_aigOutput(NULL)
+  , d_aigOutputNode(NULL)
+  , d_statistics()
 {
 
   Abc_Start();
@@ -310,12 +257,10 @@ bool AigSimplifier::hasInput(TNode input) {
 }
 
 void AigSimplifier::simplifyAig() {
+  TimerStat::CodeTimer simpTimer(d_statistics.d_simplificationTime);
   Assert (!d_asserted);
   Abc_AigCleanup((Abc_Aig_t*)d_abcAigNetwork->pManFunc);
   Assert (Abc_NtkCheck(d_abcAigNetwork));
-
- 
-  // run simplifications
   
   d_asserted = true; 
 }
@@ -330,19 +275,100 @@ void AigSimplifier::convertToCnfAndAssert() {
   //   fprintf( stdout, "Cannot execute command \"%s\".\n", command );
   //   exit(-1); 
   // }
-  AbcConvertToCnf(d_abcAigNetwork, d_satSolver);
+  TimerStat::CodeTimer cnfConversionTimer(d_statistics.d_cnfConversionTime);
+  convertToCnf(d_abcAigNetwork);
 }
 
 bool AigSimplifier::solve() {
+  TimerStat::CodeTimer solveTimer(d_statistics.d_solveTime);
   prop::SatValue result = d_satSolver->solve();
   Assert (result != prop::SAT_VALUE_UNKNOWN); 
   return result == prop::SAT_VALUE_TRUE; 
 }
 
 void AigSimplifier::setOutput(TNode query) {
-  Assert(d_aigOutput == NULL); 
+  Assert(d_aigOutputNode == NULL); 
   Abc_Obj_t* aig_query = convertToAig(query);
-  d_aigOutput = Abc_NtkCreatePo(d_abcAigNetwork); 
-  Abc_ObjAddFanin(d_aigOutput, aig_query); 
+  d_aigOutputNode = Abc_NtkCreatePo(d_abcAigNetwork); 
+  Abc_ObjAddFanin(d_aigOutputNode, aig_query); 
 }
 
+void AigSimplifier::assertToSatSolver(Cnf_Dat_t* pCnf) {
+  unsigned numVariables = pCnf->nVars;
+  unsigned numClauses = pCnf->nClauses;
+  
+  d_statistics.d_numVariables += numVariables; 
+  d_statistics.d_numClauses += numClauses; 
+
+  // create variables in the sat solver
+  std::vector<prop::SatVariable> sat_variables;
+  for (unsigned i = 0; i < numVariables; ++i) {
+    sat_variables.push_back(d_satSolver->newVar(false, false, false)); 
+  }
+
+  // construct clauses and add to sat solver
+  int * pLit, * pStop;
+  for (unsigned i = 0; i < numClauses; i++ ) {
+    prop::SatClause clause; 
+    for (pLit = pCnf->pClauses[i], pStop = pCnf->pClauses[i+1]; pLit < pStop; pLit++ ) {
+      int int_lit = Cnf_Lit2Var(*pLit);
+      Assert (int_lit != 0); 
+      unsigned index = int_lit < 0? -int_lit : int_lit;
+      Assert (index - 1 < sat_variables.size()); 
+      prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
+      clause.push_back(lit); 
+    }
+    d_satSolver->addClause(clause, false); 
+  }
+}
+
+void AigSimplifier::convertToCnf(Abc_Ntk_t * pNtk) {
+    Aig_Man_t * pMan;
+    Cnf_Dat_t * pCnf = NULL;
+    assert( Abc_NtkIsStrash(pNtk) );
+
+    // convert to the AIG manager
+    pMan = Abc_NtkToDar( pNtk, 0, 0 );
+    Assert (pMan != NULL);
+    Assert (Aig_ManCheck(pMan));
+    // TODO: figure out meaning of this
+    bool fFastAlgo = true; 
+    // derive CNF
+    if ( fFastAlgo )
+        pCnf = Cnf_DeriveFast( pMan, 0 );
+    else
+        pCnf = Cnf_Derive( pMan, 0 );
+    
+    // Cnf_DataTranformPolarity( pCnf, 0 );
+    // TODO collect stats
+    // pCnf->nVars, pCnf->nClauses, pCnf->nLiterals 
+
+    assertToSatSolver(pCnf); 
+    
+    Cnf_DataFree( pCnf );
+    Cnf_ManFree();
+    Aig_ManStop(pMan);
+}
+
+
+AigSimplifier::Statistics::Statistics()
+  : d_numClauses("theory::bv::AigSimplifier::numClauses", 0)
+  , d_numVariables("theory::bv::AigSimplifier::numVariables", 0)
+  , d_simplificationTime("theory::bv::AigSimplifier::simplificationTime")
+  , d_cnfConversionTime("theory::bv::AigSimplifier::cnfConversionTime")
+  , d_solveTime("theory::bv::AigSimplifier::solveTime")
+{
+  StatisticsRegistry::registerStat(&d_numClauses); 
+  StatisticsRegistry::registerStat(&d_numVariables);
+  StatisticsRegistry::registerStat(&d_simplificationTime); 
+  StatisticsRegistry::registerStat(&d_cnfConversionTime);
+  StatisticsRegistry::registerStat(&d_solveTime); 
+}
+
+AigSimplifier::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numClauses); 
+  StatisticsRegistry::unregisterStat(&d_numVariables);
+  StatisticsRegistry::unregisterStat(&d_simplificationTime); 
+  StatisticsRegistry::unregisterStat(&d_cnfConversionTime);
+  StatisticsRegistry::unregisterStat(&d_solveTime); 
+}

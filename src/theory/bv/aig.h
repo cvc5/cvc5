@@ -19,6 +19,10 @@
 #include "base/main/main.h"
 #include "base/abc/abc.h"
 
+class Cnf_Dat_t_;
+typedef Cnf_Dat_t_ Cnf_Dat_t;
+
+
 namespace CVC4 {
 
 namespace prop {
@@ -66,11 +70,14 @@ class AigSimplifier {
   Abc_Obj_t* d_falseAigNode;
 
   AigBitblaster* d_bitblaster;
-  Abc_Obj_t* d_aigOutput;
+  Abc_Obj_t* d_aigOutputNode;
   
   void cacheAig(TNode node, Abc_Obj_t* aig);
   bool hasAig(TNode node);
   Abc_Obj_t* getAig(TNode node);
+
+  void assertToSatSolver(Cnf_Dat_t* pCnf);
+  void convertToCnf(Abc_Ntk_t * pNtk);
 public:
   /** 
    * Construct an AIG simplifier that will bit-blast to the given
@@ -114,6 +121,20 @@ public:
    */
   bool solve();
   friend class AigBitblaster; 
+
+  class Statistics {
+  public:
+    IntStat     d_numClauses;
+    IntStat     d_numVariables; 
+    TimerStat   d_simplificationTime;
+    TimerStat   d_cnfConversionTime;
+    TimerStat   d_solveTime; 
+    Statistics();
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
+
 };
 }
 }

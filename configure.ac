@@ -250,11 +250,9 @@ AC_ARG_WITH(
   ]
 )
 
+# must add dl and pthread separately and before abc
 AC_CHECK_LIB(dl, dlopen, , [AC_MSG_ERROR([dl not found])], [])
 AC_CHECK_LIB(pthread, pthread_create, , [AC_MSG_ERROR([pthread not found])], [])
-
-
-# latest error: cannot find dlopen despite of -ldl being linked
 AC_CHECK_LIB(abc, Abc_Start, , [AC_MSG_ERROR([abc not found])], [-lm -ldl -rdynamic -lreadline -ltermcap -lpthread -lrt -ldl])
 
 
