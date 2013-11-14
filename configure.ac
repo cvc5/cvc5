@@ -250,8 +250,13 @@ AC_ARG_WITH(
   ]
 )
 
+AC_CHECK_LIB(dl, dlopen, , [AC_MSG_ERROR([dl not found])], [])
+AC_CHECK_LIB(pthread, pthread_create, , [AC_MSG_ERROR([pthread not found])], [])
+
+
 # latest error: cannot find dlopen despite of -ldl being linked
-AC_CHECK_LIB(abc, Abc_Start, , [AC_MSG_ERROR([abc not found])], [-lm -ldl -rdynamic -lreadline -ltermcap -lpthread -lrt])
+AC_CHECK_LIB(abc, Abc_Start, , [AC_MSG_ERROR([abc not found])], [-lm -ldl -rdynamic -lreadline -ltermcap -lpthread -lrt -ldl])
+
 
 # [chris 8/24/2010] --with-gmp has no practical effect, since GMP is
 # the default. Could be useful if other options are added later.
