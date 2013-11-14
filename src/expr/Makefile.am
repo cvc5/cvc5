@@ -20,6 +20,7 @@ libexpr_la_SOURCES = \
 	node_manager.cpp \
 	node_manager_attributes.h \
 	type_checker.h \
+	attribute_unique_id.h \
 	attribute.h \
 	attribute_internals.h \
 	attribute.cpp \

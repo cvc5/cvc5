@@ -357,6 +357,15 @@ public:
     super::clear();
   }
 
+  /** Is the hash table empty? */
+  bool empty() const {
+    return super::empty();
+  }
+
+  /** This is currently very misleading! */
+  size_t size() const {
+    return super::size();
+  }
 };/* class AttrHash<bool> */
 
 /**
@@ -556,6 +565,16 @@ public:
    */
   void clear() {
     super::clear();
+  }
+
+  /** Is the hash table empty? */
+  bool empty() const {
+    return super::empty();
+  }
+
+  /** This is currently very misleading! */
+  size_t size() const {
+    return super::size();
   }
 
 };/* class CDAttrHash<bool> */

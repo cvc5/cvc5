@@ -586,4 +586,12 @@ Node NodeManager::mkAbstractValue(const TypeNode& type) {
   return n;
 }
 
+void NodeManager::deleteAttributes(const std::vector<const expr::attr::AttributeUniqueId*>& ids){
+  d_attrManager->deleteAttributes(ids);
+}
+
+void NodeManager::debugHook(int debugFlag){
+  // For debugging purposes only, DO NOT CHECK IN ANY CODE!
+}
+
 }/* CVC4 namespace */

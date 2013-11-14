@@ -109,6 +109,11 @@ public:
    */
   static Node rewrite(TNode node);
 
+  /**
+   * Garbage collects the rewrite caches.
+   */
+  static void garbageCollect();
+
 };/* class Rewriter */
 
 }/* CVC4::theory namespace */

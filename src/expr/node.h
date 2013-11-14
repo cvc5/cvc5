@@ -566,6 +566,14 @@ public:
   inline const T& getConst() const;
 
   /**
+   * Returns the reference count of this node.
+   * @return the refcount
+   */
+  unsigned getRefCount() const {
+    return d_nv->getRefCount();
+  }
+
+  /**
    * Returns the value of the given attribute that this has been attached.
    * @param attKind the kind of the attribute
    * @return the value of the attribute

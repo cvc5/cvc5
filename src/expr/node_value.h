@@ -264,6 +264,8 @@ public:
       : d_nchildren;
   }
 
+  unsigned getRefCount() const { return d_rc; }
+
   std::string toString() const;
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                 OutputLanguage = language::output::LANG_AST) const;

@@ -46,6 +46,7 @@ class StatisticsRegistry;
 
 namespace expr {
   namespace attr {
+    class AttributeUniqueId;
     class AttributeManager;
   }/* CVC4::expr::attr namespace */
 
@@ -858,6 +859,18 @@ public:
    * Convert a type to a type node.
    */
   static inline TypeNode fromType(Type t);
+
+  /** Deletes a list of attributes from the NM's AttributeManager.*/
+  void deleteAttributes(const std::vector< const expr::attr::AttributeUniqueId* >& ids);
+
+  /**
+   * This function gives developers a hook into the NodeManager.
+   * This can be changed in node_manager.cpp without recompiling most of cvc4.
+   *
+   * debugHook is a debugging only function, and should not be present in
+   * any published code!
+   */
+  void debugHook(int debugFlag);
 
 };/* class NodeManager */
 
