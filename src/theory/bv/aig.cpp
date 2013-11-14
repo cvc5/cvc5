@@ -21,7 +21,7 @@
 #include "prop/bvminisat/bvminisat.h"
 
 extern "C" {
-#include "/home/lianah/tools/abc/src/sat/cnf/cnf.h"
+#include "sat/cnf/cnf.h"
 }
 
 using namespace CVC4;

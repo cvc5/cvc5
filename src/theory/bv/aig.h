@@ -16,8 +16,8 @@
  **/
 
 #include "expr/node.h"
-#include "/home/lianah/tools/abc/src/base/main/main.h"
-#include "/home/lianah/tools/abc/src/base/abc/abc.h"
+#include "base/main/main.h"
+#include "base/abc/abc.h"
 
 namespace CVC4 {
 
