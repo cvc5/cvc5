@@ -33,6 +33,7 @@
 //#include "theory_array.h"
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <deque>
 //#include "exception.h"
@@ -70,13 +71,10 @@ bool check(ValidityChecker* vc, Expr e, bool verbose=true)
     vc->printExpr(e);
   }
   bool res = vc->query(e);
-  switch (res) {
-    case false:
-      if(verbose) cout << "Invalid" << endl << endl;
-      break;
-    case true:
-      if(verbose) cout << "Valid" << endl << endl;
-      break;
+  if (res) {
+    if(verbose) cout << "Valid" << endl << endl;
+  } else {
+    if(verbose) cout << "Invalid" << endl << endl;
   }
   return res;
 }
@@ -1923,30 +1921,39 @@ void test22() {
 
     Expr s(vc->exprFromString("FORALL (x:INT) : x > f(x)"));
     vc->setTrigger(s,fx);
-    
-    std::vector<std::vector<Expr> > trigsvv = s.getTriggers();
-    EXPECT( trigsvv.size() == 1, 
-                 "Expected s.getTriggers().size() == 1: " + trigsvv.size() );
 
+    std::ostringstream stringHolder("");
+    std::vector<std::vector<Expr> > trigsvv = s.getTriggers();
+    stringHolder << trigsvv.size();
+    EXPECT( trigsvv.size() == 1, 
+                 "Expected s.getTriggers().size() == 1: " + stringHolder.str() );
+
+    stringHolder.str("");
     std::vector<Expr> trigsv = trigsvv[0];
+    stringHolder << trigsv.size();
+
     EXPECT( trigsv.size() == 1, 
                  "Expected s.getTriggers()[0].size() == 1: "
-                 + trigsv.size() );
+                 + stringHolder.str() );
 
     EXPECT( trigsv[0] == fx, 
                  "Expected s.getTriggers()[0][0] == fx: "
                  + (trigsv[0].toString()) );
 
+    stringHolder.str("");
     Expr t(vc->exprFromString("FORALL (x:INT) : x > f(x)"));
     vc->setMultiTrigger(t,patternv);
     trigsvv = t.getTriggers();
+    stringHolder << trigsvv.size();
     EXPECT( trigsvv.size() == 1,
-                 "Expected t.getTriggers().size() == 1: " + trigsvv.size() );
+                 "Expected t.getTriggers().size() == 1: " + stringHolder.str() );
 
+    stringHolder.str("");
     trigsv = trigsvv[0];
+    stringHolder << trigsv.size();
     EXPECT( trigsv.size() == 1,
                  "Expected t.getTriggers()[0].size() == 1: "
-                 + trigsv.size() );
+                 + stringHolder.str() );
 
     EXPECT( trigsv[0] == fx,
                  "Expected t.getTriggers()[0][0] == fx: "
