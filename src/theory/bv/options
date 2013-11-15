@@ -31,5 +31,10 @@ option bvPropagate --bv-propagate bool :default true
 
 option bvEquality --bv-eq bool :default true
  use the equality engine for the bit-vector theory
- 
+
+# crazy aig simplification options 
+# TODO add handler that checks it
+option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
+ abc command to run AIG simplifications
+
 endmodule

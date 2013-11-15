@@ -19,6 +19,7 @@
 #include "theory/bv/aig.h"
 #include "theory/rewriter.h"
 #include "prop/bvminisat/bvminisat.h"
+#include "theory/bv/options.h"
 
 extern "C" {
 #include "sat/cnf/cnf.h"
@@ -193,8 +194,9 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
     {
       Assert (node.getNumChildren() == 2); 
       Abc_Obj_t* child1 = convertToAig(node[0]);
-      Abc_Obj_t* child2 = convertToAig(node[1]);
       Abc_Obj_t* not_child1 = Abc_ObjNot(child1);
+      
+      Abc_Obj_t* child2 = convertToAig(node[1]);
       result = Abc_AigOr(man, not_child1, child2);
       break;
     }
@@ -261,7 +263,32 @@ void AigSimplifier::simplifyAig() {
   Assert (!d_asserted);
   Abc_AigCleanup((Abc_Aig_t*)d_abcAigNetwork->pManFunc);
   Assert (Abc_NtkCheck(d_abcAigNetwork));
+
+  const char* command = options::bvAigSimplifications().c_str(); 
+  Abc_Frame_t* pAbc = Abc_FrameGetGlobalFrame();
+  Abc_FrameSetCurrentNetwork(pAbc, d_abcAigNetwork);
+  // resyn
+  // sprintf( command, "balance; rewrite; rewrite -z; balance; rewrite -z; balance");
+  // // resyn2
+  // sprintf( command, "balance; rewrite; refactor; balance; rewrite; rewrite -z; balance; refactor -z; rewrite -z; balance");
+  // // resyn2a
+  // sprintf( command, "balance; rewrite; balance; rewrite; rewrite -z; balance; rewrite -z; balance");
+  // // resyn3
+  // sprintf( command, "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance");
+
+  if ( Cmd_CommandExecute( pAbc, command ) ) {
+    fprintf( stdout, "Cannot execute command \"%s\".\n", command );
+    exit(-1); 
+  }
+
+  // sprintf( command, "strash");
+  // if ( Cmd_CommandExecute( pAbc, command ) ) {
+  //   fprintf( stdout, "Cannot execute command \"%s\".\n", command );
+  //   exit(-1); 
+  // }
+
   
+  d_abcAigNetwork = Abc_FrameReadNtk(pAbc); 
   d_asserted = true; 
 }
 
