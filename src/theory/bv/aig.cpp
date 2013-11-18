@@ -258,6 +258,35 @@ bool AigSimplifier::hasInput(TNode input) {
   return d_nodeToAigInput.find(input) != d_nodeToAigInput.end(); 
 }
 
+
+static void addAliases(Abc_Frame_t* pAbc) {
+  std::vector<std::string> aliases;
+  aliases.push_back("alias b balance");
+  aliases.push_back("alias rw rewrite");
+  aliases.push_back("alias rwz rewrite -z");
+  aliases.push_back("alias rf refactor");
+  aliases.push_back("alias rfz refactor -z");
+  aliases.push_back("alias re restructure");
+  aliases.push_back("alias rez restructure -z");
+  aliases.push_back("alias rs resub");
+  aliases.push_back("alias rsz resub -z");
+  aliases.push_back("alias rsk6 rs -K 6");
+  aliases.push_back("alias rszk5 rsz -K 5");
+  aliases.push_back("alias bl b -l");
+  aliases.push_back("alias rwl rw -l");
+  aliases.push_back("alias rwzl rwz -l");
+  aliases.push_back("alias rwzl rwz -l");
+  aliases.push_back("alias rfl rf -l");
+  aliases.push_back("alias rfzl rfz -l");
+  // aliases.push_back("");
+  for (unsigned i = 0; i < aliases.size(); ++i) {
+    if ( Cmd_CommandExecute( pAbc, aliases[i].c_str() ) ) {
+      fprintf( stdout, "Cannot execute command \"%s\".\n", aliases[i].c_str() );
+      exit(-1); 
+    }
+  }
+}
+
 void AigSimplifier::simplifyAig() {
   TimerStat::CodeTimer simpTimer(d_statistics.d_simplificationTime);
   Assert (!d_asserted);
@@ -276,6 +305,7 @@ void AigSimplifier::simplifyAig() {
   // // resyn3
   // sprintf( command, "balance; resub; resub -K 6; balance; resub -z; resub -z -K 6; balance; resub -z -K 5; balance");
 
+  addAliases(pAbc); 
   if ( Cmd_CommandExecute( pAbc, command ) ) {
     fprintf( stdout, "Cannot execute command \"%s\".\n", command );
     exit(-1); 
