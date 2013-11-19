@@ -17,7 +17,7 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/bitblaster.h"
+#include "theory/bv/lazy_bitblaster.h"
 #include "theory/bv/options.h"
 #include "theory/decision_attributes.h"
 #include "decision/options.h"
@@ -31,7 +31,7 @@ using namespace CVC4::theory::bv::utils;
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv),
-    d_bitblaster(new LazyBitblaster(c, bv)),
+    d_bitblaster(new TLazyBitblaster(c, bv)),
     d_bitblastQueue(c),
     d_statistics(),
     d_validModelCache(c, true),

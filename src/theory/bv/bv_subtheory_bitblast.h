@@ -19,6 +19,8 @@
 #pragma once
 
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/bitblaster_template.h"
+
 namespace CVC4 {
 namespace theory {
 namespace bv {
@@ -35,7 +37,7 @@ class BitblastSolver : public SubtheorySolver {
     ~Statistics();
   };
   /** Bitblaster */
-  LazyBitblaster* d_bitblaster;
+  TLazyBitblaster* d_bitblaster;
 
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;

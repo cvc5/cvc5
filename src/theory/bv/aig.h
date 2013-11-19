@@ -18,6 +18,7 @@
 #include "expr/node.h"
 #include "base/main/main.h"
 #include "base/abc/abc.h"
+#include "theory/bv/bitblaster_template.h"
 
 class Cnf_Dat_t_;
 typedef Cnf_Dat_t_ Cnf_Dat_t;

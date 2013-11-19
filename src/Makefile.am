@@ -186,6 +186,9 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_inequality_graph.h \
 	theory/bv/bv_inequality_graph.cpp \
+	theory/bv/bitblast_strategies_template.h \
+	theory/bv/bitblaster_template.h \
+	theory/bv/lazy_bitblaster.h \
 	theory/bv/bv_eager_solver.h \
 	theory/bv/bv_eager_solver.cpp \
 	theory/bv/bitblast_strategies.h \

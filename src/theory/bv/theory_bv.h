@@ -158,6 +158,7 @@ private:
   void checkForLemma(TNode node); 
   
   friend class LazyBitblaster;
+  friend class TLazyBitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;

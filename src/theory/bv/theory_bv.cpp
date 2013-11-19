@@ -407,7 +407,7 @@ Node TheoryBV::explain(TNode node) {
     return utils::mkTrue();
   }
   // return the explanation
-  Node explanation = mkAnd(assumptions);
+  Node explanation = utils::mkAnd(assumptions);
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
   return explanation;
 }
