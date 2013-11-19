@@ -49,13 +49,13 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
-    d_eagerSolver()
+    d_eagerSolver(NULL)
   {
 
-    if (options::bitvectorNewEagerBitblast()) {
+    if (options::bitvectorEagerBitblast()) {
       d_eagerSolver = new EagerBitblastSolver();
       return; 
-    }
+    } 
     if (options::bvEquality()) {
       SubtheorySolver* core_solver = new CoreSolver(c, this);
       d_subtheories.push_back(core_solver);
@@ -79,7 +79,7 @@ TheoryBV::~TheoryBV() {
 }
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  if (options::bitvectorNewEagerBitblast()) {
+  if (options::bitvectorEagerBitblast()) {
     return; 
   }
   if (options::bvEquality()) {
@@ -117,7 +117,7 @@ TheoryBV::Statistics::~Statistics() {
 void TheoryBV::preRegisterTerm(TNode node) {
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (options::bitvectorNewEagerBitblast()) {
+  if (options::bitvectorEagerBitblast()) {
     if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
       Node formula = node[0]; 
       d_eagerSolver->assertFormula(formula);
@@ -175,7 +175,7 @@ void TheoryBV::check(Effort e)
 {
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   
-  if (options::bitvectorNewEagerBitblast()) {
+  if (options::bitvectorEagerBitblast()) {
     if (!Theory::fullEffort(e))
       return;
 
@@ -264,7 +264,9 @@ Node TheoryBV::getModelValue(TNode var) {
 
 void TheoryBV::propagate(Effort e) {
   Debug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
-  Assert (!options::bitvectorNewEagerBitblast()); 
+  if (options::bitvectorEagerBitblast()) {
+    return; 
+  }
 
   if (inConflict()) {
     return;
@@ -414,7 +416,7 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  Assert (!options::bitvectorNewEagerBitblast()); 
+  Assert (!options::bitvectorEagerBitblast()); 
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {

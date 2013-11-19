@@ -5,9 +5,12 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
-option bitvectorNewEagerBitblast --new-bitblast-eager bool
- eagerly bitblast the bitvectors to the main SAT solver
+option bitvectorEagerBitblast --bitblast-eager bool
+ eagerly bitblast the bitvectors to the BV SAT solver
 
+option bitvectorEagerBitblastAig --bitblast-eager-aig bool
+ eagerly bitblast the bitvectors to the BV SAT solver by converting to AIG
+ 
 option bitvectorShareLemmas --bitblast-share-lemmas bool
  share lemmas from the bitblasting solver with the main solver
 

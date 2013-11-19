@@ -26,6 +26,7 @@
 
 #include "bitblast_strategies_template.h"
 #include "prop/sat_solver.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace prop {
@@ -48,8 +49,9 @@ namespace bv {
 
 template <class T>
 class TBitblaster {
-  
-  typedef std::vector<T> Bits; 
+protected:
+  typedef std::vector<T> Bits;
+private:
   typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction>  TermDefMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        AtomSet;
 
@@ -65,8 +67,7 @@ class TBitblaster {
 protected:
   /// function tables for the various bitblasting strategies indexed by node kind
   TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
-  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
-  
+  AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND]; 
 public:
   TBitblaster(); 
   virtual ~TBitblaster() {}
@@ -81,6 +82,116 @@ public:
   void storeBBTerm(TNode term, const Bits& bits); 
 }; 
 
+
+class TheoryBV; 
+
+class TLazyBitblaster :  public TBitblaster<Node> {
+  typedef std::vector<Node> Bits;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
+  
+  /** This class gets callbacks from minisat on propagations */
+  class MinisatNotify : public prop::BVSatSolverInterface::Notify {
+    prop::CnfStream* d_cnf;
+    TheoryBV *d_bv;
+  public:
+    MinisatNotify(prop::CnfStream* cnf, TheoryBV *bv)
+    : d_cnf(cnf)
+    , d_bv(bv)
+    {}
+    bool notify(prop::SatLiteral lit);
+    void notify(prop::SatClause& clause);
+    void safePoint();
+  };
+
+
+  TheoryBV *d_bv;
+
+  // sat solver used for bitblasting and associated CnfStream
+  theory::OutputChannel*             d_bvOutput;
+  prop::BVSatSolverInterface*        d_satSolver;
+  prop::CnfStream*                   d_cnfStream;
+
+  context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
+                                                       currently asserted by the DPLL SAT solver. */
+  VarSet d_variables;
+  // returns a node that might be easier to bitblast
+  //  Node bbOptimize(TNode node);
+
+  void addAtom(TNode atom);
+  bool hasValue(TNode a);
+public:
+  void bbTerm(TNode node, Bits&  bits);
+  void bbAtom(TNode node);
+  Node getBBAtom(TNode atom) const;
+  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv);
+  ~TLazyBitblaster();
+  bool assertToSat(TNode node, bool propagate = true);
+  bool propagate();
+  bool solve(bool quick_solve = false);
+  void getConflict(std::vector<TNode>& conflict);
+  void explain(TNode atom, std::vector<TNode>& explanation);
+
+  theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
+  /**
+   * Return a constant Node representing the value of a variable
+   * in the current model.
+   * @param a
+   *
+   * @return
+   */
+  Node getVarValue(TNode a, bool fullModel=true);
+  /**
+   * Adds a constant value for each bit-blasted variable in the model.
+   *
+   * @param m the model
+   * @param fullModel whether to create a "full model," i.e., add
+   * constants to equivalence classes that don't already have them
+   */
+  void collectModelInfo(TheoryModel* m, bool fullModel);
+  /**
+   * Creates the bits corresponding to the variable (or non-bv term). 
+   *
+   * @param var
+   */
+  void makeVariable(TNode var, Bits& bits);
+
+  bool isSharedTerm(TNode node);
+  uint64_t computeAtomWeight(TNode node);
+
+private:
+
+  class Statistics {
+  public:
+    IntStat d_numTermClauses, d_numAtomClauses;
+    IntStat d_numTerms, d_numAtoms;
+    TimerStat d_bitblastTimer;
+    Statistics();
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
+};
+
+class EagerBitblaster : public TBitblaster<Node> {
+
+  // sat solver used for bitblasting and associated CnfStream
+  prop::BVSatSolverInterface*        d_satSolver;
+  prop::CnfStream*                   d_cnfStream;
+public:
+  void addAtom(TNode atom);
+  void makeVariable(TNode node, Bits& bits);
+  void bbTerm(TNode node, Bits&  bits);
+  void bbAtom(TNode node);
+  Node getBBAtom(TNode node) const;
+  void bbFormula(TNode formula);
+  
+  EagerBitblaster(); 
+  ~EagerBitblaster();
+  bool assertToSat(TNode node, bool propagate = true);
+  bool solve(); 
+};
+
+// Bitblaster implementation
 
 template <class T> void TBitblaster<T>::initAtomBBStrategies() {
   for (int i = 0 ; i < kind::LAST_KIND; ++i ) {
@@ -167,97 +278,6 @@ void TBitblaster<T>::storeBBAtom(TNode atom) {
   Assert (!hasBBAtom(atom));
   d_bitblastedAtoms.insert(atom);
 }
-
-class TheoryBV; 
-
-class TLazyBitblaster :  public TBitblaster<Node> {
-  typedef std::vector<Node> Bits;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
-  
-  /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify {
-    prop::CnfStream* d_cnf;
-    TheoryBV *d_bv;
-  public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV *bv)
-    : d_cnf(cnf)
-    , d_bv(bv)
-    {}
-    bool notify(prop::SatLiteral lit);
-    void notify(prop::SatClause& clause);
-    void safePoint();
-  };
-
-
-  TheoryBV *d_bv;
-
-  // sat solver used for bitblasting and associated CnfStream
-  theory::OutputChannel*             d_bvOutput;
-  prop::BVSatSolverInterface*        d_satSolver;
-  prop::CnfStream*                   d_cnfStream;
-
-  context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
-                                                       currently asserted by the DPLL SAT solver. */
-  VarSet d_variables;
-  // returns a node that might be easier to bitblast
-  //  Node bbOptimize(TNode node);
-
-  void addAtom(TNode atom);
-  bool hasValue(TNode a);
-public:
-  void bbTerm(TNode node, Bits&  bits);
-  void bbAtom(TNode node);
-  Node getBBAtom(TNode atom) const;
-  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv);
-  ~TLazyBitblaster();
-  bool assertToSat(TNode node, bool propagate = true);
-  bool propagate();
-  bool solve(bool quick_solve = false);
-  void getConflict(std::vector<TNode>& conflict);
-  void explain(TNode atom, std::vector<TNode>& explanation);
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
-  /**
-   * Return a constant Node representing the value of a variable
-   * in the current model.
-   * @param a
-   *
-   * @return
-   */
-  Node getVarValue(TNode a, bool fullModel=true);
-  /**
-   * Adds a constant value for each bit-blasted variable in the model.
-   *
-   * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
-   */
-  void collectModelInfo(TheoryModel* m, bool fullModel);
-  /**
-   * Creates the bits corresponding to the variable (or non-bv term). 
-   *
-   * @param var
-   */
-  void makeVariable(TNode var, Bits& bits);
-
-  bool isSharedTerm(TNode node);
-  uint64_t computeAtomWeight(TNode node);
-
-private:
-
-  class Statistics {
-  public:
-    IntStat d_numTermClauses, d_numAtomClauses;
-    IntStat d_numTerms, d_numAtoms;
-    TimerStat d_bitblastTimer;
-    Statistics();
-    ~Statistics();
-  };
-
-  Statistics d_statistics;
-};
-
-
 
 
 } /* bv namespace */

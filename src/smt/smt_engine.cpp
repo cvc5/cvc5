@@ -688,6 +688,11 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
+  if(options::bitvectorEagerBitblast()) {
+    // Eager solver should use the internal decision strategy
+    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
+  }
+
   if(options::checkModels()) {
     if(! options::produceModels()) {
       Notice() << "SmtEngine: turning on produce-models to support check-model" << endl;
@@ -3053,7 +3058,7 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-everything", d_assertionsToCheck);
 
   // Eagerly bit-blast to bvminisat
-  if (options::bitvectorNewEagerBitblast()) {
+  if (options::bitvectorEagerBitblast()) {
     if (d_smt.getLogicInfo().getLogicString().compare("QF_BV") != 0) {
       std::cout << "Probably DIVISION. \n";
       exit(57); 

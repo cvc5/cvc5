@@ -52,7 +52,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , simp_garbage_frac  (opt_simp_garbage_frac)
   , use_asymm          (opt_use_asymm)
   , use_rcheck         (opt_use_rcheck)
-  , use_elim           (opt_use_elim && CVC4::options::bitvectorNewEagerBitblast())
+  , use_elim           (opt_use_elim && CVC4::options::bitvectorEagerBitblast())
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)
