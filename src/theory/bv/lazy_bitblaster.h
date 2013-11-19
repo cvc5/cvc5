@@ -83,12 +83,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node);
-    
-  if (!options::bitvectorEagerBitblast()) {
-    d_cnfStream->convertAndAssert(atom_definition, false, false);
-  } else {
-    d_bvOutput->lemma(atom_definition, false);
-  }
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
@@ -128,38 +123,12 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
 
   storeBBTerm(node, bits);
 }
-
-// Node TLazyBitblaster::bbOptimize(TNode node) {
-//   std::vector<Node> children;
-
-//    if (node.getKind() == kind::BITVECTOR_PLUS) {
-//     if (RewriteRule<BBPlusNeg>::applies(node)) {
-//       Node res = RewriteRule<BBPlusNeg>::run<false>(node);
-//       return res;
-//     }
-//     //  if (RewriteRule<BBFactorOut>::applies(node)) {
-//     //   Node res = RewriteRule<BBFactorOut>::run<false>(node);
-//     //   return res;
-//     // }
-
-//   } else if (node.getKind() == kind::BITVECTOR_MULT) {
-//     if (RewriteRule<MultPow2>::applies(node)) {
-//       Node res = RewriteRule<MultPow2>::run<false>(node);
-//       return res;
-//     }
-//   }
-
-//   return node;
-// }
-
 /// Public methods
 
 void TLazyBitblaster::addAtom(TNode atom) {
-  if (!options::bitvectorEagerBitblast()) {
-    d_cnfStream->ensureLiteral(atom);
-    prop::SatLiteral lit = d_cnfStream->getLiteral(atom);
-    d_satSolver->addMarkerLiteral(lit);
-  }
+  d_cnfStream->ensureLiteral(atom);
+  prop::SatLiteral lit = d_cnfStream->getLiteral(atom);
+  d_satSolver->addMarkerLiteral(lit);
 }
 
 void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {

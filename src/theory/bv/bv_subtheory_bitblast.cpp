@@ -58,15 +58,11 @@ void BitblastSolver::preRegister(TNode node) {
        node.getKind() == kind::BITVECTOR_SLT ||
        node.getKind() == kind::BITVECTOR_SLE) &&
       !d_bitblaster->hasBBAtom(node)) {
-    if (options::bitvectorEagerBitblast()) {
-      d_bitblaster->bbAtom(node);
-    } else {
-      CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
-      d_bitblastQueue.push_back(node);
-      if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
-          !node.hasAttribute(theory::DecisionWeightAttr())) {
-        node.setAttribute(theory::DecisionWeightAttr(), d_bitblaster->computeAtomWeight(node));
-      }
+    CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
+    d_bitblastQueue.push_back(node);
+    if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
+        !node.hasAttribute(theory::DecisionWeightAttr())) {
+      node.setAttribute(theory::DecisionWeightAttr(), d_bitblaster->computeAtomWeight(node));
     }
   }
 }
@@ -85,7 +81,7 @@ void BitblastSolver::bitblastQueue() {
 
 bool BitblastSolver::check(Theory::Effort e) {
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
-  Assert(!options::bitvectorEagerBitblast());
+  Assert(!options::bitvectorNewEagerBitblast());
 
   ++(d_statistics.d_numCallstoCheck);
 
@@ -124,7 +120,7 @@ bool BitblastSolver::check(Theory::Effort e) {
   }
 
   // Solving
-  if (e == Theory::EFFORT_FULL || options::bitvectorEagerFullcheck()) {
+  if (e == Theory::EFFORT_FULL) {
     Assert(!d_bv->inConflict());
     Debug("bitvector::bitblaster") << "BitblastSolver::addAssertions solving. \n";
     bool ok = d_bitblaster->solve();

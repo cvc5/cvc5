@@ -188,11 +188,7 @@ void LazyBitblaster::bbAtom(TNode node) {
   Node atom_definition = mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node);
     
-  if (!options::bitvectorEagerBitblast()) {
-    d_cnfStream->convertAndAssert(atom_definition, false, false);
-  } else {
-    d_bvOutput->lemma(atom_definition, false);
-  }
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 uint64_t LazyBitblaster::computeAtomWeight(TNode node) {
@@ -246,11 +242,9 @@ Node LazyBitblaster::bbOptimize(TNode node) {
 /// Public methods
 
 void LazyBitblaster::addAtom(TNode atom) {
-  if (!options::bitvectorEagerBitblast()) {
-    d_cnfStream->ensureLiteral(atom);
-    SatLiteral lit = d_cnfStream->getLiteral(atom);
-    d_satSolver->addMarkerLiteral(lit);
-  }
+  d_cnfStream->ensureLiteral(atom);
+  SatLiteral lit = d_cnfStream->getLiteral(atom);
+  d_satSolver->addMarkerLiteral(lit);
 }
 
 void LazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {

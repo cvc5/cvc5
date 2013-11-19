@@ -688,12 +688,6 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  if(options::bitvectorEagerBitblast() ||
-     options::bitvectorNewEagerBitblast()) {
-    // Eager solver should use the internal decision strategy
-    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
-  }
-
   if(options::checkModels()) {
     if(! options::produceModels()) {
       Notice() << "SmtEngine: turning on produce-models to support check-model" << endl;

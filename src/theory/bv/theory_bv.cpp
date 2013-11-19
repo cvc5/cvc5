@@ -126,11 +126,6 @@ void TheoryBV::preRegisterTerm(TNode node) {
     return; 
   }
   
-  if (options::bitvectorEagerBitblast()) {
-    // don't use the equality engine in the eager bit-blasting
-    d_subtheoryMap[SUB_BITBLAST]->preRegister(node);
-    return;
-  }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     d_subtheories[i]->preRegister(node);
   }
@@ -180,10 +175,6 @@ void TheoryBV::check(Effort e)
 {
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   
-  if (options::bitvectorEagerBitblast()) {
-    return;
-  }
-
   if (options::bitvectorNewEagerBitblast()) {
     if (!Theory::fullEffort(e))
       return;
@@ -273,10 +264,7 @@ Node TheoryBV::getModelValue(TNode var) {
 
 void TheoryBV::propagate(Effort e) {
   Debug("bitvector") << indent() << "TheoryBV::propagate()" << std::endl;
-
-  if (options::bitvectorEagerBitblast()) {
-    return;
-  }
+  Assert (!options::bitvectorNewEagerBitblast()); 
 
   if (inConflict()) {
     return;
@@ -416,7 +404,7 @@ Node TheoryBV::explain(TNode node) {
 void TheoryBV::addSharedTerm(TNode t) {
   Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
-  if (!options::bitvectorEagerBitblast() && options::bvEquality()) {
+  if (options::bvEquality()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
       d_subtheories[i]->addSharedTerm(t);
     }
@@ -426,10 +414,7 @@ void TheoryBV::addSharedTerm(TNode t) {
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  if (options::bitvectorEagerBitblast()) {
-    return EQUALITY_UNKNOWN;
-  }
-
+  Assert (!options::bitvectorNewEagerBitblast()); 
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {
