@@ -72,7 +72,6 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 }/* mkAnd() */
 
 void TheoryUF::check(Effort level) {
-
   while (!done() && !d_conflict)
   {
     // Get all the assertions
@@ -94,7 +93,7 @@ void TheoryUF::check(Effort level) {
     TNode atom = polarity ? fact : fact[0];
     if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
-    } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT) {
+    } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
       // do nothing
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
@@ -136,6 +135,7 @@ void TheoryUF::preRegisterTerm(TNode node) {
     d_functionsTerms.push_back(node);
     break;
   case kind::CARDINALITY_CONSTRAINT:
+  case kind::COMBINED_CARDINALITY_CONSTRAINT:
     //do nothing
     break;
   default:

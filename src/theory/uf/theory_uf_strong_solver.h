@@ -245,6 +245,8 @@ public:
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
+    /** maximum negatively asserted cardinality */
+    context::CDO< int > d_maxNegCard;
   private:
     /** apply totality */
     bool applyTotality( int cardinality );
@@ -281,6 +283,10 @@ public:
     void getRepresentatives( std::vector< Node >& reps );
     /** has cardinality */
     bool hasCardinalityAsserted() { return d_hasCard; }
+    /** get cardinality literal */
+    Node getCardinalityLiteral( int c );
+    /** get maximum negative cardinality */
+    int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
     /** debug a model */
@@ -298,12 +304,21 @@ private:
   context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map< TypeNode, SortModel* > d_rep_model;
-  /** all types */
-  std::vector< TypeNode > d_conf_types;
-  /** whether conflict find data structures have been initialized */
-  TypeNodeBoolMap d_rep_model_init;
-  /** get conflict find */
+  /** get sort model */
   SortModel* getSortModel( Node n );
+private:
+  /** allocated combined cardinality */
+  context::CDO< int > d_aloc_com_card;
+  /** combined cardinality constraints */
+  std::map< int, Node > d_com_card_literal;
+  /** combined cardinality assertions (indexed by cardinality literals ) */
+  NodeBoolMap d_com_card_assertions;
+  /** initialize */
+  void initializeCombinedCardinality();
+  /** allocateCombinedCardinality */
+  void allocateCombinedCardinality();
+  /** check */
+  void checkCombinedCardinality();
 private:
   /** term disambiguator */
   TermDisambiguator* d_term_amb;
@@ -359,10 +374,6 @@ public:
   /** debug a model */
   void debugModel( TheoryModel* m );
 public:
-  /** get number of types */
-  int getNumCardinalityTypes() { return (int)d_conf_types.size(); }
-  /** get type */
-  TypeNode getCardinalityType( int i ) { return d_conf_types[i]; }
   /** get is in conflict */
   bool isConflict() { return d_conflict; }
   /** get cardinality for node */

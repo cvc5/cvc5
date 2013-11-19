@@ -70,6 +70,20 @@ public:
   }
 };/* class CardinalityConstraintTypeRule */
 
+class CombinedCardinalityConstraintTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw(TypeCheckingExceptionPrivate) {
+    if( check ) {
+      TypeNode valType = n[0].getType(check);
+      if( valType != nodeManager->integerType() ) {
+        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be integer");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+};/* class CardinalityConstraintTypeRule */
+
 }/* CVC4::theory::uf namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -270,6 +270,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       toStream(op, n.getOperator(), depth, types, false);
       break;
     case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
       out << "CARDINALITY_CONSTRAINT";
       break;
 

@@ -162,6 +162,10 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       if(val.getKind() == kind::CARDINALITY_CONSTRAINT) {
         val = NodeManager::currentNM()->mkConst(getCardinality(val[0].getType().toType()).getFiniteCardinality() <= val[1].getConst<Rational>().getNumerator());
       }
+      if(val.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+        //FIXME
+        val = NodeManager::currentNM()->mkConst(false);
+      }
       return val;
     }
 
