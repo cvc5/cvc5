@@ -81,7 +81,7 @@ void BitblastSolver::bitblastQueue() {
 
 bool BitblastSolver::check(Theory::Effort e) {
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
-  Assert(!options::bitvectorEagerBitblast());
+  Assert(!options::bitvectorEagerBitblast()); 
 
   ++(d_statistics.d_numCallstoCheck);
 

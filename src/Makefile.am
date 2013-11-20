@@ -171,10 +171,6 @@ libcvc4_la_SOURCES = \
 	theory/uf/options_handlers.h \
 	theory/bv/theory_bv_utils.h \
 	theory/bv/type_enumerator.h \
-	theory/bv/bitblaster.h \
-	theory/bv/bitblaster.cpp \
-	theory/bv/aig.h \
-	theory/bv/aig.cpp \
 	theory/bv/bv_to_bool.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_subtheory.h \
@@ -189,10 +185,10 @@ libcvc4_la_SOURCES = \
 	theory/bv/bitblast_strategies_template.h \
 	theory/bv/bitblaster_template.h \
 	theory/bv/lazy_bitblaster.h \
+	theory/bv/eager_bitblaster.h \
+	theory/bv/aig_bitblaster.h \
 	theory/bv/bv_eager_solver.h \
 	theory/bv/bv_eager_solver.cpp \
-	theory/bv/bitblast_strategies.h \
-	theory/bv/bitblast_strategies.cpp \
 	theory/bv/slicer.h \
 	theory/bv/slicer.cpp \
 	theory/bv/theory_bv.h \

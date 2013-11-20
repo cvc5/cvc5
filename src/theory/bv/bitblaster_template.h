@@ -28,6 +28,19 @@
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
 
+class Abc_Obj_t_;
+typedef Abc_Obj_t_ Abc_Obj_t;
+
+class Abc_Ntk_t_;
+typedef Abc_Ntk_t_ Abc_Ntk_t;
+
+class Abc_Aig_t_;
+typedef Abc_Aig_t_ Abc_Aig_t;
+
+class Cnf_Dat_t_;
+typedef Cnf_Dat_t_ Cnf_Dat_t;
+
+
 namespace CVC4 {
 namespace prop {
 class CnfStream;
@@ -55,12 +68,11 @@ private:
   typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction>  TermDefMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        AtomSet;
 
-  typedef void   (*TermBBStrategy) (TNode, Bits&, TBitblaster*);
-  typedef Node   (*AtomBBStrategy) (TNode, TBitblaster*);
+  typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
+  typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
 
   // caches and mappings
   TermDefMap                   d_termCache;
-  AtomSet                      d_bitblastedAtoms;
 
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -75,10 +87,11 @@ public:
   virtual void bbTerm(TNode node, Bits&  bits) = 0;
   virtual void makeVariable(TNode node, Bits& bits) = 0;
   virtual T getBBAtom(TNode atom) const = 0;
-  bool hasBBAtom(TNode atom) const;
+  virtual bool hasBBAtom(TNode atom) const = 0;
+  virtual void storeBBAtom(TNode atom, T atom_bb) = 0;
+  
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
-  void storeBBAtom(TNode atom);
   void storeBBTerm(TNode term, const Bits& bits); 
 }; 
 
@@ -88,6 +101,7 @@ class TheoryBV;
 class TLazyBitblaster :  public TBitblaster<Node> {
   typedef std::vector<Node> Bits;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AtomSet;
   
   /** This class gets callbacks from minisat on propagations */
   class MinisatNotify : public prop::BVSatSolverInterface::Notify {
@@ -114,15 +128,16 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
                                                        currently asserted by the DPLL SAT solver. */
   VarSet d_variables;
-  // returns a node that might be easier to bitblast
-  //  Node bbOptimize(TNode node);
-
+  AtomSet d_bbAtoms; 
+  
   void addAtom(TNode atom);
   bool hasValue(TNode a);
 public:
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
   Node getBBAtom(TNode atom) const;
+  void storeBBAtom(TNode atom, Node atom_bb);
+  bool hasBBAtom(TNode atom) const; 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv);
   ~TLazyBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
@@ -172,24 +187,90 @@ private:
   Statistics d_statistics;
 };
 
-class EagerBitblaster : public TBitblaster<Node> {
+class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
+public:
+  MinisatEmptyNotify() {}
+  bool notify(prop::SatLiteral lit) { return true; }
+  void notify(prop::SatClause& clause) { }
+  void safePoint() {}
+};
 
+
+class EagerBitblaster : public TBitblaster<Node> {
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
+  TNodeSet d_bbAtoms; 
 public:
   void addAtom(TNode atom);
   void makeVariable(TNode node, Bits& bits);
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
   Node getBBAtom(TNode node) const;
+  bool hasBBAtom(TNode atom) const; 
   void bbFormula(TNode formula);
-  
+  void storeBBAtom(TNode atom, Node atom_bb);
   EagerBitblaster(); 
   ~EagerBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
   bool solve(); 
 };
+
+class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
+  typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;
+  typedef std::hash_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
+  
+  static Abc_Ntk_t* abcAigNetwork;
+  prop::BVSatSolverInterface* d_satSolver;
+  TNodeAigMap d_aigCache;
+  NodeAigMap d_bbAtoms;
+  
+  NodeAigMap d_nodeToAigInput;
+  // the thing we are checking for sat
+  Abc_Obj_t* d_aigOutputNode;
+
+  void addAtom(TNode atom);
+  void simplifyAig();
+  void storeBBAtom(TNode atom, Abc_Obj_t* atom_bb);
+  Abc_Obj_t* getBBAtom(TNode atom) const;
+  bool hasBBAtom(TNode atom) const;
+  void cacheAig(TNode node, Abc_Obj_t* aig);
+  bool hasAig(TNode node);
+  Abc_Obj_t* getAig(TNode node);
+  Abc_Obj_t* mkInput(TNode input);
+  bool hasInput(TNode input);
+  void convertToCnfAndAssert();
+  void assertToSatSolver(Cnf_Dat_t* pCnf);
+
+public:
+  AigBitblaster();
+  ~AigBitblaster();
+
+  void makeVariable(TNode node, Bits& bits);
+  void bbTerm(TNode node, Bits&  bits);
+  void bbAtom(TNode node);
+  Abc_Obj_t* bbFormula(TNode formula);
+  bool solve(TNode query); 
+  static Abc_Aig_t* currentAigM();
+  static Abc_Ntk_t* currentAigNtk();
+  
+private:
+  class Statistics {
+  public:
+    IntStat     d_numClauses;
+    IntStat     d_numVariables; 
+    TimerStat   d_simplificationTime;
+    TimerStat   d_cnfConversionTime;
+    TimerStat   d_solveTime; 
+    Statistics();
+    ~Statistics();
+  };
+
+  Statistics d_statistics;
+
+};
+
 
 // Bitblaster implementation
 
@@ -249,21 +330,11 @@ template <class T> void TBitblaster<T>::initTermBBStrategies() {
 template <class T>
 TBitblaster<T>::TBitblaster()
   : d_termCache()
-  , d_bitblastedAtoms()
 {
   initAtomBBStrategies();
   initTermBBStrategies(); 
 }
 
-template <class T>
-bool TBitblaster<T>::hasBBAtom(TNode atom) const {
-  return d_bitblastedAtoms.find(atom) != d_bitblastedAtoms.end();
-}
-template <class T>
-void TBitblaster<T>::storeBBTerm(TNode term, const Bits& def) {
-  Assert (d_termCache.find(term) == d_termCache.end());
-  d_termCache[term] = def;
-}
 template <class T>
 bool TBitblaster<T>::hasBBTerm(TNode node) const {
   return d_termCache.find(node) != d_termCache.end();
@@ -273,10 +344,10 @@ void TBitblaster<T>::getBBTerm(TNode node, Bits& bits) const {
   Assert (hasBBTerm(node));
   bits = d_termCache.find(node)->second;
 }
+
 template <class T>
-void TBitblaster<T>::storeBBAtom(TNode atom) {
-  Assert (!hasBBAtom(atom));
-  d_bitblastedAtoms.insert(atom);
+void TBitblaster<T>::storeBBTerm(TNode node, const Bits& bits) {
+  d_termCache.insert(std::make_pair(node, bits)); 
 }
 
 

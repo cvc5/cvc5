@@ -19,7 +19,6 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/slicer.h"
 #include "theory/valuation.h"
-#include "theory/bv/bitblaster.h"
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/bv_subtheory_core.h"

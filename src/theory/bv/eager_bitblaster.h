@@ -30,14 +30,6 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-/** Dummy class to pass to Minisat constructor */
-class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
-public:
-  MinisatEmptyNotify() {}
-  bool notify(prop::SatLiteral lit) { return true; }
-  void notify(prop::SatClause& clause) { }
-  void safePoint() {}
-};
 
 class BitblastingRegistrar: public prop::Registrar {
   EagerBitblaster* d_bitblaster; 
@@ -53,8 +45,9 @@ public:
 
 EagerBitblaster::EagerBitblaster()
   : TBitblaster<Node>()
+  , d_bbAtoms()
 {
-  d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "eager");
+  d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "EagerBitblaster");
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver, new BitblastingRegistrar(this), new context::Context());
   
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
@@ -95,8 +88,17 @@ void EagerBitblaster::bbAtom(TNode node) {
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
 
   Assert (options::bitvectorEagerBitblast());
-  storeBBAtom(node);
+  storeBBAtom(node, atom_definition);
   d_cnfStream->convertAndAssert(atom_definition, false, false);
+}
+
+void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
+  // no need to store the definition for the lazy bit-blaster
+  d_bbAtoms.insert(atom); 
+}
+
+bool EagerBitblaster::hasBBAtom(TNode atom) const {
+  return d_bbAtoms.find(atom) != d_bbAtoms.end(); 
 }
 
 void EagerBitblaster::bbTerm(TNode node, Bits& bits) {

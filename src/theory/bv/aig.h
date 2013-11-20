@@ -34,27 +34,6 @@ class BVSatSolverInterface;
 namespace theory {
 namespace bv {
 
-class AigSimplifier; 
-
-class AigBitblaster : public Bitblaster {
-private:
-  AigSimplifier* d_aigSimplifer; 
-  void addAtom(TNode atom);
-public:
-  void storeVariable(TNode node);
-  void bbTerm(TNode node, Bits&  bits);
-  void bbAtom(TNode node);
-  /** 
-   * Ensures that all the atoms in formula have been
-   * converted to AIG
-   * 
-   * @param formula 
-   */
-  void bbFormula(TNode formula);
-  
-  AigBitblaster(AigSimplifier* aigSimplifier); 
-  ~AigBitblaster();
-};
 
 class AigSimplifier {
   Abc_Ntk_t* d_abcAigNetwork;
@@ -112,9 +91,6 @@ public:
    * SatSolver. 
    * 
    */
-  void simplifyAig();
-  void convertToCnfAndAssert(); 
-  void setOutput(TNode query);
   /** 
    * Check if the current formulas are satisfiable
    * 

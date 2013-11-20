@@ -20,8 +20,16 @@
 #define __CVC4__BITBLAST__UTILS_H
 
 
-#include "expr/node.h"
 #include <ostream>
+#include "expr/node.h"
+#include "base/main/main.h"
+#include "base/abc/abc.h"
+
+extern "C" {
+#include "sat/cnf/cnf.h"
+}
+
+
 namespace CVC4 {
 
 namespace theory {
@@ -51,6 +59,7 @@ template <class T> T mkTrue();
 template <class T> T mkFalse(); 
 template <class T> T mkNot(T a);
 template <class T> T mkOr(T a, T b);
+template <class T> T mkOr(const std::vector<T>& a);
 template <class T> T mkAnd(T a, T b);
 template <class T> T mkAnd(const std::vector<T>& a);
 template <class T> T mkXor(T a, T b);
@@ -77,6 +86,15 @@ template <> inline
 Node mkOr<Node>(Node a, Node b) {
   return NodeManager::currentNM()->mkNode(kind::OR, a, b);
 }
+
+template <> inline
+Node mkOr<Node>(const std::vector<Node>& children) {
+  Assert (children.size());
+  if (children.size() == 1)
+    return children[0]; 
+  return NodeManager::currentNM()->mkNode(kind::OR, children); 
+}
+
 
 template <> inline
 Node mkAnd<Node>(Node a, Node b) {
@@ -106,7 +124,6 @@ template <> inline
 Node mkIte<Node>(Node cond, Node a, Node b) {
   return NodeManager::currentNM()->mkNode(kind::ITE, cond, a, b);
 }
-
 
 /*
  Various helper functions that get called by the bitblasting procedures

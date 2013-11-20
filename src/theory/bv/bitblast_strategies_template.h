@@ -233,7 +233,7 @@ void DefaultConcatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   
   Assert (node.getKind() == kind::BITVECTOR_CONCAT);
   for (int i = node.getNumChildren() -1 ; i >= 0; --i ) {
-    T current = node[i];
+    TNode current = node[i];
     std::vector<T> current_bits; 
     bb->bbTerm(current, current_bits);
 
@@ -255,14 +255,14 @@ void DefaultAndBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
          bits.size() == 0);
   
   for(unsigned j = 0; j < utils::getSize(node); ++j) {
-    NodeBuilder<> andBuilder(kind::AND);
+    std::vector<T> and_j; 
     for (unsigned i = 0; i < node.getNumChildren(); ++i) {
       std::vector<T> current;
       bb->bbTerm(node[i], current);
-      andBuilder << current[j];
+      and_j.push_back(current[j]); 
       Assert(utils::getSize(node) == current.size());
     }
-    bits.push_back(andBuilder); 
+    bits.push_back(mkAnd(and_j)); 
   }
 }
 
@@ -274,14 +274,14 @@ void DefaultOrBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
          bits.size() == 0);
   
   for(unsigned j = 0; j < utils::getSize(node); ++j) {
-    NodeBuilder<> orBuilder(kind::OR);
+    std::vector<T> or_j;
     for (unsigned i = 0; i < node.getNumChildren(); ++i) {
       std::vector<T> current;
       bb->bbTerm(node[i], current);
-      orBuilder << current[j];
+      or_j.push_back(current[j]); 
       Assert(utils::getSize(node) == current.size());
     }
-    bits.push_back(orBuilder); 
+    bits.push_back(mkOr(or_j)); 
   }
 }
 
@@ -295,12 +295,12 @@ void DefaultXorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   for(unsigned j = 0; j < utils::getSize(node); ++j) {
     std::vector<T> first;
     bb->bbTerm(node[0], first); 
-    Node bitj = first[j];
+    T bitj = first[j];
     
     for (unsigned i = 1; i < node.getNumChildren(); ++i) {
       std::vector<T> current;
       bb->bbTerm(node[i], current);
-      bitj = utils::mkNode(kind::XOR, bitj, current[j]);
+      bitj = mkXor(bitj, current[j]);
       Assert(utils::getSize(node) == current.size());
     }
     bits.push_back(bitj); 
@@ -414,7 +414,6 @@ void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   // bvsub a b = adder(a, ~b, 1)
   std::vector<T> not_b;
   negateBits(b, not_b);
-  T carry = mkTrue<T>();
   rippleCarryAdder(a, not_b, bits, mkTrue<T>());
 }
 
@@ -773,7 +772,7 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
   std::vector<T> bits;
   bb->bbTerm(node[0], bits);
   
-  TNode sign_bit = bits.back(); 
+  T sign_bit = bits.back(); 
   unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
 
   for (unsigned i = 0; i < bits.size(); ++i ) {

@@ -40,6 +40,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
   , d_bvOutput(bv->d_out)
   , d_assertedAtoms(c)
   , d_variables()
+  , d_bbAtoms()
   , d_statistics()
 {
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
@@ -82,9 +83,19 @@ void TLazyBitblaster::bbAtom(TNode node) {
       normalized;
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
-  storeBBAtom(node);
+  storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
+
+void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
+  // no need to store the definition for the lazy bit-blaster
+  d_bbAtoms.insert(atom); 
+}
+
+bool TLazyBitblaster::hasBBAtom(TNode atom) const {
+  return d_bbAtoms.find(atom) != d_bbAtoms.end(); 
+}
+
 
 void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
   Assert(bits.size() == 0);

@@ -84,39 +84,6 @@ void AigBitblaster::bbFormula(TNode node) {
   }
 }
 
-void AigBitblaster::bbAtom(TNode node) {
-  if (hasBBAtom(node)) {
-    return;
-  }
-
-  Debug("bitvector-bitblast") << "Bitblasting atom " << node <<"\n";
-
-  // the bitblasted definition of the atom
-  Node normalized = Rewriter::rewrite(node);
-  Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
-      Rewriter::rewrite(d_atomBBStrategies[normalized.getKind()](normalized, this)) :
-      normalized;
-
-  // converting the atom to Aig
-  Abc_Obj_t* result = d_aigSimplifer->convertToAig(atom_bb);
-  // cache the atom as well
-  d_aigSimplifer->cacheAig(node, result); 
-  storeBBAtom(node);
-  Debug("bitvector-bitblast") << "Done bitblasting atom " << node <<"\n";
-}
-
-void AigBitblaster::bbTerm(TNode node, Bits& bits) {
-  if (hasBBTerm(node)) {
-    getBBTerm(node, bits);
-    return;
-  }
-
-  Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
-  d_termBBStrategies[node.getKind()] (node, bits, this);
-
-  Assert (bits.size() == utils::getSize(node));
-  storeBBTerm(node, bits);
-}
 
 
 
@@ -229,34 +196,7 @@ Abc_Obj_t* AigSimplifier::convertToAig(TNode node) {
   return result; 
 }
 
-void AigSimplifier::cacheAig(TNode node, Abc_Obj_t* aig) {
-  Assert (!hasAig(node));
-  d_aigCache.insert(make_pair(node, aig));
-}
-bool AigSimplifier::hasAig(TNode node) {
-  return d_aigCache.find(node) != d_aigCache.end(); 
-}
-Abc_Obj_t* AigSimplifier::getAig(TNode node) {
-  Assert(hasAig(node));
-  Debug("bitvector-aig") << "AigSimplifer::getAig " << node << " => " << d_aigCache.find(node)->second <<"\n"; 
-  return d_aigCache.find(node)->second; 
-}
 
-void AigSimplifier::mkInput(TNode input) {
-  Assert (!hasInput(input));
-  Assert(input.getKind() == kind::BITVECTOR_BITOF ||
-         (input.getType().isBoolean() &&
-          input.getKind() == kind::VARIABLE));
-  Abc_Obj_t* aig_input = Abc_NtkCreatePi(d_abcAigNetwork);
-  d_aigCache.insert(make_pair(input, aig_input));
-  d_nodeToAigInput.insert(make_pair(input, aig_input));
-  Debug("bitvector-aig") << "AigSimplifer::mkInput " << input << " " << aig_input <<"\n"; 
-  // d_aigInputToNode.insert(make_pair(aig_input, input)); 
-}
-
-bool AigSimplifier::hasInput(TNode input) {
-  return d_nodeToAigInput.find(input) != d_nodeToAigInput.end(); 
-}
 
 
 static void addAliases(Abc_Frame_t* pAbc) {

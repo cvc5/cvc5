@@ -17,6 +17,7 @@
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/eager_bitblaster.h"
+#include "theory/bv/aig_bitblaster.h"
 
 using namespace std;
 using namespace CVC4;
@@ -25,25 +26,35 @@ using namespace CVC4::theory::bv;
 
 EagerBitblastSolver::EagerBitblastSolver()
   : d_assertionSet()
+  , d_bitblaster(NULL)
+  , d_aigBitblaster(NULL)
 {
-  // prop::BVSatSolverInterface* satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "eager");
-  // MinisatEmptyNotify* notify = new MinisatEmptyNotify();
-  // satSolver->setNotify(notify);
-  //d_aigSimplifer = new AigSimplifier(satSolver);
-  //d_bitblaster = new AigBitblaster(d_aigSimplifer);
-  d_bitblaster = new EagerBitblaster(); 
+  if (options::bitvectorAig()) {
+    d_aigBitblaster = new AigBitblaster(); 
+  } else {
+    d_bitblaster = new EagerBitblaster();
+  }
 }
 
 EagerBitblastSolver::~EagerBitblastSolver() {
-  // delete d_aigSimplifer; 
-  delete d_bitblaster; 
+  if (options::bitvectorAig()) {
+    Assert (d_bitblaster == NULL); 
+    delete d_aigBitblaster;
+  }
+  else {
+    Assert (d_aigBitblaster == NULL); 
+    delete d_bitblaster;
+  }
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
-  d_bitblaster->bbFormula(formula);
+  if (options::bitvectorAig()) 
+    d_aigBitblaster->bbFormula(formula);
+  else
+    d_bitblaster->bbFormula(formula);
 }
 
 bool EagerBitblastSolver::checkSat() {
@@ -52,13 +63,11 @@ bool EagerBitblastSolver::checkSat() {
     assertions.push_back(*it); 
   }
   Assert (assertions.size());
-
-  // Node query = utils::mkAnd(assertions);
-  // Debug("bitvector-eager") << "EagerBitblastSolver::checkSat "<< query <<"\n"; 
-  // d_aigSimplifer->setOutput(query); 
-  // d_aigSimplifer->simplifyAig();
-  // d_aigSimplifer->convertToCnfAndAssert(); 
-  // return d_aigSimplifer->solve(); 
+  if (options::bitvectorAig()) {
+    Node query = utils::mkAnd(assertions); 
+    return d_aigBitblaster->solve(query);
+  }
+  
   return d_bitblaster->solve(); 
 }
 
