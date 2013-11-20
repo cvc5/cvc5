@@ -369,7 +369,7 @@ private:
   // trace nodes back to their assertions using CircuitPropagator's BackEdgesMap
   void traceBackToAssertions(const std::vector<Node>& nodes, std::vector<TNode>& assertions);
   // remove conjuncts in toRemove from conjunction n; return # of removed conjuncts
-  size_t removeFromConjunction(Node& n, const std::hash_set<unsigned>& toRemove);
+  size_t removeFromConjunction(Node& n, const std::hash_set<unsigned long>& toRemove);
 
   // scrub miplib encodings
   void doMiplibTrick();
@@ -408,6 +408,8 @@ public:
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
+
+    Chat() << "NodeValue width" << sizeof(expr::NodeValue) << std::endl;
   }
 
   ~SmtEnginePrivate() {
@@ -2120,7 +2122,7 @@ void SmtEnginePrivate::traceBackToAssertions(const std::vector<Node>& nodes, std
   }
 }
 
-size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::hash_set<unsigned>& toRemove) {
+size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::hash_set<unsigned long>& toRemove) {
   Assert(n.getKind() == kind::AND);
   size_t removals = 0;
   for(Node::iterator j = n.begin(); j != n.end(); ++j) {
@@ -2175,7 +2177,7 @@ void SmtEnginePrivate::doMiplibTrick() {
   Assert(!options::incrementalSolving());
 
   const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
-  hash_set<unsigned> removeAssertions;
+  hash_set<unsigned long> removeAssertions;
 
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));

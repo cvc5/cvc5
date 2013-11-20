@@ -275,7 +275,7 @@ public:
    * @return an identifier uniquely identifying the value this
    * expression holds.
    */
-  unsigned getId() const;
+  unsigned long getId() const;
 
   /**
    * Returns the kind of the expression (AND, PLUS ...).

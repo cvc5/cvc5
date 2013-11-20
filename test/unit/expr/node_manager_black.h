@@ -314,8 +314,9 @@ public:
     std::vector<Node> vars;
     const unsigned int max = metakind::getUpperBoundForKind(AND);
     TypeNode boolType = d_nodeManager->booleanType();
+    Node skolem = d_nodeManager->mkSkolem("i", boolType);
     for( unsigned int i = 0; i <= max; ++i ) {
-      vars.push_back( d_nodeManager->mkSkolem("i", boolType) );
+      vars.push_back( skolem );
     }
     TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, vars), AssertionException );
 #endif

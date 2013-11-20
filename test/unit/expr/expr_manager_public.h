@@ -105,7 +105,8 @@ public:
 
   void testMkAssociative3() {
     try {
-      unsigned int numVars = d_exprManager->maxArity(AND) + 1;
+      //unsigned int numVars = d_exprManager->maxArity(AND) + 1;
+      unsigned int numVars = (1<<16) + 1;
       std::vector<Expr> vars = mkVars(d_exprManager->booleanType(), numVars);
       Expr n = d_exprManager->mkAssociative(AND,vars);
       checkAssociative(n,AND,numVars);

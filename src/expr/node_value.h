@@ -65,9 +65,9 @@ namespace expr {
 #if __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
     __CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
     __CVC4__EXPR__NODE_VALUE__NBITS__ID + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 64
-#  error NodeValue header bit assignment does not sum to 64 !
-#endif /* sum != 64 */
+    __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
+#  error NodeValue header bit assignment does not sum to 96 !
+#endif /* sum != 96 */
 
 /**
  * This is a NodeValue.
@@ -92,7 +92,7 @@ class NodeValue {
   // this header fits into one 64-bit word
 
   /** The ID (0 is reserved for the null value) */
-  unsigned d_id        : NBITS_ID;
+  unsigned long d_id        : NBITS_ID;
 
   /** The expression's reference count.  @see cvc4::Node. */
   unsigned d_rc        : NBITS_REFCOUNT;
@@ -255,7 +255,7 @@ public:
     return hash;
   }
 
-  unsigned getId() const { return d_id; }
+  unsigned long getId() const { return d_id; }
   Kind getKind() const { return dKindToKind(d_kind); }
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
   unsigned getNumChildren() const {
