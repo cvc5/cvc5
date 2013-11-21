@@ -116,6 +116,7 @@ private:
     Node d_zero;
 	// Options
 	bool d_opt_fmf;
+	bool d_opt_regexp_gcd;
 	// Helper functions
 	Node getRepresentative( Node t );
 	bool hasTerm( Node a );
@@ -202,7 +203,6 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
-	int gcd(int a, int b);
 
 public:
 	void preRegisterTerm(TNode n);
@@ -267,6 +267,8 @@ private:
 	bool d_regexp_incomplete;
 	int d_regexp_unroll_depth;
 	int d_regexp_max_depth;
+	// membership length
+	std::map< Node, bool > d_membership_length;
 	// regular expression derivative
 	std::map< Node, bool > d_reg_exp_deriv;
 	// regular expression operations
@@ -274,6 +276,7 @@ private:
 
 	CVC4::String getHeadConst( Node x );
 	bool splitRegExp( Node x, Node r, Node ant );
+	bool addMembershipLength(Node atom);
 
 
 	// Finite Model Finding
