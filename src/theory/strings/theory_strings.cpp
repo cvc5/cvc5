@@ -57,6 +57,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_false = NodeManager::currentNM()->mkConst( false );
 
 	d_regexp_incomplete = false;
+	d_opt_regexp_gcd = true;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -1818,14 +1819,6 @@ bool TheoryStrings::checkCardinality() {
   return false;
 }
 
-int TheoryStrings::gcd ( int a, int b ) {
-  int c;
-  while ( a != 0 ) {
-     c = a; a = b%a;  b = c;
-  }
-  return b;
-}
-
 void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ) {
@@ -2009,6 +2002,14 @@ bool TheoryStrings::checkMemberships() {
 			Node r = atom[1];
 			Assert( r.getKind()==kind::REGEXP_STAR );
 			if( !areEqual( x, d_emptyString ) ) {
+				/*if(d_opt_regexp_gcd) {
+					if(d_membership_length.find(atom) == d_membership_length.end()) {
+						addedLemma = addMembershipLength(atom);
+						d_membership_length[atom] = true;
+					} else {
+						Trace("strings-regexp") << "Membership length is already added." << std::endl;
+					}
+				}*/
 				bool flag = true;
 				if( d_reg_exp_deriv.find(atom)==d_reg_exp_deriv.end() ) {
 					if(splitRegExp( x, r, atom )) {
@@ -2020,12 +2021,12 @@ bool TheoryStrings::checkMemberships() {
 					Trace("strings-regexp-derivative") << "... is processed by deriv." << std::endl;
 				}
 				if( flag && d_reg_exp_unroll.find(atom)==d_reg_exp_unroll.end() ) {
-						if( unrollStar( atom ) ) {
-							addedLemma = true;
-						} else {
-							Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
-							is_unk = true;
-						}
+					if( unrollStar( atom ) ) {
+						addedLemma = true;
+					} else {
+						Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
+						is_unk = true;
+					}
 				} else {
 					Trace("strings-regexp") << "...is already unrolled or splitted." << std::endl;
 				}
@@ -2095,6 +2096,27 @@ CVC4::String TheoryStrings::getHeadConst( Node x ) {
 	} else {
 		return d_emptyString.getConst< String >();
 	}
+}
+
+bool TheoryStrings::addMembershipLength(Node atom) {
+	Node x = atom[0];
+	Node r = atom[1];
+
+	/*std::vector< int > co;
+	co.push_back(0);
+	for(unsigned int k=0; k<lts.size(); ++k) {
+		if(lts[k].isConst() && lts[k].getType().isInteger()) {
+			int len = lts[k].getConst<Rational>().getNumerator().toUnsignedInt();
+			co[0] += cols[k].size() * len;
+		} else {
+			co.push_back( cols[k].size() );
+		}
+	}
+	int g_co = co[0];
+	for(unsigned k=1; k<co.size(); ++k) {
+		g_co = gcd(g_co, co[k]);
+	}*/
+	return false;
 }
 
 bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
