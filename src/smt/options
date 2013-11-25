@@ -42,17 +42,30 @@ common-option interactive interactive-mode --interactive bool :read-write
 option doITESimp --ite-simp bool :read-write
  turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)
 
+option doITESimpOnRepeat --on-repeat-ite-simp bool :read-write :default false
+ do the ite simplification pass again if repeating simplification
+
+option simplifyWithCareEnabled --simp-with-care bool :default false :read-write
+ enables simplifyWithCare in ite simplificiation
+
+option compressItes --simp-ite-compress bool :default false :read-write
+ enables compressing ites after ite simplification
+
 option unconstrainedSimp --unconstrained-simp bool :default false :read-write
  turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)
 
 option repeatSimp --repeat-simp bool :read-write
  make multiple passes with nonclausal simplifier
 
+option zombieHuntThreshold --simp-ite-hunt-zombies uint32_t :default 524288
+ post ite compression enables zombie removal while the number of nodes is above this threshold
+
 option sortInference --sort-inference bool :read-write :default false
  calculate sort inference of input problem, convert the input based on monotonic sorts
 
 common-option incrementalSolving incremental -i --incremental bool
  enable incremental solving
+
 
 option abstractValues abstract-values --abstract-values bool :default false
  in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard

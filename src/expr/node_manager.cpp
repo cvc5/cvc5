@@ -134,6 +134,7 @@ NodeManager::~NodeManager() {
     d_operators[i] = Node::null();
   }
 
+  Assert(!d_attrManager->inGarbageCollection() );
   while(!d_zombies.empty()) {
     reclaimZombies();
   }
@@ -161,6 +162,7 @@ NodeManager::~NodeManager() {
 
 void NodeManager::reclaimZombies() {
   // FIXME multithreading
+  Assert(!d_attrManager->inGarbageCollection());
 
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
@@ -435,6 +437,23 @@ TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
   return dtt;
 }
 
+void NodeManager::reclaimAllZombies(){
+  reclaimZombiesUntil(0u);
+}
+
+/** Reclaim zombies while there are more than k nodes in the pool (if possible).*/
+void NodeManager::reclaimZombiesUntil(uint32_t k){
+  if(safeToReclaimZombies()){
+    while(poolSize() >= k && !d_zombies.empty()){
+      reclaimZombies();
+    }
+  }
+}
+
+size_t NodeManager::poolSize() const{
+  return d_nodeValuePool.size();
+}
+
 TypeNode NodeManager::mkSort(uint32_t flags) {
   NodeBuilder<1> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
@@ -584,6 +603,11 @@ Node NodeManager::mkAbstractValue(const TypeNode& type) {
   n.setAttribute(TypeAttr(), type);
   n.setAttribute(TypeCheckedAttr(), true);
   return n;
+}
+
+bool NodeManager::safeToReclaimZombies() const{
+  // FIXME multithreading
+  return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();
 }
 
 void NodeManager::deleteAttributes(const std::vector<const expr::attr::AttributeUniqueId*>& ids){

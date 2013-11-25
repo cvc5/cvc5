@@ -34,6 +34,9 @@ public:
   static bool computeIsConst(NodeManager* nodeManager, TNode n)
     throw (AssertionException);
 
+  static bool neverIsConst(NodeManager* nodeManager, TNode n)
+    throw (AssertionException);
+
 };/* class TypeChecker */
 
 }/* CVC4::expr namespace */

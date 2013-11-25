@@ -101,17 +101,14 @@ class AttributeManager {
   template <class T, bool context_dep>
   friend struct getTable;
 
+  bool d_inGarbageCollection;
+
+  void clearDeleteAllAttributesBuffer();
+
 public:
 
   /** Construct an attribute manager. */
-  AttributeManager(context::Context* ctxt) :
-    d_cdbools(ctxt),
-    d_cdints(ctxt),
-    d_cdtnodes(ctxt),
-    d_cdnodes(ctxt),
-    d_cdstrings(ctxt),
-    d_cdptrs(ctxt) {
-  }
+  AttributeManager(context::Context* ctxt);
 
   /**
    * Get a particular attribute on a particular node.
@@ -177,6 +174,10 @@ public:
    */
   void deleteAllAttributes();
 
+  /**
+   * Returns true if a table is currently being deleted.
+   */
+  bool inGarbageCollection() const ;
 
   /**
    * Determines the AttrTableId of an attribute.
@@ -563,6 +564,8 @@ AttributeManager::setAttribute(NodeValue* nv,
 /**
  * Search for the NodeValue in all attribute tables and remove it,
  * calling the cleanup function if one is defined.
+ *
+ * This cannot use nv as anything other than a pointer!
  */
 template <class T>
 inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
@@ -600,6 +603,9 @@ inline void AttributeManager::deleteFromTable(CDAttrHash<T>& table,
  */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
+  Assert(!d_inGarbageCollection);
+  d_inGarbageCollection = true;
+
   bool anyRequireClearing = false;
   typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
@@ -627,6 +633,8 @@ inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
     }
   }
   table.clear();
+  d_inGarbageCollection = false;
+  Assert(!d_inGarbageCollection);
 }
 
 template <class AttrKind>
@@ -639,6 +647,7 @@ AttributeUniqueId AttributeManager::getAttributeId(const AttrKind& attr){
 
 template <class T>
 void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::vector<uint64_t>& ids){
+  d_inGarbageCollection = true;
   typedef AttributeTraits<T, false> traits_t;
   typedef AttrHash<T> hash_t;
 
@@ -664,6 +673,7 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
       ++it;
     }
   }
+  d_inGarbageCollection = false;
   static const size_t ReconstructShrinkRatio = 8;
   if(initialSize/ReconstructShrinkRatio > table.size()){
     reconstructTable(table);
@@ -672,10 +682,12 @@ void AttributeManager::deleteAttributesFromTable(AttrHash<T>& table, const std::
 
 template <class T>
 void AttributeManager::reconstructTable(AttrHash<T>& table){
+  d_inGarbageCollection = true;
   typedef AttrHash<T> hash_t;
   hash_t cpy;
   cpy.insert(table.begin(), table.end());
   cpy.swap(table);
+  d_inGarbageCollection = false;
 }
 
 

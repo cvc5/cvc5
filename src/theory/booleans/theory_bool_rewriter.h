@@ -31,9 +31,7 @@ class TheoryBoolRewriter {
 public:
 
   static RewriteResponse preRewrite(TNode node);
-  static RewriteResponse postRewrite(TNode node) {
-    return preRewrite(node);
-  }
+  static RewriteResponse postRewrite(TNode node);
 
   static void init() {}
   static void shutdown() {}

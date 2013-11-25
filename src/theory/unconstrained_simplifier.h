@@ -24,10 +24,13 @@
 #include <utility>
 
 #include "expr/node.h"
-#include "theory/theory.h"
 #include "theory/substitutions.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+/* Forward Declarations */
+class LogicInfo;
 
 class UnconstrainedSimplifier {
 

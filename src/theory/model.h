@@ -22,7 +22,6 @@
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
-#include "theory/ite_simplifier.h"
 
 namespace CVC4 {
 
@@ -38,7 +37,6 @@ class TheoryModel : public Model
 protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  ITESimplifier d_iteSimp;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel(){}

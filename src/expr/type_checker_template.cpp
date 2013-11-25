@@ -78,5 +78,22 @@ ${construles}
 
 }/* TypeChecker::computeIsConst */
 
+bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
+  throw (AssertionException) {
+
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED);
+
+  switch(n.getKind()) {
+${neverconstrules}
+
+#line 90 "${template}"
+
+  default:;
+  }
+
+  return true;
+
+}/* TypeChecker::neverIsConst */
+
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */

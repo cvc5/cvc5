@@ -26,6 +26,19 @@ namespace CVC4 {
 namespace expr {
 namespace attr {
 
+AttributeManager::AttributeManager(context::Context* ctxt) :
+  d_cdbools(ctxt),
+  d_cdints(ctxt),
+  d_cdtnodes(ctxt),
+  d_cdnodes(ctxt),
+  d_cdstrings(ctxt),
+  d_cdptrs(ctxt),
+  d_inGarbageCollection(false)
+{}
+
+bool AttributeManager::inGarbageCollection() const {
+  return d_inGarbageCollection;
+}
 
 void AttributeManager::debugHook(int debugFlag) {
   /* DO NOT CHECK IN ANY CODE INTO THE DEBUG HOOKS!
@@ -36,6 +49,7 @@ void AttributeManager::debugHook(int debugFlag) {
 }
 
 void AttributeManager::deleteAllAttributes(NodeValue* nv) {
+  Assert(!inGarbageCollection());
   d_bools.erase(nv);
   deleteFromTable(d_ints, nv);
   deleteFromTable(d_tnodes, nv);

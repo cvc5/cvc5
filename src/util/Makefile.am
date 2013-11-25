@@ -76,6 +76,8 @@ libutil_la_SOURCES = \
 	boolean_simplification.cpp \
 	ite_removal.h \
 	ite_removal.cpp \
+	nary_builder.h \
+	nary_builder.cpp \
 	node_visitor.h \
 	chain.h \
 	index.h \
