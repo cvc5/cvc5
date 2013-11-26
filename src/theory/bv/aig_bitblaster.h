@@ -141,10 +141,7 @@ AigBitblaster::AigBitblaster()
 }
 
 AigBitblaster::~AigBitblaster() {
-  Assert (abcAigNetwork); 
-  delete abcAigNetwork;
-  abcAigNetwork = NULL;
-  Abc_Stop(); 
+  Assert (abcAigNetwork == NULL); 
 }
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
@@ -313,6 +310,7 @@ bool AigBitblaster::solve(TNode node) {
 
   simplifyAig();
   convertToCnfAndAssert();
+  // no need to use abc anymore
   
   TimerStat::CodeTimer solveTimer(d_statistics.d_solveTime);
   prop::SatValue result = d_satSolver->solve();
@@ -352,6 +350,12 @@ void AigBitblaster::convertToCnfAndAssert() {
   
   // convert to the AIG manager
   pMan = Abc_NtkToDar(currentAigNtk(), 0, 0 );
+  Abc_Stop(); 
+
+  // // free old network
+  // Abc_NtkDelete(currentAigNtk());
+  // abcAigNetwork = NULL;
+  
   Assert (pMan != NULL);
   Assert (Aig_ManCheck(pMan));
   pCnf = Cnf_DeriveFast( pMan, 0 );
