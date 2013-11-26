@@ -41,7 +41,8 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Predicate>;
-%template(mkConst) CVC4::ExprManager::mkConst<std::string>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
 
 %include "expr/expr_manager.h"
