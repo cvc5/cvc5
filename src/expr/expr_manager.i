@@ -2,6 +2,27 @@
 #include "expr/expr_manager.h"
 %}
 
+%typemap(javacode) CVC4::ExprManager %{
+  // a ref is kept here to keep Java GC from collecting the Options
+  // before the ExprManager
+  private Object options;
+%}
+%typemap(javaconstruct) ExprManager(Options options) {
+    this($imcall, true);
+    this.options = SmtEngine.mkRef(options); // keep ref to options in SWIG proxy class
+  }
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") CVC4::ExprManager {
+    SmtEngine.dlRef(options);
+    options = null;
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        CVC4JNI.delete_SmtEngine(swigCPtr);
+      }
+      swigCPtr = 0;
+    }
+  }
+
 #ifdef SWIGOCAML
   /* OCaml bindings cannot deal with this degree of overloading */
   %ignore CVC4::ExprManager::mkExpr(Kind, const std::vector<Expr>&);
