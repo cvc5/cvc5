@@ -42,14 +42,9 @@
 
 namespace CVC4 {
 
-class JavaOutputStreamAdapter {
-  std::stringstream d_ss;
-
+class JavaOutputStreamAdapter : public std::ostringstream {
 public:
-  JavaOutputStreamAdapter() { }
-
-  std::string toString() { return d_ss.str(); }
-
+  std::string toString() { return str(); }
 };/* class JavaOutputStreamAdapter */
 
 class JavaInputStreamAdapter : public std::stringstream {
