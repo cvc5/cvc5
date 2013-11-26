@@ -53,6 +53,9 @@ protected:
 public:
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang) throw() {
+    if(lang == language::output::LANG_AUTO) {
+      lang = language::output::LANG_CVC4; // default
+    }
     if(d_printers[lang] == NULL) {
       d_printers[lang] = makePrinter(lang);
     }
