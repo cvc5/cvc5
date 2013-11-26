@@ -22,168 +22,114 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
-
-void BvToBoolVisitor::addToCache(TNode term, Node new_term) {
+BvToBoolPreprocessor::BvToBoolPreprocessor()
+  : d_liftCache(),
+    d_boolCache(),
+    d_one(utils::mkConst(BitVector(1, 1u))),
+    d_zero(utils::mkConst(BitVector(1, 0u)))
+{}
+void BvToBoolPreprocessor::addToLiftCache(TNode term, Node new_term) {
   Assert (new_term != Node()); 
-  Assert (!hasCache(term));
-  d_cache[term] = new_term; 
+  Assert (!hasLiftCache(term));
+  Assert (term.getType() == new_term.getType());
+  d_liftCache[term] = new_term; 
 }
 
-Node BvToBoolVisitor::getCache(TNode term) const {
-  if (!hasCache(term) || term.getKind() == kind::CONST_BITVECTOR) {
-    return term; 
-  }
-  return d_cache.find(term)->second; 
+Node BvToBoolPreprocessor::getLiftCache(TNode term) const {
+  Assert(hasLiftCache(term)); 
+  return d_liftCache.find(term)->second; 
 }
 
-bool BvToBoolVisitor::hasCache(TNode term) const {
-  return d_cache.find(term) != d_cache.end(); 
+bool BvToBoolPreprocessor::hasLiftCache(TNode term) const {
+  return d_liftCache.find(term) != d_liftCache.end(); 
 }
 
-void BvToBoolVisitor::start(TNode node) {}
-
-void BvToBoolVisitor::storeBvToBool(TNode bv_term, TNode bool_term) {
-  Assert (bv_term.getType().isBitVector() &&
-          bv_term.getType().getBitVectorSize() == 1 &&
-          bool_term.getType().isBoolean() && bv_term != Node() && bool_term != Node());
-  if (d_bvToBoolMap.find(bv_term) != d_bvToBoolMap.end()) {
-    Assert (d_bvToBoolMap[bv_term] == bool_term); 
-  }
-  d_bvToBoolMap[bv_term] = bool_term; 
+void BvToBoolPreprocessor::addToBoolCache(TNode term, Node new_term) {
+  Assert (new_term != Node()); 
+  Assert (!hasBoolCache(term));
+  Assert (utils::getSize(term) == 1);
+  Assert (new_term.getType().isBoolean());
+  d_boolCache[term] = new_term; 
 }
 
-Node BvToBoolVisitor::getBoolForBvTerm(TNode node) {
-  Assert (d_bvToBoolMap.find(node) != d_bvToBoolMap.end());
-  return d_bvToBoolMap[node]; 
+Node BvToBoolPreprocessor::getBoolCache(TNode term) const {
+  Assert(hasBoolCache(term)); 
+  return d_boolCache.find(term)->second; 
 }
 
-bool BvToBoolVisitor::alreadyVisited(TNode current, TNode parent) {
-  return d_cache.find(current) != d_cache.end(); 
+bool BvToBoolPreprocessor::hasBoolCache(TNode term) const {
+  return d_boolCache.find(term) != d_boolCache.end(); 
 }
-
-bool BvToBoolVisitor::isConvertibleBvAtom(TNode node) {
+bool BvToBoolPreprocessor::isConvertibleBvAtom(TNode node) {
   Kind kind = node.getKind();
-  return (kind == kind::BITVECTOR_ULT ||
-          kind == kind::BITVECTOR_ULE ||
-          kind == kind::BITVECTOR_SLT ||
-          kind == kind::BITVECTOR_SLE ||
-          kind == kind::EQUAL) &&
-    isConvertibleBvTerm(node[0]) &&
-    isConvertibleBvTerm(node[1]); 
+  return (kind == kind::EQUAL &&
+          node[0].getType().isBitVector() &&
+          node[0].getType().getBitVectorSize() == 1 &&
+          node[1].getType().isBitVector() &&
+          node[1].getType().getBitVectorSize() == 1); 
 }
 
-bool BvToBoolVisitor::isConvertibleBvTerm(TNode node) {
-  // we have already converted it and the result is cached
-  if (d_bvToBoolMap.find(node) != d_bvToBoolMap.end()) {
-    return true;
-  }
-  
-  if (!node.getType().isBitVector() || node.getType().getBitVectorSize() != 1)
+bool BvToBoolPreprocessor::isConvertibleBvTerm(TNode node) {
+  if (!node.getType().isBitVector() ||
+      node.getType().getBitVectorSize() != 1)
     return false;
 
   Kind kind = node.getKind();
   
-  if (kind == kind::CONST_BITVECTOR) {
+  if (kind == kind::CONST_BITVECTOR ||
+      kind == kind::ITE ||
+      kind == kind::BITVECTOR_AND ||
+      kind == kind::BITVECTOR_OR ||
+      kind == kind::BITVECTOR_NOT ||
+      kind == kind::BITVECTOR_XOR) {
     return true; 
   }
 
-  if (kind == kind::ITE) {
-    return isConvertibleBvTerm(node[1]) && isConvertibleBvTerm(node[2]); 
-  }
-
-  if (kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR ||
-      kind == kind::BITVECTOR_NOT || kind == kind::BITVECTOR_XOR) {
-    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-      if (!isConvertibleBvTerm(node[i]))
-        return false; 
-    }
-    return true; 
-  }
-  if (kind == kind::VARIABLE) {
-    storeBvToBool(node, utils::mkNode(kind::EQUAL, node, utils::mkConst(BitVector(1, 1u)))); 
-    return true; 
-  }
   return false; 
 }
 
-Node BvToBoolVisitor::convertBvAtom(TNode node) {
-  Assert (node.getType().isBoolean());
-  Kind kind = node.getKind();
-  Node result; 
-  switch(kind) {
-  case kind::BITVECTOR_ULT: {
-    Node a = getBoolForBvTerm(node[0]);
-    Node b = getBoolForBvTerm(node[1]);
-    Node a_eq_0 = utils::mkNode(kind::IFF, a, utils::mkFalse());
-    Node b_eq_1 = utils::mkNode(kind::IFF, b, utils::mkTrue());
-    result = utils::mkNode(kind::AND, a_eq_0, b_eq_1);
-    break;
-  }
-  case kind::BITVECTOR_ULE: {
-   Node a = getBoolForBvTerm(node[0]);
-   Node b = getBoolForBvTerm(node[1]);
-   Node a_eq_0 = utils::mkNode(kind::IFF, a, utils::mkFalse());
-   Node b_eq_1 = utils::mkNode(kind::IFF, b, utils::mkTrue());
-   Node a_lt_b = utils::mkNode(kind::AND, a_eq_0, b_eq_1); 
-   Node a_eq_b = utils::mkNode(kind::IFF, a, b);
-   result = utils::mkNode(kind::OR, a_lt_b, a_eq_b);    
-   break;
-  }
-  case kind::BITVECTOR_SLT: {
-    Node a = getBoolForBvTerm(node[0]);
-    Node b = getBoolForBvTerm(node[1]);
-    Node a_eq_1 = utils::mkNode(kind::IFF, a, utils::mkTrue());
-    Node b_eq_0 = utils::mkNode(kind::IFF, b, utils::mkFalse());
-    result = utils::mkNode(kind::AND, a_eq_1, b_eq_0);
-    break; 
-  }
-  case kind::BITVECTOR_SLE: {
-    Node a = getBoolForBvTerm(node[0]);
-    Node b = getBoolForBvTerm(node[1]);
-    Node a_eq_1 = utils::mkNode(kind::IFF, a, utils::mkTrue());
-    Node b_eq_0 = utils::mkNode(kind::IFF, b, utils::mkFalse());
-    Node a_slt_b = utils::mkNode(kind::AND, a_eq_1, b_eq_0);
-    Node a_eq_b = utils::mkNode(kind::IFF, a, b);
-    result = utils::mkNode(kind::OR, a_slt_b, a_eq_b); 
-    break; 
-  }
-  case kind::EQUAL: {
-    Node a = getBoolForBvTerm(node[0]);
-    Node b = getBoolForBvTerm(node[1]);
-    result = utils::mkNode(kind::IFF, a, b); 
-    break;
-  }
-  default:
-    Unhandled(); 
-  }
-  Debug("bv-to-bool") << "BvToBoolVisitor::convertBvAtom " << node <<" => " << result << "\n"; 
-  Assert (result != Node());
+Node BvToBoolPreprocessor::convertBvAtom(TNode node) {
+  Assert (node.getType().isBoolean() &&
+          node.getKind() == kind::EQUAL);
+  Assert (utils::getSize(node[0]) == 1);
+  Assert (utils::getSize(node[1]) == 1);
+  Node a = convertBvTerm(node[0]);
+  Node b = convertBvTerm(node[1]);
+  Node result = utils::mkNode(kind::IFF, a, b); 
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n"; 
   return result;
 }
 
-Node BvToBoolVisitor::convertBvTerm(TNode node) {
+Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
   Assert (node.getType().isBitVector() &&
           node.getType().getBitVectorSize() == 1);
-  Kind kind = node.getKind(); 
+
+  if (hasBoolCache(node))
+    return getBoolCache(node);
+  
+  if (!isConvertibleBvTerm(node)) {
+    Node result = utils::mkNode(kind::EQUAL, node, d_one);
+    addToBoolCache(node, result);
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
+    return result;
+  }
 
   if (node.getNumChildren() == 0) {
-    if (node.getKind() == kind::VARIABLE) {
-      return getBoolForBvTerm(node);
-    }
-    if (node.getKind() == kind::CONST_BITVECTOR) {
-      Node result = node == d_one ? utils::mkTrue() : utils::mkFalse();
-      storeBvToBool(node, result); 
-      return result; 
-    }
+    Assert (node.getKind() == kind::CONST_BITVECTOR);
+    Node result = node == d_one ? utils::mkTrue() : utils::mkFalse();
+    // addToCache(node, result);
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
+    return result; 
   }
   
+  Kind kind = node.getKind();
   if (kind == kind::ITE) {
-    Node cond = getCache(node[0]);
-    Node true_branch = getBoolForBvTerm(node[1]);
-    Node false_branch = getBoolForBvTerm(node[2]);
+    Node cond = liftNode(node[0]);
+    Node true_branch = convertBvTerm(node[1]);
+    Node false_branch = convertBvTerm(node[2]);
     Node result = utils::mkNode(kind::ITE, cond, true_branch, false_branch);
-    storeBvToBool(node, result);
-    Debug("bv-to-bool") << "BvToBoolVisitor::convertBvTerm " << node <<" => " << result << "\n"; 
+    addToBoolCache(node, result);
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
   }
   
@@ -207,107 +153,52 @@ Node BvToBoolVisitor::convertBvTerm(TNode node) {
 
   NodeBuilder<> builder(new_kind);
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    builder << getBoolForBvTerm(node[i]); 
+    builder << convertBvTerm(node[i]); 
   }
+  
   Node result = builder;
-  storeBvToBool(node, result);
-  Debug("bv-to-bool") << "BvToBoolVisitor::convertBvTerm " << node <<" => " << result << "\n"; 
+  addToBoolCache(node, result);
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
   return result; 
 }
 
-void BvToBoolVisitor::check(TNode current, TNode parent) {
-  if (d_bvToBoolMap.find(current) != d_bvToBoolMap.end()) {
-    if (!isConvertibleBvTerm(parent) && !isConvertibleBvAtom(parent)) {
-      Debug("bv-to-bool") << "BvToBoolVisitor::check " << current << " in non boolean context: \n"
-                          << "           " << parent << "\n"; 
-    }
-  }
-}
 
-void BvToBoolVisitor::visit(TNode current, TNode parent) {
-  Debug("bv-to-bool") << "BvToBoolVisitor visit (" << current << ", " << parent << ")\n"; 
-  Assert (!alreadyVisited(current, parent) &&
-          !hasCache(current));
 
+Node BvToBoolPreprocessor::liftNode(TNode current) {
   Node result;
-  // make sure that the bv terms we are replacing to not occur in other contexts
-  check(current, parent); 
   
-  if (isConvertibleBvAtom(current)) {
+  if (hasLiftCache(current)) {
+    result = getLiftCache(current); 
+  }else if (isConvertibleBvAtom(current)) {
     result = convertBvAtom(current);
-    addToCache(current, result);
-  } else if (isConvertibleBvTerm(current)) {
-    result = convertBvTerm(current); 
+    addToLiftCache(current, result);
   } else {
     if (current.getNumChildren() == 0) {
-      result = current; 
+      result = current;
     } else {
       NodeBuilder<> builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         builder << current.getOperator();
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++i) {
-        Node converted = getCache(current[i]);
+        Node converted = liftNode(current[i]);
         Assert (converted.getType() == current[i].getType()); 
         builder << converted; 
       }
       result = builder;
+      addToLiftCache(current, result);
     }
-    addToCache(current, result);
   }
   Assert (result != Node());
-  Debug("bv-to-bool") << "    =>" << result <<"\n"; 
-}
-
-
-BvToBoolVisitor::return_type BvToBoolVisitor::done(TNode node) {
-  Assert (hasCache(node)); 
-  Node result = getCache(node);
+  Assert(result.getType() == current.getType());
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::liftNode " << current << " => \n" << result << "\n"; 
   return result; 
 }
 
-bool BvToBoolVisitor::hasBoolTerm(TNode node) {
-  return d_bvToBoolMap.find(node) != d_bvToBoolMap.end(); 
-}
 
-bool BvToBoolPreprocessor::matchesBooleanPatern(TNode current) {
-  // we are looking for something of the type (= (bvvar 1) (some predicate))
-  if (current.getKind() == kind::IFF &&
-      current[0].getKind() == kind::EQUAL &&
-      current[0][0].getType().isBitVector() &&
-      current[0][0].getType().getBitVectorSize() == 1 &&
-      current[0][0].getKind() == kind::VARIABLE &&
-      current[0][1].getKind() == kind::CONST_BITVECTOR) {
-    return true; 
-  }    
-  return false; 
-}
-
-
-void BvToBoolPreprocessor::liftBoolToBV(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  BvToBoolVisitor bvToBoolVisitor;
-  
+void BvToBoolPreprocessor::liftBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   for (unsigned i = 0; i < assertions.size(); ++i) {
-    if (matchesBooleanPatern(assertions[i])) {
-      TNode assertion = assertions[i]; 
-      TNode bv_var = assertion[0][0];
-      Assert (bv_var.getKind() == kind::VARIABLE &&
-              bv_var.getType().isBitVector() &&
-              bv_var.getType().getBitVectorSize() == 1);
-      Node bool_cond = NodeVisitor<BvToBoolVisitor>::run(bvToBoolVisitor, assertion[1]);
-      Assert (bool_cond.getType().isBoolean());
-      if (!bvToBoolVisitor.hasBoolTerm(bv_var)) {
-        Debug("bv-to-bool") << "BBvToBoolPreprocessor::liftBvToBoolBV candidate: " << bv_var <<"\n"; 
-        bvToBoolVisitor.storeBvToBool(bv_var, bool_cond); 
-      } else {
-        Debug("bv-to-bool") << "BvToBoolPreprocessor::liftBvToBoolBV multiple def " << bv_var <<"\n"; 
-      }
-    }
-  }
-  
-  for (unsigned i = 0; i < assertions.size(); ++i) {
-    Node new_assertion = NodeVisitor<BvToBoolVisitor>::run(bvToBoolVisitor,
-                                              assertions[i]);
+    Node new_assertion = liftNode(assertions[i]); 
     new_assertions.push_back(new_assertion);
     Trace("bv-to-bool") << "  " << assertions[i] <<" => " << new_assertions[i] <<"\n"; 
   }

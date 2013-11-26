@@ -361,6 +361,26 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   Assert(res.size() == 0 &&
          node.getKind() == kind::BITVECTOR_MULT);
 
+  // if (node.getNumChildren() == 2) {
+  //   std::vector<T> a;
+  //   std::vector<T> b;
+  //   bb->bbTerm(node[0], a);
+  //   bb->bbTerm(node[1], b);
+  //   unsigned bw = utils::getSize(node);
+  //   unsigned thresh = bw % 2 ? bw/2 : bw/2 - 1;
+  //   bool no_overflow = true; 
+  //   for (unsigned i = thresh; i < bw; ++i) {
+  //     if (a[i] != mkFalse<T> || b[i] != mkFalse<T> ) {
+  //       no_overflow = false; 
+  //     }
+  //   }
+  //   if (no_overflow) {
+  //     shiftAddMultiplier(); 
+  //     return; 
+  //   }
+    
+  // }
+  
   std::vector<T> newres; 
   bb->bbTerm(node[0], res); 
   for(unsigned i = 1; i < node.getNumChildren(); ++i) {

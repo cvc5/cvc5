@@ -787,6 +787,64 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
 }
 
 /**
+ * MultLeadingBit
+ *
+ * (a * 2^k) ==> a[n-k-1:0] 0_k
+ */
+
+template<> inline
+bool RewriteRule<MultLeadingBit>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_MULT ||
+      node.getNumChildren() != 2)
+    return false;
+
+  if (node[0].getKind() != kind::BITVECTOR_CONCAT ||
+      node[1].getKind() != kind::BITVECTOR_CONCAT ||
+      !node[0][0].isConst() ||
+      !node[1][0].isConst())
+    return false;
+
+  unsigned n = utils::getSize(node);
+  // count number of leading zeroes
+  const Integer& int1 = node[0][0].getConst<BitVector>().toInteger();
+  const Integer& int2 = node[1][0].getConst<BitVector>().toInteger();
+  unsigned zeroes1 = int1.isZero()? utils::getSize(node[0][0]) :
+                                    int1.length();
+
+  unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
+                                    int2.length();
+
+  if (2 * n - (zeroes1 + zeroes2) >= n)
+    return false; 
+  
+  return true; 
+}
+
+template<> inline
+Node RewriteRule<MultLeadingBit>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<MultLeadingBit>(" << node << ")" << std::endl;
+  const Integer& int1 = node[0][0].getConst<BitVector>().toInteger();
+  const Integer& int2 = node[1][0].getConst<BitVector>().toInteger();
+  unsigned zeroes1 = int1.isZero()? utils::getSize(node[0][0]) :
+                                    int1.length();
+
+  unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
+                                    int2.length();
+  // all bits >= k in the multiplier will have to be 0
+  unsigned n = utils::getSize(node); 
+  unsigned k = 2 * n - (zeroes1 + zeroes2);
+  Node extract1 = utils::mkExtract(node[0], k - 1, 0);
+  Node extract2 = utils::mkExtract(node[1], k - 1, 0);
+  Node k_zeroes = utils::mkConst(n - k, 0u);
+
+  Node new_mult = utils::mkNode(kind::BITVECTOR_MULT, extract1, extract2);
+  Node result = utils::mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult); 
+  return result;
+}
+
+
+
+/**
  * NegIdemp
  *
  * -(-a) ==> a 

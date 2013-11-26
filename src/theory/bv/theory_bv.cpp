@@ -115,7 +115,7 @@ TheoryBV::Statistics::~Statistics() {
 
 void TheoryBV::preRegisterTerm(TNode node) {
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
-
+ 
   if (options::bitvectorEagerBitblast()) {
     if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
       Node formula = node[0]; 
@@ -292,21 +292,56 @@ void TheoryBV::propagate(Effort e) {
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
   switch(in.getKind()) {
   case kind::EQUAL:
-
-    if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
-      ++(d_statistics.d_solveSubstitutions);
-      outSubstitutions.addSubstitution(in[0], in[1]);
-      return PP_ASSERT_STATUS_SOLVED;
+    {
+      if (in[0].isVar() && !in[1].hasSubterm(in[0])) {
+        ++(d_statistics.d_solveSubstitutions);
+        outSubstitutions.addSubstitution(in[0], in[1]);
+        return PP_ASSERT_STATUS_SOLVED;
+      }
+      if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
+        ++(d_statistics.d_solveSubstitutions);
+        outSubstitutions.addSubstitution(in[1], in[0]);
+        return PP_ASSERT_STATUS_SOLVED;
+      }
+      Node node = Rewriter::rewrite(in); 
+      if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst()) ||
+          (node[1].getKind() == kind::BITVECTOR_EXTRACT && node[0].isConst())) {
+        Node extract = node[0].isConst() ? node[1] : node[0];
+        if (extract[0].getKind() == kind::VARIABLE) {
+          Node c = node[0].isConst() ? node[0] : node[1];
+        
+          unsigned high = utils::getExtractHigh(extract);
+          unsigned low = utils::getExtractLow(extract);
+          unsigned var_bitwidth = utils::getSize(extract[0]);
+          std::vector<Node> children;
+        
+          if (low == 0) {
+            Assert (high != var_bitwidth - 1);
+            unsigned skolem_size = var_bitwidth - high - 1;
+            Node skolem = utils::mkVar(skolem_size);
+            children.push_back(skolem); 
+            children.push_back(c);
+          } else if (high == var_bitwidth - 1) {
+            unsigned skolem_size = low;
+            Node skolem = utils::mkVar(skolem_size);
+            children.push_back(c);
+            children.push_back(skolem); 
+          } else {
+            unsigned skolem1_size = low;
+            unsigned skolem2_size = var_bitwidth - high - 1;
+            Node skolem1 = utils::mkVar(skolem1_size);
+            Node skolem2 = utils::mkVar(skolem2_size);
+            children.push_back(skolem2);
+            children.push_back(c);
+            children.push_back(skolem1);
+          }
+          Node concat = utils::mkNode(kind::BITVECTOR_CONCAT, children);
+          Assert (utils::getSize(concat) == utils::getSize(extract[0])); 
+          outSubstitutions.addSubstitution(extract[0], concat);
+          return PP_ASSERT_STATUS_SOLVED;
+        }
+      }
     }
-    if (in[1].isVar() && !in[0].hasSubterm(in[1])) {
-      ++(d_statistics.d_solveSubstitutions);
-      outSubstitutions.addSubstitution(in[1], in[0]);
-      return PP_ASSERT_STATUS_SOLVED;
-    }
-    // to do constant propagations
-
-    break;
-  case kind::NOT:
     break;
   default:
     // TODO other predicates
@@ -326,6 +361,10 @@ Node TheoryBV::ppRewrite(TNode t)
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     return utils::mkAnd(equalities);
+  }
+
+  if (t.getKind() == kind::NOT) {
+    std::cout << "ppRewrite " << t << "\n"; 
   }
 
   return t;

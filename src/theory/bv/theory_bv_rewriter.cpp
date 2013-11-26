@@ -311,7 +311,8 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flattens and sorts
       RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
-      RewriteRule<MultPow2>            // replaces multiplication by a power of 2 by a shift
+      RewriteRule<MultPow2>,            // replaces multiplication by a power of 2 by a shift
+      RewriteRule<MultLeadingBit> // 
     >::apply(node);
 
   // only apply if every subterm was already rewritten 

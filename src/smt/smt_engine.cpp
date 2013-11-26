@@ -2023,9 +2023,9 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
   std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions);
-  for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-    d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]);
+  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToPreprocess, new_assertions);
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
   }
 }
 
@@ -2867,7 +2867,14 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-substitution", d_assertionsToPreprocess);
 
   // Assertions ARE guaranteed to be rewritten by this point
-
+  
+  // Lift bit-vectors of size 1 to bool
+  if(options::bvToBool()) {
+    Chat() << "...doing bvToBool..." << endl;
+    bvToBool();
+  }
+  
+  
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     CVC4::theory::strings::StringsPreprocess sp;
     sp.simplify( d_assertionsToPreprocess );
@@ -2925,12 +2932,6 @@ void SmtEnginePrivate::processAssertions() {
     staticLearning();
   }
   dumpAssertions("post-static-learning", d_assertionsToCheck);
-
-  // Lift bit-vectors of size 1 to bool
-  if(options::bvToBool()) {
-    Chat() << "...doing bvToBool..." << endl;
-    bvToBool();
-  }
 
   Trace("smt") << "POST bvToBool" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
