@@ -57,6 +57,7 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
