@@ -57,4 +57,4 @@ Changes since 1.0
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 03 Apr 2013 13:06:35 -0400
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 27 Nov 2013 11:20:58 -0500
