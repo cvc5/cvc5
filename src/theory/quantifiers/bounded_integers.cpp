@@ -174,15 +174,15 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol,
               veq = NodeManager::currentNM()->mkNode( GEQ, n1, n2 );
             }
             Trace("bound-int-debug") << "Isolated for " << it->first << " : (" << n1 << " >= " << n2 << ")" << std::endl;
-            Node bv = n1.getKind()==BOUND_VARIABLE ? n1 : n2;
-            if( !isBound( f, bv ) ){
-              if( !hasNonBoundVar( f, n1.getKind()==BOUND_VARIABLE ? n2 : n1 ) ) {
-                Trace("bound-int-debug") << "The bound is relevant." << std::endl;
-                int loru = n1.getKind()==BOUND_VARIABLE ? 0 : 1;
-                d_bounds[loru][f][bv] = (n1.getKind()==BOUND_VARIABLE ? n2 : n1);
-                bound_lit_map[loru][bv] = lit;
-                bound_lit_pol_map[loru][bv] = pol;
-              }
+            Node t = n1==it->first ? n2 : n1;
+            if( !hasNonBoundVar( f, t ) ) {
+              Trace("bound-int-debug") << "The bound is relevant." << std::endl;
+              int loru = n1==it->first ? 0 : 1;
+              d_bounds[loru][f][it->first] = t;
+              bound_lit_map[loru][it->first] = lit;
+              bound_lit_pol_map[loru][it->first] = pol;
+            }else{
+              Trace("bound-int-debug") << "The term " << t << " has non-bound variable." << std::endl;
             }
           }
         }

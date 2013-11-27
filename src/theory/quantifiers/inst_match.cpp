@@ -36,7 +36,10 @@ InstMatch::InstMatch( InstMatch* m ) {
 
 bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m, bool & set ){
   std::map< Node, Node >::iterator vn = d_map.find( v );
-  if( vn==d_map.end() || vn->second.isNull() ){
+  if( !m.isNull() && !m.getType().isSubtypeOf( v.getType() ) ){
+    set = false;
+    return false;
+  }else if( vn==d_map.end() || vn->second.isNull() ){
     set = true;
     this->set(v,m);
     Debug("matching-debug") << "Add partial " << v << "->" << m << std::endl;

@@ -125,7 +125,26 @@ void ModelEngine::check( Theory::Effort e ){
 }
 
 void ModelEngine::registerQuantifier( Node f ){
-
+  if( Trace.isOn("fmf-warn") ){
+    bool canHandle = true;
+    for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+      TypeNode tn = f[0][i].getType();
+      if( !tn.isSort() ){
+        if( !tn.getCardinality().isFinite() ){
+          if( tn.isInteger() ){
+            if( !options::fmfBoundInt() ){
+              canHandle = false;
+            }
+          }else{
+            canHandle = false;
+          }
+        }
+      }
+    }
+    if( !canHandle ){
+      Trace("fmf-warn") << "Warning : Model Engine : may not be able to answer SAT because of formula : " << f << std::endl;
+    }
+  }
 }
 
 void ModelEngine::assertNode( Node f ){
@@ -207,11 +226,9 @@ int ModelEngine::checkModel(){
     }
   }
   //print debug information
-  if( Trace.isOn("model-engine") ){
-    Trace("model-engine") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
-    Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
-    Trace("model-engine") << d_totalLemmas << std::endl;
-  }
+  Trace("model-engine-debug") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
+  Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
+  Trace("model-engine") << d_totalLemmas << std::endl;
   d_statistics.d_exh_inst_lemmas += d_addedLemmas;
   return d_addedLemmas;
 }

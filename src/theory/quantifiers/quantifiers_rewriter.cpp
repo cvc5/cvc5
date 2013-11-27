@@ -117,15 +117,24 @@ bool QuantifiersRewriter::hasArg( std::vector< Node >& args, Node n ){
 }
 
 void QuantifiersRewriter::setNestedQuantifiers( Node n, Node q ){
-  if( n.getKind()==FORALL || n.getKind()==EXISTS ){
-    Trace("quantifiers-rewrite-debug") << "Set nested quant attribute " << n << std::endl;
-    NestedQuantAttribute nqai;
-    n.setAttribute(nqai,q);
-  }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    setNestedQuantifiers( n[i], q );
+  std::vector< Node > processed;
+  setNestedQuantifiers2( n, q, processed );
+}
+
+void QuantifiersRewriter::setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed ) {
+  if( std::find( processed.begin(), processed.end(), n )==processed.end() ){
+    processed.push_back( n );
+    if( n.getKind()==FORALL || n.getKind()==EXISTS ){
+      Trace("quantifiers-rewrite-debug") << "Set nested quant attribute " << n << std::endl;
+      NestedQuantAttribute nqai;
+      n.setAttribute(nqai,q);
+    }
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      setNestedQuantifiers2( n[i], q, processed );
+    }
   }
 }
+
 
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
   Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << " " << in.hasAttribute(NestedQuantAttribute()) << std::endl;

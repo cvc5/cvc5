@@ -190,6 +190,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
 void QuantifiersEngine::registerQuantifier( Node f ){
   if( std::find( d_quants.begin(), d_quants.end(), f )==d_quants.end() ){
+    Trace("quant") << "Register quantifier : " << f << std::endl;
     d_quants.push_back( f );
 
     ++(d_statistics.d_num_quant);

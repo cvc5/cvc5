@@ -41,6 +41,7 @@ private:
   static void computeArgs( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static bool hasArg( std::vector< Node >& args, Node n );
   static void setNestedQuantifiers( Node n, Node q );
+  static void setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed );
   static Node computeClause( Node n );
 private:
   static Node computeMiniscoping( std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
