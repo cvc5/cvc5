@@ -839,6 +839,7 @@ Node RewriteRule<MultLeadingBit>::apply(TNode node) {
 
   Node new_mult = utils::mkNode(kind::BITVECTOR_MULT, extract1, extract2);
   Node result = utils::mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult); 
+  //  std::cout << "MultLeadingBit " << node <<" => " << result <<"\n"; 
   return result;
 }
 

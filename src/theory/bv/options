@@ -34,4 +34,7 @@ option bvEquality --bv-eq bool :default true
 option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
  abc command to run AIG simplifications
 
+option bitvectorDivByZeroConst --bv-div-zero-const bool
+ always return -1 on division by zero
+ 
 endmodule

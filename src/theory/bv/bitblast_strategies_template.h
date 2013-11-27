@@ -536,8 +536,8 @@ void DefaultUdivBB (TNode node, std::vector<T>& q, TBitblaster<T>* bb) {
   T b_is_0 = mkAnd(iszero); 
   
   for (unsigned i = 0; i < q.size(); ++i) {
-    q[i] = mkIte(b_is_0, mkFalse<T>(), q[i]);
-    r[i] = mkIte(b_is_0, mkFalse<T>(), r[i]);
+    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);
+    r[i] = mkIte(b_is_0, mkTrue<T>(), r[i]);
   }
 
   // cache the remainder in case we need it later
@@ -564,8 +564,8 @@ void DefaultUremBB (TNode node, std::vector<T>& rem, TBitblaster<T>* bb) {
   T b_is_0 = mkAnd(iszero); 
   
   for (unsigned i = 0; i < q.size(); ++i) {
-    q[i] = mkIte(b_is_0, mkFalse<T>(), q[i]);
-    rem[i] = mkIte(b_is_0, mkFalse<T>(), rem[i]);
+    q[i] = mkIte(b_is_0, a[i], q[i]);
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);
   }
 
   // cache the quotient in case we need it later

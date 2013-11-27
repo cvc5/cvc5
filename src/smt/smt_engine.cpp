@@ -1326,10 +1326,17 @@ Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
 
 
 Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
-  // we only deal wioth the unsigned division operators as the signed ones should have been
+  // we only deal with the unsigned division operators as the signed ones should have been
   // expanded in terms of the unsigned operators
   NodeManager* nm = d_smt.d_nodeManager;
   unsigned width = n.getType().getBitVectorSize();
+
+  if (options::bitvectorDivByZeroConst()) {
+    Kind kind = n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
+    return nm->mkNode(kind, n[0], n[1]); 
+  }
+
+  
   Node divByZero = getBVDivByZero(n.getKind(), width);
   TNode num = n[0], den = n[1];
   Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
