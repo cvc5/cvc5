@@ -266,6 +266,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/datatype.i"
 %include "util/tuple.i"
 %include "util/record.i"
+%include "util/regexp.i"
 %include "util/uninterpreted_constant.i"
 
 %include "expr/kind.i"

@@ -219,13 +219,13 @@ public:
 
 namespace strings {
 
-struct StringHashFunction {
+struct CVC4_PUBLIC StringHashFunction {
   size_t operator()(const ::CVC4::String& s) const {
     return __gnu_cxx::hash<const char*>()(s.toString().c_str());
   }
 };/* struct StringHashFunction */
 
-}
+}/* CVC4::strings namespace */
 
 inline std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const String& s) {
@@ -296,7 +296,7 @@ public:
     return d_str;
   }
 
-};/* class String */
+};/* class RegExp */
 
 /**
  * Hash function for the RegExp constants.
@@ -311,6 +311,7 @@ inline std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const RegExp& s) {
   return os << s.toString();
 }
+
 }/* CVC4 namespace */
 
-#endif /* __CVC4__STRING_H */
+#endif /* __CVC4__REGEXP_H */

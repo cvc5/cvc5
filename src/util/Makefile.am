@@ -143,7 +143,8 @@ EXTRA_DIST = \
 	hash.i \
 	predicate.i \
 	uninterpreted_constant.i \
-	chain.i
+	chain.i \
+	regexp.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \
