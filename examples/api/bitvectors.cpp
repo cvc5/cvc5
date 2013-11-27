@@ -25,8 +25,7 @@ using namespace CVC4;
 int main() {
   ExprManager em;
   SmtEngine smt(&em);
-  smt.setOption("incremental", true); // Enable incremental solving
-  smt.setLogic("QF_BV");              // Set the logic
+  smt.setLogic("QF_BV"); // Set the logic
 
   // The following example has been adapted from the book A Hacker's Delight by
   // Henry S. Warren.

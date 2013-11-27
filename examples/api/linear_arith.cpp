@@ -26,8 +26,7 @@ using namespace CVC4;
 int main() {
   ExprManager em;
   SmtEngine smt(&em);
-  smt.setOption("incremental", true); // Enable incremental solving
-  smt.setLogic("QF_LIRA");            // Set the logic
+  smt.setLogic("QF_LIRA"); // Set the logic
 
   // Prove that if given x (Integer) and y (Real) then
   // the maximum value of y - x is 2/3

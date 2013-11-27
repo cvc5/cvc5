@@ -63,9 +63,8 @@ option zombieHuntThreshold --simp-ite-hunt-zombies uint32_t :default 524288
 option sortInference --sort-inference bool :read-write :default false
  calculate sort inference of input problem, convert the input based on monotonic sorts
 
-common-option incrementalSolving incremental -i --incremental bool
+common-option incrementalSolving incremental -i --incremental bool :default true
  enable incremental solving
-
 
 option abstractValues abstract-values --abstract-values bool :default false
  in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard
