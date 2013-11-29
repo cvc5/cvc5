@@ -1140,6 +1140,11 @@ void SmtEngine::setLogicInternal() throw() {
     }
   }
 
+  if (options::incrementalSolving() && options::proof()) {
+    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof" << endl;
+    setOption("incremental", SExpr("false"));
+  }
+
   // datatypes theory should assign values to all datatypes terms if logic is quantified
   if (d_logic.isQuantified() && d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
     if( !options::dtForceAssignment.wasSetByUser() ){
