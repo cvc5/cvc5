@@ -7,7 +7,7 @@
   // before the ExprManager
   private Object options;
 %}
-%typemap(javaconstruct) ExprManager(Options options) {
+%typemap(javaconstruct) CVC4::ExprManager {
     this($imcall, true);
     this.options = SmtEngine.mkRef(options); // keep ref to options in SWIG proxy class
   }
