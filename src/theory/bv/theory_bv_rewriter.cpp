@@ -307,29 +307,19 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite) {
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
   Node resultNode = node; 
-
   resultNode = LinearRewriteStrategy
     < RewriteRule<FlattenAssocCommut>, // flattens and sorts
       RewriteRule<MultSimplify>,       // multiplies constant part and checks for 0
-      RewriteRule<MultPow2>,            // replaces multiplication by a power of 2 by a shift
-      RewriteRule<MultLeadingBit> // 
-    >::apply(node);
+      RewriteRule<MultPow2>            // replaces multiplication by a power of 2 by a shift
+    >::apply(resultNode);
 
   // only apply if every subterm was already rewritten 
   if (!prerewrite) {
-    // distributes multiplication by constant over +, - and unary -
-    if(RewriteRule<MultDistribConst>::applies(resultNode)) {
-      resultNode = RewriteRule<MultDistribConst>::run<false>(resultNode);
-      // creating new terms that might simplify further
-      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-    }
-    // distributes multiplication by a term that is not a sum, over +, -
-    if(RewriteRule<MultDistrib>::applies(resultNode)) {
-      resultNode = RewriteRule<MultDistrib>::run<false>(resultNode);
-      // creating new terms that might simplify further
-      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-    }
-
+    resultNode = LinearRewriteStrategy
+      <   RewriteRule<MultDistribConst>
+        , RewriteRule<MultDistrib>
+        , RewriteRule<MultLeadingBit>
+        >::apply(resultNode);
   }
 
   if(resultNode == node) {

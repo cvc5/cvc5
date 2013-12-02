@@ -789,13 +789,18 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
 /**
  * MultLeadingBit
  *
- * (a * 2^k) ==> a[n-k-1:0] 0_k
+ * If the bit-vectors multiplied have enough leading zeros,
+ * we can determine that the top bits of the multiplication
+ * are zero and not compute them. Only apply for large bitwidths
+ * as this can interfere with other mult normalization rewrites such
+ * as flattening. 
  */
 
 template<> inline
 bool RewriteRule<MultLeadingBit>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_MULT ||
-      node.getNumChildren() != 2)
+      node.getNumChildren() != 2 ||
+      utils::getSize(node) <= 64)
     return false;
 
   if (node[0].getKind() != kind::BITVECTOR_CONCAT ||
