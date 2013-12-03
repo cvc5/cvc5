@@ -133,6 +133,19 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
            getArgTypes() == t.getArgTypes() &&
            getRangeType().isSubtypeOf(t.getRangeType());
   }
+  if(isParametricDatatype() && t.isParametricDatatype()) {
+    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
+    Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
+    if((*this)[0] != t[0] || getNumChildren() != t.getNumChildren()) {
+      return false;
+    }
+    for(size_t i = 1; i < getNumChildren(); ++i) {
+      if(!((*this)[i].isSubtypeOf(t[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
   if(isPredicateSubtype()) {
     return getSubtypeParentType().isSubtypeOf(t);
   }
@@ -186,7 +199,20 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   } else if(isDatatype() && (t.isTuple() || t.isRecord())) {
     Assert(!isTuple() && !isRecord());// should have been handled above
     return *this == NodeManager::currentNM()->getDatatypeForTupleRecord(t);
+  } else if(isParametricDatatype() && t.isParametricDatatype()) {
+    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
+    Assert(t.getKind() == kind::PARAMETRIC_DATATYPE);
+    if((*this)[0] != t[0] || getNumChildren() != t.getNumChildren()) {
+      return false;
+    }
+    for(size_t i = 1; i < getNumChildren(); ++i) {
+      if(!((*this)[i].isComparableTo(t[i]))) {
+        return false;
+      }
+    }
+    return true;
   }
+
   if(isPredicateSubtype()) {
     return t.isComparableTo(getSubtypeParentType());
   }
@@ -211,6 +237,13 @@ TypeNode TypeNode::getBaseType() const {
     return NodeManager::currentNM()->getDatatypeForTupleRecord(*this);
   } else if (isPredicateSubtype()) {
     return getSubtypeParentType().getBaseType();
+  } else if (isParametricDatatype()) {
+    vector<Type> v;
+    for(size_t i = 1; i < getNumChildren(); ++i) {
+      v.push_back((*this)[i].getBaseType().toType());
+    }
+    TypeNode tn = TypeNode::fromType((*this)[0].getDatatype().getDatatypeType(v));
+    return tn;
   }
   return *this;
 }
@@ -339,7 +372,6 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
       case kind::ARRAY_TYPE:
       case kind::BITVECTOR_TYPE:
       case kind::SORT_TYPE:
-      case kind::PARAMETRIC_DATATYPE:
       case kind::CONSTRUCTOR_TYPE:
       case kind::SELECTOR_TYPE:
       case kind::TESTER_TYPE:
@@ -444,6 +476,22 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         }
         // otherwise no common ancestor
         return TypeNode();
+      case kind::PARAMETRIC_DATATYPE: {
+        if(!t1.isParametricDatatype()) {
+          return TypeNode();
+        }
+        while(t1.getKind() != kind::PARAMETRIC_DATATYPE) {
+          t1 = t1.getSubtypeParentType();
+        }
+        if(t0[0] != t1[0] || t0.getNumChildren() != t1.getNumChildren()) {
+          return TypeNode();
+        }
+        vector<Type> v;
+        for(size_t i = 1; i < t0.getNumChildren(); ++i) {
+          v.push_back(leastCommonTypeNode(t0[i], t1[i]).toType());
+        }
+        return TypeNode::fromType(t0[0].getDatatype().getDatatypeType(v));
+      }
       default:
         Unimplemented("don't have a leastCommonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
         return TypeNode();
