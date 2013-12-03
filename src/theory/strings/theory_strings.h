@@ -192,7 +192,20 @@ private:
 	std::map< Node, bool > d_length_inst;
 private:
     bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
-    std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
+						std::vector< std::vector< Node > > &normal_forms,
+						std::vector< std::vector< Node > > &normal_forms_exp,
+						std::vector< Node > &normal_form_src);
+	bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
+					int i, int j, int index_i, int index_j, 
+					int &loop_in_i, int &loop_in_j);
+	bool processLoop(std::vector< Node > &curr_exp,
+					 std::vector< std::vector< Node > > &normal_forms,
+					 std::vector< Node > &normal_form_src,
+					 int i, int j, int loop_n_index, int other_n_index,
+					 int loop_index, int index, int other_index);
+	bool processNEqc(std::vector< std::vector< Node > > &normal_forms,
+					 std::vector< std::vector< Node > > &normal_forms_exp,
+					 std::vector< Node > &normal_form_src);
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
 	bool unrollStar( Node atom );
