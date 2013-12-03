@@ -356,12 +356,12 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     if(n.getKind() == kind::VARIABLE || n.getKind()==kind::SKOLEM) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ){
 		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-		  //Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::GEQ, n_len, d_zero);
-		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR,
-			n_len.eqNode( d_zero ),
-			NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
+		  Node n_len_eq_z = n_len.eqNode( d_zero );
+		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+									NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
 		  Trace("strings-lemma") << "Strings::Lemma LENGTH geq 0 : " << n_len_geq_zero << std::endl;
 		  d_out->lemma(n_len_geq_zero);
+		  d_out->requirePhase( n_len_eq_z, true );
 	  }
 	  // FMF
 	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() && 
