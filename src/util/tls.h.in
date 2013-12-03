@@ -195,4 +195,4 @@ public:
 
 #endif /* @CVC4_TLS_SUPPORTED@ */
 
-#endif /* _CVC4__TLS_H */
+#endif /* __CVC4__TLS_H */
