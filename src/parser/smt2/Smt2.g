@@ -708,11 +708,11 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
-//  | LPAREN_TOK STRCST_TOK 
-//      ( INTEGER_LITERAL { 
+//  | LPAREN_TOK STRCST_TOK
+//      ( INTEGER_LITERAL {
 //	    s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
 //	  } )* RPAREN_TOK
-//   { 
+//   {
 //	sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
 //	}
   | symbol[s,CHECK_NONE,SYM_SORT]

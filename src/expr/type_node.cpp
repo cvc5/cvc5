@@ -337,7 +337,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
   if(__builtin_expect( (t0 == t1), true )) {
     return t0;
   } else { // t0 != t1
-    if(t0.getKind()== kind::TYPE_CONSTANT) {
+    if(t0.getKind() == kind::TYPE_CONSTANT) {
       switch(t0.getConst<TypeConstant>()) {
       case INTEGER_TYPE:
         if(t1.isInteger()) {
@@ -363,7 +363,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         }
       }
     } else if(t1.getKind() == kind::TYPE_CONSTANT) {
-      return leastCommonTypeNode(t1, t0); //decrease the number of special cases
+      return leastCommonTypeNode(t1, t0); // decrease the number of special cases
     } else {
       // t0 != t1 &&
       // t0.getKind() == kind::TYPE_CONSTANT &&
@@ -384,7 +384,7 @@ TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
         return TypeNode(); // Not sure if this is right
       case kind::SEXPR_TYPE:
         Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
-        return TypeNode(); // Not sure if this is right
+        return TypeNode();
       case kind::SUBTYPE_TYPE:
         if(t1.isPredicateSubtype()){
           // This is the case where both t0 and t1 are predicate subtypes.
