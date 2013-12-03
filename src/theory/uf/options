@@ -42,5 +42,7 @@ option ufssCliqueSplits --uf-ss-clique-splits bool :default false
 
 option ufssSymBreak --uf-ss-sym-break bool :default false
  finite model finding symmetry breaking techniques
+option ufssFairness --uf-ss-fair bool :default false
+ use fair strategy for finite model finding multiple sorts
 
 endmodule

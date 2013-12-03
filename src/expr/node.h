@@ -466,7 +466,7 @@ public:
    * Returns the unique id of this node
    * @return the ud
    */
-  unsigned getId() const {
+  unsigned long getId() const {
     assertTNodeNotExpired();
     return d_nv->getId();
   }
@@ -564,6 +564,14 @@ public:
    */
   template <class T>
   inline const T& getConst() const;
+
+  /**
+   * Returns the reference count of this node.
+   * @return the refcount
+   */
+  unsigned getRefCount() const {
+    return d_nv->getRefCount();
+  }
 
   /**
    * Returns the value of the given attribute that this has been attached.

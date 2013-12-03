@@ -108,7 +108,6 @@ void Datatype::resolve(ExprManager* em,
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
   }
   d_self = self;
-  //d_card = getCardinality();
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -119,19 +118,25 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 
 Cardinality Datatype::getCardinality() const throw(IllegalArgumentException) {
   CheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
-  if(breaker.isRecursion()) {
-    return Cardinality::INTEGERS;
+
+  // already computed?
+  if(!d_card.isUnknown()) {
+    return d_card;
   }
+
+  RecursionBreaker<const Datatype*, DatatypeHashFunction> breaker(__PRETTY_FUNCTION__, this);
+
+  if(breaker.isRecursion()) {
+    return d_card = Cardinality::INTEGERS;
+  }
+
   Cardinality c = 0;
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
+    // We can't just add to d_card here, since this function is reentrant
     c += (*i).getCardinality();
   }
-  //if( d_card!=c ){
-    //std::cout << "Bad card " << std::endl;
-  //}
 
-  return c;
+  return d_card = c;
 }
 
 bool Datatype::isFinite() const throw(IllegalArgumentException) {

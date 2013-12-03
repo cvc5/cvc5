@@ -37,12 +37,8 @@
 #include "options/options.h"
 #include "smt/options.h"
 #include "util/statistics_registry.h"
-#include "util/hash.h"
-#include "util/cache.h"
 #include "util/cvc4_assert.h"
 #include "util/sort_inference.h"
-#include "theory/ite_simplifier.h"
-#include "theory/unconstrained_simplifier.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/bv/bv_to_bool.h"
 #include "theory/atom_requests.h"
@@ -77,18 +73,19 @@ struct NodeTheoryPairHashFunction {
 
 
 
-
+/* Forward Declarations Block */
 namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
+  class ITEUtilities;
 
   namespace eq {
     class EqualityEngine;
   }
 }/* CVC4::theory namespace */
-
-
 class DecisionEngine;
+class RemoveITE;
+class UnconstrainedSimplifier;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -771,11 +768,14 @@ private:
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
-  /** For preprocessing pass simplifying ITEs */
-  theory::ITESimplifier d_iteSimplifier;
+  /**
+   * A collection of ite preprocessing passes.
+   */
+  theory::ITEUtilities* d_iteUtilities;
+
 
   /** For preprocessing pass simplifying unconstrained expressions */
-  UnconstrainedSimplifier d_unconstrainedSimp;
+  UnconstrainedSimplifier* d_unconstrainedSimp;
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
   theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor; 
@@ -783,6 +783,9 @@ public:
 
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
   Node ppSimpITE(TNode assertion);
+  /** Returns false if an assertion simplified to false. */
+  bool donePPSimpITE(std::vector<Node>& assertions);
+
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }

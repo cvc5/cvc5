@@ -105,6 +105,8 @@ struct RewriteAttibute<THEORY_REWRITERULES> {
 
   static void setPostRewriteCache(TNode node, TNode cache) throw() { }
 
+  typedef expr::Attribute< RewriteCacheTag<true, THEORY_REWRITERULES>, Node> pre_rewrite;
+  typedef expr::Attribute< RewriteCacheTag<false, THEORY_REWRITERULES>, Node> post_rewrite;
 };
 
 }/* CVC4::theory namespace */

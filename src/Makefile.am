@@ -142,14 +142,14 @@ libcvc4_la_SOURCES = \
 	theory/shared_terms_database.cpp \
 	theory/term_registration_visitor.h \
 	theory/term_registration_visitor.cpp \
-	theory/ite_simplifier.h \
-	theory/ite_simplifier.cpp \
+	theory/ite_utilities.h \
+	theory/ite_utilities.cpp \
 	theory/unconstrained_simplifier.h \
 	theory/unconstrained_simplifier.cpp \
 	theory/quantifiers_engine.h \
 	theory/quantifiers_engine.cpp \
-	theory/model.h \
-	theory/model.cpp \
+	theory/theory_model.h \
+	theory/theory_model.cpp \
 	theory/rep_set.h \
 	theory/rep_set.cpp \
 	theory/atom_requests.h \

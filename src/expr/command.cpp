@@ -29,7 +29,7 @@
 #include "util/output.h"
 #include "util/dump.h"
 #include "util/sexpr.h"
-#include "util/util_model.h"
+#include "util/model.h"
 #include "expr/node.h"
 #include "printer/printer.h"
 

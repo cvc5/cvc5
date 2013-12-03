@@ -18,6 +18,7 @@
 
 #include "theory/unconstrained_simplifier.h"
 #include "theory/rewriter.h"
+#include "theory/logic_info.h"
 
 using namespace std;
 using namespace CVC4;

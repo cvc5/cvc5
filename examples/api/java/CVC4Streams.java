@@ -22,7 +22,6 @@ public class CVC4Streams {
     System.loadLibrary("cvc4jni");
     ExprManager exprMgr = new ExprManager();
     SmtEngine smt = new SmtEngine(exprMgr);
-    smt.setOption("incremental", new SExpr(true));
     smt.setOption("output-language", new SExpr("smt2"));
 
     PipedOutputStream solverPipe = new PipedOutputStream();

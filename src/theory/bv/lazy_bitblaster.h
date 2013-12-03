@@ -28,7 +28,7 @@
 #include "prop/sat_solver_factory.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/options.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {

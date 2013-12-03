@@ -22,6 +22,10 @@ namespace CVC4 {
 namespace theory {
 namespace booleans {
 
+RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
+  return preRewrite(node);
+}
+
 /**
  * flattenNode looks for children of same kind, and if found merges
  * them into the parent.
@@ -88,6 +92,40 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   }
 }
 
+// Equality parity returns
+// * 0 if no relation between a and b is found
+// * 1 if a == b
+// * 2 if a == not(b)
+// * 3 or b == not(a)
+inline int equalityParity(TNode a, TNode b){
+  if(a == b){
+    return 1;
+  }else if(a.getKind() == kind::NOT && a[0] == b){
+    return 2;
+  }else if(b.getKind() == kind::NOT && b[0] == a){
+    return 3;
+  }else{
+    return 0;
+  }
+}
+
+inline Node makeNegation(TNode n){
+  bool even = false;
+  while(n.getKind() == kind::NOT){
+    n = n[0];
+    even = !even;
+  }
+  if(even){
+    return n;
+  } else {
+    if(n.isConst()){
+      return NodeManager::currentNM()->mkConst(!n.getConst<bool>());
+    }else{
+      return n.notNode();
+    }
+  }
+}
+
 RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
   NodeManager* nodeManager = NodeManager::currentNM();
   Node tt = nodeManager->mkConst(true);
@@ -109,7 +147,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if ((*i).getKind() == kind::OR) done = false;
     }
     if (!done) {
-      return flattenNode(n, /*trivialNode = */ tt, /* skipNode = */ ff);
+      return flattenNode(n, /* trivialNode = */ tt, /* skipNode = */ ff);
     }
     break;
   }
@@ -122,7 +160,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       if ((*i).getKind() == kind::AND) done = false;
     }
     if (!done) {
-      RewriteResponse ret = flattenNode(n, /*trivialNode = */ ff, /* skipNode = */ tt);
+      RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
       Debug("bool-flatten") << n << ": " << ret.node << std::endl;
       return ret;
     }
@@ -132,7 +170,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (n[0] == ff || n[1] == tt) return RewriteResponse(REWRITE_DONE, tt);
     if (n[0] == tt && n[0] == ff) return RewriteResponse(REWRITE_DONE, ff);
     if (n[0] == tt) return RewriteResponse(REWRITE_AGAIN, n[1]);
-    if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+    if (n[1] == ff) return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     break;
   }
   case kind::IFF:
@@ -146,10 +184,10 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       return RewriteResponse(REWRITE_AGAIN, n[0]);
     } else if(n[0] == ff) {
       // IFF false x
-      return RewriteResponse(REWRITE_AGAIN, n[1].notNode());
+      return RewriteResponse(REWRITE_AGAIN, makeNegation(n[1]));
     } else if(n[1] == ff) {
       // IFF x false
-      return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+      return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     } else if(n[0] == n[1]) {
       // IFF x x
       return RewriteResponse(REWRITE_DONE, tt);
@@ -207,7 +245,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           if(kappa.knownLessThanOrEqual(two)){
             return RewriteResponse(REWRITE_DONE, ff);
           }else{
-            Node neitherEquality = (n[0].notNode()).andNode(n[1].notNode());
+            Node neitherEquality = (makeNegation(n[0])).andNode(makeNegation(n[1]));
             return RewriteResponse(REWRITE_AGAIN, neitherEquality);
           }
         }
@@ -219,10 +257,10 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     // rewrite simple cases of XOR
     if(n[0] == tt) {
       // XOR true x
-      return RewriteResponse(REWRITE_AGAIN, n[1].notNode());
+      return RewriteResponse(REWRITE_AGAIN, makeNegation(n[1]));
     } else if(n[1] == tt) {
       // XCR x true
-      return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+      return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
     } else if(n[0] == ff) {
       // XOR false x
       return RewriteResponse(REWRITE_AGAIN, n[1]);
@@ -248,33 +286,79 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (n[0].isConst()) {
       if (n[0] == tt) {
         // ITE true x y
+
+        Debug("bool-ite") << "n[0] ==tt " << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[1]);
       } else {
         Assert(n[0] == ff);
         // ITE false x y
+        Debug("bool-ite") << "n[0] ==ff " << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[2]);
       }
     } else if (n[1].isConst()) {
       if (n[1] == tt && n[2] == ff) {
+        Debug("bool-ite") << "n[1] ==tt && n[2] == ff " << n << ": " << n[0] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[0]);
       }
       else if (n[1] == ff && n[2] == tt) {
-        return RewriteResponse(REWRITE_AGAIN, n[0].notNode());
+        Debug("bool-ite") << "n[1] ==ff && n[2] == tt " << n << ": " << n[0].notNode() << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       }
+      // else if(n[1] == ff){
+      //   Node resp = (n[0].notNode()).andNode(n[2]);
+      //   return RewriteResponse(REWRITE_AGAIN, resp);
+      // }
     }
-    if (n[1] == n[2]) {
-      return RewriteResponse(REWRITE_AGAIN, n[1]);
+    // else if (n[2].isConst()) {
+    //   if(n[2] == ff){
+    //     Node resp = (n[0]).andNode(n[1]);
+    //     return RewriteResponse(REWRITE_AGAIN, resp);
+    //   }
+    // }
+
+    int parityTmp;
+    if ((parityTmp = equalityParity(n[1], n[2])) != 0) {
+      Node resp = (parityTmp == 1) ? (Node)n[1] : n[0].iffNode(n[1]);
+      Debug("bool-ite") << "equalityParity n[1], n[2] " << parityTmp
+                        << " " << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
     // Curiously, this rewrite affects several benchmarks dramatically, including copy_array and some simple_startup - disable for now
     // } else if (n[0].getKind() == kind::NOT) {
     //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
-    } else if (n[0] == n[1]) {
-      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(tt, n[2]));
-    } else if (n[0] == n[2]) {
-      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(n[1], ff));
-    } else if (n[1].getKind() == kind::NOT && n[1][0] == n[0]) {
-      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(ff, n[2]));
-    } else if (n[2].getKind() == kind::NOT && n[2][0] == n[0]) {
-      return RewriteResponse(REWRITE_AGAIN, n[0].iteNode(n[1], tt));
+    } else if(!n[1].isConst() && (parityTmp = equalityParity(n[0], n[1])) != 0){
+      // (parityTmp == 1) if n[0] == n[1]
+      // otherwise, n[0] == not(n[1]) or not(n[0]) == n[1]
+
+      // if n[1] is constant this can loop, this is possible in prewrite
+      Node resp = n[0].iteNode( (parityTmp == 1) ? tt : ff, n[2]);
+      Debug("bool-ite") << "equalityParity n[0], n[1] " << parityTmp
+                        << " " << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    } else if(!n[2].isConst() && (parityTmp = equalityParity(n[0], n[2])) != 0){
+      // (parityTmp == 1) if n[0] == n[2]
+      // otherwise, n[0] == not(n[2]) or not(n[0]) == n[2]
+      Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? ff : tt);
+      Debug("bool-ite") << "equalityParity n[0], n[2] " << parityTmp
+                        << " " << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    } else if(n[1].getKind() == kind::ITE &&
+              (parityTmp = equalityParity(n[0], n[1][0])) != 0){
+      // (parityTmp == 1) then n : (ite c (ite c x y) z)
+      // (parityTmp > 1)  then n : (ite c (ite (not c) x y) z) or
+      // n: (ite (not c) (ite c x y) z)
+      Node resp = n[0].iteNode((parityTmp == 1) ? n[1][1] : n[1][2], n[2]);
+      Debug("bool-ite") << "equalityParity n[0], n[1][0] " << parityTmp
+                        << " " << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
+    } else if(n[2].getKind() == kind::ITE &&
+              (parityTmp = equalityParity(n[0], n[2][0])) != 0){
+      // (parityTmp == 1) then n : (ite c x (ite c y z))
+      // (parityTmp > 1)  then n : (ite c x (ite (not c) y z)) or
+      // n: (ite (not c) x (ite c y z))
+      Node resp = n[0].iteNode(n[1], (parityTmp == 1) ? n[2][2] : n[2][1]);
+      Debug("bool-ite") << "equalityParity n[0], n[2][0] " << parityTmp
+                        << " " << n << ": " << resp << std::endl;
+      return RewriteResponse(REWRITE_AGAIN, resp);
     }
     break;
   }

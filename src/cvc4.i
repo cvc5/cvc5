@@ -97,13 +97,15 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // Create a mapping from C++ Exceptions to Java Exceptions.
 // This is in a couple of throws typemaps, simply because it's sensitive to SWIG's concept of which namespace we're in.
 %typemap(throws) Exception %{
-  std::string name = "edu/nyu/acsys/$1_type";
+  std::string name = "edu/nyu/acsys/CVC4/$1_type";
+  /*
   size_t i = name.find("::");
   if(i != std::string::npos) {
     size_t j = name.rfind("::");
     assert(i <= j);
     name.replace(i, j - i + 2, "/");
   }
+  */
   jclass clazz = jenv->FindClass(name.c_str());
   assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
   jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
@@ -264,6 +266,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/datatype.i"
 %include "util/tuple.i"
 %include "util/record.i"
+%include "util/regexp.i"
 %include "util/uninterpreted_constant.i"
 
 %include "expr/kind.i"

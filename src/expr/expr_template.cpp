@@ -267,7 +267,7 @@ bool Expr::operator>(const Expr& e) const {
   return *d_node > *e.d_node;
 }
 
-unsigned Expr::getId() const {
+unsigned long Expr::getId() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getId();

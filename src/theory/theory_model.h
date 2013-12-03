@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model.h
+/*! \file theory_model.h
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: Morgan Deters, Clark Barrett
@@ -14,23 +14,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_MODEL_H
-#define __CVC4__THEORY_MODEL_H
+#ifndef __CVC4__THEORY__THEORY_MODEL_H
+#define __CVC4__THEORY__THEORY_MODEL_H
 
-#include "util/util_model.h"
+#include "util/model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
-#include "theory/ite_simplifier.h"
 
 namespace CVC4 {
-
 namespace theory {
 
-
-/** Theory Model class
- *    For Model m, should call m.initialize() before using
+/**
+ * Theory Model class.
+ *    For Model m, should call m.initialize() before using.
  */
 class TheoryModel : public Model
 {
@@ -38,7 +36,6 @@ class TheoryModel : public Model
 protected:
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  ITESimplifier d_iteSimp;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   virtual ~TheoryModel(){}
@@ -129,7 +126,7 @@ public:
   //necessary information for function models
   std::map< Node, std::vector< Node > > d_uf_terms;
   std::map< Node, Node > d_uf_models;
-};
+};/* class TheoryModel */
 
 /*
  * Class that encapsulates a map from types to sets of nodes
@@ -248,7 +245,7 @@ private:
     return *(*it).second;
   }
 
-};
+};/* class TypeSet */
 
 /** TheoryEngineModelBuilder class
   *    This model builder will consult all theories in a theory engine for
@@ -277,9 +274,9 @@ public:
    *    Should be called only on TheoryModels m
    */
   void buildModel(Model* m, bool fullModel);
-};
+};/* class TheoryEngineModelBuilder */
 
-}
-}
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__THEORY_MODEL_H */

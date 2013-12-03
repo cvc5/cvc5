@@ -239,7 +239,7 @@ public:
    *
    * @return the id
    */
-  inline unsigned getId() const {
+  inline unsigned long getId() const {
     return d_nv->getId();
   }
 

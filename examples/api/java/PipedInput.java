@@ -26,7 +26,6 @@ public class PipedInput {
     // Boilerplate setup for CVC4
     ExprManager exprMgr = new ExprManager();
     SmtEngine smt = new SmtEngine(exprMgr);
-    smt.setOption("incremental", new SExpr(true));
     smt.setOption("output-language", new SExpr("smt2"));
 
     // Set up a pair of connected Java streams

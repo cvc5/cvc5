@@ -17,14 +17,36 @@
 #include <vector>
 
 #include "util/ite_removal.h"
-#include "theory/rewriter.h"
 #include "expr/command.h"
 #include "theory/quantifiers/options.h"
+#include "theory/ite_utilities.h"
 
 using namespace CVC4;
 using namespace std;
 
 namespace CVC4 {
+
+RemoveITE::RemoveITE(context::UserContext* u)
+  : d_iteCache(u)
+{
+  d_containsVisitor = new theory::ContainsTermITEVistor();
+}
+
+RemoveITE::~RemoveITE(){
+  delete d_containsVisitor;
+}
+
+void RemoveITE::garbageCollect(){
+  d_containsVisitor->garbageCollect();
+}
+
+theory::ContainsTermITEVistor*  RemoveITE::getContainsVisitor(){
+  return d_containsVisitor;
+}
+
+size_t RemoveITE::collectedCacheSizes() const{
+  return d_containsVisitor->cache_size() + d_iteCache.size();
+}
 
 void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
 {
@@ -38,18 +60,28 @@ void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
   }
 }
 
+bool RemoveITE::containsTermITE(TNode e){
+  return d_containsVisitor->containsTermITE(e);
+}
+
 Node RemoveITE::run(TNode node, std::vector<Node>& output,
-                    IteSkolemMap& iteSkolemMap, std::vector<Node>& quantVar) {
+                    IteSkolemMap& iteSkolemMap,
+                    std::vector<Node>& quantVar) {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << endl;
 
+  if(node.isVar() || node.isConst() ||
+     (options::biasedITERemoval() && !containsTermITE(node))){
+    return Node(node);
+  }
+
   // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
-  ITECache::iterator i = d_iteCache.find(node);
+  ITECache::const_iterator i = d_iteCache.find(node);
   if(i != d_iteCache.end()) {
-    Node cachedRewrite = (*i).second;
-    Debug("ite") << "removeITEs: in-cache: " << cachedRewrite << endl;
-    return cachedRewrite.isNull() ? Node(node) : cachedRewrite;
+    Node cached = (*i).second;
+    Debug("ite") << "removeITEs: in-cache: " << cached << endl;
+    return cached.isNull() ? Node(node) : cached;
   }
 
   // If an ITE replace it
@@ -81,7 +113,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
       Debug("ite") << "removeITEs(" << node << ") => " << newAssertion << endl;
 
       // Attach the skolem
-      d_iteCache[node] = skolem;
+      d_iteCache.insert(node, skolem);
 
       // Remove ITEs from the new assertion, rewrite it and push it to the output
       newAssertion = run(newAssertion, output, iteSkolemMap, quantVar);
@@ -127,17 +159,18 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
 
     // If changes, we rewrite
     if(somethingChanged) {
-      Node cachedRewrite = nodeManager->mkNode(node.getKind(), newChildren);
-      d_iteCache[node] = cachedRewrite;
-      return cachedRewrite;
+      Node cached = nodeManager->mkNode(node.getKind(), newChildren);
+      d_iteCache.insert(node, cached);
+      return cached;
     } else {
-      d_iteCache[node] = Node::null();
+      d_iteCache.insert(node, Node::null());
       return node;
     }
   } else {
-    d_iteCache[node] = Node::null();
+    d_iteCache.insert(node, Node::null());
     return node;
   }
 }
+
 
 }/* CVC4 namespace */

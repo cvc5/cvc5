@@ -28,9 +28,9 @@
 
 namespace CVC4 {
 
-
   typedef __gnu_cxx::hash_set<Type, TypeHashFunction > SortSet; 
   typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet; 
+
   class TheoryProof {
   protected:
     ExprSet d_termDeclarations;
@@ -40,6 +40,7 @@ namespace CVC4 {
     void addDeclaration(Expr atom); 
   public:
     TheoryProof();
+    virtual ~TheoryProof() {}
     virtual void printAssertions(std::ostream& os, std::ostream& paren) = 0;
   };
 
@@ -51,4 +52,5 @@ namespace CVC4 {
     virtual void printAssertions(std::ostream& os, std::ostream& paren);
   }; 
 } /* CVC4 namespace */
+
 #endif /* __CVC4__THEORY_PROOF_H */

@@ -1,4 +1,4 @@
-Release Notes for CVC4 1.2, May 2013
+Release Notes for CVC4 1.3, December 2013
 
 ** Getting started
 
@@ -17,7 +17,7 @@ this, you can use the --lang option.
 
 The CVC family of systems relies on Type Correctness Conditions (TCCs) when
 mixing two types that have a compatible base type.  TCCs, and the checking of
-such, are not supported by CVC4 1.2.  This is an issue when mixing integers and
+such, are not supported by CVC4 1.3.  This is an issue when mixing integers and
 reals.  A function defined only on integers can be applied to REAL (as INT is a
 subtype of REAL), and CVC4 will not complain.  It is up to the user to ensure 
 that the REAL expression must be an integer.  If the REAL expression is not
@@ -118,7 +118,7 @@ heap.
 
 ** Proof support
 
-CVC4 1.2 has limited support for proofs, and they are disabled by default.
+CVC4 1.3 has limited support for proofs, and they are disabled by default.
 (Run the configure script with --enable-proof to enable proofs).  Proofs
 are exported in LFSC format and are limited to the propositional backbone
 of the discovered proof (theory lemmas are stated without proof in this
@@ -126,7 +126,7 @@ release).
 
 ** Nonlinear arithmetic
 
-CVC4 1.2 has a state-of-the-art linear arithmetic solver.  However, there
+CVC4 1.3 has a state-of-the-art linear arithmetic solver.  However, there
 is extremely limited support for nonlinear arithmetic in this release.
 
 ** Portfolio solving

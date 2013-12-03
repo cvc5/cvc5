@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model.cpp
+/*! \file theory_model.cpp
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: Morgan Deters, Clark Barrett
@@ -12,7 +12,7 @@
  ** \brief Implementation of model class
  **/
 
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/type_enumerator.h"
@@ -161,6 +161,10 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       Node val = Rewriter::rewrite(NodeManager::currentNM()->mkNode(n.getKind(), children));
       if(val.getKind() == kind::CARDINALITY_CONSTRAINT) {
         val = NodeManager::currentNM()->mkConst(getCardinality(val[0].getType().toType()).getFiniteCardinality() <= val[1].getConst<Rational>().getNumerator());
+      }
+      if(val.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT ){
+        //FIXME
+        val = NodeManager::currentNM()->mkConst(false);
       }
       return val;
     }

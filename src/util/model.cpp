@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file util_model.cpp
+/*! \file model.cpp
  ** \verbatim
  ** Original author: Clark Barrett
  ** Major contributors: Morgan Deters
@@ -12,7 +12,7 @@
  ** \brief implementation of Model class
  **/
 
-#include "util/util_model.h"
+#include "util/model.h"
 #include "expr/command.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/command_list.h"

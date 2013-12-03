@@ -45,7 +45,6 @@ int main() {
   ExprManager em;
   SmtEngine smt(&em);
   smt.setOption("produce-models", true); // Produce Models
-  smt.setOption("incremental", true); // Enable Multiple Queries
   smt.setOption("output-language", "cvc4"); // Set the output-language to CVC's
   smt.setOption("default-dag-thresh", 0); //Disable dagifying the output
   smt.setLogic(string("QF_UFLIRA"));

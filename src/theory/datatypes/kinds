@@ -136,7 +136,7 @@ enumerator RECORD_TYPE \
     "::CVC4::theory::datatypes::RecordEnumerator" \
     "theory/datatypes/type_enumerator.h"
 
-parameterized RECORD RECORD_TYPE 1: "a record"
+parameterized RECORD RECORD_TYPE 0: "a record"
 typerule RECORD ::CVC4::theory::datatypes::RecordTypeRule
 construle RECORD ::CVC4::theory::datatypes::RecordProperties
 

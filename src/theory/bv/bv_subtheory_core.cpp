@@ -19,7 +19,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/slicer.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/bv/options.h"
 
 using namespace std;

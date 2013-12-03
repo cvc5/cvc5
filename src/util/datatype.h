@@ -404,7 +404,10 @@ private:
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
-  Cardinality d_card;
+
+  // "mutable" because computing the cardinality can be expensive,
+  // and so it's computed just once, on demand---this is the cache
+  mutable Cardinality d_card;
 
   /**
    * Datatypes refer to themselves, recursively, and we have a
@@ -618,7 +621,7 @@ inline Datatype::Datatype(std::string name) :
   d_constructors(),
   d_resolved(false),
   d_self(),
-  d_card(1) {
+  d_card(CardinalityUnknown()) {
 }
 
 inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
@@ -627,7 +630,7 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
   d_constructors(),
   d_resolved(false),
   d_self(),
-  d_card(1) {
+  d_card(CardinalityUnknown()) {
 }
 
 inline std::string Datatype::getName() const throw() {

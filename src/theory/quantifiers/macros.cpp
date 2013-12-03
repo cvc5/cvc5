@@ -119,7 +119,7 @@ bool QuantifierMacros::containsBadOp( Node n, Node n_op ){
 }
 
 bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
-  return pol && n.getKind()==EQUAL;//( n.getKind()==EQUAL || n.getKind()==IFF );
+  return pol && ( n.getKind()==EQUAL || n.getKind()==IFF );
 }
 
 void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidates ){

@@ -76,6 +76,8 @@ libutil_la_SOURCES = \
 	boolean_simplification.cpp \
 	ite_removal.h \
 	ite_removal.cpp \
+	nary_builder.h \
+	nary_builder.cpp \
 	node_visitor.h \
 	chain.h \
 	index.h \
@@ -85,8 +87,8 @@ libutil_la_SOURCES = \
 	abstract_value.cpp \
 	array_store_all.h \
 	array_store_all.cpp \
-	util_model.h \
-	util_model.cpp \
+	model.h \
+	model.cpp \
 	sort_inference.h \
 	sort_inference.cpp \
 	regexp.h
@@ -141,7 +143,8 @@ EXTRA_DIST = \
 	hash.i \
 	predicate.i \
 	uninterpreted_constant.i \
-	chain.i
+	chain.i \
+	regexp.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

@@ -45,7 +45,8 @@ TESTS =	\
 	miplib2.cvc \
 	miplib3.cvc \
 	miplib4.cvc \
-	miplibtrick.smt
+	miplibtrick.smt \
+	prp-13-24.smt2
 #	problem__003.smt2
 
 EXTRA_DIST = $(TESTS) \

@@ -21,6 +21,8 @@
 
 #include "theory/rewriter.h"
 #include "theory/rewriter_attributes.h"
+#include "expr/attribute_unique_id.h"
+#include "expr/attribute.h"
 
 ${rewriter_includes}
 
@@ -81,6 +83,24 @@ ${rewrite_init}
 
 void Rewriter::shutdown() {
 ${rewrite_shutdown}
+}
+
+void Rewriter::garbageCollect() {
+  typedef CVC4::expr::attr::AttributeUniqueId AttributeUniqueId;
+  std::vector<AttributeUniqueId> preids;
+  ${pre_rewrite_attribute_ids}
+
+  std::vector<AttributeUniqueId> postids;
+  ${post_rewrite_attribute_ids}
+
+  std::vector<const AttributeUniqueId*> allids;
+  for(unsigned i = 0; i < preids.size(); ++i){
+    allids.push_back(&preids[i]);
+  }
+  for(unsigned i = 0; i < postids.size(); ++i){
+    allids.push_back(&postids[i]);
+  }
+  NodeManager::currentNM()->deleteAttributes(allids);
 }
 
 }/* CVC4::theory namespace */

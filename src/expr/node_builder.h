@@ -217,7 +217,7 @@ class NodeBuilder {
   /**
    * The number of children allocated in d_nv.
    */
-  uint16_t d_nvMaxChildren;
+  uint32_t d_nvMaxChildren;
 
   template <unsigned N>
   void internalCopy(const NodeBuilder<N>& nb);

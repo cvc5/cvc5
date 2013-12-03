@@ -418,7 +418,7 @@ return embed_copy(env, vc->recordExpr(field1, *expr1, field2, *expr2));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniRecordExpr3
 jobject m ValidityChecker vc n string field1 c Expr expr1 n string field2 c Expr expr2 n string field3 c Expr expr3
-return embed_copy(env, vc->recordExpr(field1, *expr1, field2, *expr2, field2, *expr2));
+return embed_copy(env, vc->recordExpr(field1, *expr1, field2, *expr2, field3, *expr3));
 
 DEFINITION: Java_cvc3_ValidityChecker_jniRecordExpr4
 jobject m ValidityChecker vc nv string fields cv Expr exprs

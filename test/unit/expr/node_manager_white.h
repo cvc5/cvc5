@@ -69,8 +69,10 @@ public:
     TS_ASSERT_THROWS_NOTHING(nb.realloc(20000));
     TS_ASSERT_THROWS_NOTHING(nb.realloc(60000));
     TS_ASSERT_THROWS_NOTHING(nb.realloc(65535));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(65536));
+    TS_ASSERT_THROWS_NOTHING(nb.realloc(67108863));
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.realloc(65536), AssertionException);
+    TS_ASSERT_THROWS(nb.realloc(67108863), AssertionException);
 #endif /* CVC4_ASSERTIONS */
   }
 };

@@ -17,7 +17,7 @@
 #include "theory/builtin/theory_builtin.h"
 #include "theory/valuation.h"
 #include "expr/kind.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 

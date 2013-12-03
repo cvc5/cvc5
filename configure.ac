@@ -772,8 +772,8 @@ typedef pb_ds::priority_queue<void, void, void> pq;])],
 
 If you're using a non-GCC compiler (such as clang), you may need to explicitly
 use the GNU standard C++ library by passing:
-    CXXFLAGS='-stdlib=libstdc++'
-as an argument to this configure script.
+    CXXFLAGS='-stdlib=libstdc++' CPPFLAGS='-stdlib=libstdc++'
+as arguments to this configure script.
 This is the case on Mac OS Mavericks, for example.])])])
 AC_LANG_POP([C++])
 AC_MSG_RESULT([$CVC4_PB_DS_NAMESPACE])

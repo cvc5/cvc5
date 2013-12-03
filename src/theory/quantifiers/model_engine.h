@@ -19,7 +19,7 @@
 
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/model_builder.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/relevant_domain.h"
 

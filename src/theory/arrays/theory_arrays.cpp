@@ -21,7 +21,7 @@
 #include <map>
 #include "theory/rewriter.h"
 #include "expr/command.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/arrays/options.h"
 #include "smt/logic_exception.h"
 
@@ -813,27 +813,40 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
   for (size_t i=0; i<arrays.size(); ++i) {
     TNode n = arrays[i];
 
-    // Compute default value for this array - there is one default value for every mayEqual equivalence class
-    d_mayEqualEqualityEngine.addTerm(n); // add the term in case it isn't there already
-    TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(n);
-    it = defValues.find(mayRep);
-    // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
-    if (it == defValues.end()) {
-      TypeNode valueType = n.getType().getArrayConstituentType();
-      rep = defaultValuesSet.nextTypeEnum(valueType);
-      if (rep.isNull()) {
-        Assert(defaultValuesSet.getSet(valueType)->begin() != defaultValuesSet.getSet(valueType)->end());
-        rep = *(defaultValuesSet.getSet(valueType)->begin());
+    if (fullModel) {
+      // Compute default value for this array - there is one default value for every mayEqual equivalence class
+      d_mayEqualEqualityEngine.addTerm(n); // add the term in case it isn't there already
+      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(n);
+      it = defValues.find(mayRep);
+      // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
+      if (it == defValues.end()) {
+        TypeNode valueType = n.getType().getArrayConstituentType();
+        rep = defaultValuesSet.nextTypeEnum(valueType);
+        if (rep.isNull()) {
+          Assert(defaultValuesSet.getSet(valueType)->begin() != defaultValuesSet.getSet(valueType)->end());
+          rep = *(defaultValuesSet.getSet(valueType)->begin());
+        }
+        Trace("arrays-models") << "New default value = " << rep << endl;
+        defValues[mayRep] = rep;
       }
-      Trace("arrays-models") << "New default value = " << rep << endl;
-      defValues[mayRep] = rep;
+      else {
+        rep = (*it).second;
+      }
+
+      // Build the STORE_ALL term with the default value
+      rep = nm->mkConst(ArrayStoreAll(n.getType().toType(), rep.toExpr()));
     }
     else {
-      rep = (*it).second;
+      std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
+      if (it == d_skolemCache.end()) {
+        rep = nm->mkSkolem("array_collect_model_var_$$", n.getType(), "base model variable for array collectModelInfo");
+        d_skolemCache[n] = rep;
+      }
+      else {
+        rep = (*it).second;
+      }
     }
 
-    // Build the STORE_ALL term with the default value
-    rep = nm->mkConst(ArrayStoreAll(n.getType().toType(), rep.toExpr()));
     // For each read, require that the rep stores the right value
     vector<Node>& reads = selects[n];
     for (unsigned j = 0; j < reads.size(); ++j) {

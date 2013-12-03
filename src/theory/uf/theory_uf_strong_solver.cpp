@@ -19,9 +19,8 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/uf/options.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 #include "theory/quantifiers/symmetry_breaking.h"
-
 
 //#define ONE_SPLIT_REGION
 //#define DISABLE_QUICK_CLIQUE_CHECKS
@@ -416,7 +415,7 @@ void StrongSolverTheoryUF::SortModel::Region::debugPrint( const char* c, bool in
 StrongSolverTheoryUF::SortModel::SortModel( Node n, context::Context* c, context::UserContext* u, StrongSolverTheoryUF* thss ) : d_type( n.getType() ),
           d_thss( thss ), d_regions_index( c, 0 ), d_regions_map( c ), d_split_score( c ), d_disequalities_index( c, 0 ),
           d_reps( c, 0 ), d_conflict( c, false ), d_cardinality( c, 1 ), d_aloc_cardinality( u, 0 ),
-          d_cardinality_assertions( c ), d_hasCard( c, false ){
+          d_cardinality_assertions( c ), d_hasCard( c, false ), d_maxNegCard( c, 0 ){
   d_cardinality_term = n;
 }
 
@@ -893,6 +892,10 @@ void StrongSolverTheoryUF::SortModel::assertCardinality( OutputChannel* out, int
         if( needsCard ){
           allocateCardinality( out );
         }
+      }
+      if( c>d_maxNegCard.get() ){
+        Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for " << d_type << " is now " << c << std::endl;
+        d_maxNegCard.set( c );
       }
     }
   }
@@ -1449,13 +1452,12 @@ void StrongSolverTheoryUF::SortModel::getRepresentatives( std::vector< Node >& r
   }
 }
 
+Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
+  return d_cardinality_literal.find( c )!=d_cardinality_literal.end() ? d_cardinality_literal[c] : Node::null();
+}
+
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
-d_out( &out ),
-d_th( th ),
-d_conflict( c, false ),
-d_rep_model(),
-d_conf_types(),
-d_rep_model_init( c )
+d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c )
 {
   if( options::ufssColoringSat() ){
     d_term_amb = new TermDisambiguator( th->getQuantifiersEngine(), c );
@@ -1539,6 +1541,25 @@ void StrongSolverTheoryUF::assertNode( Node n, bool isDecision ){
     Assert( d_rep_model[tn] );
     long nCard = lit[1].getConst<Rational>().getNumerator().getLong();
     d_rep_model[tn]->assertCardinality( d_out, nCard, polarity );
+
+    //check if combined cardinality is violated
+    checkCombinedCardinality();
+  }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
+    d_com_card_assertions[lit] = polarity;
+    if( polarity ){
+      checkCombinedCardinality();
+    }else{
+      bool needsCard = true;
+      for( std::map< int, Node >::iterator it = d_com_card_literal.begin(); it != d_com_card_literal.end(); ++it ){
+        if( d_com_card_assertions.find( it->second )==d_com_card_assertions.end() || d_com_card_assertions[it->second] ){
+          needsCard = false;
+          break;
+        }
+      }
+      if( needsCard ){
+        allocateCombinedCardinality();
+      }
+    }
   }else{
     if( Trace.isOn("uf-ss-warn") ){
       ////FIXME: this is too strict: theory propagations are showing up as isDecision=true, but
@@ -1625,6 +1646,20 @@ void StrongSolverTheoryUF::propagate( Theory::Effort level ){
 
 /** get next decision request */
 Node StrongSolverTheoryUF::getNextDecisionRequest(){
+  //request the combined cardinality as a decision literal, if not already asserted
+  if( options::ufssFairness() ){
+    int comCard = 0;
+    Node com_lit;
+    do {
+      com_lit = d_com_card_literal.find( comCard )!=d_com_card_literal.end() ? d_com_card_literal[comCard] : Node::null();
+      if( !com_lit.isNull() && d_com_card_assertions.find( com_lit )==d_com_card_assertions.end() ){
+        Trace("uf-ss-dec") << "Decide on combined cardinality : " << com_lit << std::endl;
+        return com_lit;
+      }
+      comCard++;
+    }while( !com_lit.isNull() );
+  }
+  //otherwise, check each individual sort
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     Node n = it->second->getNextDecisionRequest();
     if( !n.isNull() ){
@@ -1635,6 +1670,9 @@ Node StrongSolverTheoryUF::getNextDecisionRequest(){
 }
 
 void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
+  //initialize combined cardinality
+  initializeCombinedCardinality();
+
   Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
   //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
   TypeNode tn = n.getType();
@@ -1661,7 +1699,7 @@ void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
     if( rm ){
       rm->initialize( d_out );
       d_rep_model[tn] = rm;
-      d_rep_model_init[tn] = true;
+      //d_rep_model_init[tn] = true;
     }
   }else{
     Trace("uf-ss-register") << "Already preregistered sort " << tn << "." << std::endl;
@@ -1767,6 +1805,70 @@ void StrongSolverTheoryUF::debugModel( TheoryModel* m ){
       it->second->debugModel( m );
     }
   }
+}
+
+/** initialize */
+void StrongSolverTheoryUF::initializeCombinedCardinality() {
+  if( options::ufssFairness() ){
+    Trace("uf-ss-com-card-debug") << "Initialize combined cardinality" << std::endl;
+    if( d_aloc_com_card.get()==0 ){
+      allocateCombinedCardinality();
+    }
+  }
+}
+
+/** check */
+void StrongSolverTheoryUF::checkCombinedCardinality() {
+  if( options::ufssFairness() ){
+    int totalCombinedCard = 0;
+    for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+      totalCombinedCard += it->second->getMaximumNegativeCardinality();
+    }
+    Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
+    for( int i=0; i<totalCombinedCard; i++ ){
+      if( d_com_card_literal.find( i )!=d_com_card_literal.end() ){
+        Node com_lit = d_com_card_literal[i];
+        if( d_com_card_assertions.find( com_lit )!=d_com_card_assertions.end() && d_com_card_assertions[com_lit] ){
+          //conflict
+          std::vector< Node > conf;
+          conf.push_back( com_lit );
+          int totalAdded = 0;
+          for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
+            int c = it->second->getMaximumNegativeCardinality();
+            if( c>0 ){
+              conf.push_back( it->second->getCardinalityLiteral( c ).negate() );
+              totalAdded += c;
+            }
+            if( totalAdded>i ){
+              break;
+            }
+          }
+          Node cc = NodeManager::currentNM()->mkNode( AND, conf );
+          Trace("uf-ss-lemma") << "Combined cardinality conflict : " << cc << std::endl;
+          Trace("uf-ss-com-card") << "Combined cardinality conflict : " << cc << std::endl;
+          getOutputChannel().conflict( cc );
+          d_conflict.set( true );
+        }
+      }
+    }
+  }
+}
+
+void StrongSolverTheoryUF::allocateCombinedCardinality() {
+  Trace("uf-ss-com-card") << "Allocate combined cardinality (" << d_aloc_com_card.get() << ")" << std::endl;
+  //make node
+  Node lem = NodeManager::currentNM()->mkNode( COMBINED_CARDINALITY_CONSTRAINT,
+                                               NodeManager::currentNM()->mkConst( Rational( d_aloc_com_card.get() ) ) );
+  Trace("uf-ss-com-card") << "Split on " << lem << std::endl;
+  lem = Rewriter::rewrite(lem);
+  d_com_card_literal[ d_aloc_com_card.get() ] = lem;
+  lem = NodeManager::currentNM()->mkNode( OR, lem, lem.notNode() );
+  //add as lemma to output channel
+  getOutputChannel().lemma( lem );
+  //require phase
+  getOutputChannel().requirePhase( d_com_card_literal[ d_aloc_com_card.get() ], true );
+  //increment cardinality
+  d_aloc_com_card.set( d_aloc_com_card.get() + 1 );
 }
 
 StrongSolverTheoryUF::Statistics::Statistics():

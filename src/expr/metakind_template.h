@@ -136,10 +136,10 @@ namespace kind {
 namespace metakind {
 
 /* these are #defines so their sum can be #if-checked in node_value.h */
-#define __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 8
-#define __CVC4__EXPR__NODE_VALUE__NBITS__KIND 8
-#define __CVC4__EXPR__NODE_VALUE__NBITS__ID 32
-#define __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 16
+#define __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 20
+#define __CVC4__EXPR__NODE_VALUE__NBITS__KIND 10
+#define __CVC4__EXPR__NODE_VALUE__NBITS__ID 40
+#define __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
 
 static const unsigned MAX_CHILDREN =
   (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;

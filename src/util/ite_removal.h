@@ -22,21 +22,25 @@
 #include "expr/node.h"
 #include "util/dump.h"
 #include "context/context.h"
-#include "context/cdhashmap.h"
+#include "context/cdinsert_hashmap.h"
 
 namespace CVC4 {
+
+namespace theory {
+class ContainsTermITEVistor;
+}
 
 typedef std::hash_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveITE {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> ITECache;
+  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> ITECache;
   ITECache d_iteCache;
+
 
 public:
 
-  RemoveITE(context::UserContext* u) :
-    d_iteCache(u) {
-  }
+  RemoveITE(context::UserContext* u);
+  ~RemoveITE();
 
   /**
    * Removes the ITE nodes by introducing skolem variables. All
@@ -56,6 +60,21 @@ public:
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
            IteSkolemMap& iteSkolemMap, std::vector<Node>& quantVar);
+
+  /** Returns true if e contains a term ite.*/
+  bool containsTermITE(TNode e);
+
+  /** Returns the collected size of the caches.*/
+  size_t collectedCacheSizes() const;
+
+  /** Garbage collects non-context dependent data-structures.*/
+  void garbageCollect();
+
+  /** Return the RemoveITE's containsVisitor.*/
+  theory::ContainsTermITEVistor* getContainsVisitor();
+
+private:
+  theory::ContainsTermITEVistor* d_containsVisitor;
 
 };/* class RemoveTTE */
 

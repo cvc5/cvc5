@@ -2,6 +2,27 @@
 #include "expr/expr_manager.h"
 %}
 
+%typemap(javacode) CVC4::ExprManager %{
+  // a ref is kept here to keep Java GC from collecting the Options
+  // before the ExprManager
+  private Object options;
+%}
+%typemap(javaconstruct) CVC4::ExprManager {
+    this($imcall, true);
+    this.options = SmtEngine.mkRef(options); // keep ref to options in SWIG proxy class
+  }
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") CVC4::ExprManager {
+    SmtEngine.dlRef(options);
+    options = null;
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        CVC4JNI.delete_SmtEngine(swigCPtr);
+      }
+      swigCPtr = 0;
+    }
+  }
+
 #ifdef SWIGOCAML
   /* OCaml bindings cannot deal with this degree of overloading */
   %ignore CVC4::ExprManager::mkExpr(Kind, const std::vector<Expr>&);
@@ -36,12 +57,14 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Datatype>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::Record>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordSelect>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Predicate>;
-%template(mkConst) CVC4::ExprManager::mkConst<std::string>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RegExp>;
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
 
 %include "expr/expr_manager.h"

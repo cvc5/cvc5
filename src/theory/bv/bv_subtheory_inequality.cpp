@@ -17,7 +17,7 @@
 #include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 using namespace CVC4;

@@ -155,6 +155,15 @@ public:
   }
 };
 
+class BitVectorExtractOpTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::BITVECTOR_EXTRACT_OP);
+    return nodeManager->builtinOperatorType();
+  }
+};
+
 class BitVectorConcatRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)

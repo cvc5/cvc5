@@ -46,6 +46,7 @@ class StatisticsRegistry;
 
 namespace expr {
   namespace attr {
+    class AttributeUniqueId;
     class AttributeManager;
   }/* CVC4::expr::attr namespace */
 
@@ -228,8 +229,7 @@ class NodeManager {
     }
     d_zombies.insert(nv);// FIXME multithreading
 
-    if(!d_inReclaimZombies) {// FIXME multithreading
-      // for now, collect eagerly.  can add heuristic here later..
+    if(safeToReclaimZombies()) {
       if(d_zombies.size() > 5000) {
         reclaimZombies();
       }
@@ -240,6 +240,11 @@ class NodeManager {
    * Reclaim all zombies.
    */
   void reclaimZombies();
+
+  /**
+   * It is safe to collect zombies.
+   */
+  bool safeToReclaimZombies() const;
 
   /**
    * This template gives a mechanism to stack-allocate a NodeValue
@@ -859,6 +864,26 @@ public:
    */
   static inline TypeNode fromType(Type t);
 
+  /** Reclaim zombies while there are more than k nodes in the pool (if possible).*/
+  void reclaimZombiesUntil(uint32_t k);
+
+  /** Reclaims all zombies (if possible).*/
+  void reclaimAllZombies();
+
+  /** Size of the node pool. */
+  size_t poolSize() const;
+
+  /** Deletes a list of attributes from the NM's AttributeManager.*/
+  void deleteAttributes(const std::vector< const expr::attr::AttributeUniqueId* >& ids);
+
+  /**
+   * This function gives developers a hook into the NodeManager.
+   * This can be changed in node_manager.cpp without recompiling most of cvc4.
+   *
+   * debugHook is a debugging only function, and should not be present in
+   * any published code!
+   */
+  void debugHook(int debugFlag);
 };/* class NodeManager */
 
 /**

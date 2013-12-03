@@ -65,6 +65,7 @@ exportConstant_cases=
 
 typerules=
 construles=
+neverconstrules=
 
 seen_theory=false
 seen_theory_builtin=false
@@ -167,6 +168,12 @@ function construle {
   case kind::$1:
 #line $lineno \"$kf\"
     return $2::computeIsConst(nodeManager, n);
+"
+  neverconstrules="${neverconstrules}
+#line $lineno \"$kf\"
+  case kind::$1:
+#line $lineno \"$kf\"
+    return false;
 "
 }
 
@@ -294,6 +301,7 @@ for var in \
     typechecker_includes \
     typerules \
     construles \
+    neverconstrules \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"
 done

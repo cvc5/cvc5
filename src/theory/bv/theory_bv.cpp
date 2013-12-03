@@ -25,7 +25,7 @@
 #include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_eager_solver.h"
-#include "theory/model.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

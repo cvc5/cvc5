@@ -21,7 +21,7 @@
 #include "cvc4_public.h"
 
 #ifndef _cvc3__include__c_interface_defs_h_
-#define _cvc3__include__c_interface__defs_h_
+#define _cvc3__include__c_interface_defs_h_
 
 //#include "kinds.h"
 

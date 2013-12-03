@@ -1845,6 +1845,11 @@ simpleTerm[CVC4::Expr& f]
     /* empty tuple literal */
   | LPAREN RPAREN
     { f = MK_EXPR(kind::TUPLE, std::vector<Expr>()); }
+    /* empty record literal */
+  | PARENHASH HASHPAREN
+    { RecordType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
+      f = MK_EXPR(kind::RECORD, MK_CONST(t.getRecord()), std::vector<Expr>());
+    }
 
     /* boolean literals */
   | TRUE_TOK  { f = MK_CONST(bool(true)); }

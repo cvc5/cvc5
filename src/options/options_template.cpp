@@ -552,10 +552,6 @@ ${all_modules_option_handlers}
     }
   }
 
-  if((*this)[options::incrementalSolving] && (*this)[options::proof]) {
-    throw OptionException(std::string("The use of --incremental with --proof is not yet supported"));
-  }
-
   Debug("options") << "returning " << nonOptions.size() << " non-option arguments." << std::endl;
 
   return nonOptions;
@@ -576,7 +572,7 @@ std::vector<std::string> Options::suggestCommandLineOptions(const std::string& o
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 580 "${template}"
+#line 576 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -598,7 +594,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 602 "${template}"
+#line 598 "${template}"
 
   return SExpr(opts);
 }
