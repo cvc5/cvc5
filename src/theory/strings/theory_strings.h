@@ -198,7 +198,7 @@ private:
 	bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
 					int i, int j, int index_i, int index_j, 
 					int &loop_in_i, int &loop_in_j);
-	bool processLoop(std::vector< Node > &curr_exp,
+	bool processLoop(std::vector< Node > &antec,
 					 std::vector< std::vector< Node > > &normal_forms,
 					 std::vector< Node > &normal_form_src,
 					 int i, int j, int loop_n_index, int other_n_index,
