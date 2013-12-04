@@ -604,6 +604,54 @@ public:
     return val;
   }
 
+  std::hash_map<Node, Node, NodeHashFunction> rewriteApplyToConstCache;
+  Node rewriteApplyToConst(TNode n) {
+    Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
+
+    if(n.getMetaKind() == kind::metakind::CONSTANT || n.getMetaKind() == kind::metakind::VARIABLE) {
+      return n;
+    }
+
+    if(rewriteApplyToConstCache.find(n) != rewriteApplyToConstCache.end()) {
+      Trace("rewriteApplyToConst") << "in cache :: " << rewriteApplyToConstCache[n] << std::endl;
+      return rewriteApplyToConstCache[n];
+    }
+    if(n.getKind() == kind::APPLY_UF) {
+      if(n.getNumChildren() == 1 && n[0].isConst() && n[0].getType().isInteger()) {
+        stringstream ss;
+        ss << n.getOperator() << "_";
+        if(n[0].getConst<Rational>() < 0) {
+          ss << "m" << -n[0].getConst<Rational>();
+        } else {
+          ss << n[0];
+        }
+        Node newvar = NodeManager::currentNM()->mkSkolem(ss.str(), n.getType(), "rewriteApplyToConst skolem", NodeManager::SKOLEM_EXACT_NAME);
+        rewriteApplyToConstCache[n] = newvar;
+        Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
+        return newvar;
+      } else {
+        stringstream ss;
+        ss << "The rewrite-apply-to-const preprocessor is currently limited;\n"
+           << "it only works if all function symbols are unary and with Integer\n"
+           << "domain, and all applications are to integer values.\n"
+           << "Found application: " << n;
+        Unhandled(ss.str());
+      }
+    }
+
+    NodeBuilder<> builder(n.getKind());
+    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      builder << n.getOperator();
+    }
+    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+      builder << rewriteApplyToConst(n[i]);
+    }
+    Node rewr = builder;
+    rewriteApplyToConstCache[n] = rewr;
+    Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
+    return rewr;
+  }
+
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -3136,6 +3184,16 @@ void SmtEnginePrivate::processAssertions() {
     }
   }
   dumpAssertions("post-repeat-simplify", d_assertionsToCheck);
+
+  dumpAssertions("pre-rewrite-apply-to-const", d_assertionsToCheck);
+  if(options::rewriteApplyToConst()) {
+    Chat() << "Rewriting applies to constants..." << endl;
+    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
+      d_assertionsToCheck[i] = Rewriter::rewrite(rewriteApplyToConst(d_assertionsToCheck[i]));
+    }
+  }
+  dumpAssertions("post-rewrite-apply-to-const", d_assertionsToCheck);
 
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones

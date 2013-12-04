@@ -85,6 +85,9 @@ common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
 common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
  enable resource limiting per query
 
+expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false
+ eliminate function applications, rewriting e.g. f(5) to a new symbol f_5
+
 # --replay is currently broken; don't document it for 1.0
 undocumented-option replayFilename --replay=FILE std::string :handler CVC4::smt::checkReplayFilename :handler-include "smt/options_handlers.h"
  replay decisions from file
