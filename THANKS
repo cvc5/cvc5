@@ -1,6 +1,15 @@
-Thanks to Peter Collingbourne and his group (the Multicore Programming Group
-at Imperial College London) for developing and submitting some patches in
-September 2012 related to SMT-LIBv2 compliance.
+Thanks to Peter Collingbourne (formerly of the Multicore Programming Group
+at Imperial College London, headed by Alastair Donaldson) for developing and
+submitting a number of patches in September 2012 related to SMT-LIBv2
+compliance.
 
 Thanks to David Cok of GrammaTech, Inc., for suggesting numerous improvements
 in CVC4's SMT-LIBv2 compliance in May 2013.
+
+Thanks to Adam Buchbinder at Google for submitting patches in November 2013 to
+fix a number of issues with CVC3 (which were also applicable to CVC4's
+compatibility interface).
+
+Thanks to Martin Brain of the Systems Verification Group at the University of
+Oxford for submitting patches to fix certain compilation problems in November
+2013.
