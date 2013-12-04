@@ -64,6 +64,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;
 %template(vectorType) std::vector< CVC4::Type >;
 %template(vectorExpr) std::vector< CVC4::Expr >;
+%template(vectorUnsignedInt) std::vector< unsigned int >;
 %template(vectorVectorExpr) std::vector< std::vector< CVC4::Expr > >;
 %template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
 %template(vectorSExpr) std::vector< CVC4::SExpr >;
@@ -247,10 +248,10 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/rational.i"
 %include "util/exception.i"
 %include "util/language.i"
-%include "options/options.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
 %include "util/sexpr.i"
+%include "options/options.i"
 %include "util/statistics.i"
 %include "util/result.i"
 %include "util/configuration.i"
