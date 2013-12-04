@@ -9,5 +9,9 @@
 %rename(greater) CVC4::ArrayStoreAll::operator>(const ArrayStoreAll&) const;
 %rename(greaterEqual) CVC4::ArrayStoreAll::operator>=(const ArrayStoreAll&) const;
 
+%rename(apply) CVC4::ArrayStoreAllHashFunction::operator()(const ArrayStoreAll&) const;
+
+%ignore CVC4::operator<<(std::ostream&, const ArrayStoreAll&);
+
 %include "expr/type.i"
 %include "util/array_store_all.h"

@@ -16,6 +16,9 @@
 %rename(greater) CVC4::SubrangeBounds::operator>(const SubrangeBounds&) const;
 %rename(greaterEqual) CVC4::SubrangeBounds::operator>=(const SubrangeBounds&) const;
 
+%rename(apply) CVC4::SubrangeBoundsHashFunction::operator()(const SubrangeBounds&) const;
+
 %ignore CVC4::operator<<(std::ostream&, const SubrangeBound&);
+%ignore CVC4::operator<<(std::ostream&, const SubrangeBounds&);
 
 %include "util/subrange_bound.h"
