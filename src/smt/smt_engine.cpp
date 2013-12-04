@@ -1306,7 +1306,7 @@ void SmtEngine::defineFunction(Expr func,
   ss << Expr::setlanguage(Expr::setlanguage::getLanguage(Dump.getStream()))
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula);
-  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_NONE, true, "declarations");
+  addToModelCommandAndDump(c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   SmtScope smts(this);
 
@@ -3609,7 +3609,9 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   // decouple SmtEngine and ExprManager if the user does a few
   // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
   // and expects to find their cardinalities in the model.
-  if(/* userVisible && */ (!d_fullyInited || options::produceModels())) {
+  if(/* userVisible && */
+     (!d_fullyInited || options::produceModels()) &&
+     (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
     doPendingPops();
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
       d_modelGlobalCommands.push_back(c.clone());

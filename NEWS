@@ -20,6 +20,8 @@ Changes since 1.2
   zero means no error---but the result could be sat, unsat, or unknown---and
   nonzero means error.
 * bv2nat/int2bv functionality
+* User-defined symbols (define-funs) are no longer reported in the output
+  of get-model commands.
 
 Changes since 1.1
 =================
