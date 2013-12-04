@@ -83,7 +83,7 @@ bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${neverconstrules}
 
-#line 90 "${template}"
+#line 87 "${template}"
 
   default:;
   }
