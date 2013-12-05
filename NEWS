@@ -15,7 +15,8 @@ New features:
 * Increased compliance to SMT-LIBv2, numerous bugs and usability issues
   resolved.
 * New :command-verbosity SMT option to silence success and error messages
-  on a per-command basis.  API changes to Command infrastructure to support.
+  on a per-command basis, and API changes to Command infrastructure to
+  support this.
 
 Behavioral changes:
 * It is no longer permitted to request model or proof generation if there's
