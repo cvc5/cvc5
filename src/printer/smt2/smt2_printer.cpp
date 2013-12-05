@@ -326,12 +326,14 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << ' ';
       TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
       out << (t.isFunctionLike() ? t.getRangeType() : t);
-      stillNeedToPrintParams = false;
+      out << ')';
+      return;
     }
     break;
   case kind::APPLY_TESTER:
   case kind::APPLY_CONSTRUCTOR:
   case kind::APPLY_SELECTOR:
+  case kind::PARAMETRIC_DATATYPE:
     break;
 
     // quantifiers
