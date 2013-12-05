@@ -3,25 +3,33 @@ This file contains a summary of important user-visible changes.
 Changes since 1.2
 =================
 
-* SMT-LIB support for abs, to_real, to_int, is_int
-* Expr::substitute() now capable of substituting operators (e.g.,
-  function symbols under an APPLY_UF)
-* Support in linear logics for /, div, and mod by constants.
-* Support for TPTP's TFF and TFA formats.
-* We no longer permit model or proof generation if there's been an
-  intervening push/pop.
+New features:
+* SMT-LIB-compliant support for abs, to_real, to_int, is_int, which were
+  previously missing
+* New bv2nat/int2bv operators for bitvector/integer inter-compatibility.
+* Support in linear logics for /, div, and mod by constants (with the
+  --rewrite-divk command line option).
+* Parsing support for TPTP's TFF and TFA formats.
+* A new theory of strings: word (dis-)equations, length constraints,
+  regular expressions.
 * Increased compliance to SMT-LIBv2, numerous bugs and usability issues
   resolved.
 * New :command-verbosity SMT option to silence success and error messages
   on a per-command basis.  API changes to Command infrastructure to support.
-* A new theory of strings: word (dis-)equations, length constraints,
-  regular expressions.
+
+Behavioral changes:
+* It is no longer permitted to request model or proof generation if there's
+  been an intervening push/pop.
+* User-defined symbols (define-funs) are no longer reported in the output
+  of get-model commands.
 * Exit codes are now more standard for UNIX command-line tools.  Exit code
   zero means no error---but the result could be sat, unsat, or unknown---and
   nonzero means error.
-* bv2nat/int2bv functionality
-* User-defined symbols (define-funs) are no longer reported in the output
-  of get-model commands.
+
+API changes:
+* Expr::substitute() now capable of substituting operators (e.g.,
+  function symbols under an APPLY_UF)
+* Numerous improvements to the Java language bindings
 
 Changes since 1.1
 =================
@@ -61,4 +69,4 @@ Changes since 1.0
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Mon, 02 Dec 2013 16:58:50 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 05 Dec 2013 14:22:26 -0500
