@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Liana Hadarean, ACSYS, Christopher L. Conway, Dejan Jovanovic, Francois Bobot
+ ** Minor contributors (to current version): Liana Hadarean, Tim King, ACSYS, Christopher L. Conway, Dejan Jovanovic, Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

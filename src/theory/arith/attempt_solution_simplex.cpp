@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file attempt_solution_simplex.cpp
+ ** \verbatim
+ ** Original author: Tim King
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 
 #include "theory/arith/attempt_solution_simplex.h"
 #include "theory/arith/options.h"

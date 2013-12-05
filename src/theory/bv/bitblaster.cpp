@@ -2,8 +2,8 @@
 /*! \file bitblaster.cpp
  ** \verbatim
  ** Original author: Liana Hadarean
- ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Clark Barrett, Morgan Deters, lianah
+ ** Major contributors: Dejan Jovanovic, Andrew Reynolds
+ ** Minor contributors (to current version): Clark Barrett, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
