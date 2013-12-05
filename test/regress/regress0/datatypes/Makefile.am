@@ -36,6 +36,8 @@ TESTS =	\
 	datatype13.cvc \
 	empty_tuprec.cvc \
 	mutually-recursive.cvc \
+	pair-real-bool.smt2 \
+	pair-bool-bool.cvc \
 	rewriter.cvc \
 	typed_v10l30054.cvc \
 	typed_v1l80005.cvc \
@@ -60,7 +62,6 @@ TESTS =	\
 	wrong-sel-simp.cvc
 
 FAILING_TESTS = \
-	pair-real-bool.smt2 \
 	datatype-dump.cvc
 
 EXTRA_DIST = $(TESTS)
