@@ -63,7 +63,7 @@ use Fcntl ':mode';
 my $dir = $0;
 $dir =~ s,/[^/]+/*$,,;
 
-if($#ARGV >= 0 && $ARGV[0] eq '-h' || $ARGV[0] eq '--help') {
+if($#ARGV >= 0 && ($ARGV[0] eq '-h' || $ARGV[0] eq '--help')) {
   open(my $SELF, $0) || die "error opening $0 for reading";
   while($_ = <$SELF>) {
     last if !/^#/;
