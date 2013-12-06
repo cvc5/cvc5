@@ -14,6 +14,8 @@
  ** Implementation of the theory of strings.
  **/
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/options.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 using namespace CVC4;
@@ -339,17 +341,21 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
             }
         }
     } else if(node.getKind() == kind::STRING_SUBSTR) {
-		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
-			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-			if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
-				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
+		if(options::stringExp()) {
+			if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
+				int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+				int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+				if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
+					retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
+				} else {
+					// TODO: some issues, must be guarded by users
+					retNode = NodeManager::currentNM()->mkConst( false );
+				}
 			} else {
-				// TODO: some issues, must be guarded by users
-				retNode = NodeManager::currentNM()->mkConst( false );
+				//handled by preprocess
 			}
 		} else {
-			//handled by preprocess
+			throw LogicException("substring not supported in this release");
 		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);

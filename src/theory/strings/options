@@ -17,4 +17,7 @@ option stringFMF strings-fmf --strings-fmf bool :default false :predicate CVC4::
 option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
  the strategy of LB rule application: 0-lazy, 1-eager, 2-no
 
+option stringExp strings-exp --strings-exp bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
+ experimental features in the theory of strings
+
 endmodule

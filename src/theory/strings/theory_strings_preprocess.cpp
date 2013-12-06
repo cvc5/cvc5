@@ -16,6 +16,8 @@
 
 #include "theory/strings/theory_strings_preprocess.h"
 #include "expr/kind.h"
+#include "theory/strings/options.h"
+#include "smt/logic_exception.h"
 
 namespace CVC4 {
 namespace theory {
@@ -114,22 +116,26 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		//	return (t0 == t[0]) ? t : NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, t0, t[1] );
 		//}
 	} else if( t.getKind() == kind::STRING_SUBSTR ){
-		Node sk1 = NodeManager::currentNM()->mkSkolem( "st1sym_$$", t.getType(), "created for substr" );
-		Node sk2 = NodeManager::currentNM()->mkSkolem( "st2sym_$$", t.getType(), "created for substr" );
-		Node sk3 = NodeManager::currentNM()->mkSkolem( "st3sym_$$", t.getType(), "created for substr" );
-		Node x = simplify( t[0], new_nodes );
-		Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
-							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
-		new_nodes.push_back( x_eq_123 );
-		Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
-								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-		new_nodes.push_back( len_sk1_eq_i );
-		Node len_sk2_eq_j = NodeManager::currentNM()->mkNode( kind::EQUAL, t[2],
-								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
-		new_nodes.push_back( len_sk2_eq_j );
+		if(options::stringExp()) {
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "st1sym_$$", t.getType(), "created for substr" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "st2sym_$$", t.getType(), "created for substr" );
+			Node sk3 = NodeManager::currentNM()->mkSkolem( "st3sym_$$", t.getType(), "created for substr" );
+			Node x = simplify( t[0], new_nodes );
+			Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
+								NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
+			new_nodes.push_back( x_eq_123 );
+			Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
+									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+			new_nodes.push_back( len_sk1_eq_i );
+			Node len_sk2_eq_j = NodeManager::currentNM()->mkNode( kind::EQUAL, t[2],
+									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
+			new_nodes.push_back( len_sk2_eq_j );
 
-		d_cache[t] = sk2;
-		retNode = sk2;
+			d_cache[t] = sk2;
+			retNode = sk2;
+		} else {
+			throw LogicException("substring not supported in this release");
+		}
 	} else if( t.getNumChildren()>0 ){
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
