@@ -182,7 +182,7 @@ class NodeTemplate {
   friend class expr::NodeValue;
 
   friend class expr::pickle::PicklerPrivate;
-  friend Node expr::exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
+  friend class expr::ExportPrivate;
 
   /** A convenient null-valued encapsulated pointer */
   static NodeTemplate s_null;
