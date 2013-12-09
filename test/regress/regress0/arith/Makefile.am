@@ -48,9 +48,6 @@ TESTS =	\
 	miplibtrick.smt
 #	problem__003.smt2
 
-# Takes more than 10 seconds on debug build, move it to regress1:
-#	prp-13-24.smt2  (takes move than 30 seconds)
-
 EXTRA_DIST = $(TESTS) \
 	miplib-opt1217--27.smt \
 	miplib-opt1217--27.smt2 \

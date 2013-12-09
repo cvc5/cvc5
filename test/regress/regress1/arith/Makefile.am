@@ -23,7 +23,8 @@ TESTS =	\
 	sc-7.base.cvc.smt \
 	uart-8.base.cvc.smt \
 	qlock-4-10-9.base.cvc.smt2 \
-	lpsat-goal-9.smt2
+	lpsat-goal-9.smt2 \
+	prp-13-24.smt2
 
 EXTRA_DIST = $(TESTS)
 
