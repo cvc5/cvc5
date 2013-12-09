@@ -112,7 +112,7 @@ AC_ARG_WITH([build],
 if test -z "${with_build+set}" -o "$with_build" = default; then
   with_build=default
 fi
-if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}"; then
+if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}" -a -z "${with_glpk+set}"; then
   custom_build_profile=no
 else
   custom_build_profile=yes
@@ -200,6 +200,11 @@ if test -n "${enable_replay+set}"; then
     btargs="$btargs replay"
   else
     btargs="$btargs noreplay"
+  fi
+fi
+if test -n "${with_glpk+set}"; then
+  if test "$with_glpk" = yes; then
+    btargs="$btargs glpk"
   fi
 fi
 AC_MSG_RESULT([$with_build])
@@ -1319,6 +1324,17 @@ if test "$enable_optimized" = yes; then
   optimized="yes, at level $OPTLEVEL"
 else
   optimized="no"
+fi
+
+if test $have_libglpk -eq 1; then
+  licensewarn="${licensewarn}Please note that CVC4 will be built against the GNU Linear Programming
+Kit (GLPK).  This library is covered under the GPL, so use of this build
+of CVC4 will be more restrictive than CVC4's license would normally
+suggest.  For full details of GLPK and its license, please visit
+  http://www.gnu.org/software/glpk/
+To build CVC4 without GLPK, configure --without-glpk (which is the default).
+
+"
 fi
 
 if test $cvc4_cln_or_gmp = cln; then
