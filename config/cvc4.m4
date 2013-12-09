@@ -43,6 +43,12 @@ handle_option() {
       if expr "$ac_option" : '.*-debugsymbols$' >/dev/null || expr "$ac_option" : '.*-debugsymbols-' >/dev/null; then
         eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--enable-debug-symbols\""'
       fi
+      if expr "$ac_option" : '.*-noglpk' >/dev/null || expr "$ac_option" : '.*-noglpk-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-glpk\""'
+      fi
+      if expr "$ac_option" : '.*-glpk' >/dev/null || expr "$ac_option" : '.*-glpk-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--with-glpk\""'
+      fi
       for x in cln gmp; do
         if expr "$ac_option" : '.*-no'$x'$' >/dev/null || expr "$ac_option" : '.*-no'$x'-' >/dev/null; then
           eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-$x\""'
