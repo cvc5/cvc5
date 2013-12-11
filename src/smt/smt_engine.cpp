@@ -861,7 +861,6 @@ SmtEngine::~SmtEngine() throw() {
 
     d_definedFunctions->deleteSelf();
 
-
     delete d_theoryEngine;
     delete d_propEngine;
     delete d_decisionEngine;
