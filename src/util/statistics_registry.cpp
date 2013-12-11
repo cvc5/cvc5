@@ -119,6 +119,28 @@ void TimerStat::stop() {
   }
 }/* TimerStat::stop() */
 
+timespec TimerStat::getData() const {
+  ::timespec data = d_data;
+  if(__CVC4_USE_STATISTICS && d_running) {
+    ::timespec end;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data += end - d_start;
+  }
+  return data;
+}
+
+SExpr TimerStat::getValue() const {
+  ::timespec data = d_data;
+  if(__CVC4_USE_STATISTICS && d_running) {
+    ::timespec end;
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    data += end - d_start;
+  }
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(8) << data;
+  return SExpr(Rational::fromDecimal(ss.str()));
+}/* TimerStat::getValue() */
+
 RegisterStatistic::RegisterStatistic(ExprManager& em, Stat* stat) :
   d_reg(stats::getStatisticsRegistry(&em)),
   d_stat(stat) {

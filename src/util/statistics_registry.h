@@ -179,7 +179,7 @@ public:
   }
 
   /** Get the value of the statistic. */
-  virtual const T& getData() const = 0;
+  virtual T getData() const = 0;
 
   /** Flush the value of the statistic to the given output stream. */
   void flushInformation(std::ostream& out) const {
@@ -270,7 +270,7 @@ public:
   }
 
   /** Get the value of the referenced data cell. */
-  const T& getData() const {
+  T getData() const {
     return *d_data;
   }
 
@@ -312,7 +312,7 @@ public:
   }
 
   /** Get the underlying data value. */
-  const T& getData() const {
+  T getData() const {
     return d_data;
   }
 
@@ -354,7 +354,7 @@ public:
   }
 
   /** Get the data of the underlying (wrapped) statistic. */
-  const T& getData() const {
+  T getData() const {
     return d_stat.getData();
   }
 
@@ -808,11 +808,9 @@ public:
    */
   void stop();
 
-  SExpr getValue() const {
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(8) << d_data;
-    return SExpr(Rational::fromDecimal(ss.str()));
-  }
+  timespec getData() const;
+
+  SExpr getValue() const;
 
 };/* class TimerStat */
 
