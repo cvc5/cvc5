@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
 	-D__BUILDING_CVC4LIB \
 	-D __STDC_LIMIT_MACROS \
 	-D __STDC_FORMAT_MACROS \
-	-I@builddir@ -I@srcdir@/include -I@srcdir@
+	-I@builddir@ -I@srcdir@/include -I@srcdir@ -I@top_srcdir@/proofs/lfsc_checker
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
@@ -104,6 +104,7 @@ libcvc4_la_SOURCES = \
 	prop/sat_solver_registry.cpp \
 	prop/options_handlers.h \
 	smt/smt_engine.cpp \
+	smt/smt_engine_check_proof.cpp \
 	smt/smt_engine.h \
 	smt/model_postprocessor.cpp \
 	smt/model_postprocessor.h \
@@ -393,6 +394,10 @@ libcvc4_la_LIBADD = \
 	@builddir@/expr/libexpr.la \
 	@builddir@/prop/minisat/libminisat.la \
 	@builddir@/prop/bvminisat/libbvminisat.la
+if CVC4_PROOF
+libcvc4_la_LIBADD += \
+	@top_builddir@/proofs/lfsc_checker/liblfsc_checker.la
+endif
 
 if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4_la_LIBADD += \

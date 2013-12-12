@@ -4,6 +4,7 @@ Changes since 1.3
 =================
 
 * Timed statistics are now properly updated even on process abort.
+* The LFSC proof checker has been incorporated into CVC4 sources.
 
 Changes since 1.2
 =================

@@ -3358,6 +3358,12 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
       checkModel(/* hard failure iff */ ! r.isUnknown());
     }
   }
+  // Check that UNSAT results generate a proof correctly.
+  if(options::checkProofs()) {
+    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      checkProof();
+    }
+  }
 
   return r;
 }/* SmtEngine::checkSat() */
@@ -3426,6 +3432,12 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
     if(r.asSatisfiabilityResult().isSat() == Result::SAT ||
        (r.isUnknown() && r.whyUnknown() == Result::INCOMPLETE) ){
       checkModel(/* hard failure iff */ ! r.isUnknown());
+    }
+  }
+  // Check that UNSAT results generate a proof correctly.
+  if(options::checkProofs()) {
+    if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      checkProof();
     }
   }
 
