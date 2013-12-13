@@ -3,7 +3,7 @@ compiler:
  - gcc
  - clang
 env:
- - TRAVIS_CVC4_CONFIG='production-cln --enable-language-bindings=java,c'
+ - TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
  - TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
  - TRAVIS_CVC4_DISTCHECK=yes
 before_install:
