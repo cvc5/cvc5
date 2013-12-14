@@ -11,6 +11,7 @@
 #
 
 # ulimit -t 1    # For detecting long running regressions
+ulimit -s 10240  # Needed for some (esp. portfolio)
 
 prog=`basename "$0"`
 
