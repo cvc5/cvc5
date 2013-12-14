@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     output << SetBenchmarkLogicCommand("QF_BV") << endl;
     output << SetBenchmarkStatusCommand(SMT_SATISFIABLE) << endl;
 
-    // Make the variables the size of the string    
-    hashsmt::cvc4_uchar8 cvc4input[msgSize];
+    // Make the variables the size of the string
+    hashsmt::cvc4_uchar8 *cvc4input = new hashsmt::cvc4_uchar8[msgSize];
     for (unsigned i = 0; i < msgSize; ++ i) {
       stringstream ss;
       ss << "x" << i; 
@@ -70,17 +70,17 @@ int main(int argc, char* argv[]) {
     // Do the cvc4 encoding
     hashsmt::sha1 cvc4encoder;
     cvc4encoder.process_bytes(cvc4input, msgSize);
-    
+
     // Get the digest as bitvectors
     hashsmt::cvc4_uint32 cvc4digest[5];
     cvc4encoder.get_digest(cvc4digest);
-                
+
     // Do the actual sha1 encoding
     boost::uuids::detail::sha1 sha1encoder;
     sha1encoder.process_bytes(msg.c_str(), msgSize);
     unsigned sha1digest[5];
     sha1encoder.get_digest(sha1digest);
-                
+
     // Create the assertion
     Expr assertion;
     for (unsigned i = 0; i < 5; ++ i) {
@@ -92,10 +92,12 @@ int main(int argc, char* argv[]) {
       }
     }
     output << AssertCommand(assertion) << endl;
-    
+
     // Checksat command
     output << CheckSatCommand() << endl;
-                
+
+    delete cvc4input;
+
   } catch (CVC4::Exception& e) {
     cerr << e << endl;
   }
