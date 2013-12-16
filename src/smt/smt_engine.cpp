@@ -313,7 +313,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   hash_map<unsigned, Node> d_BVDivByZero;
   hash_map<unsigned, Node> d_BVRemByZero;
 
-
   /**
    * Function symbol used to implement uninterpreted
    * int-division-by-zero semantics.  Needed to deal with partial
@@ -558,6 +557,11 @@ public:
    */
   Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
     throw(TypeCheckingException, LogicException);
+
+  /**
+   * Rewrite Boolean terms in a Node.
+   */
+  Node rewriteBooleanTerms(TNode n);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -2899,6 +2903,39 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, hash_map<Node, 
   return false;
 }
 
+Node SmtEnginePrivate::rewriteBooleanTerms(TNode n) {
+  TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
+  if(d_booleanTermConverter == NULL) {
+    // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
+    // to ExprManager notifications, etc.  Otherwise we might miss the "BooleanTerm" datatype
+    // definition, and not dump it properly.
+    d_booleanTermConverter = new BooleanTermConverter(d_smt);
+  }
+  Node retval = d_booleanTermConverter->rewriteBooleanTerms(n);
+  if(retval != n) {
+    switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
+    case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
+    case booleans::BOOLEAN_TERM_CONVERT_NATIVE:
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_BV)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_BV);
+        d_smt.d_logic.lock();
+      }
+      break;
+    case booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
+      if(!d_smt.d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
+        d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+        d_smt.d_logic.enableTheory(THEORY_DATATYPES);
+        d_smt.d_logic.lock();
+      }
+      break;
+    default:
+      Unhandled(mode);
+    }
+  }
+  return retval;
+}
+
 void SmtEnginePrivate::processAssertions() {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
 
@@ -2956,37 +2993,8 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {
     Chat() << "rewriting Boolean terms..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteBooleanTermsTime);
-    if(d_booleanTermConverter == NULL) {
-      // This needs to be initialized _after_ the whole SMT framework is in place, subscribed
-      // to ExprManager notifications, etc.  Otherwise we might miss the "BooleanTerm" datatype
-      // definition, and not dump it properly.
-      d_booleanTermConverter = new BooleanTermConverter(d_smt);
-    }
     for(unsigned i = 0, i_end = d_assertionsToPreprocess.size(); i != i_end; ++i) {
-      Node n = d_booleanTermConverter->rewriteBooleanTerms(d_assertionsToPreprocess[i]);
-      if(n != d_assertionsToPreprocess[i]) {
-        switch(booleans::BooleanTermConversionMode mode = options::booleanTermConversionMode()) {
-        case booleans::BOOLEAN_TERM_CONVERT_TO_BITVECTORS:
-        case booleans::BOOLEAN_TERM_CONVERT_NATIVE:
-          if(!d_smt.d_logic.isTheoryEnabled(THEORY_BV)) {
-            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(THEORY_BV);
-            d_smt.d_logic.lock();
-          }
-          break;
-        case booleans::BOOLEAN_TERM_CONVERT_TO_DATATYPES:
-          if(!d_smt.d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
-            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(THEORY_DATATYPES);
-            d_smt.d_logic.lock();
-          }
-          break;
-        default:
-          Unhandled(mode);
-        }
-      }
-      d_assertionsToPreprocess[i] = n;
+      d_assertionsToPreprocess[i] = rewriteBooleanTerms(d_assertionsToPreprocess[i]);
     }
   }
   dumpAssertions("post-boolean-terms", d_assertionsToPreprocess);
@@ -3529,9 +3537,14 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   // do not need to apply preprocessing substitutions (should be recorded
   // in model already)
 
+  Node n = Node::fromExpr(e);
+  Trace("smt") << "--- getting value of " << n << endl;
+  TypeNode expectedType = n.getType();
+
   // Expand, then normalize
   hash_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
+  n = d_private->expandDefinitions(n, cache);
+  n = d_private->rewriteBooleanTerms(n);
   n = Rewriter::rewrite(n);
 
   Trace("smt") << "--- getting value of " << n << endl;
@@ -3541,13 +3554,13 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
     resultNode = m->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  resultNode = postprocess(resultNode, n.getType());
+  resultNode = postprocess(resultNode, expectedType);
   Trace("smt") << "--- model-post returned " << resultNode << endl;
   Trace("smt") << "--- model-post returned " << resultNode.getType() << endl;
-  Trace("smt") << "--- model-post expected " << n.getType() << endl;
+  Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(n.getType()));
+  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType));
 
   // ensure it's a constant
   Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
@@ -3625,9 +3638,12 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
       ++i) {
     Assert((*i).getType() == boolType);
 
+    Trace("smt") << "--- getting value of " << *i << endl;
+
     // Expand, then normalize
     hash_map<Node, Node, NodeHashFunction> cache;
     Node n = d_private->expandDefinitions(*i, cache);
+    n = d_private->rewriteBooleanTerms(n);
     n = Rewriter::rewrite(n);
 
     Trace("smt") << "--- getting value of " << n << endl;
@@ -3638,6 +3654,9 @@ CVC4::SExpr SmtEngine::getAssignment() throw(ModalException) {
 
     // type-check the result we got
     Assert(resultNode.isNull() || resultNode.getType() == boolType);
+
+    // ensure it's a constant
+    Assert(resultNode.isConst());
 
     vector<SExpr> v;
     if((*i).getKind() == kind::APPLY) {
