@@ -33,6 +33,5 @@ matrix:
   fast_finish: true
 notifications:
   email:
-    recipients: mdeters@cs.nyu.edu
     on_success: change
     on_failure: always
