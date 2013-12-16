@@ -36,5 +36,8 @@ option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
 
 option bitvectorDivByZeroConst --bv-div-zero-const bool
  always return -1 on division by zero
+
+option bvAbstraction --bv-abstraction bool
+ mcm benchmark abstraction 
  
 endmodule

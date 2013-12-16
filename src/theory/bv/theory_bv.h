@@ -36,6 +36,8 @@ class InequalitySolver;
 class BitblastSolver; 
 class EagerBitblastSolver;
 
+class AbstractionModule;
+
 class TheoryBV : public Theory {
 
   /** The context we are using */
@@ -70,7 +72,10 @@ public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
   Node ppRewrite(TNode t);
 
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  
   void presolve();
+  void applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
 private:
 
   class Statistics {
@@ -109,6 +114,7 @@ private:
   PropagatedMap d_propagatedBy;
 
   EagerBitblastSolver* d_eagerSolver; 
+  AbstractionModule* d_abstractionModule;
   
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 
@@ -156,7 +162,8 @@ private:
   void lemma(TNode node) { d_out->lemma(node); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
-  
+
+ 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
   friend class BitblastSolver;

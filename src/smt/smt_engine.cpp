@@ -378,6 +378,9 @@ private:
   // Lift bit-vectors of size 1 to booleans
   void bvToBool();
 
+  // Abstract common structure over small domains to UF
+  void bvAbstraction(); 
+  
   // Simplify ITE structure
   bool simpITE();
 
@@ -2093,6 +2096,15 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   return true;
 }
 
+void SmtEnginePrivate::bvAbstraction() {
+  Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
+  std::vector<Node> new_assertions;
+  d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
+  }
+}
+
 
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
@@ -2915,6 +2927,11 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+  if (options::bvAbstraction()) {
+    dumpAssertions("pre-bv-abstraction", d_assertionsToPreprocess);
+    bvAbstraction();
+    dumpAssertions("post-bv-abstraction", d_assertionsToPreprocess);
+  }
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {
     Chat() << "rewriting Boolean terms..." << endl;
@@ -2988,6 +3005,9 @@ void SmtEnginePrivate::processAssertions() {
   dumpAssertions("post-substitution", d_assertionsToPreprocess);
 
   // Assertions ARE guaranteed to be rewritten by this point
+
+
+  // abstract the function symbols here
   
   // Lift bit-vectors of size 1 to bool
   if(options::bvToBool()) {
@@ -3047,6 +3067,8 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-simplify", d_assertionsToCheck);
 
+  // TODO BV ABSTRACTION
+  
   dumpAssertions("pre-static-learning", d_assertionsToCheck);
   if(options::doStaticLearning()) {
     // Perform static learning

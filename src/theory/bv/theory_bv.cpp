@@ -26,6 +26,7 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/theory_model.h"
+#include "theory/bv/abstraction.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -48,7 +49,8 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
-    d_eagerSolver(NULL)
+    d_eagerSolver(NULL),
+    d_abstractionModule(new AbstractionModule())
   {
 
     if (options::bitvectorEagerBitblast()) {
@@ -343,6 +345,11 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
       }
     }
     break;
+  case kind::BITVECTOR_ULT:
+  case kind::BITVECTOR_SLT:
+  case kind::BITVECTOR_ULE:
+  case kind::BITVECTOR_SLE:
+    
   default:
     // TODO other predicates
     break;
@@ -464,3 +471,10 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   return EQUALITY_UNKNOWN; ;
 }
 
+void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+  
+}
+
+void TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+  d_abstractionModule->applyAbstraction(assertions, new_assertions); 
+}

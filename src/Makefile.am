@@ -203,6 +203,8 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_rewriter.h \
 	theory/bv/theory_bv_rewriter.cpp \
 	theory/bv/cd_set_collection.h \
+	theory/bv/abstraction.h \
+	theory/bv/abstraction.cpp \
 	theory/idl/idl_model.h \
 	theory/idl/idl_model.cpp \
 	theory/idl/idl_assertion.h \
