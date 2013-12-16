@@ -35,6 +35,9 @@ namespace attr {
 typedef expr::Attribute<attr::BooleanTermAttrTag, Node> BooleanTermAttr;
 
 class BooleanTermConverter {
+  /** The type of the Boolean term conversion variable cache */
+  typedef std::hash_map<Node, Node, NodeHashFunction> BooleanTermVarCache;
+
   /** The type of the Boolean term conversion cache */
   typedef std::hash_map< std::pair<Node, theory::TheoryId>, Node,
                          PairHashFunction< Node, bool,
@@ -58,6 +61,8 @@ class BooleanTermConverter {
   /** The conversion for "true" when in datatypes contexts. */
   Node d_ttDt;
 
+  /** The cache used during Boolean term variable conversion */
+  BooleanTermVarCache d_varCache;
   /** The cache used during Boolean term conversion */
   BooleanTermCache d_termCache;
   /** The cache used during Boolean term type conversion */
