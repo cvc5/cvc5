@@ -249,6 +249,11 @@ class CVC4_PUBLIC SmtEngine {
   smt::SmtEnginePrivate* d_private;
 
   /**
+   * Check that a generated Proof (via getProof()) checks.
+   */
+  void checkProof();
+
+  /**
    * Check that a generated Model (via getModel()) actually satisfies
    * all user assertions.
    */

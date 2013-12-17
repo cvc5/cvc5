@@ -126,7 +126,12 @@ GLPK.
 The GNU Readline library is optionally used to provide command
 editing, tab completion, and history functionality at the CVC prompt
 (when running in interactive mode).  Check your distribution for a
-package named "libreadline-dev" or "readline-devel" or similar.
+package named "libreadline-dev" or "readline-devel" or similar.  This
+library is covered by the GNU General Public License, version 3.  Like
+the above-mentioned libraries, if you choose to use CVC4 with readline
+support, you are licensing CVC4 under that same license.  (Please visit
+http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html for more
+details about readline.)
 
 The Boost C++ threading library (often packaged independently of the
 Boost base library) is needed to run CVC4 in "portfolio"

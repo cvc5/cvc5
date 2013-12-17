@@ -83,11 +83,15 @@ public:
 
   static std::string about();
 
+  static bool licenseIsGpl();
+
   static bool isBuiltWithGmp();
 
   static bool isBuiltWithCln();
 
   static bool isBuiltWithGlpk();
+
+  static bool isBuiltWithReadline();
 
   static bool isBuiltWithCudd();
 

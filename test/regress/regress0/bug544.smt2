@@ -1,0 +1,10 @@
+; EXPECT: sat
+; EXPECT: (((not (select a x)) false))
+(set-option :produce-models true)
+(set-logic QF_AUFLIA)
+(declare-sort U 0)
+(declare-fun x () U)
+(declare-fun a () (Array U Bool))
+(assert (select a x))
+(check-sat)
+(get-value ((not (select a x))))

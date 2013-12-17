@@ -1,0 +1,16 @@
+/autom4te.cache
+/stamp-h
+/config.h.in
+/config.log
+/config.status
+/config.cache
+/libtool
+/stamp-h1
+.dep
+Makefile.in
+/configure
+/aclocal.m4
+*~
+\#*\#
+/config/
+*.swp
