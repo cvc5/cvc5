@@ -107,10 +107,10 @@ fi
 AC_MSG_CHECKING([for requested build profile])
 AC_ARG_WITH([build],
   [AS_HELP_STRING([--with-build=profile],
-     [for profile in {production,debug,default,competition,personal}])])
+     [for profile in {production,debug,competition,personal}])])
 
-if test -z "${with_build+set}" -o "$with_build" = default; then
-  with_build=default
+if test -z "${with_build+set}"; then
+  with_build=production
 fi
 if test -z "${enable_optimized+set}" -a -z "${enable_debug_symbols+set}" -a -z "${enable_assertions+set}" -a -z "${enable_tracing+set}" -a -z "${enable_dumping+set}" -a -z "${enable_muzzle+set}" -a -z "${enable_coverage+set}" -a -z "${enable_profiling+set}" -a -z "${enable_statistics+set}" -a -z "${enable_replay+set}" -a -z "${with_gmp+set}" -a -z "${with_cln+set}" -a -z "${with_glpk+set}"; then
   custom_build_profile=no
@@ -237,11 +237,8 @@ AC_PROG_INSTALL
 
 CVC4_GCC_VERSION
 
-# [chris 8/24/2010] The user *must* specify --with-cln to get CLN
-# (and, thus, opt in to the GPL dependency).
-
-cvc4_use_gmp=0
-cvc4_use_cln=0
+cvc4_use_gmp=2
+cvc4_use_cln=2
 
 AC_ARG_WITH(
   [cln],
@@ -249,41 +246,49 @@ AC_ARG_WITH(
     [--with-cln],
     [use CLN instead of GMP]
   ),
-  [if test "$withval" != no; then
-     cvc4_use_cln=1
-   fi
+  [case "$withval" in
+   y|ye|yes|Y|YE|YES) cvc4_use_cln=1 ;;
+   n|no|N|NO) cvc4_use_cln=0 ;;
+   esac
   ]
 )
-
-# [chris 8/24/2010] --with-gmp has no practical effect, since GMP is
-# the default. Could be useful if other options are added later.
 
 AC_ARG_WITH(
   [gmp],
   AS_HELP_STRING(
     [--with-gmp],
-    [use GMP instead of CLN (default)]
+    [use GMP instead of CLN]
   ),
-  [if test "$withval" = no; then
-     if test $cvc4_use_cln = 0; then
-       AC_MSG_ERROR([You must use either CLN and GMP.  Please pick one.])
-     fi
-   else
-     cvc4_use_gmp=1
-   fi
+  [case "$withval" in
+   y|ye|yes|Y|YE|YES) cvc4_use_gmp=1 ;;
+   n|no|N|NO) cvc4_use_gmp=0 ;;
+   esac
   ]
 )
 
-if test $cvc4_use_cln = 1 && test $cvc4_use_gmp = 1; then
-  # error
-  AC_MSG_ERROR([You cannot use both CLN and GMP.  Please pick one.])
+if test $cvc4_use_cln = 1 -a $cvc4_use_gmp = 1 || test $cvc4_use_cln = 0 -a $cvc4_use_gmp = 0; then
+  AC_MSG_ERROR([You must use either CLN and GMP.  Please pick one.])
+fi
+if test $cvc4_use_gmp = 1; then
+  cvc4_use_cln=0
+elif test $cvc4_use_gmp = 0; then
+  cvc4_use_cln=1
+elif test $cvc4_use_cln = 1; then
+  cvc4_use_gmp=0
+elif test $cvc4_use_cln = 0; then
+  cvc4_use_gmp=1
 fi
 
 # try GMP, fail if not found; GMP is required for both CLN and for GMP
 # versions of CVC4
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
 
-if test $cvc4_use_cln = 1; then
+if test $cvc4_use_cln = 2 -a -n "$CVC4_BSD_LICENSED_CODE_ONLY"; then
+  cvc4_use_cln=0
+  cvc4_use_gmp=1
+fi
+
+if test $cvc4_use_cln != 0; then
   # [mdeters] The PKG_CHECK_MODULES macro isn't customizable and doesn't fail
   # gracefully.  You can only specify it once for a given library name.  That
   # is, even on separate if/else branches, you can't put
@@ -295,12 +300,12 @@ if test $cvc4_use_cln = 1; then
      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])])
      AC_LANG_POP([C++])
     ],
-    [if test $cvc4_use_cln = 0; then
-       # fall back to GMP
-       AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
-     else
+    [if test $cvc4_use_cln = 1; then
        # fail
        AC_MSG_ERROR([CLN not installed (or too old) or pkgconfig missing])
+     else
+       # fall back to GMP
+       AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
      fi
     ]
   )
@@ -331,11 +336,6 @@ if test -z "$ac_confdir"; then
   ac_confdir="$srcdir"
 fi
 build_type=`$ac_confdir/config/build-type $with_build $btargs $cvc4_cln_or_gmp`
-if test "$custom_build_profile" = yes; then
-  if test "$with_build" = default; then
-    build_type=`$ac_confdir/config/build-type custom $btargs $cvc4_cln_or_gmp`
-  fi
-fi
 AC_MSG_RESULT($build_type)
 
 # Require building in target and build-specific build directory:
@@ -897,7 +897,7 @@ if test -z "$LFSC"; then
 elif test "$enable_proof" = yes; then
   support_proof_tests='yes, proof regression tests enabled'
 else
-  support_proof_tests='no, proof generation disabled for this build'
+  support_proof_tests='no, proof-generation disabled for this build'
 fi
 AC_SUBST([LFSC])
 AC_SUBST([LFSCARGS])
@@ -1288,29 +1288,12 @@ fi
 
 AM_CONDITIONAL([CVC4_NEEDS_REPLACEMENT_FUNCTIONS], [test -n "$LIBOBJS"])
 
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
-
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3_template])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc_template])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc_template])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4compat.3])
-
-AC_OUTPUT
-
 # Final information to the user
+gpl=no
 licensewarn=
 
 if test "$custom_build_profile" = yes; then
-  if test "$with_build" = default; then
-    with_build=custom
-  else
-    with_build="$with_build (customized)"
-  fi
+  with_build="$with_build (customized)"
 fi
 
 support_unit_tests='cxxtest not found; unit tests not supported'
@@ -1327,45 +1310,49 @@ else
 fi
 
 if test $have_libglpk -eq 1; then
-  licensewarn="${licensewarn}Please note that CVC4 will be built against the GNU Linear Programming
-Kit (GLPK).  This library is covered under the GPL, so use of this build
-of CVC4 will be more restrictive than CVC4's license would normally
-suggest.  For full details of GLPK and its license, please visit
-  http://www.gnu.org/software/glpk/
-To build CVC4 without GLPK, configure --without-glpk (which is the default).
+  gpl=yes
+  gpllibs="${gpllibs} glpk"
+fi
 
-"
+if test $have_libreadline -eq 1; then
+  gpl=yes
+  gpllibs="${gpllibs} readline"
 fi
 
 if test $cvc4_cln_or_gmp = cln; then
   mplibrary='cln (GPL)'
-  licensewarn="${licensewarn}Please note that CVC4 will be built against the Class Library for
-Numbers (CLN).  This library is covered under the GPL, so use of this
-build of CVC4 will be more restrictive than CVC4's license would
-normally suggest.  For full details of CLN and its license, please visit
-  http://www.ginac.de/CLN/
-To build CVC4 with GMP instead (which is covered under the more permissive
-LGPL), configure --without-cln.
-
-"
+  gpl=yes
+  gpllibs="${gpllibs} cln"
   if test $with_portfolio = yes; then
-    licensewarn="${licensewarn}
-WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
-WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
-
-Note that CLN is UNSAFE FOR USE in parallel contexts!
-This build of CVC4 cannot be used safely as a portfolio solver.
-since the result of building with CLN will include numerous race
-conditions on the refcounts internal to CLN.
-
-WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
-WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING * WARNING
-
-"
+    AC_ERROR([Bad configuration detected: cannot build portfolio with CLN.
+Please specify only one of --with-portfolio and --with-cln.])
   fi
 else
-  mplibrary='gmp (LGPL)'
+  mplibrary='gmp'
 fi
+
+if test "$gpl" = yes; then
+  if test -n "$CVC4_BSD_LICENSED_CODE_ONLY"; then
+    AC_ERROR([Bad configuration detected: user requested BSD-licensed code only, but also requested GPLed libraries:$gpllibs])
+  fi
+
+  licensewarn="${licensewarn}"'****************************************************************************
+Please note that CVC4 will be built against the following GPLed libraries:
+ '"$gpllibs"'
+As these libraries are covered under the GPLv3, so is this build of CVC4.
+CVC4 is also available to you under the terms of the (modified) BSD license.
+If you prefer to license CVC4 under those terms, please configure with the
+option "--bsd".
+****************************************************************************
+
+'
+  license="GPLv3 (due to optional libraries; see below)"
+else
+  license="modified BSD"
+fi
+
+if test "$gpl" = yes; then isgpl=1; else isgpl=0; fi
+AC_DEFINE_UNQUOTED(CVC4_GPL_DEPS, $isgpl, [Whether CVC4 is built with the (optional) GPLed library dependences.])
 
 CVC4_COMPAT_LIBRARY_VERSION_or_nobuild="$CVC4_COMPAT_LIBRARY_VERSION"
 CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild="$CVC4_BINDINGS_LIBRARY_VERSION"
@@ -1384,6 +1371,20 @@ if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   fi
 fi
 
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/rational.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/integer.h])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/tls.h])
+
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.1_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/cvc4.5])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc_template])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])
+CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4compat.3])
+
+AC_OUTPUT
+
 cat <<EOF
 
 CVC4 $VERSION
@@ -1392,7 +1393,7 @@ Build profile: $with_build
 Build ID     : $build_type
 Optimized    : $optimized
 Debug symbols: $enable_debug_symbols
-Proof        : $enable_proof
+Proofs       : $enable_proof
 Statistics   : $enable_statistics
 Replay       : $enable_replay
 Assertions   : $enable_assertions
@@ -1404,7 +1405,6 @@ Unit tests   : $support_unit_tests
 Proof tests  : $support_proof_tests
 gcov support : $enable_coverage
 gprof support: $enable_profiling
-Readline     : $with_readline
 
 Static libs  : $enable_static
 Shared libs  : $enable_shared
@@ -1418,6 +1418,7 @@ Portfolio    : $with_portfolio
 
 MP library   : $mplibrary
 GLPK         : $with_glpk
+Readline     : $with_readline
 
 CPPFLAGS     : $CPPFLAGS
 CXXFLAGS     : $CXXFLAGS
@@ -1431,6 +1432,8 @@ libcvc4compat version  : $CVC4_COMPAT_LIBRARY_VERSION_or_nobuild
 libcvc4bindings version: $CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild
 
 Install into : $prefix
+
+CVC4 license : $license
 
 ${licensewarn}Now just type make, followed by make check or make install, as you like.
 

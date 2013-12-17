@@ -4,6 +4,13 @@ Changes since 1.3
 =================
 
 * Timed statistics are now properly updated even on process abort.
+* By default, CVC4 builds in "production" mode (optimized, with fewer
+  internal checks on).  The common alternative is a "debug" build, which
+  is much slower.  CVC4 also builds with GPL dependences by default now
+  (if those libraries are available), as this is the best-performing
+  version of CVC4.  However, the new configure option "--bsd" disables
+  these GPL dependences and builds the best-performing BSD-licenced version
+  of CVC4.
 
 Changes since 1.2
 =================
