@@ -16,8 +16,9 @@ AC_DEFUN([CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE],
 handle_option() {
   ac_option="$[]1"
   case $ac_option in
+    --bsd) ac_option='CVC4_BSD_LICENSED_CODE_ONLY=1' ;;
     -*|*=*) ;;
-    production|production-*|debug|debug-*|default|default-*|competition|competition-*)
+    production|production-*|debug|debug-*|competition|competition-*)
       # regexp `\?' not supported on Mac OS X
       ac_option_build=`expr "$ac_option" : '\([[^-]]*\)-\{0,1\}'`
       ac_cvc4_build_profile_set=yes
