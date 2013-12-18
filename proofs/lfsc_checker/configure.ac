@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.61])
 AC_INIT([lfsc-checker], [1.0], [cvc-bugs@cs.nyu.edu])
 AC_CONFIG_SRCDIR([libwriter.h])
 AC_CONFIG_AUX_DIR([config])

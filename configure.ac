@@ -10,7 +10,7 @@ m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[
 dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.61])
 AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc-bugs@cs.nyu.edu])
 AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
