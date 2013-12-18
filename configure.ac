@@ -284,9 +284,11 @@ fi
 # versions of CVC4
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
 
-if test $cvc4_use_cln = 2 -a -n "$CVC4_BSD_LICENSED_CODE_ONLY"; then
-  cvc4_use_cln=0
-  cvc4_use_gmp=1
+if test $cvc4_use_cln = 2; then
+  if test -n "$CVC4_BSD_LICENSED_CODE_ONLY" -o "$with_portfolio" = yes; then
+    cvc4_use_cln=0
+    cvc4_use_gmp=1
+  fi
 fi
 
 if test $cvc4_use_cln != 0; then
