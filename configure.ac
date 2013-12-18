@@ -298,9 +298,20 @@ if test $cvc4_use_cln != 0; then
   # PKG_CHECK_MODULES([CLN], ...).  That's why things are so convoluted here,
   # we have to have PKG_CHECK_MODULES _exactly_ once in configure.ac !
   PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
-    [cvc4_use_cln=1
-     AC_LANG_PUSH([C++])
-     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])])
+    [AC_LANG_PUSH([C++])
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])], [
+       cvc4_use_cln=1
+     ], [
+       if test $cvc4_use_cln = 1; then
+         # fail
+         AC_MSG_ERROR([CLN installation missing, too old, or not functional for this architecture])
+       else
+         # fall back to GMP
+         AC_MSG_NOTICE([CLN installation missing, too old, or not functional for this architecture, will use gmp instead])
+         cvc4_use_cln=0
+         cvc4_use_gmp=1
+       fi
+     ])
      AC_LANG_POP([C++])
     ],
     [if test $cvc4_use_cln = 1; then
@@ -309,6 +320,8 @@ if test $cvc4_use_cln != 0; then
      else
        # fall back to GMP
        AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
+       cvc4_use_cln=0
+       cvc4_use_gmp=1
      fi
     ]
   )
