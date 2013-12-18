@@ -299,6 +299,8 @@ if test $cvc4_use_cln != 0; then
   # we have to have PKG_CHECK_MODULES _exactly_ once in configure.ac !
   PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
     [AC_LANG_PUSH([C++])
+     save_LIBS="$LIBS"
+     LIBS="$CLN_LIBS $LIBS"
      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])], [
        cvc4_use_cln=1
      ], [
@@ -312,6 +314,7 @@ if test $cvc4_use_cln != 0; then
          cvc4_use_gmp=1
        fi
      ])
+     LIBS="$save_LIBS"
      AC_LANG_POP([C++])
     ],
     [if test $cvc4_use_cln = 1; then
@@ -1359,7 +1362,7 @@ Please note that CVC4 will be built against the following GPLed libraries:
 As these libraries are covered under the GPLv3, so is this build of CVC4.
 CVC4 is also available to you under the terms of the (modified) BSD license.
 If you prefer to license CVC4 under those terms, please configure with the
-option "--bsd".
+option "--bsd", which will disable all optional GPLed library dependences.
 ****************************************************************************
 
 '
