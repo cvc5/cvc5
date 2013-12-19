@@ -10,7 +10,7 @@ m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[
 dnl Preprocess CL args. Defined in config/cvc4.m4
 CVC4_AC_INIT
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.61])
 AC_INIT([cvc4], _CVC4_RELEASE_STRING, [cvc-bugs@cs.nyu.edu])
 AC_CONFIG_SRCDIR([src/include/cvc4_public.h])
 AC_CONFIG_AUX_DIR([config])
@@ -298,9 +298,23 @@ if test $cvc4_use_cln != 0; then
   # PKG_CHECK_MODULES([CLN], ...).  That's why things are so convoluted here,
   # we have to have PKG_CHECK_MODULES _exactly_ once in configure.ac !
   PKG_CHECK_MODULES([CLN], [cln >= 1.2.2],
-    [cvc4_use_cln=1
-     AC_LANG_PUSH([C++])
-     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])])
+    [AC_LANG_PUSH([C++])
+     save_LIBS="$LIBS"
+     LIBS="$CLN_LIBS $LIBS"
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <cln/cln.h>]], [[cln::cl_F pi = "3.1415926";]])], [
+       cvc4_use_cln=1
+     ], [
+       if test $cvc4_use_cln = 1; then
+         # fail
+         AC_MSG_ERROR([CLN installation missing, too old, or not functional for this architecture])
+       else
+         # fall back to GMP
+         AC_MSG_NOTICE([CLN installation missing, too old, or not functional for this architecture, will use gmp instead])
+         cvc4_use_cln=0
+         cvc4_use_gmp=1
+       fi
+     ])
+     LIBS="$save_LIBS"
      AC_LANG_POP([C++])
     ],
     [if test $cvc4_use_cln = 1; then
@@ -309,6 +323,8 @@ if test $cvc4_use_cln != 0; then
      else
        # fall back to GMP
        AC_MSG_NOTICE([CLN not installed (or too old) or pkgconfig missing, will use gmp])
+       cvc4_use_cln=0
+       cvc4_use_gmp=1
      fi
     ]
   )
@@ -1346,7 +1362,7 @@ Please note that CVC4 will be built against the following GPLed libraries:
 As these libraries are covered under the GPLv3, so is this build of CVC4.
 CVC4 is also available to you under the terms of the (modified) BSD license.
 If you prefer to license CVC4 under those terms, please configure with the
-option "--bsd".
+option "--bsd", which will disable all optional GPLed library dependences.
 ****************************************************************************
 
 '
