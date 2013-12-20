@@ -51,6 +51,10 @@ BitblastSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
 }
 
+void BitblastSolver::setAbstraction(AbstractionModule* abs) {
+  d_bitblaster->setAbstraction(abs); 
+}
+
 void BitblastSolver::preRegister(TNode node) {
   if ((node.getKind() == kind::EQUAL ||
        node.getKind() == kind::BITVECTOR_ULT ||

@@ -29,6 +29,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/options.h"
 #include "theory/theory_model.h"
+#include "theory/bv/abstraction.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,6 +42,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
   , d_assertedAtoms(c)
   , d_variables()
   , d_bbAtoms()
+  , d_abstraction(NULL)
   , d_statistics()
 {
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
@@ -51,6 +53,10 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
     MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
     d_satSolver->setNotify(notify);
   }
+
+void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
+  d_abstraction = abs; 
+}
 
 TLazyBitblaster::~TLazyBitblaster() {
   delete d_cnfStream;
@@ -76,7 +82,32 @@ void TLazyBitblaster::bbAtom(TNode node) {
 
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
   ++d_statistics.d_numAtoms;
-  // the bitblasted definition of the atom
+
+  if (options::bvAbstraction() &&
+      d_abstraction->isAbstraction(node)) {
+    // node must be of the form P(args) = bv1
+    Node expansion = Rewriter::rewrite(d_abstraction->getInterpretation(node));
+
+    // FIXME: matching the mcm benchmarks
+    Assert (expansion.getKind() == kind::AND);
+    std::vector<Node> atoms; 
+    for (unsigned i = 0; i < expansion.getNumChildren(); ++i) {
+      Node normalized_i = Rewriter::rewrite(expansion[i]);
+      Node atom_i = normalized_i.getKind() != kind::CONST_BOOLEAN ?
+        Rewriter::rewrite(d_atomBBStrategies[normalized_i.getKind()](normalized_i, this)) :
+        normalized_i;
+      atoms.push_back(atom_i);
+    }
+    
+    Node atom_bb = utils::mkAnd(atoms);
+    Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
+    storeBBAtom(node, atom_bb);
+    d_cnfStream->convertAndAssert(atom_definition, false, false); 
+    
+    return; 
+  }
+
+    // the bitblasted definition of the atom
   Node normalized = Rewriter::rewrite(node);
   Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
       Rewriter::rewrite(d_atomBBStrategies[normalized.getKind()](normalized, this)) :

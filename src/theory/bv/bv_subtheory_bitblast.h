@@ -26,7 +26,7 @@ namespace theory {
 namespace bv {
 
 class LazyBitblaster;
-
+class AbstractionModule; 
 /**
  * BitblastSolver
  */
@@ -61,6 +61,7 @@ public:
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
   void bitblastQueue();
+  void setAbstraction(AbstractionModule* module); 
 };
 
 }

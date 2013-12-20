@@ -18,6 +18,8 @@
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "theory/substitutions.h"
+
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
@@ -400,15 +402,16 @@ void AbstractionModule::finalizeSignatures() {
     collectArgumentTypes(signature, arg_types, seen);
     Assert (signature.getType().isBoolean());
     // make function return a bitvector of size 1
-    Node bv_function = utils::mkNode(kind::ITE, signature, utils::mkConst(1, 1u), utils::mkConst(1, 0u)); 
+    //Node bv_function = utils::mkNode(kind::ITE, signature, utils::mkConst(1, 1u), utils::mkConst(1, 0u)); 
     TypeNode range = NodeManager::currentNM()->mkBitVectorType(1);
     
     TypeNode abs_type = nm->mkFunctionType(arg_types, range);
     Node abs_func = nm->mkSkolem("abs_$$", abs_type, "abstraction function for bv theory");
     Debug("bv-abstraction") << " abstracted by function " << abs_func << "\n";
 
+    // NOTE: signature expression type is BOOLEAN
     d_signatureToFunc[signature] = abs_func;
-    d_funcToSignature[abs_func] = bv_function; 
+    d_funcToSignature[abs_func] = signature; 
   }
 
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted " << d_signatureToFunc.size() << " signatures. \n";
@@ -503,4 +506,114 @@ void AbstractionModule::storeDomain(Node var, Node domain_skolem) {
 
 bool AbstractionModule::isDomainSkolem(TNode node) {
   return d_skolems.find(node) != d_skolems.end(); 
+}
+
+bool AbstractionModule::isAbstraction(TNode node) {
+  if (node.getKind() != kind::EQUAL)
+    return false;
+  if ((node[0].getKind() != kind::CONST_BITVECTOR ||
+       node[1].getKind() != kind::APPLY_UF) &&
+      (node[1].getKind() != kind::CONST_BITVECTOR ||
+       node[0].getKind() != kind::APPLY_UF))
+    return false;
+
+  TNode constant = node[0].getKind() == kind::CONST_BITVECTOR ? node[0] : node[1];
+  TNode func = node[0].getKind() == kind::APPLY_UF ? node[0] : node[1];
+  Assert (constant.getKind() == kind::CONST_BITVECTOR &&
+          func.getKind() == kind::APPLY_UF);
+  if (utils::getSize(constant) != 1)
+    return false;
+  if (constant != utils::mkConst(1, 1u))
+    return false;
+
+  TNode func_symbol = func.getOperator(); 
+  if (d_funcToSignature.find(func_symbol) == d_funcToSignature.end())
+    return false;
+
+  return true; 
+}
+
+Node AbstractionModule::getInterpretation(TNode node) {
+  Assert (isAbstraction(node));
+  TNode constant = node[0].getKind() == kind::CONST_BITVECTOR ? node[0] : node[1];
+  TNode apply = node[0].getKind() == kind::APPLY_UF ? node[0] : node[1];
+  Assert (constant.getKind() == kind::CONST_BITVECTOR &&
+          apply.getKind() == kind::APPLY_UF);
+
+  Node func = apply.getOperator(); 
+  Assert (d_funcToSignature.find(func) != d_funcToSignature.end());
+  
+  Node sig = d_funcToSignature[func];
+  // substitute arguments in signature
+  TNodeTNodeMap seen;
+  unsigned index = 0;
+  Node result = substituteArguments(sig, apply, index, seen);
+  Assert (result.getType().isBoolean()); 
+  Assert (index == apply.getNumChildren());
+  Debug("bv-abstraction") << "AbstractionModule::getInterpretation " << node << "\n";
+  Debug("bv-abstraction") << "    => " << result << "\n";
+  return result; 
+}
+
+Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsigned& index, TNodeTNodeMap& seen) {
+  // std::cout << "substArgs index " << index << " apply " << apply << "\n";
+  // std::cout << "substArgs signature " << signature << "\n\n";
+  if (seen.find(signature) != seen.end()) {
+    return seen[signature]; 
+  }
+  
+  if (signature.getKind() == kind::SKOLEM) {
+    // return corresponding argument and increment counter
+    seen[signature] = apply[index];
+    return apply[index++]; 
+  }
+
+  if (signature.getNumChildren() == 0) {
+    Assert (signature.getKind() != kind::VARIABLE); 
+    seen[signature] = signature;
+    return signature; 
+  }
+  
+  NodeBuilder<> builder(signature.getKind());
+  if (signature.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    builder << signature.getOperator();
+  }
+  
+  for (unsigned i = 0; i < signature.getNumChildren(); ++i) {
+    Node child = substituteArguments(signature[i], apply, index, seen);
+    builder << child; 
+  }
+
+  Node result = builder; 
+  seen[signature]= result;
+  // std::cout << "sig " << signature << " => " << result <<"\n\n"; 
+  return result;
+}
+
+Node AbstractionModule::simplifyConflict(TNode conflict) {
+  if (conflict.getKind() != kind::AND)
+    return conflict; 
+  
+  theory::SubstitutionMap subst(new context::Context());
+  for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
+    TNode conjunct = conflict[i];
+    if (conjunct.getKind() == kind::EQUAL) {
+      if (conjunct[0].getKind() == kind::VARIABLE &&
+          conjunct[1].getKind() == kind::CONST_BITVECTOR) {
+        subst.addSubstitution(conjunct[0], conjunct[1]); 
+      }
+      if (conjunct[1].getKind() == kind::VARIABLE &&
+          conjunct[0].getKind() == kind::CONST_BITVECTOR) {
+        subst.addSubstitution(conjunct[1], conjunct[0]); 
+      }
+    }
+  }
+  Node new_conflict = Rewriter::rewrite(subst.apply(conflict));
+  Debug("bv-abstraction") << "AbstractionModule::simplifyConflict conflict " << conflict <<"\n";
+  Debug("bv-abstraction") << "   => " << new_conflict <<"\n";
+  return new_conflict; 
+}
+
+void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& lemmas) {
+  return; 
 }

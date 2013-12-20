@@ -148,10 +148,7 @@ private:
     return indentStr;
   }
 
-  void setConflict(Node conflict = Node::null()) {
-    d_conflict = true;
-    d_conflictNode = conflict;
-  }
+  void setConflict(Node conflict = Node::null());
 
   bool inConflict() {
     return d_conflict;

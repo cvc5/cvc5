@@ -120,7 +120,9 @@ class AbstractionModule {
   unsigned getBitwidthIndex(unsigned bitwidth); 
   void resetSignatureIndex();
   Node computeSignatureRec(TNode, NodeNodeMap&);
-  void storeSignature(Node signature, TNode assertion);  
+  void storeSignature(Node signature, TNode assertion);
+
+  Node substituteArguments(TNode signature, TNode apply, unsigned& i, TNodeTNodeMap& seen);
 public:
   AbstractionModule()
     : d_domainMaker(*this)
@@ -136,8 +138,25 @@ public:
     , d_signatureIndices()
     , d_signatureSkolems()
   {}
-  void applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
-  
+  void applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  /** 
+   * Returns true if the node represents an abstraction predicate. 
+   * 
+   * @param node 
+   * 
+   * @return 
+   */
+  bool isAbstraction(TNode node);
+  /** 
+   * Returns the interpretation of the abstraction predicate. 
+   * 
+   * @param node 
+   * 
+   * @return 
+   */
+  Node getInterpretation(TNode node);
+  Node simplifyConflict(TNode conflict); 
+  void generalizeConflict(TNode conflict, std::vector<Node>& lemmas); 
 };
 
 }

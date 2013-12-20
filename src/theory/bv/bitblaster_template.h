@@ -54,6 +54,8 @@ class TheoryModel;
 namespace bv {
 
 
+class AbstractionModule;
+
 /**
  * The Bitblaster that manages the mapping between Nodes
  * and their bitwise definition
@@ -128,6 +130,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
                                                        currently asserted by the DPLL SAT solver. */
   VarSet d_variables;
   AtomSet d_bbAtoms; 
+  AbstractionModule* d_abstraction;
   
   void addAtom(TNode atom);
   bool hasValue(TNode a);
@@ -144,7 +147,8 @@ public:
   bool solve(bool quick_solve = false);
   void getConflict(std::vector<TNode>& conflict);
   void explain(TNode atom, std::vector<TNode>& explanation);
-
+  void setAbstraction(AbstractionModule* abs);
+  
   theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
   /**
    * Return a constant Node representing the value of a variable

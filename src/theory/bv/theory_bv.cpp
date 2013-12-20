@@ -68,7 +68,9 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
       d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
     }
 
-    SubtheorySolver* bb_solver = new BitblastSolver(c, this);
+    BitblastSolver* bb_solver = new BitblastSolver(c, this);
+    if (options::bvAbstraction())
+      bb_solver->setAbstraction(d_abstractionModule); 
     d_subtheories.push_back(bb_solver);
     d_subtheoryMap[SUB_BITBLAST] = bb_solver;
   }
@@ -215,6 +217,7 @@ void TheoryBV::check(Effort e)
 
   while (!done()) {
     TNode fact = get().assertion;
+
     checkForLemma(fact);
 
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
@@ -280,6 +283,9 @@ void TheoryBV::propagate(Effort e) {
     // temporary fix for incremental bit-blasting
     if (d_valuation.isSatLiteral(literal)) {
       Debug("bitvector::propagate") << "TheoryBV:: propagating " << literal <<"\n";
+      if (literal.getId() == 232141) {
+        std::cout << "TheoryBV::propagate " << literal <<"\n"; 
+      }
       ok = d_out->propagate(literal);
     }
   }
@@ -381,10 +387,16 @@ void TheoryBV::presolve() {
   Debug("bitvector") << "TheoryBV::presolve" << endl;
 }
 
+static int prop_count = 0; 
+
 bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 {
   Debug("bitvector::propagate") << indent() << getSatContext()->getLevel() << " " << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ")" << std::endl;
-
+  prop_count++; 
+  if (literal.getId() == 232141) {
+    std::cout <<" DEBUG propagating "<<prop_count <<" " << literal <<"\n"; 
+  }
+  
   // If already in conflict, no more propagation
   if (d_conflict) {
     Debug("bitvector::propagate") << indent() << "TheoryBV::storePropagation(" << literal << ", " << subtheory << "): already in conflict" << std::endl;
@@ -425,6 +437,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
+  // std::cout << "explain " << literal <<"\n"; 
   Assert (wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
@@ -477,4 +490,19 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
 
 void TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   d_abstractionModule->applyAbstraction(assertions, new_assertions); 
+}
+
+void TheoryBV::setConflict(Node conflict) {
+  if (options::bvAbstraction()) {
+    Node new_conflict = d_abstractionModule->simplifyConflict(conflict);
+      
+    std::vector<Node> lemmas;
+    lemmas.push_back(new_conflict); 
+    d_abstractionModule->generalizeConflict(new_conflict, lemmas);
+    for (unsigned i = 0; i < lemmas.size(); ++i) {
+      lemma(utils::mkNode(kind::NOT, lemmas[i])); 
+    }
+  }
+  d_conflict = true;
+  d_conflictNode = conflict;
 }
