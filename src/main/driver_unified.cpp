@@ -237,7 +237,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // Parse and execute commands until we are done
     Command* cmd;
     bool status = true;
-    if(opts[options::interactive]) {
+    if(opts[options::interactive] && inputFromStdin) {
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
         cmd = new SetOptionCommand("incremental", true);
