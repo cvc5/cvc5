@@ -188,7 +188,7 @@ private:
 	/** map from representatives to information necessary for equivalence classes */
 	std::map< Node, EqcInfo* > d_eqc_info;
 	EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
-	//maintain which concat terms have the length lemma instantiatied
+	//maintain which concat terms have the length lemma instantiated
 	std::map< Node, bool > d_length_inst;
 private:
     bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
@@ -223,11 +223,11 @@ public:
 
 	/** Conflict when merging two constants */
 	void conflict(TNode a, TNode b);
-	/** called when a new equivalance class is created */
+	/** called when a new equivalence class is created */
 	void eqNotifyNewClass(TNode t);
-	/** called when two equivalance classes will merge */
+	/** called when two equivalence classes will merge */
 	void eqNotifyPreMerge(TNode t1, TNode t2);
-	/** called when two equivalance classes have merged */
+	/** called when two equivalence classes have merged */
 	void eqNotifyPostMerge(TNode t1, TNode t2);
 	/** called when two equivalence classes are made disequal */
 	void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
@@ -255,8 +255,8 @@ protected:
 	//get final normal form
 	void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
 
-	//seperate into collections with equal length
-	void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
+	//separate into collections with equal length
+	void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
 	void printConcat( std::vector< Node >& n, const char * c );
 
 	// Measurement

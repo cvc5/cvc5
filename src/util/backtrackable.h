@@ -170,7 +170,7 @@ void List<T>::concat (List<T>* other) {
 template <class T>
 void List<T>::unconcat(List<T>* other) {
   // we do not need to check consistency since this is only called by the
-  //Backtracker when we are inconsistent
+  // Backtracker when we are inconsistent
   Assert(other->ptr_to_head != NULL);
   other->ptr_to_head->next = NULL;
   tail = other->ptr_to_head;

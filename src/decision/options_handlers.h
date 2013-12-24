@@ -29,7 +29,7 @@ static const std::string decisionModeHelp = "\
 Decision modes currently supported by the --decision option:\n\
 \n\
 internal (default)\n\
-+ Use the internal decision hueristics of the SAT solver\n\
++ Use the internal decision heuristics of the SAT solver\n\
 \n\
 justification\n\
 + An ATGP-inspired justification heuristic\n\

@@ -46,7 +46,7 @@ enum AttrTableId {
 };
 
 /**
- * This uniquely indentifies attributes across tables.
+ * This uniquely identifies attributes across tables.
  */
 class AttributeUniqueId {
   AttrTableId d_tableId;

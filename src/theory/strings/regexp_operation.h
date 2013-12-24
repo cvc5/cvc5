@@ -9,9 +9,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Regular Expresion Operations
+ ** \brief Regular Expression Operations
  **
- ** Regular Expresion Operations
+ ** Regular Expression Operations
  **/
 
 #include "cvc4_private.h"
