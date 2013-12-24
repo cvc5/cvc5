@@ -22,7 +22,6 @@ public class Datatypes {
     System.loadLibrary("cvc4jni");
 
     ExprManager em = new ExprManager();
-    Expr helloworld = em.mkVar("Hello World!", em.booleanType());
     SmtEngine smt = new SmtEngine(em);
 
     // This example builds a simple "cons list" of integers, with

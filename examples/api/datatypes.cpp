@@ -25,8 +25,6 @@ int main() {
   ExprManager em;
   SmtEngine smt(&em);
 
-  std::cout << Expr::setlanguage(language::output::LANG_CVC4);
-
   // This example builds a simple "cons list" of integers, with
   // two constructors, "cons" and "nil."
 
