@@ -106,7 +106,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
     if(litDecision != undefSatLiteral) {
       setPrvsIndex(i);
-      Trace("decision") << "jh: spliting on " << litDecision << std::endl;
+      Trace("decision") << "jh: splitting on " << litDecision << std::endl;
       return litDecision;
     }
   }

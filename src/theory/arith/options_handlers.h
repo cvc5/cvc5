@@ -52,7 +52,7 @@ This decides on kind of propagation arithmetic attempts to do during the search.
 ";
 
 static const std::string errorSelectionRulesHelp = "\
-This decides on the rule used by simplex during hueristic rounds\n\
+This decides on the rule used by simplex during heuristic rounds\n\
 for deciding the next basic variable to select.\n\
 Heuristic pivot rules available:\n\
 +min\n\

@@ -128,7 +128,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids){
     case AttrTableCDNode:
     case AttrTableCDString:
     case AttrTableCDPointer:
-      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behaviour is desired.");
+      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
       break;
     case LastAttrTable:
     default:

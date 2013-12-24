@@ -34,6 +34,7 @@ using namespace std;
 class NodeBlack : public CxxTest::TestSuite {
 private:
 
+  Options opts;
   Context* d_ctxt;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
@@ -43,8 +44,15 @@ private:
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nodeManager = new NodeManager(d_ctxt, NULL);
+    char *argv[2];
+    argv[0] = strdup("");
+    argv[1] = strdup("--output-language=ast");
+    opts.parseOptions(2, argv);
+    free(argv[0]);
+    free(argv[1]);
+
+    d_ctxt = new Context();
+    d_nodeManager = new NodeManager(d_ctxt, NULL, opts);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());

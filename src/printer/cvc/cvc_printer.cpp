@@ -80,7 +80,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 
   // null
   if(n.getKind() == kind::NULL_EXPR) {
-    out << "NULL";
+    out << "null";
     return;
   }
 

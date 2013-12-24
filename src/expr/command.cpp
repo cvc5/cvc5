@@ -467,7 +467,7 @@ Command* CommandSequence::exportTo(ExprManager* exprManager, ExprManagerMapColle
     Command* cmd_to_export = *i;
     Command* cmd = cmd_to_export->exportTo(exprManager, variableMap);
     seq->addCommand(cmd);
-    Debug("export") << "[export] so far coverted: " << seq << endl;
+    Debug("export") << "[export] so far converted: " << seq << endl;
   }
   seq->d_index = d_index;
   return seq;

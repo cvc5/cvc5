@@ -38,7 +38,7 @@ int global_winner;
 template<typename S>
 void runThread(int thread_id, boost::function<S()> threadFn, S& returnValue)
 {
-  /* Uncommment line to delay first thread, useful to unearth errors/debug */
+  /* Uncomment line to delay first thread, useful to unearth errors/debug */
   // if(thread_id == 0) { sleep(1); }
   returnValue = threadFn();
 

@@ -218,7 +218,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 	std::map< Node, Node > processed;
 	std::vector< std::vector< Node > > col;
 	std::vector< Node > lts;
-	seperateByLength( nodes, col, lts );
+	separateByLength( nodes, col, lts );
 	//step 1 : get all values for known lengths
 	std::vector< Node > lts_values;
 	std::map< unsigned, bool > values_used;
@@ -1667,7 +1667,7 @@ bool TheoryStrings::checkNormalForms() {
 	  getEquivalenceClasses( eqcs );
 	  std::vector< std::vector< Node > > cols;
 	  std::vector< Node > lts;
-	  seperateByLength( eqcs, cols, lts );
+	  separateByLength( eqcs, cols, lts );
 	  for( unsigned i=0; i<cols.size(); i++ ){
 	    if( cols[i].size()>1 && d_lemma_cache.empty() ){
 			Trace("strings-solve") << "- Verify disequalities are processed for ";
@@ -1745,7 +1745,7 @@ bool TheoryStrings::checkCardinality() {
 
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
-  seperateByLength( eqcs, cols, lts );
+  separateByLength( eqcs, cols, lts );
 
   for( unsigned i = 0; i<cols.size(); ++i ){
     Node lr = lts[i];
@@ -1862,7 +1862,7 @@ void TheoryStrings::getFinalNormalForm( Node n, std::vector< Node >& nf, std::ve
 	}
 }
 
-void TheoryStrings::seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& cols,
+void TheoryStrings::separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& cols,
 											 std::vector< Node >& lts ) {
   unsigned leqc_counter = 0;
   std::map< Node, unsigned > eqc_to_leqc;

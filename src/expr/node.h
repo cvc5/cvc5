@@ -815,7 +815,7 @@ public:
    * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                       OutputLanguage language = language::output::LANG_AST) const {
+                       OutputLanguage language = language::output::LANG_AUTO) const {
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, types, dag, language);
   }

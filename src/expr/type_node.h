@@ -374,11 +374,8 @@ public:
    */
   inline std::string toString() const {
     std::stringstream ss;
-    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AST : options::outputLanguage();
-    d_nv->toStream(ss, -1, false, 0,
-                   outlang == language::output::LANG_AUTO ?
-                     language::output::LANG_AST :
-                     outlang);
+    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+    d_nv->toStream(ss, -1, false, 0, outlang);
     return ss.str();
   }
 
@@ -389,7 +386,7 @@ public:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AST) const {
+  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
     d_nv->toStream(out, -1, false, 0, language);
   }
 

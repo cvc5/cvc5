@@ -156,7 +156,7 @@ protected:
 public:
   virtual ~CommandStatus() throw() {}
   void toStream(std::ostream& out,
-                OutputLanguage language = language::output::LANG_AST) const throw();
+                OutputLanguage language = language::output::LANG_AUTO) const throw();
   virtual CommandStatus& clone() const = 0;
 };/* class CommandStatus */
 
@@ -211,7 +211,7 @@ public:
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out) throw();
 
   virtual void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                        OutputLanguage language = language::output::LANG_AST) const throw();
+                        OutputLanguage language = language::output::LANG_AUTO) const throw();
 
   std::string toString() const throw();
 
