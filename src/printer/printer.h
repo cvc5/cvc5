@@ -54,7 +54,21 @@ public:
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang) throw() {
     if(lang == language::output::LANG_AUTO) {
-      lang = language::output::LANG_CVC4; // default
+      // Infer the language to use for output.
+      //
+      // Options can be null in certain circumstances (e.g., when printing
+      // the singleton "null" expr.  So we guard against segfault
+      if(&Options::current() != NULL) {
+        if(options::outputLanguage.wasSetByUser()) {
+          lang = options::outputLanguage();
+        }
+        if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
+          lang = language::toOutputLanguage(options::inputLanguage());
+        }
+      }
+      if(lang == language::output::LANG_AUTO) {
+        lang = language::output::LANG_CVC4; // default
+      }
     }
     if(d_printers[lang] == NULL) {
       d_printers[lang] = makePrinter(lang);

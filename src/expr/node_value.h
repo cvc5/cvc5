@@ -268,7 +268,7 @@ public:
 
   std::string toString() const;
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                OutputLanguage = language::output::LANG_AST) const;
+                OutputLanguage = language::output::LANG_AUTO) const;
 
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;
