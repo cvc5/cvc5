@@ -144,7 +144,8 @@ EXTRA_DIST = \
 	predicate.i \
 	uninterpreted_constant.i \
 	chain.i \
-	regexp.i
+	regexp.i \
+	proof.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \
