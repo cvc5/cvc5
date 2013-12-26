@@ -9,11 +9,9 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief A manager for Proofs.
+ ** \brief A manager for Proofs
  **
  ** A manager for Proofs.
- **
- ** 
  **/
 
 #include "cvc4_private.h"
@@ -21,7 +19,7 @@
 #ifndef __CVC4__PROOF_MANAGER_H
 #define __CVC4__PROOF_MANAGER_H
 
-#include <iostream> 
+#include <iostream>
 #include "proof/proof.h"
 #include "util/proof.h"
 
@@ -29,15 +27,15 @@
 // forward declarations
 namespace Minisat {
   class Solver;
-}
+}/* Minisat namespace */
 
 namespace CVC4 {
 
 namespace prop {
   class CnfStream;
-}
+}/* CVC4::prop namespace */
 
-class SmtEngine; 
+class SmtEngine;
 
 typedef int ClauseId;
 
@@ -51,10 +49,10 @@ class LFSCCnfProof;
 class LFSCTheoryProof;
 
 namespace prop {
-typedef uint64_t SatVariable;
-class SatLiteral;
-typedef std::vector<SatLiteral> SatClause; 
-}
+  typedef uint64_t SatVariable;
+  class SatLiteral;
+  typedef std::vector<SatLiteral> SatClause;
+}/* CVC4::prop namespace */
 
 // different proof modes
 enum ProofFormat {
@@ -64,7 +62,7 @@ enum ProofFormat {
 
 std::string append(const std::string& str, uint64_t num);
 
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause; 
+typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 typedef __gnu_cxx::hash_set<prop::SatVariable > VarSet;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 
@@ -74,35 +72,36 @@ enum ClauseKind {
   INPUT,
   THEORY_LEMMA,
   LEARNT
-};
+};/* enum ClauseKind */
 
 class ProofManager {
   SatProof*    d_satProof;
   CnfProof*    d_cnfProof;
-  TheoryProof* d_theoryProof; 
+  TheoryProof* d_theoryProof;
 
   // information that will need to be shared across proofs
   IdToClause d_inputClauses;
   IdToClause d_theoryLemmas;
   ExprSet    d_inputFormulas;
   VarSet     d_propVars;
-  
-  Proof* d_fullProof; 
+
+  Proof* d_fullProof;
   ProofFormat d_format;
-  
-  static ProofManager* proofManager; 
-  static bool isInitialized; 
-  ProofManager(ProofFormat format = LFSC);
-  ~ProofManager(); 
+
 protected:
   std::string d_logic;
+
 public:
+  ProofManager(ProofFormat format = LFSC);
+  ~ProofManager();
+
   static ProofManager* currentPM();
-  // initialization 
-  static void         initSatProof(Minisat::Solver* solver); 
+
+  // initialization
+  static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
   static void         initTheoryProof();
-  
+
   static Proof*       getProof(SmtEngine* smt);
   static SatProof*    getSatProof();
   static CnfProof*    getCnfProof();
@@ -110,9 +109,9 @@ public:
 
   // iterators over data shared by proofs
   typedef IdToClause::const_iterator clause_iterator;
-  typedef ExprSet::const_iterator assertions_iterator; 
+  typedef ExprSet::const_iterator assertions_iterator;
   typedef VarSet::const_iterator var_iterator;
-  
+
   clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
   clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
 
@@ -124,10 +123,10 @@ public:
 
   var_iterator begin_vars() const { return d_propVars.begin(); }
   var_iterator end_vars() const { return d_propVars.end(); }
-  
+
   void addAssertion(Expr formula);
-  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind); 
-  
+  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
+
   // variable prefixes
   static std::string getInputClauseName(ClauseId id);
   static std::string getLemmaClauseName(ClauseId id);
@@ -136,7 +135,7 @@ public:
   static std::string getVarName(prop::SatVariable var);
   static std::string getAtomName(prop::SatVariable var);
   static std::string getLitName(prop::SatLiteral lit);
-  
+
   void setLogic(const std::string& logic_string);
   const std::string getLogic() const { return d_logic; }
 };/* class ProofManager */
@@ -145,13 +144,13 @@ class LFSCProof : public Proof {
   LFSCSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
   LFSCTheoryProof* d_theoryProof;
-  SmtEngine* d_smtEngine; 
+  SmtEngine* d_smtEngine;
 public:
-  LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory); 
+  LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory);
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}
-};
-  
+};/* class LFSCProof */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__PROOF_MANAGER_H */

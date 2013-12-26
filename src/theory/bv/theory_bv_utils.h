@@ -25,7 +25,6 @@
 #include "expr/node_manager.h"
 #include "theory/decision_attributes.h"
 
-
 namespace CVC4 {
 namespace theory {
 namespace bv {

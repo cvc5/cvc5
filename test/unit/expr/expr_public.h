@@ -30,6 +30,8 @@ using namespace std;
 class ExprPublic : public CxxTest::TestSuite {
 private:
 
+  Options opts;
+
   ExprManager* d_em;
 
   Expr* a_bool;
@@ -51,7 +53,14 @@ public:
 
   void setUp() {
     try {
-      d_em = new ExprManager;
+      char *argv[2];
+      argv[0] = strdup("");
+      argv[1] = strdup("--output-language=ast");
+      opts.parseOptions(2, argv);
+      free(argv[0]);
+      free(argv[1]);
+
+      d_em = new ExprManager(opts);
 
       a_bool = new Expr(d_em->mkVar("a",d_em->booleanType()));
       b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
@@ -61,7 +70,7 @@ public:
       fun_type = new Type(d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
       fun_op = new Expr(d_em->mkVar("f", *fun_type));
       d_apply_fun_bool = new Expr(d_em->mkExpr(APPLY_UF, *fun_op, *a_bool));
-      null = new Expr;
+      null = new Expr();
 
       i1 = new Expr(d_em->mkConst(Rational("0")));
       i2 = new Expr(d_em->mkConst(Rational(23)));

@@ -27,7 +27,7 @@ script:
        make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}DISTCHECK FAILED${normal}"; echo; exit 1);
      else
        (make -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}BUILD/TEST FAILED${normal}"; echo; exit 1)) &&
-       (make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' || (echo; echo "${red}PORTFOLIO TEST FAILED${normal}"; echo; exit 1)) &&
+       (make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= || (echo; echo "${red}PORTFOLIO TEST FAILED${normal}"; echo; exit 1)) &&
        (make -j2 examples || (echo; echo "${red}COULD NOT BUILD EXAMPLES${normal}"; echo; exit 1));
      fi;
    elif [ -n "$TRAVIS_LFSC" ]; then

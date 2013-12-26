@@ -459,7 +459,7 @@ public:
    * @param language the language in which to output
    */
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                OutputLanguage language = language::output::LANG_AST) const;
+                OutputLanguage language = language::output::LANG_AUTO) const;
 
   /**
    * Check if this is a null expression.
@@ -861,7 +861,7 @@ class CVC4_PUBLIC ExprSetLanguage {
    * setlanguage() applied to them and where the current Options
    * information isn't available.
    */
-  static const int s_defaultOutputLanguage = language::output::LANG_AST;
+  static const int s_defaultOutputLanguage = language::output::LANG_AUTO;
 
   /**
    * When this manipulator is used, the setting is stored here.

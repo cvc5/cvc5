@@ -46,8 +46,10 @@
 #include "theory/theory_engine.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "proof/proof_manager.h"
+#include "main/options.h"
 #include "util/proof.h"
 #include "proof/proof.h"
+#include "proof/proof_manager.h"
 #include "util/boolean_simplification.h"
 #include "util/node_visitor.h"
 #include "util/configuration.h"
@@ -157,6 +159,8 @@ struct SmtEngineStatistics {
   IntStat d_numAssertionsPost;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
+  /** time spent in checkProof() */
+  TimerStat d_checkProofTime;
   /** time spent in PropEngine::checkSat() */
   TimerStat d_solveTime;
   /** time spent in pushing/popping */
@@ -183,11 +187,11 @@ struct SmtEngineStatistics {
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
     d_checkModelTime("smt::SmtEngine::checkModelTime"),
+    d_checkProofTime("smt::SmtEngine::checkProofTime"),
     d_solveTime("smt::SmtEngine::solveTime"),
     d_pushPopTime("smt::SmtEngine::pushPopTime"),
     d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
     d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0)
-
  {
 
     StatisticsRegistry::registerStat(&d_definitionExpansionTime);
@@ -667,6 +671,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_decisionEngine(NULL),
   d_theoryEngine(NULL),
   d_propEngine(NULL),
+  d_proofManager(NULL),
   d_definedFunctions(NULL),
   d_assertionList(NULL),
   d_assignments(NULL),
@@ -695,6 +700,8 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
+
+  PROOF( d_proofManager = new ProofManager(); );
 
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -763,6 +770,7 @@ void SmtEngine::finishInit() {
   if(options::cumulativeMillisecondLimit() != 0) {
     setTimeLimit(options::cumulativeMillisecondLimit(), true);
   }
+
   PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); ); 
 }
 
@@ -777,16 +785,11 @@ void SmtEngine::finalOptionsAreSet() {
   }
 
   if(options::checkModels()) {
-    if(! options::produceModels()) {
-      Notice() << "SmtEngine: turning on produce-models to support check-model" << endl;
-      setOption("produce-models", SExpr("true"));
-    }
     if(! options::interactive()) {
-      Notice() << "SmtEngine: turning on interactive-mode to support check-model" << endl;
+      Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
       setOption("interactive-mode", SExpr("true"));
     }
   }
-
   if(options::produceAssignments() && !options::produceModels()) {
     Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << endl;
     setOption("produce-models", SExpr("true"));
@@ -2503,7 +2506,7 @@ void SmtEnginePrivate::doMiplibTrick() {
         const uint64_t mark = (*j).second;
         const unsigned numVars = pos.getKind() == kind::AND ? pos.getNumChildren() : 1;
         uint64_t expected = (uint64_t(1) << (1 << numVars)) - 1;
-        expected = (expected == 0) ? -1 : expected;// fix for overflow
+        expected = (expected == 0) ? -1 : expected; // fix for overflow
         Debug("miplib") << "[" << pos << "] => " << hex << mark << " expect " << expected << dec << endl;
         Assert(pos.getKind() == kind::AND || pos.isVar());
         if(mark != expected) {
@@ -2511,7 +2514,7 @@ void SmtEnginePrivate::doMiplibTrick() {
         } else {
           if(mark != 3) { // exclude single-var case; nothing to check there
             uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
-            sz = (sz == 0) ? -1 : sz;// fix for overflow
+            sz = (sz == 0) ? -1 : sz; // fix for overflow
             Assert(sz == mark, "expected size %u == mark %u", sz, mark);
             for(size_t k = 0; k < checks[pos_var].size(); ++k) {
               if((k & (k - 1)) != 0) {
@@ -2531,12 +2534,12 @@ void SmtEnginePrivate::doMiplibTrick() {
                   break;
                 }
               } else {
-                Assert(checks[pos_var][k] == 0, "checks[(%s,%s)][%u] should be 0, but it's %s", pos.toString().c_str(), var.toString().c_str(), k, checks[pos_var][k].toString().c_str());// we never set for single-positive-var
+                Assert(checks[pos_var][k] == 0, "checks[(%s,%s)][%u] should be 0, but it's %s", pos.toString().c_str(), var.toString().c_str(), k, checks[pos_var][k].toString().c_str()); // we never set for single-positive-var
               }
             }
           }
           if(!eligible) {
-            eligible = true;// next is still eligible
+            eligible = true; // next is still eligible
             continue;
           }
 
@@ -2560,7 +2563,7 @@ void SmtEnginePrivate::doMiplibTrick() {
               Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
               d_assertionsToCheck.push_back(Rewriter::rewrite(geq.andNode(leq)));
               SubstitutionMap nullMap(&d_fakeContext);
-              Theory::PPAssertStatus status CVC4_UNUSED;// just for assertions
+              Theory::PPAssertStatus status CVC4_UNUSED; // just for assertions
               status = d_smt.d_theoryEngine->solve(geq, nullMap);
               Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
                      "unexpected solution from arith's ppAssert()");
@@ -3291,9 +3294,6 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   finalOptionsAreSet();
   doPendingPops();
 
-
-  PROOF( ProofManager::currentPM()->addAssertion(ex); ); 
-
   Trace("smt") << "SmtEngine::checkSat(" << ex << ")" << endl;
 
   if(d_queryMade && !options::incrementalSolving()) {
@@ -3308,6 +3308,8 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
     e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
     // Ensure expr is type-checked at this point.
     ensureBoolean(e);
+    // Give it to proof manager
+    PROOF( ProofManager::currentPM()->addAssertion(e); ); 
   }
 
   // check to see if a postsolve() is pending
@@ -3361,6 +3363,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
   // Check that UNSAT results generate a proof correctly.
   if(options::checkProofs()) {
     if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
       checkProof();
     }
   }
@@ -3384,9 +3387,10 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
 
   // Substitute out any abstract values in ex
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-
   // Ensure that the expression is type-checked at this point, and Boolean
   ensureBoolean(e);
+  // Give it to proof manager
+  PROOF( ProofManager::currentPM()->addAssertion(e.notExpr()); ); 
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
@@ -3437,6 +3441,7 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
   // Check that UNSAT results generate a proof correctly.
   if(options::checkProofs()) {
     if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
       checkProof();
     }
   }
@@ -3449,7 +3454,9 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  PROOF( ProofManager::currentPM()->addAssertion(ex);); 
+
+  PROOF( ProofManager::currentPM()->addAssertion(ex); ); 
+
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex
@@ -3486,7 +3493,7 @@ Expr SmtEngine::simplify(const Expr& ex) throw(TypeCheckingException, LogicExcep
 
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   if( options::typeChecking() ) {
-    e.getType(true);// ensure expr is type-checked at this point
+    e.getType(true); // ensure expr is type-checked at this point
   }
 
   // Make sure all preprocessing is done

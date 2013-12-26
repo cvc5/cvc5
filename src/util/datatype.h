@@ -40,6 +40,47 @@ namespace CVC4 {
 
 class CVC4_PUBLIC ExprManager;
 
+class CVC4_PUBLIC DatatypeConstructor;
+class CVC4_PUBLIC DatatypeConstructorArg;
+
+class CVC4_PUBLIC DatatypeConstructorIterator {
+  const std::vector<DatatypeConstructor>* d_v;
+  size_t d_i;
+
+  friend class Datatype;
+
+  DatatypeConstructorIterator(const std::vector<DatatypeConstructor>& v, bool start) : d_v(&v), d_i(start ? 0 : v.size()) {
+  }
+
+public:
+  typedef const DatatypeConstructor& value_type;
+  const DatatypeConstructor& operator*() const { return (*d_v)[d_i]; }
+  const DatatypeConstructor* operator->() const { return &(*d_v)[d_i]; }
+  DatatypeConstructorIterator& operator++() { ++d_i; return *this; }
+  DatatypeConstructorIterator operator++(int) { DatatypeConstructorIterator i(*this); ++d_i; return i; }
+  bool operator==(const DatatypeConstructorIterator& other) const { return d_v == other.d_v && d_i == other.d_i; }
+  bool operator!=(const DatatypeConstructorIterator& other) const { return d_v != other.d_v || d_i != other.d_i; }
+};/* class DatatypeConstructorIterator */
+
+class CVC4_PUBLIC DatatypeConstructorArgIterator {
+  const std::vector<DatatypeConstructorArg>* d_v;
+  size_t d_i;
+
+  friend class DatatypeConstructor;
+
+  DatatypeConstructorArgIterator(const std::vector<DatatypeConstructorArg>& v, bool start) : d_v(&v), d_i(start ? 0 : v.size()) {
+  }
+
+public:
+  typedef const DatatypeConstructorArg& value_type;
+  const DatatypeConstructorArg& operator*() const { return (*d_v)[d_i]; }
+  const DatatypeConstructorArg* operator->() const { return &(*d_v)[d_i]; }
+  DatatypeConstructorArgIterator& operator++() { ++d_i; return *this; }
+  DatatypeConstructorArgIterator operator++(int) { DatatypeConstructorArgIterator i(*this); ++d_i; return i; }
+  bool operator==(const DatatypeConstructorArgIterator& other) const { return d_v == other.d_v && d_i == other.d_i; }
+  bool operator!=(const DatatypeConstructorArgIterator& other) const { return d_v != other.d_v || d_i != other.d_i; }
+};/* class DatatypeConstructorArgIterator */
+
 /**
  * An exception that is thrown when a datatype resolution fails.
  */
@@ -134,9 +175,9 @@ class CVC4_PUBLIC DatatypeConstructor {
 public:
 
   /** The type for iterators over constructor arguments. */
-  typedef std::vector<DatatypeConstructorArg>::iterator iterator;
+  typedef DatatypeConstructorArgIterator iterator;
   /** The (const) type for iterators over constructor arguments. */
-  typedef std::vector<DatatypeConstructorArg>::const_iterator const_iterator;
+  typedef DatatypeConstructorArgIterator const_iterator;
 
 private:
 
@@ -394,9 +435,9 @@ public:
   static size_t indexOf(Expr item) CVC4_PUBLIC;
 
   /** The type for iterators over constructors. */
-  typedef std::vector<DatatypeConstructor>::iterator iterator;
+  typedef DatatypeConstructorIterator iterator;
   /** The (const) type for iterators over constructors. */
-  typedef std::vector<DatatypeConstructor>::const_iterator const_iterator;
+  typedef DatatypeConstructorIterator const_iterator;
 
 private:
   std::string d_name;
@@ -540,13 +581,13 @@ public:
   inline bool isResolved() const throw();
 
   /** Get the beginning iterator over DatatypeConstructors. */
-  inline std::vector<DatatypeConstructor>::iterator begin() throw();
+  inline iterator begin() throw();
   /** Get the ending iterator over DatatypeConstructors. */
-  inline std::vector<DatatypeConstructor>::iterator end() throw();
+  inline iterator end() throw();
   /** Get the beginning const_iterator over DatatypeConstructors. */
-  inline std::vector<DatatypeConstructor>::const_iterator begin() const throw();
+  inline const_iterator begin() const throw();
   /** Get the ending const_iterator over DatatypeConstructors. */
-  inline std::vector<DatatypeConstructor>::const_iterator end() const throw();
+  inline const_iterator end() const throw();
 
   /** Get the ith DatatypeConstructor. */
   const DatatypeConstructor& operator[](size_t index) const;
@@ -669,19 +710,19 @@ inline bool Datatype::isResolved() const throw() {
 }
 
 inline Datatype::iterator Datatype::begin() throw() {
-  return d_constructors.begin();
+  return iterator(d_constructors, true);
 }
 
 inline Datatype::iterator Datatype::end() throw() {
-  return d_constructors.end();
+  return iterator(d_constructors, false);
 }
 
 inline Datatype::const_iterator Datatype::begin() const throw() {
-  return d_constructors.begin();
+  return const_iterator(d_constructors, true);
 }
 
 inline Datatype::const_iterator Datatype::end() const throw() {
-  return d_constructors.end();
+  return const_iterator(d_constructors, false);
 }
 
 inline bool DatatypeConstructor::isResolved() const throw() {
@@ -710,19 +751,19 @@ inline bool DatatypeConstructorArg::isResolved() const throw() {
 }
 
 inline DatatypeConstructor::iterator DatatypeConstructor::begin() throw() {
-  return d_args.begin();
+  return iterator(d_args, true);
 }
 
 inline DatatypeConstructor::iterator DatatypeConstructor::end() throw() {
-  return d_args.end();
+  return iterator(d_args, false);
 }
 
 inline DatatypeConstructor::const_iterator DatatypeConstructor::begin() const throw() {
-  return d_args.begin();
+  return const_iterator(d_args, true);
 }
 
 inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const throw() {
-  return d_args.end();
+  return const_iterator(d_args, false);
 }
 
 }/* CVC4 namespace */

@@ -16,16 +16,75 @@
  **/
 
 #include "smt/smt_engine.h"
+#include "util/statistics_registry.h"
 #include "check.h"
+
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <string>
+#include <unistd.h>
 
 using namespace CVC4;
 using namespace std;
+
+namespace CVC4 {
+
+namespace proof {
+  extern const char *const plf_signatures;
+}/* CVC4::proof namespace */
+
+namespace smt {
+
+class UnlinkProofFile {
+  string d_filename;
+public:
+  UnlinkProofFile(const char* filename) : d_filename(filename) {}
+  ~UnlinkProofFile() { unlink(d_filename.c_str()); }
+};/* class UnlinkProofFile */
+
+}/* CVC4::smt namespace */
+
+}/* CVC4 namespace */
 
 void SmtEngine::checkProof() {
 
 #ifdef CVC4_PROOF
 
-  //TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
+  Chat() << "generating proof..." << endl;
+
+  Proof* pf = getProof();
+
+  Chat() << "checking proof..." << endl;
+
+  if(!d_logic.isPure(theory::THEORY_BOOL) &&
+     !d_logic.isPure(theory::THEORY_UF)) {
+    // no checking for these yet
+    Notice() << "Notice: no proof-checking for non-UF proofs yet" << endl;
+    return;
+  }
+
+  char* pfFile = strdup("/tmp/cvc4_proof.XXXXXX");
+  int fd = mkstemp(pfFile);
+
+  // ensure this temp file is removed after
+  smt::UnlinkProofFile unlinker(pfFile);
+
+  ofstream pfStream(pfFile);
+  pfStream << proof::plf_signatures << endl;
+  pf->toStream(pfStream);
+  pfStream.close();
+  args a;
+  a.show_runs = false;
+  a.no_tail_calls = false;
+  a.compile_scc = false;
+  a.compile_scc_debug = false;
+  a.run_scc = false;
+  a.use_nested_app = false;
+  a.compile_lib = false;
+  init();
+  check_file(pfFile, args());
+  close(fd);
 
 #else /* CVC4_PROOF */
 

@@ -28,13 +28,9 @@ namespace CVC4 {
 
 std::string append(const std::string& str, uint64_t num) {
   std::ostringstream os;
-  os << str << num; 
-  return os.str(); 
+  os << str << num;
+  return os.str();
 }
-
-
-bool          ProofManager::isInitialized = false;
-ProofManager* ProofManager::proofManager = NULL;
 
 ProofManager::ProofManager(ProofFormat format):
   d_satProof(NULL),
@@ -50,41 +46,43 @@ ProofManager::~ProofManager() {
   delete d_cnfProof;
   delete d_theoryProof;
   delete d_fullProof;
-  for (IdToClause::iterator it = d_inputClauses.begin(); it != d_inputClauses.end(); ++it) {
-    delete it->second; 
+
+  for(IdToClause::iterator it = d_inputClauses.begin();
+      it != d_inputClauses.end();
+      ++it) {
+    delete it->second;
   }
-  for (IdToClause::iterator it = d_theoryLemmas.begin(); it != d_theoryLemmas.end(); ++it) {
-    delete it->second; 
+
+  for(IdToClause::iterator it = d_theoryLemmas.begin();
+      it != d_theoryLemmas.end();
+      ++it) {
+    delete it->second;
   }
-  // FIXME: memory leak because there are deleted theory lemmas that were not used in the
-  // SatProof 
+
+  // FIXME: memory leak because there are deleted theory lemmas that
+  // were not used in the SatProof
 }
 
 ProofManager* ProofManager::currentPM() {
-  if (isInitialized) {
-    return proofManager; 
-  } else {
-    proofManager = new ProofManager();
-    isInitialized = true; 
-    return proofManager; 
-  }
+  return smt::currentProofManager();
 }
 
 Proof* ProofManager::getProof(SmtEngine* smt) {
-  if (currentPM()->d_fullProof != NULL)
+  if (currentPM()->d_fullProof != NULL) {
     return currentPM()->d_fullProof;
+  }
   Assert (currentPM()->d_format == LFSC);
 
   currentPM()->d_fullProof = new LFSCProof(smt,
                                            (LFSCSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
-                                           (LFSCTheoryProof*)getTheoryProof()); 
+                                           (LFSCTheoryProof*)getTheoryProof());
   return currentPM()->d_fullProof;
 }
 
 SatProof* ProofManager::getSatProof() {
   Assert (currentPM()->d_satProof);
-  return currentPM()->d_satProof; 
+  return currentPM()->d_satProof;
 }
 
 CnfProof* ProofManager::getCnfProof() {
@@ -107,7 +105,7 @@ void ProofManager::initSatProof(Minisat::Solver* solver) {
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
   Assert (currentPM()->d_cnfProof == NULL);
   Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_cnfProof = new LFSCCnfProof(cnfStream); 
+  currentPM()->d_cnfProof = new LFSCCnfProof(cnfStream);
 }
 
 void ProofManager::initTheoryProof() {
@@ -126,8 +124,8 @@ std::string ProofManager::getLitName(prop::SatLiteral lit) {return append("l", l
 
 void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind) {
   for (unsigned i = 0; i < clause->size(); ++i) {
-    prop::SatLiteral lit = clause->operator[](i); 
-    d_propVars.insert(lit.getSatVariable()); 
+    prop::SatLiteral lit = clause->operator[](i);
+    d_propVars.insert(lit.getSatVariable());
   }
   if (kind == INPUT) {
     d_inputClauses.insert(std::make_pair(id, clause));
@@ -138,11 +136,11 @@ void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseK
 }
 
 void ProofManager::addAssertion(Expr formula) {
-  d_inputFormulas.insert(formula); 
+  d_inputFormulas.insert(formula);
 }
 
 void ProofManager::setLogic(const std::string& logic_string) {
-  d_logic = logic_string; 
+  d_logic = logic_string;
 }
 
 
@@ -158,17 +156,24 @@ LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf,
 void LFSCProof::toStream(std::ostream& out) {
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
-  out << "(check \n";
-  if (ProofManager::currentPM()->getLogic().compare("QF_UF") == 0) {
-    d_theoryProof->printAssertions(out, paren);
+  out << "(check\n";
+  if (d_theoryProof == NULL) {
+    d_theoryProof = new LFSCTheoryProof();
   }
-  out << "(: (holds cln) \n";
+  for(LFSCCnfProof::iterator i = d_cnfProof->begin_atom_mapping();
+      i != d_cnfProof->end_atom_mapping();
+      ++i) {
+    d_theoryProof->addDeclaration(*i);
+  }
+  d_theoryProof->printAssertions(out, paren);
+  out << "(: (holds cln)\n";
   d_cnfProof->printAtomMapping(out, paren);
   d_cnfProof->printClauses(out, paren);
-  d_satProof->printResolutions(out, paren); 
+  d_satProof->printResolutions(out, paren);
   paren <<")))\n;;";
-  out << paren.str(); 
+  out << paren.str();
+  out << "\n";
 }
 
 
-} /* CVC4  namespace */ 
+} /* CVC4  namespace */

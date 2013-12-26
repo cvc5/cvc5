@@ -35,7 +35,7 @@ class IDLAssertionDB {
   struct IDLAssertionListElement {
     /** The assertion itself */
     IDLAssertion d_assertion;
-    /** The inndex of the previous element (-1 for null) */
+    /** The index of the previous element (-1 for null) */
     unsigned d_previous;
 
     IDLAssertionListElement(const IDLAssertion& assertion, unsigned previous)

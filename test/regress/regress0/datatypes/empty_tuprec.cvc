@@ -1,3 +1,5 @@
+% COMMAND-LINE: --no-check-proofs
+%
 OPTION "incremental";
 
 a1, a2 : []; % empty tuples (a unit type)

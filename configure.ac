@@ -898,29 +898,13 @@ if test "$CVC4_CONFIGURE_IN_BUILDS" = yes -a -n "$CXXTEST"; then
   esac
 fi
 
-AC_ARG_VAR(LFSC, [path to LFSC proof checker])
-AC_ARG_VAR(LFSCARGS, [arguments to pass to LFSC proof checker])
-if test -z "$LFSC"; then
-  AC_CHECK_PROGS(LFSC, lfsc, [], [])
-else
-  AC_CHECK_PROG(LFSC, "$LFSC", [], [])
-fi
-AM_CONDITIONAL([PROOF_REGRESSIONS], [test -n "$LFSC" -a "$enable_proof" = yes])
-if test -n "$LFSC" -a "$enable_proof" = yes; then
-  TESTS_ENVIRONMENT="${TESTS_ENVIRONMENT:+$TESTS_ENVIRONMENT }LFSC=\"$LFSC $LFSCARGS\""
+TESTS_ENVIRONMENT=
+RUN_REGRESSION_ARGS=
+if test "$enable_proof" = yes; then
   RUN_REGRESSION_ARGS="${RUN_REGRESSION_ARGS:+$RUN_REGRESSION_ARGS }--proof"
 fi
 AC_SUBST([TESTS_ENVIRONMENT])
 AC_SUBST([RUN_REGRESSION_ARGS])
-if test -z "$LFSC"; then
-  support_proof_tests='no, lfsc proof checker unavailable'
-elif test "$enable_proof" = yes; then
-  support_proof_tests='yes, proof regression tests enabled'
-else
-  support_proof_tests='no, proof-generation disabled for this build'
-fi
-AC_SUBST([LFSC])
-AC_SUBST([LFSCARGS])
 
 CXXTESTGEN=
 AC_PATH_PROG(CXXTESTGEN, cxxtestgen.pl, [], [$CXXTEST:$PATH])
@@ -1292,7 +1276,8 @@ AC_SUBST(MAN_DATE)
 
 AC_CONFIG_FILES([
   Makefile.builds
-  Makefile]
+  Makefile
+  proofs/signatures/Makefile]
   m4_esyscmd([find contrib src test examples -name Makefile.am | grep -v '^contrib/theoryskel/' | grep -v '^contrib/alttheoryskel/' | sort | sed 's,\.am$,,'])
 )
 
@@ -1422,7 +1407,6 @@ Dumping      : $enable_dumping
 Muzzle       : $enable_muzzle
 
 Unit tests   : $support_unit_tests
-Proof tests  : $support_proof_tests
 gcov support : $enable_coverage
 gprof support: $enable_profiling
 

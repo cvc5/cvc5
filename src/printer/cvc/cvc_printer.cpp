@@ -80,7 +80,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
 
   // null
   if(n.getKind() == kind::NULL_EXPR) {
-    out << "NULL";
+    out << "null";
     return;
   }
 
@@ -776,6 +776,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<GetModelCommand>(out, c) ||
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
+     tryToStream<GetProofCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c) ||
      tryToStream<SetInfoCommand>(out, c) ||
@@ -1029,6 +1030,10 @@ static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
 
 static void toStream(std::ostream& out, const GetAssertionsCommand* c) throw() {
   out << "WHERE;";
+}
+
+static void toStream(std::ostream& out, const GetProofCommand* c) throw() {
+  out << "DUMP_PROOF;";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {

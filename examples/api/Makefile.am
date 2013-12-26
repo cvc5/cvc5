@@ -10,8 +10,8 @@ noinst_PROGRAMS = \
 	helloworld \
 	combination \
 	bitvectors \
-	bitvectors_and_arrays
-
+	bitvectors_and_arrays \
+	datatypes
 
 noinst_DATA =
 
@@ -38,6 +38,11 @@ helloworld_LDADD = \
 bitvectors_SOURCES = \
 	bitvectors.cpp
 bitvectors_LDADD = \
+	@builddir@/../../src/libcvc4.la
+
+datatypes_SOURCES = \
+	datatypes.cpp
+datatypes_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
 # for installation

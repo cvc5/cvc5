@@ -33,7 +33,7 @@ namespace idl {
 struct IDLReason {
   /** The variable of the reason */
   TNode x;
-  /** The constraint of the reaason */
+  /** The constraint of the reason */
   TNode constraint;
 
   IDLReason(TNode x, TNode constraint)

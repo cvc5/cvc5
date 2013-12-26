@@ -13,7 +13,7 @@
  **
  ** A manager for UfProofs.
  **
- ** 
+ **
  **/
 
 
@@ -24,33 +24,32 @@
 #include "util/proof.h"
 #include "expr/expr.h"
 #include <ext/hash_set>
-#include <iostream> 
+#include <iostream>
 
 namespace CVC4 {
 
-  typedef __gnu_cxx::hash_set<Type, TypeHashFunction > SortSet; 
-  typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet; 
+  typedef __gnu_cxx::hash_set<Type, TypeHashFunction > SortSet;
+  typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 
   class TheoryProof {
   protected:
     ExprSet d_termDeclarations;
-    SortSet d_sortDeclarations; 
+    SortSet d_sortDeclarations;
     ExprSet d_declarationCache;
-    
-    void addDeclaration(Expr atom); 
+
   public:
     TheoryProof();
     virtual ~TheoryProof() {}
     virtual void printAssertions(std::ostream& os, std::ostream& paren) = 0;
+    void addDeclaration(Expr atom);
   };
 
-  class LFSCTheoryProof: public TheoryProof {
-    static void printTerm(Expr term, std::ostream& os);
+  class LFSCTheoryProof : public TheoryProof {
     void printDeclarations(std::ostream& os, std::ostream& paren);
   public:
-    static void printFormula(Expr atom, std::ostream& os);
+    static void printTerm(Expr term, std::ostream& os);
     virtual void printAssertions(std::ostream& os, std::ostream& paren);
-  }; 
+  };
 } /* CVC4 namespace */
 
 #endif /* __CVC4__THEORY_PROOF_H */

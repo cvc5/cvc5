@@ -146,6 +146,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+
   PROOF (ProofManager::currentPM()->initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
