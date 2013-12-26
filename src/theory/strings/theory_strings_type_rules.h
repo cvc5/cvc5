@@ -57,6 +57,9 @@ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     if( check ){
+		if(n.getNumChildren() != 1) {
+          throw TypeCheckingExceptionPrivate(n, "expecting 1 term in string length");
+		}
         TypeNode t = n[0].getType(check);
         if (!t.isString()) {
           throw TypeCheckingExceptionPrivate(n, "expecting string terms in string length");
@@ -71,17 +74,62 @@ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     if( check ){
+		if(n.getNumChildren() != 3) {
+          throw TypeCheckingExceptionPrivate(n, "expecting 3 terms in substr");
+		}
         TypeNode t = n[0].getType(check);
         if (!t.isString()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting string terms in substr");
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in substr");
         }
 		t = n[1].getType(check);
         if (!t.isInteger()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting start int terms in substr");
+          throw TypeCheckingExceptionPrivate(n, "expecting a start int term in substr");
         }
 		t = n[2].getType(check);
         if (!t.isInteger()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting length int terms in substr");
+          throw TypeCheckingExceptionPrivate(n, "expecting a length int term in substr");
+        }
+    }
+    return nodeManager->stringType();
+  }
+};
+
+class StringContainTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ){
+		if(n.getNumChildren() != 2) {
+          throw TypeCheckingExceptionPrivate(n, "expecting 2 terms in string contain");
+		}
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an orginal string term in string contain");
+        }
+		t = n[1].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a target string term in string contain");
+        }
+    }
+    return nodeManager->stringType();
+  }
+};
+
+class StringCharAtTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ){
+		if(n.getNumChildren() != 2) {
+          throw TypeCheckingExceptionPrivate(n, "expecting 2 terms in string char at");
+		}
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string char at");
+        }
+		t = n[1].getType(check);
+        if (!t.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer string term in string char at");
         }
     }
     return nodeManager->stringType();

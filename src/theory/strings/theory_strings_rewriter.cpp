@@ -341,21 +341,35 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
             }
         }
     } else if(node.getKind() == kind::STRING_SUBSTR) {
-		if(options::stringExp()) {
-			if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
-				int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-				int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-				if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
-					retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
-				} else {
-					// TODO: some issues, must be guarded by users
-					retNode = NodeManager::currentNM()->mkConst( false );
-				}
+		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
+			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+			if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
+				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
 			} else {
-				//handled by preprocess
+				// TODO: some issues, must be guarded by users
+				retNode = NodeManager::currentNM()->mkConst( false );
 			}
-		} else {
-			throw LogicException("substring not supported in this release");
+		}
+	} else if(node.getKind() == kind::STRING_STRCTN) {
+		if( node[0].isConst() && node[1].isConst() ) {
+			CVC4::String s = node[0].getConst<String>();
+			CVC4::String t = node[1].getConst<String>();
+			if( s.find(t) != std::string::npos ) {
+				retNode = NodeManager::currentNM()->mkConst( true );
+			} else {
+				retNode = NodeManager::currentNM()->mkConst( false );
+			}
+		}
+	} else if(node.getKind() == kind::STRING_CHARAT) {
+		if( node[0].isConst() && node[1].isConst() ) {
+			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+			if( node[0].getConst<String>().size() > (unsigned) i ) {
+				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, 1) );
+			} else {
+				// TODO: some issues, must be guarded by users
+				retNode = NodeManager::currentNM()->mkConst( false );
+			}
 		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);

@@ -183,6 +183,25 @@ public:
 	  return true;
   }
 
+  std::size_t find(const String &y) const {
+	  if(y.d_str.size() == 0) return 0;
+	  if(d_str.size() == 0) return std::string::npos;
+	  std::size_t ret = std::string::npos;
+	  for(int i = 0; i <= (int) d_str.size() - (int) y.d_str.size(); i++) {
+		  if(d_str[i] == y.d_str[0]) {
+			  std::size_t j=0;
+			  for(; j<y.d_str.size(); j++) {
+				  if(d_str[i+j] != y.d_str[j]) break;
+			  }
+			  if(j == y.d_str.size()) {
+				  ret = (std::size_t) i;
+				  break;
+			  }
+		  }
+	  }
+	  return ret;
+  }
+
   String substr(unsigned i) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
