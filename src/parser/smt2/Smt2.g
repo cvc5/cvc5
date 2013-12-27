@@ -338,7 +338,7 @@ command returns [CVC4::Command* cmd = NULL]
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       { $cmd = new GetValueCommand(terms); }
-    | term[expr, expr2]
+    | ~LPAREN_TOK
       { PARSER_STATE->parseError("The get-value command expects a list of terms.  Perhaps you forgot a pair of parentheses?"); } )
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
