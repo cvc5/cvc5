@@ -144,18 +144,21 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			std::vector< Node > or_vec;
 			or_vec.push_back( w.eqNode(y) );
 			Node x1 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node c1 = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::AND,
+			Node b1 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, x1 );
+			Node c1 = NodeManager::currentNM()->mkNode( kind::EXISTS, b1, NodeManager::currentNM()->mkNode( kind::AND,
 							x1.eqNode( emptyString ).negate(),
 							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, x1, y ) )));
 			or_vec.push_back( c1 );
 			Node z2 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node c2 = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::AND,
+			Node b2 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, z2 );
+			Node c2 = NodeManager::currentNM()->mkNode( kind::EXISTS, b2, NodeManager::currentNM()->mkNode( kind::AND,
 							z2.eqNode( emptyString ).negate(),
 							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, y, z2 ) )));
 			or_vec.push_back( c2 );
 			Node x3 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
 			Node z3 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node c3 = NodeManager::currentNM()->mkNode( kind::EXISTS, NodeManager::currentNM()->mkNode( kind::AND,
+			Node b3 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, x3, z3 );
+			Node c3 = NodeManager::currentNM()->mkNode( kind::EXISTS, b3, NodeManager::currentNM()->mkNode( kind::AND,
 							x3.eqNode( emptyString ).negate(), z3.eqNode( emptyString ).negate(),
 							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, x3, y, z3 ) )));
 			or_vec.push_back( c3 );

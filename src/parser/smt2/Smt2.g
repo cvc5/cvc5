@@ -1252,8 +1252,8 @@ builtinOp[CVC4::Kind& kind]
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
   | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
-//  | STRCTN_TOK     { $kind = CVC4::kind::STRING_STRCTN; }
-//  | STRCAT_TOK     { $kind = CVC4::kind::STRING_CHARAT; }
+  | STRCTN_TOK     { $kind = CVC4::kind::STRING_STRCTN; }
+  | STRCAT_TOK     { $kind = CVC4::kind::STRING_CHARAT; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
