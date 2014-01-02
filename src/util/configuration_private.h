@@ -136,7 +136,7 @@ This is CVC4 version " CVC4_RELEASE_STRING ) + \
     )) + "\n\
 compiled with " + ::CVC4::Configuration::getCompiler() + "\n\
 on " + ::CVC4::Configuration::getCompiledDateTime() + "\n\n\
-Copyright (C) 2009, 2010, 2011, 2012, 2013\n\
+Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014\n\
   New York University and The University of Iowa\n\n" + \
     ( IS_GPL_BUILD ? "\
 This build of CVC4 uses GPLed libraries, and is thus covered by the GNU\n\

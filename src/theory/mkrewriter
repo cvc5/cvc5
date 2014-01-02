@@ -14,7 +14,7 @@
 # Output is to standard out.
 #
 
-copyright=2010-2013
+copyright=2010-2014
 
 cat <<EOF
 /*********************                                                        */

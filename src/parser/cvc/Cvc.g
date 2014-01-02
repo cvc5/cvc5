@@ -417,7 +417,7 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 @header {
 /**
  ** This file is part of CVC4.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/

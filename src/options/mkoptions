@@ -12,7 +12,7 @@
 #   mkoptions (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+
 #
 
-copyright=2011-2013
+copyright=2011-2014
 
 me=$(basename "$0")
 
