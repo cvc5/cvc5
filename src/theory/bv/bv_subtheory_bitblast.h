@@ -26,7 +26,8 @@ namespace theory {
 namespace bv {
 
 class LazyBitblaster;
-class AbstractionModule; 
+class AbstractionModule;
+
 /**
  * BitblastSolver
  */

@@ -487,10 +487,16 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
 void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 {
     out_conflict.clear();
-    out_conflict.push(p);
 
-    if (decisionLevel() == 0)
-        return;
+    // if this is a currently assigned assumption 
+    if (marker[var(p)] == 2) {
+      out_conflict.push(p);
+    } 
+
+    if (decisionLevel() == 0) {
+      assert (out_conflict.size()); 
+      return;
+    }
 
     seen[var(p)] = 1;
 
@@ -498,9 +504,18 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
         Var x = var(trail[i]);
         if (seen[x]) {
             if (reason(x) == CRef_Undef) {
-              assert(marker[x] == 2);
-              assert(level(x) > 0);
-              out_conflict.push(~trail[i]);
+              // p can not have an explicit reason as the learnt_clause
+              // is its implicit reason (marked as seen before calling
+              // analyzeFinal
+              if (var(p) != x ) {
+                if (marker[x] == 2) {
+                  assert(level(x) > 0);
+                  out_conflict.push(~trail[i]);
+                } else {
+                  // must be an unit clause at the wrong level
+                  assert (level(x) <= assumptions.size()); 
+                }
+              }
             } else {
               Clause& c = ca[reason(x)];
               for (int j = 1; j < c.size(); j++)
@@ -512,6 +527,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
     }
 
     seen[var(p)] = 0;
+    assert (out_conflict.size()); 
 }
 
 
@@ -530,9 +546,9 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
 }
 
 void Solver::popAssumption() {
-    assumptions.pop();
-    conflict.clear();
-    cancelUntil(assumptions.size());
+  assumptions.pop();
+  conflict.clear();
+  cancelUntil(assumptions.size());
 }
 
 lbool Solver::propagateAssumptions() {
@@ -767,28 +783,49 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             analyze(confl, learnt_clause, backtrack_level, uip);
 
             Lit p = learnt_clause[0];
-            bool assumption = marker[var(p)] == 2;
 
-            cancelUntil(backtrack_level);
+            // never backtrack bellow assumptions level (this is to maintain explanations)
+            cancelUntil(backtrack_level < assumptions.size() ? assumptions.size() : backtrack_level);
 
-            if (learnt_clause.size() == 1){
-                uncheckedEnqueue(p);
-            }else{
-                CRef cr = ca.alloc(learnt_clause, true);
-                learnts.push(cr);
-                attachClause(cr);
-                claBumpActivity(ca[cr]);
-                uncheckedEnqueue(p, cr);
+            CRef cr = CRef_Undef;
+            if (learnt_clause.size() > 1) {
+              cr = ca.alloc(learnt_clause, true);
+              learnts.push(cr);
+              attachClause(cr);
+              claBumpActivity(ca[cr]);
             }
 
-            // if an assumption, we're done
-            if (assumption) {
-              assert(decisionLevel() < assumptions.size());
+            // store clauses for backtrack propagation 
+            if (backtrack_level < assumptions.size()) {
+              if (learnt_clause.size() == 1) {
+                literalsToPropagate.push_back(p); 
+              } else {
+                if (clausesToPropagate.find(backtrack_level) == clausesToPropagate.end()) {
+                  clausesToPropagate[backtrack_level] = std::vector<CRef>(); 
+                }
+                assert(cr != CRef_Undef); 
+                clausesToPropagate[backtrack_level].push_back(cr); 
+              }
+            }
+            
+            // if an assumption or something entailed by an assumption
+            if (level(var(p)) <= assumptions.size()) {
+              for (unsigned i = 1; i < learnt_clause.size(); ++i) {
+                seen[var(learnt_clause[i])] = 1;
+              }
               analyzeFinal(p, conflict);
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
-            
+
+            if (learnt_clause.size() == 1){
+              uncheckedEnqueue(p);
+            }else{
+              assert (cr != CRef_Undef); 
+              uncheckedEnqueue(p, cr);
+            }
+
+                 
             varDecayActivity();
             claDecayActivity();
 
@@ -847,6 +884,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     // Dummy decision level:
                     newDecisionLevel();
                 }else if (value(p) == l_False){
+                    marker[var(p)] = 2; 
                     analyzeFinal(~p, conflict);
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
@@ -996,8 +1034,11 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
     queue.pop();
     if (reason(var(l)) == CRef_Undef) {
       if (level(var(l)) == 0) continue;
-      Assert(marker[var(l)] == 2);
-      explanation.push_back(l);
+      if (marker[var(l)] == 2) {
+        explanation.push_back(l);
+      } else {
+        assert (level(var(l)) <= assumptions.size()); 
+      }
       visited.insert(var(l));
     } else {
       Clause& c = ca[reason(var(l))];
@@ -1096,17 +1137,23 @@ void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
 
 void Solver::relocAll(ClauseAllocator& to)
 {
+  std::cout << "BVMinisat::relocAll \n"; 
     // All watchers:
     //
     // for (int i = 0; i < watches.size(); i++)
+  __gnu_cxx::hash_map<CRef, CRef> reloc_map; 
     watches.cleanAll();
     for (int v = 0; v < nVars(); v++)
         for (int s = 0; s < 2; s++){
             Lit p = mkLit(v, s);
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
-            for (int j = 0; j < ws.size(); j++)
+            for (int j = 0; j < ws.size(); j++) {
+                CRef old_cr = ws[j].cref;
                 ca.reloc(ws[j].cref, to);
+                CRef new_cr = ws[j].cref;
+                reloc_map[old_cr] = new_cr;
+            }
         }
 
     // All reasons:
@@ -1114,19 +1161,41 @@ void Solver::relocAll(ClauseAllocator& to)
     for (int i = 0; i < trail.size(); i++){
         Var v = var(trail[i]);
 
-        if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to);
+        if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)]))) {
+          CRef old_cr = vardata[v].reason;
+          ca.reloc(vardata[v].reason, to);
+          CRef new_cr = vardata[v].reason;
+          reloc_map[old_cr] = new_cr; 
+        }
     }
 
     // All learnt:
     //
-    for (int i = 0; i < learnts.size(); i++)
-        ca.reloc(learnts[i], to);
+    for (int i = 0; i < learnts.size(); i++) {
+      CRef old_cr = learnts[i];
+      ca.reloc(learnts[i], to);
+      CRef new_cr = learnts[i];
+      reloc_map[old_cr] = new_cr; 
+    }
 
     // All original:
     //
-    for (int i = 0; i < clauses.size(); i++)
-        ca.reloc(clauses[i], to);
+    for (int i = 0; i < clauses.size(); i++) {
+      CRef old_cr = clauses[i]; 
+      ca.reloc(clauses[i], to);
+      CRef new_cr = clauses[i];
+      reloc_map[old_cr] = new_cr;
+    }
+
+    // updating references for backtracking propagation clauses
+    for (LevelToCRefs::iterator it = clausesToPropagate.begin(); it != clausesToPropagate.end(); ++it) {
+      std::vector<CRef>& clauses = it->second;
+      for (unsigned i = 0; i < clauses.size(); ++i) {
+        CRef old = clauses[i];
+        Assert (reloc_map.find(old) != reloc_map.end()); 
+        clauses[i] = reloc_map[old]; 
+      }
+    }
 }
 
 
@@ -1141,4 +1210,57 @@ void Solver::garbageCollect()
         printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n", 
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
+}
+
+void Solver::backtrackPropagate(unsigned level) {
+  Assert (decisionLevel() <= level);
+  
+  // propagate unit clauses
+  for (unsigned i = 0; i < literalsToPropagate.size(); ++i) {
+    Lit lit = literalsToPropagate[i];
+    if (value(lit) == l_Undef) {
+      uncheckedEnqueue(lit);
+    }
+  }
+
+  // propagate all clauses that propagate at levels 
+  // bellow the current backtracking level
+  for (unsigned lv = 0; lv <= level; ++lv) {
+    // no clauses to propagate at this level 
+    if (clausesToPropagate.find(lv) == clausesToPropagate.end())
+      continue;
+    
+    std::vector<CRef>& clauses = clausesToPropagate[lv];
+    for (unsigned i = 0; i < clauses.size(); ++i) {
+      CRef cr = clauses[i]; 
+      Clause& cl = ca[cr];
+
+      Lit p = cl[0];
+      if (value(p) == l_Undef) {
+        // paranoid check that this is a propagating clause
+        for (unsigned j = 1; j < cl.size(); ++j) {
+          Assert (value(cl[j]) == l_False); 
+        }
+        uncheckedEnqueue(p, cr);
+      } else {
+        // Assert (value(p) == l_True); 
+      }
+    }
+  }
+
+  // remove the clauses at a higher decision level
+  for (LevelToCRefs::iterator it = clausesToPropagate.begin(); it != clausesToPropagate.end(); ) {
+    if (it->first >= level) {
+      clausesToPropagate.erase(it++); 
+    } else {
+      ++it;
+    }
+  }
+
+  if (decisionLevel() == 0) {
+    literalsToPropagate.clear(); 
+  }
+  
+  // bool ok = propagate();
+  // Assert (ok); 
 }
