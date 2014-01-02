@@ -1,4 +1,4 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013 New York University
+CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 New York University
 and The University of Iowa.  All rights reserved.
 
 The source code of CVC4 is open and available to students, researchers,
@@ -23,7 +23,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Tue, 17 Dec 2013 14:35:55 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 02 Jan 2014 14:02:28 -0500
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:

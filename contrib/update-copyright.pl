@@ -2,7 +2,7 @@
 #
 # update-copyright.pl
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2009-2013  The CVC4 Project
+# Copyright (c) 2009-2014  The CVC4 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -39,7 +39,7 @@ my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2013';
+my $years = '2009-2014';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
