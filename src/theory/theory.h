@@ -254,6 +254,7 @@ protected:
   , d_sharedTerms(satContext)
   , d_out(&out)
   , d_valuation(valuation)
+  , d_proofEnabled(false)
   {
     StatisticsRegistry::registerStat(&d_computeCareGraphTime);
   }
@@ -298,6 +299,12 @@ protected:
 
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
+
+  /**
+   * Whether proofs are enabled
+   *
+   */
+  bool d_proofEnabled;
 
 public:
 

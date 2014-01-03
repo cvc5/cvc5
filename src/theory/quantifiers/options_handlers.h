@@ -73,6 +73,28 @@ priority \n\
 \n\
 ";
 
+static const std::string mbqiModeHelp = "\
+Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
+\n\
+default \n\
++ Default, use model-based quantifier instantiation algorithm from CADE 24 finite\n\
+  model finding paper.\n\
+\n\
+none \n\
++ Disable model-based quantifier instantiation.\n\
+\n\
+instgen \n\
++ Use instantiation algorithm that mimics Inst-Gen calculus. \n\
+\n\
+fmc \n\
++ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability. \n\
+  Modulo Theories.\n\
+\n\
+interval \n\
++ Use algorithm that abstracts domain elements as intervals. \n\
+\n\
+";
+
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
     return INST_WHEN_PRE_FULL;
@@ -133,6 +155,30 @@ inline AxiomInstMode stringToAxiomInstMode(std::string option, std::string optar
     throw OptionException(std::string("unknown option for --axiom-inst: `") +
                           optarg + "'.  Try --axiom-inst help.");
   }
+}
+
+inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default") {
+    return MBQI_DEFAULT;
+  } else if(optarg ==  "none") {
+    return MBQI_NONE;
+  } else if(optarg ==  "instgen") {
+    return MBQI_INST_GEN;
+  } else if(optarg ==  "fmc") {
+    return MBQI_FMC;
+  } else if(optarg ==  "interval") {
+    return MBQI_INTERVAL;
+  } else if(optarg ==  "help") {
+    puts(mbqiModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --mbqi: `") +
+                          optarg + "'.  Try --mbqi help.");
+  }
+}
+
+inline void checkMbqiMode(std::string option, MbqiMode mode, SmtEngine* smt) throw(OptionException) {
+
 }
 
 }/* CVC4::theory::quantifiers namespace */

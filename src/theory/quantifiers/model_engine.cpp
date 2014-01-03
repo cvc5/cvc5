@@ -21,6 +21,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/qinterval_builder.h"
 
 using namespace std;
 using namespace CVC4;
@@ -34,11 +36,18 @@ using namespace CVC4::theory::inst;
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ){
 
-  if( options::fmfFullModelCheck() || options::fmfBoundInt() ){
+  Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
+  if( options::mbqiMode()==MBQI_FMC || options::fmfBoundInt() ){
+    Trace("model-engine-debug") << "...make fmc builder." << std::endl;
     d_builder = new fmcheck::FullModelChecker( c, qe );
-  }else if( options::fmfNewInstGen() ){
+  }else if( options::mbqiMode()==MBQI_INTERVAL ){
+    Trace("model-engine-debug") << "...make interval builder." << std::endl;
+    d_builder = new QIntervalBuilder( c, qe );
+  }else if( options::mbqiMode()==MBQI_INST_GEN ){
+    Trace("model-engine-debug") << "...make inst-gen builder." << std::endl;
     d_builder = new QModelBuilderInstGen( c, qe );
   }else{
+    Trace("model-engine-debug") << "...make default model builder." << std::endl;
     d_builder = new QModelBuilderDefault( c, qe );
   }
 
@@ -203,7 +212,7 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::fmfFullModelCheck() && options::fmfModelBasedInst() ? 2 : 1;
+  int e_max = options::mbqiMode()==MBQI_FMC ? 2 : 1;
   for( int e=0; e<e_max; e++) {
     if (d_addedLemmas==0) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){

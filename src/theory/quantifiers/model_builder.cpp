@@ -44,7 +44,7 @@ bool QModelBuilder::isQuantifierActive( Node f ) {
 
 
 bool QModelBuilder::optUseModel() {
-  return options::fmfModelBasedInst() || options::fmfBoundInt();
+  return options::mbqiMode()!=MBQI_NONE || options::fmfBoundInt();
 }
 
 void QModelBuilder::debugModel( FirstOrderModel* fm ){
@@ -124,6 +124,7 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelIG* fm = f->asFirstOrderModelIG();
+  Trace("model-engine-debug") << "Process build model, fullModel = " << fullModel << " " << optUseModel() << std::endl;
   if( fullModel ){
     Assert( d_curr_model==fm );
     //update models
@@ -145,7 +146,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
     reset( fm );
     //only construct first order model if optUseModel() is true
     if( optUseModel() ){
-      Trace("model-engine-debug") << "Initializing quantifiers..." << std::endl;
+      Trace("model-engine-debug") << "Initializing " << fm->getNumAssertedQuantifiers() << " quantifiers..." << std::endl;
       //check if any quantifiers are un-initialized
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node f = fm->getAssertedQuantifier( i );
@@ -397,7 +398,6 @@ bool QModelBuilderIG::isTermActive( Node n ){
 //do exhaustive instantiation
 bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-
     RepSetIterator riter( d_qe, &(d_qe->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
@@ -456,7 +456,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_statistics.d_eval_lits += fmig->d_eval_lits;
         d_statistics.d_eval_lits_unknown += fmig->d_eval_lits_unknown;
       }
-      Trace("inst-fmf-ei") << "Finished: " << std::endl;
+      Trace("inst-fmf-ei") << "For " << f << ", finished: " << std::endl;
       Trace("inst-fmf-ei") << "   Inst Tried: " << d_triedLemmas << std::endl;
       Trace("inst-fmf-ei") << "   Inst Added: " << d_addedLemmas << std::endl;
       if( d_addedLemmas>1000 ){

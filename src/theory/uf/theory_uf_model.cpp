@@ -346,23 +346,21 @@ void UfModelTreeGenerator::setValue( TheoryModel* m, Node n, Node v, bool ground
   d_set_values[ isReq ? 1 : 0 ][ ground ? 1 : 0 ][n] = v;
   if( optUsePartialDefaults() ){
     if( !ground ){
-      if (!options::fmfFullModelCheck()) {
-        int defSize = (int)d_defaults.size();
-        for( int i=0; i<defSize; i++ ){
-          //for soundness, to allow variable order-independent function interpretations,
-          //  we must ensure that the intersection of all default terms
-          //  is also defined.
-          //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
-          //  then we must define f( b, a ).
-          bool isGround;
-          Node ni = getIntersection( m, n, d_defaults[i], isGround );
-          if( !ni.isNull() ){
-            //if the intersection exists, and is not already defined
-            if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
-                d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
-              //use the current value
-              setValue( m, ni, v, isGround, false );
-            }
+      int defSize = (int)d_defaults.size();
+      for( int i=0; i<defSize; i++ ){
+        //for soundness, to allow variable order-independent function interpretations,
+        //  we must ensure that the intersection of all default terms
+        //  is also defined.
+        //for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
+        //  then we must define f( b, a ).
+        bool isGround;
+        Node ni = getIntersection( m, n, d_defaults[i], isGround );
+        if( !ni.isNull() ){
+          //if the intersection exists, and is not already defined
+          if( d_set_values[0][ isGround ? 1 : 0 ].find( ni )==d_set_values[0][ isGround ? 1 : 0 ].end() &&
+              d_set_values[1][ isGround ? 1 : 0 ].find( ni )==d_set_values[1][ isGround ? 1 : 0 ].end() ){
+            //use the current value
+            setValue( m, ni, v, isGround, false );
           }
         }
       }

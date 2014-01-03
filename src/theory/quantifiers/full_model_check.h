@@ -92,7 +92,6 @@ protected:
   std::map<Node, Node > d_quant_cond;
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
-  std::map<Node, std::map< Node, int > > d_quant_var_id;
   std::map<Node, std::vector< int > > d_star_insts;
   void initializeType( FirstOrderModelFmc * fm, TypeNode tn );
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
@@ -138,7 +137,6 @@ public:
 
   bool optBuildAtFullModel();
 
-  int getVariableId(Node f, Node n) { return d_quant_var_id[f][n]; }
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);

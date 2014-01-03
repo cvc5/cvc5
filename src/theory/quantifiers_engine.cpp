@@ -49,11 +49,14 @@ d_lemmas_produced_c(u){
   d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
 
+  Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
   //the model object
-  if( options::fmfFullModelCheck() || options::fmfBoundInt() ){
+  if( options::mbqiMode()==quantifiers::MBQI_FMC || options::fmfBoundInt() ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
+  }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
+    d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );
   }else{
-    d_model = new quantifiers::FirstOrderModelIG( c, "FirstOrderModelIG" );
+    d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
   }
 
   //add quantifiers modules

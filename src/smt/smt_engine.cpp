@@ -771,7 +771,7 @@ void SmtEngine::finishInit() {
     setTimeLimit(options::cumulativeMillisecondLimit(), true);
   }
 
-  PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); ); 
+  PROOF( ProofManager::currentPM()->setLogic(d_logic.getLogicString()); );
 }
 
 void SmtEngine::finalOptionsAreSet() {
@@ -1144,13 +1144,17 @@ void SmtEngine::setLogicInternal() throw() {
   }
   if ( ! options::fmfInstGen.wasSetByUser()) {
     //if full model checking is on, disable inst-gen techniques
-    if( options::fmfFullModelCheck() ){
+    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
       options::fmfInstGen.set( false );
+    }else{
+      options::fmfInstGen.set( true );
     }
   }
   if ( options::fmfBoundInt() ){
-    //if bounded integers are set, must use full model check for MBQI
-    options::fmfFullModelCheck.set( true );
+    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
+      //if bounded integers are set, must use full model check for MBQI
+      options::mbqiMode.set( quantifiers::MBQI_FMC );
+    }
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
@@ -3309,7 +3313,7 @@ Result SmtEngine::checkSat(const Expr& ex) throw(TypeCheckingException, ModalExc
     // Ensure expr is type-checked at this point.
     ensureBoolean(e);
     // Give it to proof manager
-    PROOF( ProofManager::currentPM()->addAssertion(e); ); 
+    PROOF( ProofManager::currentPM()->addAssertion(e); );
   }
 
   // check to see if a postsolve() is pending
@@ -3390,7 +3394,7 @@ Result SmtEngine::query(const Expr& ex) throw(TypeCheckingException, ModalExcept
   // Ensure that the expression is type-checked at this point, and Boolean
   ensureBoolean(e);
   // Give it to proof manager
-  PROOF( ProofManager::currentPM()->addAssertion(e.notExpr()); ); 
+  PROOF( ProofManager::currentPM()->addAssertion(e.notExpr()); );
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
@@ -3455,7 +3459,7 @@ Result SmtEngine::assertFormula(const Expr& ex) throw(TypeCheckingException, Log
   finalOptionsAreSet();
   doPendingPops();
 
-  PROOF( ProofManager::currentPM()->addAssertion(ex); ); 
+  PROOF( ProofManager::currentPM()->addAssertion(ex); );
 
   Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
 

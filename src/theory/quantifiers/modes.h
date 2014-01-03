@@ -55,6 +55,22 @@ typedef enum {
   AXIOM_INST_MODE_PRIORITY,
 } AxiomInstMode;
 
+typedef enum {
+  /** default, mbqi from CADE 24 paper */
+  MBQI_DEFAULT,
+  /** no mbqi */
+  MBQI_NONE,
+  /** implementation that mimics inst-gen */
+  MBQI_INST_GEN,
+  /** mbqi from Section 5.4.2 of AJR thesis */
+  MBQI_FMC,
+  /** mbqi with integer intervals */
+  //MBQI_FMC_INTERVAL,
+  /** mbqi with interval abstraction of uninterpreted sorts */
+  MBQI_INTERVAL,
+} MbqiMode;
+
+
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

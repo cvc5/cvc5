@@ -54,7 +54,7 @@ static const EqualityEdgeId null_edge = (EqualityEdgeId)(-1);
 
 /**
  * A reason for a merge. Either an equality x = y, a merge of two
- * function applications f(x1, x2), f(y1, y2) due to congruence, 
+ * function applications f(x1, x2), f(y1, y2) due to congruence,
  * or a merge of an equality to false due to both sides being
  * (different) constants.
  */
@@ -67,6 +67,9 @@ enum MergeReasonType {
   MERGED_THROUGH_REFLEXIVITY,
   /** Equality was merged to false, due to both sides of equality being a constant */
   MERGED_THROUGH_CONSTANTS,
+
+  /** (for proofs only) Equality was merged due to transitivity */
+  MERGED_THROUGH_TRANS,
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -83,6 +86,10 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_CONSTANTS:
     out << "constants disequal";
     break;
+  // (for proofs only)
+  case MERGED_THROUGH_TRANS:
+    out << "transitivity";
+    break;
   default:
     Unreachable();
   }
@@ -98,7 +105,7 @@ struct MergeCandidate {
   MergeReasonType type;
   TNode reason;
   MergeCandidate(EqualityNodeId x, EqualityNodeId y, MergeReasonType type, TNode reason)
-  : t1Id(x), t2Id(y), type(type), reason(reason) 
+  : t1Id(x), t2Id(y), type(type), reason(reason)
   {}
 };
 
@@ -112,9 +119,9 @@ struct DisequalityReasonRef {
   : mergesStart(mergesStart), mergesEnd(mergesEnd) {}
 };
 
-/** 
+/**
  * We maintain uselist where a node appears in, and this is the node
- * of such a list. 
+ * of such a list.
  */
 class UseListNode {
 
@@ -150,12 +157,12 @@ public:
 };
 
 /**
- * Main class for representing nodes in the equivalence class. The 
+ * Main class for representing nodes in the equivalence class. The
  * nodes are a circular list, with the representative carrying the
  * size. Each individual node carries with itself the uselist of
- * function applications it appears in and the list of asserted 
+ * function applications it appears in and the list of asserted
  * disequalities it belongs to. In order to get these lists one must
- * traverse the entire class and pick up all the individual lists. 
+ * traverse the entire class and pick up all the individual lists.
  */
 class EqualityNode {
 
@@ -180,7 +187,7 @@ public:
    */
   EqualityNode(EqualityNodeId nodeId = null_id)
   : d_size(1)
-  , d_findId(nodeId) 
+  , d_findId(nodeId)
   , d_nextId(nodeId)
   , d_useList(null_uselist_id)
   {}
@@ -232,7 +239,7 @@ public:
 
   /**
    * Note that this node is used in a function application funId, or
-   * a negatively asserted equality (dis-equality) with funId. 
+   * a negatively asserted equality (dis-equality) with funId.
    */
   template<typename memory_class>
   void usedIn(EqualityNodeId funId, memory_class& memory) {
@@ -275,8 +282,8 @@ enum FunctionApplicationType {
 
 /**
  * Represents the function APPLY a b. If isEquality is true then it
- * represents the predicate (a = b). Note that since one can not 
- * construct the equality over function terms, the equality and hash 
+ * represents the predicate (a = b). Note that since one can not
+ * construct the equality over function terms, the equality and hash
  * function below are still well defined.
  */
 struct FunctionApplication {

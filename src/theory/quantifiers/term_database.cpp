@@ -146,6 +146,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
              if( !d_func_map_trie[ it->first ].addTerm( d_quantEngine, n ) ){
                NoMatchAttribute nma;
                n.setAttribute(nma,true);
+               Debug("term-db-cong") << n << " is redundant." << std::endl;
                congruentCount++;
              }else{
                nonCongruentCount++;
@@ -173,6 +174,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
              if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
                NoMatchAttribute nma;
                en.setAttribute(nma,true);
+               Debug("term-db-cong") << en << " is redundant." << std::endl;
                congruentCount++;
              }else{
                nonCongruentCount++;
@@ -222,10 +224,14 @@ Node TermDb::getModelBasisOpTerm( Node op ){
     TypeNode t = op.getType();
     std::vector< Node > children;
     children.push_back( op );
-    for( size_t i=0; i<t.getNumChildren()-1; i++ ){
+    for( int i=0; i<(int)(t.getNumChildren()-1); i++ ){
       children.push_back( getModelBasisTerm( t[i] ) );
     }
-    d_model_basis_op_term[op] = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+    if( children.size()==1 ){
+      d_model_basis_op_term[op] = op;
+    }else{
+      d_model_basis_op_term[op] = NodeManager::currentNM()->mkNode( APPLY_UF, children );
+    }
   }
   return d_model_basis_op_term[op];
 }

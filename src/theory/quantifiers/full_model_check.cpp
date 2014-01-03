@@ -588,7 +588,6 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
         std::vector< TypeNode > types;
         for(unsigned i=0; i<f[0].getNumChildren(); i++){
           types.push_back(f[0][i].getType());
-          d_quant_var_id[f][f[0][i]] = i;
         }
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
         Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
@@ -599,7 +598,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
         initializeType( fmfmc, f[0][i].getType() );
       }
 
-      if( !options::fmfModelBasedInst() ){
+      if( options::mbqiMode()==MBQI_NONE ){
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
         d_quant_models[f].addEntry( fmfmc, c, d_false );
@@ -958,8 +957,8 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
   }else{
     TypeNode tn = eq[0].getType();
     if( tn.isSort() ){
-      int j = getVariableId(f, eq[0]);
-      int k = getVariableId(f, eq[1]);
+      int j = fm->getVariableId(f, eq[0]);
+      int k = fm->getVariableId(f, eq[1]);
       if( !fm->d_rep_set.hasType( tn ) ){
         getSomeDomainElement( fm, tn );  //to verify the type is initialized
       }
@@ -977,7 +976,7 @@ void FullModelChecker::doVariableEquality( FirstOrderModelFmc * fm, Node f, Def 
 }
 
 void FullModelChecker::doVariableRelation( FirstOrderModelFmc * fm, Node f, Def & d, Def & dc, Node v) {
-  int j = getVariableId(f, v);
+  int j = fm->getVariableId(f, v);
   for (unsigned i=0; i<dc.d_cond.size(); i++) {
     Node val = dc.d_value[i];
     if( val.isNull() ){
@@ -1074,7 +1073,7 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     Trace("fmc-uf-process") << "Process " << v << std::endl;
     bool bind_var = false;
     if( !v.isNull() && v.getKind()==kind::BOUND_VARIABLE ){
-      int j = getVariableId(f, v);
+      int j = fm->getVariableId(f, v);
       Trace("fmc-uf-process") << v << " is variable #" << j << std::endl;
       if (!fm->isStar(cond[j+1]) && !fm->isInterval(cond[j+1])) {
         v = cond[j+1];
@@ -1084,7 +1083,7 @@ void FullModelChecker::doUninterpretedCompose2( FirstOrderModelFmc * fm, Node f,
     }
     if (bind_var) {
       Trace("fmc-uf-process") << "bind variable..." << std::endl;
-      int j = getVariableId(f, v);
+      int j = fm->getVariableId(f, v);
       if( fm->isStar(cond[j+1]) ){
         for (std::map<Node, EntryTrie>::iterator it = curr.d_child.begin(); it != curr.d_child.end(); ++it) {
           cond[j+1] = it->first;

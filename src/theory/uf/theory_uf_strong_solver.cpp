@@ -1338,6 +1338,21 @@ void StrongSolverTheoryUF::SortModel::addTotalityAxiom( Node n, int cardinality,
           d_sym_break_terms[n.getType()][sort_id].push_back( n );
           d_sym_break_index[n] = use_cardinality;
           Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
+          if( d_sym_break_terms[n.getType()][sort_id].size()>1 ){
+            //enforce canonicity
+            for( int i=2; i<use_cardinality; i++ ){
+              //can only be assigned to domain constant d if someone has been assigned domain constant d-1
+              Node eq = n.eqNode( getTotalityLemmaTerm( cardinality, i ) );
+              std::vector< Node > eqs;
+              for( unsigned j=0; j<(d_sym_break_terms[n.getType()][sort_id].size()-1); j++ ){
+                eqs.push_back( d_sym_break_terms[n.getType()][sort_id][j].eqNode( getTotalityLemmaTerm( cardinality, i-1 ) ) );
+              }
+              Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+              Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
+              Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
+              d_thss->getOutputChannel().lemma( lem );
+            }
+          }
         }
       }
 
@@ -1499,6 +1514,7 @@ void StrongSolverTheoryUF::newEqClass( Node n ){
     if( options::ufssSymBreak() ){
       d_sym_break->newEqClass( n );
     }
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
   }
 }
 
@@ -1508,6 +1524,7 @@ void StrongSolverTheoryUF::merge( Node a, Node b ){
   if( c ){
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Merge " << a << " " << b << " : " << a.getType() << std::endl;
     c->merge( a, b );
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Merge." << std::endl;
   }else{
     if( options::ufssDiseqPropagation() ){
       d_deq_prop->merge(a, b);
@@ -1523,6 +1540,7 @@ void StrongSolverTheoryUF::assertDisequal( Node a, Node b, Node reason ){
     //Assert( d_th->d_equalityEngine.getRepresentative( a )==a );
     //Assert( d_th->d_equalityEngine.getRepresentative( b )==b );
     c->assertDisequal( a, b, reason );
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Assert disequal." << std::endl;
   }else{
     if( options::ufssDiseqPropagation() ){
       d_deq_prop->assertDisequal(a, b, reason);

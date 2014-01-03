@@ -291,6 +291,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/symmetry_breaking.h \
 	theory/quantifiers/symmetry_breaking.cpp \
+	theory/quantifiers/qinterval_builder.h \
+	theory/quantifiers/qinterval_builder.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/rewriterules/theory_rewriterules_rules.h \
 	theory/rewriterules/theory_rewriterules_rules.cpp \
