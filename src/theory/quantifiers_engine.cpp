@@ -51,7 +51,8 @@ d_lemmas_produced_c(u){
 
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
   //the model object
-  if( options::mbqiMode()==quantifiers::MBQI_FMC || options::fmfBoundInt() ){
+  if( options::mbqiMode()==quantifiers::MBQI_FMC ||
+      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
   }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
     d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );

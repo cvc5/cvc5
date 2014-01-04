@@ -273,17 +273,15 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       ++(d_statistics.d_num_quants_init);
     }
     //try to add it
-    if( optInstGen() ){
-      Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
-      //add model basis instantiation
-      if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
-        d_quant_basis_match_added[f] = true;
-        return 1;
-      }else{
-        //shouldn't happen usually, but will occur if x != y is a required literal for f.
-        //Notice() << "No model basis for " << f << std::endl;
-        d_quant_basis_match_added[f] = false;
-      }
+    Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
+    //add model basis instantiation
+    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
+      d_quant_basis_match_added[f] = true;
+      return 1;
+    }else{
+      //shouldn't happen usually, but will occur if x != y is a required literal for f.
+      //Notice() << "No model basis for " << f << std::endl;
+      d_quant_basis_match_added[f] = false;
     }
   }
   return 0;
@@ -418,6 +416,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
+        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermDatabase()->getInstConstantBody( f ) << std::endl;
         eval = fmig->evaluate( d_qe->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;

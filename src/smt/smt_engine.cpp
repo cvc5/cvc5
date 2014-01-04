@@ -1142,16 +1142,9 @@ void SmtEngine::setLogicInternal() throw() {
       options::instWhenMode.set( INST_WHEN_LAST_CALL );
     }
   }
-  if ( ! options::fmfInstGen.wasSetByUser()) {
-    //if full model checking is on, disable inst-gen techniques
-    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
-      options::fmfInstGen.set( false );
-    }else{
-      options::fmfInstGen.set( true );
-    }
-  }
   if ( options::fmfBoundInt() ){
-    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
+    if( options::mbqiMode()!=quantifiers::MBQI_NONE &&
+        options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ){
       //if bounded integers are set, must use full model check for MBQI
       options::mbqiMode.set( quantifiers::MBQI_FMC );
     }

@@ -15,20 +15,14 @@ option ufssRegions /--disable-uf-ss-regions bool :default true
  disable region-based method for discovering cliques and splits in uf strong solver
 option ufssEagerSplits --uf-ss-eager-split bool :default false
  add splits eagerly for uf strong solver
-option ufssColoringSat --uf-ss-coloring-sat bool :default false
- use coloring-based SAT heuristic for uf strong solver
 option ufssTotality --uf-ss-totality bool :default false
  always use totality axioms for enforcing cardinality constraints
 option ufssTotalityLimited --uf-ss-totality-limited=N int :default -1
  apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)
-option ufssTotalityLazy --uf-ss-totality-lazy bool :default false
- apply totality axioms lazily
 option ufssTotalitySymBreak --uf-ss-totality-sym-break bool :default false
  apply symmetry breaking for totality axioms
 option ufssAbortCardinality --uf-ss-abort-card=N int :default -1
  tells the uf strong solver a cardinality to abort at (-1 == no limit, default)
-option ufssSmartSplits --uf-ss-smart-split bool :default false
- use smart splitting heuristic for uf strong solver
 option ufssExplainedCliques --uf-ss-explained-cliques bool :default false
  use explained clique lemmas for uf strong solver
 option ufssSimpleCliques --uf-ss-simple-cliques bool :default true

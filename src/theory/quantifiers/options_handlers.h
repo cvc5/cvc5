@@ -87,8 +87,11 @@ instgen \n\
 + Use instantiation algorithm that mimics Inst-Gen calculus. \n\
 \n\
 fmc \n\
-+ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability. \n\
++ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability \n\
   Modulo Theories.\n\
+\n\
+fmc-interval \n\
++ Same as fmc, but with intervals for models of integer functions.\n\
 \n\
 interval \n\
 + Use algorithm that abstracts domain elements as intervals. \n\
@@ -166,6 +169,8 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
     return MBQI_INST_GEN;
   } else if(optarg ==  "fmc") {
     return MBQI_FMC;
+  } else if(optarg ==  "fmc-interval") {
+    return MBQI_FMC_INTERVAL;
   } else if(optarg ==  "interval") {
     return MBQI_INTERVAL;
   } else if(optarg ==  "help") {

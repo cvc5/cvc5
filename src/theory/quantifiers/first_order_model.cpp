@@ -169,7 +169,7 @@ void FirstOrderModelIG::resetEvaluate(){
 //   each n{ri->d_index[0]/x_0...ri->d_index[depIndex]/x_depIndex, */x_(depIndex+1) ... */x_n } is equivalent in the current model
 int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
   ++d_eval_formulas;
-  //Debug("fmf-eval-debug") << "Evaluate " << n << " " << phaseReq << std::endl;
+  Debug("fmf-eval-debug2") << "Evaluate " << n << std::endl;
   //Notice() << "Eval " << n << std::endl;
   if( n.getKind()==NOT ){
     int val = evaluate( n[0], depIndex, ri );
@@ -447,7 +447,7 @@ void FirstOrderModelIG::makeEvalUfModel( Node n ){
       d_eval_uf_model[n] = uf::UfModelTree( op, d_eval_term_index_order[n] );
       d_uf_model_gen[op].makeModel( this, d_eval_uf_model[n] );
       //Debug("fmf-index-order") << "Make model for " << n << " : " << std::endl;
-      //d_eval_uf_model[n].debugPrint( "fmf-index-order", d_qe, 2 );
+      //d_eval_uf_model[n].debugPrint( std::cout, d_qe->getModel(), 2 );
     }
   }
 }
@@ -578,7 +578,7 @@ Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & a
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
-    if( options::fmfFmcInterval() && intervalOp.isNull() ){
+    if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && intervalOp.isNull() ){
       std::vector< TypeNode > types;
       for(unsigned i=0; i<2; i++){
         types.push_back(NodeManager::currentNM()->integerType());
@@ -616,7 +616,7 @@ Node FirstOrderModelFmc::getStar(TypeNode tn) {
 
 Node FirstOrderModelFmc::getStarElement(TypeNode tn) {
   Node st = getStar(tn);
-  if( options::fmfFmcInterval() && tn.isInteger() ){
+  if( options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL && tn.isInteger() ){
     st = getInterval( st, st );
   }
   return st;

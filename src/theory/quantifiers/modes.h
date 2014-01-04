@@ -65,7 +65,7 @@ typedef enum {
   /** mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
   /** mbqi with integer intervals */
-  //MBQI_FMC_INTERVAL,
+  MBQI_FMC_INTERVAL,
   /** mbqi with interval abstraction of uninterpreted sorts */
   MBQI_INTERVAL,
 } MbqiMode;

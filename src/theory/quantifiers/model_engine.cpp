@@ -37,7 +37,7 @@ ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ){
 
   Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
-  if( options::mbqiMode()==MBQI_FMC || options::fmfBoundInt() ){
+  if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
     Trace("model-engine-debug") << "...make fmc builder." << std::endl;
     d_builder = new fmcheck::FullModelChecker( c, qe );
   }else if( options::mbqiMode()==MBQI_INTERVAL ){
@@ -212,7 +212,7 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::mbqiMode()==MBQI_FMC ? 2 : 1;
+  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : 1;
   for( int e=0; e<e_max; e++) {
     if (d_addedLemmas==0) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -230,6 +230,8 @@ int ModelEngine::checkModel(){
           if( optOneQuantPerRound() && d_addedLemmas>0 ){
             break;
           }
+        }else{
+          Trace("inst-fmf-ei") << "-> Inactive : " << f << std::endl;
         }
       }
     }
@@ -248,11 +250,12 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   d_builder->d_addedLemmas = 0;
   d_builder->d_incomplete_check = false;
   if( d_builder->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort ) ){
+    Trace("inst-fmf-ei") << "-> Builder determined instantiation(s)." << std::endl;
     d_triedLemmas += d_builder->d_triedLemmas;
     d_addedLemmas += d_builder->d_addedLemmas;
     d_incomplete_check = d_incomplete_check || d_builder->d_incomplete_check;
   }else{
-    Trace("inst-fmf-ei") << "Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
+    Trace("inst-fmf-ei") << "-> Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
     for( size_t i=0; i<f[0].getNumChildren(); i++ ){
       Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
