@@ -1137,7 +1137,6 @@ void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
 
 void Solver::relocAll(ClauseAllocator& to)
 {
-  std::cout << "BVMinisat::relocAll \n"; 
     // All watchers:
     //
     // for (int i = 0; i < watches.size(); i++)
