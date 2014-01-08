@@ -43,8 +43,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_nf_pairs(c),
 	//d_var_lmin( c ),
 	//d_var_lmax( c ),
-	d_reg_exp_mem( c ),
 	d_str_ctn( c ),
+	d_reg_exp_mem( c ),
 	d_curr_cardinality( c, 0 )
 {
     // The kinds we are treating as function application in congruence
