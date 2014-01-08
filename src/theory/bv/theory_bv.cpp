@@ -283,6 +283,9 @@ void TheoryBV::propagate(Effort e) {
     // temporary fix for incremental bit-blasting
     if (d_valuation.isSatLiteral(literal)) {
       Debug("bitvector::propagate") << "TheoryBV:: propagating " << literal <<"\n";
+      if (literal.getId() == 232141) {
+        std::cout << "TheoryBV::propagate " << literal <<"\n"; 
+      }
       ok = d_out->propagate(literal);
     }
   }
@@ -373,6 +376,10 @@ Node TheoryBV::ppRewrite(TNode t)
     return utils::mkAnd(equalities);
   }
 
+  if (t.getKind() == kind::NOT) {
+    std::cout << "ppRewrite " << t << "\n"; 
+  }
+
   return t;
 }
 
@@ -386,6 +393,9 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 {
   Debug("bitvector::propagate") << indent() << getSatContext()->getLevel() << " " << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ")" << std::endl;
   prop_count++; 
+  if (literal.getId() == 232141) {
+    std::cout <<" DEBUG propagating "<<prop_count <<" " << literal <<"\n"; 
+  }
   
   // If already in conflict, no more propagation
   if (d_conflict) {
@@ -427,6 +437,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
+  // std::cout << "explain " << literal <<"\n"; 
   Assert (wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
