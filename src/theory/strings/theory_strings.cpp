@@ -51,6 +51,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     //d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
     d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
+    d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
