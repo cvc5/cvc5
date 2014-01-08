@@ -181,16 +181,6 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         enableTheory(THEORY_ARRAY);
         ++p;
       }
-      if(*p == 'S') {
-        // Strings requires arith for length constraints,
-        // and UF for equality (?)
-        enableTheory(THEORY_STRINGS);
-        enableTheory(THEORY_UF);
-        enableTheory(THEORY_ARITH);
-        enableIntegers();
-        arithOnlyLinear();
-        ++p;
-      }
       if(!strncmp(p, "UF", 2)) {
         enableTheory(THEORY_UF);
         p += 2;
@@ -207,6 +197,16 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
       if(!d_theories[THEORY_BV] && !strncmp(p, "BV", 2)) {
         enableTheory(THEORY_BV);
         p += 2;
+      }
+      if(*p == 'S') {
+        // Strings requires arith for length constraints,
+        // and UF for equality (?)
+        enableTheory(THEORY_STRINGS);
+        enableTheory(THEORY_UF);
+        enableTheory(THEORY_ARITH);
+        enableIntegers();
+        arithOnlyLinear();
+        ++p;
       }
       if(!strncmp(p, "IDL", 3)) {
         enableIntegers();
