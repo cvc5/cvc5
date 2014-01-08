@@ -136,43 +136,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("substring not supported in this release");
 		}
-	}
-	/* else if( t.getKind() == kind::STRING_STRCTN ){
-		if(options::stringExp()) {
-			Node w = simplify( t[0], new_nodes );
-			Node y = simplify( t[1], new_nodes );
-			Node emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-			std::vector< Node > or_vec;
-			or_vec.push_back( w.eqNode(y) );
-			Node x1 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node b1 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, x1 );
-			Node c1 = NodeManager::currentNM()->mkNode( kind::EXISTS, b1, NodeManager::currentNM()->mkNode( kind::AND,
-							x1.eqNode( emptyString ).negate(),
-							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, x1, y ) )));
-			or_vec.push_back( c1 );
-			Node z2 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node b2 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, z2 );
-			Node c2 = NodeManager::currentNM()->mkNode( kind::EXISTS, b2, NodeManager::currentNM()->mkNode( kind::AND,
-							z2.eqNode( emptyString ).negate(),
-							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, y, z2 ) )));
-			or_vec.push_back( c2 );
-			Node x3 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node z3 = NodeManager::currentNM()->mkBoundVar( t[0].getType() );
-			Node b3 = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, x3, z3 );
-			Node c3 = NodeManager::currentNM()->mkNode( kind::EXISTS, b3, NodeManager::currentNM()->mkNode( kind::AND,
-							x3.eqNode( emptyString ).negate(), z3.eqNode( emptyString ).negate(),
-							w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, x3, y, z3 ) )));
-			or_vec.push_back( c3 );
-
-			Node cc = NodeManager::currentNM()->mkNode( kind::OR, or_vec );
-
-			d_cache[t] = cc;
-			retNode = cc;
-		} else {
-			throw LogicException("string contain not supported in this release");
-		}
-	} */
-	else if( t.getKind() == kind::STRING_CHARAT ){
+	} else if( t.getKind() == kind::STRING_CHARAT ){
 		if(options::stringExp()) {
 			Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1sym_$$", t.getType(), "created for charat" );
 			Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2sym_$$", t.getType(), "created for charat" );

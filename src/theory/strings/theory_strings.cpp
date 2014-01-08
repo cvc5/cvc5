@@ -2125,25 +2125,22 @@ bool TheoryStrings::checkInclusions() {
 				sendLemma( ant, conc, "inclusion conflict 2" );
 				addedLemma = true;
 			} else {
-				if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
-					Node b1 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
-					Node b2 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
-					Node bvar = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, b1, b2 );
-					Node lena0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[0] );
-					Node lena1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[1] );
-					Node len_eq = Rewriter::rewrite( lena0.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, lena1,
-						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, b1 ),
-						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, b2 ) ) ) );
-					Node conc = NodeManager::currentNM()->mkNode( kind::FORALL, bvar,
-									NodeManager::currentNM()->mkNode( kind::IMPLIES, len_eq,
-									atom[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, b1, atom[1], b2 ) ).negate() )
-								);
-					d_str_ctn_rewritten[ assertion ] = true;
-					sendLemma( assertion, conc, "negative inclusion" );
-					addedLemma = true;
+				if( getLogicInfo().isQuantified() ){
+					if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
+						Node b1 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
+						Node b2 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
+						Node bvar = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, b1, b2 );
+						Node conc = NodeManager::currentNM()->mkNode( kind::FORALL, bvar,
+										atom[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, b1, atom[1], b2 ) ).negate()
+									);
+						d_str_ctn_rewritten[ assertion ] = true;
+						sendLemma( assertion, conc, "negative inclusion" );
+						addedLemma = true;
+					}
+				} else {
+					Trace("strings-inc") << "Inclusion is incomplete due to " << assertion << "." << std::endl;
+					is_unk = true;
 				}
-				//Trace("strings-inc") << "Inclusion is incomplete due to " << assertion << "." << std::endl;
-				//is_unk = true;
 			}
 		}
 	}
