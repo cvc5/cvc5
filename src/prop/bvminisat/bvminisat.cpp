@@ -90,10 +90,6 @@ void BVMinisatSatSolver::popAssumption() {
   d_minisat->popAssumption();
 }
 
-void BVMinisatSatSolver::backtrackPropagate(unsigned level) {
-  d_minisat->backtrackPropagate(level); 
-}
-
 SatVariable BVMinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
   return d_minisat->newVar(true, true, !canErase);
 }
@@ -272,4 +268,3 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
   d_statTotLiterals.setData(minisat->tot_literals);
   d_statEliminatedVars.setData(minisat->eliminated_vars);
 }
-

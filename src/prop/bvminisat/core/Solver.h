@@ -30,7 +30,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "context/cdhashmap.h"
 
 #include <ext/hash_set>
-#include <ext/hash_map>
 #include <vector>
 
 namespace BVMinisat {
@@ -72,7 +71,6 @@ class Solver {
     /** False constant */
     Var varFalse;
 
-    
 public:
 
     // Constructor/Destructor:
@@ -110,8 +108,7 @@ public:
     lbool   assertAssumption(Lit p, bool propagate);  // Assert a new assumption, start BCP if propagate = true
     lbool   propagateAssumptions();                   // Do BCP over asserted assumptions
     void    popAssumption();                          // Pop an assumption
-    void    backtrackPropagate(unsigned level);       // Propagate clauses that were not propagated at the lowest level possible
-  
+
     void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
     void    toDimacs     (const char *file, const vec<Lit>& assumps);
     void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);
@@ -340,12 +337,6 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
-
-  typedef __gnu_cxx::hash_map<unsigned, std::vector<CRef> > LevelToCRefs; 
-  // the index of the vector represents the level of the clauses to propagate
-  LevelToCRefs clausesToPropagate;
-  // same but for unit clauses; note that the level of all unit clauses is level 0
-  std::vector<Lit> literalsToPropagate; 
 };
 
 

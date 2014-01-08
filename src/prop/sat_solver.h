@@ -115,8 +115,6 @@ public:
 
   virtual void popAssumption() = 0;
 
-  virtual void backtrackPropagate(unsigned level) = 0; 
-  
 };/* class BVSatSolverInterface */
 
 

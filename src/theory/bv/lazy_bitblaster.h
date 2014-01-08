@@ -43,7 +43,6 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
   , d_variables()
   , d_bbAtoms()
   , d_abstraction(NULL)
-  , d_backtrackNotify(c, this)
   , d_statistics()
 {
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
@@ -53,7 +52,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
 
     MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
     d_satSolver->setNotify(notify);
-}
+  }
 
 void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
   d_abstraction = abs; 
@@ -418,24 +417,6 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
     }
   }
 }
-
-TLazyBitblaster::BacktrackNotify::BacktrackNotify(context::Context* ctx, TLazyBitblaster* bb)
-  : ContextNotifyObj(ctx, false)
-  , d_bitblaster(bb)
-{}
-
-
-/** 
- * Propagate all the clauses that we haven't propagated yet.  
- * 
- */
-void TLazyBitblaster::BacktrackNotify::contextNotifyPop() {
-  // the number of asserted atoms in this context corresponds
-  // to the decision level in the BVSatSolver
-  unsigned level = d_bitblaster->d_assertedAtoms.size(); 
-  d_bitblaster->d_satSolver->backtrackPropagate(level); 
-}
-
 
 } /*bv namespace */
 } /* theory namespace */

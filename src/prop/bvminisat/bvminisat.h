@@ -121,8 +121,6 @@ public:
   
   void popAssumption();
 
-  void backtrackPropagate(unsigned level);
-  
   class Statistics {
   public:
     ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
@@ -138,7 +136,6 @@ public:
     void init(BVMinisat::SimpSolver* minisat);
   };
 
-  
   Statistics d_statistics;
 };
 

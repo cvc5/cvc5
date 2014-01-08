@@ -118,18 +118,6 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     void safePoint();
   };
 
-  /** 
-   * Mechanism to notify BVMinisat when the main SAT solver backtracks.
-   * 
-   * 
-   */
-  class BacktrackNotify : public context::ContextNotifyObj {
-    TLazyBitblaster* d_bitblaster; 
-    void contextNotifyPop(); 
-  public:
-    BacktrackNotify(context::Context* ctx, TLazyBitblaster* satSolver); 
-  }; 
-
 
   TheoryBV *d_bv;
 
@@ -143,7 +131,6 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   VarSet d_variables;
   AtomSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
-  BacktrackNotify d_backtrackNotify;
   
   void addAtom(TNode atom);
   bool hasValue(TNode a);
@@ -189,8 +176,6 @@ public:
   bool isSharedTerm(TNode node);
   uint64_t computeAtomWeight(TNode node);
 
-  void backtrackPropagate(unsigned level);
-
 private:
 
   class Statistics {
@@ -203,7 +188,6 @@ private:
   };
 
   Statistics d_statistics;
-  friend class BacktrackNotify; 
 };
 
 class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify {
