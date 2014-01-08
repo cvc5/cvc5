@@ -284,7 +284,7 @@ fi
 AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP (libgmp) not found, see http://gmplib.org/])])
 
 if test $cvc4_use_cln = 2; then
-  if test -n "$CVC4_BSD_LICENSED_CODE_ONLY" -o "$with_portfolio" = yes; then
+  if test "$CVC4_BSD_LICENSED_CODE_ONLY" = 1 -o "$with_portfolio" = yes; then
     cvc4_use_cln=0
     cvc4_use_gmp=1
   fi
@@ -1350,8 +1350,9 @@ else
 fi
 
 if test "$gpl" = yes; then
-  if test -n "$CVC4_BSD_LICENSED_CODE_ONLY"; then
-    AC_ERROR([Bad configuration detected: user requested BSD-licensed code only, but also requested GPLed libraries:$gpllibs])
+  if test "$CVC4_BSD_LICENSED_CODE_ONLY" = 1; then
+    AC_ERROR([Bad configuration detected: BSD-licensed code only, but also requested GPLed libraries:$gpllibs
+To permit GPL'ed dependences, use the configure flag --enable-gpl])
   fi
 
   licensewarn="${licensewarn}"'****************************************************************************
@@ -1366,6 +1367,13 @@ option "--bsd", which will disable all optional GPLed library dependences.
 '
   license="GPLv3 (due to optional libraries; see below)"
 else
+  licensewarn="${licensewarn}Please note that this configuration is NOT built against any GPL'ed
+libraries, so it is covered by the (modified) BSD license.  This is,
+however, not the best-performing configuration of CVC4.  To build
+against GPL'ed libraries which improve CVC4's performance, re-configure
+with '--best --enable-gpl'.
+
+"
   license="modified BSD"
 fi
 
