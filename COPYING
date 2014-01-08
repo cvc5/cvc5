@@ -245,8 +245,8 @@ Please be advised that as this library is covered under the GPLv3, if you
 choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
 then it is also covered under the GPLv3.  If you want to make sure you build
 a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
-"--bsd" option before building.  CVC4 can then be used in contexts where you
-want to license CVC4 under the (modified) BSD license.
+"--bsd" option before building (which is the default).  CVC4 can then be used
+in contexts where you want to license CVC4 under the (modified) BSD license.
 
 CVC4 can be optionally configured to link against GLPK, the GNU Linear
 Programming Kit, available here:
@@ -257,8 +257,8 @@ Please be advised that as this library is covered under the GPLv3, if
 you choose to use the combined work, "CVC4+GLPK," by building CVC4 with
 GLPK, then it is also covered under the GPLv3.  If you want to make sure you
 build a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
-"--bsd" option before building.  CVC4 can then be used in contexts where you
-want to license CVC4 under the (modified) BSD license.
+"--bsd" option before building (which is the default).  CVC4 can then be used
+in contexts where you want to license CVC4 under the (modified) BSD license.
 
 CVC4 can be optionally configured to link against GNU Readline for improved
 text-editing support in interactive mode.  GNU Readline is available here:
@@ -269,8 +269,9 @@ Please be advised that as this library is covered under the GPLv3, if
 you choose to use the combined work, "CVC4+Readline," by building CVC4 with
 Readline, then it is also covered under the GPLv3.  If you want to make sure
 you build a version of CVC4 that uses no GPLed libraries, configure CVC4 with
-the "--bsd" option before building.  CVC4 can then be used in contexts where
-you want to license CVC4 under the (modified) BSD license.
+the "--bsd" option before building (which is the default).  CVC4 can then be
+used in contexts where you want to license CVC4 under the (modified) BSD
+license.
 
 CVC4 sources incorporate those of the LFSC proof checker, which is
 covered by the following license:
