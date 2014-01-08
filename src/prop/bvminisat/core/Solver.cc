@@ -474,6 +474,48 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     return true;
 }
 
+/** 
+ * Specialized analyzeFinal procedure where we test the consistency
+ * of the assumptions before backtracking bellow the assumption level.
+ * 
+ * @param p the original uip (may be unit)
+ * @param confl_clause the conflict clause
+ * @param out_conflict the conflict in terms of assumptions we are building
+ */
+void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
+  assert (confl_clause != CRef_Undef);
+  assert (decisionLevel() == assumptions.size());
+  assert (level(var(p)) == assumptions.size());
+
+  out_conflict.clear(); 
+  
+  Clause& cl = ca[confl_clause];
+  for (int i = 0; i < cl.size(); ++i) {
+    seen[var(cl[i])] = 1;
+  }
+
+  for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
+    Var x = var(trail[i]);
+    if (seen[x]) {
+      if (reason(x) == CRef_Undef) {
+        // this is the case when p was a unit
+        if (x == var(p))
+          continue;
+        
+        assert (marker[x] == 2);
+        assert (level(x) > 0);
+        out_conflict.push(~trail[i]); 
+      } else {
+        Clause& c = ca[reason(x)];
+        for (int j = 1; j < c.size(); j++)
+          if (level(var(c[j])) > 0)
+            seen[var(c[j])] = 1;
+      }
+      seen[x] = 0;
+    }
+  }
+  assert (out_conflict.size()); 
+}
 
 /*_________________________________________________________________________________________________
 |
@@ -487,7 +529,9 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
 void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 {
     out_conflict.clear();
-    out_conflict.push(p);
+    if (marker[var(p)] == 2) {
+      out_conflict.push(p);
+    }
 
     if (decisionLevel() == 0)
         return;
@@ -512,6 +556,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
     }
 
     seen[var(p)] = 0;
+    assert (out_conflict.size()); 
 }
 
 
@@ -767,28 +812,45 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             analyze(confl, learnt_clause, backtrack_level, uip);
 
             Lit p = learnt_clause[0];
-            bool assumption = marker[var(p)] == 2;
+            //bool assumption = marker[var(p)] == 2;
 
-            cancelUntil(backtrack_level);
-
-            if (learnt_clause.size() == 1){
-                uncheckedEnqueue(p);
-            }else{
-                CRef cr = ca.alloc(learnt_clause, true);
-                learnts.push(cr);
-                attachClause(cr);
-                claBumpActivity(ca[cr]);
-                uncheckedEnqueue(p, cr);
+            CRef cr = CRef_Undef;
+            if (learnt_clause.size() > 1) {
+              cr = ca.alloc(learnt_clause, true);
+              learnts.push(cr);
+              attachClause(cr);
+              claBumpActivity(ca[cr]);
             }
 
-            // if an assumption, we're done
-            if (assumption) {
-              assert(decisionLevel() < assumptions.size());
+            // // if the uip was an assumption we are unsat
+            if (level(var(p)) <= assumptions.size()) {
+              for (int i = 0; i < learnt_clause.size(); ++i) {
+                assert (level(var(learnt_clause[i])) <= decisionLevel()); 
+                seen[var(learnt_clause[i])] = 1;
+              }
               analyzeFinal(p, conflict);
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
+
             
+            // check if uip leads to a conflict 
+            if (backtrack_level < assumptions.size()) {
+              cancelUntil(assumptions.size());
+              uncheckedEnqueue(p, cr);
+              
+              CRef new_confl = propagate();
+              if (new_confl != CRef_Undef) {
+                // we have a conflict we now need to explain it
+                analyzeFinal2(p, new_confl, conflict); 
+                return l_False;
+              }
+            }
+
+            cancelUntil(backtrack_level);
+            uncheckedEnqueue(p, cr);
+    
+         
             varDecayActivity();
             claDecayActivity();
 
@@ -847,6 +909,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     // Dummy decision level:
                     newDecisionLevel();
                 }else if (value(p) == l_False){
+                    marker[var(p)] = 2;
                     analyzeFinal(~p, conflict);
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
