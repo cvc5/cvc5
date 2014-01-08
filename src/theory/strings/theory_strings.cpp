@@ -44,6 +44,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	//d_var_lmin( c ),
 	//d_var_lmax( c ),
 	d_reg_exp_mem( c ),
+	d_str_ctn( c ),
 	d_curr_cardinality( c, 0 )
 {
     // The kinds we are treating as function application in congruence
@@ -387,14 +388,13 @@ void TheoryStrings::check(Effort e) {
   bool polarity;
   TNode atom;
 
-  if( !done() && !hasTerm( d_emptyString ) ){
+  if( !done() && !hasTerm( d_emptyString ) ) {
 	 preRegisterTerm( d_emptyString );
   }
 
  // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check") << "Theory of strings, check : " << e << std::endl;
-  while ( !done() && !d_conflict)
-  {
+  while ( !done() && !d_conflict ) {
     // Get all the assertions
     Assertion assertion = get();
     TNode fact = assertion.assertion;
@@ -406,7 +406,10 @@ void TheoryStrings::check(Effort e) {
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
 		d_reg_exp_mem.push_back( assertion );
-	}else if (atom.getKind() == kind::EQUAL) {
+	} else if (atom.getKind() == kind::STRING_STRCTN) {
+		d_str_ctn.push_back( assertion );
+		d_equalityEngine.assertPredicate(atom, polarity, fact);
+    } else if (atom.getKind() == kind::EQUAL) {
 		d_equalityEngine.assertEquality(atom, polarity, fact);
     } else {
 		d_equalityEngine.assertPredicate(atom, polarity, fact);
@@ -417,24 +420,28 @@ void TheoryStrings::check(Effort e) {
 
   bool addedLemma = false;
   if( e == EFFORT_FULL && !d_conflict ) {
-      addedLemma = checkLengths();
-	  Trace("strings-process") << "Done check (constant) lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-	  if( !addedLemma ){
-		  addedLemma = checkNormalForms();
-		  Trace("strings-process") << "Done check normal forms, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-		  if(!d_conflict && !addedLemma) {
-			  addedLemma = checkLengthsEqc();
-			  Trace("strings-process") << "Done check lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-			  if(!d_conflict && !addedLemma) {
-				  addedLemma = checkCardinality();
-				  Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-				  if( !d_conflict && !addedLemma ){
+	addedLemma = checkLengths();
+	Trace("strings-process") << "Done check (constant) lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+	if( !addedLemma ) {
+		addedLemma = checkNormalForms();
+		Trace("strings-process") << "Done check normal forms, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+		if(!d_conflict && !addedLemma) {
+			addedLemma = checkLengthsEqc();
+			Trace("strings-process") << "Done check lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+			if(!d_conflict && !addedLemma) {
+				addedLemma = checkCardinality();
+				Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+				if( !d_conflict && !addedLemma ) {
 					addedLemma = checkMemberships();
 					Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
-				  }
-			  }
-		  }
-	  }
+					if( !d_conflict && !addedLemma ) {
+						addedLemma = checkInclusions();
+						Trace("strings-process") << "Done check inclusion constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+					}
+				}
+			}
+		}
+	}
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Trace("strings-process") << "Theory of strings, done check : " << e << std::endl;
@@ -2072,6 +2079,80 @@ bool TheoryStrings::checkMemberships() {
 				//d_regexp_incomplete = true;
 				d_out->setIncomplete();
 			//}
+		}
+		return false;
+	}
+}
+
+bool TheoryStrings::checkInclusions() {
+	bool is_unk = false;
+	bool addedLemma = false;
+	for( unsigned i=0; i<d_str_ctn.size(); i++ ){
+		Node assertion = d_str_ctn[i];
+		Trace("strings-inc") << "We have inclusion assertion : " << assertion << std::endl;
+		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
+		bool polarity = assertion.getKind()!=kind::NOT;
+		if( polarity ) {
+			Assert( atom.getKind()==kind::STRING_STRCTN );
+			Node x = atom[0];
+			Node s = atom[1];
+			if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
+				if(d_str_ctn_rewritten.find(atom) == d_str_ctn_rewritten.end()) {
+					// Add lemma
+					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for inclusion" );
+					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for inclusion" );
+					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
+					sendLemma( assertion, eq, "inclusion" );
+					addedLemma = true;
+					d_str_ctn_rewritten[ atom ] = true;
+				} else {
+					Trace("strings-inc") << "... is already rewritten." << std::endl;
+				}
+			} else {
+				Trace("strings-inc") << "... is satisfied." << std::endl;
+			}
+		} else {
+			//TODO: negative inclusion
+			if( areEqual( atom[1], d_emptyString ) ) {
+				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( d_emptyString ) );
+				Node conc = Node::null();
+				sendLemma( ant, conc, "inclusion conflict 1" );
+				addedLemma = true;
+			} else if( areEqual( atom[1], atom[0] ) ) {
+				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( atom[0] ) );
+				Node conc = Node::null();
+				sendLemma( ant, conc, "inclusion conflict 2" );
+				addedLemma = true;
+			} else {
+				if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
+					Node b1 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
+					Node b2 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
+					Node bvar = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, b1, b2 );
+					Node lena0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[0] );
+					Node lena1 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[1] );
+					Node len_eq = Rewriter::rewrite( lena0.eqNode( NodeManager::currentNM()->mkNode( kind::PLUS, lena1,
+						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, b1 ),
+						NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, b2 ) ) ) );
+					Node conc = NodeManager::currentNM()->mkNode( kind::FORALL, bvar,
+									NodeManager::currentNM()->mkNode( kind::IMPLIES, len_eq,
+									atom[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, b1, atom[1], b2 ) ).negate() )
+								);
+					d_str_ctn_rewritten[ assertion ] = true;
+					sendLemma( assertion, conc, "negative inclusion" );
+					addedLemma = true;
+				}
+				//Trace("strings-inc") << "Inclusion is incomplete due to " << assertion << "." << std::endl;
+				//is_unk = true;
+			}
+		}
+	}
+	if( addedLemma ){
+		doPendingLemmas();
+		return true;
+	} else {
+		if( is_unk ){
+			Trace("strings-inc") << "Strings::inc: possibly incomplete." << std::endl;
+			d_out->setIncomplete();
 		}
 		return false;
 	}

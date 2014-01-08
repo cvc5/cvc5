@@ -136,7 +136,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("substring not supported in this release");
 		}
-	}  else if( t.getKind() == kind::STRING_STRCTN ){
+	}
+	/* else if( t.getKind() == kind::STRING_STRCTN ){
 		if(options::stringExp()) {
 			Node w = simplify( t[0], new_nodes );
 			Node y = simplify( t[1], new_nodes );
@@ -170,7 +171,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string contain not supported in this release");
 		}
-	}  else if( t.getKind() == kind::STRING_CHARAT ){
+	} */
+	else if( t.getKind() == kind::STRING_CHARAT ){
 		if(options::stringExp()) {
 			Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1sym_$$", t.getType(), "created for charat" );
 			Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2sym_$$", t.getType(), "created for charat" );

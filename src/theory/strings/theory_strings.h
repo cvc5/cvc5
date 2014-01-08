@@ -216,6 +216,7 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
+	bool checkInclusions();
 
 public:
 	void preRegisterTerm(TNode n);
@@ -268,6 +269,10 @@ private:
 	std::map< Node, bool > d_var_lgtz;
 	Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 	int getMaxPossibleLength( Node x );
+
+	// Special String Functions
+	NodeList d_str_ctn;
+	std::map< Node, bool > d_str_ctn_rewritten;
 
 	// Regular Expression
 private:
