@@ -1388,7 +1388,7 @@ bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
 }
 
 void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
-	if( conc.isNull() || conc==d_false ){
+	if( conc.isNull() ){
 		d_out->conflict(ant);
 		Trace("strings-conflict") << "Strings::Conflict : " << ant << std::endl;
 		d_conflict = true;
@@ -2113,7 +2113,6 @@ bool TheoryStrings::checkInclusions() {
 				Trace("strings-inc") << "... is satisfied." << std::endl;
 			}
 		} else {
-			//TODO: negative inclusion
 			if( areEqual( atom[1], d_emptyString ) ) {
 				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( d_emptyString ) );
 				Node conc = Node::null();
@@ -2125,21 +2124,16 @@ bool TheoryStrings::checkInclusions() {
 				sendLemma( ant, conc, "inclusion conflict 2" );
 				addedLemma = true;
 			} else {
-				if( getLogicInfo().isQuantified() ){
-					if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
-						Node b1 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
-						Node b2 = NodeManager::currentNM()->mkBoundVar( atom[0].getType() );
-						Node bvar = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, b1, b2 );
-						Node conc = NodeManager::currentNM()->mkNode( kind::FORALL, bvar,
-										atom[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, b1, atom[1], b2 ) ).negate()
-									);
-						d_str_ctn_rewritten[ assertion ] = true;
-						sendLemma( assertion, conc, "negative inclusion" );
-						addedLemma = true;
-					}
-				} else {
-					Trace("strings-inc") << "Inclusion is incomplete due to " << assertion << "." << std::endl;
-					is_unk = true;
+				if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
+					Node x = atom[0];
+					Node s = atom[1];
+					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for inclusion" );
+					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for inclusion" );
+					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
+					Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
+					d_str_ctn_rewritten[ assertion ] = true;
+					sendLemma( antc, d_false, "negative inclusion" );
+					addedLemma = true;
 				}
 			}
 		}
