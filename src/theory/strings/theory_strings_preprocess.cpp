@@ -157,6 +157,20 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string char at not supported in this release");
 		}
+	} else if( t.getKind() == kind::STRING_STRIDOF ){
+		//if(options::stringExp()) {
+		////	d_cache[t] = t;
+		//	retNode = t;
+		//} else {
+			throw LogicException("string indexof not supported in this release");
+		//}
+	} else if( t.getKind() == kind::STRING_STRREPL ){
+		//if(options::stringExp()) {
+		//	d_cache[t] = t;
+		//	retNode = t;
+		//} else {
+			throw LogicException("string replace not supported in this release");
+		//}
 	} else if( t.getNumChildren()>0 ){
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {

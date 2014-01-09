@@ -113,11 +113,55 @@ public:
     if( check ){
         TypeNode t = n[0].getType(check);
         if (!t.isString()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string char at");
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string char at 0");
         }
 		t = n[1].getType(check);
         if (!t.isInteger()) {
-          throw TypeCheckingExceptionPrivate(n, "expecting an integer string term in string char at");
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer term in string char at 1");
+        }
+    }
+    return nodeManager->stringType();
+  }
+};
+
+class StringIndexOfTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ){
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string indexof 0");
+        }
+		t = n[1].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string indexof 1");
+        }
+		t = n[2].getType(check);
+        if (!t.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer term in string indexof 2");
+        }
+    }
+    return nodeManager->integerType();
+  }
+};
+
+class StringReplaceTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ){
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string replace 0");
+        }
+		t = n[1].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string replace 1");
+        }
+		t = n[2].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string replace 2");
         }
     }
     return nodeManager->stringType();
