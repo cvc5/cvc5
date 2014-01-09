@@ -787,7 +787,7 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
 }
 
 /**
- * MultLeadingBit
+ * ExtractMultLeadingBit
  *
  * If the bit-vectors multiplied have enough leading zeros,
  * we can determine that the top bits of the multiplication
@@ -797,7 +797,12 @@ Node RewriteRule<MultPow2>::apply(TNode node) {
  */
 
 template<> inline
-bool RewriteRule<MultLeadingBit>::applies(TNode node) {
+bool RewriteRule<ExtractMultLeadingBit>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_EXTRACT)
+    return false;
+  unsigned low = utils::getExtractLow(node);
+  node = node[0];
+  
   if (node.getKind() != kind::BITVECTOR_MULT ||
       node.getNumChildren() != 2 ||
       utils::getSize(node) <= 64)
@@ -819,36 +824,45 @@ bool RewriteRule<MultLeadingBit>::applies(TNode node) {
   unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
                                     int2.length();
 
-  if (2 * n - (zeroes1 + zeroes2) >= n)
-    return false; 
+  // first k bits are not zero in the result
+  unsigned k = 2 * n - (zeroes1 + zeroes2);
   
+  if (k > low)
+    return false; 
+
   return true; 
 }
 
 template<> inline
-Node RewriteRule<MultLeadingBit>::apply(TNode node) {
+Node RewriteRule<ExtractMultLeadingBit>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MultLeadingBit>(" << node << ")" << std::endl;
-  const Integer& int1 = node[0][0].getConst<BitVector>().toInteger();
-  const Integer& int2 = node[1][0].getConst<BitVector>().toInteger();
-  unsigned zeroes1 = int1.isZero()? utils::getSize(node[0][0]) :
-                                    int1.length();
 
-  unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
-                                    int2.length();
+  unsigned bitwidth = utils::getSize(node); 
+  
+  // node = node[0];
+  // const Integer& int1 = node[0][0].getConst<BitVector>().toInteger();
+  // const Integer& int2 = node[1][0].getConst<BitVector>().toInteger();
+  // unsigned zeroes1 = int1.isZero()? utils::getSize(node[0][0]) :
+  //                                   int1.length();
+
+  // unsigned zeroes2 = int2.isZero()? utils::getSize(node[1][0]) :
+  //                                   int2.length();
   // all bits >= k in the multiplier will have to be 0
-  unsigned n = utils::getSize(node); 
-  unsigned k = 2 * n - (zeroes1 + zeroes2);
-  Node extract1 = utils::mkExtract(node[0], k - 1, 0);
-  Node extract2 = utils::mkExtract(node[1], k - 1, 0);
-  Node k_zeroes = utils::mkConst(n - k, 0u);
+  // unsigned n = utils::getSize(node); 
+  // unsigned k = 2 * n - (zeroes1 + zeroes2);
+  // Node extract1 = utils::mkExtract(node[0], k - 1, 0);
+  // Node extract2 = utils::mkExtract(node[1], k - 1, 0);
+  // Node k_zeroes = utils::mkConst(n - k, 0u);
 
-  Node new_mult = utils::mkNode(kind::BITVECTOR_MULT, extract1, extract2);
-  Node result = utils::mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult); 
-  //  std::cout << "MultLeadingBit " << node <<" => " << result <<"\n"; 
+  // Node new_mult = utils::mkNode(kind::BITVECTOR_MULT, extract1, extract2);
+  // Node result = utils::mkExtract(utils::mkNode(kind::BITVECTOR_CONCAT, k_zeroes, new_mult),
+  //                                high, low); 
+ 
+  // since the extract is over multiplier bits that have to be 0, return 0
+  Node result = utils::mkConst(bitwidth, 0u); 
+  //  std::cout << "MultLeadingBit " << node <<" => " << result <<"\n";
   return result;
 }
-
-
 
 /**
  * NegIdemp

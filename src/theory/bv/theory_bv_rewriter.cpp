@@ -188,8 +188,9 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
     < RewriteRule<ExtractConstant>, 
       RewriteRule<ExtractExtract>,
       // We could get another extract over extract
-      RewriteRule<ExtractWhole>
+      RewriteRule<ExtractWhole>,
       // At this point only Extract-Whole could apply
+      RewriteRule<ExtractMultLeadingBit>
       >::apply(node);
   
   return RewriteResponse(REWRITE_DONE, resultNode); 
@@ -318,7 +319,6 @@ RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {
     resultNode = LinearRewriteStrategy
       <   RewriteRule<MultDistribConst>
         , RewriteRule<MultDistrib>
-        , RewriteRule<MultLeadingBit>
         >::apply(resultNode);
   }
 

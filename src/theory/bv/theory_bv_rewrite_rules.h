@@ -121,7 +121,7 @@ enum RewriteRuleId {
   NotUlt,
   NotUle,
   MultPow2,
-  MultLeadingBit,
+  ExtractMultLeadingBit,
   NegIdemp,
   UdivPow2,
   UdivOne,
@@ -249,7 +249,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case XorOne :       out << "XorOne";        return out;
   case XorZero :       out << "XorZero";        return out;
   case MultPow2 :            out << "MultPow2";             return out;
-  case MultLeadingBit :            out << "MultLeadingBit";             return out;
+  case ExtractMultLeadingBit :            out << "ExtractMultLeadingBit";             return out;
   case NegIdemp :            out << "NegIdemp";             return out;
   case UdivPow2 :            out << "UdivPow2";             return out;
   case UdivOne :            out << "UdivOne";             return out;
@@ -475,7 +475,7 @@ struct AllRewriteRules {
   RewriteRule<XorOne> rule83;
   RewriteRule<XorZero> rule84;
   RewriteRule<MultPow2> rule87;
-  RewriteRule<MultLeadingBit> rule88;
+  RewriteRule<ExtractMultLeadingBit> rule88;
   RewriteRule<NegIdemp> rule91;
   RewriteRule<UdivPow2> rule92;
   RewriteRule<UdivOne> rule93;
