@@ -15,7 +15,9 @@ operator STRING_IN_REGEXP 2 "membership"
 operator STRING_LENGTH 1 "string length"
 operator STRING_SUBSTR 3 "string substr"
 operator STRING_STRCTN 2 "string contains"
-operator STRING_CHARAT 2 "string char at"
+operator STRING_CHARAT 2 "string charat"
+operator STRING_STRIDOF 3 "string indexof"
+operator STRING_STRREPL 3 "string replace"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -105,6 +107,8 @@ typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
 typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
 typerule STRING_STRCTN ::CVC4::theory::strings::StringContainTypeRule
 typerule STRING_CHARAT ::CVC4::theory::strings::StringCharAtTypeRule
+typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
+typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 

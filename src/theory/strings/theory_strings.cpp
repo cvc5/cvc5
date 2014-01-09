@@ -2036,33 +2036,18 @@ bool TheoryStrings::checkMemberships() {
 			}
 		} else {
 			//TODO: negative membership
-			//Node r = Rewriter::rewrite( atom[1] );
-			//r = d_regexp_opr.complement( r );
-			//Trace("strings-regexp-test") << "Compl( " << d_regexp_opr.mkString( atom[1] ) << " ) is " << d_regexp_opr.mkString( r ) << std::endl;
-			//Trace("strings-regexp-test") << "Delta( " << d_regexp_opr.mkString( atom[1] ) << " ) is " << d_regexp_opr.delta( atom[1] ) << std::endl;
-			//Trace("strings-regexp-test") << "Delta( " << d_regexp_opr.mkString( r ) << " ) is " << d_regexp_opr.delta( r ) << std::endl;
-			//Trace("strings-regexp-test") << "Deriv( " << d_regexp_opr.mkString( r ) << ", c='b' ) is " << d_regexp_opr.mkString( d_regexp_opr.derivativeSingle( r, ::CVC4::String("b") ) ) << std::endl;
-			//Trace("strings-regexp-test") << "FHC( " << d_regexp_opr.mkString( r ) <<" ) is " << std::endl;
-			//d_regexp_opr.firstChar( r );
-			//r = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, atom[0], r );
-			/*
-			std::vector< Node > vec_r;
-			vec_r.push_back( r );
-
-			StringsPreprocess spp;
-			spp.simplify( vec_r );
-			for( unsigned i=1; i<vec_r.size(); i++ ){
-				if(vec_r[i].getKind() == kind::STRING_IN_REGEXP) {
-					d_reg_exp_mem.push_back( vec_r[i] );
-				} else if(vec_r[i].getKind() == kind::EQUAL) {
-					d_equalityEngine.assertEquality(vec_r[i], true, vec_r[i]);
-				} else {
-					Assert(false);
-				}
+			Node x = atom[0];
+			Node r = atom[1];
+			Assert( r.getKind()==kind::REGEXP_STAR );
+			if( areEqual( x, d_emptyString ) ) {
+				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, x.eqNode( d_emptyString ) );
+				Node conc = Node::null();
+				sendLemma( ant, conc, "RegExp Empty Conflict" );
+				addedLemma = true;
+			} else {
+				Trace("strings-regexp") << "RegEx is incomplete due to " << assertion << "." << std::endl;
+				is_unk = true;
 			}
-			*/
-			Trace("strings-regexp") << "RegEx is incomplete due to " << assertion << "." << std::endl;
-			is_unk = true;
 		}
 	}
 	if( addedLemma ){
