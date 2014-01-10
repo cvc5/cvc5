@@ -52,7 +52,7 @@ public:
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
-  virtual void registerQuantifier( Node n ) = 0;
+  virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) = 0;
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
@@ -66,6 +66,7 @@ namespace quantifiers {
   class InstantiationEngine;
   class ModelEngine;
   class BoundedIntegers;
+  class QuantConflictFind;
   class RewriteEngine;
 }/* CVC4::theory::quantifiers */
 
@@ -105,6 +106,8 @@ private:
   quantifiers::ModelEngine* d_model_engine;
   /** bounded integers utility */
   quantifiers::BoundedIntegers * d_bint;
+  /** Conflict find mechanism for quantifiers */
+  quantifiers::QuantConflictFind* d_qcf;
   /** rewrite rules utility */
   quantifiers::RewriteEngine * d_rr_engine;
 private:
@@ -165,6 +168,8 @@ public:
   EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
   /** get bounded integers utility */
   quantifiers::BoundedIntegers * getBoundedIntegers() { return d_bint; }
+  /** Conflict find mechanism for quantifiers */
+  quantifiers::QuantConflictFind* getConflictFind() { return d_qcf; }
 public:
   /** initialize */
   void finishInit();
@@ -194,6 +199,8 @@ public:
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** get instantiation */
   Node getInstantiation( Node f, InstMatch& m );
+  /** get instantiation */
+  Node getInstantiation( Node f, std::vector< Node >& terms );
   /** exist instantiation ? */
   bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
@@ -207,7 +214,7 @@ public:
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** flush lemmas */
-  void flushLemmas( OutputChannel* out );
+  void flushLemmas( OutputChannel* out = NULL );
   /** get number of waiting lemmas */
   int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
 public:

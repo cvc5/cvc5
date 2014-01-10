@@ -929,13 +929,13 @@ Node QModelBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, 
   Node ret;
   if( n.getKind()==NOT ){
     ret = getSelectionFormula( fn[0], n[0], !polarity, useOption );
-  }else if( n.getKind()==OR || n.getKind()==IMPLIES || n.getKind()==AND ){
+  }else if( n.getKind()==OR || n.getKind()==AND ){
     //whether we only need to find one or all
     bool favorPol = ( n.getKind()!=AND && polarity ) || ( n.getKind()==AND && !polarity );
     std::vector< Node > children;
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      Node fnc = ( i==0 && fn.getKind()==IMPLIES ) ? fn[i].negate() : fn[i];
-      Node nc = ( i==0 && n.getKind()==IMPLIES ) ? n[i].negate() : n[i];
+      Node fnc = fn[i];
+      Node nc = n[i];
       Node nn = getSelectionFormula( fnc, nc, polarity, useOption );
       if( nn.isNull() && !favorPol ){
         //cannot make selection formula
@@ -993,8 +993,8 @@ Node QModelBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, 
     if( ret.isNull() && !nc[0].isNull() && !nc[1].isNull() ){
       ret = mkAndSelectionFormula( nc[0], nc[1] );
     }
-  }else if( n.getKind()==IFF || n.getKind()==XOR ){
-    bool opPol = polarity ? n.getKind()==XOR : n.getKind()==IFF;
+  }else if( n.getKind()==IFF ){
+    bool opPol = !polarity;
     for( int p=0; p<2; p++ ){
       Node nn[2];
       for( int i=0; i<2; i++ ){

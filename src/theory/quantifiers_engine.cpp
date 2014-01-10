@@ -29,6 +29,7 @@
 #include "theory/rewriterules/rr_trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/uf/options.h"
 
 using namespace std;
@@ -61,6 +62,12 @@ d_lemmas_produced_c(u){
   }
 
   //add quantifiers modules
+  if( options::quantConflictFind() ){
+    d_qcf = new quantifiers::QuantConflictFind( this, c);
+    d_modules.push_back( d_qcf );
+  }else{
+    d_qcf = NULL;
+  }
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
     //the instantiation must set incomplete flag unless finite model finding is turned on
     d_inst_engine = new quantifiers::InstantiationEngine( this, !options::finiteModelFind() );
@@ -393,6 +400,10 @@ Node QuantifiersEngine::getInstantiation( Node f, InstMatch& m ){
   return getInstantiation( f, vars, terms );
 }
 
+Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
+  return getInstantiation( f, d_term_db->d_inst_constants[f], terms );
+}
+
 bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
   if( d_inst_match_trie.find( f )!=d_inst_match_trie.end() ){
     if( d_inst_match_trie[f]->existsInstMatch( this, f, m, modEq, modInst ) ){
@@ -497,12 +508,13 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
 
 void QuantifiersEngine::flushLemmas( OutputChannel* out ){
   if( !d_lemmas_waiting.empty() ){
+    if( !out ){
+      out = &getOutputChannel();
+    }
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     for( int i=0; i<(int)d_lemmas_waiting.size(); i++ ){
-      if( out ){
-        out->lemma( d_lemmas_waiting[i] );
-      }
+      out->lemma( d_lemmas_waiting[i] );
     }
     d_lemmas_waiting.clear();
   }

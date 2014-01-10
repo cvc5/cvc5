@@ -178,15 +178,17 @@ int ModelEngine::checkModel(){
          it != fm->d_rep_set.d_type_reps.end(); ++it ){
       if( it->first.isSort() ){
         Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
-        Trace("model-engine-debug") << "   ";
-        Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
-        for( size_t i=0; i<it->second.size(); i++ ){
-          //Trace("model-engine-debug") << it->second[i] << "  ";
-          Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
-          Trace("model-engine-debug") << r << " ";
+        if( Trace.isOn("model-engine-debug") ){
+          Trace("model-engine-debug") << "   ";
+          Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+          for( size_t i=0; i<it->second.size(); i++ ){
+            //Trace("model-engine-debug") << it->second[i] << "  ";
+            Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
+            Trace("model-engine-debug") << r << " ";
+          }
+          Trace("model-engine-debug") << std::endl;
+          Trace("model-engine-debug") << "  Model basis term : " << mbt << std::endl;
         }
-        Trace("model-engine-debug") << std::endl;
-        Trace("model-engine-debug") << "  Model basis term : " << mbt << std::endl;
       }
     }
   }

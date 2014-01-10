@@ -239,3 +239,17 @@ void QuantPhaseReq::computePhaseReqs( Node n, bool polarity, std::map< Node, int
     }
   }
 }
+
+void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol ) {
+  newHasPol = hasPol;
+  newPol = pol;
+  if( n.getKind()==NOT ){
+    newPol = !pol;
+  }else if( n.getKind()==IFF ){
+    newHasPol = false;
+  }else if( n.getKind()==ITE ){
+    if( child==0 ){
+      newHasPol = false;
+    }
+  }
+}

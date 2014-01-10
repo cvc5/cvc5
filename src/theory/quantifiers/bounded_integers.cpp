@@ -198,10 +198,9 @@ void BoundedIntegers::processLiteral( Node f, Node lit, bool pol,
 void BoundedIntegers::process( Node f, Node n, bool pol,
                                std::map< int, std::map< Node, Node > >& bound_lit_map,
                                std::map< int, std::map< Node, bool > >& bound_lit_pol_map ){
-  if( (( n.getKind()==IMPLIES || n.getKind()==OR) && pol) || (n.getKind()==AND && !pol) ){
+  if( (n.getKind()==OR && pol) || (n.getKind()==AND && !pol) ){
     for( unsigned i=0; i<n.getNumChildren(); i++) {
-      bool newPol = n.getKind()==IMPLIES && i==0 ? !pol : pol;
-      process( f, n[i], newPol, bound_lit_map, bound_lit_pol_map );
+      process( f, n[i], pol, bound_lit_map, bound_lit_pol_map );
     }
   }else if( n.getKind()==NOT ){
     process( f, n[0], !pol, bound_lit_map, bound_lit_pol_map );

@@ -40,7 +40,7 @@ option clauseSplit --clause-split bool :default false
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x
-option preSkolemQuant --pre-skolem-quant bool :default false
+option preSkolemQuant --pre-skolem-quant bool :read-write :default false
  apply skolemization eagerly to bodies of quantified formulas
 option iteRemoveQuant --ite-remove-quant bool :default false
  apply ite removal to bodies of quantifiers
@@ -119,5 +119,7 @@ option fmfBoundInt --fmf-bound-int bool :default false
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms
 
+option quantConflictFind --quant-cf bool :default false
+ enable eager conflict find mechanism for quantifiers
 
 endmodule

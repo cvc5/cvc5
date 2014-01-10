@@ -77,6 +77,7 @@
 #include "prop/options.h"
 #include "theory/arrays/options.h"
 #include "util/sort_inference.h"
+#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/macros.h"
 #include "theory/datatypes/options.h"
 #include "theory/quantifiers/first_order_reasoning.h"
@@ -1148,6 +1149,10 @@ void SmtEngine::setLogicInternal() throw() {
       //if bounded integers are set, must use full model check for MBQI
       options::mbqiMode.set( quantifiers::MBQI_FMC );
     }
+  }
+  if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
+    //must do pre-skolemization
+    options::preSkolemQuant.set( true );
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
@@ -3042,41 +3047,45 @@ void SmtEnginePrivate::processAssertions() {
       d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
     }
   }
-
-  dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
-  if( options::preSkolemQuant() ){
-    //apply pre-skolemization to existential quantifiers
-    for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
-      Node prev = d_assertionsToPreprocess[i];
-      vector< Node > fvs;
-      d_assertionsToPreprocess[i] = Rewriter::rewrite( preSkolemizeQuantifiers( d_assertionsToPreprocess[i], true, fvs ) );
-      if( prev!=d_assertionsToPreprocess[i] ){
-        Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
-        Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << endl;
+  if( d_smt.d_logic.isQuantified() ){
+    dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
+    if( options::preSkolemQuant() ){
+      //apply pre-skolemization to existential quantifiers
+      for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+        Node prev = d_assertionsToPreprocess[i];
+        vector< Node > fvs;
+        d_assertionsToPreprocess[i] = Rewriter::rewrite( preSkolemizeQuantifiers( d_assertionsToPreprocess[i], true, fvs ) );
+        if( prev!=d_assertionsToPreprocess[i] ){
+          Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
+          Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << endl;
+        }
       }
     }
-  }
-  dumpAssertions("post-skolem-quant", d_assertionsToPreprocess);
+    dumpAssertions("post-skolem-quant", d_assertionsToPreprocess);
+    if( options::macrosQuant() ){
+      //quantifiers macro expansion
+      bool success;
+      do{
+        QuantifierMacros qm;
+        success = qm.simplify( d_assertionsToPreprocess, true );
+      }while( success );
+    }
 
-  if( options::macrosQuant() ){
-    //quantifiers macro expansion
-    bool success;
-    do{
-      QuantifierMacros qm;
-      success = qm.simplify( d_assertionsToPreprocess, true );
-    }while( success );
-  }
-
-  Trace("fo-rsn-enable") << std::endl;
-  if( options::foPropQuant() ){
-    FirstOrderPropagation fop;
-    fop.simplify( d_assertionsToPreprocess );
+    Trace("fo-rsn-enable") << std::endl;
+    if( options::foPropQuant() ){
+      FirstOrderPropagation fop;
+      fop.simplify( d_assertionsToPreprocess );
+    }
   }
 
   if( options::sortInference() ){
     //sort inference technique
     d_smt.d_theoryEngine->getSortInference()->simplify( d_assertionsToPreprocess );
   }
+
+  //if( options::quantConflictFind() ){
+  //  d_smt.d_theoryEngine->getQuantConflictFind()->registerAssertions( d_assertionsToPreprocess );
+  //}
 
   dumpAssertions("pre-simplify", d_assertionsToPreprocess);
   Chat() << "simplifying assertions..." << endl;

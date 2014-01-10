@@ -174,7 +174,7 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
   if( n.getKind()==NOT ){
     int val = evaluate( n[0], depIndex, ri );
     return val==1 ? -1 : ( val==-1 ? 1 : 0 );
-  }else if( n.getKind()==OR || n.getKind()==AND || n.getKind()==IMPLIES ){
+  }else if( n.getKind()==OR || n.getKind()==AND ){
     int baseVal = n.getKind()==AND ? 1 : -1;
     int eVal = baseVal;
     int posDepIndex = ri->getNumTerms();
@@ -182,7 +182,7 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
       //evaluate subterm
       int childDepIndex;
-      Node nn = ( i==0 && n.getKind()==IMPLIES ) ? n[i].notNode() : n[i];
+      Node nn = n[i];
       int eValT = evaluate( nn, childDepIndex, ri );
       if( eValT==baseVal ){
         if( eVal==baseVal ){
@@ -210,12 +210,12 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     }else{
       return 0;
     }
-  }else if( n.getKind()==IFF || n.getKind()==XOR ){
+  }else if( n.getKind()==IFF ){
     int depIndex1;
     int eVal = evaluate( n[0], depIndex1, ri );
     if( eVal!=0 ){
       int depIndex2;
-      int eVal2 = evaluate( n.getKind()==XOR ? n[1].notNode() : n[1], depIndex2, ri );
+      int eVal2 = evaluate( n[1], depIndex2, ri );
       if( eVal2!=0 ){
         depIndex = depIndex1>depIndex2 ? depIndex1 : depIndex2;
         return eVal==eVal2 ? 1 : -1;
