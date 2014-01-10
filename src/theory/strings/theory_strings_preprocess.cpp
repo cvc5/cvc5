@@ -202,12 +202,28 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			throw LogicException("string indexof not supported in this release");
 		}
 	} else if( t.getKind() == kind::STRING_STRREPL ){
-		//if(options::stringExp()) {
-		//	d_cache[t] = t;
-		//	retNode = t;
-		//} else {
+		if(options::stringExp()) {
+			Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+			Node x = t[0];
+			Node y = t[1];
+			Node z = t[2];
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "rp1_$$", t[0].getType(), "created for replace" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "rp2_$$", t[0].getType(), "created for replace" );
+			Node skw = NodeManager::currentNM()->mkSkolem( "rpw_$$", t[0].getType(), "created for replace" );
+			Node iof = NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, x, y, zero );
+			Node igeq0 = NodeManager::currentNM()->mkNode( kind::GEQ, iof, zero );
+			Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
+			Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
+			Node c3 = iof.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+			Node rr = NodeManager::currentNM()->mkNode( kind::ITE, igeq0,
+							NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 ),
+							skw.eqNode(x) );
+			new_nodes.push_back( rr );
+			d_cache[t] = skw;
+			retNode = skw;
+		} else {
 			throw LogicException("string replace not supported in this release");
-		//}
+		}
 	} else if( t.getNumChildren()>0 ){
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
