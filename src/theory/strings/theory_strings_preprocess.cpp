@@ -117,9 +117,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		//}
 	} else if( t.getKind() == kind::STRING_SUBSTR ){
 		if(options::stringExp()) {
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "st1sym_$$", t.getType(), "created for substr" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "st2sym_$$", t.getType(), "created for substr" );
-			Node sk3 = NodeManager::currentNM()->mkSkolem( "st3sym_$$", t.getType(), "created for substr" );
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", t.getType(), "created for substr" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "st2_$$", t.getType(), "created for substr" );
+			Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", t.getType(), "created for substr" );
 			Node x = simplify( t[0], new_nodes );
 			Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
 								NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
@@ -138,9 +138,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		}
 	} else if( t.getKind() == kind::STRING_CHARAT ){
 		if(options::stringExp()) {
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1sym_$$", t.getType(), "created for charat" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2sym_$$", t.getType(), "created for charat" );
-			Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3sym_$$", t.getType(), "created for charat" );
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", t.getType(), "created for charat" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2_$$", t.getType(), "created for charat" );
+			Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", t.getType(), "created for charat" );
 			Node x = simplify( t[0], new_nodes );
 			Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
 								NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
@@ -158,12 +158,49 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			throw LogicException("string char at not supported in this release");
 		}
 	} else if( t.getKind() == kind::STRING_STRIDOF ){
-		//if(options::stringExp()) {
-		////	d_cache[t] = t;
-		//	retNode = t;
-		//} else {
+		if(options::stringExp()) {
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "io1_$$", t[0].getType(), "created for indexof" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "io2_$$", t[0].getType(), "created for indexof" );
+			Node sk3 = NodeManager::currentNM()->mkSkolem( "io3_$$", t[0].getType(), "created for indexof" );
+			Node sk4 = NodeManager::currentNM()->mkSkolem( "io4_$$", t[0].getType(), "created for indexof" );
+			Node skk = NodeManager::currentNM()->mkSkolem( "iok_$$", t[2].getType(), "created for indexof" );
+			Node eq = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3, sk4 ) );
+			new_nodes.push_back( eq );
+			Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+			Node krange = NodeManager::currentNM()->mkNode( kind::AND,
+							NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone ),
+							NodeManager::currentNM()->mkNode( kind::GT, 
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
+								skk));
+			new_nodes.push_back( krange );
+
+			//str.len(s1) < y + str.len(s2)
+			Node c1 = NodeManager::currentNM()->mkNode( kind::GT, NodeManager::currentNM()->mkNode( kind::PLUS, t[2], NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] )),
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ));
+			//str.len(t1) = y
+			Node c2 = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+			//~contain(t234, s2)
+			Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN,
+						NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk2, sk3, sk4), t[1] ).negate();
+			//left
+			Node left = NodeManager::currentNM()->mkNode( kind::OR, c1, NodeManager::currentNM()->mkNode( kind::AND, c2, c3 ) );
+			//t3 = s2
+			Node c4 = t[1].eqNode( sk3 );
+			//~contain(t2, s2)
+			Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, sk2, t[1] ).negate();
+			//k=str.len(s1, s2)
+			Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH,
+									NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2 )));
+			//right
+			Node right = NodeManager::currentNM()->mkNode( kind::AND, c2, c4, c5, c6 );
+			Node cond = skk.eqNode( negone );
+			Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond, left, right );
+			new_nodes.push_back( rr );
+			d_cache[t] = skk;
+			retNode = skk;
+		} else {
 			throw LogicException("string indexof not supported in this release");
-		//}
+		}
 	} else if( t.getKind() == kind::STRING_STRREPL ){
 		//if(options::stringExp()) {
 		//	d_cache[t] = t;

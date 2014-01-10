@@ -2110,15 +2110,20 @@ bool TheoryStrings::checkInclusions() {
 				addedLemma = true;
 			} else {
 				if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
-					Node x = atom[0];
-					Node s = atom[1];
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for inclusion" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for inclusion" );
-					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
-					Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
-					d_str_ctn_rewritten[ assertion ] = true;
-					sendLemma( antc, d_false, "negative inclusion" );
-					addedLemma = true;
+					if(options::stringExp()) {
+						Node x = atom[0];
+						Node s = atom[1];
+						Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for inclusion" );
+						Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for inclusion" );
+						Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
+						Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
+						d_str_ctn_rewritten[ assertion ] = true;
+						sendLemma( antc, d_false, "negative inclusion" );
+						addedLemma = true;
+					} else {
+						Trace("strings-inc") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
+						is_unk = true;
+					}
 				}
 			}
 		}
