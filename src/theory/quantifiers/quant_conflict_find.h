@@ -76,6 +76,7 @@ class QuantConflictFind : public QuantifiersModule
 private:
   context::Context* d_c;
   context::CDO< bool > d_conflict;
+  bool d_performCheck;
   //void registerAssertion( Node n );
   void registerQuant( Node q, Node n, bool hasPol, bool pol );
   void flatten( Node q, Node n );
@@ -226,6 +227,16 @@ private:
   std::map< Node, int > d_quant_id;
   void debugPrintQuant( const char * c, Node q );
   void debugPrintQuantBody( const char * c, Node q, Node n, bool doVarNum = true );
+public:
+  /** statistics class */
+  class Statistics {
+  public:
+    IntStat d_inst_rounds;
+    IntStat d_conflict_inst;
+    Statistics();
+    ~Statistics();
+  };
+  Statistics d_statistics;
 };
 
 }

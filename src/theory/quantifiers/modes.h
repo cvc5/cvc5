@@ -70,7 +70,14 @@ typedef enum {
   MBQI_INTERVAL,
 } MbqiMode;
 
-
+typedef enum {
+  /** default, apply at full effort */
+  QCF_WHEN_MODE_DEFAULT,
+  /** apply at standard effort */
+  QCF_WHEN_MODE_STD,
+  /** default */
+  QCF_WHEN_MODE_STD_H,
+} QcfWhenMode;
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

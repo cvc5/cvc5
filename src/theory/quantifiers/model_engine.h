@@ -68,6 +68,7 @@ public:
   public:
     IntStat d_inst_rounds;
     IntStat d_exh_inst_lemmas;
+    IntStat d_mbqi_inst_lemmas;
     Statistics();
     ~Statistics();
   };

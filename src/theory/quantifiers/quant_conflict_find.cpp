@@ -306,18 +306,20 @@ EqRegistry * QuantConflictFind::getEqRegistry( bool polarity, Node lit, bool doC
 void QuantConflictFind::getEqRegistryApps( Node lit, std::vector< Node >& terms ) {
   Assert( quantifiers::TermDb::hasBoundVarAttr( lit ) );
   if( lit.getKind()==EQUAL ){
+    bool allUf = false;
     for( unsigned i=0; i<2; i++ ){
       if( quantifiers::TermDb::hasBoundVarAttr( lit[i] ) ){
-        if( lit[i].getKind()==APPLY_UF ){
-          terms.push_back( lit[i] );
-        }else if( lit[i].getKind()==BOUND_VARIABLE ){
+        if( lit[i].getKind()==BOUND_VARIABLE ){
           //do not handle variable equalities
           terms.clear();
           return;
+        }else{
+          allUf = allUf && lit[i].getKind()==APPLY_UF;
+          terms.push_back( lit[i] );
         }
       }
     }
-    if( terms.size()==2 && isLessThan( terms[1], terms[0] ) ){
+    if( terms.size()==2 && allUf && isLessThan( terms[1], terms[0] ) ){
       Node t = terms[0];
       terms[0] = terms[1];
       terms[1] = t;
@@ -544,7 +546,8 @@ void QuantConflictFind::check( Theory::Effort level ) {
     Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;
   }else{
     bool addedLemma = false;
-    if( level==Theory::EFFORT_FULL ){
+    if( d_performCheck ){
+      ++(d_statistics.d_inst_rounds);
       double clSet = 0;
       if( Trace.isOn("qcf-engine") ){
         clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -648,6 +651,7 @@ void QuantConflictFind::check( Theory::Effort level ) {
                   d_quantEngine->flushLemmas();
                   d_conflict.set( true );
                   addedLemma = true;
+                  ++(d_statistics.d_conflict_inst);
                   break;
                 }else{
                   Trace("qcf-check") << "   ... Failed to add instantiation" << std::endl;
@@ -678,7 +682,11 @@ void QuantConflictFind::check( Theory::Effort level ) {
 }
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
-  return !d_conflict && level==Theory::EFFORT_FULL;
+  d_performCheck = false;
+  if( !d_conflict && level==Theory::EFFORT_FULL ){
+    d_performCheck = true;
+  }
+  return d_performCheck;
 }
 
 void QuantConflictFind::computeRelevantEqr() {
@@ -1091,7 +1099,7 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
       d_n = n;
       qni_apps.push_back( n );
     }else{
-      //unknown term
+      //for now, unknown term
       d_type = typ_invalid;
     }
   }else{
@@ -1143,10 +1151,20 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
         if( d_n.getKind()==APPLY_UF || d_n.getKind()==EQUAL ){
           //get the applications (in order) that will be matching
           p->getEqRegistryApps( d_n, qni_apps );
+          bool isValid = true;
           if( qni_apps.size()>0 ){
-            d_type =typ_valid_lit;
+            for( unsigned i=0; i<qni_apps.size(); i++ ){
+              if( qni_apps[i].getKind()!=APPLY_UF ){
+                //for now, cannot handle anything besides uf
+                isValid = false;
+                qni_apps.clear();
+                break;
+              }
+            }
+            if( isValid ){
+              d_type = typ_valid_lit;
+            }
           }else if( d_n.getKind()==EQUAL ){
-            bool isValid = true;
             for( unsigned i=0; i<2; i++ ){
               if( quantifiers::TermDb::hasBoundVarAttr( d_n[i] ) && !p->d_qinfo[q].isVar( d_n[i] ) ){
                 isValid = false;
@@ -1172,13 +1190,12 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
         for( unsigned i=0; i<d_children.size(); i++ ){
           d_children_order.push_back( i );
         }
-        if( !d_n.isNull() && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF ) ){
+        //if( !d_n.isNull() && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF ) ){
           //sort based on the type of the constraint : ground comes first, then literals, then others
           //MatchGenSort mgs;
           //mgs.d_mg = this;
-          //std::sort( d_children_order.begin(), d_children_order.end(), mbas );
-
-        }
+          //std::sort( d_children_order.begin(), d_children_order.end(), mgs );
+        //}
       }
       if( isTop ){
         int base = d_children.size();
@@ -1707,6 +1724,19 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
     }
     Trace(c) << ")";
   }
+}
+
+QuantConflictFind::Statistics::Statistics():
+  d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
+  d_conflict_inst("QuantConflictFind::Instantiations_Conflict_Find", 0 )
+{
+  StatisticsRegistry::registerStat(&d_inst_rounds);
+  StatisticsRegistry::registerStat(&d_conflict_inst);
+}
+
+QuantConflictFind::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_inst_rounds);
+  StatisticsRegistry::unregisterStat(&d_conflict_inst);
 }
 
 }

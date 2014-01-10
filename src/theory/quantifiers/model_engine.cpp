@@ -242,7 +242,6 @@ int ModelEngine::checkModel(){
   Trace("model-engine-debug") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
-  d_statistics.d_exh_inst_lemmas += d_addedLemmas;
   return d_addedLemmas;
 }
 
@@ -256,6 +255,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     d_triedLemmas += d_builder->d_triedLemmas;
     d_addedLemmas += d_builder->d_addedLemmas;
     d_incomplete_check = d_incomplete_check || d_builder->d_incomplete_check;
+    d_statistics.d_mbqi_inst_lemmas += d_builder->d_addedLemmas;
   }else{
     Trace("inst-fmf-ei") << "-> Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
@@ -287,6 +287,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       }
       d_addedLemmas += addedLemmas;
       d_triedLemmas += triedLemmas;
+      d_statistics.d_exh_inst_lemmas += addedLemmas;
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
     d_incomplete_check = d_incomplete_check || riter.d_incomplete;
@@ -310,15 +311,18 @@ void ModelEngine::debugPrint( const char* c ){
 
 ModelEngine::Statistics::Statistics():
   d_inst_rounds("ModelEngine::Inst_Rounds", 0),
-  d_exh_inst_lemmas("ModelEngine::Exhaustive_Instantiation_Lemmas", 0 )
+  d_exh_inst_lemmas("ModelEngine::Instantiations_Exhaustive", 0 ),
+  d_mbqi_inst_lemmas("ModelEngine::Instantiations_Mbqi", 0 )
 {
   StatisticsRegistry::registerStat(&d_inst_rounds);
   StatisticsRegistry::registerStat(&d_exh_inst_lemmas);
+  StatisticsRegistry::registerStat(&d_mbqi_inst_lemmas);
 }
 
 ModelEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_inst_rounds);
   StatisticsRegistry::unregisterStat(&d_exh_inst_lemmas);
+  StatisticsRegistry::unregisterStat(&d_mbqi_inst_lemmas);
 }
 
 

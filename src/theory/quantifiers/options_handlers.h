@@ -97,6 +97,19 @@ interval \n\
 + Use algorithm that abstracts domain elements as intervals. \n\
 \n\
 ";
+static const std::string qcfWhenModeHelp = "\
+Quantifier conflict find modes currently supported by the --quant-cf-when option:\n\
+\n\
+default \n\
++ Default, apply conflict finding at full effort.\n\
+\n\
+std \n\
++ Apply conflict finding at standard effort.\n\
+\n\
+std-h \n\
++ Apply conflict finding at standard effort when heuristic says to. \n\
+\n\
+";
 
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
@@ -184,6 +197,22 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
 
 inline void checkMbqiMode(std::string option, MbqiMode mode, SmtEngine* smt) throw(OptionException) {
 
+}
+
+inline QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default") {
+    return QCF_WHEN_MODE_DEFAULT;
+  } else if(optarg ==  "std") {
+    return QCF_WHEN_MODE_STD;
+  } else if(optarg ==  "std-h") {
+    return QCF_WHEN_MODE_STD_H;
+  } else if(optarg ==  "help") {
+    puts(qcfWhenModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-cf-when: `") +
+                          optarg + "'.  Try --quant-cf-when help.");
+  }
 }
 
 }/* CVC4::theory::quantifiers namespace */
