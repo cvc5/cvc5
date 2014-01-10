@@ -436,8 +436,8 @@ void TheoryStrings::check(Effort e) {
 					addedLemma = checkMemberships();
 					Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 					if( !d_conflict && !addedLemma ) {
-						addedLemma = checkInclusions();
-						Trace("strings-process") << "Done check inclusion constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+						addedLemma = checkContains();
+						Trace("strings-process") << "Done check contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 					}
 				}
 			}
@@ -721,6 +721,7 @@ bool TheoryStrings::getNormalForms(Node &eqc, std::vector< Node > & visited, std
         Trace("strings-solve") << "--- Normal forms for equivlance class " << eqc << " : " << std::endl;
         for( unsigned i=0; i<normal_forms.size(); i++ ) {
             Trace("strings-solve") << "#" << i << " (from " << normal_form_src[i] << ") : ";
+			//mergeCstVec(normal_forms[i]);
             for( unsigned j=0; j<normal_forms[i].size(); j++ ) {
                 if(j>0) Trace("strings-solve") << ", ";
                 Trace("strings-solve") << normal_forms[i][j];
@@ -739,6 +740,27 @@ bool TheoryStrings::getNormalForms(Node &eqc, std::vector< Node > & visited, std
         }
     }
 	return true;
+}
+
+void TheoryStrings::mergeCstVec(std::vector< Node > &vec_strings) {
+	std::vector< Node >::iterator itr = vec_strings.begin();
+	while(itr != vec_strings.end()) {
+		if(itr->isConst()) {
+			std::vector< Node >::iterator itr2 = itr + 1;
+			if(itr2 == vec_strings.end()) {
+				break;
+			} else if(itr2->isConst()) {
+				CVC4::String s1 = itr->getConst<String>();
+				CVC4::String s2 = itr2->getConst<String>();
+				*itr = NodeManager::currentNM()->mkConst(s1.concat(s2));
+				vec_strings.erase(itr2);
+			} else {
+				++itr;
+			}
+		} else {
+			++itr;
+		}
+	}
 }
 
 bool TheoryStrings::detectLoop( std::vector< std::vector< Node > > &normal_forms,
@@ -2070,12 +2092,12 @@ bool TheoryStrings::checkMemberships() {
 	}
 }
 
-bool TheoryStrings::checkInclusions() {
+bool TheoryStrings::checkContains() {
 	bool is_unk = false;
 	bool addedLemma = false;
 	for( unsigned i=0; i<d_str_ctn.size(); i++ ){
 		Node assertion = d_str_ctn[i];
-		Trace("strings-inc") << "We have inclusion assertion : " << assertion << std::endl;
+		Trace("strings-ctn") << "We have contain assertion : " << assertion << std::endl;
 		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
 		bool polarity = assertion.getKind()!=kind::NOT;
 		if( polarity ) {
@@ -2085,45 +2107,53 @@ bool TheoryStrings::checkInclusions() {
 			if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
 				if(d_str_ctn_rewritten.find(atom) == d_str_ctn_rewritten.end()) {
 					// Add lemma
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for inclusion" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for inclusion" );
+					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
+					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
 					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
-					sendLemma( assertion, eq, "inclusion" );
+					sendLemma( assertion, eq, "POS-INC" );
 					addedLemma = true;
 					d_str_ctn_rewritten[ atom ] = true;
 				} else {
-					Trace("strings-inc") << "... is already rewritten." << std::endl;
+					Trace("strings-ctn") << "... is already rewritten." << std::endl;
 				}
 			} else {
-				Trace("strings-inc") << "... is satisfied." << std::endl;
+				Trace("strings-ctn") << "... is satisfied." << std::endl;
 			}
 		} else {
 			if( areEqual( atom[1], d_emptyString ) ) {
 				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( d_emptyString ) );
 				Node conc = Node::null();
-				sendLemma( ant, conc, "inclusion conflict 1" );
+				sendLemma( ant, conc, "NEG-CTN Conflict 1" );
 				addedLemma = true;
 			} else if( areEqual( atom[1], atom[0] ) ) {
 				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( atom[0] ) );
 				Node conc = Node::null();
-				sendLemma( ant, conc, "inclusion conflict 2" );
+				sendLemma( ant, conc, "NEG-CTN Conflict 2" );
 				addedLemma = true;
 			} else {
-				if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
-					if(options::stringExp()) {
-						Node x = atom[0];
-						Node s = atom[1];
-						Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for inclusion" );
-						Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for inclusion" );
-						Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
-						Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
-						d_str_ctn_rewritten[ assertion ] = true;
-						sendLemma( antc, d_false, "negative inclusion" );
+				if(options::stringExp()) {
+					Node x = atom[0];
+					Node s = atom[1];
+					Node lenx = getLengthTerm(x);
+					Node lens = getLengthTerm(s);
+					if(areEqual(lenx, lens)) {
+						if(d_str_ctn_eqlen.find(assertion) == d_str_ctn_eqlen.end()) {
+							Node eq = lenx.eqNode(lens);
+							Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
+							Node xneqs = x.eqNode(s).negate();
+							d_str_ctn_eqlen[ assertion ] = true;
+							sendLemma( antc, xneqs, "NEG-CTN-EQL" );
+							addedLemma = true;
+						}
+					} else if(!areDisequal(lenx, lens)) {
+						sendSplit(lenx, lens, "NEG-CTN-SP");
 						addedLemma = true;
 					} else {
-						Trace("strings-inc") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
-						is_unk = true;
+						addedLemma = processNegContains(assertion);
 					}
+				} else {
+					Trace("strings-ctn") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
+					is_unk = true;
 				}
 			}
 		}
@@ -2136,6 +2166,27 @@ bool TheoryStrings::checkInclusions() {
 			Trace("strings-inc") << "Strings::inc: possibly incomplete." << std::endl;
 			d_out->setIncomplete();
 		}
+		return false;
+	}
+}
+
+bool TheoryStrings::processNegContains(Node assertion) {
+	Node atom = assertion[0];
+	Node x = atom[0];
+	Node s = atom[1];
+	Node lenx = getLengthTerm(x);
+	Node lens = getLengthTerm(s);
+
+	if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for contain" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for contain" );
+		Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
+		Node gt = NodeManager::currentNM()->mkNode( kind::GT, lenx, lens );
+		Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq, gt ) );
+		d_str_ctn_rewritten[ assertion ] = true;
+		sendLemma( antc, d_false, "NEG-INC-BRK" );
+		return true;
+	} else {
 		return false;
 	}
 }
@@ -2155,8 +2206,8 @@ CVC4::String TheoryStrings::getHeadConst( Node x ) {
 }
 
 bool TheoryStrings::addMembershipLength(Node atom) {
-	Node x = atom[0];
-	Node r = atom[1];
+	//Node x = atom[0];
+	//Node r = atom[1];
 
 	/*std::vector< int > co;
 	co.push_back(0);

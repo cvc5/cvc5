@@ -191,6 +191,7 @@ private:
 	//maintain which concat terms have the length lemma instantiated
 	std::map< Node, bool > d_length_inst;
 private:
+	void mergeCstVec(std::vector< Node > &vec_strings);
     bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
 						std::vector< std::vector< Node > > &normal_forms,
 						std::vector< std::vector< Node > > &normal_forms_exp,
@@ -216,7 +217,8 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
-	bool checkInclusions();
+	bool checkContains();
+	bool processNegContains(Node assertion);
 
 public:
 	void preRegisterTerm(TNode n);
@@ -272,6 +274,7 @@ private:
 
 	// Special String Functions
 	NodeList d_str_ctn;
+	std::map< Node, bool > d_str_ctn_eqlen;
 	std::map< Node, bool > d_str_ctn_rewritten;
 
 	// Regular Expression
