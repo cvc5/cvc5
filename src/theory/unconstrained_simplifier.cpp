@@ -163,7 +163,9 @@ void UnconstrainedSimplifier::processUnconstrained()
               currentSub = Node();
             }
           }
-          else if (uCond && parent.getType().getCardinality().isFinite() && parent.getType().getCardinality().getFiniteCardinality() == 2) {
+          else if (uCond && parent.getType().getCardinality().isFinite() &&
+                   !parent.getType().getCardinality().isLargeFinite() &&
+                   parent.getType().getCardinality().getFiniteCardinality() == 2) {
             // Special case: condition is unconstrained, then and else are different, and total cardinality of the type is 2, then the result
             // is unconstrained
             Node test;
@@ -277,8 +279,8 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_SHL:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
-        case kind::BITVECTOR_UDIV:
-        case kind::BITVECTOR_UREM:
+        case kind::BITVECTOR_UDIV_TOTAL:
+        case kind::BITVECTOR_UREM_TOTAL:
         case kind::BITVECTOR_SDIV:
         case kind::BITVECTOR_SREM:
         case kind::BITVECTOR_SMOD: {
