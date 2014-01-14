@@ -27,8 +27,52 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+
+typedef std::vector<TNode> ArgsVec;
+
 class AbstractionModule {
 
+  class ArgsTableEntry {
+    std::vector<ArgsVec> d_data;
+    unsigned d_arity;
+  public:
+    ArgsTableEntry(unsigned n)
+      : d_arity(n)
+    {}
+    ArgsTableEntry()
+      : d_arity(0)
+    {}
+    void addArguments(const ArgsVec& args);
+    typedef std::vector<ArgsVec>::iterator iterator;
+
+    iterator begin() { return d_data.begin(); }
+    iterator end() { return d_data.end(); }
+    unsigned getArity() { return d_arity; }
+    unsigned getNumEntries() { return d_data.size(); }
+  }; 
+
+  class ArgsTable {
+    __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
+    bool hasEntry(TNode signature) const; 
+  public:
+    ArgsTable() {}
+    void addEntry(TNode signature, const ArgsVec& args);
+    ArgsTableEntry& getEntry(TNode signature); 
+  };
+
+  class PatternMatcher {
+  public:
+    /** 
+     * Checks if one pattern is a generalization of the other
+     * 
+     * @param s 
+     * @param t 
+     * 
+     * @return 1 if s :> t, 2 if s <: t, 0 if they equivalent and -1 if they are incomparable
+     */
+    static int comparePatterns(TNode s, TNode t);
+  }; 
+  
   typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
   typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
   typedef __gnu_cxx::hash_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
@@ -62,6 +106,7 @@ class AbstractionModule {
     void finalize(); 
   };
 
+  ArgsTable d_argsTable; 
   DomainMaker d_domainMaker; 
   
   // map from constant upper bound to domain skolem
@@ -123,9 +168,25 @@ class AbstractionModule {
   void storeSignature(Node signature, TNode assertion);
 
   Node substituteArguments(TNode signature, TNode apply, unsigned& i, TNodeTNodeMap& seen);
+
+  // crazy instantiation methods
+  Node mkInstantiationLemma(const std::vector<ArgsVec>& instantiation,
+                            const std::vector<TNode>& functions,
+                            TNode conflict);
+  bool isConsistent(const std::vector<ArgsVec>& instantiation,
+                    const std::vector<TNode>& funcs);
+  void generateInstantiations(unsigned current,
+                              std::vector<ArgsTableEntry>& matches, 
+                              std::vector<std::vector<ArgsVec> >& instantiations,
+                              std::vector<std::vector<ArgsVec> >& new_instantiations);
+
+  void getMatches(TNode node, ArgsTableEntry& matches);
+
+
 public:
   AbstractionModule()
-    : d_domainMaker(*this)
+    : d_argsTable()
+    , d_domainMaker(*this)
     , d_upperBoundToDomain()
     , d_domainsEnum()
     , d_varToDomain()
