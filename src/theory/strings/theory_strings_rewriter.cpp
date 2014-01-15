@@ -352,7 +352,9 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			}
 		}
 	} else if(node.getKind() == kind::STRING_STRCTN) {
-		if( node[0].isConst() && node[1].isConst() ) {
+		if( node[0] == node[1] ) {
+			retNode = NodeManager::currentNM()->mkConst( true );
+		} else if( node[0].isConst() && node[1].isConst() ) {
 			CVC4::String s = node[0].getConst<String>();
 			CVC4::String t = node[1].getConst<String>();
 			if( s.find(t) != std::string::npos ) {
