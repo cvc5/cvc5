@@ -27,21 +27,36 @@ using namespace std;
 
 namespace CVC4 {
 
-Node QcfNodeIndex::addTerm( QuantConflictFind * qcf, Node n, bool doAdd, int index ) {
+/*
+Node QcfNodeIndex::existsTerm( QuantConflictFind * qcf, Node n, int index ) {
   if( index==(int)n.getNumChildren() ){
     if( d_children.empty() ){
-      if( doAdd ){
-        d_children[ n ].clear();
-        return n;
-      }else{
-        return Node::null();
-      }
+      return Node::null();
     }else{
       return d_children.begin()->first;
     }
   }else{
     Node r = qcf->getRepresentative( n[index] );
-    return d_children[r].addTerm( qcf, n, doAdd, index+1 );
+    if( d_children.find( r )==d_children.end() ){
+      return n;
+    }else{
+      return d_children[r].existsTerm( qcf, n, index+1 );
+    }
+  }
+}
+
+
+Node QcfNodeIndex::addTerm( QuantConflictFind * qcf, Node n, int index ) {
+  if( index==(int)n.getNumChildren() ){
+    if( d_children.empty() ){
+      d_children[ n ].clear();
+      return n;
+    }else{
+      return d_children.begin()->first;
+    }
+  }else{
+    Node r = qcf->getRepresentative( n[index] );
+    return d_children[r].addTerm( qcf, n, index+1 );
   }
 }
 
@@ -54,6 +69,49 @@ bool QcfNodeIndex::addTermEq( QuantConflictFind * qcf, Node n1, Node n2, int ind
     return d_children[r].addTermEq( qcf, n1, n2, index+1 );
   }
 }
+*/
+
+
+
+Node QcfNodeIndex::existsTerm( Node n, std::vector< Node >& reps, int index ) {
+  if( index==(int)reps.size() ){
+    if( d_children.empty() ){
+      return Node::null();
+    }else{
+      return d_children.begin()->first;
+    }
+  }else{
+    if( d_children.find( reps[index] )==d_children.end() ){
+      return Node::null();
+    }else{
+      return d_children[reps[index]].existsTerm( n, reps, index+1 );
+    }
+  }
+}
+
+Node QcfNodeIndex::addTerm( Node n, std::vector< Node >& reps, int index ) {
+  if( index==(int)reps.size() ){
+    if( d_children.empty() ){
+      d_children[ n ].clear();
+      return n;
+    }else{
+      return d_children.begin()->first;
+    }
+  }else{
+    return d_children[reps[index]].addTerm( n, reps, index+1 );
+  }
+}
+
+bool QcfNodeIndex::addTermEq( Node n1, Node n2, std::vector< Node >& reps1, std::vector< Node >& reps2, int index ) {
+  if( index==(int)reps1.size() ){
+    Node n = addTerm( n2, reps2 );
+    return n==n2;
+  }else{
+    return d_children[reps1[index]].addTermEq( n1, n2, reps1, reps2, index+1 );
+  }
+}
+
+
 
 void QcfNodeIndex::debugPrint( const char * c, int t ) {
   for( std::map< Node, QcfNodeIndex >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
@@ -172,7 +230,7 @@ void QuantConflictFind::registerAssertions( std::vector< Node >& assertions ) {
 
 void QuantConflictFind::registerAssertion( Node n ) {
   if( n.getKind()==FORALL ){
-    registerQuant( Node::null(), n[1], NULL, true, true );
+    registerNode( Node::null(), n[1], NULL, true, true );
   }else{
     if( n.getType().isBoolean() ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -182,7 +240,7 @@ void QuantConflictFind::registerAssertion( Node n ) {
   }
 }
 */
-void QuantConflictFind::registerQuant( Node q, Node n, bool hasPol, bool pol ) {
+void QuantConflictFind::registerNode( Node q, Node n, bool hasPol, bool pol ) {
   //qcf->d_node = n;
   bool recurse = true;
   if( n.getKind()!=OR && n.getKind()!=AND && n.getKind()!=IFF && n.getKind()!=ITE && n.getKind()!=NOT ){
@@ -217,7 +275,7 @@ void QuantConflictFind::registerQuant( Node q, Node n, bool hasPol, bool pol ) {
       //QcfNode * qcfc = new QcfNode( d_c );
       //qcfc->d_parent = qcf;
       //qcf->d_child[i] = qcfc;
-      registerQuant( q, n[i], newHasPol, newPol );
+      registerNode( q, n[i], newHasPol, newPol );
     }
   }
 }
@@ -251,7 +309,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   //make QcfNode structure
   Trace("qcf-qregister") << "- Get relevant equality/disequality pairs, calculate flattening..." << std::endl;
   //d_qinfo[q].d_cf = new QcfNode( d_c );
-  registerQuant( q, q[1], true, true );
+  registerNode( q, q[1], true, true );
 
   //debug print
   Trace("qcf-qregister") << "- Flattened structure is :" << std::endl;
@@ -269,6 +327,14 @@ void QuantConflictFind::registerQuantifier( Node q ) {
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
   d_qinfo[q].d_mg = new MatchGen( this, q, q[1], true );
+
+  for( unsigned j=q[0].getNumChildren(); j<d_qinfo[q].d_vars.size(); j++ ){
+    d_qinfo[q].d_var_mg[j] = new MatchGen( this, q, d_qinfo[q].d_vars[j], false, true );
+    if( !d_qinfo[q].d_var_mg[j]->isValid() ){
+      d_qinfo[q].d_mg->setInvalid();
+      break;
+    }
+  }
 
   Trace("qcf-qregister") << "Done registering quantifier." << std::endl;
 }
@@ -433,7 +499,8 @@ Node QuantConflictFind::getRepresentative( Node n ) {
 }
 Node QuantConflictFind::getTerm( Node n ) {
   if( n.getKind()==APPLY_UF ){
-    Node nn = d_uf_terms[n.getOperator()].addTerm( this, n, false );
+    computeArgReps( n );
+    Node nn = d_uf_terms[n.getOperator()].existsTerm( n, d_arg_reps[n] );
     if( !nn.isNull() ){
       return nn;
     }
@@ -544,6 +611,9 @@ void QuantConflictFind::check( Theory::Effort level ) {
   Trace("qcf-check") << "QCF : check : " << level << std::endl;
   if( d_conflict ){
     Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;
+    if( level>=Theory::EFFORT_FULL ){
+      Assert( false );
+    }
   }else{
     bool addedLemma = false;
     if( d_performCheck ){
@@ -580,61 +650,8 @@ void QuantConflictFind::check( Theory::Effort level ) {
             Trace("qcf-check") << std::endl;
 
             if( !d_qinfo[q].isMatchSpurious( this ) ){
-              //assign values for variables that were unassigned (usually not necessary, but handles corner cases)
-              Trace("qcf-check") << std::endl;
-              std::vector< int > unassigned;
-              std::vector< TypeNode > unassigned_tn;
-              for( int i=0; i<d_qinfo[q].getNumVars(); i++ ){
-                if( d_qinfo[q].d_match.find( i )==d_qinfo[q].d_match.end() ){
-                  Assert( i<(int)q[0].getNumChildren() );
-                  unassigned.push_back( i );
-                  unassigned_tn.push_back( d_qinfo[q].getVar( i ).getType() );
-                }
-              }
-              bool success = true;
-              if( !unassigned.empty() ){
-                Trace("qcf-check") << "Assign to unassigned..." << std::endl;
-                int index = 0;
-                std::vector< int > eqc_count;
-                do {
-                  bool invalidMatch;
-                  while( ( index>=0 && (int)index<(int)unassigned.size() ) || invalidMatch ){
-                    invalidMatch = false;
-                    if( index==(int)eqc_count.size() ){
-                      eqc_count.push_back( 0 );
-                    }else{
-                      Assert( index==(int)eqc_count.size()-1 );
-                      if( eqc_count[index]<(int)d_eqcs[unassigned_tn[index]].size() ){
-                        int currIndex = eqc_count[index];
-                        eqc_count[index]++;
-                        Trace("qcf-check-unassign") << unassigned[index] << "->" << d_eqcs[unassigned_tn[index]][currIndex] << std::endl;
-                        if( d_qinfo[q].setMatch( this, unassigned[index], d_eqcs[unassigned_tn[index]][currIndex] ) ){
-                          Trace("qcf-check-unassign") << "Succeeded match" << std::endl;
-                          index++;
-                        }else{
-                          Trace("qcf-check-unassign") << "Failed match" << std::endl;
-                          invalidMatch = true;
-                        }
-                      }else{
-                        Trace("qcf-check-unassign") << "No more matches" << std::endl;
-                        eqc_count.pop_back();
-                        index--;
-                      }
-                    }
-                  }
-                  success = index>=0;
-                  if( success ){
-                    index = (int)unassigned.size()-1;
-                    Trace("qcf-check-unassign") << "  Try: " << std::endl;
-                    for( unsigned i=0; i<unassigned.size(); i++ ){
-                      int ui = unassigned[i];
-                      Trace("qcf-check-unassign") << "  Assigned #" << ui << " : " << d_qinfo[q].d_vars[ui] << " -> " << d_qinfo[q].d_match[ui] << std::endl;
-                    }
-                  }
-                }while( success && d_qinfo[q].isMatchSpurious( this ) );
-              }
-
-              if( success ){
+              std::vector< int > assigned;
+              if( d_qinfo[q].completeMatch( this, q, assigned ) ){
                 InstMatch m;
                 for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
                   Node cv = d_qinfo[q].getCurrentValue( d_qinfo[q].d_match[i] );
@@ -657,11 +674,12 @@ void QuantConflictFind::check( Theory::Effort level ) {
                   Trace("qcf-check") << "   ... Failed to add instantiation" << std::endl;
                   Assert( false );
                 }
+                //clean up assigned
+                for( unsigned i=0; i<assigned.size(); i++ ){
+                  d_qinfo[q].d_match.erase( assigned[i] );
+                }
               }else{
                 Trace("qcf-check") << "   ... Spurious instantiation (cannot assign unassigned variables)" << std::endl;
-              }
-              for( unsigned i=0; i<unassigned.size(); i++ ){
-                d_qinfo[q].d_match.erase( unassigned[i] );
               }
             }else{
               Trace("qcf-check") << "   ... Spurious instantiation (does not meet variable constraints)" << std::endl;
@@ -683,8 +701,12 @@ void QuantConflictFind::check( Theory::Effort level ) {
 
 bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   d_performCheck = false;
-  if( !d_conflict && level==Theory::EFFORT_FULL ){
-    d_performCheck = true;
+  if( !d_conflict ){
+    if( level==Theory::EFFORT_FULL ){
+      d_performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
+    }else if( level==Theory::EFFORT_STANDARD ){
+      d_performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+    }
   }
   return d_performCheck;
 }
@@ -701,6 +723,7 @@ void QuantConflictFind::computeRelevantEqr() {
   d_uf_terms.clear();
   d_eqc_uf_terms.clear();
   d_eqcs.clear();
+  d_arg_reps.clear();
 
   //which nodes are irrelevant for disequality matches
   std::map< Node, bool > irrelevant_dnode;
@@ -740,9 +763,10 @@ void QuantConflictFind::computeRelevantEqr() {
       Node n = (*eqc_i);
       bool isRedundant;
       if( n.getKind()==APPLY_UF ){
-        Node nadd = d_eqc_uf_terms[r][n.getOperator()].addTerm( this, n );
+        computeArgReps( n );
+        Node nadd = d_eqc_uf_terms[r][n.getOperator()].addTerm( n, d_arg_reps[n] );
         isRedundant = (nadd!=n);
-        d_uf_terms[n.getOperator()].addTerm( this, n );
+        d_uf_terms[n.getOperator()].addTerm( n, d_arg_reps[n] );
       }else{
         isRedundant = false;
       }
@@ -773,7 +797,7 @@ void QuantConflictFind::computeRelevantEqr() {
                 //fn with m
                 std::map< Node, EqRegistry * >::iterator itm = itn[j]->second.find( m );
                 if( itm!=itn[j]->second.end() ){
-                  if( itm->second->d_qni.addTerm( this, n )==n ){
+                  if( itm->second->d_qni.addTerm( n, d_arg_reps[n] )==n ){
                     Trace("qcf-reqr") << "Add relevant : " << n << (index==0?"":"!") << "=" << m << " for ";
                     Trace("qcf-reqr") << fn << " " << m << std::endl;
                   }
@@ -782,9 +806,10 @@ void QuantConflictFind::computeRelevantEqr() {
               if( !fm.isNull() ){
                 std::map< Node, EqRegistry * >::iterator itm = itn[j]->second.find( fm );
                 if( itm!=itn[j]->second.end() ){
+                  Assert( d_arg_reps.find( m )!=d_arg_reps.end() );
                   if( j==0 ){
                     //n with fm
-                    if( itm->second->d_qni.addTerm( this, m )==m ){
+                    if( itm->second->d_qni.addTerm( m, d_arg_reps[m] )==m ){
                       Trace("qcf-reqr") << "Add relevant : " << n << (index==0?"":"!") << "=" << m << " for ";
                       Trace("qcf-reqr") << n << " " << fm << std::endl;
                     }
@@ -795,7 +820,7 @@ void QuantConflictFind::computeRelevantEqr() {
                       if( i==0 || m.getOperator()==n.getOperator() ){
                         Node am = ((i==0)==mltn) ? n : m;
                         Node an = ((i==0)==mltn) ? m : n;
-                        if( itm->second->d_qni.addTermEq( this, an, am ) ){
+                        if( itm->second->d_qni.addTermEq( an, am, d_arg_reps[n], d_arg_reps[m] ) ){
                           Trace("qcf-reqr") << "Add relevant (eq) : " << an << (index==0?"":"!") << "=" << am << " for ";
                           Trace("qcf-reqr") << fn << " " << fm << std::endl;
                         }
@@ -826,6 +851,14 @@ void QuantConflictFind::computeRelevantEqr() {
   }
 }
 
+void QuantConflictFind::computeArgReps( Node n ) {
+  if( d_arg_reps.find( n )==d_arg_reps.end() ){
+    for( unsigned j=0; j<n.getNumChildren(); j++ ){
+      d_arg_reps[n].push_back( getRepresentative( n[j] ) );
+    }
+  }
+}
+
 
 void QuantConflictFind::QuantInfo::reset_round( QuantConflictFind * p ) {
   d_match.clear();
@@ -853,6 +886,9 @@ void QuantConflictFind::QuantInfo::reset_round( QuantConflictFind * p ) {
     }
   }
   d_mg->reset_round( p );
+  for( std::map< int, MatchGen * >::iterator it = d_var_mg.begin(); it != d_var_mg.end(); ++it ){
+    it->second->reset_round( p );
+  }
 }
 
 int QuantConflictFind::QuantInfo::getCurrentRepVar( int v ) {
@@ -913,7 +949,7 @@ int QuantConflictFind::QuantInfo::addConstraint( QuantConflictFind * p, int v, N
   //for handling equalities between variables, and disequalities involving variables
   Debug("qcf-match-debug") << "- " << (doRemove ? "un" : "" ) << "constrain : " << v << " -> " << n << " (cv=" << getCurrentValue( n ) << ")";
   Debug("qcf-match-debug") << ", (vn=" << vn << "), polarity = " << polarity << std::endl;
-  Assert( n==getCurrentValue( n ) );
+  Assert( doRemove || n==getCurrentValue( n ) );
   Assert( doRemove || v==getCurrentRepVar( v ) );
   Assert( doRemove || vn==getCurrentRepVar( getVarNum( n ) ) );
   if( polarity ){
@@ -1060,6 +1096,90 @@ bool QuantConflictFind::QuantInfo::isMatchSpurious( QuantConflictFind * p ) {
   return false;
 }
 
+bool QuantConflictFind::QuantInfo::completeMatch( QuantConflictFind * p, Node q, std::vector< int >& assigned ) {
+  //assign values for variables that were unassigned (usually not necessary, but handles corner cases)
+  Trace("qcf-check") << std::endl;
+  std::vector< int > unassigned[2];
+  std::vector< TypeNode > unassigned_tn[2];
+  for( int i=0; i<getNumVars(); i++ ){
+    if( d_match.find( i )==d_match.end() ){
+      Assert( i<(int)q[0].getNumChildren() );
+      int rindex = d_var_mg.find( i )==d_var_mg.end() ? 1 : 0;
+      unassigned[rindex].push_back( i );
+      unassigned_tn[rindex].push_back( getVar( i ).getType() );
+      assigned.push_back( i );
+    }
+  }
+  bool success = true;
+  for( unsigned r=0; r<2; r++ ){
+    if( success && !unassigned[r].empty() ){
+      Trace("qcf-check") << "Assign to unassigned, rep = " << r << "..." << std::endl;
+      int index = 0;
+      std::vector< int > eqc_count;
+      do {
+        bool invalidMatch;
+        while( ( index>=0 && (int)index<(int)unassigned[r].size() ) || invalidMatch ){
+          invalidMatch = false;
+          if( index==(int)eqc_count.size() ){
+            //check if it has now been assigned
+            if( r==0 ){
+              d_var_mg[ unassigned[r][index] ]->reset( p, true, q );
+            }
+            eqc_count.push_back( 0 );
+          }else{
+            if( r==0 ){
+              if( d_var_mg[unassigned[r][index]]->getNextMatch( p, q ) ){
+                Trace("qcf-check-unassign") << "Succeeded match with mg" << std::endl;
+                index++;
+              }else{
+                Trace("qcf-check-unassign") << "Failed match with mg" << std::endl;
+                eqc_count.pop_back();
+                index--;
+              }
+            }else{
+              Assert( index==(int)eqc_count.size()-1 );
+              if( eqc_count[index]<(int)p->d_eqcs[unassigned_tn[r][index]].size() ){
+                int currIndex = eqc_count[index];
+                eqc_count[index]++;
+                Trace("qcf-check-unassign") << unassigned[r][index] << "->" << p->d_eqcs[unassigned_tn[r][index]][currIndex] << std::endl;
+                if( setMatch( p, unassigned[r][index], p->d_eqcs[unassigned_tn[r][index]][currIndex] ) ){
+                  Trace("qcf-check-unassign") << "Succeeded match" << std::endl;
+                  index++;
+                }else{
+                  Trace("qcf-check-unassign") << "Failed match" << std::endl;
+                  invalidMatch = true;
+                }
+              }else{
+                Trace("qcf-check-unassign") << "No more matches" << std::endl;
+                eqc_count.pop_back();
+                index--;
+              }
+            }
+          }
+        }
+        success = index>=0;
+        if( success ){
+          index = (int)unassigned[r].size()-1;
+          Trace("qcf-check-unassign") << "  Try: " << std::endl;
+          for( unsigned i=0; i<unassigned[r].size(); i++ ){
+            int ui = unassigned[r][i];
+            Trace("qcf-check-unassign") << "  Assigned #" << ui << " : " << d_vars[ui] << " -> " << d_match[ui] << std::endl;
+          }
+        }
+      }while( success && isMatchSpurious( p ) );
+    }
+  }
+  if( success ){
+    return true;
+  }else{
+    for( unsigned i=0; i<assigned.size(); i++ ){
+      d_match.erase( assigned[i] );
+    }
+    assigned.clear();
+    return false;
+  }
+}
+
 void QuantConflictFind::QuantInfo::debugPrintMatch( const char * c ) {
   for( int i=0; i<getNumVars(); i++ ){
     Trace(c) << "  " << d_vars[i] << " -> ";
@@ -1095,7 +1215,8 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
     Assert( p->d_qinfo[q].d_var_num.find( n )!=p->d_qinfo[q].d_var_num.end() );
     if( n.getKind()==APPLY_UF ){
       d_type = typ_var;
-      d_type_not = true;  //implicit disequality, in disjunction at top level
+      //d_type_not = true;  //implicit disequality, in disjunction at top level
+      d_type_not = false;
       d_n = n;
       qni_apps.push_back( n );
     }else{
@@ -1103,6 +1224,7 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
       d_type = typ_invalid;
     }
   }else{
+    /*
     if( isTop && n.getKind()!=OR && p->d_qinfo[q].d_vars.size()>q[0].getNumChildren() ){
       //conjoin extra constraints based on flattening with quantifier body
       d_children.push_back( MatchGen( p, q, n ) );
@@ -1113,7 +1235,9 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
         d_type = typ_top;
       }
       d_type_not = false;
-    }else if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
+    }else
+    */
+    if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
       //we handle not immediately
       d_n = n.getKind()==NOT ? n[0] : n;
       d_type_not = n.getKind()==NOT;
@@ -1123,8 +1247,7 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
           d_children.push_back( MatchGen( p, q, d_n[i] ) );
           if( d_children[d_children.size()-1].d_type==typ_invalid ){
-            d_type = typ_invalid;
-            d_children.clear();
+            setInvalid();
             break;
           }else if( isTop && n.getKind()==OR && d_children[d_children.size()-1].d_type==typ_var_eq ){
             Trace("qcf-qregister-debug") << "Remove child, make built-in constraint" << std::endl;
@@ -1197,6 +1320,7 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
           //std::sort( d_children_order.begin(), d_children_order.end(), mgs );
         //}
       }
+      /*
       if( isTop ){
         int base = d_children.size();
         //add additional constraints based on flattening
@@ -1231,6 +1355,7 @@ QuantConflictFind::MatchGen::MatchGen( QuantConflictFind * p, Node q, Node n, bo
           }
         }
       }
+      */
     }
   }
   if( d_type!=typ_invalid ){
@@ -1355,6 +1480,41 @@ bool QuantConflictFind::MatchGen::getNextMatch( QuantConflictFind * p, Node q ) 
   Debug("qcf-match") << ", children = " << d_children.size() << std::endl;
   if( d_children.empty() ){
     bool success = doMatching( p, q );
+    if( success ){
+      Debug("qcf-match") << "     Produce matches for bound variables..." << std::endl;
+      //also need to create match for each variable we bound
+      std::map< int, int >::iterator it = d_qni_bound.begin();
+      bool doReset = true;
+      while( success && it!=d_qni_bound.end() ){
+        std::map< int, MatchGen * >::iterator itm = p->d_qinfo[q].d_var_mg.find( it->second );
+        if( itm!=p->d_qinfo[q].d_var_mg.end() ){
+          Debug("qcf-match-debug") << "       process variable " << it->second << ", reset = " << doReset << std::endl;
+          if( doReset ){
+            itm->second->reset( p, true, q );
+          }
+          if( !itm->second->getNextMatch( p, q ) ){
+            do {
+              if( it==d_qni_bound.begin() ){
+                Debug("qcf-match-debug") << "       failed." << std::endl;
+                success = false;
+              }else{
+                Debug("qcf-match-debug") << "       decrement..." << std::endl;
+                --it;
+              }
+            }while( success && p->d_qinfo[q].d_var_mg.find( it->second )==p->d_qinfo[q].d_var_mg.end() );
+            doReset = false;
+          }else{
+            Debug("qcf-match-debug") << "       increment..." << std::endl;
+            ++it;
+            doReset = true;
+          }
+        }else{
+          Debug("qcf-match-debug") << "       skip..." << std::endl;
+          ++it;
+          doReset = true;
+        }
+      }
+    }
     if( !success ){
       for( std::map< int, Node >::iterator it = d_qni_bound_cons.begin(); it != d_qni_bound_cons.end(); ++it ){
         if( !it->second.isNull() ){
@@ -1619,6 +1779,11 @@ void QuantConflictFind::MatchGen::debugPrintType( const char * c, short typ, boo
     case typ_top: Debug(c) << "top";break;
     }
   }
+}
+
+void QuantConflictFind::MatchGen::setInvalid() {
+  d_type = typ_invalid;
+  d_children.clear();
 }
 
 

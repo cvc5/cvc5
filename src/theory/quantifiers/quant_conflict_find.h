@@ -33,9 +33,14 @@ class QcfNodeIndex {
 public:
   std::map< Node, QcfNodeIndex > d_children;
   void clear() { d_children.clear(); }
-  Node addTerm( QuantConflictFind * qcf, Node n, bool doAdd = true, int index = 0 );
-  bool addTermEq( QuantConflictFind * qcf, Node n1, Node n2, int index = 0 );
+  //Node existsTerm( QuantConflictFind * qcf, Node n, int index = 0 );
+  //Node addTerm( QuantConflictFind * qcf, Node n, int index = 0 );
+  //bool addTermEq( QuantConflictFind * qcf, Node n1, Node n2, int index = 0 );
   void debugPrint( const char * c, int t );
+  //optimized versions
+  Node existsTerm( Node n, std::vector< Node >& reps, int index = 0 );
+  Node addTerm( Node n, std::vector< Node >& reps, int index = 0 );
+  bool addTermEq( Node n1, Node n2, std::vector< Node >& reps1, std::vector< Node >& reps2, int index = 0 );
 };
 
 class EqRegistry {
@@ -78,7 +83,7 @@ private:
   context::CDO< bool > d_conflict;
   bool d_performCheck;
   //void registerAssertion( Node n );
-  void registerQuant( Node q, Node n, bool hasPol, bool pol );
+  void registerNode( Node q, Node n, bool hasPol, bool pol );
   void flatten( Node q, Node n );
 private:
   std::map< TypeNode, Node > d_fv;
@@ -142,6 +147,7 @@ public:  //for quantifiers
     void reset( QuantConflictFind * p, bool tgt, Node q );
     bool getNextMatch( QuantConflictFind * p, Node q );
     bool isValid() { return d_type!=typ_invalid; }
+    void setInvalid();
   };
 private:
   //currently asserted quantifiers
@@ -159,6 +165,7 @@ private:
     int getNumVars() { return (int)d_vars.size(); }
     Node getVar( int i ) { return d_vars[i]; }
     MatchGen * d_mg;
+    std::map< int, MatchGen * > d_var_mg;
     void reset_round( QuantConflictFind * p );
   public:
     //current constraints
@@ -171,6 +178,7 @@ private:
     int addConstraint( QuantConflictFind * p, int v, Node n, int vn, bool polarity, bool doRemove );
     bool setMatch( QuantConflictFind * p, int v, Node n );
     bool isMatchSpurious( QuantConflictFind * p );
+    bool completeMatch( QuantConflictFind * p, Node q, std::vector< int >& assigned );
     void debugPrintMatch( const char * c );
   };
   std::map< Node, QuantInfo > d_qinfo;
@@ -197,6 +205,10 @@ private:  //for equivalence classes
   std::map< Node, std::map< Node, QcfNodeIndex > > d_eqc_uf_terms;
   // type -> list(eqc)
   std::map< TypeNode, std::vector< Node > > d_eqcs;
+  //mapping from UF terms to representatives of their arguments
+  std::map< Node, std::vector< Node > > d_arg_reps;
+  //compute arg reps
+  void computeArgReps( Node n );
 public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
 
