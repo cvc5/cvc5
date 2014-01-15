@@ -218,7 +218,8 @@ private:
     bool checkInductiveEquations();
 	bool checkMemberships();
 	bool checkContains();
-	bool processNegContains(Node assertion);
+	bool checkPosContains();
+	bool checkNegContains();
 
 public:
 	void preRegisterTerm(TNode n);
@@ -273,9 +274,11 @@ private:
 	int getMaxPossibleLength( Node x );
 
 	// Special String Functions
-	NodeList d_str_ctn;
+	NodeList d_str_pos_ctn;
+	NodeList d_str_neg_ctn;
 	std::map< Node, bool > d_str_ctn_eqlen;
-	std::map< Node, bool > d_str_ctn_rewritten;
+	std::map< Node, bool > d_str_pos_ctn_rewritten;
+	std::map< Node, bool > d_str_neg_ctn_rewritten;
 
 	// Regular Expression
 private:

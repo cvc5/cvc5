@@ -273,6 +273,24 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STORE:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
+  // string theory
+  case kind::STRING_CONCAT: out << "str.++ "; break;
+  case kind::STRING_IN_REGEXP: out << "str.in.re "; break;
+  case kind::STRING_LENGTH: out << "str.len "; break;
+  case kind::STRING_SUBSTR: out << "str.substr "; break;
+  case kind::STRING_STRCTN: out << "str.contain "; break;
+  case kind::STRING_CHARAT: out << "str.at "; break;
+  case kind::STRING_STRIDOF: out << "str.indexof "; break;
+  case kind::STRING_STRREPL: out << "str.replace "; break;
+  case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
+  case kind::REGEXP_CONCAT: out << "re.++ "; break;
+  case kind::REGEXP_OR: out << "re.or "; break;
+  case kind::REGEXP_INTER: out << "re.itr "; break;
+  case kind::REGEXP_STAR: out << "re.* "; break;
+  case kind::REGEXP_PLUS: out << "re.+ "; break;
+  case kind::REGEXP_OPT: out << "re.opt "; break;
+  case kind::REGEXP_RANGE: out << "re.range "; break;
+
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; break;
   case kind::BITVECTOR_AND: out << "bvand "; break;

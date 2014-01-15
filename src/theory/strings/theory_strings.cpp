@@ -43,7 +43,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_nf_pairs(c),
 	//d_var_lmin( c ),
 	//d_var_lmax( c ),
-	d_str_ctn( c ),
+	d_str_pos_ctn( c ),
+	d_str_neg_ctn( c ),
 	d_reg_exp_mem( c ),
 	d_curr_cardinality( c, 0 )
 {
@@ -310,7 +311,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 			}
 		}
 	}
-	Trace("strings-model") << "String Model : Finished." << std::endl;
+	Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
 	//step 4 : assign constants to all other equivalence classes
 	for( unsigned i=0; i<nodes.size(); i++ ){
 		if( processed.find( nodes[i] )==processed.end() ){
@@ -338,6 +339,20 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 			m->assertEquality( nodes[i], cc, true );
 		}
 	}
+	Trace("strings-model") << "String Model : Assigned." << std::endl;
+	//check for negative contains
+	/*
+	Trace("strings-model") << "String Model : Check Neg Contains, size = " << d_str_neg_ctn.size() << std::endl;
+	for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ) {
+		Node x = d_str_neg_ctn[i][0];
+		Node y = d_str_neg_ctn[i][1];
+		Trace("strings-model") << "String Model : Check Neg contains: ~contains(" << x << ", " << y << ")." << std::endl;
+		//Node xv = m->getValue(x);
+		//Node yv = m->getValue(y);
+		//Trace("strings-model") << "String Model : Check Neg contains Value: ~contains(" << xv << ", " << yv << ")." << std::endl;
+	}
+	*/
+	Trace("strings-model") << "String Model : Finished." << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -408,7 +423,11 @@ void TheoryStrings::check(Effort e) {
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
 		d_reg_exp_mem.push_back( assertion );
 	} else if (atom.getKind() == kind::STRING_STRCTN) {
-		d_str_ctn.push_back( assertion );
+		if(polarity) {
+			d_str_pos_ctn.push_back( atom );
+		} else {
+			d_str_neg_ctn.push_back( atom );
+		}
 		d_equalityEngine.assertPredicate(atom, polarity, fact);
     } else if (atom.getKind() == kind::EQUAL) {
 		d_equalityEngine.assertEquality(atom, polarity, fact);
@@ -2093,68 +2112,114 @@ bool TheoryStrings::checkMemberships() {
 }
 
 bool TheoryStrings::checkContains() {
-	bool is_unk = false;
+	bool addedLemma = checkPosContains();
+	Trace("strings-process") << "Done check positive contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+	if(!addedLemma) {
+		addedLemma = checkNegContains();
+		Trace("strings-process") << "Done check positive contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+	}
+	return addedLemma;
+}
+
+bool TheoryStrings::checkPosContains() {
 	bool addedLemma = false;
-	for( unsigned i=0; i<d_str_ctn.size(); i++ ){
-		Node assertion = d_str_ctn[i];
-		Trace("strings-ctn") << "We have contain assertion : " << assertion << std::endl;
-		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
-		bool polarity = assertion.getKind()!=kind::NOT;
-		if( polarity ) {
-			Assert( atom.getKind()==kind::STRING_STRCTN );
-			Node x = atom[0];
-			Node s = atom[1];
-			if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
-				if(d_str_ctn_rewritten.find(atom) == d_str_ctn_rewritten.end()) {
-					// Add lemma
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
-					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
-					sendLemma( assertion, eq, "POS-INC" );
-					addedLemma = true;
-					d_str_ctn_rewritten[ atom ] = true;
-				} else {
-					Trace("strings-ctn") << "... is already rewritten." << std::endl;
-				}
+	for( unsigned i=0; i<d_str_pos_ctn.size(); i++ ) {
+		Node atom = d_str_pos_ctn[i];
+		Trace("strings-ctn") << "We have positive contain assertion : " << atom << std::endl;
+		Assert( atom.getKind()==kind::STRING_STRCTN );
+		Node x = atom[0];
+		Node s = atom[1];
+		if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
+			if(d_str_pos_ctn_rewritten.find(atom) == d_str_pos_ctn_rewritten.end()) {
+				Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
+				Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
+				Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
+				sendLemma( atom, eq, "POS-INC" );
+				addedLemma = true;
+				d_str_pos_ctn_rewritten[ atom ] = true;
 			} else {
-				Trace("strings-ctn") << "... is satisfied." << std::endl;
+				Trace("strings-ctn") << "... is already rewritten." << std::endl;
 			}
 		} else {
-			if( areEqual( atom[1], d_emptyString ) ) {
-				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( d_emptyString ) );
-				Node conc = Node::null();
-				sendLemma( ant, conc, "NEG-CTN Conflict 1" );
-				addedLemma = true;
-			} else if( areEqual( atom[1], atom[0] ) ) {
-				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, atom[1].eqNode( atom[0] ) );
-				Node conc = Node::null();
-				sendLemma( ant, conc, "NEG-CTN Conflict 2" );
-				addedLemma = true;
-			} else {
-				if(options::stringExp()) {
-					Node x = atom[0];
-					Node s = atom[1];
-					Node lenx = getLengthTerm(x);
-					Node lens = getLengthTerm(s);
-					if(areEqual(lenx, lens)) {
-						if(d_str_ctn_eqlen.find(assertion) == d_str_ctn_eqlen.end()) {
-							Node eq = lenx.eqNode(lens);
-							Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq ) );
-							Node xneqs = x.eqNode(s).negate();
-							d_str_ctn_eqlen[ assertion ] = true;
-							sendLemma( antc, xneqs, "NEG-CTN-EQL" );
-							addedLemma = true;
-						}
-					} else if(!areDisequal(lenx, lens)) {
-						sendSplit(lenx, lens, "NEG-CTN-SP");
+			Trace("strings-ctn") << "... is satisfied." << std::endl;
+		}
+	}
+	if( addedLemma ){
+		doPendingLemmas();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool TheoryStrings::checkNegContains() {
+	bool is_unk = false;
+	bool addedLemma = false;
+	for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
+		Node atom = d_str_neg_ctn[i];
+		Trace("strings-ctn") << "We have nagetive contain assertion : (not " << atom << " )" << std::endl;
+		if( areEqual( atom[1], d_emptyString ) ) {
+			Node ant = NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), atom[1].eqNode( d_emptyString ) );
+			Node conc = Node::null();
+			sendLemma( ant, conc, "NEG-CTN Conflict 1" );
+			addedLemma = true;
+		} else if( areEqual( atom[1], atom[0] ) ) {
+			Node ant = NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), atom[1].eqNode( atom[0] ) );
+			Node conc = Node::null();
+			sendLemma( ant, conc, "NEG-CTN Conflict 2" );
+			addedLemma = true;
+		} else {
+			if(options::stringExp()) {
+				Node x = atom[0];
+				Node s = atom[1];
+				Node lenx = getLength(x);
+				Node lens = getLength(s);
+				if(areEqual(lenx, lens)) {
+					if(d_str_ctn_eqlen.find(atom) == d_str_ctn_eqlen.end()) {
+						Node eq = lenx.eqNode(lens);
+						Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), eq ) );
+						Node xneqs = x.eqNode(s).negate();
+						d_str_ctn_eqlen[ atom ] = true;
+						sendLemma( antc, xneqs, "NEG-CTN-EQL" );
 						addedLemma = true;
-					} else {
-						addedLemma = processNegContains(assertion);
 					}
+				} else if(!areDisequal(lenx, lens)) {
+					sendSplit(lenx, lens, "NEG-CTN-SP");
+					addedLemma = true;
 				} else {
-					Trace("strings-ctn") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
-					is_unk = true;
+					if(d_str_neg_ctn_rewritten.find(atom) == d_str_neg_ctn_rewritten.end()) {
+						Node e1 = NodeManager::currentNM()->mkSkolem( "nc1_$$", s.getType(), "created for contain" );
+						Node e2 = NodeManager::currentNM()->mkSkolem( "nc2_$$", s.getType(), "created for contain" );
+						Node z = NodeManager::currentNM()->mkSkolem( "ncz_$$", s.getType(), "created for contain" );
+						Node w = NodeManager::currentNM()->mkSkolem( "ncw_$$", s.getType(), "created for contain" );
+						std::vector< Node > vec_conc;
+						Node cc = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, e1, z ) ) );
+						vec_conc.push_back(cc);
+						cc = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, w, e2 ) ) );
+						vec_conc.push_back(cc);
+						cc = Rewriter::rewrite( z.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, s, e2 ) ).negate() );
+						vec_conc.push_back(cc);
+						cc = Rewriter::rewrite( w.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, e1, s ) ).negate() );
+						vec_conc.push_back(cc);
+						cc = Rewriter::rewrite( lenx.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH,
+											NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, e1, s, e2 ) ) ) );
+						vec_conc.push_back(cc);
+						//Incomplete
+						//cc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, e1, s ).negate();
+						//vec_conc.push_back(cc);
+						//cc = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, e2, s ).negate();
+						//vec_conc.push_back(cc);
+						Node conc = NodeManager::currentNM()->mkNode( kind::AND, vec_conc );
+						Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
+						conc = NodeManager::currentNM()->mkNode( kind::OR, xlss, conc );
+						d_str_neg_ctn_rewritten[ atom ] = true;
+						sendLemma( atom.negate(), conc, "NEG-INC-BRK" );
+						addedLemma = true;
+					}
 				}
+			} else {
+				Trace("strings-ctn") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
+				is_unk = true;
 			}
 		}
 	}
@@ -2163,30 +2228,9 @@ bool TheoryStrings::checkContains() {
 		return true;
 	} else {
 		if( is_unk ){
-			Trace("strings-inc") << "Strings::inc: possibly incomplete." << std::endl;
+			Trace("strings-ctn") << "Strings::inc: possibly incomplete." << std::endl;
 			d_out->setIncomplete();
 		}
-		return false;
-	}
-}
-
-bool TheoryStrings::processNegContains(Node assertion) {
-	Node atom = assertion[0];
-	Node x = atom[0];
-	Node s = atom[1];
-	Node lenx = getLengthTerm(x);
-	Node lens = getLengthTerm(s);
-
-	if(d_str_ctn_rewritten.find(assertion) == d_str_ctn_rewritten.end()) {
-		Node sk1 = NodeManager::currentNM()->mkSkolem( "sc3_$$", s.getType(), "created for contain" );
-		Node sk2 = NodeManager::currentNM()->mkSkolem( "sc4_$$", s.getType(), "created for contain" );
-		Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
-		Node gt = NodeManager::currentNM()->mkNode( kind::GT, lenx, lens );
-		Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, assertion, eq, gt ) );
-		d_str_ctn_rewritten[ assertion ] = true;
-		sendLemma( antc, d_false, "NEG-INC-BRK" );
-		return true;
-	} else {
 		return false;
 	}
 }
