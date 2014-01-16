@@ -39,5 +39,8 @@ option bitvectorDivByZeroConst --bv-div-zero-const bool
 
 option bvAbstraction --bv-abstraction bool
  mcm benchmark abstraction 
+
+option skolemizeArguments --bv-skolemize bool
+ skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
  
 endmodule

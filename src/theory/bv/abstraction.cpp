@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
+#include "theory/bv/options.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -59,6 +60,92 @@ void AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
       // assertions that are not changed
       new_assertions.push_back(assertions[i]); 
     }
+  }
+
+  if (options::skolemizeArguments()) {
+    skolemizeArguments(new_assertions);
+  }
+}
+
+void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
+  for (unsigned i = 0; i < assertions.size(); ++i) {
+    TNode assertion = assertions[i];
+    if (assertion.getKind() != kind::OR)
+      continue;
+    
+    bool is_skolemizable = true;
+    for (unsigned k = 0; k < assertion.getNumChildren(); ++k) {
+      if (assertion[k].getKind() != kind::EQUAL ||
+          assertion[k][0].getKind() != kind::APPLY_UF ||
+          assertion[k][1].getKind() != kind::CONST_BITVECTOR ||
+          assertion[k][1].getConst<BitVector>() != BitVector(1, 1u)) {
+        is_skolemizable = false;
+        break;
+      }
+    }
+
+    if (!is_skolemizable)
+      continue;
+
+    ArgsTable assertion_table;
+
+    // collect function symbols and their arguments
+    for (unsigned j = 0; j < assertion.getNumChildren(); ++j) {
+      TNode current = assertion[j];
+      Assert (current.getKind() == kind::EQUAL &&
+              current[0].getKind() == kind::APPLY_UF);
+      TNode func = current[0];
+      ArgsVec args;
+      for (unsigned k = 0; k < func.getNumChildren(); ++k) {
+        args.push_back(func[k]);
+      }
+      assertion_table.addEntry(func.getOperator(), args);
+    }
+
+    NodeBuilder<> assertion_builder (kind::OR);
+    // construct skolemized assertion
+    for (ArgsTable::iterator it = assertion_table.begin(); it != assertion_table.end(); ++it) {
+      // for each function symbol
+      
+      TNode func = it->first;
+      ArgsTableEntry& args = it->second;
+      NodeBuilder<> skolem_func (kind::APPLY_UF);
+      skolem_func << func;
+      std::vector<Node> skolem_args;
+        
+      for (unsigned j = 0; j < args.getArity(); ++j) {
+        bool all_same = true;
+        for (unsigned k = 1; k < args.getNumEntries(); ++k) {
+          if ( args.getEntry(k)[j] != args.getEntry(0)[j])
+            all_same = false; 
+        }
+        Node new_arg = all_same ? (Node)args.getEntry(0)[j] : utils::mkVar(utils::getSize(args.getEntry(0)[j])); 
+        skolem_args.push_back(new_arg);
+        skolem_func << new_arg; 
+      }
+      
+
+      Node skolem_func_eq1 = utils::mkNode(kind::EQUAL, (Node)skolem_func, utils::mkConst(1, 1u)); 
+      
+      // enumerate arguments assignments
+      std::vector<Node> or_assignments; 
+      for (ArgsTableEntry::iterator it = args.begin(); it != args.end(); ++it) {
+        NodeBuilder<> arg_assignment(kind::AND);
+        ArgsVec& args =  *it;
+        for (unsigned k = 0; k < args.size(); ++k) {
+          Node eq = utils::mkNode(kind::EQUAL, args[k], skolem_args[k]);
+          arg_assignment << eq; 
+        }
+        or_assignments.push_back(arg_assignment);
+      }
+      
+      Node new_func_def = utils::mkNode(kind::AND, skolem_func_eq1, utils::mkNode(kind::OR, or_assignments));
+      assertion_builder << new_func_def; 
+    }
+    Node new_assertion = assertion_builder;
+    Debug("bv-abstraction-dbg") << "AbstractionModule::skolemizeArguments " << assertions[i] << " => \n";
+    Debug("bv-abstraction-dbg") << "    " << new_assertion; 
+    assertions[i] = new_assertion;
   }
 }
 
@@ -575,7 +662,8 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
   }
 
   if (signature.getNumChildren() == 0) {
-    Assert (signature.getKind() != kind::VARIABLE); 
+    Assert (signature.getKind() != kind::VARIABLE &&
+            signature.getKind() != kind::SKOLEM); 
     seen[signature] = signature;
     return signature; 
   }
@@ -599,19 +687,27 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
 Node AbstractionModule::simplifyConflict(TNode conflict) {
   if (conflict.getKind() != kind::AND)
     return conflict; 
-  
+
   theory::SubstitutionMap subst(new context::Context());
   for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
     TNode conjunct = conflict[i];
     if (conjunct.getKind() == kind::EQUAL) {
-      if (conjunct[0].getKind() == kind::VARIABLE &&
+      if (conjunct[0].getMetaKind() == kind::metakind::VARIABLE &&
           conjunct[1].getKind() == kind::CONST_BITVECTOR) {
         subst.addSubstitution(conjunct[0], conjunct[1]); 
       }
-      if (conjunct[1].getKind() == kind::VARIABLE &&
+      if (conjunct[1].getMetaKind() == kind::metakind::VARIABLE &&
           conjunct[0].getKind() == kind::CONST_BITVECTOR) {
         subst.addSubstitution(conjunct[1], conjunct[0]); 
       }
+      // if (conjunct[0].getKind() == kind::SKOLEM &&
+      //     conjunct[1].getKind() == kind::VARIABLE) {
+      //   subst.addSubstitution(conjunct[0], conjunct[1]); 
+      // }
+      // if (conjunct[1].getKind() == kind::SKOLEM &&
+      //     conjunct[0].getKind() == kind::VARIABLE) {
+      //   subst.addSubstitution(conjunct[1], conjunct[0]); 
+      // }
     }
   }
   Node new_conflict = Rewriter::rewrite(subst.apply(conflict));
@@ -736,7 +832,7 @@ Node AbstractionModule::mkInstantiationLemma(const std::vector<ArgsVec>& instant
       if (arg.getKind() == kind::CONST_BITVECTOR &&
           args[j].getKind() == kind::CONST_BITVECTOR) {
         Assert (arg == args[j]);
-      } else if (arg.getKind() == kind::VARIABLE &&
+      } else if (arg.getMetaKind() == kind::metakind::VARIABLE &&
                  arg != args[j]) {
         subst.addSubstitution(arg, args[j]);
       }
@@ -769,7 +865,7 @@ bool AbstractionModule::isConsistent(const std::vector<ArgsVec>& instantiation,
         TNode c = arg.getKind() == kind::CONST_BITVECTOR? arg : args[j];
         TNode v = arg.getKind() == kind::CONST_BITVECTOR? args[j] : arg;
 
-        Assert (v.getKind() == kind::VARIABLE);
+        Assert (v.getMetaKind() == kind::metakind::VARIABLE);
         
         TNodeTNodeMap::iterator it = subst.find(v);
         if (it == subst.end()) {
@@ -781,8 +877,8 @@ bool AbstractionModule::isConsistent(const std::vector<ArgsVec>& instantiation,
         continue;
       }
 
-      Assert (arg.getKind() == kind::VARIABLE &&
-              args[j].getKind() == kind::VARIABLE);
+      Assert (arg.getMetaKind() == kind::metakind::VARIABLE &&
+              args[j].getMetaKind() == kind::metakind::VARIABLE);
       
       TNodeTNodeMap::iterator it = subst.find(arg);
       if (it == subst.end()) {

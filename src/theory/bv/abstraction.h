@@ -49,15 +49,19 @@ class AbstractionModule {
     iterator end() { return d_data.end(); }
     unsigned getArity() { return d_arity; }
     unsigned getNumEntries() { return d_data.size(); }
+    ArgsVec& getEntry(unsigned i ) { Assert (i < d_data.size()); return d_data[i]; }
   }; 
 
   class ArgsTable {
     __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction > d_data;
     bool hasEntry(TNode signature) const; 
   public:
+    typedef __gnu_cxx::hash_map<TNode, ArgsTableEntry, TNodeHashFunction >::iterator iterator;
     ArgsTable() {}
     void addEntry(TNode signature, const ArgsVec& args);
-    ArgsTableEntry& getEntry(TNode signature); 
+    ArgsTableEntry& getEntry(TNode signature);
+    iterator begin() { return d_data.begin(); }
+    iterator end() { return d_data.end(); }
   };
 
   class PatternMatcher {
@@ -182,7 +186,7 @@ class AbstractionModule {
 
   void getMatches(TNode node, ArgsTableEntry& matches);
 
-
+  void skolemizeArguments(std::vector<Node>& assertions);
 public:
   AbstractionModule()
     : d_argsTable()
