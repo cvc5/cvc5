@@ -389,7 +389,7 @@ private:
   bool simpITE();
 
   // Simplify based on unconstrained values
-  void unconstrainedSimp();
+  void unconstrainedSimp(std::vector<Node>& assertions);
 
   // Ensures the assertions asserted after before now
   // effectively come before d_realAssertionsEnd
@@ -2220,11 +2220,11 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
   Assert(d_assertionsToCheck.size() == before);
 }
 
-void SmtEnginePrivate::unconstrainedSimp() {
+void SmtEnginePrivate::unconstrainedSimp(std::vector<Node>& assertions) {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
 
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
-  d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertionsToCheck);
+  d_smt.d_theoryEngine->ppUnconstrainedSimp(assertions);
 }
 
 
@@ -2758,7 +2758,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     // Unconstrained simplification
     if(options::unconstrainedSimp()) {
       Chat() << "...doing unconstrained simplification..." << endl;
-      unconstrainedSimp();
+      unconstrainedSimp(d_assertionsToCheck);
     }
 
     dumpAssertions("post-unconstrained", d_assertionsToCheck);
@@ -3047,6 +3047,13 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+
+
+  // Unconstrained simplification
+  if(options::unconstrainedSimp()) {
+    Chat() << "...doing unconstrained simplification..." << endl;
+    unconstrainedSimp(d_assertionsToPreprocess);
+  }
 
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);
 
