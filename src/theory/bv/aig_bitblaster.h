@@ -221,6 +221,7 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
       break;
     }
   case kind::VARIABLE:
+  case kind::SKOLEM:
     {
       result = mkInput(node);
       break;
@@ -277,6 +278,7 @@ Abc_Obj_t* AigBitblaster::getAig(TNode node) {
 }
 
 void AigBitblaster::makeVariable(TNode node, Bits& bits) {
+  
   for (unsigned i = 0; i < utils::getSize(node); ++i) {
     Node bit = utils::mkBitOf(node, i);
     Abc_Obj_t* input = mkInput(bit);
@@ -289,7 +291,8 @@ Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
   Assert (!hasInput(input));
   Assert(input.getKind() == kind::BITVECTOR_BITOF ||
          (input.getType().isBoolean() &&
-          input.getKind() == kind::VARIABLE));
+          (input.getKind() == kind::VARIABLE ||
+           input.getKind() == kind::SKOLEM)));
   Abc_Obj_t* aig_input = Abc_NtkCreatePi(currentAigNtk());
   // d_aigCache.insert(std::make_pair(input, aig_input));
   d_nodeToAigInput.insert(std::make_pair(input, aig_input));
