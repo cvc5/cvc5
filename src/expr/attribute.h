@@ -2,8 +2,8 @@
 /*! \file attribute.h
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Tim King
+ ** Major contributors: Tim King
+ ** Minor contributors (to current version): Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

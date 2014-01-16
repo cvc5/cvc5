@@ -43,8 +43,8 @@ SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jc
   }
 
 %ignore CVC4::SmtEngine::setLogic(const char*);
-%ignore CVC4::SmtEngine::getProof;
 %ignore CVC4::stats::getStatisticsRegistry(SmtEngine*);
 %ignore CVC4::smt::beforeSearch(std::string, bool, SmtEngine*);
+%ignore CVC4::smt::currentProofManager();
 
 %include "smt/smt_engine.h"

@@ -1,7 +1,7 @@
 /*********************                                                        */
 /*! \file model.cpp
  ** \verbatim
- ** Original author: Clark Barrett
+ ** Original author: Andrew Reynolds
  ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.

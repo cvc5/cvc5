@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Clark Barrett, Andrew Reynolds
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -54,7 +54,21 @@ public:
   /** Get the Printer for a given OutputLanguage */
   static Printer* getPrinter(OutputLanguage lang) throw() {
     if(lang == language::output::LANG_AUTO) {
-      lang = language::output::LANG_CVC4; // default
+      // Infer the language to use for output.
+      //
+      // Options can be null in certain circumstances (e.g., when printing
+      // the singleton "null" expr.  So we guard against segfault
+      if(&Options::current() != NULL) {
+        if(options::outputLanguage.wasSetByUser()) {
+          lang = options::outputLanguage();
+        }
+        if(lang == language::output::LANG_AUTO && options::inputLanguage.wasSetByUser()) {
+          lang = language::toOutputLanguage(options::inputLanguage());
+        }
+      }
+      if(lang == language::output::LANG_AUTO) {
+        lang = language::output::LANG_CVC4; // default
+      }
     }
     if(d_printers[lang] == NULL) {
       d_printers[lang] = makePrinter(lang);
@@ -90,6 +104,77 @@ public:
   virtual void toStream(std::ostream& out, const Model& m) const throw();
 
 };/* class Printer */
+
+/**
+ * IOStream manipulator to pretty-print SExprs.
+ */
+class PrettySExprs {
+  /**
+   * The allocated index in ios_base for our setting.
+   */
+  static const int s_iosIndex;
+
+  /**
+   * When this manipulator is used, the setting is stored here.
+   */
+  bool d_prettySExprs;
+
+public:
+  /**
+   * Construct a PrettySExprs with the given setting.
+   */
+  PrettySExprs(bool prettySExprs) : d_prettySExprs(prettySExprs) {}
+
+  inline void applyPrettySExprs(std::ostream& out) {
+    out.iword(s_iosIndex) = d_prettySExprs;
+  }
+
+  static inline bool getPrettySExprs(std::ostream& out) {
+    return out.iword(s_iosIndex);
+  }
+
+  static inline void setPrettySExprs(std::ostream& out, bool prettySExprs) {
+    out.iword(s_iosIndex) = prettySExprs;
+  }
+
+  /**
+   * Set the pretty-sexprs state on the output stream for the current
+   * stack scope.  This makes sure the old state is reset on the
+   * stream after normal OR exceptional exit from the scope, using the
+   * RAII C++ idiom.
+   */
+  class Scope {
+    std::ostream& d_out;
+    bool d_oldPrettySExprs;
+
+  public:
+
+    inline Scope(std::ostream& out, bool prettySExprs) :
+      d_out(out),
+      d_oldPrettySExprs(PrettySExprs::getPrettySExprs(out)) {
+      PrettySExprs::setPrettySExprs(out, prettySExprs);
+    }
+
+    inline ~Scope() {
+      PrettySExprs::setPrettySExprs(d_out, d_oldPrettySExprs);
+    }
+
+  };/* class PrettySExprs::Scope */
+
+};/* class PrettySExprs */
+
+/**
+ * Sets the default pretty-sexprs setting for an ostream.  Use like this:
+ *
+ *   // let out be an ostream, s an SExpr
+ *   out << PrettySExprs(true) << s << endl;
+ *
+ * The setting stays permanently (until set again) with the stream.
+ */
+inline std::ostream& operator<<(std::ostream& out, PrettySExprs ps) {
+  ps.applyPrettySExprs(out);
+  return out;
+}
 
 }/* CVC4 namespace */
 

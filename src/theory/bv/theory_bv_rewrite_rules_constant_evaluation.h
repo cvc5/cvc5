@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): lianah, Morgan Deters, Tim King
+ ** Minor contributors (to current version): Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

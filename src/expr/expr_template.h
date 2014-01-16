@@ -81,7 +81,7 @@ namespace expr {
   class CVC4_PUBLIC ExprDag;
   class CVC4_PUBLIC ExprSetLanguage;
 
-  NodeTemplate<true> exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
+  class ExportPrivate;
 }/* CVC4::expr namespace */
 
 /**
@@ -459,7 +459,7 @@ public:
    * @param language the language in which to output
    */
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                OutputLanguage language = language::output::LANG_AST) const;
+                OutputLanguage language = language::output::LANG_AUTO) const;
 
   /**
    * Check if this is a null expression.
@@ -591,8 +591,7 @@ private:
   friend class TypeCheckingException;
   friend class expr::pickle::Pickler;
   friend class prop::TheoryProxy;
-  friend NodeTemplate<true> expr::exportInternal(NodeTemplate<false> n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
-
+  friend class expr::ExportPrivate;
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;
 
@@ -862,7 +861,7 @@ class CVC4_PUBLIC ExprSetLanguage {
    * setlanguage() applied to them and where the current Options
    * information isn't available.
    */
-  static const int s_defaultOutputLanguage = language::output::LANG_AST;
+  static const int s_defaultOutputLanguage = language::output::LANG_AUTO;
 
   /**
    * When this manipulator is used, the setting is stored here.
@@ -935,7 +934,7 @@ public:
 
 ${getConst_instantiations}
 
-#line 939 "${template}"
+#line 938 "${template}"
 
 namespace expr {
 

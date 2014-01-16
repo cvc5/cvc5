@@ -6,12 +6,12 @@ SUBDIRS = . integers
 end@mk_if@
 
 LOG_COMPILER = @srcdir@/../../run_regression
-AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
+AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(TESTS_ENVIRONMENT) $(LOG_COMPILER) \
+	$(LOG_COMPILER) \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
@@ -45,8 +45,7 @@ TESTS =	\
 	miplib2.cvc \
 	miplib3.cvc \
 	miplib4.cvc \
-	miplibtrick.smt \
-	prp-13-24.smt2
+	miplibtrick.smt
 #	problem__003.smt2
 
 EXTRA_DIST = $(TESTS) \

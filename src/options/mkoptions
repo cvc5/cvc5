@@ -12,7 +12,7 @@
 #   mkoptions (template-file output-file)+ -t options.h-template options.cpp-template (options-file output-dir)+
 #
 
-copyright=2011-2013
+copyright=2011-2014
 
 me=$(basename "$0")
 
@@ -241,6 +241,7 @@ function handle_option {
   predicates=
   links=
   links_alternate=
+  smt_links=
 
   options_already_documented=false
   alternate_options_already_documented=false
@@ -412,9 +413,27 @@ function handle_option {
            links_alternate="${links_alternate} $(echo "${args[$i]}" | sed 's,[^/]*/,,')"
          else
            links="${links} ${args[$i]}"
-           links_alternate="${links_alternate} ${args[$i]}"
          fi
        done
+       ;;
+    :link-smt)
+       j=0
+       while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
+         let ++i
+         let ++j
+         if [ $j -eq 3 ]; then
+           echo "$kf:$lineno: error: attribute :link-smt can only take two arguments" >&2
+           exit 1
+         fi
+         if expr "${args[$i]}" : '.*/' &>/dev/null; then
+           echo "$kf:$lineno: error: attribute :link-smt cannot take alternates" >&2
+           exit 1
+         fi
+         smt_links="${smt_links} ${args[$i]}"
+       done
+       if [ $j -eq 1 ]; then
+         smt_links="${smt_links} \"true\""
+       fi
        ;;
     :include)
        while [ $(($i+1)) -lt ${#args[@]} ] && ! expr "${args[$(($i+1))]}" : '\:' &>/dev/null; do
@@ -544,14 +563,33 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
   fi
   run_links=
   run_links_alternate=
+  run_smt_links=
+  if [ -n "$links" -a -z "$smt_links" -a -n "$smtname" ]; then
+    echo "$kf:$lineno: warning: $smtname has no :link-smt, but equivalent command-line has :link" >&2
+  elif [ -n "$smt_links" -a -z "$links" ] && [ -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o "$long_option_alternate" ]; then
+    echo "$kf:$lineno: warning: $smtname has a :link-smt, but equivalent command-line has no :link" >&2
+  fi
   if [ -n "$links" ]; then
+    # command-line links
     for link in $links; do
       run_links="$run_links
 #line $lineno \"$kf\"
       preemptGetopt(extra_argc, extra_argv, \"$link\");"
     done
   fi
+  if [ -n "$smt_links" ]; then
+    # smt links
+    smt_links=($smt_links)
+    i=0
+    while [ $i -lt ${#smt_links[@]} ]; do
+      run_smt_links="$run_smt_links
+#line $lineno \"$kf\"
+    smt->setOption(std::string(\"${smt_links[$i]}\"), SExpr(${smt_links[$(($i+1))]}));"
+      i=$((i+2))
+    done
+  fi
   if [ -n "$links_alternate" ]; then
+    # command-line links
     for link in $links_alternate; do
       run_links_alternate="$run_links_alternate
 #line $lineno \"$kf\"
@@ -732,7 +770,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_links
+    Options::current().assignBool(options::$internal, \"$smtname\", optionarg == \"true\", smt);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" -a "$internal" != - ]; then
@@ -749,7 +787,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    Options::current().assign(options::$internal, \"$smtname\", optionarg, smt);$run_links
+    Options::current().assign(options::$internal, \"$smtname\", optionarg, smt);$run_smt_links
     return;
   }"
     elif [ -n "$expect_arg" ]; then
@@ -764,7 +802,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    $run_handlers$run_links
+    $run_handlers$run_smt_links
     return;
   }"
     else
@@ -779,7 +817,7 @@ template <> options::${internal}__option_t::type runHandlerAndPredicates(options
 #line $lineno \"$kf\"
   if(key == \"$smtname\") {
 #line $lineno \"$kf\"
-    $run_handlers$run_links
+    $run_handlers$run_smt_links
     return;
   }"
     fi

@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King, Liana Hadarean, Andrew Reynolds
+ ** Minor contributors (to current version): Tim King, Dejan Jovanovic, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -39,6 +39,8 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
+
+class EqProof;
 class EqClassesIterator;
 class EqClassIterator;
 
@@ -421,35 +423,35 @@ private:
   /**
    * Map from ids of proper terms, to the number of non-constant direct subterms. If we update an interpreted
    * application to a constant, we can decrease this value. If we hit 0, we can evaluate the term.
-   * 
+   *
    */
   std::vector<unsigned> d_subtermsToEvaluate;
-  
-  /** 
+
+  /**
    * For nodes that we need to postpone evaluation.
    */
   std::queue<EqualityNodeId> d_evaluationQueue;
-  
+
   /**
    * Evaluate all terms in the evaluation queue.
    */
   void processEvaluationQueue();
-  
+
   /** Vector of nodes that evaluate. */
   std::vector<EqualityNodeId> d_subtermEvaluates;
 
   /** Size of the nodes that evaluate vector. */
   context::CDO<unsigned> d_subtermEvaluatesSize;
-  
+
   /** Set the node evaluate flag */
   void subtermEvaluates(EqualityNodeId id);
 
   /**
-   * Returns the evaluation of the term when all (direct) children are replaced with 
+   * Returns the evaluation of the term when all (direct) children are replaced with
    * the constant representatives.
    */
   Node evaluateTerm(TNode node);
-  
+
   /**
    * Returns true if it's a constant
    */
@@ -487,7 +489,7 @@ private:
 
   /** Enqueue to the propagation queue */
   void enqueue(const MergeCandidate& candidate, bool back = true);
-  
+
   /** Do the propagation */
   void propagate();
 
@@ -499,7 +501,7 @@ private:
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else.
    */
-  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities) const;
+  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof * eqp) const;
 
   /**
    * Print the equality graph.
@@ -752,7 +754,7 @@ public:
   void assertPredicate(TNode p, bool polarity, TNode reason);
 
   /**
-   * Adds predicate p and q and makes them equal. 
+   * Adds predicate p and q and makes them equal.
    */
   void mergePredicates(TNode p, TNode q, TNode reason);
 
@@ -782,14 +784,14 @@ public:
    * Returns the reasons (added when asserting) that imply it
    * in the assertions vector.
    */
-  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions) const;
+  void explainEquality(TNode t1, TNode t2, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
 
   /**
    * Get an explanation of the predicate being true or false.
    * Returns the reasons (added when asserting) that imply imply it
    * in the assertions vector.
    */
-  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions) const;
+  void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions, EqProof * eqp = NULL) const;
 
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
@@ -889,6 +891,16 @@ public:
   EqClassIterator operator++(int);
   bool isFinished() const;
 };/* class EqClassIterator */
+
+class EqProof
+{
+public:
+  EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
+  MergeReasonType d_id;
+  Node d_node;
+  std::vector< EqProof * > d_children;
+  void debug_print( const char * c, unsigned tb = 0 );
+};
 
 } // Namespace eq
 } // Namespace theory

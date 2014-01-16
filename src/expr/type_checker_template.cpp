@@ -2,8 +2,8 @@
 /*! \file type_checker_template.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): lianah
+ ** Major contributors: Tim King
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -83,7 +83,7 @@ bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${neverconstrules}
 
-#line 90 "${template}"
+#line 87 "${template}"
 
   default:;
   }

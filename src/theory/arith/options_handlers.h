@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -52,7 +52,7 @@ This decides on kind of propagation arithmetic attempts to do during the search.
 ";
 
 static const std::string errorSelectionRulesHelp = "\
-This decides on the rule used by simplex during hueristic rounds\n\
+This decides on the rule used by simplex during heuristic rounds\n\
 for deciding the next basic variable to select.\n\
 Heuristic pivot rules available:\n\
 +min\n\

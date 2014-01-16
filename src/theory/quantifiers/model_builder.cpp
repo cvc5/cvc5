@@ -44,7 +44,7 @@ bool QModelBuilder::isQuantifierActive( Node f ) {
 
 
 bool QModelBuilder::optUseModel() {
-  return options::fmfModelBasedInst() || options::fmfBoundInt();
+  return options::mbqiMode()!=MBQI_NONE || options::fmfBoundInt();
 }
 
 void QModelBuilder::debugModel( FirstOrderModel* fm ){
@@ -124,6 +124,7 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelIG* fm = f->asFirstOrderModelIG();
+  Trace("model-engine-debug") << "Process build model, fullModel = " << fullModel << " " << optUseModel() << std::endl;
   if( fullModel ){
     Assert( d_curr_model==fm );
     //update models
@@ -145,7 +146,7 @@ void QModelBuilderIG::processBuildModel( TheoryModel* m, bool fullModel ) {
     reset( fm );
     //only construct first order model if optUseModel() is true
     if( optUseModel() ){
-      Trace("model-engine-debug") << "Initializing quantifiers..." << std::endl;
+      Trace("model-engine-debug") << "Initializing " << fm->getNumAssertedQuantifiers() << " quantifiers..." << std::endl;
       //check if any quantifiers are un-initialized
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node f = fm->getAssertedQuantifier( i );
@@ -272,17 +273,15 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       ++(d_statistics.d_num_quants_init);
     }
     //try to add it
-    if( optInstGen() ){
-      Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
-      //add model basis instantiation
-      if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
-        d_quant_basis_match_added[f] = true;
-        return 1;
-      }else{
-        //shouldn't happen usually, but will occur if x != y is a required literal for f.
-        //Notice() << "No model basis for " << f << std::endl;
-        d_quant_basis_match_added[f] = false;
-      }
+    Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
+    //add model basis instantiation
+    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
+      d_quant_basis_match_added[f] = true;
+      return 1;
+    }else{
+      //shouldn't happen usually, but will occur if x != y is a required literal for f.
+      //Notice() << "No model basis for " << f << std::endl;
+      d_quant_basis_match_added[f] = false;
     }
   }
   return 0;
@@ -397,7 +396,6 @@ bool QModelBuilderIG::isTermActive( Node n ){
 //do exhaustive instantiation
 bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   if( optUseModel() ){
-
     RepSetIterator riter( d_qe, &(d_qe->getModel()->d_rep_set) );
     if( riter.setQuantifier( f ) ){
       FirstOrderModelIG * fmig = (FirstOrderModelIG*)d_qe->getModel();
@@ -418,6 +416,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         //if evaluate(...)==1, then the instantiation is already true in the model
         //  depIndex is the index of the least significant variable that this evaluation relies upon
         depIndex = riter.getNumTerms()-1;
+        Debug("fmf-model-eval") << "We will evaluate " << d_qe->getTermDatabase()->getInstConstantBody( f ) << std::endl;
         eval = fmig->evaluate( d_qe->getTermDatabase()->getInstConstantBody( f ), depIndex, &riter );
         if( eval==1 ){
           Debug("fmf-model-eval") << "  Returned success with depIndex = " << depIndex << std::endl;
@@ -456,7 +455,7 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_statistics.d_eval_lits += fmig->d_eval_lits;
         d_statistics.d_eval_lits_unknown += fmig->d_eval_lits_unknown;
       }
-      Trace("inst-fmf-ei") << "Finished: " << std::endl;
+      Trace("inst-fmf-ei") << "For " << f << ", finished: " << std::endl;
       Trace("inst-fmf-ei") << "   Inst Tried: " << d_triedLemmas << std::endl;
       Trace("inst-fmf-ei") << "   Inst Added: " << d_addedLemmas << std::endl;
       if( d_addedLemmas>1000 ){
@@ -930,13 +929,13 @@ Node QModelBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, 
   Node ret;
   if( n.getKind()==NOT ){
     ret = getSelectionFormula( fn[0], n[0], !polarity, useOption );
-  }else if( n.getKind()==OR || n.getKind()==IMPLIES || n.getKind()==AND ){
+  }else if( n.getKind()==OR || n.getKind()==AND ){
     //whether we only need to find one or all
     bool favorPol = ( n.getKind()!=AND && polarity ) || ( n.getKind()==AND && !polarity );
     std::vector< Node > children;
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      Node fnc = ( i==0 && fn.getKind()==IMPLIES ) ? fn[i].negate() : fn[i];
-      Node nc = ( i==0 && n.getKind()==IMPLIES ) ? n[i].negate() : n[i];
+      Node fnc = fn[i];
+      Node nc = n[i];
       Node nn = getSelectionFormula( fnc, nc, polarity, useOption );
       if( nn.isNull() && !favorPol ){
         //cannot make selection formula
@@ -994,8 +993,8 @@ Node QModelBuilderInstGen::getSelectionFormula( Node fn, Node n, bool polarity, 
     if( ret.isNull() && !nc[0].isNull() && !nc[1].isNull() ){
       ret = mkAndSelectionFormula( nc[0], nc[1] );
     }
-  }else if( n.getKind()==IFF || n.getKind()==XOR ){
-    bool opPol = polarity ? n.getKind()==XOR : n.getKind()==IFF;
+  }else if( n.getKind()==IFF ){
+    bool opPol = !polarity;
     for( int p=0; p<2; p++ ){
       Node nn[2];
       for( int i=0; i<2; i++ ){

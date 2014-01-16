@@ -21,6 +21,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/qinterval_builder.h"
 
 using namespace std;
 using namespace CVC4;
@@ -34,11 +36,18 @@ using namespace CVC4::theory::inst;
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ){
 
-  if( options::fmfFullModelCheck() || options::fmfBoundInt() ){
+  Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
+  if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
+    Trace("model-engine-debug") << "...make fmc builder." << std::endl;
     d_builder = new fmcheck::FullModelChecker( c, qe );
-  }else if( options::fmfNewInstGen() ){
+  }else if( options::mbqiMode()==MBQI_INTERVAL ){
+    Trace("model-engine-debug") << "...make interval builder." << std::endl;
+    d_builder = new QIntervalBuilder( c, qe );
+  }else if( options::mbqiMode()==MBQI_INST_GEN ){
+    Trace("model-engine-debug") << "...make inst-gen builder." << std::endl;
     d_builder = new QModelBuilderInstGen( c, qe );
   }else{
+    Trace("model-engine-debug") << "...make default model builder." << std::endl;
     d_builder = new QModelBuilderDefault( c, qe );
   }
 
@@ -169,15 +178,17 @@ int ModelEngine::checkModel(){
          it != fm->d_rep_set.d_type_reps.end(); ++it ){
       if( it->first.isSort() ){
         Trace("model-engine") << "Cardinality( " << it->first << " )" << " = " << it->second.size() << std::endl;
-        Trace("model-engine-debug") << "   ";
-        Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
-        for( size_t i=0; i<it->second.size(); i++ ){
-          //Trace("model-engine-debug") << it->second[i] << "  ";
-          Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
-          Trace("model-engine-debug") << r << " ";
+        if( Trace.isOn("model-engine-debug") ){
+          Trace("model-engine-debug") << "   ";
+          Node mbt = d_quantEngine->getTermDatabase()->getModelBasisTerm(it->first);
+          for( size_t i=0; i<it->second.size(); i++ ){
+            //Trace("model-engine-debug") << it->second[i] << "  ";
+            Node r = d_quantEngine->getEqualityQuery()->getInternalRepresentative( it->second[i], Node::null(), 0 );
+            Trace("model-engine-debug") << r << " ";
+          }
+          Trace("model-engine-debug") << std::endl;
+          Trace("model-engine-debug") << "  Model basis term : " << mbt << std::endl;
         }
-        Trace("model-engine-debug") << std::endl;
-        Trace("model-engine-debug") << "  Model basis term : " << mbt << std::endl;
       }
     }
   }
@@ -203,7 +214,7 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::fmfFullModelCheck() && options::fmfModelBasedInst() ? 2 : 1;
+  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : 1;
   for( int e=0; e<e_max; e++) {
     if (d_addedLemmas==0) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -221,6 +232,8 @@ int ModelEngine::checkModel(){
           if( optOneQuantPerRound() && d_addedLemmas>0 ){
             break;
           }
+        }else{
+          Trace("inst-fmf-ei") << "-> Inactive : " << f << std::endl;
         }
       }
     }
@@ -229,7 +242,6 @@ int ModelEngine::checkModel(){
   Trace("model-engine-debug") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
-  d_statistics.d_exh_inst_lemmas += d_addedLemmas;
   return d_addedLemmas;
 }
 
@@ -239,11 +251,13 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   d_builder->d_addedLemmas = 0;
   d_builder->d_incomplete_check = false;
   if( d_builder->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort ) ){
+    Trace("inst-fmf-ei") << "-> Builder determined instantiation(s)." << std::endl;
     d_triedLemmas += d_builder->d_triedLemmas;
     d_addedLemmas += d_builder->d_addedLemmas;
     d_incomplete_check = d_incomplete_check || d_builder->d_incomplete_check;
+    d_statistics.d_mbqi_inst_lemmas += d_builder->d_addedLemmas;
   }else{
-    Trace("inst-fmf-ei") << "Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
+    Trace("inst-fmf-ei") << "-> Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
     for( size_t i=0; i<f[0].getNumChildren(); i++ ){
       Debug("inst-fmf-ei") << d_quantEngine->getTermDatabase()->getInstantiationConstant( f, i ) << " ";
@@ -273,6 +287,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       }
       d_addedLemmas += addedLemmas;
       d_triedLemmas += triedLemmas;
+      d_statistics.d_exh_inst_lemmas += addedLemmas;
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
     d_incomplete_check = d_incomplete_check || riter.d_incomplete;
@@ -296,15 +311,18 @@ void ModelEngine::debugPrint( const char* c ){
 
 ModelEngine::Statistics::Statistics():
   d_inst_rounds("ModelEngine::Inst_Rounds", 0),
-  d_exh_inst_lemmas("ModelEngine::Exhaustive_Instantiation_Lemmas", 0 )
+  d_exh_inst_lemmas("ModelEngine::Instantiations_Exhaustive", 0 ),
+  d_mbqi_inst_lemmas("ModelEngine::Instantiations_Mbqi", 0 )
 {
   StatisticsRegistry::registerStat(&d_inst_rounds);
   StatisticsRegistry::registerStat(&d_exh_inst_lemmas);
+  StatisticsRegistry::registerStat(&d_mbqi_inst_lemmas);
 }
 
 ModelEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_inst_rounds);
   StatisticsRegistry::unregisterStat(&d_exh_inst_lemmas);
+  StatisticsRegistry::unregisterStat(&d_mbqi_inst_lemmas);
 }
 
 

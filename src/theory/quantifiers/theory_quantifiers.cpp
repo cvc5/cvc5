@@ -2,8 +2,8 @@
 /*! \file theory_quantifiers.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Andrew Reynolds
+ ** Major contributors: Andrew Reynolds
+ ** Minor contributors (to current version): Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

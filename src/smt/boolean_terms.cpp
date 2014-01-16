@@ -43,8 +43,10 @@ BooleanTermConverter::BooleanTermConverter(SmtEngine& smt) :
   d_tt(),
   d_ffDt(),
   d_ttDt(),
+  d_varCache(),
   d_termCache(),
-  d_typeCache() {
+  d_typeCache(),
+  d_datatypeCache() {
 
   // set up our "false" and "true" conversions based on command-line option
   if(options::booleanTermConversionMode() == BOOLEAN_TERM_CONVERT_TO_BITVECTORS ||
@@ -152,6 +154,40 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
     }
     return out;
   }
+  if(in.getType().isParametricDatatype() &&
+     in.getType().isInstantiatedDatatype()) {
+    // We have something here like (Pair Bool Bool)---need to dig inside
+    // and make it (Pair BV1 BV1)
+    Assert(as.isParametricDatatype() && as.isInstantiatedDatatype());
+    const Datatype* dt2 = &as[0].getDatatype();
+    std::vector<TypeNode> fromParams, toParams;
+    for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
+      fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
+      toParams.push_back(as[i + 1]);
+    }
+    const Datatype* dt1 = d_datatypeCache[dt2];
+    Assert(dt1 != NULL, "expected datatype in cache");
+    Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
+    Node out;
+    for(size_t i = 0; i < dt1->getNumConstructors(); ++i) {
+      DatatypeConstructor ctor = (*dt1)[i];
+      NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
+      appctorb << (*dt2)[i].getConstructor();
+      for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
+        TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
+        asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
+        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, ctor[j].getSelector(), in), asType);
+      }
+      Node appctor = appctorb;
+      if(i == 0) {
+        out = appctor;
+      } else {
+        Node newOut = NodeManager::currentNM()->mkNode(kind::ITE, ctor.getTester(), appctor, out);
+        out = newOut;
+      }
+    }
+    return out;
+  }
 
   Unhandled(in);
 }
@@ -216,10 +252,10 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
           Debug("boolean-terms") << "constructor " << (*c).getConstructor() << ":" << (*c).getConstructor().getType() << " made into " << newD[(*c).getName() + "'"].getConstructor() << ":" << newD[(*c).getName() + "'"].getConstructor().getType() << endl;
           Node::fromExpr(newD[(*c).getName() + "'"].getConstructor()).setAttribute(BooleanTermAttr(), Node::fromExpr((*c).getConstructor()));// other attr?
           Debug("boolean-terms") << "mapped " << newD[(*c).getName() + "'"].getConstructor() << " to " << (*c).getConstructor() << endl;
-          d_termCache[make_pair(Node::fromExpr((*c).getConstructor()), theory::THEORY_BUILTIN)] = Node::fromExpr(newD[(*c).getName() + "'"].getConstructor());
-          d_termCache[make_pair(Node::fromExpr((*c).getTester()), theory::THEORY_BUILTIN)] = Node::fromExpr(newD[(*c).getName() + "'"].getTester());
+          d_varCache[Node::fromExpr((*c).getConstructor())] = Node::fromExpr(newD[(*c).getName() + "'"].getConstructor());
+          d_varCache[Node::fromExpr((*c).getTester())] = Node::fromExpr(newD[(*c).getName() + "'"].getTester());
           for(DatatypeConstructor::const_iterator a = (*c).begin(); a != (*c).end(); ++a) {
-            d_termCache[make_pair(Node::fromExpr((*a).getSelector()), theory::THEORY_BUILTIN)] = Node::fromExpr(newD[(*c).getName() + "'"].getSelector((*a).getName() + "'"));
+            d_varCache[Node::fromExpr((*a).getSelector())] = Node::fromExpr(newD[(*c).getName() + "'"].getSelector((*a).getName() + "'"));
           }
         }
         out = &newD;
@@ -366,9 +402,15 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
     if(!childrenPushed) {
       Debug("boolean-terms") << "rewriteBooleanTermsRec: " << top << " - parentTheory=" << parentTheory << endl;
 
-      BooleanTermCache::iterator i = d_termCache.find(pair<Node, theory::TheoryId>(top, parentTheory));
-      if(i != d_termCache.end()) {
+      BooleanTermVarCache::iterator i = d_varCache.find(top);
+      if(i != d_varCache.end()) {
         result.top() << ((*i).second.isNull() ? Node(top) : (*i).second);
+        worklist.pop();
+        goto next_worklist;
+      }
+      BooleanTermCache::iterator j = d_termCache.find(pair<Node, theory::TheoryId>(top, parentTheory));
+      if(j != d_termCache.end()) {
+        result.top() << ((*j).second.isNull() ? Node(top) : (*j).second);
         worklist.pop();
         goto next_worklist;
       }
@@ -477,7 +519,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
               Node lam = nm->mkNode(kind::LAMBDA, boundVars, body);
               Debug("boolean-terms") << "substituting " << top << " ==> " << lam << endl;
               d_smt.d_theoryEngine->getModel()->addSubstitution(top, lam);
-              d_termCache[make_pair(top, parentTheory)] = n;
+              d_varCache[top] = n;
               result.top() << n;
               worklist.pop();
               goto next_worklist;
@@ -502,7 +544,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                                    nm->mkConst(false), n_ff);
             Debug("boolean-terms") << "array replacement: " << top << " => " << repl << endl;
             d_smt.d_theoryEngine->getModel()->addSubstitution(top, repl);
-            d_termCache[make_pair(top, parentTheory)] = n;
+            d_varCache[top] = n;
             result.top() << n;
             worklist.pop();
             goto next_worklist;
@@ -514,7 +556,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             top.setAttribute(BooleanTermAttr(), n);
             Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
             d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
-            d_termCache[make_pair(top, parentTheory)] = n;
+            d_varCache[top] = n;
             result.top() << n;
             worklist.pop();
             goto next_worklist;
@@ -534,12 +576,12 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                                    nm->mkNode(kind::EQUAL, n_tt, d_tt));
             Debug("boolean-terms") << "array replacement: " << top << " => " << repl << endl;
             d_smt.d_theoryEngine->getModel()->addSubstitution(top, repl);
-            d_termCache[make_pair(top, parentTheory)] = n;
+            d_varCache[top] = n;
             result.top() << n;
             worklist.pop();
             goto next_worklist;
           }
-          d_termCache[make_pair(top, parentTheory)] = Node::null();
+          d_varCache[top] = Node::null();
           result.top() << top;
           worklist.pop();
           goto next_worklist;
@@ -554,12 +596,12 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             Debug("boolean-terms") << "adding subs: " << top << " :=> " << n << endl;
             d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
             Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
-            d_termCache[make_pair(top, parentTheory)] = n;
+            d_varCache[top] = n;
             result.top() << n;
             worklist.pop();
             goto next_worklist;
           }
-          d_termCache[make_pair(top, parentTheory)] = Node::null();
+          d_varCache[top] = Node::null();
           result.top() << top;
           worklist.pop();
           goto next_worklist;
@@ -567,7 +609,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           Debug("boolean-terms") << "found a var of datatype type" << endl;
           TypeNode newT = convertType(t, parentTheory == theory::THEORY_DATATYPES);
           if(t != newT) {
-            Assert(d_termCache.find(make_pair(top, parentTheory)) == d_termCache.end(),
+            Assert(d_varCache.find(top) == d_varCache.end(),
                    "Node `%s' already in cache ?!", top.toString().c_str());
             Node n = nm->mkSkolem(top.getAttribute(expr::VarNameAttr()) + "'",
                                   newT, "a datatype variable introduced by Boolean-term conversion",
@@ -576,12 +618,12 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             top.setAttribute(BooleanTermAttr(), n);
             d_smt.d_theoryEngine->getModel()->addSubstitution(top, n);
             Debug("boolean-terms") << "constructed: " << n << " of type " << newT << endl;
-            d_termCache[make_pair(top, parentTheory)] = n;
+            d_varCache[top] = n;
             result.top() << n;
             worklist.pop();
             goto next_worklist;
           } else {
-            d_termCache[make_pair(top, parentTheory)] = Node::null();
+            d_varCache[top] = Node::null();
             result.top() << top;
             worklist.pop();
             goto next_worklist;
@@ -596,13 +638,13 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           TypeNode dt2type = convertType(TypeNode::fromType(dt.getDatatypeType()), parentTheory == theory::THEORY_DATATYPES);
           const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getConst<Datatype>();
           if(dt != dt2) {
-            Assert(d_termCache.find(make_pair(top, parentTheory)) != d_termCache.end(),
+            Assert(d_varCache.find(top) != d_varCache.end(),
                    "constructor `%s' not in cache", top.toString().c_str());
-            result.top() << d_termCache[make_pair(top, parentTheory)];
+            result.top() << d_varCache[top];
             worklist.pop();
             goto next_worklist;
           }
-          d_termCache[make_pair(top, parentTheory)] = Node::null();
+          d_varCache[top] = Node::null();
           result.top() << top;
           worklist.pop();
           goto next_worklist;
@@ -614,13 +656,13 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           TypeNode dt2type = convertType(TypeNode::fromType(dt.getDatatypeType()), parentTheory == theory::THEORY_DATATYPES);
           const Datatype& dt2 = (dt2type.getKind() == kind::DATATYPE_TYPE ? dt2type : dt2type[0]).getConst<Datatype>();
           if(dt != dt2) {
-            Assert(d_termCache.find(make_pair(top, parentTheory)) != d_termCache.end(),
+            Assert(d_varCache.find(top) != d_varCache.end(),
                    "tester or selector `%s' not in cache", top.toString().c_str());
-            result.top() << d_termCache[make_pair(top, parentTheory)];
+            result.top() << d_varCache[top];
             worklist.pop();
             goto next_worklist;
           } else {
-            d_termCache[make_pair(top, parentTheory)] = Node::null();
+            d_varCache[top] = Node::null();
             result.top() << top;
             worklist.pop();
             goto next_worklist;
@@ -636,7 +678,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                                     NodeManager::SKOLEM_EXACT_NAME);
               Debug("boolean-terms") << "constructed: " << n << " of type " << newType << endl;
               top.setAttribute(BooleanTermAttr(), n);
-              d_termCache[make_pair(top, parentTheory)] = n;
+              d_varCache[top] = n;
               result.top() << n;
               worklist.pop();
               goto next_worklist;

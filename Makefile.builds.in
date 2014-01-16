@@ -192,12 +192,12 @@ endif
 
 # The descent into "src" with target "check" is to build check
 # prerequisites (e.g. CHECK_PROGRAMS, CHECK_LTLIBRARIES, ...).
-check test units:
+check test units: all
 	(cd $(CURRENT_BUILD)/src && $(MAKE) check)
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
 systemtests regress: all
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) $@)
-units%:
+units%: all
 	(cd $(CURRENT_BUILD)/src && $(MAKE) check)
 	+(cd $(CURRENT_BUILD)/test && $(MAKE) units TEST_PREFIX=$(subst units:,,$@))
 regress%: all

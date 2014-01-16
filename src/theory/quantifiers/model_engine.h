@@ -20,7 +20,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/model_builder.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
@@ -69,6 +68,7 @@ public:
   public:
     IntStat d_inst_rounds;
     IntStat d_exh_inst_lemmas;
+    IntStat d_mbqi_inst_lemmas;
     Statistics();
     ~Statistics();
   };

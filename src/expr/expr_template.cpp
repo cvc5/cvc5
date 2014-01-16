@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Tim King, Kshitij Bansal, Christopher L. Conway
+ ** Minor contributors (to current version): Tim King, Christopher L. Conway, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -116,87 +116,109 @@ namespace expr {
 
 static Node exportConstant(TNode n, NodeManager* to);
 
-Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags) {
-  if(n.isNull()) return Node::null();
-  if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
-    throw ExportUnsupportedException
-       ("export of node belonging to theory of DATATYPES kinds unsupported");
-  }
+class ExportPrivate {
+private:
+  typedef std::hash_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
+  ExprManager* from;
+  ExprManager* to;
+  ExprManagerMapCollection& vmap;
+  uint32_t flags;
+  ExportCache exportCache;
+public:
+  ExportPrivate(ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags) : from(from), to(to), vmap(vmap), flags(flags) {}
+  Node exportInternal(TNode n) {
 
-  if(n.getMetaKind() == metakind::CONSTANT) {
-    return exportConstant(n, NodeManager::fromExprManager(to));
-  } else if(n.isVar()) {
-    Expr from_e(from, new Node(n));
-    Expr& to_e = vmap.d_typeMap[from_e];
-    if(! to_e.isNull()) {
-      Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::endl;
-      return to_e.getNode();
-    } else {
-      // construct new variable in other manager:
-      // to_e is a ref, so this inserts from_e -> to_e
-      std::string name;
-      Type type = from->exportType(from_e.getType(), to, vmap);
-      if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
-        // temporarily set the node manager to NULL; this gets around
-        // a check that mkVar isn't called internally
+    if(n.isNull()) return Node::null();
+    if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
+      throw ExportUnsupportedException
+        ("export of node belonging to theory of DATATYPES kinds unsupported");
+    }
 
-        if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
-          NodeManagerScope nullScope(NULL);
-          to_e = to->mkBoundVar(name, type);// FIXME thread safety
-        } else if(n.getKind() == kind::VARIABLE) {
-          bool isGlobal;
-          Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
-          NodeManagerScope nullScope(NULL);
-          to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
-        } else if(n.getKind() == kind::SKOLEM) {
-          // skolems are only available at the Node level (not the Expr level)
-          TypeNode typeNode = TypeNode::fromType(type);
-          NodeManager* to_nm = NodeManager::fromExprManager(to);
-          Node n = to_nm->mkSkolem(name, typeNode, "is a skolem variable imported from another ExprManager");// FIXME thread safety
-          to_e = n.toExpr();
-        } else {
-          Unhandled();
-        }
-
-        Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
+    if(n.getMetaKind() == metakind::CONSTANT) {
+      return exportConstant(n, NodeManager::fromExprManager(to));
+    } else if(n.isVar()) {
+      Expr from_e(from, new Node(n));
+      Expr& to_e = vmap.d_typeMap[from_e];
+      if(! to_e.isNull()) {
+        Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::endl;
+        return to_e.getNode();
       } else {
-        // temporarily set the node manager to NULL; this gets around
-        // a check that mkVar isn't called internally
-        NodeManagerScope nullScope(NULL);
-        to_e = to->mkVar(type);// FIXME thread safety
-        Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
+        // construct new variable in other manager:
+        // to_e is a ref, so this inserts from_e -> to_e
+        std::string name;
+        Type type = from->exportType(from_e.getType(), to, vmap);
+        if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
+          // temporarily set the node manager to NULL; this gets around
+          // a check that mkVar isn't called internally
+
+          if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
+            NodeManagerScope nullScope(NULL);
+            to_e = to->mkBoundVar(name, type);// FIXME thread safety
+          } else if(n.getKind() == kind::VARIABLE) {
+            bool isGlobal;
+            Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
+            NodeManagerScope nullScope(NULL);
+            to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
+          } else if(n.getKind() == kind::SKOLEM) {
+            // skolems are only available at the Node level (not the Expr level)
+            TypeNode typeNode = TypeNode::fromType(type);
+            NodeManager* to_nm = NodeManager::fromExprManager(to);
+            Node n = to_nm->mkSkolem(name, typeNode, "is a skolem variable imported from another ExprManager");// FIXME thread safety
+            to_e = n.toExpr();
+          } else {
+            Unhandled();
+          }
+
+          Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
+        } else {
+          // temporarily set the node manager to NULL; this gets around
+          // a check that mkVar isn't called internally
+          NodeManagerScope nullScope(NULL);
+          to_e = to->mkVar(type);// FIXME thread safety
+          Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
+        }
+        uint64_t to_int = (uint64_t)(to_e.getNode().d_nv);
+        uint64_t from_int = (uint64_t)(from_e.getNode().d_nv);
+        vmap.d_from[to_int] = from_int;
+        vmap.d_to[from_int] = to_int;
+        vmap.d_typeMap[to_e] = from_e;// insert other direction too
+        return Node::fromExpr(to_e);
       }
-      uint64_t to_int = (uint64_t)(to_e.getNode().d_nv);
-      uint64_t from_int = (uint64_t)(from_e.getNode().d_nv);
-      vmap.d_from[to_int] = from_int;
-      vmap.d_to[from_int] = to_int;
-      vmap.d_typeMap[to_e] = from_e;// insert other direction too
-      return Node::fromExpr(to_e);
-    }
-  } else {
-    std::vector<Node> children;
-    Debug("export") << "n: " << n << std::endl;
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      Debug("export") << "+ parameterized, op is " << n.getOperator() << std::endl;
-      children.reserve(n.getNumChildren() + 1);
-      children.push_back(exportInternal(n.getOperator(), from, to, vmap, flags));
     } else {
-      children.reserve(n.getNumChildren());
-    }
-    for(TNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
-      Debug("export") << "+ child: " << *i << std::endl;
-      children.push_back(exportInternal(*i, from, to, vmap, flags));
-    }
-    if(Debug.isOn("export")) {
-      ExprManagerScope ems(*to);
-      Debug("export") << "children for export from " << n << std::endl;
-      for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
-        Debug("export") << "  child: " << *i << std::endl;
+      if(exportCache.find(n) != exportCache.end()) {
+        return exportCache[n];
       }
+
+      std::vector<Node> children;
+      Debug("export") << "n: " << n << std::endl;
+      if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        Debug("export") << "+ parameterized, op is " << n.getOperator() << std::endl;
+        children.reserve(n.getNumChildren() + 1);
+        children.push_back(exportInternal(n.getOperator()));
+      } else {
+        children.reserve(n.getNumChildren());
+      }
+      for(TNode::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i) {
+        Debug("export") << "+ child: " << *i << std::endl;
+        children.push_back(exportInternal(*i));
+      }
+      if(Debug.isOn("export")) {
+        ExprManagerScope ems(*to);
+        Debug("export") << "children for export from " << n << std::endl;
+        for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
+          Debug("export") << "  child: " << *i << std::endl;
+        }
+      }
+
+      // FIXME thread safety
+      Node ret = NodeManager::fromExprManager(to)->mkNode(n.getKind(), children);
+
+      exportCache[n] = ret;
+      return ret;
     }
-    return NodeManager::fromExprManager(to)->mkNode(n.getKind(), children);// FIXME thread safety
-  }
-}/* exportInternal() */
+  }/* exportInternal() */
+
+};
 
 }/* CVC4::expr namespace */
 
@@ -205,7 +227,7 @@ Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variable
   Assert(d_exprManager != exprManager,
          "No sense in cloning an Expr in the same ExprManager");
   ExprManagerScope ems(*this);
-  return Expr(exprManager, new Node(expr::exportInternal(*d_node, d_exprManager, exprManager, variableMap, flags)));
+  return Expr(exprManager, new Node(expr::ExportPrivate(d_exprManager, exprManager, variableMap, flags).exportInternal(*d_node)));
 }
 
 Expr& Expr::operator=(const Expr& e) {

@@ -9,6 +9,9 @@ readline_compentry_func_returns_charp=0
 READLINE_LIBS=
 if test "$with_readline" = no; then
   AC_MSG_RESULT([no, readline disabled by user])
+elif test "$with_readline" = check -a "$CVC4_BSD_LICENSED_CODE_ONLY" = 1; then
+  AC_MSG_RESULT([no, using BSD-compatible dependences only])
+  with_readline=no
 else
   if test "$with_readline" = check; then
     AC_MSG_RESULT([no preference by user, will auto-detect])

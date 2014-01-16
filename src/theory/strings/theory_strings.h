@@ -4,8 +4,8 @@
  ** Original author: Tianyi Liang
  ** Major contributors: none
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2013-2013  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -116,6 +116,7 @@ private:
     Node d_zero;
 	// Options
 	bool d_opt_fmf;
+	bool d_opt_regexp_gcd;
 	// Helper functions
 	Node getRepresentative( Node t );
 	bool hasTerm( Node a );
@@ -187,11 +188,25 @@ private:
 	/** map from representatives to information necessary for equivalence classes */
 	std::map< Node, EqcInfo* > d_eqc_info;
 	EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
-	//maintain which concat terms have the length lemma instantiatied
+	//maintain which concat terms have the length lemma instantiated
 	std::map< Node, bool > d_length_inst;
 private:
+	void mergeCstVec(std::vector< Node > &vec_strings);
     bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
-    std::vector< std::vector< Node > > &normal_forms,  std::vector< std::vector< Node > > &normal_forms_exp, std::vector< Node > &normal_form_src);
+						std::vector< std::vector< Node > > &normal_forms,
+						std::vector< std::vector< Node > > &normal_forms_exp,
+						std::vector< Node > &normal_form_src);
+	bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
+					int i, int j, int index_i, int index_j, 
+					int &loop_in_i, int &loop_in_j);
+	bool processLoop(std::vector< Node > &antec,
+					 std::vector< std::vector< Node > > &normal_forms,
+					 std::vector< Node > &normal_form_src,
+					 int i, int j, int loop_n_index, int other_n_index,
+					 int loop_index, int index, int other_index);
+	bool processNEqc(std::vector< std::vector< Node > > &normal_forms,
+					 std::vector< std::vector< Node > > &normal_forms_exp,
+					 std::vector< Node > &normal_form_src);
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
 	bool unrollStar( Node atom );
@@ -202,7 +217,9 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
-	int gcd(int a, int b);
+	bool checkContains();
+	bool checkPosContains();
+	bool checkNegContains();
 
 public:
 	void preRegisterTerm(TNode n);
@@ -210,11 +227,11 @@ public:
 
 	/** Conflict when merging two constants */
 	void conflict(TNode a, TNode b);
-	/** called when a new equivalance class is created */
+	/** called when a new equivalence class is created */
 	void eqNotifyNewClass(TNode t);
-	/** called when two equivalance classes will merge */
+	/** called when two equivalence classes will merge */
 	void eqNotifyPreMerge(TNode t1, TNode t2);
-	/** called when two equivalance classes have merged */
+	/** called when two equivalence classes have merged */
 	void eqNotifyPostMerge(TNode t1, TNode t2);
 	/** called when two equivalence classes are made disequal */
 	void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
@@ -242,8 +259,8 @@ protected:
 	//get final normal form
 	void getFinalNormalForm( Node n, std::vector< Node >& nf, std::vector< Node >& exp );
 
-	//seperate into collections with equal length
-	void seperateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
+	//separate into collections with equal length
+	void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
 	void printConcat( std::vector< Node >& n, const char * c );
 
 	// Measurement
@@ -256,6 +273,13 @@ private:
 	Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
 	int getMaxPossibleLength( Node x );
 
+	// Special String Functions
+	NodeList d_str_pos_ctn;
+	NodeList d_str_neg_ctn;
+	std::map< Node, bool > d_str_ctn_eqlen;
+	std::map< Node, bool > d_str_pos_ctn_rewritten;
+	std::map< Node, bool > d_str_neg_ctn_rewritten;
+
 	// Regular Expression
 private:
 	// regular expression memberships
@@ -267,6 +291,8 @@ private:
 	bool d_regexp_incomplete;
 	int d_regexp_unroll_depth;
 	int d_regexp_max_depth;
+	// membership length
+	std::map< Node, bool > d_membership_length;
 	// regular expression derivative
 	std::map< Node, bool > d_reg_exp_deriv;
 	// regular expression operations
@@ -274,6 +300,7 @@ private:
 
 	CVC4::String getHeadConst( Node x );
 	bool splitRegExp( Node x, Node r, Node ant );
+	bool addMembershipLength(Node atom);
 
 
 	// Finite Model Finding

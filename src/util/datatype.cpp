@@ -102,7 +102,7 @@ void Datatype::resolve(ExprManager* em,
   CheckArgument(&self.getDatatype() == this, resolutions, "Datatype::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
   size_t index = 0;
-  for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
+  for(std::vector<DatatypeConstructor>::iterator i = d_constructors.begin(), i_end = d_constructors.end(); i != i_end; ++i) {
     (*i).resolve(em, self, resolutions, placeholders, replacements, paramTypes, paramReplacements);
     Node::fromExpr((*i).d_constructor).setAttribute(DatatypeIndexAttr(), index);
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
@@ -416,7 +416,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   NodeManager* nm = NodeManager::fromExprManager(em);
   TypeNode selfTypeNode = TypeNode::fromType(self);
   size_t index = 0;
-  for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
+  for(std::vector<DatatypeConstructorArg>::iterator i = d_args.begin(), i_end = d_args.end(); i != i_end; ++i) {
     if((*i).d_selector.isNull()) {
       // the unresolved type wasn't created here; do name resolution
       string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
@@ -461,7 +461,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
   d_tester = nm->mkSkolem(getTesterName(), nm->mkTesterType(selfTypeNode), "is a tester", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
   d_constructor = nm->mkSkolem(getName(), nm->mkConstructorType(*this, selfTypeNode), "is a constructor", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
   // associate constructor with all selectors
-  for(iterator i = begin(), i_end = end(); i != i_end; ++i) {
+  for(std::vector<DatatypeConstructorArg>::iterator i = d_args.begin(), i_end = d_args.end(); i != i_end; ++i) {
     (*i).d_constructor = d_constructor;
   }
 }

@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file simplex.h
+/*! \file fc_simplex.h
  ** \verbatim
- ** Original author: taking
+ ** Original author: Tim King
  ** Major contributors: none
- ** Minor contributors (to current version): kshitij, mdeters
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009-2012  New York University and The University of Iowa
+ ** Minor contributors (to current version): Morgan Deters
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

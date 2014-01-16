@@ -44,6 +44,7 @@ private:
   static void setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed );
   static Node computeClause( Node n );
 private:
+  static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested = false );
   static Node computeNNF( Node body );
@@ -54,7 +55,8 @@ private:
   static Node computeSplit( Node f, Node body, std::vector< Node >& args );
 private:
   enum{
-    COMPUTE_MINISCOPING = 0,
+    COMPUTE_ELIM_SYMBOLS = 0,
+    COMPUTE_MINISCOPING,
     COMPUTE_AGGRESSIVE_MINISCOPING,
     COMPUTE_NNF,
     COMPUTE_SIMPLE_ITE_LIFT,

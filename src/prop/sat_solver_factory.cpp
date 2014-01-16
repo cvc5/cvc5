@@ -2,7 +2,7 @@
 /*! \file sat_solver_factory.cpp
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters, Tim King
+ ** Major contributors: Tim King
  ** Minor contributors (to current version): Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

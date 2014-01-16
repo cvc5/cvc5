@@ -2,8 +2,8 @@
 /*! \file command.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: Francois Bobot
- ** Minor contributors (to current version): Kshitij Bansal, Dejan Jovanovic, Andrew Reynolds
+ ** Major contributors: none
+ ** Minor contributors (to current version): Kshitij Bansal, Dejan Jovanovic, Andrew Reynolds, Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -467,7 +467,7 @@ Command* CommandSequence::exportTo(ExprManager* exprManager, ExprManagerMapColle
     Command* cmd_to_export = *i;
     Command* cmd = cmd_to_export->exportTo(exprManager, variableMap);
     seq->addCommand(cmd);
-    Debug("export") << "[export] so far coverted: " << seq << endl;
+    Debug("export") << "[export] so far converted: " << seq << endl;
   }
   seq->d_index = d_index;
   return seq;
@@ -1257,6 +1257,9 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine) throw() {
     v.push_back(SExpr(SExpr::Keyword(string(":") + d_flag)));
     v.push_back(smtEngine->getInfo(d_flag));
     stringstream ss;
+    if(d_flag == "all-options" || d_flag == "all-statistics") {
+      ss << PrettySExprs(true);
+    }
     ss << SExpr(v);
     d_result = ss.str();
     d_commandStatus = CommandSuccess::instance();

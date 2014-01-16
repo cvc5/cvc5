@@ -542,7 +542,7 @@ ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
 
 DatatypeType ExprManager::mkDatatypeType(const Datatype& datatype) {
   // Not worth a special implementation; this doesn't need to be fast
-  // code anyway..
+  // code anyway.
   vector<Datatype> datatypes;
   datatypes.push_back(datatype);
   vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes);

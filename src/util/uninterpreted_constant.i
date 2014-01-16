@@ -10,4 +10,8 @@
 %rename(equals) CVC4::UninterpretedConstant::operator==(const UninterpretedConstant&) const;
 %ignore CVC4::UninterpretedConstant::operator!=(const UninterpretedConstant&) const;
 
+%rename(apply) CVC4::UninterpretedConstantHashFunction::operator()(const UninterpretedConstant&) const;
+
+%ignore CVC4::operator<<(std::ostream&, const UninterpretedConstant&);
+
 %include "util/uninterpreted_constant.h"

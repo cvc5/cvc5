@@ -4,8 +4,8 @@
  ** Original author: Tianyi Liang
  ** Major contributors: none
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2013-2013  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -14,6 +14,8 @@
  ** Implementation of the theory of strings.
  **/
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/options.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 using namespace CVC4;
@@ -348,8 +350,63 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				// TODO: some issues, must be guarded by users
 				retNode = NodeManager::currentNM()->mkConst( false );
 			}
-		} else {
-			//handled by preprocess
+		}
+	} else if(node.getKind() == kind::STRING_STRCTN) {
+		if( node[0] == node[1] ) {
+			retNode = NodeManager::currentNM()->mkConst( true );
+		} else if( node[0].isConst() && node[1].isConst() ) {
+			CVC4::String s = node[0].getConst<String>();
+			CVC4::String t = node[1].getConst<String>();
+			if( s.find(t) != std::string::npos ) {
+				retNode = NodeManager::currentNM()->mkConst( true );
+			} else {
+				retNode = NodeManager::currentNM()->mkConst( false );
+			}
+		}
+	} else if(node.getKind() == kind::STRING_CHARAT) {
+		if( node[0].isConst() && node[1].isConst() ) {
+			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+			if( node[0].getConst<String>().size() > (unsigned) i ) {
+				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, 1) );
+			} else {
+				// TODO: some issues, must be guarded by users
+				retNode = NodeManager::currentNM()->mkConst( false );
+			}
+		}
+	} else if(node.getKind() == kind::STRING_STRIDOF) {
+		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
+			CVC4::String s = node[0].getConst<String>();
+			CVC4::String t = node[1].getConst<String>();
+			int i = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+			std::size_t ret = s.find(t, i);
+			if( ret != std::string::npos ) {
+				retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational((int) ret) );
+			} else {
+				retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
+			}
+		}
+	} else if(node.getKind() == kind::STRING_STRREPL) {
+		if(node[1] != node[2]) {
+			if(node[0].isConst() && node[1].isConst()) {
+				CVC4::String s = node[0].getConst<String>();
+				CVC4::String t = node[1].getConst<String>();
+				std::size_t p = s.find(t);
+				if( p != std::string::npos ) {
+					if(node[2].isConst()) {
+						CVC4::String r = node[2].getConst<String>();
+						CVC4::String ret = s.replace(t, r);
+						retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(ret) );
+					} else {
+						CVC4::String s1 = s.substr(0, (int)p);
+						CVC4::String s3 = s.substr((int)p + (int)t.size());
+						Node ns1 = NodeManager::currentNM()->mkConst( ::CVC4::String(s1) );
+						Node ns3 = NodeManager::currentNM()->mkConst( ::CVC4::String(s3) );
+						retNode = NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, ns1, node[2], ns3 );
+					}
+				} else {
+					retNode = node[0];
+				}
+			}
 		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);

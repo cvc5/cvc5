@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Kshitij Bansal
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -76,14 +76,20 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(q != NULL) {
     d_result = res = q->getResult();
   }
-  // dump the model if option is set
-  if( status &&
-      d_options[options::produceModels] &&
-      d_options[options::dumpModels] &&
-      ( res.asSatisfiabilityResult() == Result::SAT ||
-        (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
-    Command* gm = new GetModelCommand();
-    status = doCommandSingleton(gm);
+  // dump the model/proof if option is set
+  if(status) {
+    if( d_options[options::produceModels] &&
+        d_options[options::dumpModels] &&
+        ( res.asSatisfiabilityResult() == Result::SAT ||
+          (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
+      Command* gm = new GetModelCommand();
+      status = doCommandSingleton(gm);
+    } else if( d_options[options::proof] &&
+               d_options[options::dumpProofs] &&
+               res.asSatisfiabilityResult() == Result::UNSAT ) {
+      Command* gp = new GetProofCommand();
+      status = doCommandSingleton(gp);
+    }
   }
   return status;
 }

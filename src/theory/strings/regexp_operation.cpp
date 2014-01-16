@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file regexp_operation.CPP
+/*! \file regexp_operation.cpp
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: Tianyi Liang, Andrew Reynolds
+ ** Major contributors: none
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2013-2013  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -28,6 +28,14 @@ RegExpOpr::RegExpOpr() {
 	d_char_end = 'c';//'~';
 	d_sigma = mkAllExceptOne( '\0' );
 	d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
+}
+
+int RegExpOpr::gcd ( int a, int b ) {
+  int c;
+  while ( a != 0 ) {
+     c = a; a = b%a;  b = c;
+  }
+  return b;
 }
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
@@ -323,6 +331,76 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 	}
 	Trace("strings-regexp-derivative") << "RegExp-derivative returns : " << mkString( retNode ) << std::endl;
 	return retNode;
+}
+
+//TODO:
+bool RegExpOpr::guessLength( Node r, int &co ) {
+	int k = r.getKind();
+	switch( k ) {
+		case kind::STRING_TO_REGEXP:
+		{
+			if(r[0].isConst()) {
+				co += r[0].getConst< CVC4::String >().size();
+				return true;
+			} else {
+				return false;
+			}
+		}
+			break;
+		case kind::REGEXP_CONCAT:
+		{
+			for(unsigned i=0; i<r.getNumChildren(); ++i) {
+				if(!guessLength( r[i], co)) {
+					return false;
+				}
+			}
+			return true;
+		}
+			break;
+		case kind::REGEXP_OR:
+		{
+			int g_co;
+			for(unsigned i=0; i<r.getNumChildren(); ++i) {
+				int cop = 0;
+				if(!guessLength( r[i], cop)) {
+					return false;
+				}
+				if(i == 0) {
+					g_co = cop;
+				} else {
+					g_co = gcd(g_co, cop);
+				}
+			}
+			return true;
+		}
+			break;
+		case kind::REGEXP_INTER:
+		{
+			int g_co;
+			for(unsigned i=0; i<r.getNumChildren(); ++i) {
+				int cop = 0;
+				if(!guessLength( r[i], cop)) {
+					return false;
+				}
+				if(i == 0) {
+					g_co = cop;
+				} else {
+					g_co = gcd(g_co, cop);
+				}
+			}
+			return true;
+		}
+			break;
+		case kind::REGEXP_STAR:
+		{
+			co = 0;
+			return true;
+		}
+			break;
+		default:
+			Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in membership of RegExp." << std::endl;
+			return false;
+	}
 }
 
 void RegExpOpr::firstChar( Node r ) {

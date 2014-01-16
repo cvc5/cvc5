@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -87,6 +87,31 @@ Node ModelPostprocessor::rewriteAs(TNode n, TypeNode asType) {
     const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
     Node val = rewriteAs(asa.getExpr(), asType[1]);
     return NodeManager::currentNM()->mkConst(ArrayStoreAll(asType.toType(), val.toExpr()));
+  }
+  if(n.getType().isParametricDatatype() &&
+     n.getType().isInstantiatedDatatype() &&
+     asType.isParametricDatatype() &&
+     asType.isInstantiatedDatatype() &&
+     n.getType()[0] == asType[0]) {
+    // Here, we're doing something like rewriting a (Pair BV1 BV1) as a
+    // (Pair Bool Bool).
+    const Datatype* dt2 = &asType[0].getDatatype();
+    std::vector<TypeNode> fromParams, toParams;
+    for(unsigned i = 0; i < dt2->getNumParameters(); ++i) {
+      fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
+      toParams.push_back(asType[i + 1]);
+    }
+    Assert(dt2 == &Datatype::datatypeOf(n.getOperator().toExpr()));
+    size_t ctor_ix = Datatype::indexOf(n.getOperator().toExpr());
+    NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
+    appctorb << (*dt2)[ctor_ix].getConstructor();
+    for(size_t j = 0; j < n.getNumChildren(); ++j) {
+      TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[ctor_ix][j].getSelector().getType()).getRangeType());
+      asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
+      appctorb << rewriteAs(n[j], asType);
+    }
+    Node out = appctorb;
+    return out;
   }
   if(asType.getNumChildren() != n.getNumChildren() ||
      n.getMetaKind() == kind::metakind::CONSTANT) {

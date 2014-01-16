@@ -2,7 +2,7 @@
 /*! \file theory_registrar.h
  ** \verbatim
  ** Original author: Liana Hadarean
- ** Major contributors: Tim King, Morgan Deters
+ ** Major contributors: Morgan Deters, Tim King
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

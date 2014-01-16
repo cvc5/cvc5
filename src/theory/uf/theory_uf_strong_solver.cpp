@@ -428,12 +428,10 @@ void StrongSolverTheoryUF::SortModel::initialize( OutputChannel* out ){
 void StrongSolverTheoryUF::SortModel::newEqClass( Node n ){
   if( !d_conflict ){
     if( d_regions_map.find( n )==d_regions_map.end() ){
-      if( !options::ufssTotalityLazy() ){
-        //must generate totality axioms for every cardinality we have allocated thus far
-        for( std::map< int, Node >::iterator it = d_cardinality_literal.begin(); it != d_cardinality_literal.end(); ++it ){
-          if( applyTotality( it->first ) ){
-            addTotalityAxiom( n, it->first, &d_thss->getOutputChannel() );
-          }
+      //must generate totality axioms for every cardinality we have allocated thus far
+      for( std::map< int, Node >::iterator it = d_cardinality_literal.begin(); it != d_cardinality_literal.end(); ++it ){
+        if( applyTotality( it->first ) ){
+          addTotalityAxiom( n, it->first, &d_thss->getOutputChannel() );
         }
       }
       if( options::ufssTotality() ){
@@ -449,9 +447,6 @@ void StrongSolverTheoryUF::SortModel::newEqClass( Node n ){
           d_regions_index = 0;
         }
         d_regions_map[n] = d_regions_index;
-        if( options::ufssSmartSplits() ){
-          setSplitScore( n, 0 );
-        }
         Debug("uf-ss") << "StrongSolverTheoryUF: New Eq Class " << n << std::endl;
         Debug("uf-ss-debug") << d_regions_index << " " << (int)d_regions.size() << std::endl;
         if( d_regions_index<d_regions.size() ){
@@ -634,18 +629,7 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           }
         }
       }
-      if( applyTotality( d_cardinality ) ){
-        //add totality axioms for all nodes that have not yet been equated to cardinality terms
-        if( options::ufssTotalityLazy() ){    //this should always be true
-          if( level==Theory::EFFORT_FULL ){
-            for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it ){
-              if( !options::ufssTotality() || d_regions_map[ (*it).first ]!=-1 ){
-                addTotalityAxiom( (*it).first, d_cardinality, &d_thss->getOutputChannel() );
-              }
-            }
-          }
-        }
-      }else{
+      if( !applyTotality( d_cardinality ) ){
         //do splitting on demand
         bool addedLemma = false;
         if( level==Theory::EFFORT_FULL || options::ufssEagerSplits() ){
@@ -1073,7 +1057,7 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
     //out->propagateAsDecision( lem[0] );
     d_thss->d_statistics.d_max_model_size.maxAssign( d_aloc_cardinality );
 
-    if( applyTotality( d_aloc_cardinality ) && !options::ufssTotalityLazy() ){
+    if( applyTotality( d_aloc_cardinality ) ){
       //must send totality axioms for each existing term
       for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it ){
         addTotalityAxiom( (*it).first, d_aloc_cardinality, &d_thss->getOutputChannel() );
@@ -1085,27 +1069,11 @@ void StrongSolverTheoryUF::SortModel::allocateCardinality( OutputChannel* out ){
 int StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
   Node s;
   if( r->hasSplits() ){
-    if( !options::ufssSmartSplits() ){
-      //take the first split you find
-      for( NodeBoolMap::iterator it = r->d_splits.begin(); it != r->d_splits.end(); ++it ){
-        if( (*it).second ){
-          s = (*it).first;
-          break;
-        }
-      }
-    }else{
-      int maxScore = -1;
-      std::vector< Node > splits;
-      for( NodeBoolMap::iterator it = r->d_splits.begin(); it != r->d_splits.end(); ++it ){
-        if( (*it).second ){
-          int score1 = d_split_score[ (*it).first[0] ];
-          int score2 = d_split_score[ (*it).first[1] ];
-          int score = score1<score2 ? score1 : score2;
-          if( score>maxScore ){
-            maxScore = -1;
-            s = (*it).first;
-          }
-        }
+    //take the first split you find
+    for( NodeBoolMap::iterator it = r->d_splits.begin(); it != r->d_splits.end(); ++it ){
+      if( (*it).second ){
+        s = (*it).first;
+        break;
       }
     }
     Assert( s!=Node::null() );
@@ -1338,6 +1306,21 @@ void StrongSolverTheoryUF::SortModel::addTotalityAxiom( Node n, int cardinality,
           d_sym_break_terms[n.getType()][sort_id].push_back( n );
           d_sym_break_index[n] = use_cardinality;
           Trace("uf-ss-totality") << "Allocate symmetry breaking term " << n << ", index = " << use_cardinality << std::endl;
+          if( d_sym_break_terms[n.getType()][sort_id].size()>1 ){
+            //enforce canonicity
+            for( int i=2; i<use_cardinality; i++ ){
+              //can only be assigned to domain constant d if someone has been assigned domain constant d-1
+              Node eq = n.eqNode( getTotalityLemmaTerm( cardinality, i ) );
+              std::vector< Node > eqs;
+              for( unsigned j=0; j<(d_sym_break_terms[n.getType()][sort_id].size()-1); j++ ){
+                eqs.push_back( d_sym_break_terms[n.getType()][sort_id][j].eqNode( getTotalityLemmaTerm( cardinality, i-1 ) ) );
+              }
+              Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+              Node lem = NodeManager::currentNM()->mkNode( IMPLIES, eq, ax );
+              Trace("uf-ss-lemma") << "*** Add (canonicity) totality axiom " << lem << std::endl;
+              d_thss->getOutputChannel().lemma( lem );
+            }
+          }
         }
       }
 
@@ -1459,11 +1442,6 @@ Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, TheoryUF* th) :
 d_out( &out ), d_th( th ), d_conflict( c, false ), d_rep_model(), d_aloc_com_card( u, 0 ), d_com_card_assertions( c )
 {
-  if( options::ufssColoringSat() ){
-    d_term_amb = new TermDisambiguator( th->getQuantifiersEngine(), c );
-  }else{
-    d_term_amb = NULL;
-  }
   if( options::ufssDiseqPropagation() ){
     d_deq_prop = new DisequalityPropagator( th->getQuantifiersEngine(), this );
   }else{
@@ -1499,6 +1477,7 @@ void StrongSolverTheoryUF::newEqClass( Node n ){
     if( options::ufssSymBreak() ){
       d_sym_break->newEqClass( n );
     }
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done New eq class." << std::endl;
   }
 }
 
@@ -1508,6 +1487,7 @@ void StrongSolverTheoryUF::merge( Node a, Node b ){
   if( c ){
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: Merge " << a << " " << b << " : " << a.getType() << std::endl;
     c->merge( a, b );
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Merge." << std::endl;
   }else{
     if( options::ufssDiseqPropagation() ){
       d_deq_prop->merge(a, b);
@@ -1523,6 +1503,7 @@ void StrongSolverTheoryUF::assertDisequal( Node a, Node b, Node reason ){
     //Assert( d_th->d_equalityEngine.getRepresentative( a )==a );
     //Assert( d_th->d_equalityEngine.getRepresentative( b )==b );
     c->assertDisequal( a, b, reason );
+    Trace("uf-ss-solver") << "StrongSolverTheoryUF: Done Assert disequal." << std::endl;
   }else{
     if( options::ufssDiseqPropagation() ){
       d_deq_prop->assertDisequal(a, b, reason);
@@ -1610,13 +1591,6 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
     if( level==Theory::EFFORT_FULL ){
       debugPrint( "uf-ss-debug" );
     }
-    if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
-      int lemmas =  d_term_amb->disambiguateTerms( d_out );
-      d_statistics.d_disamb_term_lemmas += lemmas;
-      if( lemmas>=0 ){
-        return;
-      }
-    }
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
       it->second->check( level, d_out );
       if( it->second->isConflict() ){
@@ -1628,11 +1602,6 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
     if( !d_conflict && options::ufssSymBreak() ){
       d_sym_break->check( level );
     }
-    //disambiguate terms if necessary
-    //if( !d_conflict && level==Theory::EFFORT_FULL && options::ufssColoringSat() ){
-    //  Assert( d_term_amb!=NULL );
-    //  d_statistics.d_disamb_term_lemmas += d_term_amb->disambiguateTerms( d_out );
-    //}
     Trace("uf-ss-solver") << "Done StrongSolverTheoryUF: check " << level << std::endl;
   }
 }
@@ -1899,76 +1868,6 @@ StrongSolverTheoryUF::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_max_model_size);
 }
 
-
-int TermDisambiguator::disambiguateTerms( OutputChannel* out ){
-  Debug("uf-ss-disamb") << "Disambiguate terms." << std::endl;
-  int lemmaAdded = 0;
-  //otherwise, determine ambiguous pairs of ground terms for relevant sorts
-  quantifiers::TermDb* db = d_qe->getTermDatabase();
-  for( std::map< Node, std::vector< Node > >::iterator it = db->d_op_map.begin(); it != db->d_op_map.end(); ++it ){
-    Debug("uf-ss-disamb") << "Check " << it->first << std::endl;
-    if( it->second.size()>1 ){
-      if(involvesRelevantType( it->second[0] ) ){
-        for( int i=0; i<(int)it->second.size(); i++ ){
-          for( int j=(i+1); j<(int)it->second.size(); j++ ){
-            Kind knd = it->second[i].getType()==NodeManager::currentNM()->booleanType() ? IFF : EQUAL;
-            Node eq = NodeManager::currentNM()->mkNode( knd, it->second[i], it->second[j] );
-            eq = Rewriter::rewrite(eq);
-            //determine if they are ambiguous
-            if( d_term_amb.find( eq )==d_term_amb.end() ){
-              Debug("uf-ss-disamb") << "Check disambiguate " << it->second[i] << " " << it->second[j] << std::endl;
-              d_term_amb[ eq ] = true;
-              //if they are equal
-              if( d_qe->getEqualityQuery()->areEqual( it->second[i], it->second[j] ) ){
-                d_term_amb[ eq ] = false;
-              }else{
-                //if an argument is disequal, then they are not ambiguous
-                for( int k=0; k<(int)it->second[i].getNumChildren(); k++ ){
-                  if( d_qe->getEqualityQuery()->areDisequal( it->second[i][k], it->second[j][k] ) ){
-                    d_term_amb[ eq ] = false;
-                    break;
-                  }
-                }
-              }
-              if( d_term_amb[ eq ] ){
-                Debug("uf-ss-disamb") << "Disambiguate " << it->second[i] << " " << it->second[j] << std::endl;
-                //must add lemma
-                std::vector< Node > children;
-                children.push_back( eq );
-                for( int k=0; k<(int)it->second[i].getNumChildren(); k++ ){
-                  Kind knd2 = it->second[i][k].getType()==NodeManager::currentNM()->booleanType() ? IFF : EQUAL;
-                  Node eqc = NodeManager::currentNM()->mkNode( knd2, it->second[i][k], it->second[j][k] );
-                  children.push_back( eqc.notNode() );
-                }
-                Assert( children.size()>1 );
-                Node lem = NodeManager::currentNM()->mkNode( OR, children );
-                Trace( "uf-ss-lemma" ) << "*** Disambiguate lemma : " << lem << std::endl;
-                //Notice() << "*** Disambiguate lemma : " << lem << std::endl;
-                out->lemma( lem );
-                d_term_amb[ eq ] = false;
-                lemmaAdded++;
-                return lemmaAdded;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  Debug("uf-ss-disamb") << "Done disambiguate terms. " << lemmaAdded << std::endl;
-  return lemmaAdded;
-}
-
-bool TermDisambiguator::involvesRelevantType( Node n ){
-  if( n.getKind()==APPLY_UF ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( n[i].getType().isSort() ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 DisequalityPropagator::DisequalityPropagator(QuantifiersEngine* qe, StrongSolverTheoryUF* ufss) :
   d_qe(qe), d_ufss(ufss){

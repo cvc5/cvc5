@@ -22,10 +22,14 @@
 #include "util/cvc4_assert.h"
 #include "expr/node_manager.h"
 #include "util/output.h"
+#include "proof/proof.h"
 
 #pragma once
 
 namespace CVC4 {
+
+class ProofManager;
+
 namespace smt {
 
 extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
@@ -33,6 +37,12 @@ extern CVC4_THREADLOCAL(SmtEngine*) s_smtEngine_current;
 inline SmtEngine* currentSmtEngine() {
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current;
+}
+
+inline ProofManager* currentProofManager() {
+  Assert(PROOF_ON());
+  Assert(s_smtEngine_current != NULL);
+  return s_smtEngine_current->d_proofManager;
 }
 
 class SmtScope : public NodeManagerScope {

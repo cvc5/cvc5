@@ -2,7 +2,7 @@
 /*! \file bv_inequality_graph.cpp
  ** \verbatim
  ** Original author: Liana Hadarean
- ** Major contributors: lianah
+ ** Major contributors: none
  ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

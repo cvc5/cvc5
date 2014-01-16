@@ -1,11 +1,15 @@
-CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013 New York University
+CVC4 is copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 New York University
 and The University of Iowa.  All rights reserved.
 
-CVC4 is open-source; distribution is under the terms of the modified BSD
-license.  However, certain builds of CVC4 link against GPLed libraries,
-and therefore the use of these builds is restricted in non-open-source
-projects.  See below for a discussion of CLN and GLPK, and how to ensure
-you have a build that doesn't link against GPLed libraries.
+The source code of CVC4 is open and available to students, researchers,
+software companies, and everyone else to study, to modify, and to
+redistribute original or modified versions; distribution is under the
+terms of the modified BSD license.  However, CVC4 can be configured (and
+is, by default) to link against some GPLed libraries, and therefore the
+use of these builds may be restricted in non-GPL-compatible projects.
+See below for a discussion of CLN, GLPK, and Readline (the three GPLed
+optional library dependences for CVC4), and how to ensure you have a
+build that doesn't link against GPLed libraries.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS
 ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -19,7 +23,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 25 Apr 2013 15:45:40 -0400
+-- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 02 Jan 2014 14:02:28 -0500
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:
@@ -232,28 +236,60 @@ Their copyright:
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Certain builds of CVC4 link against a GPLed library, CLN, the Class Library
-for Numbers, available here:
+CVC4 can be optionally configured to link against CLN, the Class Library for
+Numbers, available here:
 
   http://www.ginac.de/CLN/
 
 Please be advised that as this library is covered under the GPLv3, if you
 choose to use the combined work, "CVC4+CLN," by building CVC4 with CLN,
 then it is also covered under the GPLv3.  If you want to make sure you build
-a version of CVC4 that uses libgmp, the GNU Multiple Precision Arithmetic
-Library, configure CVC4 with "--with-gmp" before building (though that is the
-default).  It can then be used in contexts where you want to license CVC4
-under the (modified) BSD license.
+a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
+"--bsd" option before building (which is the default).  CVC4 can then be used
+in contexts where you want to license CVC4 under the (modified) BSD license.
 
-Certain builds of CVC4 link against a GPLed library, GLPK, the GNU Linear
+CVC4 can be optionally configured to link against GLPK, the GNU Linear
 Programming Kit, available here:
 
   http://www.gnu.org/software/glpk/
 
 Please be advised that as this library is covered under the GPLv3, if
 you choose to use the combined work, "CVC4+GLPK," by building CVC4 with
-GLPK, then it is also covered under the GPLv3.  If you want to make sure
-you build a version of CVC4 that does not use GLPK, configure CVC4 with
-"--without-glpk" before building (though that is the default).  It can
-then be used in contexts where you want to license CVC4 under the
-(modified) BSD license.
+GLPK, then it is also covered under the GPLv3.  If you want to make sure you
+build a version of CVC4 that uses no GPLed libraries, configure CVC4 with the
+"--bsd" option before building (which is the default).  CVC4 can then be used
+in contexts where you want to license CVC4 under the (modified) BSD license.
+
+CVC4 can be optionally configured to link against GNU Readline for improved
+text-editing support in interactive mode.  GNU Readline is available here:
+
+  http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+
+Please be advised that as this library is covered under the GPLv3, if
+you choose to use the combined work, "CVC4+Readline," by building CVC4 with
+Readline, then it is also covered under the GPLv3.  If you want to make sure
+you build a version of CVC4 that uses no GPLed libraries, configure CVC4 with
+the "--bsd" option before building (which is the default).  CVC4 can then be
+used in contexts where you want to license CVC4 under the (modified) BSD
+license.
+
+CVC4 sources incorporate those of the LFSC proof checker, which is
+covered by the following license:
+
+  LFSC is copyright (C) 2012, 2013 The University of Iowa. All rights
+  reserved.
+
+  LFSC is open-source; distribution is under the terms of the modified
+  BSD license.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS
+  AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

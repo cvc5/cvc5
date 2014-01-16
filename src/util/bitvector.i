@@ -29,8 +29,15 @@
 %rename(toUnsigned) CVC4::BitVectorSignExtend::operator unsigned() const;
 %rename(toUnsigned) CVC4::BitVectorRotateLeft::operator unsigned() const;
 %rename(toUnsigned) CVC4::BitVectorRotateRight::operator unsigned() const;
+%rename(toUnsigned) CVC4::IntToBitVector::operator unsigned() const;
+
+%rename(apply) CVC4::BitVectorHashFunction::operator()(const BitVector&) const;
+%rename(apply) CVC4::BitVectorExtractHashFunction::operator()(const BitVectorExtract&) const;
+%rename(apply) CVC4::BitVectorBitOfHashFunction::operator()(const BitVectorBitOf&) const;
 
 %ignore CVC4::operator<<(std::ostream&, const BitVector&);
 %ignore CVC4::operator<<(std::ostream&, const BitVectorExtract&);
+%ignore CVC4::operator<<(std::ostream&, const BitVectorBitOf&);
+%ignore CVC4::operator<<(std::ostream&, const IntToBitVector&);
 
 %include "util/bitvector.h"

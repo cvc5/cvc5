@@ -1,0 +1,52 @@
+language: cpp
+cache: apt
+compiler:
+ - gcc
+ - clang
+env:
+ - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
+ - TRAVIS_CVC4=yes TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
+ - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
+ - TRAVIS_LFSC=yes
+ - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
+before_install:
+# dhart/ppa is for cxxtest package, which doesn't appear officially until quantal
+ - travis_retry sudo apt-add-repository -y ppa:dhart/ppa
+ - travis_retry sudo apt-get update -qq
+ - travis_retry sudo apt-get install -qq libgmp-dev antlr3 libantlr3c-dev libboost-dev libboost-thread-dev swig2.0 libcln-dev cxxtest openjdk-7-jdk
+before_script:
+ - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+ - export PATH=$PATH:$JAVA_HOME/bin
+ - export JAVA_CPPFLAGS=-I$JAVA_HOME/include
+ - ./autogen.sh
+script:
+ - normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
+ - if [ -n "$TRAVIS_CVC4" ]; then
+     echo "CVC4 config - $TRAVIS_CVC4_CONFIG" &&
+     (./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
+     if [ -n "$TRAVIS_CVC4_DISTCHECK" ]; then
+       make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}DISTCHECK FAILED${normal}"; echo; exit 1);
+     else
+       (make -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}BUILD/TEST FAILED${normal}"; echo; exit 1)) &&
+       (make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= || (echo; echo "${red}PORTFOLIO TEST FAILED${normal}"; echo; exit 1)) &&
+       (make -j2 examples || (echo; echo "${red}COULD NOT BUILD EXAMPLES${normal}"; echo; exit 1));
+     fi;
+   elif [ -n "$TRAVIS_LFSC" ]; then
+     cd proofs/lfsc_checker &&
+     (./configure || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
+     if [ -n "$TRAVIS_LFSC_DISTCHECK" ]; then
+       make -j2 distcheck || (echo; echo "${red}LFSC DISTCHECK FAILED${normal}"; echo; exit 1);
+     else
+       make -j2 || (echo; echo "${red}LFSC BUILD FAILED${normal}"; echo; exit 1);
+     fi;
+   else
+     echo "${red}Unknown Travis-CI configuration${normal}";
+     exit 1;
+   fi &&
+   (echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}")
+matrix:
+  fast_finish: true
+notifications:
+  email:
+    on_success: change
+    on_failure: always

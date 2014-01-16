@@ -233,7 +233,7 @@ bool QuantifierMacros::getSubstitution( std::vector< Node >& v_quant, std::map< 
 void QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Node f ){
   if( n.getKind()==NOT ){
     process( n[0], !pol, args, f );
-  }else if( n.getKind()==AND || n.getKind()==OR || n.getKind()==IMPLIES ){
+  }else if( n.getKind()==AND || n.getKind()==OR ){
     //bool favorPol = (n.getKind()==AND)==pol;
     //conditional?
   }else if( n.getKind()==ITE ){

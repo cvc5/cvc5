@@ -19,6 +19,14 @@
 %ignore CVC4::Record::operator!=(const Record&) const;
 %rename(getField) CVC4::Record::operator[](size_t) const;
 
+%rename(apply) CVC4::RecordHashFunction::operator()(const Record&) const;
+%rename(apply) CVC4::RecordSelectHashFunction::operator()(const RecordSelect&) const;
+%rename(apply) CVC4::RecordUpdateHashFunction::operator()(const RecordUpdate&) const;
+
+%ignore CVC4::operator<<(std::ostream&, const Record&);
+%ignore CVC4::operator<<(std::ostream&, const RecordSelect&);
+%ignore CVC4::operator<<(std::ostream&, const RecordUpdate&);
+
 #ifdef SWIGJAVA
 
 // These Object arrays are always of two elements, the first is a String and the second a

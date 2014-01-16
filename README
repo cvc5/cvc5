@@ -17,8 +17,8 @@ from any previous version.
 CVC4 is intended to be an open and extensible SMT engine.  It can be
 used as a stand-alone tool or as a library.  It has been designed to
 increase the performance and reduce the memory overhead of its
-predecessors.  It is written entirely in C++ and is released under a
-free software license (see the file COPYING in the source
+predecessors.  It is written entirely in C++ and is released under an
+open-source software license (see the file COPYING in the source
 distribution).
 
 *** Getting started with CVC4

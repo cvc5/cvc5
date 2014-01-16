@@ -37,7 +37,6 @@ class SubsortSymmetryBreaker;
 namespace uf {
 
 class TheoryUF;
-class TermDisambiguator;
 class DisequalityPropagator;
 
 class StrongSolverTheoryUF{
@@ -45,8 +44,6 @@ protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 public:
   /** information for incremental conflict/clique finding for a particular sort */
@@ -320,8 +317,6 @@ private:
   /** check */
   void checkCombinedCardinality();
 private:
-  /** term disambiguator */
-  TermDisambiguator* d_term_amb;
   /** disequality propagator */
   DisequalityPropagator* d_deq_prop;
   /** symmetry breaking techniques */
@@ -331,8 +326,6 @@ public:
   ~StrongSolverTheoryUF() {}
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** term disambiguator */
-  TermDisambiguator* getTermDisambiguator() { return d_term_amb; }
   /** disequality propagator */
   DisequalityPropagator* getDisequalityPropagator() { return d_deq_prop; }
   /** symmetry breaker */
@@ -400,23 +393,6 @@ public:
   /** statistics class */
   Statistics d_statistics;
 };/* class StrongSolverTheoryUF */
-
-
-class TermDisambiguator
-{
-private:
-  /** quantifiers engine */
-  QuantifiersEngine* d_qe;
-  /** whether two terms are ambiguous (indexed by equalities) */
-  context::CDHashMap<Node, bool, NodeHashFunction> d_term_amb;
-  /** involves relevant type */
-  static bool involvesRelevantType( Node n );
-public:
-  TermDisambiguator( QuantifiersEngine* qe, context::Context* c ) : d_qe( qe ), d_term_amb( c ){}
-  ~TermDisambiguator(){}
-  /** check ambiguous terms */
-  int disambiguateTerms( OutputChannel* out );
-};
 
 class DisequalityPropagator
 {

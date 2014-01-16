@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Francois Bobot, Kshitij Bansal, Liana Hadarean, Clark Barrett, Tim King, Andrew Reynolds
+ ** Minor contributors (to current version): Christopher L. Conway, Francois Bobot, Kshitij Bansal, Clark Barrett, Liana Hadarean, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -39,6 +39,7 @@
 #include "util/statistics_registry.h"
 #include "util/cvc4_assert.h"
 #include "util/sort_inference.h"
+#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/bv/bv_to_bool.h"
 #include "theory/atom_requests.h"
@@ -749,7 +750,7 @@ public:
   theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
-   * Retruns the value that a theory that owns the type of var currently
+   * Returns the value that a theory that owns the type of var currently
    * has (or null if none);
    */
   Node getModelValue(TNode var);
@@ -778,11 +779,12 @@ private:
   UnconstrainedSimplifier* d_unconstrainedSimp;
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
-  theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor; 
+  theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor;
 public:
 
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   void ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */
   bool donePPSimpITE(std::vector<Node>& assertions);
@@ -790,6 +792,8 @@ public:
   void ppUnconstrainedSimp(std::vector<Node>& assertions);
 
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
+
+  theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 
   SortInference* getSortInference() { return &d_sortInfer; }
 private:

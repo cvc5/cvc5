@@ -2,8 +2,8 @@
 /*! \file smt2_printer.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, lianah, Tim King, Liana Hadarean, Francois Bobot, Andrew Reynolds
+ ** Major contributors: Andrew Reynolds
+ ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -273,6 +273,24 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STORE:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
+  // string theory
+  case kind::STRING_CONCAT: out << "str.++ "; break;
+  case kind::STRING_IN_REGEXP: out << "str.in.re "; break;
+  case kind::STRING_LENGTH: out << "str.len "; break;
+  case kind::STRING_SUBSTR: out << "str.substr "; break;
+  case kind::STRING_STRCTN: out << "str.contain "; break;
+  case kind::STRING_CHARAT: out << "str.at "; break;
+  case kind::STRING_STRIDOF: out << "str.indexof "; break;
+  case kind::STRING_STRREPL: out << "str.replace "; break;
+  case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
+  case kind::REGEXP_CONCAT: out << "re.++ "; break;
+  case kind::REGEXP_OR: out << "re.or "; break;
+  case kind::REGEXP_INTER: out << "re.itr "; break;
+  case kind::REGEXP_STAR: out << "re.* "; break;
+  case kind::REGEXP_PLUS: out << "re.+ "; break;
+  case kind::REGEXP_OPT: out << "re.opt "; break;
+  case kind::REGEXP_RANGE: out << "re.range "; break;
+
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; break;
   case kind::BITVECTOR_AND: out << "bvand "; break;
@@ -326,12 +344,14 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << ' ';
       TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
       out << (t.isFunctionLike() ? t.getRangeType() : t);
-      stillNeedToPrintParams = false;
+      out << ')';
+      return;
     }
     break;
   case kind::APPLY_TESTER:
   case kind::APPLY_CONSTRUCTOR:
   case kind::APPLY_SELECTOR:
+  case kind::PARAMETRIC_DATATYPE:
     break;
 
     // quantifiers
@@ -575,6 +595,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetModelCommand>(out, c) ||
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
+     tryToStream<GetProofCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c) ||
      tryToStream<SetInfoCommand>(out, c) ||
@@ -854,6 +875,10 @@ static void toStream(std::ostream& out, const GetAssignmentCommand* c) throw() {
 
 static void toStream(std::ostream& out, const GetAssertionsCommand* c) throw() {
   out << "(get-assertions)";
+}
+
+static void toStream(std::ostream& out, const GetProofCommand* c) throw() {
+  out << "(get-proof)";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {

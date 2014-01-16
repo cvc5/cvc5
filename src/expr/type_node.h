@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Clark Barrett, Andrew Reynolds, Tim King
+ ** Minor contributors (to current version): Clark Barrett, Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -374,11 +374,8 @@ public:
    */
   inline std::string toString() const {
     std::stringstream ss;
-    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AST : options::outputLanguage();
-    d_nv->toStream(ss, -1, false, 0,
-                   outlang == language::output::LANG_AUTO ?
-                     language::output::LANG_AST :
-                     outlang);
+    OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();
+    d_nv->toStream(ss, -1, false, 0, outlang);
     return ss.str();
   }
 
@@ -389,7 +386,7 @@ public:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AST) const {
+  inline void toStream(std::ostream& out, OutputLanguage language = language::output::LANG_AUTO) const {
     d_nv->toStream(out, -1, false, 0, language);
   }
 

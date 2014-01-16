@@ -6,12 +6,12 @@ SUBDIRS = .
 end@mk_if@
 
 LOG_COMPILER = @srcdir@/../../run_regression
-AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
+AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(TESTS_ENVIRONMENT) $(LOG_COMPILER) \
+	$(LOG_COMPILER) \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
@@ -36,6 +36,8 @@ TESTS =	\
 	datatype13.cvc \
 	empty_tuprec.cvc \
 	mutually-recursive.cvc \
+	pair-real-bool.smt2 \
+	pair-bool-bool.cvc \
 	rewriter.cvc \
 	typed_v10l30054.cvc \
 	typed_v1l80005.cvc \
@@ -60,7 +62,6 @@ TESTS =	\
 	wrong-sel-simp.cvc
 
 FAILING_TESTS = \
-	pair-real-bool.smt2 \
 	datatype-dump.cvc
 
 EXTRA_DIST = $(TESTS)

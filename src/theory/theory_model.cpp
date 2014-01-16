@@ -1,8 +1,8 @@
 /*********************                                                        */
 /*! \file theory_model.cpp
  ** \verbatim
- ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters, Clark Barrett
+ ** Original author: Morgan Deters
+ ** Major contributors: Andrew Reynolds, Clark Barrett
  ** Minor contributors (to current version): Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

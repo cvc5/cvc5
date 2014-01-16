@@ -2,7 +2,7 @@
 /*! \file ite_removal.h
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: Kshitij Bansal, Morgan Deters
+ ** Major contributors: Kshitij Bansal, Morgan Deters, Tim King
  ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa

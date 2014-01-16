@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Francois Bobot, Tim King, Clark Barrett, Christopher L. Conway
+ ** Minor contributors (to current version): Kshitij Bansal, Francois Bobot, Clark Barrett, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -182,7 +182,7 @@ class NodeTemplate {
   friend class expr::NodeValue;
 
   friend class expr::pickle::PicklerPrivate;
-  friend Node expr::exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags);
+  friend class expr::ExportPrivate;
 
   /** A convenient null-valued encapsulated pointer */
   static NodeTemplate s_null;
@@ -815,7 +815,7 @@ public:
    * @param language the language in which to output
    */
   inline void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                       OutputLanguage language = language::output::LANG_AST) const {
+                       OutputLanguage language = language::output::LANG_AUTO) const {
     assertTNodeNotExpired();
     d_nv->toStream(out, toDepth, types, dag, language);
   }

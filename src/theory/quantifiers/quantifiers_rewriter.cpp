@@ -229,6 +229,32 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
   return RewriteResponse(REWRITE_DONE, in);
 }
 
+Node QuantifiersRewriter::computeElimSymbols( Node body ) {
+  if( isLiteral( body ) ){
+    return body;
+  }else{
+    bool childrenChanged = false;
+    std::vector< Node > children;
+    for( unsigned i=0; i<body.getNumChildren(); i++ ){
+      Node c = computeElimSymbols( body[i] );
+      if( i==0 && ( body.getKind()==IMPLIES || body.getKind()==XOR ) ){
+        c = c.negate();
+      }
+      children.push_back( c );
+      childrenChanged = childrenChanged || c!=body[i];
+    }
+    if( body.getKind()==IMPLIES ){
+      return NodeManager::currentNM()->mkNode( OR, children );
+    }else if( body.getKind()==XOR ){
+      return NodeManager::currentNM()->mkNode( IFF, children );
+    }else if( childrenChanged ){
+      return NodeManager::currentNM()->mkNode( body.getKind(), children );
+    }else{
+      return body;
+    }
+  }
+}
+
 Node QuantifiersRewriter::computeNNF( Node body ){
   if( body.getKind()==NOT ){
     if( body[0].getKind()==NOT ){
@@ -238,10 +264,9 @@ Node QuantifiersRewriter::computeNNF( Node body ){
     }else{
       std::vector< Node > children;
       Kind k = body[0].getKind();
-      if( body[0].getKind()==OR || body[0].getKind()==IMPLIES || body[0].getKind()==AND ){
+      if( body[0].getKind()==OR || body[0].getKind()==AND ){
         for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
-          Node nn = body[0].getKind()==IMPLIES && i==0 ? body[0][i] : body[0][i].notNode();
-          children.push_back( computeNNF( nn ) );
+          children.push_back( computeNNF( body[0][i].notNode() ) );
         }
         k = body[0].getKind()==AND ? OR : AND;
       }else if( body[0].getKind()==XOR || body[0].getKind()==IFF ){
@@ -376,8 +401,7 @@ Node QuantifiersRewriter::computeClause( Node n ){
       }
     }else{
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        Node nc = ( ( i==0 && n.getKind()==IMPLIES ) ? n[i].notNode() : n[i] );
-        Node nn = computeClause( nc );
+        Node nn = computeClause( n[i] );
         addNodeToOrBuilder( nn, t );
       }
     }
@@ -391,10 +415,10 @@ Node QuantifiersRewriter::computeCNF( Node n, std::vector< Node >& args, NodeBui
   }else if( !forcePred && isClause( n ) ){
     return computeClause( n );
   }else{
-    Kind k = ( n.getKind()==IMPLIES ? OR : ( n.getKind()==XOR ? IFF : n.getKind() ) );
+    Kind k = n.getKind();
     NodeBuilder<> t(k);
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      Node nc = ( i==0 && ( n.getKind()==IMPLIES || n.getKind()==XOR ) ) ? n[i].notNode() : n[i];
+      Node nc = n[i];
       Node ncnf = computeCNF( nc, args, defs, k!=OR );
       if( k==OR ){
         addNodeToOrBuilder( ncnf, t );
@@ -523,7 +547,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, b
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for( int i=0; i<(int)body.getNumChildren(); i++ ){
-      bool newPol = ( body.getKind()==NOT || ( body.getKind()==IMPLIES && i==0 ) ) ? !pol : pol;
+      bool newPol = body.getKind()==NOT  ? !pol : pol;
       Node n = computePrenex( body[i], args, newPol );
       newChildren.push_back( n );
       if( n!=body[i] ){
@@ -661,7 +685,9 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption ){
     if( f.getNumChildren()==3 ){
       ipl = f[2];
     }
-    if( computeOption==COMPUTE_MINISCOPING ){
+    if( computeOption==COMPUTE_ELIM_SYMBOLS ){
+      n = computeElimSymbols( n );
+    }else if( computeOption==COMPUTE_MINISCOPING ){
       //return directly
       return computeMiniscoping( args, n, ipl, f.hasAttribute(NestedQuantAttribute()) );
     }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
@@ -746,11 +772,11 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
           }
           return computeMiniscoping( args, t.constructNode(), ipl );
         }
-      }else if( body[0].getKind()==OR || body[0].getKind()==IMPLIES ){
+      }else if( body[0].getKind()==OR ){
         if( doMiniscopingAnd() ){
           NodeBuilder<> t(kind::AND);
           for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
-            Node trm = ( body[0].getKind()==IMPLIES && i==0 ) ? body[0][i] : ( body[0][i].getKind()==NOT  ? body[0][i][0] : body[0][i].notNode() );
+            Node trm = body[0][i].negate();
             t << computeMiniscoping( args, trm, ipl );
           }
           return t.constructNode();
@@ -766,13 +792,13 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
         Node retVal = t;
         return retVal;
       }
-    }else if( body.getKind()==OR || body.getKind()==IMPLIES ){
+    }else if( body.getKind()==OR ){
       if( doMiniscopingNoFreeVar() ){
         Node newBody = body;
         NodeBuilder<> body_split(kind::OR);
         NodeBuilder<> tb(kind::OR);
         for( int i=0; i<(int)body.getNumChildren(); i++ ){
-          Node trm = ( body.getKind()==IMPLIES && i==0 ) ? ( body[i].getKind()==NOT ? body[i][0] : body[i].notNode() ) : body[i];
+          Node trm = body[i];
           if( hasArg( args, body[i] ) ){
             tb << trm;
           }else{
@@ -916,7 +942,9 @@ bool QuantifiersRewriter::doMiniscopingAnd(){
 }
 
 bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption ){
-  if( computeOption==COMPUTE_MINISCOPING ){
+  if( computeOption==COMPUTE_ELIM_SYMBOLS ){
+    return true;
+  }else if( computeOption==COMPUTE_MINISCOPING ){
     return true;
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return options::aggressiveMiniscopeQuant();

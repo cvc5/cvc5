@@ -7,12 +7,12 @@ DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatype
 end@mk_if@
 
 LOG_COMPILER = @srcdir@/../run_regression
-AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @top_builddir@/src/main/$(BINARY)$(EXEEXT)
+AM_LOG_FLAGS = $(RUN_REGRESSION_ARGS) @abs_top_builddir@/src/main/$(BINARY)$(EXEEXT)
 
 if AUTOMAKE_1_11
 # old-style (pre-automake 1.12) test harness
 TESTS_ENVIRONMENT = \
-	$(TESTS_ENVIRONMENT) $(LOG_COMPILER) \
+	$(LOG_COMPILER) \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
@@ -136,7 +136,6 @@ BUG_TESTS = \
 	bug382.smt2 \
 	bug383.smt2 \
 	bug398.smt2 \
-	bug411.smt2 \
 	bug421.smt2 \
 	bug421b.smt2 \
 	bug425.cvc \
@@ -151,7 +150,10 @@ BUG_TESTS = \
 	bug520.smt2 \
 	bug521.smt2 \
 	bug521.minimized.smt2 \
-	bug522.smt2
+	bug522.smt2 \
+	bug528a.smt2 \
+	bug541.smt2 \
+	bug544.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 

@@ -2,7 +2,7 @@
 /*! \file idl_model.h
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: none
+ ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
@@ -33,7 +33,7 @@ namespace idl {
 struct IDLReason {
   /** The variable of the reason */
   TNode x;
-  /** The constraint of the reaason */
+  /** The constraint of the reason */
   TNode constraint;
 
   IDLReason(TNode x, TNode constraint)

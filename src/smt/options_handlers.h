@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Clark Barrett
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -84,7 +84,8 @@ assertions\n\
   Can also specify \"assertions:pre-PASS\" or \"assertions:post-PASS\",\n\
   where PASS is one of the preprocessing passes: definition-expansion\n\
   boolean-terms constrain-subtypes substitution skolem-quant simplify\n\
-  static-learning ite-removal repeat-simplify theory-preprocessing.\n\
+  static-learning ite-removal repeat-simplify rewrite-apply-to-const\n\
+  theory-preprocessing.\n\
   PASS can also be the special value \"everything\", in which case the\n\
   assertions are printed before any preprocessing (with\n\
   \"assertions:pre-everything\") or after all preprocessing completes\n\
@@ -185,6 +186,7 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
       } else if(!strcmp(p, "static-learning")) {
       } else if(!strcmp(p, "ite-removal")) {
       } else if(!strcmp(p, "repeat-simplify")) {
+      } else if(!strcmp(p, "rewrite-apply-to-const")) {
       } else if(!strcmp(p, "theory-preprocessing")) {
       } else if(!strcmp(p, "nonclausal")) {
       } else if(!strcmp(p, "theorypp")) {

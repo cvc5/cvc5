@@ -5,8 +5,13 @@ AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I config
 
-SUBDIRS = src test contrib
-DIST_SUBDIRS = $(SUBDIRS) examples
+SUBDIRS_BASE = src test contrib
+if CVC4_PROOF
+  SUBDIRS = proofs/signatures proofs/lfsc_checker $(SUBDIRS_BASE)
+else
+  SUBDIRS = $(SUBDIRS_BASE)
+endif
+DIST_SUBDIRS = proofs/signatures proofs/lfsc_checker $(SUBDIRS_BASE) examples
 
 .PHONY: examples
 examples: all
@@ -126,6 +131,7 @@ EXTRA_DIST = \
 	doc/options.3cvc_template.in \
 	doc/libcvc4parser.3.in \
 	doc/libcvc4compat.3.in
+
 man_MANS = \
 	doc/cvc4.1 \
 	doc/pcvc4.1 \

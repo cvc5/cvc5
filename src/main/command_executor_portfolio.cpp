@@ -213,7 +213,6 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     if(d_lastWinner != 0) delete cmdExported;
     return ret;
   } else if(mode == 1) {               // portfolio
-
     d_seq->addCommand(cmd->clone());
 
     // We currently don't support changing number of threads for each
@@ -327,7 +326,26 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     lemmaSharingCleanup();
 
     delete[] fns;
-    return portfolioReturn.second;
+
+    bool status = portfolioReturn.second;
+
+    // dump the model/proof if option is set
+    if(status) {
+      if( d_options[options::produceModels] &&
+          d_options[options::dumpModels] &&
+          ( d_result.asSatisfiabilityResult() == Result::SAT ||
+            (d_result.isUnknown() && d_result.whyUnknown() == Result::INCOMPLETE) ) ) {
+        Command* gm = new GetModelCommand();
+        status = doCommandSingleton(gm);
+      } else if( d_options[options::proof] &&
+                 d_options[options::dumpProofs] &&
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+        Command* gp = new GetProofCommand();
+        status = doCommandSingleton(gp);
+      }
+    }
+
+    return status;
   } else if(mode == 2) {
     Command* cmdExported = 
       d_lastWinner == 0 ?

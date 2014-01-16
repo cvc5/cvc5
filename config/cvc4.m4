@@ -13,11 +13,41 @@ dnl _AS_ME_PREPARE
 AC_DEFUN([CVC4_REWRITE_ARGS_FOR_BUILD_PROFILE],
 [m4_divert_push([PARSE_ARGS])dnl
 
+CVC4_BSD_LICENSED_CODE_ONLY=1
+
+m4_divert_once([HELP_ENABLE], [[
+Licensing and performance options:
+  --bsd                   disable all GPL dependences (default)
+  --enable-gpl            permit GPL dependences, if available
+  --best                  turn on dependences known to give best performance]])dnl
+
 handle_option() {
   ac_option="$[]1"
   case $ac_option in
-    -*|*=*) ;;
-    production|production-*|debug|debug-*|default|default-*|competition|competition-*)
+    --bsd|--disable-gpl|CVC4_BSD_LICENSED_CODE_ONLY=1)
+      if test "$CVC4_LICENSE_OPTION" = gpl; then AC_ERROR([cannot give both --bsd and --enable-gpl]); fi
+      CVC4_LICENSE_OPTION=bsd
+      ac_option="CVC4_BSD_LICENSED_CODE_ONLY=1"
+      eval $ac_option
+      ;;
+    --enable-gpl|--gpl|CVC4_BSD_LICENSED_CODE_ONLY=0)
+      if test "$CVC4_LICENSE_OPTION" = bsd; then AC_ERROR([cannot give both --bsd and --enable-gpl]); fi
+      CVC4_LICENSE_OPTION=gpl
+      ac_option="CVC4_BSD_LICENSED_CODE_ONLY=0"
+      eval $ac_option
+      ;;
+    --best)
+      # set the best configuration
+      handle_option --with-readline
+      handle_option --with-cln
+      return
+      ;;
+    -enable-proofs|--enable-proofs)
+      ac_option='--enable-proof'
+      ;;
+    -*|*=*)
+      ;;
+    production|production-*|debug|debug-*|competition|competition-*)
       # regexp `\?' not supported on Mac OS X
       ac_option_build=`expr "$ac_option" : '\([[^-]]*\)-\{0,1\}'`
       ac_cvc4_build_profile_set=yes
@@ -42,6 +72,12 @@ handle_option() {
       fi
       if expr "$ac_option" : '.*-debugsymbols$' >/dev/null || expr "$ac_option" : '.*-debugsymbols-' >/dev/null; then
         eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--enable-debug-symbols\""'
+      fi
+      if expr "$ac_option" : '.*-noglpk' >/dev/null || expr "$ac_option" : '.*-noglpk-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-glpk\""'
+      fi
+      if expr "$ac_option" : '.*-glpk' >/dev/null || expr "$ac_option" : '.*-glpk-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--with-glpk\""'
       fi
       for x in cln gmp; do
         if expr "$ac_option" : '.*-no'$x'$' >/dev/null || expr "$ac_option" : '.*-no'$x'-' >/dev/null; then

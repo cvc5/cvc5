@@ -40,7 +40,7 @@ option clauseSplit --clause-split bool :default false
 # Whether to pre-skolemize quantifier bodies.
 # For example, forall x. ( P( x ) => (exists y. f( y ) = x) ) will be rewritten to
 #   forall x. P( x ) => f( S( x ) ) = x
-option preSkolemQuant --pre-skolem-quant bool :default false
+option preSkolemQuant --pre-skolem-quant bool :read-write :default false
  apply skolemization eagerly to bodies of quantified formulas
 option iteRemoveQuant --ite-remove-quant bool :default false
  apply ite removal to bodies of quantifiers
@@ -76,9 +76,8 @@ option eagerInstQuant --eager-inst-quant bool :default false
 option literalMatchMode --literal-matching=MODE CVC4::theory::quantifiers::LiteralMatchMode :default CVC4::theory::quantifiers::LITERAL_MATCH_NONE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToLiteralMatchMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkLiteralMatchMode :predicate-include "theory/quantifiers/options_handlers.h"
  choose literal matching mode
 
-option cbqi --enable-cbqi/--disable-cbqi bool :default false
- turns on counterexample-based quantifier instantiation [off by default]
-/turns off counterexample-based quantifier instantiation
+option cbqi --enable-cbqi bool :default false
+ turns on counterexample-based quantifier instantiation
 
 option recurseCbqi --cbqi-recurse bool :default false
  turns on recursive counterexample-based quantifier instantiation
@@ -95,41 +94,35 @@ option internalReps /--disable-quant-internal-reps bool :default true
 option finiteModelFind --finite-model-find bool :default false
  use finite model finding heuristic for quantifier instantiation
 
-option fmfModelBasedInst /--disable-fmf-mbqi bool :default true
- disable model-based quantifier instantiation for finite model finding
+option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMbqiMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkMbqiMode :predicate-include "theory/quantifiers/options_handlers.h"
+ choose mode for model-based quantifier instantiation
+option fmfOneInstPerRound --mbqi-one-inst-per-round bool :default false
+ only add one instantiation per quantifier per round for mbqi
+option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
+ only add instantiations for one quantifier per round for mbqi 
 
-option fmfFullModelCheck --fmf-fmc bool :default false :read-write
- enable full model check for finite model finding
-option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
- disable simple models in full model check for finite model finding
-option fmfFmcCoverSimplify /--disable-fmf-fmc-cover-simplify bool :default true
- disable covering simplification of fmc models
-option fmfFmcInterval --fmf-fmc-interval bool :default false
- construct interval models for fmc models
-
-option fmfOneInstPerRound --fmf-one-inst-per-round bool :default false
- only add one instantiation per quantifier per round for fmf
-option fmfOneQuantPerRound --fmf-one-quant-per-round bool :default false
- only add instantiations for one quantifier per round for fmf 
 option fmfInstEngine --fmf-inst-engine bool :default false
  use instantiation engine in conjunction with finite model finding
 option fmfRelevantDomain --fmf-relevant-domain bool :default false
  use relevant domain computation, similar to complete instantiation (Ge, deMoura 09)
-option fmfNewInstGen --fmf-new-inst-gen bool :default false
- use new inst gen technique for answering sat without exhaustive instantiation
-option fmfInstGen --fmf-inst-gen/--disable-fmf-inst-gen bool :read-write :default true
- enable Inst-Gen instantiation techniques for finite model finding (default)
-/disable Inst-Gen instantiation techniques for finite model finding
+option fmfInstGen /--disable-fmf-inst-gen bool :default true
+ disable Inst-Gen instantiation techniques for finite model finding
 option fmfInstGenOneQuantPerRound --fmf-inst-gen-one-quant-per-round bool :default false
  only perform Inst-Gen instantiation techniques on one quantifier per round
 option fmfFreshDistConst --fmf-fresh-dc bool :default false
  use fresh distinguished representative when applying Inst-Gen techniques
-
+option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
+ disable simple models in full model check for finite model finding
 option fmfBoundInt --fmf-bound-int bool :default false
  finite model finding on bounded integer quantification
 
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
  policy for instantiating axioms
+
+option quantConflictFind --quant-cf bool :default false
+ enable conflict find mechanism for quantifiers
+option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfWhenMode :handler-include "theory/quantifiers/options_handlers.h"
+ when to invoke conflict find mechanism for quantifiers
 
 
 endmodule

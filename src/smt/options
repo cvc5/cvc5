@@ -22,12 +22,16 @@ option expandDefinitions expand-definitions bool :default false
  always expand symbol definitions in output
 common-option produceModels produce-models -m --produce-models bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  support the get-value and get-model commands
-option checkModels check-models --check-models bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+option checkModels check-models --check-models bool :link --produce-models --interactive :link-smt produce-models :link-smt interactive-mode :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
-option dumpModels --dump-models bool :default false
+option dumpModels --dump-models bool :default false :link --produce-models
  output models after every SAT/INVALID/UNKNOWN response
 option proof produce-proofs --proof bool :default false :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on proof generation
+option checkProofs check-proofs --check-proofs bool :link --proof :link-smt produce-proofs :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ after UNSAT/VALID, machine-check the generated proof
+option dumpProofs --dump-proofs bool :default false :link --proof
+ output proofs after every UNSAT/VALID response
 # this is just a placeholder for later; it doesn't show up in command-line options listings
 undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on unsat core generation (NOT YET SUPPORTED)
@@ -84,6 +88,9 @@ common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
  enable resource limiting (currently, roughly the number of SAT conflicts)
 common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
  enable resource limiting per query
+
+expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false
+ eliminate function applications, rewriting e.g. f(5) to a new symbol f_5
 
 # --replay is currently broken; don't document it for 1.0
 undocumented-option replayFilename --replay=FILE std::string :handler CVC4::smt::checkReplayFilename :handler-include "smt/options_handlers.h"

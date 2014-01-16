@@ -3,15 +3,14 @@
 ; SMT syntax and semantics (not theory-specific)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; depends on sat.plf
 
 (declare formula type)
 (declare th_holds (! f formula type))
 
-; constants
+; standard logic definitions
 (declare true formula)
 (declare false formula)
-
-; logical connectives
 (declare not (! f formula formula))
 (declare and (! f1 formula (! f2 formula formula)))
 (declare or (! f1 formula (! f2 formula formula)))
@@ -21,24 +20,19 @@
 (declare ifte (! b formula (! f1 formula (! f2 formula formula))))
 
 ; terms
-(declare sort type)				; sort in the theory
-(declare arrow (! s1 sort (! s2 sort sort)))	; function constructor
-
+(declare sort type)
 (declare term (! t sort type))	; declared terms in formula
 
-(declare apply (! s1 sort
-               (! s2 sort
-               (! t1 (term (arrow s1 s2))
-               (! t2 (term s1)
-                (term s2))))))
-                
+; standard definitions for =, ite, let and flet
+(declare = (! s sort
+           (! x (term s)
+           (! y (term s)
+             formula))))
 (declare ite (! s sort
              (! f formula
              (! t1 (term s)
              (! t2 (term s)
                (term s))))))
-
-; let/flet
 (declare let (! s sort
              (! t (term s)
              (! f (! v (term s) formula)
@@ -47,38 +41,52 @@
               (! f2 (! v formula formula)
                 formula)))
 
-; predicates
-(declare = (! s sort
-           (! x (term s)
-           (! y (term s)
-             formula))))
-
-; To avoid duplicating some of the rules (e.g., cong), we will view
-; applications of predicates as terms of sort "Bool".
+; We view applications of predicates as terms of sort "Bool".
 ; Such terms can be injected as atomic formulas using "p_app".
-
 (declare Bool sort)				; the special sort for predicates
 (declare p_app (! x (term Bool) formula))	; propositional application of term
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Examples
+;
+; CNF Clausification
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; an example of "(p1 or p2(0)) and t1=t2(1)"
-;(! p1 (term Bool)
-;(! p2 (term (arrow Int Bool))
-;(! t1 (term Int)
-;(! t2 (term (arrow Int Int))
-;(! F (th_holds (and (or (p_app p1) (p_app (apply _ _ p2 0)))
-;                    (= _ t1 (apply _ _ t2 1))))
-;  ...
+; binding between an LF var and an (atomic) formula
+(declare atom (! v var (! p formula type)))
 
-; another example of "p3(a,b)"
-;(! a (term Int)
-;(! b (term Int)
-;(! p3 (term (arrow Int (arrow Int Bool)))	; arrow is right assoc.
-;(! F (th_holds (p_app (apply _ _ (apply _ _ p3 a) b))) ; apply is left assoc.
-;  ...
+(declare decl_atom
+  (! f formula
+  (! u (! v var
+       (! a (atom v f)
+         (holds cln)))
+    (holds cln))))
+
+; clausify a formula directly
+(declare clausify_form
+  (! f formula
+  (! v var
+  (! a (atom v f)
+  (! u (th_holds f)
+    (holds (clc (pos v) cln)))))))
+    
+(declare clausify_form_not
+  (! f formula
+  (! v var
+  (! a (atom v f)
+  (! u (th_holds (not f))
+    (holds (clc (neg v) cln)))))))
+    
+(declare clausify_false
+  (! u (th_holds false)
+    (holds cln)))
+
+(declare th_let_pf
+  (! f formula
+  (! u (th_holds f)
+  (! u2 (! v (th_holds f) (holds cln))
+    (holds cln)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -102,7 +110,7 @@
   (! f formula
   (! u (th_holds f)
     (th_holds (not (not f))))))
-    
+
 (declare not_not_elim
   (! f formula
   (! u (th_holds (not (not f)))
@@ -116,14 +124,14 @@
   (! u1 (th_holds (not f1))
   (! u2 (th_holds (or f1 f2))
     (th_holds f2))))))
-    
+
 (declare or_elim_2
   (! f1 formula
   (! f2 formula
   (! u1 (th_holds (not f2))
   (! u2 (th_holds (or f1 f2))
     (th_holds f1))))))
-    
+
 ;; and elimination
 
 (declare and_elim_1
@@ -131,13 +139,13 @@
   (! f2 formula
   (! u (th_holds (and f1 f2))
     (th_holds f1)))))
-    
+
 (declare and_elim_2
   (! f1 formula
   (! f2 formula
   (! u (th_holds (and f1 f2))
     (th_holds f2)))))
-    
+
 ;; not impl elimination
 
 (declare not_impl_elim_1
@@ -145,18 +153,18 @@
   (! f2 formula
   (! u (th_holds (not (impl f1 f2)))
     (th_holds f1)))))
-    
+
 (declare not_impl_elim_2
   (! f1 formula
   (! f2 formula
   (! u (th_holds (not (impl f1 f2)))
     (th_holds (not f2))))))
-    
+
 ;; impl elimination
 
 (declare impl_intro (! f1 formula
                     (! f2 formula
-                    (! i1 (! u (th_holds f1) 
+                    (! i1 (! u (th_holds f1)
                               (th_holds f2))
                       (th_holds (impl f1 f2))))))
 
@@ -164,9 +172,9 @@
   (! f1 formula
   (! f2 formula
   (! u1 (th_holds f1)
-  (! u2 (th_holds (impl f1 f2))  
+  (! u2 (th_holds (impl f1 f2))
     (th_holds f2))))))
-    
+
 ;; iff elimination
 
 (declare iff_elim_1
@@ -174,7 +182,7 @@
   (! f2 formula
   (! u1 (th_holds (iff f1 f2))
     (th_holds (impl f1 f2))))))
-    
+
 (declare iff_elim_2
   (! f1 formula
   (! f2 formula
@@ -204,7 +212,7 @@
   (! u1 (th_holds a)
   (! u2 (th_holds (ifte a b c))
     (th_holds b)))))))
-    
+
 (declare ite_elim_2
   (! a formula
   (! b formula
@@ -212,7 +220,7 @@
   (! u1 (th_holds (not a))
   (! u2 (th_holds (ifte a b c))
     (th_holds c)))))))
-    
+
 (declare ite_elim_3
   (! a formula
   (! b formula
@@ -220,7 +228,7 @@
   (! u1 (th_holds (not b))
   (! u2 (th_holds (ifte a b c))
     (th_holds c)))))))
-    
+
 (declare ite_elim_2n
   (! a formula
   (! b formula
@@ -236,7 +244,7 @@
   (! u1 (th_holds a)
   (! u2 (th_holds (not (ifte a b c)))
     (th_holds (not b))))))))
-    
+
 (declare not_ite_elim_2
   (! a formula
   (! b formula
@@ -244,7 +252,7 @@
   (! u1 (th_holds (not a))
   (! u2 (th_holds (not (ifte a b c)))
     (th_holds (not c))))))))
-    
+
 (declare not_ite_elim_3
   (! a formula
   (! b formula
@@ -252,7 +260,7 @@
   (! u1 (th_holds b)
   (! u2 (th_holds (not (ifte a b c)))
     (th_holds (not c))))))))
-    
+
 (declare not_ite_elim_2n
   (! a formula
   (! b formula
@@ -260,14 +268,42 @@
   (! u1 (th_holds a)
   (! u2 (th_holds (not (ifte (not a) b c)))
     (th_holds (not c))))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; For theory lemmas
+; - make a series of assumptions and then derive a contradiction (or false)
+; - then the assumptions yield a formula like "v1 -> v2 -> ... -> vn -> false"
+; - In CNF, it becomes a clause: "~v1, ~v2, ..., ~vn"
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(declare ast
+  (! v var
+  (! f formula
+  (! C clause
+  (! r (atom v f)       ;this is specified
+  (! u (! o (th_holds f)
+         (holds C))
+    (holds (clc (neg v) C))))))))
+
+(declare asf
+  (! v var
+  (! f formula
+  (! C clause
+  (! r (atom v f)
+  (! u (! o (th_holds (not f))
+         (holds C))
+    (holds (clc (pos v) C))))))))
     
-    
-    
-;; How to do CNF for disjunctions of theory literals.
+
+
+
+;; Example:
 ;;
-;; Given theory literals F1....Fn, and an input formula A of the form (th_holds (or F1 (or F2 .... (or F{n-1} Fn))))).
+;; Given theory literals (F1....Fn), and an input formula A of the form (th_holds (or F1 (or F2 .... (or F{n-1} Fn))))).
 ;;
-;; We introduce atoms a1...an for literals F1...Fn, mapping them to boolean literals v1...vn.
+;; We introduce atoms (a1,...,an) to map boolean literals (v1,...,vn) top literals (F1,...,Fn).
 ;; Do this at the beginning of the proof:
 ;;
 ;; (decl_atom F1 (\ v1 (\ a1
@@ -275,7 +311,7 @@
 ;; ....
 ;; (decl_atom Fn (\ vn (\ an
 ;;
-;; Our input A is clausified by the following proof:
+;;  A is then clausified by the following proof:
 ;;
 ;;(satlem _ _
 ;;(asf _ _ _ a1 (\ l1
@@ -287,14 +323,14 @@
 ;;   (contra _
 ;;      (or_elim_1 _ _ l{n-1}
 ;;	...
-;;      (or_elim_1 _ _ l2 
+;;      (or_elim_1 _ _ l2
 ;; 	(or_elim_1 _ _ l1 A))))) ln)
 ;;	
 ;;))))))) (\ C
 ;;
 ;; We now have the free variable C, which should be the clause (v1 V ... V vn).
 ;;
-;; We also need to consider the polarity of literals, say we have A of the form (th_holds (or (not F1) (or F2 (not F3)))).
+;; Polarity of literals should be considered, say we have A of the form (th_holds (or (not F1) (or F2 (not F3)))).
 ;; Where necessary, we use "ast" instead of "asf", introduce negations by "not_not_intro" for pattern matching, and flip
 ;; the arguments of contra:
 ;;
@@ -305,9 +341,11 @@
 ;;(clausify_false
 ;;
 ;;   (contra _ l3
-;;      (or_elim_1 _ _ l2 
+;;      (or_elim_1 _ _ l2
 ;; 	(or_elim_1 _ _ (not_not_intro l1) A))))
 ;;	
 ;;))))))) (\ C
 ;;
 ;; C should be the clause (~v1 V v2 V ~v3 )
+
+

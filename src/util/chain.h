@@ -26,7 +26,7 @@
 namespace CVC4 {
 
 /** A class to represent a chained, built-in operator. */
-class Chain {
+class CVC4_PUBLIC Chain {
   Kind d_kind;
 public:
   explicit Chain(Kind k) : d_kind(k) { }
@@ -35,11 +35,12 @@ public:
   Kind getOperator() const { return d_kind; }
 };/* class Chain */
 
+inline std::ostream& operator<<(std::ostream& out, const Chain& ch) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& out, const Chain& ch) {
   return out << ch.getOperator();
 }
 
-struct ChainHashFunction {
+struct CVC4_PUBLIC ChainHashFunction {
   size_t operator()(const Chain& ch) const {
     return kind::KindHashFunction()(ch.getOperator());
   }

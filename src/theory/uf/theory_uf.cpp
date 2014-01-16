@@ -178,10 +178,16 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
+  eq::EqProof * eqp = d_proofEnabled ? new eq::EqProof : NULL;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, eqp);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine.explainPredicate(atom, polarity, assumptions, eqp);
+  }
+  //for now, just print debug
+  //TODO : send the proof outwards : d_out->conflict( lem, eqp );
+  if( eqp ){
+    eqp->debug_print("uf-pf");
   }
 }
 
@@ -462,6 +468,7 @@ void TheoryUF::computeCareGraph() {
 }/* TheoryUF::computeCareGraph() */
 
 void TheoryUF::conflict(TNode a, TNode b) {
+  //TODO: create EqProof at this level if d_proofEnabled = true
   if (a.getKind() == kind::CONST_BOOLEAN) {
     d_conflictNode = explain(a.iffNode(b));
   } else {

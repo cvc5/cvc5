@@ -89,19 +89,19 @@ class NodeValue {
   /** A mask for d_kind */
   static const unsigned kindMask = (1u << NBITS_KIND) - 1;
 
-  // this header fits into one 64-bit word
+  // This header fits into 96 bits
 
   /** The ID (0 is reserved for the null value) */
-  unsigned long d_id        : NBITS_ID;
+  uint64_t d_id        : NBITS_ID;
 
   /** The expression's reference count.  @see cvc4::Node. */
-  unsigned d_rc        : NBITS_REFCOUNT;
+  uint64_t d_rc        : NBITS_REFCOUNT;
 
   /** Kind of the expression */
-  unsigned d_kind      : NBITS_KIND;
+  uint64_t d_kind      : NBITS_KIND;
 
   /** Number of children */
-  unsigned d_nchildren : NBITS_NCHILDREN;
+  uint64_t d_nchildren : NBITS_NCHILDREN;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];
@@ -268,7 +268,7 @@ public:
 
   std::string toString() const;
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                OutputLanguage = language::output::LANG_AST) const;
+                OutputLanguage = language::output::LANG_AUTO) const;
 
   static inline unsigned kindToDKind(Kind k) {
     return ((unsigned) k) & kindMask;

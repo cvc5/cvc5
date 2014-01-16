@@ -12,4 +12,6 @@
 %rename(equals) CVC4::LogicInfo::operator==(const LogicInfo&) const;
 %ignore CVC4::LogicInfo::operator!=(const LogicInfo&) const;
 
+%ignore CVC4::operator<<(std::ostream&, const LogicInfo&);
+
 %include "theory/logic_info.h"

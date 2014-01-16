@@ -30,8 +30,10 @@
 #   coverage
 #   profiling
 #
-# Also you can specify "cln" or "gmp".  If "cln", the build dir
-# contains the string "cln".  (gmp is considered the default.)
+# Also you can specify "cln" or "gmp".  If "gmp", the build dir
+# contains the string "gmp".  (gmp is considered the default.)
+#
+# Also for glpk.
 #
 
 if [ $# -eq 0 ]; then
@@ -53,7 +55,7 @@ while [ $# -gt 0 ]; do
 done
 
 build_type_suffix=
-for arg in cln staticbinary optimized proof debugsymbols statistics replay assertions tracing muzzle coverage profiling; do
+for arg in cln glpk staticbinary optimized proof debugsymbols statistics replay assertions tracing muzzle coverage profiling; do
   if eval [ -n '"${'$arg'+set}"' ]; then
     if eval [ '"${'$arg'}"' -eq 0 ]; then
       build_type_suffix=$build_type_suffix-no$arg

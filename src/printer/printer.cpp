@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds, Francois Bobot
+ ** Minor contributors (to current version): Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -31,6 +31,7 @@ using namespace std;
 namespace CVC4 {
 
 Printer* Printer::d_printers[language::output::LANG_MAX];
+const int PrettySExprs::s_iosIndex = std::ios_base::xalloc();
 
 Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   using namespace CVC4::language::output;
@@ -90,7 +91,7 @@ void Printer::toStream(std::ostream& out, const Result& r) const throw() {
   }
 }/* Printer::toStream() */
 
-void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+static void toStreamRec(std::ostream& out, const SExpr& sexpr, int indent) throw() {
   if(sexpr.isInteger()) {
     out << sexpr.getIntegerValue();
   } else if(sexpr.isRational()) {
@@ -111,19 +112,33 @@ void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
     }
     out << "\"" << s << "\"";
   } else {
-    out << '(';
     const vector<SExpr>& kids = sexpr.getChildren();
+    out << (indent > 0 && kids.size() > 1 ? "( " : "(");
     bool first = true;
     for(vector<SExpr>::const_iterator i = kids.begin(); i != kids.end(); ++i) {
       if(first) {
         first = false;
       } else {
-        out << ' ';
+        if(indent > 0) {
+          out << "\n" << string(indent, ' ');
+        } else {
+          out << ' ';
+        }
       }
-      out << *i;
+      toStreamRec(out, *i, indent <= 0 || indent > 2 ? 0 : indent + 2);
+    }
+    if(indent > 0 && kids.size() > 1) {
+      out << '\n';
+      if(indent > 2) {
+        out << string(indent - 2, ' ');
+      }
     }
     out << ')';
   }
+}/* toStreamRec() */
+
+void Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+  toStreamRec(out, sexpr, PrettySExprs::getPrettySExprs(out) ? 2 : 0);
 }/* Printer::toStream(SExpr) */
 
 void Printer::toStream(std::ostream& out, const Model& m) const throw() {

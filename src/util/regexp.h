@@ -3,8 +3,8 @@
  ** \verbatim
  ** Original author: Tianyi Liang
  ** Major contributors: none
- ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
+ ** Minor contributors (to current version): Morgan Deters
+ ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
@@ -181,6 +181,39 @@ public:
 	  }
 	  c = id_x == -1 ? ( - (id_y+1) ) : (id_x + 1);
 	  return true;
+  }
+
+  std::size_t find(const String &y, const int start = 0) const {
+	  if(d_str.size() < y.d_str.size() + (std::size_t) start) return std::string::npos;
+	  if(y.d_str.size() == 0) return (std::size_t) start;
+	  if(d_str.size() == 0) return std::string::npos;
+	  std::size_t ret = std::string::npos;
+	  for(int i = start; i <= (int) d_str.size() - (int) y.d_str.size(); i++) {
+		  if(d_str[i] == y.d_str[0]) {
+			  std::size_t j=0;
+			  for(; j<y.d_str.size(); j++) {
+				  if(d_str[i+j] != y.d_str[j]) break;
+			  }
+			  if(j == y.d_str.size()) {
+				  ret = (std::size_t) i;
+				  break;
+			  }
+		  }
+	  }
+	  return ret;
+  }
+
+  String replace(const String &s, const String &t) const {
+	std::size_t ret = find(s);
+	if( ret != std::string::npos ) {
+		std::vector<unsigned int> vec;
+		vec.insert(vec.begin(), d_str.begin(), d_str.begin() + ret); 
+		vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
+		vec.insert(vec.end(), d_str.begin() + ret + s.d_str.size(), d_str.end());
+		return String(vec);
+	} else {
+		return *this;
+	}
   }
 
   String substr(unsigned i) const {

@@ -2,7 +2,7 @@
 /*! \file idl_assertion_db.h
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: none
+ ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
@@ -35,7 +35,7 @@ class IDLAssertionDB {
   struct IDLAssertionListElement {
     /** The assertion itself */
     IDLAssertion d_assertion;
-    /** The inndex of the previous element (-1 for null) */
+    /** The index of the previous element (-1 for null) */
     unsigned d_previous;
 
     IDLAssertionListElement(const IDLAssertion& assertion, unsigned previous)

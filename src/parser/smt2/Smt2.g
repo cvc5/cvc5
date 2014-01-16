@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Christopher L. Conway
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic, Andrew Reynolds, Francois Bobot, Tianyi Liang
+ ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang, Andrew Reynolds, Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -32,7 +32,7 @@ options {
 @header {
 /**
  ** This file is part of CVC4.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.
  **/
@@ -336,8 +336,10 @@ command returns [CVC4::Command* cmd = NULL]
     }
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    LPAREN_TOK termList[terms,expr] RPAREN_TOK
-    { $cmd = new GetValueCommand(terms); }
+    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+      { $cmd = new GetValueCommand(terms); }
+    | ~LPAREN_TOK
+      { PARSER_STATE->parseError("The get-value command expects a list of terms.  Perhaps you forgot a pair of parentheses?"); } )
   | /* get-assignment */
     GET_ASSIGNMENT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd = new GetAssignmentCommand(); }
@@ -708,11 +710,11 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
   | str[s]
     { sexpr = SExpr(s); }
-//  | LPAREN_TOK STRCST_TOK 
-//      ( INTEGER_LITERAL { 
+//  | LPAREN_TOK STRCST_TOK
+//      ( INTEGER_LITERAL {
 //	    s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
 //	  } )* RPAREN_TOK
-//   { 
+//   {
 //	sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
 //	}
   | symbol[s,CHECK_NONE,SYM_SORT]
@@ -1250,6 +1252,10 @@ builtinOp[CVC4::Kind& kind]
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
   | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
+  | STRCTN_TOK     { $kind = CVC4::kind::STRING_STRCTN; }
+  | STRCAT_TOK     { $kind = CVC4::kind::STRING_CHARAT; }
+  | STRIDOF_TOK    { $kind = CVC4::kind::STRING_STRIDOF; }
+  | STRREPL_TOK    { $kind = CVC4::kind::STRING_STRREPL; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
@@ -1623,7 +1629,11 @@ INT2BV_TOK : 'int2bv';
 //STRCST_TOK : 'str.cst';
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
-STRSUB_TOK : 'str.sub' ;
+STRSUB_TOK : 'str.substr' ;
+STRCTN_TOK : 'str.contain' ;
+STRCAT_TOK : 'str.at' ;
+STRIDOF_TOK : 'str.indexof' ;
+STRREPL_TOK : 'str.replace' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';

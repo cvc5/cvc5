@@ -30,4 +30,6 @@
 %ignore CVC4::operator<<(std::ostream&, const String&);
 %ignore CVC4::operator<<(std::ostream&, const RegExp&);
 
+%apply int &OUTPUT { int &c };
 %include "util/regexp.h"
+%clear int &c;

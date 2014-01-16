@@ -2,16 +2,16 @@
 /*! \file regexp_operation.h
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: Tianyi Liang, Andrew Reynolds
+ ** Major contributors: none
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2013-2013  New York University and The University of Iowa
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Regular Expresion Operations
+ ** \brief Regular Expression Operations
  **
- ** Regular Expresion Operations
+ ** Regular Expression Operations
  **/
 
 #include "cvc4_private.h"
@@ -45,6 +45,8 @@ private:
 	//void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
 	//Node simplify( Node t, std::vector< Node > &new_nodes );
 	std::string niceChar( Node r );
+	int gcd ( int a, int b );
+
 public:
 	RegExpOpr();
 	bool checkConstRegExp( Node r );
@@ -53,6 +55,7 @@ public:
 	Node complement( Node r );
 	int delta( Node r );
 	Node derivativeSingle( Node r, CVC4::String c );
+	bool guessLength( Node r, int &co );
 	void firstChar( Node r );
 	bool follow( Node r, CVC4::String c, std::vector< char > &vec_chars );
 	std::string mkString( Node r );

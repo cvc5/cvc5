@@ -2,8 +2,8 @@
 /*! \file theory_proxy.h
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: Liana Hadarean, Morgan Deters
- ** Minor contributors (to current version): Christopher L. Conway, Tim King, Kshitij Bansal
+ ** Major contributors: Liana Hadarean, Kshitij Bansal, Morgan Deters
+ ** Minor contributors (to current version): Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

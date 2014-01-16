@@ -82,6 +82,8 @@ public:
   std::map< Node, bool > d_phase_reqs;
   std::map< Node, bool > d_phase_reqs_equality;
   std::map< Node, Node > d_phase_reqs_equality_term;
+
+  static void getPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
 };
 
 

@@ -23,7 +23,7 @@
 
 #ifdef CVC4_PROOF
 #  define PROOF(x) if(options::proof()) { x; }
-#  define NULLPROOF(x) (options::proof())? x : NULL
+#  define NULLPROOF(x) (options::proof()) ? x : NULL
 #  define PROOF_ON() options::proof()
 #else /* CVC4_PROOF */
 #  define PROOF(x)

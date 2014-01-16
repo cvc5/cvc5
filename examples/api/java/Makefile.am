@@ -8,6 +8,7 @@ noinst_DATA += \
 	Combination.class \
 	HelloWorld.class \
 	LinearArith.class \
+	Datatypes.class \
 	PipedInput.class
 endif
 
@@ -21,6 +22,7 @@ EXTRA_DIST = \
 	Combination.java \
 	HelloWorld.java \
 	LinearArith.java \
+	Datatypes.java \
 	PipedInput.java
 
 # for installation

@@ -2,8 +2,8 @@
 /*! \file options_handlers.h
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: none
- ** Minor contributors (to current version): Kshitij Bansal
+ ** Major contributors: Kshitij Bansal
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -29,7 +29,7 @@ static const std::string decisionModeHelp = "\
 Decision modes currently supported by the --decision option:\n\
 \n\
 internal (default)\n\
-+ Use the internal decision hueristics of the SAT solver\n\
++ Use the internal decision heuristics of the SAT solver\n\
 \n\
 justification\n\
 + An ATGP-inspired justification heuristic\n\

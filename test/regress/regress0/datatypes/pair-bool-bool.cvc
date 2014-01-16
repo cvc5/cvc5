@@ -1,0 +1,10 @@
+% EXPECT: sat
+
+DATATYPE
+  pair[T1,T2] = mkpair(first:T1, second:T2)
+END;
+
+x : pair[BOOLEAN,BOOLEAN];
+
+ASSERT x = mkpair(TRUE,TRUE);
+CHECKSAT;

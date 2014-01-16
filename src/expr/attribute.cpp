@@ -2,7 +2,7 @@
 /*! \file attribute.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: Dejan Jovanovic
+ ** Major contributors: Dejan Jovanovic, Tim King
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
@@ -128,7 +128,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids){
     case AttrTableCDNode:
     case AttrTableCDString:
     case AttrTableCDPointer:
-      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behaviour is desired.");
+      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
       break;
     case LastAttrTable:
     default:

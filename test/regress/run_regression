@@ -11,6 +11,7 @@
 #
 
 # ulimit -t 1    # For detecting long running regressions
+ulimit -s 10240  # Needed for some (esp. portfolio)
 
 prog=`basename "$0"`
 
@@ -70,10 +71,8 @@ function gettemp {
 
 tmpbenchmark=
 if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
-  proof_command=PROOFS-NOT-SUPPORTED-IN-SMTLIB-V1
   lang=smt1
   if test -e "$benchmark.expect"; then
-    expected_proof=`grep '^% PROOF' "$benchmark.expect" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -82,7 +81,6 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
       expected_exit_status=0
     fi
   elif grep '^% \(PROOF\|EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
-    expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -96,12 +94,10 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *:status  *sat' "$benchmark" &>/dev/null; then
-    expected_proof=
     expected_output=sat
     expected_exit_status=0
     command_line=
   elif grep '^ *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_proof=
     expected_output=unsat
     expected_exit_status=0
     command_line=
@@ -109,10 +105,8 @@ if expr "$benchmark" : '.*\.smt$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
-  proof_command='(get-proof)'
   lang=smt2
   if test -e "$benchmark.expect"; then
-    expected_proof=`grep '^[%;] PROOF' "$benchmark.expect" &>/dev/null && echo yes`
     expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
     expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
@@ -121,7 +115,6 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
       expected_exit_status=0
     fi
   elif grep '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
-    expected_proof=`grep '^[%;] PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=`grep '^[%;] EXPECT: ' "$benchmark" | sed 's,^[%;] EXPECT: ,,'`
     expected_error=`grep '^[%;] EXPECT-ERROR: ' "$benchmark" | sed 's,^[%;] EXPECT-ERROR: ,,'`
     expected_exit_status=`grep -m 1 '^[%;] EXIT: ' "$benchmark" | perl -pe 's,^[%;] EXIT: ,,;s,\r,,'`
@@ -135,12 +128,10 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     fi
     benchmark=$tmpbenchmark
   elif grep '^ *( *set-info  *:status  *sat' "$benchmark" &>/dev/null; then
-    expected_proof=
     expected_output=sat
     expected_exit_status=0
     command_line=
   elif grep '^ *( *set-info  *:status  *unsat' "$benchmark" &>/dev/null; then
-    expected_proof=`grep '^; PROOF' "$benchmark" &>/dev/null && echo yes`
     expected_output=unsat
     expected_exit_status=0
     command_line=
@@ -148,9 +139,7 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     error "cannot determine status of \`$benchmark'"
   fi
 elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
-  proof_command='DUMP_PROOF;'
   lang=cvc4
-  expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -164,10 +153,8 @@ elif expr "$benchmark" : '.*\.cvc$' &>/dev/null; then
   fi
   command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
 elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
-  proof_command=PROOFS-NOT-SUPPORTED-IN-TPTP;
   lang=tptp
   command_line=--finite-model-find
-  expected_proof=`grep '^% PROOF' "$benchmark" &>/dev/null && echo yes`
   expected_output=$(grep '^% EXPECT: ' "$benchmark")
   expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark" | sed 's,^% EXPECT-ERROR: ,,'`
   if [ -z "$expected_output" -a -z "$expected_error" ]; then
@@ -212,12 +199,26 @@ if [ -z "$expected_output" ]; then
 else
   echo "$expected_output" >"$expoutfile"
 fi
+
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
-  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
-     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models' &>/dev/null; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models\>' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models\>' &>/dev/null; then
     # later on, we'll run another test with --check-models on
     check_models=true
+  fi
+fi
+check_proofs=false
+if [ "$proof" = yes ]; then
+  # proofs not currently supported in incremental mode, turn it off
+  if grep '^unsat$' "$expoutfile" &>/dev/null || grep '^valid$' "$expoutfile" &>/dev/null &>/dev/null; then
+    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs\>' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs\>' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental\>' &>/dev/null &&
+       ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null; then
+      # later on, we'll run another test with --check-proofs on
+      check_proofs=true
+    fi
   fi
 fi
 if [ -z "$expected_error" ]; then
@@ -236,17 +237,17 @@ fi
 cvc4base=`basename "$cvc4"`
 cvc4full="$cvc4dirfull/$cvc4base"
 if [ $dump = no ]; then
-  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
+  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line `basename "$benchmark"` [from working dir `dirname "$benchmark"`]
   time ( :; \
   ( cd `dirname "$benchmark"`;
-    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --segv-nospin `basename "$benchmark"`;
+    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line `basename "$benchmark"`;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile" )
 else
-  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` \| $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
+  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q `basename "$benchmark"` \| $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --lang=smt2 - [from working dir `dirname "$benchmark"`]
   time ( :; \
   ( cd `dirname "$benchmark"`;
-    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q --segv-nospin `basename "$benchmark"` | $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
+    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --preprocess-only --dump=clauses --output-lang=smt2 -q `basename "$benchmark"` | $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --lang=smt2 -;
     echo $? >"$exitstatusfile"
   ) > "$outfile" 2> "$errfile" )
 fi
@@ -274,47 +275,16 @@ if [ "$exit_status" != "$expected_exit_status" ]; then
   exitcode=1
 fi
 
-if [ "$proof" = yes -a "$expected_proof" = yes ]; then
-  gettemp pfbenchmark cvc4_pfbenchmark.$$.XXXXXXXXXX
-  # remove exit command to add proof command for smt2 benchmarks
-  if expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
-      head -n -0 "$benchmark" > "$pfbenchmark";
-      echo "$proof_command" >>"$pfbenchmark";
-      echo "(exit)" >> "$pfbenchmark";
-  else
-      cp $benchmark $pfbenchmark
-      echo "$proof_command" >>"$pfbenchmark";
+if $check_models || $check_proofs; then
+  check_cmdline=
+  if $check_models; then
+    check_cmdline="$check_cmdline --check-models"
   fi
-  echo running $wrapper $cvc4full $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"` [from working dir `dirname "$pfbenchmark"`]
-  time ( :; \
-  ( cd `dirname "$pfbenchmark"`;
-    $wrapper "$cvc4full" $CVC4_REGRESSION_ARGS $command_line --proof --segv-nospin `basename "$pfbenchmark"`;
-    echo $? >"$exitstatusfile"
-  ) > "$outfile" 2> "$errfile" )
-
-  gettemp pfoutfile cvc4_proof.$$.XXXXXXXXXX
-  
-  diff --unchanged-group-format='' \
-       --old-group-format='' \
-       --new-group-format='%>' \
-       "$expoutfile" "$outfile" > "$pfoutfile"
-  if [ ! -s "$pfoutfile" ]; then
-    echo "$prog: error: proof generation failed with empty output (stderr follows)"
-    cat "$errfile"
-    exitcode=1
-  else
-    echo running $LFSC "$pfoutfile" [from working dir `dirname "$pfbenchmark"`]
-    if ! $LFSC "$pfoutfile" &> "$errfile"; then
-      echo "$prog: error: proof checker failed (output follows)"
-      cat "$errfile"
-      exitcode=1
-    fi
+  if $check_proofs; then
+    check_cmdline="$check_cmdline --check-proofs"
   fi
-fi
-
-if $check_models; then
-  # at least one sat/invalid response: run an extra model-checking pass
-  if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS --check-models" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
+  # at least one sat/invalid response: run an extra model/proof-checking pass
+  if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS$check_cmdline" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
     exitcode=1
   fi
 fi

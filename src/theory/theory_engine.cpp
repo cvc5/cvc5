@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Dejan Jovanovic
- ** Minor contributors (to current version): Christopher L. Conway, Kshitij Bansal, Tim King, Liana Hadarean, Clark Barrett, Andrew Reynolds
+ ** Minor contributors (to current version): Christopher L. Conway, Kshitij Bansal, Liana Hadarean, Clark Barrett, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -74,12 +74,18 @@ void TheoryEngine::finishInit() {
 
 void TheoryEngine::eqNotifyNewClass(TNode t){
   d_quantEngine->addTermToDatabase( t );
+  if( d_logicInfo.isQuantified() && options::quantConflictFind() ){
+    d_quantEngine->getConflictFind()->newEqClass( t );
+  }
 }
 
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
   //TODO: add notification to efficient E-matching
-  if (d_logicInfo.isQuantified()) {
+  if( d_logicInfo.isQuantified() ){
     d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
+    if( options::quantConflictFind() ){
+      d_quantEngine->getConflictFind()->merge( t1, t2 );
+    }
   }
 }
 
@@ -88,7 +94,11 @@ void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
 }
 
 void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-
+  if( d_logicInfo.isQuantified() ){
+    if( options::quantConflictFind() ){
+      d_quantEngine->getConflictFind()->assertDisequal( t1, t2 );
+    }
+  }
 }
 
 
@@ -145,6 +155,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
+
   PROOF (ProofManager::currentPM()->initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
