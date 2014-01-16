@@ -187,6 +187,8 @@ class AbstractionModule {
   void getMatches(TNode node, ArgsTableEntry& matches);
 
   void skolemizeArguments(std::vector<Node>& assertions);
+
+  Node reverseAbstraction(Node assertion, NodeNodeMap& seen);
 public:
   AbstractionModule()
     : d_argsTable()

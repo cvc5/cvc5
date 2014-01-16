@@ -41,8 +41,8 @@ void AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
         Node signature = computeSignature(assertions[i][j]);
         storeSignature(signature, assertions[i][j]); 
-        // Debug("bv-abstraction") << "   assertion: " << assertions[i][j] <<"\n";
-        // Debug("bv-abstraction") << "   signature: " << signature <<"\n";
+        Debug("bv-abstraction") << "   assertion: " << assertions[i][j] <<"\n";
+        Debug("bv-abstraction") << "   signature: " << signature <<"\n";
       }
     }
   }
@@ -65,6 +65,44 @@ void AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   if (options::skolemizeArguments()) {
     skolemizeArguments(new_assertions);
   }
+  // reverseabstraction
+
+  NodeNodeMap seen; 
+  for (unsigned i = 0; i < new_assertions.size(); ++i) {
+    new_assertions[i] = reverseAbstraction(new_assertions[i], seen); 
+  }
+}
+
+Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
+  //  std::cout << "node = "<< assertion << "\n";
+
+  if (seen.find(assertion) != seen.end())
+    return seen[assertion];
+  
+  if (isAbstraction(assertion)) {
+    Node interp =  getInterpretation(assertion);
+    seen[assertion] = interp;
+    Assert (interp.getType() == assertion.getType()); 
+    return interp;
+  }
+
+  if (assertion.getNumChildren() == 0) {
+    seen[assertion] = assertion;
+    return assertion; 
+  }
+  
+  NodeBuilder<> result(assertion.getKind());
+  if (assertion.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    // std::cout << assertion <<"\n"; 
+    result << assertion.getOperator(); 
+  }
+
+  for (unsigned i = 0; i < assertion.getNumChildren(); ++i) {
+    result << reverseAbstraction(assertion[i], seen); 
+  }
+  Node res = result;
+  seen[assertion] = res;
+  return res; 
 }
 
 void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
@@ -320,7 +358,7 @@ Node AbstractionModule::getGeneralizedSignature(Node node) {
 Node AbstractionModule::computeSignatureRec(TNode node, NodeNodeMap& cache) {
   Assert(node.getKind() != kind::OR &&
          node.getKind() != kind::XOR &&
-         node.getKind() != kind::ITE &&
+         // node.getKind() != kind::ITE &&
          node.getKind() != kind::NOT &&
          node.getKind() != kind::IMPLIES);
 
@@ -530,10 +568,11 @@ void AbstractionModule::collectArguments(TNode node, TNode signature, std::vecto
     // or can be hard-coded and part of the abstraction 
     if (signature.getKind() == kind::SKOLEM) {
       args.push_back(node);
+      seen.insert(node);
     } else {
       Assert (signature.getKind() == kind::CONST_BITVECTOR); 
     }
-    seen.insert(node);
+    // 
     return; 
   }
   Assert (node.getKind() == signature.getKind() &&
@@ -547,11 +586,11 @@ void AbstractionModule::collectArguments(TNode node, TNode signature, std::vecto
 
 
 Node AbstractionModule::abstractSignatures(TNode assertion) {
-  // Debug("bv-abstraction") << "AbstractionModule::abstractSignatures "<< assertion <<"\n"; 
+  Debug("bv-abstraction") << "AbstractionModule::abstractSignatures "<< assertion <<"\n"; 
   // assume the assertion has been fully abstracted
   Node signature = getGeneralizedSignature(assertion);
   
-  // Debug("bv-abstraction") << "   with sig "<< signature <<"\n"; 
+  Debug("bv-abstraction") << "   with sig "<< signature <<"\n"; 
   NodeNodeMap::iterator it = d_signatureToFunc.find(signature);
   if (it!= d_signatureToFunc.end()) {
     std::vector<Node> args;
@@ -567,7 +606,7 @@ Node AbstractionModule::abstractSignatures(TNode assertion) {
     d_argsTable.addEntry(func, real_args); 
     Node result = utils::mkNode(kind::EQUAL, utils::mkNode(kind::APPLY_UF, args), 
                                 utils::mkConst(1, 1u));
-    // Debug("bv-abstraction") << "=>   "<< result << "\n"; 
+    Debug("bv-abstraction") << "=>   "<< result << "\n"; 
     Assert (result.getType() == assertion.getType()); 
     return result; 
   }
@@ -766,7 +805,12 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
     
   if (functions.size() > 1) {
     num_many++;
-    //    std::cout << "one fun=" << num_one << " many fun " << num_many << " this many= " << functions.size() << " \n";
+    if (num_many % 100 == 0) {
+      std::cout << "one fun=" << num_one << " many fun " << num_many << " this many= " << functions.size() << " \n";
+      if (functions.size() >= 5) {
+        std::cout << "conflict " << conflict <<"\n"; 
+      }
+    }
     // if (functions.size() == 2) {
     //   std::cout << "Conflict " << conflict << "\n"; 
     // }
