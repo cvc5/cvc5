@@ -23,6 +23,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+StringsPreprocess::StringsPreprocess() {
+}
+
 void StringsPreprocess::simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn ) {
 	int k = r.getKind();
 	switch( k ) {
@@ -115,48 +118,47 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			// TODO
 		//	return (t0 == t[0]) ? t : NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, t0, t[1] );
 		//}
-	} else if( t.getKind() == kind::STRING_SUBSTR ){
-		if(options::stringExp()) {
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", t.getType(), "created for substr" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "st2_$$", t.getType(), "created for substr" );
-			Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", t.getType(), "created for substr" );
-			Node x = simplify( t[0], new_nodes );
-			Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
-								NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
-			new_nodes.push_back( x_eq_123 );
-			Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
-									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-			new_nodes.push_back( len_sk1_eq_i );
-			Node len_sk2_eq_j = NodeManager::currentNM()->mkNode( kind::EQUAL, t[2],
-									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
-			new_nodes.push_back( len_sk2_eq_j );
+	} else if( t.getKind() == kind::STRING_SUBSTR_TOTAL ){
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", t.getType(), "created for substr" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "st2_$$", t.getType(), "created for substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", t.getType(), "created for substr" );
+		Node x = simplify( t[0], new_nodes );
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ),
+							NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
+		Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
+		Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node len_sk2_eq_j = NodeManager::currentNM()->mkNode( kind::EQUAL, t[2],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
 
-			d_cache[t] = sk2;
-			retNode = sk2;
-		} else {
-			throw LogicException("substring not supported in this release");
-		}
-	} else if( t.getKind() == kind::STRING_CHARAT ){
-		if(options::stringExp()) {
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", t.getType(), "created for charat" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2_$$", t.getType(), "created for charat" );
-			Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", t.getType(), "created for charat" );
-			Node x = simplify( t[0], new_nodes );
-			Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
-								NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
-			new_nodes.push_back( x_eq_123 );
-			Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
-									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-			new_nodes.push_back( len_sk1_eq_i );
-			Node len_sk2_eq_1 = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkConst( Rational( 1 ) ),
-									NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
-			new_nodes.push_back( len_sk2_eq_1 );
+		Node tp = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, len_sk2_eq_j );
+		tp = NodeManager::currentNM()->mkNode( kind::IMPLIES, lenxgti, tp );
+		new_nodes.push_back( tp );
 
-			d_cache[t] = sk2;
-			retNode = sk2;
-		} else {
-			throw LogicException("string char at not supported in this release");
-		}
+		d_cache[t] = sk2;
+		retNode = sk2;
+	} else if( t.getKind() == kind::STRING_CHARAT_TOTAL ){
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", t.getType(), "created for charat" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2_$$", t.getType(), "created for charat" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", t.getType(), "created for charat" );
+		Node x = simplify( t[0], new_nodes );
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ), t[1] );
+		Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
+		Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node len_sk2_eq_1 = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkConst( Rational( 1 ) ),
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
+
+		Node tp = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, len_sk2_eq_1 );
+		tp = NodeManager::currentNM()->mkNode( kind::IMPLIES, lenxgti, tp );
+		new_nodes.push_back( tp );
+
+		d_cache[t] = sk2;
+		retNode = sk2;
 	} else if( t.getKind() == kind::STRING_STRIDOF ){
 		if(options::stringExp()) {
 			Node sk1 = NodeManager::currentNM()->mkSkolem( "io1_$$", t[0].getType(), "created for indexof" );
@@ -224,7 +226,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string replace not supported in this release");
 		}
-	} else if( t.getNumChildren()>0 ){
+	} else if(t.getKind() == kind::STRING_CHARAT || t.getKind() == kind::STRING_SUBSTR) {
+		InternalError("CharAt and Substr should not be reached here.");
+	} else if( t.getNumChildren()>0 ) {
 		std::vector< Node > cc;
 		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
 			cc.push_back(t.getOperator());

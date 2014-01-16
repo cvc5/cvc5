@@ -340,15 +340,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
                 retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
             }
         }
-    } else if(node.getKind() == kind::STRING_SUBSTR) {
+    } else if(node.getKind() == kind::STRING_SUBSTR_TOTAL) {
 		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
 			if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
 				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
-			} else {
-				// TODO: some issues, must be guarded by users
-				retNode = NodeManager::currentNM()->mkConst( false );
 			}
 		}
 	} else if(node.getKind() == kind::STRING_STRCTN) {
@@ -363,14 +360,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				retNode = NodeManager::currentNM()->mkConst( false );
 			}
 		}
-	} else if(node.getKind() == kind::STRING_CHARAT) {
+	} else if(node.getKind() == kind::STRING_CHARAT_TOTAL) {
 		if( node[0].isConst() && node[1].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			if( node[0].getConst<String>().size() > (unsigned) i ) {
 				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, 1) );
-			} else {
-				// TODO: some issues, must be guarded by users
-				retNode = NodeManager::currentNM()->mkConst( false );
 			}
 		}
 	} else if(node.getKind() == kind::STRING_STRIDOF) {

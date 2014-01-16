@@ -36,6 +36,7 @@ private:
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
     void simplify(std::vector< Node > &vec_node);
+	StringsPreprocess();
 };
 
 }/* CVC4::theory::strings namespace */
