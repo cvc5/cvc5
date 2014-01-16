@@ -783,7 +783,7 @@ private:
 public:
 
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
-  void ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */

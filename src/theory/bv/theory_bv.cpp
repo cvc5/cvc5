@@ -488,8 +488,8 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   
 }
 
-void TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_abstractionModule->applyAbstraction(assertions, new_assertions); 
+bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+  return d_abstractionModule->applyAbstraction(assertions, new_assertions); 
 }
 
 void TheoryBV::setConflict(Node conflict) {

@@ -205,7 +205,15 @@ public:
     , d_signatureIndices()
     , d_signatureSkolems()
   {}
-  void applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  /** 
+   * returns true if there are new uninterepreted functions symbols in the output
+   * 
+   * @param assertions 
+   * @param new_assertions 
+   * 
+   * @return 
+   */
+  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
   /** 
    * Returns true if the node represents an abstraction predicate. 
    * 

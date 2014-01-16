@@ -2153,9 +2153,17 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 void SmtEnginePrivate::bvAbstraction() {
   Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
   std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
+  bool uf = d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
+  }
+  // if added function symbols update the logic
+  if (uf) {
+    if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
+      d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+      d_smt.d_logic.enableTheory(THEORY_UF);
+      d_smt.d_logic.lock();
+    }
   }
 }
 

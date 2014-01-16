@@ -29,7 +29,7 @@ using namespace CVC4::context;
 using namespace std;
 using namespace CVC4::theory::bv::utils;
 
-void AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n"; 
   // for (unsigned i = 0; i < assertions.size(); ++i) {
   //   inferDomains(assertions[i]); 
@@ -65,12 +65,20 @@ void AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   if (options::skolemizeArguments()) {
     skolemizeArguments(new_assertions);
   }
-  // reverseabstraction
 
-  NodeNodeMap seen; 
-  for (unsigned i = 0; i < new_assertions.size(); ++i) {
-    new_assertions[i] = reverseAbstraction(new_assertions[i], seen); 
+  
+  // if we are using the eager solver reverse the abstraction
+  if (options::bitvectorEagerBitblast()) {
+    NodeNodeMap seen; 
+    for (unsigned i = 0; i < new_assertions.size(); ++i) {
+      new_assertions[i] = reverseAbstraction(new_assertions[i], seen); 
+    }
+    // we undo the abstraction functions so the logic is QF_BV still
+    return false; 
   }
+  
+  // return true if we have created new function symbols for the problem
+  return d_funcToSignature.size() != 0;
 }
 
 Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
@@ -804,13 +812,13 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
   }
     
   if (functions.size() > 1) {
-    num_many++;
-    if (num_many % 100 == 0) {
-      std::cout << "one fun=" << num_one << " many fun " << num_many << " this many= " << functions.size() << " \n";
-      if (functions.size() >= 5) {
-        std::cout << "conflict " << conflict <<"\n"; 
-      }
-    }
+    // num_many++;
+    // if (num_many % 100 == 0) {
+    //   std::cout << "one fun=" << num_one << " many fun " << num_many << " this many= " << functions.size() << " \n";
+    //   if (functions.size() >= 5) {
+    //     std::cout << "conflict " << conflict <<"\n"; 
+    //   }
+    // }
     // if (functions.size() == 2) {
     //   std::cout << "Conflict " << conflict << "\n"; 
     // }

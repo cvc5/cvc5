@@ -75,7 +75,7 @@ public:
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
   
   void presolve();
-  void applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
+  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
 private:
 
   class Statistics {

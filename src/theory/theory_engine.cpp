@@ -1421,9 +1421,9 @@ void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<N
   d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
 }
 
-void TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bv::TheoryBV* bv_theory = (bv::TheoryBV*)theoryOf(NodeManager::currentNM()->mkConst<BitVector>(BitVector(1, 1u)));
-  bv_theory->applyAbstraction(assertions, new_assertions); 
+  return bv_theory->applyAbstraction(assertions, new_assertions); 
 }
 
 Node TheoryEngine::ppSimpITE(TNode assertion)
