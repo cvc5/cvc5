@@ -123,68 +123,71 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  int peffort = f.getNumChildren()==3 ? 2 : 1;
-  //int peffort = f.getNumChildren()==3 ? 2 : 1;
-  //int peffort = 1;
-  if( e<peffort ){
-    return STATUS_UNFINISHED;
+  if( f.getNumChildren()==3 && options::userPatternsQuant()==USER_PAT_MODE_TRUST ){
+    return STATUS_UNKNOWN;
   }else{
-    int status = STATUS_UNKNOWN;
-    bool gen = false;
-    if( e==peffort ){
-      if( d_counter.find( f )==d_counter.end() ){
-        d_counter[f] = 0;
-        gen = true;
-      }else{
-        d_counter[f]++;
-        gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
-      }
+    int peffort = f.getNumChildren()==3 ? 2 : 1;
+    //int peffort = 1;
+    if( e<peffort ){
+      return STATUS_UNFINISHED;
     }else{
-      gen = true;
-    }
-    if( gen ){
-      generateTriggers( f, effort, e, status );
-      if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
-        Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
+      int status = STATUS_UNKNOWN;
+      bool gen = false;
+      if( e==peffort ){
+        if( d_counter.find( f )==d_counter.end() ){
+          d_counter[f] = 0;
+          gen = true;
+        }else{
+          d_counter[f]++;
+          gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
+        }
+      }else{
+        gen = true;
       }
-    }
-
-    //if( e==4 ){
-    //  d_processed_trigger.clear();
-    //  d_quantEngine->getEqualityQuery()->setLiberal( true );
-    //}
-    Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
-    //Notice() << "Try auto-generated triggers..." << std::endl;
-    for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[f].begin(); itt != d_auto_gen_trigger[f].end(); ++itt ){
-      Trigger* tr = itt->first;
-      if( tr ){
-        bool processTrigger = itt->second;
-        if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
-          d_processed_trigger[f][tr] = true;
-          //if( tr->isMultiTrigger() )
-            Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
-          InstMatch baseMatch;
-          int numInst = tr->addInstantiations( baseMatch );
-          //if( tr->isMultiTrigger() )
-            Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-          if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
-            d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
-          }else{
-            d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen += numInst;
-          }
-          if( tr->isMultiTrigger() ){
-            d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-          }
-          //d_quantEngine->d_hasInstantiated[f] = true;
+      if( gen ){
+        generateTriggers( f, effort, e, status );
+        if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
+          Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
         }
       }
+
+      //if( e==4 ){
+      //  d_processed_trigger.clear();
+      //  d_quantEngine->getEqualityQuery()->setLiberal( true );
+      //}
+      Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
+      //Notice() << "Try auto-generated triggers..." << std::endl;
+      for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[f].begin(); itt != d_auto_gen_trigger[f].end(); ++itt ){
+        Trigger* tr = itt->first;
+        if( tr ){
+          bool processTrigger = itt->second;
+          if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
+            d_processed_trigger[f][tr] = true;
+            //if( tr->isMultiTrigger() )
+              Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
+            InstMatch baseMatch;
+            int numInst = tr->addInstantiations( baseMatch );
+            //if( tr->isMultiTrigger() )
+              Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+            if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
+              d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
+            }else{
+              d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen += numInst;
+            }
+            if( tr->isMultiTrigger() ){
+              d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
+            }
+            //d_quantEngine->d_hasInstantiated[f] = true;
+          }
+        }
+      }
+      //if( e==4 ){
+      //  d_quantEngine->getEqualityQuery()->setLiberal( false );
+      //}
+      Debug("quant-uf-strategy") << "done." << std::endl;
+      //Notice() << "done" << std::endl;
+      return status;
     }
-    //if( e==4 ){
-    //  d_quantEngine->getEqualityQuery()->setLiberal( false );
-    //}
-    Debug("quant-uf-strategy") << "done." << std::endl;
-    //Notice() << "done" << std::endl;
-    return status;
   }
 }
 

@@ -75,9 +75,18 @@ typedef enum {
   QCF_WHEN_MODE_DEFAULT,
   /** apply at standard effort */
   QCF_WHEN_MODE_STD,
-  /** default */
+  /** apply based on heuristics */
   QCF_WHEN_MODE_STD_H,
 } QcfWhenMode;
+
+typedef enum {
+  /** default, use but do not trust */
+  USER_PAT_MODE_DEFAULT,
+  /** if patterns are supplied for a quantifier, use only those */
+  USER_PAT_MODE_TRUST,
+  /** ignore user patterns */
+  USER_PAT_MODE_IGNORE,
+} UserPatMode;
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

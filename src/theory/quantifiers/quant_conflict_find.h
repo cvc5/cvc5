@@ -31,16 +31,16 @@ class QuantConflictFind;
 
 class QcfNodeIndex {
 public:
-  std::map< Node, QcfNodeIndex > d_children;
+  std::map< TNode, QcfNodeIndex > d_children;
   void clear() { d_children.clear(); }
   //Node existsTerm( QuantConflictFind * qcf, Node n, int index = 0 );
   //Node addTerm( QuantConflictFind * qcf, Node n, int index = 0 );
   //bool addTermEq( QuantConflictFind * qcf, Node n1, Node n2, int index = 0 );
   void debugPrint( const char * c, int t );
   //optimized versions
-  Node existsTerm( Node n, std::vector< Node >& reps, int index = 0 );
-  Node addTerm( Node n, std::vector< Node >& reps, int index = 0 );
-  bool addTermEq( Node n1, Node n2, std::vector< Node >& reps1, std::vector< Node >& reps2, int index = 0 );
+  Node existsTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
+  Node addTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
+  bool addTermEq( TNode n1, TNode n2, std::vector< TNode >& reps1, std::vector< TNode >& reps2, int index = 0 );
 };
 
 class EqRegistry {
@@ -91,14 +91,14 @@ private:
   std::map< Node, Node > d_op_node;
   int getFunctionId( Node f );
   bool isLessThan( Node a, Node b );
-  Node getFunction( Node n, bool isQuant = false );
+  Node getFunction( Node n, int& index, bool isQuant = false );
   int d_fid_count;
   std::map< Node, int > d_fid;
   Node mkEqNode( Node a, Node b );
 private:  //for ground terms
   Node d_true;
   Node d_false;
-  std::map< Node, std::map< Node, EqRegistry * > > d_eqr[2];
+  std::map< int, std::map< TNode, std::map< int, std::map< TNode, EqRegistry * > > > > d_eqr[2];
   EqRegistry * getEqRegistry( bool polarity, Node lit, bool doCreate = true );
   void getEqRegistryApps( Node lit, std::vector< Node >& terms );
   int evaluate( Node n );
@@ -114,7 +114,7 @@ public:  //for quantifiers
     MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
     //current matching information
     std::vector< QcfNodeIndex * > d_qn;
-    std::vector< std::map< Node, QcfNodeIndex >::iterator > d_qni;
+    std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
     bool doMatching( QuantConflictFind * p, Node q );
     //for matching : each index is either a variable or a ground term
     unsigned d_qni_size;
@@ -200,15 +200,17 @@ private:  //for equivalence classes
   std::map< Node, EqcInfo * > d_eqc_info;
   EqcInfo * getEqcInfo( Node n, bool doCreate = true );
   // operator -> index(terms)
-  std::map< Node, QcfNodeIndex > d_uf_terms;
+  std::map< TNode, QcfNodeIndex > d_uf_terms;
   // eqc x operator -> index(terms)
-  std::map< Node, std::map< Node, QcfNodeIndex > > d_eqc_uf_terms;
+  std::map< TNode, std::map< TNode, QcfNodeIndex > > d_eqc_uf_terms;
   // type -> list(eqc)
-  std::map< TypeNode, std::vector< Node > > d_eqcs;
+  std::map< TypeNode, std::vector< TNode > > d_eqcs;
   //mapping from UF terms to representatives of their arguments
-  std::map< Node, std::vector< Node > > d_arg_reps;
+  std::map< TNode, std::vector< TNode > > d_arg_reps;
   //compute arg reps
-  void computeArgReps( Node n );
+  void computeArgReps( TNode n );
+  // is this term treated as UF application?
+  bool isHandledUfTerm( TNode n );
 public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
 

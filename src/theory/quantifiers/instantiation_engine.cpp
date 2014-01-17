@@ -42,7 +42,7 @@ void InstantiationEngine::finishInit(){
     //  addInstStrategy( new InstStrategyCheckCESolved( this, d_quantEngine ) );
     //}
     //these are the instantiation strategies for basic E-matching
-    if( options::userPatternsQuant() ){
+    if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
       addInstStrategy( d_isup );
     }else{

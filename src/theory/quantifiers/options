@@ -82,8 +82,8 @@ option cbqi --enable-cbqi bool :default false
 option recurseCbqi --cbqi-recurse bool :default false
  turns on recursive counterexample-based quantifier instantiation
 
-option userPatternsQuant /--ignore-user-patterns bool :default true
- ignore user-provided patterns for quantifier instantiation
+option userPatternsQuant --user-pat=MODE CVC4::theory::quantifiers::UserPatMode :default CVC4::theory::quantifiers::USER_PAT_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToUserPatMode :handler-include "theory/quantifiers/options_handlers.h"
+ policy for handling user-provided patterns for quantifier instantiation
 
 option flipDecision --flip-decision/ bool :default false
  turns on flip decision heuristic
