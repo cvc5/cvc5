@@ -119,9 +119,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		//	return (t0 == t[0]) ? t : NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, t0, t[1] );
 		//}
 	} else if( t.getKind() == kind::STRING_SUBSTR_TOTAL ){
-		Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", t.getType(), "created for substr" );
-		Node sk2 = NodeManager::currentNM()->mkSkolem( "st2_$$", t.getType(), "created for substr" );
-		Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", t.getType(), "created for substr" );
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "st2_$$", NodeManager::currentNM()->stringType(), "created for substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
 		Node x = simplify( t[0], new_nodes );
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ),
@@ -140,9 +140,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		d_cache[t] = sk2;
 		retNode = sk2;
 	} else if( t.getKind() == kind::STRING_CHARAT_TOTAL ){
-		Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", t.getType(), "created for charat" );
-		Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2_$$", t.getType(), "created for charat" );
-		Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", t.getType(), "created for charat" );
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", NodeManager::currentNM()->stringType(), "created for charat" );
+		Node sk2 = NodeManager::currentNM()->mkSkolem( "ca2_$$", NodeManager::currentNM()->stringType(), "created for charat" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", NodeManager::currentNM()->stringType(), "created for charat" );
 		Node x = simplify( t[0], new_nodes );
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ), t[1] );
@@ -226,7 +226,37 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string replace not supported in this release");
 		}
-	} else if(t.getKind() == kind::STRING_CHARAT || t.getKind() == kind::STRING_SUBSTR) {
+	} else if(t.getKind() == kind::STRING_CHARAT) {
+		Node d_charAtUF;
+		std::vector< TypeNode > argTypes;
+		argTypes.push_back(NodeManager::currentNM()->stringType());
+		argTypes.push_back(NodeManager::currentNM()->integerType());
+		d_charAtUF = NodeManager::currentNM()->mkSkolem("charAt", 
+							NodeManager::currentNM()->mkFunctionType(
+								argTypes,
+								NodeManager::currentNM()->stringType()),
+							"total charat",
+							NodeManager::SKOLEM_EXACT_NAME);
+		Node sk2 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_charAtUF, t[0], t[1]);
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", NodeManager::currentNM()->stringType(), "created for charat" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", NodeManager::currentNM()->stringType(), "created for charat" );
+		Node x = simplify( t[0], new_nodes );
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ), t[1] );
+		Node x_eq_123 = NodeManager::currentNM()->mkNode( kind::EQUAL,
+							NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3 ), x );
+		Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, t[1],
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node len_sk2_eq_1 = NodeManager::currentNM()->mkNode( kind::EQUAL, NodeManager::currentNM()->mkConst( Rational( 1 ) ),
+								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ) );
+
+		Node tp = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, len_sk2_eq_1 );
+		tp = NodeManager::currentNM()->mkNode( kind::IMPLIES, lenxgti, tp );
+		new_nodes.push_back( tp );
+
+		d_cache[t] = sk2;
+		retNode = sk2;
+	} else if(t.getKind() == kind::STRING_SUBSTR) {
 		InternalError("CharAt and Substr should not be reached here.");
 	} else if( t.getNumChildren()>0 ) {
 		std::vector< Node > cc;

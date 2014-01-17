@@ -309,6 +309,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Function symbol used to implement uninterpreted undefined string
    * semantics.  Needed to deal with partial charat/substr function.
    */
+  Node d_charAtUF;
   Node d_charAtUndef;
   Node d_substrUndef;
 
@@ -440,6 +441,7 @@ public:
     d_fakeContext(),
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
+	d_charAtUF(),
 	d_charAtUndef(),
 	d_substrUndef(),
     d_divByZero(),
@@ -1534,11 +1536,17 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
         node = expandBVDivByZero(node);
         break;
 
-	  case kind::STRING_CHARAT: {
-		if(d_charAtUndef.isNull()) {
+	  /*case kind::STRING_CHARAT: {
+		if(d_charAtUF.isNull()) {
 			std::vector< TypeNode > argTypes;
 			argTypes.push_back(NodeManager::currentNM()->stringType());
 			argTypes.push_back(NodeManager::currentNM()->integerType());
+			d_charAtUF = NodeManager::currentNM()->mkSkolem("charAt", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes,
+									NodeManager::currentNM()->stringType()),
+								"total charat",
+								NodeManager::SKOLEM_EXACT_NAME);
 			d_charAtUndef = NodeManager::currentNM()->mkSkolem("charAt_undef", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes,
@@ -1551,14 +1559,17 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 				d_smt.d_logic.lock();
 			}
 	    }
-		TNode str = n[0], num = n[1];
+		Node str = n[0];
+		Node num = n[1];
+		//Assert(str.getType() == NodeManager::currentNM()->stringType(), "String Type Check 1");
 		Node lenx = nm->mkNode(kind::STRING_LENGTH, str);
 		Node cond = nm->mkNode(kind::GT, lenx, num);
 		Node total = nm->mkNode(kind::STRING_CHARAT_TOTAL, str, num);
 		Node undef = nm->mkNode(kind::APPLY_UF, d_charAtUndef, str, num);
 		node = nm->mkNode(kind::ITE, cond, total, undef);
+		node = nm->mkNode(kind::APPLY_UF, d_charAtUF, n[0], n[1]);
 	  }
-		break;
+		break;*/
 	  case kind::STRING_SUBSTR: {
 		if(d_substrUndef.isNull()) {
 			std::vector< TypeNode > argTypes;
@@ -1577,7 +1588,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 				d_smt.d_logic.lock();
 			}
 	    }
-		TNode str = n[0];
+		Node str = n[0];
+		//Assert(str.getType() == NodeManager::currentNM()->stringType(), "String Type Check 2");
 		Node lenx = nm->mkNode(kind::STRING_LENGTH, str);
 		Node num = nm->mkNode(kind::PLUS, n[1], n[2]);
 		Node cond = nm->mkNode(kind::GEQ, lenx, num);

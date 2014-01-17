@@ -419,11 +419,9 @@ void TheoryEngine::check(Theory::Effort effort) {
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
     }
-
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
   }
-
   // If fulleffort, check all theories
   if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
     if (!d_inConflict && !needCheck()) {

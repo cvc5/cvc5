@@ -360,7 +360,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				retNode = NodeManager::currentNM()->mkConst( false );
 			}
 		}
-	} else if(node.getKind() == kind::STRING_CHARAT_TOTAL) {
+	} else if(node.getKind() == kind::STRING_CHARAT) {
 		if( node[0].isConst() && node[1].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			if( node[0].getConst<String>().size() > (unsigned) i ) {

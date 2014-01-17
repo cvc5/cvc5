@@ -124,6 +124,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       case BOOLEAN_TYPE: out << "Bool"; break;
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
+      case STRING_TYPE: out << "String"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
