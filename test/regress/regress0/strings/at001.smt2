@@ -5,8 +5,8 @@
 (declare-fun i () Int)
 
 (assert (= (str.at x i) "b"))
-(assert (> i 5))
-(assert (< (str.len x) 4))
+(assert (and (>= i 4) (< i (str.len x))))
+(assert (< (str.len x) 7))
 (assert (> (str.len x) 2))
 
 (check-sat)
