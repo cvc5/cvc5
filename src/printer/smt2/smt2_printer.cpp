@@ -960,9 +960,10 @@ static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {
 static void toStream(std::ostream& out, const CommandFailure* s) throw() {
   string message = s->getMessage();
   // escape all double-quotes
-  size_t pos;
-  while((pos = message.find('"')) != string::npos) {
+  size_t pos = 0;
+  while((pos = message.find('"', pos)) != string::npos) {
     message = message.replace(pos, 1, "\\\"");
+    pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
 }
