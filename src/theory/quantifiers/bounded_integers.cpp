@@ -104,7 +104,7 @@ Node BoundedIntegers::RangeModel::getNextDecisionRequest() {
         if (!d_lit_to_pol[it->first]) {
           rn = rn.negate();
         }
-        Trace("bound-int-dec") << "For " << d_range << ", make decision " << rn << " to make range " << i << std::endl;
+        Trace("bound-int-dec-debug") << "For " << d_range << ", make decision " << rn << " to make range " << i << std::endl;
         return rn;
       }
     }
@@ -312,11 +312,26 @@ void BoundedIntegers::assertNode( Node n ) {
 }
 
 Node BoundedIntegers::getNextDecisionRequest() {
-  Trace("bound-int-dec") << "bi: Get next decision request?" << std::endl;
+  Trace("bound-int-dec-debug") << "bi: Get next decision request?" << std::endl;
   for( unsigned i=0; i<d_ranges.size(); i++) {
     Node d = d_rms[d_ranges[i]]->getNextDecisionRequest();
     if (!d.isNull()) {
-      return d;
+      bool polLit = d.getKind()!=NOT;
+      Node lit = d.getKind()==NOT ? d[0] : d;
+      bool value;
+      if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
+        if( value==polLit ){
+          Trace("bound-int-dec-debug") << "...already asserted properly." << std::endl;
+          //already true, we're already fine
+        }else{
+          Trace("bound-int-dec-debug") << "...already asserted with wrong polarity, re-assert." << std::endl;
+          assertNode( d.negate() );
+          i--;
+        }
+      }else{
+        Trace("bound-int-dec") << "Bounded Integers : Decide " << d << std::endl;
+        return d;
+      }
     }
   }
   return Node::null();
