@@ -346,19 +346,28 @@ Node QuantifiersEngine::doSubstitute( Node n, std::vector< Node >& terms ){
   if( n.getKind()==INST_CONSTANT ){
     Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
     return terms[n.getAttribute(InstVarNumAttribute())];
-  }else if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
-    Debug("check-inst") << "No inst const attr : " << n << std::endl;
-    return n;
   }else{
-    Debug("check-inst") << "Recurse on : " << n << std::endl;
+    //if( !quantifiers::TermDb::hasInstConstAttr( n ) ){
+      //Debug("check-inst") << "No inst const attr : " << n << std::endl;
+      //return n;
+    //}else{
+      //Debug("check-inst") << "Recurse on : " << n << std::endl;
     std::vector< Node > cc;
     if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
       cc.push_back( n.getOperator() );
     }
+    bool changed = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      cc.push_back( doSubstitute( n[i], terms ) );
+      Node c = doSubstitute( n[i], terms );
+      cc.push_back( c );
+      changed = changed || c!=n[i];
     }
-    return NodeManager::currentNM()->mkNode( n.getKind(), cc );
+    if( changed ){
+      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cc );
+      return ret;
+    }else{
+      return n;
+    }
   }
 }
 

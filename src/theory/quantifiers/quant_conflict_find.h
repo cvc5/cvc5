@@ -101,7 +101,7 @@ private:  //for ground terms
   std::map< int, std::map< TNode, std::map< int, std::map< TNode, EqRegistry * > > > > d_eqr[2];
   EqRegistry * getEqRegistry( bool polarity, Node lit, bool doCreate = true );
   void getEqRegistryApps( Node lit, std::vector< Node >& terms );
-  int evaluate( Node n );
+  int evaluate( Node n, bool pref = false, bool hasPref = false );
 public:  //for quantifiers
   //match generator
   class MatchGen {
@@ -109,9 +109,10 @@ public:  //for quantifiers
     //current children information
     int d_child_counter;
     //children of this object
-    std::vector< int > d_children_order;
+    //std::vector< int > d_children_order;
     unsigned getNumChildren() { return d_children.size(); }
-    MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
+    //MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
+    MatchGen * getChild( int i ) { return &d_children[i]; }
     //current matching information
     std::vector< QcfNodeIndex * > d_qn;
     std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
@@ -203,6 +204,8 @@ private:  //for equivalence classes
   std::map< TNode, QcfNodeIndex > d_uf_terms;
   // eqc x operator -> index(terms)
   std::map< TNode, std::map< TNode, QcfNodeIndex > > d_eqc_uf_terms;
+  QcfNodeIndex * getQcfNodeIndex( Node eqc, Node f );
+  QcfNodeIndex * getQcfNodeIndex( Node f );
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
   //mapping from UF terms to representatives of their arguments
@@ -211,6 +214,18 @@ private:  //for equivalence classes
   void computeArgReps( TNode n );
   // is this term treated as UF application?
   bool isHandledUfTerm( TNode n );
+public:
+  enum {
+    effort_conflict,
+    effort_propagation,
+  };
+  short d_effort;
+  //for effort_prop
+  TNode d_prop_eq[2];
+  bool d_prop_pol;
+  bool isPropagationSet();
+  bool areMatchEqual( TNode n1, TNode n2 );
+  bool areMatchDisequal( TNode n1, TNode n2 );
 public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
 
@@ -247,6 +262,7 @@ public:
   public:
     IntStat d_inst_rounds;
     IntStat d_conflict_inst;
+    IntStat d_prop_inst;
     Statistics();
     ~Statistics();
   };
