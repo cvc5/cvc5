@@ -245,7 +245,7 @@ protected:
 	void doPendingLemmas();
 
 	void sendLemma( Node ant, Node conc, const char * c );
-	void sendSplit( Node a, Node b, const char * c );
+	void sendSplit( Node a, Node b, const char * c, bool preq = true );
 	/** mkConcat **/
 	Node mkConcat( Node n1, Node n2 );
 	Node mkConcat( std::vector< Node >& c );
@@ -275,6 +275,7 @@ private:
 	int getMaxPossibleLength( Node x );
 
 	// Special String Functions
+	Node d_charAtUF;
 	NodeList d_str_pos_ctn;
 	NodeList d_str_neg_ctn;
 	std::map< Node, bool > d_str_ctn_eqlen;

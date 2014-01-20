@@ -30,8 +30,10 @@ namespace strings {
 class StringsPreprocess {
 	// NOTE: this class is NOT context-dependent
 	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
+	Node d_charAtUF;
 private:
 	bool checkStarPlus( Node t );
+	int checkFixLenVar( Node t );
 	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 public:
