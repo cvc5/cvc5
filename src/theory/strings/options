@@ -11,7 +11,7 @@ option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int
 option stringRegExpUnrollDepth strings-regexp-depth --strings-regexp-depth=N int16_t :default 10 :read-write
  the depth of unrolloing regular expression used by the theory of strings, default 10
 
-option stringFMF strings-fmf --strings-fmf bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
+option stringFMF strings-fmf --strings-fmf bool :default false :read-write
  the finite model finding used by the theory of strings
 
 option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate less_equal(2) :predicate-include "smt/smt_engine.h"
