@@ -295,9 +295,9 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 }
 
 RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
-  Trace("strings-postrewrite") << "Strings::postRewrite start " << node << std::endl;
-  Node retNode = node;
-  Node orig = retNode;
+	Trace("strings-postrewrite") << "Strings::postRewrite start " << node << std::endl;
+	Node retNode = node;
+	Node orig = retNode;
 
     if(node.getKind() == kind::STRING_CONCAT) {
         retNode = rewriteConcatString(node);

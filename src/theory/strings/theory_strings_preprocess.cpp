@@ -113,6 +113,12 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
 			}
 		}
 	}
+	if(ret != 2) {
+		int len = t[ret].getConst<Rational>().getNumerator().toUnsignedInt();
+		if(len < 2) {
+			ret = 2;
+		}
+	}
 	return ret;
 }
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
@@ -127,22 +133,21 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 	if( c_id != 2 ) {
 		int v_id = 1 - c_id;
 		int len = t[c_id].getConst<Rational>().getNumerator().toUnsignedInt();
-		Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-		std::vector< Node > vec;
-		for(int i=0; i<len; i++) {
-			//Node sk = NodeManager::currentNM()->mkSkolem( "fl_$$", NodeManager::currentNM()->stringType(), "created for fixed length" );
-			Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational(i) );
-			Node sk = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_charAtUF, t[v_id][0], num);
-			vec.push_back(sk);
-			Node lem = one.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk ) );
-			new_nodes.push_back( lem );
+		if(len > 1) {
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+			std::vector< Node > vec;
+			for(int i=0; i<len; i++) {
+				Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational(i) );
+				Node sk = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_charAtUF, t[v_id][0], num);
+				vec.push_back(sk);
+				Node lem = one.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk ) );
+				new_nodes.push_back( lem );
+			}
+			Node lem = t[v_id][0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec ) );
+			lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, t, lem );
+			d_cache[t] = t;
+			retNode = t;
 		}
-		Node lem = t[v_id][0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec ) );
-		lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, t, lem );
-		new_nodes.push_back( lem );
-
-		d_cache[t] = t;
-		retNode = t;
 	} else if( t.getKind() == kind::STRING_IN_REGEXP ) {
 		// t0 in t1
 		Node t0 = simplify( t[0], new_nodes );
