@@ -64,6 +64,7 @@
 #include "theory/substitutions.h"
 #include "theory/uf/options.h"
 #include "theory/arith/options.h"
+#include "theory/strings/options.h"
 #include "theory/bv/options.h"
 #include "theory/theory_traits.h"
 #include "theory/logic_info.h"
@@ -939,6 +940,35 @@ void SmtEngine::setLogicInternal() throw() {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
+  }
+
+
+  //for strings
+  if(options::stringExp.wasSetByUser()) {
+	  if( !d_logic.isQuantified() ) {
+		  d_logic = d_logic.getUnlockedCopy();
+		  d_logic.enableQuantifiers();
+		  d_logic.lock();
+		  Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
+		  //exception
+		  //throw OptionException("The string-exp option requires quantifier option. One suggestion is UFSLIA.");
+	  }
+	  if(! options::finiteModelFind.wasSetByUser()) {
+		  //exception
+		  throw OptionException("The string-exp option requires finite-model-find option.");
+		  //options::finiteModelFind.set( true );
+		  //Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+	  }
+	  if(! options::fmfBoundInt.wasSetByUser()) {
+		  //exception
+		  throw OptionException("The string-exp option requires fmf-bound-int option.");
+		  //options::fmfBoundInt.set( true );
+		  //Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+	  }
+	  if(! options::stringFMF.wasSetByUser()) {
+		options::stringFMF.set( true );
+		Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+	  }
   }
 
   // by default, symmetry breaker is on only for QF_UF

@@ -91,7 +91,7 @@ option flipDecision --flip-decision/ bool :default false
 option internalReps /--disable-quant-internal-reps bool :default true
  disables instantiating with representatives chosen by quantifiers engine
 
-option finiteModelFind --finite-model-find bool :default false
+option finiteModelFind --finite-model-find bool :default false :read-write
  use finite model finding heuristic for quantifier instantiation
 
 option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :default CVC4::theory::quantifiers::MBQI_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToMbqiMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkMbqiMode :predicate-include "theory/quantifiers/options_handlers.h"
@@ -113,7 +113,7 @@ option fmfFreshDistConst --fmf-fresh-dc bool :default false
  use fresh distinguished representative when applying Inst-Gen techniques
 option fmfFmcSimple /--disable-fmf-fmc-simple bool :default true
  disable simple models in full model check for finite model finding
-option fmfBoundInt --fmf-bound-int bool :default false
+option fmfBoundInt --fmf-bound-int bool :default false :read-write
  finite model finding on bounded integer quantification
 
 option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode :default CVC4::theory::quantifiers::AXIOM_INST_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToAxiomInstMode :handler-include "theory/quantifiers/options_handlers.h"
