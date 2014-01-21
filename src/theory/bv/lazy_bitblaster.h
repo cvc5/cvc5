@@ -88,22 +88,25 @@ void TLazyBitblaster::bbAtom(TNode node) {
     // node must be of the form P(args) = bv1
     Node expansion = Rewriter::rewrite(d_abstraction->getInterpretation(node));
 
-    // FIXME: matching the mcm benchmarks
-    Assert (expansion.getKind() == kind::AND);
-    std::vector<Node> atoms; 
-    for (unsigned i = 0; i < expansion.getNumChildren(); ++i) {
-      Node normalized_i = Rewriter::rewrite(expansion[i]);
-      Node atom_i = normalized_i.getKind() != kind::CONST_BOOLEAN ?
-        Rewriter::rewrite(d_atomBBStrategies[normalized_i.getKind()](normalized_i, this)) :
-        normalized_i;
-      atoms.push_back(atom_i);
+    Node atom_bb;
+    if (expansion.getKind() == kind::CONST_BOOLEAN) {
+      atom_bb = expansion;
+    } else {
+      Assert (expansion.getKind() == kind::AND); 
+      std::vector<Node> atoms; 
+      for (unsigned i = 0; i < expansion.getNumChildren(); ++i) {
+        Node normalized_i = Rewriter::rewrite(expansion[i]);
+        Node atom_i = normalized_i.getKind() != kind::CONST_BOOLEAN ?
+          Rewriter::rewrite(d_atomBBStrategies[normalized_i.getKind()](normalized_i, this)) :
+          normalized_i;
+        atoms.push_back(atom_i);
+      }
+      atom_bb = utils::mkAnd(atoms);
     }
-    
-    Node atom_bb = utils::mkAnd(atoms);
+    Assert (!atom_bb.isNull()); 
     Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
     storeBBAtom(node, atom_bb);
     d_cnfStream->convertAndAssert(atom_definition, false, false); 
-    
     return; 
   }
 

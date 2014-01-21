@@ -18,7 +18,6 @@
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "theory/substitutions.h"
 #include "theory/bv/options.h"
 
 using namespace CVC4;
@@ -478,14 +477,6 @@ void AbstractionModule::finalizeSignatures() {
   NodeManager* nm = NodeManager::currentNM();
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures num signatures = " << d_signatures.size() <<"\n";
   TNodeSet new_signatures;
-  // remove signatures that are not frequent enough
-  for (SignatureMap::iterator it = d_signatures.begin(); it != d_signatures.end(); ) {
-    if (it->second <= 7) {
-      d_signatures.erase(it++); 
-    } else {
-      ++it;
-    }
-  }
 
   // unify signatures
   for (SignatureMap::const_iterator ss = d_signatures.begin(); ss != d_signatures.end(); ++ss) {
@@ -499,10 +490,8 @@ void AbstractionModule::finalizeSignatures() {
         if (status < 0)
           continue;
         if (status == 1) {
-          // std::cout << s << " is a generalization of \n" << t << "\n";
           storeGeneralization(t, s); 
         } else {
-          // std::cout << t << " is a generalization of \n" << s << "\n\n"; 
           storeGeneralization(s, t); 
         }
       }
@@ -512,12 +501,20 @@ void AbstractionModule::finalizeSignatures() {
   for (SignatureMap::iterator it = d_signatures.begin(); it != d_signatures.end(); ) {
     TNode sig = it->first; 
     TNode gen = getGeneralization(sig);
-    // std::cout << "sig " << sig <<"\n";
-    // std::cout << "gen " << gen <<"\n\n";
     if (sig != gen) {
       Assert (d_signatures.find(gen) != d_signatures.end()); 
       // update the count
       d_signatures[gen]+= d_signatures[sig];
+      d_signatures.erase(it++); 
+    } else {
+      ++it;
+    }
+  }
+
+
+  // remove signatures that are not frequent enough
+  for (SignatureMap::iterator it = d_signatures.begin(); it != d_signatures.end(); ) {
+    if (it->second <= 7) {
       d_signatures.erase(it++); 
     } else {
       ++it;
@@ -684,6 +681,7 @@ Node AbstractionModule::getInterpretation(TNode node) {
   Assert (d_funcToSignature.find(func) != d_funcToSignature.end());
   
   Node sig = d_funcToSignature[func];
+  
   // substitute arguments in signature
   TNodeTNodeMap seen;
   unsigned index = 0;
@@ -732,6 +730,7 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
 }
 
 Node AbstractionModule::simplifyConflict(TNode conflict) {
+  // std::cout << "simplifyConflict " << conflict <<"\n"; 
   if (conflict.getKind() != kind::AND)
     return conflict; 
 
@@ -789,208 +788,294 @@ void DebugPrintInstantiations(const std::vector< std::vector<ArgsVec> >& instant
   }
 }
 
-static int num_one = 0;
-static int num_many = 0;
-
 void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& lemmas) {
   Debug("bv-abstraction") << "AbstractionModule::generalizeConflict " << conflict << "\n"; 
   std::vector<TNode> functions;
+
   // collect abstract functions
-  for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
-    TNode conjunct = conflict[i];
-    if (conjunct.getKind() != kind::EQUAL)
-      continue;
-
-    if (conjunct[0].getKind() != kind::APPLY_UF &&
-        conjunct[1].getKind() != kind::APPLY_UF)
-      continue;
-    TNode func = conjunct[0].getKind() == kind::APPLY_UF ? conjunct[0] : conjunct[1];
-
-    if (d_funcToSignature.find(func.getOperator()) == d_funcToSignature.end())
-      continue;
-    functions.push_back(func); 
+  if (conflict.getKind() != kind::AND) {
+    if (isAbstraction(conflict)) {
+      Assert (conflict[0].getKind() == kind::APPLY_UF);
+      functions.push_back(conflict[0]);
+    }
+  } else {
+    for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
+      TNode conjunct = conflict[i];
+      if (isAbstraction(conjunct)) {
+        Assert (conjunct[0].getKind() == kind::APPLY_UF);
+        functions.push_back(conjunct[0]);
+      }
+    }
   }
-    
-  if (functions.size() > 1) {
-    // num_many++;
-    // if (num_many % 100 == 0) {
-    //   std::cout << "one fun=" << num_one << " many fun " << num_many << " this many= " << functions.size() << " \n";
-    //   if (functions.size() >= 5) {
-    //     std::cout << "conflict " << conflict <<"\n"; 
-    //   }
-    // }
-    // if (functions.size() == 2) {
-    //   std::cout << "Conflict " << conflict << "\n"; 
-    // }
+  
+  if (functions.size() == 0 || functions.size() > options::bvNumFunc()) {
     return;
   }
 
-  num_one++;
+  // Skolemize function arguments to avoid confusion in pattern matching
+  SubstitutionMap skolem_subst(new context::Context());
+  makeFreshSkolems(conflict, skolem_subst);
   
-  std::vector<ArgsTableEntry> matches; 
+  Node skolemized_conflict = skolem_subst.apply(conflict);
   for (unsigned i = 0; i < functions.size(); ++i) {
-    matches.push_back(ArgsTableEntry(functions[i].getNumChildren())); 
-    getMatches(functions[i], matches[i]);
-    Debug("bv-abstraction-dbg") << "  function=" << functions[i] << " matches=" << matches[i].getNumEntries() << "\n";
-    for (ArgsTableEntry::iterator it = matches[i].begin(); it != matches[i].end(); ++it) {
-      const ArgsVec& args = *it;
-      Debug("bv-abstraction-dbg") << " ["; 
-      for (unsigned i = 0; i < args.size(); ++i) {
-        Debug("bv-abstraction-dbg") << args[i] <<" "; 
-      }
-      Debug("bv-abstraction-dbg") << "]\n"; 
+    functions[i] = skolem_subst.apply(functions[i]);
+  }
+
+  conflict = skolem_subst.apply(conflict); 
+
+  LemmaInstantiatior inst(functions, d_argsTable, conflict);
+  std::vector<Node> new_lemmas;
+  inst.generateInstantiations(new_lemmas); 
+  for (unsigned i = 0; i < new_lemmas.size(); ++i) {
+    TNode lemma = new_lemmas[i];
+    if (d_addedLemmas.find(lemma) == d_addedLemmas.end()) {
+      lemmas.push_back(lemma);
+      Debug("bv-abstraction-gen") << "adding lemma " << lemma << "\n"; 
+      d_addedLemmas.insert(lemma);
     }
   }
+  // std::vector<Node> func_args;
+  // makeFreshArgs(functions[0], func_args, skolem_map);
 
-  Assert (matches.size() == functions.size()); 
-  
-  // compute all instantiations
-  std::vector< std::vector<ArgsVec> > instantiations;
-  std::vector< std::vector<ArgsVec> > current_inst;
-  instantiations.push_back(std::vector<ArgsVec>());
-  
-  for (unsigned i = 0; i < functions.size(); ++i) {
-    generateInstantiations(i, matches, instantiations, current_inst);
-    instantiations.swap(current_inst);
-    current_inst.clear(); 
-  }
+  // SubstitutionMap subst(new context::Context());
 
-  DebugPrintInstantiations(instantiations, functions); 
-
-  // remove inconsistent instantiations
-  for (unsigned i = 0; i < instantiations.size(); ++i) {
-    if (isConsistent(instantiations[i], functions)) {
-      Node lemma = mkInstantiationLemma(instantiations[i], functions, conflict);
-      lemmas.push_back(lemma); 
-      Debug("bv-abstraction") << "   lemma: " << lemma <<"\n"; 
-    }
-  }
-}
-
-Node AbstractionModule::mkInstantiationLemma(const std::vector<ArgsVec>& instantiation,
-                                              const std::vector<TNode>& functions,
-                                              TNode conflict) {
-  SubstitutionMap subst(new context::Context());
-  Assert (functions.size() == instantiation.size());
-  for (unsigned i = 0; i < instantiation.size(); ++i) {
-    // for each function
-    TNode function = functions[i];
-    const ArgsVec& args = instantiation[i];
-    Assert (function.getKind() == kind::APPLY_UF);
-
-    Assert (function.getNumChildren() == args.size());
-    for (unsigned j = 0; j < args.size(); ++j) {
-      TNode arg = function[j];
-      if (arg.getKind() == kind::CONST_BITVECTOR &&
-          args[j].getKind() == kind::CONST_BITVECTOR) {
-        Assert (arg == args[j]);
-      } else if (arg.getMetaKind() == kind::metakind::VARIABLE &&
-                 arg != args[j]) {
-        subst.addSubstitution(arg, args[j]);
-      }
-    }
-  }
-  Node lemma = Rewriter::rewrite(subst.apply(conflict)); 
-  return lemma;
-}
-
-// FIXME!!! THIS IS DUMB AND WRONG
-bool AbstractionModule::isConsistent(const std::vector<ArgsVec>& instantiation,
-                                     const std::vector<TNode>& funcs) {
-  Assert (instantiation.size() == funcs.size());
-  TNodeTNodeMap subst;
-  for (unsigned i = 0; i < instantiation.size(); ++i) {
-    TNode function = funcs[i];
-    const ArgsVec& args = instantiation[i];
-    Assert (function.getNumChildren() == args.size());
+  // for (unsigned i = 0; i < func_args.size(); ++i) {
+  //   TNode s = functions[0][i];
+  //   TNode t = func_args[i];
     
-    for (unsigned j = 0; j < args.size(); ++j) {
-      TNode arg = function[j];
-      if (arg.getKind() == kind::CONST_BITVECTOR &&
-          args[j].getKind() == kind::CONST_BITVECTOR) {
-        Assert (arg == args[j]);
-        continue;
-      }
+  //   if (s != t) {
+  //     subst.addSubstitution(s, t);
+  //   } else {
+  //     Assert (s.isConst() && t.isConst()); 
+  //   }
+  // }
+  // Debug("bv-abstraction-dbg") << "generalizeConflict conflict: " << conflict <<"\n"; 
+  // conflict = subst.apply(conflict); 
+  
+  // TNode func_symbol = functions[0].getOperator();
+  // ArgsTableEntry args = d_argsTable.getEntry(func_symbol);
+  // Assert (func_args.size() == args.getArity());
 
-      if (arg.getKind() == kind::CONST_BITVECTOR ||
-          args[j].getKind() == kind::CONST_BITVECTOR) {
-        TNode c = arg.getKind() == kind::CONST_BITVECTOR? arg : args[j];
-        TNode v = arg.getKind() == kind::CONST_BITVECTOR? args[j] : arg;
 
-        Assert (v.getMetaKind() == kind::metakind::VARIABLE);
-        
-        TNodeTNodeMap::iterator it = subst.find(v);
-        if (it == subst.end()) {
-          subst[v]  = c;
-        } else {
-          if (it->second != c)
-            return false; 
-        }
-        continue;
-      }
+  // for (ArgsTableEntry::iterator it = args.begin(); it != args.end(); ++it) {
+  //   ArgsVec& inst = *it;
+  //   Node lemma = tryMatching(func_args, inst, conflict); 
+  //   if (!lemma.isNull() &&
+  //       d_addedLemmas.find(lemma) == d_addedLemmas.end()) {
+  //     lemmas.push_back(lemma);
+  //     d_addedLemmas.insert(lemma);
+  //   }
+  // }
 
-      Assert (arg.getMetaKind() == kind::metakind::VARIABLE &&
-              args[j].getMetaKind() == kind::metakind::VARIABLE);
+  
+  //  std::cout << "numLemmas " << lemmas.size() << "\n"; 
+}
+
+
+int AbstractionModule::LemmaInstantiatior::next(int val, int index) {
+  if (val < d_maxMatch[index]  - 1)
+    return val + 1;
+  return -1;
+}
+
+/** 
+ * Assumes the stack without top is consistent, and checks that the
+ * full stack is consistent
+ * 
+ * @param stack 
+ * 
+ * @return 
+ */
+bool AbstractionModule::LemmaInstantiatior::isConsistent(const vector<int>& stack) {
+  if (stack.empty())
+    return true;
+  
+  unsigned current = stack.size() - 1;
+  TNode func = d_functions[current];
+  ArgsTableEntry& matches = d_argsTable.getEntry(func.getOperator());
+  ArgsVec& args = matches.getEntry(stack[current]);
+  Assert (args.size() == func.getNumChildren());
+  for (unsigned k = 0; k < args.size(); ++k) {
+    TNode s = func[k];
+    TNode t = args[k];
       
-      TNodeTNodeMap::iterator it = subst.find(arg);
-      if (it == subst.end()) {
-        subst[arg] = args[j];
-      } else {
-        if (it->second != args[j])
-          return false; 
-      }
+    TNode s0 = s;
+    while (d_subst.hasSubstitution(s0)) {
+      s0 = d_subst.getSubstitution(s0);
+    }
+    
+    TNode t0 = t;
+    while (d_subst.hasSubstitution(t0)) {
+      t0 = d_subst.getSubstitution(t0);
+    }
+
+    if (s0.isConst() && t0.isConst()) {
+      if (s0 != t0)
+        return false; // fail
+      else
+        continue;
+    }
       
+    if(s0.getMetaKind() == kind::metakind::VARIABLE &&
+       t0.isConst()) {
+      d_subst.addSubstitution(s0, t0);
+      continue;
+    }
+
+    if (s0.isConst() &&
+        t0.getMetaKind() == kind::metakind::VARIABLE) {
+      d_subst.addSubstitution(t0, s0);
+      continue;
+    }
+
+    Assert (s0.getMetaKind() == kind::metakind::VARIABLE &&
+            t0.getMetaKind() == kind::metakind::VARIABLE);
+      
+    if (s0 != t0) {
+      d_subst.addSubstitution(s0, t0);
     }
   }
   return true; 
 }
 
-void AbstractionModule::generateInstantiations(unsigned current,
-                                               std::vector<ArgsTableEntry>& matches, 
-                                               std::vector<std::vector<ArgsVec> >& instantiations,
-                                               std::vector<std::vector<ArgsVec> >& new_instantiations) {
-  // assume we already have all the instantiations for all current - 1 functions
-  ArgsTableEntry& current_matches = matches[current];
-  for (ArgsTableEntry::iterator it = current_matches.begin(); it != current_matches.end(); ++it) {
-    ArgsVec& match = *it;
-    for (unsigned i = 0; i < instantiations.size(); ++i) {
-      vector<ArgsVec>& instantiation = instantiations[i];
-      vector<ArgsVec> new_instantiation;
-      for (unsigned j = 0; j < instantiation.size(); ++j) {
-        new_instantiation.push_back(instantiation[j]); 
-      }
-      new_instantiation.push_back(match);
-      new_instantiations.push_back(new_instantiation); 
-    }
+bool AbstractionModule::LemmaInstantiatior::accept(const vector<int>& stack) {
+  return stack.size() == d_functions.size();
+}
+
+void AbstractionModule::LemmaInstantiatior::mkLemma() {
+  Node lemma = d_subst.apply(d_conflict);
+  // Debug("bv-abstraction-gen") << "AbstractionModule::LemmaInstantiatior::mkLemma " << lemma <<"\n";
+  d_lemmas.push_back(lemma); 
+}
+
+void AbstractionModule::LemmaInstantiatior::backtrack(vector<int>& stack) {
+  if (!isConsistent(stack))
+    return;
+  
+  if (accept(stack)) {
+    mkLemma();
+    return;
+  }
+
+  int x = 0;
+  while (x != -1) {
+    d_ctx->push();
+    stack.push_back(x);
+    backtrack(stack);
+    
+    d_ctx->pop();
+    stack.pop_back();
+    x = next(x, stack.size());
   }
 }
 
 
-void AbstractionModule::getMatches(TNode node, ArgsTableEntry& matches) {
-  Debug("bv-abstraction-dbg") << "AbstractionModule::getMatches for " << node <<"\n";
-  Assert (node.getKind() == kind::APPLY_UF);
-  Assert (node.getNumChildren() == matches.getArity()); 
-  TNode function = node.getOperator(); 
-  ArgsTableEntry& entry = d_argsTable.getEntry(function);
-  for (ArgsTableEntry::iterator it = entry.begin(); it != entry.end(); ++it) {
-    const ArgsVec& match_args = *it;
+void AbstractionModule::LemmaInstantiatior::generateInstantiations(std::vector<Node>& lemmas) {
+  Debug("bv-abstraction-gen") << "AbstractionModule::LemmaInstantiatior::generateInstantiations "; 
 
-    bool consistent = true;
-    Debug("bv-abstraction-dbg") << "[";
-    for (unsigned i = 0; i < match_args.size(); ++i) {
-      Debug("bv-abstraction-dbg") <<match_args[i] << " ";
-      TNode arg = node[i];
-      if (arg.getKind() == kind::CONST_BITVECTOR &&
-          match_args[i].getKind() == kind::CONST_BITVECTOR &&
-          match_args[i] != arg) {
-        consistent = false;
-      }
+  std::vector<int> stack;
+  backtrack(stack);
+  Assert (d_ctx->getLevel() == 0); 
+  Debug("bv-abstraction-gen") << "numLemmas=" << d_lemmas.size() <<"\n"; 
+  lemmas.swap(d_lemmas); 
+}
+
+void AbstractionModule::makeFreshSkolems(TNode node, SubstitutionMap& map) {
+  if (map.hasSubstitution(node)) {
+    return;
+  }
+  if (node.getMetaKind() == kind::metakind::VARIABLE) {
+    Node skolem = utils::mkVar(utils::getSize(node));
+    map.addSubstitution(node, skolem);
+    return;
+  }
+  if (node.isConst())
+    return;
+
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    makeFreshSkolems(node[i], map);
+  }
+}
+
+void AbstractionModule::makeFreshArgs(TNode func, std::vector<Node>& fresh_args) {
+  Assert (fresh_args.size() == 0);
+  Assert (func.getKind() == kind::APPLY_UF);
+  TNodeNodeMap d_map; 
+  for (unsigned i = 0; i < func.getNumChildren(); ++i) {
+    TNode arg = func[i];
+    if (arg.isConst()) {
+      fresh_args.push_back(arg);
+      continue;
     }
-    Debug("bv-abstraction-dbg") << "]\n";
-    if (consistent) {
-      matches.addArguments(*it); 
+    Assert (arg.getMetaKind() == kind::metakind::VARIABLE);
+    TNodeNodeMap::iterator it = d_map.find(arg); 
+    if (it != d_map.end()) {
+      fresh_args.push_back(it->second); 
+    } else {
+      Node skolem = utils::mkVar(utils::getSize(arg));
+      d_map[arg] = skolem;
+      fresh_args.push_back(skolem);
     }
   }
+  Assert (fresh_args.size() == func.getNumChildren());
+}
+
+Node AbstractionModule::tryMatching(const std::vector<Node>& ss, const std::vector<TNode>& tt, TNode conflict) {
+  Assert (ss.size() == tt.size());
+
+  Debug("bv-abstraction-dbg") << "AbstractionModule::tryMatching conflict = " << conflict << "\n";
+  if (Debug.isOn("bv-abstraction-dbg")) {
+    Debug("bv-abstraction-dbg") << "  Match: ";
+    for (unsigned i = 0; i < ss.size(); ++i) {
+      Debug("bv-abstraction-dbg") << ss[i] <<" ";
+
+    }
+    Debug("bv-abstraction-dbg") << "\n  To: ";
+    for (unsigned i = 0; i < tt.size(); ++i) {
+      Debug("bv-abstraction-dbg") << tt[i] <<" ";
+    }
+    Debug("bv-abstraction-dbg") <<"\n";
+  }
+
+  
+  SubstitutionMap subst(new context::Context());
+
+  for (unsigned i = 0; i < ss.size(); ++i) {
+    TNode s = ss[i];
+    TNode t = tt[i];
+
+    TNode s0 = subst.hasSubstitution(s) ? subst.getSubstitution(s) : s;
+    TNode t0 = subst.hasSubstitution(t) ? subst.getSubstitution(t) : t;
+
+    if (s0.isConst() && t0.isConst()) {
+      if (s0 != t0)
+        return Node(); // fail
+      else
+        continue;
+    }
+
+    if(s0.getMetaKind() == kind::metakind::VARIABLE &&
+       t0.isConst()) {
+      subst.addSubstitution(s0, t0);
+      continue;
+    }
+
+    if (s0.isConst() &&
+        t0.getMetaKind() == kind::metakind::VARIABLE) {
+      subst.addSubstitution(t0, s0);
+      continue;
+    }
+
+    Assert (s0.getMetaKind() == kind::metakind::VARIABLE &&
+            t0.getMetaKind() == kind::metakind::VARIABLE);
+
+    Assert (s0 != t0);
+    subst.addSubstitution(s0, t0);
+  }
+  
+  Node res = subst.apply(conflict);
+  Debug("bv-abstraction-dbg") << "  Lemma: " << res <<"\n"; 
+  return res; 
 }
 
 void AbstractionModule::ArgsTableEntry::addArguments(const ArgsVec& args) {

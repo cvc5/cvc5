@@ -1,4 +1,4 @@
-/*********************                                                        */
+ /*********************                                                        */
 /*! \file abstraction.h
  ** \verbatim
  ** Original author: Liana Hadarean
@@ -18,6 +18,7 @@
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include "expr/node.h"
+#include "theory/substitutions.h"
 
 #ifndef __CVC4__THEORY__BV__ABSTRACTION_H
 #define __CVC4__THEORY__BV__ABSTRACTION_H
@@ -76,11 +77,50 @@ class AbstractionModule {
      */
     static int comparePatterns(TNode s, TNode t);
   }; 
+
+
+  class LemmaInstantiatior {
+    std::vector<TNode> d_functions;
+    std::vector<int> d_maxMatch;
+    ArgsTable& d_argsTable;
+    context::Context* d_ctx;
+    theory::SubstitutionMap d_subst;
+    TNode d_conflict;
+    std::vector<Node> d_lemmas;
+    
+    void backtrack(std::vector<int>& stack);
+    int next(int val, int index);
+    bool isConsistent(const std::vector<int>& stack);
+    bool accept(const std::vector<int>& stack);
+    void mkLemma();
+  public:
+    LemmaInstantiatior(const std::vector<TNode>& functions, ArgsTable& table, TNode conflict)
+      : d_functions(functions)
+      , d_argsTable(table)
+      , d_ctx(new context::Context())
+      , d_subst(d_ctx)
+      , d_conflict(conflict)
+      , d_lemmas()
+    {
+      Debug("bv-abstraction-gen") << "LemmaInstantiator conflict:" << conflict << "\n"; 
+      // initializing the search space
+      for (unsigned i = 0; i < functions.size(); ++i) {
+        TNode func_op = functions[i].getOperator();
+        // number of matches for this function
+        unsigned maxCount = table.getEntry(func_op).getNumEntries();
+        d_maxMatch.push_back(maxCount);
+      }
+    }
+
+    void generateInstantiations(std::vector<Node>& lemmas); 
+    
+  };
   
   typedef __gnu_cxx::hash_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
   typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
   typedef __gnu_cxx::hash_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
   typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   typedef __gnu_cxx::hash_map<unsigned, Node> IntNodeMap; 
   typedef std::multiset<Node> NodeMultiSet;
@@ -174,21 +214,19 @@ class AbstractionModule {
   Node substituteArguments(TNode signature, TNode apply, unsigned& i, TNodeTNodeMap& seen);
 
   // crazy instantiation methods
-  Node mkInstantiationLemma(const std::vector<ArgsVec>& instantiation,
-                            const std::vector<TNode>& functions,
-                            TNode conflict);
-  bool isConsistent(const std::vector<ArgsVec>& instantiation,
-                    const std::vector<TNode>& funcs);
   void generateInstantiations(unsigned current,
                               std::vector<ArgsTableEntry>& matches, 
                               std::vector<std::vector<ArgsVec> >& instantiations,
                               std::vector<std::vector<ArgsVec> >& new_instantiations);
 
-  void getMatches(TNode node, ArgsTableEntry& matches);
-
+  Node tryMatching(const std::vector<Node>& ss, const std::vector<TNode>& tt, TNode conflict);
+  void makeFreshArgs(TNode func, std::vector<Node>& fresh_args);
+  void makeFreshSkolems(TNode node, SubstitutionMap& map);
+  
   void skolemizeArguments(std::vector<Node>& assertions);
-
   Node reverseAbstraction(Node assertion, NodeNodeMap& seen);
+
+  TNodeSet d_addedLemmas;
 public:
   AbstractionModule()
     : d_argsTable()
@@ -204,6 +242,7 @@ public:
     , d_skolems()
     , d_signatureIndices()
     , d_signatureSkolems()
+    , d_addedLemmas()
   {}
   /** 
    * returns true if there are new uninterepreted functions symbols in the output

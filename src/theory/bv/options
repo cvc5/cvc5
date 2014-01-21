@@ -42,5 +42,8 @@ option bvAbstraction --bv-abstraction bool
 
 option skolemizeArguments --bv-skolemize bool
  skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
+
+option bvNumFunc --bv-num-func=NUM int :default 1
+ number of function symbols in conflicts that are generalized
  
 endmodule
