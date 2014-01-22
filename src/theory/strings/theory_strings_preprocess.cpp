@@ -145,6 +145,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			}
 			Node lem = t[v_id][0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec ) );
 			lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, t, lem );
+			new_nodes.push_back( lem );
 			d_cache[t] = t;
 			retNode = t;
 		}

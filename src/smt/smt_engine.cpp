@@ -950,20 +950,14 @@ void SmtEngine::setLogicInternal() throw() {
 		  d_logic.enableQuantifiers();
 		  d_logic.lock();
 		  Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
-		  //exception
-		  //throw OptionException("The string-exp option requires quantifier option. One suggestion is UFSLIA.");
 	  }
 	  if(! options::finiteModelFind.wasSetByUser()) {
-		  //exception
-		  throw OptionException("The string-exp option requires finite-model-find option.");
-		  //options::finiteModelFind.set( true );
-		  //Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+		  options::finiteModelFind.set( true );
+		  Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
 	  }
 	  if(! options::fmfBoundInt.wasSetByUser()) {
-		  //exception
-		  throw OptionException("The string-exp option requires fmf-bound-int option.");
-		  //options::fmfBoundInt.set( true );
-		  //Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+		  options::fmfBoundInt.set( true );
+		  Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
 	  }
 	  if(! options::stringFMF.wasSetByUser()) {
 		options::stringFMF.set( true );

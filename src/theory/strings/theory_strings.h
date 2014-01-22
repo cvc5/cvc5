@@ -115,6 +115,7 @@ private:
     Node d_false;
     Node d_zero;
 	// Options
+	bool d_all_warning;
 	bool d_opt_fmf;
 	bool d_opt_regexp_gcd;
 	// Helper functions

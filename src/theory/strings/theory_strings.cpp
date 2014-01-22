@@ -63,6 +63,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
 
+	d_all_warning = true;
 	d_regexp_incomplete = false;
 	d_opt_regexp_gcd = true;
 }
@@ -414,6 +415,14 @@ void TheoryStrings::check(Effort e) {
 
   bool polarity;
   TNode atom;
+
+  if(d_all_warning) {
+	  if(getLogicInfo().hasEverything()) {
+		  WarningOnce() << "WARNING: strings not supported in default configuration (ALL_SUPPORTED).\n"
+			  << "To suppress this warning in the future use proper logic symbol, e.g. (set-logic QF_S)." << std::endl;
+	  }
+	  d_all_warning = false;
+  }
 
   if( !done() && !hasTerm( d_emptyString ) ) {
 	 preRegisterTerm( d_emptyString );
