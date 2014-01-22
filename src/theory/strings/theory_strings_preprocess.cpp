@@ -119,6 +119,9 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
 			ret = 2;
 		}
 	}
+	if(!options::stringExp()) {
+		ret = 2;
+	}
 	return ret;
 }
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
