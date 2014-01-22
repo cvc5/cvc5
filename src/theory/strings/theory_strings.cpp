@@ -33,8 +33,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, qe),
+TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
     d_notify( *this ),
     d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings"),
     d_conflict( c, false ),

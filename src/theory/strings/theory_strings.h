@@ -42,7 +42,7 @@ class TheoryStrings : public Theory {
 	typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 
 public:
-	TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+	TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
 	~TheoryStrings();
 
 	void setMasterEqualityEngine(eq::EqualityEngine* eq);

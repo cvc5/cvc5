@@ -82,7 +82,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
+TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
   d_containing(containing),
   d_nlIncomplete( false),
   d_rowTracking(),
@@ -91,7 +91,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
   d_learner(u),
-  d_quantEngine(qe),
+  d_quantEngine(NULL),
   d_assertionsThatDoNotMatchTheirLiterals(c),
   d_nextIntegerCheckVar(0),
   d_constantIntegerVariables(c),
@@ -130,6 +130,10 @@ TheoryArithPrivate::~TheoryArithPrivate(){ }
 
 void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_congruenceManager.setMasterEqualityEngine(eq);
+}
+
+void TheoryArithPrivate::setQuantifiersEngine(QuantifiersEngine* qe) {
+  d_quantEngine = qe;
 }
 
 Node TheoryArithPrivate::getRealDivideBy0Func(){

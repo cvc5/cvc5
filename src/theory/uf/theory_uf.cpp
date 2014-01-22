@@ -28,12 +28,12 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_UF, c, u, out, valuation, logicInfo, qe),
+TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_UF, c, u, out, valuation, logicInfo),
   d_notify(*this),
   /* The strong theory solver can be notified by EqualityEngine::init(),
    * so make sure it's initialized first. */
-  d_thss(options::finiteModelFind() ? new StrongSolverTheoryUF(c, u, out, this) : NULL),
+  d_thss(NULL),
   d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
   d_conflict(c, false),
   d_literalsToPropagate(c),
@@ -47,6 +47,13 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
+void TheoryUF::finishInit() {
+  // initialize the strong solver
+  if (options::finiteModelFind()) {
+    d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
+  }
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {

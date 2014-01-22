@@ -115,7 +115,7 @@ public:
     d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_ARITH] = NULL;
 
-    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo, d_smt->d_theoryEngine->d_quantEngine);
+    d_arith = new TheoryArith(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), d_logicInfo);
 
     preregistered = new std::set<Node>();
 

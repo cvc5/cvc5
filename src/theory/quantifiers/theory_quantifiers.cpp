@@ -33,8 +33,8 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, qe),
+TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo),
   d_numRestarts(0),
   d_masterEqualityEngine(0)
 {

@@ -174,7 +174,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
 
   ~TheoryUF() {
     // destruct all ppRewrite() callbacks
@@ -186,6 +186,7 @@ public:
   }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void finishInit();
 
   void check(Effort);
   void preRegisterTerm(TNode term);

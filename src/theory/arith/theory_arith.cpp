@@ -25,9 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe)
-  : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, qe)
-  , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, qe))
+TheoryArith::TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
+  : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
+  , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
 {}
 
 TheoryArith::~TheoryArith(){
@@ -40,6 +40,11 @@ void TheoryArith::preRegisterTerm(TNode n){
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_internal->setMasterEqualityEngine(eq);
+}
+
+void TheoryArith::setQuantifiersEngine(QuantifiersEngine* qe) {
+  this->Theory::setQuantifiersEngine(qe);
+  d_internal->setQuantifiersEngine(qe);
 }
 
 void TheoryArith::addSharedTerm(TNode n){

@@ -83,7 +83,7 @@ private:
 public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUFTim(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, QuantifiersEngine* qe);
+  TheoryUFTim(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation);
 
   /** Destructor for the TheoryUF object. */
   ~TheoryUFTim();

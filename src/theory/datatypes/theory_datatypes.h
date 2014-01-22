@@ -181,8 +181,9 @@ protected:
   /** compute care graph */
   void computeCareGraph();
 public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryDatatypes(context::Context* c, context::UserContext* u,
+                  OutputChannel& out, Valuation valuation,
+                  const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

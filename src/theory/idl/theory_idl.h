@@ -45,7 +45,7 @@ public:
 
   /** Theory constructor. */
   TheoryIdl(context::Context* c, context::UserContext* u, OutputChannel& out,
-            Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+            Valuation valuation, const LogicInfo& logicInfo);
 
   /** Pre-processing of input atoms */
   Node ppRewrite(TNode atom);

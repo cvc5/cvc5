@@ -350,7 +350,7 @@ private:
   Node ppRewriteTerms(TNode atom);
 
 public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryArithPrivate();
 
   /**
@@ -359,6 +359,7 @@ public:
   void preRegisterTerm(TNode n);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setQuantifiersEngine(QuantifiersEngine* qe);
 
   void check(Theory::Effort e);
   void propagate(Theory::Effort e);

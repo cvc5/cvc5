@@ -198,8 +198,7 @@ private:
                      context::UserContext* u,
                      OutputChannel& out,
                      Valuation valuation,
-                     const LogicInfo& logicInfo,
-                     QuantifiersEngine* qe);
+                     const LogicInfo& logicInfo);
 
   /** Usual function for theories */
   void check(Theory::Effort e);

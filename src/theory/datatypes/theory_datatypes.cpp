@@ -39,8 +39,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 
-TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, qe),
+TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
   d_cycle_check(c),
   d_hasSeenCycle(c, false),
   d_infer(c),

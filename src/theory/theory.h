@@ -239,8 +239,7 @@ protected:
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-         QuantifiersEngine* qe, eq::EqualityEngine* master = 0) throw()
+         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) throw()
   : d_id(id)
   , d_satContext(satContext)
   , d_userContext(userContext)
@@ -248,8 +247,8 @@ protected:
   , d_facts(satContext)
   , d_factsHead(satContext, 0)
   , d_sharedTermsIndex(satContext, 0)
-  , d_careGraph(0)
-  , d_quantEngine(qe)
+  , d_careGraph(NULL)
+  , d_quantEngine(NULL)
   , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
   , d_sharedTerms(satContext)
   , d_out(&out)
@@ -474,6 +473,14 @@ public:
   }
 
   /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, and the master equality engine and quantifiers
+   * engine (if any) are initialized.  This base class implementation
+   * does nothing.
+   */
+  virtual void finishInit() { }
+
+  /**
    * Pre-register a term.  Done one time for a Node, ever.
    */
   virtual void preRegisterTerm(TNode) { }
@@ -496,6 +503,13 @@ public:
    * Called to set the master equality engine.
    */
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
+
+  /**
+   * Called to set the quantifiers engine.
+   */
+  virtual void setQuantifiersEngine(QuantifiersEngine* qe) {
+    d_quantEngine = qe;
+  }
 
   /**
    * Return the current theory care graph. Theories should overload computeCareGraph to do

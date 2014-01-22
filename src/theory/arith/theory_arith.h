@@ -45,7 +45,7 @@ private:
   KEEP_STATISTIC(TimerStat, d_ppRewriteTimer, "theory::arith::ppRewriteTimer");
 
 public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
   /**
@@ -54,6 +54,7 @@ public:
   void preRegisterTerm(TNode n);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setQuantifiersEngine(QuantifiersEngine* qe);
 
   void check(Effort e);
   void propagate(Effort e);

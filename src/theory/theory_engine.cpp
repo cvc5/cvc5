@@ -60,6 +60,9 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
+  // initialize the quantifiers engine
+  d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
+
   if (d_logicInfo.isQuantified()) {
     d_quantEngine->finishInit();
     Assert(d_masterEqualityEngine == 0);
@@ -67,8 +70,15 @@ void TheoryEngine::finishInit() {
 
     for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
       if (d_theoryTable[theoryId]) {
+        d_theoryTable[theoryId]->setQuantifiersEngine(d_quantEngine);
         d_theoryTable[theoryId]->setMasterEqualityEngine(d_masterEqualityEngine);
       }
+    }
+  }
+
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+    if (d_theoryTable[theoryId]) {
+      d_theoryTable[theoryId]->finishInit();
     }
   }
 }
@@ -145,9 +155,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
-
-  // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(context, userContext, this);
 
   // build model information if applicable
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);

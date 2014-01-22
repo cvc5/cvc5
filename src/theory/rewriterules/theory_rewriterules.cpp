@@ -129,12 +129,11 @@ TheoryRewriteRules::TheoryRewriteRules(context::Context* c,
                                        context::UserContext* u,
                                        OutputChannel& out,
                                        Valuation valuation,
-                                       const LogicInfo& logicInfo,
-                                       QuantifiersEngine* qe) :
-  Theory(THEORY_REWRITERULES, c, u, out, valuation, logicInfo, qe),
+                                       const LogicInfo& logicInfo) :
+  Theory(THEORY_REWRITERULES, c, u, out, valuation, logicInfo),
   d_rules(c), d_ruleinsts(c), d_guardeds(c), d_checkLevel(c,0),
   d_explanations(c), d_ruleinsts_to_add(), d_ppAssert_on(false)
-  {
+{
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 }
