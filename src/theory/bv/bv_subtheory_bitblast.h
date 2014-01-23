@@ -33,6 +33,7 @@ class AbstractionModule;
 class BitblastSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
+    IntStat d_numBBLemmas;
     Statistics();
     ~Statistics();
   };
@@ -48,7 +49,10 @@ class BitblastSolver : public SubtheorySolver {
   context::CDO<bool> d_validModelCache;
   Node getModelValueRec(TNode node);
 
+  /** Queue for bit-blasting lemma atoms only in full check if we are sat */
+  context::CDQueue<TNode> d_lemmaAtomsQueue;
   bool  d_useSatPropagation;
+  AbstractionModule* d_abstractionModule;
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();

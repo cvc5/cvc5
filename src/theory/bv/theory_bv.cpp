@@ -365,22 +365,20 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
 
 Node TheoryBV::ppRewrite(TNode t)
 {
+  Node res = t;
   if (RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
-    return Rewriter::rewrite(result);
-  }
-
-  if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
+    res = Rewriter::rewrite(result);
+  } else if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
-    return utils::mkAnd(equalities);
+    res = utils::mkAnd(equalities);
   }
-
-  if (t.getKind() == kind::NOT) {
-    std::cout << "ppRewrite " << t << "\n"; 
+  
+  if (options::bvAbstraction() && t.getType().isBoolean()) {
+    d_abstractionModule->addInputAtom(res); 
   }
-
-  return t;
+  return res;
 }
 
 void TheoryBV::presolve() {
@@ -393,9 +391,6 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 {
   Debug("bitvector::propagate") << indent() << getSatContext()->getLevel() << " " << "TheoryBV::storePropagation(" << literal << ", " << subtheory << ")" << std::endl;
   prop_count++; 
-  if (literal.getId() == 232141) {
-    std::cout <<" DEBUG propagating "<<prop_count <<" " << literal <<"\n"; 
-  }
   
   // If already in conflict, no more propagation
   if (d_conflict) {

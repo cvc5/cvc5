@@ -227,6 +227,9 @@ class AbstractionModule {
   Node reverseAbstraction(Node assertion, NodeNodeMap& seen);
 
   TNodeSet d_addedLemmas;
+  TNodeSet d_lemmaAtoms;
+  TNodeSet d_inputAtoms;
+  void storeLemma(TNode lemma);
 public:
   AbstractionModule()
     : d_argsTable()
@@ -243,6 +246,8 @@ public:
     , d_signatureIndices()
     , d_signatureSkolems()
     , d_addedLemmas()
+    , d_lemmaAtoms()
+    , d_inputAtoms()
   {}
   /** 
    * returns true if there are new uninterepreted functions symbols in the output
@@ -270,7 +275,9 @@ public:
    */
   Node getInterpretation(TNode node);
   Node simplifyConflict(TNode conflict); 
-  void generalizeConflict(TNode conflict, std::vector<Node>& lemmas); 
+  void generalizeConflict(TNode conflict, std::vector<Node>& lemmas);
+  void addInputAtom(TNode atom) { d_inputAtoms.insert(atom); }
+  bool isLemmaAtom(TNode node) const;
 };
 
 }
