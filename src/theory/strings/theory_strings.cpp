@@ -1365,11 +1365,11 @@ bool TheoryStrings::normalizeDisequality( Node ni, Node nj ) {
 							Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit_$$", ni.getType(), "created for disequality normalization" );
 							Node sk2 = NodeManager::currentNM()->mkSkolem( "y_dsplit_$$", ni.getType(), "created for disequality normalization" );
 							Node sk3 = NodeManager::currentNM()->mkSkolem( "z_dsplit_$$", ni.getType(), "created for disequality normalization" );
-							Node nemp = sk1.eqNode(d_emptyString).negate();
-							conc.push_back(nemp);
-							nemp = sk2.eqNode(d_emptyString).negate();
-							conc.push_back(nemp);
-							nemp = sk3.eqNode(d_emptyString).negate();
+							//Node nemp = sk1.eqNode(d_emptyString).negate();
+							//conc.push_back(nemp);
+							//nemp = sk2.eqNode(d_emptyString).negate();
+							//conc.push_back(nemp);
+							Node nemp = sk3.eqNode(d_emptyString).negate();
 							conc.push_back(nemp);
 							Node lsk1 = getLength( sk1 );
 							conc.push_back( lsk1.eqNode( li ) );
