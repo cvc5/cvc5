@@ -246,6 +246,7 @@ protected:
 	void doPendingLemmas();
 
 	void sendLemma( Node ant, Node conc, const char * c );
+	void sendInfer( Node eq_exp, Node eq, const char * c );
 	void sendSplit( Node a, Node b, const char * c, bool preq = true );
 	/** mkConcat **/
 	Node mkConcat( Node n1, Node n2 );

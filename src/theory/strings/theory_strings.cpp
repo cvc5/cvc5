@@ -1050,6 +1050,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 							} else if( areEqual(length_term_i, length_term_j) ) {
 								Trace("strings-solve-debug") << "Case 2.2 : string lengths are equal" << std::endl;
 								Node eq = normal_forms[i][index_i].eqNode( normal_forms[j][index_j] );
+								eq = Rewriter::rewrite( eq );
 								Node length_eq = length_term_i.eqNode( length_term_j );
 								std::vector< Node > temp_exp;
 								temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
@@ -1057,10 +1058,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 								Node eq_exp = temp_exp.empty() ? d_true :
 												temp_exp.size() == 1 ? temp_exp[0] : NodeManager::currentNM()->mkNode( kind::AND, temp_exp );
 								Trace("strings-lemma") << "Strings: Infer " << eq << " from " << eq_exp << std::endl;
-								d_pending.push_back( eq );
-								d_pending_exp[eq] = eq_exp;
-								d_infer.push_back(eq);
-								d_infer_exp.push_back(eq_exp);
+								sendInfer( eq_exp, eq, "LengthEq" );
 								return true;
 							} else if(( normal_forms[i][index_i].getKind()!=kind::CONST_STRING && index_i==normal_forms[i].size()-1 ) || 
 									  ( normal_forms[j][index_j].getKind()!=kind::CONST_STRING && index_j==normal_forms[j].size()-1 ) ) {
@@ -1471,6 +1469,18 @@ void TheoryStrings::sendLemma( Node ant, Node conc, const char * c ) {
 	}
 }
 
+void TheoryStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
+	eq = Rewriter::rewrite( eq );
+	if( eq==d_false ){
+		sendLemma( eq_exp, eq, c );
+	}else{
+		d_pending.push_back( eq );
+		d_pending_exp[eq] = eq_exp;
+		d_infer.push_back(eq);
+		d_infer_exp.push_back(eq_exp);
+	}
+}
+
 void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
 	Node eq = a.eqNode( b );
 	eq = Rewriter::rewrite( eq );
@@ -1721,12 +1731,8 @@ bool TheoryStrings::checkNormalForms() {
 				//two equivalence classes have same normal form, merge
 				Node eq_exp = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, nf_term_exp, eqc_to_exp[nf_to_eqc[nf_term]] ) );
 				Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, eqc, nf_to_eqc[nf_term] );
-				Trace("strings-lemma") << "Strings (by normal forms) : Infer " << eq << " from " << eq_exp << std::endl;
+				sendInfer( eq_exp, eq, "Normal_Form" );
 				//d_equalityEngine.assertEquality( eq, true, eq_exp );
-				d_pending.push_back( eq );
-				d_pending_exp[eq] = eq_exp;
-				d_infer.push_back(eq);
-				d_infer_exp.push_back(eq_exp);
 			}else{
 				nf_to_eqc[nf_term] = eqc;
 				eqc_to_exp[eqc] = nf_term_exp;
