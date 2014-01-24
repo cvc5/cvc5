@@ -124,7 +124,16 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 
 void QuantifierMacros::getMacroCandidates( Node n, std::vector< Node >& candidates ){
   if( n.getKind()==APPLY_UF ){
-    candidates.push_back( n );
+    bool allBoundVar = true;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n[i].getKind()!=BOUND_VARIABLE ){
+        allBoundVar = false;
+        break;
+      }
+    }
+    if( allBoundVar ){
+      candidates.push_back( n );
+    }
   }else if( n.getKind()==PLUS ){
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       getMacroCandidates( n[i], candidates );

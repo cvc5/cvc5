@@ -195,7 +195,7 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
 }
 
 void InstantiationEngine::check( Theory::Effort e ){
-  if( d_performCheck ){
+  if( d_performCheck && !d_quantEngine->hasAddedLemma() ){
     Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){

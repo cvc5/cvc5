@@ -73,11 +73,20 @@ typedef enum {
 typedef enum {
   /** default, apply at full effort */
   QCF_WHEN_MODE_DEFAULT,
+  /** apply at last call */
+  QCF_WHEN_MODE_LAST_CALL,
   /** apply at standard effort */
   QCF_WHEN_MODE_STD,
   /** apply based on heuristics */
   QCF_WHEN_MODE_STD_H,
 } QcfWhenMode;
+
+typedef enum {
+  /** default, use qcf for conflicts only */
+  QCF_CONFLICT_ONLY,
+  /** use qcf for conflicts and propagations */
+  QCF_PROP_EQ,
+} QcfMode;
 
 typedef enum {
   /** default, use but do not trust */

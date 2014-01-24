@@ -33,45 +33,10 @@ class QcfNodeIndex {
 public:
   std::map< TNode, QcfNodeIndex > d_children;
   void clear() { d_children.clear(); }
-  //Node existsTerm( QuantConflictFind * qcf, Node n, int index = 0 );
-  //Node addTerm( QuantConflictFind * qcf, Node n, int index = 0 );
-  //bool addTermEq( QuantConflictFind * qcf, Node n1, Node n2, int index = 0 );
   void debugPrint( const char * c, int t );
-  //optimized versions
   Node existsTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
   Node addTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
-  bool addTermEq( TNode n1, TNode n2, std::vector< TNode >& reps1, std::vector< TNode >& reps2, int index = 0 );
 };
-
-class EqRegistry {
-  typedef context::CDChunkList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-public:
-  EqRegistry( context::Context* c );
-  //active
-  context::CDO< bool > d_active;
-  //NodeIndex describing pairs that meet the criteria of the EqRegistry
-  QcfNodeIndex d_qni;
-
-  //qcf nodes that this helps to 1:satisfy -1:falsify 0:both a quantifier conflict node
-  //std::map< QcfNode *, int > d_qcf;
-  //has eqc
-  //bool hasEqc( Node n ) { return d_t_eqc.find( n )!=d_t_eqc.end() && d_t_eqc[n]; }
-  //void setEqc( Node n, bool val = true ) { d_t_eqc[n] = val; }
-  void clear() { d_qni.clear(); }
-  void debugPrint( const char * c, int t );
-};
-
-/*
-class QcfNode {
-public:
-  QcfNode( context::Context* c );
-  QcfNode * d_parent;
-  std::map< int, QcfNode * > d_child;
-  Node d_node;
-  EqRegistry * d_reg[2];
-};
-*/
 
 class QuantConflictFind : public QuantifiersModule
 {
@@ -86,21 +51,16 @@ private:
   void registerNode( Node q, Node n, bool hasPol, bool pol );
   void flatten( Node q, Node n );
 private:
-  std::map< TypeNode, Node > d_fv;
-  Node getFv( TypeNode tn );
   std::map< Node, Node > d_op_node;
-  int getFunctionId( Node f );
-  bool isLessThan( Node a, Node b );
   Node getFunction( Node n, int& index, bool isQuant = false );
   int d_fid_count;
   std::map< Node, int > d_fid;
   Node mkEqNode( Node a, Node b );
-private:  //for ground terms
+public:  //for ground terms
   Node d_true;
   Node d_false;
-  std::map< int, std::map< TNode, std::map< int, std::map< TNode, EqRegistry * > > > > d_eqr[2];
-  EqRegistry * getEqRegistry( bool polarity, Node lit, bool doCreate = true );
-  void getEqRegistryApps( Node lit, std::vector< Node >& terms );
+private:
+  Node evaluateTerm( Node n );
   int evaluate( Node n, bool pref = false, bool hasPref = false );
 public:  //for quantifiers
   //match generator
@@ -124,14 +84,19 @@ public:  //for quantifiers
     std::map< int, Node > d_qni_gterm_rep;
     std::map< int, int > d_qni_bound;
     std::map< int, Node > d_qni_bound_cons;
+    std::map< int, int > d_qni_bound_cons_var;
+    std::map< int, int >::iterator d_binding_it;
+    bool d_binding;
+    //int getVarBindingVar();
+    std::map< int, Node > d_ground_eval;
   public:
     //type of the match generator
     enum {
       typ_invalid,
       typ_ground,
-      typ_var_eq,
-      typ_valid_lit,
-      typ_valid,
+      typ_pred,
+      typ_eq,
+      typ_formula,
       typ_var,
       typ_top,
     };
@@ -159,7 +124,7 @@ private:
     QuantInfo() : d_mg( NULL ) {}
     std::vector< Node > d_vars;
     std::map< Node, int > d_var_num;
-    std::map< EqRegistry *, bool > d_rel_eqr;
+    //std::map< EqRegistry *, bool > d_rel_eqr;
     std::map< int, std::vector< Node > > d_var_constraint[2];
     int getVarNum( Node v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
     bool isVar( Node v ) { return d_var_num.find( v )!=d_var_num.end(); }
@@ -171,16 +136,18 @@ private:
   public:
     //current constraints
     std::map< int, Node > d_match;
+    std::map< int, Node > d_match_term;
     std::map< int, std::map< Node, int > > d_curr_var_deq;
     int getCurrentRepVar( int v );
     Node getCurrentValue( Node n );
-    bool getCurrentCanBeEqual( QuantConflictFind * p, int v, Node n );
+    bool getCurrentCanBeEqual( QuantConflictFind * p, int v, Node n, bool chDiseq = false );
     int addConstraint( QuantConflictFind * p, int v, Node n, bool polarity );
     int addConstraint( QuantConflictFind * p, int v, Node n, int vn, bool polarity, bool doRemove );
     bool setMatch( QuantConflictFind * p, int v, Node n );
     bool isMatchSpurious( QuantConflictFind * p );
     bool completeMatch( QuantConflictFind * p, Node q, std::vector< int >& assigned );
     void debugPrintMatch( const char * c );
+    bool isConstrainedVar( int v );
   };
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
@@ -188,8 +155,8 @@ private:  //for equivalence classes
   bool areDisequal( Node n1, Node n2 );
   bool areEqual( Node n1, Node n2 );
   Node getRepresentative( Node n );
-  Node getTerm( Node n );
 
+/*
   class EqcInfo {
   public:
     EqcInfo( context::Context* c ) : d_diseq( c ) {}
@@ -200,10 +167,12 @@ private:  //for equivalence classes
   };
   std::map< Node, EqcInfo * > d_eqc_info;
   EqcInfo * getEqcInfo( Node n, bool doCreate = true );
+*/
   // operator -> index(terms)
   std::map< TNode, QcfNodeIndex > d_uf_terms;
-  // eqc x operator -> index(terms)
-  std::map< TNode, std::map< TNode, QcfNodeIndex > > d_eqc_uf_terms;
+  // operator -> index(eqc -> terms)
+  std::map< TNode, QcfNodeIndex > d_eqc_uf_terms;
+  //get qcf node index
   QcfNodeIndex * getQcfNodeIndex( Node eqc, Node f );
   QcfNodeIndex * getQcfNodeIndex( Node f );
   // type -> list(eqc)
@@ -217,7 +186,8 @@ private:  //for equivalence classes
 public:
   enum {
     effort_conflict,
-    effort_propagation,
+    effort_prop_eq,
+    effort_prop_deq,
   };
   short d_effort;
   //for effort_prop

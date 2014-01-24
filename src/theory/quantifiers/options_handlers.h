@@ -37,7 +37,8 @@ full-last-call\n\
   call.  In other words, interleave instantiation and theory combination.\n\
 \n\
 last-call\n\
-+ Run instantiation at last call effort, after theory combination.\n\
++ Run instantiation at last call effort, after theory combination and\n\
+  and theories report sat.\n\
 \n\
 ";
 
@@ -103,11 +104,25 @@ Quantifier conflict find modes currently supported by the --quant-cf-when option
 default \n\
 + Default, apply conflict finding at full effort.\n\
 \n\
+last-call \n\
++ Apply conflict finding at last call, after theory combination and \n\
+  and all theories report sat. \n\
+\n\
 std \n\
 + Apply conflict finding at standard effort.\n\
 \n\
 std-h \n\
 + Apply conflict finding at standard effort when heuristic says to. \n\
+\n\
+";
+static const std::string qcfModeHelp = "\
+Quantifier conflict find modes currently supported by the --quant-cf option:\n\
+\n\
+conflict \n\
++ Default, apply conflict finding for finding conflicts only.\n\
+\n\
+prop-eq \n\
++ Apply conflict finding to propagate equalities as well. \n\
 \n\
 ";
 static const std::string userPatModeHelp = "\
@@ -215,6 +230,8 @@ inline void checkMbqiMode(std::string option, MbqiMode mode, SmtEngine* smt) thr
 inline QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg ==  "default") {
     return QCF_WHEN_MODE_DEFAULT;
+  } else if(optarg ==  "last-call") {
+    return QCF_WHEN_MODE_LAST_CALL;
   } else if(optarg ==  "std") {
     return QCF_WHEN_MODE_STD;
   } else if(optarg ==  "std-h") {
@@ -225,6 +242,19 @@ inline QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg, S
   } else {
     throw OptionException(std::string("unknown option for --quant-cf-when: `") +
                           optarg + "'.  Try --quant-cf-when help.");
+  }
+}
+inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default" || optarg ==  "conflict") {
+    return QCF_CONFLICT_ONLY;
+  } else if(optarg ==  "prop-eq") {
+    return QCF_PROP_EQ;
+  } else if(optarg ==  "help") {
+    puts(qcfModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --quant-cf-mode: `") +
+                          optarg + "'.  Try --quant-cf-mode help.");
   }
 }
 

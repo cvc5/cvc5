@@ -121,6 +121,8 @@ option axiomInstMode --axiom-inst=MODE CVC4::theory::quantifiers::AxiomInstMode 
 
 option quantConflictFind --quant-cf bool :default false
  enable conflict find mechanism for quantifiers
+option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default CVC4::theory::quantifiers::QCF_CONFLICT_ONLY :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfMode :handler-include "theory/quantifiers/options_handlers.h"
+ what effort to apply conflict find mechanism
 option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfWhenMode :handler-include "theory/quantifiers/options_handlers.h"
  when to invoke conflict find mechanism for quantifiers
 

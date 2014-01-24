@@ -269,7 +269,7 @@ Node QuantifiersRewriter::computeNNF( Node body ){
           children.push_back( computeNNF( body[0][i].notNode() ) );
         }
         k = body[0].getKind()==AND ? OR : AND;
-      }else if( body[0].getKind()==XOR || body[0].getKind()==IFF ){
+      }else if( body[0].getKind()==IFF ){
         for( int i=0; i<2; i++ ){
           Node nn = i==0 ? body[0][i] : body[0][i].notNode();
           children.push_back( computeNNF( nn ) );
