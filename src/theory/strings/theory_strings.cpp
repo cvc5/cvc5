@@ -995,7 +995,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 				do
 				{
 					//---------------------do simple stuff first
-					if( processSimpleNeq( normal_forms, normal_form_src, curr_exp, i, j, index_i, index_j ) ){
+					if( processSimpleNeq( normal_forms, normal_form_src, curr_exp, i, j, index_i, index_j, false ) ){
 						//added a lemma, return
 						return true;
 					}
@@ -1060,43 +1060,21 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 									unsigned nconst_index_k = normal_forms[i][index_i].getKind() == kind::CONST_STRING ? index_j : index_i;
 									Node const_str = normal_forms[const_k][const_index_k];
 									Node other_str = normal_forms[nconst_k][nconst_index_k];
-									if( other_str.getKind() == kind::CONST_STRING ) {
-										unsigned len_short = const_str.getConst<String>().size() <= other_str.getConst<String>().size() ? const_str.getConst<String>().size() : other_str.getConst<String>().size();
-										if( const_str.getConst<String>().strncmp(other_str.getConst<String>(), len_short) ) {
-											//same prefix
-											//k is the index of the string that is shorter
-											int k = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? i : j;
-											int index_k = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? index_i : index_j;
-											int l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? j : i;
-											int index_l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? index_j : index_i;
-											Node remainderStr = NodeManager::currentNM()->mkConst( normal_forms[l][index_l].getConst<String>().substr(len_short) );
-											Trace("strings-solve-debug-test") << "Break normal form of " << normal_forms[l][index_l] << " into " << normal_forms[k][index_k] << ", " << remainderStr << std::endl;
-											normal_forms[l].insert( normal_forms[l].begin()+index_l + 1, remainderStr );
-											normal_forms[l][index_l] = normal_forms[k][index_k];
-											success = true;
-										} else {
-											//curr_exp is conflict
-											antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
-											Node ant = mkExplain( antec );
-											sendLemma( ant, conc, "Conflict" );
-											return true;
-										}
-									} else {
-										Assert( other_str.getKind()!=kind::STRING_CONCAT );
-										antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
-										Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
-											NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
-										//split the string
-										Node eq1 = Rewriter::rewrite( other_str.eqNode( d_emptyString ) );
-										Node eq2 = mkSplitEq( "c_spt_$$", "created for v/c split", other_str, firstChar, false );
-										d_pending_req_phase[ eq1 ] = true;
-										conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
-										Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
+									Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
+									Assert( other_str.getKind()!=kind::STRING_CONCAT, "Other string is not CONCAT." );
+									antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
+									Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
+										NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
+									//split the string
+									Node eq1 = Rewriter::rewrite( other_str.eqNode( d_emptyString ) );
+									Node eq2 = mkSplitEq( "c_spt_$$", "created for v/c split", other_str, firstChar, false );
+									d_pending_req_phase[ eq1 ] = true;
+									conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
+									Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
 
-										Node ant = mkExplain( antec );
-										sendLemma( ant, conc, "CST-SPLIT" );
-										return true;
-									}
+									Node ant = mkExplain( antec );
+									sendLemma( ant, conc, "CST-SPLIT" );
+									return true;
 								} else {
 									std::vector< Node > antec_new_lits;
 									antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
@@ -1162,7 +1140,7 @@ bool TheoryStrings::processReverseNEq( std::vector< std::vector< Node > > &norma
 	t_curr_exp.insert( t_curr_exp.begin(), curr_exp.begin(), curr_exp.end() );
 	unsigned index_i = 0;
 	unsigned index_j = 0;
-	bool ret = processSimpleNeq( normal_forms, normal_form_src, t_curr_exp, i, j, index_i, index_j );
+	bool ret = processSimpleNeq( normal_forms, normal_form_src, t_curr_exp, i, j, index_i, index_j, true );
 
 	//reverse normal form of i, j
 	std::reverse( normal_forms[i].begin(), normal_forms[i].end() );
@@ -1173,7 +1151,7 @@ bool TheoryStrings::processReverseNEq( std::vector< std::vector< Node > > &norma
 
 bool TheoryStrings::processSimpleNeq( std::vector< std::vector< Node > > &normal_forms,
 									  std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp,
-									  unsigned i, unsigned j, unsigned& index_i, unsigned& index_j ) {
+									  unsigned i, unsigned j, unsigned& index_i, unsigned& index_j, bool isRev ) {
 	bool success;
 	do {
 		success = false;
@@ -1249,6 +1227,42 @@ bool TheoryStrings::processSimpleNeq( std::vector< std::vector< Node > > &normal
 					}else{
 						index_i = normal_forms[i].size();
 						index_j = normal_forms[j].size();
+					}
+				} else if(normal_forms[i][index_i].isConst() && normal_forms[j][index_j].isConst()) {
+					Node const_str = normal_forms[i][index_i];
+					Node other_str = normal_forms[j][index_j];
+					Trace("strings-solve-debug") << "Simple Case 3 : Const Split : " << const_str << " vs " << other_str << std::endl;
+					unsigned len_short = const_str.getConst<String>().size() <= other_str.getConst<String>().size() ? const_str.getConst<String>().size() : other_str.getConst<String>().size();
+					bool isSameFix = isRev ? const_str.getConst<String>().rstrncmp(other_str.getConst<String>(), len_short): const_str.getConst<String>().strncmp(other_str.getConst<String>(), len_short);
+					if( isSameFix ) {
+						//same prefix/suffix
+						//k is the index of the string that is shorter
+						int k = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? i : j;
+						int index_k = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? index_i : index_j;
+						int l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? j : i;
+						int index_l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? index_j : index_i;
+						if(isRev) {
+							int new_len = normal_forms[l][index_l].getConst<String>().size() - len_short;
+							Node remainderStr = NodeManager::currentNM()->mkConst( normal_forms[l][index_l].getConst<String>().substr(0, new_len) );
+							Trace("strings-solve-debug-test") << "Break normal form of " << normal_forms[l][index_l] << " into " << normal_forms[k][index_k] << ", " << remainderStr << std::endl;
+							normal_forms[l].insert( normal_forms[l].begin()+index_l + 1, remainderStr );
+						} else {
+							Node remainderStr = NodeManager::currentNM()->mkConst(normal_forms[l][index_l].getConst<String>().substr(len_short));
+							Trace("strings-solve-debug-test") << "Break normal form of " << normal_forms[l][index_l] << " into " << normal_forms[k][index_k] << ", " << remainderStr << std::endl;
+							normal_forms[l].insert( normal_forms[l].begin()+index_l + 1, remainderStr );
+						}
+						normal_forms[l][index_l] = normal_forms[k][index_k];
+						index_i++;
+						index_j++;
+						success = true;
+					} else {
+						Node conc;
+						std::vector< Node > antec;
+						//curr_exp is conflict
+						antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
+						Node ant = mkExplain( antec );
+						sendLemma( ant, conc, "Const Conflict" );
+						return true;
 					}
 				}
 			}
