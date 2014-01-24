@@ -211,11 +211,13 @@ private:
 					 std::vector< Node > &normal_form_src);
 	bool processReverseNEq(std::vector< std::vector< Node > > &normal_forms,
 						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j );
-	bool processSimpleNeq( std::vector< std::vector< Node > > &normal_forms,
+	bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms,
 						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
 						   unsigned& index_i, unsigned& index_j, bool isRev );
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
-    bool normalizeDisequality( Node n1, Node n2 );
+    bool processDeq( Node n1, Node n2 );
+	int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
+	int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
 	bool unrollStar( Node atom );
 
 	bool checkLengths();
