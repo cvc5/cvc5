@@ -22,6 +22,7 @@
 #include <vector>
 #include "util/hash.h"
 #include "theory/theory.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
