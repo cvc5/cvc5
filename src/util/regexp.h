@@ -130,6 +130,11 @@ public:
       return true;
   }
 
+  bool rstrncmp(const String &y, unsigned int n) const {
+      for(unsigned int i=0; i<n; ++i)
+          if(d_str[d_str.size() - i - 1] != y.d_str[y.d_str.size() - i - 1]) return false;
+      return true;
+  }
 
   bool isEmptyString() const {
 	  return ( d_str.size() == 0 );
