@@ -732,7 +732,7 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
     NodeNodeMap seen;
     Node c = reverseAbstraction(conflict, seen);
     ostringstream os;
-    os << "confl_" << num_confl;
+    os << "confl_" << num_confl++;
     Dump("bv-abstraction") << EchoCommand(os.str()); 
     Dump("bv-abstraction") << PushCommand(); 
     Dump("bv-abstraction") << AssertCommand(c.toExpr());
@@ -885,7 +885,7 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
         NodeNodeMap seen;
         Node l = reverseAbstraction(lemma, seen);
         ostringstream os;
-        os << "confl_" << num_lemma;
+        os << "confl_" << num_lemma++;
         Dump("bv-abstraction") << EchoCommand(os.str()); 
         Dump("bv-abstraction") << PushCommand(); 
         Dump("bv-abstraction") << AssertCommand(l.toExpr());
