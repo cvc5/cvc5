@@ -221,7 +221,7 @@ class AbstractionModule {
 
   Node tryMatching(const std::vector<Node>& ss, const std::vector<TNode>& tt, TNode conflict);
   void makeFreshArgs(TNode func, std::vector<Node>& fresh_args);
-  void makeFreshSkolems(TNode node, SubstitutionMap& map);
+  void makeFreshSkolems(TNode node, SubstitutionMap& map, SubstitutionMap& reverse_map);
   
   void skolemizeArguments(std::vector<Node>& assertions);
   Node reverseAbstraction(Node assertion, NodeNodeMap& seen);

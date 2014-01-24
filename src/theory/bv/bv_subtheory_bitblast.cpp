@@ -110,10 +110,12 @@ bool BitblastSolver::check(Theory::Effort e) {
     d_validModelCache = false;
     Debug("bv-bitblast") << "  fact " << fact << ")\n";
 
-    // skip atoms that are the result of abstraction lemmas
-    if (d_abstractionModule->isLemmaAtom(fact)) {
-      d_lemmaAtomsQueue.push_back(fact);
-      continue; 
+    if (options::bvAbstraction()) {
+      // skip atoms that are the result of abstraction lemmas
+      if (d_abstractionModule->isLemmaAtom(fact)) {
+        d_lemmaAtomsQueue.push_back(fact);
+        continue; 
+      }
     }
     
     if (!d_bv->inConflict() &&
@@ -156,7 +158,8 @@ bool BitblastSolver::check(Theory::Effort e) {
     }
   }
 
-  if (e == Theory::EFFORT_FULL &&
+  if (options::bvAbstraction() &&
+      e == Theory::EFFORT_FULL &&
       d_lemmaAtomsQueue.size()) {
     
     // bit-blast lemma atoms

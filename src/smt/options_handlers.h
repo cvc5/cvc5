@@ -121,7 +121,10 @@ t-explanations [non-stateful]\n\
 bv-rewrites [non-stateful]\n\
 + Output correctness queries for all bitvector rewrites\n\
 \n\
-theory::fullcheck [non-stateful]\n\
+bv-abstraction [non-stateful]\n\
++ Output correctness queries for all bv abstraction \n\
+\n\
+theory::fullcheck [non-stateful]\n                                      \
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
 Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
@@ -236,6 +239,8 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
     } else if(!strcmp(optargPtr, "help")) {
       puts(dumpHelp.c_str());
       exit(1);
+    } else if(!strcmp(optargPtr, "bv-abstraction")) {
+      Dump.on("bv-abstraction");
     } else {
       throw OptionException(std::string("unknown option for --dump: `") +
                             optargPtr + "'.  Try --dump help.");

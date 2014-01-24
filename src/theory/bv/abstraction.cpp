@@ -1,24 +1,25 @@
 /*********************                                                        */
 /*! \file abstraction.cpp
- ** \verbatim
- ** Original author: Liana Hadarean
- ** Major contributors: none.
- ** Minor contributors (to current version): none.
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+** \verbatim
+** Original author: Liana Hadarean
+** Major contributors: none.
+** Minor contributors (to current version): none.
+** This file is part of the CVC4 project.
+** Copyright (c) 2009-2013  New York University and The University of Iowa
+** See the file COPYING in the top-level source directory for licensing
+** information.\endverbatim
+**
+** \brief [[ Add one-line brief description here ]]
+**
+** [[ Add lengthier description here ]]
+** \todo document this file
+**/
 
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/bv/options.h"
+#include "util/dump.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -724,7 +725,21 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
   return result;
 }
 
+static int num_confl = 0;
+static int num_lemma = 0;
 Node AbstractionModule::simplifyConflict(TNode conflict) {
+  if (Dump.isOn("bv-abstraction")) {
+    NodeNodeMap seen;
+    Node c = reverseAbstraction(conflict, seen);
+    ostringstream os;
+    os << "confl_" << num_confl;
+    Dump("bv-abstraction") << EchoCommand(os.str()); 
+    Dump("bv-abstraction") << PushCommand(); 
+    Dump("bv-abstraction") << AssertCommand(c.toExpr());
+    Dump("bv-abstraction") << CheckSatCommand();
+    Dump("bv-abstraction") << PopCommand(); 
+  }
+
   Debug("bv-abstraction-dbg") << "AbstractionModule::simplifyConflict " << conflict << "\n"; 
   if (conflict.getKind() != kind::AND)
     return conflict; 
@@ -759,7 +774,7 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
               s!= t);
       subst.addSubstitution(s, t); 
 
-      for (unsigned k = i; k < conjuncts.size(); k++) {
+      for (unsigned k = 0; k < conjuncts.size(); k++) {
         conjuncts[k] = subst.apply(conjuncts[k]);
       }
     }
@@ -768,12 +783,26 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
   
   Debug("bv-abstraction") << "AbstractionModule::simplifyConflict conflict " << conflict <<"\n";
   Debug("bv-abstraction") << "   => " << new_conflict <<"\n";
+
+  if (Dump.isOn("bv-abstraction")) {
+    
+    NodeNodeMap seen;
+    Node nc = reverseAbstraction(new_conflict, seen);
+    ostringstream os;
+    os << "confl_" << num_confl;
+    Dump("bv-abstraction") << EchoCommand(os.str()); 
+    Dump("bv-abstraction") << PushCommand(); 
+    Dump("bv-abstraction") << AssertCommand(nc.toExpr());
+    Dump("bv-abstraction") << CheckSatCommand();
+    Dump("bv-abstraction") << PopCommand(); 
+  }
+  
   return new_conflict; 
 }
 
 
 void DebugPrintInstantiations(const std::vector< std::vector<ArgsVec> >& instantiations,
-                             const std::vector<TNode> functions) {
+                              const std::vector<TNode> functions) {
   // print header
   Debug("bv-abstraction-dbg") <<"[ "; 
   for (unsigned i = 0; i < functions.size(); ++i) {
@@ -832,7 +861,8 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
 
   // Skolemize function arguments to avoid confusion in pattern matching
   SubstitutionMap skolem_subst(new context::Context());
-  makeFreshSkolems(conflict, skolem_subst);
+  SubstitutionMap reverse_skolem(new context::Context());
+  makeFreshSkolems(conflict, skolem_subst, reverse_skolem);
   
   Node skolemized_conflict = skolem_subst.apply(conflict);
   for (unsigned i = 0; i < functions.size(); ++i) {
@@ -845,11 +875,23 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
   std::vector<Node> new_lemmas;
   inst.generateInstantiations(new_lemmas); 
   for (unsigned i = 0; i < new_lemmas.size(); ++i) {
-    TNode lemma = new_lemmas[i];
+    TNode lemma = reverse_skolem.apply(new_lemmas[i]);
     if (d_addedLemmas.find(lemma) == d_addedLemmas.end()) {
       lemmas.push_back(lemma);
       Debug("bv-abstraction-gen") << "adding lemma " << lemma << "\n"; 
-      storeLemma(lemma); 
+      storeLemma(lemma);
+
+      if (Dump.isOn("bv-abstraction")) {
+        NodeNodeMap seen;
+        Node l = reverseAbstraction(lemma, seen);
+        ostringstream os;
+        os << "confl_" << num_lemma;
+        Dump("bv-abstraction") << EchoCommand(os.str()); 
+        Dump("bv-abstraction") << PushCommand(); 
+        Dump("bv-abstraction") << AssertCommand(l.toExpr());
+        Dump("bv-abstraction") << CheckSatCommand();
+        Dump("bv-abstraction") << PopCommand(); 
+      }
     }
   }
 }
@@ -962,20 +1004,21 @@ void AbstractionModule::LemmaInstantiatior::generateInstantiations(std::vector<N
   lemmas.swap(d_lemmas); 
 }
 
-void AbstractionModule::makeFreshSkolems(TNode node, SubstitutionMap& map) {
+void AbstractionModule::makeFreshSkolems(TNode node, SubstitutionMap& map, SubstitutionMap& reverse_map) {
   if (map.hasSubstitution(node)) {
     return;
   }
   if (node.getMetaKind() == kind::metakind::VARIABLE) {
     Node skolem = utils::mkVar(utils::getSize(node));
     map.addSubstitution(node, skolem);
+    reverse_map.addSubstitution(skolem, node);
     return;
   }
   if (node.isConst())
     return;
 
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    makeFreshSkolems(node[i], map);
+    makeFreshSkolems(node[i], map, reverse_map);
   }
 }
 
@@ -1083,7 +1126,7 @@ bool AbstractionModule::isLemmaAtom(TNode node) const {
   node = node.getKind() == kind::NOT? node[0] : node;
   
   return d_inputAtoms.find(node) == d_inputAtoms.end() &&
-         d_lemmaAtoms.find(node) != d_lemmaAtoms.end(); 
+    d_lemmaAtoms.find(node) != d_lemmaAtoms.end(); 
 }
 
 void AbstractionModule::ArgsTableEntry::addArguments(const ArgsVec& args) {
