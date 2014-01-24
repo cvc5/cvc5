@@ -209,6 +209,11 @@ private:
 	bool processNEqc(std::vector< std::vector< Node > > &normal_forms,
 					 std::vector< std::vector< Node > > &normal_forms_exp,
 					 std::vector< Node > &normal_form_src);
+	bool processReverseNEq(std::vector< std::vector< Node > > &normal_forms,
+						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j );
+	bool processSimpleNeq( std::vector< std::vector< Node > > &normal_forms,
+						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
+						   unsigned& index_i, unsigned& index_j );
     bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
     bool normalizeDisequality( Node n1, Node n2 );
 	bool unrollStar( Node atom );
@@ -254,6 +259,8 @@ protected:
 	/** mkExplain **/
 	Node mkExplain( std::vector< Node >& a );
 	Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
+	/** mkAnd **/
+	Node mkAnd( std::vector< Node >& a );
 	/** get concat vector */
 	void getConcatVec( Node n, std::vector< Node >& c );
 
