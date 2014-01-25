@@ -114,6 +114,7 @@ private:
     Node d_true;
     Node d_false;
     Node d_zero;
+	Node d_one;
 	// Options
 	bool d_all_warning;
 	bool d_opt_fmf;
@@ -286,7 +287,6 @@ private:
 	int getMaxPossibleLength( Node x );
 
 	// Special String Functions
-	Node d_charAtUF;
 	NodeList d_str_pos_ctn;
 	NodeList d_str_neg_ctn;
 	std::map< Node, bool > d_str_ctn_eqlen;

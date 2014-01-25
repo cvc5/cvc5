@@ -323,16 +323,22 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     } else if(node.getKind() == kind::STRING_LENGTH) {
         if(node[0].isConst()) {
             retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
+        } else if(node[0].getKind() == kind::STRING_CHARAT_TOTAL) {
+            retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
         } else if(node[0].getKind() == kind::STRING_CONCAT) {
             Node tmpNode = rewriteConcatString(node[0]);
             if(tmpNode.isConst()) {
                 retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
+            } else if(tmpNode.getKind() == kind::STRING_CHARAT_TOTAL) {
+				retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
             } else {
                 // it has to be string concat
                 std::vector<Node> node_vec;
                 for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
                     if(tmpNode[i].isConst()) {
                         node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
+					} else if(tmpNode[i].getKind() == kind::STRING_CHARAT_TOTAL) {
+                        node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) ) );
                     } else {
                         node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
                     }
@@ -360,7 +366,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				retNode = NodeManager::currentNM()->mkConst( false );
 			}
 		}
-	} else if(node.getKind() == kind::STRING_CHARAT) {
+	} else if(node.getKind() == kind::STRING_CHARAT || node.getKind() == kind::STRING_CHARAT_TOTAL) {
 		if( node[0].isConst() && node[1].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			if( node[0].getConst<String>().size() > (unsigned) i ) {

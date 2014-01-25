@@ -44,7 +44,6 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_length_nodes(c),
 	//d_var_lmin( c ),
 	//d_var_lmax( c ),
-	d_charAtUF(),
 	d_str_pos_ctn( c ),
 	d_str_neg_ctn( c ),
 	d_reg_exp_mem( c ),
@@ -55,10 +54,11 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    //d_equalityEngine.addFunctionKind(kind::STRING_CHARAT_TOTAL);
+    d_equalityEngine.addFunctionKind(kind::STRING_CHARAT_TOTAL);
     //d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+    d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
@@ -384,13 +384,19 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   default:
     if(n.getType().isString() && n.getKind() != kind::CONST_STRING && n.getKind()!=kind::STRING_CONCAT ) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
-		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-		  Node n_len_eq_z = n_len.eqNode( d_zero );
-		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-									NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-		  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
-		  d_out->lemma(n_len_geq_zero);
-		  d_out->requirePhase( n_len_eq_z, true );
+		  if(n.getKind() == kind::STRING_CHARAT_TOTAL) {
+			  Node lenc_eq_one = d_one.eqNode(NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n));
+			  Trace("strings-lemma") << "Strings::Lemma LEN(CHAR) = 1 : " << lenc_eq_one << std::endl;
+			  d_out->lemma(lenc_eq_one);
+		  } else {
+			  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
+			  Node n_len_eq_z = n_len.eqNode( d_zero );
+			  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+										NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
+			  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+			  d_out->lemma(n_len_geq_zero);
+			  d_out->requirePhase( n_len_eq_z, true );
+		  }
 	  }
 	  // FMF
 	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() && 
@@ -469,14 +475,14 @@ void TheoryStrings::check(Effort e) {
 			addedLemma = checkLengthsEqc();
 			Trace("strings-process") << "Done check lengths, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 			if(!d_conflict && !addedLemma) {
-				addedLemma = checkCardinality();
-				Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+				addedLemma = checkContains();
+				Trace("strings-process") << "Done check contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 				if( !d_conflict && !addedLemma ) {
 					addedLemma = checkMemberships();
 					Trace("strings-process") << "Done check membership constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 					if( !d_conflict && !addedLemma ) {
-						addedLemma = checkContains();
-						Trace("strings-process") << "Done check contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+						addedLemma = checkCardinality();
+						Trace("strings-process") << "Done check cardinality, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 					}
 				}
 			}
@@ -994,12 +1000,11 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 				bool success;
 				do
 				{
-					//---------------------do simple stuff first
+					//simple check
 					if( processSimpleNEq( normal_forms, normal_form_src, curr_exp, i, j, index_i, index_j, false ) ){
 						//added a lemma, return
 						return true;
 					}
-					//----------------------
 
 					success = false;
 					//if we are at the end
@@ -1097,11 +1102,6 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 										}
 									}
 
-									//Node sk = NodeManager::currentNM()->mkSkolem( "v_spt_$$", normal_forms[i][index_i].getType(), "created for v/v split" );
-									//Node eq1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[i][index_i],
-									//			NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[j][index_j], sk ) ) );
-									//Node eq2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::EQUAL, normal_forms[j][index_j],
-									//			NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, normal_forms[i][index_i], sk ) ) );
 									Node eq1 = mkSplitEq( "v_spt_l_$$", "created for v/v split", normal_forms[i][index_i], normal_forms[j][index_j], true );
 									Node eq2 = mkSplitEq( "v_spt_r_$$", "created for v/v split", normal_forms[j][index_j], normal_forms[i][index_i], true );
 									conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
@@ -1358,10 +1358,10 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 		std::vector< Node > nfj;
 		nfj.insert( nfj.end(), d_normal_forms[nj].begin(), d_normal_forms[nj].end() );
 
-		//int revRet = processReverseDeq( nfi, nfj, ni, nj );
-		//if( revRet!=0 ){
-		//	return revRet==-1;
-		//}
+		int revRet = processReverseDeq( nfi, nfj, ni, nj );
+		if( revRet!=0 ){
+			return revRet==-1;
+		}
 		
 		nfi.clear();
 		nfi.insert( nfi.end(), d_normal_forms[ni].begin(), d_normal_forms[ni].end() );
@@ -2366,19 +2366,8 @@ bool TheoryStrings::checkNegContains() {
 							Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
 										NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ), b1 ) ) );
 							Node b2 = NodeManager::currentNM()->mkBoundVar("bj", NodeManager::currentNM()->integerType());
-							if(d_charAtUF.isNull()) {
-								std::vector< TypeNode > argTypes;
-								argTypes.push_back(NodeManager::currentNM()->stringType());
-								argTypes.push_back(NodeManager::currentNM()->integerType());
-								d_charAtUF = NodeManager::currentNM()->mkSkolem("charAt", 
-												NodeManager::currentNM()->mkFunctionType(
-												argTypes,
-												NodeManager::currentNM()->stringType()),
-												"total charat",
-												NodeManager::SKOLEM_EXACT_NAME);
-							}
-							Node s2 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_charAtUF, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ));
-							Node s5 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_charAtUF, s, b2);
+							Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ));
+							Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT_TOTAL, s, b2);
 
 							Node s1 = NodeManager::currentNM()->mkBoundVar("s1", NodeManager::currentNM()->stringType());
 							Node s3 = NodeManager::currentNM()->mkBoundVar("s3", NodeManager::currentNM()->stringType());
@@ -2397,10 +2386,6 @@ bool TheoryStrings::checkNegContains() {
 							cc = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s4, s5, s6));
 							vec_nodes.push_back(cc);
 							cc = s2.eqNode(s5).negate();
-							vec_nodes.push_back(cc);
-							cc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s2).eqNode(NodeManager::currentNM()->mkConst( Rational(1)));
-							vec_nodes.push_back(cc);
-							cc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s5).eqNode(NodeManager::currentNM()->mkConst( Rational(1)));
 							vec_nodes.push_back(cc);
 							cc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s1).eqNode(NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ));
 							vec_nodes.push_back(cc);
