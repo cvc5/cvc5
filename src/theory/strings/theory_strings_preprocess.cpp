@@ -267,11 +267,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node cond = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, x, y );
 			Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
 			Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
-			Node iof = NodeManager::currentNM()->mkNode( kind::STRING_STRIDOF, x, y, zero );
-			Node c3 = iof.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-			Node rr = NodeManager::currentNM()->mkNode( kind::ITE, cond,
+			Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, sk1, y ).negate();
+			Node rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
 							NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 ),
-							skw.eqNode(x) );
+							skw.eqNode(x) ) );
 			new_nodes.push_back( rr );
 			d_cache[t] = skw;
 			retNode = skw;
