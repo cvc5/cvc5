@@ -68,6 +68,7 @@ namespace quantifiers {
   class BoundedIntegers;
   class QuantConflictFind;
   class RewriteEngine;
+  class RelevantDomain;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -95,7 +96,9 @@ private:
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
-  QuantRelevance d_quant_rel;
+  QuantRelevance * d_quant_rel;
+  /** relevant domain */
+  quantifiers::RelevantDomain* d_rel_dom;
   /** phase requirements for each quantifier for each instantiation literal */
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** efficient e-matcher */
@@ -121,7 +124,8 @@ private:
   /** has added lemma this round */
   bool d_hasAddedLemma;
   /** list of all instantiations produced for each quantifier */
-  std::map< Node, inst::CDInstMatchTrie* > d_inst_match_trie;
+  std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
+  std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */
@@ -158,8 +162,10 @@ public:
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
+  /** get relevant domain */
+  quantifiers::RelevantDomain* getRelevantDomain() { return d_rel_dom; }
   /** get quantifier relevance */
-  QuantRelevance* getQuantifierRelevance() { return &d_quant_rel; }
+  QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get phase requirement information */
   QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
   /** get phase requirement terms */

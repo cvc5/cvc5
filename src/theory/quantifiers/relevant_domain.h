@@ -42,16 +42,18 @@ private:
   std::map< Node, std::map< int, RDomain * > > d_rel_doms;
   std::map< RDomain *, Node > d_rn_map;
   std::map< RDomain *, int > d_ri_map;
-  RDomain * getRDomain( Node n, int i );
   QuantifiersEngine* d_qe;
   FirstOrderModel* d_model;
   void computeRelevantDomain( Node n, bool hasPol, bool pol );
+  bool d_is_computed;
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );
   virtual ~RelevantDomain(){}
+  void reset();
   //compute the relevant domain
   void compute();
 
+  RDomain * getRDomain( Node n, int i );
   Node getRelevantTerm( Node f, int i, Node r );
 };/* class RelevantDomain */
 

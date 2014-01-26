@@ -30,6 +30,7 @@
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/quantifiers/relevant_domain.h"
 #include "theory/uf/options.h"
 
 using namespace std;
@@ -41,7 +42,6 @@ using namespace CVC4::theory::inst;
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
 d_te( te ),
-d_quant_rel( false ),
 d_lemmas_produced_c(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
@@ -51,6 +51,7 @@ d_lemmas_produced_c(u){
   d_hasAddedLemma = false;
 
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+
   //the model object
   if( options::mbqiMode()==quantifiers::MBQI_FMC ||
       options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
@@ -59,6 +60,16 @@ d_lemmas_produced_c(u){
     d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );
   }else{
     d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
+  }
+  if( !options::finiteModelFind() ){
+    d_rel_dom = new quantifiers::RelevantDomain( this, d_model );
+  }else{
+    d_rel_dom = NULL;
+  }
+  if( options::relevantTriggers() ){
+    d_quant_rel = new QuantRelevance( false );
+  }else{
+    d_quant_rel = NULL;
   }
 
   //add quantifiers modules
@@ -161,6 +172,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     d_hasAddedLemma = false;
     d_term_db->reset( e );
     d_eq_query->reset();
+    if( d_rel_dom ){
+      d_rel_dom->reset();
+    }
     if( e==Theory::EFFORT_LAST_CALL ){
       //if effort is last call, try to minimize model first
       if( options::finiteModelFind() ){
@@ -209,7 +223,9 @@ void QuantifiersEngine::registerQuantifier( Node f ){
     //make instantiation constants for f
     d_term_db->makeInstantiationConstantsFor( f );
     //register with quantifier relevance
-    d_quant_rel.registerQuantifier( f );
+    if( d_quant_rel ){
+      d_quant_rel->registerQuantifier( f );
+    }
     //register with each module
     for( int i=0; i<(int)d_modules.size(); i++ ){
       d_modules[i]->registerQuantifier( f );
@@ -264,9 +280,11 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
     d_eem->newTerms( added );
   }
   //added contains also the Node that just have been asserted in this branch
-  for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
-    if( !withinQuant ){
-      d_quant_rel.setRelevance( i->getOperator(), 0 );
+  if( d_quant_rel ){
+    for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
+      if( !withinQuant ){
+        d_quant_rel->setRelevance( i->getOperator(), 0 );
+      }
     }
   }
 }
@@ -414,9 +432,17 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& terms ) {
 }
 
 bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, bool modInst ){
-  if( d_inst_match_trie.find( f )!=d_inst_match_trie.end() ){
-    if( d_inst_match_trie[f]->existsInstMatch( this, f, m, modEq, modInst ) ){
-      return true;
+  if( options::incrementalSolving() ){
+    if( d_c_inst_match_trie.find( f )!=d_c_inst_match_trie.end() ){
+      if( d_c_inst_match_trie[f]->existsInstMatch( this, f, m, getUserContext(), modEq, modInst ) ){
+        return true;
+      }
+    }
+  }else{
+    if( d_inst_match_trie.find( f )!=d_inst_match_trie.end() ){
+      if( d_inst_match_trie[f].existsInstMatch( this, f, m, modEq, modInst ) ){
+        return true;
+      }
     }
   }
   //also check model engine (it may contain instantiations internally)
@@ -461,19 +487,27 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
     }
   }
   //check for duplication modulo equality
-  inst::CDInstMatchTrie* imt;
-  std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_inst_match_trie.find( f );
-  if( it!=d_inst_match_trie.end() ){
-    imt = it->second;
-  }else{
-    imt = new CDInstMatchTrie( getUserContext() );
-    d_inst_match_trie[f] = imt;
-  }
+  bool alreadyExists = false;
+  ///*
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  if( !imt->addInstMatch( this, f, m, getUserContext(), modEq, modInst ) ){
-    Trace("inst-add-debug") << " -> Already exists." << std::endl;
-    ++(d_statistics.d_inst_duplicate);
-    return false;
+  if( options::incrementalSolving() ){
+    inst::CDInstMatchTrie* imt;
+    std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( f );
+    if( it!=d_c_inst_match_trie.end() ){
+      imt = it->second;
+    }else{
+      imt = new CDInstMatchTrie( getUserContext() );
+      d_c_inst_match_trie[f] = imt;
+    }
+    alreadyExists = !imt->addInstMatch( this, f, m, getUserContext(), modEq, modInst );
+  }else{
+    alreadyExists = !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst );
+  }
+  //*/
+  if( alreadyExists ){
+      Trace("inst-add-debug") << " -> Already exists." << std::endl;
+      ++(d_statistics.d_inst_duplicate_eq);
+      return false;
   }
   Trace("inst-add-debug") << "compute terms" << std::endl;
   //compute the vector of terms for the instantiation
@@ -681,47 +715,46 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
     if( d_int_rep.find( r )==d_int_rep.end() ){
       //find best selection for representative
       Node r_best;
-      if( options::fmfRelevantDomain() && !f.isNull() ){
-        Trace("internal-rep-debug") << "Consult relevant domain to mkRep " << r << std::endl;
-        r_best = d_qe->getModelEngine()->getRelevantDomain()->getRelevantTerm( f, index, r );
-        Trace("internal-rep-debug") << "Returned " << r_best << " " << r << std::endl;
-      }else{
-        std::vector< Node > eqc;
-        getEquivalenceClass( r, eqc );
-        Trace("internal-rep-select") << "Choose representative for equivalence class : { ";
-        for( unsigned i=0; i<eqc.size(); i++ ){
-          if( i>0 ) Trace("internal-rep-select") << ", ";
-          Trace("internal-rep-select") << eqc[i];
-        }
-        Trace("internal-rep-select")  << " } " << std::endl;
-        int r_best_score = -1;
-        for( size_t i=0; i<eqc.size(); i++ ){
-          //if cbqi is active, do not choose instantiation constant terms
-          if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
-            int score = getRepScore( eqc[i], f, index );
-            //score prefers earliest use of this term as a representative
-            if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
-              r_best = eqc[i];
-              r_best_score = score;
-            }
-		      }
-        }
-        if( r_best.isNull() ){
-          if( !f.isNull() ){
-            Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
-            r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
-          }else{
-            r_best = a;
-          }
-		    }
-        //now, make sure that no other member of the class is an instance
-        r_best = getInstance( r_best, eqc );
-        //store that this representative was chosen at this point
-        if( d_rep_score.find( r_best )==d_rep_score.end() ){
-          d_rep_score[ r_best ] = d_reset_count;
-        }
-        Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
+      //if( options::fmfRelevantDomain() && !f.isNull() ){
+      //  Trace("internal-rep-debug") << "Consult relevant domain to mkRep " << r << std::endl;
+      //  r_best = d_qe->getRelevantDomain()->getRelevantTerm( f, index, r );
+      //  Trace("internal-rep-debug") << "Returned " << r_best << " " << r << std::endl;
+      //}
+      std::vector< Node > eqc;
+      getEquivalenceClass( r, eqc );
+      Trace("internal-rep-select") << "Choose representative for equivalence class : { ";
+      for( unsigned i=0; i<eqc.size(); i++ ){
+        if( i>0 ) Trace("internal-rep-select") << ", ";
+        Trace("internal-rep-select") << eqc[i];
       }
+      Trace("internal-rep-select")  << " } " << std::endl;
+      int r_best_score = -1;
+      for( size_t i=0; i<eqc.size(); i++ ){
+        //if cbqi is active, do not choose instantiation constant terms
+        if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
+          int score = getRepScore( eqc[i], f, index );
+          //score prefers earliest use of this term as a representative
+          if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
+            r_best = eqc[i];
+            r_best_score = score;
+          }
+        }
+      }
+      if( r_best.isNull() ){
+        if( !f.isNull() ){
+          Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, index );
+          r_best = d_qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+        }else{
+          r_best = a;
+        }
+      }
+      //now, make sure that no other member of the class is an instance
+      r_best = getInstance( r_best, eqc );
+      //store that this representative was chosen at this point
+      if( d_rep_score.find( r_best )==d_rep_score.end() ){
+        d_rep_score[ r_best ] = d_reset_count;
+      }
+      Trace("internal-rep-select") << "...Choose " << r_best << std::endl;
       d_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;

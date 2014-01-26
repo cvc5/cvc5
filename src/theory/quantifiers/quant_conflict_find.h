@@ -38,9 +38,99 @@ public:
   Node addTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
 };
 
+class QuantInfo;
+
+//match generator
+class MatchGen {
+private:
+  //current children information
+  int d_child_counter;
+  //children of this object
+  //std::vector< int > d_children_order;
+  unsigned getNumChildren() { return d_children.size(); }
+  //MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
+  MatchGen * getChild( int i ) { return &d_children[i]; }
+  //current matching information
+  std::vector< QcfNodeIndex * > d_qn;
+  std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
+  bool doMatching( QuantConflictFind * p, QuantInfo * qi );
+  //for matching : each index is either a variable or a ground term
+  unsigned d_qni_size;
+  std::map< int, int > d_qni_var_num;
+  std::map< int, TNode > d_qni_gterm;
+  std::map< int, TNode > d_qni_gterm_rep;
+  std::map< int, int > d_qni_bound;
+  std::map< int, TNode > d_qni_bound_cons;
+  std::map< int, int > d_qni_bound_cons_var;
+  std::map< int, int >::iterator d_binding_it;
+  bool d_binding;
+  //int getVarBindingVar();
+  std::map< int, Node > d_ground_eval;
+public:
+  //type of the match generator
+  enum {
+    typ_invalid,
+    typ_ground,
+    typ_pred,
+    typ_eq,
+    typ_formula,
+    typ_var,
+    typ_top,
+  };
+  void debugPrintType( const char * c, short typ, bool isTrace = false );
+public:
+  MatchGen() : d_type( typ_invalid ){}
+  MatchGen( QuantConflictFind * p, Node q, Node n, bool isTop = false, bool isVar = false );
+  bool d_tgt;
+  Node d_n;
+  std::vector< MatchGen > d_children;
+  short d_type;
+  bool d_type_not;
+  void reset_round( QuantConflictFind * p );
+  void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
+  bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
+  bool isValid() { return d_type!=typ_invalid; }
+  void setInvalid();
+};
+
+//info for quantifiers
+class QuantInfo {
+public:
+  QuantInfo() : d_mg( NULL ) {}
+  std::vector< TNode > d_vars;
+  std::map< TNode, int > d_var_num;
+  //std::map< EqRegistry *, bool > d_rel_eqr;
+  std::map< int, std::vector< Node > > d_var_constraint[2];
+  int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
+  bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
+  int getNumVars() { return (int)d_vars.size(); }
+  TNode getVar( int i ) { return d_vars[i]; }
+  MatchGen * d_mg;
+  Node d_q;
+  std::map< int, MatchGen * > d_var_mg;
+  void reset_round( QuantConflictFind * p );
+public:
+  //current constraints
+  std::map< int, TNode > d_match;
+  std::map< int, TNode > d_match_term;
+  std::map< int, std::map< TNode, int > > d_curr_var_deq;
+  int getCurrentRepVar( int v );
+  TNode getCurrentValue( TNode n );
+  bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
+  int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
+  int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
+  bool setMatch( QuantConflictFind * p, int v, TNode n );
+  bool isMatchSpurious( QuantConflictFind * p );
+  bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned );
+  void debugPrintMatch( const char * c );
+  bool isConstrainedVar( int v );
+};
+
 class QuantConflictFind : public QuantifiersModule
 {
   friend class QcfNodeIndex;
+  friend class MatchGen;
+  friend class QuantInfo;
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
@@ -62,93 +152,9 @@ public:  //for ground terms
 private:
   Node evaluateTerm( Node n );
   int evaluate( Node n, bool pref = false, bool hasPref = false );
-public:  //for quantifiers
-  //match generator
-  class MatchGen {
-  private:
-    //current children information
-    int d_child_counter;
-    //children of this object
-    //std::vector< int > d_children_order;
-    unsigned getNumChildren() { return d_children.size(); }
-    //MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
-    MatchGen * getChild( int i ) { return &d_children[i]; }
-    //current matching information
-    std::vector< QcfNodeIndex * > d_qn;
-    std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
-    bool doMatching( QuantConflictFind * p, Node q );
-    //for matching : each index is either a variable or a ground term
-    unsigned d_qni_size;
-    std::map< int, int > d_qni_var_num;
-    std::map< int, Node > d_qni_gterm;
-    std::map< int, Node > d_qni_gterm_rep;
-    std::map< int, int > d_qni_bound;
-    std::map< int, Node > d_qni_bound_cons;
-    std::map< int, int > d_qni_bound_cons_var;
-    std::map< int, int >::iterator d_binding_it;
-    bool d_binding;
-    //int getVarBindingVar();
-    std::map< int, Node > d_ground_eval;
-  public:
-    //type of the match generator
-    enum {
-      typ_invalid,
-      typ_ground,
-      typ_pred,
-      typ_eq,
-      typ_formula,
-      typ_var,
-      typ_top,
-    };
-    void debugPrintType( const char * c, short typ, bool isTrace = false );
-  public:
-    MatchGen() : d_type( typ_invalid ){}
-    MatchGen( QuantConflictFind * p, Node q, Node n, bool isTop = false, bool isVar = false );
-    bool d_tgt;
-    Node d_n;
-    std::vector< MatchGen > d_children;
-    short d_type;
-    bool d_type_not;
-    void reset_round( QuantConflictFind * p );
-    void reset( QuantConflictFind * p, bool tgt, Node q );
-    bool getNextMatch( QuantConflictFind * p, Node q );
-    bool isValid() { return d_type!=typ_invalid; }
-    void setInvalid();
-  };
 private:
   //currently asserted quantifiers
   NodeList d_qassert;
-  //info for quantifiers
-  class QuantInfo {
-  public:
-    QuantInfo() : d_mg( NULL ) {}
-    std::vector< Node > d_vars;
-    std::map< Node, int > d_var_num;
-    //std::map< EqRegistry *, bool > d_rel_eqr;
-    std::map< int, std::vector< Node > > d_var_constraint[2];
-    int getVarNum( Node v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
-    bool isVar( Node v ) { return d_var_num.find( v )!=d_var_num.end(); }
-    int getNumVars() { return (int)d_vars.size(); }
-    Node getVar( int i ) { return d_vars[i]; }
-    MatchGen * d_mg;
-    std::map< int, MatchGen * > d_var_mg;
-    void reset_round( QuantConflictFind * p );
-  public:
-    //current constraints
-    std::map< int, Node > d_match;
-    std::map< int, Node > d_match_term;
-    std::map< int, std::map< Node, int > > d_curr_var_deq;
-    int getCurrentRepVar( int v );
-    Node getCurrentValue( Node n );
-    bool getCurrentCanBeEqual( QuantConflictFind * p, int v, Node n, bool chDiseq = false );
-    int addConstraint( QuantConflictFind * p, int v, Node n, bool polarity );
-    int addConstraint( QuantConflictFind * p, int v, Node n, int vn, bool polarity, bool doRemove );
-    bool setMatch( QuantConflictFind * p, int v, Node n );
-    bool isMatchSpurious( QuantConflictFind * p );
-    bool completeMatch( QuantConflictFind * p, Node q, std::vector< int >& assigned );
-    void debugPrintMatch( const char * c );
-    bool isConstrainedVar( int v );
-  };
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
   eq::EqualityEngine * getEqualityEngine();

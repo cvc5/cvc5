@@ -70,7 +70,7 @@ void RelevantDomain::RDomain::removeRedundantTerms( FirstOrderModel * fm ) {
 
 
 RelevantDomain::RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m ) : d_qe( qe ), d_model( m ){
-
+   d_is_computed = false;
 }
 
 RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i ) {
@@ -82,52 +82,59 @@ RelevantDomain::RDomain * RelevantDomain::getRDomain( Node n, int i ) {
   return d_rel_doms[n][i]->getParent();
 }
 
+void RelevantDomain::reset(){
+  d_is_computed = false;
+}
+
 void RelevantDomain::compute(){
-  for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
-    for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-      it2->second->reset();
+  if( !d_is_computed ){
+    d_is_computed = true;
+    for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
+      for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+        it2->second->reset();
+      }
     }
-  }
-  for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
-    Node f = d_model->getAssertedQuantifier( i );
-    Node icf = d_qe->getTermDatabase()->getInstConstantBody( f );
-    Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
-    computeRelevantDomain( icf, true, true );
-  }
+    for( int i=0; i<(int)d_model->getNumAssertedQuantifiers(); i++ ){
+      Node f = d_model->getAssertedQuantifier( i );
+      Node icf = d_qe->getTermDatabase()->getInstConstantBody( f );
+      Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
+      computeRelevantDomain( icf, true, true );
+    }
 
-  Trace("rel-dom-debug") << "account for ground terms" << std::endl;
-  for( std::map< Node, std::vector< Node > >::iterator it = d_model->d_uf_terms.begin(); it != d_model->d_uf_terms.end(); ++it ){
-    Node op = it->first;
-    for( unsigned i=0; i<it->second.size(); i++ ){
-      Node n = it->second[i];
-      //if it is a non-redundant term
-      if( !n.getAttribute(NoMatchAttribute()) ){
-        for( unsigned j=0; j<n.getNumChildren(); j++ ){
-          RDomain * rf = getRDomain( op, j );
-          rf->addTerm( n[j] );
+    Trace("rel-dom-debug") << "account for ground terms" << std::endl;
+    TermDb * db = d_qe->getTermDatabase();
+    for( std::map< Node, std::vector< Node > >::iterator it = db->d_op_map.begin(); it != db->d_op_map.end(); ++it ){
+      Node op = it->first;
+      for( unsigned i=0; i<it->second.size(); i++ ){
+        Node n = it->second[i];
+        //if it is a non-redundant term
+        if( !n.getAttribute(NoMatchAttribute()) ){
+          for( unsigned j=0; j<n.getNumChildren(); j++ ){
+            RDomain * rf = getRDomain( op, j );
+            rf->addTerm( n[j] );
+          }
         }
       }
     }
-  }
-  //print debug
-  for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
-    Trace("rel-dom") << "Relevant domain for " << it->first << " : " << std::endl;
-    for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-      Trace("rel-dom") << "   " << it2->first << " : ";
-      RDomain * r = it2->second;
-      RDomain * rp = r->getParent();
-      if( r==rp ){
-        r->removeRedundantTerms( d_model );
-        for( unsigned i=0; i<r->d_terms.size(); i++ ){
-          Trace("rel-dom") << r->d_terms[i] << " ";
+    //print debug
+    for( std::map< Node, std::map< int, RDomain * > >::iterator it = d_rel_doms.begin(); it != d_rel_doms.end(); ++it ){
+      Trace("rel-dom") << "Relevant domain for " << it->first << " : " << std::endl;
+      for( std::map< int, RDomain * >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
+        Trace("rel-dom") << "   " << it2->first << " : ";
+        RDomain * r = it2->second;
+        RDomain * rp = r->getParent();
+        if( r==rp ){
+          r->removeRedundantTerms( d_model );
+          for( unsigned i=0; i<r->d_terms.size(); i++ ){
+            Trace("rel-dom") << r->d_terms[i] << " ";
+          }
+        }else{
+          Trace("rel-dom") << "Dom( " << d_rn_map[rp] << ", " << d_ri_map[rp] << " ) ";
         }
-      }else{
-        Trace("rel-dom") << "Dom( " << d_rn_map[rp] << ", " << d_ri_map[rp] << " ) ";
+        Trace("rel-dom") << std::endl;
       }
-      Trace("rel-dom") << std::endl;
     }
   }
-
 }
 
 void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {

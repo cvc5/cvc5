@@ -50,12 +50,6 @@ QuantifiersModule( qe ){
     Trace("model-engine-debug") << "...make default model builder." << std::endl;
     d_builder = new QModelBuilderDefault( c, qe );
   }
-
-  if( options::fmfRelevantDomain() ){
-    d_rel_dom = new RelevantDomain( qe, qe->getModel() );
-  }else{
-    d_rel_dom = NULL;
-  }
 }
 
 void ModelEngine::check( Theory::Effort e ){
@@ -191,10 +185,6 @@ int ModelEngine::checkModel(){
         }
       }
     }
-  }
-  //relevant domain?
-  if( d_rel_dom ){
-    d_rel_dom->compute();
   }
 
   d_triedLemmas = 0;

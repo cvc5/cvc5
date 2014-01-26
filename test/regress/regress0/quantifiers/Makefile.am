@@ -24,7 +24,6 @@ TESTS =	\
 	bug291.smt2 \
 	ex3.smt2 \
 	Arrays_Q1-noinfer.smt2 \
-	array-unsat-simp3.smt2 \
 	bignum_quant.smt2 \
 	bug269.smt2 \
 	burns13.smt2 \
@@ -60,6 +59,7 @@ TESTS =	\
 #		javafe.ast.WhileStmt.447.smt2 \
 #		javafe.tc.CheckCompilationUnit.001.smt2 \
 #		javafe.tc.FlowInsensitiveChecks.682.smt2 \
+#		array-unsat-simp3.smt2 \
 #
 
 EXTRA_DIST = $(TESTS) \
