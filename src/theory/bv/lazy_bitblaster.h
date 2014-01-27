@@ -38,7 +38,6 @@ namespace bv {
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
   : TBitblaster()
   , d_bv(bv)
-  , d_bvOutput(bv->d_out)
   , d_assertedAtoms(c)
   , d_variables()
   , d_bbAtoms()
@@ -50,9 +49,15 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
                                              new prop::NullRegistrar(),
                                              new context::Context());
 
-    MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
+    // can not notify a theory
+    prop::BVSatSolverInterface::Notify* notify = NULL;
+    if (bv == NULL)
+      notify = new MinisatEmptyNotify();
+    else
+      notify = new MinisatNotify(d_cnfStream, bv);
+    Assert (notify != NULL); 
     d_satSolver->setNotify(notify);
-  }
+}
 
 void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
   d_abstraction = abs; 
@@ -419,6 +424,29 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
       }
     }
   }
+}
+
+void TLazyBitblaster::clearSolver() {
+  delete d_satSolver;
+  delete d_cnfStream;
+  d_assertedAtoms.clear();
+  d_variables.clear();
+  d_bbAtoms.clear();
+
+  // recreate sat solver
+  d_satSolver = prop::SatSolverFactory::createMinisat(c);
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
+                                           new prop::NullRegistrar(),
+                                           new context::Context());
+
+  // can not notify a theory
+  prop::BVSatSolverInterface::Notify* notify = NULL;
+  if (bv == NULL)
+    notify = new MinisatEmptyNotify();
+  else
+    notify = new MinisatNotify(d_cnfStream, bv);
+  Assert (notify != NULL); 
+  d_satSolver->setNotify(notify);
 }
 
 } /*bv namespace */

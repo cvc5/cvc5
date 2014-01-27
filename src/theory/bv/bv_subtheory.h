@@ -100,6 +100,8 @@ public:
     return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
+  AssertionQueue::const_iterator assertionsBegin() { return d_assertionQueue.begin(); }
+  AssertionQueue::const_iterator assertionsEnd() { return d_assertionQueue.end(); }
 };
 
 }

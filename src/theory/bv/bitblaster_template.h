@@ -119,10 +119,12 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   };
 
 
+  
+  
+
   TheoryBV *d_bv;
 
   // sat solver used for bitblasting and associated CnfStream
-  theory::OutputChannel*             d_bvOutput;
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
@@ -175,7 +177,7 @@ public:
 
   bool isSharedTerm(TNode node);
   uint64_t computeAtomWeight(TNode node);
-
+  void clearSolver(); 
 private:
 
   class Statistics {
