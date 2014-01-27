@@ -110,9 +110,11 @@ public:
   std::map< int, MatchGen * > d_var_mg;
   void reset_round( QuantConflictFind * p );
 public:
+  //initialize
+  void initialize( Node q );
   //current constraints
-  std::map< int, TNode > d_match;
-  std::map< int, TNode > d_match_term;
+  std::vector< TNode > d_match;
+  std::vector< TNode > d_match_term;
   std::map< int, std::map< TNode, int > > d_curr_var_deq;
   int getCurrentRepVar( int v );
   TNode getCurrentValue( TNode n );

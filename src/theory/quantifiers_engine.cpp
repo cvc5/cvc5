@@ -467,8 +467,8 @@ bool QuantifiersEngine::addLemma( Node lem ){
   }
 }
 
-bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool modInst, bool mkRep ){
-  Trace("inst-add-debug") << "Add instantiation: " << m << std::endl;
+bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst ){
+  std::vector< Node > terms;
   //make sure there are values for each variable we are instantiating
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
     Node ic = d_term_db->getInstantiationConstant( f, i );
@@ -476,21 +476,32 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
     if( val.isNull() ){
       val = d_term_db->getFreeVariableForInstConstant( ic );
       Trace("inst-add-debug") << "mkComplete " << val << std::endl;
-      m.set( ic, val );
     }
+    terms.push_back( val );
+  }
+  return addInstantiation( f, terms, mkRep, modEq, modInst );
+}
+
+bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bool mkRep, bool modEq, bool modInst ) {
+  Assert( terms.size()==f[0].getNumChildren() );
+  Trace("inst-add-debug") << "Add instantiation: ";
+  for( unsigned i=0; i<terms.size(); i++ ){
+    if( i>0 ) Trace("inst-add-debug") << ", ";
+    Trace("inst-add-debug") << f[0][i] << " -> " << terms[i];
     //make it representative, this is helpful for recognizing duplication
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
-      Node r = d_eq_query->getInternalRepresentative( val, f, i );
-      Trace("inst-add-debug") << "mkRep " << r << " " << val << std::endl;
-      m.set( ic, r );
+      terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
+      //Trace("inst-add-debug") << " (" << terms[i] << ")";
     }
   }
-  //check for duplication modulo equality
+  Trace("inst-add-debug") << std::endl;
+
+  //check for duplication
   bool alreadyExists = false;
   ///*
-  Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   if( options::incrementalSolving() ){
+    Trace("inst-add-debug") << "Adding into context-dependent inst trie" << std::endl;
     inst::CDInstMatchTrie* imt;
     std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( f );
     if( it!=d_c_inst_match_trie.end() ){
@@ -499,30 +510,21 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
       imt = new CDInstMatchTrie( getUserContext() );
       d_c_inst_match_trie[f] = imt;
     }
-    alreadyExists = !imt->addInstMatch( this, f, m, getUserContext(), modEq, modInst );
+    alreadyExists = !imt->addInstMatch( this, f, terms, getUserContext(), modEq, modInst );
   }else{
-    alreadyExists = !d_inst_match_trie[f].addInstMatch( this, f, m, modEq, modInst );
+    Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
+    alreadyExists = !d_inst_match_trie[f].addInstMatch( this, f, terms, modEq, modInst );
   }
-  //*/
   if( alreadyExists ){
-      Trace("inst-add-debug") << " -> Already exists." << std::endl;
-      ++(d_statistics.d_inst_duplicate_eq);
-      return false;
+    Trace("inst-add-debug") << " -> Already exists." << std::endl;
+    ++(d_statistics.d_inst_duplicate_eq);
+    return false;
   }
-  Trace("inst-add-debug") << "compute terms" << std::endl;
-  //compute the vector of terms for the instantiation
-  std::vector< Node > terms;
-  for( size_t i=0; i<d_term_db->d_inst_constants[f].size(); i++ ){
-    Node n = m.getValue( d_term_db->d_inst_constants[f][i] );
-    Assert( !n.isNull() );
-    terms.push_back( n );
-  }
+
   //add the instantiation
   bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );
   //report the result
   if( addedInst ){
-    Trace("inst-add") << "Added instantiation for " << f << ": " << std::endl;
-    Trace("inst-add") << "   " << m << std::endl;
     Trace("inst-add-debug") << " -> Success." << std::endl;
     return true;
   }else{
@@ -530,6 +532,7 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool modEq, bool
     return false;
   }
 }
+
 
 bool QuantifiersEngine::addSplit( Node n, bool reqPhase, bool reqPhasePol ){
   n = Rewriter::rewrite( n );

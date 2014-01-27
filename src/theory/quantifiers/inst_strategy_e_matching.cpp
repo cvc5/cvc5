@@ -386,11 +386,11 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
         if( success ){
           index--;
           //try instantiation
-          InstMatch m;
+          std::vector< Node > terms;
           for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-            m.set( d_quantEngine, f, i, rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+            terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
           }
-          if( d_quantEngine->addInstantiation( f, m, true, false, false ) ){
+          if( d_quantEngine->addInstantiation( f, terms, false ) ){
             ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
             return STATUS_UNKNOWN;
           }

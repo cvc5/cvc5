@@ -212,7 +212,9 @@ public:
   /** add lemma lem */
   bool addLemma( Node lem );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false, bool mkRep = true );
+  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
+  /** add instantiation */
+  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */

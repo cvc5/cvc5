@@ -45,7 +45,7 @@ public:
   /** set the match of v to m */
   bool setMatch( EqualityQuery* q, TNode v, TNode m );
   /* This version tell if the variable has been set */
-  bool setMatch( EqualityQuery* q, TNode v, TNode m, bool & set);
+  bool setMatch( EqualityQuery* q, TNode v, TNode m, bool & st);
   /** fill all unfilled values with m */
   bool add( InstMatch& m );
   /** if compatible, fill all unfilled values with m and return true
@@ -134,54 +134,19 @@ public:
                         bool modInst = false, ImtIndexOrder* imtio = NULL, int index = 0 ) {
     return !addInstMatch( qe, f, m, modEq, modInst, imtio, true, index );
   }
+  bool existsInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
+                        bool modInst = false, ImtIndexOrder* imtio = NULL, int index = 0 ) {
+    return !addInstMatch( qe, f, m, modEq, modInst, imtio, true, index );
+  }
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
                      bool modInst = false, ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
+  bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
+                     bool modInst = false, ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
 };/* class InstMatchTrie */
-
-
-#if 0
-
-/** trie for InstMatch objects */
-class CDInstMatchTrie {
-public:
-  class ImtIndexOrder {
-  public:
-    std::vector< int > d_order;
-  };/* class InstMatchTrie ImtIndexOrder */
-private:
-  /** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
-  void addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, int index, ImtIndexOrder* imtio );
-  /** exists match */
-  bool existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, int index, ImtIndexOrder* imtio );
-public:
-  /** the data */
-  std::map< Node, CDInstMatchTrie* > d_data;
-  /** is valid */
-  context::CDO< bool > d_valid;
-public:
-  CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
-  ~CDInstMatchTrie(){}
-public:
-  /** return true if m exists in this trie
-        modEq is if we check modulo equality
-        modInst is if we return true if m is an instance of a match that exists
-   */
-  bool existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq = false,
-                        bool modInst = false, ImtIndexOrder* imtio = NULL );
-  /** add match m for quantifier f, take into account equalities if modEq = true,
-      if imtio is non-null, this is the order to add to trie
-      return true if successful
-  */
-  bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, bool modEq = false,
-                     bool modInst = false, ImtIndexOrder* imtio = NULL );
-};/* class CDInstMatchTrie */
-
-#else
-
 
 /** trie for InstMatch objects */
 class CDInstMatchTrie {
@@ -202,11 +167,17 @@ public:
                         bool modInst = false, int index = 0 ) {
     return !addInstMatch( qe, f, m, c, modEq, modInst, index, true );
   }
+  bool existsInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, context::Context* c, bool modEq = false,
+                        bool modInst = false, int index = 0 ) {
+    return !addInstMatch( qe, f, m, c, modEq, modInst, index, true );
+  }
   /** add match m for quantifier f, take into account equalities if modEq = true,
       if imtio is non-null, this is the order to add to trie
       return true if successful
   */
   bool addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, bool modEq = false,
+                     bool modInst = false, int index = 0, bool onlyExist = false );
+  bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, context::Context* c, bool modEq = false,
                      bool modInst = false, int index = 0, bool onlyExist = false );
 };/* class CDInstMatchTrie */
 
@@ -231,9 +202,6 @@ public:
     return d_imt.existsInstMatch( qe, f, m, modEq, modInst, d_imtio );
   }
 };/* class InstMatchTrieOrdered */
-
-#endif
-
 
 }/* CVC4::theory::inst namespace */
 

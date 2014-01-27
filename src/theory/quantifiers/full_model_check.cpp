@@ -672,12 +672,8 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
                 }
               }else{
                 //just add the instance
-                InstMatch m;
-                for( unsigned j=0; j<inst.size(); j++) {
-                  m.set( d_qe, f, j, inst[j] );
-                }
                 d_triedLemmas++;
-                if( d_qe->addInstantiation( f, m ) ){
+                if( d_qe->addInstantiation( f, inst ) ){
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
                 }else{
@@ -792,13 +788,9 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       Trace("fmc-exh-debug") << ", index = " << ev_index << " / " << d_quant_models[f].d_value.size();
       Node ev = ev_index==-1 ? Node::null() : d_quant_models[f].d_value[ev_index];
       if (ev!=d_true) {
-        InstMatch m;
-        for( unsigned i=0; i<inst.size(); i++ ){
-          m.set( d_qe, f, i, inst[i] );
-        }
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if( d_qe->addInstantiation( f, m ) ){
+        if( d_qe->addInstantiation( f, inst ) ){
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
         }else{

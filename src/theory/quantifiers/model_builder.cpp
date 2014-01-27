@@ -275,7 +275,7 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
+    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false ) ){
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
