@@ -14,9 +14,12 @@ option bitvectorAig --bitblast-aig bool
 option bitvectorShareLemmas --bitblast-share-lemmas bool
  share lemmas from the bitblasting solver with the main solver
 
+option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default false
+ turn on the algebraic solver for the bit-vector theory 
+ 
 option bitvectorInequalitySolver --bv-inequality-solver bool :default true
  turn on the inequality solver for the bit-vector theory 
-
+ 
 option bitvectorCoreSolver --bv-core-solver bool
  turn on the core solver for the bit-vector theory 
 

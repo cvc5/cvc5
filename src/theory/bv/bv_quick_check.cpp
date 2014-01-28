@@ -32,7 +32,7 @@ Node BVQuickCheck::constructConflict() {
   return utils::mkConjunction(conflict); 
 }
 // TODO: return enum 
-Node BVQuickCheck::checkSat(std::vector<TNode>& assumptions, bool propagation_only) {
+prop::SatValue BVQuickCheck::checkSat(std::vector<TNode>& assumptions, bool propagation_only) {
   Node conflict; 
   push(); 
   for (unsigned i = 0; i < assumptions.size(); ++i) {

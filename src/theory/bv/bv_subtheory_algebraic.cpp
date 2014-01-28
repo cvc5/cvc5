@@ -273,3 +273,7 @@ bool AlgebraicSolver::solve(TNode fact, SubstitutionEx& subst) {
 
   return true;
 } 
+
+bool AlgebraicSolver::isComplete() {
+
+}
