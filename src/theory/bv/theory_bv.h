@@ -33,9 +33,11 @@ namespace bv {
 
 class CoreSolver;
 class InequalitySolver;
+class AlgebraicSolver;
 class BitblastSolver; 
-class EagerBitblastSolver;
 
+class EagerBitblastSolver;
+  
 class AbstractionModule;
 
 class TheoryBV : public Theory {
@@ -166,7 +168,8 @@ private:
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;
-  friend class InequalitySolver; 
+  friend class InequalitySolver;
+  friend class AlgebraicSolver;
 };/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */

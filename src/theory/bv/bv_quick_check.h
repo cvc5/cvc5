@@ -36,7 +36,7 @@ public:
   BVQuickCheck();
   ~BVQuickCheck();
 
-  bool checkSat(std::vector<TNode>& assumptions, bool propagation_only);
+  Node checkSat(std::vector<TNode>& assumptions, bool propagation_only);
   void push();
   void pop();
   void clear(); 

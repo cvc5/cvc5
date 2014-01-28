@@ -38,6 +38,7 @@ namespace bv {
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv)
   : TBitblaster()
   , d_bv(bv)
+  , d_ctx(c)
   , d_assertedAtoms(c)
   , d_variables()
   , d_bbAtoms()
@@ -429,22 +430,22 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
 void TLazyBitblaster::clearSolver() {
   delete d_satSolver;
   delete d_cnfStream;
-  d_assertedAtoms.clear();
+  d_assertedAtoms = context::CDList<prop::SatLiteral>(d_ctx);
   d_variables.clear();
   d_bbAtoms.clear();
 
   // recreate sat solver
-  d_satSolver = prop::SatSolverFactory::createMinisat(c);
+  d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
                                            new prop::NullRegistrar(),
                                            new context::Context());
 
   // can not notify a theory
   prop::BVSatSolverInterface::Notify* notify = NULL;
-  if (bv == NULL)
+  if (d_bv == NULL)
     notify = new MinisatEmptyNotify();
   else
-    notify = new MinisatNotify(d_cnfStream, bv);
+    notify = new MinisatNotify(d_cnfStream, d_bv);
   Assert (notify != NULL); 
   d_satSolver->setNotify(notify);
 }

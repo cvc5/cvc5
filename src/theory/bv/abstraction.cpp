@@ -769,7 +769,7 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
       }
       
       Assert (!subst.hasSubstitution(s));
-      assert (!t.isNull() &&
+      Assert (!t.isNull() &&
               !s.isNull() &&
               s!= t);
       subst.addSubstitution(s, t); 

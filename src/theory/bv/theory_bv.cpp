@@ -1,19 +1,19 @@
 /*********************                                                        */
 /*! \file theory_bv.cpp
- ** \verbatim
- ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters, Liana Hadarean
- ** Minor contributors (to current version): Tim King, Kshitij Bansal, Clark Barrett, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+** \verbatim
+** Original author: Dejan Jovanovic
+** Major contributors: Morgan Deters, Liana Hadarean
+** Minor contributors (to current version): Tim King, Kshitij Bansal, Clark Barrett, Andrew Reynolds
+** This file is part of the CVC4 project.
+** Copyright (c) 2009-2013  New York University and The University of Iowa
+** See the file COPYING in the top-level source directory for licensing
+** information.\endverbatim
+**
+** \brief [[ Add one-line brief description here ]]
+**
+** [[ Add lengthier description here ]]
+** \todo document this file
+**/
 
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -50,30 +50,37 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
     d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule())
-  {
+    d_abstractionModule(new AbstractionModule()) {
 
-    if (options::bitvectorEagerBitblast()) {
-      d_eagerSolver = new EagerBitblastSolver();
-      return; 
-    } 
-    if (options::bvEquality()) {
-      SubtheorySolver* core_solver = new CoreSolver(c, this);
-      d_subtheories.push_back(core_solver);
-      d_subtheoryMap[SUB_CORE] = core_solver;
-    }
-    if (options::bitvectorInequalitySolver()) {
-      SubtheorySolver* ineq_solver = new InequalitySolver(c, this);
-      d_subtheories.push_back(ineq_solver);
-      d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
-    }
-
-    BitblastSolver* bb_solver = new BitblastSolver(c, this);
-    if (options::bvAbstraction())
-      bb_solver->setAbstraction(d_abstractionModule); 
-    d_subtheories.push_back(bb_solver);
-    d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+  if (options::bitvectorEagerBitblast()) {
+    d_eagerSolver = new EagerBitblastSolver();
+    return; 
   }
+    
+  if (options::bvEquality()) {
+    SubtheorySolver* core_solver = new CoreSolver(c, this);
+    d_subtheories.push_back(core_solver);
+    d_subtheoryMap[SUB_CORE] = core_solver;
+  }
+  if (options::bitvectorInequalitySolver()) {
+    SubtheorySolver* ineq_solver = new InequalitySolver(c, this);
+    d_subtheories.push_back(ineq_solver);
+    d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
+  }
+
+  if (options::bitvectorAlgebraicSolver()) {
+    SubtheorySolver* alg_solver = new AlgebraicSolver(c, this);
+    d_subtheories.push_back(alg_solver);
+    d_subtheoryMap[SUB_ALGEBRAIC] = alg_solver;
+  }
+
+  BitblastSolver* bb_solver = new BitblastSolver(c, this);
+  if (options::bvAbstraction())
+    bb_solver->setAbstraction(d_abstractionModule); 
+  d_subtheories.push_back(bb_solver);
+  d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+}
+
 
 TheoryBV::~TheoryBV() {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
@@ -165,8 +172,8 @@ void TheoryBV::checkForLemma(TNode fact) {
       TNode divisor = urem[1];
       Node result_ult_div = mkNode(kind::BITVECTOR_ULT, result, divisor);
       Node divisor_eq_0 = mkNode(kind::EQUAL,
-                                  divisor,
-                                  mkConst(BitVector(getSize(divisor), 0u)));
+                                 divisor,
+                                 mkConst(BitVector(getSize(divisor), 0u)));
       Node split = utils::mkNode(kind::OR, divisor_eq_0, mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }

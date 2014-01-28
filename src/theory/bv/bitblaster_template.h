@@ -123,6 +123,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   
 
   TheoryBV *d_bv;
+  context::Context* d_ctx;
 
   // sat solver used for bitblasting and associated CnfStream
   prop::BVSatSolverInterface*        d_satSolver;
