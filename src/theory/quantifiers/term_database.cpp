@@ -61,6 +61,33 @@ void TermDb::addTermEfficient( Node n, std::set< Node >& added){
 }
 
 
+Node TermDb::getOperator( Node n ) {
+  //return n.getOperator();
+
+  if( n.getKind()==SELECT || n.getKind()==STORE ){
+    //since it is parametric, use a particular one as op
+    TypeNode tn1 = n[0].getType();
+    TypeNode tn2 = n[1].getType();
+    Node op = n.getOperator();
+    std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > >::iterator ito = d_par_op_map.find( op );
+    if( ito!=d_par_op_map.end() ){
+      std::map< TypeNode, std::map< TypeNode, Node > >::iterator it = ito->second.find( tn1 );
+      if( it!=ito->second.end() ){
+        std::map< TypeNode, Node >::iterator it2 = it->second.find( tn2 );
+        if( it2!=it->second.end() ){
+          return it2->second;
+        }
+      }
+    }
+    d_par_op_map[op][tn1][tn2] = n;
+    return n;
+  }else if( n.getKind()==APPLY_UF ){
+    return n.getOperator();
+  }else{
+    return Node::null();
+  }
+}
+
 void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
@@ -77,7 +104,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
       if( !TermDb::hasInstConstAttr(n) ){
         Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
-        Node op = n.getOperator();
+        Node op = getOperator( n );
         d_op_map[op].push_back( n );
         added.insert( n );
 
@@ -170,7 +197,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
          computeModelBasisArgAttribute( en );
          if( en.getKind()==APPLY_UF && !TermDb::hasInstConstAttr(en) ){
            if( !en.getAttribute(NoMatchAttribute()) ){
-             Node op = en.getOperator();
+             Node op = getOperator( en );
              if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
                NoMatchAttribute nma;
                en.setAttribute(nma,true);

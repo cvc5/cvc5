@@ -290,8 +290,8 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
 }
 
 void QuantifiersEngine::computeTermVector( Node f, InstMatch& m, std::vector< Node >& vars, std::vector< Node >& terms ){
-  for( size_t i=0; i<d_term_db->d_inst_constants[f].size(); i++ ){
-    Node n = m.getValue( d_term_db->d_inst_constants[f][i] );
+  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+    Node n = m.get( i );
     if( !n.isNull() ){
       vars.push_back( f[0][i] );
       terms.push_back( n );
@@ -471,9 +471,9 @@ bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool
   std::vector< Node > terms;
   //make sure there are values for each variable we are instantiating
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    Node ic = d_term_db->getInstantiationConstant( f, i );
-    Node val = m.getValue( ic );
+    Node val = m.get( i );
     if( val.isNull() ){
+      Node ic = d_term_db->getInstantiationConstant( f, i );
       val = d_term_db->getFreeVariableForInstConstant( ic );
       Trace("inst-add-debug") << "mkComplete " << val << std::endl;
     }
@@ -498,8 +498,8 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   Trace("inst-add-debug") << std::endl;
 
   //check for duplication
-  bool alreadyExists = false;
   ///*
+  bool alreadyExists = false;
   if( options::incrementalSolving() ){
     Trace("inst-add-debug") << "Adding into context-dependent inst trie" << std::endl;
     inst::CDInstMatchTrie* imt;
@@ -520,6 +520,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     ++(d_statistics.d_inst_duplicate_eq);
     return false;
   }
+  //*/
 
   //add the instantiation
   bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );

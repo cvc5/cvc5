@@ -148,7 +148,7 @@ int InstStrategySimplex::process( Node f, Theory::Effort effort, int e ){
           // where e is a vector of terms , and t is vector of ground terms.
           // Say one term in A*e is coeff*e_i, where e_i is an instantiation constant
           // We will construct the term ( beta - B*t)/coeff to use for e_i.
-          InstMatch m;
+          InstMatch m( f );
           //By default, choose the first instantiation constant to be e_i.
           Node var = d_ceTableaux[ic][x].begin()->first;
           if( var.getType().isInteger() ){
@@ -292,7 +292,8 @@ bool InstStrategySimplex::doInstantiation2( Node f, Node ic, Node term, ArithVar
   }
   instVal = Rewriter::rewrite( instVal );
   //use as instantiation value for var
-  m.set(var, instVal);
+  int vn = var.getAttribute(InstVarNumAttribute());
+  m.setValue( vn, instVal );
   Debug("quant-arith") << "Add instantiation " << m << std::endl;
   return d_quantEngine->addInstantiation( f, m );
 }
@@ -333,13 +334,13 @@ int InstStrategyDatatypesValue::process( Node f, Theory::Effort effort, int e ){
   if( e<2 ){
     return InstStrategy::STATUS_UNFINISHED;
   }else if( e==2 ){
-    InstMatch m;
+    InstMatch m( f );
     for( int j = 0; j<(int)d_quantEngine->getTermDatabase()->getNumInstantiationConstants( f ); j++ ){
       Node i = d_quantEngine->getTermDatabase()->getInstantiationConstant( f, j );
       if( i.getType().isDatatype() ){
         Node n = getValueFor( i );
         Debug("quant-datatypes-debug") << "Value for " << i << " is " << n << std::endl;
-        m.set(i,n);
+        m.setValue( j, n);
       }
     }
     //d_quantEngine->addInstantiation( f, m );

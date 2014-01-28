@@ -70,7 +70,8 @@ d_quantEngine( qe ), d_f( f ){
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
   if( options::eagerInstQuant() ){
     for( int i=0; i<(int)d_nodes.size(); i++ ){
-      qe->getTermDatabase()->registerTrigger( this, d_nodes[i].getOperator() );
+      Node op = qe->getTermDatabase()->getOperator( d_nodes[i] );
+      qe->getTermDatabase()->registerTrigger( this, op );
     }
   }
   Trace("trigger-debug") << "Finished making trigger." << std::endl;

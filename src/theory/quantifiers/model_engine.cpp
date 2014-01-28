@@ -261,9 +261,9 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       int addedLemmas = 0;
       while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
         //instantiation was not shown to be true, construct the match
-        InstMatch m;
+        InstMatch m( f );
         for( int i=0; i<riter.getNumTerms(); i++ ){
-          m.set( d_quantEngine, f, riter.d_index_order[i], riter.getTerm( i ) );
+          m.set( d_quantEngine, riter.d_index_order[i], riter.getTerm( i ) );
         }
         Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
         triedLemmas++;

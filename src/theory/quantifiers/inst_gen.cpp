@@ -38,6 +38,9 @@ InstGenProcess::InstGenProcess( Node n ) : d_node( n ){
       d_children_map[ i ] = count;
       count++;
     }
+    if( n[i].getKind()==INST_CONSTANT ){
+      d_var_num[i] = n[i].getAttribute(InstVarNumAttribute());
+    }
   }
 }
 
@@ -96,15 +99,15 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
       bool hadSuccess CVC4_UNUSED = false;
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         if( t==0 || !n.getAttribute(NoMatchAttribute()) ){
-          considerTermsMatch[t][n] = InstMatch();
+          considerTermsMatch[t][n] = InstMatch( f );
           considerTermsSuccess[t][n] = true;
           for( size_t j=0; j<d_node.getNumChildren(); j++ ){
             if( d_children_map.find( j )==d_children_map.end() ){
               if( t!=0 || !n[j].getAttribute(ModelBasisAttribute()) ){
                 if( d_node[j].getKind()==INST_CONSTANT ){
-                  if( !considerTermsMatch[t][n].setMatch( qe->getEqualityQuery(), d_node[j], n[j] ) ){
+                  if( !considerTermsMatch[t][n].set( qe, d_var_num[j], n[j] ) ){
                     Trace("inst-gen-cm") << "fail match: " << n[j] << " is not equal to ";
-                    Trace("inst-gen-cm") << considerTermsMatch[t][n].getValue( d_node[j] ) << std::endl;
+                    Trace("inst-gen-cm") << considerTermsMatch[t][n].get( d_var_num[j] ) << std::endl;
                     considerTermsSuccess[t][n] = false;
                     break;
                   }
@@ -209,7 +212,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
     //if this is an interpreted function
     if( doProduct ){
       //combining children matches
-      InstMatch curr;
+      InstMatch curr( f );
       std::vector< Node > terms;
       calculateMatchesInterpreted( qe, f, curr, terms, 0 );
     }else{
@@ -217,7 +220,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
       Assert( considerVal.size()==1 );
       for( int i=0; i<(int)d_children.size(); i++ ){
         for( int j=0; j<(int)d_children[ i ].getNumMatches(); j++ ){
-          InstMatch m;
+          InstMatch m( f );
           if( d_children[ i ].getMatch( qe->getEqualityQuery(), j, m ) ){
             addMatchValue( qe, f, considerVal[0], m );
           }

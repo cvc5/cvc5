@@ -131,7 +131,7 @@ int RewriteEngine::checkRewriteRule( Node f ) {
     bool success;
     do
     {
-      InstMatch m;
+      InstMatch m( f );
       success = d_rr_triggers[f][i]->getNextMatch( f, m );
       if( success ){
         //see if instantiation is true in the model

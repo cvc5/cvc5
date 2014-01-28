@@ -29,7 +29,6 @@
 #include "theory/uf/theory_uf.h"
 #include "context/cdlist.h"
 
-#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/term_database.h"
 #include "expr/node_manager.h"
 #include "expr/node_builder.h"
@@ -42,7 +41,84 @@
 namespace CVC4 {
 namespace theory {
 
+class EqualityQuery;
+
 namespace rrinst{
+
+/** basic class defining an instantiation */
+class InstMatch {
+  /* map from variable to ground terms */
+  std::map< Node, Node > d_map;
+public:
+  InstMatch();
+  InstMatch( InstMatch* m );
+
+  /** set the match of v to m */
+  bool setMatch( EqualityQuery* q, TNode v, TNode m );
+  /* This version tell if the variable has been set */
+  bool setMatch( EqualityQuery* q, TNode v, TNode m, bool & set);
+  /** fill all unfilled values with m */
+  bool add( InstMatch& m );
+  /** if compatible, fill all unfilled values with m and return true
+      return false otherwise */
+  bool merge( EqualityQuery* q, InstMatch& m );
+  /** debug print method */
+  void debugPrint( const char* c );
+  /** is complete? */
+  bool isComplete( Node f ) { return d_map.size()==f[0].getNumChildren(); }
+  /** make complete */
+  void makeComplete( Node f, QuantifiersEngine* qe );
+  /** make internal representative */
+  //void makeInternalRepresentative( QuantifiersEngine* qe );
+  /** make representative */
+  void makeRepresentative( QuantifiersEngine* qe );
+  /** get value */
+  Node getValue( Node var ) const;
+  /** clear */
+  void clear(){ d_map.clear(); }
+  /** is_empty */
+  bool empty(){ return d_map.empty(); }
+  /** to stream */
+  inline void toStream(std::ostream& out) const {
+    out << "INST_MATCH( ";
+    for( std::map< Node, Node >::const_iterator it = d_map.begin(); it != d_map.end(); ++it ){
+      if( it != d_map.begin() ){ out << ", "; }
+      out << it->first << " -> " << it->second;
+    }
+    out << " )";
+  }
+
+
+  //for rewrite rules
+
+  /** apply rewrite */
+  void applyRewrite();
+  /** erase */
+  template<class Iterator>
+  void erase(Iterator begin, Iterator end){
+    for(Iterator i = begin; i != end; ++i){
+      d_map.erase(*i);
+    };
+  }
+  void erase(Node node){ d_map.erase(node); }
+  /** get */
+  Node get( TNode var ) { return d_map[var]; }
+  Node get( QuantifiersEngine* qe, Node f, int i );
+  /** set */
+  void set(TNode var, TNode n);
+  void set( QuantifiersEngine* qe, Node f, int i, TNode n );
+  /** size */
+  size_t size(){ return d_map.size(); }
+  /* iterator */
+  std::map< Node, Node >::iterator begin(){ return d_map.begin(); };
+  std::map< Node, Node >::iterator end(){ return d_map.end(); };
+  std::map< Node, Node >::iterator find(Node var){ return d_map.find(var); };
+  /* Node used for matching the trigger only for mono-trigger (just for
+     efficiency because I need only that) */
+  Node d_matched;
+};/* class InstMatch */
+
+
 
 class CandidateGenerator
 {

@@ -140,8 +140,9 @@ void RelevantDomain::compute(){
 void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
 
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( n.getKind()==APPLY_UF ){
-      RDomain * rf = getRDomain( n.getOperator(), i );
+    Node op = d_qe->getTermDatabase()->getOperator( n );
+    if( !op.isNull() ){
+      RDomain * rf = getRDomain( op, i );
       if( n[i].getKind()==INST_CONSTANT ){
         Node q = d_qe->getTermDatabase()->getInstConstAttr( n[i] );
         //merge the RDomains

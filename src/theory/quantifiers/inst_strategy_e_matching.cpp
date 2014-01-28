@@ -70,7 +70,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
       if( processTrigger ){
         //if( d_user_gen[f][i]->isMultiTrigger() )
           Trace("process-trigger") << "  Process (user) " << (*d_user_gen[f][i]) << "..." << std::endl;
-        InstMatch baseMatch;
+        InstMatch baseMatch( f );
         int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
         //if( d_user_gen[f][i]->isMultiTrigger() )
           Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
@@ -169,7 +169,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
             d_processed_trigger[f][tr] = true;
             //if( tr->isMultiTrigger() )
               Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
-            InstMatch baseMatch;
+            InstMatch baseMatch( f );
             int numInst = tr->addInstantiations( baseMatch );
             //if( tr->isMultiTrigger() )
               Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
@@ -402,7 +402,7 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
     if( d_guessed.find( f )==d_guessed.end() ){
       Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
       d_guessed[f] = true;
-      InstMatch m;
+      InstMatch m( f );
       if( d_quantEngine->addInstantiation( f, m ) ){
         ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
       }

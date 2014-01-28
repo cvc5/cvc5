@@ -81,7 +81,7 @@ typedef std::hash_map<TNode, TNode, TNodeHashFunction> TCache;
     ~RewriteRule();
 
     bool noGuard()const throw () { return guards.size() == 0; };
-    bool inCache(TheoryRewriteRules & re, InstMatch & im)const;
+    bool inCache(TheoryRewriteRules & re, rrinst::InstMatch & im)const;
 
     void toStream(std::ostream& out) const;
 
@@ -249,7 +249,7 @@ private:
   void addRewriteRule(const Node r);
   void computeMatchBody ( const RewriteRule * r, size_t start = 0);
   void addMatchRuleTrigger(const RewriteRule* r,
-                           InstMatch & im, bool delay = true);
+                           rrinst::InstMatch & im, bool delay = true);
 
   Node normalizeConjunction(NodeBuilder<> & conjunction);
 

@@ -612,9 +612,6 @@ void EfficientEMatcher::registerEfficientHandler( EfficientHandler& handler,
       if( c.getType() == ty ) ele.insert(c);
     }
     if( !ele.empty() ){
-      // for(std::vector<Node>::iterator i = db->d_op_map[op].begin(), end = db->d_op_map[op].end(); i != end; ++i){
-      //   if(CandidateGenerator::isLegalCandidate(*i)) ele.insert(*i);
-      // }
       if(Debug.isOn("efficient-e-match-stats")){
         Debug("efficient-e-match-stats") << "pattern " << pats << " initialized with " << ele.size() << " terms"<< std::endl;
       }
@@ -641,13 +638,10 @@ void EfficientEMatcher::registerEfficientHandler( EfficientHandler& handler,
     }
 
   } else {
-    Node op = pats[0].getOperator();
     TermDb* db = d_quantEngine->getTermDatabase();
+    Node op = db->getOperator( pats[0] );
     if(db->d_op_map[op].begin() != db->d_op_map[op].end()){
       SetNode ele;
-      // for(std::vector<Node>::iterator i = db->d_op_map[op].begin(), end = db->d_op_map[op].end(); i != end; ++i){
-      //   if(CandidateGenerator::isLegalCandidate(*i)) ele.insert(*i);
-      // }
       ele.insert(db->d_op_map[op].begin(), db->d_op_map[op].end());
       if(Debug.isOn("efficient-e-match-stats")){
         Debug("efficient-e-match-stats") << "pattern " << pats << " initialized with " << ele.size() << " terms"<< std::endl;

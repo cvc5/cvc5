@@ -139,7 +139,7 @@ TheoryRewriteRules::TheoryRewriteRules(context::Context* c,
 }
 
 void TheoryRewriteRules::addMatchRuleTrigger(const RewriteRule * r,
-                                             InstMatch & im,
+                                             rrinst::InstMatch & im,
                                              bool delay){
   ++r->nb_matched;
   ++d_statistics.d_match_found;
@@ -214,7 +214,7 @@ void TheoryRewriteRules::check(Effort level) {
 
     /** Test the possible matching one by one */
     while(tr.getNextMatch()){
-      InstMatch im = tr.getInstMatch();
+      rrinst::InstMatch im = tr.getInstMatch();
       addMatchRuleTrigger(r, im, true);
     }
   }
@@ -540,7 +540,7 @@ void TheoryRewriteRules::propagateRule(const RuleInst * inst, TCache cache){
       ApplyMatcher * tr = r->trigger_for_body_match;
       Assert(tr != NULL);
       tr->resetInstantiationRound(getQuantifiersEngine());
-      InstMatch im;
+      rrinst::InstMatch im;
       TNode m = inst->substNode(*this,(*p).first, cache);
       Assert( m.getKind() == kind::APPLY_UF );
       ee->addTerm(m);

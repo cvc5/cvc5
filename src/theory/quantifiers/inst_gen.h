@@ -29,6 +29,7 @@ class InstGenProcess
 private:
   //the node we are processing
   Node d_node;
+  std::map< int, int > d_var_num;
   //the sub children for this node
   std::vector< InstGenProcess > d_children;
   std::vector< int > d_children_index;

@@ -328,7 +328,7 @@ RewriteRule::RewriteRule(TheoryRewriteRules & re,
 };
 
 
-bool RewriteRule::inCache(TheoryRewriteRules & re, InstMatch & im)const{
+bool RewriteRule::inCache(TheoryRewriteRules & re, rrinst::InstMatch & im)const{
   bool res = !d_cache.addInstMatch(im);
   Debug("rewriterules::matching") << "rewriterules::cache " << im
                                   << (res ? " HIT" : " MISS") << std::endl;

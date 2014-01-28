@@ -111,6 +111,9 @@ private:
   QuantifiersEngine* d_quantEngine;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_processed;
+private:
+  /** select op map */
+  std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > > d_par_op_map;
 public:
   TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
   ~TermDb(){}
@@ -128,6 +131,8 @@ public:
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
+  /** get operation */
+  Node getOperator( Node n );
 private:
   /** for efficient e-matching */
   void addTermEfficient( Node n, std::set< Node >& added);

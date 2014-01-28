@@ -37,7 +37,146 @@ namespace CVC4{
 namespace theory{
 namespace rrinst{
 
-typedef CVC4::theory::inst::InstMatch InstMatch;
+
+
+
+InstMatch::InstMatch() {
+}
+
+InstMatch::InstMatch( InstMatch* m ) {
+  d_map = m->d_map;
+}
+
+bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m, bool & set ){
+  std::map< Node, Node >::iterator vn = d_map.find( v );
+  if( !m.isNull() && !m.getType().isSubtypeOf( v.getType() ) ){
+    set = false;
+    return false;
+  }else if( vn==d_map.end() || vn->second.isNull() ){
+    set = true;
+    this->set(v,m);
+    Debug("matching-debug") << "Add partial " << v << "->" << m << std::endl;
+    return true;
+  }else{
+    set = false;
+    return q->areEqual( vn->second, m );
+  }
+}
+
+bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m ){
+  bool set;
+  return setMatch(q,v,m,set);
+}
+
+bool InstMatch::add( InstMatch& m ){
+  for( std::map< Node, Node >::iterator it = m.d_map.begin(); it != m.d_map.end(); ++it ){
+    if( !it->second.isNull() ){
+      std::map< Node, Node >::iterator itf = d_map.find( it->first );
+      if( itf==d_map.end() || itf->second.isNull() ){
+        d_map[it->first] = it->second;
+      }
+    }
+  }
+  return true;
+}
+
+bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
+  for( std::map< Node, Node >::iterator it = m.d_map.begin(); it != m.d_map.end(); ++it ){
+    if( !it->second.isNull() ){
+      std::map< Node, Node >::iterator itf = d_map.find( it->first );
+      if( itf==d_map.end() || itf->second.isNull() ){
+        d_map[ it->first ] = it->second;
+      }else{
+        if( !q->areEqual( it->second, itf->second ) ){
+          d_map.clear();
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+void InstMatch::debugPrint( const char* c ){
+  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+    Debug( c ) << "   " << it->first << " -> " << it->second << std::endl;
+  }
+  //if( !d_splits.empty() ){
+  //  Debug( c ) << "   Conditions: ";
+  //  for( std::map< Node, Node >::iterator it = d_splits.begin(); it !=d_splits.end(); ++it ){
+  //    Debug( c ) << it->first << " = " << it->second << " ";
+  //  }
+  //  Debug( c ) << std::endl;
+  //}
+}
+
+void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
+  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+    Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
+    if( d_map.find( ic )==d_map.end() ){
+      d_map[ ic ] = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+    }
+  }
+}
+
+//void InstMatch::makeInternalRepresentative( QuantifiersEngine* qe ){
+//  EqualityQueryQuantifiersEngine* eqqe = (EqualityQueryQuantifiersEngine*)qe->getEqualityQuery();
+//  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+//    d_map[ it->first ] = eqqe->getInternalRepresentative( it->second );
+//  }
+//}
+
+void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
+  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+    if( qe->getEqualityQuery()->getEngine()->hasTerm( it->second ) ){
+      d_map[ it->first ] = qe->getEqualityQuery()->getEngine()->getRepresentative( it->second );
+    }
+  }
+}
+
+void InstMatch::applyRewrite(){
+  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
+    it->second = Rewriter::rewrite(it->second);
+  }
+}
+
+/** get value */
+Node InstMatch::getValue( Node var ) const{
+  std::map< Node, Node >::const_iterator it = d_map.find( var );
+  if( it!=d_map.end() ){
+    return it->second;
+  }else{
+    return Node::null();
+  }
+}
+
+Node InstMatch::get( QuantifiersEngine* qe, Node f, int i ) {
+  return get( qe->getTermDatabase()->getInstantiationConstant( f, i ) );
+}
+
+void InstMatch::set(TNode var, TNode n){
+  Assert( !var.isNull() );
+  if (Trace.isOn("inst-match-warn")) {
+    // For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
+    if( !n.isNull() && !n.getType().isSubtypeOf( var.getType() ) ){
+      Trace("inst-match-warn") << quantifiers::TermDb::getInstConstAttr(var) << std::endl;
+      Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
+    }
+  }
+  Assert( n.isNull() || n.getType().isSubtypeOf( var.getType() ) );
+  d_map[var] = n;
+}
+
+void InstMatch::set( QuantifiersEngine* qe, Node f, int i, TNode n ) {
+  set( qe->getTermDatabase()->getInstantiationConstant( f, i ), n );
+}
+
+
+
+
+
+
+typedef CVC4::theory::rrinst::InstMatch InstMatch;
 typedef CVC4::theory::inst::CandidateGeneratorQueue CandidateGeneratorQueue;
 
 template<bool modEq>
@@ -569,7 +708,8 @@ class AllOpMatcher: public PatMatcher{
     AuxMatcher2 am2(am3,LegalTest());
     /** Iter on the equivalence class of the given term */
     TermDb* tdb = qe->getTermDatabase();
-    CandidateGeneratorTheoryUfOp cdtUfEq(pat.getOperator(),tdb);
+    Node op = tdb->getOperator( pat );
+    CandidateGeneratorTheoryUfOp cdtUfEq(op,tdb);
     /* Create a matcher from the candidate generator */
     AuxMatcher1 am1(cdtUfEq,am2);
     return am1;
@@ -1204,8 +1344,13 @@ int MultiPatsMatcher::addInstantiations( InstMatch& baseMatch, Node quant, Quant
   d_im.add( baseMatch );
   while( getNextMatch( qe ) ){
     InstMatch im_copy = getInstMatch();
+    std::vector< Node > terms;
+    for( unsigned i=0; i<quant[0].getNumChildren(); i++ ){
+      terms.push_back( im_copy.get( qe, quant, i ) );
+    }
+
     //m.makeInternal( d_quantEngine->getEqualityQuery() );
-    if( qe->addInstantiation( quant, im_copy ) ){
+    if( qe->addInstantiation( quant, terms ) ){
       addedLemmas++;
     }
   }
@@ -1428,8 +1573,13 @@ int MultiEfficientPatsMatcher::addInstantiations( InstMatch& baseMatch, Node qua
   resetInstantiationRound( qe );
   while( getNextMatch( qe ) ){
     InstMatch im_copy = getInstMatch();
+    std::vector< Node > terms;
+    for( unsigned i=0; i<quant[0].getNumChildren(); i++ ){
+      terms.push_back( im_copy.get( qe, quant, i ) );
+    }
+
     //m.makeInternal( d_quantEngine->getEqualityQuery() );
-    if( qe->addInstantiation( quant, im_copy ) ){
+    if( qe->addInstantiation( quant, terms ) ){
       addedLemmas++;
     }
   }
