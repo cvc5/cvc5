@@ -310,9 +310,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Function symbol used to implement uninterpreted undefined string
    * semantics.  Needed to deal with partial charat/substr function.
    */
-  Node d_charAtUF;
-  Node d_charAtUndef;
-  Node d_substrUndef;
+  //Node d_substrUndef;
 
   /**
    * Function symbol used to implement uninterpreted division-by-zero
@@ -442,9 +440,6 @@ public:
     d_fakeContext(),
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
-	d_charAtUF(),
-	d_charAtUndef(),
-	d_substrUndef(),
     d_divByZero(),
     d_intDivByZero(),
     d_modZero(),
@@ -1560,68 +1555,8 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
         node = expandBVDivByZero(node);
         break;
 
-	  /*case kind::STRING_CHARAT: {
-		if(d_charAtUF.isNull()) {
-			std::vector< TypeNode > argTypes;
-			argTypes.push_back(NodeManager::currentNM()->stringType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_charAtUF = NodeManager::currentNM()->mkSkolem("charAt", 
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes,
-									NodeManager::currentNM()->stringType()),
-								"total charat",
-								NodeManager::SKOLEM_EXACT_NAME);
-			d_charAtUndef = NodeManager::currentNM()->mkSkolem("charAt_undef", 
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes,
-									NodeManager::currentNM()->stringType()),
-								"partial charat undef",
-								NodeManager::SKOLEM_EXACT_NAME);
-			if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-				d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-				d_smt.d_logic.enableTheory(THEORY_UF);
-				d_smt.d_logic.lock();
-			}
-	    }
-		Node str = n[0];
-		Node num = n[1];
-		//Assert(str.getType() == NodeManager::currentNM()->stringType(), "String Type Check 1");
-		Node lenx = nm->mkNode(kind::STRING_LENGTH, str);
-		Node cond = nm->mkNode(kind::GT, lenx, num);
-		Node total = nm->mkNode(kind::STRING_CHARAT_TOTAL, str, num);
-		Node undef = nm->mkNode(kind::APPLY_UF, d_charAtUndef, str, num);
-		node = nm->mkNode(kind::ITE, cond, total, undef);
-		node = nm->mkNode(kind::APPLY_UF, d_charAtUF, n[0], n[1]);
-	  }
-		break;*/
-	  case kind::STRING_SUBSTR: {
-		if(d_substrUndef.isNull()) {
-			std::vector< TypeNode > argTypes;
-			argTypes.push_back(NodeManager::currentNM()->stringType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_substrUndef = NodeManager::currentNM()->mkSkolem("substr_undef", 
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes,
-									NodeManager::currentNM()->stringType()),
-								"partial substring undef",
-								NodeManager::SKOLEM_EXACT_NAME);
-			if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-				d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-				d_smt.d_logic.enableTheory(THEORY_UF);
-				d_smt.d_logic.lock();
-			}
-	    }
-		Node str = n[0];
-		//Assert(str.getType() == NodeManager::currentNM()->stringType(), "String Type Check 2");
-		Node lenx = nm->mkNode(kind::STRING_LENGTH, str);
-		Node num = nm->mkNode(kind::PLUS, n[1], n[2]);
-		Node cond = nm->mkNode(kind::GEQ, lenx, num);
-		Node total = nm->mkNode(kind::STRING_SUBSTR_TOTAL, str, n[1], n[2]);
-		Node undef = nm->mkNode(kind::APPLY_UF, d_substrUndef, str, n[1], n[2]);
-		node = nm->mkNode(kind::ITE, cond, total, undef);
-	  }
-		break;
+	  //case kind::STRING_CHARAT:
+	  //case kind::STRING_SUBSTR:
 
       case kind::DIVISION: {
         // partial function: division

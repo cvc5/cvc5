@@ -221,7 +221,7 @@ private:
 	int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
 	bool unrollStar( Node atom );
 
-	bool checkLengths();
+	bool checkSimple();
     bool checkNormalForms();
 	bool checkLengthsEqc();
     bool checkCardinality();
