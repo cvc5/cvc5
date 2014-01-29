@@ -115,6 +115,7 @@ private:
     Node d_false;
     Node d_zero;
 	Node d_one;
+	Node d_undefSubstr;
 	// Options
 	bool d_all_warning;
 	bool d_opt_fmf;

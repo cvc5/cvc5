@@ -62,7 +62,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
-
+	
 	d_all_warning = true;
 	d_regexp_incomplete = false;
 	d_opt_regexp_gcd = true;
@@ -1709,6 +1709,21 @@ void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
 
 bool TheoryStrings::checkSimple() {
   bool addedLemma = false;
+
+  //Initialize UF
+  if(d_undefSubstr.isNull()) {
+	std::vector< TypeNode > argTypes;
+	argTypes.push_back(NodeManager::currentNM()->stringType());
+	argTypes.push_back(NodeManager::currentNM()->integerType());
+	argTypes.push_back(NodeManager::currentNM()->integerType());
+	d_undefSubstr = NodeManager::currentNM()->mkSkolem("__undefSS", 
+						NodeManager::currentNM()->mkFunctionType(
+							argTypes, NodeManager::currentNM()->stringType()),
+						"undefined substr",
+						NodeManager::SKOLEM_EXACT_NAME);
+  }
+
+
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ) {
 	Node eqc = (*eqcs_i);
@@ -1760,7 +1775,8 @@ bool TheoryStrings::checkSimple() {
 								Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
-								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
+								Node uf = sk.eqNode( NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_undefSubstr, n[0], n[1], d_one));
+								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, lemma, uf) );
 								Trace("strings-lemma") << "Strings::Lemma CHARAT : " << lemma << std::endl;
 								d_out->lemma(lemma);
 							} else if( n.getKind() == kind::STRING_SUBSTR ) {
@@ -1778,7 +1794,8 @@ bool TheoryStrings::checkSimple() {
 
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
 								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
+								Node uf = sk.eqNode( NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_undefSubstr, n[0], n[1], n[2]));
+								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, lemma, uf ) );
 								Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
 								d_out->lemma(lemma);
 							}

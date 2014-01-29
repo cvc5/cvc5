@@ -353,7 +353,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
             }
         }
     } else if(node.getKind() == kind::STRING_SUBSTR) {
-		if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
+		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+		if(node[2] == zero) {
+			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+		} else if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
 			if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
