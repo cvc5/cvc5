@@ -522,10 +522,14 @@ RewriteResponse TheoryBVRewriter::RewriteZeroExtend(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteSignExtend(TNode node, bool prerewrite) {
   Node resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalSignExtend>
+    < RewriteRule<MergeSignExtend>
+    , RewriteRule<EvalSignExtend>
     >::apply(node);
+
   
-  // return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  if (resultNode != node) {
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 

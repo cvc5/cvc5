@@ -134,6 +134,7 @@ enum RewriteRuleId {
   UltOne,
   SltZero, 
   ZeroUlt,
+  MergeSignExtend,
   
   /// normalization rules
   ExtractBitwise,
@@ -280,6 +281,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
+  case MergeSignExtend : out << "MergeSignExtend"; return out;
+    
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;

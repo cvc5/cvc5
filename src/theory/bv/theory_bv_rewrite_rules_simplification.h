@@ -1067,6 +1067,39 @@ Node RewriteRule<BBPlusNeg>::apply(TNode node) {
   return utils::mkNode(kind::BITVECTOR_PLUS, children); 
 }
 
+template<> inline
+bool RewriteRule<MergeSignExtend>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_SIGN_EXTEND ||
+      (node[0].getKind() != kind::BITVECTOR_SIGN_EXTEND &&
+       node[0].getKind() != kind::BITVECTOR_ZERO_EXTEND))
+    return false;
+  return true;
+}
+
+template<> inline
+Node RewriteRule<MergeSignExtend>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<MergeSignExtend>(" << node << ")" << std::endl;
+  unsigned ammount1 = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND) {
+    unsigned ammount2 = node[0].getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+    NodeBuilder<> nb(kind::BITVECTOR_ZERO_EXTEND);
+    Node op = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(ammount1 + ammount2));
+    nb << op << node[0][0];
+    Node res = nb;
+    return res;
+  }
+  Assert (node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
+  unsigned ammount2 = node[0].getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
+  Node op = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(ammount1+ ammount2));
+  nb << op << node[0][0];
+  Node res = nb;
+  return res;
+}
+
+
 // /**
 //  * 
 //  *

@@ -124,6 +124,9 @@ bv-rewrites [non-stateful]\n\
 bv-abstraction [non-stateful]\n\
 + Output correctness queries for all bv abstraction \n\
 \n\
+bv-algebraic [non-stateful]\n\
++ Output correctness queries for bv algebraic solver. \n\
+\n\
 theory::fullcheck [non-stateful]\n                                      \
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
@@ -241,6 +244,8 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
       exit(1);
     } else if(!strcmp(optargPtr, "bv-abstraction")) {
       Dump.on("bv-abstraction");
+    } else if(!strcmp(optargPtr, "bv-algebraic")) {
+      Dump.on("bv-algebraic");
     } else {
       throw OptionException(std::string("unknown option for --dump: `") +
                             optargPtr + "'.  Try --dump help.");
