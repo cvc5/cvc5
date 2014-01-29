@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
+#include "theory/bv/bv_subtheory_algebraic.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/theory_model.h"
@@ -184,7 +185,8 @@ void TheoryBV::checkForLemma(TNode fact) {
 void TheoryBV::check(Effort e)
 {
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
-  
+
+  // if we are using the eager solver
   if (options::bitvectorEagerBitblast()) {
     if (!Theory::fullEffort(e))
       return;

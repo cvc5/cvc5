@@ -14,66 +14,34 @@
  ** Algebraic solver.
  **/
 
+#include "theory/bv/options.h"
+#include "theory/bv/theory_bv.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
 #include "theory/bv/bv_quick_check.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/lazy_bitblaster.h"
-#include "theory/bv/options.h"
+
+// #include "theory/bv/lazy_bitblaster.h"
+
 
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
+using namespace CVC4::prop;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-class SubstitutionEx {
-  struct SubstitutionElement {
-    TNode to;
-    Node reason;
-    SubstitutionElement(TNode t, TNode r)
-      : to(t)
-      , reason(r)
-    {}
-  };
 
-  struct SubstitutionStackElement {
-    TNode node;
-    bool childrenAdded;
-    SubstitutionStackElement(TNode n, bool ca = false)
-      : node(n)
-        childrenAdded(ca)
-    {}
-  };
-
-  typedef __gnu_cxx::hash_map<TNode, SubstitutionElement, TNodeHashFunction> Substitutions;
-  typedef __gnu_cxx::hash_map<TNode, SubstitutionElement, TNodeHashFunction> SubstitutionsCache;
-
-  Substitutions d_substitutions;
-  SubstitutionsCache d_cache;
-  bool d_cacheInvalid;
-
-  Node getReason(TNode node) const;
-  bool hasCache(TNode node) const;
-  void storeCache(TNode from, TNode to, Node reason);
-  Node applyInternal(TNode node);
-
-public:
-  SubstitutionEx()
-    : d_substitutions()
-    , d_cache()
-    , d_cacheInvalid(true)
-  {}
-
-  void addSubstitution(TNode from, TNode to, TNode reason);
-  Node apply(TNode node);
-  Node explain(TNode node) const;
-
-
-};
-
+SubstitutionEx::SubstitutionEx()
+  : d_substitutions()
+  , d_cache()
+  , d_cacheInvalid(true)
+{}
 
 void SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
+  Debug("bv-substitution") << "SubstitutionEx::addSubstitution: "<< from <<" => "<< to <<"\n";
+  Debug("bv-substitution") << " reason "<<reason << "\n";
+  
   d_cacheInvalid = true;
   Assert (from != to);
   Assert (d_substitutions.find(from) == d_substitutions.end());
@@ -81,17 +49,22 @@ void SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
 }
 
 Node SubstitutionEx::apply(TNode node) {
+  Debug("bv-substitution") << "SubstitutionEx::apply("<< node <<")\n";
   if (d_cacheInvalid) {
     d_cache.clear();
     d_cacheInvalid = false;
   }
 
   SubstitutionsCache::iterator it = d_cache.find(node);
+
   if (it != d_cache.end()) {
-    return it->second.to;
+    Node res = it->second.to;
+    Debug("bv-substitution") << "   =>"<< res <<"\n";
+    return res;
   }
 
-  Node result = internalApply(node); 
+  Node result = internalApply(node);
+  Debug("bv-substitution") << "   =>"<< result <<"\n";
   return result;
 }
 
@@ -116,20 +89,26 @@ Node SubstitutionEx::internalApply(TNode node) {
     Substitutions::const_iterator it = d_substitutions.find(current);
     if (it != d_substitutions.end()) {
       vector<Node> reasons;
-      TNode to = it->node;
-      reasons.push_back(it->reason);
+      TNode to = it->second.to;
+      reasons.push_back(it->second.reason);
       // check if the thing we subsituted to has substitutions
       TNode res = internalApply(to);
       // update reasons
       reasons.push_back(getReason(res));
       Node reason = utils::mkAnd(reasons);
-      storeCache(current, res, reasons);
+      storeCache(current, res, reason);
+      continue;
+    }
+
+    // if no children then just continue
+    if(current.getNumChildren() == 0) {
+      storeCache(current, current, utils::mkTrue());
       continue;
     }
     
     // children already processed 
     if (head.childrenAdded) {
-      NodeBuilder nb(current.getKind());
+      NodeBuilder<> nb(current.getKind());
       std::vector<Node> reasons;
       
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -141,13 +120,17 @@ Node SubstitutionEx::internalApply(TNode node) {
       for (unsigned i = 0; i < current.getNumChildren(); ++i) {
         Assert (hasCache(current[i]));
         nb << getCache(current[i]);
-        reasons.push_back(getReasons(current[i]));
+        reasons.push_back(getReason(current[i]));
       }
       Node result = nb;
-      Node subt_result = applyInternal(result);
-      reasons.push_back(getReason(subst_result));
+      // if the node is new apply substitutions to it
+      Node subst_result = result;
+      if (result != current) {
+        subst_result = result!= current? internalApply(result) : result;
+        reasons.push_back(getReason(subst_result));
+      }
       Node reason = utils::mkAnd(reasons);
-      storeCache(current, subt_result, reason);
+      storeCache(current, subst_result, reason);
       continue;
     } else {
       // add children to stack
@@ -167,11 +150,14 @@ Node SubstitutionEx::internalApply(TNode node) {
 
 
 Node SubstitutionEx::explain(TNode node) const {
+  Debug("bv-substitution") << "SubstitutionEx::explain("<< node <<")\n";
   Assert(hasCache(node));
-  return Rewriter::rewrite(getReason(node));
+  Node res = Rewriter::rewrite(getReason(node));
+  Debug("bv-substitution") << "  with "<< res <<"\n";
+  return res;
 }
 
-Node SubsitutionsEx::getReason(TNode node) const {
+Node SubstitutionEx::getReason(TNode node) const {
   Assert(hasCache(node));
   SubstitutionsCache::const_iterator it = d_cache.find(node);
   return it->second.reason;
@@ -181,39 +167,89 @@ bool SubstitutionEx::hasCache(TNode node) const {
   return d_cache.find(node) != d_cache.end();
 }
 
+Node SubstitutionEx::getCache(TNode node) const {
+  Assert (hasCache(node));
+  return d_cache.find(node)->second.to;
+}
+
 void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
+  Debug("bv-substitution") << "SubstitutionEx::storeCache(" << from <<", " << to <<", "<< reason<<")\n"; 
   Assert (!hasCache(from));
   d_cache[from] = SubstitutionElement(to, reason);
 }
 
+AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
+  : SubtheorySolver(c, bv)
+  , d_quickSolver(new BVQuickCheck())
+  , d_isComplete(c, false)
+  , d_budget(options::bvAlgebraicBudget())
+  , d_explanations()
+  , d_statistics()
+{}
 
 bool AlgebraicSolver::check(Theory::Effort e) {
+  Assert(!options::bitvectorEagerBitblast());
+
+  d_explanations.clear();
+  
   if (!Theory::fullEffort(e))
     return true;
 
-  
-  Debug("bv-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
-  Assert(!options::bitvectorEagerBitblast()); 
-
+  Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
   ++(d_statistics.d_numCallstoCheck);
 
-  std::vector<TNode> facts;
+
+  std::vector<TNode> assertions;
+  std::vector<Node> worklist;
+  
   // Processing assertions from scratch
   for (AssertionQueue::const_iterator it = assertionsBegin(); it != assertionsEnd(); ++it) {
-    facts.push_back(*it); 
+    Debug("bv-subtheory-algebraic") << "   " << *it << "\n";
+    TNode assertion = *it;
+    assertions.push_back(assertion);
+    worklist.push_back(assertion);
+    Assert (d_explanations.find(assertion) == d_explanations.end());
+    d_explanations[assertion] = assertion;
   }
-  
+
+  Debug("bv-subtheory-algebraic") << "Assertions " << worklist.size() <<" : \n";
+
+  bool changed = true;
   SubstitutionEx subst;
-  for (unsigned i = 0; i < facts.size(); ++i) {
-    if(solve(facts[i], subst)) {
-      for (unsigned j = 0; j < facts.size(); ++j) {
-        facts[j] = subst.apply(facts[j]);
+  
+  while(changed) {
+    changed = false;
+    for (unsigned i = 0; i < worklist.size(); ++i) {
+      // getting original assertion
+      Node assertion = assertions[i];
+      // current explanation for this assertion
+      Node old_expl = d_explanations[assertion];
+      TNode current = worklist[i];
+      
+      if(solve(current, subst, old_expl)) {
+        changed = true;
+        worklist[i] = Rewriter::rewrite(subst.apply(current));
+        Node expl = subst.explain(current);
+        Node new_expl = utils::mkAnd(expl, old_expl);
+        d_explanations[assertion] = new_expl;
       }
     }
   }
+  
 
-  for (unsigned read = write = 0; read < facts.size(); ++read) {
-    Node fact = Rewriter::rewrite(facts[read]);
+
+  // if(Debug.isOn("bv-subtheory-algebraic")) {
+  //   Debug("bv-subtheory-algebraic") << "Assertions post-substitution:\n";
+  //   for (unsigned i = 0; i < facts.size(); ++i) {
+  //     Debug("bv-subtheory-algebraic") << "   " << facts[i] << "\n";
+  //   }
+  // }
+
+  unsigned r = 0;
+  unsigned w = 0;
+
+  for (; r < worklist.size(); ++r) {
+    TNode fact = worklist[r];
     if (fact.isConst() &&
         fact.getConst<bool>() == true) {
       continue;
@@ -222,25 +258,74 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     if (fact.isConst() &&
         fact.getConst<bool>() == false) {
       // we have a conflict
-      Node conflict = subst.explain(fact);
+      Node conflict = Rewriter::rewrite(d_explanations[assertions[r]]);
       d_bv->setConflict(conflict);
+      d_isComplete.set(true);
+      Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false: "<< worklist[r] << "\n";
+      ++(d_statistics.d_numSimplifiesToFalse);
       return false;
     }
-    facts[write] = fact;
-    ++write;
+    worklist[w] = fact;
+    Node expl = Rewriter::rewrite(d_explanations[assertions[r]]);
+    d_explanations[fact] = expl;
+    ++w;
   }
-  facts.resize(write);
+
+  worklist.resize(w);
   
-  if (facts.empty())
+  if(Debug.isOn("bv-subtheory-algebraic")) {
+    Debug("bv-subtheory-algebraic") << "Assertions post-substitutions " << worklist.size() << ":\n";
+    for (unsigned i = 0; i < worklist.size(); ++i) {
+      Debug("bv-subtheory-algebraic") << "   " << worklist[i] << "\n";
+    }
+  }
+
+ 
+  // all facts solved to true
+  if (worklist.empty()) {
+    Debug("bv-subtheory-algebraic") << " SAT: everything simplifies to true.\n";
+    ++(d_statistics.d_numSimplifiesToTrue);
     return true;
+  }
+  
+  d_quickSolver->push();
+  bool ok = quickCheck(worklist, subst);
+  d_quickSolver->pop();
 
-  d_quickSolver.clear();
+  Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check done " << ok << ".\n";
+  return ok;
+}
 
-  Node conflict = d_quickSolver(facts, true);
-  if (conflict.isNull()) {
+bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst) {
+  d_quickSolver->reset();
+
+  SatValue res = d_quickSolver->checkSat(facts, d_budget);
+
+  if (res == SAT_VALUE_UNKNOWN) {
+    d_isComplete.set(false);
+    Debug("bv-subtheory-algebraic") << " Unknown.\n";
+    ++(d_statistics.d_numUnknown);
+    return true;
+  }
+  
+  if (res == SAT_VALUE_TRUE) {
+    Debug("bv-subtheory-algebraic") << " Sat.\n";
+    ++(d_statistics.d_numSat);
+    
+    d_isComplete.set(true);
     return true;
   }
 
+  Assert (res == SAT_VALUE_FALSE);
+  Assert (d_quickSolver->inConflict());  
+
+  Debug("bv-subtheory-algebraic") << " Unsat.\n";
+  ++(d_statistics.d_numUnsat);
+
+  
+  Node conflict = d_quickSolver->getConflict();
+  Debug("bv-subtheory-algebraic") << " Conflict: " << conflict << "\n";
+  
   if (conflict.getNumChildren() == 1) {
     Node theory_confl = subst.explain(conflict);
     d_bv->setConflict(theory_confl);
@@ -251,29 +336,60 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   vector<TNode> theory_confl;
   for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
     TNode c = conflict[i];
-    TNode c_expl = subst.explain(conflict);
+    TNode c_expl = d_explanations[c];
     theory_confl.push_back(c_expl);
   }
   
   Node confl = Rewriter::rewrite(utils::mkAnd(theory_confl));
+  Debug("bv-subtheory-algebraic") << " Out Conflict: " << confl << "\n";
   d_bv->setConflict(confl);
   return false;
 }
 
 
-bool AlgebraicSolver::solve(TNode fact, SubstitutionEx& subst) {
+bool AlgebraicSolver::solve(TNode fact, SubstitutionEx& subst, TNode reason) {
   if (fact.getKind() != kind::EQUAL) return false; 
   if (fact[0].isVar() &&
       !fact[1].hasSubterm(fact[0])) {
-    subt.addSubstitution(fact[0], fact[1], fact);
+    subst.addSubstitution(fact[0], fact[1], reason);
   } else if (fact[1].isVar() &&
              !fact[0].hasSubterm(fact[1])) {
-    subt.addSubstitution(fact[1], fact[0], fact);
+    subst.addSubstitution(fact[1], fact[0], reason);
   }
 
   return true;
 } 
 
 bool AlgebraicSolver::isComplete() {
+  return d_isComplete.get(); 
+}
 
+AlgebraicSolver::~AlgebraicSolver() {
+  delete d_quickSolver;
+}
+
+AlgebraicSolver::Statistics::Statistics()
+  : d_numCallstoCheck("theory::bv::AlgebraicSolver::NumCallsToCheck", 0)
+  , d_numSimplifiesToTrue("theory::bv::AlgebraicSolver::NumSimplifiesToTrue", 0)
+  , d_numSimplifiesToFalse("theory::bv::AlgebraicSolver::NumSimplifiesToFalse", 0)
+  , d_numUnsat("theory::bv::AlgebraicSolver::NumUnsat", 0)
+  , d_numSat("theory::bv::AlgebraicSolver::NumSat", 0)
+  , d_numUnknown("theory::bv::AlgebraicSolver::NumUnknown", 0)
+
+{
+  StatisticsRegistry::registerStat(&d_numCallstoCheck);
+  StatisticsRegistry::registerStat(&d_numSimplifiesToTrue);
+  StatisticsRegistry::registerStat(&d_numSimplifiesToFalse);
+  StatisticsRegistry::registerStat(&d_numUnsat);
+  StatisticsRegistry::registerStat(&d_numSat);
+  StatisticsRegistry::registerStat(&d_numUnknown);
+}
+
+AlgebraicSolver::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
+  StatisticsRegistry::unregisterStat(&d_numSimplifiesToTrue);
+  StatisticsRegistry::unregisterStat(&d_numSimplifiesToFalse);
+  StatisticsRegistry::unregisterStat(&d_numUnsat);
+  StatisticsRegistry::unregisterStat(&d_numSat);
+  StatisticsRegistry::unregisterStat(&d_numUnknown);
 }

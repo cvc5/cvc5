@@ -15,53 +15,65 @@
  **/
 
 #include "theory/bv/bv_quick_check.h"
+#include "theory/bv/theory_bv_utils.h"
+
+#include "theory/bv/bitblaster_template.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
-
+using namespace CVC4::prop;
 
 BVQuickCheck::BVQuickCheck()
   : d_ctx(new context::Context())
-  , d_bitblaster(d_ctx)
+  , d_bitblaster(new TLazyBitblaster(d_ctx, NULL, "algebraic"))
+  , d_conflict()
+  , d_inConflict(d_ctx, false)
 {}
 
-Node BVQuickCheck::constructConflict() {
+
+bool BVQuickCheck::inConflict() { return d_inConflict.get(); }
+
+void BVQuickCheck::setConflict() {
+  Assert (!inConflict());
   std::vector<TNode> conflict;
   d_bitblaster->getConflict(conflict);
-  return utils::mkConjunction(conflict); 
+  Node confl = utils::mkConjunction(conflict);
+  d_inConflict = true;
+  d_conflict = confl;
 }
-// TODO: return enum 
-prop::SatValue BVQuickCheck::checkSat(std::vector<TNode>& assumptions, bool propagation_only) {
+
+prop::SatValue BVQuickCheck::checkSat(std::vector<Node>& assumptions, unsigned long budget) {
   Node conflict; 
-  push(); 
+
   for (unsigned i = 0; i < assumptions.size(); ++i) {
     TNode a = assumptions[i];
     Assert (a.getType().isBoolean());
-    d_bitblaster->bbAtom(a[i]);
+    d_bitblaster->bbAtom(a);
     bool ok = d_bitblaster->assertToSat(a, false);
     if (!ok) {
-      conflict = constructConflict(); 
-      pop();
-      return conflict; 
+      setConflict(); 
+      return SAT_VALUE_FALSE; 
     }
   }
-
-  if (propagation_only) {
+  
+  if (budget == 0) {
     bool ok = d_bitblaster->propagate();
     if (!ok) {
-      conflict = constructConflict();
+      setConflict();
+      return SAT_VALUE_FALSE;
     }
-    pop();
-    return conflict; 
+    // TODO: could be SAT - check assignment is full
+    return SAT_VALUE_UNKNOWN;
   }
 
-  bool ok = d_bitblaster->solve();
-  if (!ok) {
-    conflict = constructConflict();
+  prop::SatValue res = d_bitblaster->solveWithBudget(budget);
+  if (res == SAT_VALUE_FALSE) {
+    setConflict();
+    return res;
   }
-  pop();
-  return conflict; 
+  // could be unknown or could be sat
+   return res;
 }
 
 
@@ -79,4 +91,8 @@ void BVQuickCheck::pop() {
  */
 void BVQuickCheck::reset() {
   d_bitblaster->clearSolver(); 
+}
+
+BVQuickCheck::~BVQuickCheck() {
+  delete d_bitblaster;
 }

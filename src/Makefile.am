@@ -206,6 +206,10 @@ libcvc4_la_SOURCES = \
 	theory/bv/cd_set_collection.h \
 	theory/bv/abstraction.h \
 	theory/bv/abstraction.cpp \
+	theory/bv/bv_quick_check.h \
+	theory/bv/bv_quick_check.cpp \
+	theory/bv/bv_subtheory_algebraic.h \
+	theory/bv/bv_subtheory_algebraic.cpp \
 	theory/idl/idl_model.h \
 	theory/idl/idl_model.cpp \
 	theory/idl/idl_assertion.h \

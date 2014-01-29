@@ -14,11 +14,10 @@
  ** Bitvector theory.
  **/
 
-#include "cvc4_private.h"
-
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
 
+#include "cvc4_private.h"
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdlist.h"

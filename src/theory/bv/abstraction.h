@@ -14,14 +14,15 @@
  ** Bitvector theory.
  **/
 
+
+#ifndef __CVC4__THEORY__BV__ABSTRACTION_H
+#define __CVC4__THEORY__BV__ABSTRACTION_H
+
 #include "cvc4_private.h"
 #include <ext/hash_map>
 #include <ext/hash_set>
 #include "expr/node.h"
 #include "theory/substitutions.h"
-
-#ifndef __CVC4__THEORY__BV__ABSTRACTION_H
-#define __CVC4__THEORY__BV__ABSTRACTION_H
 
 
 namespace CVC4 {

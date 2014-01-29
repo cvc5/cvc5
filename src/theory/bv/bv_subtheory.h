@@ -9,16 +9,15 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Algebraic solver.
+ ** \brief Interface for bit-vectors sub-solvers.
  **
- ** Algebraic solver.
+ ** Interface for bit-vectors sub-solvers.
  **/
-
-#include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__BV__BV_SUBTHEORY_H
 #define __CVC4__THEORY__BV__BV_SUBTHEORY_H
 
+#include "cvc4_private.h"
 #include "context/context.h"
 #include "context/cdqueue.h"
 #include "theory/uf/equality_engine.h"
@@ -34,8 +33,8 @@ namespace bv {
 enum SubTheory {
   SUB_CORE = 1,
   SUB_BITBLAST = 2,
-  SUB_INEQUALITY = 3
-  SUB_ALGEBRAIC = 4;
+  SUB_INEQUALITY = 3,
+  SUB_ALGEBRAIC = 4
 };
 
 inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
@@ -48,6 +47,8 @@ inline std::ostream& operator << (std::ostream& out, SubTheory subtheory) {
     break;
   case SUB_INEQUALITY:
     out << "BV_INEQUALITY_SUBTHEORY";
+  case SUB_ALGEBRAIC:
+    out << "BV_ALGEBRAIC_SUBTHEORY";
   default:
     Unreachable();
     break;

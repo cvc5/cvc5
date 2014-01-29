@@ -92,7 +92,6 @@ public:
   
   SatValue solve();
   SatValue solve(long unsigned int&);
-  SatValue solve(bool quick_solve);
   void getUnsatCore(SatClause& unsatCore);
 
   SatValue value(SatLiteral l);
@@ -130,7 +129,8 @@ public:
     ReferenceStat<uint64_t> d_statTotLiterals;
     ReferenceStat<int> d_statEliminatedVars;
     IntStat d_statCallsToSolve;
-    BackedStat<double> d_statSolveTime; 
+    BackedStat<double> d_statSolveTime;
+    bool d_registerStats;
     Statistics(const std::string& prefix);
     ~Statistics();
     void init(BVMinisat::SimpSolver* minisat);

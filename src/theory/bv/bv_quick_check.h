@@ -19,27 +19,36 @@
 #ifndef __CVC4__BV_QUICK_CHECK_H
 #define __CVC4__BV_QUICK_CHECK_H
 
-#include "expr/node.h"
 #include <vector>
 #include <ext/hash_map>
 
+#include "expr/node.h"
+#include "context/cdo.h"
+#include "prop/sat_solver_types.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
+class TLazyBitblaster; 
+
 class BVQuickCheck {
   context::Context* d_ctx;
   TLazyBitblaster* d_bitblaster;
+  Node d_conflict;
+  context::CDO<bool> d_inConflict;
+
+  void setConflict();
 
 public:
   BVQuickCheck();
   ~BVQuickCheck();
-
-  Node checkSat(std::vector<TNode>& assumptions, bool propagation_only);
+  bool inConflict();
+  Node getConflict() { return d_conflict; }
+  prop::SatValue checkSat(std::vector<Node>& assumptions, unsigned long budget);
   void push();
   void pop();
-  void clear(); 
+  void reset(); 
 };
 
 

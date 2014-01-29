@@ -117,11 +117,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
     void notify(prop::SatClause& clause);
     void safePoint();
   };
-
-
   
-  
-
   TheoryBV *d_bv;
   context::Context* d_ctx;
 
@@ -143,11 +139,12 @@ public:
   Node getBBAtom(TNode atom) const;
   void storeBBAtom(TNode atom, Node atom_bb);
   bool hasBBAtom(TNode atom) const; 
-  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv);
+  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="");
   ~TLazyBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
   bool propagate();
-  bool solve(bool quick_solve = false);
+  bool solve();
+  prop::SatValue solveWithBudget(unsigned long conflict_budget);
   void getConflict(std::vector<TNode>& conflict);
   void explain(TNode atom, std::vector<TNode>& explanation);
   void setAbstraction(AbstractionModule* abs);
@@ -186,7 +183,7 @@ private:
     IntStat d_numTermClauses, d_numAtomClauses;
     IntStat d_numTerms, d_numAtoms;
     TimerStat d_bitblastTimer;
-    Statistics();
+    Statistics(const std::string& name);
     ~Statistics();
   };
 

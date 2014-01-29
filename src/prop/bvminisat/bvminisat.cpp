@@ -115,9 +115,9 @@ SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   } else {
     d_minisat->setConfBudget(resource);
   }
-  BVMinisat::vec<BVMinisat::Lit> empty;
+  //  BVMinisat::vec<BVMinisat::Lit> empty;
   unsigned long conflictsBefore = d_minisat->conflicts;
-  SatValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
+  SatValue result = toSatLiteralValue(d_minisat->solveLimited());
   d_minisat->clearInterrupt();
   resource = d_minisat->conflicts - conflictsBefore;
   Trace("limit") << "<MinisatSatSolver::solve(): it took " << resource << " conflicts" << std::endl;
@@ -225,8 +225,12 @@ BVMinisatSatSolver::Statistics::Statistics(const std::string& prefix) :
   d_statTotLiterals("theory::bv::"+prefix+"bvminisat::tot_literals"),
   d_statEliminatedVars("theory::bv::"+prefix+"bvminisat::eliminated_vars"),
   d_statCallsToSolve("theory::bv::"+prefix+"bvminisat::calls_to_solve", 0),
-  d_statSolveTime("theory::bv::"+prefix+"bvminisat::solve_time", 0)
+  d_statSolveTime("theory::bv::"+prefix+"bvminisat::solve_time", 0),
+  d_registerStats(!prefix.empty())
 {
+  if (!d_registerStats)
+    return;
+
   StatisticsRegistry::registerStat(&d_statStarts);
   StatisticsRegistry::registerStat(&d_statDecisions);
   StatisticsRegistry::registerStat(&d_statRndDecisions);
@@ -242,6 +246,8 @@ BVMinisatSatSolver::Statistics::Statistics(const std::string& prefix) :
 }
 
 BVMinisatSatSolver::Statistics::~Statistics() {
+  if (!d_registerStats)
+    return;
   StatisticsRegistry::unregisterStat(&d_statStarts);
   StatisticsRegistry::unregisterStat(&d_statDecisions);
   StatisticsRegistry::unregisterStat(&d_statRndDecisions);
@@ -257,6 +263,9 @@ BVMinisatSatSolver::Statistics::~Statistics() {
 }
 
 void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
+  if (!d_registerStats)
+    return;
+  
   d_statStarts.setData(minisat->starts);
   d_statDecisions.setData(minisat->decisions);
   d_statRndDecisions.setData(minisat->rnd_decisions);
