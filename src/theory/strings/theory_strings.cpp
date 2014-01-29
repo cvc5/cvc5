@@ -1758,8 +1758,9 @@ bool TheoryStrings::checkSimple() {
 								Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], d_zero);
 								Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk, sk3 ) );
 								Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
-								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, lenxgti, lemma ) );
+								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
 								Trace("strings-lemma") << "Strings::Lemma CHARAT : " << lemma << std::endl;
 								d_out->lemma(lemma);
 							} else if( n.getKind() == kind::STRING_SUBSTR ) {
@@ -1776,7 +1777,7 @@ bool TheoryStrings::checkSimple() {
 														NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
-								Node cond = NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 );
+								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
 								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
 								Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
 								d_out->lemma(lemma);

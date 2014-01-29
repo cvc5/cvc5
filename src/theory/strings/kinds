@@ -18,6 +18,8 @@ operator STRING_CHARAT 2 "string charat (user symbol)"
 operator STRING_STRCTN 2 "string contains"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
+operator STRING_PREFIX 2 "string prefixof"
+operator STRING_SUFFIX 2 "string suffixof"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -109,6 +111,8 @@ typerule STRING_CHARAT ::CVC4::theory::strings::StringCharAtTypeRule
 typerule STRING_STRCTN ::CVC4::theory::strings::StringContainTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
 typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
+typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 

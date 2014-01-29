@@ -414,6 +414,42 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				}
 			}
 		}
+	} else if(node.getKind() == kind::STRING_PREFIX) {
+		if(node[0].isConst() && node[1].isConst()) {
+			CVC4::String s = node[1].getConst<String>();
+			CVC4::String t = node[0].getConst<String>();
+			retNode = NodeManager::currentNM()->mkConst( false );
+			if(s.size() >= t.size()) {
+				if(t == s.substr(0, t.size())) {
+					retNode = NodeManager::currentNM()->mkConst( true );
+				}
+			}
+		} else {
+			Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+			Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+			retNode = NodeManager::currentNM()->mkNode(kind::AND,
+						NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
+						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
+										NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) ), lens)));
+		}
+	} else if(node.getKind() == kind::STRING_SUFFIX) {
+		if(node[0].isConst() && node[1].isConst()) {
+			CVC4::String s = node[1].getConst<String>();
+			CVC4::String t = node[0].getConst<String>();
+			retNode = NodeManager::currentNM()->mkConst( false );
+			if(s.size() >= t.size()) {
+				if(t == s.substr(s.size() - t.size(), t.size())) {
+					retNode = NodeManager::currentNM()->mkConst( true );
+				}
+			}
+		} else {
+			Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[0]);
+			Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
+			retNode = NodeManager::currentNM()->mkNode(kind::AND,
+						NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
+						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
+										NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
+		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);
 	}

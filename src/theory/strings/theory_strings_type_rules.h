@@ -168,6 +168,42 @@ public:
   }
 };
 
+class StringPrefixOfTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string prefixof 0");
+        }
+		t = n[1].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string prefixof 1");
+        }
+    }
+    return nodeManager->booleanType();
+  }
+};
+
+class StringSuffixOfTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string suffixof 0");
+        }
+		t = n[1].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string suffixof 1");
+        }
+    }
+    return nodeManager->booleanType();
+  }
+};
+
 class RegExpConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
