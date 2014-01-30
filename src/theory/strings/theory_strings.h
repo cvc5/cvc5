@@ -339,7 +339,7 @@ public:
     IntStat d_new_skolems;
     Statistics();
     ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
+  };/* class TheoryStrings::Statistics */
   Statistics d_statistics;
 };/* class TheoryStrings */
 
