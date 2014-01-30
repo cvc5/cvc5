@@ -80,7 +80,7 @@ public:
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
   MatchGen() : d_type( typ_invalid ){}
-  MatchGen( QuantConflictFind * p, Node q, Node n, bool isTop = false, bool isVar = false );
+  MatchGen( QuantInfo * qi, Node n, bool isTop = false, bool isVar = false );
   bool d_tgt;
   Node d_n;
   std::vector< MatchGen > d_children;
@@ -91,10 +91,19 @@ public:
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
   bool isValid() { return d_type!=typ_invalid; }
   void setInvalid();
+
+  // is this term treated as UF application?
+  static bool isHandledUfTerm( TNode n );
+  static Node getFunction( Node n );
 };
 
 //info for quantifiers
 class QuantInfo {
+private:
+  void registerNode( Node n, bool hasPol, bool pol );
+  void flatten( Node n );
+  //the variables that this quantified formula has not beneath nested quantifiers
+  std::map< TNode, bool > d_has_var;
 public:
   QuantInfo() : d_mg( NULL ) {}
   std::vector< TNode > d_vars;
@@ -111,7 +120,7 @@ public:
   void reset_round( QuantConflictFind * p );
 public:
   //initialize
-  void initialize( Node q );
+  void initialize( Node q, Node qn );
   //current constraints
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
@@ -140,11 +149,8 @@ private:
   context::CDO< bool > d_conflict;
   bool d_performCheck;
   //void registerAssertion( Node n );
-  void registerNode( Node q, Node n, bool hasPol, bool pol );
-  void flatten( Node q, Node n );
 private:
   std::map< Node, Node > d_op_node;
-  Node getFunction( Node n, int& index, bool isQuant = false );
   int d_fid_count;
   std::map< Node, int > d_fid;
   Node mkEqNode( Node a, Node b );
@@ -189,8 +195,6 @@ private:  //for equivalence classes
   std::map< TNode, std::vector< TNode > > d_arg_reps;
   //compute arg reps
   void computeArgReps( TNode n );
-  // is this term treated as UF application?
-  bool isHandledUfTerm( TNode n );
 public:
   enum {
     effort_conflict,

@@ -153,7 +153,7 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
         if( rf!=rq ){
           rq->merge( rf );
         }
-      }else{
+      }else if( !d_qe->getTermDatabase()->hasInstConstAttr( n[i] ) ){
         //term to add
         rf->addTerm( n[i] );
       }
