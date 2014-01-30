@@ -333,6 +333,7 @@ public:
   class Statistics {
   public:
     IntStat d_splits;
+    IntStat d_eq_splits;
     IntStat d_deq_splits;
     IntStat d_loop_lemmas;
     IntStat d_unroll_lemmas;

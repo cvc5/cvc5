@@ -1103,6 +1103,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 
 									Node ant = mkExplain( antec );
 									sendLemma( ant, conc, "CST-SPLIT" );
+									++(d_statistics.d_eq_splits);
 									return true;
 								} else {
 									std::vector< Node > antec_new_lits;
@@ -1132,6 +1133,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 
 									Node ant = mkExplain( antec, antec_new_lits );
 									sendLemma( ant, conc, "VAR-SPLIT" );
+									++(d_statistics.d_eq_splits);
 									return true;
 								}
 							}
@@ -1436,13 +1438,13 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 											j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
 						
 						sendLemma( mkExplain( antec, antec_new_lits ), NodeManager::currentNM()->mkNode( kind::AND, conc ), "D-DISL-Split" );
+						++(d_statistics.d_deq_splits);
 						return true;
 					}else if( areEqual( li, lj ) ){
 						Assert( !areDisequal( i, j ) );
 						//splitting on demand : try to make them disequal
 						Node eq = i.eqNode( j );
 						sendSplit( i, j, "D-EQL-Split" );
-						++(d_statistics.d_deq_splits);
 						eq = Rewriter::rewrite( eq );
 						d_pending_req_phase[ eq ] = false;
 						return true;
@@ -1450,7 +1452,6 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						//splitting on demand : try to make lengths equal
 						Node eq = li.eqNode( lj );
 						sendSplit( li, lj, "D-UNK-Split" );
-						++(d_statistics.d_deq_splits);
 						eq = Rewriter::rewrite( eq );
 						d_pending_req_phase[ eq ] = true;
 						return true;
@@ -2702,13 +2703,15 @@ int TheoryStrings::getMaxPossibleLength( Node x ) {
 
 // Stats
 TheoryStrings::Statistics::Statistics():
-  d_splits("TheoryStrings::NumOfSplits", 0),
+  d_splits("TheoryStrings::NumOfSplitOnDemands", 0),
+  d_eq_splits("TheoryStrings::NumOfEqSplits", 0),
   d_deq_splits("TheoryStrings::NumOfDiseqSplits", 0),
   d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
   d_unroll_lemmas("TheoryStrings::NumOfUnrolls", 0),
   d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
 {
   StatisticsRegistry::registerStat(&d_splits);
+  StatisticsRegistry::registerStat(&d_eq_splits);
   StatisticsRegistry::registerStat(&d_deq_splits);
   StatisticsRegistry::registerStat(&d_loop_lemmas);
   StatisticsRegistry::registerStat(&d_unroll_lemmas);
@@ -2717,6 +2720,7 @@ TheoryStrings::Statistics::Statistics():
 
 TheoryStrings::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_splits);
+  StatisticsRegistry::unregisterStat(&d_eq_splits);
   StatisticsRegistry::unregisterStat(&d_deq_splits);
   StatisticsRegistry::unregisterStat(&d_loop_lemmas);
   StatisticsRegistry::unregisterStat(&d_unroll_lemmas);
