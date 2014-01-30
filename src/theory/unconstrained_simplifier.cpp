@@ -633,16 +633,13 @@ void UnconstrainedSimplifier::processUnconstrained()
           break;
         }
 
-        // These should have been rewritten up front
-        case kind::BITVECTOR_REPEAT:
+        // Do nothing 
+        case kind::BITVECTOR_SIGN_EXTEND:
         case kind::BITVECTOR_ZERO_EXTEND:
+        case kind::BITVECTOR_REPEAT:
         case kind::BITVECTOR_ROTATE_LEFT:
         case kind::BITVECTOR_ROTATE_RIGHT:
-          Unreachable();
-          break;
 
-        // Do nothing
-        case kind::BITVECTOR_SIGN_EXTEND:
         default:
           break;
       }
