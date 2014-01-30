@@ -95,11 +95,31 @@ bool TheoryStrings::areEqual( Node a, Node b ){
 }
 
 bool TheoryStrings::areDisequal( Node a, Node b ){
-  if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine.areDisequal( a, b, false );
-  }else{
-    return false;
-  }
+	if( a==b ){
+		return false;
+	} else {
+		if( a.getType().isString() ) {
+			for( unsigned i=0; i<2; i++ ) {
+				Node ac = a.getKind()==kind::STRING_CONCAT ? a[i==0 ? 0 : a.getNumChildren()-1] : a;
+				Node bc = b.getKind()==kind::STRING_CONCAT ? b[i==0 ? 0 : b.getNumChildren()-1] : b;
+				if( ac.isConst() && bc.isConst() ){
+					CVC4::String as = ac.getConst<String>();
+					CVC4::String bs = bc.getConst<String>();
+					int slen = as.size() > bs.size() ? bs.size() : as.size();
+					bool flag = i == 1 ? as.rstrncmp(bs, slen): as.strncmp(bs, slen);
+					if(!flag) {
+						return true;
+					}
+				}
+			}
+		}
+		if( hasTerm( a ) && hasTerm( b ) ) {
+			if( d_equalityEngine.areDisequal( a, b, false ) ){
+				return true;
+			}
+		}
+		return false;
+	}
 }
 
 Node TheoryStrings::getLengthTerm( Node t ) {
@@ -379,38 +399,28 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     d_equalityEngine.addTriggerEquality(n);
     break;
   case kind::STRING_IN_REGEXP:
+	//do not add trigger here
     //d_equalityEngine.addTriggerPredicate(n);
     break;
   case kind::CONST_STRING:
   case kind::STRING_CONCAT:
+	d_equalityEngine.addTerm(n);
+	break;
   case kind::STRING_CHARAT:
   case kind::STRING_SUBSTR:
-	//do nothing
+	//d_equalityEngine.addTerm(n);
 	break;
   default:
     if(n.getType().isString() ) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
-		  /*
-		  if(n.getKind() == kind::STRING_CHARAT) {
-			  Node lenc_eq_one = d_one.eqNode(NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n));
-			  Trace("strings-lemma") << "Strings::Lemma LEN(CHAR) = 1 : " << lenc_eq_one << std::endl;
-			  d_out->lemma(lenc_eq_one);
-		  } else if(n.getKind() == kind::STRING_SUBSTR) {
-			  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-			  Node lenc_eq_n2 = n_len.eqNode(n[2]);
-			  Trace("strings-lemma") << "Strings::Lemma LEN(SUBSTR) : " << lenc_eq_n2 << std::endl;
-			  d_out->lemma(lenc_eq_n2);
-		  } else {
-			  */
-			  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-			  Node n_len_eq_z = n_len.eqNode( d_zero );
-			  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-			  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-										NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-			  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
-			  d_out->lemma(n_len_geq_zero);
-			  d_out->requirePhase( n_len_eq_z, true );
-		  //}
+		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
+		  Node n_len_eq_z = n_len.eqNode( d_zero );
+		  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
+		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+									NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
+		  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+		  d_out->lemma(n_len_geq_zero);
+		  d_out->requirePhase( n_len_eq_z, true );
 	  }
 	  // FMF
 	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() && 
@@ -436,12 +446,10 @@ void TheoryStrings::check(Effort e) {
   bool polarity;
   TNode atom;
 
-  /*if(d_all_warning) {
-	  if(getLogicInfo().hasEverything()) {
-		  WarningOnce() << "WARNING: strings not supported in default configuration (ALL_SUPPORTED).\n"
-			  << "To suppress this warning in the future use proper logic symbol, e.g. (set-logic QF_S)." << std::endl;
-	  }
-	  d_all_warning = false;
+  /*if(getLogicInfo().hasEverything()) {
+	  WarningOnce() << "WARNING: strings not supported in default configuration (ALL_SUPPORTED).\n"
+		  << "To suppress this warning in the future use proper logic symbol, e.g. (set-logic QF_S)." << std::endl;
+	}
   }*/
 
   if( !done() && !hasTerm( d_emptyString ) ) {
@@ -942,11 +950,12 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 								NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
 				conc = str_in_re;
 			} else {
-				Trace("strings-loop") << "Strings::Loop: Normal Splitting." << std::endl;
+				Trace("strings-loop") << "Strings::Loop: Normal Breaking." << std::endl;
 				//right
 				Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
 				Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
 				Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
+				d_statistics.d_new_skolems += 3;
 				//t1 * ... * tn = y * z
 				Node conc1 = t_yz.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_z ) );
 				// s1 * ... * sk = z * y * r
@@ -973,6 +982,7 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 			//unroll the str in re constraint once
 			unrollStar( str_in_re );
 			sendLemma( ant, conc, "LOOP-BREAK" );
+			++(d_statistics.d_loop_lemmas);
 
 			//we will be done
 			addNormalFormPair( normal_form_src[i], normal_form_src[j] );
@@ -1109,7 +1119,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 									for(unsigned xory=0; xory<2; xory++) {
 										Node x = xory==0 ? normal_forms[i][index_i] : normal_forms[j][index_j];
 										Node xgtz = x.eqNode( d_emptyString ).negate();
-										if( areDisequal( x, d_emptyString ) ) {
+										if( d_equalityEngine.areDisequal( x, d_emptyString, true ) ) {
 											antec.push_back( xgtz );
 										} else {
 											antec_new_lits.push_back( xgtz );
@@ -1411,6 +1421,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit_$$", ni.getType(), "created for disequality normalization" );
 						Node sk2 = NodeManager::currentNM()->mkSkolem( "y_dsplit_$$", ni.getType(), "created for disequality normalization" );
 						Node sk3 = NodeManager::currentNM()->mkSkolem( "z_dsplit_$$", ni.getType(), "created for disequality normalization" );
+						d_statistics.d_new_skolems += 3;
 						//Node nemp = sk1.eqNode(d_emptyString).negate();
 						//conc.push_back(nemp);
 						//nemp = sk2.eqNode(d_emptyString).negate();
@@ -1431,6 +1442,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						//splitting on demand : try to make them disequal
 						Node eq = i.eqNode( j );
 						sendSplit( i, j, "D-EQL-Split" );
+						++(d_statistics.d_deq_splits);
 						eq = Rewriter::rewrite( eq );
 						d_pending_req_phase[ eq ] = false;
 						return true;
@@ -1438,6 +1450,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						//splitting on demand : try to make lengths equal
 						Node eq = li.eqNode( lj );
 						sendSplit( li, lj, "D-UNK-Split" );
+						++(d_statistics.d_deq_splits);
 						eq = Rewriter::rewrite( eq );
 						d_pending_req_phase[ eq ] = true;
 						return true;
@@ -1618,6 +1631,7 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
 	Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or << std::endl;
 	d_lemma_cache.push_back(lemma_or);
 	d_pending_req_phase[eq] = preq;
+	++(d_statistics.d_splits);
 }
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
@@ -1746,6 +1760,7 @@ bool TheoryStrings::checkSimple() {
 							d_length_inst[n] = true;
 							Trace("strings-debug") << "get n: " << n << endl;
 							Node sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for length" );
+							d_statistics.d_new_skolems += 1;
 							d_length_intro_vars.push_back( sk );
 							Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, n );
 							eq = Rewriter::rewrite(eq);
@@ -1768,6 +1783,7 @@ bool TheoryStrings::checkSimple() {
 								lsum = d_one;
 								Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", NodeManager::currentNM()->stringType(), "created for charat" );
 								Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", NodeManager::currentNM()->stringType(), "created for charat" );
+								d_statistics.d_new_skolems += 2;
 								Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
 													NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ), n[1] );
 								Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], d_zero);
@@ -1783,6 +1799,7 @@ bool TheoryStrings::checkSimple() {
 								lsum = n[2];
 								Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
 								Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
+								d_statistics.d_new_skolems += 2;
 								Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
 													NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
 													NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
@@ -1954,7 +1971,7 @@ bool TheoryStrings::checkNormalForms() {
 			//must ensure that normal forms are disequal
 			for( unsigned j=0; j<cols[i].size(); j++ ){
 				for( unsigned k=(j+1); k<cols[i].size(); k++ ){
-					if( !d_equalityEngine.areDisequal( cols[i][j], cols[i][k], false ) ){
+					if( !areDisequal( cols[i][j], cols[i][k] ) ){
 						sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
 						break;
 					}else{
@@ -2043,7 +2060,7 @@ bool TheoryStrings::checkCardinality() {
               itr1 != cols[i].end(); ++itr1) {
             for( std::vector< Node >::iterator itr2 = itr1 + 1;
                   itr2 != cols[i].end(); ++itr2) {
-                if(!d_equalityEngine.areDisequal( *itr1, *itr2, false )) {
+				if(!areDisequal( *itr1, *itr2 )) {
                     allDisequal = false;
                     // add split lemma
 					sendSplit( *itr1, *itr2, "CARD-SP" );
@@ -2211,6 +2228,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 		d_pending_req_phase[xeqe] = true;
 		Node sk_s= NodeManager::currentNM()->mkSkolem( "s_unroll_$$", x.getType(), "created for unrolling" );
 		Node sk_xp= NodeManager::currentNM()->mkSkolem( "x_unroll_$$", x.getType(), "created for unrolling" );
+		d_statistics.d_new_skolems += 2;
 		std::vector< Node >cc;
 
 		// must also call preprocessing on unr1
@@ -2255,6 +2273,7 @@ bool TheoryStrings::unrollStar( Node atom ) {
 			ant = d_reg_exp_ant[atom];
 		}
 		sendLemma( ant, lem, "Unroll" );
+		++(d_statistics.d_unroll_lemmas);
 		return true;
 	}else{
 		Trace("strings-regexp") << "Strings::regexp: Stop unrolling " << atom << " the max (" << depth << ") is reached." << std::endl;
@@ -2367,6 +2386,7 @@ bool TheoryStrings::checkPosContains() {
 				if(d_str_pos_ctn_rewritten.find(atom) == d_str_pos_ctn_rewritten.end()) {
 					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
 					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
+					d_statistics.d_new_skolems += 2;
 					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
 					sendLemma( atom, eq, "POS-INC" );
 					addedLemma = true;
@@ -2645,6 +2665,7 @@ void TheoryStrings::assertNode( Node lit ) {
 
 Node TheoryStrings::mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero ) {
 	Node sk = NodeManager::currentNM()->mkSkolem( c, lhs.getType(), info );
+	d_statistics.d_new_skolems += 1;
 	Node eq = lhs.eqNode( mkConcat( rhs, sk ) );
 	eq = Rewriter::rewrite( eq );
 	if( lgtZero ) {
@@ -2677,6 +2698,29 @@ int TheoryStrings::getMaxPossibleLength( Node x ) {
 	}else{
 		return getMaxPossibleLength( d_var_split_graph_lhs[x] ) - 1;
 	}
+}
+
+// Stats
+TheoryStrings::Statistics::Statistics():
+  d_splits("StringsEngine::NumOfSplits", 0),
+  d_deq_splits("StringsEngine::NumOfDiseqSplits", 0),
+  d_loop_lemmas("StringsEngine::NumOfLoops", 0),
+  d_unroll_lemmas("StringsEngine::NumOfUnrolls", 0),
+  d_new_skolems("StringsEngine::NumOfNewSkolems", 0)
+{
+  StatisticsRegistry::registerStat(&d_splits);
+  StatisticsRegistry::registerStat(&d_deq_splits);
+  StatisticsRegistry::registerStat(&d_loop_lemmas);
+  StatisticsRegistry::registerStat(&d_unroll_lemmas);
+  StatisticsRegistry::registerStat(&d_new_skolems);
+}
+
+TheoryStrings::Statistics::~Statistics(){
+  StatisticsRegistry::unregisterStat(&d_splits);
+  StatisticsRegistry::unregisterStat(&d_deq_splits);
+  StatisticsRegistry::unregisterStat(&d_loop_lemmas);
+  StatisticsRegistry::unregisterStat(&d_unroll_lemmas);
+  StatisticsRegistry::unregisterStat(&d_new_skolems);
 }
 
 }/* CVC4::theory::strings namespace */

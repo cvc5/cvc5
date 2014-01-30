@@ -328,6 +328,19 @@ public:
     Node getNextDecisionRequest();
 	void assertNode( Node lit );
 
+public:
+/** statistics class */
+  class Statistics {
+  public:
+    IntStat d_splits;
+    IntStat d_deq_splits;
+    IntStat d_loop_lemmas;
+    IntStat d_unroll_lemmas;
+    IntStat d_new_skolems;
+    Statistics();
+    ~Statistics();
+  };/* class QuantifiersEngine::Statistics */
+  Statistics d_statistics;
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
