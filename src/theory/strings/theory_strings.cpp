@@ -2702,11 +2702,11 @@ int TheoryStrings::getMaxPossibleLength( Node x ) {
 
 // Stats
 TheoryStrings::Statistics::Statistics():
-  d_splits("StringsEngine::NumOfSplits", 0),
-  d_deq_splits("StringsEngine::NumOfDiseqSplits", 0),
-  d_loop_lemmas("StringsEngine::NumOfLoops", 0),
-  d_unroll_lemmas("StringsEngine::NumOfUnrolls", 0),
-  d_new_skolems("StringsEngine::NumOfNewSkolems", 0)
+  d_splits("TheoryStrings::NumOfSplits", 0),
+  d_deq_splits("TheoryStrings::NumOfDiseqSplits", 0),
+  d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
+  d_unroll_lemmas("TheoryStrings::NumOfUnrolls", 0),
+  d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
 {
   StatisticsRegistry::registerStat(&d_splits);
   StatisticsRegistry::registerStat(&d_deq_splits);
