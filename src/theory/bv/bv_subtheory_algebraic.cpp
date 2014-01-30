@@ -31,6 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
+bool hasExpensiveBVOperators(TNode fact);
 
 SubstitutionEx::SubstitutionEx()
   : d_substitutions()
@@ -184,6 +185,7 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv)
   , d_quickSolver(new BVQuickCheck())
   , d_isComplete(c, false)
+  , d_isDifficult(c, false)
   , d_budget(options::bvAlgebraicBudget())
   , d_explanations()
   , d_statistics()
@@ -197,6 +199,12 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   if (!Theory::fullEffort(e))
     return true;
 
+  if (!useHeuristic())
+    return true;
+  
+  ++(d_numCalls);
+  
+  TimerStat::CodeTimer algebraicTimer(d_statistics.d_solveTime);
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
   ++(d_statistics.d_numCallstoCheck);
 
@@ -281,6 +289,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
       
       ++(d_statistics.d_numSimplifiesToFalse);
+      ++(d_numSolved);
       return false;
     }
     worklist[w] = fact;
@@ -295,7 +304,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     Debug("bv-subtheory-algebraic") << "Assertions post-substitutions " << worklist.size() << ":\n";
     for (unsigned i = 0; i < worklist.size(); ++i) {
       Debug("bv-subtheory-algebraic") << "   " << worklist[i] << "\n";
-      Debug("bv-subtheory-algebraic") << "Reason:  " << d_explanations[worklist[i]] << "\n";
+      //Debug("bv-subtheory-algebraic") << "Reason:  " << d_explanations[worklist[i]] << "\n";
     }
   }
 
@@ -304,6 +313,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   if (worklist.empty()) {
     Debug("bv-subtheory-algebraic") << " SAT: everything simplifies to true.\n";
     ++(d_statistics.d_numSimplifiesToTrue);
+    ++(d_numSolved);
     return true;
   }
   
@@ -330,7 +340,7 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   if (res == SAT_VALUE_TRUE) {
     Debug("bv-subtheory-algebraic") << " Sat.\n";
     ++(d_statistics.d_numSat);
-    
+    ++(d_numSolved);
     d_isComplete.set(true);
     return true;
   }
@@ -339,6 +349,7 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   Assert (d_quickSolver->inConflict());  
 
   Debug("bv-subtheory-algebraic") << " Unsat.\n";
+  ++(d_numSolved);
   ++(d_statistics.d_numUnsat);
 
   
@@ -388,6 +399,26 @@ bool AlgebraicSolver::isComplete() {
   return d_isComplete.get(); 
 }
 
+bool AlgebraicSolver::useHeuristic() {
+  if (!d_isDifficult.get())
+    return false;
+
+  if (d_numCalls == 0)
+    return true;
+  
+  double success_rate = d_numSolved/d_numCalls;
+  d_statistics.d_useHeuristic.setData(success_rate);
+  return success_rate > 0.8;
+}
+
+
+void AlgebraicSolver::assertFact(TNode fact) {
+  d_assertionQueue.push_back(fact);
+  if (!d_isDifficult.get()) {
+    d_isDifficult.set(hasExpensiveBVOperators(fact));
+  }
+}
+
 AlgebraicSolver::~AlgebraicSolver() {
   delete d_quickSolver;
 }
@@ -399,7 +430,8 @@ AlgebraicSolver::Statistics::Statistics()
   , d_numUnsat("theory::bv::AlgebraicSolver::NumUnsat", 0)
   , d_numSat("theory::bv::AlgebraicSolver::NumSat", 0)
   , d_numUnknown("theory::bv::AlgebraicSolver::NumUnknown", 0)
-
+  , d_solveTime("theory::bv::AlgebraicSolver::SolveTime")
+  , d_useHeuristic("theory::bv::AlgebraicSolver::UseHeuristic", 0.2)
 {
   StatisticsRegistry::registerStat(&d_numCallstoCheck);
   StatisticsRegistry::registerStat(&d_numSimplifiesToTrue);
@@ -407,6 +439,8 @@ AlgebraicSolver::Statistics::Statistics()
   StatisticsRegistry::registerStat(&d_numUnsat);
   StatisticsRegistry::registerStat(&d_numSat);
   StatisticsRegistry::registerStat(&d_numUnknown);
+  StatisticsRegistry::registerStat(&d_solveTime);
+  StatisticsRegistry::registerStat(&d_useHeuristic);
 }
 
 AlgebraicSolver::Statistics::~Statistics() {
@@ -416,4 +450,33 @@ AlgebraicSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numUnsat);
   StatisticsRegistry::unregisterStat(&d_numSat);
   StatisticsRegistry::unregisterStat(&d_numUnknown);
+  StatisticsRegistry::unregisterStat(&d_solveTime);
+  StatisticsRegistry::unregisterStat(&d_useHeuristic);
+}
+
+bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {
+  if (fact.getKind() == kind::BITVECTOR_MULT ||
+      fact.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
+      fact.getKind() == kind::BITVECTOR_UREM_TOTAL) {
+    return true;
+  }
+
+  if (seen.find(fact) != seen.end())
+    return false;
+  
+  if (fact.getNumChildren() == 0)
+    return false;
+  
+  for (unsigned i = 0; i < fact.getNumChildren(); ++i) {
+    bool difficult = hasExpensiveBVOperatorsRec(fact[i], seen);
+    if (difficult)
+      return true;
+  }
+  seen.insert(fact);
+  return false;
+}
+
+bool hasExpensiveBVOperators(TNode fact) {
+  TNodeSet seen;
+  return hasExpensiveBVOperatorsRec(fact, seen);
 }

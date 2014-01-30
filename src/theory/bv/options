@@ -23,7 +23,7 @@ option bitvectorInequalitySolver --bv-inequality-solver bool :default true
 option bitvectorCoreSolver --bv-core-solver bool
  turn on the core solver for the bit-vector theory 
 
-option bvAlgebraicBudget --bv-algebraic-budget unsigned :default 1000
+option bvAlgebraicBudget --bv-algebraic-budget unsigned :default 1500
  the budget allowed for the algebraic solver in number of SAT conflicts
  
 option bvToBool --bv-to-bool bool

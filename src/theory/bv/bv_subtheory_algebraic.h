@@ -86,6 +86,8 @@ class AlgebraicSolver : public SubtheorySolver {
     IntStat d_numUnsat;
     IntStat d_numSat;
     IntStat d_numUnknown;
+    TimerStat d_solveTime;
+    BackedStat<double> d_useHeuristic;
     Statistics();
     ~Statistics();
   };
@@ -93,11 +95,17 @@ class AlgebraicSolver : public SubtheorySolver {
   
   BVQuickCheck* d_quickSolver;
   context::CDO<bool> d_isComplete;
+  context::CDO<bool> d_isDifficult;
+  
   unsigned long d_budget;
   NodeNodeMap d_explanations;
+  double d_numSolved;
+  double d_numCalls;
   Statistics d_statistics;
+
   bool solve(TNode fact, SubstitutionEx& subst, TNode reason);
   bool quickCheck(std::vector<Node>& facts, SubstitutionEx& subst);
+  bool useHeuristic();
 public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();
@@ -109,6 +117,7 @@ public:
   void collectModelInfo(TheoryModel* m, bool fullModel) { Unreachable(); }
   Node getModelValue(TNode node) { Unreachable(); }
   bool isComplete();
+  virtual void assertFact(TNode fact);
 };
 
 }
