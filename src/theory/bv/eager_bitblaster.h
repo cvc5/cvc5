@@ -138,7 +138,13 @@ bool EagerBitblaster::solve() {
   if (Trace.isOn("bitvector")) {
     Trace("bitvector") << "EagerBitblaster::solve(). \n";
   }
-  Debug("bitvector") << "EagerBitblaster::solve(). \n"; 
+  Debug("bitvector") << "EagerBitblaster::solve(). \n";
+  // TODO: clear some memory
+  // if (something) {
+  //   NodeManager* nm= NodeManager::currentNM();
+  //   Rewriter::garbageCollect();
+  //   nm->reclaimZombiesUntil(options::zombieHuntThreshold());
+  // }
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 

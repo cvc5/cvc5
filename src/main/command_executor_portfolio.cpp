@@ -320,6 +320,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
       *d_options[options::out]
         << d_ostringstreams[portfolioReturn.first]->str();
+      // FIXME! MASSIVE HACK!!
+      if(d_options[options::statistics]) {
+        pExecutor->flushStatistics(*d_options[options::err]);
+      }
+
+      exit(0);
     }
 
     /* cleanup this check sat specific stuff */
