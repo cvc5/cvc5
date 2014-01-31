@@ -202,6 +202,10 @@ class AbstractionModule {
   bool isDomainSkolem(TNode sk);
 
 
+
+  bool isConjunctionOfAtoms(TNode node);
+  bool isConjunctionOfAtomsRec(TNode node, TNodeSet& seen);
+
   TNode getGeneralization(TNode term);
   void storeGeneralization(TNode s, TNode t);
   // signature skolem stuff
@@ -211,6 +215,7 @@ class AbstractionModule {
   void resetSignatureIndex();
   Node computeSignatureRec(TNode, NodeNodeMap&);
   void storeSignature(Node signature, TNode assertion);
+  bool hasSignature(Node node);
 
   Node substituteArguments(TNode signature, TNode apply, unsigned& i, TNodeTNodeMap& seen);
 
@@ -277,7 +282,7 @@ public:
   Node getInterpretation(TNode node);
   Node simplifyConflict(TNode conflict); 
   void generalizeConflict(TNode conflict, std::vector<Node>& lemmas);
-  void addInputAtom(TNode atom) { d_inputAtoms.insert(atom); }
+  void addInputAtom(TNode atom);
   bool isLemmaAtom(TNode node) const;
 };
 

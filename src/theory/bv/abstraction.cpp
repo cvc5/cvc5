@@ -39,6 +39,9 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   for (unsigned i = 0; i < assertions.size(); ++i) {
     if (assertions[i].getKind() == kind::OR) {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
+        if (!isConjunctionOfAtoms(assertions[i][j])) {
+          continue;
+        }
         Node signature = computeSignature(assertions[i][j]);
         storeSignature(signature, assertions[i][j]); 
         Debug("bv-abstraction") << "   assertion: " << assertions[i][j] <<"\n";
@@ -53,7 +56,11 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
         assertions[i][0].getKind() == kind::AND) {
       std::vector<Node> new_children; 
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
-        new_children.push_back(abstractSignatures(assertions[i][j]));
+        if (hasSignature(assertions[i][j])) {
+          new_children.push_back(abstractSignatures(assertions[i][j]));
+        } else {
+          new_children.push_back(assertions[i][j]);
+        }
       }
       new_assertions.push_back(utils::mkNode(kind::OR, new_children)); 
     } else {
@@ -80,6 +87,32 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   // return true if we have created new function symbols for the problem
   return d_funcToSignature.size() != 0;
 }
+
+
+bool AbstractionModule::isConjunctionOfAtoms(TNode node) {
+  TNodeSet seen;
+  return isConjunctionOfAtomsRec(node, seen);
+}
+
+bool AbstractionModule::isConjunctionOfAtomsRec(TNode node, TNodeSet& seen) {
+  if (seen.find(node)!= seen.end())
+    return true;
+  
+  if (!node.getType().isBitVector()) {
+    return (node.getKind() == kind::AND || utils::isBVPredicate(node));
+  }
+
+  if (node.getNumChildren() == 0)
+    return true;
+
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    if (!isConjunctionOfAtomsRec(node[i], seen))
+      return false;
+  }
+  seen.insert(node);
+  return true;
+}
+
 
 Node AbstractionModule::reverseAbstraction(Node assertion, NodeNodeMap& seen) {
 
@@ -314,6 +347,7 @@ TNode AbstractionModule::getDomainSkolem(TNode node) {
 }
 
 Node AbstractionModule::computeSignature(TNode node) {
+  
   resetSignatureIndex(); 
   NodeNodeMap cache; 
   Node sig = computeSignatureRec(node, cache);
@@ -354,6 +388,10 @@ void AbstractionModule::resetSignatureIndex() {
   }
 }
 
+bool AbstractionModule::hasSignature(Node node) {
+  return d_assertionToSignature.find(node) != d_assertionToSignature.end();
+}
+
 Node AbstractionModule::getGeneralizedSignature(Node node) {
   NodeNodeMap::const_iterator it = d_assertionToSignature.find(node); 
   Assert (it != d_assertionToSignature.end());
@@ -362,12 +400,6 @@ Node AbstractionModule::getGeneralizedSignature(Node node) {
 }
 
 Node AbstractionModule::computeSignatureRec(TNode node, NodeNodeMap& cache) {
-  Assert(node.getKind() != kind::OR &&
-         node.getKind() != kind::XOR &&
-         // node.getKind() != kind::ITE &&
-         node.getKind() != kind::NOT &&
-         node.getKind() != kind::IMPLIES);
-
   if (cache.find(node) != cache.end()) {
     return cache.find(node)->second; 
   }
@@ -1127,6 +1159,12 @@ bool AbstractionModule::isLemmaAtom(TNode node) const {
   
   return d_inputAtoms.find(node) == d_inputAtoms.end() &&
     d_lemmaAtoms.find(node) != d_lemmaAtoms.end(); 
+}
+
+void AbstractionModule::addInputAtom(TNode atom) {
+  if (!options::bitvectorEagerBitblast()) {
+    d_inputAtoms.insert(atom);
+  }
 }
 
 void AbstractionModule::ArgsTableEntry::addArguments(const ArgsVec& args) {
