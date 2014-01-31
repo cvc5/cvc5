@@ -31,7 +31,9 @@ namespace strings {
 class StringsPreprocess {
 	// NOTE: this class is NOT context-dependent
 	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
+	//Constants
 	Node d_zero;
+	Node d_ufSubstr;
 private:
 	bool checkStarPlus( Node t );
 	int checkFixLenVar( Node t );

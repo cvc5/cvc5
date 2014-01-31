@@ -127,18 +127,35 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       return (*i).second.isNull() ? t : (*i).second;
     }
 
+	//Initialize UF
+	if(d_ufSubstr.isNull()) {
+		std::vector< TypeNode > argTypes;
+		argTypes.push_back(NodeManager::currentNM()->stringType());
+		argTypes.push_back(NodeManager::currentNM()->integerType());
+		argTypes.push_back(NodeManager::currentNM()->integerType());
+		d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS", 
+							NodeManager::currentNM()->mkFunctionType(
+								argTypes, NodeManager::currentNM()->stringType()),
+							"uf substr",
+							NodeManager::SKOLEM_EXACT_NAME);
+	}
+
 	Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << std::endl;
 	Node retNode = t;
-	int c_id = checkFixLenVar(t);
+	/*int c_id = checkFixLenVar(t);
 	if( c_id != 2 ) {
 		int v_id = 1 - c_id;
 		int len = t[c_id].getConst<Rational>().getNumerator().toUnsignedInt();
 		if(len > 1) {
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
 			std::vector< Node > vec;
 			for(int i=0; i<len; i++) {
 				Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational(i) );
-				Node sk = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT, t[v_id][0], num);
+				//Node sk = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT, t[v_id][0], num);
+				Node sk = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, t[v_id][0], num, one);
 				vec.push_back(sk);
+				Node cc = one.eqNode(NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk ));
+				new_nodes.push_back( cc );
 			}
 			Node lem = t[v_id][0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, vec ) );
 			lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, t, lem );
@@ -146,7 +163,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = t;
 			retNode = t;
 		}
-	} else if( t.getKind() == kind::STRING_IN_REGEXP ) {
+	} else */if( t.getKind() == kind::STRING_IN_REGEXP ) {
 		// t0 in t1
 		Node t0 = simplify( t[0], new_nodes );
 		
@@ -164,7 +181,42 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			// TODO
 		//	return (t0 == t[0]) ? t : NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, t0, t[1] );
 		//}
-	} else if( t.getKind() == kind::STRING_STRIDOF ){
+	} else if( t.getKind() == kind::STRING_CHARAT ) {
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), t[1] );
+		Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, t[1], d_zero);
+		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
+		Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, t[0], t[1], one);
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, uf, sk3 ) );
+		Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node len_uf_eq_j = one.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, uf ) );
+		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, 
+						NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, len_uf_eq_j )) );
+		new_nodes.push_back( lemma );
+		retNode = uf;
+		d_cache[t] = uf;
+	} else if( t.getKind() == kind::STRING_SUBSTR ) {
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
+							NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
+		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[1], d_zero);
+		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[2], d_zero);
+		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
+		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, t[0], t[1], t[2]);
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, uf, sk3 ) );
+		Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node len_uf_eq_j = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, uf ) );
+		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, 
+						NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, len_uf_eq_j )) );
+		new_nodes.push_back( lemma );
+		retNode = uf;
+		d_cache[t] = uf;
+	} else if( t.getKind() == kind::STRING_STRIDOF ) {
 		if(options::stringExp()) {
 			Node sk1 = NodeManager::currentNM()->mkSkolem( "io1_$$", t[0].getType(), "created for indexof" );
 			Node sk2 = NodeManager::currentNM()->mkSkolem( "io2_$$", t[0].getType(), "created for indexof" );
