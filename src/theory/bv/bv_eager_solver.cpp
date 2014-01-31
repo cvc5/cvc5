@@ -83,7 +83,9 @@ bool EagerBitblastSolver::checkSat() {
   for (AssertionSet::const_iterator it = d_assertionSet.begin(); it != d_assertionSet.end(); ++it) {
     assertions.push_back(*it); 
   }
-  Assert (assertions.size());
+  if (!assertions.size())
+    return true;
+  
   if (d_useAig) {
     Node query = utils::mkAnd(assertions); 
     return d_aigBitblaster->solve(query);

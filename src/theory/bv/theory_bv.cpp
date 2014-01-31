@@ -194,6 +194,10 @@ void TheoryBV::check(Effort e)
 
   // if we are using the eager solver
   if (options::bitvectorEagerBitblast()) {
+    // this can only happen on an empty benchmark
+    if (!d_eagerSolver->isInitialized()) {
+      d_eagerSolver->initialize();
+    }
     if (!Theory::fullEffort(e))
       return;
 
