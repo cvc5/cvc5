@@ -129,6 +129,12 @@ void TheoryBV::preRegisterTerm(TNode node) {
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
  
   if (options::bitvectorEagerBitblast()) {
+    // the aig bit-blaster option is set heuristically
+    // if bv abstraction is not used
+    if (!d_eagerSolver->isInitialized()) {
+      d_eagerSolver->initialize();
+    }
+
     if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
       Node formula = node[0]; 
       d_eagerSolver->assertFormula(formula);
@@ -493,7 +499,16 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
 }
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  return d_abstractionModule->applyAbstraction(assertions, new_assertions); 
+  bool changed = d_abstractionModule->applyAbstraction(assertions, new_assertions);
+  if (changed &&
+      options::bitvectorEagerBitblast() &&
+      options::bitvectorAig()) {
+    // disable AIG mode
+    Assert (!d_eagerSolver->isInitialized());
+    d_eagerSolver->turnOffAig();
+    d_eagerSolver->initialize();
+  }
+  return changed;
 }
 
 void TheoryBV::setConflict(Node conflict) {

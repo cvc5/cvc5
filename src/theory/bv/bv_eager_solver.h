@@ -36,7 +36,7 @@ class EagerBitblastSolver {
   /** Bitblasters */
   EagerBitblaster* d_bitblaster;
   AigBitblaster* d_aigBitblaster;
-
+  bool d_useAig;
 public:
   EagerBitblastSolver(); 
   ~EagerBitblastSolver();
@@ -44,6 +44,10 @@ public:
   void assertFormula(TNode formula);
   // purely for debugging purposes
   bool hasAssertions(const std::vector<TNode> &formulas);
+
+  void turnOffAig();
+  bool isInitialized();
+  void initialize();
 };
 
 }

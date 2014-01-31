@@ -79,12 +79,16 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
   
   // if we are using the eager solver reverse the abstraction
   if (options::bitvectorEagerBitblast()) {
+    if (d_funcToSignature.size() == 0) {
+      // we did not change anything
+      return false;
+    }
     NodeNodeMap seen; 
     for (unsigned i = 0; i < new_assertions.size(); ++i) {
       new_assertions[i] = reverseAbstraction(new_assertions[i], seen); 
     }
     // we undo the abstraction functions so the logic is QF_BV still
-    return false; 
+    return true; 
   }
   
   // return true if we have created new function symbols for the problem

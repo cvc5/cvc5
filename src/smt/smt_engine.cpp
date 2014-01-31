@@ -383,6 +383,7 @@ private:
   void bvToBool();
 
   // Abstract common structure over small domains to UF
+  // return true if changes were made. 
   void bvAbstraction(); 
   
   // Simplify ITE structure
@@ -2153,12 +2154,14 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 void SmtEnginePrivate::bvAbstraction() {
   Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
   std::vector<Node> new_assertions;
-  bool uf = d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
+  bool changed = d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
   for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
     d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
   }
-  // if added function symbols update the logic
-  if (uf) {
+  // if we are using the lazy solver and the abstraction
+  // applies, then UF symbols were introduced 
+  if (!options::bitvectorEagerBitblast() &&
+      changed) {
     if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
       d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
       d_smt.d_logic.enableTheory(THEORY_UF);
@@ -3026,6 +3029,7 @@ void SmtEnginePrivate::processAssertions() {
     dumpAssertions("pre-bv-abstraction", d_assertionsToPreprocess);
     bvAbstraction();
     dumpAssertions("post-bv-abstraction", d_assertionsToPreprocess);
+    // do not use the aig solver with abstraction 
   }
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {

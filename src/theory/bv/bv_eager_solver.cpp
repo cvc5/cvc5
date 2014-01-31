@@ -28,16 +28,11 @@ EagerBitblastSolver::EagerBitblastSolver()
   : d_assertionSet()
   , d_bitblaster(NULL)
   , d_aigBitblaster(NULL)
-{
-  if (options::bitvectorAig()) {
-    d_aigBitblaster = new AigBitblaster(); 
-  } else {
-    d_bitblaster = new EagerBitblaster();
-  }
-}
+  , d_useAig(options::bitvectorAig())
+{}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
-  if (options::bitvectorAig()) {
+  if (d_useAig) {
     Assert (d_bitblaster == NULL); 
     delete d_aigBitblaster;
   }
@@ -47,23 +42,49 @@ EagerBitblastSolver::~EagerBitblastSolver() {
   }
 }
 
+void EagerBitblastSolver::turnOffAig() {
+  Assert (d_aigBitblaster == NULL &&
+          d_bitblaster == NULL);
+  d_useAig = false;
+}
+
+void EagerBitblastSolver::initialize() {
+  Assert(!isInitialized());
+  if (d_useAig) {
+    d_aigBitblaster = new AigBitblaster();
+  } else {
+    d_bitblaster = new EagerBitblaster();
+  }
+}
+
+bool EagerBitblastSolver::isInitialized() {
+  bool init = d_aigBitblaster != NULL || d_bitblaster != NULL;
+  if (init) {
+    Assert (!d_useAig || d_aigBitblaster);
+    Assert (d_useAig || d_bitblaster);
+  }
+  return init;
+}
+
 void EagerBitblastSolver::assertFormula(TNode formula) {
+  Assert (isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula "<< formula <<"\n"; 
   d_assertionSet.insert(formula);
   //ensures all atoms are bit-blasted and converted to AIG
-  if (options::bitvectorAig()) 
+  if (d_useAig) 
     d_aigBitblaster->bbFormula(formula);
   else
     d_bitblaster->bbFormula(formula);
 }
 
 bool EagerBitblastSolver::checkSat() {
+  Assert (isInitialized());
   std::vector<TNode> assertions; 
   for (AssertionSet::const_iterator it = d_assertionSet.begin(); it != d_assertionSet.end(); ++it) {
     assertions.push_back(*it); 
   }
   Assert (assertions.size());
-  if (options::bitvectorAig()) {
+  if (d_useAig) {
     Node query = utils::mkAnd(assertions); 
     return d_aigBitblaster->solve(query);
   }
@@ -72,6 +93,7 @@ bool EagerBitblastSolver::checkSat() {
 }
 
 bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {
+  Assert (isInitialized());
   if (formulas.size() != d_assertionSet.size())
     return false; 
   for (unsigned i = 0; i < formulas.size(); ++i) {
