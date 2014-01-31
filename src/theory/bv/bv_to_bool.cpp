@@ -22,12 +22,15 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
+
 BvToBoolPreprocessor::BvToBoolPreprocessor()
-  : d_liftCache(),
-    d_boolCache(),
-    d_one(utils::mkConst(BitVector(1, 1u))),
-    d_zero(utils::mkConst(BitVector(1, 0u)))
+  : d_liftCache()
+  , d_boolCache()
+  , d_one(utils::mkConst(BitVector(1, 1u)))
+  , d_zero(utils::mkConst(BitVector(1, 0u)))
+  , d_statistics()
 {}
+
 void BvToBoolPreprocessor::addToLiftCache(TNode term, Node new_term) {
   Assert (new_term != Node()); 
   Assert (!hasLiftCache(term));
@@ -66,7 +69,9 @@ bool BvToBoolPreprocessor::isConvertibleBvAtom(TNode node) {
           node[0].getType().isBitVector() &&
           node[0].getType().getBitVectorSize() == 1 &&
           node[1].getType().isBitVector() &&
-          node[1].getType().getBitVectorSize() == 1); 
+          node[1].getType().getBitVectorSize() == 1 &&
+          node[0].getKind() != kind::BITVECTOR_EXTRACT &&
+          node[1].getKind() != kind::BITVECTOR_EXTRACT); 
 }
 
 bool BvToBoolPreprocessor::isConvertibleBvTerm(TNode node) {
@@ -96,7 +101,9 @@ Node BvToBoolPreprocessor::convertBvAtom(TNode node) {
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
   Node result = utils::mkNode(kind::IFF, a, b); 
-  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n"; 
+  Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvAtom " << node <<" => " << result << "\n";
+
+  ++(d_statistics.d_numAtomsLifted);
   return result;
 }
 
@@ -108,6 +115,7 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     return getBoolCache(node);
   
   if (!isConvertibleBvTerm(node)) {
+    ++(d_statistics.d_numTermsForcedLifted);
     Node result = utils::mkNode(kind::EQUAL, node, d_one);
     addToBoolCache(node, result);
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
@@ -121,6 +129,8 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
   }
+
+  ++(d_statistics.d_numTermsLifted);
   
   Kind kind = node.getKind();
   if (kind == kind::ITE) {
@@ -198,8 +208,24 @@ Node BvToBoolPreprocessor::liftNode(TNode current) {
 
 void BvToBoolPreprocessor::liftBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   for (unsigned i = 0; i < assertions.size(); ++i) {
-    Node new_assertion = liftNode(assertions[i]); 
+    Node new_assertion = liftNode(assertions[i]);
     new_assertions.push_back(new_assertion);
     Trace("bv-to-bool") << "  " << assertions[i] <<" => " << new_assertions[i] <<"\n"; 
   }
+}
+
+BvToBoolPreprocessor::Statistics::Statistics()
+  : d_numTermsLifted("theory::bv::BvToBoolPreprocess::NumberOfTermsLifted", 0)
+  , d_numAtomsLifted("theory::bv::BvToBoolPreprocess::NumberOfAtomsLifted", 0)
+  , d_numTermsForcedLifted("theory::bv::BvToBoolPreprocess::NumberOfTermsForcedLifted", 0)
+{
+  StatisticsRegistry::registerStat(&d_numTermsLifted);
+  StatisticsRegistry::registerStat(&d_numAtomsLifted);
+  StatisticsRegistry::registerStat(&d_numTermsForcedLifted);
+}
+
+BvToBoolPreprocessor::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numTermsLifted);
+  StatisticsRegistry::unregisterStat(&d_numAtomsLifted);
+  StatisticsRegistry::unregisterStat(&d_numTermsForcedLifted);
 }

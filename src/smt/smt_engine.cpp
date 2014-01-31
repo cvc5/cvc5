@@ -3080,8 +3080,6 @@ void SmtEnginePrivate::processAssertions() {
   // Assertions ARE guaranteed to be rewritten by this point
 
 
-  // abstract the function symbols here
-  
   // Lift bit-vectors of size 1 to bool
   if(options::bvToBool()) {
     Chat() << "...doing bvToBool..." << endl;

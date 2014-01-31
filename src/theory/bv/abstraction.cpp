@@ -31,6 +31,9 @@ using namespace CVC4::theory::bv::utils;
 
 bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n"; 
+
+  TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
+    
   // for (unsigned i = 0; i < assertions.size(); ++i) {
   //   inferDomains(assertions[i]); 
   // }
@@ -183,7 +186,7 @@ void AbstractionModule::skolemizeArguments(std::vector<Node>& assertions) {
     // construct skolemized assertion
     for (ArgsTable::iterator it = assertion_table.begin(); it != assertion_table.end(); ++it) {
       // for each function symbol
-      
+      ++(d_statistics.d_numArgsSkolemized);
       TNode func = it->first;
       ArgsTableEntry& args = it->second;
       NodeBuilder<> skolem_func (kind::APPLY_UF);
@@ -574,6 +577,8 @@ void AbstractionModule::finalizeSignatures() {
     d_funcToSignature[abs_func] = signature; 
   }
 
+  d_statistics.d_numFunctionsAbstracted.setData(d_signatureToFunc.size());
+  
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted " << d_signatureToFunc.size() << " signatures. \n";
 }
 
@@ -1190,3 +1195,18 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
   return d_data.find(signature)->second; 
 }
 
+AbstractionModule::Statistics::Statistics()
+  : d_numFunctionsAbstracted("theory::bv::AbstractioModule::NumFunctionsAbstracted", 0)
+  , d_numArgsSkolemized("theory::bv::AbstractioModule::NumArgsSkolemized", 0)
+  , d_abstractionTime("theory::bv::AbstractioModule::AbstractionTime")
+{
+  StatisticsRegistry::registerStat(&d_numFunctionsAbstracted);
+  StatisticsRegistry::registerStat(&d_numArgsSkolemized);
+  StatisticsRegistry::registerStat(&d_abstractionTime);
+}
+
+AbstractionModule::Statistics::~Statistics() {
+  StatisticsRegistry::unregisterStat(&d_numFunctionsAbstracted);
+  StatisticsRegistry::unregisterStat(&d_numArgsSkolemized);
+  StatisticsRegistry::unregisterStat(&d_abstractionTime);
+}

@@ -16,6 +16,7 @@
 
 #include "cvc4_private.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "util/statistics_registry.h"
 
 #ifndef __CVC4__THEORY__BV__BV_TO_BOOL_H
 #define __CVC4__THEORY__BV__BV_TO_BOOL_H
@@ -27,6 +28,15 @@ namespace bv {
 typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap; 
 
 class BvToBoolPreprocessor {
+
+  struct Statistics {
+    IntStat d_numTermsLifted;
+    IntStat d_numAtomsLifted;
+    IntStat d_numTermsForcedLifted;
+    Statistics();
+    ~Statistics();
+  };
+  
   NodeNodeMap d_liftCache;
   NodeNodeMap d_boolCache;
   Node d_one;
@@ -45,6 +55,7 @@ class BvToBoolPreprocessor {
   Node convertBvAtom(TNode node);
   Node convertBvTerm(TNode node);
   Node liftNode(TNode current);
+  Statistics d_statistics;
 public:
   BvToBoolPreprocessor();
   void liftBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);

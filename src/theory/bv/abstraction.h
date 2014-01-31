@@ -23,7 +23,7 @@
 #include <ext/hash_set>
 #include "expr/node.h"
 #include "theory/substitutions.h"
-
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,6 +33,14 @@ namespace bv {
 typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
+
+  struct Statistics {
+    IntStat d_numFunctionsAbstracted;
+    IntStat d_numArgsSkolemized;
+    TimerStat d_abstractionTime;
+    Statistics();
+    ~Statistics();
+  };
 
   class ArgsTableEntry {
     std::vector<ArgsVec> d_data;
@@ -236,6 +244,9 @@ class AbstractionModule {
   TNodeSet d_lemmaAtoms;
   TNodeSet d_inputAtoms;
   void storeLemma(TNode lemma);
+
+  Statistics d_statistics;
+  
 public:
   AbstractionModule()
     : d_argsTable()
@@ -254,6 +265,7 @@ public:
     , d_addedLemmas()
     , d_lemmaAtoms()
     , d_inputAtoms()
+    , d_statistics()
   {}
   /** 
    * returns true if there are new uninterepreted functions symbols in the output
