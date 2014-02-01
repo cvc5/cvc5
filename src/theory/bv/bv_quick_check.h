@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "context/cdo.h"
 #include "prop/sat_solver_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -48,14 +49,36 @@ public:
   bool inConflict();
   Node getConflict() { return d_conflict; }
   prop::SatValue checkSat(std::vector<Node>& assumptions, unsigned long budget);
+  prop::SatValue checkSat(unsigned budget = 10000);
+  
+  // returns false if the assertion lead to a conflict
+  bool addAssertion(TNode assumptions);
+
   void push();
   void pop();
   void reset(); 
-
+  void popToZero();
   uint64_t computeAtomWeight(TNode node, NodeSet& seen);
 };
 
 
+class QuickXPlain {
+  struct Statistics {
+    TimerStat d_xplainTime;
+    Statistics();
+    ~Statistics();
+  };
+  BVQuickCheck* d_solver;
+  void minimizeConflictInternal(unsigned low, unsigned high,
+                                std::vector<TNode>& conflict,
+                                std::vector<TNode>& new_conflict);
+
+  Statistics d_statistics;
+public:
+  QuickXPlain();
+  ~QuickXPlain();
+  Node minimizeConflict(TNode conflict); 
+};
 
 } /* bv namespace */
 } /* theory namespace */

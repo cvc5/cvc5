@@ -38,6 +38,7 @@ class BitblastSolver;
 class EagerBitblastSolver;
   
 class AbstractionModule;
+class QuickXPlain;
 
 class TheoryBV : public Theory {
 
@@ -116,6 +117,7 @@ private:
 
   EagerBitblastSolver* d_eagerSolver; 
   AbstractionModule* d_abstractionModule;
+  QuickXPlain* d_quickXplain;
   
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 

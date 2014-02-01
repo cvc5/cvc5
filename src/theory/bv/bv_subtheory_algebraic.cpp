@@ -188,7 +188,6 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   , d_isDifficult(c, false)
   , d_budget(options::bvAlgebraicBudget())
   , d_explanations()
-  , d_bbCostCache()
   , d_statistics()
 {}
 

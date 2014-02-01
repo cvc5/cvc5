@@ -14,6 +14,9 @@ option bitvectorAig --bitblast-aig bool
 option bitvectorShareLemmas --bitblast-share-lemmas bool
  share lemmas from the bitblasting solver with the main solver
 
+option bitvectorQuickXplain --bv-quick-xplain bool :default false
+ minimize bv conflicts using the QuickXplain algorithm
+ 
 option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default false
  turn on the algebraic solver for the bit-vector theory 
  
