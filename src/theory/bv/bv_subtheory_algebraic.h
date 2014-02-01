@@ -101,9 +101,9 @@ class AlgebraicSolver : public SubtheorySolver {
   NodeNodeMap d_explanations;
   double d_numSolved;
   double d_numCalls;
-  Statistics d_statistics;
+   Statistics d_statistics;
 
-  bool solve(TNode fact, SubstitutionEx& subst, TNode reason);
+   bool solve(TNode fact, SubstitutionEx& subst, TNode reason);
   bool quickCheck(std::vector<Node>& facts, SubstitutionEx& subst);
   bool useHeuristic();
 public:

@@ -54,6 +54,7 @@ class TheoryModel;
 namespace bv {
 
 
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 class AbstractionModule;
 
 /**
@@ -174,7 +175,7 @@ public:
   void makeVariable(TNode var, Bits& bits);
 
   bool isSharedTerm(TNode node);
-  uint64_t computeAtomWeight(TNode node);
+  uint64_t computeAtomWeight(TNode node, NodeSet& seen);
   void clearSolver(); 
 private:
 

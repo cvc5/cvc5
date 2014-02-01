@@ -34,6 +34,10 @@ BVQuickCheck::BVQuickCheck()
 
 bool BVQuickCheck::inConflict() { return d_inConflict.get(); }
 
+uint64_t BVQuickCheck::computeAtomWeight(TNode node, NodeSet& seen) {
+  return d_bitblaster->computeAtomWeight(node, seen);
+}
+
 void BVQuickCheck::setConflict() {
   Assert (!inConflict());
   std::vector<TNode> conflict;
@@ -90,6 +94,9 @@ void BVQuickCheck::pop() {
  * 
  */
 void BVQuickCheck::reset() {
+  // while (d_ctx->getLevel() > 0) {
+  //   d_ctx->pop();
+  // }
   d_bitblaster->clearSolver(); 
 }
 

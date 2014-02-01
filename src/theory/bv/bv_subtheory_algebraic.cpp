@@ -1,18 +1,18 @@
 /*********************                                                        */
 /*! \file bv_subtheory_bitblast.cpp
- ** \verbatim
- ** Original author: Liana Hadarean 
- ** Major contributors: none
- ** Minor contributors (to current version): none
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
- **
- ** \brief Algebraic solver.
- **
- ** Algebraic solver.
- **/
+** \verbatim
+** Original author: Liana Hadarean 
+** Major contributors: none
+** Minor contributors (to current version): none
+** This file is part of the CVC4 project.
+** Copyright (c) 2009-2013  New York University and The University of Iowa
+** See the file COPYING in the top-level source directory for licensing
+** information.\endverbatim
+**
+** \brief Algebraic solver.
+**
+** Algebraic solver.
+**/
 
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv.h"
@@ -188,6 +188,7 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   , d_isDifficult(c, false)
   , d_budget(options::bvAlgebraicBudget())
   , d_explanations()
+  , d_bbCostCache()
   , d_statistics()
 {}
 
@@ -211,7 +212,10 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
   std::vector<TNode> assertions;
   std::vector<Node> worklist;
-  
+
+  uint64_t original_bb_cost = 0;
+
+  NodeSet seen_assertions;
   // Processing assertions from scratch
   for (AssertionQueue::const_iterator it = assertionsBegin(); it != assertionsEnd(); ++it) {
     Debug("bv-subtheory-algebraic") << "   " << *it << "\n";
@@ -220,6 +224,9 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     worklist.push_back(assertion);
     Assert (d_explanations.find(assertion) == d_explanations.end());
     d_explanations[assertion] = assertion;
+    uint64_t assertion_size = d_quickSolver->computeAtomWeight(assertion, seen_assertions);
+    Assert (original_bb_cost < original_bb_cost + assertion_size);
+    original_bb_cost+= assertion_size; 
   }
 
   Debug("bv-subtheory-algebraic") << "Assertions " << worklist.size() <<" : \n";
@@ -239,7 +246,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
       // explanation for this assertion
       Node assertion_expl = d_explanations[assertion];
       Node new_expl = subst_expl == utils::mkTrue() ? assertion_expl
-                                                    : utils::mkAnd(subst_expl, assertion_expl);
+        : utils::mkAnd(subst_expl, assertion_expl);
       d_explanations[assertion] = new_expl;
       
       // use the new substitution to solve
@@ -248,6 +255,10 @@ bool AlgebraicSolver::check(Theory::Effort e) {
       }
     }
   }
+
+  NodeSet subst_seen;
+  uint64_t subst_bb_cost = 0;
+
 
   unsigned r = 0;
   unsigned w = 0;
@@ -278,7 +289,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
       d_bv->setConflict(conflict);
       d_isComplete.set(true);
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
-      
+       
       if (Dump.isOn("bv-algebraic")) {
         Dump("bv-algebraic") << EchoCommand("TheoryBV::AlgebraicSolver::conflict"); 
         Dump("bv-algebraic") << PushCommand(); 
@@ -292,6 +303,8 @@ bool AlgebraicSolver::check(Theory::Effort e) {
       ++(d_numSolved);
       return false;
     }
+
+    subst_bb_cost+= d_quickSolver->computeAtomWeight(fact, subst_seen);
     worklist[w] = fact;
     Node expl = Rewriter::rewrite(d_explanations[assertions[r]]);
     d_explanations[fact] = expl;
@@ -299,6 +312,13 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   }
 
   worklist.resize(w);
+  
+  double ratio = ((double)subst_bb_cost)/original_bb_cost;
+  if (ratio > 0.5) {
+    // give up if problem not reduced enough
+    d_isComplete = false;
+    return true;
+  }
   
   if(Debug.isOn("bv-subtheory-algebraic")) {
     Debug("bv-subtheory-algebraic") << "Assertions post-substitutions " << worklist.size() << ":\n";
@@ -308,7 +328,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     }
   }
 
- 
   // all facts solved to true
   if (worklist.empty()) {
     Debug("bv-subtheory-algebraic") << " SAT: everything simplifies to true.\n";
@@ -316,18 +335,16 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     ++(d_numSolved);
     return true;
   }
-  
+
+  d_quickSolver->reset();
   d_quickSolver->push();
   bool ok = quickCheck(worklist, subst);
   d_quickSolver->pop();
-
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check done " << ok << ".\n";
   return ok;
 }
 
 bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst) {
-  d_quickSolver->reset();
-
   SatValue res = d_quickSolver->checkSat(facts, d_budget);
 
   if (res == SAT_VALUE_UNKNOWN) {
@@ -356,6 +373,8 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   Node conflict = d_quickSolver->getConflict();
   Debug("bv-subtheory-algebraic") << " Conflict: " << conflict << "\n";
 
+  // std::cout <<"QuickSolver conflict " << conflict <<"\n"; 
+  
   // singleton conflict
   if (conflict.getKind() != kind::AND) {
     Assert (d_explanations.find(conflict) != d_explanations.end());
@@ -374,6 +393,7 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   }
   
   Node confl = Rewriter::rewrite(utils::mkAnd(theory_confl));
+  // std::cout <<"Subst conflict " << conflict <<"\n"; 
   Debug("bv-subtheory-algebraic") << " Out Conflict: " << confl << "\n";
   d_bv->setConflict(confl);
   return false;

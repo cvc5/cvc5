@@ -30,6 +30,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+
 class TLazyBitblaster; 
 
 class BVQuickCheck {
@@ -49,6 +51,8 @@ public:
   void push();
   void pop();
   void reset(); 
+
+  uint64_t computeAtomWeight(TNode node, NodeSet& seen);
 };
 
 

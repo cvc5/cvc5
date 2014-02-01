@@ -499,25 +499,20 @@ inline T gcd(T a, T b) {
 }
 
 
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 
-inline uint64_t numNodesAux(TNode node, TNodeSet& seen) {
+inline uint64_t numNodes(TNode node, NodeSet& seen) {
   if (seen.find(node) != seen.end())
     return 0;
 
   uint64_t size = 1;
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    size += numNodesAux(node[i], seen);
+    size += numNodes(node[i], seen);
   }
   seen.insert(node);
   return size;
 }
 
-inline uint64_t numNodes(TNode node) {
-  TNodeSet seen;
-  uint64_t size = numNodesAux(node, seen);
-  return size;
-}
 
 }
 }
