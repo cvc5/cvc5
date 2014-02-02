@@ -32,6 +32,7 @@ namespace theory {
 namespace bv {
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 class TLazyBitblaster; 
 
@@ -44,12 +45,12 @@ class BVQuickCheck {
   void setConflict();
 
 public:
-  BVQuickCheck();
+  BVQuickCheck(const std::string& name);
   ~BVQuickCheck();
   bool inConflict();
   Node getConflict() { return d_conflict; }
   prop::SatValue checkSat(std::vector<Node>& assumptions, unsigned long budget);
-  prop::SatValue checkSat(unsigned budget = 10000);
+  prop::SatValue checkSat(unsigned long budget);
   
   // returns false if the assertion lead to a conflict
   bool addAssertion(TNode assumptions);
@@ -65,19 +66,30 @@ public:
 class QuickXPlain {
   struct Statistics {
     TimerStat d_xplainTime;
-    Statistics();
+    IntStat d_numSolved;
+    IntStat d_numUnknown;
+    AverageStat d_avgMinimizationRatio;
+    Statistics(const std::string&);
     ~Statistics();
   };
   BVQuickCheck* d_solver;
+  unsigned long d_budget;
+  unsigned d_numCalled;
+  double d_minRatioSum;
+  
+  Statistics d_statistics;
+  unsigned selectUnsatCore(unsigned low, unsigned high,
+                                        std::vector<TNode>& conflict);
   void minimizeConflictInternal(unsigned low, unsigned high,
                                 std::vector<TNode>& conflict,
                                 std::vector<TNode>& new_conflict);
 
-  Statistics d_statistics;
+
 public:
-  QuickXPlain();
+  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 1500);
   ~QuickXPlain();
   Node minimizeConflict(TNode conflict); 
+  void setBudget(); 
 };
 
 } /* bv namespace */

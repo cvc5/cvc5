@@ -26,7 +26,10 @@ namespace theory {
 namespace bv {
 
 class LazyBitblaster;
-class AbstractionModule; 
+class AbstractionModule;
+class BVQuickCheck;
+class QuickXPlain;
+
 /**
  * BitblastSolver
  */
@@ -47,12 +50,15 @@ class BitblastSolver : public SubtheorySolver {
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
-  Node getModelValueRec(TNode node);
 
   /** Queue for bit-blasting lemma atoms only in full check if we are sat */
   context::CDQueue<TNode> d_lemmaAtomsQueue;
   bool  d_useSatPropagation;
   AbstractionModule* d_abstractionModule;
+  BVQuickCheck* d_quickCheck;
+  QuickXPlain* d_quickXplain;
+  Node getModelValueRec(TNode node);
+  void setConflict(TNode conflict); 
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();

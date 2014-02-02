@@ -28,7 +28,6 @@
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
-#include "theory/bv/bv_quick_check.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -52,8 +51,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
     d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule()),
-    d_quickXplain(NULL)
+    d_abstractionModule(new AbstractionModule())
 {
 
   if (options::bitvectorEagerBitblast()) {
@@ -61,10 +59,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     return; 
   }
 
-  if (options::bitvectorQuickXplain()) {
-    d_quickXplain = new QuickXPlain();
-  }
-    
   if (options::bvEquality()) {
     SubtheorySolver* core_solver = new CoreSolver(c, this);
     d_subtheories.push_back(core_solver);
@@ -535,14 +529,4 @@ void TheoryBV::setConflict(Node conflict) {
   }
   d_conflict = true;
   d_conflictNode = conflict;
-
-  if (options::bitvectorQuickXplain()) {
-    if (conflict.getKind() != kind::AND)
-      return;
-    if (conflict.getNumChildren() <= 4)
-      return;
-    //    std::cout << "Original conflict " << conflict.getNumChildren() << "\n"; 
-    d_conflictNode = d_quickXplain->minimizeConflict(conflict);
-    // std::cout << "Minimized conflict " << d_conflictNode.getNumChildren() << "\n"; 
-  }
 }

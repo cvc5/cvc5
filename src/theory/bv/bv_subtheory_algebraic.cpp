@@ -183,11 +183,12 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
 
 AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv)
-  , d_quickSolver(new BVQuickCheck())
+  , d_quickSolver(new BVQuickCheck("alg"))
   , d_isComplete(c, false)
   , d_isDifficult(c, false)
   , d_budget(options::bvAlgebraicBudget())
   , d_explanations()
+  , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("alg", d_quickSolver) : NULL)
   , d_statistics()
 {}
 
@@ -224,7 +225,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     Assert (d_explanations.find(assertion) == d_explanations.end());
     d_explanations[assertion] = assertion;
     uint64_t assertion_size = d_quickSolver->computeAtomWeight(assertion, seen_assertions);
-    Assert (original_bb_cost < original_bb_cost + assertion_size);
+    Assert (original_bb_cost <= original_bb_cost + assertion_size);
     original_bb_cost+= assertion_size; 
   }
 
@@ -323,7 +324,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     Debug("bv-subtheory-algebraic") << "Assertions post-substitutions " << worklist.size() << ":\n";
     for (unsigned i = 0; i < worklist.size(); ++i) {
       Debug("bv-subtheory-algebraic") << "   " << worklist[i] << "\n";
-      //Debug("bv-subtheory-algebraic") << "Reason:  " << d_explanations[worklist[i]] << "\n";
     }
   }
 
@@ -336,9 +336,10 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   }
 
   d_quickSolver->reset();
+
   d_quickSolver->push();
   bool ok = quickCheck(worklist, subst);
-  d_quickSolver->pop();
+
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check done " << ok << ".\n";
   return ok;
 }
@@ -383,6 +384,13 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   }
 
   Assert (conflict.getKind() == kind::AND);
+  if (options::bitvectorQuickXplain()) {
+    d_quickSolver->popToZero();
+    Debug("bv-quick-xplain") << "AlgebraicSolver::quickCheck original conflict size " << conflict.getNumChildren() << "\n";
+    conflict = d_quickXplain->minimizeConflict(conflict);
+    Debug("bv-quick-xplain") << "AlgebraicSolver::quickCheck minimized conflict size " << conflict.getNumChildren() << "\n";
+  }
+  
   vector<TNode> theory_confl;
   for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
     TNode c = conflict[i];
@@ -394,10 +402,21 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst
   Node confl = Rewriter::rewrite(utils::mkAnd(theory_confl));
   // std::cout <<"Subst conflict " << conflict <<"\n"; 
   Debug("bv-subtheory-algebraic") << " Out Conflict: " << confl << "\n";
-  d_bv->setConflict(confl);
+  setConflict(confl);
   return false;
 }
 
+void AlgebraicSolver::setConflict(TNode conflict) {
+  Node final_conflict = conflict;
+  if (options::bitvectorQuickXplain() &&
+      conflict.getKind() == kind::AND &&
+      conflict.getNumChildren() > 4) {
+    std::cout << "Original conflict " << conflict.getNumChildren() << "\n"; 
+    final_conflict = d_quickXplain->minimizeConflict(conflict);
+    std::cout << "Minimized conflict " << final_conflict.getNumChildren() << "\n"; 
+  }
+  d_bv->setConflict(final_conflict);
+}
 
 bool AlgebraicSolver::solve(TNode fact, SubstitutionEx& subst, TNode reason) {
   if (fact.getKind() != kind::EQUAL) return false; 

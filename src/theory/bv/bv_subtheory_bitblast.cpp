@@ -18,9 +18,11 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/lazy_bitblaster.h"
+#include "theory/bv/bv_quick_check.h"
 #include "theory/bv/options.h"
 #include "theory/decision_attributes.h"
 #include "decision/options.h"
+
 
 using namespace std;
 using namespace CVC4;
@@ -37,10 +39,14 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_validModelCache(c, true),
     d_lemmaAtomsQueue(c),
     d_useSatPropagation(options::bvPropagate()),
-    d_abstractionModule(NULL)
+    d_abstractionModule(NULL),
+    d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb") : NULL),
+    d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
 {}
 
 BitblastSolver::~BitblastSolver() {
+  delete d_quickXplain;
+  delete d_quickCheck;
   delete d_bitblaster;
 }
 
@@ -128,7 +134,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       if (!ok) {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        d_bv->setConflict(mkConjunction(conflictAtoms));
+        setConflict(mkConjunction(conflictAtoms));
         return false;
       }
     }
@@ -140,7 +146,7 @@ bool BitblastSolver::check(Theory::Effort e) {
     if (!ok) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
-      d_bv->setConflict(mkConjunction(conflictAtoms));
+      setConflict(mkConjunction(conflictAtoms));
       return false;
     }
   }
@@ -154,7 +160,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
       Node conflict = mkConjunction(conflictAtoms);
-      d_bv->setConflict(conflict);
+      setConflict(conflict);
       return false;
     }
   }
@@ -174,7 +180,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       if (!ok) {
         std::vector<TNode> conflictAtoms;
         d_bitblaster->getConflict(conflictAtoms);
-        d_bv->setConflict(mkConjunction(conflictAtoms));
+        setConflict(mkConjunction(conflictAtoms));
         return false;
       }
     }
@@ -185,7 +191,7 @@ bool BitblastSolver::check(Theory::Effort e) {
       std::vector<TNode> conflictAtoms;
       d_bitblaster->getConflict(conflictAtoms);
       Node conflict = mkConjunction(conflictAtoms);
-      d_bv->setConflict(conflict);
+      setConflict(conflict);
       ++(d_statistics.d_numBBLemmas);
       return false;
     }
@@ -246,4 +252,17 @@ Node BitblastSolver::getModelValueRec(TNode node)
   d_modelCache[node] = val;
   Debug("bitvector-model") << node << " => " << val <<"\n";
   return val;
+}
+
+
+void BitblastSolver::setConflict(TNode conflict) {
+  Node final_conflict = conflict;
+  if (options::bitvectorQuickXplain() &&
+      conflict.getKind() == kind::AND &&
+      conflict.getNumChildren() > 4) {
+    // std::cout << "Original conflict " << conflict.getNumChildren() << "\n"; 
+    final_conflict = d_quickXplain->minimizeConflict(conflict);
+    //std::cout << "Minimized conflict " << final_conflict.getNumChildren() << "\n"; 
+  }
+  d_bv->setConflict(final_conflict);
 }

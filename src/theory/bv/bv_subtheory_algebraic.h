@@ -72,7 +72,7 @@ public:
 };
 
 class BVQuickCheck;
-
+class QuickXPlain;
 /**
  * AlgebraicSolver
  */
@@ -101,11 +101,15 @@ class AlgebraicSolver : public SubtheorySolver {
   NodeNodeMap d_explanations;
   double d_numSolved;
   double d_numCalls;
-   Statistics d_statistics;
+
+  QuickXPlain* d_quickXplain;
+  
+  Statistics d_statistics;
 
    bool solve(TNode fact, SubstitutionEx& subst, TNode reason);
   bool quickCheck(std::vector<Node>& facts, SubstitutionEx& subst);
   bool useHeuristic();
+  void setConflict(TNode conflict); 
 public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();

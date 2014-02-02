@@ -24,9 +24,9 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::prop;
 
-BVQuickCheck::BVQuickCheck()
+BVQuickCheck::BVQuickCheck(const std::string& name)
   : d_ctx(new context::Context())
-  , d_bitblaster(new TLazyBitblaster(d_ctx, NULL, "algebraic"))
+  , d_bitblaster(new TLazyBitblaster(d_ctx, NULL, name))
   , d_conflict()
   , d_inConflict(d_ctx, false)
 {}
@@ -80,16 +80,11 @@ prop::SatValue BVQuickCheck::checkSat(std::vector<Node>& assumptions, unsigned l
    return res;
 }
 
-prop::SatValue BVQuickCheck::checkSat(unsigned budget) {
-  if (budget == 0) {
-    bool ok = d_bitblaster->propagate();
-    if (!ok) {
-      //setConflict();
-      return SAT_VALUE_FALSE;
-    }
-    return SAT_VALUE_UNKNOWN;
-  }
+prop::SatValue BVQuickCheck::checkSat(unsigned long budget) {
   prop::SatValue res = d_bitblaster->solveWithBudget(budget);
+  if (res == SAT_VALUE_FALSE) {
+    setConflict();
+  }
   return res;
 }
 
@@ -97,6 +92,9 @@ bool BVQuickCheck::addAssertion(TNode assertion) {
   Assert (assertion.getType().isBoolean());
   d_bitblaster->bbAtom(assertion);
   bool ok = d_bitblaster->assertToSat(assertion, false);
+  if (!ok) {
+    setConflict();
+  }
   return ok;
 }
 
@@ -127,12 +125,57 @@ BVQuickCheck::~BVQuickCheck() {
   delete d_bitblaster;
 }
 
-QuickXPlain::QuickXPlain()
-  : d_solver(new BVQuickCheck())
-  , d_statistics()
+QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budget)
+  : d_solver(solver)
+  , d_budget(budget)
+  , d_numCalled(0)
+  , d_minRatioSum(0)
+  , d_statistics(name)
 {}
-QuickXPlain::~QuickXPlain() {
-  delete d_solver;
+QuickXPlain::~QuickXPlain() {}
+
+unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
+                                  std::vector<TNode>& conflict) {
+
+  Assert(!d_solver->getConflict().isNull() &&
+         d_solver->inConflict());
+  Node query_confl = d_solver->getConflict();
+
+  // conflict wasn't actually minimized
+  if (query_confl.getNumChildren() == high - low + 1) {
+    return high;
+  }
+
+  TNodeSet nodes;
+  for (unsigned i = low; i <= high; i++) {
+    nodes.insert(conflict[i]);
+  }
+  
+  unsigned write = low;
+  for (unsigned i = 0; i < query_confl.getNumChildren(); ++i) {
+    TNode current = query_confl[i];
+    // the conflict can have nodes in lower decision levels
+    if (nodes.find(current) != nodes.end()) {
+      conflict[write++] = current;
+      nodes.erase(nodes.find(current));
+    }
+  }
+  if (write == low) {
+    return high;
+  }
+  Assert (write != 0);
+  unsigned new_high = write - 1;
+
+  for (TNodeSet::const_iterator it = nodes.begin(); it != nodes.end(); ++it) {
+    conflict[write++] = *it;
+  }
+  Assert (write -1 == high);
+  Assert (new_high <= high);
+  
+  // if (new_high < high) {
+  //   std::cout <<"Reduction " <<  high - new_high <<"\n"; 
+  // }
+  return new_high;
 }
 
 void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
@@ -153,20 +196,28 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
   for (unsigned i = new_low; i <=high; ++i) {
     bool ok = d_solver->addAssertion(conflict[i]);
     if (!ok) {
-      minimizeConflictInternal(new_low, i, conflict, new_conflict);
+      unsigned top = selectUnsatCore(new_low, i, conflict);
+      minimizeConflictInternal(new_low, top, conflict, new_conflict);
       return;
     }
   }
 
-  SatValue res = d_solver->checkSat();
-  d_solver->pop();
-  
-  Assert (res!= SAT_VALUE_UNKNOWN);
-  // if unsat try to reduce it more
+  SatValue res = d_solver->checkSat(d_budget);
+
+  if (res == SAT_VALUE_UNKNOWN) {
+    ++(d_statistics.d_numUnknown);
+  } else {
+    ++(d_statistics.d_numSolved);
+  }
+
   if (res == SAT_VALUE_FALSE) {
-    minimizeConflictInternal(new_low, high, conflict, new_conflict);
+    unsigned top = selectUnsatCore(new_low, high, conflict);
+    d_solver->pop();
+    minimizeConflictInternal(new_low, top, conflict, new_conflict);
     return;
   }
+  
+  d_solver->pop();
   unsigned new_high = new_low - 1;
   d_solver->push();
 
@@ -174,17 +225,25 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
   for (unsigned i = low; i <= new_high; ++i) {
     bool ok = d_solver->addAssertion(conflict[i]);
     if (!ok) {
+      unsigned top = selectUnsatCore(low, i, conflict);
       d_solver->pop();
-      minimizeConflictInternal(low, i, conflict, new_conflict);
+      minimizeConflictInternal(low, top, conflict, new_conflict);
       return;
     }
   }
-  res = d_solver->checkSat();
-  Assert (res!= SAT_VALUE_UNKNOWN);
   
+  res = d_solver->checkSat(d_budget);
+
+  if (res == SAT_VALUE_UNKNOWN) {
+    ++(d_statistics.d_numUnknown);
+  } else {
+    ++(d_statistics.d_numSolved);
+  }
+
   if (res == SAT_VALUE_FALSE) {
+    unsigned top = selectUnsatCore(low, new_high, conflict);
     d_solver->pop();
-    minimizeConflictInternal(low, new_high, conflict, new_conflict);
+    minimizeConflictInternal(low, top, conflict, new_conflict);
     return;
   }
 
@@ -194,13 +253,21 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
   d_solver->pop();
   d_solver->push();
   for (unsigned i = 0; i < new_conflict.size(); ++i) {
-    d_solver->addAssertion(new_conflict[i]);
+    bool ok = d_solver->addAssertion(new_conflict[i]);
+    Assert (ok);
   }
   minimizeConflictInternal(low, new_high, conflict, new_conflict);
   d_solver->pop();
 }
 
 Node QuickXPlain::minimizeConflict(TNode confl) {
+  if (d_minRatioSum / d_numCalled >= 0.6 &&
+      d_numCalled > 100 &&
+      d_numCalled % 100 != 0) {
+    return confl;
+  }
+  
+  ++d_numCalled;
   TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
   Assert (confl.getNumChildren() > 2);
   std::vector<TNode> conflict;
@@ -210,16 +277,32 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   d_solver->popToZero();
   std::vector<TNode> minimized;
   minimizeConflictInternal(0, conflict.size() - 1, conflict, minimized);
+  double minimization_ratio = ((double) minimized.size())/confl.getNumChildren();
+  d_minRatioSum+= minimization_ratio;
+  // if (d_numCalled % 100 == 0) {
+  //   // std::cout << "min ratio " << minimization_ratio <<"\n";
+  //   // std::cout << "min ratio avg " <<  d_minRatioSum / d_numCalled <<"\n";
+  // }
+  d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
   return utils::mkAnd(minimized); 
 }
 
-QuickXPlain::Statistics::Statistics()
-  : d_xplainTime("theory::bv::QuickXplainTime")
+QuickXPlain::Statistics::Statistics(const std::string& name)
+  : d_xplainTime("theory::bv::"+name+"::QuickXplain::Time")
+  , d_numSolved("theory::bv::"+name+"::QuickXplain::NumSolved", 0)
+  , d_numUnknown("theory::bv::"+name+"::QuickXplain::NumUnknown", 0)
+  , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
 {
   StatisticsRegistry::registerStat(&d_xplainTime);
+  StatisticsRegistry::registerStat(&d_numSolved);
+  StatisticsRegistry::registerStat(&d_numUnknown);
+  StatisticsRegistry::registerStat(&d_avgMinimizationRatio);  
 }
 
 QuickXPlain::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_xplainTime);
+  StatisticsRegistry::unregisterStat(&d_numSolved);
+  StatisticsRegistry::unregisterStat(&d_numUnknown);
+  StatisticsRegistry::unregisterStat(&d_avgMinimizationRatio);  
 }
 

@@ -89,6 +89,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   ++d_statistics.d_numAtoms;
 
   if (options::bvAbstraction() &&
+      d_abstraction != NULL &&
       d_abstraction->isAbstraction(node)) {
     // node must be of the form P(args) = bv1
     Node expansion = Rewriter::rewrite(d_abstraction->getInterpretation(node));
