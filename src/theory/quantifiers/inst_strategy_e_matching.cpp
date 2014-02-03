@@ -365,37 +365,50 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
     RelevantDomain * rd = d_quantEngine->getRelevantDomain();
     if( rd ){
       rd->compute();
-      std::vector< unsigned > childIndex;
-      int index = 0;
-      do {
-        while( index>=0 && index<(int)f[0].getNumChildren() ){
-          if( index==(int)childIndex.size() ){
-            childIndex.push_back( -1 );
-          }else{
-            Assert( index==(int)(childIndex.size())-1 );
-            if( (childIndex[index]+1)<rd->getRDomain( f, index )->d_terms.size() ){
-              childIndex[index]++;
-              index++;
+      unsigned final_max_i = 0;
+      for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
+        unsigned ts = rd->getRDomain( f, i )->d_terms.size();
+        if( ts>final_max_i ){
+          final_max_i = ts;
+        }
+      }
+
+      unsigned max_i = 0;
+      while( max_i<=final_max_i ){
+        std::vector< unsigned > childIndex;
+        int index = 0;
+        do {
+          while( index>=0 && index<(int)f[0].getNumChildren() ){
+            if( index==(int)childIndex.size() ){
+              childIndex.push_back( -1 );
             }else{
-              childIndex.pop_back();
-              index--;
+              Assert( index==(int)(childIndex.size())-1 );
+              unsigned nv = childIndex[index]+1;
+              if( nv<rd->getRDomain( f, index )->d_terms.size() && nv<max_i ){
+                childIndex[index]++;
+                index++;
+              }else{
+                childIndex.pop_back();
+                index--;
+              }
             }
           }
-        }
-        success = index>=0;
-        if( success ){
-          index--;
-          //try instantiation
-          std::vector< Node > terms;
-          for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-            terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+          success = index>=0;
+          if( success ){
+            index--;
+            //try instantiation
+            std::vector< Node > terms;
+            for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+              terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+            }
+            if( d_quantEngine->addInstantiation( f, terms, false ) ){
+              ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+              return STATUS_UNKNOWN;
+            }
           }
-          if( d_quantEngine->addInstantiation( f, terms, false ) ){
-            ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
-            return STATUS_UNKNOWN;
-          }
-        }
-      }while( success );
+        }while( success );
+        max_i++;
+      }
     }
     //*/
 

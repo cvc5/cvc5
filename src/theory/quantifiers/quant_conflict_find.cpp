@@ -90,10 +90,12 @@ void QuantInfo::initialize( Node q, Node qn ) {
 
   if( d_mg->isValid() ){
     for( unsigned j=q[0].getNumChildren(); j<d_vars.size(); j++ ){
-      d_var_mg[j] = new MatchGen( this, d_vars[j], false, true );
-      if( !d_var_mg[j]->isValid() ){
-        d_mg->setInvalid();
-        break;
+      if( d_vars[j].getKind()!=BOUND_VARIABLE ){
+        d_var_mg[j] = new MatchGen( this, d_vars[j], false, true );
+        if( !d_var_mg[j]->isValid() ){
+          d_mg->setInvalid();
+          break;
+        }
       }
     }
     //must also contain all variables?
@@ -112,7 +114,7 @@ void QuantInfo::initialize( Node q, Node qn ) {
 
 void QuantInfo::registerNode( Node n, bool hasPol, bool pol ) {
   if( n.getKind()==FORALL ){
-    //do nothing
+    registerNode( n[1], hasPol, pol );
   }else{
     if( n.getKind()!=OR && n.getKind()!=AND && n.getKind()!=IFF && n.getKind()!=ITE && n.getKind()!=NOT ){
       if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
@@ -142,7 +144,7 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol ) {
 }
 
 void QuantInfo::flatten( Node n ) {
-  if( quantifiers::TermDb::hasBoundVarAttr( n ) && n.getKind()!=BOUND_VARIABLE ){
+  if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
     if( d_var_num.find( n )==d_var_num.end() ){
       //Trace("qcf-qregister") << "    Flatten term " << n[i] << std::endl;
       d_var_num[n] = d_vars.size();
@@ -590,17 +592,23 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isTop, bool isVar ){
     }
   }else{
     if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
-      //we handle not immediately
-      d_n = n.getKind()==NOT ? n[0] : n;
-      d_type_not = n.getKind()==NOT;
-      if( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF || d_n.getKind()==ITE ){
+      d_type_not = false;
+      d_n = n;
+      if( d_n.getKind()==NOT ){
+        d_n = d_n[0];
+        d_type_not = !d_type_not;
+      }
+
+      if( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF || d_n.getKind()==ITE || d_n.getKind()==FORALL ){
         //non-literals
         d_type = typ_formula;
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
-          d_children.push_back( MatchGen( qi, d_n[i] ) );
-          if( d_children[d_children.size()-1].d_type==typ_invalid ){
-            setInvalid();
-            break;
+          if( d_n.getKind()!=FORALL || i==1 ){
+            d_children.push_back( MatchGen( qi, d_n[i] ) );
+            if( d_children[d_children.size()-1].d_type==typ_invalid ){
+              setInvalid();
+              break;
+            }
           }
           /*
           else if( isTop && n.getKind()==OR && d_children[d_children.size()-1].d_type==typ_var_eq ){
@@ -787,9 +795,13 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       //add dummy
       d_qn.push_back( NULL );
     }else{
-      //reset the first child to d_tgt
-      d_child_counter = 0;
-      getChild( d_child_counter )->reset( p, d_tgt, qi );
+      if( d_tgt && d_n.getKind()==FORALL ){
+        //TODO
+      }else{
+        //reset the first child to d_tgt
+        d_child_counter = 0;
+        getChild( d_child_counter )->reset( p, d_tgt, qi );
+      }
     }
   }
   d_binding = false;
@@ -982,6 +994,13 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
             }else{
               d_child_counter--;
             }
+          }
+        }else if( d_n.getKind()==FORALL ){
+          if( getChild( d_child_counter )->getNextMatch( p, qi ) ){
+            //TODO
+            success = true;
+          }else{
+            d_child_counter = -1;
           }
         }
       }
