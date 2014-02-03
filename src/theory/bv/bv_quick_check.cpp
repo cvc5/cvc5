@@ -266,6 +266,7 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
 
 
 bool QuickXPlain::useHeuristic() {
+  d_statistics.d_finalPeriod.setData(d_period);
   // try to minimize conflict periodically 
   if (d_numConflicts % d_period == 0)
     return true;
@@ -300,6 +301,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 
   
   ++d_numCalled;
+  ++(d_statistics.d_numConflictsMinimized);
   TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
   Assert (confl.getNumChildren() > 2);
   std::vector<TNode> conflict;
@@ -338,11 +340,15 @@ QuickXPlain::Statistics::Statistics(const std::string& name)
   : d_xplainTime("theory::bv::"+name+"::QuickXplain::Time")
   , d_numSolved("theory::bv::"+name+"::QuickXplain::NumSolved", 0)
   , d_numUnknown("theory::bv::"+name+"::QuickXplain::NumUnknown", 0)
+  , d_numConflictsMinimized("theory::bv::"+name+"::QuickXplain::NumConflictsMinimized", 0)
+  , d_finalPeriod("theory::bv::"+name+"::QuickXplain::FinalPeriod", 0)
   , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
 {
   StatisticsRegistry::registerStat(&d_xplainTime);
   StatisticsRegistry::registerStat(&d_numSolved);
   StatisticsRegistry::registerStat(&d_numUnknown);
+  StatisticsRegistry::registerStat(&d_numConflictsMinimized);
+  StatisticsRegistry::registerStat(&d_finalPeriod);
   StatisticsRegistry::registerStat(&d_avgMinimizationRatio);  
 }
 
@@ -350,6 +356,8 @@ QuickXPlain::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_xplainTime);
   StatisticsRegistry::unregisterStat(&d_numSolved);
   StatisticsRegistry::unregisterStat(&d_numUnknown);
+  StatisticsRegistry::unregisterStat(&d_numConflictsMinimized);
+  StatisticsRegistry::unregisterStat(&d_finalPeriod);
   StatisticsRegistry::unregisterStat(&d_avgMinimizationRatio);  
 }
 

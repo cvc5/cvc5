@@ -68,6 +68,8 @@ class QuickXPlain {
     TimerStat d_xplainTime;
     IntStat d_numSolved;
     IntStat d_numUnknown;
+    IntStat d_numConflictsMinimized;
+    IntStat d_finalPeriod;
     AverageStat d_avgMinimizationRatio;
     Statistics(const std::string&);
     ~Statistics();
