@@ -23,7 +23,7 @@
 #include <vector>
 #include <sstream>
 #include "expr/node_manager.h"
-#include "theory/decision_attributes.h"
+
 
 namespace CVC4 {
 namespace theory {
@@ -435,8 +435,6 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
 
 
 
-
-
 // Turn a set into a string
 inline std::string setToString(const std::set<TNode>& nodeSet) {
   std::stringstream out;
@@ -498,6 +496,9 @@ inline T gcd(T a, T b) {
   return a;
 }
 
+typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
+
+bool isCoreTerm(TNode term, TNodeBoolMap& cache);
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 

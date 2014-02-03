@@ -35,6 +35,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_slicer(new Slicer()),
     d_isCoreTheory(c, true),
+    d_useSlicer(d_useSlicer),
+    d_preregisterCalled(false),
     d_reasons(c)
 {
 
@@ -78,10 +80,14 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
+void CoreSolver::enableSlicer() { Assert (!d_preregisterCalled); d_useSlicer = true; }
+void CoreSolver::disableSlicer() { Assert (!d_preregisterCalled); d_useSlicer = false; }
+
 void CoreSolver::preRegister(TNode node) {
+  d_preregisterCalled = true;
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
-      if (options::bitvectorCoreSolver()) {
+      if (d_useSlicer) {
         d_slicer->processEquality(node);
       }
   } else {
@@ -168,14 +174,21 @@ bool CoreSolver::check(Theory::Effort e) {
   while (! done()) {
     TNode fact = get();
 
-    // update whether we are in the core fragment
-    if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
-      d_isCoreTheory = false;
+    if (d_useSlicer) {
+      TNodeBoolMap seen;
+      if (d_isCoreTheory && !utils::isCoreTerm(fact, seen)) {
+        d_isCoreTheory = false;
+      }
+    } else {
+      // update whether we are in the core fragment
+      if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
+        d_isCoreTheory = false;
+      }
     }
 
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
-      if (options::bitvectorCoreSolver()) {
+      if (d_useSlicer) {
         ok = decomposeFact(fact);
       } else {
         ok = assertFactToEqualityEngine(fact, fact);
@@ -195,11 +208,11 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 void CoreSolver::buildModel() {
-  if (options::bitvectorCoreSolver()) {
-    // FIXME
-    Unreachable();
-    return;
-  }
+  // if (d_useSlicer) {
+  //   // FIXME
+  //   Unreachable();
+  //   return;
+  // }
   Debug("bv-core") << "CoreSolver::buildModel() \n";
   d_modelValues.clear();
   TNodeSet constants;
@@ -357,7 +370,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
-  if (options::bitvectorCoreSolver()) {
+  if (d_useSlicer) {
     Unreachable();
     return;
   }

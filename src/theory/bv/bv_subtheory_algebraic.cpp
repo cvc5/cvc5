@@ -495,7 +495,8 @@ AlgebraicSolver::Statistics::~Statistics() {
 bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {
   if (fact.getKind() == kind::BITVECTOR_MULT ||
       fact.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
-      fact.getKind() == kind::BITVECTOR_UREM_TOTAL) {
+      fact.getKind() == kind::BITVECTOR_UREM_TOTAL ||
+      fact.getKind() == kind::BITVECTOR_PLUS) {
     return true;
   }
 

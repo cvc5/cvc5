@@ -171,6 +171,7 @@ libcvc4_la_SOURCES = \
 	theory/uf/theory_uf_model.cpp \
 	theory/uf/options_handlers.h \
 	theory/bv/theory_bv_utils.h \
+	theory/bv/theory_bv_utils.cpp \
 	theory/bv/type_enumerator.h \
 	theory/bv/bv_to_bool.h \
 	theory/bv/bv_to_bool.cpp \

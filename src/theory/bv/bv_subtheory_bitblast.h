@@ -72,6 +72,7 @@ public:
   bool isComplete() { return true; }
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module); 
+  uint64_t computeAtomWeight(TNode atom); 
 };
 
 }

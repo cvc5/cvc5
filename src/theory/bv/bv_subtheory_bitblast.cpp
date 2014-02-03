@@ -78,10 +78,14 @@ void BitblastSolver::preRegister(TNode node) {
     d_bitblastQueue.push_back(node);
     if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
         !node.hasAttribute(theory::DecisionWeightAttr())) {
-      NodeSet seen;
-      node.setAttribute(theory::DecisionWeightAttr(), d_bitblaster->computeAtomWeight(node, seen));
+      node.setAttribute(theory::DecisionWeightAttr(),computeAtomWeight(node));
     }
   }
+}
+
+uint64_t BitblastSolver::computeAtomWeight(TNode node) {
+  NodeSet seen;
+  return d_bitblaster->computeAtomWeight(node, seen);
 }
 
 void BitblastSolver::explain(TNode literal, std::vector<TNode>& assumptions) {

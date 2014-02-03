@@ -21,6 +21,7 @@
 #include "theory/valuation.h"
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
@@ -51,7 +52,9 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
     d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule())
+    d_abstractionModule(new AbstractionModule()),
+    d_isCoreTheory(true),
+    d_calledPreregister(false)
 {
 
   if (options::bitvectorEagerBitblast()) {
@@ -64,6 +67,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_subtheories.push_back(core_solver);
     d_subtheoryMap[SUB_CORE] = core_solver;
   }
+  
   if (options::bitvectorInequalitySolver()) {
     SubtheorySolver* ineq_solver = new InequalitySolver(c, this);
     d_subtheories.push_back(ineq_solver);
@@ -105,7 +109,8 @@ TheoryBV::Statistics::Statistics():
   d_solveTimer("theory::bv::solveTimer"),
   d_numCallsToCheckFullEffort("theory::bv::NumberOfFullCheckCalls", 0),
   d_numCallsToCheckStandardEffort("theory::bv::NumberOfStandardCheckCalls", 0),
-  d_weightComputationTimer("theory::bv::weightComputationTimer")
+  d_weightComputationTimer("theory::bv::weightComputationTimer"),
+  d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
 {
   StatisticsRegistry::registerStat(&d_avgConflictSize);
   StatisticsRegistry::registerStat(&d_solveSubstitutions);
@@ -113,6 +118,7 @@ TheoryBV::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_numCallsToCheckFullEffort);
   StatisticsRegistry::registerStat(&d_numCallsToCheckStandardEffort);
   StatisticsRegistry::registerStat(&d_weightComputationTimer);
+  StatisticsRegistry::registerStat(&d_numMultSlice);
 }
 
 TheoryBV::Statistics::~Statistics() {
@@ -122,11 +128,13 @@ TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numCallsToCheckFullEffort);
   StatisticsRegistry::unregisterStat(&d_numCallsToCheckStandardEffort);
   StatisticsRegistry::unregisterStat(&d_weightComputationTimer);
+  StatisticsRegistry::unregisterStat(&d_numMultSlice);
 }
 
 
 
 void TheoryBV::preRegisterTerm(TNode node) {
+  d_calledPreregister = true;
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
  
   if (options::bitvectorEagerBitblast()) {
@@ -303,9 +311,6 @@ void TheoryBV::propagate(Effort e) {
     // temporary fix for incremental bit-blasting
     if (d_valuation.isSatLiteral(literal)) {
       Debug("bitvector::propagate") << "TheoryBV:: propagating " << literal <<"\n";
-      if (literal.getId() == 232141) {
-        std::cout << "TheoryBV::propagate " << literal <<"\n"; 
-      }
       ok = d_out->propagate(literal);
     }
   }
@@ -393,6 +398,38 @@ Node TheoryBV::ppRewrite(TNode t)
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
+  }
+
+  if(t.getKind() == kind::EQUAL &&
+     ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() == kind::BITVECTOR_PLUS) ||
+      (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() == kind::BITVECTOR_PLUS))) {
+    // if we have an equality between a multiplication and addition
+    // try to express multiplication in terms of addition
+    Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
+    Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
+    if (RewriteRule<MultSlice>::applies(mult)) {
+      Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
+      Node new_eq = Rewriter::rewrite(utils::mkNode(kind::EQUAL, new_mult, add));
+
+      // the simplification can cause the formula to blow up
+      // only apply if formula reduced
+      if (d_subtheoryMap.find(SUB_BITBLAST) != d_subtheoryMap.end()) {
+        BitblastSolver* bv = (BitblastSolver*)d_subtheoryMap[SUB_BITBLAST];
+        uint64_t old_size = bv->computeAtomWeight(t);
+        Assert (old_size);
+        uint64_t new_size = bv->computeAtomWeight(new_eq);
+        double ratio = ((double)new_size)/old_size;
+        if (ratio <= 0.4) {
+          ++(d_statistics.d_numMultSlice);
+          return new_eq;
+        }
+      }
+      
+      if (new_eq.getKind() == kind::CONST_BOOLEAN) {
+        ++(d_statistics.d_numMultSlice);
+        return new_eq;
+      }
+    }
   }
   
   if (options::bvAbstraction() && t.getType().isBoolean()) {
@@ -500,7 +537,17 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 }
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
-  
+  Assert (!d_calledPreregister);
+  if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
+    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+    if (d_isCoreTheory) {
+      TNodeBoolMap seen;
+      d_isCoreTheory = utils::isCoreTerm(in, seen);
+      core->enableSlicer(); 
+    } else {
+      core->disableSlicer(); 
+    }
+  }
 }
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {

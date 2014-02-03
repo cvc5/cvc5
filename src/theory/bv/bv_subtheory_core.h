@@ -71,6 +71,10 @@ class CoreSolver : public SubtheorySolver {
 
   Slicer* d_slicer;
   context::CDO<bool> d_isCoreTheory;
+
+  bool d_useSlicer; 
+  bool d_preregisterCalled;
+  
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
   ModelValue d_modelValues;
@@ -105,6 +109,8 @@ public:
   }
   bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
   void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
+  void enableSlicer();
+  void disableSlicer();
 };
 
 

@@ -50,7 +50,6 @@ class TheoryBV : public Theory {
   
   std::vector<SubtheorySolver*> d_subtheories;
   __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
-
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
@@ -84,9 +83,10 @@ private:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
-    IntStat d_numCallsToCheckFullEffort;
-    IntStat d_numCallsToCheckStandardEffort; 
+    IntStat     d_numCallsToCheckFullEffort;
+    IntStat     d_numCallsToCheckStandardEffort; 
     TimerStat   d_weightComputationTimer;
+    IntStat     d_numMultSlice;
     Statistics();
     ~Statistics();
   };
@@ -116,6 +116,10 @@ private:
 
   EagerBitblastSolver* d_eagerSolver; 
   AbstractionModule* d_abstractionModule;
+  // 
+  bool d_isCoreTheory;
+  bool d_calledPreregister; 
+
   
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 

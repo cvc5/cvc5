@@ -1100,6 +1100,53 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
 }
 
 
+template<> inline
+bool RewriteRule<MultSlice>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_MULT) {
+    return false; 
+  }
+  if (utils::getSize(node[0]) % 2 != 0) {
+    return false; 
+  }
+  return true; 
+}
+
+/** 
+ * Expressses the multiplication in terms of the top and bottom
+ * slices of the terms. Note increases circuit size, but could
+ * lead to simplifications (use wisely!).
+ * 
+ * @param node 
+ * 
+ * @return 
+ */
+template<> inline
+Node RewriteRule<MultSlice>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<MultSlice>(" << node << ")" << std::endl;
+  unsigned bitwidth = utils::getSize(node[0]);
+  Node zeros = utils::mkConst(bitwidth/2, 0);
+  TNode a = node[0];
+  Node bottom_a = utils::mkExtract(a, bitwidth/2 - 1, 0);
+  Node top_a = utils::mkExtract(a, bitwidth -1, bitwidth/2); 
+  TNode b = node[1];
+  Node bottom_b = utils::mkExtract(b, bitwidth/2 - 1, 0);
+  Node top_b = utils::mkExtract(b, bitwidth -1, bitwidth/2); 
+
+  Node term1 = utils::mkNode(kind::BITVECTOR_MULT,
+                             utils::mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_a),
+                             utils::mkNode(kind::BITVECTOR_CONCAT, zeros, bottom_b));
+
+  Node term2 = utils::mkNode(kind::BITVECTOR_CONCAT,
+                             utils::mkNode(kind::BITVECTOR_MULT, top_b, bottom_a),
+                             zeros);
+  Node term3 = utils::mkNode(kind::BITVECTOR_CONCAT,
+                             utils::mkNode(kind::BITVECTOR_MULT, top_a, bottom_b),
+                             zeros);
+  return utils::mkNode(kind::BITVECTOR_PLUS, term1, term2, term3); 
+}
+
+
+
 // /**
 //  * 
 //  *
