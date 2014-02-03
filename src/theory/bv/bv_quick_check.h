@@ -74,8 +74,15 @@ class QuickXPlain {
   };
   BVQuickCheck* d_solver;
   unsigned long d_budget;
+  // heuristic variables
   unsigned d_numCalled;
   double d_minRatioSum;
+  unsigned d_numConflicts;
+  unsigned d_period;
+
+  double d_thresh;
+  double d_hardThresh;
+  
   
   Statistics d_statistics;
   unsigned selectUnsatCore(unsigned low, unsigned high,
@@ -84,9 +91,9 @@ class QuickXPlain {
                                 std::vector<TNode>& conflict,
                                 std::vector<TNode>& new_conflict);
 
-
+  bool useHeuristic();
 public:
-  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 1500);
+  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 500);
   ~QuickXPlain();
   Node minimizeConflict(TNode conflict); 
   void setBudget(); 

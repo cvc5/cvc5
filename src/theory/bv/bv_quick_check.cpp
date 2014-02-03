@@ -130,6 +130,10 @@ QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned
   , d_budget(budget)
   , d_numCalled(0)
   , d_minRatioSum(0)
+  , d_numConflicts(0)
+  , d_period(20)
+  , d_thresh(0.7)
+  , d_hardThresh(0.9)
   , d_statistics(name)
 {}
 QuickXPlain::~QuickXPlain() {}
@@ -260,12 +264,40 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
   d_solver->pop();
 }
 
+
+bool QuickXPlain::useHeuristic() {
+  // try to minimize conflict periodically 
+  if (d_numConflicts % d_period == 0)
+    return true;
+
+  if (d_numCalled == 0) {
+    return true;
+  }
+  
+  if (d_minRatioSum / d_numCalled >= d_thresh &&
+      d_numCalled <= 20 ) {
+    return false;
+  }
+
+  if (d_minRatioSum / d_numCalled >= d_hardThresh) {
+    return false;
+  }
+
+  return true;
+}
+
 Node QuickXPlain::minimizeConflict(TNode confl) {
-  if (d_minRatioSum / d_numCalled >= 0.6 &&
-      d_numCalled > 100 &&
-      d_numCalled % 100 != 0) {
+  ++d_numConflicts;
+
+  if (!useHeuristic()) {
     return confl;
   }
+
+  // std::cout << "d_numConlicts =" << d_numConflicts <<"\n";
+  // std::cout << "d_numCalled =" << d_numCalled <<"\n";
+  // std::cout << "d_period =" << d_period <<"\n";
+  // std::cout << "avg_ratio =" << d_minRatioSum / d_numCalled <<"\n";
+
   
   ++d_numCalled;
   TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
@@ -277,11 +309,26 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   d_solver->popToZero();
   std::vector<TNode> minimized;
   minimizeConflictInternal(0, conflict.size() - 1, conflict, minimized);
+
   double minimization_ratio = ((double) minimized.size())/confl.getNumChildren();
   d_minRatioSum+= minimization_ratio;
+  
+
+  if (minimization_ratio >= d_hardThresh) {
+    d_period = d_period * 5; 
+  }
+
+  if (minimization_ratio <= d_thresh && d_period >= 40) {
+    d_period = d_period *0.5; 
+  }
+
+  if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
+    d_period = d_period * 2;
+  }
+  
   // if (d_numCalled % 100 == 0) {
-  //   // std::cout << "min ratio " << minimization_ratio <<"\n";
-  //   // std::cout << "min ratio avg " <<  d_minRatioSum / d_numCalled <<"\n";
+  // std::cout << "min ratio " << minimization_ratio <<"\n";
+  // std::cout << "min ratio avg " <<  d_minRatioSum / d_numCalled <<"\n";
   // }
   d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
   return utils::mkAnd(minimized); 
