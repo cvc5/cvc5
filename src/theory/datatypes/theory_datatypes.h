@@ -44,7 +44,7 @@ private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
-  TransitiveClosureNode d_cycle_check;
+  //TransitiveClosureNode d_cycle_check;
   /** has seen cycle */
   context::CDO< bool > d_hasSeenCycle;
   /** inferences */

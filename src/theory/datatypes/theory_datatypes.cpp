@@ -41,7 +41,7 @@ using namespace CVC4::theory::datatypes;
 
 TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
   Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
-  d_cycle_check(c),
+  //d_cycle_check(c),
   d_hasSeenCycle(c, false),
   d_infer(c),
   d_infer_exp(c),
@@ -612,6 +612,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       oldRep = trep1;
       newRep = trep2;
     }
+    /*
     bool result = d_cycle_check.addEdgeNode( oldRep, newRep );
     //d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
     Debug("datatypes-cycles") << "DtCyc: Equal " << oldRep << " -> " << newRep << " " << result << " " << d_hasSeenCycle.get() << endl;
@@ -625,6 +626,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
         d_cycle_check.debugPrint();
       }
     }
+    */
   }
 }
 
@@ -1043,6 +1045,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
       collectTerms( n[i] );
     }
     if( n.getKind() == APPLY_CONSTRUCTOR ){
+      /*
       //we must take into account subterm relation when checking for cycles
       for( int i=0; i<(int)n.getNumChildren(); i++ ) {
         bool result = d_cycle_check.addEdgeNode( n, n[i] );
@@ -1055,6 +1058,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
         //EqcInfo* eqc = getOrMakeEqcInfo( r, true );
         //eqc->d_selectors = true;
       }
+      */
     }else if( n.getKind() == APPLY_SELECTOR ){
       //we must also record which selectors exist
       Debug("datatypes") << "  Found selector " << n << endl;
@@ -1227,9 +1231,9 @@ Node TheoryDatatypes::searchForCycle( Node n, Node on,
         for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
           Node cn = searchForCycle( ncons[i], on, visited, explanation, false );
           if( cn==on ) {
-            if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
-              Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
-            }
+            //if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
+            //  Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
+            //}
             //add explanation for why the constructor is connected
             if( n != ncons ) {
               Node lit = NodeManager::currentNM()->mkNode( EQUAL, n, ncons );
