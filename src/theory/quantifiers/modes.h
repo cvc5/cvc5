@@ -86,6 +86,8 @@ typedef enum {
   QCF_CONFLICT_ONLY,
   /** use qcf for conflicts and propagations */
   QCF_PROP_EQ,
+  /** use qcf for model checking */
+  QCF_MC,
 } QcfMode;
 
 typedef enum {

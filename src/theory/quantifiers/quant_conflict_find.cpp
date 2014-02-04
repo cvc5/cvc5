@@ -86,18 +86,24 @@ void QuantInfo::initialize( Node q, Node qn ) {
 
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg = new MatchGen( this, qn, true );
+  d_mg = new MatchGen( this, qn );
 
   if( d_mg->isValid() ){
     for( unsigned j=q[0].getNumChildren(); j<d_vars.size(); j++ ){
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
-        d_var_mg[j] = new MatchGen( this, d_vars[j], false, true );
+        d_var_mg[j] = new MatchGen( this, d_vars[j], true );
         if( !d_var_mg[j]->isValid() ){
           d_mg->setInvalid();
           break;
         }
       }
     }
+
+    if( d_mg->isValid() ){
+      std::vector< int > bvars;
+      d_mg->determineVariableOrder( this, bvars );
+    }
+
     //must also contain all variables?
     /*
       if( d_mg->isValid() ){
@@ -562,8 +568,8 @@ struct MatchGenSort {
 };
 */
 
-MatchGen::MatchGen( QuantInfo * qi, Node n, bool isTop, bool isVar ){
-  Trace("qcf-qregister-debug") << "Make match gen for " << n << ", top/var = " << isTop << " " << isVar << std::endl;
+MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar ){
+  Trace("qcf-qregister-debug") << "Make match gen for " << n << ", isVar = " << isVar << std::endl;
   std::vector< Node > qni_apps;
   d_qni_size = 0;
   if( isVar ){
@@ -674,6 +680,93 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isTop, bool isVar ){
   //Assert( d_children.size()==d_children_order.size() );
 }
 
+void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars ) {
+  int v = qi->getVarNum( n );
+  if( v!=-1 && std::find( cbvars.begin(), cbvars.end(), v )==cbvars.end() ){
+    cbvars.push_back( v );
+  }
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    collectBoundVar( qi, n[i], cbvars );
+  }
+}
+
+void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars ) {
+  Trace("qcf-qregister-debug") << "Determine variable order " << d_n << std::endl;
+  bool isCom = d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF;
+  std::map< int, std::vector< int > > c_to_vars;
+  std::map< int, std::vector< int > > vars_to_c;
+  std::map< int, int > vb_count;
+  std::map< int, int > vu_count;
+  std::vector< bool > assigned;
+  Trace("qcf-qregister-debug") << "Calculate bound variables..." << std::endl;
+  for( unsigned i=0; i<d_children.size(); i++ ){
+    collectBoundVar( qi, d_children[i].d_n, c_to_vars[i] );
+    assigned.push_back( false );
+    vb_count[i] = 0;
+    vu_count[i] = 0;
+    for( unsigned j=0; j<c_to_vars[i].size(); j++ ){
+      int v = c_to_vars[i][j];
+      vars_to_c[v].push_back( i );
+      if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
+        vu_count[i]++;
+        if( !isCom ){
+          bvars.push_back( v );
+        }
+      }else{
+        vb_count[i]++;
+      }
+    }
+  }
+  if( isCom ){
+    //first, do those that do not bind any new variables
+    //second, do those with common variables
+    //last, do those with no common variables
+    do {
+      int min_score = -1;
+      int min_score_index = -1;
+      for( unsigned i=0; i<d_children.size(); i++ ){
+        if( !assigned[i] ){
+          int score = vu_count[i];
+          if( min_score==-1 || score<min_score ){
+            min_score = score;
+            min_score_index = i;
+          }
+        }
+      }
+      Trace("qcf-qregister-debug") << "...assign child " << min_score_index << "/" << d_children.size() << std::endl;
+      Assert( min_score_index!=-1 );
+      //add to children order
+      d_children_order.push_back( min_score_index );
+      assigned[min_score_index] = true;
+      //if( vb_count[min_score_index]==0 ){
+      //  d_independent.push_back( min_score_index );
+      //}
+      //determine order internal to children
+      d_children[min_score_index].determineVariableOrder( qi, bvars );
+      Trace("qcf-qregister-debug")  << "...bind variables" << std::endl;
+      //now, make it a bound variable
+      for( unsigned i=0; i<c_to_vars[min_score_index].size(); i++ ){
+        int v = c_to_vars[min_score_index][i];
+        if( std::find( bvars.begin(), bvars.end(), v )==bvars.end() ){
+          for( unsigned j=0; j<vars_to_c[v].size(); j++ ){
+            int vc = vars_to_c[v][j];
+            vu_count[vc]--;
+            vb_count[vc]++;
+          }
+          bvars.push_back( v );
+        }
+      }
+      Trace("qcf-qregister-debug") << "...done assign child " << min_score_index << std::endl;
+    }while( d_children_order.size()!=d_children.size() );
+    Trace("qcf-qregister-debug") << "Done assign variable ordering for " << d_n << std::endl;
+  }else{
+    for( unsigned i=0; i<d_children.size(); i++ ){
+      d_children_order.push_back( i );
+      d_children[i].determineVariableOrder( qi, bvars );
+    }
+  }
+}
+
 
 void MatchGen::reset_round( QuantConflictFind * p ) {
   for( unsigned i=0; i<d_children.size(); i++ ){
@@ -702,7 +795,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
   d_tgt = d_type_not ? !tgt : tgt;
   Debug("qcf-match") << "     Reset for : " << d_n << ", type : ";
   debugPrintType( "qcf-match", d_type );
-  Debug("qcf-match") << ", tgt = " << d_tgt << ", children = " << d_children.size() << std::endl;
+  Debug("qcf-match") << ", tgt = " << d_tgt << ", children = " << d_children.size() << " " << d_children_order.size() << std::endl;
   d_qn.clear();
   d_qni.clear();
   d_qni_bound.clear();
@@ -934,7 +1027,11 @@ bool MatchGen::getNextMatch( QuantConflictFind * p, QuantInfo * qi ) {
                 success = true;
               }
             }else{
+              //if( std::find( d_independent.begin(), d_independent.end(), d_child_counter )!=d_independent.end() ){
+              //  d_child_counter--;
+              //}else{
               d_child_counter--;
+              //}
             }
           }else{
             //one child must match
@@ -1533,9 +1630,12 @@ void QuantConflictFind::check( Theory::Effort level ) {
 
           Assert( d_qinfo.find( q )!=d_qinfo.end() );
           if( qi->d_mg->isValid() ){
+            Trace("qcf-check-debug") << "Reset round..." << std::endl;
             qi->reset_round( this );
             //try to make a matches making the body false
+            Trace("qcf-check-debug") << "Reset..." << std::endl;
             qi->d_mg->reset( this, false, qi );
+            Trace("qcf-check-debug") << "Get next match..." << std::endl;
             while( qi->d_mg->getNextMatch( this, qi ) ){
 
               Trace("qcf-check") << "*** Produced match at effort " << e << " : " << std::endl;

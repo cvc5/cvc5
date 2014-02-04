@@ -122,7 +122,10 @@ conflict \n\
 + Default, apply conflict finding for finding conflicts only.\n\
 \n\
 prop-eq \n\
-+ Apply conflict finding to propagate equalities as well. \n\
++ Apply QCF to propagate equalities as well. \n\
+\n\
+mc \n\
++ Apply QCF in a complete way, so that a model is ensured when it fails. \n\
 \n\
 ";
 static const std::string userPatModeHelp = "\
@@ -247,8 +250,10 @@ inline QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg, S
 inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg ==  "default" || optarg ==  "conflict") {
     return QCF_CONFLICT_ONLY;
-  } else if(optarg ==  "prop-eq") {
+  } else if(optarg == "prop-eq") {
     return QCF_PROP_EQ;
+  } else if(optarg == "mc" ) {
+    return QCF_MC;
   } else if(optarg ==  "help") {
     puts(qcfModeHelp.c_str());
     exit(1);

@@ -42,14 +42,15 @@ class QuantInfo;
 
 //match generator
 class MatchGen {
+  friend class QuantInfo;
 private:
   //current children information
   int d_child_counter;
   //children of this object
-  //std::vector< int > d_children_order;
+  std::vector< int > d_children_order;
   unsigned getNumChildren() { return d_children.size(); }
-  //MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
-  MatchGen * getChild( int i ) { return &d_children[i]; }
+  MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
+  //MatchGen * getChild( int i ) { return &d_children[i]; }
   //current matching information
   std::vector< QcfNodeIndex * > d_qn;
   std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
@@ -63,9 +64,13 @@ private:
   std::map< int, TNode > d_qni_bound_cons;
   std::map< int, int > d_qni_bound_cons_var;
   std::map< int, int >::iterator d_binding_it;
+  //std::vector< int > d_independent;
   bool d_binding;
   //int getVarBindingVar();
   std::map< int, Node > d_ground_eval;
+  //determine variable order
+  void determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars );
+  void collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbvars );
 public:
   //type of the match generator
   enum {
@@ -80,7 +85,7 @@ public:
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
   MatchGen() : d_type( typ_invalid ){}
-  MatchGen( QuantInfo * qi, Node n, bool isTop = false, bool isVar = false );
+  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
   bool d_tgt;
   Node d_n;
   std::vector< MatchGen > d_children;
@@ -108,7 +113,6 @@ public:
   QuantInfo() : d_mg( NULL ) {}
   std::vector< TNode > d_vars;
   std::map< TNode, int > d_var_num;
-  //std::map< EqRegistry *, bool > d_rel_eqr;
   std::map< int, std::vector< Node > > d_var_constraint[2];
   int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
@@ -199,7 +203,7 @@ public:
   enum {
     effort_conflict,
     effort_prop_eq,
-    effort_prop_deq,
+    effort_mc,
   };
   short d_effort;
   //for effort_prop
@@ -210,12 +214,8 @@ public:
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
   QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
-
-  /** register assertions */
-  //void registerAssertions( std::vector< Node >& assertions );
   /** register quantifier */
   void registerQuantifier( Node q );
-
 public:
   /** assert quantifier */
   void assertNode( Node q );
