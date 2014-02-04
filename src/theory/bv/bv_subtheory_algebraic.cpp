@@ -312,9 +312,11 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   }
 
   worklist.resize(w);
-  
+
   double ratio = ((double)subst_bb_cost)/original_bb_cost;
-  if (ratio > 0.5) {
+  //  std::cout << ratio <<"\n"; 
+  if (ratio > 0.5 ||
+      !d_isDifficult.get()) {
     // give up if problem not reduced enough
     d_isComplete = false;
     return true;
@@ -438,9 +440,6 @@ bool AlgebraicSolver::isComplete() {
 }
 
 bool AlgebraicSolver::useHeuristic() {
-  if (!d_isDifficult.get())
-    return false;
-
   if (d_numCalls == 0)
     return true;
   
@@ -495,8 +494,7 @@ AlgebraicSolver::Statistics::~Statistics() {
 bool hasExpensiveBVOperatorsRec(TNode fact, TNodeSet& seen) {
   if (fact.getKind() == kind::BITVECTOR_MULT ||
       fact.getKind() == kind::BITVECTOR_UDIV_TOTAL ||
-      fact.getKind() == kind::BITVECTOR_UREM_TOTAL ||
-      fact.getKind() == kind::BITVECTOR_PLUS) {
+      fact.getKind() == kind::BITVECTOR_UREM_TOTAL) {
     return true;
   }
 

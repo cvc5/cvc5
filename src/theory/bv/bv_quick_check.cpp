@@ -112,7 +112,8 @@ void BVQuickCheck::pop() {
  * 
  */
 void BVQuickCheck::reset() {
-  d_bitblaster->clearSolver(); 
+  popToZero();
+  d_bitblaster->clearSolver();
 }
 
 void BVQuickCheck::popToZero() {
