@@ -70,6 +70,9 @@ public:
   std::string identify() const { return std::string("TheoryBV"); }
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+
+  void enableCoreTheorySlicer();
+  
   Node ppRewrite(TNode t);
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
@@ -116,10 +119,8 @@ private:
 
   EagerBitblastSolver* d_eagerSolver; 
   AbstractionModule* d_abstractionModule;
-  // 
   bool d_isCoreTheory;
-  bool d_calledPreregister; 
-
+  bool d_calledPreregister;
   
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 

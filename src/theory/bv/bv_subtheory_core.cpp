@@ -80,8 +80,11 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
-void CoreSolver::enableSlicer() { Assert (!d_preregisterCalled); d_useSlicer = true; }
-void CoreSolver::disableSlicer() { Assert (!d_preregisterCalled); d_useSlicer = false; }
+void CoreSolver::enableSlicer() {
+  Assert (!d_preregisterCalled);
+  d_useSlicer = true;
+  d_statistics.d_slicerEnabled.setData(true);
+}
 
 void CoreSolver::preRegister(TNode node) {
   d_preregisterCalled = true;
@@ -419,9 +422,12 @@ Node CoreSolver::getModelValue(TNode var) {
 
 CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", options::bitvectorCoreSolver())
 {
   StatisticsRegistry::registerStat(&d_numCallstoCheck);
+  StatisticsRegistry::registerStat(&d_slicerEnabled);
 }
 CoreSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
+  StatisticsRegistry::unregisterStat(&d_slicerEnabled);
 }

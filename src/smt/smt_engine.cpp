@@ -2732,6 +2732,9 @@ bool SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+    // before ppRewrite check if only core theory for BV theory
+    d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertionsToCheck);
+    
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP) {
       Chat() << "...doing early theory preprocessing..." << endl;

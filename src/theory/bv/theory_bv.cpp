@@ -53,7 +53,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_propagatedBy(c),
     d_eagerSolver(NULL),
     d_abstractionModule(new AbstractionModule()),
-    d_isCoreTheory(true),
+    d_isCoreTheory(options::bitvectorCoreSolver()),
     d_calledPreregister(false)
 {
 
@@ -394,7 +394,7 @@ Node TheoryBV::ppRewrite(TNode t)
   if (RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if (options::bitvectorCoreSolver() && t.getKind() == kind::EQUAL) {
+  } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
@@ -536,19 +536,18 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   return EQUALITY_UNKNOWN; ;
 }
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+
+void TheoryBV::enableCoreTheorySlicer() {
   Assert (!d_calledPreregister);
+  d_isCoreTheory = true;
   if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
     CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-    if (d_isCoreTheory) {
-      TNodeBoolMap seen;
-      d_isCoreTheory = utils::isCoreTerm(in, seen);
-      core->enableSlicer(); 
-    } else {
-      core->disableSlicer(); 
-    }
+    core->enableSlicer(); 
   }
 }
+
+
+void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {}
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bool changed = d_abstractionModule->applyAbstraction(assertions, new_assertions);

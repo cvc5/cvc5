@@ -50,6 +50,7 @@
 
 #include "theory/uf/equality_engine.h"
 #include "theory/rewriterules/efficient_e_matching.h"
+#include "theory/bv/theory_bv_utils.h"
 
 #include "proof/proof_manager.h"
 
@@ -1414,6 +1415,18 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     lemma(conflict, true, true, THEORY_LAST);
+  }
+}
+
+void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
+  bool isOnlyCore = true;
+  bv::utils::TNodeBoolMap cache;
+  for (unsigned i = 0; i < assertions.size(); ++i) {
+    isOnlyCore = isOnlyCore && bv::utils::isCoreTerm(assertions[i], cache); 
+  }
+  if (isOnlyCore) {
+    bv::TheoryBV* bv_theory = (bv::TheoryBV*)theoryOf(NodeManager::currentNM()->mkConst<BitVector>(BitVector(1, 1u)));
+    bv_theory->enableCoreTheorySlicer();
   }
 }
 

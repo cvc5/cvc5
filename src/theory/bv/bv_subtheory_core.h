@@ -36,6 +36,7 @@ class CoreSolver : public SubtheorySolver {
 
   struct Statistics {
     IntStat d_numCallstoCheck;
+    BackedStat<bool> d_slicerEnabled;
     Statistics();
     ~Statistics();
   };
@@ -110,7 +111,6 @@ public:
   bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
   void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
   void enableSlicer();
-  void disableSlicer();
 };
 
 
