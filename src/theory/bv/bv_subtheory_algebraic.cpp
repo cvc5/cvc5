@@ -147,7 +147,6 @@ Node SubstitutionEx::internalApply(TNode node) {
   return getCache(node);
 }
 
-
 Node SubstitutionEx::explain(TNode node) const {
   if(!hasCache(node))
     return utils::mkTrue();
@@ -214,7 +213,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
   d_explanations.clear();
   d_ids.clear(); 
-  
+  d_inputAssertions.clear(); 
 
   std::vector<WorklistElement> worklist;
 
@@ -228,13 +227,13 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     unsigned id = worklist.size();
     d_ids[assertion] = id; 
     worklist.push_back(WorklistElement(assertion, id));
-    d_explanations.push_back(assertion);
+    d_inputAssertions.insert(assertion); 
+    storeExplanation(assertion);
+
     uint64_t assertion_size = d_quickSolver->computeAtomWeight(assertion, seen_assertions);
     Assert (original_bb_cost <= original_bb_cost + assertion_size);
     original_bb_cost+= assertion_size; 
   }
-
-
 
   for (unsigned i = 0; i < worklist.size(); ++i) {
     d_ids[worklist[i].node] = worklist[i].id;
@@ -244,110 +243,33 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
   Assert (d_explanations.size() == worklist.size()); 
   
-  bool changed = true;
+
   SubstitutionEx subst;
+
+  // first round of substitutions
+  processAssertions(worklist, subst); 
+
+  if (!d_isDifficult.get()) {
+    // skolemize all possible extracts
+    ExtractSkolemizer skolemizer(d_ctx);
+    skolemizer.skolemize(worklist);
+    // second round of substitutions
+    processAssertions(worklist, subst); 
+  }
+
+
+  // if(Debug.isOn("bv-algebraic-dbg")) {
+  //   Debug("bv-algebraic-dbg") << "Post processAssertions2 \n";
+  //   for (unsigned i = 0; i < worklist.size(); ++i) {
+  //     TNode fact = worklist[i].node;
+  //     unsigned id = worklist[i].id;
+  //     TNode explanation = d_explanations[id];
+  //     Debug("bv-algebraic-dbg") <<fact << " id= " << id <<"\n";
+  //     Debug("bv-algebraic-dbg") <<"    expl: " << Rewriter::rewrite(explanation) <<"\n"; 
+  //   }
+  // }
+
   
-  while(changed) {
-    changed = false;
-    for (unsigned i = 0; i < worklist.size(); ++i) {
-      // apply current substitutions
-      Node current = subst.apply(worklist[i].node);
-      unsigned current_id = worklist[i].id;
-      Node subst_expl = subst.explain(worklist[i].node);
-      worklist[i] = WorklistElement(Rewriter::rewrite(current), current_id);
-      // explanation for this assertion
-      Node old_expl = d_explanations[current_id];
-      Node new_expl = subst_expl == utils::mkTrue() ? old_expl
-        : utils::mkAnd(subst_expl, old_expl);
-      d_explanations[current_id] = new_expl;
-      
-      // use the new substitution to solve
-      if(solve(worklist[i].node, new_expl, subst)) {
-        changed = true;
-      }
-    }
-
-    // check for concat slicings
-    for (unsigned i = 0; i < worklist.size(); ++i) {
-      TNode fact = worklist[i].node;
-      if (fact.getKind() != kind::EQUAL)
-        continue;
-
-      TNode left = fact[0];
-      TNode right = fact[1];
-      if (left.getKind() != kind::BITVECTOR_CONCAT ||
-          right.getKind() != kind::BITVECTOR_CONCAT ||
-          left.getNumChildren() != right.getNumChildren())
-        continue;
-      
-      for (unsigned j = 0; j < left.getNumChildren(); ++j) {
-        Node eq_j = utils::mkNode(kind::EQUAL, left[j], right[j]);
-        unsigned id = d_explanations.size();
-        d_explanations.push_back(fact);
-        worklist.push_back(WorklistElement(eq_j, id));
-        d_ids[eq_j] = id; 
-      }
-      worklist[i] = WorklistElement(utils::mkTrue(), worklist[i].id);
-      changed = true;
-    }
-      
-    Assert (d_explanations.size() == worklist.size()); 
-
-  }
-
-
-  ExtractSkolemizer skolemizer(d_ctx);
-  skolemizer.skolemize(worklist);
-
-  changed = true;
-    while(changed) {
-    changed = false;
-    for (unsigned i = 0; i < worklist.size(); ++i) {
-      // apply current substitutions
-      Node current = subst.apply(worklist[i].node);
-      unsigned current_id = worklist[i].id;
-      Node subst_expl = subst.explain(worklist[i].node);
-      worklist[i] = WorklistElement(Rewriter::rewrite(current), current_id);
-      // explanation for this assertion
-      Node old_expl = d_explanations[current_id];
-      Node new_expl = subst_expl == utils::mkTrue() ? old_expl
-        : utils::mkAnd(subst_expl, old_expl);
-      d_explanations[current_id] = new_expl;
-      
-      // use the new substitution to solve
-      if(solve(worklist[i].node, new_expl, subst)) {
-        changed = true;
-      }
-    }
-
-    // check for concat slicings
-    for (unsigned i = 0; i < worklist.size(); ++i) {
-      TNode fact = worklist[i].node;
-      if (fact.getKind() != kind::EQUAL)
-        continue;
-
-      TNode left = fact[0];
-      TNode right = fact[1];
-      if (left.getKind() != kind::BITVECTOR_CONCAT ||
-          right.getKind() != kind::BITVECTOR_CONCAT ||
-          left.getNumChildren() != right.getNumChildren())
-        continue;
-      
-      for (unsigned j = 0; j < left.getNumChildren(); ++j) {
-        Node eq_j = utils::mkNode(kind::EQUAL, left[j], right[j]);
-        unsigned id = d_explanations.size();
-        d_explanations.push_back(fact);
-        worklist.push_back(WorklistElement(eq_j, id));
-        d_ids[eq_j] = id; 
-      }
-      worklist[i] = WorklistElement(utils::mkTrue(), worklist[i].id);
-      changed = true;
-    }
-      
-    Assert (d_explanations.size() == worklist.size()); 
-
-  }
-
   NodeSet subst_seen;
   uint64_t subst_bb_cost = 0;
 
@@ -399,7 +321,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     subst_bb_cost+= d_quickSolver->computeAtomWeight(fact, subst_seen);
     worklist[w] = WorklistElement(fact, id);
     Node expl = Rewriter::rewrite(d_explanations[id]);
-    d_explanations[id] = expl;
+    storeExplanation(id, expl);
     d_ids[fact] = id;
     ++w;
   }
@@ -540,9 +462,30 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   if (right.getKind() == kind::BITVECTOR_XOR &&
       left.getKind() == kind::BITVECTOR_XOR) {
     TNode var = left[0];
-    if (!isSubstitutableIn(var, right))
-      return false;
+    if (!var.getMetaKind() == kind::metakind::VARIABLE)
+      return false; 
 
+    // simplify xor with same variable on both sides
+    if (right.hasSubterm(var)) {
+      std::vector<Node> right_children;
+      for (unsigned i = 0; i < right.getNumChildren(); ++i) {
+        if (right[i] != var)
+          right_children.push_back(right[i]); 
+      }
+      Assert (right_children.size());
+      Node new_right = right_children.size() > 1 ? utils::mkNode(kind::BITVECTOR_XOR, right_children)
+                                                 : right_children[0];
+      std::vector<Node> left_children;
+      for (unsigned i = 1; i < left.getNumChildren(); ++i) {
+        left_children.push_back(left[i]);
+      }
+      Node new_left = left_children.size() > 1 ? utils::mkNode(kind::BITVECTOR_XOR, left_children)
+                                               : left_children[0];
+      Node new_fact = utils::mkNode(kind::EQUAL, new_left, new_right);
+      subst.addSubstitution(fact, new_fact, reason);
+      return true;
+    }
+    
     NodeBuilder<> nb(kind::BITVECTOR_XOR);
     for (unsigned i = 1; i < left.getNumChildren(); ++i) {
       nb << left[i];
@@ -563,6 +506,39 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     
     return true;
   }
+
+  // (a xor t = a) <=> (t = 0)
+  if (left.getKind() == kind::BITVECTOR_XOR &&
+      right.getMetaKind() == kind::metakind::VARIABLE &&
+      left.hasSubterm(right)) {
+    TNode var = right;
+    Node new_left = utils::mkNode(kind::BITVECTOR_XOR, var, left);
+    Node zero = utils::mkConst(utils::getSize(var), 0u);
+    Node new_fact = utils::mkNode(kind::EQUAL, zero, new_left);
+    subst.addSubstitution(fact, new_fact, reason);
+    return true; 
+  }
+  
+  if (right.getKind() == kind::BITVECTOR_XOR &&
+      left.getMetaKind() == kind::metakind::VARIABLE &&
+      right.hasSubterm(left)) {
+    TNode var = left;
+    Node new_right = utils::mkNode(kind::BITVECTOR_XOR, var, right);
+    Node zero = utils::mkConst(utils::getSize(var), 0u);
+    Node new_fact = utils::mkNode(kind::EQUAL, zero, new_right);
+    subst.addSubstitution(fact, new_fact, reason);
+    return true; 
+  }
+
+  // (a xor b = 0) <=> (a = b)
+  if (left.getKind() == kind::BITVECTOR_XOR &&
+      left.getNumChildren() == 2 &&
+      right.getKind() == kind::CONST_BITVECTOR &&
+      right.getConst<BitVector>() == BitVector(utils::getSize(left), 0u)) {
+    Node new_fact = utils::mkNode(kind::EQUAL, left[0], left[1]);
+    subst.addSubstitution(fact, new_fact, reason);
+    return true; 
+  }
   
 
   return false;
@@ -572,16 +548,93 @@ bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
   if (node.getMetaKind() == kind::metakind::VARIABLE &&
       !in.hasSubterm(node))
     return true;
-
-  // if (node.getKind() == kind::BITVECTOR_EXTRACT &&
-  //     utils::getSize(node) == 1 &&
-  //     node[0].getMetaKind() == kind::metakind::VARIABLE &&
-  //     !in.hasSubterm(node[0])) {
-  //   return true;
-  // }
-
   return false; 
 }
+
+void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst) {
+  bool changed = true;
+  while(changed) {
+    changed = false;
+    for (unsigned i = 0; i < worklist.size(); ++i) {
+      // apply current substitutions
+      Node current = subst.apply(worklist[i].node);
+      unsigned current_id = worklist[i].id;
+      Node subst_expl = subst.explain(worklist[i].node);
+      worklist[i] = WorklistElement(Rewriter::rewrite(current), current_id);
+      // explanation for this assertion
+      Node old_expl = d_explanations[current_id];
+      Node new_expl = subst_expl == utils::mkTrue() ? old_expl
+        : utils::mkAnd(subst_expl, old_expl);
+      storeExplanation(current_id, new_expl);
+      
+      // use the new substitution to solve
+      if(solve(worklist[i].node, new_expl, subst)) {
+        changed = true;
+      }
+    }
+
+    // check for concat slicings
+    for (unsigned i = 0; i < worklist.size(); ++i) {
+      TNode fact = worklist[i].node;
+      unsigned current_id = worklist[i].id;
+      
+      if (fact.getKind() != kind::EQUAL)
+        continue;
+
+      TNode left = fact[0];
+      TNode right = fact[1];
+      if (left.getKind() != kind::BITVECTOR_CONCAT ||
+          right.getKind() != kind::BITVECTOR_CONCAT ||
+          left.getNumChildren() != right.getNumChildren())
+        continue;
+
+      bool can_slice = true;
+      for (unsigned j = 0; j < left.getNumChildren(); ++j) {
+        if (utils::getSize(left[j]) != utils::getSize(right[j]))
+          can_slice = false;
+      }
+      
+      if (!can_slice)
+        continue; 
+      
+      for (unsigned j = 0; j < left.getNumChildren(); ++j) {
+        Node eq_j = utils::mkNode(kind::EQUAL, left[j], right[j]);
+        unsigned id = d_explanations.size();
+        TNode expl = d_explanations[current_id];
+        storeExplanation(expl);
+        worklist.push_back(WorklistElement(eq_j, id));
+        d_ids[eq_j] = id; 
+      }
+      worklist[i] = WorklistElement(utils::mkTrue(), worklist[i].id);
+      changed = true;
+    }
+    Assert (d_explanations.size() == worklist.size()); 
+  }
+}
+
+void AlgebraicSolver::storeExplanation(unsigned id, TNode explanation) {
+  Assert (checkExplanation(explanation)); 
+  d_explanations[id] = explanation;
+}
+
+void AlgebraicSolver::storeExplanation(TNode explanation) {
+  Assert (checkExplanation(explanation));
+  d_explanations.push_back(explanation); 
+}
+
+bool AlgebraicSolver::checkExplanation(TNode explanation) {
+  explanation = Rewriter::rewrite(explanation);
+  if (explanation.getKind() != kind::AND) {
+    return d_inputAssertions.find(explanation) != d_inputAssertions.end();
+  }
+  for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
+    if (d_inputAssertions.find(explanation[i]) == d_inputAssertions.end()) {
+      return false;
+    }
+  }
+  return true; 
+}
+
 
 bool AlgebraicSolver::isComplete() {
   return d_isComplete.get(); 

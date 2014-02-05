@@ -144,6 +144,7 @@ class AlgebraicSolver : public SubtheorySolver {
   
   unsigned long d_budget;
   std::vector<Node> d_explanations;
+  TNodeSet d_inputAssertions;
   NodeIdMap d_ids;
   double d_numSolved;
   double d_numCalls;
@@ -158,6 +159,10 @@ class AlgebraicSolver : public SubtheorySolver {
   bool useHeuristic();
   void setConflict(TNode conflict);
   bool isSubstitutableIn(TNode node, TNode in);
+  void processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst);
+  bool checkExplanation(TNode expl);
+  void storeExplanation(TNode expl);
+  void storeExplanation(unsigned id, TNode expl); 
 public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();
