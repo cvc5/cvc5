@@ -65,6 +65,7 @@ private:
   std::map< int, int > d_qni_bound_cons_var;
   std::map< int, int >::iterator d_binding_it;
   //std::vector< int > d_independent;
+  bool d_matched_basis;
   bool d_binding;
   //int getVarBindingVar();
   std::map< int, Node > d_ground_eval;
@@ -99,7 +100,7 @@ public:
 
   // is this term treated as UF application?
   static bool isHandledUfTerm( TNode n );
-  static Node getFunction( Node n );
+  static Node getOperator( QuantConflictFind * p, Node n );
 };
 
 //info for quantifiers
@@ -139,6 +140,9 @@ public:
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
+//public: //optimization : relevant domain
+  //std::map< int, std::map< Node, std::vector< int > > > d_f_parent;
+  //void addFuncParent( int v, Node f, int arg );
 };
 
 class QuantConflictFind : public QuantifiersModule
@@ -195,6 +199,7 @@ private:  //for equivalence classes
   QcfNodeIndex * getQcfNodeIndex( Node f );
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
+  std::map< TypeNode, Node > d_model_basis;
   //mapping from UF terms to representatives of their arguments
   std::map< TNode, std::vector< TNode > > d_arg_reps;
   //compute arg reps

@@ -271,7 +271,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
       //}
     }
     //now, generate the trigger...
-    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = 0;
     Trigger* tr = NULL;
     if( d_is_single_trigger[ patTerms[0] ] ){
       tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL,
