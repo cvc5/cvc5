@@ -418,6 +418,7 @@ void addAliases(Abc_Frame_t* pAbc) {
   aliases.push_back("alias rwzl rwz -l");
   aliases.push_back("alias rfl rf -l");
   aliases.push_back("alias rfzl rfz -l");
+  aliases.push_back("alias brw \"b; rw\"");
 
   for (unsigned i = 0; i < aliases.size(); ++i) {
     if ( Cmd_CommandExecute( pAbc, aliases[i].c_str() ) ) {

@@ -218,9 +218,11 @@ static void addAliases(Abc_Frame_t* pAbc) {
   aliases.push_back("alias rwzl rwz -l");
   aliases.push_back("alias rfl rf -l");
   aliases.push_back("alias rfzl rfz -l");
+  aliases.push_back("alias brw \"b; rw\"");
   // aliases.push_back("");
   for (unsigned i = 0; i < aliases.size(); ++i) {
     if ( Cmd_CommandExecute( pAbc, aliases[i].c_str() ) ) {
+      std::cout << aliases[i] <<"\n"; 
       fprintf( stdout, "Cannot execute command \"%s\".\n", aliases[i].c_str() );
       exit(-1); 
     }
@@ -233,7 +235,7 @@ void AigSimplifier::simplifyAig() {
   Abc_AigCleanup((Abc_Aig_t*)d_abcAigNetwork->pManFunc);
   Assert (Abc_NtkCheck(d_abcAigNetwork));
 
-  const char* command = options::bvAigSimplifications().c_str(); 
+  const char* command = "balance; rewrite ";//options::bvAigSimplifications().c_str(); 
   Abc_Frame_t* pAbc = Abc_FrameGetGlobalFrame();
   Abc_FrameSetCurrentNetwork(pAbc, d_abcAigNetwork);
   // resyn

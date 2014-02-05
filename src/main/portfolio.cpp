@@ -91,7 +91,7 @@ std::pair<int, S> runPortfolio(int numThreads,
     if(optionWaitToJoin) {
       threads[t].join();
     } else {
-      threads[t].interrupt();
+      //threads[t].interrupt();
     }
   }
 
