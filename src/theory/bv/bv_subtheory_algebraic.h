@@ -20,6 +20,7 @@
 
 #include "cvc4_private.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,13 +51,13 @@ class SubstitutionEx {
     {}
   };
 
-  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, TNodeHashFunction> Substitutions;
-  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, TNodeHashFunction> SubstitutionsCache;
+  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, NodeHashFunction> Substitutions;
+  typedef __gnu_cxx::hash_map<Node, SubstitutionElement, NodeHashFunction> SubstitutionsCache;
 
   Substitutions d_substitutions;
   SubstitutionsCache d_cache;
   bool d_cacheInvalid;
-
+  
   Node getReason(TNode node) const;
   bool hasCache(TNode node) const;
   Node getCache(TNode node) const;
@@ -71,13 +72,58 @@ public:
 
 };
 
+
+struct WorklistElement {
+  Node node;
+  unsigned id;
+  WorklistElement(Node n, unsigned i) : node(n), id(i) {}
+  WorklistElement() : node(), id(-1) {}
+}; 
+
+
+typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
+typedef __gnu_cxx::hash_map<Node, unsigned, NodeHashFunction> NodeIdMap;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
+
+class ExtractSkolemizer {
+  struct Extract {
+    unsigned high;
+    unsigned low;
+    Extract(unsigned h, unsigned l) : high(h), low(l) {}
+  };
+    
+  struct ExtractList {
+    std::vector<Extract> extracts;
+    bool overlap;
+    ExtractList() : extracts(), overlap(false) {}
+    void addExtract(Extract& e); 
+  };
+  typedef   __gnu_cxx::hash_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
+  
+  VarExtractMap d_varToExtract;
+  theory::SubstitutionMap d_skolemSubst;
+  theory::SubstitutionMap d_skolemSubstRev;
+
+  void storeSkolem(TNode node, TNode skolem);
+  void storeExtract(TNode var, unsigned high, unsigned low);
+  void collectExtracts(TNode node, TNodeSet& seen);
+  Node skolemize(TNode);
+  Node unSkolemize(TNode);
+
+  Node mkSkolem(Node node);
+public:
+  ExtractSkolemizer(context::Context* ctx); 
+  void skolemize(std::vector<WorklistElement>&);
+  void unSkolemize(std::vector<WorklistElement>&);
+}; 
+
 class BVQuickCheck;
 class QuickXPlain;
 /**
  * AlgebraicSolver
  */
 class AlgebraicSolver : public SubtheorySolver {
-  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction> NodeNodeMap;
   
   struct Statistics {
     IntStat d_numCallstoCheck;
@@ -92,24 +138,31 @@ class AlgebraicSolver : public SubtheorySolver {
     ~Statistics();
   };
 
-  
   BVQuickCheck* d_quickSolver;
   context::CDO<bool> d_isComplete;
   context::CDO<bool> d_isDifficult;
   
   unsigned long d_budget;
-  NodeNodeMap d_explanations;
+  std::vector<Node> d_explanations;
+  TNodeSet d_inputAssertions;
+  NodeIdMap d_ids;
   double d_numSolved;
   double d_numCalls;
 
+  context::Context* d_ctx;
   QuickXPlain* d_quickXplain;
   
   Statistics d_statistics;
 
-   bool solve(TNode fact, SubstitutionEx& subst, TNode reason);
+  bool solve(TNode fact, TNode reason, SubstitutionEx& subst);
   bool quickCheck(std::vector<Node>& facts, SubstitutionEx& subst);
   bool useHeuristic();
-  void setConflict(TNode conflict); 
+  void setConflict(TNode conflict);
+  bool isSubstitutableIn(TNode node, TNode in);
+  void processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst);
+  bool checkExplanation(TNode expl);
+  void storeExplanation(TNode expl);
+  void storeExplanation(unsigned id, TNode expl); 
 public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();
