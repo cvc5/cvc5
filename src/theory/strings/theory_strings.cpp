@@ -1403,7 +1403,7 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 				Assert( index<nfi.size() && index<nfj.size() );
 				Node i = nfi[index];
 				Node j = nfj[index];
-				Trace("strings-solve-debug")  << "...Processing " << i << " " << j << std::endl;
+				Trace("strings-solve-debug")  << "...Processing(DEQ) " << i << " " << j << std::endl;
 				if( !areEqual( i, j ) ) {
 					Assert( i.getKind()!=kind::CONST_STRING || j.getKind()!=kind::CONST_STRING );
 					Node li = getLength( i );
@@ -1504,7 +1504,7 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
 		} else {
 			Node i = nfi[index];
 			Node j = nfj[index];
-			Trace("strings-solve-debug")  << "...Processing " << i << " " << j << std::endl;
+			Trace("strings-solve-debug")  << "...Processing(QED) " << i << " " << j << std::endl;
 			if( !areEqual( i, j ) ) {
 				if( i.getKind()==kind::CONST_STRING && j.getKind()==kind::CONST_STRING ) {
 					unsigned int len_short = i.getConst<String>().size() < j.getConst<String>().size() ? i.getConst<String>().size() : j.getConst<String>().size();
@@ -2032,11 +2032,10 @@ bool TheoryStrings::checkCardinality() {
 
   for( unsigned i = 0; i<cols.size(); ++i ){
     Node lr = lts[i];
-    Trace("string-cardinality") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
+    Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
     // size > c^k
-    double k = std::log( cols[i].size() ) / log((double) cardinality);
-    unsigned int int_k = (unsigned int)k;
-    Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
+    double k = cols[i].size()==1 ? 0.0 : std::log( cols[i].size() - 1) / log((double) cardinality);
+    unsigned int int_k = (unsigned int) k;
     //double c_k = pow ( (double)cardinality, (double)lr );
     if( cols[i].size() > 1 ) {
         bool allDisequal = true;
@@ -2055,9 +2054,10 @@ bool TheoryStrings::checkCardinality() {
         }
         if(allDisequal) {
             EqcInfo* ei = getOrMakeEqcInfo( lr, true );
-            Trace("string-cardinality") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinality_lem_k.get()-1) << std::endl;
+            Trace("strings-card") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinality_lem_k.get()-1) << std::endl;
             if( int_k+1 > ei->d_cardinality_lem_k.get() ){
-                //add cardinality lemma
+				Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
+				//add cardinality lemma
                 Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
                 std::vector< Node > vec_node;
                 vec_node.push_back( dist );
@@ -2065,7 +2065,7 @@ bool TheoryStrings::checkCardinality() {
                       itr1 != cols[i].end(); ++itr1) {
                     Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr1 );
                     if( len!=lr ){
-                      Node len_eq_lr = NodeManager::currentNM()->mkNode( kind::EQUAL, lr, len );
+                      Node len_eq_lr = len.eqNode(lr);
                       vec_node.push_back( len_eq_lr );
                     }
                 }
