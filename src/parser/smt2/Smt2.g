@@ -1194,7 +1194,6 @@ str[std::string& s]
       }
       *p = '\0';
       s = p_orig;
-std::cout << "string literal>>" << s << "<<" << std::endl;
       free(p_orig);
     }
   ;
