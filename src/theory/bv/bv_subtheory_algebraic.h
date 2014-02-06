@@ -21,6 +21,7 @@
 #include "cvc4_private.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/substitutions.h"
+#include "theory/bv/slicer.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,9 +95,10 @@ class ExtractSkolemizer {
   };
     
   struct ExtractList {
+    Base base;
     std::vector<Extract> extracts;
-    bool overlap;
-    ExtractList() : extracts(), overlap(false) {}
+    ExtractList(unsigned bitwidth) : base(bitwidth), extracts() {}
+    ExtractList() : base(1), extracts() {}
     void addExtract(Extract& e); 
   };
   typedef   __gnu_cxx::hash_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
