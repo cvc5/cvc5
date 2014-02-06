@@ -242,7 +242,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   Debug("bv-subtheory-algebraic") << "Assertions " << worklist.size() <<" : \n";
 
   Assert (d_explanations.size() == worklist.size()); 
-  
 
   SubstitutionEx subst;
 
@@ -257,7 +256,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     processAssertions(worklist, subst); 
   }
 
-
   // if(Debug.isOn("bv-algebraic-dbg")) {
   //   Debug("bv-algebraic-dbg") << "Post processAssertions2 \n";
   //   for (unsigned i = 0; i < worklist.size(); ++i) {
@@ -268,7 +266,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   //     Debug("bv-algebraic-dbg") <<"    expl: " << Rewriter::rewrite(explanation) <<"\n"; 
   //   }
   // }
-
+    
   
   NodeSet subst_seen;
   uint64_t subst_bb_cost = 0;
@@ -726,56 +724,55 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
   for (VarExtractMap::iterator it = d_varToExtract.begin(); it != d_varToExtract.end(); ++it) {
     ExtractList& el = it->second;
     TNode var = it->first; 
-    if (el.overlap)
-      continue;
+    Base& base = el.base;
 
-    std::vector<unsigned> indices;
-    for (unsigned i = 0; i < el.extracts.size(); ++i) {
-      unsigned high = el.extracts[i].high;
-      unsigned low = el.extracts[i].low;
-      indices.push_back(high);
-      indices.push_back(low);
-    }
-    std::sort(indices.begin(), indices.end());
-
-    Assert (indices.size() % 2 == 0); 
-    
-    std::vector<Node> decomp;
-    if (indices[0] != 0) {
-      Node first = utils::mkExtract(var, indices[0] -1, 0);
-      decomp.push_back(first); 
-    }
-    
-    for (unsigned i = 0; i < indices.size() - 1; i+=2) {
-      unsigned low = indices[i];
-      unsigned high = indices[i+1];
-      TNode extract1 = utils::mkExtract(var, high, low);
-      decomp.push_back(extract1); 
-      if (i + 2 < indices.size() &&
-          high + 1 < indices[i+2]) {
-        TNode extract2 = utils::mkExtract(var, indices[i+2] - 1, high+1);
-        decomp.push_back(extract2); 
+    unsigned bw = utils::getSize(var); 
+    // compute decomposition
+    std::vector<unsigned> cuts;
+    for (unsigned i = 1; i <= bw; ++i) {
+      if (base.isCutPoint(i)) {
+        cuts.push_back(i);
       }
     }
-    
-    if (indices.back() != utils::getSize(var) - 1) {
-      Node last = utils::mkExtract(var, utils::getSize(var) - 1, indices.back()+1);
-      decomp.push_back(last); 
+    unsigned previous = 0;
+    unsigned current = 0;
+    std::vector<Node> skolems;
+    for (unsigned i = 0; i < cuts.size(); ++i) {
+      current = cuts[i];
+      Assert (current > 0);
+      int size = current - previous;
+      Assert (size > 0);
+      Node sk = utils::mkVar(size);
+      skolems.push_back(sk);
+      previous = current; 
+    }
+    if (current < bw -1) {
+      int size = bw - current;
+      Assert (size > 0);
+      Node sk = utils::mkVar(size);
+      skolems.push_back(sk);
+    }
+    NodeBuilder<> skolem_nb(kind::BITVECTOR_CONCAT);
+
+    for (int i = skolems.size() - 1; i >= 0; --i) {
+      skolem_nb << skolems[i]; 
     }
 
-    NodeBuilder<> concat_nb(kind::BITVECTOR_CONCAT);
-    for (int i = decomp.size() - 1; i >= 0; --i) {
-      Node skolem = mkSkolem(decomp[i]);
-      storeSkolem(decomp[i], skolem);
-      concat_nb << skolem;
-    }
+    Node skolem_concat = skolems.size() == 1 ? (Node)skolems[0] : (Node) skolem_nb;
+    Assert (utils::getSize(skolem_concat) == utils::getSize(var));
+    storeSkolem(var, skolem_concat);
 
-    Node skolemized_var = concat_nb;
-    
-    Assert (utils::getSize(skolemized_var) == utils::getSize(var));
-    storeSkolem(var, skolemized_var);
+    for (unsigned i = 0; i < el.extracts.size(); ++i) {
+      unsigned h = el.extracts[i].high;
+      unsigned l = el.extracts[i].low;
+      Node extract = utils::mkExtract(var, h, l);
+      Node skolem_extract = Rewriter::rewrite(utils::mkExtract(skolem_concat, h, l));
+      Assert (skolem_extract.getMetaKind() == kind::metakind::VARIABLE ||
+              skolem_extract.getKind() == kind::BITVECTOR_CONCAT);
+      storeSkolem(extract, skolem_extract); 
+    }
   }
-
+  
   for (unsigned i = 0; i < facts.size(); ++i) {
     facts[i] = WorklistElement(skolemize(facts[i].node), facts[i].id);
   }
@@ -809,36 +806,19 @@ Node ExtractSkolemizer::skolemize(TNode node) {
 
 
 void ExtractSkolemizer::ExtractList::addExtract(Extract& e) {
-  if (overlap)
-    return;
-
-  for (unsigned i = 0; i < extracts.size(); ++i) {
-    unsigned l = extracts[i].low;
-    unsigned h = extracts[i].high;
-    Assert (l <= h && e.low <= e.high);
-    if (l == e.low && h == e.high)
-      continue;
-    
-    if (h < e.low)
-      continue;
-    if (e.high < l)
-      continue;
-    overlap = true;
-    return;
-  }
   extracts.push_back(e);
+  base.sliceAt(e.low);
+  base.sliceAt(e.high+1);
 }
 
 void ExtractSkolemizer::storeExtract(TNode var, unsigned high, unsigned low) {
   Assert (var.getMetaKind() == kind::metakind::VARIABLE);
   if (d_varToExtract.find(var) == d_varToExtract.end()) {
-    d_varToExtract[var] = ExtractList();
+    d_varToExtract[var] = ExtractList(utils::getSize(var));
   }
+  //  std::cout << "extract " << var <<"["<<high<<":"<<low<<"]\n"; 
   VarExtractMap::iterator it = d_varToExtract.find(var);
   ExtractList& el = it->second;
-  if (el.overlap)
-    return;
-
   Extract e(high, low);
   el.addExtract(e);
 }
