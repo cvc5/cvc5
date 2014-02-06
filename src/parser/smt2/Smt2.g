@@ -1174,6 +1174,28 @@ str[std::string& s]
     { s = AntlrInput::tokenText($STRING_LITERAL);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
+      /* handle SMT-LIB standard escapes '\\' and '\"' */
+      char* p_orig = strdup(s.c_str());
+      char *p = p_orig, *q = p_orig;
+      while(*q != '\0') {
+        if(*q == '\\') {
+          ++q;
+          if(*q == '\\' || *q == '"') {
+            *p++ = *q++;
+            ++q;
+          } else {
+            assert(*q != '\0');
+            *p++ = '\\';
+            *p++ = *q++;
+          }
+        } else {
+          *p++ = *q++;
+        }
+      }
+      *p = '\0';
+      s = p_orig;
+std::cout << "string literal>>" << s << "<<" << std::endl;
+      free(p_orig);
     }
   ;
 
@@ -1738,7 +1760,6 @@ BINARY_LITERAL
   : '#b' ('0' | '1')+
   ;
 
-
 /**
  * Matches a double quoted string literal.  Escaping is supported, and
  * escape character '\' has to be escaped.
@@ -1747,7 +1768,7 @@ BINARY_LITERAL
  * will be part of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : '"' (ESCAPE | ~('"'|'\\'))* '"'
+  : '"' ('\\' . | ~('\\' | '"'))* '"'
   ;
 
 /**
@@ -1788,8 +1809,3 @@ fragment SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
 fragment SYMBOL_CHAR
   : SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE | '_' | '!'
   ;
-
-/**
- * Matches an allowed escaped character.
- */
-fragment ESCAPE : '\\' ('"' | '\\');
