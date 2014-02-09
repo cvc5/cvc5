@@ -28,10 +28,8 @@ TESTS =	\
 	bug269.smt2 \
 	burns13.smt2 \
 	burns4.smt2 \
-	ex1.smt2 \
 	ex3.smt2 \
 	ex6.smt2 \
-	ex7.smt2 \
 	opisavailable-12.smt2 \
 	ricart-agrawala6.smt2 \
 	set8.smt2 \

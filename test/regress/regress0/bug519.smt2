@@ -1,4 +1,4 @@
-; COMMAND-LINE: -mi
+; COMMAND-LINE: -mi --tlimit-per 1000
 ; EXPECT: unknown
 ; EXPECT: unsat
 

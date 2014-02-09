@@ -19,6 +19,7 @@
 
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,6 +35,9 @@ namespace fmcheck {
   class FirstOrderModelFmc;
 }
 class FirstOrderModelQInt;
+
+struct IsStarAttributeId {};
+typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
 class FirstOrderModel : public TheoryModel
 {

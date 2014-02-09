@@ -116,6 +116,7 @@ void QuantInfo::initialize( Node q, Node qn ) {
       }
     */
   }
+  Trace("qcf-qregister-summary") << "QCF register : " << ( d_mg->isValid() ? "VALID " : "INVALID" ) << " : " << q << std::endl;
 }
 
 void QuantInfo::registerNode( Node n, bool hasPol, bool pol ) {
@@ -700,7 +701,7 @@ void MatchGen::collectBoundVar( QuantInfo * qi, Node n, std::vector< int >& cbva
 
 void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars ) {
   Trace("qcf-qregister-debug") << "Determine variable order " << d_n << std::endl;
-  bool isCom = d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF;
+  bool isCom = d_type==typ_formula && ( d_n.getKind()==OR || d_n.getKind()==AND || d_n.getKind()==IFF );
   std::map< int, std::vector< int > > c_to_vars;
   std::map< int, std::vector< int > > vars_to_c;
   std::map< int, int > vb_count;

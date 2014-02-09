@@ -359,65 +359,87 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
     return STATUS_UNFINISHED;
   }else{
     //first, try from relevant domain
-    Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
-    bool success;
-    ///*  TODO: add back
     RelevantDomain * rd = d_quantEngine->getRelevantDomain();
-    if( rd ){
-      rd->compute();
-      unsigned final_max_i = 0;
-      for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
-        unsigned ts = rd->getRDomain( f, i )->d_terms.size();
-        if( ts>final_max_i ){
-          final_max_i = ts;
+    for( unsigned r=0; r<2; r++ ){
+      if( rd || r==1 ){
+        if( r==0 ){
+          Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
+        }else{
+          Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
         }
-      }
+        rd->compute();
+        unsigned final_max_i = 0;
+        std::vector< unsigned > maxs;
+        for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
+          unsigned ts;
+          if( r==0 ){
+            ts = rd->getRDomain( f, i )->d_terms.size();
+          }else{
+            ts = d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()].size();
+          }
+          maxs.push_back( ts );
+          Trace("inst-alg-rd") << "Variable " << i << " has " << ts << " in relevant domain." << std::endl;
+          if( ts>final_max_i ){
+            final_max_i = ts;
+          }
+        }
+        Trace("inst-alg-rd") << "Will do " << final_max_i << " stages of instantiation." << std::endl;
 
-      unsigned max_i = 0;
-      while( max_i<=final_max_i ){
-        std::vector< unsigned > childIndex;
-        int index = 0;
-        do {
-          while( index>=0 && index<(int)f[0].getNumChildren() ){
-            if( index==(int)childIndex.size() ){
-              childIndex.push_back( -1 );
-            }else{
-              Assert( index==(int)(childIndex.size())-1 );
-              unsigned nv = childIndex[index]+1;
-              if( nv<rd->getRDomain( f, index )->d_terms.size() && nv<max_i ){
-                childIndex[index]++;
-                index++;
+        unsigned max_i = 0;
+        bool success;
+        while( max_i<=final_max_i ){
+          Trace("inst-alg-rd") << "Try stage " << max_i << "..." << std::endl;
+          std::vector< unsigned > childIndex;
+          int index = 0;
+          do {
+            while( index>=0 && index<(int)f[0].getNumChildren() ){
+              if( index==(int)childIndex.size() ){
+                childIndex.push_back( -1 );
               }else{
-                childIndex.pop_back();
-                index--;
+                Assert( index==(int)(childIndex.size())-1 );
+                unsigned nv = childIndex[index]+1;
+                if( nv<maxs[index] && nv<=max_i ){
+                  childIndex[index]++;
+                  index++;
+                }else{
+                  childIndex.pop_back();
+                  index--;
+                }
               }
             }
-          }
-          success = index>=0;
-          if( success ){
-            index--;
-            //try instantiation
-            std::vector< Node > terms;
-            for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-              terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+            success = index>=0;
+            if( success ){
+              Trace("inst-alg-rd") << "Try instantiation..." << std::endl;
+              index--;
+              //try instantiation
+              std::vector< Node > terms;
+              for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+                if( r==0 ){
+                  terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+                }else{
+                  terms.push_back( d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()][childIndex[i]] );
+                }
+              }
+              if( d_quantEngine->addInstantiation( f, terms, false ) ){
+                Trace("inst-alg-rd") << "Success!" << std::endl;
+                ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+                return STATUS_UNKNOWN;
+              }
             }
-            if( d_quantEngine->addInstantiation( f, terms, false ) ){
-              ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
-              return STATUS_UNKNOWN;
-            }
-          }
-        }while( success );
-        max_i++;
+          }while( success );
+          max_i++;
+        }
       }
-    }
-    //*/
-
-    if( d_guessed.find( f )==d_guessed.end() ){
-      Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
-      d_guessed[f] = true;
-      InstMatch m( f );
-      if( d_quantEngine->addInstantiation( f, m ) ){
-        ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+      if( r==0 ){
+        if( d_guessed.find( f )==d_guessed.end() ){
+          Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
+          d_guessed[f] = true;
+          InstMatch m( f );
+          if( d_quantEngine->addInstantiation( f, m ) ){
+            ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+            return STATUS_UNKNOWN;
+          }
+        }
       }
     }
     return STATUS_UNKNOWN;

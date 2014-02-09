@@ -33,8 +33,9 @@ private:
     void reset() { d_parent = NULL; d_terms.clear(); }
     RDomain * d_parent;
     std::vector< Node > d_terms;
+    std::vector< Node > d_ng_terms;
     void merge( RDomain * r );
-    void addTerm( Node t );
+    void addTerm( Node t, bool nonGround = false );
     RDomain * getParent();
     void removeRedundantTerms( FirstOrderModel * fm );
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
@@ -45,6 +46,7 @@ private:
   QuantifiersEngine* d_qe;
   FirstOrderModel* d_model;
   void computeRelevantDomain( Node n, bool hasPol, bool pol );
+  void computeRelevantDomainOpCh( RDomain * rf, Node n );
   bool d_is_computed;
 public:
   RelevantDomain( QuantifiersEngine* qe, FirstOrderModel* m );

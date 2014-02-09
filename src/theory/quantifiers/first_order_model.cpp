@@ -603,15 +603,19 @@ void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
 
 
 bool FirstOrderModelFmc::isStar(Node n) {
-  return n==getStar(n.getType());
+  //return n==getStar(n.getType());
+  return n.getAttribute(IsStarAttribute());
 }
 
 Node FirstOrderModelFmc::getStar(TypeNode tn) {
-  if( d_type_star.find(tn)==d_type_star.end() ){
+  std::map<TypeNode, Node >::iterator it = d_type_star.find( tn );
+  if( it==d_type_star.end() ){
     Node st = NodeManager::currentNM()->mkSkolem( "star_$$", tn, "skolem created for full-model checking" );
     d_type_star[tn] = st;
+    st.setAttribute(IsStarAttribute(), true );
+    return st;
   }
-  return d_type_star[tn];
+  return it->second;
 }
 
 Node FirstOrderModelFmc::getStarElement(TypeNode tn) {
