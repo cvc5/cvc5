@@ -2051,7 +2051,7 @@ bool TheoryStrings::checkCardinality() {
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
     // size > c^k
-    double k = cols[i].size() < cardinality? 0.0 : ( std::log( cols[i].size() ) / log((double) cardinality) );
+    double k = (int)cols[i].size() < cardinality ? 0.0 : (std::log((double) cols[i].size() ) / log((double) cardinality));
     unsigned int int_k = (unsigned int) k;
     //double c_k = pow ( (double)cardinality, (double)lr );
     if( cols[i].size() > 1 ) {
