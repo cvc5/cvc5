@@ -86,6 +86,21 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   return s;
 }
 
+static bool stringifyRegexp(Node n, stringstream& ss) {
+  if(n.getKind() == kind::STRING_TO_REGEXP) {
+    ss << n[0].getConst<String>().toString();
+  } else if(n.getKind() == kind::REGEXP_CONCAT) {
+    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+      if(!stringifyRegexp(n[i], ss)) {
+        return false;
+      }
+    }
+  } else {
+    return false;
+  }
+  return true;
+}
+
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types) const throw() {
   // null
@@ -279,9 +294,40 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
   // string theory
-  case kind::STRING_CONCAT: out << "str.++ "; break;
-  case kind::STRING_IN_REGEXP: out << "str.in.re "; break;
-  case kind::STRING_LENGTH: out << "str.len "; break;
+  case kind::STRING_CONCAT:
+    if(d_variant == z3str_variant) {
+      out << "Concat ";
+      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+        toStream(out, n[i], -1, types);
+        if(i + 1 < n.getNumChildren()) {
+          out << ' ';
+        }
+        if(i + 2 < n.getNumChildren()) {
+          out << "(Concat ";
+        }
+      }
+      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
+        out << ")";
+      }
+      return;
+    }
+    out << "str.++ ";
+    break;
+  case kind::STRING_IN_REGEXP: {
+    stringstream ss;
+    if(d_variant == z3str_variant && stringifyRegexp(n[1], ss)) {
+      out << "= ";
+      toStream(out, n[0], -1, types);
+      out << " ";
+      Node str = NodeManager::currentNM()->mkConst(String(ss.str()));
+      toStream(out, str, -1, types);
+      out << ")";
+      return;
+    }
+    out << "str.in.re ";
+    break;
+  }
+  case kind::STRING_LENGTH: out << (d_variant == z3str_variant ? "Length " : "str.len "); break;
   case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_SUBSTR: out << "str.substr "; break;
   case kind::STRING_CHARAT: out << "str.at "; break;
@@ -597,6 +643,8 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c, Variant v) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const Command* c,
                            int toDepth, bool types, size_t dag) const throw() {
@@ -624,7 +672,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<GetProofCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
-     tryToStream<SetBenchmarkLogicCommand>(out, c) ||
+     tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant) ||
      tryToStream<SetInfoCommand>(out, c) ||
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
@@ -773,7 +821,7 @@ static void toStream(std::ostream& out, const PopCommand* c) throw() {
 
 static void toStream(std::ostream& out, const CheckSatCommand* c) throw() {
   Expr e = c->getExpr();
-  if(!e.isNull()) {
+  if(!e.isNull() && !(e.getKind() == kind::CONST_BOOLEAN && e.getConst<bool>())) {
     out << PushCommand() << endl
         << AssertCommand(e) << endl
         << CheckSatCommand() << endl
@@ -912,8 +960,13 @@ static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) thro
   out << "(set-info :status " << c->getStatus() << ")";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw() {
-  out << "(set-logic " << c->getLogic() << ")";
+static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, Variant v) throw() {
+  // Z3-str doesn't have string-specific logic strings(?), so comment it
+  if(v == z3str_variant) {
+    out << "; (set-logic " << c->getLogic() << ")";
+  } else {
+    out << "(set-logic " << c->getLogic() << ")";
+  }
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
@@ -985,6 +1038,15 @@ template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw() {
   if(typeid(*c) == typeid(T)) {
     toStream(out, dynamic_cast<const T*>(c));
+    return true;
+  }
+  return false;
+}
+
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c, Variant v) throw() {
+  if(typeid(*c) == typeid(T)) {
+    toStream(out, dynamic_cast<const T*>(c), v);
     return true;
   }
   return false;

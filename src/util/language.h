@@ -23,6 +23,7 @@
 #include <string>
 
 #include "util/exception.h"
+#include "options/option_exception.h"
 
 namespace CVC4 {
 namespace language {
@@ -50,6 +51,8 @@ enum CVC4_PUBLIC Language {
   LANG_TPTP,
   /** The CVC4 input language */
   LANG_CVC4,
+  /** The Z3-str input language */
+  LANG_Z3STR,
 
   // START INPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE OUTPUT LANGUAGES
@@ -75,6 +78,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     break;
   case LANG_CVC4:
     out << "LANG_CVC4";
+    break;
+  case LANG_Z3STR:
+    out << "LANG_Z3STR";
     break;
   default:
     out << "undefined_input_language";
@@ -107,6 +113,8 @@ enum CVC4_PUBLIC Language {
   LANG_TPTP = input::LANG_TPTP,
   /** The CVC4 output language */
   LANG_CVC4 = input::LANG_CVC4,
+  /** The Z3-str output language */
+  LANG_Z3STR = input::LANG_Z3STR,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -133,6 +141,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_CVC4:
     out << "LANG_CVC4";
     break;
+  case LANG_Z3STR:
+    out << "LANG_Z3STR";
+    break;
   case LANG_AST:
     out << "LANG_AST";
     break;
@@ -153,6 +164,8 @@ namespace language {
 
 InputLanguage toInputLanguage(OutputLanguage language) CVC4_PUBLIC;
 OutputLanguage toOutputLanguage(InputLanguage language) CVC4_PUBLIC;
+InputLanguage toInputLanguage(std::string language) CVC4_PUBLIC;
+OutputLanguage toOutputLanguage(std::string language) CVC4_PUBLIC;
 
 }/* CVC4::language namespace */
 }/* CVC4 namespace */

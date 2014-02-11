@@ -260,6 +260,7 @@ Languages currently supported as arguments to the --output-lang option:\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
   smt1 | smtlib1                 SMT-LIB format 1.2\n\
   smt | smtlib | smt2 | smtlib2  SMT-LIB format 2.0\n\
+  z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   tptp                           TPTP format\n\
   ast                            internal format (simple syntax trees)\n\
 ";
@@ -311,7 +312,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 315 "${template}"
+#line 316 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -504,7 +505,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 508 "${template}"
+#line 509 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -572,7 +573,7 @@ std::vector<std::string> Options::suggestCommandLineOptions(const std::string& o
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 576 "${template}"
+#line 577 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -594,7 +595,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 598 "${template}"
+#line 599 "${template}"
 
   return SExpr(opts);
 }

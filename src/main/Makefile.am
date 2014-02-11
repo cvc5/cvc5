@@ -3,7 +3,7 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. $(ANTLR_INCLUDES) -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas
 
-bin_PROGRAMS = cvc4
+bin_PROGRAMS = cvc4 cvc4-translator
 
 noinst_LIBRARIES = libmain.a
 
@@ -61,6 +61,12 @@ if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 cvc4_LDADD += \
 	@builddir@/../lib/libreplacements.la
 endif
+
+cvc4_translator_SOURCES = \
+	translator.cpp
+cvc4_translator_LDADD = \
+	@builddir@/../parser/libcvc4parser.la \
+	@builddir@/../libcvc4.la
 
 BUILT_SOURCES = \
 	$(TOKENS_FILES)

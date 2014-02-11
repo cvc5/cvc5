@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "expr/command.h"
+#include "util/language.h"
 
 namespace CVC4 {
 namespace options {
@@ -69,59 +70,33 @@ inline void decreaseVerbosity(std::string option, SmtEngine* smt) {
 }
 
 inline OutputLanguage stringToOutputLanguage(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg == "cvc4" || optarg == "pl" ||
-     optarg == "presentation" || optarg == "native" ||
-     optarg == "LANG_CVC4") {
-    return language::output::LANG_CVC4;
-  } else if(optarg == "smtlib1" || optarg == "smt1" ||
-            optarg == "LANG_SMTLIB_V1") {
-    return language::output::LANG_SMTLIB_V1;
-  } else if(optarg == "smtlib" || optarg == "smt" ||
-            optarg == "smtlib2" || optarg == "smt2" ||
-            optarg == "LANG_SMTLIB_V2") {
-    return language::output::LANG_SMTLIB_V2;
-  } else if(optarg == "tptp" || optarg == "LANG_TPTP") {
-    return language::output::LANG_TPTP;
-  } else if(optarg == "ast" || optarg == "LANG_AST") {
-    return language::output::LANG_AST;
-  } else if(optarg == "auto" || optarg == "LANG_AUTO") {
+  if(optarg == "help") {
+    options::languageHelp.set(true);
     return language::output::LANG_AUTO;
   }
 
-  if(optarg != "help") {
-    throw OptionException(std::string("unknown language for ") + option +
-                          ": `" + optarg + "'.  Try --output-lang help.");
+  try {
+    return language::toOutputLanguage(optarg);
+  } catch(OptionException& oe) {
+    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --output-language help");
   }
 
-  options::languageHelp.set(true);
-  return language::output::LANG_AUTO;
+  Unreachable();
 }
 
 inline InputLanguage stringToInputLanguage(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg == "cvc4" || optarg == "pl" ||
-     optarg == "presentation" || optarg == "native" ||
-     optarg == "LANG_CVC4") {
-    return language::input::LANG_CVC4;
-  } else if(optarg == "smtlib1" || optarg == "smt1" ||
-            optarg == "LANG_SMTLIB_V1") {
-    return language::input::LANG_SMTLIB_V1;
-  } else if(optarg == "smtlib" || optarg == "smt" ||
-            optarg == "smtlib2" || optarg == "smt2" ||
-            optarg == "LANG_SMTLIB_V2") {
-    return language::input::LANG_SMTLIB_V2;
-  } else if(optarg == "tptp" || optarg == "LANG_TPTP") {
-    return language::input::LANG_TPTP;
-  } else if(optarg == "auto" || optarg == "LANG_AUTO") {
+  if(optarg == "help") {
+    options::languageHelp.set(true);
     return language::input::LANG_AUTO;
   }
 
-  if(optarg != "help") {
-    throw OptionException(std::string("unknown language for ") + option +
-                          ": `" + optarg + "'.  Try --lang help.");
+  try {
+    return language::toInputLanguage(optarg);
+  } catch(OptionException& oe) {
+    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --language help");
   }
 
-  options::languageHelp.set(true);
-  return language::input::LANG_AUTO;
+  Unreachable();
 }
 
 inline void addTraceTag(std::string option, std::string optarg, SmtEngine* smt) {
