@@ -62,9 +62,7 @@ TESTS =	\
 
 EXTRA_DIST = $(TESTS) \
 	bug291.smt2.expect \
-	array-unsat-simp3.smt2.expect \
-	ex1.smt2.expect \
-	ex7.smt2.expect
+	array-unsat-simp3.smt2.expect
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
