@@ -21,6 +21,7 @@
 #define __CVC4__REGEXP_H
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <sstream>
 #include "util/exception.h"
@@ -390,7 +391,18 @@ struct CVC4_PUBLIC StringHashFunction {
 
 inline std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
 inline std::ostream& operator <<(std::ostream& os, const String& s) {
-  return os << "\"" << s.toString() << "\"";
+  os << '"';
+  std::string str = s.toString();
+  for(std::string::iterator i = str.begin(); i != str.end(); ++i) {
+    if(*i == '\\' || *i == '"') {
+      os << '\\';
+    } else if(!isprint(*i)) {
+      os << "\\x" << std::ios::hex << std::setw(2) << (unsigned(*i) % 0x100);
+      continue;
+    }
+    os << *i;
+  }
+  return os << '"';
 }
 
 class CVC4_PUBLIC RegExp {
