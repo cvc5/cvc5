@@ -124,7 +124,8 @@ private:
 					  }
 				  }
 			  } else {
-				  throw CVC4::Exception( "Error String Literal: \"" + s + "\"" );
+				  //throw CVC4::Exception( "Error String Literal: \"" + s + "\"" );
+				  d_str.push_back( convertCharToUnsignedInt('\\') );
 			  }
 		  } else {
 			  d_str.push_back( convertCharToUnsignedInt(s[i]) );
@@ -138,19 +139,11 @@ public:
 
   String(const std::string &s) {
 	toInternal(s);
-	/*
-    for(unsigned int i=0; i<s.size(); ++i) {
-        d_str.push_back( convertCharToUnsignedInt(s[i]) );
-    }*/
   }
 
   String(const char* s) {
 	std::string stmp(s);
 	toInternal(stmp);
-	/*
-    for(unsigned int i=0,len=strlen(s); i<len; ++i) {
-        d_str.push_back( convertCharToUnsignedInt(s[i]) );
-    }*/
   }
 
   String(const char c) {
