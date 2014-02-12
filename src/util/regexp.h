@@ -124,8 +124,8 @@ private:
 					  }
 				  }
 			  } else {
-				  //throw CVC4::Exception( "Error String Literal: \"" + s + "\"" );
-				  d_str.push_back( convertCharToUnsignedInt('\\') );
+				  throw CVC4::Exception( "should be handled by lexer: \"" + s + "\"" );
+				  //d_str.push_back( convertCharToUnsignedInt('\\') );
 			  }
 		  } else {
 			  d_str.push_back( convertCharToUnsignedInt(s[i]) );
@@ -242,7 +242,7 @@ public:
 	  char c = convertUnsignedIntToChar( d_str[i] );
 	  if(isprint( c )) {
         if(c == '\\') {
-			str += "\\";
+			str += "\\\\";
 		} else if(c == '\"') {
 			str += "\\\"";
 		} else {
@@ -261,6 +261,9 @@ public:
 			case '\e': s = "\\e"; break;
 			default  : {
 				std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
+				if(s2.size() == 1) {
+					s2 = "0" + s2;
+				}
 				s = "\\x" + s2;
 			}
 		  }

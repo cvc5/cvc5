@@ -196,7 +196,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     /* This extended command has to be in the outermost production so that
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
-  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
+  | LPAREN_TOK INCLUDE_TOK str[name,true] RPAREN_TOK
     { if(!PARSER_STATE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this run.");
       }
@@ -708,7 +708,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
   | DECIMAL_LITERAL
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
-  | str[s]
+  | str[s,false]
     { sexpr = SExpr(s); }
 //  | LPAREN_TOK STRCST_TOK
 //      ( INTEGER_LITERAL {
@@ -1025,7 +1025,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       expr = MK_CONST( BitVector(binString, 2) ); }
 
-  | str[s]
+  | str[s,false]
     { expr = MK_CONST( ::CVC4::String(s) ); }
 
     // NOTE: Theory constants go here
@@ -1169,31 +1169,33 @@ termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
 /**
  * Matches a string, and strips off the quotes.
  */
-str[std::string& s]
+str[std::string& s, bool fsmtlib]
   : STRING_LITERAL
     { s = AntlrInput::tokenText($STRING_LITERAL);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
-      /* handle SMT-LIB standard escapes '\\' and '\"' */
-      char* p_orig = strdup(s.c_str());
-      char *p = p_orig, *q = p_orig;
-      while(*q != '\0') {
-        if(*q == '\\') {
-          ++q;
-          if(*q == '\\' || *q == '"') {
-            *p++ = *q++;
-          } else {
-            assert(*q != '\0');
-            *p++ = '\\';
-            *p++ = *q++;
-          }
-        } else {
-          *p++ = *q++;
-        }
-      }
-      *p = '\0';
-      s = p_orig;
-      free(p_orig);
+	  if(fsmtlib) {
+		  /* handle SMT-LIB standard escapes '\\' and '\"' */
+		  char* p_orig = strdup(s.c_str());
+		  char *p = p_orig, *q = p_orig;
+		  while(*q != '\0') {
+			if(*q == '\\') {
+			  ++q;
+			  if(*q == '\\' || *q == '"') {
+				*p++ = *q++;
+			  } else {
+				assert(*q != '\0');
+				*p++ = '\\';
+				*p++ = *q++;
+			  }
+			} else {
+			  *p++ = *q++;
+			}
+		  }
+		  *p = '\0';
+		  s = p_orig;
+		  free(p_orig);
+	  }
     }
   ;
 
