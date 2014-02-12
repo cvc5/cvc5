@@ -980,9 +980,10 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 				vec_r.insert(vec_r.begin(), sk_z);
 				Node conc2 = s_zy.eqNode( mkConcat( vec_r ) );
 				Node conc3 = normal_forms[other_n_index][other_index].eqNode( mkConcat( sk_y, sk_w ) );
+				Node restr = r == d_emptyString ? s_zy : mkConcat( sk_z, sk_y );
 				str_in_re = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_w,
 								NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
-									NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, mkConcat( sk_z, sk_y ) ) ) );
+									NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, restr ) ) );
 
 				//Node sk_y_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_y );
 				//Node zz_imp_yz = NodeManager::currentNM()->mkNode( kind::IMPLIES, sk_z.eqNode(d_emptyString), sk_y.eqNode(d_emptyString));
@@ -1257,8 +1258,12 @@ bool TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
 						int index_k = r==0 ? index_i : index_j;
 						int k = r==0 ? i : j;
 						std::vector< Node > eqnc;
-						for( unsigned index_l=index_k; index_l<normal_forms[k].size(); index_l++ ){
-							eqnc.push_back( normal_forms[k][index_l] );
+						for( unsigned index_l=index_k; index_l<normal_forms[k].size(); index_l++ ) {
+							if(isRev) {
+								eqnc.insert(eqnc.begin(), normal_forms[k][index_l] );
+							} else {
+								eqnc.push_back( normal_forms[k][index_l] );
+							}
 						}
 						eqn.push_back( mkConcat( eqnc ) );
 					}
@@ -1957,6 +1962,19 @@ bool TheoryStrings::checkNormalForms() {
   } while ( !d_conflict && d_lemma_cache.empty() && addedFact );
 
   //process disequalities between equivalence classes
+  checkDeqNF();
+
+  Trace("strings-solve") << "Finished check normal forms, #lemmas = " << d_lemma_cache.size() << ", conflict = " << d_conflict << std::endl;
+  //flush pending lemmas
+  if( !d_lemma_cache.empty() ){
+	doPendingLemmas();
+	return true;
+  }else{
+	return false;
+  }
+}
+
+void TheoryStrings::checkDeqNF() {
   if( !d_conflict && d_lemma_cache.empty() ){
 	  std::vector< Node > eqcs;
 	  getEquivalenceClasses( eqcs );
@@ -1972,9 +1990,10 @@ bool TheoryStrings::checkNormalForms() {
 			//must ensure that normal forms are disequal
 			for( unsigned j=0; j<cols[i].size(); j++ ){
 				for( unsigned k=(j+1); k<cols[i].size(); k++ ){
+					Assert( !d_conflict );
 					if( !areDisequal( cols[i][j], cols[i][k] ) ){
 						sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
-						break;
+						return;
 					}else{
 						Trace("strings-solve") << "- Compare ";
 						printConcat( d_normal_forms[cols[i][j]], "strings-solve" );
@@ -1982,21 +2001,13 @@ bool TheoryStrings::checkNormalForms() {
 						printConcat( d_normal_forms[cols[i][k]], "strings-solve" );
 						Trace("strings-solve")  << "..." << std::endl;
 						if( processDeq( cols[i][j], cols[i][k] ) ){
-							break;
+							return;
 						}
 					}
 				}
 			}
 		}
-	  }
-  }
-
-  //flush pending lemmas
-  if( !d_lemma_cache.empty() ){
-	doPendingLemmas();
-	return true;
-  }else{
-	return false;
+	 }
   }
 }
 
@@ -2050,11 +2061,12 @@ bool TheoryStrings::checkCardinality() {
   for( unsigned i = 0; i<cols.size(); ++i ){
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
-    // size > c^k
-    double k = (int)cols[i].size() < cardinality ? 0.0 : (std::log((double) cols[i].size() ) / log((double) cardinality));
-    unsigned int int_k = (unsigned int) k;
-    //double c_k = pow ( (double)cardinality, (double)lr );
     if( cols[i].size() > 1 ) {
+		// size > c^k
+		double k = 1.0 + std::log((double) cols[i].size() - 1) / log((double) cardinality);
+		unsigned int int_k = (unsigned int) k;
+		//double c_k = pow ( (double)cardinality, (double)lr );
+
         bool allDisequal = true;
         for( std::vector< Node >::iterator itr1 = cols[i].begin();
               itr1 != cols[i].end(); ++itr1) {
@@ -2088,7 +2100,7 @@ bool TheoryStrings::checkCardinality() {
                 }
                 Node antc = NodeManager::currentNM()->mkNode( kind::AND, vec_node );
                 Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
-                Node cons = NodeManager::currentNM()->mkNode( kind::GT, len, k_node );
+                Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
 				/*
 				sendLemma( antc, cons, "Cardinality" );
 				ei->d_cardinality_lem_k.set( int_k+1 );

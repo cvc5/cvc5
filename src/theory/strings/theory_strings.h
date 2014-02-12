@@ -224,6 +224,7 @@ private:
 
 	bool checkSimple();
     bool checkNormalForms();
+	void checkDeqNF();
 	bool checkLengthsEqc();
     bool checkCardinality();
     bool checkInductiveEquations();
