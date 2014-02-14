@@ -54,8 +54,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    //d_equalityEngine.addFunctionKind(kind::STRING_CHARAT);
-    //d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+    d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -404,11 +403,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     break;
   case kind::CONST_STRING:
   case kind::STRING_CONCAT:
+  case kind::STRING_SUBSTR_TOTAL:
 	d_equalityEngine.addTerm(n);
-	break;
-  case kind::STRING_CHARAT:
-  case kind::STRING_SUBSTR:
-	//d_equalityEngine.addTerm(n);
 	break;
   default:
     if(n.getType().isString() ) {
@@ -1761,7 +1757,7 @@ bool TheoryStrings::checkSimple() {
 			//if n is concat, and
 			//if n has not instantiatied the concat..length axiom
 			//then, add lemma
-			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT || n.getKind()==kind::STRING_CHARAT || n.getKind()==kind::STRING_SUBSTR ) {
+			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT || n.getKind()==kind::STRING_SUBSTR_TOTAL ) {
 				if( d_length_nodes.find(n)==d_length_nodes.end() ) {
 					if( d_length_inst.find(n)==d_length_inst.end() ) {
 						//Node nr = d_equalityEngine.getRepresentative( n );
@@ -1788,23 +1784,8 @@ bool TheoryStrings::checkSimple() {
 							} else if( n.getKind() == kind::CONST_STRING ) {
 								//add lemma
 								lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
-							} /*else if( n.getKind() == kind::STRING_CHARAT ) {
-								lsum = d_one;
-								Node sk1 = NodeManager::currentNM()->mkSkolem( "ca1_$$", NodeManager::currentNM()->stringType(), "created for charat" );
-								Node sk3 = NodeManager::currentNM()->mkSkolem( "ca3_$$", NodeManager::currentNM()->stringType(), "created for charat" );
-								d_statistics.d_new_skolems += 2;
-								Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT,
-													NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ), n[1] );
-								Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], d_zero);
-								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
-								Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk, sk3 ) );
-								Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
-								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
-								Trace("strings-lemma") << "Strings::Lemma CHARAT : " << lemma << std::endl;
-								d_out->lemma(lemma);
-							} else if( n.getKind() == kind::STRING_SUBSTR ) {
-								lsum = n[2];
+							} else if( n.getKind() == kind::STRING_SUBSTR_TOTAL ) {
+								lsum = n[2];/*
 								Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
 								Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
 								d_statistics.d_new_skolems += 2;
@@ -1820,8 +1801,8 @@ bool TheoryStrings::checkSimple() {
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
 								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
 								Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
-								d_out->lemma(lemma);
-							}*/
+								d_out->lemma(lemma);*/
+							}
 							Node ceq = NodeManager::currentNM()->mkNode( kind::EQUAL, skl, lsum );
 							ceq = Rewriter::rewrite(ceq);
 							Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
@@ -2421,18 +2402,6 @@ bool TheoryStrings::checkPosContains() {
 }
 
 bool TheoryStrings::checkNegContains() {
-	//Initialize UF
-	if(d_ufSubstr.isNull()) {
-		std::vector< TypeNode > argTypes;
-		argTypes.push_back(NodeManager::currentNM()->stringType());
-		argTypes.push_back(NodeManager::currentNM()->integerType());
-		argTypes.push_back(NodeManager::currentNM()->integerType());
-		d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
-							NodeManager::currentNM()->mkFunctionType(
-								argTypes, NodeManager::currentNM()->stringType()),
-							"uf substr",
-							NodeManager::SKOLEM_EXACT_NAME);
-	}
 	bool is_unk = false;
 	bool addedLemma = false;
 	for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
@@ -2474,10 +2443,8 @@ bool TheoryStrings::checkNegContains() {
 							Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
 										NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode( kind::MINUS, lenx, lens ), b1 ) ) );
 							Node b2 = NodeManager::currentNM()->mkBoundVar("bj", NodeManager::currentNM()->integerType());
-							//Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ));
-							//Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_CHARAT, s, b2);
-							Node s2 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
-							Node s5 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, s, b2, d_one);
+							Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
+							Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b2, d_one);
 
 							Node s1 = NodeManager::currentNM()->mkBoundVar("s1", NodeManager::currentNM()->stringType());
 							Node s3 = NodeManager::currentNM()->mkBoundVar("s3", NodeManager::currentNM()->stringType());

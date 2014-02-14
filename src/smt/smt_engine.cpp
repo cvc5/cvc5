@@ -310,7 +310,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Function symbol used to implement uninterpreted undefined string
    * semantics.  Needed to deal with partial charat/substr function.
    */
-  //Node d_substrUndef;
+  Node d_ufSubstr;
 
   /**
    * Function symbol used to implement uninterpreted division-by-zero
@@ -1555,9 +1555,53 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
         node = expandBVDivByZero(node);
         break;
 
-	  //case kind::STRING_CHARAT:
-	  //case kind::STRING_SUBSTR:
-
+	  case kind::STRING_CHARAT: {
+		if(d_ufSubstr.isNull()) {
+			std::vector< TypeNode > argTypes;
+			argTypes.push_back(NodeManager::currentNM()->stringType());
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->stringType()),
+								"uf substr",
+								NodeManager::SKOLEM_EXACT_NAME);
+		}
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ), n[1] );
+		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+		Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], zero);
+		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
+		Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, n[0], n[1], one);
+		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, n[0], n[1], one);
+		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+		break;
+	  }
+	  case kind::STRING_SUBSTR: {
+		if(d_ufSubstr.isNull()) {
+			std::vector< TypeNode > argTypes;
+			argTypes.push_back(NodeManager::currentNM()->stringType());
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->stringType()),
+								"uf substr",
+								NodeManager::SKOLEM_EXACT_NAME);
+		}
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
+							NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
+		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], zero);
+		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], zero);
+		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
+		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, n[0], n[1], n[2]);
+		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, n[0], n[1], n[2]);
+		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+		break;
+	  }
       case kind::DIVISION: {
         // partial function: division
         if(d_divByZero.isNull()) {

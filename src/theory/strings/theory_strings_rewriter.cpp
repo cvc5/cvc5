@@ -323,17 +323,13 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     } else if(node.getKind() == kind::STRING_LENGTH) {
         if(node[0].isConst()) {
             retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
-        } else if(node[0].getKind() == kind::STRING_CHARAT) {
-            retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
-		} else if(node[0].getKind() == kind::STRING_SUBSTR) {
+        } else if(node[0].getKind() == kind::STRING_SUBSTR_TOTAL) {
             retNode = node[0][2];
         } else if(node[0].getKind() == kind::STRING_CONCAT) {
             Node tmpNode = rewriteConcatString(node[0]);
             if(tmpNode.isConst()) {
                 retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
-            } else if(tmpNode.getKind() == kind::STRING_CHARAT) {
-				retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) );
-            } else if(tmpNode.getKind() == kind::STRING_SUBSTR) {
+            } else if(tmpNode.getKind() == kind::STRING_SUBSTR_TOTAL) {
 				retNode = tmpNode[2];
             } else {
                 // it has to be string concat
@@ -341,9 +337,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
                 for(unsigned int i=0; i<tmpNode.getNumChildren(); ++i) {
                     if(tmpNode[i].isConst()) {
                         node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode[i].getConst<String>().size() ) ) );
-					} else if(tmpNode[i].getKind() == kind::STRING_CHARAT) {
-                        node_vec.push_back( NodeManager::currentNM()->mkConst( ::CVC4::Rational( 1 ) ) );
-					} else if(tmpNode[i].getKind() == kind::STRING_SUBSTR) {
+					} else if(tmpNode[i].getKind() == kind::STRING_SUBSTR_TOTAL) {
                         node_vec.push_back( tmpNode[i][2] );
                     } else {
                         node_vec.push_back( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, tmpNode[i]) );
@@ -352,7 +346,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
                 retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
             }
         }
-    } else if(node.getKind() == kind::STRING_SUBSTR) {
+    } else if(node.getKind() == kind::STRING_SUBSTR_TOTAL) {
 		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 		if(node[2] == zero) {
 			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
@@ -373,13 +367,6 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				retNode = NodeManager::currentNM()->mkConst( true );
 			} else {
 				retNode = NodeManager::currentNM()->mkConst( false );
-			}
-		}
-	} else if(node.getKind() == kind::STRING_CHARAT) {
-		if( node[0].isConst() && node[1].isConst() ) {
-			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-			if( node[0].getConst<String>().size() > (unsigned) i ) {
-				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, 1) );
 			}
 		}
 	} else if(node.getKind() == kind::STRING_STRIDOF) {
@@ -432,7 +419,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
 			retNode = NodeManager::currentNM()->mkNode(kind::AND,
 						NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
+						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
 										NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) ), lens)));
 		}
 	} else if(node.getKind() == kind::STRING_SUFFIX) {
@@ -450,7 +437,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			Node lent = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, node[1]);
 			retNode = NodeManager::currentNM()->mkNode(kind::AND,
 						NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens),
-						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, node[1],
+						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
 										NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
 		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
