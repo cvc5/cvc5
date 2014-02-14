@@ -745,8 +745,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
 }
   : simpleSymbolicExpr[sexpr]
   | LPAREN_TOK
-    (symbolicExpr[sexpr] { children.push_back(sexpr); } )*
-  	RPAREN_TOK
+    ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
     { sexpr = SExpr(children); }
   ;
 
@@ -790,7 +789,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         assert( expr == args[0] );
       } else if( CVC4::kind::isAssociative(kind) &&
                  args.size() > EXPR_MANAGER->maxArity(kind) ) {
-    	/* Special treatment for associative operators with lots of children */
+        /* Special treatment for associative operators with lots of children */
         expr = EXPR_MANAGER->mkAssociative(kind, args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
@@ -1182,28 +1181,28 @@ str[std::string& s, bool fsmtlib]
     { s = AntlrInput::tokenText($STRING_LITERAL);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
-	  if(fsmtlib) {
-		  /* handle SMT-LIB standard escapes '\\' and '\"' */
-		  char* p_orig = strdup(s.c_str());
-		  char *p = p_orig, *q = p_orig;
-		  while(*q != '\0') {
-			if(*q == '\\') {
-			  ++q;
-			  if(*q == '\\' || *q == '"') {
-				*p++ = *q++;
-			  } else {
-				assert(*q != '\0');
-				*p++ = '\\';
-				*p++ = *q++;
-			  }
-			} else {
-			  *p++ = *q++;
-			}
-		  }
-		  *p = '\0';
-		  s = p_orig;
-		  free(p_orig);
-	  }
+      if(fsmtlib) {
+        /* handle SMT-LIB standard escapes '\\' and '\"' */
+        char* p_orig = strdup(s.c_str());
+        char *p = p_orig, *q = p_orig;
+        while(*q != '\0') {
+          if(*q == '\\') {
+            ++q;
+            if(*q == '\\' || *q == '"') {
+              *p++ = *q++;
+            } else {
+              assert(*q != '\0');
+              *p++ = '\\';
+              *p++ = *q++;
+            }
+          } else {
+            *p++ = *q++;
+          }
+        }
+        *p = '\0';
+        s = p_orig;
+        free(p_orig);
+      }
     }
   ;
 
@@ -1337,7 +1336,7 @@ functionName[std::string& name, CVC4::parser::DeclarationCheck check]
  */
 functionSymbol[CVC4::Expr& fun]
 @declarations {
-	std::string name;
+  std::string name;
 }
   : functionName[name,CHECK_DECLARED]
     { PARSER_STATE->checkFunctionLike(name);
@@ -1391,13 +1390,13 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
   std::vector<uint64_t> numerals;
 }
   : sortName[name,CHECK_NONE]
-  	{
-  	  if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT) ){
-  	    t = PARSER_STATE->getSort(name);
-  	  }else{
-  	    t = PARSER_STATE->mkUnresolvedType(name);
-  	  }
-  	}
+    {
+      if( check == CHECK_DECLARED || PARSER_STATE->isDeclared(name, SYM_SORT) ) {
+        t = PARSER_STATE->getSort(name);
+      } else {
+        t = PARSER_STATE->mkUnresolvedType(name);
+      }
+    }
   | LPAREN_TOK INDEX_TOK symbol[name,CHECK_NONE,SYM_SORT] nonemptyNumeralList[numerals] RPAREN_TOK
     {
       if( name == "BitVec" ) {
