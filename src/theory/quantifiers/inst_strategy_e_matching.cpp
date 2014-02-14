@@ -168,7 +168,9 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
           if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
             d_processed_trigger[f][tr] = true;
             //if( tr->isMultiTrigger() )
-              Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
+              Trace("process-trigger") << "  Process ";
+              tr->debugPrint("process-trigger");
+              Trace("process-trigger") << "..." << std::endl;
             InstMatch baseMatch( f );
             int numInst = tr->addInstantiations( baseMatch );
             //if( tr->isMultiTrigger() )

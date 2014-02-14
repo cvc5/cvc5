@@ -48,7 +48,6 @@ public:
 public:
   std::vector< Node > d_nodes;
 public:
-  void debugPrint( const char* c );
   IMGenerator* getGenerator() { return d_mg; }
 public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
@@ -122,6 +121,14 @@ public:
     }
     out << " )";
     */
+  }
+  void debugPrint( const char * c ) {
+    Trace(c) << "TRIGGER( ";
+    for( int i=0; i<(int)d_nodes.size(); i++ ){
+      if( i>0 ){ Trace(c) << ", "; }
+      Trace(c) << d_nodes[i];
+    }
+    Trace(c) << " )";
   }
 };
 

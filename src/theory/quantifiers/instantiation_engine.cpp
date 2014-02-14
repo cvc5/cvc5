@@ -173,6 +173,8 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
   d_performCheck = false;
   if( options::instWhenMode()==INST_WHEN_FULL ){
     d_performCheck = ( e >= Theory::EFFORT_FULL );
+  }else if( options::instWhenMode()==INST_WHEN_FULL_DELAY ){
+    d_performCheck = ( e >= Theory::EFFORT_FULL ) && !d_quantEngine->getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
     d_performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){

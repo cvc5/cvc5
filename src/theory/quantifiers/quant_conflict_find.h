@@ -61,6 +61,7 @@ private:
   std::map< int, TNode > d_qni_gterm;
   std::map< int, TNode > d_qni_gterm_rep;
   std::map< int, int > d_qni_bound;
+  std::vector< int > d_qni_bound_except;
   std::map< int, TNode > d_qni_bound_cons;
   std::map< int, int > d_qni_bound_cons_var;
   std::map< int, int >::iterator d_binding_it;
@@ -81,6 +82,7 @@ public:
     typ_eq,
     typ_formula,
     typ_var,
+    typ_ite_var,
     typ_top,
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
@@ -156,7 +158,7 @@ private:
   context::Context* d_c;
   context::CDO< bool > d_conflict;
   bool d_performCheck;
-  //void registerAssertion( Node n );
+  std::vector< Node > d_quant_order;
 private:
   std::map< Node, Node > d_op_node;
   int d_fid_count;
@@ -204,6 +206,8 @@ private:  //for equivalence classes
   std::map< TNode, std::vector< TNode > > d_arg_reps;
   //compute arg reps
   void computeArgReps( TNode n );
+  //compute
+  void computeUfTerms( TNode f );
 public:
   enum {
     effort_conflict,
@@ -211,10 +215,6 @@ public:
     effort_mc,
   };
   short d_effort;
-  //for effort_prop
-  TNode d_prop_eq[2];
-  bool d_prop_pol;
-  bool isPropagationSet();
   bool areMatchEqual( TNode n1, TNode n2 );
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
