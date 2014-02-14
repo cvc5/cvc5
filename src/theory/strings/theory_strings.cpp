@@ -1785,17 +1785,18 @@ bool TheoryStrings::checkSimple() {
 								//add lemma
 								lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
 							} else if( n.getKind() == kind::STRING_SUBSTR_TOTAL ) {
-								lsum = n[2];/*
-								Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
-								Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
-								d_statistics.d_new_skolems += 2;
 								Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
 													NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
 													NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
 								Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
 								Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], d_zero);
-								Node x_eq_123 = n[0].eqNode(NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk, sk3 ));
 								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
+								lsum = NodeManager::currentNM()->mkNode( kind::ITE, cond, n[2], d_zero );
+								/*
+								Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
+								Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
+								d_statistics.d_new_skolems += 2;
+								Node x_eq_123 = n[0].eqNode(NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk, sk3 ));
 								Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, n[1],
 														NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );

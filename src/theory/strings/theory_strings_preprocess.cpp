@@ -180,8 +180,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk3 ) );
 		Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 		//Node len_uf_eq_j = t[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, uf ) );
-		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, 
-						NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i )) );
+		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, 
+						NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i ),
+						t.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ));
 		new_nodes.push_back( lemma );
 		retNode = t;
 		d_cache[t] = t;

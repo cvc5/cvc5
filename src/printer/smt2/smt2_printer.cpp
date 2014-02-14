@@ -278,6 +278,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STRING_CONCAT: out << "str.++ "; break;
   case kind::STRING_IN_REGEXP: out << "str.in.re "; break;
   case kind::STRING_LENGTH: out << "str.len "; break;
+  case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_SUBSTR: out << "str.substr "; break;
   case kind::STRING_CHARAT: out << "str.at "; break;
   case kind::STRING_STRCTN: out << "str.contain "; break;
