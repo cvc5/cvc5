@@ -3124,11 +3124,18 @@ void SmtEnginePrivate::processAssertions() {
   // Assertions ARE guaranteed to be rewritten by this point
 
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+    dumpAssertions("pre-strings-pp", d_assertionsToPreprocess);
     CVC4::theory::strings::StringsPreprocess sp;
-    sp.simplify( d_assertionsToPreprocess );
+    std::vector<Node> newNodes;
+    newNodes.push_back(d_assertionsToPreprocess[d_realAssertionsEnd - 1]);
+    sp.simplify( d_assertionsToPreprocess, newNodes );
+    if(newNodes.size() > 1) {
+      d_assertionsToPreprocess[d_realAssertionsEnd - 1] = NodeManager::currentNM()->mkNode(kind::AND, newNodes);
+    }
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
     }
+    dumpAssertions("post-strings-pp", d_assertionsToPreprocess);
   }
   if( d_smt.d_logic.isQuantified() ){
     dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);
