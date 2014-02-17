@@ -100,7 +100,7 @@ option arithPropAsLemmaLength --arith-prop-clauses uint16_t :default 8 :read-wri
 option soiQuickExplain --soi-qe bool :default false :read-write
  use quick explain to minimize the sum of infeasibility conflicts
 
-option rewriteDivk rewrite-divk --rewrite-divk bool :default false
+option rewriteDivk rewrite-divk --rewrite-divk bool :default false :read-write
  rewrite division and mod when by a constant into linear terms
 
 endmodule
