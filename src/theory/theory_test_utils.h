@@ -87,7 +87,7 @@ public:
     push(PROPAGATE_AS_DECISION, n);
   }
 
-  LemmaStatus lemma(TNode n, bool removable) throw(AssertionException) {
+  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }

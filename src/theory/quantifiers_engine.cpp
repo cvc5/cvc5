@@ -458,7 +458,7 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
     Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
     if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
-      //d_curr_out->lemma( lem );
+      //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Debug("inst-engine-debug") << "Added lemma : " << lem << std::endl;
@@ -567,7 +567,7 @@ void QuantifiersEngine::flushLemmas( OutputChannel* out ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     for( int i=0; i<(int)d_lemmas_waiting.size(); i++ ){
-      out->lemma( d_lemmas_waiting[i] );
+      out->lemma( d_lemmas_waiting[i], false, true );
     }
     d_lemmas_waiting.clear();
   }

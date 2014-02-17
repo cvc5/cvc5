@@ -475,7 +475,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("sharing") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
   }
 }
 
@@ -779,7 +779,7 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
   Node newTerm;
   if (theoryOf(term)->ppDontRewriteSubterm(term)) {
-    newTerm = term;
+    newTerm = Rewriter::rewrite(term);
   } else {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -1320,7 +1320,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, theory::TheoryId atomsTo) {
+theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
@@ -1344,15 +1344,18 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
     options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
+  // Run theory preprocessing, maybe
+  Node ppNode = preprocess ? this->preprocess(node) : Node(node);
+
   // Remove the ITEs
   std::vector<Node> additionalLemmas;
   IteSkolemMap iteSkolemMap;
-  additionalLemmas.push_back(node);
+  additionalLemmas.push_back(ppNode);
   d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
   if(Debug.isOn("lemma-ites")) {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << node << endl;
+    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
     Debug("lemma-ites") << " + now have the following "
                         << additionalLemmas.size() << " lemma(s):" << endl;
     for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
@@ -1417,11 +1420,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, true, THEORY_LAST);
+    lemma(fullConflict, true, true, false, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, true, THEORY_LAST);
+    lemma(conflict, true, true, false, THEORY_LAST);
   }
 }
 

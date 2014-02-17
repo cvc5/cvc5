@@ -92,7 +92,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           nb << f << ceLit;
           Node lem = nb;
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->getOutputChannel().lemma( lem );
+          d_quantEngine->getOutputChannel().lemma( lem, false, true );
           addedLemma = true;
         }
       }

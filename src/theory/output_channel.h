@@ -113,10 +113,12 @@ public:
    *
    * @param n - a theory lemma valid at decision level 0
    * @param removable - whether the lemma can be removed at any point
+   * @param preprocess - whether to apply more aggressive preprocessing
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n, bool removable = false)
+  virtual LemmaStatus lemma(TNode n, bool removable = false,
+                            bool preprocess = false)
     throw(TypeCheckingExceptionPrivate, AssertionException) = 0;
 
   /**

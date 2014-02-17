@@ -298,7 +298,7 @@ bool SubsortSymmetryBreaker::check( Theory::Effort level ) {
   //flush pending lemmas
   if( !d_pending_lemmas.empty() ){
     for( unsigned i=0; i<d_pending_lemmas.size(); i++ ){
-      getStrongSolver()->getOutputChannel().lemma( d_pending_lemmas[i] );
+      getStrongSolver()->getOutputChannel().lemma( d_pending_lemmas[i], false, true );
       ++( getStrongSolver()->d_statistics.d_sym_break_lemmas );
     }
     d_pending_lemmas.clear();

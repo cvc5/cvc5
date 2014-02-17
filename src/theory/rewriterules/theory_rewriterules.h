@@ -211,7 +211,7 @@ private:
 
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
 
-  bool ppDontRewriteSubterm(TNode atom){ return true; }
+  bool ppDontRewriteSubterm(TNode atom) { return true; }
 
 
  private:

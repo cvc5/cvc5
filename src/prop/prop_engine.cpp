@@ -111,10 +111,6 @@ void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
-  if(Dump.isOn("lemmas")) {
-    Dump("lemmas") << AssertCommand(node.toExpr());
-  }
-
   // Assert as removable
   d_cnfStream->convertAndAssert(node, removable, negated);
 }

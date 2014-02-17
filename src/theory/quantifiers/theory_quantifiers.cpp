@@ -164,7 +164,7 @@ void TheoryQuantifiers::assertExistential( Node n ){
       nb << n[0] << body.notNode();
       Node lem = nb;
       Trace("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
-      d_out->lemma( lem );
+      d_out->lemma( lem, false, true );
       d_skolemized[n] = true;
     }
   }

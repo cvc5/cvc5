@@ -363,7 +363,7 @@ void BoundedIntegers::getBounds( Node f, Node v, RepSetIterator * rsi, Node & l,
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[f][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
+      d_quantEngine->getOutputChannel().lemma(lem, false, true);
       l = Node::null();
       u = Node::null();
       return;

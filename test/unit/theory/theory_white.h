@@ -70,7 +70,7 @@ public:
     // ignore
   }
 
-  LemmaStatus lemma(TNode n, bool removable)
+  LemmaStatus lemma(TNode n, bool removable = false, bool preprocess = false)
     throw(AssertionException) {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
@@ -301,7 +301,7 @@ public:
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n, false);
+    d_outputChannel.lemma(n);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);
