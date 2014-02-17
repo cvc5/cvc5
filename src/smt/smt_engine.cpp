@@ -954,10 +954,16 @@ void SmtEngine::setLogicInternal() throw() {
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
+	if(! options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
+    }
+
+	/*
     if(! options::stringFMF.wasSetByUser()) {
       options::stringFMF.set( true );
       Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
-    }
+    }*/
   }
 
   // by default, symmetry breaker is on only for QF_UF

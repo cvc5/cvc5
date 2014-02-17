@@ -353,7 +353,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 		} else if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
 			int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
 			int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
-			if( node[0].getConst<String>().size() >= (unsigned) (i + j) && i>=0 && j>=0 ) {
+			if( i>=0 && j>=0 && node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
 				retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
 			} else {
 				retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
@@ -405,6 +405,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 					retNode = node[0];
 				}
 			}
+		} else {
+			retNode = node[0];
 		}
 	} else if(node.getKind() == kind::STRING_PREFIX) {
 		if(node[0].isConst() && node[1].isConst()) {
@@ -442,6 +444,15 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
 										NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
 		}
+	} else if(node.getKind() == kind::STRING_ITOS) {
+		if(node[0].isConst()) {
+			int i = node[0].getConst<Rational>().getNumerator().toUnsignedInt();
+			std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << i) )->str();
+			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
+		}
+	} else if(node.getKind() == kind::STRING_STOI_TOTAL) {
+		//TODO
+		Assert(false, "stoi not supported.");
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);
 	}

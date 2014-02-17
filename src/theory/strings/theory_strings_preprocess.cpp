@@ -230,7 +230,96 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string indexof not supported in this release");
 		}
-	} else if( t.getKind() == kind::STRING_STRREPL ){
+	} else if( t.getKind() == kind::STRING_ITOS ) {
+		if(options::stringExp()) {
+			Node num = t[0];//NodeManager::currentNM()->mkNode(kind::ABS, t[0]);
+			Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
+			Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
+
+			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
+			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
+			Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
+						NodeManager::currentNM()->mkNode( kind::GT, lenp, b1 ) ) );
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+			Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
+			Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
+			
+			std::vector< TypeNode > argTypes;
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			Node ufP = NodeManager::currentNM()->mkSkolem("ufP_$$", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->integerType()),
+								"uf itos assist P");
+			Node ufM = NodeManager::currentNM()->mkSkolem("ufM_$$", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->integerType()),
+								"uf itos assist M");
+			
+			new_nodes.push_back( num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero)) );
+			new_nodes.push_back( NodeManager::currentNM()->mkNode(kind::GT, lenp, d_zero) );
+
+			Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b1);
+			Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b1,one));
+			Node ufMx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, b1);
+			Node b1gtz = NodeManager::currentNM()->mkNode(kind::GT, b1, d_zero);
+			Node cc1 = ufx1.eqNode( NodeManager::currentNM()->mkNode(kind::PLUS,
+							NodeManager::currentNM()->mkNode(kind::MULT, ufx, ten),
+							NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, NodeManager::currentNM()->mkNode(kind::MINUS,b1,one)) ));
+			cc1 = NodeManager::currentNM()->mkNode(kind::IMPLIES, b1gtz, cc1);
+			Node lstx = lenp.eqNode(NodeManager::currentNM()->mkNode(kind::PLUS, b1, one));
+			Node cc2 = ufx.eqNode(ufMx);
+			cc2 = NodeManager::currentNM()->mkNode(kind::IMPLIES, lstx, cc2);
+			Node cc3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
+			Node cc4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
+			
+			Node b21 = NodeManager::currentNM()->mkBoundVar("y", NodeManager::currentNM()->stringType());
+			Node b22 = NodeManager::currentNM()->mkBoundVar("z", NodeManager::currentNM()->stringType());
+			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b21, b22);
+
+			Node c21 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, b21).eqNode(
+						NodeManager::currentNM()->mkNode(kind::MINUS, lenp,	NodeManager::currentNM()->mkNode(kind::PLUS, b1, one) ));
+			Node ch = 
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("0")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("1")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(2))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("2")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(3))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("3")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(4))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("4")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(5))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("5")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(6))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("6")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(7))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("7")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(8))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("8")),
+				NodeManager::currentNM()->mkConst(::CVC4::String("9")))))))))));
+			Node c22 = pret.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, b21, ch, b22) );
+			Node cc5 = NodeManager::currentNM()->mkNode(kind::EXISTS, b2v, NodeManager::currentNM()->mkNode(kind::AND, c21, c22));
+			//Node pos = NodeManager::currentNM()->mkNode(kind::MINUS, lenp, NodeManager::currentNM()->mkNode(kind::PLUS, b1, one));
+			//Node cc5 = ch.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, pret, pos, one) );
+			Node conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, cc1, cc2, cc3, cc4, cc5) );
+			conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
+			conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
+			new_nodes.push_back( conc );
+			/*
+			Node sign = NodeManager::currentNM()->mkNode(kind::ITE, 
+							NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
+							NodeManager::currentNM()->mkConst(::CVC4::String("")),
+							NodeManager::currentNM()->mkConst(::CVC4::String("-")));
+			conc = t.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sign, pret) );
+			new_nodes.push_back( conc );*/
+
+			d_cache[t] = t;
+			retNode = t;
+		} else {
+			throw LogicException("string int.to.str not supported in this release");
+		}
+	} else if( t.getKind() == kind::STRING_STRREPL ) {
 		if(options::stringExp()) {
 			Node x = t[0];
 			Node y = t[1];
@@ -246,6 +335,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 							NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 ),
 							skw.eqNode(x) ) );
 			new_nodes.push_back( rr );
+			//rr = cond.negate();
+			//new_nodes.push_back( rr );
+
 			d_cache[t] = skw;
 			retNode = skw;
 		} else {
@@ -277,11 +369,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
 	Trace("strings-preprocess") << "StringsPreprocess::simplify returns: " << retNode << std::endl;
 	if(!new_nodes.empty()) {
-		Trace("strings-preprocess") << " ... new nodes:";
+		Trace("strings-preprocess") << " ... new nodes (" << new_nodes.size() << "):\n";
 		for(unsigned int i=0; i<new_nodes.size(); ++i) {
-			Trace("strings-preprocess") << " " << new_nodes[i];
+			Trace("strings-preprocess") << "\t" << new_nodes[i] << "\n";
 		}
-		Trace("strings-preprocess") << std::endl;
 	}
 
 	return retNode;
