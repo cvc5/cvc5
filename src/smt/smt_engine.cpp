@@ -787,6 +787,34 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
+  // for strings
+  if(options::stringExp()) {
+    if( !d_logic.isQuantified() ) {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.enableQuantifiers();
+      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
+    }
+    if(! options::finiteModelFind.wasSetByUser()) {
+      options::finiteModelFind.set( true );
+      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+    }
+    if(! options::fmfBoundInt.wasSetByUser()) {
+      options::fmfBoundInt.set( true );
+      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+    }
+    if(! options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
+    }
+
+    /*
+    if(! options::stringFMF.wasSetByUser()) {
+      options::stringFMF.set( true );
+      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    }
+    */
+  }
+
   if(options::bitvectorEagerBitblast()) {
     // Eager solver should use the internal decision strategy
     options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
@@ -935,35 +963,6 @@ void SmtEngine::setLogicInternal() throw() {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
-  }
-
-
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableQuantifiers();
-      d_logic.lock();
-      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
-    }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
-    }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      options::fmfBoundInt.set( true );
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
-    }
-	if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }
-
-	/*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
-    }*/
   }
 
   // by default, symmetry breaker is on only for QF_UF
