@@ -321,6 +321,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		}
 	} else if( t.getKind() == kind::STRING_STOI ) {
 		if(options::stringExp()) {
+			Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
 			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
 			Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
 			Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
@@ -339,7 +340,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			new_nodes.push_back(t.eqNode(ufP0));
 			//cc1
 			Node cc1 = t[0].eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("")));
-			cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(d_zero), cc1);
+			cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc1);
 			//cc2
 			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
 			Node z1 = NodeManager::currentNM()->mkBoundVar("z1", NodeManager::currentNM()->stringType());
@@ -357,17 +358,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			vec_n.push_back(g);
 			g = t[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
 			vec_n.push_back(g);
-			char ch[2];
-			ch[1] = '\0';
+			char chtmp[2];
+			chtmp[1] = '\0';
 			for(unsigned i=0; i<=9; i++) {
-				ch[0] = i + '0';
-				std::string stmp(ch);
+				chtmp[0] = i + '0';
+				std::string stmp(chtmp);
 				g = z2.eqNode( NodeManager::currentNM()->mkConst(::CVC4::String(stmp)) ).negate();
 				vec_n.push_back(g);
 			}
 			Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
 			cc2 = NodeManager::currentNM()->mkNode(kind::EXISTS, b1v, cc2);
-			cc2 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(d_zero), cc2);
+			cc2 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc2);
 			//cc3
 			Node b2 = NodeManager::currentNM()->mkBoundVar("y", NodeManager::currentNM()->integerType());
 			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);
