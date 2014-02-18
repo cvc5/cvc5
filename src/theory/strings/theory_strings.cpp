@@ -57,7 +57,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
     d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOI_TOTAL);
+    d_equalityEngine.addFunctionKind(kind::STRING_STOI);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -408,7 +408,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   case kind::STRING_CONCAT:
   case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_ITOS:
-  case kind::STRING_STOI_TOTAL:
+  case kind::STRING_STOI:
 	d_equalityEngine.addTerm(n);
 	break;
   //case kind::STRING_ITOS:

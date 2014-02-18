@@ -1613,61 +1613,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
 		break;
 	  }
-	  case kind::STRING_STOI: {
-		if(d_ufS2I.isNull()) {
-			std::vector< TypeNode > argTypes;
-			argTypes.push_back(NodeManager::currentNM()->stringType());
-			d_ufS2I = NodeManager::currentNM()->mkSkolem("__ufS2I", 
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes, NodeManager::currentNM()->integerType()),
-								"uf str2int",
-								NodeManager::SKOLEM_EXACT_NAME);
-		}
-		Node cond;
-		if(n[0].isConst()) {
-			CVC4::String s = n[0].getConst<String>();
-			if(s.isNumber()) {
-				cond = NodeManager::currentNM()->mkConst( false );
-			} else {
-				cond = NodeManager::currentNM()->mkConst( true );
-			}
-		} else {
-			Node cc1 = n[0].eqNode(nm->mkConst(::CVC4::String("")));
-			Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
-			Node z1 = NodeManager::currentNM()->mkBoundVar("z1", NodeManager::currentNM()->stringType());
-			Node z2 = NodeManager::currentNM()->mkBoundVar("z2", NodeManager::currentNM()->stringType());
-			Node z3 = NodeManager::currentNM()->mkBoundVar("z3", NodeManager::currentNM()->stringType());
-			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1, z1, z2, z3);
-			std::vector< Node > vec_n;
-			Node g = NodeManager::currentNM()->mkNode(kind::GEQ, b1, zero);
-			vec_n.push_back(g);
-			g = NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]), b1);
-			vec_n.push_back(g);
-			g = b1.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z1) );
-			vec_n.push_back(g);
-			g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
-			vec_n.push_back(g);
-			g = n[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
-			vec_n.push_back(g);
-			for(unsigned i=0; i<=9; i++) {
-				char ch[2];
-				ch[0] = i + '0'; ch[1] = '\0';
-				std::string stmp(ch);
-				g = z2.eqNode( nm->mkConst(::CVC4::String(stmp)) ).negate();
-				vec_n.push_back(g);
-			}
-			Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
-			cc2 = NodeManager::currentNM()->mkNode(kind::EXISTS, b1v, cc2);
-			cond = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2));
-		}
-		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_STOI_TOTAL, n[0]);
-		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufS2I, n[0]);
-		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, uf, totalf );
-
-		break;
-	  }
       case kind::DIVISION: {
         // partial function: division
         if(d_divByZero.isNull()) {

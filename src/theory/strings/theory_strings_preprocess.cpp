@@ -319,7 +319,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string int.to.str not supported in this release");
 		}
-	} else if( t.getKind() == kind::STRING_STOI_TOTAL ) {
+	} else if( t.getKind() == kind::STRING_STOI ) {
 		if(options::stringExp()) {
 			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
 			Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
@@ -357,9 +357,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			vec_n.push_back(g);
 			g = t[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
 			vec_n.push_back(g);
+			char ch[2];
+			ch[1] = '\0';
 			for(unsigned i=0; i<=9; i++) {
-				char ch[2];
-				ch[0] = i + '0'; ch[1] = '\0';
+				ch[0] = i + '0';
 				std::string stmp(ch);
 				g = z2.eqNode( NodeManager::currentNM()->mkConst(::CVC4::String(stmp)) ).negate();
 				vec_n.push_back(g);

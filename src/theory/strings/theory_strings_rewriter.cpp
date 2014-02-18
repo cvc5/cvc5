@@ -450,7 +450,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << i) )->str();
 			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
 		}
-	} else if(node.getKind() == kind::STRING_STOI_TOTAL) {
+	} else if(node.getKind() == kind::STRING_STOI) {
 		if(node[0].isConst()) {
 			CVC4::String s = node[0].getConst<String>();
 			int rt = s.toNumber();

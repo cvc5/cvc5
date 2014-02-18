@@ -22,8 +22,7 @@ operator STRING_STRREPL 3 "string replace"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_ITOS 1 "integer to string"
-operator STRING_STOI 1 "string to integer (user symbol)"
-operator STRING_STOI_TOTAL 1 "string to integer (internal symbol)"
+operator STRING_STOI 1 "string to integer (total function)"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -120,7 +119,6 @@ typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
 typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
 typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
 typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
-typerule STRING_STOI_TOTAL ::CVC4::theory::strings::StringStrToIntTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
 
