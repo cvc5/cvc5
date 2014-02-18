@@ -484,11 +484,15 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 	return retNode;
 }
 
-void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
-	std::vector< Node > new_nodes;
+void StringsPreprocess::simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes) {
 	for( unsigned i=0; i<vec_node.size(); i++ ){
 		vec_node[i] = simplify( vec_node[i], new_nodes );
 	}
+}
+
+void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
+	std::vector< Node > new_nodes;
+	simplify(vec_node, new_nodes);
 	vec_node.insert( vec_node.end(), new_nodes.begin(), new_nodes.end() );
 }
 
