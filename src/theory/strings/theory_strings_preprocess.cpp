@@ -249,11 +249,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node ufP = NodeManager::currentNM()->mkSkolem("ufP_$$", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
-								"uf itos assist P");
+								"uf type conv P");
 			Node ufM = NodeManager::currentNM()->mkSkolem("ufM_$$", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
-								"uf itos assist M");
+								"uf type conv M");
 			
 			new_nodes.push_back( num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero)) );
 			new_nodes.push_back( NodeManager::currentNM()->mkNode(kind::GT, lenp, d_zero) );
@@ -319,6 +319,114 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		} else {
 			throw LogicException("string int.to.str not supported in this release");
 		}
+	} else if( t.getKind() == kind::STRING_STOI_TOTAL ) {
+		if(options::stringExp()) {
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+			Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
+			Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
+			std::vector< TypeNode > argTypes;
+			argTypes.push_back(NodeManager::currentNM()->integerType());
+			Node ufP = NodeManager::currentNM()->mkSkolem("ufP_$$", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->integerType()),
+								"uf type conv P");
+			Node ufM = NodeManager::currentNM()->mkSkolem("ufM_$$", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->integerType()),
+								"uf type conv M");
+
+			Node ufP0 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero);
+			new_nodes.push_back(t.eqNode(ufP0));
+			//cc1
+			Node cc1 = t[0].eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("")));
+			cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(d_zero), cc1);
+			//cc2
+			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
+			Node z1 = NodeManager::currentNM()->mkBoundVar("z1", NodeManager::currentNM()->stringType());
+			Node z2 = NodeManager::currentNM()->mkBoundVar("z2", NodeManager::currentNM()->stringType());
+			Node z3 = NodeManager::currentNM()->mkBoundVar("z3", NodeManager::currentNM()->stringType());
+			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1, z1, z2, z3);
+			std::vector< Node > vec_n;
+			Node g = NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_zero);
+			vec_n.push_back(g);
+			g = NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[0]), b1);
+			vec_n.push_back(g);
+			g = b1.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z1) );
+			vec_n.push_back(g);
+			g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
+			vec_n.push_back(g);
+			g = t[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
+			vec_n.push_back(g);
+			for(unsigned i=0; i<=9; i++) {
+				char ch[2];
+				ch[0] = i + '0'; ch[1] = '\0';
+				std::string stmp(ch);
+				g = z2.eqNode( NodeManager::currentNM()->mkConst(::CVC4::String(stmp)) ).negate();
+				vec_n.push_back(g);
+			}
+			Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
+			cc2 = NodeManager::currentNM()->mkNode(kind::EXISTS, b1v, cc2);
+			cc2 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(d_zero), cc2);
+			//cc3
+			Node b2 = NodeManager::currentNM()->mkBoundVar("y", NodeManager::currentNM()->integerType());
+			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);
+			Node g2 = NodeManager::currentNM()->mkNode(kind::AND,
+						NodeManager::currentNM()->mkNode(kind::GEQ, b2, d_zero),
+						NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[0]), b2));
+			Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b2);
+			Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b2,one));
+			Node ufMx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, b2);
+			Node w1 = NodeManager::currentNM()->mkBoundVar("w1", NodeManager::currentNM()->stringType());
+			Node w2 = NodeManager::currentNM()->mkBoundVar("w2", NodeManager::currentNM()->stringType());
+			Node b3v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, w1, w2);
+			Node b2gtz = NodeManager::currentNM()->mkNode(kind::GT, b2, d_zero);
+			Node c3c1 = ufx1.eqNode( NodeManager::currentNM()->mkNode(kind::PLUS,
+							NodeManager::currentNM()->mkNode(kind::MULT, ufx, ten),
+							NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, NodeManager::currentNM()->mkNode(kind::MINUS,b2,one)) ));
+			c3c1 = NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::GT, ufx, d_zero), c3c1);
+			c3c1 = NodeManager::currentNM()->mkNode(kind::IMPLIES, b2gtz, c3c1);
+			Node lstx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH,t[0]).eqNode(NodeManager::currentNM()->mkNode(kind::PLUS, b2, one));
+			Node c3c2 = ufx.eqNode(ufMx);
+			c3c2 = NodeManager::currentNM()->mkNode(kind::IMPLIES, lstx, c3c2);
+			Node c3c3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
+			Node c3c4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
+			Node rev = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, w1).eqNode(
+						NodeManager::currentNM()->mkNode(kind::MINUS, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH,t[0]),
+						NodeManager::currentNM()->mkNode(kind::PLUS, b2, one)));
+			Node ch = 
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("0")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("1")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(2))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("2")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(3))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("3")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(4))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("4")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(5))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("5")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(6))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("6")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(7))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("7")),
+				NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(8))),
+				NodeManager::currentNM()->mkConst(::CVC4::String("8")),
+				NodeManager::currentNM()->mkConst(::CVC4::String("9")))))))))));
+			Node c3c5 = t[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, w1, ch, w2));
+			c3c5 = NodeManager::currentNM()->mkNode(kind::AND, rev, c3c5);
+			c3c5 = NodeManager::currentNM()->mkNode(kind::EXISTS, b3v, c3c5);
+			Node cc3 = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, c3c1, c3c2, c3c3, c3c4, c3c5) );
+			cc3 = NodeManager::currentNM()->mkNode(kind::IMPLIES, g2, cc3);
+			cc3 = NodeManager::currentNM()->mkNode(kind::FORALL, b2v, cc3);
+			//conc
+			Node conc = NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2, cc3);
+			new_nodes.push_back( conc );
+			d_cache[t] = t;
+			retNode = t;
+		} else {
+			throw LogicException("string int.to.str not supported in this release");
+		}
 	} else if( t.getKind() == kind::STRING_STRREPL ) {
 		if(options::stringExp()) {
 			Node x = t[0];
@@ -335,8 +443,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 							NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 ),
 							skw.eqNode(x) ) );
 			new_nodes.push_back( rr );
-			//rr = cond.negate();
-			//new_nodes.push_back( rr );
 
 			d_cache[t] = skw;
 			retNode = skw;
@@ -378,15 +484,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 	return retNode;
 }
 
-void StringsPreprocess::simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes) {
+void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
+	std::vector< Node > new_nodes;
 	for( unsigned i=0; i<vec_node.size(); i++ ){
 		vec_node[i] = simplify( vec_node[i], new_nodes );
 	}
-}
-
-void StringsPreprocess::simplify(std::vector< Node > &vec_node) {
-	std::vector< Node > new_nodes;
-	simplify(vec_node, new_nodes);
 	vec_node.insert( vec_node.end(), new_nodes.begin(), new_nodes.end() );
 }
 

@@ -313,6 +313,12 @@ class SmtEnginePrivate : public NodeManagerListener {
   Node d_ufSubstr;
 
   /**
+   * Function symbol used to implement uninterpreted undefined string
+   * semantics.  Needed to deal with partial str2int function.
+   */
+  Node d_ufS2I;
+
+  /**
    * Function symbol used to implement uninterpreted division-by-zero
    * semantics.  Needed to deal with partial division function ("/").
    */
@@ -787,34 +793,6 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableQuantifiers();
-      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
-    }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
-    }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      options::fmfBoundInt.set( true );
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
-    }
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }
-
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
-    }
-    */
-  }
-
   if(options::bitvectorEagerBitblast()) {
     // Eager solver should use the internal decision strategy
     options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
@@ -963,6 +941,35 @@ void SmtEngine::setLogicInternal() throw() {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
       options::theoryOfMode.set(THEORY_OF_TERM_BASED);
     }
+  }
+
+
+  // for strings
+  if(options::stringExp()) {
+    if( !d_logic.isQuantified() ) {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.enableQuantifiers();
+      d_logic.lock();
+      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
+    }
+    if(! options::finiteModelFind.wasSetByUser()) {
+      options::finiteModelFind.set( true );
+      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+    }
+    if(! options::fmfBoundInt.wasSetByUser()) {
+      options::fmfBoundInt.set( true );
+      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+    }
+	if(! options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
+    }
+
+	/*
+    if(! options::stringFMF.wasSetByUser()) {
+      options::stringFMF.set( true );
+      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    }*/
   }
 
   // by default, symmetry breaker is on only for QF_UF
@@ -1605,6 +1612,61 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, n[0], n[1], n[2]);
 		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, n[0], n[1], n[2]);
 		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+		break;
+	  }
+	  case kind::STRING_STOI: {
+		if(d_ufS2I.isNull()) {
+			std::vector< TypeNode > argTypes;
+			argTypes.push_back(NodeManager::currentNM()->stringType());
+			d_ufS2I = NodeManager::currentNM()->mkSkolem("__ufS2I", 
+								NodeManager::currentNM()->mkFunctionType(
+									argTypes, NodeManager::currentNM()->integerType()),
+								"uf str2int",
+								NodeManager::SKOLEM_EXACT_NAME);
+		}
+		Node cond;
+		if(n[0].isConst()) {
+			CVC4::String s = n[0].getConst<String>();
+			if(s.isNumber()) {
+				cond = NodeManager::currentNM()->mkConst( false );
+			} else {
+				cond = NodeManager::currentNM()->mkConst( true );
+			}
+		} else {
+			Node cc1 = n[0].eqNode(nm->mkConst(::CVC4::String("")));
+			Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
+			Node z1 = NodeManager::currentNM()->mkBoundVar("z1", NodeManager::currentNM()->stringType());
+			Node z2 = NodeManager::currentNM()->mkBoundVar("z2", NodeManager::currentNM()->stringType());
+			Node z3 = NodeManager::currentNM()->mkBoundVar("z3", NodeManager::currentNM()->stringType());
+			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1, z1, z2, z3);
+			std::vector< Node > vec_n;
+			Node g = NodeManager::currentNM()->mkNode(kind::GEQ, b1, zero);
+			vec_n.push_back(g);
+			g = NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n[0]), b1);
+			vec_n.push_back(g);
+			g = b1.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z1) );
+			vec_n.push_back(g);
+			g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
+			vec_n.push_back(g);
+			g = n[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
+			vec_n.push_back(g);
+			for(unsigned i=0; i<=9; i++) {
+				char ch[2];
+				ch[0] = i + '0'; ch[1] = '\0';
+				std::string stmp(ch);
+				g = z2.eqNode( nm->mkConst(::CVC4::String(stmp)) ).negate();
+				vec_n.push_back(g);
+			}
+			Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
+			cc2 = NodeManager::currentNM()->mkNode(kind::EXISTS, b1v, cc2);
+			cond = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2));
+		}
+		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_STOI_TOTAL, n[0]);
+		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufS2I, n[0]);
+		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, uf, totalf );
+
 		break;
 	  }
       case kind::DIVISION: {
@@ -3123,18 +3185,11 @@ void SmtEnginePrivate::processAssertions() {
   // Assertions ARE guaranteed to be rewritten by this point
 
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    dumpAssertions("pre-strings-pp", d_assertionsToPreprocess);
     CVC4::theory::strings::StringsPreprocess sp;
-    std::vector<Node> newNodes;
-    newNodes.push_back(d_assertionsToPreprocess[d_realAssertionsEnd - 1]);
-    sp.simplify( d_assertionsToPreprocess, newNodes );
-    if(newNodes.size() > 1) {
-      d_assertionsToPreprocess[d_realAssertionsEnd - 1] = NodeManager::currentNM()->mkNode(kind::AND, newNodes);
-    }
+    sp.simplify( d_assertionsToPreprocess );
     for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
       d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
     }
-    dumpAssertions("post-strings-pp", d_assertionsToPreprocess);
   }
   if( d_smt.d_logic.isQuantified() ){
     dumpAssertions("pre-skolem-quant", d_assertionsToPreprocess);

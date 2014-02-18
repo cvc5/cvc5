@@ -451,8 +451,21 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
 		}
 	} else if(node.getKind() == kind::STRING_STOI_TOTAL) {
-		//TODO
-		Assert(false, "stoi not supported.");
+		if(node[0].isConst()) {
+			CVC4::String s = node[0].getConst<String>();
+			int rt = s.toNumber();
+			retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(rt));
+		} else if(node[0].getKind() == kind::STRING_CONCAT) {
+			for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
+				if(node[0][i].isConst()) {
+					CVC4::String t = node[0][i].getConst<String>();
+					if(!t.isNumber()) {
+						retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(0));
+						break;
+					}
+				}
+			}
+		}
 	} else if(node.getKind() == kind::STRING_IN_REGEXP) {
 		retNode = rewriteMembership(node);
 	}
