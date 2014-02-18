@@ -372,7 +372,7 @@ public:
 		 }
 		 return ret;
 	 } else {
-		 return 0;
+		 return -1;
 	 }
   }
 };/* class String */

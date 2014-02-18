@@ -460,7 +460,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 				if(node[0][i].isConst()) {
 					CVC4::String t = node[0][i].getConst<String>();
 					if(!t.isNumber()) {
-						retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(0));
+						retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
 						break;
 					}
 				}
