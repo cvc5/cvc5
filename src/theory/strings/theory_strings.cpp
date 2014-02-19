@@ -46,6 +46,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	//d_var_lmax( c ),
 	d_str_pos_ctn( c ),
 	d_str_neg_ctn( c ),
+	d_int_to_str( c ),
 	d_reg_exp_mem( c ),
 	d_curr_cardinality( c, 0 )
 {
@@ -55,6 +56,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
+    d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
+    d_equalityEngine.addFunctionKind(kind::STRING_STOI);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -404,8 +407,14 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   case kind::CONST_STRING:
   case kind::STRING_CONCAT:
   case kind::STRING_SUBSTR_TOTAL:
+  case kind::STRING_ITOS:
+  case kind::STRING_STOI:
 	d_equalityEngine.addTerm(n);
 	break;
+  //case kind::STRING_ITOS:
+	//d_int_to_str;
+	//d_equalityEngine.addTerm(n);
+	//break;
   default:
     if(n.getType().isString() ) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
@@ -1757,7 +1766,8 @@ bool TheoryStrings::checkSimple() {
 			//if n is concat, and
 			//if n has not instantiatied the concat..length axiom
 			//then, add lemma
-			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT || n.getKind()==kind::STRING_SUBSTR_TOTAL ) {
+			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT 
+				|| n.getKind() == kind::STRING_SUBSTR_TOTAL ) {
 				if( d_length_nodes.find(n)==d_length_nodes.end() ) {
 					if( d_length_inst.find(n)==d_length_inst.end() ) {
 						//Node nr = d_equalityEngine.getRepresentative( n );
@@ -2363,7 +2373,7 @@ bool TheoryStrings::checkContains() {
 	Trace("strings-process") << "Done check positive contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 	if(!d_conflict && !addedLemma) {
 		addedLemma = checkNegContains();
-		Trace("strings-process") << "Done check positive contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
+		Trace("strings-process") << "Done check negative contain constraints, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
 	}
 	return addedLemma;
 }
@@ -2435,8 +2445,13 @@ bool TheoryStrings::checkNegContains() {
 							addedLemma = true;
 						}
 					} else if(!areDisequal(lenx, lens)) {
-						sendSplit(lenx, lens, "NEG-CTN-SP");
-						addedLemma = true;
+						Node s = lenx < lens ? lenx : lens;
+						Node eq = s.eqNode( lenx < lens ? lens : lenx );
+						if(d_str_neg_ctn_ulen.find(eq) == d_str_neg_ctn_ulen.end()) {
+							d_str_neg_ctn_ulen[ eq ] = true;
+							sendSplit(lenx, lens, "NEG-CTN-SP");
+							addedLemma = true;
+						}
 					} else {
 						if(d_str_neg_ctn_rewritten.find(atom) == d_str_neg_ctn_rewritten.end()) {
 							Node b1 = NodeManager::currentNM()->mkBoundVar("bi", NodeManager::currentNM()->integerType());

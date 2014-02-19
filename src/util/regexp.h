@@ -354,6 +354,27 @@ public:
     ret_vec.insert( ret_vec.end(), itr, itr + j );
       return String(ret_vec);
   }
+  bool isNumber() const {
+	 for(unsigned int i=0; i<d_str.size(); ++i) {
+	   char c = convertUnsignedIntToChar( d_str[i] );
+	   if(c<'0' || c>'9') {
+		   return false;
+	   }
+	 }
+	 return true;
+  }
+  int toNumber() const {
+	 if(isNumber()) {
+		 int ret=0;
+		 for(unsigned int i=0; i<d_str.size(); ++i) {
+		   char c = convertUnsignedIntToChar( d_str[i] );
+		   ret = ret * 10 + (int)c - (int)'0';
+		 }
+		 return ret;
+	 } else {
+		 return -1;
+	 }
+  }
 };/* class String */
 
 namespace strings {

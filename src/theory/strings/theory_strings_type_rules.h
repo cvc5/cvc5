@@ -204,6 +204,34 @@ public:
   }
 };
 
+class StringIntToStrTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+        TypeNode t = n[0].getType(check);
+        if (!t.isInteger()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting an integer term in int to string 0");
+        }
+    }
+    return nodeManager->stringType();
+  }
+};
+
+class StringStrToIntTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+        TypeNode t = n[0].getType(check);
+        if (!t.isString()) {
+          throw TypeCheckingExceptionPrivate(n, "expecting a string term in string to int 0");
+        }
+    }
+    return nodeManager->integerType();
+  }
+};
+
 class RegExpConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
