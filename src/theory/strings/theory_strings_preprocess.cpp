@@ -232,7 +232,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		}
 	} else if( t.getKind() == kind::STRING_ITOS ) {
 		if(options::stringExp()) {
-			Node num = t[0];//NodeManager::currentNM()->mkNode(kind::ABS, t[0]);
+			Node num = NodeManager::currentNM()->mkNode(kind::ABS, t[0]);
 			Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
 			Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
@@ -306,13 +306,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
 			conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
 			new_nodes.push_back( conc );
-			/*
+			
 			Node sign = NodeManager::currentNM()->mkNode(kind::ITE, 
 							NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
 							NodeManager::currentNM()->mkConst(::CVC4::String("")),
 							NodeManager::currentNM()->mkConst(::CVC4::String("-")));
 			conc = t.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sign, pret) );
-			new_nodes.push_back( conc );*/
+			new_nodes.push_back( conc );
 
 			d_cache[t] = t;
 			retNode = t;
