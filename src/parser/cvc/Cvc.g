@@ -195,6 +195,11 @@ tokens {
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
 
+  // Strings
+
+  STRING_TOK = 'STRING';
+  SCONCAT_TOK = 'SCONCAT';
+
   // these are parsed by special NUMBER_OR_RANGEOP rule, below
   DECIMAL_LITERAL;
   INTEGER_LITERAL;
@@ -1187,6 +1192,9 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
       t = EXPR_MANAGER->mkBitVectorType(k);
     }
 
+    /* string type */
+  | STRING_TOK { t = EXPR_MANAGER->stringType(); }
+
     /* basic types */
   | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
   | REAL_TOK { t = EXPR_MANAGER->realType(); }
@@ -1809,6 +1817,24 @@ bvTerm[CVC4::Expr& f]
   | IS_INTEGER_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_IS_INTEGER, f); }
   */
+
+  | stringTerm[f]
+  ;
+
+stringTerm[CVC4::Expr& f]
+@init {
+  Expr f2;
+  std::string s;
+  std::vector<Expr> args;
+}
+    /* String prefix operators */
+  : SCONCAT_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_CONCAT, args); }
+
+    /* string literal */
+  | str[s]
+    { f = MK_CONST(CVC4::String(s)); }
 
   | simpleTerm[f]
   ;
