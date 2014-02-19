@@ -1270,7 +1270,14 @@ builtinOp[CVC4::Kind& kind]
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
                      } }
-
+  //NEW string
+  //STRCONS_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
+  //STRREVCONS_TOK { $kind = CVC4::kind::STRING_CONCAT; }
+  //STRHEAD_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
+  //STRTAIL_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
+  //STRLAST_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
+  //STRFIRST_TOK   { $kind = CVC4::kind::STRING_CONCAT; }
+  //OLD string
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
   | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
@@ -1280,8 +1287,8 @@ builtinOp[CVC4::Kind& kind]
   | STRREPL_TOK    { $kind = CVC4::kind::STRING_STRREPL; }
   | STRPREF_TOK    { $kind = CVC4::kind::STRING_PREFIX; }
   | STRSUFF_TOK    { $kind = CVC4::kind::STRING_SUFFIX; }
-  | STRITOS_TOK    { $kind = CVC4::kind::STRING_ITOS; }
-  | STRSTOI_TOK    { $kind = CVC4::kind::STRING_STOI; }
+  | SITOS_TOK      { $kind = CVC4::kind::STRING_ITOS; }
+  | SSTOI_TOK      { $kind = CVC4::kind::STRING_STOI; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
@@ -1290,7 +1297,7 @@ builtinOp[CVC4::Kind& kind]
   | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
-  | RERANGE_TOK      { $kind = CVC4::kind::REGEXP_RANGE; }
+  | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
 
   // NOTE: Theory operators go here
   ;
@@ -1652,7 +1659,14 @@ BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
 //STRING
-//STRCST_TOK : 'str.cst';
+//NEW
+//STRCONS_TOK : 'str.cons';
+//STRREVCONS_TOK : 'str.revcons';
+//STRHEAD_TOK : 'str.head';
+//STRTAIL_TOK : 'str.tail';
+//STRLAST_TOK : 'str.last';
+//STRFIRST_TOK : 'str.first';
+//OLD
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
 STRSUB_TOK : 'str.substr' ;
@@ -1662,8 +1676,8 @@ STRIDOF_TOK : 'str.indexof' ;
 STRREPL_TOK : 'str.replace' ;
 STRPREF_TOK : 'str.prefixof' ;
 STRSUFF_TOK : 'str.suffixof' ;
-STRITOS_TOK : 'int.to.str' ;
-STRSTOI_TOK : 'str.to.int' ;
+SITOS_TOK : 'int.to.str' ;
+SSTOI_TOK : 'str.to.int' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';
