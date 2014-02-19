@@ -1084,6 +1084,17 @@ Node Polynomial::makeAbsCondition(Variable v, Polynomial p){
   return absCnd;
 }
 
+bool Polynomial::isNonlinear() const {
+
+  for(iterator i=begin(), iend =end(); i != iend; ++i){
+    Monomial m = *i;
+    if(m.isNonlinear()){
+      return true;
+    }
+  }
+  return false;
+}
+
 } //namespace arith
 } //namespace theory
 } //namespace CVC4

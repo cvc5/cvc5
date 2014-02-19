@@ -708,6 +708,11 @@ public:
     return integralCoefficient() && integralVariables();
   }
 
+  /** Returns true if the VarList is a product of at least 2 Variables.*/
+  bool isNonlinear() const {
+    return getVarList().size() >= 2;
+  }
+
   /**
    * Given a sorted list of monomials, this function transforms this
    * into a strictly sorted list of monomials that does not contain zero.
@@ -932,6 +937,9 @@ public:
     }
     return true;
   }
+
+  /** Returns true if the polynomial contains a non-linear monomial.*/
+  bool isNonlinear() const;
 
   /**
    * Selects a minimal monomial in the polynomial by the absolute value of
@@ -1163,6 +1171,10 @@ public:
 
   bool isZero() const {
     return getConstant().isZero() && isConstant();
+  }
+
+  bool isNonlinear() const{
+    return getPolynomial().isNonlinear();
   }
 
   /**

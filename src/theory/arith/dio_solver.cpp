@@ -141,6 +141,10 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(eq.getNode().getKind() == kind::EQUAL);
 
   SumPair sp = eq.toSumPair();
+  if(sp.isNonlinear()){
+    return;
+  }
+
   uint32_t length = sp.maxLength();
   if(length > d_maxInputCoefficientLength){
     d_maxInputCoefficientLength = length;
