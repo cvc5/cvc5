@@ -191,6 +191,8 @@ public:
    * orig can either be of the form (= p c) or (and ub lb).
    * where ub is either (leq p c) or (not (> p [- c 1])), and
    * where lb is either (geq p c) or (not (< p [+ c 1]))
+   *
+   * If eq cannot be used, this constraint is dropped.
    */
   void pushInputConstraint(const Comparison& eq, Node reason);
 
