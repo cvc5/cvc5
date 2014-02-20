@@ -238,10 +238,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
 			Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
-			Node lem = NodeManager::currentNM()->mkNode(kind::IFF,
+			/*Node lem = NodeManager::currentNM()->mkNode(kind::IFF,
 				t.eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("0"))),
 				t[0].eqNode(d_zero));
-			new_nodes.push_back(lem);
+			new_nodes.push_back(lem);*/
 
 			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
 			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
@@ -277,7 +277,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node cc2 = ufx.eqNode(ufMx);
 			cc2 = NodeManager::currentNM()->mkNode(kind::IMPLIES, lstx, cc2);
 			// leading zero
-			Node cl = NodeManager::currentNM()->mkNode(kind::AND, lstx, d_zero.eqNode(t[0]).negate());
+			Node cl = NodeManager::currentNM()->mkNode(kind::AND, lstx, d_zero.eqNode(b1).negate());
 			Node cc21 = NodeManager::currentNM()->mkNode(kind::IMPLIES, cl, NodeManager::currentNM()->mkNode(kind::GT, ufMx, d_zero));
 			//cc3
 			Node cc3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
