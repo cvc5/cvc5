@@ -808,6 +808,9 @@ public:
    */
   void stop();
 
+  /** If the timer is currently running */
+  bool running() const;
+
   timespec getData() const;
 
   SExpr getValue() const;

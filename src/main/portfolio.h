@@ -22,14 +22,16 @@
 #include "smt/smt_engine.h"
 #include "expr/command.h"
 #include "options/options.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads, 
-                              boost::function<T()> driverFn,
-                              boost::function<S()> threadFns[],
-                              bool optionWaitToJoin);
+                               boost::function<T()> driverFn,
+                               boost::function<S()> threadFns[],
+                               bool optionWaitToJoin,
+                               TimerStat& statWaitTime);
 // as we have defined things, S=void would give compile errors
 // do we want to fix this? yes, no, maybe?
 
