@@ -97,22 +97,11 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
     //extend to literal matching
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
-    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = 0;
     d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW,
                                                  options::smartTriggers() ) );
   }
 }
-/*
-InstStrategyUserPatterns::Statistics::Statistics():
-  d_instantiations("InstStrategyUserPatterns::Instantiations", 0)
-{
-  StatisticsRegistry::registerStat(&d_instantiations);
-}
-
-InstStrategyUserPatterns::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_instantiations);
-}
-*/
 
 void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers

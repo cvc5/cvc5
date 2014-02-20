@@ -18,6 +18,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;

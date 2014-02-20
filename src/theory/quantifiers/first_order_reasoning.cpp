@@ -19,10 +19,11 @@
 #include "theory/rewriter.h"
 
 using namespace CVC4;
-using namespace CVC4::kind;
 using namespace std;
-
-namespace CVC4 {
+using namespace CVC4::theory;
+using namespace CVC4::theory::quantifiers;
+using namespace CVC4::kind;
+using namespace CVC4::context;
 
 
 void FirstOrderPropagation::collectLits( Node n, std::vector<Node> & lits ){
@@ -166,6 +167,4 @@ Node FirstOrderPropagation::simplify( Node n ) {
     }
     return NodeManager::currentNM()->mkNode( n.getKind(), children );
   }
-}
-
 }

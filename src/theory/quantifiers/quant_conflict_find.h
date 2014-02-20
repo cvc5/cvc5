@@ -83,13 +83,15 @@ public:
     typ_formula,
     typ_var,
     typ_ite_var,
-    typ_top,
+    typ_bool_var,
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
   MatchGen() : d_type( typ_invalid ){}
   MatchGen( QuantInfo * qi, Node n, bool isVar = false, bool beneathQuant = false );
   bool d_tgt;
+  bool d_tgt_orig;
+  bool d_wasSet;
   Node d_n;
   std::vector< MatchGen > d_children;
   short d_type;
@@ -97,12 +99,17 @@ public:
   void reset_round( QuantConflictFind * p );
   void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
+  bool getExplanation( QuantConflictFind * p, QuantInfo * qi, std::vector< Node >& exp );
+  Node getExplanationTerm( QuantConflictFind * p, QuantInfo * qi, Node t, std::vector< Node >& exp );
   bool isValid() { return d_type!=typ_invalid; }
   void setInvalid();
 
   // is this term treated as UF application?
+  static bool isHandledBoolConnective( TNode n );
   static bool isHandledUfTerm( TNode n );
   static Node getOperator( QuantConflictFind * p, Node n );
+  //can this node be handled by the algorithm
+  static bool isHandled( TNode n );
 };
 
 //info for quantifiers
@@ -110,8 +117,14 @@ class QuantInfo {
 private:
   void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
   void flatten( Node n, bool beneathQuant );
+private: //for completing match
+  std::vector< int > d_unassigned;
+  std::vector< TypeNode > d_unassigned_tn;
+  int d_unassigned_nvar;
+  int d_una_index;
+  std::vector< int > d_una_eqc_count;
 public:
-  QuantInfo() : d_mg( NULL ), d_isPartial( false ) {}
+  QuantInfo() : d_mg( NULL ) {}
   std::vector< TNode > d_vars;
   std::map< TNode, int > d_var_num;
   std::map< TNode, bool > d_nbeneathQuant;
@@ -120,6 +133,7 @@ public:
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
   int getNumVars() { return (int)d_vars.size(); }
   TNode getVar( int i ) { return d_vars[i]; }
+
   MatchGen * d_mg;
   Node d_q;
   std::map< int, MatchGen * > d_var_mg;
@@ -133,20 +147,18 @@ public:
   std::map< int, std::map< TNode, int > > d_curr_var_deq;
   int getCurrentRepVar( int v );
   TNode getCurrentValue( TNode n );
+  TNode getCurrentExpValue( TNode n );
   bool getCurrentCanBeEqual( QuantConflictFind * p, int v, TNode n, bool chDiseq = false );
   int addConstraint( QuantConflictFind * p, int v, TNode n, bool polarity );
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
   bool setMatch( QuantConflictFind * p, int v, TNode n );
   bool isMatchSpurious( QuantConflictFind * p );
-  bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned );
+  bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
+  void revertMatch( std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
 public:
-  // is partial
-  bool d_isPartial;
-  //the variables that this quantified formula has not beneath nested quantifiers
-  std::map< TNode, bool > d_has_var;
-  bool isPartial() { return d_isPartial; }
+  void getMatch( std::vector< Node >& terms );
 };
 
 class QuantConflictFind : public QuantifiersModule
@@ -218,6 +230,8 @@ public:
     effort_mc,
   };
   short d_effort;
+  void setEffort( int e ) { d_effort = e; }
+  static short getMaxQcfEffort();
   bool areMatchEqual( TNode n1, TNode n2 );
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
@@ -233,11 +247,15 @@ public:
   void merge( Node a, Node b );
   /** assert disequal */
   void assertDisequal( Node a, Node b );
+  /** reset round */
+  void reset_round( Theory::Effort level );
   /** check */
   void check( Theory::Effort level );
   /** needs check */
   bool needsCheck( Theory::Effort level );
 private:
+  bool d_needs_computeRelEqr;
+public:
   void computeRelevantEqr();
 private:
   void debugPrint( const char * c );
@@ -253,7 +271,6 @@ public:
     IntStat d_inst_rounds;
     IntStat d_conflict_inst;
     IntStat d_prop_inst;
-    IntStat d_partial_inst;
     Statistics();
     ~Statistics();
   };

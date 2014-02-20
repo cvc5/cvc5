@@ -25,13 +25,14 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
-#include "theory/rewriterules/efficient_e_matching.h"
-#include "theory/rewriterules/rr_trigger.h"
+//#include "theory/rewriterules/efficient_e_matching.h"
+//#include "theory/rewriterules/rr_trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/uf/options.h"
+#include "theory/uf/theory_uf.h"
 
 using namespace std;
 using namespace CVC4;
@@ -46,8 +47,8 @@ d_lemmas_produced_c(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
   d_term_db = new quantifiers::TermDb( this );
   d_tr_trie = new inst::TriggerTrie;
-  d_rr_tr_trie = new rrinst::TriggerTrie;
-  d_eem = new EfficientEMatcher( this );
+  //d_rr_tr_trie = new rrinst::TriggerTrie;
+  //d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
 
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
@@ -74,7 +75,7 @@ d_lemmas_produced_c(u){
   }
 
   //add quantifiers modules
-  if( options::quantConflictFind() ){
+  if( options::quantConflictFind() || options::quantRewriteRules() ){
     d_qcf = new quantifiers::QuantConflictFind( this, c);
     d_modules.push_back( d_qcf );
   }else{
@@ -100,7 +101,7 @@ d_lemmas_produced_c(u){
     d_model_engine = NULL;
     d_bint = NULL;
   }
-  if( options::rewriteRulesAsAxioms() ){
+  if( options::quantRewriteRules() ){
     d_rr_engine = new quantifiers::RewriteEngine( c, this );
     d_modules.push_back(d_rr_engine);
   }else{
@@ -128,10 +129,6 @@ QuantifiersEngine::~QuantifiersEngine(){
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {
   return d_eq_query;
 }
-
-//Instantiator* QuantifiersEngine::getInstantiator( theory::TheoryId id ){
-//  return d_te->theoryOf( id )->getInstantiator();
-//}
 
 context::Context* QuantifiersEngine::getSatContext(){
   return d_te->theoryOf( THEORY_QUANTIFIERS )->getSatContext();
@@ -176,6 +173,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( d_rel_dom ){
       d_rel_dom->reset();
     }
+    for( int i=0; i<(int)d_modules.size(); i++ ){
+      d_modules[i]->reset_round( e );
+    }
     if( e==Theory::EFFORT_LAST_CALL ){
       //if effort is last call, try to minimize model first
       if( options::finiteModelFind() ){
@@ -216,7 +216,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
 void QuantifiersEngine::registerQuantifier( Node f ){
   if( std::find( d_quants.begin(), d_quants.end(), f )==d_quants.end() ){
-    Trace("quant") << "Register quantifier : " << f << std::endl;
+    Trace("quant") << "QuantifiersEngine : Register quantifier ";
+    if( d_term_db->isRewriteRule( f ) ){
+      Trace("quant") << " (rewrite rule)";
+    }
+    Trace("quant") << " : " << f << std::endl;
     d_quants.push_back( f );
 
     ++(d_statistics.d_num_quant);
@@ -277,9 +281,6 @@ Node QuantifiersEngine::getNextDecisionRequest(){
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
   std::set< Node > added;
   getTermDatabase()->addTerm( n, added, withinQuant );
-  if( options::efficientEMatching() ){
-    d_eem->newTerms( added );
-  }
   //added contains also the Node that just have been asserted in this branch
   if( d_quant_rel ){
     for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
@@ -361,7 +362,7 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
   }
 }
 
-Node QuantifiersEngine::doSubstitute( Node n, std::vector< Node >& terms ){
+Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
   if( n.getKind()==INST_CONSTANT ){
     Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
     return terms[n.getAttribute(InstVarNumAttribute())];
@@ -377,7 +378,7 @@ Node QuantifiersEngine::doSubstitute( Node n, std::vector< Node >& terms ){
     }
     bool changed = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node c = doSubstitute( n[i], terms );
+      Node c = getSubstitute( n[i], terms );
       cc.push_back( c );
       changed = changed || c!=n[i];
     }
@@ -410,7 +411,7 @@ Node QuantifiersEngine::getInstantiation( Node f, std::vector< Node >& vars, std
   }else{
     //do optimized version
     Node icb = d_term_db->getInstConstantBody( f );
-    body = doSubstitute( icb, terms );
+    body = getSubstitute( icb, terms );
     if( Debug.isOn("check-inst") ){
       Node body2 = f[ 1 ].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
       if( body!=body2 ){
@@ -612,15 +613,7 @@ QuantifiersEngine::Statistics::Statistics():
   d_triggers("QuantifiersEngine::Triggers", 0),
   d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
   d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
-  d_term_in_termdb("QuantifiersEngine::Term_in_TermDb", 0),
-  d_num_mono_candidates("QuantifiersEngine::NumMonoCandidates", 0),
-  d_num_mono_candidates_new_term("QuantifiersEngine::NumMonoCandidatesNewTerm", 0),
-  d_num_multi_candidates("QuantifiersEngine::NumMultiCandidates", 0),
-  d_mono_candidates_cache_hit("QuantifiersEngine::MonoCandidatesCacheHit", 0),
-  d_mono_candidates_cache_miss("QuantifiersEngine::MonoCandidatesCacheMiss", 0),
-  d_multi_candidates_cache_hit("QuantifiersEngine::MultiCandidatesCacheHit", 0),
-  d_multi_candidates_cache_miss("QuantifiersEngine::MultiCandidatesCacheMiss", 0)
+  d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0)
 {
   StatisticsRegistry::registerStat(&d_num_quant);
   StatisticsRegistry::registerStat(&d_instantiation_rounds);
@@ -634,14 +627,6 @@ QuantifiersEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_simple_triggers);
   StatisticsRegistry::registerStat(&d_multi_triggers);
   StatisticsRegistry::registerStat(&d_multi_trigger_instantiations);
-  StatisticsRegistry::registerStat(&d_term_in_termdb);
-  StatisticsRegistry::registerStat(&d_num_mono_candidates);
-  StatisticsRegistry::registerStat(&d_num_mono_candidates_new_term);
-  StatisticsRegistry::registerStat(&d_num_multi_candidates);
-  StatisticsRegistry::registerStat(&d_mono_candidates_cache_hit);
-  StatisticsRegistry::registerStat(&d_mono_candidates_cache_miss);
-  StatisticsRegistry::registerStat(&d_multi_candidates_cache_hit);
-  StatisticsRegistry::registerStat(&d_multi_candidates_cache_miss);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -657,14 +642,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_simple_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_triggers);
   StatisticsRegistry::unregisterStat(&d_multi_trigger_instantiations);
-  StatisticsRegistry::unregisterStat(&d_term_in_termdb);
-  StatisticsRegistry::unregisterStat(&d_num_mono_candidates);
-  StatisticsRegistry::unregisterStat(&d_num_mono_candidates_new_term);
-  StatisticsRegistry::unregisterStat(&d_num_multi_candidates);
-  StatisticsRegistry::unregisterStat(&d_mono_candidates_cache_hit);
-  StatisticsRegistry::unregisterStat(&d_mono_candidates_cache_miss);
-  StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_hit);
-  StatisticsRegistry::unregisterStat(&d_multi_candidates_cache_miss);
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){

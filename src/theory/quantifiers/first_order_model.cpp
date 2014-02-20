@@ -18,6 +18,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/qinterval_builder.h"
+#include "theory/quantifiers/options.h"
 
 #define USE_INDEX_ORDERING
 

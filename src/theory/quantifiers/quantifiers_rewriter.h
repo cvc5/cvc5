@@ -38,14 +38,16 @@ public:
 private:
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
   static Node mkForAll( std::vector< Node >& args, Node body, Node ipl );
-  static void computeArgs( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
+  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n );
+  static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
   static bool hasArg( std::vector< Node >& args, Node n );
   static void setNestedQuantifiers( Node n, Node q );
   static void setNestedQuantifiers2( Node n, Node q, std::vector< Node >& processed );
   static Node computeClause( Node n );
+  static void setAttributes( Node in, Node n );
 private:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
+  static Node computeMiniscoping( Node f, std::vector< Node >& args, Node body, Node ipl, bool isNested = false );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested = false );
   static Node computeNNF( Node body );
   static Node computeSimpleIteLift( Node body );
@@ -78,6 +80,10 @@ private:
   static bool doMiniscopingNoFreeVar();
   static bool doMiniscopingAnd();
   static bool doOperation( Node f, bool isNested, int computeOption );
+public:
+  static Node rewriteRewriteRule( Node r );
+  static bool containsQuantifiers(Node n);
+  static Node preSkolemizeQuantifiers(Node n, bool polarity, std::vector<Node>& fvs);
 public:
   //static Node rewriteQuants( Node n, bool isNested = false );
   //static Node rewriteQuant( Node n, bool isNested = false );

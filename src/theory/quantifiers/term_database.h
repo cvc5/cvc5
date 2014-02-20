@@ -44,25 +44,12 @@ typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
-// Attribute that tell if a node have been asserted in this branch
-struct AvailableInTermDbId {};
-/** use the special for boolean flag */
-typedef expr::Attribute<AvailableInTermDbId,
-                        bool,
-                        expr::attr::NullCleanupStrategy,
-                        true  // context dependent
-                        > AvailableInTermDb;
-
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
 //                    0 : term has no direct child with model basis attribute.
 struct ModelBasisArgAttributeId {};
 typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
-
-//for rewrite rules
-struct QRewriteRuleAttributeId {};
-typedef expr::Attribute<QRewriteRuleAttributeId, Node> QRewriteRuleAttribute;
 
 //for bounded integers
 struct BoundIntLitAttributeId {};
@@ -128,9 +115,6 @@ public:
   void reset( Theory::Effort effort );
   /** get operation */
   Node getOperator( Node n );
-private:
-  /** for efficient e-matching */
-  void addTermEfficient( Node n, std::set< Node >& added);
 public:
   /** parent structure (for efficient E-matching):
       n -> op -> index -> L
@@ -252,6 +236,11 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
+public:
+  /** is quantifier treated as a rewrite rule? */
+  static bool isRewriteRule( Node q );
+  /** get the rewrite rule associated with the quanfied formula */
+  static Node getRewriteRule( Node q );
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

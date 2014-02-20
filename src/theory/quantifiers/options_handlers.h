@@ -131,6 +131,9 @@ conflict \n\
 partial \n\
 + Apply QCF algorithm to instantiate heuristically as well. \n\
 \n\
+partial \n\
++ Apply QCF to instantiate heuristically as well. \n\
+\n\
 mc \n\
 + Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
 \n\

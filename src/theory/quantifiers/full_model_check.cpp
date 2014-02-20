@@ -15,6 +15,7 @@
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;

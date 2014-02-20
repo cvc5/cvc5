@@ -14,6 +14,8 @@
 
 
 #include "theory/quantifiers/qinterval_builder.h"
+#include "theory/quantifiers/term_database.h"
+
 
 using namespace std;
 using namespace CVC4;

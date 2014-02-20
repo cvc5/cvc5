@@ -118,6 +118,7 @@ void RelevantDomain::compute(){
           for( unsigned j=0; j<n.getNumChildren(); j++ ){
             RDomain * rf = getRDomain( op, j );
             rf->addTerm( n[j] );
+            Trace("rel-dom-debug") << "...add ground term " << n[j] << " to rel dom " << op << "[" << j << "]" << std::endl;
           }
         }
       }
@@ -188,6 +189,7 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
     }else if( varCount==1 ){
       int oCh = varCh==0 ? 1 : 0;
       bool ng = d_qe->getTermDatabase()->hasInstConstAttr( n[oCh] );
+      Trace("rel-dom-debug") << "...add term " << n[oCh] << ", is ground = " << (!ng) << std::endl;
       //the negative occurrence adds the term to the domain
       if( !hasPol || !pol ){
         rds[varCh]->addTerm( n[oCh], ng );
@@ -219,6 +221,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
       rq->merge( rf );
     }
   }else if( !d_qe->getTermDatabase()->hasInstConstAttr( n ) ){
+    Trace("rel-dom-debug") << "...add ground term to rel dom " << n << std::endl;
     //term to add
     rf->addTerm( n );
   }

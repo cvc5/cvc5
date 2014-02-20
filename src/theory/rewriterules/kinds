@@ -14,24 +14,4 @@ properties check
 
 # constants...
 
-# types...
-sort RRHB_TYPE \
-    Cardinality::INTEGERS \
-    not-well-founded \
-    "head and body of the rule type"
-
-# operators...
-
-# variables, guards, RR_REWRITE/REDUCTION_RULE/DEDUCTION_RULE
-operator REWRITE_RULE 3 "general rewrite rule"
-#HEAD/BODY/TRIGGER
-operator RR_REWRITE 2:3 "actual rewrite rule"
-operator RR_REDUCTION 2:3 "actual reduction rule"
-operator RR_DEDUCTION 2:3 "actual deduction rule"
-
-typerule REWRITE_RULE ::CVC4::theory::rewriterules::RewriteRuleTypeRule
-typerule RR_REWRITE   ::CVC4::theory::rewriterules::RRRewriteTypeRule
-typerule RR_REDUCTION ::CVC4::theory::rewriterules::RRRedDedTypeRule
-typerule RR_DEDUCTION ::CVC4::theory::rewriterules::RRRedDedTypeRule
-
 endtheory

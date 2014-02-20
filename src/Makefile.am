@@ -307,23 +307,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/options_handlers.h \
-	theory/rewriterules/theory_rewriterules_rules.h \
-	theory/rewriterules/theory_rewriterules_rules.cpp \
 	theory/rewriterules/theory_rewriterules.h \
 	theory/rewriterules/theory_rewriterules.cpp \
-	theory/rewriterules/theory_rewriterules_rewriter.h \
-	theory/rewriterules/theory_rewriterules_type_rules.h \
-	theory/rewriterules/theory_rewriterules_preprocess.h \
-	theory/rewriterules/theory_rewriterules_params.h \
-	theory/rewriterules/rr_inst_match.h \
-	theory/rewriterules/rr_inst_match_impl.h \
-	theory/rewriterules/rr_inst_match.cpp \
-	theory/rewriterules/rr_trigger.h \
-	theory/rewriterules/rr_trigger.cpp \
-	theory/rewriterules/rr_candidate_generator.h \
-	theory/rewriterules/rr_candidate_generator.cpp \
-	theory/rewriterules/efficient_e_matching.h \
-	theory/rewriterules/efficient_e_matching.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \

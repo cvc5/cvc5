@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/inst_gen.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -39,7 +40,7 @@ TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_curr_model( c, NULL ), d_qe
 }
 
 bool QModelBuilder::isQuantifierActive( Node f ) {
-  return !f.hasAttribute(QRewriteRuleAttribute());
+  return !TermDb::isRewriteRule( f );
 }
 
 
@@ -381,7 +382,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 }
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){
-  return !f.hasAttribute(QRewriteRuleAttribute()) &&
+  return !TermDb::isRewriteRule( f ) &&
          ( d_considerAxioms || !f.getAttribute(AxiomAttribute()) ) && d_quant_sat.find( f )==d_quant_sat.end();
 }
 
