@@ -30,6 +30,8 @@ TESTS =	\
   str007.smt2 \
   fmf001.smt2 \
   fmf002.smt2 \
+  int2str.smt2 \
+  str2int.smt2 \
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
