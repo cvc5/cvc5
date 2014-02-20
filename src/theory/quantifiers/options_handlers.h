@@ -128,6 +128,9 @@ conflict \n\
 prop-eq \n\
 + Apply QCF to propagate equalities as well. \n\
 \n\
+partial \n\
++ Apply QCF to instantiate heuristically as well. \n\
+\n\
 mc \n\
 + Apply QCF in a complete way, so that a model is ensured when it fails. \n\
 \n\
@@ -258,6 +261,8 @@ inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine
     return QCF_CONFLICT_ONLY;
   } else if(optarg == "prop-eq") {
     return QCF_PROP_EQ;
+  } else if(optarg == "partial") {
+    return QCF_PARTIAL;
   } else if(optarg == "mc" ) {
     return QCF_MC;
   } else if(optarg ==  "help") {

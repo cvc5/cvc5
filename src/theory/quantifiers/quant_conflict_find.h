@@ -88,7 +88,7 @@ public:
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
   MatchGen() : d_type( typ_invalid ){}
-  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
+  MatchGen( QuantInfo * qi, Node n, bool isVar = false, bool beneathQuant = false );
   bool d_tgt;
   Node d_n;
   std::vector< MatchGen > d_children;
@@ -108,14 +108,13 @@ public:
 //info for quantifiers
 class QuantInfo {
 private:
-  void registerNode( Node n, bool hasPol, bool pol );
-  void flatten( Node n );
-  //the variables that this quantified formula has not beneath nested quantifiers
-  std::map< TNode, bool > d_has_var;
+  void registerNode( Node n, bool hasPol, bool pol, bool beneathQuant = false );
+  void flatten( Node n, bool beneathQuant );
 public:
-  QuantInfo() : d_mg( NULL ) {}
+  QuantInfo() : d_mg( NULL ), d_isPartial( false ) {}
   std::vector< TNode > d_vars;
   std::map< TNode, int > d_var_num;
+  std::map< TNode, bool > d_nbeneathQuant;
   std::map< int, std::vector< Node > > d_var_constraint[2];
   int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
@@ -142,9 +141,12 @@ public:
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
   bool isConstrainedVar( int v );
-//public: //optimization : relevant domain
-  //std::map< int, std::map< Node, std::vector< int > > > d_f_parent;
-  //void addFuncParent( int v, Node f, int arg );
+public:
+  // is partial
+  bool d_isPartial;
+  //the variables that this quantified formula has not beneath nested quantifiers
+  std::map< TNode, bool > d_has_var;
+  bool isPartial() { return d_isPartial; }
 };
 
 class QuantConflictFind : public QuantifiersModule
@@ -212,6 +214,7 @@ public:
   enum {
     effort_conflict,
     effort_prop_eq,
+    effort_partial,
     effort_mc,
   };
   short d_effort;
@@ -250,6 +253,7 @@ public:
     IntStat d_inst_rounds;
     IntStat d_conflict_inst;
     IntStat d_prop_inst;
+    IntStat d_partial_inst;
     Statistics();
     ~Statistics();
   };

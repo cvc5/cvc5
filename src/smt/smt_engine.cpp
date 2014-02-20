@@ -1185,10 +1185,13 @@ void SmtEngine::setLogicInternal() throw() {
     }
   }
   if ( options::fmfBoundInt() ){
+    //must have finite model finding on
+    options::finiteModelFind.set( true );
     if( options::mbqiMode()!=quantifiers::MBQI_NONE &&
+        options::mbqiMode()!=quantifiers::MBQI_FMC &&
         options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ){
-      //if bounded integers are set, must use full model check for MBQI
-      options::mbqiMode.set( quantifiers::MBQI_FMC );
+      //if bounded integers are set, use no MBQI by default
+      options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
   }
   if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
@@ -1197,6 +1200,9 @@ void SmtEngine::setLogicInternal() throw() {
   }
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
+  }
+  if( options::qcfMode.wasSetByUser() ){
+    options::quantConflictFind.set( true );
   }
 
   //until bugs 371,431 are fixed
@@ -1572,13 +1578,13 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 			argTypes.push_back(NodeManager::currentNM()->stringType());
 			argTypes.push_back(NodeManager::currentNM()->integerType());
 			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS", 
+			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->stringType()),
 								"uf substr",
 								NodeManager::SKOLEM_EXACT_NAME);
 		}
-		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT, 
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT,
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ), n[1] );
 		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 		Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], zero);
@@ -1595,13 +1601,13 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 			argTypes.push_back(NodeManager::currentNM()->stringType());
 			argTypes.push_back(NodeManager::currentNM()->integerType());
 			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS", 
+			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->stringType()),
 								"uf substr",
 								NodeManager::SKOLEM_EXACT_NAME);
 		}
-		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
 							NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
 		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
