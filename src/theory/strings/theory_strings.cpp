@@ -411,10 +411,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   case kind::STRING_STOI:
 	d_equalityEngine.addTerm(n);
 	break;
-  //case kind::STRING_ITOS:
-	//d_int_to_str;
-	//d_equalityEngine.addTerm(n);
-	//break;
   default:
     if(n.getType().isString() ) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
