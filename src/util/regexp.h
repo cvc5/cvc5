@@ -355,6 +355,7 @@ public:
       return String(ret_vec);
   }
   bool isNumber() const {
+	 if(d_str.size() == 0) return false;
 	 for(unsigned int i=0; i<d_str.size(); ++i) {
 	   char c = convertUnsignedIntToChar( d_str[i] );
 	   if(c<'0' || c>'9') {
