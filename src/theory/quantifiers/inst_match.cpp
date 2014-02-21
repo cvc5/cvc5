@@ -255,7 +255,7 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
     }
 
     if( !onlyExist ){
-      std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
+      // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
       CDInstMatchTrie* imt = new CDInstMatchTrie( c );
       d_data[n] = imt;
       imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
