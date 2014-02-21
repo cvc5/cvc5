@@ -22,6 +22,8 @@ option - --show-trace-tags void :handler CVC4::main::showTraceTags :handler-incl
 
 expert-option earlyExit --early-exit bool :default true
  do not run destructors at exit; default on except in debug builds
+expert-option statsEveryQuery --stats-every-query bool :default false
+ print stats after every satisfiability or validity query
 
 # portfolio options
 option threads --threads=N unsigned :default 2 :predicate greater(0)

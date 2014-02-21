@@ -751,6 +751,9 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
+  /** Make the type of arrays with the given parameterization */
+  inline TypeNode mkSetType(TypeNode elementType);
+
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
 
@@ -1056,6 +1059,16 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "cannot store function-like types in arrays");
   Debug("arrays") << "making array type " << indexType << " " << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
+}
+
+inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
+  CheckArgument(!elementType.isNull(), elementType,
+                "unexpected NULL element type");
+  // TODO: Confirm meaning of isFunctionLike(). --K
+  CheckArgument(!elementType.isFunctionLike(), elementType,
+                "cannot store function-like types in sets");
+  Debug("sets") << "making sets type " << elementType << std::endl;
+  return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {

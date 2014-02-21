@@ -1,0 +1,14 @@
+#
+# Option specification file for CVC4
+# See src/options/base_options for a description of this file format
+#
+
+module SETS "theory/sets/options.h" Sets
+
+option setsPropagate --sets-propagate bool :default true
+ determines whether to propagate learnt facts to Theory Engine / SAT solver
+
+option setsEagerLemmas --sets-eager-lemmas bool :default false
+ if true, will add lemmas even if not at FULL_EFFORT
+
+endmodule

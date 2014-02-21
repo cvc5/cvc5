@@ -540,6 +540,11 @@ ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
   return ArrayType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode))));
 }
 
+SetType ExprManager::mkSetType(Type elementType) const {
+  NodeManagerScope nms(d_nodeManager);
+  return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
+}
+
 DatatypeType ExprManager::mkDatatypeType(const Datatype& datatype) {
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.

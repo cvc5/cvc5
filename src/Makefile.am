@@ -20,7 +20,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv arrays datatypes strings quantifiers rewriterules idl
+THEORIES = builtin booleans uf arith bv arrays datatypes sets strings quantifiers rewriterules idl
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -220,6 +220,13 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
+	theory/sets/theory_sets.h \
+	theory/sets/theory_sets.cpp \
+	theory/sets/theory_sets_private.h \
+	theory/sets/theory_sets_private.cpp \
+	theory/sets/theory_sets_rewriter.h \
+	theory/sets/theory_sets_rewriter.cpp \
+	theory/sets/theory_sets_type_rules.h \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings_rewriter.h \
@@ -453,6 +460,7 @@ EXTRA_DIST = \
 	theory/idl/kinds \
 	theory/builtin/kinds \
 	theory/datatypes/kinds \
+	theory/sets/kinds \
 	theory/strings/kinds \
 	theory/arrays/kinds \
 	theory/quantifiers/kinds \

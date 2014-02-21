@@ -19,6 +19,7 @@
 
 #include "main/main.h"
 
+#include "main/options.h"
 #include "smt/options.h"
 
 namespace CVC4 {
@@ -75,6 +76,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
   if(q != NULL) {
     d_result = res = q->getResult();
+  }
+  if((cs != NULL || q != NULL) && d_options[options::statsEveryQuery]) {
+    flushStatistics(*d_options[options::err]);
   }
   // dump the model/proof if option is set
   if(status) {

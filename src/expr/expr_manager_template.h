@@ -376,6 +376,9 @@ public:
   /** Make the type of arrays with the given parameterization. */
   ArrayType mkArrayType(Type indexType, Type constituentType) const;
 
+  /** Make the type of set with the given parameterization. */
+  SetType mkSetType(Type elementType) const;
+
   /** Make a type representing the given datatype. */
   DatatypeType mkDatatypeType(const Datatype& datatype);
 
