@@ -446,15 +446,23 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 		}
 	} else if(node.getKind() == kind::STRING_ITOS) {
 		if(node[0].isConst()) {
-			int i = node[0].getConst<Rational>().getNumerator().toUnsignedInt();
-			std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << i) )->str();
-			retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
+			std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
+			//std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << node[0]) )->str();
+			if(stmp[0] == '-') {
+				retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+			} else {
+				retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
+			}
 		}
 	} else if(node.getKind() == kind::STRING_STOI) {
 		if(node[0].isConst()) {
 			CVC4::String s = node[0].getConst<String>();
-			int rt = s.toNumber();
-			retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(rt));
+			if(s.isNumber()) {
+				std::string stmp = s.toString();
+				retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(stmp.c_str()));
+			} else {
+				retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
+			}
 		} else if(node[0].getKind() == kind::STRING_CONCAT) {
 			for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
 				if(node[0][i].isConst()) {

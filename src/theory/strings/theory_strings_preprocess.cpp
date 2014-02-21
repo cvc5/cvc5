@@ -235,14 +235,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			//				NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
 			//				t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
 			Node num = t[0];
-			Node pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
+			Node pret = t;//NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
 			Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
-			/*Node lem = NodeManager::currentNM()->mkNode(kind::IFF,
-				t.eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("0"))),
-				t[0].eqNode(d_zero));
-			new_nodes.push_back(lem);*/
+			Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
+			Node lem = NodeManager::currentNM()->mkNode(kind::ITE, nonneg,
+				NodeManager::currentNM()->mkNode(kind::GT, lenp, d_zero),
+				t.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") ))//lenp.eqNode(d_zero)
+				);
+			new_nodes.push_back(lem);
 
+			//non-neg
 			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
 			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
 			Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
@@ -262,8 +265,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 									argTypes, NodeManager::currentNM()->integerType()),
 								"uf type conv M");
 			
-			new_nodes.push_back( num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero)) );
-			new_nodes.push_back( NodeManager::currentNM()->mkNode(kind::GT, lenp, d_zero) );
+			lem = num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero));
+			new_nodes.push_back( lem );
 
 			Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b1);
 			Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b1,one));
@@ -318,6 +321,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, svec) );
 			conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
 			conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
+			conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, nonneg, conc );
 			new_nodes.push_back( conc );
 			
 			/*conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::IMPLIES, 
