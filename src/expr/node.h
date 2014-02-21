@@ -1376,7 +1376,9 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
     NodeBuilder<> nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
-      nb << getOperator();
+      nb << getOperator().substitute(nodesBegin, nodesEnd,
+                                     replacementsBegin, replacementsEnd,
+                                     cache);
     }
     for(const_iterator i = begin(),
           iend = end();
@@ -1427,7 +1429,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     NodeBuilder<> nb(getKind());
     if(getMetaKind() == kind::metakind::PARAMETERIZED) {
       // push the operator
-      nb << getOperator();
+      nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
     }
     for(const_iterator i = begin(),
           iend = end();
