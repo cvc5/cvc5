@@ -46,7 +46,6 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	//d_var_lmax( c ),
 	d_str_pos_ctn( c ),
 	d_str_neg_ctn( c ),
-	d_int_to_str( c ),
 	d_reg_exp_mem( c ),
 	d_curr_cardinality( c, 0 )
 {
@@ -286,6 +285,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 		}
 	}
 	////step 2 : assign arbitrary values for unknown lengths?
+	// confirmed by calculus invariant, see paper
 	//for( unsigned i=0; i<col.size(); i++ ){
 	//	if(
 	//}
@@ -404,15 +404,29 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 	//do not add trigger here
     //d_equalityEngine.addTriggerPredicate(n);
     break;
-  case kind::CONST_STRING:
-  case kind::STRING_CONCAT:
   case kind::STRING_SUBSTR_TOTAL:
-  case kind::STRING_ITOS:
-  case kind::STRING_STOI:
-	d_equalityEngine.addTerm(n);
-	break;
+	{
+		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
+							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
+							NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
+		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
+		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], d_zero);
+		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		d_statistics.d_new_skolems += 2;
+		Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, n, sk3 ) );
+		Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
+		Node lenc = n[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n ) );
+		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, 
+			NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
+			n.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ) );
+		Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
+		d_out->lemma(lemma);
+	}
+	//d_equalityEngine.addTerm(n);
   default:
-    if(n.getType().isString() ) {
+    if(n.getType().isString() && n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
 	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
 		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
 		  Node n_len_eq_z = n_len.eqNode( d_zero );
@@ -1762,8 +1776,7 @@ bool TheoryStrings::checkSimple() {
 			//if n is concat, and
 			//if n has not instantiatied the concat..length axiom
 			//then, add lemma
-			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT 
-				|| n.getKind() == kind::STRING_SUBSTR_TOTAL ) {
+			if( n.getKind() == kind::CONST_STRING || n.getKind() == kind::STRING_CONCAT ) {
 				if( d_length_nodes.find(n)==d_length_nodes.end() ) {
 					if( d_length_inst.find(n)==d_length_inst.end() ) {
 						//Node nr = d_equalityEngine.getRepresentative( n );
@@ -1790,25 +1803,6 @@ bool TheoryStrings::checkSimple() {
 							} else if( n.getKind() == kind::CONST_STRING ) {
 								//add lemma
 								lsum = NodeManager::currentNM()->mkConst( ::CVC4::Rational( n.getConst<String>().size() ) );
-							} else if( n.getKind() == kind::STRING_SUBSTR_TOTAL ) {
-								Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-													NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
-													NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
-								Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
-								Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], d_zero);
-								Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-								lsum = NodeManager::currentNM()->mkNode( kind::ITE, cond, n[2], d_zero );
-								/*
-								Node sk1 = NodeManager::currentNM()->mkSkolem( "st1_$$", NodeManager::currentNM()->stringType(), "created for substr" );
-								Node sk3 = NodeManager::currentNM()->mkSkolem( "st3_$$", NodeManager::currentNM()->stringType(), "created for substr" );
-								d_statistics.d_new_skolems += 2;
-								Node x_eq_123 = n[0].eqNode(NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk, sk3 ));
-								Node len_sk1_eq_i = NodeManager::currentNM()->mkNode( kind::EQUAL, n[1],
-														NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
-								Node lemma = NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i );
-								lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::IMPLIES, cond, lemma ) );
-								Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
-								d_out->lemma(lemma);*/
 							}
 							Node ceq = NodeManager::currentNM()->mkNode( kind::EQUAL, skl, lsum );
 							ceq = Rewriter::rewrite(ceq);
@@ -2240,21 +2234,14 @@ bool TheoryStrings::unrollStar( Node atom ) {
 			cc.push_back(unr0);
 		} else {
 			std::vector< Node > urc;
-			urc.push_back( unr1 );
-
-			StringsPreprocess spp;
-			spp.simplify( urc );
-			for( unsigned i=1; i<urc.size(); i++ ){
-				//add the others as lemmas
-				sendLemma( d_true, urc[i], "RegExp Definition");
-			}
+			d_regexp_opr.simplify(unr1, urc);
 			Node unr0 = sk_s.eqNode( d_emptyString ).negate();
-			cc.push_back(unr0);	cc.push_back(urc[0]);
+			cc.push_back(unr0);	//cc.push_back(urc1);
+			cc.insert(cc.end(), urc.begin(), urc.end());
 		}
 
 		Node unr2 = x.eqNode( mkConcat( sk_s, sk_xp ) );
 		Node unr3 = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_xp, r );
-		unr3 = Rewriter::rewrite( unr3 );
 		d_reg_exp_unroll_depth[unr3] = depth + 1;
 		if( d_reg_exp_ant.find( atom )!=d_reg_exp_ant.end() ){
 			d_reg_exp_ant[unr3] = d_reg_exp_ant[atom];
@@ -2575,15 +2562,6 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 		// send lemma
 		if(flag) {
 			if(x.isConst()) {
-				/*
-				left = d_emptyString;
-				if(d_regexp_opr.delta(dc) == 1) {
-					//TODO yes possible?
-				} else if(d_regexp_opr.delta(dc) == 0) {
-					//TODO possible?
-				} else {
-					// TODO conflict possible?
-				}*/
 				Assert(false, "Impossible: TheoryStrings::splitRegExp: const string in const regular expression.");
 				return false;
 			} else {
@@ -2597,16 +2575,12 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 				conc = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, left, dc );
 
 				std::vector< Node > sdc;
-				sdc.push_back( conc );
-
-				StringsPreprocess spp;
-				spp.simplify( sdc );
-				for( unsigned i=1; i<sdc.size(); i++ ){
-					//add the others as lemmas
-					sendLemma( d_true, sdc[i], "RegExp-DEF");
+				d_regexp_opr.simplify(conc, sdc);
+				if(sdc.size() == 1) {
+					conc = sdc[0];
+				} else {
+					conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, conc));
 				}
-
-				conc = sdc[0];
 			}
 		}
 		sendLemma(ant, conc, "RegExp-CST-SP");

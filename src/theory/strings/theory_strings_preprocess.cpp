@@ -227,7 +227,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = skk;
 			retNode = skk;
 		} else {
-			throw LogicException("string indexof not supported in this release");
+			throw LogicException("string indexof not supported in default mode, try --string-exp");
 		}
 	} else if( t.getKind() == kind::STRING_ITOS ) {
 		if(options::stringExp()) {
@@ -333,7 +333,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = t;
 			retNode = t;
 		} else {
-			throw LogicException("string int.to.str not supported in this release");
+			throw LogicException("string int.to.str not supported in default mode, try --string-exp");
 		}
 	} else if( t.getKind() == kind::STRING_STOI ) {
 		if(options::stringExp()) {
@@ -463,7 +463,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = t;
 			retNode = t;
 		} else {
-			throw LogicException("string int.to.str not supported in this release");
+			throw LogicException("string int.to.str not supported in default mode, try --string-exp");
 		}
 	} else if( t.getKind() == kind::STRING_STRREPL ) {
 		if(options::stringExp()) {
@@ -485,7 +485,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = skw;
 			retNode = skw;
 		} else {
-			throw LogicException("string replace not supported in this release");
+			throw LogicException("string replace not supported in default mode, try --string-exp");
 		}
 	} else{
 		d_cache[t] = Node::null();
@@ -525,6 +525,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 }
 
 Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
+    std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+    if(i != d_cache.end()) {
+      return (*i).second.isNull() ? t : (*i).second;
+    }
+
 	unsigned num = t.getNumChildren();
 	if(num == 0) {
 		return simplify(t, new_nodes);

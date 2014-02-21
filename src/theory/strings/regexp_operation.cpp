@@ -645,6 +645,79 @@ Node RegExpOpr::complement( Node r ) {
 	return retNode;
 }
 
+//simplify
+void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes) {
+	Assert(t.getKind() == kind::STRING_IN_REGEXP);
+	Node str = Rewriter::rewrite(t[0]);
+	Node re  = Rewriter::rewrite(t[1]);
+	simplifyRegExp( str, re, new_nodes );
+}
+void RegExpOpr::simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
+	std::pair < Node, Node > p(s, r);
+	std::map < std::pair< Node, Node >, Node >::const_iterator itr = d_simpl_cache.find(p);
+	if(itr != d_simpl_cache.end()) {
+		new_nodes.push_back( itr->second );
+		return;
+	} else {
+		int k = r.getKind();
+		switch( k ) {
+			case kind::STRING_TO_REGEXP:
+			{
+				Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, s, r[0] );
+				new_nodes.push_back( eq );
+				d_simpl_cache[p] = eq;
+			}
+				break;
+			case kind::REGEXP_CONCAT:
+			{
+				std::vector< Node > cc;
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					if(r[i].getKind() == kind::STRING_TO_REGEXP) {
+						cc.push_back( r[i][0] );
+					} else {
+						Node sk = NodeManager::currentNM()->mkSkolem( "rcon_$$", s.getType(), "created for regular expression concat" );
+						simplifyRegExp( sk, r[i], new_nodes );
+						cc.push_back( sk );
+					}
+				}
+				Node cc_eq = s.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, cc) );
+				new_nodes.push_back( cc_eq );
+				d_simpl_cache[p] = cc_eq;
+			}
+				break;
+			case kind::REGEXP_OR:
+			{
+				std::vector< Node > c_or;
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					simplifyRegExp( s, r[i], c_or );
+				}
+				Node eq = NodeManager::currentNM()->mkNode( kind::OR, c_or );
+				new_nodes.push_back( eq );
+				d_simpl_cache[p] = eq;
+			}
+				break;
+			case kind::REGEXP_INTER:
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					simplifyRegExp( s, r[i], new_nodes );
+				}
+				break;
+			case kind::REGEXP_STAR:
+			{
+				Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+				new_nodes.push_back( eq );
+				d_simpl_cache[p] = eq;
+			}
+				break;
+			default:
+				//TODO: special sym: sigma, none, all
+				Trace("strings-preprocess") << "Unsupported term: " << r << " in simplifyRegExp." << std::endl;
+				Assert( false );
+				break;
+		}
+	}
+}
+
+//printing
 std::string RegExpOpr::niceChar( Node r ) {
 	if(r.isConst()) {
 		std::string s = r.getConst<CVC4::String>().toString() ;

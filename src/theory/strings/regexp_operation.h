@@ -37,20 +37,20 @@ private:
 	Node d_sigma;
 	Node d_sigma_star;
 	
+	std::map< std::pair< Node, Node >, Node > d_simpl_cache;
 	std::map< Node, Node > d_compl_cache;
 	std::map< Node, int > d_delta_cache;
 	std::map< PairDvStr, Node > d_dv_cache;
 	std::map< Node, bool > d_cstre_cache;
 	//bool checkStarPlus( Node t );
-	//void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
-	//Node simplify( Node t, std::vector< Node > &new_nodes );
+	void simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes );
 	std::string niceChar( Node r );
 	int gcd ( int a, int b );
 
 public:
 	RegExpOpr();
 	bool checkConstRegExp( Node r );
-    //void simplify(std::vector< Node > &vec_node);
+    void simplify(Node t, std::vector< Node > &new_nodes);
 	Node mkAllExceptOne( char c );
 	Node complement( Node r );
 	int delta( Node r );
