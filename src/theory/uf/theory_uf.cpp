@@ -256,6 +256,13 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   while(!workList.empty()) {
     n = workList.back();
 
+    if(n.getKind() == kind::FORALL || n.getKind() == kind::EXISTS) {
+      // unsafe to go under quantifiers; we might pull bound vars out of scope!
+      processed.insert(n);
+      workList.pop_back();
+      continue;
+    }
+
     bool unprocessedChildren = false;
     for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
       if(processed.find(*i) == processed.end()) {
