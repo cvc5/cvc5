@@ -220,12 +220,16 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
-	theory/sets/theory_sets.h \
+	theory/sets/expr_patterns.h \
+	theory/sets/options_handlers.h \
+	theory/sets/term_info.h \
 	theory/sets/theory_sets.cpp \
-	theory/sets/theory_sets_private.h \
+	theory/sets/theory_sets.h \
 	theory/sets/theory_sets_private.cpp \
-	theory/sets/theory_sets_rewriter.h \
+	theory/sets/theory_sets_private.h \
 	theory/sets/theory_sets_rewriter.cpp \
+	theory/sets/theory_sets_rewriter.h \
+	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings.cpp \

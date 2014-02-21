@@ -8,8 +8,8 @@ CPLUSPLUS_TESTS = \
 	statistics
 
 if CVC4_BUILD_LIBCOMPAT
-CPLUSPLUS_TESTS += \
-	cvc3_main
+#CPLUSPLUS_TESTS += \
+#	cvc3_main
 endif
 
 TESTS = $(CPLUSPLUS_TESTS)
