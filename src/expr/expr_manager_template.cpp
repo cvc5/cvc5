@@ -934,7 +934,7 @@ namespace expr {
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
 
 TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, ExprManagerMapCollection& vmap) {
-  Debug("export") << "type: " << n << std::endl;
+  Debug("export") << "type: " << n << " " << n.getId() << std::endl;
   if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
     throw ExportUnsupportedException
       ("export of types belonging to theory of DATATYPES kinds unsupported");

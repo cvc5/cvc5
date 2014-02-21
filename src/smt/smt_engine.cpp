@@ -1439,9 +1439,9 @@ void SmtEngine::defineFunction(Expr func,
       stringstream ss;
       ss << "Declared type of defined constant does not match its definition\n"
          << "The constant   : " << func << "\n"
-         << "Declared type  : " << funcType << "\n"
+         << "Declared type  : " << funcType << " " << Type::getTypeNode(funcType)->getId() << "\n"
          << "The definition : " << formula << "\n"
-         << "Definition type: " << formulaType;
+         << "Definition type: " << formulaType << " " << Type::getTypeNode(formulaType)->getId();
       throw TypeCheckingException(func, ss.str());
     }
   }
