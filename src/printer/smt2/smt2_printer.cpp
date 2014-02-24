@@ -285,7 +285,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_SUBSTR: out << "str.substr "; break;
   case kind::STRING_CHARAT: out << "str.at "; break;
-  case kind::STRING_STRCTN: out << "str.contain "; break;
+  case kind::STRING_STRCTN: out << "str.contains "; break;
   case kind::STRING_STRIDOF: out << "str.indexof "; break;
   case kind::STRING_STRREPL: out << "str.replace "; break;
   case kind::STRING_PREFIX: out << "str.prefixof "; break;
