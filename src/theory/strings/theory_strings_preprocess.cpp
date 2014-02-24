@@ -536,7 +536,7 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
 	} else if(num == 1) {
 		Node s = decompose(t[0], new_nodes);
 		if(s != t[0]) {
-			Node tmp = NodeManager::currentNM()->mkNode( t.getKind(), t[0] );
+			Node tmp = NodeManager::currentNM()->mkNode( t.getKind(), s );
 			return simplify(tmp, new_nodes);
 		} else {
 			return simplify(t, new_nodes);
