@@ -37,7 +37,8 @@ ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
 QuantifiersModule( qe ){
 
   Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
-  if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
+  if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
+      options::mbqiMode()==MBQI_TRUST || options::fmfBoundInt() ){
     Trace("model-engine-debug") << "...make fmc builder." << std::endl;
     d_builder = new fmcheck::FullModelChecker( c, qe );
   }else if( options::mbqiMode()==MBQI_INTERVAL ){
@@ -204,7 +205,7 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : 1;
+  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
   for( int e=0; e<e_max; e++) {
     if (d_addedLemmas==0) {
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){

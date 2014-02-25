@@ -54,7 +54,8 @@ d_lemmas_produced_c(u){
 
   //the model object
   if( options::mbqiMode()==quantifiers::MBQI_FMC ||
-      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ){
+      options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL || options::fmfBoundInt() ||
+      options::mbqiMode()==quantifiers::MBQI_TRUST ){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
   }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
     d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );
@@ -452,18 +453,23 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
   return false;
 }
 
-bool QuantifiersEngine::addLemma( Node lem ){
-  Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
-  lem = Rewriter::rewrite(lem);
-  if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
-    //d_curr_out->lemma( lem );
-    d_lemmas_produced_c[ lem ] = true;
-    d_lemmas_waiting.push_back( lem );
-    Debug("inst-engine-debug") << "Added lemma : " << lem << std::endl;
-    return true;
+bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
+  if( doCache ){
+    Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
+    lem = Rewriter::rewrite(lem);
+    if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
+      //d_curr_out->lemma( lem );
+      d_lemmas_produced_c[ lem ] = true;
+      d_lemmas_waiting.push_back( lem );
+      Debug("inst-engine-debug") << "Added lemma : " << lem << std::endl;
+      return true;
+    }else{
+      Debug("inst-engine-debug") << "Duplicate." << std::endl;
+      return false;
+    }
   }else{
-    Debug("inst-engine-debug") << "Duplicate." << std::endl;
-    return false;
+    d_lemmas_waiting.push_back( lem );
+    return true;
   }
 }
 

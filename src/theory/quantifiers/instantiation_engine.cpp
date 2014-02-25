@@ -52,7 +52,7 @@ void InstantiationEngine::finishInit(){
     i_ag->setGenerateAdditional( true );
     addInstStrategy( i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
-    if( !options::finiteModelFind() ){
+    if( !options::finiteModelFind() && options::fullSaturateQuant() ){
       addInstStrategy( new InstStrategyFreeVariable( d_quantEngine ) );
     }
     //d_isup->setPriorityOver( i_ag );

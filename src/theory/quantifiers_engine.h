@@ -86,6 +86,7 @@ class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
   friend class quantifiers::RewriteEngine;
+  friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -210,7 +211,7 @@ public:
   /** exist instantiation ? */
   bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
-  bool addLemma( Node lem );
+  bool addLemma( Node lem, bool doCache = true );
   /** do instantiation specified by m */
   bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
   /** add instantiation */

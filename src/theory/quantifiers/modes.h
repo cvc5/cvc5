@@ -70,6 +70,8 @@ typedef enum {
   MBQI_FMC_INTERVAL,
   /** mbqi with interval abstraction of uninterpreted sorts */
   MBQI_INTERVAL,
+  /** mbqi trust (produce no instantiations) */
+  MBQI_TRUST,
 } MbqiMode;
 
 typedef enum {

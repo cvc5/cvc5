@@ -226,6 +226,8 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
     return MBQI_FMC_INTERVAL;
   } else if(optarg ==  "interval") {
     return MBQI_INTERVAL;
+  } else if(optarg ==  "trust") {
+    return MBQI_TRUST;
   } else if(optarg ==  "help") {
     puts(mbqiModeHelp.c_str());
     exit(1);
