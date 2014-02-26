@@ -78,23 +78,23 @@ operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
 
-#constant REGEXP_EMPTY \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains nothing"
+constant REGEXP_EMPTY \
+	::CVC4::RegExpEmpty \
+	::CVC4::RegExpHashFunction \
+	"util/regexp.h" \
+	"a regexp contains nothing"
+
+constant REGEXP_SIGMA \
+	::CVC4::RegExpSigma \
+	::CVC4::RegExpHashFunction \
+	"util/regexp.h" \
+	"a regexp contains an arbitrary charactor"
 
 #constant REGEXP_ALL \
 #	::CVC4::RegExp \
 #	::CVC4::RegExpHashFunction \
 #	"util/string.h" \
 #	"a regexp contains all strings"
-
-#constant REGEXP_SIGMA \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains an arbitrary charactor"
 
 typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
 typerule REGEXP_OR ::CVC4::theory::strings::RegExpOrTypeRule
@@ -121,5 +121,8 @@ typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
 typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
+
+typerule REGEXP_EMPTY ::CVC4::theory::strings::EmptyRegExpTypeRule
+typerule REGEXP_SIGMA ::CVC4::theory::strings::SigmaRegExpTypeRule
 
 endtheory

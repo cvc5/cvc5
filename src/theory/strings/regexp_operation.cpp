@@ -1,14 +1,25 @@
 /*********************                                                        */
+
 /*! \file regexp_operation.cpp
+
  ** \verbatim
+
  ** Original author: Tianyi Liang
+ 
  ** Major contributors: none
+ 
  ** Minor contributors (to current version): none
+ 
  ** This file is part of the CVC4 project.
+ 
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ 
  ** See the file COPYING in the top-level source directory for licensing
+ 
  ** information.\endverbatim
+ 
  **
+ 
  ** \brief Regular Expresion Operations
  **
  ** Regular Expresion Operations
@@ -661,6 +672,21 @@ void RegExpOpr::simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes )
 	} else {
 		int k = r.getKind();
 		switch( k ) {
+			case kind::REGEXP_EMPTY:
+			{
+				Node eq = NodeManager::currentNM()->mkConst( false );
+				new_nodes.push_back( eq );
+				d_simpl_cache[p] = eq;
+			}
+				break;
+			case kind::REGEXP_SIGMA:
+			{
+				Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+				Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
+				new_nodes.push_back( eq );
+				d_simpl_cache[p] = eq;
+			}
+				break;
 			case kind::STRING_TO_REGEXP:
 			{
 				Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, s, r[0] );
@@ -671,18 +697,34 @@ void RegExpOpr::simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes )
 			case kind::REGEXP_CONCAT:
 			{
 				std::vector< Node > cc;
+				bool emptyflag = false;
+				Node ff = NodeManager::currentNM()->mkConst( false );
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
 					if(r[i].getKind() == kind::STRING_TO_REGEXP) {
 						cc.push_back( r[i][0] );
+					} if(r[i].getKind() == kind::STRING_TO_REGEXP) {
+						emptyflag = true;
+						break;
 					} else {
 						Node sk = NodeManager::currentNM()->mkSkolem( "rcon_$$", s.getType(), "created for regular expression concat" );
 						simplifyRegExp( sk, r[i], new_nodes );
+						if(new_nodes.size() != 0) {
+							if(new_nodes[new_nodes.size() - 1] == ff) {
+								emptyflag = true;
+								break;
+							}
+						}
 						cc.push_back( sk );
 					}
 				}
-				Node cc_eq = s.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, cc) );
-				new_nodes.push_back( cc_eq );
-				d_simpl_cache[p] = cc_eq;
+				if(emptyflag) {
+					new_nodes.push_back( ff );
+					d_simpl_cache[p] = ff;
+				} else {
+					Node cc_eq = s.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, cc) );
+					new_nodes.push_back( cc_eq );
+					d_simpl_cache[p] = cc_eq;
+				}
 			}
 				break;
 			case kind::REGEXP_OR:
@@ -697,13 +739,28 @@ void RegExpOpr::simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes )
 			}
 				break;
 			case kind::REGEXP_INTER:
+			{
+				Node nfalse = NodeManager::currentNM()->mkConst( false );
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
 					simplifyRegExp( s, r[i], new_nodes );
+					if(new_nodes.size() != 0) {
+						if(new_nodes[new_nodes.size() - 1] == nfalse) {
+							break;
+						}
+					}
 				}
+			}
 				break;
 			case kind::REGEXP_STAR:
 			{
-				Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+				Node eq;
+				if(r[0].getKind() == kind::REGEXP_EMPTY) {
+					eq = NodeManager::currentNM()->mkConst( false );
+				} else if(r[0].getKind() == kind::REGEXP_SIGMA) {
+					eq = NodeManager::currentNM()->mkConst( true );
+				} else {
+					eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+				}
 				new_nodes.push_back( eq );
 				d_simpl_cache[p] = eq;
 			}
@@ -729,10 +786,20 @@ std::string RegExpOpr::niceChar( Node r ) {
 std::string RegExpOpr::mkString( Node r ) {
 	std::string retStr;
 	if(r.isNull()) {
-		retStr = "EmptySet";
+		retStr = "Empty";
 	} else {
 		int k = r.getKind();
 		switch( k ) {
+			case kind::REGEXP_EMPTY:
+			{
+				retStr += "Empty";
+			}
+				break;
+			case kind::REGEXP_SIGMA:
+			{
+				retStr += "{W}";
+			}
+				break;
 			case kind::STRING_TO_REGEXP:
 			{
 				retStr += niceChar( r[0] );

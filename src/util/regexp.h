@@ -236,42 +236,7 @@ public:
   /*
    * Convenience functions
    */
-  std::string toString() const {
-    std::string str;
-    for(unsigned int i=0; i<d_str.size(); ++i) {
-	  char c = convertUnsignedIntToChar( d_str[i] );
-	  if(isprint( c )) {
-        if(c == '\\') {
-			str += "\\\\";
-		} else if(c == '\"') {
-			str += "\\\"";
-		} else {
-			str += c;
-		}
-	  } else {
-		  std::string s;
-		  switch(c) {
-			case '\a': s = "\\a"; break;
-			case '\b': s = "\\b"; break;
-			case '\t': s = "\\t"; break;
-			case '\r': s = "\\r"; break;
-			case '\v': s = "\\v"; break;
-			case '\f': s = "\\f"; break;
-			case '\n': s = "\\n"; break;
-			case '\e': s = "\\e"; break;
-			default  : {
-				std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
-				if(s2.size() == 1) {
-					s2 = "0" + s2;
-				}
-				s = "\\x" + s2;
-			}
-		  }
-		  str += s;
-	  }
-    }
-    return str;
-  }
+  std::string toString() const;
 
   unsigned size() const {
     return d_str.size();
@@ -388,75 +353,43 @@ struct CVC4_PUBLIC StringHashFunction {
 
 }/* CVC4::strings namespace */
 
-inline std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const String& s) {
-  return os << "\"" << s.toString() << "\"";
-}
+std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 class CVC4_PUBLIC RegExp {
-
-private:
-  std::string d_str;
-
+protected:
+  int d_type;
 public:
-  RegExp() {}
+  RegExp() : d_type(1) {}
 
-  RegExp(const std::string s)
-      : d_str(s) {}
+  RegExp(const int t) : d_type(t) {}
 
   ~RegExp() {}
 
-  RegExp& operator =(const RegExp& y) {
-    if(this != &y) d_str = y.d_str;
-    return *this;
-  }
-
   bool operator ==(const RegExp& y) const {
-    return d_str == y.d_str ;
+    return d_type == y.d_type ;
   }
 
   bool operator !=(const RegExp& y) const {
-    return d_str != y.d_str ;
-  }
-
-  String concat (const RegExp& other) const {
-    return String(d_str + other.d_str);
+    return d_type != y.d_type ;
   }
 
   bool operator <(const RegExp& y) const {
-    return d_str < y.d_str;
+    return d_type < y.d_type;
   }
 
   bool operator >(const RegExp& y) const {
-    return d_str > y.d_str ;
+    return d_type > y.d_type ;
   }
 
   bool operator <=(const RegExp& y) const {
-    return d_str <= y.d_str;
+    return d_type <= y.d_type;
   }
 
   bool operator >=(const RegExp& y) const {
-    return d_str >= y.d_str ;
+    return d_type >= y.d_type ;
   }
 
-  /*
-   * Convenience functions
-   */
-
-  size_t hash() const {
-    unsigned int h = 1;
-
-    for (size_t i = 0; i < d_str.length(); ++i) {
-        h = (h << 5)  + d_str[i];
-    }
-
-    return h;
-  }
-
-  std::string toString() const {
-    return d_str;
-  }
-
+  int getType() const { return d_type; }
 };/* class RegExp */
 
 /**
@@ -464,14 +397,21 @@ public:
  */
 struct CVC4_PUBLIC RegExpHashFunction {
   inline size_t operator()(const RegExp& s) const {
-    return s.hash();
+    return (size_t)s.getType();
   }
 };/* struct RegExpHashFunction */
 
-inline std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const RegExp& s) {
-  return os << s.toString();
-}
+std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
+
+class CVC4_PUBLIC RegExpEmpty : public RegExp {
+public:
+	RegExpEmpty() : RegExp(0) {}
+};
+
+class CVC4_PUBLIC RegExpSigma : public RegExp {
+public:
+	RegExpSigma() : RegExp(2) {}
+};
 
 }/* CVC4 namespace */
 
