@@ -702,7 +702,7 @@ void RegExpOpr::simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes )
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
 					if(r[i].getKind() == kind::STRING_TO_REGEXP) {
 						cc.push_back( r[i][0] );
-					} if(r[i].getKind() == kind::STRING_TO_REGEXP) {
+					} else if(r[i].getKind() == kind::REGEXP_EMPTY) {
 						emptyflag = true;
 						break;
 					} else {

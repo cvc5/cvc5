@@ -1,6 +1,6 @@
 (set-logic QF_S)
 (set-info :status unsat)
-
+;this option for experts only
 (set-option :strings-alphabet-card 2)
 
 (declare-fun x () String)

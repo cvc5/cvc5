@@ -17,6 +17,7 @@
 
 #include "util/regexp.h"
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -46,11 +47,10 @@ std::string String::toString() const {
 			case '\n': s = "\\n"; break;
 			case '\e': s = "\\e"; break;
 			default  : {
-				std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
-				if(s2.size() == 1) {
-					s2 = "0" + s2;
-				}
-				s = "\\x" + s2;
+				std::stringstream ss;
+				ss << std::setfill ('0') << std::setw(2) << std::hex << ((int)c);
+				s = "\\x" + ss.str();
+				//std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
 			}
 		  }
 		  str += s;
