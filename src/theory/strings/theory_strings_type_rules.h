@@ -425,6 +425,25 @@ public:
   }
 };
 
+class EmptyRegExpTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+
+    Assert(n.getKind() == kind::REGEXP_EMPTY);
+    return nodeManager->regexpType();
+  }
+};
+
+class SigmaRegExpTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+
+    Assert(n.getKind() == kind::REGEXP_SIGMA);
+    return nodeManager->regexpType();
+  }
+};
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
