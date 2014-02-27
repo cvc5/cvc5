@@ -1277,6 +1277,8 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
                 invalidMatch = true;
               }
             }else{
+              qi->d_match[ itb->second ] = TNode::null();
+              qi->d_match_term[ itb->second ] = TNode::null();
               Debug("qcf-match-debug") << "       Bind next variable, no more variables to bind" << std::endl;
             }
           }else{
@@ -1898,6 +1900,7 @@ void QuantConflictFind::computeRelevantEqr() {
     }else{
       d_eqcs[rtn].push_back( r );
     }
+    /*
     eq::EqClassIterator eqc_i = eq::EqClassIterator( r, getEqualityEngine() );
     while( !eqc_i.isFinished() ){
       TNode n = (*eqc_i);
@@ -1907,6 +1910,7 @@ void QuantConflictFind::computeRelevantEqr() {
       }
       ++eqc_i;
     }
+    */
 
     //if( r.getType().isInteger() ){
     //  Trace("qcf-mv") << "Model value for eqc(" << r << ") : " << d_quantEngine->getValuation().getModelValue( r ) << std::endl;

@@ -122,17 +122,17 @@ std-h \n\
 static const std::string qcfModeHelp = "\
 Quantifier conflict find modes currently supported by the --quant-cf option:\n\
 \n\
-conflict \n\
-+ Default, apply conflict finding for finding conflicts only.\n\
-\n\
 prop-eq \n\
-+ Apply QCF to propagate equalities as well. \n\
++ Default, apply QCF algorithm to propagate equalities as well as conflicts. \n\
+\n\
+conflict \n\
++ Apply QCF algorithm to find conflicts only.\n\
 \n\
 partial \n\
-+ Apply QCF to instantiate heuristically as well. \n\
++ Apply QCF algorithm to instantiate heuristically as well. \n\
 \n\
 mc \n\
-+ Apply QCF in a complete way, so that a model is ensured when it fails. \n\
++ Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
 \n\
 ";
 static const std::string userPatModeHelp = "\
@@ -259,9 +259,9 @@ inline QcfWhenMode stringToQcfWhenMode(std::string option, std::string optarg, S
   }
 }
 inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg ==  "default" || optarg ==  "conflict") {
+  if(optarg ==  "conflict") {
     return QCF_CONFLICT_ONLY;
-  } else if(optarg == "prop-eq") {
+  } else if(optarg ==  "default" || optarg == "prop-eq") {
     return QCF_PROP_EQ;
   } else if(optarg == "partial") {
     return QCF_PARTIAL;

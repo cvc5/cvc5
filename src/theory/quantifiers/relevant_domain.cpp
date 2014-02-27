@@ -190,7 +190,7 @@ void RelevantDomain::computeRelevantDomain( Node n, bool hasPol, bool pol ) {
       bool ng = d_qe->getTermDatabase()->hasInstConstAttr( n[oCh] );
       //the negative occurrence adds the term to the domain
       if( !hasPol || !pol ){
-        rds[varCh]->addTerm( n[oCh] );
+        rds[varCh]->addTerm( n[oCh], ng );
       }
       //the positive occurence adds other terms
       if( ( !hasPol || pol ) && n[0].getType().isInteger() ){
