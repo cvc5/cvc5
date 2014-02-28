@@ -793,6 +793,14 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
+  // set strings-exp
+  /*
+  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+	if(! options::stringExp.wasSetByUser()) {
+	  options::stringExp.set( true );
+	  Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
+	}
+  }*/
   // for strings
   if(options::stringExp()) {
     if( !d_logic.isQuantified() ) {
@@ -808,11 +816,11 @@ void SmtEngine::finalOptionsAreSet() {
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
+	/*
     if(! options::rewriteDivk.wasSetByUser()) {
       options::rewriteDivk.set( true );
       Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }
-
+    }*/
     /*
     if(! options::stringFMF.wasSetByUser()) {
       options::stringFMF.set( true );

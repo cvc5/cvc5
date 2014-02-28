@@ -32,58 +32,76 @@ StringsPreprocess::StringsPreprocess() {
 	d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }
 
-void StringsPreprocess::simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn ) {
+void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret ) {
 	int k = r.getKind();
 	switch( k ) {
-		case kind::STRING_TO_REGEXP:
-		{
-			Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, s, r[0] );
+		case kind::REGEXP_EMPTY: {
+			Node eq = NodeManager::currentNM()->mkConst( false );
 			ret.push_back( eq );
-		}
 			break;
-		case kind::REGEXP_CONCAT:
-		{
+		}
+		case kind::REGEXP_SIGMA: {
+			Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+			Node eq = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s));
+			ret.push_back( eq );
+			break;
+		}
+		case kind::STRING_TO_REGEXP: {
+			Node eq = s.eqNode( r[0] );
+			ret.push_back( eq );
+			break;
+		}
+		case kind::REGEXP_CONCAT: {
+			bool flag = true;
 			std::vector< Node > cc;
 			for(unsigned i=0; i<r.getNumChildren(); ++i) {
 				if(r[i].getKind() == kind::STRING_TO_REGEXP) {
 					cc.push_back( r[i][0] );
 				} else {
-					Node sk = NodeManager::currentNM()->mkSkolem( "recsym_$$", s.getType(), "created for regular expression concat" );
-					simplifyRegExp( sk, r[i], ret, nn );
-					cc.push_back( sk );
+					flag = false;
+					break;
 				}
 			}
-			Node cc_eq = NodeManager::currentNM()->mkNode( kind::EQUAL, s, 
-						NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, cc ) );
-			nn.push_back( cc_eq );
-		}
+			if(flag) {
+				Node eq = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, cc));
+				ret.push_back(eq);
+			} else {
+				Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+				ret.push_back( eq );
+			}
 			break;
-		case kind::REGEXP_OR:
-		{
+		}
+		case kind::REGEXP_UNION: {
 			std::vector< Node > c_or;
 			for(unsigned i=0; i<r.getNumChildren(); ++i) {
-				simplifyRegExp( s, r[i], c_or, nn );
+				std::vector< Node > ntmp;
+				processRegExp( s, r[i], ntmp );
+				Node lem = ntmp.size()==1 ? ntmp[0] : NodeManager::currentNM()->mkNode(kind::AND, ntmp);
+				c_or.push_back( lem );
 			}
-			Node eq = NodeManager::currentNM()->mkNode( kind::OR, c_or );
+			Node eq = NodeManager::currentNM()->mkNode(kind::OR, c_or);
 			ret.push_back( eq );
-		}
 			break;
-		case kind::REGEXP_INTER:
+		}
+		case kind::REGEXP_INTER: {
 			for(unsigned i=0; i<r.getNumChildren(); ++i) {
-				simplifyRegExp( s, r[i], ret, nn );
+				processRegExp( s, r[i], ret );
 			}
 			break;
-		case kind::REGEXP_STAR:
-		{
-			Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
-			ret.push_back( eq );
 		}
+		case kind::REGEXP_STAR: {
+			if(r[0].getKind() == kind::REGEXP_SIGMA) {
+				ret.push_back(NodeManager::currentNM()->mkConst(true));
+			} else {
+				Node eq = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, s, r );
+				ret.push_back( eq );
+			}
 			break;
-		default:
-			//TODO: special sym: sigma, none, all
+		}
+		default: {
 			Trace("strings-preprocess") << "Unsupported term: " << r << " in simplifyRegExp." << std::endl;
-			Assert( false );
-			break;
+			AlwaysAssert( false, "Unsupported Term" );
+		}
 	}
 }
 
@@ -150,24 +168,18 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			d_cache[t] = t;
 			retNode = t;
 		}
-	} else */if( t.getKind() == kind::STRING_IN_REGEXP ) {
-		// t0 in t1
+	} else */
+	if( t.getKind() == kind::STRING_IN_REGEXP ) {
 		Node t0 = simplify( t[0], new_nodes );
 		
-		//if(!checkStarPlus( t[1] )) {
-			//rewrite it
-			std::vector< Node > ret;
-			std::vector< Node > nn;
-			simplifyRegExp( t0, t[1], ret, nn );
-			new_nodes.insert( new_nodes.end(), nn.begin(), nn.end() );
+		//rewrite it
+		std::vector< Node > ret;
+		processRegExp( t0, t[1], ret );
 
-			Node n = ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
-			d_cache[t] = (t == n) ? Node::null() : n;
-			retNode = n;
-		//} else {
-			// TODO
-		//	return (t0 == t[0]) ? t : NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, t0, t[1] );
-		//}
+		Node n = ret.size() == 1 ? ret[0] : NodeManager::currentNM()->mkNode( kind::AND, ret );
+		n = Rewriter::rewrite(n);
+		d_cache[t] = (t == n) ? Node::null() : n;
+		retNode = n;
 	} else if( t.getKind() == kind::STRING_SUBSTR_TOTAL ) {
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
@@ -246,7 +258,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			new_nodes.push_back(lem);
 
 			//non-neg
-			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
+			Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
 			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
 			Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
 						NodeManager::currentNM()->mkNode( kind::GT, lenp, b1 ) ) );
@@ -286,8 +298,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node cc3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
 			Node cc4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
 			
-			Node b21 = NodeManager::currentNM()->mkBoundVar("y", NodeManager::currentNM()->stringType());
-			Node b22 = NodeManager::currentNM()->mkBoundVar("z", NodeManager::currentNM()->stringType());
+			Node b21 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
+			Node b22 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
 			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b21, b22);
 
 			Node c21 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, b21).eqNode(
@@ -367,23 +379,14 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node cc1 = t[0].eqNode(NodeManager::currentNM()->mkConst(::CVC4::String("")));
 			//cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc1);
 			//cc2
-			Node b1 = NodeManager::currentNM()->mkBoundVar("x", NodeManager::currentNM()->integerType());
-			Node z1 = NodeManager::currentNM()->mkBoundVar("z1", NodeManager::currentNM()->stringType());
-			Node z2 = NodeManager::currentNM()->mkBoundVar("z2", NodeManager::currentNM()->stringType());
-			Node z3 = NodeManager::currentNM()->mkBoundVar("z3", NodeManager::currentNM()->stringType());
-			Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1, z1, z2, z3);
 			std::vector< Node > vec_n;
-			Node g = NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_zero);
-			vec_n.push_back(g);
-			g = NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[0]), b1);
-			vec_n.push_back(g);
-			g = b1.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z1) );
-			vec_n.push_back(g);
-			g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
+			Node z1 = NodeManager::currentNM()->mkSkolem("z1_$$", NodeManager::currentNM()->stringType());
+			Node z2 = NodeManager::currentNM()->mkSkolem("z1_$$", NodeManager::currentNM()->stringType());
+			Node z3 = NodeManager::currentNM()->mkSkolem("z1_$$", NodeManager::currentNM()->stringType());
+			Node g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
 			vec_n.push_back(g);
 			g = t[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
 			vec_n.push_back(g);
-			//Node z2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, t[0], one);
 			char chtmp[2];
 			chtmp[1] = '\0';
 			for(unsigned i=0; i<=9; i++) {
@@ -393,10 +396,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 				vec_n.push_back(g);
 			}
 			Node cc2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, vec_n));
-			cc2 = NodeManager::currentNM()->mkNode(kind::EXISTS, b1v, cc2);
-			//cc2 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc2);
 			//cc3
-			Node b2 = NodeManager::currentNM()->mkBoundVar("y", NodeManager::currentNM()->integerType());
+			Node b2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
 			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);
 			Node g2 = NodeManager::currentNM()->mkNode(kind::AND,
 						NodeManager::currentNM()->mkNode(kind::GEQ, b2, d_zero),
@@ -404,8 +405,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b2);
 			Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b2,one));
 			Node ufMx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, b2);
-			Node w1 = NodeManager::currentNM()->mkBoundVar("w1", NodeManager::currentNM()->stringType());
-			Node w2 = NodeManager::currentNM()->mkBoundVar("w2", NodeManager::currentNM()->stringType());
+			Node w1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
+			Node w2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
 			Node b3v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, w1, w2);
 			Node b2gtz = NodeManager::currentNM()->mkNode(kind::GT, b2, d_zero);
 			Node c3c1 = ufx1.eqNode( NodeManager::currentNM()->mkNode(kind::PLUS,
@@ -533,17 +534,12 @@ Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
 	unsigned num = t.getNumChildren();
 	if(num == 0) {
 		return simplify(t, new_nodes);
-	} else if(num == 1) {
-		Node s = decompose(t[0], new_nodes);
-		if(s != t[0]) {
-			Node tmp = NodeManager::currentNM()->mkNode( t.getKind(), s );
-			return simplify(tmp, new_nodes);
-		} else {
-			return simplify(t, new_nodes);
-		}
 	} else {
 		bool changed = false;
 		std::vector< Node > cc;
+		if (t.getMetaKind() == kind::metakind::PARAMETERIZED) {
+			cc.push_back(t.getOperator());
+		}
 		for(unsigned i=0; i<t.getNumChildren(); i++) {
 			Node s = decompose(t[i], new_nodes);
 			cc.push_back( s );

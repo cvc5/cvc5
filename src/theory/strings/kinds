@@ -71,7 +71,7 @@ typerule CONST_REGEXP ::CVC4::theory::strings::RegExpConstantTypeRule
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
 operator REGEXP_CONCAT 2: "regexp concat"
-operator REGEXP_OR 2: "regexp or"
+operator REGEXP_UNION 2: "regexp union"
 operator REGEXP_INTER 2: "regexp intersection"
 operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
@@ -97,7 +97,7 @@ constant REGEXP_SIGMA \
 #	"a regexp contains all strings"
 
 typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
-typerule REGEXP_OR ::CVC4::theory::strings::RegExpOrTypeRule
+typerule REGEXP_UNION ::CVC4::theory::strings::RegExpUnionTypeRule
 typerule REGEXP_INTER ::CVC4::theory::strings::RegExpInterTypeRule
 typerule REGEXP_STAR ::CVC4::theory::strings::RegExpStarTypeRule
 typerule REGEXP_PLUS ::CVC4::theory::strings::RegExpPlusTypeRule

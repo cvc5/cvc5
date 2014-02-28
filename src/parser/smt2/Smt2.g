@@ -1299,7 +1299,7 @@ builtinOp[CVC4::Kind& kind]
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
-  | REOR_TOK       { $kind = CVC4::kind::REGEXP_OR; }
+  | REUNION_TOK       { $kind = CVC4::kind::REGEXP_UNION; }
   | REINTER_TOK    { $kind = CVC4::kind::REGEXP_INTER; }
   | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
@@ -1699,8 +1699,8 @@ STRSTOI_TOK : 'str.to.int' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';
-REOR_TOK : 're.or';
-REINTER_TOK : 're.itr';
+REUNION_TOK : 're.union';
+REINTER_TOK : 're.inter';
 RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';

@@ -32,25 +32,33 @@ class RegExpOpr {
 	typedef std::pair< Node, CVC4::String > PairDvStr;
 private:
     Node d_emptyString;
+    Node d_true;
+    Node d_false;
+	Node d_emptyRegexp;
+	Node d_zero;
+	Node d_one;
+
 	char d_char_start;
 	char d_char_end;
 	Node d_sigma;
 	Node d_sigma_star;
 	
 	std::map< std::pair< Node, Node >, Node > d_simpl_cache;
+	std::map< std::pair< Node, Node >, Node > d_simpl_neg_cache;
 	std::map< Node, Node > d_compl_cache;
 	std::map< Node, int > d_delta_cache;
 	std::map< PairDvStr, Node > d_dv_cache;
 	std::map< Node, bool > d_cstre_cache;
 	//bool checkStarPlus( Node t );
-	void simplifyRegExp( Node s, Node r, std::vector< Node > &new_nodes );
+	void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
+	void simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes );
 	std::string niceChar( Node r );
 	int gcd ( int a, int b );
 
 public:
 	RegExpOpr();
 	bool checkConstRegExp( Node r );
-    void simplify(Node t, std::vector< Node > &new_nodes);
+    void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
 	Node mkAllExceptOne( char c );
 	Node complement( Node r );
 	int delta( Node r );

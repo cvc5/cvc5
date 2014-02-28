@@ -340,8 +340,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STRING_STOI: out << "str.to.int "; break;
   case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
   case kind::REGEXP_CONCAT: out << "re.++ "; break;
-  case kind::REGEXP_OR: out << "re.or "; break;
-  case kind::REGEXP_INTER: out << "re.itr "; break;
+  case kind::REGEXP_UNION: out << "re.union "; break;
+  case kind::REGEXP_INTER: out << "re.inter "; break;
   case kind::REGEXP_STAR: out << "re.* "; break;
   case kind::REGEXP_PLUS: out << "re.+ "; break;
   case kind::REGEXP_OPT: out << "re.opt "; break;
