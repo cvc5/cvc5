@@ -36,14 +36,15 @@ RegExpOpr::RegExpOpr() {
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
-    d_emptyRegexp = NodeManager::currentNM()->mkConst( kind::REGEXP_EMPTY );
 	d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 	d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+	std::vector< Node > nvec;
+    d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
 	// All Charactors = all printable ones 32-126
-	d_char_start = 'a';//' ';
-	d_char_end = 'c';//'~';
-	d_sigma = mkAllExceptOne( '\0' );
-	//d_sigma = NodeManager::currentNM()->mkConst( kind::REGEXP_SIGMA );
+	//d_char_start = 'a';//' ';
+	//d_char_end = 'c';//'~';
+	//d_sigma = mkAllExceptOne( '\0' );
+	d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
 	d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
 }
 

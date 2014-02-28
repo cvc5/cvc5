@@ -138,7 +138,8 @@ Node TheoryStringsRewriter::prerewriteConcatRegExp( TNode node ) {
         }
     }
 	if(emptyflag) {
-		retNode = NodeManager::currentNM()->mkConst( kind::REGEXP_EMPTY );
+		std::vector< Node > nvec;
+		retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
 	} else {
 		if(!preNode.isNull()) {
 			node_vec.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, preNode ) );
@@ -173,7 +174,8 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
 		}
 	}
 	if(flag) {
-		retNode = node_vec.size() == 0 ? NodeManager::currentNM()->mkConst( kind::REGEXP_EMPTY ) :
+		std::vector< Node > nvec;
+		retNode = node_vec.size() == 0 ? NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec ) :
 					node_vec.size() == 1 ? node_vec[0] : NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, node_vec);
 	}
 	Trace("strings-prerewrite") << "Strings::prerewriteOrRegExp end " << retNode << std::endl;
