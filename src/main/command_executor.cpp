@@ -19,11 +19,12 @@
 
 #include "main/main.h"
 
-#include "main/options.h"
 #include "smt/options.h"
 
 namespace CVC4 {
 namespace main {
+
+void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
 CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
   d_exprMgr(exprMgr),
@@ -68,6 +69,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   } else {
     status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
   }
+
   Result res;
   CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
   if(cs != NULL) {
@@ -77,9 +79,14 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(q != NULL) {
     d_result = res = q->getResult();
   }
+
   if((cs != NULL || q != NULL) && d_options[options::statsEveryQuery]) {
-    flushStatistics(*d_options[options::err]);
+    std::ostringstream ossCurStats;
+    flushStatistics(ossCurStats);
+    printStatsIncremental(*d_options[options::err], d_lastStatistics, ossCurStats.str());
+    d_lastStatistics = ossCurStats.str();
   }
+
   // dump the model/proof if option is set
   if(status) {
     if( d_options[options::produceModels] &&
@@ -106,6 +113,58 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
     cmd->invoke(smt, *out);
   }
   return !cmd->fail();
+}
+
+void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
+  if(prvsStatsString == "") {
+      out << curStatsString;
+      return;
+  }
+
+  // read each line
+  // if a number, subtract and add that to parantheses
+  std::istringstream issPrvs(prvsStatsString);
+  std::istringstream issCur(curStatsString);
+
+  std::string prvsStatName, prvsStatValue, curStatName, curStatValue;
+
+  std::getline(issPrvs, prvsStatName, ',');
+  std::getline(issCur, curStatName, ',');
+
+  /**
+   * Stat are assumed to one-per line: "<statName>, <statValue>"
+   *   e.g. "sat::decisions, 100"
+   * Output is of the form: "<statName>, <statValue> (<statDiffFromPrvs>)"
+   *   e.g. "sat::decisions, 100 (20)"
+   * If the value is not numeric, no change is made.
+   */
+  while( !issCur.eof() ) {
+
+    std::getline(issCur, curStatValue, '\n');
+
+    if(curStatName == prvsStatName) {
+      std::getline(issPrvs, prvsStatValue, '\n');
+
+      double prvsFloat, curFloat;
+      bool isFloat =
+        (std::istringstream(prvsStatValue) >> prvsFloat) &&
+        (std::istringstream(curStatValue) >> curFloat);
+
+      if(isFloat) {
+        out << curStatName << ", " << curStatValue << " "
+            << "(" << std::setprecision(8) << (curFloat-prvsFloat) << ")"
+            << std::endl;
+      } else {
+        out << curStatName << ", " << curStatValue << std::endl;
+      }
+
+      std::getline(issPrvs, prvsStatName, ',');
+    } else {
+      out << curStatName << ", " << curStatValue << std::endl;
+    }
+
+    std::getline(issCur, curStatName, ',');
+  }
 }
 
 }/* CVC4::main namespace */
