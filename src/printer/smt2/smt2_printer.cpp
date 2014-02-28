@@ -398,7 +398,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::INTERSECTION:
   case kind::SETMINUS:
   case kind::SUBSET:
-  case kind::IN:
+  case kind::MEMBER:
   case kind::SET_TYPE:
   case kind::SET_SINGLETON: out << smtKindString(k) << " "; break;
 
@@ -592,7 +592,7 @@ static string smtKindString(Kind k) throw() {
   case kind::INTERSECTION: return "intersection";
   case kind::SETMINUS: return "setminus";
   case kind::SUBSET: return "subseteq";
-  case kind::IN: return "in";
+  case kind::MEMBER: return "in";
   case kind::SET_TYPE: return "Set";
   case kind::SET_SINGLETON: return "setenum";
   default:

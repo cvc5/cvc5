@@ -101,10 +101,10 @@ struct SetSubsetTypeRule {
   }
 };/* struct SetSubsetTypeRule */
 
-struct SetInTypeRule {
+struct SetMemberTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::IN);
+    Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
     if( check ) {
       if(!setType.isSet()) {

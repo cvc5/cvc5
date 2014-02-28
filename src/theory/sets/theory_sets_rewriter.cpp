@@ -31,7 +31,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
   switch(node.getKind()) {
 
-  case kind::IN: {
+  case kind::MEMBER: {
     if(!node[0].isConst() || !node[1].isConst())
       break;
 
