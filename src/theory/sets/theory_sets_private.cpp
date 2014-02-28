@@ -89,8 +89,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 void TheorySetsPrivate::assertEquality(TNode fact, TNode reason, bool learnt)
 {
   Debug("sets-assert") << "\n[sets-assert] adding equality: " << fact
-                    << ", " << reason
-                    << ", " << learnt << std::endl;
+                       << ", " << reason
+                       << ", " << learnt << std::endl;
 
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
@@ -605,7 +605,7 @@ Node TheorySetsPrivate::explain(TNode literal)
   std::vector<TNode> assumptions;
 
   if(atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   } else if(atom.getKind() == kind::MEMBER) {
     if( !d_equalityEngine.hasTerm(atom)) {
       d_equalityEngine.addTerm(atom);
