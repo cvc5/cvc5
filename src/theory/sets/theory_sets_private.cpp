@@ -58,7 +58,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
       assertEquality(fact, fact, /* learnt = */ false);
       break;
 
-    case kind::IN:
+    case kind::MEMBER:
       Debug("sets") << atom[0] << " should " << (polarity ? "":"NOT ")
                     << "be in " << atom[1] << std::endl;
       assertMemebership(fact, fact, /* learnt = */ false);
@@ -89,8 +89,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 void TheorySetsPrivate::assertEquality(TNode fact, TNode reason, bool learnt)
 {
   Debug("sets-assert") << "\n[sets-assert] adding equality: " << fact
-                    << ", " << reason
-                    << ", " << learnt << std::endl;
+                       << ", " << reason
+                       << ", " << learnt << std::endl;
 
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
@@ -155,7 +155,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
   eq::EqClassIterator j(d_equalityEngine.getRepresentative(atom[1]),
                         &d_equalityEngine);
   TNode S = (*j);
-  Node cur_atom = IN(x, S);
+  Node cur_atom = MEMBER(x, S);
 
   /**
    * It is sufficient to do emptyset propagation outside the loop as
@@ -171,7 +171,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
 
   for(; !j.isFinished(); ++j) {
     TNode S = (*j);
-    Node cur_atom = IN(x, S);
+    Node cur_atom = MEMBER(x, S);
 
     // propagation : children
     Debug("sets-prop") << "[sets-prop] Propagating 'down' for "
@@ -213,22 +213,22 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
   // axiom: literal <=> left_literal AND right_literal
   switch(S.getKind()) {
   case kind::INTERSECTION:
-    literal       =       IN(x, S)      ;
-    left_literal  =       IN(x, S[0])   ;
-    right_literal =       IN(x, S[1])   ;
+    literal       =       MEMBER(x, S)      ;
+    left_literal  =       MEMBER(x, S[0])   ;
+    right_literal =       MEMBER(x, S[1])   ;
     break;
   case kind::UNION:
-    literal       = NOT(  IN(x, S)     );
-    left_literal  = NOT(  IN(x, S[0])  );
-    right_literal = NOT(  IN(x, S[1])  );
+    literal       = NOT(  MEMBER(x, S)     );
+    left_literal  = NOT(  MEMBER(x, S[0])  );
+    right_literal = NOT(  MEMBER(x, S[1])  );
     break;
   case kind::SETMINUS:
-    literal       =       IN(x, S)      ;
-    left_literal  =       IN(x, S[0])   ;
-    right_literal = NOT(  IN(x, S[1])  );
+    literal       =       MEMBER(x, S)      ;
+    left_literal  =       MEMBER(x, S[0])   ;
+    right_literal = NOT(  MEMBER(x, S[1])  );
     break;
   case kind::SET_SINGLETON: {
-    Node atom = IN(x, S);
+    Node atom = MEMBER(x, S);
     if(holds(atom, true)) {
       learnLiteral(EQUAL(x, S[0]), true, atom);
     } else if(holds(atom, false)) {
@@ -253,9 +253,9 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
     << (holds(right_literal) ? "yes" : (holds(right_literal.negate()) ? "no " : " _ "))
     << std::endl;
 
-  Assert( present( IN(x, S)    ) ||
-          present( IN(x, S[0]) ) ||
-          present( IN(x, S[1]) ) );
+  Assert( present( MEMBER(x, S)    ) ||
+          present( MEMBER(x, S[0]) ) ||
+          present( MEMBER(x, S[1]) ) );
 
   if( holds(literal) ) {
     // 1a. literal => left_literal
@@ -313,15 +313,15 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
   Node n;
   switch(S.getKind()) {
   case kind::UNION:
-    if( holds(IN(x, S)) &&
-        !present( IN(x, S[0]) ) )
-      addToPending( IN(x, S[0]) );
+    if( holds(MEMBER(x, S)) &&
+        !present( MEMBER(x, S[0]) ) )
+      addToPending( MEMBER(x, S[0]) );
     break;
   case kind::SETMINUS: // intentional fallthrough
   case kind::INTERSECTION:
-    if( holds(IN(x, S[0])) &&
-        !present( IN(x, S[1]) ))
-      addToPending( IN(x, S[1]) );
+    if( holds(MEMBER(x, S[0])) &&
+        !present( MEMBER(x, S[1]) ))
+      addToPending( MEMBER(x, S[1]) );
     break;
   default:
     Assert(false, "MembershipEngine::doSettermPropagation");
@@ -352,7 +352,7 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
     return;
   }
 
-  Assert(atom.getKind() == kind::EQUAL || atom.getKind() == kind::IN);
+  Assert(atom.getKind() == kind::EQUAL || atom.getKind() == kind::MEMBER);
 
   Node learnt_literal = polarity ? Node(atom) : NOT(atom);
   d_propagationQueue.push_back( make_pair(learnt_literal, reason) );
@@ -441,7 +441,7 @@ void TheorySetsPrivate::registerReason(TNode reason, bool save)
     registerReason(reason[1], false);
   } else if(reason.getKind() == kind::NOT) {
     registerReason(reason[0], false);
-  } else if(reason.getKind() == kind::IN) {
+  } else if(reason.getKind() == kind::MEMBER) {
     d_equalityEngine.addTerm(reason);
     Assert(present(reason));
   } else if(reason.getKind() == kind::EQUAL) {
@@ -465,7 +465,7 @@ void TheorySetsPrivate::finishPropagation()
     std::pair<Node,Node> np = d_propagationQueue.front();
     d_propagationQueue.pop();
     TNode atom = np.first.getKind() == kind::NOT ? np.first[0] : np.first;
-    if(atom.getKind() == kind::IN) {
+    if(atom.getKind() == kind::MEMBER) {
       assertMemebership(np.first, np.second, /* learnt = */ true);
     } else {
       assertEquality(np.first, np.second, /* learnt = */ true);
@@ -475,7 +475,7 @@ void TheorySetsPrivate::finishPropagation()
 
 void TheorySetsPrivate::addToPending(Node n) {
   if(d_pendingEverInserted.find(n) == d_pendingEverInserted.end()) {
-    if(n.getKind() == kind::IN) {
+    if(n.getKind() == kind::MEMBER) {
       d_pending.push(n);
     } else {
       Assert(n.getKind() == kind::EQUAL);
@@ -501,7 +501,7 @@ Node TheorySetsPrivate::getLemma() {
     d_pending.pop();
 
     Assert(!present(n));
-    Assert(n.getKind() == kind::IN);
+    Assert(n.getKind() == kind::MEMBER);
 
     lemma = OR(n, NOT(n));
   } else {
@@ -510,7 +510,7 @@ Node TheorySetsPrivate::getLemma() {
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
     Node x = NodeManager::currentNM()->mkSkolem("sde_$$", n[0].getType().getSetElementType());
-    Node l1 = IN(x, n[0]), l2 = IN(x, n[1]);
+    Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
 
     // d_equalityEngine.addTerm(x);
     // d_equalityEngine.addTerm(l1);
@@ -547,7 +547,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::INTERSECTION);
   d_equalityEngine.addFunctionKind(kind::SETMINUS);
 
-  d_equalityEngine.addFunctionKind(kind::IN);
+  d_equalityEngine.addFunctionKind(kind::MEMBER);
   d_equalityEngine.addFunctionKind(kind::SUBSET);
 }/* TheorySetsPrivate::TheorySetsPrivate() */
 
@@ -605,8 +605,8 @@ Node TheorySetsPrivate::explain(TNode literal)
   std::vector<TNode> assumptions;
 
   if(atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
-  } else if(atom.getKind() == kind::IN) {
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+  } else if(atom.getKind() == kind::MEMBER) {
     if( !d_equalityEngine.hasTerm(atom)) {
       d_equalityEngine.addTerm(atom);
     }
@@ -630,7 +630,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     // TODO: what's the point of this
     d_equalityEngine.addTriggerEquality(node);
     break;
-  case kind::IN:
+  case kind::MEMBER:
     // TODO: what's the point of this
     d_equalityEngine.addTriggerPredicate(node);
     break;
@@ -641,7 +641,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
   if(node.getKind() == kind::SET_SINGLETON) {
     Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
-    learnLiteral(IN(node[0], node), true, true_node);
+    learnLiteral(MEMBER(node[0], node), true, true_node);
     //intentional fallthrough
   }
 }
@@ -792,18 +792,18 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
 {
   for(typeof(l->begin()) i = l->begin(); i != l->end(); ++i) {
     Debug("sets-prop") << "[sets-terminfo]  setterm todo: "
-                       << IN(*i, d_eqEngine->getRepresentative(S))
+                       << MEMBER(*i, d_eqEngine->getRepresentative(S))
                        << std::endl;
 
-    d_eqEngine->addTerm(IN(d_eqEngine->getRepresentative(*i),
-                           d_eqEngine->getRepresentative(S)));
+    d_eqEngine->addTerm(MEMBER(d_eqEngine->getRepresentative(*i),
+			       d_eqEngine->getRepresentative(S)));
 
     for(eq::EqClassIterator j(d_eqEngine->getRepresentative(S), d_eqEngine);
         !j.isFinished(); ++j) {
 
       TNode x = (*i);
       TNode S = (*j);
-      Node cur_atom = IN(x, S);
+      Node cur_atom = MEMBER(x, S);
 
       // propagation : empty set
       if(polarity && S.getKind() == kind::EMPTYSET) {

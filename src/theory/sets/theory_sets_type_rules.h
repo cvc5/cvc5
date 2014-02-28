@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file theory_sets_type_rules.h
+ ** \verbatim
+ ** Original author: Kshitij Bansal
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief Sets theory type rules.
+ **
+ ** Sets theory type rules.
+ **/
+
 #include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
@@ -101,10 +117,10 @@ struct SetSubsetTypeRule {
   }
 };/* struct SetSubsetTypeRule */
 
-struct SetInTypeRule {
+struct SetMemberTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::IN);
+    Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
     if( check ) {
       if(!setType.isSet()) {

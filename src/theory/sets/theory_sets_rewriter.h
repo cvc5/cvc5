@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file theory_sets_rewriter.h
+ ** \verbatim
+ ** Original author: Kshitij Bansal
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief Sets theory rewriter.
+ **
+ ** Sets theory rewriter.
+ **/
+
 #include "cvc4_private.h"
 
 #ifndef __CVC4__THEORY__SETS__THEORY_SETS_REWRITER_H

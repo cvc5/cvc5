@@ -34,8 +34,8 @@ static Node OR(TNode a, TNode b, TNode c) {
   return NodeManager::currentNM()->mkNode(kind::OR, a, b, c);
 }
 
-static Node IN(TNode a, TNode b) {
-  return NodeManager::currentNM()->mkNode(kind::IN, a, b);
+static Node MEMBER(TNode a, TNode b) {
+  return NodeManager::currentNM()->mkNode(kind::MEMBER, a, b);
 }
 
 static Node EQUAL(TNode a, TNode b) {

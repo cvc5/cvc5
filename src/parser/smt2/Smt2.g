@@ -1309,7 +1309,7 @@ builtinOp[CVC4::Kind& kind]
   | SETINT_TOK    { $kind = CVC4::kind::INTERSECTION; }
   | SETMINUS_TOK  { $kind = CVC4::kind::SETMINUS; }
   | SETSUB_TOK    { $kind = CVC4::kind::SUBSET; }
-  | SETIN_TOK     { $kind = CVC4::kind::IN; }
+  | SETIN_TOK     { $kind = CVC4::kind::MEMBER; }
   | SETSINGLETON_TOK { $kind = CVC4::kind::SET_SINGLETON; }
 
   // NOTE: Theory operators go here

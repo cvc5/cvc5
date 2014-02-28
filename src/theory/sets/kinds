@@ -37,7 +37,7 @@ operator UNION 2 "set union"
 operator INTERSECTION 2 "set intersection"
 operator SETMINUS 2 "set subtraction"
 operator SUBSET 2 "subset"
-operator IN 2 "set membership"
+operator MEMBER 2 "set membership"
 
 operator SET_SINGLETON 1 "singleton set"
 
@@ -45,7 +45,7 @@ typerule UNION ::CVC4::theory::sets::SetUnionTypeRule
 typerule INTERSECTION ::CVC4::theory::sets::SetIntersectionTypeRule
 typerule SETMINUS ::CVC4::theory::sets::SetSetminusTypeRule
 typerule SUBSET ::CVC4::theory::sets::SetSubsetTypeRule
-typerule IN ::CVC4::theory::sets::SetInTypeRule
+typerule MEMBER ::CVC4::theory::sets::SetMemberTypeRule
 typerule SET_SINGLETON ::CVC4::theory::sets::SetSingletonTypeRule
 typerule EMPTYSET ::CVC4::theory::sets::EmptySetTypeRule
 
