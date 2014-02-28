@@ -111,6 +111,7 @@ public:
 private:
 	// Constants
     Node d_emptyString;
+	Node d_emptyRegexp;
     Node d_true;
     Node d_false;
     Node d_zero;
@@ -228,6 +229,7 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
+	bool checkMemberships2();
 	bool checkContains();
 	bool checkPosContains();
 	bool checkNegContains();
@@ -299,6 +301,7 @@ private:
 private:
 	// regular expression memberships
 	NodeList d_reg_exp_mem;
+	std::map< Node, bool > d_regexp_cache;
 	// antecedant for why reg exp membership must be true
 	std::map< Node, Node > d_reg_exp_ant;
 	std::map< Node, bool > d_reg_exp_unroll;
@@ -310,6 +313,7 @@ private:
 	std::map< Node, bool > d_membership_length;
 	// regular expression derivative
 	std::map< Node, bool > d_reg_exp_deriv;
+	NodeBoolMap d_regexp_deriv_processed;
 	// regular expression operations
 	RegExpOpr d_regexp_opr;
 

@@ -36,7 +36,7 @@ class StringsPreprocess {
 private:
 	bool checkStarPlus( Node t );
 	int checkFixLenVar( Node t );
-	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
+	void processRegExp( Node s, Node r, std::vector< Node > &ret );
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 	Node decompose( Node t, std::vector< Node > &new_nodes );
 public:

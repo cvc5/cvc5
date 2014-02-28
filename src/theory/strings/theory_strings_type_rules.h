@@ -261,7 +261,7 @@ public:
   }
 };
 
-class RegExpOrTypeRule {
+class RegExpUnionTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {

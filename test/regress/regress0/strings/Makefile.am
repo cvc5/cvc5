@@ -37,7 +37,6 @@ TESTS =	\
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
-  regexp002.smt2 \
   loop001.smt2 \
   loop002.smt2 \
   loop003.smt2 \
@@ -47,6 +46,8 @@ TESTS =	\
   loop007.smt2 \
   loop008.smt2 \
   loop009.smt2
+
+#regexp002.smt2
 
 FAILING_TESTS =
 

@@ -1,4 +1,5 @@
 (set-logic QF_S)
+(set-option :strings-exp true)
 (set-option :strings-fmf true)
 (set-info :status sat)
 
