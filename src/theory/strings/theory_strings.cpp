@@ -62,7 +62,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
     d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-	d_emptyRegexp = NodeManager::currentNM()->mkConst( kind::REGEXP_EMPTY );
+	std::vector< Node > nvec;
+	d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
 	d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -2312,13 +2313,13 @@ bool TheoryStrings::checkMemberships() {
 							flag = false;
 							d_regexp_deriv_processed[atom] = true;
 						}
-					} /*else if(splitRegExp( x, r, atom )) {
+					} else if(splitRegExp( x, r, atom )) {
 						addedLemma = true; flag = false;
 						d_regexp_deriv_processed[ atom ] = true;
-					}*/
+					}
 				}
 			} else {
-				//TODO
+				//TODO: will be removed soon. keep it for consistence
 				if(! options::stringExp()) {
 					is_unk = true;
 					break;

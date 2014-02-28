@@ -78,23 +78,8 @@ operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
 
-constant REGEXP_EMPTY \
-	::CVC4::RegExpEmpty \
-	::CVC4::RegExpHashFunction \
-	"util/regexp.h" \
-	"a regexp contains nothing"
-
-constant REGEXP_SIGMA \
-	::CVC4::RegExpSigma \
-	::CVC4::RegExpHashFunction \
-	"util/regexp.h" \
-	"a regexp contains an arbitrary charactor"
-
-#constant REGEXP_ALL \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains all strings"
+operator REGEXP_EMPTY 0 "regexp empty"
+operator REGEXP_SIGMA 0 "regexp all charactors"
 
 typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
 typerule REGEXP_UNION ::CVC4::theory::strings::RegExpUnionTypeRule
