@@ -404,16 +404,6 @@ struct CVC4_PUBLIC RegExpHashFunction {
 
 std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
 
-class CVC4_PUBLIC RegExpEmpty : public RegExp {
-public:
-	RegExpEmpty() : RegExp(0) {}
-};
-
-class CVC4_PUBLIC RegExpSigma : public RegExp {
-public:
-	RegExpSigma() : RegExp(2) {}
-};
-
 }/* CVC4 namespace */
 
 #endif /* __CVC4__REGEXP_H */
