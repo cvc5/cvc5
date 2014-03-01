@@ -173,7 +173,7 @@ int RegExpOpr::delta( Node r ) {
 			}
 			default: {
 				Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in delta of RegExp." << std::endl;
-				AlwaysAssert( false );
+				Assert( false );
 				//return Node::null();
 			}
 		}
@@ -526,12 +526,12 @@ bool RegExpOpr::follow( Node r, CVC4::String c, std::vector< char > &vec_chars )
 			ret = 2;
 		}
 			break;*/
-		default:
-			//TODO: special sym: sigma, none, all
+		default: {
 			Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in delta of RegExp." << std::endl;
 			//AlwaysAssert( false );
 			//return Node::null();
 			return false;
+		}
 	}
 }
 
@@ -791,7 +791,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 			}
 			default: {
 				Trace("strings-regexp") << "Unsupported term: " << r << " in simplifyNRegExp." << std::endl;
-				AlwaysAssert( false, "Unsupported Term" );
+				Assert( false, "Unsupported Term" );
 			}
 		}
 		conc = Rewriter::rewrite( conc );
@@ -907,7 +907,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 			}
 			default: {
 				Trace("strings-regexp") << "Unsupported term: " << r << " in simplifyPRegExp." << std::endl;
-				AlwaysAssert( false, "Unsupported Term" );
+				Assert( false, "Unsupported Term" );
 			}
 		}
 		conc = Rewriter::rewrite( conc );

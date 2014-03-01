@@ -1032,6 +1032,12 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | str[s,false]
     { expr = MK_CONST( ::CVC4::String(s) ); }
 
+  | RENOSTR_TOK
+    { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec ); }
+
+  | REALLCHAR_TOK
+    { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_SIGMA, nvec ); }
+
   | EMPTYSET_TOK
     { expr = MK_CONST( ::CVC4::EmptySet()); }
 
@@ -1294,12 +1300,12 @@ builtinOp[CVC4::Kind& kind]
   | STRREPL_TOK    { $kind = CVC4::kind::STRING_STRREPL; }
   | STRPREF_TOK    { $kind = CVC4::kind::STRING_PREFIX; }
   | STRSUFF_TOK    { $kind = CVC4::kind::STRING_SUFFIX; }
-  | STRITOS_TOK      { $kind = CVC4::kind::STRING_ITOS; }
-  | STRSTOI_TOK      { $kind = CVC4::kind::STRING_STOI; }
+  | STRITOS_TOK    { $kind = CVC4::kind::STRING_ITOS; }
+  | STRSTOI_TOK    { $kind = CVC4::kind::STRING_STOI; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
-  | REUNION_TOK       { $kind = CVC4::kind::REGEXP_UNION; }
+  | REUNION_TOK    { $kind = CVC4::kind::REGEXP_UNION; }
   | REINTER_TOK    { $kind = CVC4::kind::REGEXP_INTER; }
   | RESTAR_TOK     { $kind = CVC4::kind::REGEXP_STAR; }
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
@@ -1705,6 +1711,8 @@ RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';
 RERANGE_TOK : 're.range';
+RENOSTR_TOK : 're.nostr';
+REALLCHAR_TOK : 're.allchar';
 
 SETUNION_TOK: 'union';
 SETINT_TOK: 'intersection';

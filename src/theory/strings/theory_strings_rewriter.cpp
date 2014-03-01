@@ -284,8 +284,8 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
 			}
 		}
 		default: {
-			Trace("strings-postrewrite") << "Unsupported term: " << r << " in testConstStringInRegExp." << std::endl;
-			AlwaysAssert( false, "Unsupported Term" );
+			Trace("strings-error") << "Unsupported term: " << r << " in testConstStringInRegExp." << std::endl;
+			Assert( false, "Unsupported Term" );
 			return false;
 		}
 	}

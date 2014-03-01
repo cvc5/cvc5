@@ -99,8 +99,8 @@ void StringsPreprocess::processRegExp( Node s, Node r, std::vector< Node > &ret 
 			break;
 		}
 		default: {
-			Trace("strings-preprocess") << "Unsupported term: " << r << " in simplifyRegExp." << std::endl;
-			AlwaysAssert( false, "Unsupported Term" );
+			Trace("strings-error") << "Unsupported term: " << r << " in simplifyRegExp." << std::endl;
+			Assert( false, "Unsupported Term" );
 		}
 	}
 }

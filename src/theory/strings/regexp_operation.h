@@ -54,12 +54,12 @@ private:
 	void simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes );
 	std::string niceChar( Node r );
 	int gcd ( int a, int b );
+	Node mkAllExceptOne( char c );
 
 public:
 	RegExpOpr();
 	bool checkConstRegExp( Node r );
     void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
-	Node mkAllExceptOne( char c );
 	Node complement( Node r );
 	int delta( Node r );
 	Node derivativeSingle( Node r, CVC4::String c );
