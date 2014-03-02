@@ -2,6 +2,7 @@
 #include "smt/smt_engine.h"
 %}
 
+#ifdef SWIGJAVA
 %typemap(javacode) CVC4::SmtEngine %{
   // a ref is kept here to keep Java GC from collecting the EM
   // before the SmtEngine
@@ -41,6 +42,8 @@ SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jc
       swigCPtr = 0;
     }
   }
+#endif // SWIGJAVA
+
 
 %ignore CVC4::SmtEngine::setLogic(const char*);
 %ignore CVC4::stats::getStatisticsRegistry(SmtEngine*);
