@@ -770,6 +770,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector< std::pair<std::string, Expr> > binders;
   Type type;
   std::string s;
+  bool isBuiltinOperator = false;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -835,7 +836,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if(f.getKind() == CVC4::kind::EMPTYSET) {
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
-        // TODO: what is f2 about, should we add some assertions?
         expr = MK_CONST( ::CVC4::EmptySet(type) );
       } else {
         if(f.getType() != type) {
@@ -879,34 +879,44 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | /* A non-built-in function application */
-    LPAREN_TOK
-    functionName[name, CHECK_DECLARED]
-    { PARSER_STATE->checkFunctionLike(name);
-      const bool isDefinedFunction =
-        PARSER_STATE->isDefinedFunction(name);
-      if(isDefinedFunction) {
-        expr = PARSER_STATE->getFunction(name);
-        kind = CVC4::kind::APPLY;
+  | LPAREN_TOK functionName[name, CHECK_NONE]
+    { isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
+      if(isBuiltinOperator) {
+        /* A built-in operator not already handled by the lexer */
+        kind = PARSER_STATE->getOperatorKind(name);
       } else {
-        expr = PARSER_STATE->getVariable(name);
-        Type t = expr.getType();
-        if(t.isConstructor()) {
-          kind = CVC4::kind::APPLY_CONSTRUCTOR;
-        } else if(t.isSelector()) {
-          kind = CVC4::kind::APPLY_SELECTOR;
-        } else if(t.isTester()) {
-          kind = CVC4::kind::APPLY_TESTER;
+        /* A non-built-in function application */
+        PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+        PARSER_STATE->checkFunctionLike(name);
+        const bool isDefinedFunction =
+          PARSER_STATE->isDefinedFunction(name);
+        if(isDefinedFunction) {
+          expr = PARSER_STATE->getFunction(name);
+          kind = CVC4::kind::APPLY;
         } else {
-          kind = CVC4::kind::APPLY_UF;
+          expr = PARSER_STATE->getVariable(name);
+          Type t = expr.getType();
+          if(t.isConstructor()) {
+            kind = CVC4::kind::APPLY_CONSTRUCTOR;
+          } else if(t.isSelector()) {
+            kind = CVC4::kind::APPLY_SELECTOR;
+          } else if(t.isTester()) {
+            kind = CVC4::kind::APPLY_TESTER;
+          } else {
+            kind = CVC4::kind::APPLY_UF;
+          }
         }
+        args.push_back(expr);
       }
-      args.push_back(expr);
-    }
+        }
     termList[args,expr] RPAREN_TOK
     { Debug("parser") << "args has size " << args.size() << std::endl << "expr is " << expr << std::endl;
-      for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+      for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
         Debug("parser") << "++ " << *i << std::endl;
+      }
+      if(isBuiltinOperator) {
+        PARSER_STATE->checkOperator(kind, args.size());
+      }
       expr = MK_EXPR(kind, args); }
 
   | /* An indexed function application */
@@ -1283,14 +1293,6 @@ builtinOp[CVC4::Kind& kind]
                      if(PARSER_STATE->strictModeEnabled()) {
                        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, and aren't available in SMT-LIB strict compliance mode");
                      } }
-  //NEW string
-  //STRCONS_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
-  //STRREVCONS_TOK { $kind = CVC4::kind::STRING_CONCAT; }
-  //STRHEAD_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
-  //STRTAIL_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
-  //STRLAST_TOK    { $kind = CVC4::kind::STRING_CONCAT; }
-  //STRFIRST_TOK   { $kind = CVC4::kind::STRING_CONCAT; }
-  //OLD string
   | STRCON_TOK     { $kind = CVC4::kind::STRING_CONCAT; }
   | STRLEN_TOK     { $kind = CVC4::kind::STRING_LENGTH; }
   | STRSUB_TOK     { $kind = CVC4::kind::STRING_SUBSTR; }
@@ -1311,12 +1313,6 @@ builtinOp[CVC4::Kind& kind]
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
   | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
-  | SETUNION_TOK  { $kind = CVC4::kind::UNION; }
-  | SETINT_TOK    { $kind = CVC4::kind::INTERSECTION; }
-  | SETMINUS_TOK  { $kind = CVC4::kind::SETMINUS; }
-  | SETSUB_TOK    { $kind = CVC4::kind::SUBSET; }
-  | SETIN_TOK     { $kind = CVC4::kind::MEMBER; }
-  | SETSINGLETON_TOK { $kind = CVC4::kind::SET_SINGLETON; }
 
   // NOTE: Theory operators go here
   ;
@@ -1335,18 +1331,6 @@ quantOp[CVC4::Kind& kind]
  */
 functionName[std::string& name, CVC4::parser::DeclarationCheck check]
   : symbol[name,check,SYM_VARIABLE]
-  ;
-
-/**
- * Matches an previously declared function symbol (returning an Expr)
- */
-functionSymbol[CVC4::Expr& fun]
-@declarations {
-  std::string name;
-}
-  : functionName[name,CHECK_DECLARED]
-    { PARSER_STATE->checkFunctionLike(name);
-      fun = PARSER_STATE->getVariable(name); }
   ;
 
 /**
@@ -1421,12 +1405,14 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
-      if(name == "Array") {
+      if(name == "Array" &&
+         PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
         if(args.size() != 2) {
           PARSER_STATE->parseError("Illegal array type.");
         }
         t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
-      } else if(name == "Set") {
+      } else if(name == "Set" &&
+                PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) ) {
         if(args.size() != 1) {
           PARSER_STATE->parseError("Illegal set type.");
         }
@@ -1682,15 +1668,6 @@ BVSGE_TOK : 'bvsge';
 BV2NAT_TOK : 'bv2nat';
 INT2BV_TOK : 'int2bv';
 
-//STRING
-//NEW
-//STRCONS_TOK : 'str.cons';
-//STRREVCONS_TOK : 'str.revcons';
-//STRHEAD_TOK : 'str.head';
-//STRTAIL_TOK : 'str.tail';
-//STRLAST_TOK : 'str.last';
-//STRFIRST_TOK : 'str.first';
-//OLD
 STRCON_TOK : 'str.++';
 STRLEN_TOK : 'str.len';
 STRSUB_TOK : 'str.substr' ;
@@ -1714,13 +1691,10 @@ RERANGE_TOK : 're.range';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
 
-SETUNION_TOK: 'union';
-SETINT_TOK: 'intersection';
-SETMINUS_TOK: 'setminus';
-SETSUB_TOK: 'subseteq';
-SETIN_TOK: 'in';
-SETSINGLETON_TOK: 'setenum';
-EMPTYSET_TOK: 'emptyset';
+EMPTYSET_TOK: 'emptyset'; // Other set theory operators are not
+                          // tokenized and handled directly when
+                          // processing a term
+
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts
