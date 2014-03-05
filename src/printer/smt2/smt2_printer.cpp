@@ -281,7 +281,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::ABS:
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
-  case kind::TO_REAL: out << smtKindString(k) << " "; break;
+  case kind::TO_REAL:
+  case kind::POW: out << smtKindString(k) << " "; break;
 
   case kind::DIVISIBLE:
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -545,6 +546,7 @@ static string smtKindString(Kind k) throw() {
   case kind::IS_INTEGER: return "is_int";
   case kind::TO_INTEGER: return "to_int";
   case kind::TO_REAL: return "to_real";
+  case kind::POW: return "^";
 
     // arrays theory
   case kind::SELECT: return "select";

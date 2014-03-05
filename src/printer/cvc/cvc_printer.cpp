@@ -478,6 +478,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << ">=";
       opType = INFIX;
       break;
+    case kind::POW:
+      op << '^';
+      opType = INFIX;
+      break;
 
     // BITVECTORS
     case kind::BITVECTOR_XOR:

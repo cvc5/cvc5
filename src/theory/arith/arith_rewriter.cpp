@@ -121,11 +121,14 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
       return RewriteResponse(REWRITE_DONE, t[0]);
+    case kind::POW:
+      return RewriteResponse(REWRITE_DONE, t);
     default:
       Unhandled(k);
     }
   }
 }
+
 RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
   if(t.isConst()){
     return rewriteConstant(t);
@@ -182,6 +185,33 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       //Unimplemented("IS_INTEGER, nonconstant");
       //return rewriteIsInteger(t);
       return RewriteResponse(REWRITE_DONE, t);
+    case kind::POW:
+      {
+        if(t[1].getKind() == kind::CONST_RATIONAL){
+          const Rational& exp = t[1].getConst<Rational>();
+          TNode base = t[0];
+          if(exp.sgn() == 0){
+            return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
+          }else if(exp.sgn() > 0 && exp.isIntegral()){
+            Integer num = exp.getNumerator();
+            NodeBuilder<> nb(kind::MULT);
+            Integer one(1);
+            for(Integer i(0); i < num; i = i + one){
+              nb << base;
+            }
+            Assert(nb.getNumChildren() > 0);
+            Node mult = nb;
+            return RewriteResponse(REWRITE_AGAIN, mult);
+          }
+        }
+
+        // Todo improve the exception thrown
+        std::stringstream ss;
+        ss << "The POW(^) operator can only be used with a natural number ";
+        ss << "in the exponent.  Exception occured in:" << std::endl;
+        ss << "  " << t;
+        throw Exception(ss.str());
+      }
     default:
       Unreachable();
     }
