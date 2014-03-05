@@ -46,6 +46,7 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
+	arrayinuf_declare.smt2 \
 	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
@@ -164,12 +165,14 @@ EXTRA_DIST = $(TESTS) \
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
-	error.cvc
+	error.cvc \
+	arrayinuf_error.smt2
 endif
 
 # and make sure to distribute it
 EXTRA_DIST += \
 	subranges.cvc \
+	arrayinuf_error.smt2 \
 	error.cvc
 
 # synonyms for "check" in this directory

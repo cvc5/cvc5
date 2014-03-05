@@ -1,4 +1,4 @@
 % EXPECT-ERROR: CVC4 Error:
-% EXPECT-ERROR: Parse Error: error.cvc:3.8: Symbol BOOL not declared as a type
+% EXPECT-ERROR: Parse Error: error.cvc:3.8: Symbol 'BOOL' not declared as a type
 p : BOOL;
 % EXIT: 1

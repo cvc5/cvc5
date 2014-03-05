@@ -44,12 +44,15 @@ public:
     THEORY_REALS,
     THEORY_REALS_INTS,
     THEORY_QUANTIFIERS,
-    THEORY_STRINGS
+    THEORY_SETS,
+    THEORY_STRINGS,
+    THEORY_UF
   };
 
 private:
   bool d_logicSet;
   LogicInfo d_logic;
+  std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -61,6 +64,14 @@ public:
    * @param theory the theory to open (e.g., Core, Ints)
    */
   void addTheory(Theory theory);
+
+  void addOperator(Kind k, const std::string& name);
+
+  Kind getOperatorKind(const std::string& name) const;
+
+  bool isOperatorEnabled(const std::string& name) const;
+
+  bool isTheoryEnabled(Theory theory) const;
 
   bool logicIsSet();
 

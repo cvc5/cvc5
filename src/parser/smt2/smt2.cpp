@@ -37,111 +37,121 @@ Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOn
 }
 
 void Smt2::addArithmeticOperators() {
-  addOperator(kind::PLUS);
-  addOperator(kind::MINUS);
-  addOperator(kind::UMINUS);
-  addOperator(kind::MULT);
-  addOperator(kind::LT);
-  addOperator(kind::LEQ);
-  addOperator(kind::GT);
-  addOperator(kind::GEQ);
+  Parser::addOperator(kind::PLUS);
+  Parser::addOperator(kind::MINUS);
+  Parser::addOperator(kind::UMINUS);
+  Parser::addOperator(kind::MULT);
+  Parser::addOperator(kind::LT);
+  Parser::addOperator(kind::LEQ);
+  Parser::addOperator(kind::GT);
+  Parser::addOperator(kind::GEQ);
 }
 
 void Smt2::addBitvectorOperators() {
-  addOperator(kind::BITVECTOR_CONCAT);
-  addOperator(kind::BITVECTOR_AND);
-  addOperator(kind::BITVECTOR_OR);
-  addOperator(kind::BITVECTOR_XOR);
-  addOperator(kind::BITVECTOR_NOT);
-  addOperator(kind::BITVECTOR_NAND);
-  addOperator(kind::BITVECTOR_NOR);
-  addOperator(kind::BITVECTOR_XNOR);
-  addOperator(kind::BITVECTOR_COMP);
-  addOperator(kind::BITVECTOR_MULT);
-  addOperator(kind::BITVECTOR_PLUS);
-  addOperator(kind::BITVECTOR_SUB);
-  addOperator(kind::BITVECTOR_NEG);
-  addOperator(kind::BITVECTOR_UDIV);
-  addOperator(kind::BITVECTOR_UREM);
-  addOperator(kind::BITVECTOR_SDIV);
-  addOperator(kind::BITVECTOR_SREM);
-  addOperator(kind::BITVECTOR_SMOD);
-  addOperator(kind::BITVECTOR_SHL);
-  addOperator(kind::BITVECTOR_LSHR);
-  addOperator(kind::BITVECTOR_ASHR);
-  addOperator(kind::BITVECTOR_ULT);
-  addOperator(kind::BITVECTOR_ULE);
-  addOperator(kind::BITVECTOR_UGT);
-  addOperator(kind::BITVECTOR_UGE);
-  addOperator(kind::BITVECTOR_SLT);
-  addOperator(kind::BITVECTOR_SLE);
-  addOperator(kind::BITVECTOR_SGT);
-  addOperator(kind::BITVECTOR_SGE);
-  addOperator(kind::BITVECTOR_BITOF);
-  addOperator(kind::BITVECTOR_EXTRACT);
-  addOperator(kind::BITVECTOR_REPEAT);
-  addOperator(kind::BITVECTOR_ZERO_EXTEND);
-  addOperator(kind::BITVECTOR_SIGN_EXTEND);
-  addOperator(kind::BITVECTOR_ROTATE_LEFT);
-  addOperator(kind::BITVECTOR_ROTATE_RIGHT);
+  Parser::addOperator(kind::BITVECTOR_CONCAT);
+  Parser::addOperator(kind::BITVECTOR_AND);
+  Parser::addOperator(kind::BITVECTOR_OR);
+  Parser::addOperator(kind::BITVECTOR_XOR);
+  Parser::addOperator(kind::BITVECTOR_NOT);
+  Parser::addOperator(kind::BITVECTOR_NAND);
+  Parser::addOperator(kind::BITVECTOR_NOR);
+  Parser::addOperator(kind::BITVECTOR_XNOR);
+  Parser::addOperator(kind::BITVECTOR_COMP);
+  Parser::addOperator(kind::BITVECTOR_MULT);
+  Parser::addOperator(kind::BITVECTOR_PLUS);
+  Parser::addOperator(kind::BITVECTOR_SUB);
+  Parser::addOperator(kind::BITVECTOR_NEG);
+  Parser::addOperator(kind::BITVECTOR_UDIV);
+  Parser::addOperator(kind::BITVECTOR_UREM);
+  Parser::addOperator(kind::BITVECTOR_SDIV);
+  Parser::addOperator(kind::BITVECTOR_SREM);
+  Parser::addOperator(kind::BITVECTOR_SMOD);
+  Parser::addOperator(kind::BITVECTOR_SHL);
+  Parser::addOperator(kind::BITVECTOR_LSHR);
+  Parser::addOperator(kind::BITVECTOR_ASHR);
+  Parser::addOperator(kind::BITVECTOR_ULT);
+  Parser::addOperator(kind::BITVECTOR_ULE);
+  Parser::addOperator(kind::BITVECTOR_UGT);
+  Parser::addOperator(kind::BITVECTOR_UGE);
+  Parser::addOperator(kind::BITVECTOR_SLT);
+  Parser::addOperator(kind::BITVECTOR_SLE);
+  Parser::addOperator(kind::BITVECTOR_SGT);
+  Parser::addOperator(kind::BITVECTOR_SGE);
+  Parser::addOperator(kind::BITVECTOR_BITOF);
+  Parser::addOperator(kind::BITVECTOR_EXTRACT);
+  Parser::addOperator(kind::BITVECTOR_REPEAT);
+  Parser::addOperator(kind::BITVECTOR_ZERO_EXTEND);
+  Parser::addOperator(kind::BITVECTOR_SIGN_EXTEND);
+  Parser::addOperator(kind::BITVECTOR_ROTATE_LEFT);
+  Parser::addOperator(kind::BITVECTOR_ROTATE_RIGHT);
 
-  addOperator(kind::INT_TO_BITVECTOR);
-  addOperator(kind::BITVECTOR_TO_NAT);
+  Parser::addOperator(kind::INT_TO_BITVECTOR);
+  Parser::addOperator(kind::BITVECTOR_TO_NAT);
 }
 
 void Smt2::addStringOperators() {
-  addOperator(kind::STRING_CONCAT);
-  addOperator(kind::STRING_LENGTH);
-  //addOperator(kind::STRING_IN_REGEXP);
+  Parser::addOperator(kind::STRING_CONCAT);
+  Parser::addOperator(kind::STRING_LENGTH);
 }
 
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
+  case THEORY_ARRAYS:
+    Parser::addOperator(kind::SELECT);
+    Parser::addOperator(kind::STORE);
+    break;
+
+  case THEORY_BITVECTORS:
+    addBitvectorOperators();
+    break;
+
   case THEORY_CORE:
     defineType("Bool", getExprManager()->booleanType());
     defineVar("true", getExprManager()->mkConst(true));
     defineVar("false", getExprManager()->mkConst(false));
-    addOperator(kind::AND);
-    addOperator(kind::DISTINCT);
-    addOperator(kind::EQUAL);
-    addOperator(kind::IFF);
-    addOperator(kind::IMPLIES);
-    addOperator(kind::ITE);
-    addOperator(kind::NOT);
-    addOperator(kind::OR);
-    addOperator(kind::XOR);
-    break;
-
-  case THEORY_ARRAYS:
-    addOperator(kind::SELECT);
-    addOperator(kind::STORE);
+    Parser::addOperator(kind::AND);
+    Parser::addOperator(kind::DISTINCT);
+    Parser::addOperator(kind::EQUAL);
+    Parser::addOperator(kind::IFF);
+    Parser::addOperator(kind::IMPLIES);
+    Parser::addOperator(kind::ITE);
+    Parser::addOperator(kind::NOT);
+    Parser::addOperator(kind::OR);
+    Parser::addOperator(kind::XOR);
     break;
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    addOperator(kind::DIVISION);
-    addOperator(kind::TO_INTEGER);
-    addOperator(kind::IS_INTEGER);
-    addOperator(kind::TO_REAL);
+    Parser::addOperator(kind::DIVISION);
+    Parser::addOperator(kind::TO_INTEGER);
+    Parser::addOperator(kind::IS_INTEGER);
+    Parser::addOperator(kind::TO_REAL);
     // falling through on purpose, to add Ints part of Reals_Ints
-
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
-    addOperator(kind::INTS_DIVISION);
-    addOperator(kind::INTS_MODULUS);
-    addOperator(kind::ABS);
-    addOperator(kind::DIVISIBLE);
+    Parser::addOperator(kind::INTS_DIVISION);
+    Parser::addOperator(kind::INTS_MODULUS);
+    Parser::addOperator(kind::ABS);
+    Parser::addOperator(kind::DIVISIBLE);
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
-    addOperator(kind::DIVISION);
+    Parser::addOperator(kind::DIVISION);
     break;
 
-  case THEORY_BITVECTORS:
-    addBitvectorOperators();
+  case THEORY_QUANTIFIERS:
+    break;
+
+  case THEORY_SETS:
+    addOperator(kind::UNION, "union");
+    addOperator(kind::INTERSECTION, "intersection");
+    addOperator(kind::SETMINUS, "setminus");
+    addOperator(kind::SUBSET, "subseteq");
+    addOperator(kind::MEMBER, "in");
+    addOperator(kind::SET_SINGLETON, "setenum");
     break;
 
   case THEORY_STRINGS:
@@ -149,9 +159,58 @@ void Smt2::addTheory(Theory theory) {
     addStringOperators();
     break;
 
-  case THEORY_QUANTIFIERS:
+  case THEORY_UF:
+    Parser::addOperator(kind::APPLY_UF);
     break;
 
+  default:
+    std::stringstream ss;
+    ss << "internal error: unsupported theory " << theory;
+    throw ParserException(ss.str());
+  }
+}
+
+void Smt2::addOperator(Kind kind, const std::string& name) {
+  Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
+                  << std::endl;
+  Parser::addOperator(kind);
+  operatorKindMap[name] = kind;
+}
+
+Kind Smt2::getOperatorKind(const std::string& name) const {
+  // precondition: isOperatorEnabled(name)
+  return operatorKindMap.find(name)->second;
+}
+
+bool Smt2::isOperatorEnabled(const std::string& name) const {
+  return operatorKindMap.find(name) != operatorKindMap.end();
+}
+
+bool Smt2::isTheoryEnabled(Theory theory) const {
+  switch(theory) {
+  case THEORY_ARRAYS:
+    return d_logic.isTheoryEnabled(theory::THEORY_ARRAY);
+  case THEORY_BITVECTORS:
+    return d_logic.isTheoryEnabled(theory::THEORY_BV);
+  case THEORY_CORE:
+    return true;
+  case THEORY_INTS:
+    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+      d_logic.areIntegersUsed() && ( !d_logic.areRealsUsed() );
+  case THEORY_REALS:
+    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+      ( !d_logic.areIntegersUsed() ) && d_logic.areRealsUsed();
+  case THEORY_REALS_INTS:
+    return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
+      d_logic.areIntegersUsed() && d_logic.areRealsUsed();
+  case THEORY_QUANTIFIERS:
+    return d_logic.isQuantified();
+  case THEORY_SETS:
+    return d_logic.isTheoryEnabled(theory::THEORY_SETS);
+  case THEORY_STRINGS:
+    return d_logic.isTheoryEnabled(theory::THEORY_STRINGS);
+  case THEORY_UF:
+    return d_logic.isTheoryEnabled(theory::THEORY_UF);
   default:
     std::stringstream ss;
     ss << "internal error: unsupported theory " << theory;
@@ -171,7 +230,7 @@ void Smt2::setLogic(const std::string& name) {
   addTheory(THEORY_CORE);
 
   if(d_logic.isTheoryEnabled(theory::THEORY_UF)) {
-    addOperator(kind::APPLY_UF);
+    addTheory(THEORY_UF);
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARITH)) {
@@ -192,6 +251,10 @@ void Smt2::setLogic(const std::string& name) {
 
   if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
     addTheory(THEORY_BITVECTORS);
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
+    addTheory(THEORY_SETS);
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_STRINGS)) {
