@@ -238,6 +238,25 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+inline Node getIdentity(Kind k){
+  switch(k){
+  case kind::AND:
+    return NodeManager::currentNM()->mkConst<bool>(true);
+  case kind::PLUS:
+    return NodeManager::currentNM()->mkConst(Rational(1));
+  default:
+    Unreachable();
+  }
+}
+
+inline Node safeConstructNary(NodeBuilder<>& nb){
+  switch(nb.getNumChildren()){
+  case 0:  return getIdentity(nb.getKind());
+  case 1:  return nb[0];
+  default: return (Node)nb;
+  }
+}
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -65,11 +65,105 @@ ArithCongruenceManager::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_conflicts);
 }
 
+ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongruenceManager& acm)
+  : d_acm(acm)
+{}
+
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerEquality(TNode equality, bool value) {
+  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
+  if (value) {
+    return d_acm.propagate(equality);
+  } else {
+    return d_acm.propagate(equality.notNode());
+  }
+}
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(TNode predicate, bool value) {
+  Unreachable();
+}
+
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
+  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
+  if (value) {
+    return d_acm.propagate(t1.eqNode(t2));
+  } else {
+    return d_acm.propagate(t1.eqNode(t2).notNode());
+  }
+}
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
+  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
+  if (t1.getKind() == kind::CONST_BOOLEAN) {
+    d_acm.propagate(t1.iffNode(t2));
+  } else {
+    d_acm.propagate(t1.eqNode(t2));
+  }
+}
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
+}
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
+}
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
+}
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
+}
+
+void ArithCongruenceManager::raiseConflict(Node conflict){
+  Assert(!inConflict());
+  Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
+  d_inConflict.raise();
+  d_raiseConflict.blackBoxConflict(conflict);
+}
+bool ArithCongruenceManager::inConflict() const{
+  return d_inConflict.isRaised();
+}
+
+bool ArithCongruenceManager::hasMorePropagations() const {
+  return !d_propagatations.empty();
+}
+const Node ArithCongruenceManager::getNextPropagation() {
+  Assert(hasMorePropagations());
+  Node prop = d_propagatations.front();
+  d_propagatations.dequeue();
+  return prop;
+}
+
+bool ArithCongruenceManager::canExplain(TNode n) const {
+  return d_explanationMap.find(n) != d_explanationMap.end();
+}
+
 void ArithCongruenceManager::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_ee.setMasterEqualityEngine(eq);
 }
 
-void ArithCongruenceManager::watchedVariableIsZero(Constraint lb, Constraint ub){
+Node ArithCongruenceManager::externalToInternal(TNode n) const{
+  Assert(canExplain(n));
+  ExplainMap::const_iterator iter = d_explanationMap.find(n);
+  size_t pos = (*iter).second;
+  return d_propagatations[pos];
+}
+
+void ArithCongruenceManager::pushBack(TNode n){
+  d_explanationMap.insert(n, d_propagatations.size());
+  d_propagatations.enqueue(n);
+
+  ++(d_statistics.d_propagations);
+}
+void ArithCongruenceManager::pushBack(TNode n, TNode r){
+  d_explanationMap.insert(r, d_propagatations.size());
+  d_explanationMap.insert(n, d_propagatations.size());
+  d_propagatations.enqueue(n);
+
+  ++(d_statistics.d_propagations);
+}
+void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w){
+  d_explanationMap.insert(w, d_propagatations.size());
+  d_explanationMap.insert(r, d_propagatations.size());
+  d_explanationMap.insert(n, d_propagatations.size());
+  d_propagatations.enqueue(n);
+
+  ++(d_statistics.d_propagations);
+}
+
+void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP ub){
   Assert(lb->isLowerBound());
   Assert(ub->isUpperBound());
   Assert(lb->getVariable() == ub->getVariable());
@@ -79,13 +173,13 @@ void ArithCongruenceManager::watchedVariableIsZero(Constraint lb, Constraint ub)
   ++(d_statistics.d_watchedVariableIsZero);
 
   ArithVar s = lb->getVariable();
-  Node reason = ConstraintValue::explainConflict(lb,ub);
+  Node reason = Constraint_::externalExplainByAssertions(lb,ub);
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason);
 }
 
-void ArithCongruenceManager::watchedVariableIsZero(Constraint eq){
+void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   Assert(eq->isEquality());
   Assert(eq->getValue().sgn() == 0);
 
@@ -96,20 +190,20 @@ void ArithCongruenceManager::watchedVariableIsZero(Constraint eq){
   //Explain for conflict is correct as these proofs are generated
   //and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = eq->explainForConflict();
+  Node reason = eq->externalExplainByAssertions();
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(true, s, reason);
 }
 
-void ArithCongruenceManager::watchedVariableCannotBeZero(Constraint c){
+void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   ++(d_statistics.d_watchedVariableIsNotZero);
 
   ArithVar s = c->getVariable();
 
   //Explain for conflict is correct as these proofs are generated and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = c->explainForConflict();
+  Node reason = c->externalExplainByAssertions();
 
   d_keepAlive.push_back(reason);
   assertionToEqualityEngine(false, s, reason);
@@ -142,7 +236,7 @@ bool ArithCongruenceManager::propagate(TNode x){
 
   Assert(rewritten.getKind() != kind::CONST_BOOLEAN);
 
-  Constraint c = d_constraintDatabase.lookup(rewritten);
+  ConstraintP c = d_constraintDatabase.lookup(rewritten);
   if(c == NullConstraint){
     //using setup as there may not be a corresponding congruence literal yet
     d_setupLiteral(rewritten);
@@ -158,7 +252,8 @@ bool ArithCongruenceManager::propagate(TNode x){
 
   if(c->negationHasProof()){
     Node expC = explainInternal(x);
-    Node neg = c->getNegation()->explainForConflict();
+    ConstraintCP negC = c->getNegation();
+    Node neg = negC->externalExplainByAssertions();
     Node conf = expC.andNode(neg);
     Node final = flattenAnd(conf);
 
@@ -288,7 +383,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
   }
 }
 
-void ArithCongruenceManager::equalsConstant(Constraint c){
+void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Assert(c->isEquality());
 
   ++(d_statistics.d_equalsConstantCalls);
@@ -303,13 +398,13 @@ void ArithCongruenceManager::equalsConstant(Constraint c){
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
 
-  Node reason = c->explainForConflict();
+  Node reason = c->externalExplainByAssertions();
   d_keepAlive.push_back(reason);
 
   d_ee.assertEquality(eq, true, reason);
 }
 
-void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
+void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   Assert(lb->isLowerBound());
   Assert(ub->isUpperBound());
   Assert(lb->getVariable() == ub->getVariable());
@@ -319,7 +414,7 @@ void ArithCongruenceManager::equalsConstant(Constraint lb, Constraint ub){
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
-  Node reason = ConstraintValue::explainConflict(lb,ub);
+  Node reason = Constraint_::externalExplainByAssertions(lb,ub);
 
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());

@@ -818,6 +818,9 @@ public:
    */
   void checkTheoryAssertionsWithModel();
 
+private:
+  IntStat d_arithSubstitutionsAdded;
+
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */
