@@ -1979,10 +1979,10 @@ void TheoryStrings::checkDeqNF() {
 			for( unsigned j=0; j<cols[i].size(); j++ ){
 				for( unsigned k=(j+1); k<cols[i].size(); k++ ){
 					Assert( !d_conflict );
-					//if( !areDisequal( cols[i][j], cols[i][k] ) ){
-					//	sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
-					//	return;
-					//}else{
+					if( !areDisequal( cols[i][j], cols[i][k] ) ){
+						sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
+						return;
+					}else{
 						Trace("strings-solve") << "- Compare ";
 						printConcat( d_normal_forms[cols[i][j]], "strings-solve" );
 						Trace("strings-solve") << " against ";
@@ -1991,7 +1991,7 @@ void TheoryStrings::checkDeqNF() {
 						if( processDeq( cols[i][j], cols[i][k] ) ){
 							return;
 						}
-					//}
+					}
 				}
 			}
 		}
