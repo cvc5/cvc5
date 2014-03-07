@@ -25,6 +25,7 @@
 #include "theory/strings/regexp_operation.h"
 
 #include "context/cdchunk_list.h"
+#include "context/cdhashset.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,6 +41,8 @@ class TheoryStrings : public Theory {
 	typedef context::CDHashMap<Node, NodeList*, NodeHashFunction> NodeListMap;
 	typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 	typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+	typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+	typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
 public:
 	TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
@@ -117,7 +120,6 @@ private:
     Node d_zero;
 	Node d_one;
 	// Options
-	bool d_all_warning;
 	bool d_opt_fmf;
 	bool d_opt_regexp_gcd;
 	// Helper functions
@@ -135,7 +137,6 @@ private:
     eq::EqualityEngine d_equalityEngine;
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
-	std::vector< Node > d_length_intro_vars;
 	//list of pairs of nodes to merge
 	std::map< Node, Node > d_pending_exp;
 	std::vector< Node > d_pending;
@@ -154,7 +155,7 @@ private:
 	bool isNormalFormPair( Node n1, Node n2 );
 	bool isNormalFormPair2( Node n1, Node n2 );
 	// loop ant
-	std::map< Node, bool > d_loop_antec;
+	NodeSet d_loop_antec;
 
 	/////////////////////////////////////////////////////////////////////////////
 	// MODEL GENERATION
@@ -192,7 +193,7 @@ private:
 	std::map< Node, EqcInfo* > d_eqc_info;
 	EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
 	//maintain which concat terms have the length lemma instantiated
-	std::map< Node, bool > d_length_inst;
+	NodeSet d_length_inst;
 	NodeBoolMap d_length_nodes;
 private:
 	void mergeCstVec(std::vector< Node > &vec_strings);
@@ -220,7 +221,8 @@ private:
     bool processDeq( Node n1, Node n2 );
 	int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
 	int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-	bool unrollStar( Node atom );
+	//bool unrollStar( Node atom );
+	Node mkRegExpAntec(Node atom, Node ant);
 
 	bool checkSimple();
     bool checkNormalForms();
@@ -229,7 +231,7 @@ private:
     bool checkCardinality();
     bool checkInductiveEquations();
 	bool checkMemberships();
-	bool checkMemberships2();
+	bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &processed, std::vector< Node > &cprocessed);
 	bool checkContains();
 	bool checkPosContains();
 	bool checkNegContains();
@@ -279,41 +281,27 @@ protected:
 	void separateByLength( std::vector< Node >& n, std::vector< std::vector< Node > >& col, std::vector< Node >& lts );
 	void printConcat( std::vector< Node >& n, const char * c );
 
-	// Measurement
 private:
-	//NodeIntMap d_var_lmin;
-	//NodeIntMap d_var_lmax;
-	std::map< Node, Node > d_var_split_graph_lhs;
-	std::map< Node, Node > d_var_split_graph_rhs;
-	std::map< Node, bool > d_var_lgtz;
 	Node mkSplitEq( const char * c, const char * info, Node lhs, Node rhs, bool lgtZero );
-	int getMaxPossibleLength( Node x );
 
 	// Special String Functions
 	NodeList d_str_pos_ctn;
 	NodeList d_str_neg_ctn;
-	std::map< Node, bool > d_str_ctn_eqlen;
-	std::map< Node, bool > d_str_neg_ctn_ulen;
-	std::map< Node, bool > d_str_pos_ctn_rewritten;
-	std::map< Node, bool > d_str_neg_ctn_rewritten;
+	NodeSet d_neg_ctn_eqlen;
+	NodeSet d_neg_ctn_ulen;
+	NodeSet d_pos_ctn_cached;
+	NodeSet d_neg_ctn_cached;
 
 	// Regular Expression
 private:
 	// regular expression memberships
 	NodeList d_reg_exp_mem;
-	std::map< Node, bool > d_regexp_cache;
-	// antecedant for why reg exp membership must be true
-	std::map< Node, Node > d_reg_exp_ant;
-	std::map< Node, bool > d_reg_exp_unroll;
-	std::map< Node, int > d_reg_exp_unroll_depth;
-	bool d_regexp_incomplete;
-	int d_regexp_unroll_depth;
-	int d_regexp_max_depth;
+	NodeSet d_regexp_ucached;
+	NodeSet d_regexp_ccached;
+	// antecedant for why regexp membership must be true
+	NodeNodeMap d_regexp_ant;
 	// membership length
-	std::map< Node, bool > d_membership_length;
-	// regular expression derivative
-	std::map< Node, bool > d_reg_exp_deriv;
-	NodeBoolMap d_regexp_deriv_processed;
+	//std::map< Node, bool > d_membership_length;
 	// regular expression operations
 	RegExpOpr d_regexp_opr;
 
@@ -324,9 +312,9 @@ private:
 
 	// Finite Model Finding
 private:
-	std::vector< Node > d_in_vars;
-	Node d_in_var_lsum;
-	std::map< int, Node > d_cardinality_lits;
+	NodeSet d_input_vars;
+	context::CDO< Node > d_input_var_lsum;
+	context::CDHashMap< int, Node > d_cardinality_lits;
 	context::CDO< int > d_curr_cardinality;
 public:
 	//for finite model finding
@@ -341,7 +329,6 @@ public:
     IntStat d_eq_splits;
     IntStat d_deq_splits;
     IntStat d_loop_lemmas;
-    IntStat d_unroll_lemmas;
     IntStat d_new_skolems;
     Statistics();
     ~Statistics();
