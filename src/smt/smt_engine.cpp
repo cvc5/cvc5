@@ -3999,6 +3999,10 @@ void SmtEngine::checkModel(bool hardFailure) {
       continue;
     }
 
+    // Replace the already-known ITEs (this is important for ground ITEs under quantifiers).
+    n = d_private->d_iteRemover.replace(n);
+    Notice() << "SmtEngine::checkModel(): -- ite replacement gives " << n << endl;
+
     // As a last-ditch effort, ask model to simplify it.
     // Presently, this is only an issue for quantifiers, which can have a value
     // but don't show up in our substitution map above.

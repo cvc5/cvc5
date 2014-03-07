@@ -274,7 +274,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
       for( unsigned i=0; i<d_set[f].size(); i++) {
         Node v = d_set[f][i];
         Node r = d_range[f][v];
-        if( quantifiers::TermDb::hasBoundVarAttr(r) ){
+        if( r.hasBoundVar() ){
           //introduce a new bound
           Node new_range = NodeManager::currentNM()->mkSkolem( "bir_$$", r.getType(), "bound for term" );
           d_nground_range[f][v] = d_range[f][v];
@@ -384,5 +384,5 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
 }
 
 bool BoundedIntegers::isGroundRange(Node f, Node v) {
-  return isBoundVar(f,v) && !quantifiers::TermDb::hasBoundVarAttr(getLowerBound(f,v)) && !quantifiers::TermDb::hasBoundVarAttr(getUpperBound(f,v));
+  return isBoundVar(f,v) && !getLowerBound(f,v).hasBoundVar() && !getUpperBound(f,v).hasBoundVar();
 }

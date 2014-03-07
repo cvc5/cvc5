@@ -23,17 +23,19 @@
 #include "util/dump.h"
 #include "context/context.h"
 #include "context/cdinsert_hashmap.h"
+#include "util/hash.h"
+#include "util/bool.h"
 
 namespace CVC4 {
 
 namespace theory {
-class ContainsTermITEVistor;
-}
+  class ContainsTermITEVisitor;
+}/* CVC4::theory namespace */
 
 typedef std::hash_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveITE {
-  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> ITECache;
+  typedef context::CDInsertHashMap< std::pair<Node, bool>, Node, PairHashFunction<Node, bool, NodeHashFunction, BoolHashFunction> > ITECache;
   ITECache d_iteCache;
 
 
@@ -59,22 +61,28 @@ public:
    * ite created in conjunction with that skolem variable.
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
-           IteSkolemMap& iteSkolemMap, std::vector<Node>& quantVar);
+           IteSkolemMap& iteSkolemMap, bool inQuant);
 
-  /** Returns true if e contains a term ite.*/
-  bool containsTermITE(TNode e);
+  /**
+   * Substitute under node using pre-existing cache.  Do not remove
+   * any ITEs not seen during previous runs.
+   */
+  Node replace(TNode node, bool inQuant = false) const;
 
-  /** Returns the collected size of the caches.*/
+  /** Returns true if e contains a term ite. */
+  bool containsTermITE(TNode e) const;
+
+  /** Returns the collected size of the caches. */
   size_t collectedCacheSizes() const;
 
-  /** Garbage collects non-context dependent data-structures.*/
+  /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
 
-  /** Return the RemoveITE's containsVisitor.*/
-  theory::ContainsTermITEVistor* getContainsVisitor();
+  /** Return the RemoveITE's containsVisitor. */
+  theory::ContainsTermITEVisitor* getContainsVisitor();
 
 private:
-  theory::ContainsTermITEVistor* d_containsVisitor;
+  theory::ContainsTermITEVisitor* d_containsVisitor;
 
 };/* class RemoveTTE */
 

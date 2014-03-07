@@ -30,7 +30,8 @@ TESTS =	\
 	german73.smt2 \
 	PUZ001+1.smt2 \
 	refcount24.cvc.smt2 \
-	bug0909.smt2
+	bug0909.smt2 \
+	fmf-bound-int.smt2
 
 EXTRA_DIST = $(TESTS)
 

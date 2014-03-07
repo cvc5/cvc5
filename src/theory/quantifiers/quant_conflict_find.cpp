@@ -128,7 +128,7 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
     registerNode( n[1], hasPol, pol, true );
   }else{
     if( n.getKind()!=OR && n.getKind()!=AND && n.getKind()!=IFF && n.getKind()!=NOT ){
-      if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
+      if( n.hasBoundVar() ){
         //literals
         if( n.getKind()==EQUAL ){
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -162,7 +162,7 @@ void QuantInfo::registerNode( Node n, bool hasPol, bool pol, bool beneathQuant )
 
 void QuantInfo::flatten( Node n, bool beneathQuant ) {
   Trace("qcf-qregister-debug2") << "Flatten : " << n << std::endl;
-  if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
+  if( n.hasBoundVar() ){
     if( d_var_num.find( n )==d_var_num.end() ){
       Trace("qcf-qregister-debug2") << "Add FLATTEN VAR : " << n << std::endl;
       d_var_num[n] = d_vars.size();
@@ -647,7 +647,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar, bool beneathQuant ){
       d_type = typ_invalid;
     }
   }else{
-    if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
+    if( n.hasBoundVar() ){
       d_type_not = false;
       d_n = n;
       if( d_n.getKind()==NOT ){
@@ -693,7 +693,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar, bool beneathQuant ){
         //literals
         if( d_n.getKind()==EQUAL ){
           for( unsigned i=0; i<2; i++ ){
-            if( quantifiers::TermDb::hasBoundVarAttr( d_n[i] ) ){
+            if( d_n[i].hasBoundVar() ){
               if( !qi->isVar( d_n[i] ) ){
                 Trace("qcf-qregister-debug")  << "ERROR : not var " << d_n[i] << std::endl;
               }else if( d_n[i].getKind()==BOUND_VARIABLE && !beneathQuant ){
@@ -844,7 +844,7 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
     }
   }else if( d_type==typ_eq ){
     for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
-      if( !quantifiers::TermDb::hasBoundVarAttr( d_n[i] ) ){
+      if( !d_n[i].hasBoundVar() ){
         d_ground_eval[i] = p->evaluateTerm( d_n[i] );
       }
     }
@@ -1904,7 +1904,7 @@ void QuantConflictFind::computeRelevantEqr() {
     eq::EqClassIterator eqc_i = eq::EqClassIterator( r, getEqualityEngine() );
     while( !eqc_i.isFinished() ){
       TNode n = (*eqc_i);
-      if( quantifiers::TermDb::hasBoundVarAttr( n ) ){
+      if( n.hasBoundVar() ){
         std::cout << "BAD TERM IN DB : " << n << std::endl;
         exit( 199 );
       }
@@ -1945,7 +1945,7 @@ void QuantConflictFind::computeRelevantEqr() {
         //    std::cout << n.getKind() << " " << n.getOperator() << " " << n << std::endl;
         //  }
         //}
-        if( !quantifiers::TermDb::hasBoundVarAttr( n ) ){    //temporary
+        if( !n.hasBoundVar() ){    //temporary
 
           bool isRedundant;
           std::map< TNode, std::vector< TNode > >::iterator it_na;

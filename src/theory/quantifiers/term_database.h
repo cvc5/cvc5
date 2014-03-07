@@ -60,11 +60,6 @@ typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 struct ModelBasisArgAttributeId {};
 typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
 
-struct HasBoundVarAttributeId {};
-typedef expr::Attribute<HasBoundVarAttributeId, bool> HasBoundVarAttribute;
-struct HasBoundVarComputedAttributeId {};
-typedef expr::Attribute<HasBoundVarComputedAttributeId, bool> HasBoundVarComputedAttribute;
-
 //for rewrite rules
 struct QRewriteRuleAttributeId {};
 typedef expr::Attribute<QRewriteRuleAttributeId, Node> QRewriteRuleAttribute;
@@ -210,8 +205,6 @@ public:
   static bool hasInstConstAttr( Node n );
 //for bound variables
 public:
-  //does n have bound variables?
-  static bool hasBoundVarAttr( Node n );
   //get bound variables in n
   static void getBoundVars( Node n, std::vector< Node >& bvs);
 //for skolem
