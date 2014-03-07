@@ -157,16 +157,16 @@ protected:
    * If a conflict is discovered a node summarizing the conflict is returned.
    * Otherwise, Node::null() is returned.
    */
-  Node maybeGenerateConflictForBasic(ArithVar basic) const;
+  bool maybeGenerateConflictForBasic(ArithVar basic) const;
 
   /** Returns true if a tracked basic variable has a conflict on it. */
   bool checkBasicForConflict(ArithVar b) const;
 
   /**
    * If a basic variable has a conflict on its row,
-   * this produces a minimized row.
+   * this produces a minimized row on the conflict channel.
    */
-  Node generateConflictForBasic(ArithVar basic) const;
+  void generateConflictForBasic(ArithVar basic, RaiseConflict& rc) const;
 
 
   /** Gets a fresh variable from TheoryArith. */

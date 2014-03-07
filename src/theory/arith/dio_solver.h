@@ -102,17 +102,17 @@ private:
   };
   context::CDList<Constraint> d_trail;
 
-  /** Compare by d_minimal. */
-  struct TrailMinimalCoefficientOrder {
-    const context::CDList<Constraint>& d_trail;
-    TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
-      d_trail(trail)
-    {}
+  // /** Compare by d_minimal. */
+  // struct TrailMinimalCoefficientOrder {
+  //   const context::CDList<Constraint>& d_trail;
+  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
+  //     d_trail(trail)
+  //   {}
 
-    bool operator()(TrailIndex i, TrailIndex j){
-      return d_trail[i].d_minimalMonomial.absLessThan(d_trail[j].d_minimalMonomial);
-    }
-  };
+  //   bool operator()(TrailIndex i, TrailIndex j){
+  //     return d_trail[i].d_minimalMonomial.absLessThan(d_trail[j].d_minimalMonomial);
+  //   }
+  // };
 
   /**
    * A substitution is stored as a constraint in the trail together with

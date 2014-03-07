@@ -77,35 +77,40 @@ bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat&
 void SimplexDecisionProcedure::reportConflict(ArithVar basic){
   Assert(!d_conflictVariables.isMember(basic));
   Assert(checkBasicForConflict(basic));
-  Node conflict = generateConflictForBasic(basic);
+  RaiseConflict rc( d_conflictChannel);
 
-  static bool verbose = false;
-  if(verbose) { Message() << "conflict " << basic << " " << conflict << endl; }
-  Assert(!conflict.isNull());
-  d_conflictChannel(conflict);
+  generateConflictForBasic(basic, rc);
+
+  // static bool verbose = false;
+  // if(verbose) { Message() << "conflict " << basic << " " << conflict << endl; }
+  // Assert(!conflict.isNull());
+  //d_conflictChannel(conflict);
+  rc.commitConflict();
   d_conflictVariables.add(basic);
 }
 
-Node SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) const {
+void SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic, RaiseConflict& rc) const {
 
   Assert(d_tableau.isBasic(basic));
   Assert(checkBasicForConflict(basic));
 
   if(d_variables.cmpAssignmentLowerBound(basic) < 0){
     Assert(d_linEq.nonbasicsAtUpperBounds(basic));
-    return d_linEq.generateConflictBelowLowerBound(basic);
+    return d_linEq.generateConflictBelowLowerBound(basic, rc);
   }else if(d_variables.cmpAssignmentUpperBound(basic) > 0){
     Assert(d_linEq.nonbasicsAtLowerBounds(basic));
-    return d_linEq.generateConflictAboveUpperBound(basic);
+    return d_linEq.generateConflictAboveUpperBound(basic, rc);
   }else{
     Unreachable();
   }
 }
-Node SimplexDecisionProcedure::maybeGenerateConflictForBasic(ArithVar basic) const {
+bool SimplexDecisionProcedure::maybeGenerateConflictForBasic(ArithVar basic) const {
   if(checkBasicForConflict(basic)){
-    return generateConflictForBasic(basic);
+    RaiseConflict rc(d_conflictChannel);
+    generateConflictForBasic(basic, rc);
+    return true;
   }else{
-    return Node::null();
+    return false;
   }
 }
 

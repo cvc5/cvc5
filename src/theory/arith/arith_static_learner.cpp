@@ -21,6 +21,8 @@
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/options.h"
 
+#include "theory/arith/normal_form.h"
+
 #include "expr/expr.h"
 #include "expr/convenience_node_builders.h"
 
@@ -38,7 +40,11 @@ ArithStaticLearner::ArithStaticLearner(context::Context* userContext) :
   d_minMap(userContext),
   d_maxMap(userContext),
   d_statistics()
-{}
+{
+}
+
+ArithStaticLearner::~ArithStaticLearner(){
+}
 
 ArithStaticLearner::Statistics::Statistics():
   d_iteMinMaxApplications("theory::arith::iteMinMaxApplications", 0),
@@ -98,9 +104,6 @@ void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){
 }
 
 
-
-
-
 void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet& defTrue){
   Debug("arith::static") << "===================== looking at " << n << endl;
 
@@ -116,49 +119,12 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
       iteConstant(n, learned);
     }
     break;
+
   case CONST_RATIONAL:
     // Mark constants as minmax
     d_minMap.insert(n, n.getConst<Rational>());
     d_maxMap.insert(n, n.getConst<Rational>());
     break;
-  case OR: {
-    // Look for things like "x = 0 OR x = 1" (that are defTrue) and
-    // turn them into a pseudoboolean.  We catch "x >= 0
-    if(defTrue.find(n) == defTrue.end() ||
-       n.getNumChildren() != 2 ||
-       n[0].getKind() != EQUAL ||
-       n[1].getKind() != EQUAL) {
-      break;
-    }
-    Node var, c1, c2;
-    if(n[0][0].isVar() &&
-       n[0][1].isConst()) {
-      var = n[0][0];
-      c1 = n[0][1];
-    } else if(n[0][1].isVar() &&
-              n[0][0].isConst()) {
-      var = n[0][1];
-      c1 = n[0][0];
-    } else {
-      break;
-    }
-    if(!var.getType().isInteger() ||
-       !c1.getType().isReal()) {
-      break;
-    }
-    if(var == n[1][0]) {
-      c2 = n[1][1];
-    } else if(var == n[1][1]) {
-      c2 = n[1][0];
-    } else {
-      break;
-    }
-    if(!c2.getType().isReal()) {
-      break;
-    }
-
-    break;
-  }
   default: // Do nothing
     break;
   }
