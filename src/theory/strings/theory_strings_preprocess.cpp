@@ -24,10 +24,6 @@ namespace theory {
 namespace strings {
 
 StringsPreprocess::StringsPreprocess() {
-	std::vector< TypeNode > argTypes;
-	argTypes.push_back(NodeManager::currentNM()->stringType());
-	argTypes.push_back(NodeManager::currentNM()->integerType());
-
 	//Constants
 	d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 }

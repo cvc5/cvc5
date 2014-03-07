@@ -23,6 +23,7 @@
 #include "util/hash.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
+//#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,6 +31,7 @@ namespace strings {
 
 class RegExpOpr {
 	typedef std::pair< Node, CVC4::String > PairDvStr;
+
 private:
     Node d_emptyString;
     Node d_true;
@@ -58,9 +60,9 @@ private:
 
 public:
 	RegExpOpr();
+
 	bool checkConstRegExp( Node r );
     void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
-	Node complement( Node r );
 	int delta( Node r );
 	Node derivativeSingle( Node r, CVC4::String c );
 	bool guessLength( Node r, int &co );

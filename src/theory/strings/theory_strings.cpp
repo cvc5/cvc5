@@ -2,7 +2,7 @@
 /*! \file theory_strings.cpp
  ** \verbatim
  ** Original author: Tianyi Liang
- ** Major contributors: none
+ ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
@@ -37,18 +37,27 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
     d_notify( *this ),
     d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings"),
-    d_conflict( c, false ),
+    d_conflict(c, false),
     d_infer(c),
     d_infer_exp(c),
     d_nf_pairs(c),
+	d_loop_antec(u),
+	d_length_inst(u),
 	d_length_nodes(c),
-	//d_var_lmin( c ),
-	//d_var_lmax( c ),
-	d_str_pos_ctn( c ),
-	d_str_neg_ctn( c ),
-	d_reg_exp_mem( c ),
-	d_regexp_deriv_processed( c ),
-	d_curr_cardinality( c, 0 )
+	d_str_pos_ctn(c),
+	d_str_neg_ctn(c),
+	d_neg_ctn_eqlen(u),
+	d_neg_ctn_ulen(u),
+	d_pos_ctn_cached(u),
+	d_neg_ctn_cached(u),
+	d_reg_exp_mem(c),
+	d_regexp_ucached(u),
+	d_regexp_ccached(c),
+	d_regexp_ant(c),
+	d_input_vars(u),
+	d_input_var_lsum(u),
+	d_cardinality_lits(u),
+	d_curr_cardinality(c, 0)
 {
     // The kinds we are treating as function application in congruence
     //d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
@@ -67,9 +76,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_true = NodeManager::currentNM()->mkConst( true );
     d_false = NodeManager::currentNM()->mkConst( false );
 
-	d_all_warning = true;
-	d_regexp_incomplete = false;
-	d_opt_regexp_gcd = true;
+	//d_opt_regexp_gcd = true;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -184,7 +191,6 @@ bool TheoryStrings::propagate(TNode literal) {
     Debug("strings-propagate") << "TheoryStrings::propagate(" << literal << "): already in conflict" << std::endl;
     return false;
   }
-  Trace("strings-prop") << "strPropagate " << literal << std::endl;
   // Propagate out
   bool ok = d_out->propagate(literal);
   if (!ok) {
@@ -235,10 +241,7 @@ Node TheoryStrings::explain( TNode literal ){
 
 void TheoryStrings::presolve() {
 	Trace("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-	Trace("strings-presolve") << "TheoryStrings::Presolving : get unroll depth options " << options::stringRegExpUnrollDepth() << std::endl;
 	d_opt_fmf = options::stringFMF();
-	d_regexp_max_depth = options::stringRegExpUnrollDepth();
-	d_regexp_unroll_depth = options::stringRegExpUnrollDepth();
 }
 
 
@@ -400,15 +403,14 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   Debug("strings-prereg") << "TheoryStrings::preRegisterTerm() " << n << endl;
   //collectTerms( n );
   switch (n.getKind()) {
-  case kind::EQUAL:
-    d_equalityEngine.addTriggerEquality(n);
-    break;
-  case kind::STRING_IN_REGEXP:
-	//do not add trigger here
-    //d_equalityEngine.addTriggerPredicate(n);
-    break;
-  case kind::STRING_SUBSTR_TOTAL:
-	{
+	case kind::EQUAL:
+		d_equalityEngine.addTriggerEquality(n);
+		break;
+	case kind::STRING_IN_REGEXP:
+		//do not add trigger here
+		//d_equalityEngine.addTriggerPredicate(n);
+		break;
+	case kind::STRING_SUBSTR_TOTAL: {
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
 							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
 							NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
@@ -421,40 +423,36 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, n, sk3 ) );
 		Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 		Node lenc = n[2].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n ) );
-		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, 
+		Node lemma = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE, cond, 
 			NodeManager::currentNM()->mkNode( kind::AND, x_eq_123, len_sk1_eq_i, lenc ),
-			n.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") )) ) );
+			n.eqNode(d_emptyString)));
 		Trace("strings-lemma") << "Strings::Lemma SUBSTR : " << lemma << std::endl;
 		d_out->lemma(lemma);
+		//d_equalityEngine.addTerm(n);
 	}
-	//d_equalityEngine.addTerm(n);
-  default:
-    if(n.getType().isString() && n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
-	  if( std::find( d_length_intro_vars.begin(), d_length_intro_vars.end(), n )==d_length_intro_vars.end() ) {
+	default: {
+		if(n.getType().isString() && n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
 		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-		  Node n_len_eq_z = n_len.eqNode( d_zero );
+		  Node n_len_eq_z = n.eqNode(d_emptyString); //n_len.eqNode( d_zero );
 		  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
 		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
 									NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
 		  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
 		  d_out->lemma(n_len_geq_zero);
 		  d_out->requirePhase( n_len_eq_z, true );
-	  }
-	  // FMF
-	  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() &&
-		  if( std::find(d_in_vars.begin(), d_in_vars.end(), n) == d_in_vars.end() ) {
-			  d_in_vars.push_back( n );
+		  // FMF
+		  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() &&
+			  d_input_vars.insert(n);
 		  }
-	  }
-    }
-    if (n.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
-      d_equalityEngine.addTriggerPredicate(n);
-    } else {
-      // Function applications/predicates
-      d_equalityEngine.addTerm(n);
-    }
-    break;
+		}
+		if (n.getType().isBoolean()) {
+		  // Get triggered for both equal and dis-equal
+		  d_equalityEngine.addTriggerPredicate(n);
+		} else {
+		  // Function applications/predicates
+		  d_equalityEngine.addTerm(n);
+		}
+	}
   }
 }
 
@@ -488,6 +486,7 @@ void TheoryStrings::check(Effort e) {
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
 		d_reg_exp_mem.push_back( assertion );
+		//d_equalityEngine.assertPredicate(atom, polarity, fact);
 	} else if (atom.getKind() == kind::STRING_STRCTN) {
 		if(polarity) {
 			d_str_pos_ctn.push_back( atom );
@@ -968,7 +967,7 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 		}
 		Node ant = mkExplain( antec );
 		if(d_loop_antec.find(ant) == d_loop_antec.end()) {
-			d_loop_antec[ant] = true;
+			d_loop_antec.insert(ant);
 
 			Node str_in_re;
 			if( s_zy == t_yz &&
@@ -1013,12 +1012,10 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 				conc = NodeManager::currentNM()->mkNode( kind::AND, vec_conc );//, len_x_gt_len_y
 			} // normal case
 
-			if( !options::stringExp() ) {
-				//set its antecedant to ant, to say when it is relevant
-				d_reg_exp_ant[str_in_re] = ant;
-				//unroll the str in re constraint once
-				unrollStar( str_in_re );
-			}
+			//set its antecedant to ant, to say when it is relevant
+			d_regexp_ant[str_in_re] = ant;
+			//unroll the str in re constraint once
+			//	unrollStar( str_in_re );
 			sendLemma( ant, conc, "LOOP-BREAK" );
 			++(d_statistics.d_loop_lemmas);
 
@@ -1459,7 +1456,12 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						std::vector< Node > antec_new_lits;
 						antec.insert( antec.end(), d_normal_forms_exp[ni].begin(), d_normal_forms_exp[ni].end() );
 						antec.insert( antec.end(), d_normal_forms_exp[nj].begin(), d_normal_forms_exp[nj].end() );
-						antec.push_back( ni.eqNode( nj ).negate() );
+						//check disequal
+						if( areDisequal( ni, nj ) ){
+							antec.push_back( ni.eqNode( nj ).negate() );
+						}else{
+							antec_new_lits.push_back( ni.eqNode( nj ).negate() );
+						}
 						antec_new_lits.push_back( li.eqNode( lj ).negate() );
 						std::vector< Node > conc;
 						Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit_$$", ni.getType(), "created for disequality normalization" );
@@ -1786,11 +1788,10 @@ bool TheoryStrings::checkSimple() {
 					if( d_length_inst.find(n)==d_length_inst.end() ) {
 						//Node nr = d_equalityEngine.getRepresentative( n );
 						//if( d_length_nodes.find(nr)==d_length_nodes.end() ) {
-							d_length_inst[n] = true;
+							d_length_inst.insert(n);
 							Trace("strings-debug") << "get n: " << n << endl;
 							Node sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for length" );
 							d_statistics.d_new_skolems += 1;
-							d_length_intro_vars.push_back( sk );
 							Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, n );
 							eq = Rewriter::rewrite(eq);
 							Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
@@ -1978,10 +1979,10 @@ void TheoryStrings::checkDeqNF() {
 			for( unsigned j=0; j<cols[i].size(); j++ ){
 				for( unsigned k=(j+1); k<cols[i].size(); k++ ){
 					Assert( !d_conflict );
-					if( !areDisequal( cols[i][j], cols[i][k] ) ){
-						sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
-						return;
-					}else{
+					//if( !areDisequal( cols[i][j], cols[i][k] ) ){
+					//	sendSplit( cols[i][j], cols[i][k], "D-NORM", false );
+					//	return;
+					//}else{
 						Trace("strings-solve") << "- Compare ";
 						printConcat( d_normal_forms[cols[i][j]], "strings-solve" );
 						Trace("strings-solve") << " against ";
@@ -1990,7 +1991,7 @@ void TheoryStrings::checkDeqNF() {
 						if( processDeq( cols[i][j], cols[i][k] ) ){
 							return;
 						}
-					}
+					//}
 				}
 			}
 		}
@@ -2215,125 +2216,165 @@ void TheoryStrings::updateMpl( Node n, int b ) {
 */
 
 //// Regular Expressions
-bool TheoryStrings::unrollStar( Node atom ) {
-	Node x = atom[0];
-	Node r = atom[1];
-	int depth = d_reg_exp_unroll_depth.find( atom )==d_reg_exp_unroll_depth.end() ? 0 : d_reg_exp_unroll_depth[atom];
-	if( depth <= d_regexp_unroll_depth ) {
-		Trace("strings-regexp") << "Strings::Regexp: Unroll " << atom << " for " << ( depth + 1 ) << " times." << std::endl;
-		d_reg_exp_unroll[atom] = true;
-		//add lemma?
-		Node xeqe = x.eqNode( d_emptyString );
-		xeqe = Rewriter::rewrite( xeqe );
-		d_pending_req_phase[xeqe] = true;
-		Node sk_s= NodeManager::currentNM()->mkSkolem( "s_unroll_$$", x.getType(), "created for unrolling" );
-		Node sk_xp= NodeManager::currentNM()->mkSkolem( "x_unroll_$$", x.getType(), "created for unrolling" );
-		d_statistics.d_new_skolems += 2;
-		std::vector< Node >cc;
-
-		// must also call preprocessing on unr1
-		Node unr1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_s, r[0] ) );
-		if(unr1.getKind() == kind::EQUAL) {
-			sk_s = unr1[0] == sk_s ? unr1[1] : unr1[2];
-			Node unr0 = sk_s.eqNode( d_emptyString ).negate();
-			cc.push_back(unr0);
-		} else {
-			std::vector< Node > urc;
-			d_regexp_opr.simplify(unr1, urc, true);
-			Node unr0 = sk_s.eqNode( d_emptyString ).negate();
-			cc.push_back(unr0);	//cc.push_back(urc1);
-			cc.insert(cc.end(), urc.begin(), urc.end());
-		}
-
-		Node unr2 = x.eqNode( mkConcat( sk_s, sk_xp ) );
-		Node unr3 = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, sk_xp, r );
-		d_reg_exp_unroll_depth[unr3] = depth + 1;
-		if( d_reg_exp_ant.find( atom )!=d_reg_exp_ant.end() ){
-			d_reg_exp_ant[unr3] = d_reg_exp_ant[atom];
-		}
-
-		//|x|>|xp|
-		Node len_x_gt_len_xp = NodeManager::currentNM()->mkNode( kind::GT,
-								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, x ),
-								NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk_xp ) );
-
-		cc.push_back(unr2); cc.push_back(unr3); cc.push_back(len_x_gt_len_xp);
-
-		Node unr = NodeManager::currentNM()->mkNode( kind::AND, cc );
-		Node lem = NodeManager::currentNM()->mkNode( kind::OR, xeqe, unr );
-		Node ant = atom;
-		if( d_reg_exp_ant.find( atom )!=d_reg_exp_ant.end() ) {
-			ant = d_reg_exp_ant[atom];
-		}
-		sendLemma( ant, lem, "Unroll" );
-		++(d_statistics.d_unroll_lemmas);
-		return true;
-	}else{
-		Trace("strings-regexp") << "Strings::regexp: Stop unrolling " << atom << " the max (" << depth << ") is reached." << std::endl;
-		return false;
+Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
+	if(d_regexp_ant.find(atom) == d_regexp_ant.end()) {
+		return Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, ant, atom) );
+	} else {
+		Node n = d_regexp_ant[atom];
+		return Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, ant, n) );
 	}
 }
 
 bool TheoryStrings::checkMemberships() {
-	bool is_unk = false;
 	bool addedLemma = false;
+	std::vector< Node > processed;
+	std::vector< Node > cprocessed;
 	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
 		//check regular expression membership
 		Node assertion = d_reg_exp_mem[i];
-		if(d_regexp_cache.find(assertion) == d_regexp_cache.end()) {
+		if( d_regexp_ucached.find(assertion) == d_regexp_ucached.end() 
+			&& d_regexp_ccached.find(assertion) == d_regexp_ccached.end() ) {
 			Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
 			Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
 			bool polarity = assertion.getKind()!=kind::NOT;
 			bool flag = true;
+			Node x = atom[0];
+			Node r = atom[1];
 			if( polarity ) {
-				Node x = atom[0];
-				Node r = atom[1];
-				/*if(d_opt_regexp_gcd) {
-					if(d_membership_length.find(atom) == d_membership_length.end()) {
-						addedLemma = addMembershipLength(atom);
-						d_membership_length[atom] = true;
-					} else {
-						Trace("strings-regexp") << "Membership length is already added." << std::endl;
-					}
-				}*/
-				if(d_regexp_deriv_processed.find(atom) != d_regexp_deriv_processed.end()) {
-					flag = false;
-				} else {
-					if(areEqual(x, d_emptyString)) {
-						int rdel = d_regexp_opr.delta(r);
-						if(rdel == 1) {
-							flag = false;
-							d_regexp_deriv_processed[atom] = true;
-						} else if(rdel == 2) {
-							Node antec = x.eqNode(d_emptyString);
-							antec = NodeManager::currentNM()->mkNode(kind::AND, antec, atom);
-							Node conc = Node::null();
-							sendLemma(antec, conc, "RegExp Delta Conflict");
-							addedLemma = true;
-							flag = false;
-							d_regexp_deriv_processed[atom] = true;
-						}
-					} else if(splitRegExp( x, r, atom )) {
-						addedLemma = true; flag = false;
-						d_regexp_deriv_processed[ atom ] = true;
-					}
-				}
+				flag = checkPDerivative(x, r, atom, addedLemma, processed, cprocessed);
 			} else {
-				//TODO: will be removed soon. keep it for consistence
 				if(! options::stringExp()) {
-					is_unk = true;
-					break;
+					throw LogicException("Strings Incomplete (due to Negative Membership) by default, try --strings-exp option.");
 				}
 			}
 			if(flag) {
-				std::vector< Node > nvec;
-				d_regexp_opr.simplify(atom, nvec, polarity);
-				Node conc = nvec.size()==1 ? nvec[0] :
-						NodeManager::currentNM()->mkNode(kind::AND, nvec);
-				conc = Rewriter::rewrite(conc);
-				sendLemma( assertion, conc, "REGEXP" );
-				addedLemma = true;
-				d_regexp_cache[assertion] = true;
+				//check if the term is atomic
+				Node xr = getRepresentative( x );
+				Trace("strings-regexp") << xr << " is rep of " << x << std::endl;
+				Assert( d_normal_forms.find( xr )!=d_normal_forms.end() );
+				//TODO
+				if( true || r.getKind()!=kind::REGEXP_STAR || ( d_normal_forms[xr].size()==1 && x.getKind()!=kind::STRING_CONCAT ) ){
+					Trace("strings-regexp") << "Unroll/simplify membership of atomic term " << xr << std::endl;
+					//if so, do simple unrolling
+					std::vector< Node > nvec;
+					d_regexp_opr.simplify(atom, nvec, polarity);
+					Node antec = assertion;
+					if(d_regexp_ant.find(assertion) != d_regexp_ant.end()) {
+						antec = d_regexp_ant[assertion];
+						for(std::vector< Node >::const_iterator itr=nvec.begin(); itr<nvec.end(); itr++) {
+							if(itr->getKind() == kind::STRING_IN_REGEXP) {
+								if(d_regexp_ant.find( *itr ) == d_regexp_ant.end()) {
+									d_regexp_ant[ *itr ] = antec;
+								}
+							}
+						}
+					}
+					Node conc = nvec.size()==1 ? nvec[0] :
+							NodeManager::currentNM()->mkNode(kind::AND, nvec);
+					conc = Rewriter::rewrite(conc);
+					sendLemma( antec, conc, "REGEXP" );
+					addedLemma = true;
+					processed.push_back( assertion );
+					//d_regexp_ucached[assertion] = true;
+				} else {
+					Trace("strings-regexp") << "Unroll/simplify membership of non-atomic term " << xr << " = ";
+					for( unsigned j=0; j<d_normal_forms[xr].size(); j++ ){
+						Trace("strings-regexp") << d_normal_forms[xr][j] << " ";
+					}
+					Trace("strings-regexp") << ", polarity = " << polarity << std::endl;
+					//otherwise, distribute unrolling over parts
+					Node p1;
+					Node p2;
+					if( d_normal_forms[xr].size()>1 ){
+						p1 = d_normal_forms[xr][0];
+						std::vector< Node > cc;
+						cc.insert( cc.begin(), d_normal_forms[xr].begin() + 1, d_normal_forms[xr].end() );
+						p2 = mkConcat( cc );
+					}
+
+					Trace("strings-regexp-debug") << "Construct antecedant..." << std::endl;
+					std::vector< Node > antec;
+					std::vector< Node > antecn;
+					antec.insert( antec.begin(), d_normal_forms_exp[xr].begin(), d_normal_forms_exp[xr].end() );
+					if( x!=xr ){
+						antec.push_back( x.eqNode( xr ) );
+					}
+					antecn.push_back( assertion );
+					Node ant = mkExplain( antec, antecn );
+					Trace("strings-regexp-debug") << "Construct conclusion..." << std::endl;
+					Node conc;
+					if( polarity ){
+						if( d_normal_forms[xr].size()==0 ){
+							conc = d_true;
+						}else if( d_normal_forms[xr].size()==1 ){
+							Trace("strings-regexp-debug") << "Case 1\n";
+							conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, d_normal_forms[xr][0], r);
+						}else{
+							Trace("strings-regexp-debug") << "Case 2\n";
+							std::vector< Node > conc_c;
+							Node s11 = NodeManager::currentNM()->mkSkolem( "s11_$$", NodeManager::currentNM()->stringType(), "created for re" );
+							Node s12 = NodeManager::currentNM()->mkSkolem( "s12_$$", NodeManager::currentNM()->stringType(), "created for re" );
+							Node s21 = NodeManager::currentNM()->mkSkolem( "s21_$$", NodeManager::currentNM()->stringType(), "created for re" );
+							Node s22 = NodeManager::currentNM()->mkSkolem( "s22_$$", NodeManager::currentNM()->stringType(), "created for re" );
+							conc = p1.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s11, s12));
+							conc_c.push_back(conc);
+							conc = p2.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s21, s22));
+							conc_c.push_back(conc);
+							conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s11, r);
+							conc_c.push_back(conc);
+							conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s12, s21), r[0]);
+							conc_c.push_back(conc);
+							conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s22, r);
+							conc_c.push_back(conc);
+							conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, conc_c));
+							Node eqz = Rewriter::rewrite(x.eqNode(d_emptyString));
+							conc = NodeManager::currentNM()->mkNode(kind::OR, eqz, conc);
+							d_pending_req_phase[eqz] = true;
+						}
+					}else{
+						if( d_normal_forms[xr].size()==0 ){
+							conc = d_false;
+						}else if( d_normal_forms[xr].size()==1 ){
+							Trace("strings-regexp-debug") << "Case 3\n";
+							conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, d_normal_forms[xr][0], r).negate();
+						}else{
+							Trace("strings-regexp-debug") << "Case 4\n";
+							Node len1 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, p1);
+							Node len2 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, p2);
+							Node bi = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+							Node bj = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
+							Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, bi, bj);
+							Node g1 = NodeManager::currentNM()->mkNode(kind::AND, 
+										NodeManager::currentNM()->mkNode(kind::GEQ, bi, d_zero),
+										NodeManager::currentNM()->mkNode(kind::GEQ, len1, bi),
+										NodeManager::currentNM()->mkNode(kind::GEQ, bj, d_zero),
+										NodeManager::currentNM()->mkNode(kind::GEQ, len2, bj));
+							Node s11 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p1, d_zero, bi);
+							Node s12 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p1, bi, NodeManager::currentNM()->mkNode(kind::MINUS, len1, bi));
+							Node s21 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p2, d_zero, bj);
+							Node s22 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, p2, bj, NodeManager::currentNM()->mkNode(kind::MINUS, len2, bj));
+							Node cc1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s11, r).negate();
+							Node cc2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s12, s21), r[0]).negate();
+							Node cc3 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s22, r).negate();
+							conc = NodeManager::currentNM()->mkNode(kind::OR, cc1, cc2, cc3);
+							conc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g1, conc);
+							conc = NodeManager::currentNM()->mkNode(kind::FORALL, b1v, conc);
+							conc = NodeManager::currentNM()->mkNode(kind::AND, x.eqNode(d_emptyString).negate(), conc);
+						}
+					}
+					if( conc!=d_true ){
+						ant = mkRegExpAntec(assertion, ant);
+						sendLemma(ant, conc, "REGEXP CSTAR");
+						addedLemma = true;
+						if( conc==d_false ){
+							d_regexp_ccached.insert( assertion );
+						}else{
+							cprocessed.push_back( assertion );
+						}
+					}else{
+						d_regexp_ccached.insert(assertion);
+					}
+				}
 			}
 		}
 		if(d_conflict) {
@@ -2341,97 +2382,67 @@ bool TheoryStrings::checkMemberships() {
 		}
 	}
 	if( addedLemma ){
+		if( !d_conflict ){
+			for( unsigned i=0; i<processed.size(); i++ ){
+				d_regexp_ucached.insert(processed[i]);
+			}
+			for( unsigned i=0; i<cprocessed.size(); i++ ){
+				d_regexp_ccached.insert(cprocessed[i]);
+			}
+		}
 		doPendingLemmas();
 		return true;
 	}else{
-		if( is_unk ){
-			Trace("strings-regexp") << "Strings::regexp: possibly incomplete." << std::endl;
-			d_out->setIncomplete();
-		}
 		return false;
 	}
 }
-//TODO remove
-bool TheoryStrings::checkMemberships2() {
-	bool is_unk = false;
-	bool addedLemma = false;
-	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
-		//check regular expression membership
-		Node assertion = d_reg_exp_mem[i];
-		Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
-		Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
-		bool polarity = assertion.getKind()!=kind::NOT;
-		if( polarity ) {
-			Assert( atom.getKind()==kind::STRING_IN_REGEXP );
-			Node x = atom[0];
-			Node r = atom[1];
-			Assert( r.getKind()==kind::REGEXP_STAR );
-			if( !areEqual( x, d_emptyString ) ) {
-				/*if(d_opt_regexp_gcd) {
-					if(d_membership_length.find(atom) == d_membership_length.end()) {
-						addedLemma = addMembershipLength(atom);
-						d_membership_length[atom] = true;
-					} else {
-						Trace("strings-regexp") << "Membership length is already added." << std::endl;
-					}
-				}*/
-				bool flag = true;
-				if( d_reg_exp_deriv.find(atom)==d_reg_exp_deriv.end() ) {
-					if(splitRegExp( x, r, atom )) {
-						addedLemma = true; flag = false;
-						d_reg_exp_deriv[ atom ] = true;
-					}
-				} else {
-					flag = false;
-					Trace("strings-regexp-derivative") << "... is processed by deriv." << std::endl;
-				}
-				if( flag && d_reg_exp_unroll.find(atom)==d_reg_exp_unroll.end() ) {
-					if( unrollStar( atom ) ) {
-						addedLemma = true;
-					} else {
-						Trace("strings-regexp") << "RegExp is incomplete due to " << assertion << ", depth = " << d_regexp_unroll_depth << std::endl;
-						is_unk = true;
-					}
-				} else {
-					Trace("strings-regexp") << "...is already unrolled or splitted." << std::endl;
-				}
-			} else {
-				Trace("strings-regexp") << "...is satisfied." << std::endl;
-			}
+
+bool TheoryStrings::checkPDerivative(Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &processed, std::vector< Node > &cprocessed) {
+	/*if(d_opt_regexp_gcd) {
+		if(d_membership_length.find(atom) == d_membership_length.end()) {
+			addedLemma = addMembershipLength(atom);
+			d_membership_length[atom] = true;
 		} else {
-			//TODO: negative membership
-			Node x = atom[0];
-			Node r = atom[1];
-			Assert( r.getKind()==kind::REGEXP_STAR );
-			if( areEqual( x, d_emptyString ) ) {
-				Node ant = NodeManager::currentNM()->mkNode( kind::AND, assertion, x.eqNode( d_emptyString ) );
+			Trace("strings-regexp") << "Membership length is already added." << std::endl;
+		}
+	}*/
+	if(areEqual(x, d_emptyString)) {
+		int rdel = d_regexp_opr.delta(r);
+		if(rdel == 1) {
+			d_regexp_ccached.insert(atom);
+		} else if(rdel == 2) {
+			Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
+			Node conc = Node::null();
+			sendLemma(antec, conc, "RegExp Delta CONFLICT");
+			addedLemma = true;
+			d_regexp_ccached.insert(atom);
+			return false;
+		}
+	} else {
+		Node xr = getRepresentative( x );
+		if(x != xr) {
+			Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, xr, r);
+			Node nn = Rewriter::rewrite( n );
+			if(nn == d_true) {
+				d_regexp_ccached.insert(atom);
+				return false;
+			} else if(nn == d_false) {
+				Node antec = mkRegExpAntec(atom, x.eqNode(xr));
 				Node conc = Node::null();
-				sendLemma( ant, conc, "RegExp Empty Conflict" );
+				sendLemma(antec, conc, "RegExp Delta CONFLICT");
 				addedLemma = true;
-			} else {
-				Trace("strings-regexp") << "RegEx is incomplete due to " << assertion << "." << std::endl;
-				is_unk = true;
+				d_regexp_ccached.insert(atom);
+				return false;
 			}
 		}
-	}
-	if( addedLemma ){
-		doPendingLemmas();
-		return true;
-	}else{
-		if( is_unk ){
-			//if(!d_opt_fmf) {
-			//	d_opt_fmf = true;
-				//d_regexp_unroll_depth += 2;
-			//	Node t = getNextDecisionRequest();
-			//	return !t.isNull();
-			//} else {
-				Trace("strings-regexp") << "Strings::regexp: possibly incomplete." << std::endl;
-				//d_regexp_incomplete = true;
-				d_out->setIncomplete();
-			//}
+		Node sREant = mkRegExpAntec(atom, d_true);
+		if(splitRegExp( x, r, sREant )) {
+			addedLemma = true;
+			processed.push_back( atom );
+			return false;
 		}
-		return false;
 	}
+	return true;
 }
 
 bool TheoryStrings::checkContains() {
@@ -2454,14 +2465,14 @@ bool TheoryStrings::checkPosContains() {
 			Node x = atom[0];
 			Node s = atom[1];
 			if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
-				if(d_str_pos_ctn_rewritten.find(atom) == d_str_pos_ctn_rewritten.end()) {
+				if(d_pos_ctn_cached.find(atom) == d_pos_ctn_cached.end()) {
 					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
 					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
 					d_statistics.d_new_skolems += 2;
 					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
 					sendLemma( atom, eq, "POS-INC" );
 					addedLemma = true;
-					d_str_pos_ctn_rewritten[ atom ] = true;
+					d_pos_ctn_cached.insert( atom );
 				} else {
 					Trace("strings-ctn") << "... is already rewritten." << std::endl;
 				}
@@ -2479,7 +2490,6 @@ bool TheoryStrings::checkPosContains() {
 }
 
 bool TheoryStrings::checkNegContains() {
-	bool is_unk = false;
 	bool addedLemma = false;
 	for( unsigned i=0; i<d_str_neg_ctn.size(); i++ ){
 		if( !d_conflict ){
@@ -2502,24 +2512,22 @@ bool TheoryStrings::checkNegContains() {
 					Node lenx = getLength(x);
 					Node lens = getLength(s);
 					if(areEqual(lenx, lens)) {
-						if(d_str_ctn_eqlen.find(atom) == d_str_ctn_eqlen.end()) {
+						if(d_neg_ctn_eqlen.find(atom) == d_neg_ctn_eqlen.end()) {
 							Node eq = lenx.eqNode(lens);
 							Node antc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, atom.negate(), eq ) );
 							Node xneqs = x.eqNode(s).negate();
-							d_str_ctn_eqlen[ atom ] = true;
+							d_neg_ctn_eqlen.insert( atom );
 							sendLemma( antc, xneqs, "NEG-CTN-EQL" );
 							addedLemma = true;
 						}
 					} else if(!areDisequal(lenx, lens)) {
-						Node s = lenx < lens ? lenx : lens;
-						Node eq = s.eqNode( lenx < lens ? lens : lenx );
-						if(d_str_neg_ctn_ulen.find(eq) == d_str_neg_ctn_ulen.end()) {
-							d_str_neg_ctn_ulen[ eq ] = true;
+						if(d_neg_ctn_ulen.find(atom) == d_neg_ctn_ulen.end()) {
+							d_neg_ctn_ulen.insert( atom );
 							sendSplit(lenx, lens, "NEG-CTN-SP");
 							addedLemma = true;
 						}
 					} else {
-						if(d_str_neg_ctn_rewritten.find(atom) == d_str_neg_ctn_rewritten.end()) {
+						if(d_neg_ctn_cached.find(atom) == d_neg_ctn_cached.end()) {
 							Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
 							Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
 							Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
@@ -2528,10 +2536,6 @@ bool TheoryStrings::checkNegContains() {
 							Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, x, NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ), d_one);
 							Node s5 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b2, d_one);
 
-							//Node s1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-							//Node s3 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-							//Node s4 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-							//Node s6 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
 							Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);//, s1, s3, s4, s6);
 
 							std::vector< Node > vec_nodes;
@@ -2540,22 +2544,8 @@ bool TheoryStrings::checkNegContains() {
 							cc = NodeManager::currentNM()->mkNode( kind::GEQ, lens, b2 );
 							vec_nodes.push_back(cc);
 
-							//cc = x.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s1, s2, s3));
-							//vec_nodes.push_back(cc);
-							//cc = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s4, s5, s6));
-							//vec_nodes.push_back(cc);
 							cc = s2.eqNode(s5).negate();
 							vec_nodes.push_back(cc);
-							//cc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s1).eqNode(NodeManager::currentNM()->mkNode( kind::PLUS, b1, b2 ));
-							//vec_nodes.push_back(cc);
-							//cc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s4).eqNode(b2);
-							//vec_nodes.push_back(cc);
-
-							// charAt length
-							//cc = d_one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s2));
-							//vec_nodes.push_back(cc);
-							//cc = d_one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s5));
-							//vec_nodes.push_back(cc);
 
 							Node conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, vec_nodes) );
 							Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
@@ -2564,15 +2554,14 @@ bool TheoryStrings::checkNegContains() {
 							conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
 							conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
 
-							d_str_neg_ctn_rewritten[ atom ] = true;
+							d_neg_ctn_cached.insert( atom );
 							sendLemma( atom.negate(), conc, "NEG-CTN-BRK" );
 							//d_pending_req_phase[xlss] = true;
 							addedLemma = true;
 						}
 					}
 				} else {
-					Trace("strings-ctn") << "Strings Incomplete (due to Negative Contain) by default." << std::endl;
-					is_unk = true;
+					throw LogicException("Strings Incomplete (due to Negative Contain) by default, try --strings-exp option.");
 				}
 			}
 		}
@@ -2581,10 +2570,6 @@ bool TheoryStrings::checkNegContains() {
 		doPendingLemmas();
 		return true;
 	} else {
-		if( is_unk ){
-			Trace("strings-ctn") << "Strings::CTN: possibly incomplete." << std::endl;
-			d_out->setIncomplete();
-		}
 		return false;
 	}
 }
@@ -2628,6 +2613,14 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 	// TODO cstr in vre
 	Assert(x != d_emptyString);
 	Trace("strings-regexp-split") << "TheoryStrings::splitRegExp: x=" << x << ", r= " << r << std::endl;
+	//if(x.isConst()) {
+	//	Node n = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
+	//	Node r = Rewriter::rewrite( n );
+	//	if(n != r) {
+	//		sendLemma(ant, r, "REGEXP REWRITE");
+	//		return true;
+	//	}
+	//}
 	CVC4::String s = getHeadConst( x );
 	if( !s.isEmptyString() && d_regexp_opr.checkConstRegExp( r ) ) {
 		Node conc = Node::null();
@@ -2677,27 +2670,30 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 
 Node TheoryStrings::getNextDecisionRequest() {
 	if(d_opt_fmf && !d_conflict) {
+		Node in_var_lsum = d_input_var_lsum.get();
 		//Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
 		//initialize the term we will minimize
-		if( d_in_var_lsum.isNull() && !d_in_vars.empty() ){
+		if( in_var_lsum.isNull() && !d_input_vars.empty() ){
 			Trace("strings-fmf-debug") << "Input variables: ";
 			std::vector< Node > ll;
-			for(std::vector< Node >::iterator itr = d_in_vars.begin();
-				itr != d_in_vars.end(); ++itr) {
+			for(NodeSet::const_iterator itr = d_input_vars.begin();
+				itr != d_input_vars.end(); ++itr) {
 				Trace("strings-fmf-debug") << " " << (*itr) ;
 				ll.push_back( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr ) );
 			}
 			Trace("strings-fmf-debug") << std::endl;
-			d_in_var_lsum = ll.size()==1 ? ll[0] : NodeManager::currentNM()->mkNode( kind::PLUS, ll );
-			d_in_var_lsum = Rewriter::rewrite( d_in_var_lsum );
+			in_var_lsum = ll.size()==1 ? ll[0] : NodeManager::currentNM()->mkNode( kind::PLUS, ll );
+			in_var_lsum = Rewriter::rewrite( in_var_lsum );
+			d_input_var_lsum.set( in_var_lsum );
 		}
-		if( !d_in_var_lsum.isNull() ){
+		if( !in_var_lsum.isNull() ){
 			//Trace("strings-fmf") << "Get next decision request." << std::endl;
 			//check if we need to decide on something
 			int decideCard = d_curr_cardinality.get();
 			if( d_cardinality_lits.find( decideCard )!=d_cardinality_lits.end() ){
 				bool value;
-				if( d_valuation.hasSatValue( d_cardinality_lits[ d_curr_cardinality.get() ], value ) ) {
+				Node cnode = d_cardinality_lits[ d_curr_cardinality.get() ];
+				if( d_valuation.hasSatValue( cnode, value ) ) {
 					if( !value ){
 						d_curr_cardinality.set( d_curr_cardinality.get() + 1 );
 						decideCard = d_curr_cardinality.get();
@@ -2712,7 +2708,7 @@ Node TheoryStrings::getNextDecisionRequest() {
 			}
 			if( decideCard!=-1 ){
 				if( d_cardinality_lits.find( decideCard )==d_cardinality_lits.end() ){
-					Node lit = NodeManager::currentNM()->mkNode( kind::LEQ, d_in_var_lsum, NodeManager::currentNM()->mkConst( Rational( decideCard ) ) );
+					Node lit = NodeManager::currentNM()->mkNode( kind::LEQ, in_var_lsum, NodeManager::currentNM()->mkConst( Rational( decideCard ) ) );
 					lit = Rewriter::rewrite( lit );
 					d_cardinality_lits[decideCard] = lit;
 					Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
@@ -2720,8 +2716,9 @@ Node TheoryStrings::getNextDecisionRequest() {
 					d_out->lemma( lem );
 					d_out->requirePhase( lit, true );
 				}
-				Trace("strings-fmf") << "Strings::FMF: Decide positive on " << d_cardinality_lits[ decideCard ] << std::endl;
-				return d_cardinality_lits[ decideCard ];
+				Node lit = d_cardinality_lits[ decideCard ];
+				Trace("strings-fmf") << "Strings::FMF: Decide positive on " << lit << std::endl;
+				return lit;
 			}
 		}
 	}
@@ -2738,35 +2735,11 @@ Node TheoryStrings::mkSplitEq( const char * c, const char * info, Node lhs, Node
 	Node eq = lhs.eqNode( mkConcat( rhs, sk ) );
 	eq = Rewriter::rewrite( eq );
 	if( lgtZero ) {
-		d_var_lgtz[sk] = true;
 		Node sk_gt_zero = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, d_emptyString).negate();
 		Trace("strings-lemma") << "Strings::Lemma SK-NON-EMPTY: " << sk_gt_zero << std::endl;
 		d_lemma_cache.push_back( sk_gt_zero );
 	}
-	//store it in proper map
-	if( options::stringFMF() ){
-		d_var_split_graph_lhs[sk] = lhs;
-		d_var_split_graph_rhs[sk] = rhs;
-		//d_var_split_eq[sk] = eq;
-
-		//int mpl = getMaxPossibleLength( sk );
-		Trace("strings-progress") << "Strings::Progress: Because of " << eq << std::endl;
-		Trace("strings-progress") << "Strings::Progress: \t" << lhs << "(up:" << getMaxPossibleLength(lhs) << ") is removed" << std::endl;
-		Trace("strings-progress") << "Strings::Progress: \t" << sk << "(up:" << getMaxPossibleLength(sk) << ") is added" << std::endl;
-	}
 	return eq;
-}
-
-int TheoryStrings::getMaxPossibleLength( Node x ) {
-	if( d_var_split_graph_lhs.find( x )==d_var_split_graph_lhs.end() ){
-		if( x.getKind()==kind::CONST_STRING ){
-			return x.getConst<String>().size();
-		}else{
-			return d_curr_cardinality.get();
-		}
-	}else{
-		return getMaxPossibleLength( d_var_split_graph_lhs[x] ) - 1;
-	}
 }
 
 // Stats
@@ -2775,14 +2748,12 @@ TheoryStrings::Statistics::Statistics():
   d_eq_splits("TheoryStrings::NumOfEqSplits", 0),
   d_deq_splits("TheoryStrings::NumOfDiseqSplits", 0),
   d_loop_lemmas("TheoryStrings::NumOfLoops", 0),
-  d_unroll_lemmas("TheoryStrings::NumOfUnrolls", 0),
   d_new_skolems("TheoryStrings::NumOfNewSkolems", 0)
 {
   StatisticsRegistry::registerStat(&d_splits);
   StatisticsRegistry::registerStat(&d_eq_splits);
   StatisticsRegistry::registerStat(&d_deq_splits);
   StatisticsRegistry::registerStat(&d_loop_lemmas);
-  StatisticsRegistry::registerStat(&d_unroll_lemmas);
   StatisticsRegistry::registerStat(&d_new_skolems);
 }
 
@@ -2791,7 +2762,6 @@ TheoryStrings::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_eq_splits);
   StatisticsRegistry::unregisterStat(&d_deq_splits);
   StatisticsRegistry::unregisterStat(&d_loop_lemmas);
-  StatisticsRegistry::unregisterStat(&d_unroll_lemmas);
   StatisticsRegistry::unregisterStat(&d_new_skolems);
 }
 

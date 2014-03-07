@@ -419,6 +419,10 @@ void TheoryEngine::check(Theory::Effort effort) {
         // must build model at this point
         d_curr_model_builder->buildModel(d_curr_model, true);
       }
+	  Trace("theory::assertions-model") << endl;
+      if (Trace.isOn("theory::assertions-model")) {
+        printAssertions("theory::assertions-model");
+      }
     }
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << endl;

@@ -546,102 +546,6 @@ Node RegExpOpr::mkAllExceptOne( char exp_c ) {
 	return NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
 }
 
-Node RegExpOpr::complement( Node r ) {
-	Trace("strings-regexp-compl") << "RegExp-Compl starts with " << mkString( r ) << std::endl;
-	Node retNode = r;
-	if( d_compl_cache.find( r ) != d_compl_cache.end() ) {
-		retNode = d_compl_cache[r];
-	} else {
-		int k = r.getKind();
-		switch( k ) {
-			case kind::STRING_TO_REGEXP:
-			{
-				if(r[0].isConst()) {
-					if(r[0] == d_emptyString) {
-						retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, d_sigma, d_sigma_star );
-					} else {
-						std::vector< Node > vec_nodes;
-						vec_nodes.push_back( NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString ) );
-						CVC4::String s = r[0].getConst<String>();
-						for(unsigned i=0; i<s.size(); ++i) {
-							char c = s.substr(i, 1).getFirstChar();
-							Node tmp = mkAllExceptOne( c );
-							if(i != 0 ) {
-								Node tmph = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, 
-												NodeManager::currentNM()->mkConst( s.substr(0, i) ) );
-								tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, tmph, tmp );
-							}
-							tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, tmp, d_sigma_star );
-							vec_nodes.push_back( tmp );
-						}
-						Node tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, r, d_sigma, d_sigma_star );
-						vec_nodes.push_back( tmp );
-						retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
-					}
-				} else {
-					Trace("strings-error") << "Unsupported string variable: " << r[0] << " in complement of RegExp." << std::endl;
-					//AlwaysAssert( false );
-					//return Node::null();
-				}
-			}
-				break;
-			case kind::REGEXP_CONCAT:
-			{
-				std::vector< Node > vec_nodes;
-				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					Node tmp = complement( r[i] );
-					for(unsigned j=0; j<i; ++j) {
-						tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, r[j], tmp );
-					}
-					if(i != r.getNumChildren() - 1) {
-						tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, tmp,
-								NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma ) );
-					}
-					vec_nodes.push_back( tmp );
-				}
-				retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
-			}
-				break;
-			case kind::REGEXP_UNION:
-			{
-				std::vector< Node > vec_nodes;
-				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					Node tmp = complement( r[i] );
-					vec_nodes.push_back( tmp );
-				}
-				retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_INTER, vec_nodes );
-			}
-				break;
-			case kind::REGEXP_INTER:
-			{
-				std::vector< Node > vec_nodes;
-				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					Node tmp = complement( r[i] );
-					vec_nodes.push_back( tmp );
-				}
-				retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
-			}
-				break;
-			case kind::REGEXP_STAR:
-			{
-				retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, d_sigma, d_sigma_star );
-				Node tmp = complement( r[0] );
-				tmp = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, r, tmp );
-				retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_INTER, retNode, tmp );
-			}
-				break;
-			default:
-				//TODO: special sym: sigma, none, all
-				Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in complement of RegExp." << std::endl;
-				//AlwaysAssert( false );
-				//return Node::null();
-		}
-		d_compl_cache[r] = retNode;
-	}
-	Trace("strings-regexp-compl") << "RegExp-Compl returns : " << mkString( retNode ) << std::endl;
-	return retNode;
-}
-
 //simplify
 void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) {
 	Trace("strings-regexp-simpl") << "RegExp-Simpl starts with " << t << ", polarity=" << polarity << std::endl; 
@@ -772,17 +676,10 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 					//internal
 					Node s1 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, d_zero, b1);
 					Node s2 = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1));
-					//Node s1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-					//Node s2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-					//Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, s1, s2);
-					//Node s12 = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s1, s2));
-					//Node s1len = b1.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s1));
 					Node s1r1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, r[0]).negate();
 					Node s2r2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s2, r).negate();
 					
 					conc = NodeManager::currentNM()->mkNode(kind::OR, s1r1, s2r2);
-					//conc = NodeManager::currentNM()->mkNode(kind::AND, s12, s1len, conc);
-					//conc = NodeManager::currentNM()->mkNode(kind::EXISTS, b2v, conc);
 					conc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g1, conc);
 					conc = NodeManager::currentNM()->mkNode(kind::FORALL, b1v, conc);
 					conc = NodeManager::currentNM()->mkNode(kind::AND, sne, conc);
