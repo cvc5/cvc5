@@ -257,6 +257,19 @@ inline void dumpMode(std::string option, std::string optarg, SmtEngine* smt) {
 #endif /* CVC4_DUMPING */
 }
 
+inline LogicInfo stringToLogicInfo(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  try {
+    LogicInfo logic(optarg);
+    if(smt != NULL) {
+      smt->setLogic(logic);
+    }
+    return logic;
+  } catch(IllegalArgumentException& e) {
+    throw OptionException(std::string("invalid logic specification for --force-logic: `") +
+                          optarg + "':\n" + e.what());
+  }
+}
+
 inline SimplificationMode stringToSimplificationMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "batch") {
     return SIMPLIFICATION_MODE_BATCH;

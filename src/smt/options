@@ -10,6 +10,9 @@ common-option - --dump=MODE argument :handler CVC4::smt::dumpMode :handler-inclu
 common-option - --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
  all dumping goes to FILE (instead of stdout)
 
+expert-option forceLogic force-logic --force-logic=LOGIC LogicInfo :include "theory/logic_info.h" :handler CVC4::smt::stringToLogicInfo :handler-include "smt/options_handlers.h" :default '""'
+ set the logic, and override all further user attempts to change it
+
 option simplificationMode simplification-mode --simplification=MODE SimplificationMode :handler CVC4::smt::stringToSimplificationMode :default SIMPLIFICATION_MODE_BATCH :read-write :include "smt/simplification_mode.h" :handler-include "smt/options_handlers.h"
  choose simplification mode, see --simplification=help
 alias --no-simplification = --simplification=none

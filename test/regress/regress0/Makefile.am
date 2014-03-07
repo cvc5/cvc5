@@ -140,6 +140,7 @@ BUG_TESTS = \
 	bug421.smt2 \
 	bug421b.smt2 \
 	bug425.cvc \
+	bug480.smt2 \
 	bug484.smt2 \
 	bug486.cvc \
 	bug507.smt2 \
@@ -173,8 +174,7 @@ endif
 EXTRA_DIST += \
 	subranges.cvc \
 	arrayinuf_error.smt2 \
-	error.cvc \
-	bug480.smt2
+	error.cvc
 
 # synonyms for "check" in this directory
 .PHONY: regress regress0 test

@@ -284,6 +284,12 @@ class CVC4_PUBLIC SmtEngine {
   void finalOptionsAreSet();
 
   /**
+   * Apply heuristics settings and other defaults.  Done once, at
+   * finishInit() time.
+   */
+  void setDefaults();
+
+  /**
    * Create theory engine, prop engine, decision engine. Called by
    * finalOptionsAreSet()
    */

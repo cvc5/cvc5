@@ -733,6 +733,9 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
 }
 
 void SmtEngine::finishInit() {
+  // ensure that our heuristics are properly set up
+  setDefaults();
+
   d_decisionEngine = new DecisionEngine(d_context, d_userContext);
   d_decisionEngine->init();   // enable appropriate strategies
 
@@ -790,24 +793,7 @@ void SmtEngine::finalOptionsAreSet() {
     return;
   }
 
-  if(options::bitvectorEagerBitblast()) {
-    // Eager solver should use the internal decision strategy
-    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
-  }
-
-  if(options::checkModels()) {
-    if(! options::interactive()) {
-      Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
-      setOption("interactive-mode", SExpr("true"));
-    }
-  }
-  if(options::produceAssignments() && !options::produceModels()) {
-    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << endl;
-    setOption("produce-models", SExpr("true"));
-  }
-
   if(! d_logic.isLocked()) {
-    // ensure that our heuristics are properly set up
     setLogicInternal();
   }
 
@@ -922,15 +908,68 @@ LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
 
-// This function is called when d_logic has just been changed.
-// The LogicInfo isn't passed in explicitly, because that might
-// tempt people in the code to use the (potentially unlocked)
-// version that's passed in, leading to assert-fails in certain
-// uses of the CVC4 library.
 void SmtEngine::setLogicInternal() throw() {
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already finished initializing for this run");
-
   d_logic.lock();
+}
+
+void SmtEngine::setDefaults() {
+  if(options::forceLogic.wasSetByUser()) {
+    d_logic = options::forceLogic();
+  }
+
+  // set strings-exp
+  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
+    if(! options::stringExp.wasSetByUser()) {
+      options::stringExp.set( true );
+      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
+    }
+  }
+  // for strings
+  if(options::stringExp()) {
+    if( !d_logic.isQuantified() ) {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.enableQuantifiers();
+      d_logic.lock();
+      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
+    }
+    if(! options::finiteModelFind.wasSetByUser()) {
+      options::finiteModelFind.set( true );
+      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
+    }
+    if(! options::fmfBoundInt.wasSetByUser()) {
+      options::fmfBoundInt.set( true );
+      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
+    }
+    /*
+    if(! options::rewriteDivk.wasSetByUser()) {
+      options::rewriteDivk.set( true );
+      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
+    }*/
+    /*
+    if(! options::stringFMF.wasSetByUser()) {
+      options::stringFMF.set( true );
+      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    }
+    */
+  }
+
+  if(options::bitvectorEagerBitblast()) {
+    // Eager solver should use the internal decision strategy
+    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
+  }
+
+  if(options::checkModels()) {
+    if(! options::interactive()) {
+      Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
+      setOption("interactive-mode", SExpr("true"));
+    }
+  }
+
+  if(options::produceAssignments() && !options::produceModels()) {
+    Notice() << "SmtEngine: turning on produce-models to support produce-assignments" << endl;
+    setOption("produce-models", SExpr("true"));
+  }
 
   // Set the options for the theoryOf
   if(!options::theoryOfMode.wasSetByUser()) {
@@ -1065,7 +1104,7 @@ void SmtEngine::setLogicInternal() throw() {
   if(! options::unconstrainedSimp.wasSetByUser() || options::incrementalSolving()) {
     //    bool qf_sat = d_logic.isPure(THEORY_BOOL) && !d_logic.isQuantified();
     //    bool uncSimp = false && !qf_sat && !options::incrementalSolving();
-    bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() && !options::checkModels() &&
+    bool uncSimp = !options::incrementalSolving() && !d_logic.isQuantified() && !options::produceModels() && !options::produceAssignments() && !options::checkModels() &&
       (d_logic.isTheoryEnabled(THEORY_ARRAY) && d_logic.isTheoryEnabled(THEORY_BV));
     Trace("smt") << "setting unconstrained simplification to " << uncSimp << endl;
     options::unconstrainedSimp.set(uncSimp);
@@ -1075,6 +1114,10 @@ void SmtEngine::setLogicInternal() throw() {
     if (options::produceModels()) {
       Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << endl;
       setOption("produce-models", SExpr("false"));
+    }
+    if (options::produceAssignments()) {
+      Notice() << "SmtEngine: turning off produce-assignments to support unconstrainedSimp" << endl;
+      setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
@@ -1211,7 +1254,7 @@ void SmtEngine::setLogicInternal() throw() {
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
-    if( d_logic.isQuantified() || options::produceModels() || options::checkModels() ){
+    if( d_logic.isQuantified() || options::produceModels() || options::produceAssignments() || options::checkModels() ){
       options::minisatUseElim.set( false );
     }
   }
@@ -1220,6 +1263,10 @@ void SmtEngine::setLogicInternal() throw() {
       Notice() << "SmtEngine: turning off produce-models to support minisatUseElim" << endl;
       setOption("produce-models", SExpr("false"));
     }
+    if (options::produceAssignments()) {
+      Notice() << "SmtEngine: turning off produce-assignments to support minisatUseElim" << endl;
+      setOption("produce-assignments", SExpr("false"));
+    }
     if (options::checkModels()) {
       Notice() << "SmtEngine: turning off check-models to support minisatUseElim" << endl;
       setOption("check-models", SExpr("false"));
@@ -1227,7 +1274,7 @@ void SmtEngine::setLogicInternal() throw() {
   }
 
   // For now, these array theory optimizations do not support model-building
-  if (options::produceModels() || options::checkModels()) {
+  if (options::produceModels() || options::produceAssignments() || options::checkModels()) {
     options::arraysOptimizeLinear.set(false);
     options::arraysLazyRIntro1.set(false);
   }
@@ -1238,6 +1285,10 @@ void SmtEngine::setLogicInternal() throw() {
     if (options::produceModels()) {
       Warning() << "SmtEngine: turning off produce-models because unsupported for nonlinear arith" << endl;
       setOption("produce-models", SExpr("false"));
+    }
+    if (options::produceAssignments()) {
+      Warning() << "SmtEngine: turning off produce-assignments because unsupported for nonlinear arith" << endl;
+      setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
       Warning() << "SmtEngine: turning off check-models because unsupported for nonlinear arith" << endl;
