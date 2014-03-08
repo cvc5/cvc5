@@ -32,7 +32,6 @@ TESTS =	\
   fmf001.smt2 \
   fmf002.smt2 \
   type001.smt2 \
-  type002.smt2 \
   type003.smt2 \
   model001.smt2 \
   substr001.smt2 \
@@ -51,8 +50,8 @@ TESTS =	\
 
 FAILING_TESTS =
 
-EXTRA_DIST = $(TESTS)
-
+EXTRA_DIST = $(TESTS) \
+  type002.smt2
 
 # and make sure to distribute it
 EXTRA_DIST +=

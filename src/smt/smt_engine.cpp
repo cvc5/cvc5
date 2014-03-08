@@ -3677,8 +3677,15 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   // Expand, then normalize
   hash_map<Node, Node, NodeHashFunction> cache;
   n = d_private->expandDefinitions(n, cache);
-  n = d_private->rewriteBooleanTerms(n);
-  n = Rewriter::rewrite(n);
+  // There are two ways model values for terms are computed (for historical
+  // reasons).  One way is that used in check-model; the other is that
+  // used by the Model classes.  It's not clear to me exactly how these
+  // two are different, but they need to be unified.  This ugly hack here
+  // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
+  if(!n.getType().isFunction()) {
+    n = d_private->rewriteBooleanTerms(n);
+    n = Rewriter::rewrite(n);
+  }
 
   Trace("smt") << "--- getting value of " << n << endl;
   TheoryModel* m = d_theoryEngine->getModel();
@@ -3991,6 +3998,10 @@ void SmtEngine::checkModel(bool hardFailure) {
                << endl;
       continue;
     }
+
+    // Replace the already-known ITEs (this is important for ground ITEs under quantifiers).
+    n = d_private->d_iteRemover.replace(n);
+    Notice() << "SmtEngine::checkModel(): -- ite replacement gives " << n << endl;
 
     // As a last-ditch effort, ask model to simplify it.
     // Presently, this is only an issue for quantifiers, which can have a value

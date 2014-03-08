@@ -42,8 +42,6 @@ option clauseSplit --clause-split bool :default false
 #   forall x. P( x ) => f( S( x ) ) = x
 option preSkolemQuant --pre-skolem-quant bool :read-write :default false
  apply skolemization eagerly to bodies of quantified formulas
-option iteRemoveQuant --ite-remove-quant bool :default false
- apply ite removal to bodies of quantifiers
 # Whether to perform agressive miniscoping
 option aggressiveMiniscopeQuant --ag-miniscope-quant bool :default false
  perform aggressive miniscoping for quantifiers

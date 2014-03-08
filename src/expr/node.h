@@ -424,6 +424,13 @@ public:
   // bool properlyContainsDecision(); // maybe not atomic but all children are
 
   /**
+   * Returns true iff this node contains a bound variable.  This bound
+   * variable may or may not be free.
+   * @return true iff this node contains a bound variable.
+   */
+  bool hasBoundVar();
+
+  /**
    * Convert this Node into an Expr using the currently-in-scope
    * manager.  Essentially this is like an "operator Expr()" but we
    * don't want it to compete with implicit conversions between e.g.

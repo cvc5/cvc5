@@ -348,28 +348,6 @@ bool TermDb::hasInstConstAttr( Node n ) {
   return !getInstConstAttr(n).isNull();
 }
 
-bool TermDb::hasBoundVarAttr( Node n ) {
-  if( !n.getAttribute(HasBoundVarComputedAttribute()) ){
-    bool hasBv = false;
-    if( n.getKind()==BOUND_VARIABLE ){
-      hasBv = true;
-    }else{
-      for (unsigned i=0; i<n.getNumChildren(); i++) {
-        if( hasBoundVarAttr(n[i]) ){
-          hasBv = true;
-          break;
-        }
-      }
-    }
-    HasBoundVarAttribute hbva;
-    n.setAttribute(hbva, hasBv);
-    HasBoundVarComputedAttribute hbvca;
-    n.setAttribute(hbvca, true);
-    Trace("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttribute()) << std::endl;
-  }
-  return n.getAttribute(HasBoundVarAttribute());
-}
-
 void TermDb::getBoundVars( Node n, std::vector< Node >& bvs) {
   if (n.getKind()==BOUND_VARIABLE ){
     if ( std::find( bvs.begin(), bvs.end(), n)==bvs.end() ){

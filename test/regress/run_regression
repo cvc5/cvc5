@@ -197,8 +197,8 @@ fi
 
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
-  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models\>' &>/dev/null &&
-     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models\>' &>/dev/null; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models' &>/dev/null; then
     # later on, we'll run another test with --check-models on
     check_models=true
   fi
@@ -207,9 +207,9 @@ check_proofs=false
 if [ "$proof" = yes ]; then
   # proofs not currently supported in incremental mode, turn it off
   if grep '^unsat$' "$expoutfile" &>/dev/null || grep '^valid$' "$expoutfile" &>/dev/null &>/dev/null; then
-    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs\>' &>/dev/null &&
-       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs\>' &>/dev/null &&
-       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental\>' &>/dev/null &&
+    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
        ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null; then
       # later on, we'll run another test with --check-proofs on
       check_proofs=true
