@@ -1476,4 +1476,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_H */
+#endif /* __CVC4__NODE_MANAGER_H */
