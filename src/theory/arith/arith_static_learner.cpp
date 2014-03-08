@@ -109,6 +109,12 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
 
   switch(n.getKind()){
   case ITE:
+    if(n.hasBoundVar()) {
+      // Unsafe with non-ground ITEs; do nothing
+      Debug("arith::static") << "(potentially) non-ground ITE, ignoring..." << endl;
+      break;
+    }
+
     if(n[0].getKind() != EQUAL &&
        isRelationOperator(n[0].getKind())  ){
       iteMinMax(n, learned);

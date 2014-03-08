@@ -91,7 +91,6 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
   if(node.getKind() == kind::ITE) {
     TypeNode nodeType = node.getType();
     if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) {
-Debug("ite") << "CAN REMOVE ITE " << node << " BECAUSE " << inQuant << " " << node.hasBoundVar() << endl;
       Node skolem;
       // Make the skolem to represent the ITE
       skolem = nodeManager->mkSkolem("termITE_$$", nodeType, "a variable introduced due to term-level ITE removal");
