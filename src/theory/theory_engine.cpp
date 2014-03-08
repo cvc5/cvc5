@@ -1492,7 +1492,7 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   // Do theory specific preprocessing passes
   if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
     if(!simpDidALotOfWork){
-      ContainsTermITEVistor& contains = *d_iteRemover.getContainsVisitor();
+      ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
       arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
       bool anyItes = false;
       for(size_t i = 0;  i < assertions.size(); ++i){

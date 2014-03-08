@@ -18,14 +18,14 @@
 
 namespace CVC4 {
 namespace theory {
-class ContainsTermITEVistor;
+class ContainsTermITEVisitor;
 class SubstitutionMap;
 class TheoryModel;
 
 namespace arith {
 
 class ArithIteUtils {
-  ContainsTermITEVistor& d_contains;
+  ContainsTermITEVisitor& d_contains;
   SubstitutionMap* d_subs;
   TheoryModel* d_model;
 
@@ -56,7 +56,7 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
-  ArithIteUtils(ContainsTermITEVistor& contains,
+  ArithIteUtils(ContainsTermITEVisitor& contains,
                 context::Context* userContext,
                 TheoryModel* model);
   ~ArithIteUtils();

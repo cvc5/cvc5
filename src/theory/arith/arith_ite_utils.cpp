@@ -120,7 +120,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   return Node::null();
 }
 
-ArithIteUtils::ArithIteUtils(ContainsTermITEVistor& contains,
+ArithIteUtils::ArithIteUtils(ContainsTermITEVisitor& contains,
                              context::Context* uc,
                              TheoryModel* model)
   : d_contains(contains)
