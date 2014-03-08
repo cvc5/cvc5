@@ -17,6 +17,8 @@
 #include <vector>
 #include <list>
 
+#include "theory/arith/arith_ite_utils.h"
+
 #include "decision/decision_engine.h"
 
 #include "expr/attribute.h"
@@ -149,7 +151,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_bvToBoolPreprocessor()
+  d_bvToBoolPreprocessor(),
+  d_arithSubstitutionsAdded("zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
@@ -167,6 +170,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   PROOF (ProofManager::currentPM()->initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
+
+  StatisticsRegistry::registerStat(&d_arithSubstitutionsAdded);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -191,6 +196,8 @@ TheoryEngine::~TheoryEngine() {
   delete d_unconstrainedSimp;
 
   delete d_iteUtilities;
+
+  StatisticsRegistry::unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 void TheoryEngine::interrupt() throw(ModalException) {
@@ -1461,7 +1468,8 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
 
 bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   bool result = true;
-  if(d_iteUtilities->simpIteDidALotOfWorkHeuristic()){
+  bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
+  if(simpDidALotOfWork){
     if(options::compressItes()){
       result = d_iteUtilities->compress(assertions);
     }
@@ -1477,6 +1485,57 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         d_iteRemover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
+      }
+    }
+  }
+
+  // Do theory specific preprocessing passes
+  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
+    if(!simpDidALotOfWork){
+      ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
+      arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
+      bool anyItes = false;
+      for(size_t i = 0;  i < assertions.size(); ++i){
+        Node curr = assertions[i];
+        if(contains.containsTermITE(curr)){
+          anyItes = true;
+          Node res = aiteu.reduceVariablesInItes(curr);
+          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl << "   ->" << res << endl;
+          if(curr != res){
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            assertions[i] = more;
+          }
+        }
+      }
+      if(!anyItes){
+        unsigned prevSubCount = aiteu.getSubCount();
+        aiteu.learnSubstitutions(assertions);
+        if(prevSubCount < aiteu.getSubCount()){
+          d_arithSubstitutionsAdded += aiteu.getSubCount() - prevSubCount;
+          bool anySuccess = false;
+          for(size_t i = 0, N =  assertions.size();  i < N; ++i){
+            Node curr = assertions[i];
+            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node res = aiteu.reduceVariablesInItes(next);
+            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            if(more != next){
+              anySuccess = true;
+              break;
+            }
+          }
+          for(size_t i = 0, N =  assertions.size();  anySuccess && i < N; ++i){
+            Node curr = assertions[i];
+            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node res = aiteu.reduceVariablesInItes(next);
+            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            assertions[i] = Rewriter::rewrite(more);
+          }
+        }
       }
     }
   }

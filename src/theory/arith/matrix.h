@@ -362,16 +362,18 @@ public:
 
 template <class T>
 class Matrix {
-protected:
-
+public:
   typedef MatrixEntry<T> Entry;
 
+protected:
   typedef CVC4::theory::arith::RowVector<T> RowVectorT;
-  typedef typename RowVectorT::const_iterator RowIterator;
-
   typedef CVC4::theory::arith::ColumnVector<T> ColumnVectorT;
+
+public:
+  typedef typename RowVectorT::const_iterator RowIterator;
   typedef typename ColumnVectorT::const_iterator ColIterator;
 
+protected:
   // RowTable : RowID |-> RowVector
   typedef std::vector< RowVectorT > RowTable;
   RowTable d_rows;
@@ -532,6 +534,12 @@ public:
     d_columns.push_back(ColumnVector<T>(&d_entries));
   }
 
+  void increaseSizeTo(size_t s){
+    while(getNumColumns() < s){
+      increaseSize();
+    }
+  }
+
   const RowVector<T>& getRow(RowIndex r) const {
     Assert(r < d_rows.size());
     return d_rows[r];
@@ -600,7 +608,33 @@ public:
     d_mergeBuffer.purge();
   }
 
-  /**  to += mult * buffer. */
+  /* to *= mult */
+  void multiplyRowByConstant(RowIndex to, const T& mult){
+    RowIterator i = getRow(to).begin();
+    RowIterator i_end = getRow(to).end();
+    for( ; i != i_end; ++i){
+      EntryID id = i.getID();
+      Entry& entry = d_entries.get(id);
+      T& coeff = entry.getCoefficient();
+      coeff *= mult;
+    }
+  }
+
+  /**  to += mult * from.
+   * Use the more efficient rowPlusBufferTimesConstant() for
+   * repeated use.
+   */
+  void rowPlusRowTimesConstant(RowIndex to, RowIndex from, const T& mult){
+    Assert(to != from);
+    loadRowIntoBuffer(from);
+    rowPlusBufferTimesConstant(to, mult);
+    clearBuffer();
+  }
+
+  /**  to += mult * buffer.
+   * Invalidates coefficients on the row.
+   * (mult should never be a direct copy of a coefficient!)
+   */
   void rowPlusBufferTimesConstant(RowIndex to, const T& mult){
     Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
     Assert(to != ROW_INDEX_SENTINEL);

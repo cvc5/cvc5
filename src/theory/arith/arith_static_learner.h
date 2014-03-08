@@ -25,7 +25,6 @@
 #include "theory/arith/arith_utilities.h"
 
 #include "context/context.h"
-#include "context/cdlist.h"
 #include "context/cdtrail_hashmap.h"
 #include <set>
 
@@ -45,6 +44,7 @@ private:
 
 public:
   ArithStaticLearner(context::Context* userContext);
+  ~ArithStaticLearner();
   void staticLearning(TNode n, NodeBuilder<>& learned);
 
   void addBound(TNode n);

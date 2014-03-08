@@ -494,7 +494,7 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
   return NULL;
 }
 
-void LinearEqualityModule::propagateBasicFromRow(Constraint c){
+void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   Assert(c != NullConstraint);
   Assert(c->isUpperBound() || c->isLowerBound());
   Assert(!c->assertedToTheTheory());
@@ -504,12 +504,12 @@ void LinearEqualityModule::propagateBasicFromRow(Constraint c){
   ArithVar basic = c->getVariable();
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
-  vector<Constraint> bounds;
+  ConstraintCPVec bounds;
   propagateRow(bounds, ridx, upperBound, c);
   c->impliedBy(bounds);
 }
 
-void LinearEqualityModule::propagateRow(vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c){
+void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bool rowUp, ConstraintP c){
   Assert(!c->assertedToTheTheory());
   Assert(c->canBePropagated());
   Assert(!c->hasProof());
@@ -529,7 +529,7 @@ void LinearEqualityModule::propagateRow(vector<Constraint>& into, RowIndex ridx,
     int sgn = a_ij.sgn();
     Assert(sgn != 0);
     bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
-    Constraint bound = selectUb
+    ConstraintCP bound = selectUb
       ? d_variables.getUpperBoundConstraint(nonbasic)
       : d_variables.getLowerBoundConstraint(nonbasic);
 
@@ -541,12 +541,12 @@ void LinearEqualityModule::propagateRow(vector<Constraint>& into, RowIndex ridx,
                                    << v << ") done" << endl;
 }
 
-Constraint LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic) const {
+ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v, const Rational& coeff, bool& anyWeakening, ArithVar basic) const {
 
   int sgn = coeff.sgn();
   bool ub = aboveUpper?(sgn < 0) : (sgn > 0);
 
-  Constraint c = ub ?
+  ConstraintP c = ub ?
     d_variables.getUpperBoundConstraint(v) :
     d_variables.getLowerBoundConstraint(v);
 
@@ -556,7 +556,7 @@ Constraint LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRation
 
     weakened = false;
 
-    Constraint weaker = ub?
+    ConstraintP weaker = ub?
       c->getStrictlyWeakerUpperBound(true, true):
       c->getStrictlyWeakerLowerBound(true, true);
 
@@ -591,7 +591,7 @@ Constraint LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRation
   return c;
 }
 
-Node LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar) const {
+void LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, RaiseConflict& rc) const {
   TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
   const DeltaRational& assignment = d_variables.getAssignment(basicVar);
@@ -606,29 +606,25 @@ Node LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basic
     surplus = d_variables.getLowerBound(basicVar) - assignment;
   }
 
-  NodeBuilder<> conflict(kind::AND);
   bool anyWeakenings = false;
   for(Tableau::RowIterator i = d_tableau.basicRowIterator(basicVar); !i.atEnd(); ++i){
     const Tableau::Entry& entry = *i;
     ArithVar v = entry.getColVar();
     const Rational& coeff = entry.getCoefficient();
     bool weakening = false;
-    Constraint c = weakestExplanation(aboveUpper, surplus, v, coeff, weakening, basicVar);
+    ConstraintP c = weakestExplanation(aboveUpper, surplus, v, coeff, weakening, basicVar);
     Debug("weak") << "weak : " << weakening << " "
                   << c->assertedToTheTheory() << " "
                   << d_variables.getAssignment(v) << " "
-                  << c << endl
-                  << c->explainForConflict() << endl;
+                  << c << endl;
     anyWeakenings = anyWeakenings || weakening;
 
-    Debug("weak") << "weak : " << c->explainForConflict() << endl;
-    c->explainForConflict(conflict);
+    rc.addConstraint(c);
   }
   ++d_statistics.d_weakeningAttempts;
   if(anyWeakenings){
     ++d_statistics.d_weakeningSuccesses;
   }
-  return conflict;
 }
 
 ArithVar LinearEqualityModule::minVarOrder(ArithVar x, ArithVar y) const {
@@ -787,7 +783,7 @@ bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
   int coeffSgn = u.getCoefficient().sgn();
   int nbdir = u.nonbasicDirection();
 
-  Constraint c = u.limiting();
+  ConstraintP c = u.limiting();
   int toUB = (c->getType() == UpperBound ||
               c->getType() == Equality) ? 1 : 0;
   int toLB = (c->getType() == LowerBound ||
@@ -886,7 +882,7 @@ bool LinearEqualityModule::accumulateBorder(const Tableau::Entry& entry, bool ub
 
   Assert(basicIsTracked(currBasic));
 
-  Constraint bound = ub ?
+  ConstraintP bound = ub ?
     d_variables.getUpperBoundConstraint(currBasic):
     d_variables.getLowerBoundConstraint(currBasic);
 
@@ -1003,7 +999,7 @@ UpdateInfo LinearEqualityModule::mkConflictUpdate(const Tableau::Entry& entry, b
   ArithVar currBasic = d_tableau.rowIndexToBasic(entry.getRowIndex());
   ArithVar nb = entry.getColVar();
 
-  Constraint bound = ub ?
+  ConstraintP bound = ub ?
     d_variables.getUpperBoundConstraint(currBasic):
     d_variables.getLowerBoundConstraint(currBasic);
 
@@ -1031,14 +1027,14 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
   Debug("speculativeUpdate") << "focusCoeff " << focusCoeff << endl;
 
   if(d_variables.hasUpperBound(nb)){
-    Constraint ub = d_variables.getUpperBoundConstraint(nb);
+    ConstraintP ub = d_variables.getUpperBoundConstraint(nb);
     d_upperBoundDifference = ub->getValue() - d_variables.getAssignment(nb);
     Border border(ub, d_upperBoundDifference, false, NULL, true);
     Debug("handleBorders") << "push back increasing " << border << endl;
     d_increasing.push_back(border);
   }
   if(d_variables.hasLowerBound(nb)){
-    Constraint lb = d_variables.getLowerBoundConstraint(nb);
+    ConstraintP lb = d_variables.getLowerBoundConstraint(nb);
     d_lowerBoundDifference = lb->getValue() - d_variables.getAssignment(nb);
     Border border(lb, d_lowerBoundDifference, false, NULL, false);
     Debug("handleBorders") << "push back decreasing " << border << endl;

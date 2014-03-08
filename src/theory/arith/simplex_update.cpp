@@ -51,7 +51,7 @@ UpdateInfo::UpdateInfo(ArithVar nb, int dir):
   Assert(dir == 1 || dir == -1);
 }
 
-UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, Constraint c):
+UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
   d_nonbasic(nb),
   d_nonbasicDirection(delta.sgn()),
   d_nonbasicDelta(delta),
@@ -65,7 +65,7 @@ UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, c
   Assert(conflict);
 }
 
-UpdateInfo UpdateInfo::conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, Constraint lim){
+UpdateInfo UpdateInfo::conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim){
   return UpdateInfo(true, nb, delta, r, lim);
 }
 
@@ -81,7 +81,7 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
   Assert(!describesPivot());
   Assert(debugSgnAgreement());
 }
-void UpdateInfo::updatePureFocus(const DeltaRational& delta, Constraint c){
+void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange.clear();
@@ -93,7 +93,7 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, Constraint c){
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Constraint c){
+void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange.clear();
@@ -103,7 +103,7 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Constraint c, int ec){
+void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec){
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -114,7 +114,7 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::witnessedUpdate(const DeltaRational& delta, Constraint c, int ec, int fd){
+void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int ec, int fd){
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;
@@ -125,7 +125,7 @@ void UpdateInfo::witnessedUpdate(const DeltaRational& delta, Constraint c, int e
   Assert(debugSgnAgreement());
 }
 
-void UpdateInfo::update(const DeltaRational& delta, const Rational& r, Constraint c, int ec, int fd){
+void UpdateInfo::update(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec, int fd){
   d_limiting = c;
   d_nonbasicDelta = delta;
   d_errorsChange = ec;

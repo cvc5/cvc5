@@ -38,6 +38,11 @@
 
 namespace CVC4 {
 
+class CVC4_PUBLIC RationalFromDoubleException : public Exception {
+public:
+  RationalFromDoubleException(double d) throw();
+};
+
 /**
  ** A multi-precision rational constant.
  ** This stores the rational as a pair of multi-precision integers,
@@ -189,12 +194,7 @@ public:
   }
 
   /** Return an exact rational for a double d. */
-  static Rational fromDouble(double d){
-    cln::cl_DF fromD = d;
-    Rational q;
-    q.d_value = cln::rationalize(fromD);
-    return q;
-  }
+  static Rational fromDouble(double d) throw(RationalFromDoubleException);
 
   /**
    * Get a double representation of this Rational, which is
@@ -257,6 +257,10 @@ public:
 
   Integer ceiling() const {
     return Integer(cln::ceiling1(d_value));
+  }
+
+  Rational floor_frac() const {
+    return (*this) - Rational(floor());
   }
 
   Rational& operator=(const Rational& x){
@@ -348,6 +352,9 @@ public:
   uint32_t complexity() const {
     return getNumerator().length() + getDenominator().length();
   }
+
+  /** Equivalent to calling (this->abs()).cmp(b.abs()) */
+  int absCmp(const Rational& q) const;
 
 };/* class Rational */
 

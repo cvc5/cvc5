@@ -17,6 +17,8 @@
 #include "cvc4autoconfig.h"
 #include "util/rational.h"
 #include <string>
+#include <sstream>
+#include <cmath>
 
 #ifndef CVC4_GMP_IMP
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
@@ -50,3 +52,52 @@ std::ostream& CVC4::operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }
 
+
+/** Equivalent to calling (this->abs()).cmp(b.abs()) */
+int Rational::absCmp(const Rational& q) const{
+  const Rational& r = *this;
+  int rsgn = r.sgn();
+  int qsgn = q.sgn();
+  if(rsgn == 0){
+    return (qsgn == 0) ? 0 : -1;
+  }else if(qsgn == 0){
+    Assert(rsgn != 0);
+    return 1;
+  }else if((rsgn > 0) && (qsgn > 0)){
+    return r.cmp(q);
+  }else if((rsgn < 0) && (qsgn < 0)){
+    // if r < q < 0, q.cmp(r) = +1, (r.abs()).cmp(q.abs()) = +1
+    // if q < r < 0, q.cmp(r) = -1, (r.abs()).cmp(q.abs()) = -1
+    // if q = r < 0, q.cmp(r) =  0, (r.abs()).cmp(q.abs()) =  0
+    return q.cmp(r);
+  }else if((rsgn < 0) && (qsgn > 0)){
+    Rational rpos = -r;
+    return rpos.cmp(q);
+  }else {
+    Assert(rsgn > 0 && (qsgn < 0));
+    Rational qpos = -q;
+    return r.cmp(qpos);
+  }
+}
+
+
+/** Return an exact rational for a double d. */
+Rational Rational::fromDouble(double d) throw(RationalFromDoubleException){
+  if(std::isfinite(d)){
+    Rational q;
+    mpq_set_d(q.d_value.get_mpq_t(), d);
+    return q;
+  }
+
+  throw RationalFromDoubleException(d);
+}
+
+RationalFromDoubleException::RationalFromDoubleException(double d) throw()
+  : Exception()
+{
+  std::stringstream ss;
+  ss << "RationalFromDoubleException(";
+  ss << d;
+  ss << ")";
+  setMessage(ss.str());
+}

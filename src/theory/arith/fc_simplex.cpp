@@ -536,7 +536,7 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
   }
 
   if(selected.describesPivot()){
-    Constraint limiting = selected.limiting();
+    ConstraintP limiting = selected.limiting();
     ArithVar basic = limiting->getVariable();
     Assert(d_linEq.basicIsTracked(basic));
     d_linEq.pivotAndUpdate(basic, nonbasic, limiting->getValue());
