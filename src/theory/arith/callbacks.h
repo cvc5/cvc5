@@ -24,6 +24,7 @@
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
+#include "theory/arith/constraint_forward.h"
 
 namespace CVC4 {
 namespace theory {
@@ -67,7 +68,7 @@ class SetupLiteralCallBack : public TNodeCallBack {
 private:
   TheoryArithPrivate& d_arith;
 public:
-  SetupLiteralCallBack(TheoryArithPrivate& ta) : d_arith(ta){}
+  SetupLiteralCallBack(TheoryArithPrivate& ta);
   void operator()(TNode lit);
 };
 
@@ -75,7 +76,7 @@ class DeltaComputeCallback : public RationalCallBack {
 private:
   const TheoryArithPrivate& d_ta;
 public:
-  DeltaComputeCallback(const TheoryArithPrivate& ta) : d_ta(ta){}
+  DeltaComputeCallback(const TheoryArithPrivate& ta);
   Rational operator()() const;
 };
 
@@ -83,7 +84,7 @@ class BasicVarModelUpdateCallBack : public ArithVarCallBack{
 private:
   TheoryArithPrivate& d_ta;
 public:
-  BasicVarModelUpdateCallBack(TheoryArithPrivate& ta) : d_ta(ta) {}
+  BasicVarModelUpdateCallBack(TheoryArithPrivate& ta);
   void operator()(ArithVar x);
 };
 
@@ -91,31 +92,37 @@ class TempVarMalloc : public ArithVarMalloc {
 private:
   TheoryArithPrivate& d_ta;
 public:
-  TempVarMalloc(TheoryArithPrivate& ta) : d_ta(ta) {}
+  TempVarMalloc(TheoryArithPrivate& ta);
   ArithVar request();
   void release(ArithVar v);
 };
 
-class RaiseConflict : public NodeCallBack {
+class RaiseConflict {
 private:
   TheoryArithPrivate& d_ta;
+  ConstraintCPVec& d_construction;
 public:
-  RaiseConflict(TheoryArithPrivate& ta) : d_ta(ta) {}
-  void operator()(Node n);
+  RaiseConflict(TheoryArithPrivate& ta, ConstraintCPVec& d_construction);
+
+  /* Adds a constraint to the constraint under construction. */
+  void addConstraint(ConstraintCP c);
+  /* Turns the vector under construction into a conflict */
+  void commitConflict();
+
+  void sendConflict(const ConstraintCPVec& vec);
+
+  /* If you are not an equality engine, don't use this! */
+  void blackBoxConflict(Node n);
 };
 
 class BoundCountingLookup {
 private:
   TheoryArithPrivate& d_ta;
 public:
-  BoundCountingLookup(TheoryArithPrivate& ta) : d_ta(ta) {}
+  BoundCountingLookup(TheoryArithPrivate& ta);
   const BoundsInfo& boundsInfo(ArithVar basic) const;
-  BoundCounts atBounds(ArithVar basic) const{
-    return boundsInfo(basic).atBounds();
-  }
-  BoundCounts hasBounds(ArithVar basic) const {
-    return boundsInfo(basic).hasBounds();
-  }
+  BoundCounts atBounds(ArithVar basic) const;
+  BoundCounts hasBounds(ArithVar basic) const;
 };
 
 }/* CVC4::theory::arith namespace */

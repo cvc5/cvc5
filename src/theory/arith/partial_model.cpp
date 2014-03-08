@@ -33,7 +33,6 @@ ArithVariables::ArithVariables(context::Context* c, DeltaComputeCallback deltaCo
    d_numberOfVariables(0),
    d_pool(),
    d_released(),
-   d_releasedIterator(d_released.begin()),
    d_nodeToArithVarMap(),
    d_boundsQueue(),
    d_enqueueingBoundCounts(true),
@@ -44,6 +43,87 @@ ArithVariables::ArithVariables(context::Context* c, DeltaComputeCallback deltaCo
    d_deltaComputingFunc(deltaComputingFunc)
 { }
 
+ArithVar ArithVariables::getNumberOfVariables() const {
+  return d_numberOfVariables;
+}
+
+
+bool ArithVariables::hasArithVar(TNode x) const {
+  return d_nodeToArithVarMap.find(x) != d_nodeToArithVarMap.end();
+}
+
+bool ArithVariables::hasNode(ArithVar a) const {
+  return d_vars.isKey(a);
+}
+
+ArithVar ArithVariables::asArithVar(TNode x) const{
+  Assert(hasArithVar(x));
+  Assert((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
+  return (d_nodeToArithVarMap.find(x))->second;
+}
+
+Node ArithVariables::asNode(ArithVar a) const{
+  Assert(hasNode(a));
+  return d_vars[a].d_node;
+}
+
+ArithVariables::var_iterator::var_iterator()
+  : d_vars(NULL)
+  , d_wrapped()
+{}
+
+ArithVariables::var_iterator::var_iterator(const VarInfoVec* vars, VarInfoVec::const_iterator ci)
+  : d_vars(vars), d_wrapped(ci)
+{
+  nextInitialized();
+}
+
+ArithVariables::var_iterator& ArithVariables::var_iterator::operator++(){
+  ++d_wrapped;
+  nextInitialized();
+  return *this;
+}
+bool ArithVariables::var_iterator::operator==(const ArithVariables::var_iterator& other) const{
+  return d_wrapped == other.d_wrapped;
+}
+bool ArithVariables::var_iterator::operator!=(const ArithVariables::var_iterator& other) const{
+  return d_wrapped != other.d_wrapped;
+}
+ArithVar ArithVariables::var_iterator::operator*() const{
+  return *d_wrapped;
+}
+
+void ArithVariables::var_iterator::nextInitialized(){
+  VarInfoVec::const_iterator end = d_vars->end();
+  while(d_wrapped != end &&
+        !((*d_vars)[*d_wrapped].initialized())){
+    ++d_wrapped;
+  }
+}
+
+ArithVariables::var_iterator ArithVariables::var_begin() const {
+  return var_iterator(&d_vars, d_vars.begin());
+}
+
+ArithVariables::var_iterator ArithVariables::var_end() const {
+  return var_iterator(&d_vars, d_vars.end());
+}
+bool ArithVariables::isInteger(ArithVar x) const {
+  return d_vars[x].d_type >= ATInteger;
+}
+
+/** Is the assignment to x integral? */
+bool ArithVariables::integralAssignment(ArithVar x) const {
+  return getAssignment(x).isIntegral();
+}
+bool ArithVariables::isAuxiliary(ArithVar x) const {
+  return d_vars[x].d_auxiliary;
+}
+
+bool ArithVariables::isIntegerInput(ArithVar x) const {
+  return isInteger(x) && !isAuxiliary(x);
+}
+
 ArithVariables::VarInfo::VarInfo()
   : d_var(ARITHVAR_SENTINEL),
     d_assignment(0),
@@ -53,14 +133,14 @@ ArithVariables::VarInfo::VarInfo()
     d_cmpAssignmentUB(-1),
     d_pushCount(0),
     d_node(Node::null()),
-    d_slack(false)
+    d_auxiliary(false)
 { }
 
 bool ArithVariables::VarInfo::initialized() const {
   return d_var != ARITHVAR_SENTINEL;
 }
 
-void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool slack){
+void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool aux){
   Assert(!initialized());
   Assert(d_lb == NullConstraint);
   Assert(d_ub == NullConstraint);
@@ -68,9 +148,9 @@ void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool slack){
   Assert(d_cmpAssignmentUB < 0);
   d_var = v;
   d_node = n;
-  d_slack = slack;
+  d_auxiliary = aux;
 
-  if(d_slack){
+  if(d_auxiliary){
     //The type computation is not quite accurate for Rationals that are
     //integral.
     //We'll use the isIntegral check from the polynomial package instead.
@@ -112,6 +192,10 @@ bool ArithVariables::VarInfo::setAssignment(const DeltaRational& a, BoundsInfo& 
 
 void ArithVariables::releaseArithVar(ArithVar v){
   VarInfo& vi = d_vars.get(v);
+
+  size_t removed CVC4_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
+  Assert(removed == 1);
+
   vi.uninitialize();
 
   if(d_safeAssignment.isKey(v)){
@@ -124,7 +208,7 @@ void ArithVariables::releaseArithVar(ArithVar v){
   }
 }
 
-bool ArithVariables::VarInfo::setUpperBound(Constraint ub, BoundsInfo& prev){
+bool ArithVariables::VarInfo::setUpperBound(ConstraintP ub, BoundsInfo& prev){
   Assert(initialized());
   bool wasNull = d_ub == NullConstraint;
   bool isNull = ub == NullConstraint;
@@ -140,7 +224,7 @@ bool ArithVariables::VarInfo::setUpperBound(Constraint ub, BoundsInfo& prev){
   return ubChanged;
 }
 
-bool ArithVariables::VarInfo::setLowerBound(Constraint lb, BoundsInfo& prev){
+bool ArithVariables::VarInfo::setLowerBound(ConstraintP lb, BoundsInfo& prev){
   Assert(initialized());
   bool wasNull = d_lb == NullConstraint;
   bool isNull = lb == NullConstraint;
@@ -177,23 +261,22 @@ bool ArithVariables::VarInfo::canBeReclaimed() const{
   return d_pushCount == 0;
 }
 
+bool ArithVariables::canBeReleased(ArithVar v) const{
+  return d_vars[v].canBeReclaimed();
+}
+
 void ArithVariables::attemptToReclaimReleased(){
-  std::list<ArithVar>::iterator i_end = d_released.end();
-  for(int iter = 0; iter < 20 && d_releasedIterator != i_end; ++d_releasedIterator){
-    ArithVar v = *d_releasedIterator;
-    VarInfo& vi = d_vars.get(v);
-    if(vi.canBeReclaimed()){
+  size_t readPos = 0, writePos = 0, N = d_released.size();
+  for(; readPos < N; ++readPos){
+    ArithVar v = d_released[readPos];
+    if(canBeReleased(v)){
       d_pool.push_back(v);
-      std::list<ArithVar>::iterator curr = d_releasedIterator;
-      ++d_releasedIterator;
-      d_released.erase(curr);
     }else{
-      ++d_releasedIterator;
+      d_released[writePos] = v;
+      writePos++;
     }
   }
-  if(d_releasedIterator == i_end){
-    d_releasedIterator = d_released.begin();
-  }
+  d_released.resize(writePos);
 }
 
 ArithVar ArithVariables::allocateVariable(){
@@ -232,6 +315,21 @@ bool ArithVariables::boundsAreEqual(ArithVar x) const{
   }
 }
 
+
+std::pair<ConstraintP, ConstraintP> ArithVariables::explainEqualBounds(ArithVar x) const{
+  Assert(boundsAreEqual(x));
+
+  ConstraintP lb = getLowerBoundConstraint(x);
+  ConstraintP ub = getUpperBoundConstraint(x);
+  if(lb->isEquality()){
+    return make_pair(lb, NullConstraint);
+  }else if(ub->isEquality()){
+    return make_pair(ub, NullConstraint);
+  }else{
+    return make_pair(lb, ub);
+  }
+}
+
 void ArithVariables::setAssignment(ArithVar x, const DeltaRational& r){
   Debug("partial_model") << "pm: updating the assignment to" << x
                          << " now " << r <<endl;
@@ -266,15 +364,15 @@ void ArithVariables::setAssignment(ArithVar x, const DeltaRational& safe, const 
   }
 }
 
-void ArithVariables::initialize(ArithVar x, Node n, bool slack){
+void ArithVariables::initialize(ArithVar x, Node n, bool aux){
   VarInfo& vi = d_vars.get(x);
-  vi.initialize(x, n, slack);
+  vi.initialize(x, n, aux);
   d_nodeToArithVarMap[n] = x;
 }
 
-ArithVar ArithVariables::allocate(Node n, bool slack){
+ArithVar ArithVariables::allocate(Node n, bool aux){
   ArithVar v = allocateVariable();
-  initialize(v, n, slack);
+  initialize(v, n, aux);
   return v;
 }
 
@@ -333,7 +431,7 @@ const DeltaRational& ArithVariables::getAssignment(ArithVar x) const{
 }
 
 
-void ArithVariables::setLowerBoundConstraint(Constraint c){
+void ArithVariables::setLowerBoundConstraint(ConstraintP c){
   AssertArgument(c != NullConstraint, "Cannot set a lower bound to NullConstraint.");
   AssertArgument(c->isEquality() || c->isLowerBound(),
                  "Constraint type must be set to an equality or UpperBound.");
@@ -351,7 +449,7 @@ void ArithVariables::setLowerBoundConstraint(Constraint c){
   }
 }
 
-void ArithVariables::setUpperBoundConstraint(Constraint c){
+void ArithVariables::setUpperBoundConstraint(ConstraintP c){
   AssertArgument(c != NullConstraint, "Cannot set a upper bound to NullConstraint.");
   AssertArgument(c->isEquality() || c->isUpperBound(),
                  "Constraint type must be set to an equality or UpperBound.");
@@ -450,6 +548,14 @@ void ArithVariables::commitAssignmentChanges(){
   clearSafeAssignments(false);
 }
 
+bool ArithVariables::lowerBoundIsZero(ArithVar x){
+  return hasLowerBound(x) && getLowerBound(x).sgn() == 0;
+}
+
+bool ArithVariables::upperBoundIsZero(ArithVar x){
+  return hasUpperBound(x) && getUpperBound(x).sgn() == 0;
+}
+
 void ArithVariables::printEntireModel(std::ostream& out) const{
   out << "---Printing Model ---" << std::endl;
   for(var_iterator i = var_begin(), iend = var_end(); i != iend; ++i){
@@ -473,6 +579,10 @@ void ArithVariables::printModel(ArithVar x, std::ostream& out) const{
   }else{
     out << getUpperBound(x) << " ";
     out << getUpperBoundConstraint(x) << " ";
+  }
+
+  if(isInteger(x) && !integralAssignment(x)){
+    out << "(not an integer)" << endl;
   }
   out << endl;
 }
@@ -540,10 +650,36 @@ void ArithVariables::processBoundsQueue(BoundUpdateCallback& changed){
   }
 }
 
+void ArithVariables::invalidateDelta() {
+  d_deltaIsSafe = false;
+}
+
+void ArithVariables::setDelta(const Rational& d){
+  d_delta = d;
+  d_deltaIsSafe = true;
+}
+
+void ArithVariables::startQueueingBoundCounts(){
+  d_enqueueingBoundCounts = true;
+}
+void ArithVariables::stopQueueingBoundCounts(){
+  d_enqueueingBoundCounts = false;
+}
+
+bool ArithVariables::inMaps(ArithVar x) const{
+  return x < getNumberOfVariables();
+}
+
+ArithVariables::LowerBoundCleanUp::LowerBoundCleanUp(ArithVariables* pm)
+  : d_pm(pm)
+{}
 void ArithVariables::LowerBoundCleanUp::operator()(AVCPair* p){
   d_pm->popLowerBound(p);
 }
 
+ArithVariables::UpperBoundCleanUp::UpperBoundCleanUp(ArithVariables* pm)
+  : d_pm(pm)
+{}
 void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
   d_pm->popUpperBound(p);
 }

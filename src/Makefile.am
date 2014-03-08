@@ -329,6 +329,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/arithvar.h \
 	theory/arith/arithvar.cpp \
 	theory/arith/bound_counts.h \
+	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_static_learner.h \
@@ -384,6 +386,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/arith_unate_lemma_mode.cpp \
 	theory/arith/arith_propagation_mode.h \
 	theory/arith/arith_propagation_mode.cpp \
+	theory/arith/cut_log.h \
+	theory/arith/cut_log.cpp \
 	theory/arith/options_handlers.h \
 	theory/booleans/type_enumerator.h \
 	theory/booleans/theory_bool.h \

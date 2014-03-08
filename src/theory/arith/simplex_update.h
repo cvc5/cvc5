@@ -136,7 +136,7 @@ private:
    * - Pivot-And-Update: then this is not NullConstraint and the variable is not d_nonbasic.
    * - Update: then this is not NullConstraint and the variable is d_nonbasic.
    */
-  Constraint d_limiting;
+  ConstraintP d_limiting;
 
   WitnessImprovement d_witness;
 
@@ -150,7 +150,7 @@ private:
   }
 
   /** This private constructor allows for setting conflict to true. */
-  UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, Constraint lim);
+  UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim);
 
 public:
 
@@ -170,7 +170,7 @@ public:
   void updateUnbounded(const DeltaRational& d, int ec, int f);
 
 
-  void updatePureFocus(const DeltaRational& d, Constraint c);
+  void updatePureFocus(const DeltaRational& d, ConstraintP c);
   //void updatePureError(const DeltaRational& d, Constraint c, int e);
   //void updatePure(const DeltaRational& d, Constraint c, int e, int f);
 
@@ -178,23 +178,23 @@ public:
    * This updates the nonBasicDelta to d and limiting to c.
    * This clears errorChange() and focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r,  Constraint c);
+  void updatePivot(const DeltaRational& d, const Rational& r,  ConstraintP c);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, and errorChange to e.
    * This clears focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r, Constraint c, int e);
+  void updatePivot(const DeltaRational& d, const Rational& r, ConstraintP c, int e);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, errorChange to e and
    * focusDir to f.
    */
-  void witnessedUpdate(const DeltaRational& d, Constraint c, int e, int f);
-  void update(const DeltaRational& d, const Rational& r, Constraint c, int e, int f);
+  void witnessedUpdate(const DeltaRational& d, ConstraintP c, int e, int f);
+  void update(const DeltaRational& d, const Rational& r, ConstraintP c, int e, int f);
 
 
-  static UpdateInfo conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, Constraint lim);
+  static UpdateInfo conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim);
 
   inline ArithVar nonbasic() const { return d_nonbasic; }
   inline bool uninitialized() const {
@@ -283,7 +283,7 @@ public:
   }
 
   /** Returns the limiting constraint. */
-  inline Constraint limiting() const {
+  inline ConstraintP limiting() const {
     return d_limiting;
   }
 

@@ -2,6 +2,8 @@
 #include "util/rational.h"
 %}
 
+%ignore CVC4::RationalFromDoubleException::RationalFromDoubleException(double);
+
 %ignore CVC4::Rational::Rational(int);
 %ignore CVC4::Rational::Rational(unsigned int);
 %ignore CVC4::Rational::Rational(int, int);

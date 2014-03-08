@@ -88,6 +88,10 @@ namespace quantifiers {
 }
 namespace arith {
 
+class BranchCutInfo;
+class TreeLog;
+class ApproximateStatistics;
+
 /**
  * Implementation of QF_LRA.
  * Based upon:
@@ -107,6 +111,8 @@ private:
 
   BoundInfoMap d_rowTracking;
 
+  ConstraintCPVec d_conflictBuffer;
+
   /**
    * The constraint database associated with the theory.
    * This must be declared before ArithPartialModel.
@@ -122,6 +128,7 @@ private:
   //                     if unknown, the simplex priority queue cannot be emptied
   int d_unknownsInARow;
 
+  bool d_replayedLemmas;
 
   /**
    * This counter is false if nothing has been done since the last cut.
@@ -174,22 +181,22 @@ private:
    * A superset of all of the assertions that currently are not the literal for
    * their constraint do not match constraint literals. Not just the witnesses.
    */
-  context::CDInsertHashMap<Node, Constraint, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
+  context::CDInsertHashMap<Node, ConstraintP, NodeHashFunction> d_assertionsThatDoNotMatchTheirLiterals;
 
 
   /** Returns true if x is of type Integer. */
   inline bool isInteger(ArithVar x) const {
     return d_partialModel.isInteger(x);
-    //return d_variableTypes[x] >= ATInteger;
   }
 
-  /** This is the set of variables initially introduced as slack variables. */
-  //std::vector<bool> d_slackVars;
 
-  /** Returns true if the variable was initially introduced as a slack variable. */
-  inline bool isSlackVariable(ArithVar x) const{
-    return d_partialModel.isSlack(x);
-    //return d_slackVars[x];
+  /** Returns true if the variable was initially introduced as an auxiliary variable. */
+  inline bool isAuxiliaryVariable(ArithVar x) const{
+    return d_partialModel.isAuxiliary(x);
+  }
+
+  inline bool isIntegerInput(ArithVar x) const {
+    return d_partialModel.isIntegerInput(x);
   }
 
   /**
@@ -215,7 +222,7 @@ private:
    * List of all of the disequalities asserted in the current context that are not known
    * to be satisfied.
    */
-  context::CDQueue<Constraint> d_diseqQueue;
+  context::CDQueue<ConstraintP> d_diseqQueue;
 
   /**
    * Constraints that have yet to be processed by proagation work list.
@@ -231,9 +238,9 @@ private:
    * then d_cPL[1] is the previous lowerBound in d_partialModel,
    * and d_cPL[2] is the previous upperBound in d_partialModel.
    */
-  std::deque<Constraint> d_currentPropagationList;
+  std::deque<ConstraintP> d_currentPropagationList;
 
-  context::CDQueue<Constraint> d_learnedBounds;
+  context::CDQueue<ConstraintP> d_learnedBounds;
 
 
   /**
@@ -277,15 +284,31 @@ private:
 
 
   /** This is only used by simplex at the moment. */
-  context::CDList<Node> d_conflicts;
+  context::CDList<ConstraintCPVec> d_conflicts;
+  context::CDO<Node> d_blackBoxConflict;
 public:
-  inline void raiseConflict(Node n){  d_conflicts.push_back(n); }
+  inline void raiseConflict(const ConstraintCPVec& cv){
+    d_conflicts.push_back(cv);
+  }
+
+  void raiseConflict(ConstraintCP a, ConstraintCP b);
+  void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
+
+  inline void blackBoxConflict(Node bb){
+    if(d_blackBoxConflict.get().isNull()){
+      d_blackBoxConflict = bb;
+    }
+  }
 
 private:
 
+  inline bool conflictQueueEmpty() const {
+    return d_conflicts.empty();
+  }
+
   /** Returns true iff a conflict has been raised. */
-  inline bool inConflict() const {
-    return !d_conflicts.empty();
+  inline bool anyConflict() const {
+    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
   }
 
   /**
@@ -314,6 +337,7 @@ private:
 
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
+  context::CDO<bool> d_cmEnabled;
 
   /** This implements the Simplex decision procedure. */
   DualSimplexDecisionProcedure d_dualSimplex;
@@ -322,6 +346,22 @@ private:
   AttemptSolutionSDP d_attemptSolSimplex;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
+
+  /* Returns true if this is heuristically a good time to try
+   * to solve the integers.
+   */
+  bool attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit);
+  bool replayLemmas(ApproximateSimplex* approx);
+  void solveInteger(Theory::Effort effortLevel);
+  bool safeToCallApprox() const;
+  SimplexDecisionProcedure& selectSimplex(bool pass1);
+  SimplexDecisionProcedure* d_pass1SDP;
+  SimplexDecisionProcedure* d_otherSDP;
+  /* Sets d_qflraStatus */
+  void importSolution(const ApproximateSimplex::Solution& solution);
+  bool solveRelaxationOrPanic(Theory::Effort effortLevel);
+  context::CDO<int> d_lastContextIntegerAttempted;
+  bool replayLog(ApproximateSimplex* approx);
 
   class ModelException : public Exception {
   public:
@@ -412,16 +452,28 @@ private:
 
 
   /**
-   * Looks for the next integer variable without an integer assignment in a round robin fashion.
-   * Changes the value of d_nextIntegerCheckVar.
+   * Looks for the next integer variable without an integer assignment in a
+   * round-robin fashion. Changes the value of d_nextIntegerCheckVar.
    *
-   * If this returns false, d_nextIntegerCheckVar does not have an integer assignment.
-   * If this returns true, all integer variables have an integer assignment.
+   * This returns true if all integer variables have integer assignments.
+   * If this returns false, d_nextIntegerCheckVar does not have an integer
+   * assignment.
    */
   bool hasIntegerModel();
 
   /**
-   * Issues branches for non-slack integer variables with non-integer assignments.
+   * Looks for through the variables starting at d_nextIntegerCheckVar
+   * for the first integer variable that is between its upper and lower bounds
+   * that has a non-integer assignment.
+   *
+   * If assumeBounds is true, skip the check that the variable is in bounds.
+   *
+   * If there is no such variable, returns ARITHVAR_SENTINEL;
+   */
+  ArithVar nextIntegerViolatation(bool assumeBounds) const;
+
+  /**
+   * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
@@ -432,8 +484,11 @@ public:
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
    * except for setting up the initial.
+   *
+   * If aux is true, this is an auxiliary variable.
+   * If internal is true, x might not be unique up to a constant multiple.
    */
-  ArithVar requestArithVar(TNode x, bool slack);
+  ArithVar requestArithVar(TNode x, bool aux, bool internal);
 
 public:
   const BoundsInfo& boundsInfo(ArithVar basic) const;
@@ -443,8 +498,8 @@ private:
   /** Initial (not context dependent) sets up for a variable.*/
   void setupBasicValue(ArithVar x);
 
-  /** Initial (not context dependent) sets up for a new slack variable.*/
-  void setupSlack(TNode left);
+  /** Initial (not context dependent) sets up for a new auxiliary variable.*/
+  void setupAuxiliary(TNode left);
 
 
   /**
@@ -462,10 +517,10 @@ private:
    * a node describing this conflict is returned.
    * If this new bound is not in conflict, Node::null() is returned.
    */
-  bool AssertLower(Constraint constraint);
-  bool AssertUpper(Constraint constraint);
-  bool AssertEquality(Constraint constraint);
-  bool AssertDisequality(Constraint constraint);
+  bool AssertLower(ConstraintP constraint);
+  bool AssertUpper(ConstraintP constraint);
+  bool AssertEquality(ConstraintP constraint);
+  bool AssertDisequality(ConstraintP constraint);
 
   /** Tracks the bounds that were updated in the current round. */
   DenseSet d_updatedBounds;
@@ -488,7 +543,14 @@ private:
   /** Attempt to perform a row propagation where every variable is a potential candidate.*/
   bool attemptFull(RowIndex ridx, bool rowUp);
   bool tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUp, const DeltaRational& bound);
-  bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, Constraint bestImplied);
+  bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, ConstraintP bestImplied);
+  //void enqueueConstraints(std::vector<ConstraintCP>& out, Node n) const;
+  //ConstraintCPVec resolveOutPropagated(const ConstraintCPVec& v, const std::set<ConstraintCP>& propagated) const;
+  void resolveOutPropagated(std::vector<ConstraintCPVec>& confs, const std::set<ConstraintCP>& propagated) const;
+  void subsumption(std::vector<ConstraintCPVec>& confs) const;
+
+  Node cutToLiteral(ApproximateSimplex*  approx, const CutInfo& cut) const;
+  Node branchToNode(ApproximateSimplex*  approx, const NodeLog& cut) const throw(RationalFromDoubleException);
 
 
   void propagateCandidates();
@@ -512,8 +574,8 @@ private:
    * Returns a conflict if one was found.
    * Returns Node::null if no conflict was found.
    */
-  Constraint constraintFromFactQueue();
-  bool assertionCases(Constraint c);
+  ConstraintP constraintFromFactQueue();
+  bool assertionCases(ConstraintP c);
 
   /**
    * Returns the basic variable with the shorted row containing a non-basic variable.
@@ -554,7 +616,7 @@ private:
     (d_containing.d_out)->setIncomplete();
     d_nlIncomplete = true;
   }
-  inline void outputLemma(TNode lem) { (d_containing.d_out)->lemma(lem); }
+  void outputLemma(TNode lem);
   inline void outputPropagate(TNode lit) { (d_containing.d_out)->propagate(lit); }
   inline void outputRestart() { (d_containing.d_out)->demandRestart(); }
 
@@ -565,6 +627,8 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
+  context::CDQueue<Node> d_approxCuts;
+  std::vector<Node> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
@@ -581,12 +645,49 @@ private:
   context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;
 
+
+  TreeLog* d_treeLog;
+  TreeLog& getTreeLog();
+
+
+  ArithVarVec d_replayVariables;
+  std::vector<ConstraintP> d_replayConstraints;
+  DenseMap<Rational> d_lhsTmp;
+
+  /* Approximate simpplex solvers are given a copy of their stats */
+  ApproximateStatistics* d_approxStats;
+  ApproximateStatistics& getApproxStats();
+  context::CDO<int32_t> d_attemptSolveIntTurnedOff;
+  void turnOffApproxFor(int32_t rounds);
+  bool getSolveIntegerResource();
+
+  void tryBranchCut(ApproximateSimplex* approx, int nid, BranchCutInfo& bl);
+  std::vector<ConstraintCPVec> replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth);
+
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(const CutInfo& info);
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(ApproximateSimplex* approx, const NodeLog& nl) throw(RationalFromDoubleException);
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
+
+  void replayAssert(ConstraintP c);
+  //ConstConstraintVec toExplanation(Node n) const;
+
+  // Returns true if the node contains a literal
+  // that is an arithmetic literal and is not a sat literal
+  // No caching is done so this should likely only
+  // be called carefully!
+  bool hasFreshArithLiteral(Node n) const;
+
+  int32_t d_dioSolveResources;
+  bool getDioCuttingResource();
+
+  uint32_t d_solveIntMaybeHelp, d_solveIntAttempts;
+
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
     IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
 
-    IntStat d_statUserVariables, d_statSlackVariables;
+    IntStat d_statUserVariables, d_statAuxiliaryVariables;
     IntStat d_statDisequalitySplits;
     IntStat d_statDisequalityConflicts;
     TimerStat d_simplifyTimer;
@@ -614,6 +715,51 @@ private:
     IntStat d_commitsOnConflicts;
     IntStat d_nontrivialSatChecks;
 
+    IntStat d_replayLogRecCount,
+      d_replayLogRecConflictEscalation,
+      d_replayLogRecEarlyExit,
+      d_replayBranchCloseFailures,
+      d_replayLeafCloseFailures,
+      d_replayBranchSkips,
+      d_mirCutsAttempted,
+      d_gmiCutsAttempted,
+      d_branchCutsAttempted,
+      d_cutsReconstructed,
+      d_cutsReconstructionFailed,
+      d_cutsProven,
+      d_cutsProofFailed,
+      d_mipReplayLemmaCalls,
+      d_mipExternalCuts,
+      d_mipExternalBranch;
+
+    IntStat d_inSolveInteger,
+      d_branchesExhausted,
+      d_execExhausted,
+      d_pivotsExhausted,
+      d_panicBranches,
+      d_relaxCalls,
+      d_relaxLinFeas,
+      d_relaxLinFeasFailures,
+      d_relaxLinInfeas,
+      d_relaxLinInfeasFailures,
+      d_relaxLinExhausted,
+      d_relaxOthers;
+
+    IntStat d_applyRowsDeleted;
+    TimerStat d_replaySimplexTimer;
+
+    TimerStat d_replayLogTimer,
+      d_solveIntTimer,
+      d_solveRealRelaxTimer;
+
+    IntStat d_solveIntCalls,
+      d_solveStandardEffort;
+
+    IntStat d_approxDisabled;
+    IntStat d_replayAttemptFailed;
+
+    IntStat d_cutsRejectedDuringReplay;
+    IntStat d_cutsRejectedDuringLemmas;
 
     HistogramStat<uint32_t> d_satPivots;
     HistogramStat<uint32_t> d_unsatPivots;

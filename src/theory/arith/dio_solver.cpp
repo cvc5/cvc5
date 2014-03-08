@@ -281,7 +281,7 @@ void DioSolver::moveMinimumByAbsToQueueFront(){
   size_t N = d_currentF.size();
   for(size_t i=1; i < N; ++i){
     Monomial curr = d_trail[d_currentF[i]].d_minimalMonomial;
-    if(curr.absLessThan(minMonomial)){
+    if(curr.absCmp(minMonomial) < 0){
       indexInQueue = i;
       minMonomial = curr;
     }

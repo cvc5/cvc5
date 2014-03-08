@@ -120,7 +120,7 @@ private:
    * This needs to be saved in case that the
    * violated constraint
    */
-  Constraint d_violated;
+  ConstraintP d_violated;
 
   /**
    * This is the sgn of the first derivate the variable must move to satisfy
@@ -155,12 +155,12 @@ private:
 
 public:
   ErrorInformation();
-  ErrorInformation(ArithVar var, Constraint vio, int sgn);
+  ErrorInformation(ArithVar var, ConstraintP vio, int sgn);
   ~ErrorInformation();
   ErrorInformation(const ErrorInformation& ei);
   ErrorInformation& operator=(const ErrorInformation& ei);
 
-  void reset(Constraint c, int sgn);
+  void reset(ConstraintP c, int sgn);
 
   inline ArithVar getVariable() const { return d_variable; }
 
@@ -192,7 +192,7 @@ public:
   }
   inline const FocusSetHandle& getHandle() const{ return d_handle; }
 
-  inline Constraint getViolated() const { return d_violated; }
+  inline ConstraintP getViolated() const { return d_violated; }
 
   bool debugInitialized() const {
     return
@@ -389,7 +389,7 @@ public:
     return d_errInfo[a].getMetric();
   }
 
-  Constraint getViolated(ArithVar a) const {
+  ConstraintP getViolated(ArithVar a) const {
     return d_errInfo[a].getViolated();
   }
 

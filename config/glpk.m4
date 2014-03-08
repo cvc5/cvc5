@@ -95,7 +95,7 @@ if test -z "$GLPK_LIBS"; then
                                   [#else]
                                   [#include <glpk.h>]
                                   [#endif],
-                                  [int i = lpx_get_int_parm(NULL, LPX_K_ITCNT)])],
+                                  [int i = glp_get_it_cnt(NULL)])],
     [GLPK_LIBS="-lglpk $1"],
     [])
   LIBS="$cvc4_save_LIBS"
@@ -118,7 +118,7 @@ if test -z "$GLPK_LIBS"; then
                                   [#else]
                                   [#include <glpk.h>]
                                   [#endif],
-                                  [int i = lpx_get_int_parm(NULL, LPX_K_ITCNT)])],
+                                  [int i = glp_get_it_cnt(NULL)])],
     [GLPK_LIBS="-lglpk $1"],
     [])
   LIBS="$cvc4_save_LIBS"
