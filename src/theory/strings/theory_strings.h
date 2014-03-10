@@ -156,6 +156,7 @@ private:
 	bool isNormalFormPair2( Node n1, Node n2 );
 	// loop ant
 	NodeSet d_loop_antec;
+	NodeSet d_length_intro_vars;
 
 	/////////////////////////////////////////////////////////////////////////////
 	// MODEL GENERATION
@@ -295,7 +296,7 @@ private:
 	// Regular Expression
 private:
 	// regular expression memberships
-	NodeList d_reg_exp_mem;
+	NodeList d_regexp_memberships;
 	NodeSet d_regexp_ucached;
 	NodeSet d_regexp_ccached;
 	// antecedant for why regexp membership must be true

@@ -42,6 +42,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_infer_exp(c),
     d_nf_pairs(c),
 	d_loop_antec(u),
+	d_length_intro_vars(u),
 	d_length_inst(u),
 	d_length_nodes(c),
 	d_str_pos_ctn(c),
@@ -50,7 +51,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_neg_ctn_ulen(u),
 	d_pos_ctn_cached(u),
 	d_neg_ctn_cached(u),
-	d_reg_exp_mem(c),
+	d_regexp_memberships(c),
 	d_regexp_ucached(u),
 	d_regexp_ccached(c),
 	d_regexp_ant(c),
@@ -432,14 +433,16 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 	}
 	default: {
 		if(n.getType().isString() && n.getKind()!=kind::STRING_CONCAT && n.getKind()!=kind::CONST_STRING ) {
-		  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
-		  Node n_len_eq_z = n.eqNode(d_emptyString); //n_len.eqNode( d_zero );
-		  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
-		  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
-									NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
-		  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
-		  d_out->lemma(n_len_geq_zero);
-		  d_out->requirePhase( n_len_eq_z, true );
+		  if( d_length_intro_vars.find(n)==d_length_intro_vars.end() ) {
+			  Node n_len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n);
+			  Node n_len_eq_z = n_len.eqNode( d_zero );
+			  n_len_eq_z = Rewriter::rewrite( n_len_eq_z );
+			  Node n_len_geq_zero = NodeManager::currentNM()->mkNode( kind::OR, n_len_eq_z,
+										NodeManager::currentNM()->mkNode( kind::GT, n_len, d_zero) );
+			  Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << n_len_geq_zero << std::endl;
+			  d_out->lemma(n_len_geq_zero);
+			  d_out->requirePhase( n_len_eq_z, true );
+		  }
 		  // FMF
 		  if( n.getKind() == kind::VARIABLE && options::stringFMF() ) {
 			  d_input_vars.insert(n);
@@ -485,7 +488,7 @@ void TheoryStrings::check(Effort e) {
     atom = polarity ? fact : fact[0];
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
-		d_reg_exp_mem.push_back( assertion );
+		d_regexp_memberships.push_back( assertion );
 		//d_equalityEngine.assertPredicate(atom, polarity, fact);
 	} else if (atom.getKind() == kind::STRING_STRCTN) {
 		if(polarity) {
@@ -1792,6 +1795,7 @@ bool TheoryStrings::checkSimple() {
 							Trace("strings-debug") << "get n: " << n << endl;
 							Node sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for length" );
 							d_statistics.d_new_skolems += 1;
+							d_length_intro_vars.insert( sk );
 							Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, sk, n );
 							eq = Rewriter::rewrite(eq);
 							Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq << std::endl;
@@ -2229,9 +2233,9 @@ bool TheoryStrings::checkMemberships() {
 	bool addedLemma = false;
 	std::vector< Node > processed;
 	std::vector< Node > cprocessed;
-	for( unsigned i=0; i<d_reg_exp_mem.size(); i++ ){
+	for( unsigned i=0; i<d_regexp_memberships.size(); i++ ){
 		//check regular expression membership
-		Node assertion = d_reg_exp_mem[i];
+		Node assertion = d_regexp_memberships[i];
 		if( d_regexp_ucached.find(assertion) == d_regexp_ucached.end() 
 			&& d_regexp_ccached.find(assertion) == d_regexp_ccached.end() ) {
 			Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
