@@ -38,6 +38,10 @@ void TheorySets::check(Effort e) {
   d_internal->check(e);
 }
 
+void TheorySets::collectModelInfo(TheoryModel* m, bool fullModel) {
+  d_internal->collectModelInfo(m, fullModel);
+}
+
 void TheorySets::propagate(Effort e) {
   d_internal->propagate(e);
 }

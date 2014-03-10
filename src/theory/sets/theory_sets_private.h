@@ -49,13 +49,13 @@ public:
 
   void check(Theory::Effort);
 
-  void propagate(Theory::Effort);
+  void collectModelInfo(TheoryModel*, bool fullModel);
 
   Node explain(TNode);
 
-  std::string identify() const { return "THEORY_SETS_PRIVATE"; }
-
   void preRegisterTerm(TNode node);
+
+  void propagate(Theory::Effort) { /* we don't depend on this call */ }
 
 private:
   TheorySets& d_external;
@@ -78,10 +78,10 @@ private:
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t);
-    void eqNotifyPreMerge(TNode t1, TNode t2);
-    void eqNotifyPostMerge(TNode t1, TNode t2);
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+    void eqNotifyNewClass(TNode t) {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
   } d_notify;
 
   /** Equality engine */

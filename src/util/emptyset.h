@@ -4,8 +4,8 @@
 #pragma once
 
 namespace CVC4 {
-  // messy; Expr needs ArrayStoreAll (because it's the payload of a
-  // CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
+  // messy; Expr needs EmptySet (because it's the payload of a
+  // CONSTANT-kinded expression), and EmptySet needs Expr.
   class CVC4_PUBLIC EmptySet;
 }/* CVC4 namespace */
 
