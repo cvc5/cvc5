@@ -441,7 +441,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		  d_out->lemma(n_len_geq_zero);
 		  d_out->requirePhase( n_len_eq_z, true );
 		  // FMF
-		  if( n.getKind() == kind::VARIABLE ) {//options::stringFMF() &&
+		  if( n.getKind() == kind::VARIABLE && options::stringFMF() ) {
 			  d_input_vars.insert(n);
 		  }
 		}
