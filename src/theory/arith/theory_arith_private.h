@@ -397,6 +397,7 @@ public:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
+  Node expandDefinition(LogicRequest &logicRequest, Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
   void setQuantifiersEngine(QuantifiersEngine* qe);
@@ -770,6 +771,26 @@ private:
   };
 
   Statistics d_statistics;
+
+
+  /**
+   * Function symbol used to implement uninterpreted division-by-zero
+   * semantics.  Needed to deal with partial division function ("/").
+   */
+  Node d_divByZero;
+
+  /**
+   * Function symbol used to implement uninterpreted
+   * int-division-by-zero semantics.  Needed to deal with partial
+   * function "div".
+   */
+  Node d_intDivByZero;
+
+  /**
+   * Function symbol used to implement uninterpreted mod-zero
+   * semantics.  Needed to deal with partial function "mod".
+   */
+  Node d_modZero;
 
 
 };/* class TheoryArithPrivate */

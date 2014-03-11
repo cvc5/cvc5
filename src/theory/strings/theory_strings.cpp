@@ -463,6 +463,66 @@ void TheoryStrings::preRegisterTerm(TNode n) {
   }
 }
 
+Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
+  switch (node.getKind()) {
+  case kind::STRING_CHARAT: {
+    if(d_ufSubstr.isNull()) {
+      std::vector< TypeNode > argTypes;
+      argTypes.push_back(NodeManager::currentNM()->stringType());
+      argTypes.push_back(NodeManager::currentNM()->integerType());
+      argTypes.push_back(NodeManager::currentNM()->integerType());
+      d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
+						      NodeManager::currentNM()->mkFunctionType(
+											       argTypes, NodeManager::currentNM()->stringType()),
+						      "uf substr",
+						      NodeManager::SKOLEM_EXACT_NAME);
+    }
+    Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT,
+						     NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] ), node[1] );
+    Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+    Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, node[1], zero);
+    Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
+    Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
+    Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], one);
+    Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], one);
+    return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+  }
+  break;
+
+  case kind::STRING_SUBSTR: {
+    if(d_ufSubstr.isNull()) {
+      std::vector< TypeNode > argTypes;
+      argTypes.push_back(NodeManager::currentNM()->stringType());
+      argTypes.push_back(NodeManager::currentNM()->integerType());
+      argTypes.push_back(NodeManager::currentNM()->integerType());
+      d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
+						      NodeManager::currentNM()->mkFunctionType(
+											       argTypes, NodeManager::currentNM()->stringType()),
+						      "uf substr",
+						      NodeManager::SKOLEM_EXACT_NAME);
+    }
+    Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
+						     NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, node[0] ),
+						     NodeManager::currentNM()->mkNode( kind::PLUS, node[1], node[2] ) );
+    Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
+    Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, node[1], zero);
+    Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, node[2], zero);
+    Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
+    Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[0], node[1], node[2]);
+    Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, node[0], node[1], node[2]);
+    return NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
+  }
+  break;
+
+  default :
+    return node;
+    break;
+  }
+
+  Unreachable();
+}
+
+
 void TheoryStrings::check(Effort e) {
   //Assert( d_pending.empty() );
 

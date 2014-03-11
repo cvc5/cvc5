@@ -30,7 +30,6 @@
 #include "util/proof.h"
 #include "smt/modal_exception.h"
 #include "smt/logic_exception.h"
-#include "util/hash.h"
 #include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
@@ -59,6 +58,7 @@ class TheoryEngine;
 class ProofManager;
 
 class Model;
+class LogicRequest;
 class StatisticsRegistry;
 
 namespace context {
@@ -340,6 +340,7 @@ class CVC4_PUBLIC SmtEngine {
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   friend ProofManager* ::CVC4::smt::currentProofManager();
+  friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;

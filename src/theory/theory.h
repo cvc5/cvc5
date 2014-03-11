@@ -22,6 +22,7 @@
 #include "expr/node.h"
 //#include "expr/attribute.h"
 #include "expr/command.h"
+#include "smt/logic_request.h"
 #include "theory/valuation.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
@@ -479,6 +480,22 @@ public:
    * does nothing.
    */
   virtual void finishInit() { }
+
+  /**
+   * Some theories have kinds that are effectively definitions and
+   * should be expanded before they are handled.  Definitions allow
+   * a much wider range of actions than the normal forms given by the
+   * rewriter; they can enable other theories and create new terms.
+   * However no assumptions can be made about subterms having been
+   * expanded or rewritten.  Where possible rewrite rules should be
+   * used, definitions should only be used when rewrites are not
+   * possible, for example in handling under-specified operations
+   * using partially defined functions.
+   */
+  virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
+    // by default, do nothing
+    return node;
+  }
 
   /**
    * Pre-register a term.  Done one time for a Node, ever.

@@ -38,6 +38,10 @@ void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
+Node TheoryArith::expandDefinition(LogicRequest &logicRequest, Node node) {
+  return d_internal->expandDefinition(logicRequest, node);
+}
+
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_internal->setMasterEqualityEngine(eq);
 }
