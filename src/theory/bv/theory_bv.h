@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
+#include "util/hash.h"
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
@@ -46,12 +47,16 @@ class TheoryBV : public Theory {
   
   std::vector<SubtheorySolver*> d_subtheories;
   __gnu_cxx::hash_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap; 
+
+
 public:
 
   TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryBV();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+
+  Node expandDefinition(SmtEngine &smt, Node node);
 
   void preRegisterTerm(TNode n);
 
@@ -84,6 +89,25 @@ private:
   };
 
   Statistics d_statistics;
+
+
+  /**
+   * Return the uinterpreted function symbol corresponding to division-by-zero
+   * for this particular bit-width
+   * @param k should be UREM or UDIV
+   * @param width
+   *
+   * @return
+   */
+  Node getBVDivByZero(Kind k, unsigned width);
+
+  /**
+   * Maps from bit-vector width to divison-by-zero uninterpreted
+   * function symbols.
+   */
+  __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
+  __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
+
 
   context::CDO<bool> d_lemmasAdded;
   

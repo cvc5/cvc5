@@ -53,6 +53,8 @@ public:
    */
   void preRegisterTerm(TNode n);
 
+  Node expandDefinition(SmtEngine &smt, Node node);
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
   void setQuantifiersEngine(QuantifiersEngine* qe);
 

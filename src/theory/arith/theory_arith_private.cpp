@@ -4618,6 +4618,69 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
+Node TheoryArithPrivate::expandDefinition(SmtEngine &smt, Node node) {
+  NodeManager* nm = NodeManager::currentNM();
+
+  switch(node.getKind()) {
+  case kind::DIVISION: {
+    // partial function: division
+    if(d_divByZero.isNull()) {
+      d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
+                                     "partial real division", NodeManager::SKOLEM_EXACT_NAME);
+      smt.enableUFForPartialFunctions();
+    }
+    TNode num = node[0], den = node[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
+    Node divTotalNumDen = nm->mkNode(kind::DIVISION_TOTAL, num, den);
+    return nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    break;
+  }
+    
+  case kind::INTS_DIVISION: {
+    // partial function: integer div
+    if(d_intDivByZero.isNull()) {
+      d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
+				    "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
+      smt.enableUFForPartialFunctions();
+    }
+    TNode num = node[0], den = node[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
+    Node intDivTotalNumDen = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
+    return nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, intDivTotalNumDen);
+    break;
+  }
+    
+  case kind::INTS_MODULUS: {
+    // partial function: mod
+    if(d_modZero.isNull()) {
+      d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
+			       "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
+      smt.enableUFForPartialFunctions();
+    }
+    TNode num = node[0], den = node[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
+    Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
+    Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
+    return nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
+    break;
+  }
+    
+  case kind::ABS: {
+    return nm->mkNode(kind::ITE, nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))), nm->mkNode(kind::UMINUS, node[0]), node[0]);
+    break;
+  }
+    
+  default :
+    return node;
+    break;
+  }
+
+  Unreachable();
+}
+
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
