@@ -10,7 +10,7 @@ option - --show-sat-solvers void :handler CVC4::prop::showSatSolvers :handler-in
 
 option satRandomFreq random-frequency --random-freq=P double :default 0.0 :predicate greater_equal(0.0) less_equal(1.0)
  sets the frequency of random decisions in the sat solver (P=0.0 by default)
-option satRandomSeed random-seed --random-seed=S uint32_t :default :read-write
+option satRandomSeed random-seed --random-seed=S uint32_t :default 0 :read-write
  sets the random seed for the sat solver
 
 option satVarDecay double :default 0.95 :predicate less_equal(1.0) greater_equal(0.0)
