@@ -30,7 +30,6 @@
 #include "util/proof.h"
 #include "smt/modal_exception.h"
 #include "smt/logic_exception.h"
-#include "util/hash.h"
 #include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
@@ -388,6 +387,11 @@ public:
    * Get the logic information currently set
    */
   LogicInfo getLogicInfo() const;
+
+  /**
+   * Called while expanding definitions.
+   */
+  void enableUFForPartialFunctions();
 
   /**
    * Set information about the script executing.

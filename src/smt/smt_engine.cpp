@@ -306,44 +306,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   hash_map<Node, Node, NodeHashFunction> d_abstractValues;
 
-  /**
-   * Function symbol used to implement uninterpreted undefined string
-   * semantics.  Needed to deal with partial charat/substr function.
-   */
-  Node d_ufSubstr;
-
-  /**
-   * Function symbol used to implement uninterpreted undefined string
-   * semantics.  Needed to deal with partial str2int function.
-   */
-  Node d_ufS2I;
-
-  /**
-   * Function symbol used to implement uninterpreted division-by-zero
-   * semantics.  Needed to deal with partial division function ("/").
-   */
-  Node d_divByZero;
-
-  /**
-   * Maps from bit-vector width to divison-by-zero uninterpreted
-   * function symbols.
-   */
-  hash_map<unsigned, Node> d_BVDivByZero;
-  hash_map<unsigned, Node> d_BVRemByZero;
-
-  /**
-   * Function symbol used to implement uninterpreted
-   * int-division-by-zero semantics.  Needed to deal with partial
-   * function "div".
-   */
-  Node d_intDivByZero;
-
-  /**
-   * Function symbol used to implement uninterpreted mod-zero
-   * semantics.  Needed to deal with partial function "mod".
-   */
-  Node d_modZero;
-
   /** Number of calls of simplify assertions active.
    */
   unsigned d_simplifyAssertionsDepth;
@@ -446,9 +408,6 @@ public:
     d_fakeContext(),
     d_abstractValueMap(&d_fakeContext),
     d_abstractValues(),
-    d_divByZero(),
-    d_intDivByZero(),
-    d_modZero(),
     d_simplifyAssertionsDepth(0),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
@@ -550,25 +509,6 @@ public:
    */
   void addFormula(TNode n)
     throw(TypeCheckingException, LogicException);
-
-  /**
-   * Return the uinterpreted function symbol corresponding to division-by-zero
-   * for this particular bit-width
-   * @param k should be UREM or UDIV
-   * @param width
-   *
-   * @return
-   */
-  Node getBVDivByZero(Kind k, unsigned width);
-
-  /**
-   * Returns the node modeling the division-by-zero semantics of node n.
-   *
-   * @param n
-   *
-   * @return
-   */
-  Node expandBVDivByZero(TNode n);
 
   /**
    * Expand definitions in n.
@@ -923,6 +863,15 @@ void SmtEngine::setLogic(const char* logic) throw(ModalException, LogicException
 
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
+}
+
+void SmtEngine::enableUFForPartialFunctions () {
+  if(!d_logic.isTheoryEnabled(THEORY_UF)) {
+    d_logic = d_logic.getUnlockedCopy();
+    d_logic.enableTheory(THEORY_UF);
+    d_logic.lock();
+  }
+  return;
 }
 
 // This function is called when d_logic has just been changed.
@@ -1470,55 +1419,6 @@ void SmtEngine::defineFunction(Expr func,
 }
 
 
-Node SmtEnginePrivate::getBVDivByZero(Kind k, unsigned width) {
-  NodeManager* nm = d_smt.d_nodeManager;
-  if (k == kind::BITVECTOR_UDIV) {
-    if (d_BVDivByZero.find(width) == d_BVDivByZero.end()) {
-      // lazily create the function symbols
-      ostringstream os;
-      os << "BVUDivByZero_" << width;
-      Node divByZero = nm->mkSkolem(os.str(),
-                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
-                                    "partial bvudiv", NodeManager::SKOLEM_EXACT_NAME);
-      d_BVDivByZero[width] = divByZero;
-    }
-    return d_BVDivByZero[width];
-  }
-  else if (k == kind::BITVECTOR_UREM) {
-    if (d_BVRemByZero.find(width) == d_BVRemByZero.end()) {
-      ostringstream os;
-      os << "BVURemByZero_" << width;
-      Node divByZero = nm->mkSkolem(os.str(),
-                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
-                                    "partial bvurem", NodeManager::SKOLEM_EXACT_NAME);
-      d_BVRemByZero[width] = divByZero;
-    }
-    return d_BVRemByZero[width];
-  }
-
-  Unreachable();
-}
-
-
-Node SmtEnginePrivate::expandBVDivByZero(TNode n) {
-  // we only deal wioth the unsigned division operators as the signed ones should have been
-  // expanded in terms of the unsigned operators
-  NodeManager* nm = d_smt.d_nodeManager;
-  unsigned width = n.getType().getBitVectorSize();
-  Node divByZero = getBVDivByZero(n.getKind(), width);
-  TNode num = n[0], den = n[1];
-  Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
-  Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-  Node divTotalNumDen = nm->mkNode(n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
-                                   kind::BITVECTOR_UREM_TOTAL, num, den);
-  Node node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-  if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-    d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-    d_smt.d_logic.enableTheory(THEORY_UF);
-    d_smt.d_logic.lock();
-  }
-  return node;
-}
 
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
@@ -1527,16 +1427,21 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
   stack< triple<Node, Node, bool> > worklist;
   stack<Node> result;
   worklist.push(make_triple(Node(n), Node(n), false));
+  // The worklist is made of triples, each is input / original node then the output / rewritten node
+  // and finally a flag tracking whether the children have been explored (i.e. if this is a downward
+  // or upward pass).
 
   do {
-    n = worklist.top().first;
-    Node node = worklist.top().second;
+    n = worklist.top().first;                      // n is the input / original
+    Node node = worklist.top().second;             // node is the output / result
     bool childrenPushed = worklist.top().third;
     worklist.pop();
 
+    // Working downwards
     if(!childrenPushed) {
       Kind k = n.getKind();
 
+      // Apart from apply, we can short circuit leaves
       if(k != kind::APPLY && n.getNumChildren() == 0) {
 	SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
 	if(i != d_smt.d_definedFunctions->end()) {
@@ -1563,191 +1468,75 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
       }
 
       // otherwise expand it
-
-      NodeManager* nm = d_smt.d_nodeManager;
-      // FIXME: this theory-specific code should be factored out of the
-      // SmtEngine, somehow
-      switch(k) {
-      case kind::BITVECTOR_SDIV:
-      case kind::BITVECTOR_SREM:
-      case kind::BITVECTOR_SMOD:
-        node = bv::TheoryBVRewriter::eliminateBVSDiv(node);
-        break;
-
-      case kind::BITVECTOR_UDIV:
-      case kind::BITVECTOR_UREM:
-        node = expandBVDivByZero(node);
-        break;
-
-	  case kind::STRING_CHARAT: {
-		if(d_ufSubstr.isNull()) {
-			std::vector< TypeNode > argTypes;
-			argTypes.push_back(NodeManager::currentNM()->stringType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes, NodeManager::currentNM()->stringType()),
-								"uf substr",
-								NodeManager::SKOLEM_EXACT_NAME);
-		}
-		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GT,
-							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ), n[1] );
-		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-		Node t1greq0 = NodeManager::currentNM()->mkNode( kind::GEQ, n[1], zero);
-		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1greq0 ));
-		Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, n[0], n[1], one);
-		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, n[0], n[1], one);
-		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
-		break;
+      if (k == kind::APPLY) {
+	// application of a user-defined symbol
+	TNode func = n.getOperator();
+	SmtEngine::DefinedFunctionMap::const_iterator i =
+	  d_smt.d_definedFunctions->find(func);
+	DefinedFunction def = (*i).second;
+	vector<Node> formals = def.getFormals();
+	
+	if(Debug.isOn("expand")) {
+	  Debug("expand") << "found: " << n << endl;
+	  Debug("expand") << " func: " << func << endl;
+	  string name = func.getAttribute(expr::VarNameAttr());
+	  Debug("expand") << "     : \"" << name << "\"" << endl;
+	}
+	if(i == d_smt.d_definedFunctions->end()) {
+	  throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
+	}
+	if(Debug.isOn("expand")) {
+	  Debug("expand") << " defn: " << def.getFunction() << endl
+			  << "       [";
+	  if(formals.size() > 0) {
+	    copy( formals.begin(), formals.end() - 1,
+		  ostream_iterator<Node>(Debug("expand"), ", ") );
+	    Debug("expand") << formals.back();
 	  }
-	  case kind::STRING_SUBSTR: {
-		if(d_ufSubstr.isNull()) {
-			std::vector< TypeNode > argTypes;
-			argTypes.push_back(NodeManager::currentNM()->stringType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			argTypes.push_back(NodeManager::currentNM()->integerType());
-			d_ufSubstr = NodeManager::currentNM()->mkSkolem("__ufSS",
-								NodeManager::currentNM()->mkFunctionType(
-									argTypes, NodeManager::currentNM()->stringType()),
-								"uf substr",
-								NodeManager::SKOLEM_EXACT_NAME);
-		}
-		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ,
-							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, n[0] ),
-							NodeManager::currentNM()->mkNode( kind::PLUS, n[1], n[2] ) );
-		Node zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
-		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], zero);
-		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], zero);
-		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-		Node totalf = NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, n[0], n[1], n[2]);
-		Node uf = NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_ufSubstr, n[0], n[1], n[2]);
-		node = NodeManager::currentNM()->mkNode( kind::ITE, cond, totalf, uf );
-		break;
-	  }
-      case kind::DIVISION: {
-        // partial function: division
-        if(d_divByZero.isNull()) {
-          d_divByZero = nm->mkSkolem("divByZero", nm->mkFunctionType(nm->realType(), nm->realType()),
-                                     "partial real division", NodeManager::SKOLEM_EXACT_NAME);
-          if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(THEORY_UF);
-            d_smt.d_logic.lock();
-          }
-        }
-        TNode num = n[0], den = n[1];
-        Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        Node divByZeroNum = nm->mkNode(kind::APPLY_UF, d_divByZero, num);
-        Node divTotalNumDen = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-        node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-        break;
+	  Debug("expand") << "]" << endl
+			  << "       " << def.getFunction().getType() << endl
+			  << "       " << def.getFormula() << endl;
+	}
+	
+	TNode fm = def.getFormula();
+	Node instance = fm.substitute(formals.begin(), formals.end(),
+				      n.begin(), n.end());
+	Debug("expand") << "made : " << instance << endl;
+	
+	Node expanded = expandDefinitions(instance, cache);
+	cache[n] = (n == expanded ? Node::null() : expanded);
+	result.push(expanded);
+	continue;
+
+      } else {
+	theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
+
+	Assert(t != NULL);
+	node = t->expandDefinition(d_smt,n);
+
       }
 
-      case kind::INTS_DIVISION: {
-        // partial function: integer div
-        if(d_intDivByZero.isNull()) {
-          d_intDivByZero = nm->mkSkolem("intDivByZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                        "partial integer division", NodeManager::SKOLEM_EXACT_NAME);
-          if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(THEORY_UF);
-            d_smt.d_logic.lock();
-          }
-        }
-        TNode num = n[0], den = n[1];
-        Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        Node intDivByZeroNum = nm->mkNode(kind::APPLY_UF, d_intDivByZero, num);
-        Node intDivTotalNumDen = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-        node = nm->mkNode(kind::ITE, den_eq_0, intDivByZeroNum, intDivTotalNumDen);
-        break;
-      }
-
-      case kind::INTS_MODULUS: {
-        // partial function: mod
-        if(d_modZero.isNull()) {
-          d_modZero = nm->mkSkolem("modZero", nm->mkFunctionType(nm->integerType(), nm->integerType()),
-                                   "partial modulus", NodeManager::SKOLEM_EXACT_NAME);
-          if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-            d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-            d_smt.d_logic.enableTheory(THEORY_UF);
-            d_smt.d_logic.lock();
-          }
-        }
-        TNode num = n[0], den = n[1];
-        Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        Node modZeroNum = nm->mkNode(kind::APPLY_UF, d_modZero, num);
-        Node modTotalNumDen = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-        node = nm->mkNode(kind::ITE, den_eq_0, modZeroNum, modTotalNumDen);
-        break;
-      }
-
-      case kind::ABS: {
-        Node out = nm->mkNode(kind::ITE, nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))), nm->mkNode(kind::UMINUS, node[0]), node[0]);
-        cache[n] = out;
-        result.push(out);
-        continue;
-      }
-
-      case kind::APPLY: {
-        // application of a user-defined symbol
-        TNode func = n.getOperator();
-        SmtEngine::DefinedFunctionMap::const_iterator i =
-          d_smt.d_definedFunctions->find(func);
-        DefinedFunction def = (*i).second;
-        vector<Node> formals = def.getFormals();
-
-        if(Debug.isOn("expand")) {
-          Debug("expand") << "found: " << n << endl;
-          Debug("expand") << " func: " << func << endl;
-          string name = func.getAttribute(expr::VarNameAttr());
-          Debug("expand") << "     : \"" << name << "\"" << endl;
-        }
-        if(i == d_smt.d_definedFunctions->end()) {
-          throw TypeCheckingException(n.toExpr(), string("Undefined function: `") + func.toString() + "'");
-        }
-        if(Debug.isOn("expand")) {
-          Debug("expand") << " defn: " << def.getFunction() << endl
-                          << "       [";
-          if(formals.size() > 0) {
-            copy( formals.begin(), formals.end() - 1,
-                  ostream_iterator<Node>(Debug("expand"), ", ") );
-            Debug("expand") << formals.back();
-          }
-          Debug("expand") << "]" << endl
-                          << "       " << def.getFunction().getType() << endl
-                          << "       " << def.getFormula() << endl;
-        }
-
-        TNode fm = def.getFormula();
-        Node instance = fm.substitute(formals.begin(), formals.end(),
-                                      n.begin(), n.end());
-        Debug("expand") << "made : " << instance << endl;
-
-        Node expanded = expandDefinitions(instance, cache);
-        cache[n] = (n == expanded ? Node::null() : expanded);
-        result.push(expanded);
-        continue;
-      }
-
-      default:
-        // unknown kind for expansion, just iterate over the children
-        node = n;
-      }
 
       // there should be children here, otherwise we short-circuited a result-push/continue, above
+      if (node.getNumChildren() == 0) {
+	Debug("expand") << "Unexpectedly no children..." << node << endl;
+      }
+      // This invariant holds at the moment but it is concievable that a new theory
+      // might introduce a kind which can have children before definition expansion but doesn't
+      // afterwards.  If this happens, remove this assertion.
       Assert(node.getNumChildren() > 0);
 
       // the partial functions can fall through, in which case we still
       // consider their children
-      worklist.push(make_triple(Node(n), node, true));
+      worklist.push(make_triple(Node(n), node, true));            // Original and rewritten result
 
       for(size_t i = 0; i < node.getNumChildren(); ++i) {
-        worklist.push(make_triple(node[i], node[i], false));
+        worklist.push(make_triple(node[i], node[i], false));      // Rewrite the children of the result only
       }
 
     } else {
+      // Working upwards
+      // Reconstruct the node from it's (now rewritten) children on the stack
 
       Debug("expand") << "cons : " << node << endl;
       //cout << "cons : " << node << endl;
@@ -1766,7 +1555,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
         nb << expanded;
       }
       node = nb;
-      cache[n] = n == node ? Node::null() : node;
+      cache[n] = n == node ? Node::null() : node;           // Only cache once all subterms are expanded
       result.push(node);
     }
   } while(!worklist.empty());
