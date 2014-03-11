@@ -62,11 +62,15 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
     throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
   }
 
+  if(!value.isAtom()) {
+    throw OptionException("bad value for :" + key);
+  }
+
   string optionarg = value.getValue();
 
   ${smt_setoption_handlers}
 
-#line 70 "${template}"
+#line 74 "${template}"
 
   throw UnrecognizedOptionException(key);
 }
@@ -126,7 +130,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 
   ${smt_getoption_handlers}
 
-#line 130 "${template}"
+#line 134 "${template}"
 
   throw UnrecognizedOptionException(key);
 }

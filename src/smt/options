@@ -36,7 +36,7 @@ option produceAssignments produce-assignments --produce-assignments bool :defaul
 
 # This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
 # is a mode in which the assertion list must be kept.  So it belongs here.
-common-option interactive interactive-mode --interactive bool :read-write
+common-option interactive interactive-mode --interactive bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h" :read-write
  force interactive mode
 
 option doITESimp --ite-simp bool :read-write
