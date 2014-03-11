@@ -1425,7 +1425,7 @@ void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions
     isOnlyCore = isOnlyCore && bv::utils::isCoreTerm(assertions[i], cache); 
   }
   if (isOnlyCore) {
-    bv::TheoryBV* bv_theory = (bv::TheoryBV*)theoryOf(NodeManager::currentNM()->mkConst<BitVector>(BitVector(1, 1u)));
+    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
     bv_theory->enableCoreTheorySlicer();
   }
 }
@@ -1435,7 +1435,7 @@ void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<N
 }
 
 bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  bv::TheoryBV* bv_theory = (bv::TheoryBV*)theoryOf(NodeManager::currentNM()->mkConst<BitVector>(BitVector(1, 1u)));
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
   return bv_theory->applyAbstraction(assertions, new_assertions); 
 }
 

@@ -14,8 +14,6 @@
 ** Algebraic solver.
 **/
 
-
-
 #pragma once
 
 #include "cvc4_private.h"
@@ -27,7 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-// TODO: move to util
+/**
+ * Non-context dependent substitution with explanations.
+ * 
+ */
 class SubstitutionEx {
   struct SubstitutionElement {
     Node to;
@@ -70,10 +71,13 @@ public:
   void addSubstitution(TNode from, TNode to, TNode reason);
   Node apply(TNode node);
   Node explain(TNode node) const;
-
 };
 
-
+/**
+ * In-processing worklist element, id keeps track of
+ * original assertion. 
+ * 
+ */
 struct WorklistElement {
   Node node;
   unsigned id;
@@ -122,6 +126,7 @@ public:
 
 class BVQuickCheck;
 class QuickXPlain;
+
 /**
  * AlgebraicSolver
  */
@@ -141,30 +146,55 @@ class AlgebraicSolver : public SubtheorySolver {
   };
 
   BVQuickCheck* d_quickSolver;
-  context::CDO<bool> d_isComplete;
-  context::CDO<bool> d_isDifficult;
+  context::CDO<bool> d_isComplete; 
+  context::CDO<bool> d_isDifficult; /**< flag to indicate whether the current assertions contain expensive BV operators */
   
   unsigned long d_budget;
-  std::vector<Node> d_explanations;
-  TNodeSet d_inputAssertions;
-  NodeIdMap d_ids;
+  std::vector<Node> d_explanations; /**< explanations for assertions indexed by assertion id */
+  TNodeSet d_inputAssertions;   /**< assertions in current context (for debugging purposes only) */
+  NodeIdMap d_ids;              /**< map from assertions to ids */
   double d_numSolved;
   double d_numCalls;
 
   context::Context* d_ctx;
-  QuickXPlain* d_quickXplain;
+  QuickXPlain* d_quickXplain;   /**< separate quickXplain module as it can reuse the current SAT solver */
   
   Statistics d_statistics;
-
-  bool solve(TNode fact, TNode reason, SubstitutionEx& subst);
-  bool quickCheck(std::vector<Node>& facts, SubstitutionEx& subst);
   bool useHeuristic();
   void setConflict(TNode conflict);
   bool isSubstitutableIn(TNode node, TNode in);
-  void processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst);
   bool checkExplanation(TNode expl);
   void storeExplanation(TNode expl);
   void storeExplanation(unsigned id, TNode expl); 
+  /** 
+   * Apply substitutions and rewriting to the worklist assertions to a fixpoint.
+   * Subsitutions learned store in subst. 
+   *
+   * @param worklist 
+   * @param subst 
+   */
+  void processAssertions(std::vector<WorklistElement>& worklist, SubstitutionEx& subst);
+  /** 
+   * Attempt to solve the equation in fact, and if successful
+   * add a substitution to subst. 
+   * 
+   * @param fact equation we are trying to solve
+   * @param reason the reason in terms of original assertions
+   * @param subst substitution map
+   * 
+   * @return true if added a substitution to subst
+   */
+  bool solve(TNode fact, TNode reason, SubstitutionEx& subst);
+  /** 
+   * Run a SAT solver on the given facts with the given budget.
+   * Sets the isComplete flag and conflict accordingly. 
+   * 
+   * @param facts 
+   * 
+   * @return true if no conflict was detected. 
+   */
+  bool quickCheck(std::vector<Node>& facts);
+
 public:
   AlgebraicSolver(context::Context* c, TheoryBV* bv);
   ~AlgebraicSolver();

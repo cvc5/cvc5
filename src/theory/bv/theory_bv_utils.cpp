@@ -55,3 +55,15 @@ bool CVC4::theory::bv::utils::isCoreTerm(TNode term, TNodeBoolMap& cache) {
   cache[term]= true; 
   return true;
 }
+
+uint64_t CVC4::theory::bv::utils::numNodes(TNode node, NodeSet& seen) {
+  if (seen.find(node) != seen.end())
+    return 0;
+
+  uint64_t size = 1;
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    size += numNodes(node[i], seen);
+  }
+  seen.insert(node);
+  return size;
+}

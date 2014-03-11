@@ -436,10 +436,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         out_btlevel       = level(var(p));
     }
 
-    if (out_learnt.size() > 0 && clause_all_marker && CVC4::options::bitvectorShareLemmas()) {
-      notify->notify(out_learnt);
-    }
-
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
 }
 
@@ -556,7 +552,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
     }
 
     seen[var(p)] = 0;
-    assert (out_conflict.size()); 
+    assert (out_conflict.size());
 }
 
 
@@ -822,7 +818,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               claBumpActivity(ca[cr]);
             }
 
-            // // if the uip was an assumption we are unsat
+            //  if the uip was an assumption we are unsat
             if (level(var(p)) <= assumptions.size()) {
               for (int i = 0; i < learnt_clause.size(); ++i) {
                 assert (level(var(learnt_clause[i])) <= decisionLevel()); 

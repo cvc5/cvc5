@@ -67,8 +67,7 @@ prop::SatValue BVQuickCheck::checkSat(std::vector<Node>& assumptions, unsigned l
       setConflict();
       return SAT_VALUE_FALSE;
     }
-    // TODO: could be SAT - check assignment is full
-    return SAT_VALUE_UNKNOWN;
+    return SAT_VALUE_UNKNOWN; // could check if assignment is full and return SAT_VALUE_TRUE
   }
 
   prop::SatValue res = d_bitblaster->solveWithBudget(budget);
@@ -91,7 +90,8 @@ prop::SatValue BVQuickCheck::checkSat(unsigned long budget) {
 bool BVQuickCheck::addAssertion(TNode assertion) {
   Assert (assertion.getType().isBoolean());
   d_bitblaster->bbAtom(assertion);
-  bool ok = d_bitblaster->assertToSat(assertion, false);
+  // assert to sat solver and run bcp to detect easy conflicts
+  bool ok = d_bitblaster->assertToSat(assertion, true);
   if (!ok) {
     setConflict();
   }
@@ -106,12 +106,13 @@ void BVQuickCheck::push() {
 void BVQuickCheck::pop() {
   d_ctx->pop();
 }
+
 /** 
  * Constructs a new sat solver which requires throwing out the atomBBCache
  * but keeps all the termBBCache
  * 
  */
-void BVQuickCheck::reset() {
+void BVQuickCheck::clearSolver() {
   popToZero();
   d_bitblaster->clearSolver();
 }
@@ -140,7 +141,7 @@ QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned
 QuickXPlain::~QuickXPlain() {}
 
 unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
-                                  std::vector<TNode>& conflict) {
+                                      std::vector<TNode>& conflict) {
 
   Assert(!d_solver->getConflict().isNull() &&
          d_solver->inConflict());
@@ -177,9 +178,6 @@ unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
   Assert (write -1 == high);
   Assert (new_high <= high);
   
-  // if (new_high < high) {
-  //   std::cout <<"Reduction " <<  high - new_high <<"\n"; 
-  // }
   return new_high;
 }
 
@@ -295,12 +293,6 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
     return confl;
   }
 
-  // std::cout << "d_numConlicts =" << d_numConflicts <<"\n";
-  // std::cout << "d_numCalled =" << d_numCalled <<"\n";
-  // std::cout << "d_period =" << d_period <<"\n";
-  // std::cout << "avg_ratio =" << d_minRatioSum / d_numCalled <<"\n";
-
-  
   ++d_numCalled;
   ++(d_statistics.d_numConflictsMinimized);
   TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
@@ -328,11 +320,6 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
     d_period = d_period * 2;
   }
-  
-  // if (d_numCalled % 100 == 0) {
-  // std::cout << "min ratio " << minimization_ratio <<"\n";
-  // std::cout << "min ratio avg " <<  d_minRatioSum / d_numCalled <<"\n";
-  // }
   d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
   return utils::mkAnd(minimized); 
 }

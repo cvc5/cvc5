@@ -176,6 +176,11 @@ public:
 
   bool isSharedTerm(TNode node);
   uint64_t computeAtomWeight(TNode node, NodeSet& seen);
+  /** 
+   * Deletes SatSolver and CnfCache, but maintains bit-blasting
+   * terms cache. 
+   * 
+   */
   void clearSolver(); 
 private:
 

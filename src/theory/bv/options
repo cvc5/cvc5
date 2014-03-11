@@ -8,12 +8,9 @@ module BV "theory/bv/options.h" Bitvector theory
 option bitvectorEagerBitblast --bitblast-eager bool
  eagerly bitblast the bitvectors to the BV SAT solver
 
-option bitvectorAig --bitblast-aig bool
+option bitvectorAig --bitblast-aig bool :default false
  bitblast by first converting to AIG
  
-option bitvectorShareLemmas --bitblast-share-lemmas bool
- share lemmas from the bitblasting solver with the main solver
-
 option bitvectorQuickXplain --bv-quick-xplain bool :default false
  minimize bv conflicts using the QuickXplain algorithm
  
@@ -23,9 +20,12 @@ option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default false
 option bitvectorInequalitySolver --bv-inequality-solver bool :default true
  turn on the inequality solver for the bit-vector theory 
  
-option bitvectorCoreSolver --bv-core-solver bool
- turn on the core solver for the bit-vector theory 
+option bitvectorCoreSolver --bv-core-solver bool :default false
+ turn on the core solver for the bit-vector theory
 
+option bvEquality --bv-eq-solver bool :default true
+ use the equality engine for the bit-vector theory
+ 
 option bvAlgebraicBudget --bv-algebraic-budget unsigned :default 1500
  the budget allowed for the algebraic solver in number of SAT conflicts
  
@@ -35,24 +35,21 @@ option bvToBool --bv-to-bool bool
 option bvPropagate --bv-propagate bool :default true
  use bit-vector propagation in the bit-blaster
 
-option bvEquality --bv-eq bool :default true
- use the equality engine for the bit-vector theory
 
 # crazy aig simplification options 
-# TODO add handler that checks it
-option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
+expert-option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
  abc command to run AIG simplifications
 
-option bitvectorDivByZeroConst --bv-div-zero-const bool
+expert-option bitvectorDivByZeroConst --bv-div-zero-const bool
  always return -1 on division by zero
 
-option bvAbstraction --bv-abstraction bool
+expert-option bvAbstraction --bv-abstraction bool :default false
  mcm benchmark abstraction 
 
-option skolemizeArguments --bv-skolemize bool
+expert-option skolemizeArguments --bv-skolemize bool :default false
  skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
 
-option bvNumFunc --bv-num-func=NUM unsigned :default 1
+expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
  number of function symbols in conflicts that are generalized
  
 endmodule

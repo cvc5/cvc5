@@ -34,11 +34,6 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions, st
 
   TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
     
-  // for (unsigned i = 0; i < assertions.size(); ++i) {
-  //   inferDomains(assertions[i]); 
-  // }
-  // // adds the enumeration domains to the module
-  // d_domainMaker.finalize();
   for (unsigned i = 0; i < assertions.size(); ++i) {
     if (assertions[i].getKind() == kind::OR) {
       for (unsigned j = 0; j < assertions[i].getNumChildren(); ++j) {
@@ -241,120 +236,7 @@ void AbstractionModule::storeSignature(Node signature, TNode assertion) {
   d_assertionToSignature[assertion] = signature; 
 }
 
-void AbstractionModule::inferDomains(TNode assertion) {
-  // check for inequalities
-  if (assertion.getKind() == kind::AND &&
-      assertion[0].getKind() == kind::BITVECTOR_ULT) {
-    for (unsigned i = 0; i < assertion.getNumChildren(); ++i) {
-      if (assertion[i].getKind() == kind::BITVECTOR_ULT &&
-          assertion[i][0].getKind() == kind::VARIABLE &&
-          assertion[i][1].getKind() == kind::CONST_BITVECTOR) {
-        TNode var = assertion[i][0];
-        TNode constant = assertion[i][1];
-        storeUpperBound(var, constant); 
-      }
-    }
-  }
-  if (assertion.getKind() == kind::OR &&
-      assertion[0].getKind() == kind::EQUAL &&
-      ((assertion[0][0].getKind() == kind::CONST_BITVECTOR &&
-        assertion[0][1].getKind() == kind::VARIABLE) ||
-       (assertion[0][1].getKind() == kind::CONST_BITVECTOR &&
-        assertion[0][0].getKind() == kind::VARIABLE))) {
-    TNode constant = assertion[0][0].getKind() == kind::CONST_BITVECTOR ? assertion[0][0] : assertion[0][1];
-    TNodeSet variables; 
-    for (unsigned i = 0; i < assertion.getNumChildren(); ++i) {
-      TNode eq = assertion[i];
-      TNode constant_i = eq[0].getKind() == kind::CONST_BITVECTOR ? eq[0] : eq[1];
-      TNode var_i = eq[0].getKind() == kind::CONST_BITVECTOR ? eq[1] : eq[0];
-      // same constant on all branches
-      if (constant_i != constant)
-        return;
-      // each variable occurs once
-      if (variables.count(var_i))
-        return; 
-      variables.insert(var_i); 
-    }
-    d_domainMaker.add(constant, variables); 
-  }
-}
-
-void AbstractionModule::storeUpperBound(TNode var, TNode constant) {
-  Assert (var.getKind() == kind::VARIABLE &&
-          constant.getKind() == kind::CONST_BITVECTOR);
-
-  // Debug("bv-abstraction") << "AbstractionModule::storeUpperBound "<< var << " < " << constant <<"\n";
-  
-  if (d_upperBoundToDomain.find(constant) == d_upperBoundToDomain.end()) {
-    Node new_skolem = utils::mkVar(utils::getSize(var));
-    d_upperBoundToDomain[constant] = new_skolem; 
-  }
-  TNode skolem = d_upperBoundToDomain[constant];
-  storeDomain(var, skolem); 
-  // Debug("bv-abstraction") << "   with skolem " << skolem <<"\n";
-}
-
-void AbstractionModule::DomainMaker::add(TNode constant, TNodeSet& variables) {
-  Assert (variables.size());
-  // Debug("bv-abstraction") << "AbstractionModule::DomainMaker::add constant = " << constant <<"\n"; 
-  if (!d_canMakeDomain)
-    return;
-  
-  // if it is the first add
-  if (d_variables.size() == 0) {
-    d_variables.swap(variables);
-    d_constants.insert(constant);
-    return; 
-  }
-  
-  // check that variable sets contain the exact same elements
-  if (variables.size() != d_variables.size()) {
-    d_canMakeDomain = false;
-    return; 
-  }
-  for (TNodeSet::const_iterator it = variables.begin(); it != variables.end(); ++it) {
-    if (d_variables.find(*it) == d_variables.end()) {
-      d_canMakeDomain = false;
-      return;
-    }
-  }
-  // finally add the constant
-  d_constants.insert(constant); 
-}
-
-void AbstractionModule::DomainMaker::finalize() {
-  if (!d_canMakeDomain) return;
-  d_canMakeDomain = false;
-  // check that we have the exact same number of variables and constants
-  if (d_variables.size() != d_constants.size())
-    return;
-
-
-  TNode domain_skolem = d_module.makeEnumDomain(d_constants);
-  // Debug("bv-abstraction") << "AbstractionModule::DomainMaker::finalize skolem " << domain_skolem << " for set: \n";
-  // if (Debug.isOn("bv-abstraction")) {
-  //   for (TNodeSet::iterator it = d_constants.begin(); it != d_constants.end(); ++it) {
-  //     Debug("bv-abstraction") << "   [" << *it << " "; 
-  //   }
-  //   Debug("bv-abstraction") << "\n"; 
-  // }
-  
-  for (TNodeSet::iterator it = d_variables.begin(); it != d_variables.end(); ++it) {
-    d_module.storeDomain(*it, domain_skolem); 
-  }
-  d_variables.clear();
-  d_constants.clear(); 
-}
-
-TNode AbstractionModule::getDomainSkolem(TNode node) {
-  TNodeTNodeMap::const_iterator it = d_varToDomain.find(node);
-  if (it == d_varToDomain.end())
-    return node;
-  return it->second; 
-}
-
 Node AbstractionModule::computeSignature(TNode node) {
-  
   resetSignatureIndex(); 
   NodeNodeMap cache; 
   Node sig = computeSignatureRec(node, cache);
@@ -444,7 +326,7 @@ Node AbstractionModule::computeSignatureRec(TNode node, NodeNodeMap& cache) {
  * 
  * @return 
  */
-int AbstractionModule::PatternMatcher::comparePatterns(TNode s, TNode t) {
+int AbstractionModule::comparePatterns(TNode s, TNode t) {
   if (s.getKind() == kind::SKOLEM &&
       t.getKind() == kind::SKOLEM) {
     return 0;
@@ -475,7 +357,7 @@ int AbstractionModule::PatternMatcher::comparePatterns(TNode s, TNode t) {
 
   int unify = 0;
   for (unsigned i = 0; i < s.getNumChildren(); ++i) {
-    int unify_i = PatternMatcher::comparePatterns(s[i], t[i]);
+    int unify_i = comparePatterns(s[i], t[i]);
     if (unify_i < 0)
       return -1;
     if (unify == 0) {
@@ -515,14 +397,14 @@ void AbstractionModule::finalizeSignatures() {
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures num signatures = " << d_signatures.size() <<"\n";
   TNodeSet new_signatures;
 
-  // unify signatures
+  // "unify" signatures
   for (SignatureMap::const_iterator ss = d_signatures.begin(); ss != d_signatures.end(); ++ss) {
     for (SignatureMap::const_iterator tt = ss; tt != d_signatures.end(); ++tt) {
       TNode t = getGeneralization(tt->first);
       TNode s = getGeneralization(ss->first);
       
       if (t != s) {
-        int status = PatternMatcher::comparePatterns(s, t);
+        int status = comparePatterns(s, t);
         Assert (status); 
         if (status < 0)
           continue;
@@ -657,33 +539,6 @@ Node AbstractionModule::abstractSignatures(TNode assertion) {
   return assertion; 
 }
 
-Node AbstractionModule::makeEnumDomain(TNodeSet& values) {
-  TNodeSet::iterator it = values.begin();
-  Assert (it != values.end()); 
-  unsigned size = utils::getSize(*it);
-  Node skolem = utils::mkVar(size);
-  d_domainsEnum[skolem] = std::vector<Node>();
-  for (; it != values.end(); ++it) {
-    d_domainsEnum[skolem].push_back(*it); 
-  }
-  
-  return skolem; 
-}
-
-void AbstractionModule::storeDomain(Node var, Node domain_skolem) {
-  Assert (var.getKind() == kind::VARIABLE &&
-          domain_skolem.getKind() == kind::SKOLEM);
-  Assert (d_varToDomain.find(var) == d_varToDomain.end());
-  Debug("bv-abstraction") << "AbstractionModule::storeDomain var = "<< var
-                          << ", skolem = " << domain_skolem << "\n"; 
-  d_varToDomain[var] = domain_skolem;
-  d_skolems.insert(domain_skolem); 
-}
-
-bool AbstractionModule::isDomainSkolem(TNode node) {
-  return d_skolems.find(node) != d_skolems.end(); 
-}
-
 bool AbstractionModule::isAbstraction(TNode node) {
   if (node.getKind() != kind::EQUAL)
     return false;
@@ -766,15 +621,10 @@ Node AbstractionModule::substituteArguments(TNode signature, TNode apply, unsign
   return result;
 }
 
-static int num_confl = 0;
-static int num_lemma = 0;
 Node AbstractionModule::simplifyConflict(TNode conflict) {
   if (Dump.isOn("bv-abstraction")) {
     NodeNodeMap seen;
     Node c = reverseAbstraction(conflict, seen);
-    ostringstream os;
-    os << "confl_" << num_confl++;
-    Dump("bv-abstraction") << EchoCommand(os.str()); 
     Dump("bv-abstraction") << PushCommand(); 
     Dump("bv-abstraction") << AssertCommand(c.toExpr());
     Dump("bv-abstraction") << CheckSatCommand();
@@ -829,9 +679,6 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
     
     NodeNodeMap seen;
     Node nc = reverseAbstraction(new_conflict, seen);
-    ostringstream os;
-    os << "confl_" << num_confl;
-    Dump("bv-abstraction") << EchoCommand(os.str()); 
     Dump("bv-abstraction") << PushCommand(); 
     Dump("bv-abstraction") << AssertCommand(nc.toExpr());
     Dump("bv-abstraction") << CheckSatCommand();
@@ -925,9 +772,6 @@ void AbstractionModule::generalizeConflict(TNode conflict, std::vector<Node>& le
       if (Dump.isOn("bv-abstraction")) {
         NodeNodeMap seen;
         Node l = reverseAbstraction(lemma, seen);
-        ostringstream os;
-        os << "confl_" << num_lemma++;
-        Dump("bv-abstraction") << EchoCommand(os.str()); 
         Dump("bv-abstraction") << PushCommand(); 
         Dump("bv-abstraction") << AssertCommand(l.toExpr());
         Dump("bv-abstraction") << CheckSatCommand();

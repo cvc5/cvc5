@@ -3028,12 +3028,13 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
-  if (options::bvAbstraction()) {
+  if ( options::bvAbstraction() &&
+      !options::incrementalSolving()) {
     dumpAssertions("pre-bv-abstraction", d_assertionsToPreprocess);
     bvAbstraction();
     dumpAssertions("post-bv-abstraction", d_assertionsToPreprocess);
-    // do not use the aig solver with abstraction 
   }
+  
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {
     Chat() << "rewriting Boolean terms..." << endl;
@@ -3066,8 +3067,10 @@ void SmtEnginePrivate::processAssertions() {
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
+    dumpAssertions("pre-unconstrained-simp", d_assertionsToPreprocess);
     Chat() << "...doing unconstrained simplification..." << endl;
     unconstrainedSimp(d_assertionsToPreprocess);
+    dumpAssertions("post-unconstrained-simp", d_assertionsToPreprocess);
   }
 
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);
@@ -3089,10 +3092,11 @@ void SmtEnginePrivate::processAssertions() {
 
   // Lift bit-vectors of size 1 to bool
   if(options::bvToBool()) {
+    dumpAssertions("pre-bv-to-bool", d_assertionsToPreprocess);
     Chat() << "...doing bvToBool..." << endl;
     bvToBool();
+    dumpAssertions("post-bv-to-bool", d_assertionsToPreprocess);
   }
-  
   
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     CVC4::theory::strings::StringsPreprocess sp;
@@ -3149,8 +3153,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-simplify", d_assertionsToCheck);
 
-  // TODO BV ABSTRACTION
-  
   dumpAssertions("pre-static-learning", d_assertionsToCheck);
   if(options::doStaticLearning()) {
     // Perform static learning

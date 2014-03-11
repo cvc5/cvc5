@@ -255,18 +255,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     // second round of substitutions
     processAssertions(worklist, subst); 
   }
-
-  // if(Debug.isOn("bv-algebraic-dbg")) {
-  //   Debug("bv-algebraic-dbg") << "Post processAssertions2 \n";
-  //   for (unsigned i = 0; i < worklist.size(); ++i) {
-  //     TNode fact = worklist[i].node;
-  //     unsigned id = worklist[i].id;
-  //     TNode explanation = d_explanations[id];
-  //     Debug("bv-algebraic-dbg") <<fact << " id= " << id <<"\n";
-  //     Debug("bv-algebraic-dbg") <<"    expl: " << Rewriter::rewrite(explanation) <<"\n"; 
-  //   }
-  // }
-    
   
   NodeSet subst_seen;
   uint64_t subst_bb_cost = 0;
@@ -352,20 +340,20 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     return true;
   }
 
-  d_quickSolver->reset();
+  d_quickSolver->clearSolver();
 
   d_quickSolver->push();
   std::vector<Node> facts;
   for (unsigned i = 0; i < worklist.size(); ++i) {
     facts.push_back(worklist[i].node); 
   }
-  bool ok = quickCheck(facts, subst);
+  bool ok = quickCheck(facts);
 
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check done " << ok << ".\n";
   return ok;
 }
 
-bool AlgebraicSolver::quickCheck(std::vector<Node>& facts, SubstitutionEx& subst) {
+bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
   SatValue res = d_quickSolver->checkSat(facts, d_budget);
 
   if (res == SAT_VALUE_UNKNOWN) {
@@ -562,7 +550,7 @@ void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, 
       // explanation for this assertion
       Node old_expl = d_explanations[current_id];
       Node new_expl = subst_expl == utils::mkTrue() ? old_expl
-        : utils::mkAnd(subst_expl, old_expl);
+                                                    : utils::mkAnd(subst_expl, old_expl);
       storeExplanation(current_id, new_expl);
       
       // use the new substitution to solve

@@ -81,8 +81,9 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
   }
 
   BitblastSolver* bb_solver = new BitblastSolver(c, this);
-  if (options::bvAbstraction())
-    bb_solver->setAbstraction(d_abstractionModule); 
+  if (options::bvAbstraction()) {
+    bb_solver->setAbstraction(d_abstractionModule);
+  }
   d_subtheories.push_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 }
@@ -400,37 +401,37 @@ Node TheoryBV::ppRewrite(TNode t)
     res = utils::mkAnd(equalities);
   }
 
-  if(t.getKind() == kind::EQUAL &&
-     ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() == kind::BITVECTOR_PLUS) ||
-      (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() == kind::BITVECTOR_PLUS))) {
-    // if we have an equality between a multiplication and addition
-    // try to express multiplication in terms of addition
-    Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
-    Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
-    if (RewriteRule<MultSlice>::applies(mult)) {
-      Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
-      Node new_eq = Rewriter::rewrite(utils::mkNode(kind::EQUAL, new_mult, add));
+  // if(t.getKind() == kind::EQUAL &&
+  //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() == kind::BITVECTOR_PLUS) ||
+  //     (t[1].getKind() == kind::BITVECTOR_MULT && t[0].getKind() == kind::BITVECTOR_PLUS))) {
+  //   // if we have an equality between a multiplication and addition
+  //   // try to express multiplication in terms of addition
+  //   Node mult = t[0].getKind() == kind::BITVECTOR_MULT? t[0] : t[1];
+  //   Node add = t[0].getKind() == kind::BITVECTOR_PLUS? t[0] : t[1];
+  //   if (RewriteRule<MultSlice>::applies(mult)) {
+  //     Node new_mult = RewriteRule<MultSlice>::run<false>(mult);
+  //     Node new_eq = Rewriter::rewrite(utils::mkNode(kind::EQUAL, new_mult, add));
 
-      // the simplification can cause the formula to blow up
-      // only apply if formula reduced
-      if (d_subtheoryMap.find(SUB_BITBLAST) != d_subtheoryMap.end()) {
-        BitblastSolver* bv = (BitblastSolver*)d_subtheoryMap[SUB_BITBLAST];
-        uint64_t old_size = bv->computeAtomWeight(t);
-        Assert (old_size);
-        uint64_t new_size = bv->computeAtomWeight(new_eq);
-        double ratio = ((double)new_size)/old_size;
-        if (ratio <= 0.4) {
-          ++(d_statistics.d_numMultSlice);
-          return new_eq;
-        }
-      }
+  //     // the simplification can cause the formula to blow up
+  //     // only apply if formula reduced
+  //     if (d_subtheoryMap.find(SUB_BITBLAST) != d_subtheoryMap.end()) {
+  //       BitblastSolver* bv = (BitblastSolver*)d_subtheoryMap[SUB_BITBLAST];
+  //       uint64_t old_size = bv->computeAtomWeight(t);
+  //       Assert (old_size);
+  //       uint64_t new_size = bv->computeAtomWeight(new_eq);
+  //       double ratio = ((double)new_size)/old_size;
+  //       if (ratio <= 0.4) {
+  //         ++(d_statistics.d_numMultSlice);
+  //         return new_eq;
+  //       }
+  //     }
       
-      if (new_eq.getKind() == kind::CONST_BOOLEAN) {
-        ++(d_statistics.d_numMultSlice);
-        return new_eq;
-      }
-    }
-  }
+  //     if (new_eq.getKind() == kind::CONST_BOOLEAN) {
+  //       ++(d_statistics.d_numMultSlice);
+  //       return new_eq;
+  //     }
+  //   }
+  // }
   
   if (options::bvAbstraction() && t.getType().isBoolean()) {
     d_abstractionModule->addInputAtom(res); 

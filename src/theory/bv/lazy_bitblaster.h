@@ -88,6 +88,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   Debug("bitvector-bitblast") << "Bitblasting node " << node <<"\n";
   ++d_statistics.d_numAtoms;
 
+  /// if we are using bit-vector abstraction bit-blast the original interpretation
   if (options::bvAbstraction() &&
       d_abstraction != NULL &&
       d_abstraction->isAbstraction(node)) {
@@ -444,7 +445,6 @@ void TLazyBitblaster::clearSolver() {
   delete d_satSolver;
   delete d_cnfStream;
   d_assertedAtoms = context::CDList<prop::SatLiteral>(d_ctx);
-  d_variables.clear();
   d_bbAtoms.clear();
 
   // recreate sat solver

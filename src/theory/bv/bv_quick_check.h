@@ -41,7 +41,6 @@ class BVQuickCheck {
   TLazyBitblaster* d_bitblaster;
   Node d_conflict;
   context::CDO<bool> d_inConflict;
-
   void setConflict();
 
 public:
@@ -49,17 +48,53 @@ public:
   ~BVQuickCheck();
   bool inConflict();
   Node getConflict() { return d_conflict; }
+  /** 
+   * Checks the satisfiability for a given set of assumptions.
+   * 
+   * @param assumptions literals assumed true
+   * @param budget max number of conflicts
+   * 
+   * @return 
+   */
   prop::SatValue checkSat(std::vector<Node>& assumptions, unsigned long budget);
+  /** 
+   * Checks the satisfiability of given assertions.
+   * 
+   * @param budget max number of conflicts
+   * 
+   * @return 
+   */
   prop::SatValue checkSat(unsigned long budget);
   
-  // returns false if the assertion lead to a conflict
-  bool addAssertion(TNode assumptions);
+  /** 
+   * Convert to CNF and assert the given literal.
+   * 
+   * @param assumption bv literal
+   * 
+   * @return false if a conflict has been found via bcp.
+   */
+  bool addAssertion(TNode assumption);
 
   void push();
   void pop();
-  void reset(); 
   void popToZero();
-  uint64_t computeAtomWeight(TNode node, NodeSet& seen);
+  /** 
+   * Deletes the SAT solver and CNF stream, but maintains the
+   * bit-blasting term cache. 
+   * 
+   */
+  void clearSolver(); 
+
+  /** 
+   * Computes the size of the circuit required to bit-blast
+   * atom, by not recounting the nodes in seen. 
+   * 
+   * @param node 
+   * @param seen 
+   * 
+   * @return 
+   */
+  uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
 };
 
 
@@ -76,19 +111,41 @@ class QuickXPlain {
   };
   BVQuickCheck* d_solver;
   unsigned long d_budget;
-  // heuristic variables
-  unsigned d_numCalled;
-  double d_minRatioSum;
-  unsigned d_numConflicts;
-  unsigned d_period;
 
-  double d_thresh;
-  double d_hardThresh;
+  // crazy heuristic variables
+  unsigned d_numCalled; // number of times called
+  double d_minRatioSum; // sum of minimization ratio for computing average min ratio  
+  unsigned d_numConflicts; // number of conflicts (including when minimization not applied)
+  unsigned d_period; // after how many conflicts to try minimizing again
+
+  double d_thresh; // if minimization ratio is less, increase period
+  double d_hardThresh; // decrease period if minimization ratio is greater than this
   
   
   Statistics d_statistics;
+  /** 
+   * Uses solve with assumptions unsat core feature to
+   * further minimize a conflict. The minimized conflict
+   * will be between low and the returned value in conflict.
+   * 
+   * @param low 
+   * @param high 
+   * @param conflict 
+   * 
+   * @return 
+   */
   unsigned selectUnsatCore(unsigned low, unsigned high,
-                                        std::vector<TNode>& conflict);
+                           std::vector<TNode>& conflict);
+  /** 
+   * Internal conflict  minimization, attempts to minimize
+   * literals in conflict between low and high and adds the
+   * result in new_conflict. 
+   * 
+   * @param low 
+   * @param high 
+   * @param conflict 
+   * @param new_conflict 
+   */
   void minimizeConflictInternal(unsigned low, unsigned high,
                                 std::vector<TNode>& conflict,
                                 std::vector<TNode>& new_conflict);
@@ -98,7 +155,6 @@ public:
   QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 500);
   ~QuickXPlain();
   Node minimizeConflict(TNode conflict); 
-  void setBudget(); 
 };
 
 } /* bv namespace */

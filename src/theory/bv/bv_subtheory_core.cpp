@@ -35,11 +35,10 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_slicer(new Slicer()),
     d_isCoreTheory(c, true),
-    d_useSlicer(d_useSlicer),
+    d_useSlicer(false),
     d_preregisterCalled(false),
     d_reasons(c)
 {
-
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
   //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);

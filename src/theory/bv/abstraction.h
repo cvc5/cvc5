@@ -42,6 +42,7 @@ class AbstractionModule {
     ~Statistics();
   };
 
+  
   class ArgsTableEntry {
     std::vector<ArgsVec> d_data;
     unsigned d_arity;
@@ -74,19 +75,15 @@ class AbstractionModule {
     iterator end() { return d_data.end(); }
   };
 
-  class PatternMatcher {
-  public:
-    /** 
-     * Checks if one pattern is a generalization of the other
-     * 
-     * @param s 
-     * @param t 
-     * 
-     * @return 1 if s :> t, 2 if s <: t, 0 if they equivalent and -1 if they are incomparable
-     */
-    static int comparePatterns(TNode s, TNode t);
-  }; 
-
+  /** 
+   * Checks if one pattern is a generalization of the other
+   * 
+   * @param s 
+   * @param t 
+   * 
+   * @return 1 if s :> t, 2 if s <: t, 0 if they equivalent and -1 if they are incomparable
+   */
+  static int comparePatterns(TNode s, TNode t);
 
   class LemmaInstantiatior {
     std::vector<TNode> d_functions;
@@ -132,43 +129,11 @@ class AbstractionModule {
   typedef __gnu_cxx::hash_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   typedef __gnu_cxx::hash_map<unsigned, Node> IntNodeMap; 
-  typedef std::multiset<Node> NodeMultiSet;
   typedef __gnu_cxx::hash_map<unsigned, unsigned> IndexMap;
   typedef __gnu_cxx::hash_map<unsigned, std::vector<Node> > SkolemMap;
   typedef __gnu_cxx::hash_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
-  class DomainMaker {
-    TNodeSet d_variables;
-    TNodeSet d_constants;
-    AbstractionModule& d_module;
-    bool d_canMakeDomain; 
-  public:
-    DomainMaker(AbstractionModule& a)
-      : d_variables()
-      , d_constants()
-      , d_module(a)
-      , d_canMakeDomain(true)
-    {}
-    /** 
-     * Process an assertion of the form
-     * (or (= var_0 const) ... (= var_k const))
-     * 
-     * @param constnat 
-     * @param set 
-     */
-    void add(TNode constnat, TNodeSet& variables);
-    void finalize(); 
-  };
-
+  
   ArgsTable d_argsTable; 
-  DomainMaker d_domainMaker; 
-  
-  // map from constant upper bound to domain skolem
-  NodeNodeMap d_upperBoundToDomain; 
-  
-  // map from domain skolem to elements of domain
-  NodeVecMap d_domainsEnum;
-  // map from variables to their domain skolem 
-  TNodeTNodeMap d_varToDomain;
 
   // mapping between signature and uninterpreted function symbol used to
   // abstract the signature
@@ -183,42 +148,23 @@ class AbstractionModule {
   // skolems maps
   IndexMap d_signatureIndices;
   SkolemMap d_signatureSkolems;
-  
-  void inferDomains(TNode assertion);
- 
-  // stores the upper bound of node and creates a new domain for it if it
-  // does not have one already
-  void storeUpperBound(TNode node, TNode bound);
-  
-  /** 
-   * Returns the domain skolem corresponding to var if
-   * one is assigned and just var otherwise. 
-   * 
-   * @param var 
-   * 
-   * @return 
-   */
-  
-  TNode getDomainSkolem(TNode var);
-  Node makeEnumDomain(TNodeSet& values); 
+
   void collectArgumentTypes(TNode sig, std::vector<TypeNode>& types, TNodeSet& seen);
   void collectArguments(TNode node, TNode sig, std::vector<Node>& args, TNodeSet& seen);
   void finalizeSignatures();
   Node abstractSignatures(TNode assertion);
   Node computeSignature(TNode node);
-  void storeDomain(Node var, Node domain_skolem);
-  bool isDomainSkolem(TNode sk);
-
-
 
   bool isConjunctionOfAtoms(TNode node);
   bool isConjunctionOfAtomsRec(TNode node, TNodeSet& seen);
 
   TNode getGeneralization(TNode term);
   void storeGeneralization(TNode s, TNode t);
+
   // signature skolem stuff
   Node getGeneralizedSignature(Node node);
   Node getSignatureSkolem(TNode node);
+
   unsigned getBitwidthIndex(unsigned bitwidth); 
   void resetSignatureIndex();
   Node computeSignatureRec(TNode, NodeNodeMap&);
@@ -250,10 +196,6 @@ class AbstractionModule {
 public:
   AbstractionModule()
     : d_argsTable()
-    , d_domainMaker(*this)
-    , d_upperBoundToDomain()
-    , d_domainsEnum()
-    , d_varToDomain()
     , d_signatureToFunc()
     , d_funcToSignature()
     , d_assertionToSignature()
