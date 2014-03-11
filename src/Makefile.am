@@ -116,6 +116,7 @@ libcvc4_la_SOURCES = \
 	smt/boolean_terms.h \
 	smt/boolean_terms.cpp \
 	smt/logic_exception.h \
+	smt/logic_request.h \
 	smt/simplification_mode.h \
 	smt/simplification_mode.cpp \
 	smt/options_handlers.h \
