@@ -21,8 +21,6 @@ OPTIONS_FILES_SRCS = \
 	../theory/arrays/options.h \
 	../theory/quantifiers/options.cpp \
 	../theory/quantifiers/options.h \
-	../theory/rewriterules/options.cpp \
-	../theory/rewriterules/options.h \
 	../theory/strings/options.cpp \
 	../theory/strings/options.h \
 	../prop/options.cpp \
@@ -84,8 +82,6 @@ nodist_liboptions_la_SOURCES = \
 	../theory/arrays/options.h \
 	../theory/quantifiers/options.cpp \
 	../theory/quantifiers/options.h \
-	../theory/rewriterules/options.cpp \
-	../theory/rewriterules/options.h \
 	../theory/strings/options.cpp \
 	../theory/strings/options.h \
 	../prop/options.cpp \

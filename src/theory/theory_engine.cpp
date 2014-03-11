@@ -1639,22 +1639,20 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
 
 void TheoryEngine::checkTheoryAssertionsWithModel() {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-    if(theoryId != THEORY_REWRITERULES) {
-      Theory* theory = d_theoryTable[theoryId];
-      if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
-              it_end = theory->facts_end();
-            it != it_end;
-            ++it) {
-          Node assertion = (*it).assertion;
-          Node val = getModel()->getValue(assertion);
-          if(val != d_true) {
-            stringstream ss;
-            ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
-               << "The fact: " << assertion << endl
-               << "Model value: " << val << endl;
-            InternalError(ss.str());
-          }
+    Theory* theory = d_theoryTable[theoryId];
+    if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+      for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+            it_end = theory->facts_end();
+          it != it_end;
+          ++it) {
+        Node assertion = (*it).assertion;
+        Node val = getModel()->getValue(assertion);
+        if(val != d_true) {
+          stringstream ss;
+          ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
+             << "The fact: " << assertion << endl
+             << "Model value: " << val << endl;
+          InternalError(ss.str());
         }
       }
     }

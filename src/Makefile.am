@@ -20,7 +20,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv arrays datatypes sets strings quantifiers rewriterules idl
+THEORIES = builtin booleans uf arith bv arrays datatypes sets strings quantifiers idl
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -307,8 +307,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/options_handlers.h \
-	theory/rewriterules/theory_rewriterules.h \
-	theory/rewriterules/theory_rewriterules.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \
@@ -457,7 +455,6 @@ EXTRA_DIST = \
 	theory/strings/kinds \
 	theory/arrays/kinds \
 	theory/quantifiers/kinds \
-	theory/rewriterules/kinds \
 	theory/arith/kinds \
 	theory/booleans/kinds \
 	theory/example/ecdata.h \

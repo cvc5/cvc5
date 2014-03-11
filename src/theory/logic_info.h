@@ -64,7 +64,6 @@ class CVC4_PUBLIC LogicInfo {
     case theory::THEORY_BUILTIN:
     case theory::THEORY_BOOL:
     case theory::THEORY_QUANTIFIERS:
-    case theory::THEORY_REWRITERULES:
       return false;
     default:
       return true;
@@ -117,7 +116,7 @@ public:
   /** Is this a quantified logic? */
   bool isQuantified() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return isTheoryEnabled(theory::THEORY_QUANTIFIERS) || isTheoryEnabled(theory::THEORY_REWRITERULES);
+    return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
   }
 
   /** Is this the all-inclusive logic? */
@@ -214,7 +213,6 @@ public:
    */
   void enableQuantifiers() {
     enableTheory(theory::THEORY_QUANTIFIERS);
-    enableTheory(theory::THEORY_REWRITERULES);
   }
 
   /**
@@ -222,7 +220,6 @@ public:
    */
   void disableQuantifiers() {
     disableTheory(theory::THEORY_QUANTIFIERS);
-    disableTheory(theory::THEORY_REWRITERULES);
   }
 
   // these are for arithmetic

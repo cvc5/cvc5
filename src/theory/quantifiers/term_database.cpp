@@ -18,7 +18,6 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
-#include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 
 using namespace std;
