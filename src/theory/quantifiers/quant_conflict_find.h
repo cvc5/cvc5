@@ -226,7 +226,6 @@ public:
   enum {
     effort_conflict,
     effort_prop_eq,
-    effort_partial,
     effort_mc,
   };
   short d_effort;

@@ -95,7 +95,7 @@ void QuantInfo::initialize( Node q, Node qn ) {
       if( d_vars[j].getKind()!=BOUND_VARIABLE ){
         bool beneathQuant = d_nbeneathQuant.find( d_vars[j] )==d_nbeneathQuant.end();
         d_var_mg[j] = new MatchGen( this, d_vars[j], true, beneathQuant );
-        if( !d_var_mg[j]->isValid() && options::qcfMode()<QCF_PARTIAL ){
+        if( !d_var_mg[j]->isValid() ){
           d_mg->setInvalid();
           break;
         }else{
@@ -669,7 +669,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar, bool beneathQuant ){
           Node nn = n.eqNode( n[i] );
           d_children.push_back( MatchGen( qi, nn ) );
           d_children[d_children.size()-1].d_qni_bound_except.push_back( 0 );
-          if( !d_children[d_children.size()-1].isValid() && options::qcfMode()<QCF_PARTIAL ){
+          if( !d_children[d_children.size()-1].isValid() ){
             setInvalid();
             break;
           }
@@ -697,7 +697,7 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar, bool beneathQuant ){
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
           if( d_n.getKind()!=FORALL || i==1 ){
             d_children.push_back( MatchGen( qi, d_n[i], false, nBeneathQuant ) );
-            if( !d_children[d_children.size()-1].isValid() && options::qcfMode()<QCF_PARTIAL ){
+            if( !d_children[d_children.size()-1].isValid() ){
               setInvalid();
               break;
             }
@@ -900,9 +900,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
 
   //set up processing matches
   if( d_type==typ_invalid ){
-    if( p->d_effort==QuantConflictFind::effort_partial ){
-      d_child_counter = 0;
-    }
+    //do nothing : return success once?
   }else if( d_type==typ_ground ){
     if( d_ground_eval[0]==( d_tgt ? p->d_true : p->d_false ) ){
       d_child_counter = 0;
@@ -1008,10 +1006,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
       d_qn.push_back( NULL );
     }else{
       if( d_tgt && d_n.getKind()==FORALL ){
-        //return success once
-        if( p->d_effort==QuantConflictFind::effort_partial ){
-          d_child_counter = -2;
-        }
+        //do nothing
       }else{
         //reset the first child to d_tgt
         d_child_counter = 0;
@@ -1651,8 +1646,6 @@ short QuantConflictFind::getMaxQcfEffort() {
     return effort_conflict;
   }else if( options::qcfMode()==QCF_PROP_EQ ){
     return effort_prop_eq;
-  }else if( options::qcfMode()==QCF_PARTIAL ){
-    return effort_partial;
   }else if( options::qcfMode()==QCF_MC ){
     return effort_mc;
   }else{
@@ -1906,8 +1899,6 @@ void QuantConflictFind::check( Theory::Effort level ) {
         }
       }
 
-
-
       if( Trace.isOn("qcf-debug") ){
         Trace("qcf-debug") << std::endl;
         debugPrint("qcf-debug");
@@ -2035,7 +2026,7 @@ void QuantConflictFind::check( Theory::Effort level ) {
         double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
         Trace("qcf-engine") << "Finished conflict find engine, time = " << (clSet2-clSet);
         if( addedLemmas>0 ){
-          Trace("qcf-engine") << ", effort = " << ( d_effort==effort_conflict ? "conflict" : ( d_effort==effort_prop_eq ? "prop_eq" : (d_effort==effort_partial ? "partial" : "mc" ) ) );
+          Trace("qcf-engine") << ", effort = " << ( d_effort==effort_conflict ? "conflict" : ( d_effort==effort_prop_eq ? "prop_eq" : "mc" ) );
           Trace("qcf-engine") << ", addedLemmas = " << addedLemmas;
         }
         Trace("qcf-engine") << std::endl;
@@ -2105,6 +2096,7 @@ void QuantConflictFind::computeRelevantEqr() {
       }else{
         d_eqcs[rtn].push_back( r );
       }
+      /*
       eq::EqClassIterator eqc_i = eq::EqClassIterator( r, getEqualityEngine() );
       while( !eqc_i.isFinished() ){
         TNode n = (*eqc_i);
@@ -2114,6 +2106,7 @@ void QuantConflictFind::computeRelevantEqr() {
         }
         ++eqc_i;
       }
+      */
 
       //if( r.getType().isInteger() ){
       //  Trace("qcf-mv") << "Model value for eqc(" << r << ") : " << d_quantEngine->getValuation().getModelValue( r ) << std::endl;

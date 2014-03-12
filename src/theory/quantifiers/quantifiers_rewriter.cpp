@@ -834,11 +834,11 @@ Node QuantifiersRewriter::computeMiniscoping( Node f, std::vector< Node >& args,
       }
     }
   }
-  if( body==f[1] ){
-    return f;
-  }else{
-    return mkForAll( args, body, ipl );
-  }
+  //if( body==f[1] ){
+  //  return f;
+  //}else{
+  return mkForAll( args, body, ipl );
+  //}
 }
 
 Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& args, Node body, bool isNested ){
