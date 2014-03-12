@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --no-check-models
+; COMMAND-LINE: --incremental
 ; EXPECT: unsat
 ; EXPECT: sat
 

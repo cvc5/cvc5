@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic QF_UFLIA_SETS)
 (set-info :status sat)
