@@ -31,7 +31,7 @@
 (check-sat)
 (pop)
 
-; EXPECT: unknown
+; EXPECT: sat
 (push);;sat
 (assert (and (not (R e1 e3)) (R e4 e1)))
 (check-sat)

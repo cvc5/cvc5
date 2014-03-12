@@ -2194,11 +2194,10 @@ void QuantConflictFind::computeArgReps( TNode n ) {
 void QuantConflictFind::computeUfTerms( TNode f ) {
   if( d_uf_terms.find( f )==d_uf_terms.end() ){
     d_uf_terms[f].clear();
-    unsigned nt = d_quantEngine->getTermDatabase()->d_op_map[f].size();
+    unsigned nt = d_quantEngine->getTermDatabase()->getNumGroundTerms( f );
     for( unsigned i=0; i<nt; i++ ){
       Node n = d_quantEngine->getTermDatabase()->d_op_map[f][i];
-      if( !n.getAttribute(NoMatchAttribute()) ){
-        Assert( getEqualityEngine()->hasTerm( n ) );
+      if( getEqualityEngine()->hasTerm( n ) && !n.getAttribute(NoMatchAttribute()) ){
         Node r = getRepresentative( n );
         computeArgReps( n );
         d_eqc_uf_terms[f].d_children[r].addTerm( n, d_arg_reps[n] );

@@ -46,6 +46,20 @@ bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
   }
 }
 
+TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ) {
+
+}
+
+/** ground terms */
+unsigned TermDb::getNumGroundTerms( Node f ) {
+  std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
+  if( it!=d_op_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+  //return d_op_ccount[f];
+}
 
 Node TermDb::getOperator( Node n ) {
   //return n.getOperator();
@@ -89,6 +103,15 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
         Node op = getOperator( n );
+        /*
+        int occ = d_op_ccount[op];
+        if( occ<(int)d_op_map[op].size() ){
+          d_op_map[op][occ] = n;
+        }else{
+          d_op_map[op].push_back( n );
+        }
+        d_op_ccount[op].set( occ + 1 );
+        */
         d_op_map[op].push_back( n );
         added.insert( n );
 
@@ -120,7 +143,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    int alreadyCongruentCount = 0;
    //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-     d_op_count[ it->first ] = 0;
+     d_op_nonred_count[ it->first ] = 0;
      if( !it->second.empty() ){
        if( it->second[0].getType().isBoolean() ){
          d_pred_map_trie[ 0 ][ it->first ].d_data.clear();
@@ -138,7 +161,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                congruentCount++;
              }else{
                nonCongruentCount++;
-               d_op_count[ it->first ]++;
+               d_op_nonred_count[ it->first ]++;
              }
            }else{
              congruentCount++;
@@ -166,7 +189,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                congruentCount++;
              }else{
                nonCongruentCount++;
-               d_op_count[ op ]++;
+               d_op_nonred_count[ op ]++;
              }
            }else{
              alreadyCongruentCount++;

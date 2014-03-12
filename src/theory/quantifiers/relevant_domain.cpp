@@ -111,7 +111,8 @@ void RelevantDomain::compute(){
     TermDb * db = d_qe->getTermDatabase();
     for( std::map< Node, std::vector< Node > >::iterator it = db->d_op_map.begin(); it != db->d_op_map.end(); ++it ){
       Node op = it->first;
-      for( unsigned i=0; i<it->second.size(); i++ ){
+      unsigned sz = db->getNumGroundTerms( op );
+      for( unsigned i=0; i<sz; i++ ){
         Node n = it->second[i];
         //if it is a non-redundant term
         if( !n.getAttribute(NoMatchAttribute()) ){

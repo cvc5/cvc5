@@ -88,6 +88,7 @@ class TermDb {
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::rrinst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
@@ -96,13 +97,17 @@ private:
 private:
   /** select op map */
   std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > > d_par_op_map;
+  /** count number of ground terms per operator (user-context dependent) */
+  NodeIntMap d_op_ccount;
 public:
-  TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
+  /** ground terms */
+  unsigned getNumGroundTerms( Node f );
+  /** count number of non-redundant ground terms per operator */
+  std::map< Node, int > d_op_nonred_count;
   /** map from APPLY_UF operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
-  /** count number of APPLY_UF terms per operator */
-  std::map< Node, int > d_op_count;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   /** map from APPLY_UF predicates to trie */

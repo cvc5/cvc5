@@ -1,0 +1,52 @@
+(declare forall (! s sort
+                (! t (term s)
+                (! f formula
+                  formula))))
+
+(program instantiate ((f formula) (t term) (k term))
+  (do (markvar t) 
+     (let f1 (inst_f f t)
+        (do (markvar t) f1))))
+
+(program instantiate_f ((f formula) (k term)) formula
+  (match f 
+    ((and f1 f2) (and (instantiate_f f1 t) (instantiate_f f2 t)))
+    ((or f1 f2) (or (instantiate_f f1 t) (instantiate_f f2 t)))
+    ((impl f1 f2) (impl (instantiate_f f1 t) (instantiate_f f2 t)))
+    ((not f1) (not (instantiate_f f1 t)))
+    ((iff f1 f2) (iff (instantiate_f f1 t) (instantiate_f f2 t)))
+    ((xor f1 f2) (xor (instantiate_f f1 t) (instantiate_f f2 t)))
+    ((ifte f1 f2 f3) (ifte (instantiate_f f1 t) (instantiate_f f2 t) (instantiate_f f3 t)))
+    ((= s t1 t2) (= s (inst_t t1 t) (inst_t t2 t)))
+    ((forall t1 f1) (forall t1 (instantiate_f f1 t)))
+    (default f)))
+
+(program instantiate_t ((t term) (k term)) formula
+  (match t
+    ((apply s1 s2 t1 t2) (apply s1 s2 t1 (instantiate_t t2 t)))
+    (default (ifmarked t k t))))
+
+
+(declare skolem
+  (! s sort
+  (! t (term s)
+  (! f formula
+  (! p (th_holds (not (forall s t f)))
+  (! u (! f1 formula
+       (! k (term s)
+       (! r (^ (instantiate f t k) f1)
+       (! p1 (th_holds (not f1))
+         (holds cln)))))
+    (holds cln)))))))
+    
+(declare inst
+  (! s sort
+  (! t (term s)
+  (! f formula
+  (! f1 formula
+  (! p (th_holds (forall s t f))
+  (! k (term s)
+  (! r (^ (instantiate f t k) f1)
+  (! u (! p1 (th_holds f1)
+            (holds cln))
+    (holds cln))))))))))

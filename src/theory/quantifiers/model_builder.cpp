@@ -1039,7 +1039,7 @@ int QModelBuilderInstGen::getSelectionFormulaScore( Node fn ){
     if( fn.getKind()==APPLY_UF ){
       Node op = fn.getOperator();
       //return total number of terms
-      return d_qe->getTermDatabase()->d_op_count[op];
+      return d_qe->getTermDatabase()->d_op_nonred_count[op];
     }else{
       int score = 0;
       for( size_t i=0; i<fn.getNumChildren(); i++ ){

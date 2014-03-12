@@ -63,7 +63,7 @@ CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
   Assert( !d_op.isNull() );
 }
 void CandidateGeneratorQE::resetInstantiationRound(){
-  d_term_iter_limit = d_qe->getTermDatabase()->d_op_map[d_op].size();
+  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
 
 void CandidateGeneratorQE::reset( Node eqc ){

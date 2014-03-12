@@ -125,7 +125,7 @@ option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default 
 option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfWhenMode :handler-include "theory/quantifiers/options_handlers.h"
  when to invoke conflict find mechanism for quantifiers
 
-option quantRewriteRules --rewrite-rules bool :default false
+option quantRewriteRules --rewrite-rules bool :default true
  use rewrite rules module
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round

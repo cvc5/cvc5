@@ -45,7 +45,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* 
 d_te( te ),
 d_lemmas_produced_c(u){
   d_eq_query = new EqualityQueryQuantifiersEngine( this );
-  d_term_db = new quantifiers::TermDb( this );
+  d_term_db = new quantifiers::TermDb( c, u, this );
   d_tr_trie = new inst::TriggerTrie;
   //d_rr_tr_trie = new rrinst::TriggerTrie;
   //d_eem = new EfficientEMatcher( this );
