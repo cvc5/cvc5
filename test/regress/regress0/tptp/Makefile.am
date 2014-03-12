@@ -13,6 +13,8 @@ TESTS_ENVIRONMENT = \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
+MAKEFLAGS = -k
+
 # escape the `=' in file names
 equals = =
 

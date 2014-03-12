@@ -16,6 +16,8 @@ endif
 override CVC4_REGRESSION_ARGS += --unconstrained-simp
 export CVC4_REGRESSION_ARGS
 
+MAKEFLAGS = -k
+
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
