@@ -3,7 +3,7 @@
 # add support for more theories, just list them here in the same order
 # you would to the LFSC proof-checker binary.
 #
-CORE_PLFS = sat.plf smt.plf th_base.plf
+CORE_PLFS = sat.plf smt.plf th_base.plf th_arrays.plf
 
 noinst_LTLIBRARIES = libsignatures.la
 
@@ -31,4 +31,7 @@ signatures.cpp: $(CORE_PLFS)
 	) > $@
 
 EXTRA_DIST = \
-	example.plf
+	example.plf \
+	example-arrays.plf \
+	example-quant.plf \
+	th_quant.plf
