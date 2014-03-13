@@ -8,6 +8,7 @@ theory THEORY_SETS ::CVC4::theory::sets::TheorySets "theory/sets/theory_sets.h"
 typechecker "theory/sets/theory_sets_type_rules.h"
 rewriter ::CVC4::theory::sets::TheorySetsRewriter "theory/sets/theory_sets_rewriter.h"
 
+properties parametric
 properties check propagate #presolve postsolve
 
 # Theory content goes here.

@@ -5,4 +5,3 @@
 (declare-fun y () (Set Int))
 (assert (= x y))
 (check-sat)
-(get-model)

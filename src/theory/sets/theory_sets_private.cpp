@@ -435,38 +435,36 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
   // Computer terms appearing assertions and shared terms
   d_external.computeRelevantTerms(terms);
 
+  // compute for each setterm elements that it contains
+  SettermElementsMap settermElementsMap;
+  TNode true_atom = NodeManager::currentNM()->mkConst<bool>(true);
+  TNode false_atom = NodeManager::currentNM()->mkConst<bool>(false);
+  for(eq::EqClassIterator it_eqclasses(true_atom, &d_equalityEngine);
+      ! it_eqclasses.isFinished() ; ++it_eqclasses) {
+    TNode n = (*it_eqclasses);
+    if(n.getKind() == kind::MEMBER) {
+      Assert(d_equalityEngine.areEqual(n, true_atom));
+      TNode x = d_equalityEngine.getRepresentative(n[0]);
+      TNode S = d_equalityEngine.getRepresentative(n[1]);
+      settermElementsMap[S].insert(x);
+    }
+  }
+
   // Assert equalities and disequalities to the model
   m->assertEqualityEngine(&d_equalityEngine, &terms);
 
-  // Loop over all collect set-terms for which we generate models
+  // Loop over terms to collect set-terms for which we generate models
   set<Node> settermsModEq;
-  SettermElementsMap settermElementsMap;
   BOOST_FOREACH(TNode term, terms) {
     TNode n = term.getKind() == kind::NOT ? term[0] : term;
 
     Debug("sets-model-details") << "[sets-model-details]  >   " << n << std::endl;
 
-    if(n.getKind() == kind::EQUAL) {
-      // nothing to do
-    } else if(n.getKind() == kind::MEMBER) {
-
-      TNode true_atom = NodeManager::currentNM()->mkConst<bool>(true);
-
-      if(d_equalityEngine.areEqual(n, true_atom)) {
-        TNode x = d_equalityEngine.getRepresentative(n[0]);
-        TNode S = d_equalityEngine.getRepresentative(n[1]);
-
-        settermElementsMap[S].insert(x);
-      }
-
-    } else if(n.getType().isSet()) {
-
+    if(n.getType().isSet()) {
       n = d_equalityEngine.getRepresentative(n);
-
       if( !n.isConst() ) {
         settermsModEq.insert(n);
       }
-
     }
 
   }
@@ -477,7 +475,6 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
 
-  // settermElementsMap processing
   BOOST_FOREACH( SettermElementsMap::value_type &it, settermElementsMap ) {
     BOOST_FOREACH( TNode element, it.second /* elements */ ) {
       Debug("sets-model-details") << "[sets-model-details]  >   " <<

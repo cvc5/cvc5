@@ -779,7 +779,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           << "n: " << n << endl
           << "getValue(n): " << tm->getValue(n) << endl
           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep);
+        Assert(tm->getValue(*eqc_i) == rep, "run with -d check-model::rep-checking for details");
       }
     }
   }

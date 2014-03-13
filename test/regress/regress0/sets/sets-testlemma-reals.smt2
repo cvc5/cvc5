@@ -5,4 +5,3 @@
 (declare-fun y () (Set Real))
 (assert (not (= x y)))
 (check-sat)
-(get-model)

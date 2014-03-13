@@ -44,8 +44,9 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
 // static
 RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
+  Kind kind = node.getKind();
 
-  switch(node.getKind()) {
+  switch(kind) {
 
   case kind::MEMBER: {
     if(!node[0].isConst() || !node[1].isConst())
@@ -54,7 +55,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     // both are constants
     bool isMember = checkConstantMembership(node[0], node[1]);
     return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
-  }
+  }//kind::MEMBER
 
   case kind::SUBSET: {
     // rewrite (A subset-or-equal B) as (A union B = B)
@@ -85,11 +86,15 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       return RewriteResponse(REWRITE_DONE, newNode);
     }
     break;
-  }
+  }//kind::IFF
 
-  case kind::UNION:
-  case kind::INTERSECTION: {
+  case kind::SETMINUS: {
     if(node[0] == node[1]) {
+      Node newNode = nm->mkConst(EmptySet(nm->toType(node[0].getType())));
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      return RewriteResponse(REWRITE_DONE, newNode);
+    } else if(node[0].getKind() == kind::EMPTYSET ||
+              node[1].getKind() == kind::EMPTYSET) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_DONE, node[0]);
     } else if (node[0] > node[1]) {
@@ -98,11 +103,42 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       return RewriteResponse(REWRITE_DONE, newNode);
     }
     break;
-  }
+  }//kind::INTERSECION
+
+  case kind::INTERSECTION: {
+    if(node[0] == node[1]) {
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
+      return RewriteResponse(REWRITE_DONE, node[0]);
+    } else if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, node[0]);
+    } else if(node[1].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, node[1]);
+    } else if (node[0] > node[1]) {
+      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      return RewriteResponse(REWRITE_DONE, newNode);
+    }
+    break;
+  }//kind::INTERSECION
+
+  case kind::UNION: {
+    if(node[0] == node[1]) {
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
+      return RewriteResponse(REWRITE_DONE, node[0]);
+    } else if(node[0].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, node[1]);
+    } else if(node[1].getKind() == kind::EMPTYSET) {
+      return RewriteResponse(REWRITE_DONE, node[0]);
+    } else if (node[0] > node[1]) {
+      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
+      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      return RewriteResponse(REWRITE_DONE, newNode);
+    }
+    break;
+  }//kind::UNION
 
   default:
     break;
-
   }//switch(node.getKind())
 
   // This default implementation
