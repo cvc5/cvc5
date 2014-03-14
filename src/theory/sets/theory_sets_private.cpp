@@ -397,8 +397,7 @@ const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMa
         Unhandled();
       }
     } else {
-      Assert(numChildren == 0);
-      Assert(k == kind::VARIABLE);
+      Assert(k == kind::VARIABLE || k == kind::APPLY_UF);
       /* assign emptyset, which is default */
     }
 

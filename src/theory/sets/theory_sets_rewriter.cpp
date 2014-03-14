@@ -81,7 +81,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     // rewrite (A subset-or-equal B) as (A union B = B)
     TNode A = node[0];
     TNode B = node[1];
-    return RewriteResponse(REWRITE_AGAIN,
+    return RewriteResponse(REWRITE_AGAIN_FULL,
                            nm->mkNode(kind::EQUAL,
                                       nm->mkNode(kind::UNION, A, B),
                                       B) );
