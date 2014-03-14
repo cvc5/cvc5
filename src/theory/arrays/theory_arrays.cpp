@@ -374,10 +374,16 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
+  //eq::EqProof * eqp = new eq::EqProof;
+  eq::EqProof * eqp = NULL;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, eqp);
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+  }
+  if( eqp ){
+    Debug("array-pf") << " Proof is : " << std::endl;
+    eqp->debug_print("array-pf");
   }
 }
 
@@ -435,7 +441,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
+          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
           Assert(++it == stores->end());
         }
       }
@@ -482,7 +488,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true);
+      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, eq::MERGED_ARRAYS_ROW1);
     }
 
     d_infoMap.addStore(node, node);
@@ -1892,7 +1898,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
+    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
   }
 }
 
@@ -2283,7 +2289,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine.assertEquality(aj_eq_bj, true, reason);
+      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, eq::MERGED_ARRAYS_ROW);
       ++d_numProp;
       return;
     }
@@ -2293,7 +2299,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i_eq_j, true, reason);
+      d_equalityEngine.assertEquality(i_eq_j, true, reason, eq::MERGED_ARRAYS_ROW);
       ++d_numProp;
       return;
     }

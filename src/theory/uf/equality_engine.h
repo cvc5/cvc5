@@ -521,7 +521,7 @@ private:
   /**
    * Adds an equality of terms t1 and t2 to the database.
    */
-  void assertEqualityInternal(TNode t1, TNode t2, TNode reason);
+  void assertEqualityInternal(TNode t1, TNode t2, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds a trigger equality to the database with the trigger node and polarity for notification.
@@ -751,7 +751,7 @@ public:
    *                 asserting the negated predicate
    * @param reason the reason to keep for building explanations
    */
-  void assertPredicate(TNode p, bool polarity, TNode reason);
+  void assertPredicate(TNode p, bool polarity, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds predicate p and q and makes them equal.
@@ -766,7 +766,7 @@ public:
    *                 asserting the negated equality
    * @param reason the reason to keep for building explanations
    */
-  void assertEquality(TNode eq, bool polarity, TNode reason);
+  void assertEquality(TNode eq, bool polarity, TNode reason, MergeReasonType pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Returns the current representative of the term t.

@@ -3,7 +3,7 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Francois Bobot, Morgan Deters
+ ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Francois Bobot, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2013  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
@@ -364,9 +364,9 @@ const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const
   return d_equalityNodes[nodeId];
 }
 
-void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason) {
+void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, MergeReasonType pid) {
 
-  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << ")" << std::endl;
+  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2 << "), pid = " << pid << std::endl;
 
   if (d_done) {
     return;
@@ -379,13 +379,13 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason) {
   // Add to the queue and propagate
   EqualityNodeId t1Id = getNodeId(t1);
   EqualityNodeId t2Id = getNodeId(t2);
-  enqueue(MergeCandidate(t1Id, t2Id, MERGED_THROUGH_EQUALITY, reason));
+  enqueue(MergeCandidate(t1Id, t2Id, pid, reason));
 }
 
-void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason) {
+void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, MergeReasonType pid) {
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL, "Use assertEquality instead");
-  assertEqualityInternal(t, polarity ? d_true : d_false, reason);
+  assertEqualityInternal(t, polarity ? d_true : d_false, reason, pid);
   propagate();
 }
 
@@ -395,7 +395,7 @@ void EqualityEngine::mergePredicates(TNode p, TNode q, TNode reason) {
   propagate();
 }
 
-void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
+void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, MergeReasonType pid) {
   Debug("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity) {
     // If two terms are already equal, don't assert anything
@@ -403,7 +403,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
       return;
     }
     // Add equality between terms
-    assertEqualityInternal(eq[0], eq[1], reason);
+    assertEqualityInternal(eq[0], eq[1], reason, pid);
     propagate();
   } else {
     // If two terms are already dis-equal, don't assert anything
@@ -418,7 +418,7 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason) {
 
     Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
 
-    assertEqualityInternal(eq, d_false, reason);
+    assertEqualityInternal(eq, d_false, reason, pid);
     propagate();
 
     if (d_done) {
@@ -1028,14 +1028,6 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
               Debug("equality") << pop;
               break;
             }
-            case MERGED_THROUGH_EQUALITY:
-              // Construct the equality
-              Debug("equality") << d_name << "::eq::getExplanation(): adding: " << d_equalityEdges[currentEdge].getReason() << std::endl;
-              if( eqpc ){
-                eqpc->d_node = d_equalityEdges[currentEdge].getReason();
-              }
-              equalities.push_back(d_equalityEdges[currentEdge].getReason());
-              break;
             case MERGED_THROUGH_REFLEXIVITY: {
               // x1 == x1
               Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
@@ -1080,8 +1072,21 @@ void EqualityEngine::getExplanation(EqualityNodeId t1Id, EqualityNodeId t2Id, st
 
               break;
             }
-            default:
-              Unreachable();
+            default: {
+              // Construct the equality
+              Debug("equality") << d_name << "::eq::getExplanation(): adding: " << d_equalityEdges[currentEdge].getReason() << std::endl;
+              if( eqpc ){
+                if( reasonType==MERGED_THROUGH_EQUALITY ){
+                  eqpc->d_node = d_equalityEdges[currentEdge].getReason();
+                }else{
+                  //theory-specific proof rule : TODO
+                  eqpc->d_id = reasonType;
+                  //eqpc->d_node = d_equalityEdges[currentEdge].getNodeId();
+                }
+              }
+              equalities.push_back(d_equalityEdges[currentEdge].getReason());
+              break;
+            }
             }
 
             // Go to the previous
@@ -2054,7 +2059,7 @@ void EqProof::debug_print( const char * c, unsigned tb ){
     }
     for( unsigned i=0; i<d_children.size(); i++ ){
       if( i>0 || !d_node.isNull() ) Debug( c ) << ",";
-      std::cout << std::endl;
+      Debug( c ) << std::endl;
       d_children[i]->debug_print( c, tb+1 );
     }
   }

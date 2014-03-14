@@ -70,6 +70,10 @@ enum MergeReasonType {
 
   /** (for proofs only) Equality was merged due to transitivity */
   MERGED_THROUGH_TRANS,
+
+  /** Theory specific proof rules */
+  MERGED_ARRAYS_ROW,
+  MERGED_ARRAYS_ROW1,
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -91,7 +95,8 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
     out << "transitivity";
     break;
   default:
-    Unreachable();
+    out << "[theory]";
+    break;
   }
   return out;
 }
