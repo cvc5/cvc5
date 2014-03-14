@@ -708,6 +708,16 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
   | DECIMAL_LITERAL
     { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+  | HEX_LITERAL
+    { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
+      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+      sexpr = Integer(hexString, 16);
+    }
+  | BINARY_LITERAL
+    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
+      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
+      sexpr = Integer(binString, 2);
+    }
   | str[s,false]
     { sexpr = SExpr(s); }
 //  | LPAREN_TOK STRCST_TOK
