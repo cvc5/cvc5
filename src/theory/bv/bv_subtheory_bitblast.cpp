@@ -262,8 +262,7 @@ Node BitblastSolver::getModelValueRec(TNode node)
 void BitblastSolver::setConflict(TNode conflict) {
   Node final_conflict = conflict;
   if (options::bitvectorQuickXplain() &&
-      conflict.getKind() == kind::AND &&
-      conflict.getNumChildren() > 4) {
+      conflict.getKind() == kind::AND) {
     // std::cout << "Original conflict " << conflict.getNumChildren() << "\n"; 
     final_conflict = d_quickXplain->minimizeConflict(conflict);
     //std::cout << "Minimized conflict " << final_conflict.getNumChildren() << "\n"; 

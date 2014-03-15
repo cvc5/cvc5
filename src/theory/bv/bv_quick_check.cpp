@@ -271,25 +271,26 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
 
 
 bool QuickXPlain::useHeuristic() {
-  d_statistics.d_finalPeriod.setData(d_period);
-  // try to minimize conflict periodically 
-  if (d_numConflicts % d_period == 0)
-    return true;
+  return true; 
+  // d_statistics.d_finalPeriod.setData(d_period);
+  // // try to minimize conflict periodically 
+  // if (d_numConflicts % d_period == 0)
+  //   return true;
 
-  if (d_numCalled == 0) {
-    return true;
-  }
+  // if (d_numCalled == 0) {
+  //   return true;
+  // }
   
-  if (d_minRatioSum / d_numCalled >= d_thresh &&
-      d_numCalled <= 20 ) {
-    return false;
-  }
+  // if (d_minRatioSum / d_numCalled >= d_thresh &&
+  //     d_numCalled <= 20 ) {
+  //   return false;
+  // }
 
-  if (d_minRatioSum / d_numCalled >= d_hardThresh) {
-    return false;
-  }
+  // if (d_minRatioSum / d_numCalled >= d_hardThresh) {
+  //   return false;
+  // }
 
-  return true;
+  // return true;
 }
 
 Node QuickXPlain::minimizeConflict(TNode confl) {
@@ -315,17 +316,17 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   d_minRatioSum+= minimization_ratio;
   
 
-  if (minimization_ratio >= d_hardThresh) {
-    d_period = d_period * 5; 
-  }
+  // if (minimization_ratio >= d_hardThresh) {
+  //   d_period = d_period * 5; 
+  // }
 
-  if (minimization_ratio <= d_thresh && d_period >= 40) {
-    d_period = d_period *0.5; 
-  }
+  // if (minimization_ratio <= d_thresh && d_period >= 40) {
+  //   d_period = d_period *0.5; 
+  // }
 
-  if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
-    d_period = d_period * 2;
-  }
+  // if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
+  //   d_period = d_period * 2;
+  // }
   d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
   return utils::mkAnd(minimized); 
 }
