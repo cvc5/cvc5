@@ -9,9 +9,10 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Main driver for CVC4 translator executable
+ ** \brief CVC4 translator
  **
- ** Main driver for CVC4 translator executable.
+ ** The CVC4 translator executable.  This program translates from one of
+ ** CVC4's input languages to one of its output languages.
  **/
 
 #include <iostream>
