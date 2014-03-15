@@ -166,8 +166,9 @@ unsigned QuickXPlain::selectUnsatCore(unsigned low, unsigned high,
       nodes.erase(nodes.find(current));
     }
   }
+  // if all of the nodes in the conflict were on a lower level
   if (write == low) {
-    return high;
+    return low;
   }
   Assert (write != 0);
   unsigned new_high = write - 1;
@@ -200,6 +201,7 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
     bool ok = d_solver->addAssertion(conflict[i]);
     if (!ok) {
       unsigned top = selectUnsatCore(new_low, i, conflict);
+      d_solver->pop(); 
       minimizeConflictInternal(new_low, top, conflict, new_conflict);
       return;
     }
@@ -250,14 +252,18 @@ void QuickXPlain::minimizeConflictInternal(unsigned low, unsigned high,
     return;
   }
 
-  // conflict needs literals in both halves
+  // conflict (probably) contains literals in both halves
   // keep bottom half in context (no pop)
   minimizeConflictInternal(new_low, high, conflict, new_conflict);
   d_solver->pop();
   d_solver->push();
   for (unsigned i = 0; i < new_conflict.size(); ++i) {
     bool ok = d_solver->addAssertion(new_conflict[i]);
-    Assert (ok);
+    if (!ok) {
+      ++(d_statistics.d_numUnknownWasUnsat);
+      d_solver->pop(); 
+      return; 
+    }
   }
   minimizeConflictInternal(low, new_high, conflict, new_conflict);
   d_solver->pop();
@@ -328,6 +334,7 @@ QuickXPlain::Statistics::Statistics(const std::string& name)
   : d_xplainTime("theory::bv::"+name+"::QuickXplain::Time")
   , d_numSolved("theory::bv::"+name+"::QuickXplain::NumSolved", 0)
   , d_numUnknown("theory::bv::"+name+"::QuickXplain::NumUnknown", 0)
+  , d_numUnknownWasUnsat("theory::bv::"+name+"::QuickXplain::NumUnknownWasUnsat", 0)
   , d_numConflictsMinimized("theory::bv::"+name+"::QuickXplain::NumConflictsMinimized", 0)
   , d_finalPeriod("theory::bv::"+name+"::QuickXplain::FinalPeriod", 0)
   , d_avgMinimizationRatio("theory::bv::"+name+"::QuickXplain::AvgMinRatio")
@@ -335,6 +342,7 @@ QuickXPlain::Statistics::Statistics(const std::string& name)
   StatisticsRegistry::registerStat(&d_xplainTime);
   StatisticsRegistry::registerStat(&d_numSolved);
   StatisticsRegistry::registerStat(&d_numUnknown);
+  StatisticsRegistry::registerStat(&d_numUnknownWasUnsat);
   StatisticsRegistry::registerStat(&d_numConflictsMinimized);
   StatisticsRegistry::registerStat(&d_finalPeriod);
   StatisticsRegistry::registerStat(&d_avgMinimizationRatio);  
@@ -344,6 +352,7 @@ QuickXPlain::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_xplainTime);
   StatisticsRegistry::unregisterStat(&d_numSolved);
   StatisticsRegistry::unregisterStat(&d_numUnknown);
+  StatisticsRegistry::unregisterStat(&d_numUnknownWasUnsat);
   StatisticsRegistry::unregisterStat(&d_numConflictsMinimized);
   StatisticsRegistry::unregisterStat(&d_finalPeriod);
   StatisticsRegistry::unregisterStat(&d_avgMinimizationRatio);  

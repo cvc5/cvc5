@@ -227,8 +227,7 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
 
   d_assertedAtoms.push_back(markerLit);
 
-  Assert(ret != prop::SAT_VALUE_UNKNOWN);
-  return ret == prop::SAT_VALUE_TRUE;
+  return ret == prop::SAT_VALUE_TRUE || ret == prop::SAT_VALUE_UNKNOWN;
 }
 
 /**

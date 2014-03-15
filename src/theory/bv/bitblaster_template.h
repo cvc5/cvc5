@@ -142,6 +142,15 @@ public:
   bool hasBBAtom(TNode atom) const; 
   TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="");
   ~TLazyBitblaster();
+  /** 
+   * Pushes the assumption literal associated with node to the SAT
+   * solver assumption queue. 
+   * 
+   * @param node assumption
+   * @param propagate run bcp or not
+   * 
+   * @return false if a conflict detected
+   */
   bool assertToSat(TNode node, bool propagate = true);
   bool propagate();
   bool solve();

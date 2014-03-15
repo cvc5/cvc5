@@ -103,6 +103,7 @@ class QuickXPlain {
     TimerStat d_xplainTime;
     IntStat d_numSolved;
     IntStat d_numUnknown;
+    IntStat d_numUnknownWasUnsat;
     IntStat d_numConflictsMinimized;
     IntStat d_finalPeriod;
     AverageStat d_avgMinimizationRatio;
@@ -152,7 +153,7 @@ class QuickXPlain {
 
   bool useHeuristic();
 public:
-  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 500);
+  QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budged = 10000);
   ~QuickXPlain();
   Node minimizeConflict(TNode conflict); 
 };
