@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --rewrite-divk --tlimit 1000
 ; EXPECT: unknown
-(set-logic LIA)
+(set-logic AUFLIA)
 (declare-fun f (Int) Int)
 
 

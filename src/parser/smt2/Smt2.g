@@ -253,6 +253,13 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* sort declaration */
     DECLARE_SORT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS)) {
+        PARSER_STATE->parseError(std::string("Free sort symbols not allowed in ") + PARSER_STATE->getLogic().getLogicString());
+      }
+    }
     symbol[name,CHECK_UNDECLARED,SYM_SORT]
     { PARSER_STATE->checkUserSymbol(name); }
     n=INTEGER_LITERAL
@@ -295,6 +302,9 @@ command returns [CVC4::Command* cmd = NULL]
     sortSymbol[t,CHECK_DECLARED]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
       if( sorts.size() > 0 ) {
+        if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+          PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
+        }
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       Expr func = PARSER_STATE->mkVar(name, t);
@@ -488,6 +498,13 @@ extendedCommand[CVC4::Command*& cmd]
       $cmd = new DeclareFunctionCommand(name, c, t); }
 
   | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) &&
+         !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS)) {
+        PARSER_STATE->parseError(std::string("Free sort symbols not allowed in ") + PARSER_STATE->getLogic().getLogicString());
+      }
+    }
     { $cmd = new CommandSequence(); }
     LPAREN_TOK
     ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
@@ -506,6 +523,9 @@ extendedCommand[CVC4::Command*& cmd]
       nonemptySortList[sorts] RPAREN_TOK
       { Type t;
         if(sorts.size() > 1) {
+          if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+            PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
+          }
           t = EXPR_MANAGER->mkFunctionType(sorts);
         } else {
           t = sorts[0];
@@ -524,6 +544,9 @@ extendedCommand[CVC4::Command*& cmd]
       sortList[sorts] RPAREN_TOK
       { Type t = EXPR_MANAGER->booleanType();
         if(sorts.size() > 0) {
+          if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
+            PARSER_STATE->parseError(std::string("Predicates (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
+          }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
         Expr func = PARSER_STATE->mkVar(name, t);

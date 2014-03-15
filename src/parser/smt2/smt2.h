@@ -40,6 +40,7 @@ public:
     THEORY_ARRAYS,
     THEORY_BITVECTORS,
     THEORY_CORE,
+    THEORY_DATATYPES,
     THEORY_INTS,
     THEORY_REALS,
     THEORY_REALS_INTS,
@@ -82,6 +83,11 @@ public:
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
   void setLogic(const std::string& name);
+
+  /**
+   * Get the logic.
+   */
+  const LogicInfo& getLogic() const { return d_logic; }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 

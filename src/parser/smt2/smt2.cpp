@@ -154,6 +154,12 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::SET_SINGLETON, "setenum");
     break;
 
+  case THEORY_DATATYPES:
+    Parser::addOperator(kind::APPLY_CONSTRUCTOR);
+    Parser::addOperator(kind::APPLY_TESTER);
+    Parser::addOperator(kind::APPLY_SELECTOR);
+    break;
+
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
     addStringOperators();
@@ -194,6 +200,8 @@ bool Smt2::isTheoryEnabled(Theory theory) const {
     return d_logic.isTheoryEnabled(theory::THEORY_BV);
   case THEORY_CORE:
     return true;
+  case THEORY_DATATYPES:
+    return d_logic.isTheoryEnabled(theory::THEORY_DATATYPES);
   case THEORY_INTS:
     return d_logic.isTheoryEnabled(theory::THEORY_ARITH) &&
       d_logic.areIntegersUsed() && ( !d_logic.areRealsUsed() );
@@ -251,6 +259,10 @@ void Smt2::setLogic(const std::string& name) {
 
   if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
     addTheory(THEORY_BITVECTORS);
+  }
+
+  if(d_logic.isTheoryEnabled(theory::THEORY_DATATYPES)) {
+    addTheory(THEORY_DATATYPES);
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_SETS)) {
