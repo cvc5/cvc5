@@ -3,5 +3,5 @@
 (set-info :status sat)
 (declare-fun x () (Set Int))
 (declare-fun y () (Set Int))
-(assert (= x y))
+(assert (not (= x y)))
 (check-sat)

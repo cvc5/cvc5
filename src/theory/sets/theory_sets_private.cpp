@@ -54,6 +54,19 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
+    if (!assertion.isPreregistered) {
+      if (atom.getKind() == kind::EQUAL) {
+        if (!d_equalityEngine.hasTerm(atom[0])) {
+          Assert(atom[0].isConst());
+          d_equalityEngine.addTerm(atom[0]);
+        }
+        if (!d_equalityEngine.hasTerm(atom[1])) {
+          Assert(atom[1].isConst());
+          d_equalityEngine.addTerm(atom[1]);
+        }
+      }
+    }
+
     // Solve each
     switch(atom.getKind()) {
     case kind::EQUAL:
@@ -709,6 +722,11 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPropagate::propagate(TNode) */
 
+
+void TheorySetsPrivate::addSharedTerm(TNode n) {
+  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
+}
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {

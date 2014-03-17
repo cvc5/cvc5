@@ -46,6 +46,8 @@ public:
 
   ~TheorySets();
 
+  void addSharedTerm(TNode);
+
   void check(Effort);
 
   void collectModelInfo(TheoryModel*, bool fullModel);
