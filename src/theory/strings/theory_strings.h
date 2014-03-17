@@ -157,6 +157,8 @@ private:
 	// loop ant
 	NodeSet d_loop_antec;
 	NodeSet d_length_intro_vars;
+	// preReg cache
+	NodeSet d_prereg_cached;
 
 	/////////////////////////////////////////////////////////////////////////////
 	// MODEL GENERATION
@@ -194,8 +196,8 @@ private:
 	std::map< Node, EqcInfo* > d_eqc_info;
 	EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
 	//maintain which concat terms have the length lemma instantiated
-	NodeSet d_length_inst;
-	NodeBoolMap d_length_nodes;
+	NodeSet d_length_nodes;
+	NodeNodeMap d_length_inst;
 private:
 	void mergeCstVec(std::vector< Node > &vec_strings);
     bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
