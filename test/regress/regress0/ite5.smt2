@@ -1,0 +1,8 @@
+(set-logic QF_AUFBV )
+(set-info :status sat)
+(declare-fun arr0 () (Array (_ BitVec 32) (_ BitVec 8) ) )
+(declare-fun arr1 () (Array (_ BitVec 32) (_ BitVec 8) ) )
+(declare-fun arr2 () (Array (_ BitVec 32) (_ BitVec 8) ) )
+(assert (bvult (ite (bvult (_ bv0 1) ((_ extract 0 0) (select arr1 (_ bv0 32)))) (concat (select arr0 (_ bv7 32)) (select arr0 (_ bv6 32)) (select arr0 (_ bv5 32)) (select arr0 (_ bv4 32)) (select arr0 (_ bv3 32)) (select arr0 (_ bv2 32)) (select arr0 (_ bv1 32)) (select arr0 (_ bv0 32))) (concat (_ bv0 57) ((_ extract 7 1) (select arr2 (_ bv0 32))))) (_ bv1 64) ))
+(check-sat)
+(exit)

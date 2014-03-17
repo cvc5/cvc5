@@ -51,6 +51,7 @@ SMT2_TESTS = \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
+	ite5.smt2 \
 	simple-lra.smt2 \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
