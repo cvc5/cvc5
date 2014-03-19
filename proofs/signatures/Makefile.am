@@ -34,4 +34,5 @@ EXTRA_DIST = \
 	example.plf \
 	example-arrays.plf \
 	example-quant.plf \
+	ex-mem.plf \
 	th_quant.plf
