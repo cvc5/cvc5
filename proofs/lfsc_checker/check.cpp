@@ -101,7 +101,7 @@ void eat_rparen() {
 }
 
 void eat_excess(int prev) {
-  while(open_parens > prev) 
+  while(open_parens > prev)
     eat_rparen();
 }
 
@@ -110,8 +110,8 @@ void eat_excess(int prev) {
 1. expected=0, create is false: check() sets computed to be the classifier of
    the checked term.
 
-2. expected=0, create is true: check() returns 
-   the checked expression and sets computed to be its classifier. 
+2. expected=0, create is true: check() returns
+   the checked expression and sets computed to be its classifier.
 
 3. expected is non-null, create is false: check returns NULL.
 
@@ -119,14 +119,14 @@ void eat_excess(int prev) {
    was checked.
 
 We consume the reference for expected, to enable tail calls in the
-application case. 
+application case.
 
 If is_hole is NULL, then the expression parsed may not be a hole.
 Otherwise, it may be, and we will set *is_hole to true if it is
 (but leave *is_hole alone if it is not).
 
 */
-				  
+
 bool allow_run = false;
 int app_rec_level = 0;
 
@@ -143,7 +143,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 
     open_parens++;
 
-    char c = non_ws(); 
+    char c = non_ws();
     switch (c) {
     case EOF:
       report_error("Unexpected end of file.");
@@ -190,7 +190,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 		       +string("is neither \"type\" nor \"kind\".\n")
 		       +string("1. the expected classifier: ")
 		       +expected->toString());
-   if (create){ 
+   if (create){
 	  CExpr* ret = new CExpr(PI, sym, domain, range);
       ret->calc_free_in();
       return ret;
@@ -198,7 +198,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 	return 0;
       }
       else {
-         if (create){ 
+         if (create){
 	         CExpr* ret = new CExpr(PI, sym, domain, range);
             ret->calc_free_in();
             return ret;
@@ -235,7 +235,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
       symbols[id] = sym;
       symbol_types[id] = expected_domain;
 #else
-      pair<Expr *, Expr *> prevpr = 
+      pair<Expr *, Expr *> prevpr =
 	      symbols->insert(id.c_str(), pair<Expr *, Expr *>(sym,expected_domain));
       Expr *prev = prevpr.first;
       Expr *prevtp = prevpr.second;
@@ -244,7 +244,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 
       //will clean up local sym name eventually
       local_sym_names.push_back( std::pair< std::string, std::pair<Expr *, Expr *> >( id, prevpr ) );
-      if (prev) 
+      if (prev)
 	      prev->dec();
       if (prevtp)
 	      prevtp->dec();
@@ -288,21 +288,21 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 		     +string(" a kind, not a type.\n")
 		     +string("1. The expected classifier: ")
 		     +expected->toString());
-      
+
       /* we need to map the pivar to the new sym, because in our
 	 higher-order matching we may have (_ x) to unify with t.
 	 The x must be something from an expected type, since only these
 	 can have holes.  We want to map expected vars x to computed vars y,
 	 so that we can set the hole to be \ y t, where t contains ys but
          not xs. */
-      
+
 #ifdef USE_HASH_MAPS
       Expr *prev = symbols[id];
       Expr *prevtp = symbol_types[id];
       symbols[id] = sym;
       symbol_types[id] = expected_domain;
 #else
-      pair<Expr *, Expr *> prevpr = 
+      pair<Expr *, Expr *> prevpr =
 	      symbols->insert(id.c_str(), pair<Expr *, Expr *>(sym,expected_domain));
       Expr *prev = prevpr.first;
       Expr *prevtp = prevpr.second;
@@ -319,7 +319,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
         local_sym_names.push_back( std::pair< std::string, std::pair<Expr *, Expr *> >( id, prevpr ) );
 	      if (prev_pivar_val)
 	        prev_pivar_val->dec();
-	      if (prev) 
+	      if (prev)
 	        prev->dec();
 	      if (prevtp)
 	        prevtp->dec();
@@ -351,7 +351,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 	      orig_expected->dec();
 
 	      sym->dec(); // the pivar->val reference
-	      if (create) 
+	      if (create)
 	        return new CExpr(LAM, sym, range);
 	      sym->dec(); // the symbol table reference, otherwise in the new LAM
 	      return 0;
@@ -364,24 +364,24 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 
       Expr *code = read_code();
       //string errstr = (string("The first argument in a run expression must be")
-		    //   +string(" a call to a program.\n1. the argument: ") 
+		    //   +string(" a call to a program.\n1. the argument: ")
 		    //   +code->toString());
 
       /* determine expected type of the result term, and make sure
 	 the code term is an allowed one. */
 #if 0
       Expr *progret;
-      if (code->isArithTerm()) 
+      if (code->isArithTerm())
 	      progret = statMpz;
       else {
 	      if (code->getop() != APP)
 	        report_error(errstr);
 
 	      CExpr *call = (CExpr *)code;
-      	
+
 	      // prog is not known to be a SymExpr yet
 	      CExpr *prog = (CExpr *)call->get_head();
-      	
+
 	      if (prog->getop() != PROG)
 	        report_error(errstr);
 
@@ -389,16 +389,16 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
       }
 #else
       Expr *progret = NULL;
-      if (code->isArithTerm()) 
+      if (code->isArithTerm())
 	      progret = statMpz;
       else {
 	      if (code->getop() == APP)
         {
 	        CExpr *call = (CExpr *)code;
-        	
+
 	        // prog is not known to be a SymExpr yet
 	        CExpr *prog = (CExpr *)call->get_head();
-        	
+
 	        if (prog->getop() == PROG)
 	          progret = prog->kids[0]->get_body();
         }
@@ -433,7 +433,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 
       if (!expected)
 	      tp->inc();
- 
+
       Expr *trm = check(create, tp, NULL, NULL, return_pos);
       eat_excess(prev);
       eat_rparen();
@@ -478,14 +478,14 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
       symbols[id] = sym;
       symbol_types[id] = tp_of_trm;
 #else
-      pair<Expr *, Expr *> prevpr = 
+      pair<Expr *, Expr *> prevpr =
 	symbols->insert(id.c_str(), pair<Expr *, Expr *>(sym,tp_of_trm));
       Expr *prev = prevpr.first;
       Expr *prevtp = prevpr.second;
 #endif
 
       if (tail_calls && big_check && return_pos && !create) {
-	      if (prev) 
+	      if (prev)
 	        prev->dec();
 	      if (prevtp)
 	        prevtp->dec();
@@ -506,7 +506,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 #endif
 	      tp_of_trm->dec(); // because removed from the symbol table now
 
-	      sym->dec(); 
+	      sym->dec();
 	      return body;
       }
     }
@@ -545,7 +545,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
           report_error("Negative sign with expr that is not an int. literal.");
         }
       }
-      else 
+      else
 	      return 0;
     }
     default: { // the application case
@@ -562,7 +562,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 	      // we must clone
 	      Expr *orig_headtp = headtp;
 	      headtp = (CExpr *)headtp->clone();
-	      orig_headtp->dec(); 
+	      orig_headtp->dec();
       }
       else
 	      headtp->setcloned();
@@ -578,11 +578,11 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
       while ((c = non_ws()) != ')') {
 	our_ungetc(c);
 	if (headtp->getop() != PI)
-	  report_error(string("The type of an applied term is not ") 
+	  report_error(string("The type of an applied term is not ")
 		       + string("a pi-type.\n")
 		       + string("\n1. the type of the term: ")
 		       + headtp->toString()
-		       + (headtrm ? (string("\n2. the term: ") 
+		       + (headtrm ? (string("\n2. the term: ")
 				     + headtrm->toString())
 			  : string("")));
 	SymExpr *headtp_var = (SymExpr *)headtp->kids[0];
@@ -627,7 +627,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 			          + expected->toString()
 			          + string("\n2. The computed type: ")
 			          + headtp_range->toString()
-			          + (headtrm ? (string("\n3. the application: ") 
+			          + (headtrm ? (string("\n3. the application: ")
 					        + headtrm->toString())
 				    : string("")));
 	      expected->dec();
@@ -670,7 +670,11 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 #ifndef USE_FLAT_APP
 	      headtrm = new CExpr(APP, headtrm, arg);
 #else
+        Expr* orig_headtrm = headtrm;
         headtrm = Expr::make_app( headtrm, arg );
+        if( orig_headtrm->getclass()==CEXPR ){
+          orig_headtrm->dec();
+        }
 #endif
 	      consumed_arg = true;
 	    }
@@ -739,7 +743,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 		            + expected->toString()
 		            + string("\n2. The computed type: ")
 		            + headtp->toString()
-		            + (headtrm ? (string("\n3. the application: ") 
+		            + (headtrm ? (string("\n3. the application: ")
 				          + headtrm->toString())
 			        : string("")));
 
@@ -755,7 +759,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 	        ret = headtrm;
       }
 
-      /* do this check here to give the defeq() call above a 
+      /* do this check here to give the defeq() call above a
 	 chance to fill in some holes */
       for (int i = 0, iend = holes.size(); i < iend; i++) {
         if (!holes[i]->val){
@@ -783,7 +787,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
     report_error("Unexpected end of file.");
     break;
 
-  case '_': 
+  case '_':
     if (!is_hole)
       report_error("A hole is being used in a disallowed position.");
     *is_hole = true;
@@ -803,7 +807,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
     our_ungetc(d);
     string v;
     char c;
-    while (isdigit(c = our_getc())) 
+    while (isdigit(c = our_getc()))
       v.push_back(c);
     bool parseMpq = false;
     string v2;
@@ -811,7 +815,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
     {
       parseMpq = true;
       v.push_back( c );
-      while(isdigit(c = our_getc())) 
+      while(isdigit(c = our_getc()))
         v.push_back(c);
     }
     our_ungetc(c);
@@ -916,7 +920,7 @@ Expr *check(bool create, Expr *expected, Expr **computed = NULL,
 #ifdef USE_HASH_MAPS
 void discard_old_symbol(const string &id) {
   Expr *tmp = symbols[id];
-  if (tmp) 
+  if (tmp)
     tmp->dec();
   tmp = symbol_types[id];
   if (tmp)
@@ -940,7 +944,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 
   char *f;
   if (strcmp(_filename,"stdin") == 0) {
-    curfile = stdin; 
+    curfile = stdin;
     f = strdup(_filename);
   }
   else {
@@ -967,7 +971,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
     else
       f = strdup(_filename);
     curfile = fopen(f,"r");
-    if (!curfile) 
+    if (!curfile)
       report_error(string("Could not open file \"")
 		   + string(f)
 		   + string("\" for reading.\n"));
@@ -985,15 +989,15 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
       switch ((d = non_ws())) {
       case 'd':
         char b;
-        if ((b = our_getc()) != 'e') 
+        if ((b = our_getc()) != 'e')
 	        report_error(string("Unexpected start of command."));
 
         switch ((b = our_getc())) {
           case 'f': {// expecting "define"
-	
+
 	          if (our_getc() != 'i' || our_getc() != 'n' || our_getc() != 'e')
 	            report_error(string("Unexpected start of command."));
-	
+
 	          string id(prefix_id());
 	          Expr *ttp;
 	          int prevo = open_parens;
@@ -1010,7 +1014,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	          symbols[id] = s;
 	          symbol_types[id] = ttp;
 #else
-	          pair<Expr *, Expr *> prev = 
+	          pair<Expr *, Expr *> prev =
 	            symbols->insert(id.c_str(), pair<Expr *, Expr *>(s,ttp));
 	          if (prev.first)
 	            prev.first->dec();
@@ -1020,7 +1024,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	        break;
           }
           case 'c': {// expecting "declare"
-	          if (our_getc() != 'l' || our_getc() != 'a' || our_getc() != 'r' 
+	          if (our_getc() != 'l' || our_getc() != 'a' || our_getc() != 'r'
 	              || our_getc() != 'e')
 	            report_error(string("Unexpected start of command."));
 
@@ -1045,7 +1049,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	          symbols[id] = s;
 	          symbol_types[id] = t;
 #else
-	          pair<Expr *, Expr *> prev = 
+	          pair<Expr *, Expr *> prev =
 	            symbols->insert(id.c_str(), pair<Expr *, Expr *>(s,t));
             if( lw )
               lw->add_symbol( s, t );
@@ -1056,7 +1060,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 #endif
 	          break;
             }
-            default: 
+            default:
 	            report_error(string("Unexpected start of command."));
             } // switch((b = our_getc())) following "de"
          break;
@@ -1105,7 +1109,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
       if (our_getc() != 'p' || our_getc() != 'a' || our_getc() != 'q'
 	        || our_getc() != 'u' || our_getc() != 'e')
 	      report_error(string("Unexpected start of command."));
-	
+
       string id(prefix_id());
       Expr *ttp;
       int prevo = open_parens;
@@ -1121,7 +1125,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	    symbols[id] = s;
 	    symbol_types[id] = ttp;
 #else
-	    pair<Expr *, Expr *> prev = 
+	    pair<Expr *, Expr *> prev =
 	      symbols->insert(id.c_str(), pair<Expr *, Expr *>(s,ttp));
 	    if (prev.first)
 	      prev.first->dec();
@@ -1150,7 +1154,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
         break;
       }
       case 'p': { // program case
-        if (our_getc() != 'r' || our_getc() != 'o' || our_getc() != 'g' 
+        if (our_getc() != 'r' || our_getc() != 'o' || our_getc() != 'g'
 	         || our_getc() != 'r' || our_getc() != 'a' || our_getc() != 'm')
 	        report_error(string("Unexpected start of command."));
 
@@ -1209,10 +1213,10 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
 	        symbols->insert(varstr.c_str(), pair<Expr *, Expr *>(var,tp));
 #endif
         }
-      
+
         if (!vars.size())
 	        report_error("A program lacks input variables.");
-   
+
         statType->inc();
         int prev = open_parens;
         Expr *progtp = check(true,statType,&tmp,0, true);
@@ -1221,7 +1225,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
         if (!progtp->isDatatype())
 	        report_error(string("Return type for a program is not a")
 		            +string(" datatype.\n1. the type: ")+progtp->toString());
-        
+
         Expr *progcode = read_code();
 
         for (int i = vars.size() - 1, iend = 0; i >= iend; i--) {
@@ -1231,10 +1235,10 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
         }
 
         // just put the type here for type checking.  Make sure progtp is kid 0.
-        prog->val = new CExpr(PROG, progtp); 
-        
+        prog->val = new CExpr(PROG, progtp);
+
         check_code(progcode);
-     
+
         progcode = new CExpr(PROG, progtp, new CExpr(PROGVARS, vars), progcode);
         //if compiling side condition code, give this code to the side condition code writer
         if( a.compile_scc ){
@@ -1242,7 +1246,7 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
             scw->add_scc( progstr, (CExpr*)progcode );
           }
         }
-	
+
 	// remove the variables from the symbol table.
         for (int i = 0, iend = vars.size(); i < iend; i++) {
 	        string &s = ((SymSExpr *)vars[i])->s;
@@ -1263,10 +1267,10 @@ void check_file(const char *_filename, args a, sccwriter* scw, libwriter* lw) {
         break;
       }
 
-      default: 
+      default:
 	      report_error(string("Unexpected start of command."));
       } // switch((d = non_ws())
-        
+
       eat_char(')');
     } // while
     else
@@ -1350,7 +1354,7 @@ void cleanup() {
   delete symbols;
 #endif
 
-  // clean up programs 
+  // clean up programs
 
   symmap2::iterator j, jend;
   for (j = progs.begin(), jend = progs.end(); j != jend; j++) {
@@ -1378,6 +1382,6 @@ void init() {
   symbols->insert("type", pair<Expr *, Expr *>(statType, statKind));
   statType->inc();
   symbols->insert("mpz", pair<Expr *, Expr *>(statMpz, statType));
-  symbols->insert("mpq", pair<Expr *, Expr *>(statMpq, statType)); 
+  symbols->insert("mpq", pair<Expr *, Expr *>(statMpq, statType));
 #endif
 }
