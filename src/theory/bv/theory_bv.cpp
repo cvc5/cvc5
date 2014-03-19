@@ -25,6 +25,7 @@
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
 #include "theory/bv/bv_subtheory_bitblast.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -102,6 +103,69 @@ TheoryBV::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_weightComputationTimer);
 }
 
+Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
+  NodeManager* nm = NodeManager::currentNM();
+  if (k == kind::BITVECTOR_UDIV) {
+    if (d_BVDivByZero.find(width) == d_BVDivByZero.end()) {
+      // lazily create the function symbols
+      ostringstream os;
+      os << "BVUDivByZero_" << width;
+      Node divByZero = nm->mkSkolem(os.str(),
+                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
+                                    "partial bvudiv", NodeManager::SKOLEM_EXACT_NAME);
+      d_BVDivByZero[width] = divByZero;
+    }
+    return d_BVDivByZero[width];
+  }
+  else if (k == kind::BITVECTOR_UREM) {
+    if (d_BVRemByZero.find(width) == d_BVRemByZero.end()) {
+      ostringstream os;
+      os << "BVURemByZero_" << width;
+      Node divByZero = nm->mkSkolem(os.str(),
+                                    nm->mkFunctionType(nm->mkBitVectorType(width), nm->mkBitVectorType(width)),
+                                    "partial bvurem", NodeManager::SKOLEM_EXACT_NAME);
+      d_BVRemByZero[width] = divByZero;
+    }
+    return d_BVRemByZero[width];
+  }
+
+  Unreachable();
+}
+
+
+Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
+  Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
+
+  switch (node.getKind()) {
+  case kind::BITVECTOR_SDIV:
+  case kind::BITVECTOR_SREM:
+  case kind::BITVECTOR_SMOD:
+    return TheoryBVRewriter::eliminateBVSDiv(node);
+    break;
+
+  case kind::BITVECTOR_UDIV:
+  case kind::BITVECTOR_UREM: {
+    NodeManager* nm = NodeManager::currentNM();
+    unsigned width = node.getType().getBitVectorSize();
+    Node divByZero = getBVDivByZero(node.getKind(), width);
+    TNode num = node[0], den = node[1];
+    Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
+    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
+    Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
+				     kind::BITVECTOR_UREM_TOTAL, num, den);
+    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+    logicRequest.widenLogic(THEORY_UF);
+    return node;
+  }
+    break;
+
+  default:
+    return node;
+    break;
+  }
+
+  Unreachable();
+}
 
 
 void TheoryBV::preRegisterTerm(TNode node) {

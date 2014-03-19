@@ -112,6 +112,18 @@ public:
 	};/* class TheoryStrings::NotifyClass */
 
 private:
+	/**
+	 * Function symbol used to implement uninterpreted undefined string
+	 * semantics.  Needed to deal with partial charat/substr function.
+	 */
+	Node d_ufSubstr;
+	
+	/**
+	 * Function symbol used to implement uninterpreted undefined string
+	 * semantics.  Needed to deal with partial str2int function.
+	 */
+	Node d_ufS2I;
+	
 	// Constants
     Node d_emptyString;
 	Node d_emptyRegexp;
@@ -241,6 +253,7 @@ private:
 
 public:
 	void preRegisterTerm(TNode n);
+	Node expandDefinition(LogicRequest &logicRequest, Node n);
 	void check(Effort e);
 
 	/** Conflict when merging two constants */
