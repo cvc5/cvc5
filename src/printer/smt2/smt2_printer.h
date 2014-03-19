@@ -45,6 +45,7 @@ public:
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();
   void toStream(std::ostream& out, const Result& r) const throw();
+  void toStream(std::ostream& out, const SExpr& sexpr) const throw();
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */

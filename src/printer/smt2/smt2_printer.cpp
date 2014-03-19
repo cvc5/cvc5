@@ -697,6 +697,25 @@ static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
 }
 
+void Smt2Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+  if(sexpr.isKeyword()) {
+    std::string s = sexpr.getValue();
+    if(s.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@%^&*_-+=<>.?/") == std::string::npos) {
+      // simple unquoted symbol
+      out << s;
+    } else {
+      // must quote the symbol, but it cannot contain | or \, we turn those into _
+      size_t p;
+      while((p = s.find_first_of("\\|")) != std::string::npos) {
+        s = s.replace(p, 1, "_");
+      }
+      out << "|" << s << "|";
+    }
+  } else {
+    this->Printer::toStream(out, sexpr);
+  }
+}
+
 template <class T>
 static bool tryToStream(std::ostream& out, const CommandStatus* s) throw();
 
