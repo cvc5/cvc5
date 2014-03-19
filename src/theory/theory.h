@@ -498,7 +498,7 @@ public:
   }
 
   /**
-   * Pre-register a term.  Done one time for a Node, ever.
+   * Pre-register a term.  Done one time for a Node per SAT context level.
    */
   virtual void preRegisterTerm(TNode) { }
 
