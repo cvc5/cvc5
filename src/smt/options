@@ -5,9 +5,9 @@
 
 module SMT "smt/options.h" SMT layer
 
-common-option - --dump=MODE argument :handler CVC4::smt::dumpMode :handler-include "smt/options_handlers.h"
+common-option - dump --dump=MODE argument :handler CVC4::smt::dumpMode :handler-include "smt/options_handlers.h"
  dump preprocessed assertions, etc., see --dump=help
-common-option - --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
+common-option - dump-to --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
  all dumping goes to FILE (instead of stdout)
 
 expert-option forceLogic force-logic --force-logic=LOGIC LogicInfo :include "theory/logic_info.h" :handler CVC4::smt::stringToLogicInfo :handler-include "smt/options_handlers.h" :default '""'

@@ -42,7 +42,6 @@
 #include "smt/options.h"
 #include "theory/uf/options.h"
 #include "util/output.h"
-#include "util/dump.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
 
@@ -184,12 +183,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ChatChannel.setStream(CVC4::null_os);
     MessageChannel.setStream(CVC4::null_os);
     WarningChannel.setStream(CVC4::null_os);
-    DumpChannel.setStream(CVC4::null_os);
   }
 
   // important even for muzzled builds (to get result output right)
   *opts[options::out] << Expr::setlanguage(opts[options::outputLanguage]);
-  DumpChannel.getStream() << Expr::setlanguage(opts[options::outputLanguage]);
 
   // Create the expression manager using appropriate options
   ExprManager* exprMgr;
