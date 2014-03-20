@@ -159,7 +159,15 @@ private:
   void addToPending(Node n);
   bool isComplete();
   Node getLemma();
+
+  /** model generation and helper function */
+  typedef std::set<TNode> Elements;
+  typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
+  const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap);
+  Node elementsToShape(Elements elements, TypeNode setType) const;
+  void checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
 };/* class TheorySetsPrivate */
+
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */
