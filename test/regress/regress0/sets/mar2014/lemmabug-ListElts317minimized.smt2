@@ -17,7 +17,7 @@
 ;
 ; Resolution:
 ;   adding terms to d_pendingEverInserted was moved from addToPending()
-; to getLemma(). 
+; to getLemma().
 
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)

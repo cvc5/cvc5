@@ -378,7 +378,7 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 /******************** Model generation ********************/
 
 const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
-(TNode setterm, SettermElementsMap& settermElementsMap) {
+(TNode setterm, SettermElementsMap& settermElementsMap) const {
   SettermElementsMap::const_iterator it = settermElementsMap.find(setterm);
   bool alreadyCalculated = (it != settermElementsMap.end());
   if( !alreadyCalculated ) {
@@ -419,15 +419,6 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
 }
 
 
-void printSet(std::ostream& out, const std::set<TNode>& elements) {
-  out << "{ ";
-  std::copy(elements.begin(),
-            elements.end(),
-            std::ostream_iterator<TNode>(out, ", ")
-            );
-  out << " }";
-}
-
 
 void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap, TNode S) const {
 
@@ -437,13 +428,13 @@ void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
   Assert(S.getType().isSet());
 
   Elements emptySetOfElements;
-  const Elements& saved = 
+  const Elements& saved =
     d_equalityEngine.getRepresentative(S).getKind() == kind::EMPTYSET ?
     emptySetOfElements :
     settermElementsMap.find(d_equalityEngine.getRepresentative(S))->second;
-  Debug("sets-model") << "[sets-model] saved :  ";
-  printSet(Debug("sets-model"), saved);
-  Debug("sets-model") << std::endl;
+  Debug("sets-model") << "[sets-model] saved :  { ";
+  BOOST_FOREACH(TNode element, saved) { Debug("sets-model") << element << ", "; }
+  Debug("sets-model") << " }" << std::endl;
 
   if(S.getNumChildren() == 2) {
 
@@ -470,9 +461,9 @@ void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
       Unhandled();
     }
 
-    Debug("sets-model") << "[sets-model] cur   :  ";
-    printSet(Debug("sets-model"), cur);
-    Debug("sets-model") << std::endl;
+    Debug("sets-model") << "[sets-model] cur :  { ";
+    BOOST_FOREACH(TNode element, cur) { Debug("sets-model") << element << ", "; }
+    Debug("sets-model") << " }" << std::endl;
 
     if(saved != cur) {
       Debug("sets-model") << "[sets-model] *** ERRROR *** cur != saved "
@@ -880,7 +871,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 
 bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = " << equality 
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = " << equality
                    << " value = " << value << std::endl;
   if (value) {
     return d_theory.propagate(equality);
@@ -903,7 +894,7 @@ bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, b
 
 bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag 
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
                    << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value << std::endl;
   if(value) {
     d_theory.d_termInfoManager->mergeTerms(t1, t2);

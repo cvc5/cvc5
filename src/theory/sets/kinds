@@ -41,7 +41,6 @@ operator SUBSET 2 "subset"
 operator MEMBER 2 "set membership"
 
 operator SET_SINGLETON 1 "singleton set"
-operator FINITE_SET 1: "finite set"
 
 typerule UNION ::CVC4::theory::sets::SetUnionTypeRule
 typerule INTERSECTION ::CVC4::theory::sets::SetIntersectionTypeRule

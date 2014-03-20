@@ -277,9 +277,6 @@ class CVC4_PUBLIC SmtEngine {
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
    * not permitted to change after assertions and queries are made).
-   *
-   * FIXME: Above comment not true. Please don't call this more than
-   * once. (6/14/2012 -- K)
    */
   void finalOptionsAreSet();
 

@@ -56,24 +56,14 @@ void TheoryModel::reset(){
 }
 
 Node TheoryModel::getValue(TNode n) const {
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ) "
-                          << std::endl;
-
   //apply substitutions
   Node nn = d_substitutions.apply(n);
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ) post-sub:"
-                          << nn << std::endl;
-
   //get value in model
   nn = getModelValue(nn);
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ) getmodelvalue: "
-                          << nn << std::endl;
-
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
     nn = Rewriter::rewrite(nn);
   }
-
   Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ):  returning"
                           << nn << std::endl;
   return nn;
@@ -240,8 +230,6 @@ Node TheoryModel::getNewDomainValue( TypeNode tn ){
 
 /** add substitution */
 void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
-  Debug("model-builder") << "TheoryModel::addSubstitution("<< x << ", " << t
-                         << ", invalidateCache = " << invalidateCache << ")\n";
   if( !d_substitutions.hasSubstitution( x ) ){
     d_substitutions.addSubstitution( x, t, invalidateCache );
   } else {
