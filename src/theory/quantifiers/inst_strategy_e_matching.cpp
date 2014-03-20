@@ -389,6 +389,14 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
               }else{
                 Assert( index==(int)(childIndex.size())-1 );
                 unsigned nv = childIndex[index]+1;
+                if( options::cbqi() ){
+                  //skip inst constant nodes
+                  while( nv<maxs[index] && nv<=max_i &&
+                         r==1 && quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
+                    childIndex[index]++;
+                    nv = childIndex[index]+1;
+                  }
+                }
                 if( nv<maxs[index] && nv<=max_i ){
                   childIndex[index]++;
                   index++;
