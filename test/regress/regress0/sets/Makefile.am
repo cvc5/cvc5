@@ -53,6 +53,8 @@ TESTS =	\
 	jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2 \
 	sets-sample.smt2 \
 	eqtest.smt2 \
+	mar2014/lemmabug-ListElts317minimized.smt2 \
+	mar2014/sharing-preregister.smt2 \
 	emptyset.smt2 \
 	error2.smt2
 

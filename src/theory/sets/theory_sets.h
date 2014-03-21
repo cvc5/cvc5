@@ -46,15 +46,19 @@ public:
 
   ~TheorySets();
 
+  void addSharedTerm(TNode);
+
   void check(Effort);
 
-  void propagate(Effort);
+  void collectModelInfo(TheoryModel*, bool fullModel);
 
   Node explain(TNode);
 
   std::string identify() const { return "THEORY_SETS"; }
 
   void preRegisterTerm(TNode node);
+
+  void propagate(Effort);
 
 };/* class TheorySets */
 

@@ -34,8 +34,16 @@ TheorySets::~TheorySets() {
   delete d_internal;
 }
 
+void TheorySets::addSharedTerm(TNode n) {
+  d_internal->addSharedTerm(n);
+}
+
 void TheorySets::check(Effort e) {
   d_internal->check(e);
+}
+
+void TheorySets::collectModelInfo(TheoryModel* m, bool fullModel) {
+  d_internal->collectModelInfo(m, fullModel);
 }
 
 void TheorySets::propagate(Effort e) {

@@ -64,6 +64,8 @@ Node TheoryModel::getValue(TNode n) const {
     //normalize
     nn = Rewriter::rewrite(nn);
   }
+  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ):  returning"
+                          << nn << std::endl;
   return nn;
 }
 
@@ -779,7 +781,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           << "n: " << n << endl
           << "getValue(n): " << tm->getValue(n) << endl
           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep);
+        Assert(tm->getValue(*eqc_i) == rep, "run with -d check-model::rep-checking for details");
       }
     }
   }

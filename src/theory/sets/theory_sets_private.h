@@ -47,15 +47,17 @@ public:
 
   ~TheorySetsPrivate();
 
+  void addSharedTerm(TNode);
+
   void check(Theory::Effort);
 
-  void propagate(Theory::Effort);
+  void collectModelInfo(TheoryModel*, bool fullModel);
 
   Node explain(TNode);
 
-  std::string identify() const { return "THEORY_SETS_PRIVATE"; }
-
   void preRegisterTerm(TNode node);
+
+  void propagate(Theory::Effort) { /* we don't depend on this call */ }
 
 private:
   TheorySets& d_external;
@@ -78,10 +80,10 @@ private:
     bool eqNotifyTriggerPredicate(TNode predicate, bool value);
     bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
     void eqNotifyConstantTermMerge(TNode t1, TNode t2);
-    void eqNotifyNewClass(TNode t);
-    void eqNotifyPreMerge(TNode t1, TNode t2);
-    void eqNotifyPostMerge(TNode t1, TNode t2);
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+    void eqNotifyNewClass(TNode t) {}
+    void eqNotifyPreMerge(TNode t1, TNode t2) {}
+    void eqNotifyPostMerge(TNode t1, TNode t2) {}
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
   } d_notify;
 
   /** Equality engine */
@@ -157,7 +159,15 @@ private:
   void addToPending(Node n);
   bool isComplete();
   Node getLemma();
+
+  /** model generation and helper function */
+  typedef std::set<TNode> Elements;
+  typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
+  const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap) const;
+  Node elementsToShape(Elements elements, TypeNode setType) const;
+  void checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
 };/* class TheorySetsPrivate */
+
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

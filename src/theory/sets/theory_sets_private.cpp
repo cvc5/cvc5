@@ -14,12 +14,16 @@
  ** Sets theory implementation.
  **/
 
+#include <boost/foreach.hpp>
+
+#include "theory/theory_model.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 
 #include "theory/sets/options.h"
 #include "theory/sets/expr_patterns.h" // ONLY included here
 
+#include "util/emptyset.h"
 #include "util/result.h"
 
 using namespace std;
@@ -50,6 +54,19 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
+    if (!assertion.isPreregistered) {
+      if (atom.getKind() == kind::EQUAL) {
+        if (!d_equalityEngine.hasTerm(atom[0])) {
+          Assert(atom[0].isConst());
+          d_equalityEngine.addTerm(atom[0]);
+        }
+        if (!d_equalityEngine.hasTerm(atom[1])) {
+          Assert(atom[1].isConst());
+          d_equalityEngine.addTerm(atom[1]);
+        }
+      }
+    }
+
     // Solve each
     switch(atom.getKind()) {
     case kind::EQUAL:
@@ -70,13 +87,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     finishPropagation();
 
     Debug("sets") << "[sets]  in conflict = " << d_conflict << std::endl;
-
-    if(d_conflict && !d_equalityEngine.consistent()) return;
-    Assert(!d_conflict);
-    Assert(d_equalityEngine.consistent());
+    Assert( d_conflict ^ d_equalityEngine.consistent() );
+    if(d_conflict) return;
+    Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
-
-  Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
 
   if( (Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
@@ -356,7 +370,204 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 
   Node learnt_literal = polarity ? Node(atom) : NOT(atom);
   d_propagationQueue.push_back( make_pair(learnt_literal, reason) );
+}/*TheorySetsPrivate::learnLiteral(...)*/
+
+
+/******************** Model generation ********************/
+/******************** Model generation ********************/
+/******************** Model generation ********************/
+
+const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
+(TNode setterm, SettermElementsMap& settermElementsMap) const {
+  SettermElementsMap::const_iterator it = settermElementsMap.find(setterm);
+  bool alreadyCalculated = (it != settermElementsMap.end());
+  if( !alreadyCalculated ) {
+
+    Kind k = setterm.getKind();
+    unsigned numChildren = setterm.getNumChildren();
+    Elements cur;
+    if(numChildren == 2) {
+      const Elements& left = getElements(setterm[0], settermElementsMap);
+      const Elements& right = getElements(setterm[1], settermElementsMap);
+      switch(k) {
+      case kind::UNION:
+        if(left.size() >= right.size()) {
+          cur = left; cur.insert(right.begin(), right.end());
+        } else {
+          cur = right; cur.insert(left.begin(), left.end());
+        }
+        break;
+      case kind::INTERSECTION:
+        std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
+                              std::inserter(cur, cur.begin()) );
+        break;
+      case kind::SETMINUS:
+        std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
+                            std::inserter(cur, cur.begin()) );
+        break;
+      default:
+        Unhandled();
+      }
+    } else {
+      Assert(k == kind::VARIABLE || k == kind::APPLY_UF);
+      /* assign emptyset, which is default */
+    }
+
+    it = settermElementsMap.insert(SettermElementsMap::value_type(setterm, cur)).first;
+  }
+  return it->second;
 }
+
+
+
+void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap, TNode S) const {
+
+  Debug("sets-model") << "[sets-model] checkModel(..., " << S << "): "
+                      << std::endl;
+
+  Assert(S.getType().isSet());
+
+  Elements emptySetOfElements;
+  const Elements& saved =
+    d_equalityEngine.getRepresentative(S).getKind() == kind::EMPTYSET ?
+    emptySetOfElements :
+    settermElementsMap.find(d_equalityEngine.getRepresentative(S))->second;
+  Debug("sets-model") << "[sets-model] saved :  { ";
+  BOOST_FOREACH(TNode element, saved) { Debug("sets-model") << element << ", "; }
+  Debug("sets-model") << " }" << std::endl;
+
+  if(S.getNumChildren() == 2) {
+
+    Elements cur, left, right;
+    left = settermElementsMap.find(d_equalityEngine.getRepresentative(S[0]))->second;
+    right = settermElementsMap.find(d_equalityEngine.getRepresentative(S[1]))->second;
+    switch(S.getKind()) {
+    case kind::UNION:
+      if(left.size() >= right.size()) {
+        cur = left; cur.insert(right.begin(), right.end());
+      } else {
+        cur = right; cur.insert(left.begin(), left.end());
+      }
+      break;
+    case kind::INTERSECTION:
+      std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
+                            std::inserter(cur, cur.begin()) );
+      break;
+    case kind::SETMINUS:
+      std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
+                          std::inserter(cur, cur.begin()) );
+      break;
+    default:
+      Unhandled();
+    }
+
+    Debug("sets-model") << "[sets-model] cur :  { ";
+    BOOST_FOREACH(TNode element, cur) { Debug("sets-model") << element << ", "; }
+    Debug("sets-model") << " }" << std::endl;
+
+    if(saved != cur) {
+      Debug("sets-model") << "[sets-model] *** ERRROR *** cur != saved "
+                          << std::endl;
+      Debug("sets-model") << "[sets-model]   FYI: "
+                          << "  [" << S << "] = " << d_equalityEngine.getRepresentative(S) << ", "
+                          << "  [" << S[0] << "] = " << d_equalityEngine.getRepresentative(S[0]) << ", "
+                          << "  [" << S[1] << "] = " << d_equalityEngine.getRepresentative(S[1]) << "\n";
+
+    }
+    Assert( saved == cur );
+  }
+}
+
+Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) const
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  if(elements.size() == 0) {
+    return nm->mkConst(EmptySet(nm->toType(setType)));
+  } else {
+    Elements::iterator it = elements.begin();
+    Node cur = SET_SINGLETON(*it);
+    while( ++it != elements.end() ) {
+      cur = nm->mkNode(kind::UNION, cur, SET_SINGLETON(*it));
+    }
+    return cur;
+  }
+}
+
+void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
+{
+  Debug("sets-model") << "[sets-model] collectModelInfo(..., fullModel="
+                      << (fullModel ? "true)" : "false)") << std::endl;
+
+  set<Node> terms;
+
+  // Compute terms appearing assertions and shared terms
+  d_external.computeRelevantTerms(terms);
+
+  // Compute for each setterm elements that it contains
+  SettermElementsMap settermElementsMap;
+  TNode true_atom = NodeManager::currentNM()->mkConst<bool>(true);
+  TNode false_atom = NodeManager::currentNM()->mkConst<bool>(false);
+  for(eq::EqClassIterator it_eqclasses(true_atom, &d_equalityEngine);
+      ! it_eqclasses.isFinished() ; ++it_eqclasses) {
+    TNode n = (*it_eqclasses);
+    if(n.getKind() == kind::MEMBER) {
+      Assert(d_equalityEngine.areEqual(n, true_atom));
+      TNode x = d_equalityEngine.getRepresentative(n[0]);
+      TNode S = d_equalityEngine.getRepresentative(n[1]);
+      settermElementsMap[S].insert(x);
+    }
+  }
+
+  // Assert equalities and disequalities to the model
+  m->assertEqualityEngine(&d_equalityEngine, &terms);
+
+  // Loop over terms to collect set-terms for which we generate models
+  set<Node> settermsModEq;
+  BOOST_FOREACH(TNode term, terms) {
+    TNode n = term.getKind() == kind::NOT ? term[0] : term;
+
+    Debug("sets-model-details") << "[sets-model-details]  >   " << n << std::endl;
+
+    if(n.getType().isSet()) {
+      n = d_equalityEngine.getRepresentative(n);
+      if( !n.isConst() ) {
+        settermsModEq.insert(n);
+      }
+    }
+
+  }
+
+  if(Debug.isOn("sets-model")) {
+    BOOST_FOREACH( TNode node, settermsModEq ) {
+      Debug("sets-model") << "[sets-model]   " << node << std::endl;
+    }
+  }
+
+  BOOST_FOREACH( SettermElementsMap::value_type &it, settermElementsMap ) {
+    BOOST_FOREACH( TNode element, it.second /* elements */ ) {
+      Debug("sets-model-details") << "[sets-model-details]  >   " <<
+        (it.first /* setterm */) << ": " << element << std::endl;
+    }
+  }
+
+  // assign representatives to equivalence class
+  BOOST_FOREACH( TNode setterm, settermsModEq ) {
+    Elements elements = getElements(setterm, settermElementsMap);
+    Node shape = elementsToShape(elements, setterm.getType());
+    m->assertEquality(shape, setterm, true);
+    m->assertRepresentative(shape);
+  }
+
+#ifdef CVC4_ASSERTIONS
+  BOOST_FOREACH(TNode term, terms) {
+    if( term.getType().isSet() ) {
+      checkModel(settermElementsMap, term);
+    }
+  }
+#endif
+}
+
 
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
@@ -404,6 +615,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 TheorySetsPrivate::Statistics::Statistics() :
   d_checkTime("theory::sets::time") {
+
   StatisticsRegistry::registerStat(&d_checkTime);
 }
 
@@ -474,20 +686,27 @@ void TheorySetsPrivate::finishPropagation()
 }
 
 void TheorySetsPrivate::addToPending(Node n) {
+  Debug("sets-pending") << "[sets-pending] addToPending " << n << std::endl;
   if(d_pendingEverInserted.find(n) == d_pendingEverInserted.end()) {
     if(n.getKind() == kind::MEMBER) {
+      Debug("sets-pending") << "[sets-pending] \u2514 added to member queue"
+                            << std::endl;
       d_pending.push(n);
     } else {
+      Debug("sets-pending") << "[sets-pending] \u2514 added to equality queue"
+                            << std::endl;
       Assert(n.getKind() == kind::EQUAL);
       d_pendingDisequal.push(n);
     }
-    d_pendingEverInserted.insert(n);
   }
 }
 
 bool TheorySetsPrivate::isComplete() {
-  while(!d_pending.empty() && present(d_pending.front()))
+  while(!d_pending.empty() && present(d_pending.front())) {
+    Debug("sets-pending") << "[sets-pending] removing as already present: "
+                          << d_pending.front() << std::endl;
     d_pending.pop();
+  }
   return d_pending.empty() && d_pendingDisequal.empty();
 }
 
@@ -499,6 +718,7 @@ Node TheorySetsPrivate::getLemma() {
   if(!d_pending.empty()) {
     Node n = d_pending.front();
     d_pending.pop();
+    d_pendingEverInserted.insert(n);
 
     Assert(!present(n));
     Assert(n.getKind() == kind::MEMBER);
@@ -507,15 +727,11 @@ Node TheorySetsPrivate::getLemma() {
   } else {
     Node n = d_pendingDisequal.front();
     d_pendingDisequal.pop();
+    d_pendingEverInserted.insert(n);
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
     Node x = NodeManager::currentNM()->mkSkolem("sde_$$", n[0].getType().getSetElementType());
     Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
-
-    // d_equalityEngine.addTerm(x);
-    // d_equalityEngine.addTerm(l1);
-    // d_equalityEngine.addTerm(l2);
-    // d_terms.insert(x);
 
     lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
   }
@@ -551,17 +767,12 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::SUBSET);
 }/* TheorySetsPrivate::TheorySetsPrivate() */
 
+
 TheorySetsPrivate::~TheorySetsPrivate()
 {
   delete d_termInfoManager;
 }
 
-
-
-void TheorySetsPrivate::propagate(Theory::Effort e)
-{
-  return;
-}
 
 bool TheorySetsPrivate::propagate(TNode literal) {
   Debug("sets-prop") << " propagate(" << literal  << ")" << std::endl;
@@ -581,6 +792,11 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPropagate::propagate(TNode) */
 
+
+void TheorySetsPrivate::addSharedTerm(TNode n) {
+  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
+}
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
@@ -655,7 +871,8 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 
 bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = " << equality << " value = " << value << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = " << equality
+                   << " value = " << value << std::endl;
   if (value) {
     return d_theory.propagate(equality);
   } else {
@@ -666,7 +883,8 @@ bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality, boo
 
 bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = " << predicate << " value = " << value << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = " << predicate
+                   << " value = " << value << std::endl;
   if (value) {
     return d_theory.propagate(predicate);
   } else {
@@ -676,7 +894,8 @@ bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, b
 
 bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
+                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value << std::endl;
   if(value) {
     d_theory.d_termInfoManager->mergeTerms(t1, t2);
   }
@@ -689,25 +908,25 @@ void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t
   d_theory.conflict(t1, t2);
 }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
-}
+// void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
+// }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-}
+// void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+// }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-}
+// void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+// }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:" << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason << std::endl;
-}
+// void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+// {
+//   Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:" << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason << std::endl;
+// }
 
 
 /**************************** TermInfoManager *****************************/

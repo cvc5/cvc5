@@ -22,6 +22,7 @@ namespace CVC4 {
 namespace expr {
 namespace pattern {
 
+/** Boolean operators */
 static Node AND(TNode a, TNode b) {
   return NodeManager::currentNM()->mkNode(kind::AND, a, b);
 }
@@ -34,16 +35,21 @@ static Node OR(TNode a, TNode b, TNode c) {
   return NodeManager::currentNM()->mkNode(kind::OR, a, b, c);
 }
 
+static Node NOT(TNode a) {
+  return NodeManager::currentNM()->mkNode(kind::NOT, a);
+}
+
+/** Theory operators */
 static Node MEMBER(TNode a, TNode b) {
   return NodeManager::currentNM()->mkNode(kind::MEMBER, a, b);
 }
 
-static Node EQUAL(TNode a, TNode b) {
-  return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
+static Node SET_SINGLETON(TNode a) {
+  return NodeManager::currentNM()->mkNode(kind::SET_SINGLETON, a);
 }
 
-static Node NOT(TNode a) {
-  return NodeManager::currentNM()->mkNode(kind::NOT, a);
+static Node EQUAL(TNode a, TNode b) {
+  return NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
 }
 
 }/* CVC4::expr::pattern namespace */
