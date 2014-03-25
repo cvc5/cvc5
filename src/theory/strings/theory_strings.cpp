@@ -55,6 +55,8 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_regexp_memberships(c),
 	d_regexp_ucached(u),
 	d_regexp_ccached(c),
+	d_str_re_map(c),
+	d_inter_cache(c),
 	d_regexp_ant(c),
 	d_input_vars(u),
 	d_input_var_lsum(u),
@@ -552,7 +554,7 @@ void TheoryStrings::check(Effort e) {
     atom = polarity ? fact : fact[0];
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
-		d_regexp_memberships.push_back( assertion );
+		addMembership(assertion);
 		//d_equalityEngine.assertPredicate(atom, polarity, fact);
 	} else if (atom.getKind() == kind::STRING_STRCTN) {
 		if(polarity) {
@@ -2298,7 +2300,43 @@ bool TheoryStrings::checkMemberships() {
 	bool addedLemma = false;
 	std::vector< Node > processed;
 	std::vector< Node > cprocessed;
-	for( unsigned i=0; i<d_regexp_memberships.size(); i++ ){
+
+	if(options::stringEIT()) {
+		for(NodeListMap::const_iterator itr_xr = d_str_re_map.begin();
+			itr_xr != d_str_re_map.end(); ++itr_xr ) {
+			NodeList* lst = (*itr_xr).second;
+			if(lst->size() > 1) {
+				Node r = (*lst)[0];
+				NodeList::const_iterator itr_lst = lst->begin();
+				++itr_lst;
+				for(;itr_lst != lst->end(); ++itr_lst) {
+					Node r2 = *itr_lst;
+					r = d_regexp_opr.intersect(r, r2);
+					if(r == d_emptyRegexp) {
+						std::vector< Node > vec_nodes;
+						Node x = (*itr_xr).first;
+						++itr_lst;
+						for(NodeList::const_iterator itr2 = lst->begin();
+							itr2 != itr_lst; ++itr2) {
+							Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, *itr2);
+							vec_nodes.push_back( n );
+						}
+						Node antec = vec_nodes.size() == 1? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
+						Node conc;
+						sendLemma(antec, conc, "INTERSEC CONFLICT");
+						addedLemma = true;
+						break;
+					}
+					if(d_conflict) {
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if(!addedLemma) {
+	  for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
 		//check regular expression membership
 		Node assertion = d_regexp_memberships[i];
 		if( d_regexp_ucached.find(assertion) == d_regexp_ucached.end() 
@@ -2449,6 +2487,7 @@ bool TheoryStrings::checkMemberships() {
 		if(d_conflict) {
 			break;
 		}
+	  }
 	}
 	if( addedLemma ){
 		if( !d_conflict ){
@@ -2732,6 +2771,45 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 		return true;
 	} else {
 		return false;
+	}
+}
+
+void TheoryStrings::addMembership(Node assertion) {
+	d_regexp_memberships.push_back( assertion );
+
+	if(options::stringEIT()) {
+		bool polarity = assertion.getKind() != kind::NOT;
+		if(polarity) {
+			TNode atom = polarity ? assertion : assertion[0];
+			Node x = atom[0];
+			Node r = atom[1];
+			NodeList* lst;
+			NodeListMap::iterator itr_xr = d_str_re_map.find( x );
+			if( itr_xr == d_str_re_map.end() ){
+			  lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
+																	ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
+			  d_str_re_map.insertDataFromContextMemory( x, lst );
+			} else {
+			  lst = (*itr_xr).second;
+			}
+			//check
+		    for( NodeList::const_iterator itr = lst->begin(); itr != lst->end(); ++itr ) {
+				if( r == *itr ) {
+					return;
+				}
+			}
+			lst->push_back( r );
+			//TODO: make it smarter
+			/*
+			unsigned size = lst->size();
+			if(size == 1) {
+				d_inter_cache[x] = r;
+			} else {
+				Node r1 = (*lst)[size - 2];
+				Node rr = d_regexp_opr.intersect(r1, r);
+				d_inter_cache[x] = rr;
+			}*/
+		}
 	}
 }
 
