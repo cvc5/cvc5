@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <set>
 #include <sstream>
 #include "util/exception.h"
 //#include "util/integer.h"
@@ -31,7 +32,6 @@
 namespace CVC4 {
 
 class CVC4_PUBLIC String {
-
 public:
   static unsigned int convertCharToUnsignedInt( char c ) {
 	int i = (int)c;
@@ -342,6 +342,7 @@ public:
 		 return -1;
 	 }
   }
+  void getCharSet(std::set<unsigned int> &cset) const;
 };/* class String */
 
 namespace strings {

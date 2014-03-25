@@ -118,12 +118,6 @@ private:
 	 */
 	Node d_ufSubstr;
 
-	/**
-	 * Function symbol used to implement uninterpreted undefined string
-	 * semantics.  Needed to deal with partial str2int function.
-	 */
-	Node d_ufS2I;
-
 	// Constants
     Node d_emptyString;
 	Node d_emptyRegexp;
@@ -308,12 +302,15 @@ private:
 	NodeSet d_pos_ctn_cached;
 	NodeSet d_neg_ctn_cached;
 
-	// Regular Expression
+	// Symbolic Regular Expression
 private:
 	// regular expression memberships
 	NodeList d_regexp_memberships;
 	NodeSet d_regexp_ucached;
 	NodeSet d_regexp_ccached;
+	// intersection
+	NodeListMap d_str_re_map;
+	NodeNodeMap d_inter_cache;
 	// antecedant for why regexp membership must be true
 	NodeNodeMap d_regexp_ant;
 	// membership length
@@ -324,6 +321,7 @@ private:
 	CVC4::String getHeadConst( Node x );
 	bool splitRegExp( Node x, Node r, Node ant );
 	bool addMembershipLength(Node atom);
+	void addMembership(Node assertion);
 
 
 	// Finite Model Finding
