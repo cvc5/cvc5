@@ -23,6 +23,13 @@ using namespace std;
 
 namespace CVC4 {
 
+void String::getCharSet(std::set<unsigned int> &cset) const {
+	for(std::vector<unsigned int>::const_iterator itr = d_str.begin();
+		itr != d_str.end(); itr++) {
+			cset.insert( *itr );
+		}
+}
+
 std::string String::toString() const {
 	std::string str;
 	for(unsigned int i=0; i<d_str.size(); ++i) {

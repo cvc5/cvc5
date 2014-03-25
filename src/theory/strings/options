@@ -14,6 +14,9 @@ option stringLB strings-lb --strings-lb=N unsigned :default 0 :predicate less_eq
 option stringFMF strings-fmf --strings-fmf bool :default false :read-write
  the finite model finding used by the theory of strings
 
+option stringEIT strings-eit --strings-eit bool :default false
+ the eager intersection used by the theory of strings
+
 expert-option stringCharCardinality strings-alphabet-card --strings-alphabet-card=N int16_t :default 256 :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  the cardinality of the characters used by the theory of strings, default 256
 
