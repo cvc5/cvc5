@@ -695,8 +695,10 @@ void RegExpOpr::firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset )
 				for(unsigned i=0; i<r.getNumChildren(); i++) {
 					firstChars(r[i], cset, vset);
 					Node n = r[i];
+
 					Node exp;
 					int r = delta( n, exp );
+
 					if(r != 1) {
 						break;
 					}
@@ -1202,11 +1204,13 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset )
 	}
 }
 
+
 Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag ) {
 	if(spflag) {
 		//TODO: var
 		return Node::null();
 	}
+
 	std::pair < Node, Node > p(r1, r2);
 	std::map < std::pair< Node, Node >, Node >::const_iterator itr = d_inter_cache.find(p);
 	Node rNode;
@@ -1276,6 +1280,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 				//TODO: non-empty var set
 				spflag = true;
 				//Assert( false, "Unsupported Yet, 927 REO" );
+
 			}
 		}
 		d_inter_cache[p] = rNode;
@@ -1286,6 +1291,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 	std::map< unsigned, std::set< PairNodes > > cache;
 	return intersectInternal(r1, r2, cache, spflag);
+
 }
 //printing
 std::string RegExpOpr::niceChar( Node r ) {

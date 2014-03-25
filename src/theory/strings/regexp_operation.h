@@ -33,7 +33,9 @@ namespace theory {
 namespace strings {
 
 class RegExpOpr {
+
 	typedef std::pair< Node, CVC4::String > PairNodeStr;
+
 	typedef std::set< Node > SetNodes;
 	typedef std::pair< Node, Node > PairNodes;
 
@@ -70,6 +72,7 @@ private:
 	Node mkAllExceptOne( char c );
 
 	void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
+
 	Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag );
 	void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
 
@@ -86,7 +89,6 @@ public:
 	Node derivativeSingle( Node r, CVC4::String c );
 	bool guessLength( Node r, int &co );
 	Node intersect(Node r1, Node r2, bool &spflag);
-
 	std::string mkString( Node r );
 };
 
