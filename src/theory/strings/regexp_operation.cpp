@@ -80,11 +80,12 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 }
 
 // 0-unknown, 1-yes, 2-no
-int RegExpOpr::delta( Node r ) {
-	Trace("strings-regexp-delta") << "RegExp-Delta starts with " << mkString( r ) << std::endl;
+int RegExpOpr::delta( Node r, Node &exp ) {
+	Trace("regexp-delta") << "RegExp-Delta starts with " << mkString( r ) << std::endl;
 	int ret = 0;
 	if( d_delta_cache.find( r ) != d_delta_cache.end() ) {
-		ret = d_delta_cache[r];
+		ret = d_delta_cache[r].first;
+		exp = d_delta_cache[r].second;
 	} else {
 		int k = r.getKind();
 		switch( k ) {
@@ -97,63 +98,95 @@ int RegExpOpr::delta( Node r ) {
 				break;
 			}
 			case kind::STRING_TO_REGEXP: {
-				if(r[0].isConst()) {
-					if(r[0] == d_emptyString) {
+				Node tmp = Rewriter::rewrite(r[0]);
+				if(tmp.isConst()) {
+					if(tmp == d_emptyString) {
 						ret = 1;
 					} else {
 						ret = 2;
 					}
 				} else {
 					ret = 0;
+					if(tmp.getKind() == kind::STRING_CONCAT) {
+						for(unsigned i=0; i<tmp.getNumChildren(); i++) {
+							if(tmp[i].isConst()) {
+								ret = 2; break;
+							}
+						}
+
+					}
+					if(ret == 0) {
+						exp = r[0].eqNode(d_emptyString);
+					}
 				}
 				break;
 			}
 			case kind::REGEXP_CONCAT: {
 				bool flag = false;
+				std::vector< Node > vec_nodes;
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					int tmp = delta( r[i] );
+					Node exp2;
+					int tmp = delta( r[i], exp2 );
 					if(tmp == 2) {
 						ret = 2;
 						break;
 					} else if(tmp == 0) {
+						vec_nodes.push_back( exp2 );
 						flag = true;
 					}
 				}
-				if(!flag && ret != 2) {
-					ret = 1;
+				if(ret != 2) {
+					if(!flag) {
+						ret = 1;
+					} else {
+						exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
+					}
 				}
 				break;
 			}
 			case kind::REGEXP_UNION: {
 				bool flag = false;
+				std::vector< Node > vec_nodes;
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					int tmp = delta( r[i] );
+					Node exp2;
+					int tmp = delta( r[i], exp2 );
 					if(tmp == 1) {
 						ret = 1;
 						break;
 					} else if(tmp == 0) {
+						vec_nodes.push_back( exp2 );
 						flag = true;
 					}
 				}
-				if(!flag && ret != 1) {
-					ret = 2;
+				if(ret != 1) {
+					if(!flag) {
+						ret = 2;
+					} else {
+						exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::OR, vec_nodes);
+					}
 				}
 				break;
 			}
 			case kind::REGEXP_INTER: {
-				bool flag = true;
+				bool flag = false;
+				std::vector< Node > vec_nodes;
 				for(unsigned i=0; i<r.getNumChildren(); ++i) {
-					int tmp = delta( r[i] );
+					Node exp2;
+					int tmp = delta( r[i], exp2 );
 					if(tmp == 2) {
-						ret = 2; flag=false;
+						ret = 2;
 						break;
 					} else if(tmp == 0) {
-						flag=false;
-						break;
+						vec_nodes.push_back( exp2 );
+						flag = true;
 					}
 				}
-				if(flag) {
-					ret = 1;
+				if(ret != 2) {
+					if(!flag) {
+						ret = 1;
+					} else {
+						exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
+					}
 				}
 				break;
 			}
@@ -162,7 +195,7 @@ int RegExpOpr::delta( Node r ) {
 				break;
 			}
 			case kind::REGEXP_PLUS: {
-				ret = delta( r[0] );
+				ret = delta( r[0], exp );
 				break;
 			}
 			case kind::REGEXP_OPT: {
@@ -179,9 +212,226 @@ int RegExpOpr::delta( Node r ) {
 				//return Node::null();
 			}
 		}
-		d_delta_cache[r] = ret;
+		if(!exp.isNull()) {
+			exp = Rewriter::rewrite(exp);
+		}
+		std::pair< int, Node > p(ret, exp);
+		d_delta_cache[r] = p;
 	}
-	Trace("strings-regexp-delta") << "RegExp-Delta returns : " << ret << std::endl;
+	Trace("regexp-delta") << "RegExp-Delta returns : " << ret << std::endl;
+	return ret;
+}
+
+// 0-unknown, 1-yes, 2-no
+int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
+	Assert( c.size() < 2 );
+	Trace("regexp-deriv") << "RegExp-deriv starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
+	
+	int ret = 1;
+	retNode = d_emptyRegexp;
+	
+	PairNodeStr dv = std::make_pair( r, c );
+	if( d_deriv_cache.find( dv ) != d_deriv_cache.end() ) {
+		retNode = d_deriv_cache[dv].first;
+		ret = d_deriv_cache[dv].second;
+	} else if( c.isEmptyString() ) {
+		Node expNode;
+		ret = delta( r, expNode );
+		if(ret == 0) {
+			retNode = NodeManager::currentNM()->mkNode(kind::ITE, expNode, r, d_emptyRegexp);
+		} else if(ret == 1) {
+			retNode = r;
+		}
+		std::pair< Node, int > p(retNode, ret);
+		d_deriv_cache[dv] = p;
+	} else {
+		switch( r.getKind() ) {
+			case kind::REGEXP_EMPTY: {
+				ret = 2;
+				break;
+			}
+			case kind::REGEXP_SIGMA: {
+				retNode = d_emptySingleton;
+				break;
+			}
+			case kind::STRING_TO_REGEXP: {
+				Node tmp = Rewriter::rewrite(r[0]);
+				if(tmp.isConst()) {
+					if(tmp == d_emptyString) {
+						ret = 2;
+					} else {
+						if(tmp.getConst< CVC4::String >().getFirstChar() == c.getFirstChar()) {
+							retNode =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, 
+								tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
+						} else {
+							ret = 2;
+						}
+					}
+				} else {
+					ret = 0;
+					Node rest;
+					if(tmp.getKind() == kind::STRING_CONCAT) {
+						Node t2 = tmp[0];
+						if(t2.isConst()) {
+							if(t2.getConst< CVC4::String >().getFirstChar() == c.getFirstChar()) {
+								Node n =  NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, 
+									tmp.getConst< CVC4::String >().size() == 1 ? d_emptyString : NodeManager::currentNM()->mkConst( tmp.getConst< CVC4::String >().substr(1) ) );
+								std::vector< Node > vec_nodes;
+								vec_nodes.push_back(n);
+								for(unsigned i=1; i<tmp.getNumChildren(); i++) {
+									vec_nodes.push_back(tmp[i]);
+								}
+								retNode = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes);
+								ret = 1;
+							} else {
+								ret = 2;
+							}
+						} else {
+							tmp = tmp[0];
+							std::vector< Node > vec_nodes;
+							for(unsigned i=1; i<tmp.getNumChildren(); i++) {
+								vec_nodes.push_back(tmp[i]);
+							}
+							rest = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes);
+						}
+					}
+					if(ret == 0) {
+						Node sk = NodeManager::currentNM()->mkSkolem( "rsp_$$", NodeManager::currentNM()->stringType(), "Split RegExp" );
+						retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
+						if(!rest.isNull()) {
+							retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));
+						}
+						Node exp = tmp.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT,
+												NodeManager::currentNM()->mkConst(c), sk));
+						retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE, exp, retNode, d_emptyRegexp));
+					}
+				}
+				break;
+			}
+			case kind::REGEXP_CONCAT: {
+				std::vector< Node > vec_nodes;
+				std::vector< Node > delta_nodes;
+				Node dnode = d_true;
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					Node dc;
+					Node exp2;
+					int rt = derivativeS(r[i], c, dc);
+					if(rt != 2) {
+						if(rt == 0) {
+							ret = 0;
+						}
+						std::vector< Node > vec_nodes2;
+						if(dc != d_emptySingleton) {
+							vec_nodes2.push_back( dc );
+						}
+						for(unsigned j=i+1; j<r.getNumChildren(); ++j) {
+							if(r[j] != d_emptySingleton) {
+								vec_nodes2.push_back( r[j] );
+							}
+						}
+						Node tmp = vec_nodes2.size()==0 ? d_emptySingleton : 
+							vec_nodes2.size()==1 ? vec_nodes2[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, vec_nodes2 );
+						if(dnode != d_true) {
+							tmp = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE, dnode, tmp, d_emptyRegexp));
+							ret = 0;
+						}
+						if(std::find(vec_nodes.begin(), vec_nodes.end(), tmp) == vec_nodes.end()) {
+							vec_nodes.push_back( tmp );
+						}
+					}
+					Node exp3;
+					int rt2 = delta( r[i], exp3 );
+					if( rt2 == 0 ) {
+						dnode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, dnode, exp3));
+					} else if( rt2 == 2 ) {
+						break;
+					}
+				}
+				retNode = vec_nodes.size() == 0 ? d_emptyRegexp :
+							( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes ) );
+				if(retNode == d_emptyRegexp) {
+					ret = 2;
+				}
+				break;
+			}
+			case kind::REGEXP_UNION: {
+				std::vector< Node > vec_nodes;
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					Node dc;
+					int rt = derivativeS(r[i], c, dc);
+					if(rt == 0) {
+						ret = 0;
+					}
+					if(rt != 2) {
+						if(std::find(vec_nodes.begin(), vec_nodes.end(), dc) == vec_nodes.end()) {
+							vec_nodes.push_back( dc );
+						}
+					}
+					Trace("regexp-deriv") << "RegExp-deriv OR R[" << i << "]{ " << mkString(r[i]) << " returns " << mkString(dc) << std::endl;
+				}
+				retNode = vec_nodes.size() == 0 ? d_emptyRegexp :
+							( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes ) );
+				if(retNode == d_emptyRegexp) {
+					ret = 2;
+				}
+				break;
+			}
+			case kind::REGEXP_INTER: {
+				bool flag = true;
+				bool flag_sg = false;
+				std::vector< Node > vec_nodes;
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					Node dc;
+					int rt = derivativeS(r[i], c, dc);
+					if(rt == 0) {
+						ret = 0;
+					} else if(rt == 2) {
+						flag = false;
+						break;
+					}
+					if(dc == d_sigma_star) {
+						flag_sg = true;
+					} else {
+						if(std::find(vec_nodes.begin(), vec_nodes.end(), dc) == vec_nodes.end()) {
+							vec_nodes.push_back( dc );
+						}
+					}
+				}
+				if(flag) {
+					if(vec_nodes.size() == 0 && flag_sg) {
+						retNode = d_sigma_star;
+					} else {
+						retNode = vec_nodes.size() == 0 ? d_emptyRegexp :
+									( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_INTER, vec_nodes ) );
+						if(retNode == d_emptyRegexp) {
+							ret = 2;
+						}
+					}
+				} else {
+					retNode = d_emptyRegexp;
+					ret = 2;
+				}
+				break;
+			}
+			case kind::REGEXP_STAR: {
+				Node dc;
+				ret = derivativeS(r[0], c, dc);
+				retNode = dc==d_emptyRegexp ? dc : (dc==d_emptySingleton ? r : NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, dc, r ));
+				break;
+			}
+			default: {
+				Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
+				Assert( false, "Unsupported Term" );
+			}
+		}
+		if(retNode != d_emptyRegexp) {
+			retNode = Rewriter::rewrite( retNode );
+		}
+		std::pair< Node, int > p(retNode, ret);
+		d_deriv_cache[dv] = p;
+	}
+
+	Trace("regexp-deriv") << "RegExp-deriv returns : " << mkString( retNode ) << std::endl;
 	return ret;
 }
 
@@ -189,11 +439,12 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 	Assert( c.size() < 2 );
 	Trace("regexp-deriv") << "RegExp-deriv starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
 	Node retNode = d_emptyRegexp;
-	PairDvStr dv = std::make_pair( r, c );
+	PairNodeStr dv = std::make_pair( r, c );
 	if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
 		retNode = d_dv_cache[dv];
 	} else if( c.isEmptyString() ){
-		int tmp = delta( r );
+		Node exp;
+		int tmp = delta( r, exp );
 		if(tmp == 0) {
 			// TODO variable
 			retNode = d_emptyRegexp;
@@ -252,8 +503,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
 							vec_nodes.push_back( tmp );
 						}
 					}
-
-					if( delta( r[i] ) != 1 ) {
+					Node exp;
+					if( delta( r[i], exp ) != 1 ) {
 						break;
 					}
 				}
@@ -444,7 +695,8 @@ void RegExpOpr::firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset )
 				for(unsigned i=0; i<r.getNumChildren(); i++) {
 					firstChars(r[i], cset, vset);
 					Node n = r[i];
-					int r = delta( n );
+					Node exp;
+					int r = delta( n, exp );
 					if(r != 1) {
 						break;
 					}
@@ -585,22 +837,6 @@ bool RegExpOpr::follow( Node r, CVC4::String c, std::vector< char > &vec_chars )
 			}
 		}
 			break;
-			/*
-		case kind::REGEXP_PLUS:
-		{
-			ret = delta( r[0] );
-		}
-			break;
-		case kind::REGEXP_OPT:
-		{
-			ret = 1;
-		}
-			break;
-		case kind::REGEXP_RANGE:
-		{
-			ret = 2;
-		}
-			break;*/
 		default: {
 			Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in delta of RegExp." << std::endl;
 			//AlwaysAssert( false );
@@ -966,23 +1202,30 @@ void RegExpOpr::getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset )
 	}
 }
 
-Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache ) {
+Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag ) {
+	if(spflag) {
+		//TODO: var
+		return Node::null();
+	}
 	std::pair < Node, Node > p(r1, r2);
 	std::map < std::pair< Node, Node >, Node >::const_iterator itr = d_inter_cache.find(p);
 	Node rNode;
 	if(itr != d_inter_cache.end()) {
-		//Trace("regexp-intersect") << "INTERSECT Case 0: Cached " << std::endl;
 		rNode = itr->second;
 	} else {
-		if(r1 == d_emptyRegexp || r2 == d_emptyRegexp) {
-		Trace("regexp-intersect") << "INTERSECT Case 1: one empty RE" << std::endl;
+		if(r1 == r2) {
+			rNode = r1;
+		} else if(r1 == d_emptyRegexp || r2 == d_emptyRegexp) {
+			Trace("regexp-intersect") << "INTERSECT Case 1: one empty RE" << std::endl;
 			rNode = d_emptyRegexp;
 		} else if(r1 == d_emptySingleton || r2 == d_emptySingleton) {
 			Trace("regexp-intersect") << "INTERSECT Case 2: one empty Singleton" << std::endl;
-			int r = delta(r1 == d_emptySingleton ? r2 : r1);
+			Node exp;
+			int r = delta((r1 == d_emptySingleton ? r2 : r1), exp);
 			if(r == 0) {
 				//TODO: variable
-				AlwaysAssert( false, "Unsupported Yet, 892 REO" );
+				spflag = true;
+				//Assert( false, "Unsupported Yet, 892 REO" );
 			} else if(r == 1) {
 				rNode = d_emptySingleton;
 			} else {
@@ -1012,14 +1255,18 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 							std::map< unsigned, std::set< PairNodes > > cache2(cache);
 							PairNodes p(r1l, r2l);
 							cache2[ *itr ].insert( p );
-							Node rt = intersectInternal(r1l, r2l, cache2);
+							Node rt = intersectInternal(r1l, r2l, cache2, spflag);
+							if(spflag) {
+								//TODO:
+								return Node::null();
+							}
 							rt = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, 
 								NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(c)), rt) );
 							vec_nodes.push_back(rt);
 						}
 					}
 					rNode = vec_nodes.size()==0 ? d_emptyRegexp : vec_nodes.size()==1 ? vec_nodes[0] :
-							NodeManager::currentNM()->mkNode(kind::OR, vec_nodes);
+							NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes);
 					rNode = Rewriter::rewrite( rNode );
 				} else {
 					Trace("regexp-intersect") << "INTERSECT Case 3.2: diff cset" << std::endl;
@@ -1027,7 +1274,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 				}
 			} else {
 				//TODO: non-empty var set
-				AlwaysAssert( false, "Unsupported Yet, 927 REO" );
+				spflag = true;
+				//Assert( false, "Unsupported Yet, 927 REO" );
 			}
 		}
 		d_inter_cache[p] = rNode;
@@ -1035,9 +1283,9 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 	Trace("regexp-intersect") << "INTERSECT( " << mkString(r1) << ", " << mkString(r2) << " ) = " << mkString(rNode) << std::endl;
 	return rNode;
 }
-Node RegExpOpr::intersect(Node r1, Node r2) {
+Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 	std::map< unsigned, std::set< PairNodes > > cache;
-	return intersectInternal(r1, r2, cache);
+	return intersectInternal(r1, r2, cache, spflag);
 }
 //printing
 std::string RegExpOpr::niceChar( Node r ) {
