@@ -37,7 +37,7 @@ pcvc4_LDADD += \
 	@builddir@/../lib/libreplacements.la
 endif
 pcvc4_CPPFLAGS = $(AM_CPPFLAGS) $(BOOST_CPPFLAGS) -DPORTFOLIO_BUILD
-pcvc4_LDADD += $(BOOST_THREAD_LIBS) -lpthread
+pcvc4_LDADD += $(BOOST_THREAD_LIBS)
 pcvc4_LDADD += $(BOOST_THREAD_LDFLAGS)
 
 if STATIC_BINARY

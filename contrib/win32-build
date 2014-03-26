@@ -5,6 +5,13 @@
 # Tue, 15 Jan 2013 11:11:24 -0500
 #
 
+if [ $# -ne 0 ]; then
+  echo "usage: `basename $0`" >&2
+  echo >&2
+  echo "This script attempts to build CVC4 for Win32 using mingw." >&2
+  exit 1
+fi
+
 if [ -z "$HOST" ]; then
   HOST=i586-mingw32msvc
   echo "WARNING:"
@@ -19,13 +26,8 @@ if [ -z "$HOST" ]; then
 fi
 
 GMPVERSION=5.1.0
-
-if [ $# -ne 0 ]; then
-  echo "usage: `basename $0`" >&2
-  echo >&2
-  echo "This script attempts to build CVC4 for Win32 using mingw." >&2
-  exit 1
-fi
+BOOSTVERSION=1.55.0
+BOOSTBASE=boost_1_55_0
 
 function reporterror {
   echo
@@ -47,7 +49,7 @@ function webget {
   fi
 }
 
-for dir in antlr-3.4 gmp-$GMPVERSION boost-include; do
+for dir in antlr-3.4 gmp-$GMPVERSION boost-$BOOSTVERSION; do
   if [ -e "$dir" ]; then
     echo "error: $dir directory exists; please move it out of the way." >&2
     exit 1
@@ -81,15 +83,23 @@ echo
 echo
 echo =============================================================================
 echo
-echo "Setting up BOOST includes..."
+echo "Setting up Boost..."
 echo
-( mkdir boost-include &&
-  ln -sv /usr/include/boost boost-include/boost ) || exit 1
+( mkdir boost-$BOOSTVERSION &&
+  cd boost-$BOOSTVERSION &&
+  webget http://downloads.sourceforge.net/project/boost/boost/$BOOSTVERSION/$BOOSTBASE.tar.gz $BOOSTBASE.tar.gz &&
+  tar xfz $BOOSTBASE.tar.gz &&
+  cd $BOOSTBASE &&
+  ./bootstrap.sh --with-toolset=gcc --prefix=`pwd`/.. --with-libraries=thread &&
+  echo "using gcc : mingw32 : $HOST-gcc ;" >> project-config.jam &&
+  cp tools/build/v2/tools/gcc.jam tools/build/v2/tools/gcc.jam.orig &&
+  sed 's,option = -pthread ; libs = rt ;,,' tools/build/v2/tools/gcc.jam.orig > tools/build/v2/tools/gcc.jam &&
+  ./b2 gcc-mingw32 threadapi=win32 link=static install ) || exit 1
 echo
 echo =============================================================================
 echo
 echo 'Now just run:'
-echo "  ./configure --host=$HOST LDFLAGS=\"-L`pwd`/gmp-$GMPVERSION/lib -L`pwd`/antlr-3.4/lib\" CPPFLAGS=\"-I`pwd`/gmp-$GMPVERSION/include -I`pwd`/antlr-3.4/include -I`pwd`/boost-include\" ANTLR_HOME=\"`pwd`/antlr-3.4\""
+echo "  ./configure --enable-static-binary --disable-shared --host=$HOST LDFLAGS=\"-L`pwd`/gmp-$GMPVERSION/lib -L`pwd`/antlr-3.4/lib -L`pwd`/boost-$BOOSTVERSION/lib\" CPPFLAGS=\"-I`pwd`/gmp-$GMPVERSION/include -I`pwd`/antlr-3.4/include -I`pwd`/boost-$BOOSTVERSION/include\" ANTLR_HOME=\"`pwd`/antlr-3.4\""
 echo '  make'
 echo
 echo =============================================================================
