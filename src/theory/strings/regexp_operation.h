@@ -33,7 +33,7 @@ namespace theory {
 namespace strings {
 
 class RegExpOpr {
-	typedef std::pair< Node, CVC4::String > PairDvStr;
+	typedef std::pair< Node, CVC4::String > PairNodeStr;
 	typedef std::set< Node > SetNodes;
 	typedef std::pair< Node, Node > PairNodes;
 
@@ -55,8 +55,9 @@ private:
 	std::map< PairNodes, Node > d_simpl_cache;
 	std::map< PairNodes, Node > d_simpl_neg_cache;
 	std::map< Node, Node > d_compl_cache;
-	std::map< Node, int > d_delta_cache;
-	std::map< PairDvStr, Node > d_dv_cache;
+	std::map< Node, std::pair< int, Node > > d_delta_cache;
+	std::map< PairNodeStr, Node > d_dv_cache;
+	std::map< PairNodeStr, std::pair< Node, int > > d_deriv_cache;
 	std::map< Node, bool > d_cstre_cache;
 	std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_cset_cache;
 	std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
@@ -69,7 +70,7 @@ private:
 	Node mkAllExceptOne( char c );
 
 	void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
-	Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache );
+	Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag );
 	void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
 
 	//TODO: for intersection
@@ -80,10 +81,11 @@ public:
 
 	bool checkConstRegExp( Node r );
     void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
-	int delta( Node r );
+	int delta( Node r, Node &exp );
+	int derivativeS( Node r, CVC4::String c, Node &retNode );
 	Node derivativeSingle( Node r, CVC4::String c );
 	bool guessLength( Node r, int &co );
-	Node intersect(Node r1, Node r2);
+	Node intersect(Node r1, Node r2, bool &spflag);
 
 	std::string mkString( Node r );
 };

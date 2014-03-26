@@ -57,6 +57,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_regexp_ccached(c),
 	d_str_re_map(c),
 	d_inter_cache(c),
+	d_inter_index(c),
 	d_regexp_ant(c),
 	d_input_vars(u),
 	d_input_var_lsum(u),
@@ -1052,6 +1053,37 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 							  NodeManager::currentNM()->mkNode( kind::REGEXP_STAR,
 								NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, rep_c ) ) );
 				conc = str_in_re;
+			} else if(t_yz.isConst()) {
+				CVC4::String s = t_yz.getConst< CVC4::String >();
+				unsigned size = s.size();
+				std::vector< Node > vconc;
+				for(unsigned len=1; len<=size; len++) {
+					Node y = NodeManager::currentNM()->mkConst(s.substr(0, len));
+					Node z = NodeManager::currentNM()->mkConst(s.substr(len, size - len));
+					Node restr = s_zy;
+					Node cc;
+					if(r != d_emptyString) {
+						std::vector< Node > v2(vec_r);
+						v2.insert(v2.begin(), y);
+						v2.insert(v2.begin(), z);
+						restr = mkConcat( z, y );
+						cc = Rewriter::rewrite(s_zy.eqNode( mkConcat( v2 ) ));
+					} else {
+						cc = Rewriter::rewrite(s_zy.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z, y) ));
+					}
+					if(cc == d_false) {
+						continue;
+					}
+					Node conc2 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, normal_forms[other_n_index][other_index],
+									NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, 
+										NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, y),
+										NodeManager::currentNM()->mkNode(kind::REGEXP_STAR,
+											NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, restr))));
+					cc = cc==d_true ? conc2 : NodeManager::currentNM()->mkNode( kind::AND, cc, conc2 );
+					d_regexp_ant[conc2] = ant;
+					vconc.push_back(cc);
+				}
+				conc = vconc.size()==0 ? Node::null() : vconc.size()==1 ? vconc[0] : NodeManager::currentNM()->mkNode(kind::OR, vconc);
 			} else {
 				Trace("strings-loop") << "Strings::Loop: Normal Breaking." << std::endl;
 				//right
@@ -1082,9 +1114,9 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 			} // normal case
 
 			//set its antecedant to ant, to say when it is relevant
-			d_regexp_ant[str_in_re] = ant;
-			//unroll the str in re constraint once
-			//	unrollStar( str_in_re );
+			if(!str_in_re.isNull()) {
+				d_regexp_ant[str_in_re] = ant;
+			}
 			sendLemma( ant, conc, "LOOP-BREAK" );
 			++(d_statistics.d_loop_lemmas);
 
@@ -2304,31 +2336,57 @@ bool TheoryStrings::checkMemberships() {
 	if(options::stringEIT()) {
 		for(NodeListMap::const_iterator itr_xr = d_str_re_map.begin();
 			itr_xr != d_str_re_map.end(); ++itr_xr ) {
+			bool spflag = false;
+			Node x = (*itr_xr).first;
 			NodeList* lst = (*itr_xr).second;
-			if(lst->size() > 1) {
-				Node r = (*lst)[0];
-				NodeList::const_iterator itr_lst = lst->begin();
-				++itr_lst;
-				for(;itr_lst != lst->end(); ++itr_lst) {
-					Node r2 = *itr_lst;
-					r = d_regexp_opr.intersect(r, r2);
-					if(r == d_emptyRegexp) {
-						std::vector< Node > vec_nodes;
-						Node x = (*itr_xr).first;
-						++itr_lst;
-						for(NodeList::const_iterator itr2 = lst->begin();
-							itr2 != itr_lst; ++itr2) {
-							Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, *itr2);
-							vec_nodes.push_back( n );
-						}
-						Node antec = vec_nodes.size() == 1? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
-						Node conc;
-						sendLemma(antec, conc, "INTERSEC CONFLICT");
-						addedLemma = true;
-						break;
+			if(d_inter_index.find(x) == d_inter_index.end()) {
+				d_inter_index[x] = 0;
+			}
+			int cur_inter_idx = d_inter_index[x];
+			if(cur_inter_idx != (int)lst->size()) {
+				if(lst->size() == 1) {
+					d_inter_cache[x] = (*lst)[0];
+					d_inter_index[x] = 1;
+				} else if(lst->size() > 1) {
+					Node r;
+					if(d_inter_cache.find(x) != d_inter_cache.end()) {
+						r = d_inter_cache[x];
 					}
-					if(d_conflict) {
-						break;
+					if(r.isNull()) {
+						r = (*lst)[0];
+						cur_inter_idx = 1;
+					}
+					NodeList::const_iterator itr_lst = lst->begin();
+					for(int i=0; i<cur_inter_idx; i++) {
+						++itr_lst;
+					}
+					for(;itr_lst != lst->end(); ++itr_lst) {
+						Node r2 = *itr_lst;
+						r = d_regexp_opr.intersect(r, r2, spflag);
+						if(spflag) {
+							break;
+						} else if(r == d_emptyRegexp) {
+							std::vector< Node > vec_nodes;
+							++itr_lst;
+							for(NodeList::const_iterator itr2 = lst->begin();
+								itr2 != itr_lst; ++itr2) {
+								Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, *itr2);
+								vec_nodes.push_back( n );
+							}
+							Node antec = vec_nodes.size() == 1? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
+							Node conc;
+							sendLemma(antec, conc, "INTERSEC CONFLICT");
+							addedLemma = true;
+							break;
+						}
+						if(d_conflict) {
+							break;
+						}
+					}
+					//updates
+					if(!d_conflict && !spflag) {
+						d_inter_cache[x] = r;
+						d_inter_index[x] = (int)lst->size();
 					}
 				}
 			}
@@ -2515,16 +2573,30 @@ bool TheoryStrings::checkPDerivative(Node x, Node r, Node atom, bool &addedLemma
 		}
 	}*/
 	if(areEqual(x, d_emptyString)) {
-		int rdel = d_regexp_opr.delta(r);
-		if(rdel == 1) {
-			d_regexp_ccached.insert(atom);
-		} else if(rdel == 2) {
-			Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
-			Node conc = Node::null();
-			sendLemma(antec, conc, "RegExp Delta CONFLICT");
-			addedLemma = true;
-			d_regexp_ccached.insert(atom);
-			return false;
+		Node exp;
+		switch(d_regexp_opr.delta(r, exp)) {
+			case 0: {
+				Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
+				sendLemma(antec, exp, "RegExp Delta");
+				addedLemma = true;
+				d_regexp_ccached.insert(atom);
+				return false;
+			}
+			case 1: {
+				d_regexp_ccached.insert(atom);
+				break;
+			}
+			case 2: {
+				Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
+				Node conc = Node::null();
+				sendLemma(antec, conc, "RegExp Delta CONFLICT");
+				addedLemma = true;
+				d_regexp_ccached.insert(atom);
+				return false;
+			}
+			default: 
+				//Impossible
+				break;
 		}
 	} else {
 		Node xr = getRepresentative( x );
@@ -2720,7 +2792,7 @@ bool TheoryStrings::addMembershipLength(Node atom) {
 bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 	// TODO cstr in vre
 	Assert(x != d_emptyString);
-	Trace("strings-regexp-split") << "TheoryStrings::splitRegExp: x=" << x << ", r= " << r << std::endl;
+	Trace("regexp-split") << "TheoryStrings::splitRegExp: x=" << x << ", r= " << r << std::endl;
 	//if(x.isConst()) {
 	//	Node n = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
 	//	Node r = Rewriter::rewrite( n );
@@ -2736,8 +2808,11 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 		bool flag = true;
 		for(unsigned i=0; i<s.size(); ++i) {
 			CVC4::String c = s.substr(i, 1);
-			dc = d_regexp_opr.derivativeSingle(dc, c);
-			if(dc == d_emptyRegexp) {
+			Node dc2;
+			int rt = d_regexp_opr.derivativeS(dc, c, dc2);
+			if(rt == 0) {
+				//TODO
+			} else if(rt == 2) {
 				// CONFLICT
 				flag = false;
 				break;
@@ -2799,16 +2874,6 @@ void TheoryStrings::addMembership(Node assertion) {
 				}
 			}
 			lst->push_back( r );
-			//TODO: make it smarter
-			/*
-			unsigned size = lst->size();
-			if(size == 1) {
-				d_inter_cache[x] = r;
-			} else {
-				Node r1 = (*lst)[size - 2];
-				Node rr = d_regexp_opr.intersect(r1, r);
-				d_inter_cache[x] = rr;
-			}*/
 		}
 	}
 }

@@ -307,18 +307,14 @@ public:
   String substr(unsigned i) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
-    //for(unsigned k=0; k<i; k++) ++itr;
     ret_vec.insert(ret_vec.end(), itr, d_str.end());
-      return String(ret_vec);
+    return String(ret_vec);
   }
   String substr(unsigned i, unsigned j) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
-    //for(unsigned k=0; k<i; k++) ++itr;
-    //std::vector<unsigned int>::const_iterator itr2 = itr;
-    //for(unsigned k=0; k<j; k++) ++itr2;
     ret_vec.insert( ret_vec.end(), itr, itr + j );
-      return String(ret_vec);
+    return String(ret_vec);
   }
   bool isNumber() const {
 	 if(d_str.size() == 0) return false;
