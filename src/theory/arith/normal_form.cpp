@@ -25,6 +25,13 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+
+VarList::VarList(Node n)
+  : NodeWrapper(n)
+{
+  Assert(isSorted(begin(), end()));
+}
+
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
   case kind::DIVISION:
@@ -52,9 +59,15 @@ bool VarList::isMember(Node n) {
     Node prev = *curr;
     if(!Variable::isMember(prev)) return false;
 
+    Variable::VariableNodeCmp cmp;
+
     while( (++curr) != end) {
       if(!Variable::isMember(*curr)) return false;
-      if(!(prev <= *curr)) return false;
+      // prev <= curr : accept
+      // !(prev <= curr) : reject
+      // !(!(prev > curr)) : reject
+      // curr < prev : reject
+      if((cmp(*curr, prev))) return false;
       prev = *curr;
     }
     return true;
@@ -74,15 +87,16 @@ int VarList::cmp(const VarList& vl) const {
 }
 
 VarList VarList::parseVarList(Node n) {
-  if(Variable::isMember(n)) {
-    return VarList(Variable(n));
-  } else {
-    Assert(n.getKind() == kind::MULT);
-    for(Node::iterator i=n.begin(), end = n.end(); i!=end; ++i) {
-      Assert(Variable::isMember(*i));
-    }
-    return VarList(n);
-  }
+  return VarList(n);
+  // if(Variable::isMember(n)) {
+  //   return VarList(Variable(n));
+  // } else {
+  //   Assert(n.getKind() == kind::MULT);
+  //   for(Node::iterator i=n.begin(), end = n.end(); i!=end; ++i) {
+  //     Assert(Variable::isMember(*i));
+  //   }
+  //   return VarList(n);
+  // }
 }
 
 VarList VarList::operator*(const VarList& other) const {
@@ -99,7 +113,9 @@ VarList VarList::operator*(const VarList& other) const {
       otherBegin = other.internalBegin(),
       otherEnd = other.internalEnd();
 
-    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result);
+    Variable::VariableNodeCmp cmp;
+
+    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result, cmp);
 
     Assert(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::MULT, result);
