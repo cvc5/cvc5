@@ -268,21 +268,43 @@ public:
   }
 
   bool operator<(const Variable& v) const {
-    bool thisIsVariable = isMetaKindVariable();
-    bool vIsVariable = v.isMetaKindVariable();
+    VariableNodeCmp cmp;
+    return cmp(this->getNode(), v.getNode());
 
-    if(thisIsVariable == vIsVariable){
-      bool thisIsInteger = isIntegral();
-      bool vIsInteger = v.isIntegral();
-      if(thisIsInteger == vIsInteger){
-        return getNode() < v.getNode();
-      }else{
-        return thisIsInteger && !vIsInteger;
-      }
-    }else{
-      return thisIsVariable && !vIsVariable;
-    }
+    // bool thisIsVariable = isMetaKindVariable();
+    // bool vIsVariable = v.isMetaKindVariable();
+
+    // if(thisIsVariable == vIsVariable){
+    //   bool thisIsInteger = isIntegral();
+    //   bool vIsInteger = v.isIntegral();
+    //   if(thisIsInteger == vIsInteger){
+    //     return getNode() < v.getNode();
+    //   }else{
+    //     return thisIsInteger && !vIsInteger;
+    //   }
+    // }else{
+    //   return thisIsVariable && !vIsVariable;
+    // }
   }
+
+  struct VariableNodeCmp {
+    bool operator()(Node n, Node m) const {
+      bool nIsVariable = n.isVar();
+      bool mIsVariable = m.isVar();
+
+      if(nIsVariable == mIsVariable){
+        bool nIsInteger = n.getType().isInteger();
+        bool mIsInteger = m.getType().isInteger();
+        if(nIsInteger == mIsInteger){
+          return n < m;
+        }else{
+          return nIsInteger && !mIsInteger;
+        }
+      }else{
+        return nIsVariable && !mIsVariable;
+      }
+    }
+  };
 
   bool operator==(const Variable& v) const { return getNode() == v.getNode();}
 
@@ -419,6 +441,27 @@ static void merge_ranges(GetNodeIterator first1,
   copy_range(first2, last2, result);
 }
 
+template <class GetNodeIterator, class T, class Cmp>
+static void merge_ranges(GetNodeIterator first1,
+                         GetNodeIterator last1,
+                         GetNodeIterator first2,
+                         GetNodeIterator last2,
+                         std::vector<T>& result,
+                         const Cmp& cmp) {
+
+  while(first1 != last1 && first2 != last2){
+    if( cmp(*first1, *first2) ){
+      result.push_back(*first1);
+      ++ first1;
+    }else{
+      result.push_back(*first2);
+      ++ first2;
+    }
+  }
+  copy_range(first1, last1, result);
+  copy_range(first2, last2, result);
+}
+
 /**
  * A VarList is a sorted list of variables representing a product.
  * If the VarList is empty, it represents an empty product or 1.
@@ -437,9 +480,7 @@ private:
 
   VarList() : NodeWrapper(Node::null()) {}
 
-  VarList(Node n) : NodeWrapper(n) {
-    Assert(isSorted(begin(), end()));
-  }
+  VarList(Node n);
 
   typedef expr::NodeSelfIterator internal_iterator;
 
