@@ -153,7 +153,9 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
   enableTheory(THEORY_BOOL);
 
   const char* p = logicString.c_str();
-  if(!strcmp(p, "QF_SAT") || *p == '\0') {
+  if(*p == '\0') {
+    // propositional logic only; we're done.
+  } else if(!strcmp(p, "QF_SAT")) {
     // propositional logic only; we're done.
     p += 6;
   } else if(!strcmp(p, "QF_ALL_SUPPORTED")) {
