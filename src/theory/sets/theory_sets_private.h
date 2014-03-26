@@ -165,7 +165,7 @@ private:
   typedef std::hash_map<TNode, Elements, TNodeHashFunction> SettermElementsMap;
   const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap) const;
   Node elementsToShape(Elements elements, TypeNode setType) const;
-  void checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
+  bool checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
 };/* class TheorySetsPrivate */
 
 

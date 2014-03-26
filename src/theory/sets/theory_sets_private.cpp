@@ -419,15 +419,14 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
 }
 
 
-
-void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap, TNode S) const {
+bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap, TNode S) const {
 
   Debug("sets-model") << "[sets-model] checkModel(..., " << S << "): "
                       << std::endl;
 
   Assert(S.getType().isSet());
 
-  Elements emptySetOfElements;
+  const Elements emptySetOfElements;
   const Elements& saved =
     d_equalityEngine.getRepresentative(S).getKind() == kind::EMPTYSET ?
     emptySetOfElements :
@@ -438,9 +437,18 @@ void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
 
   if(S.getNumChildren() == 2) {
 
-    Elements cur, left, right;
-    left = settermElementsMap.find(d_equalityEngine.getRepresentative(S[0]))->second;
-    right = settermElementsMap.find(d_equalityEngine.getRepresentative(S[1]))->second;
+    Elements cur;
+
+    const Elements& left =
+      d_equalityEngine.getRepresentative(S[0]).getKind() == kind::EMPTYSET ?
+      emptySetOfElements :
+      settermElementsMap.find(d_equalityEngine.getRepresentative(S[0]))->second;
+
+    const Elements&  right =
+      d_equalityEngine.getRepresentative(S[1]).getKind() == kind::EMPTYSET ?
+      emptySetOfElements :
+      settermElementsMap.find(d_equalityEngine.getRepresentative(S[1]))->second;
+
     switch(S.getKind()) {
     case kind::UNION:
       if(left.size() >= right.size()) {
@@ -466,16 +474,18 @@ void TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
     Debug("sets-model") << " }" << std::endl;
 
     if(saved != cur) {
-      Debug("sets-model") << "[sets-model] *** ERRROR *** cur != saved "
+      Debug("sets-model") << "[sets-model] *** ERROR *** cur != saved "
                           << std::endl;
-      Debug("sets-model") << "[sets-model]   FYI: "
-                          << "  [" << S << "] = " << d_equalityEngine.getRepresentative(S) << ", "
-                          << "  [" << S[0] << "] = " << d_equalityEngine.getRepresentative(S[0]) << ", "
-                          << "  [" << S[1] << "] = " << d_equalityEngine.getRepresentative(S[1]) << "\n";
+      Debug("sets-model")
+	<< "[sets-model]   FYI: "
+	<< "  [" << S << "] = " << d_equalityEngine.getRepresentative(S) << ", "
+	<< "  [" << S[0] << "] = " << d_equalityEngine.getRepresentative(S[0]) << ", "
+	<< "  [" << S[1] << "] = " << d_equalityEngine.getRepresentative(S[1]) << "\n";
 
+      return false;
     }
-    Assert( saved == cur );
   }
+  return true;
 }
 
 Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) const
@@ -516,6 +526,15 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
       TNode x = d_equalityEngine.getRepresentative(n[0]);
       TNode S = d_equalityEngine.getRepresentative(n[1]);
       settermElementsMap[S].insert(x);
+      if(Debug.isOn("sets-model-details")) {
+	vector<TNode> explanation;
+	d_equalityEngine.explainPredicate(n, true, explanation);
+	Debug("sets-model-details")
+	  << "[sets-model-details]  >  node: " << n << ", explanation:" << std::endl;
+	BOOST_FOREACH(TNode m, explanation) {
+	  Debug("sets-model-details") << "[sets-model-details]  >>  " << m << std::endl;
+	}
+      }
     }
   }
 
@@ -560,11 +579,14 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
   }
 
 #ifdef CVC4_ASSERTIONS
+  bool checkPassed = true;
   BOOST_FOREACH(TNode term, terms) {
     if( term.getType().isSet() ) {
-      checkModel(settermElementsMap, term);
+      checkPassed &= checkModel(settermElementsMap, term);
     }
   }
+  Assert( checkPassed,
+	  "THEORY_SETS check-model failed. Run with -d sets-model for details." );
 #endif
 }
 
