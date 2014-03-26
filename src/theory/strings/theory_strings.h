@@ -311,6 +311,7 @@ private:
 	// intersection
 	NodeListMap d_str_re_map;
 	NodeNodeMap d_inter_cache;
+	NodeIntMap d_inter_index;
 	// antecedant for why regexp membership must be true
 	NodeNodeMap d_regexp_ant;
 	// membership length
