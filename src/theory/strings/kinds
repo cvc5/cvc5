@@ -77,6 +77,7 @@ operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
+operator REGEXP_LOOP 2:3 "regexp loop"
 
 operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all charactors"
@@ -88,6 +89,7 @@ typerule REGEXP_STAR ::CVC4::theory::strings::RegExpStarTypeRule
 typerule REGEXP_PLUS ::CVC4::theory::strings::RegExpPlusTypeRule
 typerule REGEXP_OPT ::CVC4::theory::strings::RegExpOptTypeRule
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
+typerule REGEXP_LOOP ::CVC4::theory::strings::RegExpLoopTypeRule
 
 typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
 

@@ -347,6 +347,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::REGEXP_PLUS: out << "re.+ "; break;
   case kind::REGEXP_OPT: out << "re.opt "; break;
   case kind::REGEXP_RANGE: out << "re.range "; break;
+  case kind::REGEXP_LOOP: out << "re.loop "; break;
   case kind::REGEXP_EMPTY: out << "re.nostr "; break;
   case kind::REGEXP_SIGMA: out << "re.allchar "; break;
 

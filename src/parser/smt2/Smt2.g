@@ -1346,6 +1346,7 @@ builtinOp[CVC4::Kind& kind]
   | REPLUS_TOK     { $kind = CVC4::kind::REGEXP_PLUS; }
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
   | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
+  | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
 
   // NOTE: Theory operators go here
   ;
@@ -1721,6 +1722,7 @@ RESTAR_TOK : 're.*';
 REPLUS_TOK : 're.+';
 REOPT_TOK : 're.opt';
 RERANGE_TOK : 're.range';
+RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
 

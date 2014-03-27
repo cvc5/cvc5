@@ -2850,30 +2850,36 @@ bool TheoryStrings::splitRegExp( Node x, Node r, Node ant ) {
 }
 
 void TheoryStrings::addMembership(Node assertion) {
-	d_regexp_memberships.push_back( assertion );
-
-	if(options::stringEIT()) {
-		bool polarity = assertion.getKind() != kind::NOT;
-		if(polarity) {
-			TNode atom = polarity ? assertion : assertion[0];
-			Node x = atom[0];
-			Node r = atom[1];
-			NodeList* lst;
-			NodeListMap::iterator itr_xr = d_str_re_map.find( x );
-			if( itr_xr == d_str_re_map.end() ){
-			  lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
-																	ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
-			  d_str_re_map.insertDataFromContextMemory( x, lst );
-			} else {
-			  lst = (*itr_xr).second;
+	bool polarity = assertion.getKind() != kind::NOT;
+	TNode atom = polarity ? assertion : assertion[0];
+	Node x = atom[0];
+	Node r = atom[1];
+	if(polarity) {
+		NodeList* lst;
+		NodeListMap::iterator itr_xr = d_str_re_map.find( x );
+		if( itr_xr == d_str_re_map.end() ){
+		  lst = new(getSatContext()->getCMM()) NodeList( true, getSatContext(), false,
+																ContextMemoryAllocator<TNode>(getSatContext()->getCMM()) );
+		  d_str_re_map.insertDataFromContextMemory( x, lst );
+		} else {
+		  lst = (*itr_xr).second;
+		}
+		//check
+		for( NodeList::const_iterator itr = lst->begin(); itr != lst->end(); ++itr ) {
+			if( r == *itr ) {
+				return;
 			}
-			//check
-		    for( NodeList::const_iterator itr = lst->begin(); itr != lst->end(); ++itr ) {
-				if( r == *itr ) {
-					return;
-				}
-			}
-			lst->push_back( r );
+		}
+		lst->push_back( r );
+		d_regexp_memberships.push_back( assertion );
+	} else {
+		if(options::stringEIT() && d_regexp_opr.checkConstRegExp(r)) {
+			int rt;
+			Node r2 = d_regexp_opr.complement(r, rt);
+			Node a = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, r2);
+			d_regexp_memberships.push_back( a );
+		} else {
+			d_regexp_memberships.push_back( assertion );
 		}
 	}
 }

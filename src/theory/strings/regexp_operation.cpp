@@ -1293,6 +1293,54 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
 	return intersectInternal(r1, r2, cache, spflag);
 
 }
+
+Node RegExpOpr::complement(Node r, int &ret) {
+	Node rNode;
+	ret = 1;
+	if(d_compl_cache.find(r) != d_compl_cache.end()) {
+		rNode = d_compl_cache[r].first;
+		ret = d_compl_cache[r].second;
+	} else {
+		if(r == d_emptyRegexp) {
+			rNode = d_sigma_star;
+		} else if(r == d_emptySingleton) {
+			rNode = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, d_sigma, d_sigma_star);
+		} else if(!checkConstRegExp(r)) {
+			//TODO: var to be extended
+			ret = 0;
+		} else {
+			std::set<unsigned> cset;
+			SetNodes vset;
+			firstChars(r, cset, vset);
+			Assert(!vset.empty(), "Regexp 1298 Error");
+			std::vector< Node > vec_nodes;
+			for(unsigned i=0; i<d_card; i++) {
+				CVC4::String c = CVC4::String::convertUnsignedIntToChar(i);
+				Node n = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(c));
+				Node r2;
+				if(cset.find(i) == cset.end()) {
+					r2 = d_sigma_star;
+				} else {
+					int rt;
+					derivativeS(r, c, r2);
+					if(r2 == r) {
+						r2 = d_emptyRegexp;
+					} else {
+						r2 = complement(r2, rt);
+					}
+				}
+				n = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, n, r2));
+				vec_nodes.push_back(n);
+			}
+			rNode = vec_nodes.size()==0? d_emptyRegexp : vec_nodes.size()==1? vec_nodes[0] :
+						NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec_nodes);
+		}
+		std::pair< Node, int > p(rNode, ret);
+		d_compl_cache[r] = p;
+	}
+	Trace("regexp-compl") << "COMPL( " << mkString(r) << " ) = " << mkString(rNode) << ", ret=" << ret << std::endl;
+	return rNode;
+}
 //printing
 std::string RegExpOpr::niceChar( Node r ) {
 	if(r.isConst()) {
