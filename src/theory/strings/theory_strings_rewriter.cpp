@@ -530,6 +530,10 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 		retNode = prerewriteConcatRegExp(node);
     } else if(node.getKind() == kind::REGEXP_UNION) {
 		retNode = prerewriteOrRegExp(node);
+	} else if(node.getKind() == kind::REGEXP_STAR) {
+		if(node[0].getKind() == kind::REGEXP_STAR) {
+			retNode = node[0];
+		}
 	} else if(node.getKind() == kind::REGEXP_PLUS) {
 		retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_CONCAT, node[0],
 					NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, node[0]));
@@ -550,6 +554,41 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
 		} else {
 			retNode = NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes );
 		}
+	} else if(node.getKind() == kind::REGEXP_LOOP) {
+		Node r = node[0];
+		if(r.getKind() == kind::REGEXP_STAR) {
+			retNode = r;
+		} else {
+			unsigned l = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+			std::vector< Node > vec_nodes;
+			for(unsigned i=0; i<l; i++) {
+				vec_nodes.push_back(r);
+			}
+			if(node.getNumChildren() == 3) {
+				Node n = vec_nodes.size()==0 ? NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(CVC4::String(""))) 
+					: vec_nodes.size()==1 ? r : prerewriteConcatRegExp(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes));
+				unsigned u = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+				if(u <= l) {
+					retNode = n;
+				} else {
+					std::vector< Node > vec2;
+					vec2.push_back(n);
+					for(unsigned j=l; j<u; j++) {
+						vec_nodes.push_back(r);
+						n = vec_nodes.size()==1? r : prerewriteConcatRegExp(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes));
+						vec2.push_back(n);
+					}
+					retNode = prerewriteOrRegExp(NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vec2));
+				}
+			} else {
+				Node rest = NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, r);
+				retNode = vec_nodes.size()==0? rest : prerewriteConcatRegExp( vec_nodes.size()==1? 
+								 NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, r, rest)
+								:NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, 
+									NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes), rest) );
+			}
+		}
+		Trace("strings-lp") << "Strings::lp " << node << " => " << retNode << std::endl;
 	}
 
     Trace("strings-prerewrite") << "Strings::preRewrite returning " << retNode << std::endl;

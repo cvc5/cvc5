@@ -44,13 +44,13 @@ TESTS =	\
   loop006.smt2 \
   loop007.smt2 \
   loop008.smt2 \
-  loop009.smt2
-
-#regexp002.smt2
+  loop009.smt2 \
+  reloop.smt2
 
 FAILING_TESTS =
 
 EXTRA_DIST = $(TESTS) \
+  regexp002.smt2 \
   type002.smt2
 
 # and make sure to distribute it
