@@ -2333,7 +2333,7 @@ bool TheoryStrings::checkMemberships() {
 	std::vector< Node > processed;
 	std::vector< Node > cprocessed;
 
-	if(options::stringEIT()) {
+	//if(options::stringEIT()) {
 		for(NodeListMap::const_iterator itr_xr = d_str_re_map.begin();
 			itr_xr != d_str_re_map.end(); ++itr_xr ) {
 			bool spflag = false;
@@ -2391,7 +2391,7 @@ bool TheoryStrings::checkMemberships() {
 				}
 			}
 		}
-	}
+	//}
 
 	if(!addedLemma) {
 	  for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
@@ -2871,8 +2871,7 @@ void TheoryStrings::addMembership(Node assertion) {
 			}
 		}
 		lst->push_back( r );
-		d_regexp_memberships.push_back( assertion );
-	} else {
+	}/* else {
 		if(options::stringEIT() && d_regexp_opr.checkConstRegExp(r)) {
 			int rt;
 			Node r2 = d_regexp_opr.complement(r, rt);
@@ -2881,7 +2880,8 @@ void TheoryStrings::addMembership(Node assertion) {
 		} else {
 			d_regexp_memberships.push_back( assertion );
 		}
-	}
+	}*/
+	d_regexp_memberships.push_back( assertion );
 }
 
 //// Finite Model Finding

@@ -56,7 +56,9 @@ std::string String::toString() const {
 			default  : {
 				std::stringstream ss;
 				ss << std::setfill ('0') << std::setw(2) << std::hex << ((int)c);
-				s = "\\x" + ss.str();
+				std::string t = ss.str();
+				t = t.substr(t.size()-2, 2);
+				s = "\\x" + t;
 				//std::string s2 = static_cast<std::ostringstream*>( &(std::ostringstream() << (int)c) )->str();
 			}
 		  }
