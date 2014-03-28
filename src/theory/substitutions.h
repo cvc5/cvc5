@@ -95,10 +95,6 @@ private:
    */
   CacheInvalidator d_cacheInvalidator;
 
-  // Helper list and method for simplifyLHS methods
-  // std::vector<std::pair<Node, Node> > d_worklist;
-  // void processWorklist(std::vector<std::pair<Node, Node> >& equalities, bool rewrite);
-
 public:
 
   SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true, bool solvedForm = false) :
@@ -185,18 +181,6 @@ public:
 
   // Simplify right-hand sides of current map with lhs -> rhs
   void simplifyRHS(TNode lhs, TNode rhs);
-
-  /*
-  // Simplify left-hand sides of current map using the given substitutions
-  void simplifyLHS(const SubstitutionMap& subMap,
-                   std::vector<std::pair<Node,Node> >& equalities,
-                   bool rewrite = true);
-
-  // Simplify left-hand sides of current map with lhs -> rhs and then add lhs -> rhs to the substitutions set
-  void simplifyLHS(TNode lhs, TNode rhs,
-                   std::vector<std::pair<Node,Node> >& equalities,
-                   bool rewrite = true);
-  */
 
   bool isSolvedForm() const { return d_solvedForm; }
 
