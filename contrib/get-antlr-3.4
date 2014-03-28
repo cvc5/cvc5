@@ -26,6 +26,12 @@ function webget {
 }
 
 if [ -z "${MACHINE_TYPE}" ]; then
+  if ! [ -e config/config.guess ]; then
+   echo "$(basename $0): I need the file config/config.guess to tell MACHINE_TYPE" >&2
+   echo "Try running ./autogen.sh, or set the MACHINE_TYPE environment variable." >&2
+   exit 1
+  fi
+
   # get first nibble from config.guess (x86_64, i686, ...)
   MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
 fi
