@@ -68,13 +68,13 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   switch(kind) {
 
   case kind::MEMBER: {
-    if(!node[0].isConst() || !node[1].isConst())
-      break;
-
-    // both are constants
-    TNode S = preRewrite(node[1]).node;
-    bool isMember = checkConstantMembership(node[0], S);
-    return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
+    if(node[0].isConst() && node[1].isConst()) {
+      // both are constants
+      TNode S = preRewrite(node[1]).node;
+      bool isMember = checkConstantMembership(node[0], S);
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
+    }
+    break;
   }//kind::MEMBER
 
   case kind::SUBSET: {

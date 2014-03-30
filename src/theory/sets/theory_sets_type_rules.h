@@ -44,62 +44,34 @@ public:
 
 };/* class SetsTypeRule */
 
-// TODO: Union, Intersection and Setminus should be combined to one check
-struct SetUnionTypeRule {
+struct SetsBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::UNION);
+    Assert(n.getKind() == kind::UNION ||
+           n.getKind() == kind::INTERSECTION ||
+           n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "set union operating on non-set");
+        throw TypeCheckingExceptionPrivate(n, "operator expects a set, first argument is not");
       }
       TypeNode secondSetType = n[1].getType(check);
       if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "set union operating on sets of different types");
+        throw TypeCheckingExceptionPrivate(n, "operator expects two sets of the same type");
       }
     }
     return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::UNION ||
+           n.getKind() == kind::INTERSECTION ||
+           n.getKind() == kind::SETMINUS);
+    return n[0].isConst() && n[1].isConst();
   }
 };/* struct SetUnionTypeRule */
 
-struct SetIntersectionTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::INTERSECTION);
-    TypeNode setType = n[0].getType(check);
-    if( check ) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "set intersection operating on non-set");
-      }
-      TypeNode secondSetType = n[1].getType(check);
-      if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "set intersection operating on sets of different types");
-      }
-    }
-    return setType;
-  }
-};/* struct SetIntersectionTypeRule */
-
-struct SetSetminusTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-    throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::SETMINUS);
-    TypeNode setType = n[0].getType(check);
-    if( check ) {
-      if(!setType.isSet()) {
-        throw TypeCheckingExceptionPrivate(n, "set setminus operating on non-set");
-      }
-      TypeNode secondSetType = n[1].getType(check);
-      if(secondSetType != setType) {
-        throw TypeCheckingExceptionPrivate(n, "set setminus operating on sets of different types");
-      }
-    }
-    return setType;
-  }
-};/* struct SetSetminusTypeRule */
-
-struct SetSubsetTypeRule {
+struct SubsetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::SUBSET);
@@ -117,7 +89,7 @@ struct SetSubsetTypeRule {
   }
 };/* struct SetSubsetTypeRule */
 
-struct SetMemberTypeRule {
+struct MemberTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
     Assert(n.getKind() == kind::MEMBER);
@@ -141,25 +113,16 @@ struct SetSingletonTypeRule {
     Assert(n.getKind() == kind::SET_SINGLETON);
     return nodeManager->mkSetType(n[0].getType(check));
   }
-};/* struct SetInTypeRule */
 
-struct SetConstTypeRule {
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    switch(n.getKind()) {
-    case kind::SET_SINGLETON:
-      return n[0].isConst();
-    case kind::UNION:
-      return n[0].isConst() && n[1].isConst();
-    default:
-      Unhandled();
-    }
+    Assert(n.getKind() == kind::SET_SINGLETON);
+    return n[0].isConst();
   }
-};
+};/* struct SetInTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-
     Assert(n.getKind() == kind::EMPTYSET);
     EmptySet emptySet = n.getConst<EmptySet>();
     Type setType = emptySet.getType();
