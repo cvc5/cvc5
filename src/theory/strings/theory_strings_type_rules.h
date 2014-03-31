@@ -312,9 +312,6 @@ public:
 		if (!t.isRegExp()) {
 		  throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
 		}
-		if(++it != it_end) {
-		  throw TypeCheckingExceptionPrivate(n, "too many regexp");
-		}
 	}
     return nodeManager->regexpType();
   }
@@ -331,9 +328,6 @@ public:
 		if (!t.isRegExp()) {
 		  throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
 		}
-		if(++it != it_end) {
-		  throw TypeCheckingExceptionPrivate(n, "too many regexp");
-		}
 	}
     return nodeManager->regexpType();
   }
@@ -349,9 +343,6 @@ public:
 		TypeNode t = (*it).getType(check);
 		if (!t.isRegExp()) {
 		  throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
-		}
-		if(++it != it_end) {
-		  throw TypeCheckingExceptionPrivate(n, "too many regexp");
 		}
 	}
     return nodeManager->regexpType();
@@ -383,10 +374,6 @@ public:
 		}
 		if(ch[0] > ch[1]) {
 			throw TypeCheckingExceptionPrivate(n, "expecting the first constant is less or equal to the second one in regexp range");
-		}
-
-		if( it != it_end ) {
-		  throw TypeCheckingExceptionPrivate(n, "too many terms in regexp range");
 		}
 	}
     return nodeManager->regexpType();
@@ -443,9 +430,6 @@ public:
 		//if( (*it).getKind() != kind::CONST_STRING ) {
 		//  throw TypeCheckingExceptionPrivate(n, "expecting constant string terms");
 		//}
-		if(++it != it_end) {
-		  throw TypeCheckingExceptionPrivate(n, "too many terms");
-		}
 	}
     return nodeManager->regexpType();
   }
@@ -466,9 +450,6 @@ public:
 		t = (*it).getType(check);
 		if (!t.isRegExp()) {
 		  throw TypeCheckingExceptionPrivate(n, "expecting regexp terms");
-		}
-		if(++it != it_end) {
-		  throw TypeCheckingExceptionPrivate(n, "too many terms");
 		}
 	}
     return nodeManager->booleanType();

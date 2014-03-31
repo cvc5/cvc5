@@ -339,6 +339,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STRING_SUFFIX: out << "str.suffixof "; break;
   case kind::STRING_ITOS: out << "int.to.str "; break;
   case kind::STRING_STOI: out << "str.to.int "; break;
+  case kind::STRING_U16TOS: out << "u16.to.str "; break;
+  case kind::STRING_STOU16: out << "str.to.u16 "; break;
+  case kind::STRING_U32TOS: out << "u32.to.str "; break;
+  case kind::STRING_STOU32: out << "str.to.u32 "; break;
   case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
   case kind::REGEXP_CONCAT: out << "re.++ "; break;
   case kind::REGEXP_UNION: out << "re.union "; break;

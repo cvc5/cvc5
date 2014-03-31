@@ -1337,6 +1337,10 @@ builtinOp[CVC4::Kind& kind]
   | STRSUFF_TOK    { $kind = CVC4::kind::STRING_SUFFIX; }
   | STRITOS_TOK    { $kind = CVC4::kind::STRING_ITOS; }
   | STRSTOI_TOK    { $kind = CVC4::kind::STRING_STOI; }
+  | STRU16TOS_TOK    { $kind = CVC4::kind::STRING_U16TOS; }
+  | STRSTOU16_TOK    { $kind = CVC4::kind::STRING_STOU16; }
+  | STRU32TOS_TOK    { $kind = CVC4::kind::STRING_U32TOS; }
+  | STRSTOU32_TOK    { $kind = CVC4::kind::STRING_STOU32; }
   | STRINRE_TOK    { $kind = CVC4::kind::STRING_IN_REGEXP; }
   | STRTORE_TOK    { $kind = CVC4::kind::STRING_TO_REGEXP; }
   | RECON_TOK      { $kind = CVC4::kind::REGEXP_CONCAT; }
@@ -1713,6 +1717,10 @@ STRPREF_TOK : 'str.prefixof' ;
 STRSUFF_TOK : 'str.suffixof' ;
 STRITOS_TOK : 'int.to.str' ;
 STRSTOI_TOK : 'str.to.int' ;
+STRU16TOS_TOK : 'u16.to.str' ;
+STRSTOU16_TOK : 'str.to.u16' ;
+STRU32TOS_TOK : 'u32.to.str' ;
+STRSTOU32_TOK : 'str.to.u32' ;
 STRINRE_TOK : 'str.in.re';
 STRTORE_TOK : 'str.to.re';
 RECON_TOK : 're.++';
