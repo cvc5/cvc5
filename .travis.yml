@@ -22,10 +22,16 @@ before_script:
 script:
  - normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
  - if [ -n "$TRAVIS_CVC4" ]; then
+     if [ -n "$TRAVIS_CVC4_DISTCHECK" ]; then
+       (contrib/new-theory test_newtheory || (echo; echo "${red}NEWTHEORY FAILED${normal}"; echo; exit 1)) &&
+       (grep -q '^THEORIES *=.* test_newtheory' src/Makefile.am || (echo; echo "${red}NEWTHEORY FAILED${normal}"; echo; exit 1)) &&
+       (contrib/new-theory --alternate test_newtheory test_newalttheory || (echo; echo "${red}NEWTHEORY-ALTERNATE FAILED${normal}"; echo; exit 1)) &&
+       (grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.am || (echo; echo "${red}NEWTHEORY-ALTERNATE FAILED${normal}"; echo; exit 1));
+     fi;
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG" &&
      (./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
      if [ -n "$TRAVIS_CVC4_DISTCHECK" ]; then
-       make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}DISTCHECK FAILED${normal}"; echo; exit 1);
+       make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}DISTCHECK (WITH NEWTHEORY TESTS) FAILED${normal}"; echo; exit 1);
      else
        (make -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}BUILD/TEST FAILED${normal}"; echo; exit 1)) &&
        (make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= || (echo; echo "${red}PORTFOLIO TEST FAILED${normal}"; echo; exit 1)) &&
