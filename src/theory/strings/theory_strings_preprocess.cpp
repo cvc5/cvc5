@@ -424,7 +424,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b2);
 			Node g2 = NodeManager::currentNM()->mkNode(kind::AND,
 						NodeManager::currentNM()->mkNode(kind::GEQ, b2, d_zero),
-						NodeManager::currentNM()->mkNode(kind::GT, pret, b2));
+						NodeManager::currentNM()->mkNode(kind::GT, lenp, b2));
 			Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b2);
 			Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b2,one));
 			Node ufMx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, b2);
