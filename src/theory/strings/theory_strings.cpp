@@ -72,6 +72,10 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
     d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR_TOTAL);
     d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
     d_equalityEngine.addFunctionKind(kind::STRING_STOI);
+    //d_equalityEngine.addFunctionKind(kind::STRING_U16TOS);
+    //d_equalityEngine.addFunctionKind(kind::STRING_STOU16);
+    //d_equalityEngine.addFunctionKind(kind::STRING_U32TOS);
+    //d_equalityEngine.addFunctionKind(kind::STRING_STOU32);
 
     d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
     d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );

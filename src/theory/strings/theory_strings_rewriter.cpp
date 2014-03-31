@@ -476,17 +476,31 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 						node[0].eqNode(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, node[1],
 										NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens), lens)));
 		}
-	} else if(node.getKind() == kind::STRING_ITOS) {
+	} else if(node.getKind() == kind::STRING_ITOS || node.getKind() == kind::STRING_U16TOS || node.getKind() == kind::STRING_U32TOS) {
 		if(node[0].isConst()) {
+			bool flag = false;
 			std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
+			if(node.getKind() == kind::STRING_U16TOS) {
+				CVC4::Rational r1(65536);
+				CVC4::Rational r2 = node[0].getConst<Rational>();
+				if(r2>r1) {
+					flag = true;
+				}
+			} else if(node.getKind() == kind::STRING_U32TOS) {
+				CVC4::Rational r1(4294967296);
+				CVC4::Rational r2 = node[0].getConst<Rational>();
+				if(r2>r1) {
+					flag = true;
+				}
+			}
 			//std::string stmp = static_cast<std::ostringstream*>( &(std::ostringstream() << node[0]) )->str();
-			if(stmp[0] == '-') {
+			if(flag || stmp[0] == '-') {
 				retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
 			} else {
 				retNode = NodeManager::currentNM()->mkConst( ::CVC4::String(stmp) );
 			}
 		}
-	} else if(node.getKind() == kind::STRING_STOI) {
+	} else if(node.getKind() == kind::STRING_STOI || node.getKind() == kind::STRING_STOU16 || node.getKind() == kind::STRING_STOU32) {
 		if(node[0].isConst()) {
 			CVC4::String s = node[0].getConst<String>();
 			if(s.isNumber()) {
@@ -495,7 +509,24 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 					//TODO: leading zeros
 					retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
 				} else {
-					retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(stmp.c_str()));
+					bool flag = false;
+					CVC4::Rational r2(stmp.c_str());
+					if(node.getKind() == kind::STRING_U16TOS) {
+						CVC4::Rational r1(65536);
+						if(r2>r1) {
+							flag = true;
+						}
+					} else if(node.getKind() == kind::STRING_U32TOS) {
+						CVC4::Rational r1(4294967296);
+						if(r2>r1) {
+							flag = true;
+						}
+					}
+					if(flag) {
+						retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
+					} else {
+						retNode = NodeManager::currentNM()->mkConst( r2 );
+					}
 				}
 			} else {
 				retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
