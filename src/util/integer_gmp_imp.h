@@ -60,8 +60,8 @@ public:
    * For more information about what is a valid rational string,
    * see GMP's documentation for mpq_set_str().
    */
-  explicit Integer(const char* s, unsigned base = 10): d_value(s, base) {}
-  explicit Integer(const std::string& s, unsigned base = 10) : d_value(s, base) {}
+  explicit Integer(const char* s, unsigned base = 10);
+  explicit Integer(const std::string& s, unsigned base = 10);
 
   Integer(const Integer& q) : d_value(q.d_value) {}
 
@@ -149,7 +149,7 @@ public:
     mpz_and(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
     return Integer(result);
   }
-  
+
   Integer bitwiseXor(const Integer& y) const {
     mpz_class result;
     mpz_xor(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
@@ -161,7 +161,7 @@ public:
     mpz_com(result.get_mpz_t(), d_value.get_mpz_t());
     return Integer(result);
   }
-  
+
   /**
    * Return this*(2^pow).
    */
@@ -171,20 +171,20 @@ public:
     return Integer( result );
   }
 
-  /** 
+  /**
    * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1. 
+   * current Integer to 1.
    */
   Integer setBit(uint32_t i) const {
     mpz_class res = d_value;
     mpz_setbit(res.get_mpz_t(), i);
-    return Integer(res); 
+    return Integer(res);
   }
 
   bool isBitSet(uint32_t i) const {
-    return !extractBitRange(1, i).isZero(); 
+    return !extractBitRange(1, i).isZero();
   }
-  
+
   /**
    * Returns the integer with the binary representation of size bits
    * extended with amount 1's
