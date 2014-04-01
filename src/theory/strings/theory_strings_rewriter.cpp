@@ -16,6 +16,7 @@
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/options.h"
 #include "smt/logic_exception.h"
+#include <stdint.h>
 
 using namespace std;
 using namespace CVC4;
@@ -481,13 +482,13 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			bool flag = false;
 			std::string stmp = node[0].getConst<Rational>().getNumerator().toString();
 			if(node.getKind() == kind::STRING_U16TOS) {
-				CVC4::Rational r1(65536);
+				CVC4::Rational r1(UINT16_MAX);
 				CVC4::Rational r2 = node[0].getConst<Rational>();
 				if(r2>r1) {
 					flag = true;
 				}
 			} else if(node.getKind() == kind::STRING_U32TOS) {
-				CVC4::Rational r1(4294967296);
+				CVC4::Rational r1(UINT32_MAX);
 				CVC4::Rational r2 = node[0].getConst<Rational>();
 				if(r2>r1) {
 					flag = true;
@@ -512,12 +513,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 					bool flag = false;
 					CVC4::Rational r2(stmp.c_str());
 					if(node.getKind() == kind::STRING_U16TOS) {
-						CVC4::Rational r1(65536);
+						CVC4::Rational r1(UINT16_MAX);
 						if(r2>r1) {
 							flag = true;
 						}
 					} else if(node.getKind() == kind::STRING_U32TOS) {
-						CVC4::Rational r1(4294967296);
+						CVC4::Rational r1(UINT32_MAX);
 						if(r2>r1) {
 							flag = true;
 						}

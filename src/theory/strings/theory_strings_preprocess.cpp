@@ -18,6 +18,7 @@
 #include "expr/kind.h"
 #include "theory/strings/options.h"
 #include "smt/logic_exception.h"
+#include <stdint.h>
 
 namespace CVC4 {
 namespace theory {
@@ -248,11 +249,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
 			Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
 			if(t.getKind()==kind::STRING_U16TOS) {
-				nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(65536) ), t[0]));
+				nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(UINT16_MAX) ), t[0]));
 				Node lencond = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(5) ), lenp);
 				new_nodes.push_back(lencond);
 			} else if(t.getKind()==kind::STRING_U32TOS) {
-				nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(4294967296) ), t[0]));
+				nonneg = NodeManager::currentNM()->mkNode(kind::AND, nonneg, NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(UINT32_MAX) ), t[0]));
 				Node lencond = NodeManager::currentNM()->mkNode(kind::GEQ, NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) ), lenp);
 				new_nodes.push_back(lencond);
 			}
