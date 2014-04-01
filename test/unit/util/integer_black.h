@@ -24,6 +24,7 @@ using namespace CVC4;
 using namespace std;
 
 const char* largeVal = "4547897890548754897897897897890789078907890";
+const char* lotsOfLeadingZeroes = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
 
 class IntegerBlack : public CxxTest::TestSuite {
 
@@ -461,5 +462,12 @@ public:
     TS_ASSERT_EQUALS( q, Integer(1));
     TS_ASSERT_EQUALS( r, Integer(-1));
 
+  }
+
+  void testLeadingZeroes() {
+    string leadingZeroes(lotsOfLeadingZeroes);
+    Integer one(1u);
+    Integer one_from_string(leadingZeroes,2);
+    TS_ASSERT_EQUALS(one, one_from_string);
   }
 };
