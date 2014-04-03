@@ -702,20 +702,30 @@ static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
 }
 
+// SMT-LIB quoting for symbols
+static std::string quoteSymbol(std::string s) {
+  if(s.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@%^&*_-+=<>.?/") == std::string::npos) {
+    // simple unquoted symbol
+    return s;
+  }
+
+  // must quote the symbol, but it cannot contain | or \, we turn those into _
+  size_t p;
+  while((p = s.find_first_of("\\|")) != std::string::npos) {
+    s = s.replace(p, 1, "_");
+  }
+  return "|" + s + "|";
+}
+
+static std::string quoteSymbol(TNode n) {
+  std::stringstream ss;
+  ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+  return quoteSymbol(ss.str());
+}
+
 void Smt2Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
   if(sexpr.isKeyword()) {
-    std::string s = sexpr.getValue();
-    if(s.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@%^&*_-+=<>.?/") == std::string::npos) {
-      // simple unquoted symbol
-      out << s;
-    } else {
-      // must quote the symbol, but it cannot contain | or \, we turn those into _
-      size_t p;
-      while((p = s.find_first_of("\\|")) != std::string::npos) {
-        s = s.replace(p, 1, "_");
-      }
-      out << "|" << s << "|";
-    }
+    out << quoteSymbol(sexpr.getValue());
   } else {
     this->Printer::toStream(out, sexpr);
   }
@@ -769,7 +779,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
         if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
           for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
             if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-              out << "(declare-fun " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " () " << tn << ")" << std::endl;
+              out << "(declare-fun " << quoteSymbol((*tm.d_rep_set.d_type_reps.find(tn)).second[i]) << " () " << tn << ")" << std::endl;
             }else{
               out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
             }
@@ -885,7 +895,7 @@ static void toStream(std::ostream& out, const CommandSequence* c) throw() {
 
 static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw() {
   Type type = c->getType();
-  out << "(declare-fun " << c->getSymbol() << " (";
+  out << "(declare-fun " << quoteSymbol(c->getSymbol()) << " (";
   if(type.isFunction()) {
     FunctionType ft = type;
     const vector<Type> argTypes = ft.getArgTypes();
