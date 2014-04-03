@@ -1877,8 +1877,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       d_assertionsToCheck[d_substitutionsIndex] =
         Rewriter::rewrite(Node(substitutionsBuilder));
     }
-  }
-  else {
+  } else {
     // If not in incremental mode, must add substitutions to model
     TheoryModel* m = d_smt.d_theoryEngine->getModel();
     if(m != NULL) {

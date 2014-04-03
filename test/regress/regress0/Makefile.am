@@ -47,6 +47,8 @@ SMT_TESTS = \
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
 	arrayinuf_declare.smt2 \
+	boolean-terms-kernel1.smt2 \
+	boolean-terms-kernel2.smt2 \
 	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \

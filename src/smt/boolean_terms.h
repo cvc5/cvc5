@@ -36,12 +36,12 @@ typedef expr::Attribute<attr::BooleanTermAttrTag, Node> BooleanTermAttr;
 
 class BooleanTermConverter {
   /** The type of the Boolean term conversion variable cache */
-  typedef std::hash_map<Node, Node, NodeHashFunction> BooleanTermVarCache;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> BooleanTermVarCache;
 
   /** The type of the Boolean term conversion cache */
-  typedef std::hash_map< std::pair<Node, theory::TheoryId>, Node,
-                         PairHashFunction< Node, bool,
-                                           NodeHashFunction, std::hash<size_t> > > BooleanTermCache;
+  typedef context::CDHashMap< std::pair<Node, theory::TheoryId>, Node,
+                              PairHashFunction< Node, bool,
+                                                NodeHashFunction, std::hash<size_t> > > BooleanTermCache;
   /** The type of the Boolean term conversion type cache */
   typedef std::hash_map< std::pair<TypeNode, bool>, TypeNode,
                          PairHashFunction< TypeNode, bool,

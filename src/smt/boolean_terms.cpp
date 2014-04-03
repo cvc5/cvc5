@@ -43,8 +43,8 @@ BooleanTermConverter::BooleanTermConverter(SmtEngine& smt) :
   d_tt(),
   d_ffDt(),
   d_ttDt(),
-  d_varCache(),
-  d_termCache(),
+  d_varCache(smt.d_userContext),
+  d_termCache(smt.d_userContext),
   d_typeCache(),
   d_datatypeCache() {
 
@@ -640,7 +640,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           if(dt != dt2) {
             Assert(d_varCache.find(top) != d_varCache.end(),
                    "constructor `%s' not in cache", top.toString().c_str());
-            result.top() << d_varCache[top];
+            result.top() << d_varCache[top].get();
             worklist.pop();
             goto next_worklist;
           }
@@ -658,7 +658,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
           if(dt != dt2) {
             Assert(d_varCache.find(top) != d_varCache.end(),
                    "tester or selector `%s' not in cache", top.toString().c_str());
-            result.top() << d_varCache[top];
+            result.top() << d_varCache[top].get();
             worklist.pop();
             goto next_worklist;
           } else {
