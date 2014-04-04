@@ -344,6 +344,15 @@ function handle_option {
     ERR "cannot use alternate long option --$long_option_alternate for \`$internal' because it's not of bool type"
   fi
 
+  # check that normal options are accessible via SmtEngine too
+  if [ -n "$long_option$short_option$long_option_alternate$short_option_alternate" -a -z "$smtname" -a "$internal" != - ]; then
+    if [ -n "$long_option" ]; then
+      smtname="$long_option"
+    else
+      WARN "$internal is inaccessible via SmtEngine (no smt name for option) but can be set via command-line: $long_option $short_option $long_option_alternate $short_option_alternate"
+    fi
+  fi
+
   # check for duplicates
   if [ "$internal" != - ]; then
     if echo " $all_declared_internal_options " | grep -q " $internal "; then
@@ -565,9 +574,9 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
   run_links_alternate=
   run_smt_links=
   if [ -n "$links" -a -z "$smt_links" -a -n "$smtname" ]; then
-    echo "$kf:$lineno: warning: $smtname has no :link-smt, but equivalent command-line has :link" >&2
+    WARN "$smtname has no :link-smt, but equivalent command-line has :link"
   elif [ -n "$smt_links" -a -z "$links" ] && [ -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o "$long_option_alternate" ]; then
-    echo "$kf:$lineno: warning: $smtname has a :link-smt, but equivalent command-line has no :link" >&2
+    WARN "$smtname has a :link-smt, but equivalent command-line has no :link"
   fi
   if [ -n "$links" ]; then
     # command-line links
