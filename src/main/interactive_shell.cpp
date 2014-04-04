@@ -32,6 +32,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "options/options.h"
+#include "main/options.h"
 #include "util/language.h"
 #include "util/output.h"
 
@@ -183,7 +184,7 @@ restart:
   /* Prompt the user for input. */
   if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-    lineBuf = ::readline(d_options[options::verbosity] >= 0 ? (line == "" ? "CVC4> " : "... > ") : "");
+    lineBuf = ::readline(d_options[options::interactivePrompt] ? (line == "" ? "CVC4> " : "... > ") : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }

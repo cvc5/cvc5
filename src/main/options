@@ -39,6 +39,9 @@ option fallbackSequential  --fallback-sequential bool :default false
 option incrementalParallel --incremental-parallel bool :default false :link --incremental
  Use parallel solver even in incremental mode (may print 'unknown's at times)
 
+option interactivePrompt /--no-interactive-prompt bool :default true
+ turn off interactive prompting while in interactive mode
+
 option segvSpin --segv-spin bool :default false
  spin on segfault/other crash waiting for gdb
 undocumented-alias --segv-nospin = --no-segv-spin
