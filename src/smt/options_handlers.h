@@ -334,6 +334,8 @@ inline void dumpToFile(std::string option, std::string optarg, SmtEngine* smt) {
     throw OptionException(std::string("Bad file name for --dump-to"));
   } else if(optarg == "-") {
     outStream = &DumpOutC::dump_cout;
+  } else if(!options::filesystemAccess()) {
+    throw OptionException(std::string("Filesystem access not permitted"));
   } else {
     errno = 0;
     outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -357,6 +359,8 @@ inline void setRegularOutputChannel(std::string option, std::string optarg, SmtE
     outStream = &std::cout;
   } else if(optarg == "stderr") {
     outStream = &std::cerr;
+  } else if(!options::filesystemAccess()) {
+    throw OptionException(std::string("Filesystem access not permitted"));
   } else {
     errno = 0;
     outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -377,6 +381,8 @@ inline void setDiagnosticOutputChannel(std::string option, std::string optarg, S
     outStream = &std::cout;
   } else if(optarg == "stderr") {
     outStream = &std::cerr;
+  } else if(!options::filesystemAccess()) {
+    throw OptionException(std::string("Filesystem access not permitted"));
   } else {
     errno = 0;
     outStream = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -415,6 +421,8 @@ inline std::ostream* checkReplayLogFilename(std::string option, std::string opta
     throw OptionException(std::string("Bad file name for --replay-log"));
   } else if(optarg == "-") {
     return &std::cout;
+  } else if(!options::filesystemAccess()) {
+    throw OptionException(std::string("Filesystem access not permitted"));
   } else {
     errno = 0;
     std::ostream* replayLog = new std::ofstream(optarg.c_str(), std::ofstream::out | std::ofstream::trunc);

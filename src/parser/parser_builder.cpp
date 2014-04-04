@@ -154,7 +154,7 @@ ParserBuilder& ParserBuilder::withOptions(const Options& options) {
       .withChecks(options[options::semanticChecks])
       .withStrictMode(options[options::strictParsing])
       .withParseOnly(options[options::parseOnly])
-      .withIncludeFile(options[options::canIncludeFile]);
+      .withIncludeFile(options[options::filesystemAccess]);
   }
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
