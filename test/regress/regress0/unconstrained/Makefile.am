@@ -65,6 +65,7 @@ TESTS =	\
 	bvult.smt2 \
 	geq.smt2 \
 	gt.smt2 \
+	ite.smt2 \
 	leq.smt2 \
 	lt.smt2 \
 	uf1.smt2 \
