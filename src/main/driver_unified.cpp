@@ -246,17 +246,19 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
 #endif /* PORTFOLIO_BUILD */
       InteractiveShell shell(*exprMgr, opts);
-      Message() << Configuration::getPackageName()
-                << " " << Configuration::getVersionString();
-      if(Configuration::isGitBuild()) {
-        Message() << " [" << Configuration::getGitId() << "]";
-      } else if(Configuration::isSubversionBuild()) {
-        Message() << " [" << Configuration::getSubversionId() << "]";
+      if(opts[options::interactivePrompt]) {
+        Message() << Configuration::getPackageName()
+                  << " " << Configuration::getVersionString();
+        if(Configuration::isGitBuild()) {
+          Message() << " [" << Configuration::getGitId() << "]";
+        } else if(Configuration::isSubversionBuild()) {
+          Message() << " [" << Configuration::getSubversionId() << "]";
+        }
+        Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                  << " assertions:"
+                  << (Configuration::isAssertionBuild() ? "on" : "off")
+                  << endl;
       }
-      Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                << " assertions:"
-                << (Configuration::isAssertionBuild() ? "on" : "off")
-                << endl;
       if(replayParser != NULL) {
         // have the replay parser use the declarations input interactively
         replayParser->useDeclarationsFrom(shell.getParser());

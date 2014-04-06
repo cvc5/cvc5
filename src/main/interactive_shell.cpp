@@ -192,7 +192,7 @@ restart:
     free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
   } else {
-    if(d_options[options::verbosity] >= 0) {
+    if(d_options[options::interactivePrompt]) {
       if(line == "") {
         d_out << "CVC4> " << flush;
       } else {
@@ -260,7 +260,7 @@ restart:
       input[n] = '\n';
       if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-        lineBuf = ::readline(d_options[options::verbosity] >= 0 ? "... > " : "");
+        lineBuf = ::readline(d_options[options::interactivePrompt] ? "... > " : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -268,7 +268,7 @@ restart:
         free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
       } else {
-        if(d_options[options::verbosity] >= 0) {
+        if(d_options[options::interactivePrompt]) {
           d_out << "... > " << flush;
         }
 
