@@ -89,18 +89,17 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 
     Debug("sets") << "[sets]  in conflict = " << d_conflict << std::endl;
     Assert( d_conflict ^ d_equalityEngine.consistent() );
-    if(d_conflict) {
-      if(Debug.isOn("sets-scrutinize")) { d_scrutinize.postCheckInvariants(); }
-      return;
-    }
+    if(d_conflict) { return; }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
 
   if( (Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
+    return;
   }
 
-  if(Debug.isOn("sets-scrutinize")) { d_scrutinize.postCheckInvariants(); }
+  // if we are here, there is no conflict and we are complete
+  if(Debug.isOn("sets-scrutinize")) { d_scrutinize->postCheckInvariants(); }
 
   return;
 }/* TheorySetsPrivate::check() */
@@ -434,7 +433,8 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
 
   const Elements emptySetOfElements;
   const Elements& saved =
-    d_equalityEngine.getRepresentative(S).getKind() == kind::EMPTYSET ?
+    d_equalityEngine.getRepresentative(S).getKind() == kind::EMPTYSET ||
+    settermElementsMap.find(d_equalityEngine.getRepresentative(S)) == settermElementsMap.end() ?
     emptySetOfElements :
     settermElementsMap.find(d_equalityEngine.getRepresentative(S))->second;
   Debug("sets-model") << "[sets-model] saved :  { ";
@@ -446,12 +446,14 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
     Elements cur;
 
     const Elements& left =
-      d_equalityEngine.getRepresentative(S[0]).getKind() == kind::EMPTYSET ?
+      d_equalityEngine.getRepresentative(S[0]).getKind() == kind::EMPTYSET ||
+      settermElementsMap.find(d_equalityEngine.getRepresentative(S[0])) == settermElementsMap.end() ?
       emptySetOfElements :
       settermElementsMap.find(d_equalityEngine.getRepresentative(S[0]))->second;
 
     const Elements&  right =
-      d_equalityEngine.getRepresentative(S[1]).getKind() == kind::EMPTYSET ?
+      d_equalityEngine.getRepresentative(S[1]).getKind() == kind::EMPTYSET ||
+      settermElementsMap.find(d_equalityEngine.getRepresentative(S[1])) == settermElementsMap.end() ?
       emptySetOfElements :
       settermElementsMap.find(d_equalityEngine.getRepresentative(S[1]))->second;
 

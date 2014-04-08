@@ -27,10 +27,12 @@ namespace theory {
 namespace sets {
 
 class TheorySetsPrivate;
+class TheorySetsScrutinize;
 
 class TheorySets : public Theory {
 private:
   friend class TheorySetsPrivate;
+  friend class TheorySetsScrutinize;
   TheorySetsPrivate* d_internal;
 public:
 
