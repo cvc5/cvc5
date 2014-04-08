@@ -17,6 +17,7 @@
 #include <boost/foreach.hpp>
 
 #include "theory/theory_model.h"
+#include "theory/sets/scrutinize.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -88,13 +89,18 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 
     Debug("sets") << "[sets]  in conflict = " << d_conflict << std::endl;
     Assert( d_conflict ^ d_equalityEngine.consistent() );
-    if(d_conflict) return;
+    if(d_conflict) {
+      if(Debug.isOn("sets-scrutinize")) { d_scrutinize.postCheckInvariants(); }
+      return;
+    }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
 
   if( (Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
   }
+
+  if(Debug.isOn("sets-scrutinize")) { d_scrutinize.postCheckInvariants(); }
 
   return;
 }/* TheorySetsPrivate::check() */
@@ -526,14 +532,28 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
       TNode x = d_equalityEngine.getRepresentative(n[0]);
       TNode S = d_equalityEngine.getRepresentative(n[1]);
       settermElementsMap[S].insert(x);
-      if(Debug.isOn("sets-model-details")) {
-	vector<TNode> explanation;
-	d_equalityEngine.explainPredicate(n, true, explanation);
-	Debug("sets-model-details")
-	  << "[sets-model-details]  >  node: " << n << ", explanation:" << std::endl;
-	BOOST_FOREACH(TNode m, explanation) {
-	  Debug("sets-model-details") << "[sets-model-details]  >>  " << m << std::endl;
-	}
+    }
+    if(Debug.isOn("sets-model-details")) {
+      vector<TNode> explanation;
+      d_equalityEngine.explainPredicate(n, true, explanation);
+      Debug("sets-model-details")
+        << "[sets-model-details]  >  node: " << n << ", explanation:" << std::endl;
+      BOOST_FOREACH(TNode m, explanation) {
+        Debug("sets-model-details") << "[sets-model-details]  >>  " << m << std::endl;
+      }
+    }
+  }
+
+  if(Debug.isOn("sets-model-details")) {
+    for(eq::EqClassIterator it_eqclasses(false_atom, &d_equalityEngine);
+        ! it_eqclasses.isFinished() ; ++it_eqclasses) {
+      TNode n = (*it_eqclasses);
+      vector<TNode> explanation;
+      d_equalityEngine.explainPredicate(n, false, explanation);
+      Debug("sets-model-details")
+        << "[sets-model-details]  >  node: not: " << n << ", explanation:" << std::endl;
+      BOOST_FOREACH(TNode m, explanation) {
+        Debug("sets-model-details") << "[sets-model-details]  >>  " << m << std::endl;
       }
     }
   }
@@ -585,8 +605,12 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
       checkPassed &= checkModel(settermElementsMap, term);
     }
   }
-  Assert( checkPassed,
-	  "THEORY_SETS check-model failed. Run with -d sets-model for details." );
+  if(Debug.isOn("sets-checkmodel-ignore")) {
+    Debug("sets-checkmodel-ignore") << "[sets-checkmodel-ignore] checkPassed value was " << checkPassed << std::endl;
+  } else {
+    Assert( checkPassed,
+            "THEORY_SETS check-model failed. Run with -d sets-model for details." );
+  }
 #endif
 }
 
@@ -735,10 +759,10 @@ bool TheorySetsPrivate::isComplete() {
 Node TheorySetsPrivate::getLemma() {
   Assert(!d_pending.empty() || !d_pendingDisequal.empty());
 
-  Node lemma;
+  Node n, lemma;
 
   if(!d_pending.empty()) {
-    Node n = d_pending.front();
+    n = d_pending.front();
     d_pending.pop();
     d_pendingEverInserted.insert(n);
 
@@ -747,7 +771,7 @@ Node TheorySetsPrivate::getLemma() {
 
     lemma = OR(n, NOT(n));
   } else {
-    Node n = d_pendingDisequal.front();
+    n = d_pendingDisequal.front();
     d_pendingDisequal.pop();
     d_pendingEverInserted.insert(n);
 
@@ -758,7 +782,7 @@ Node TheorySetsPrivate::getLemma() {
     lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
   }
 
-  Debug("sets-lemma") << "[sets-lemma] " << lemma << std::endl;
+  Debug("sets-lemma") << "[sets-lemma] Generating for " << n << ", lemma: " << lemma << std::endl;
 
   return  lemma;
 }
@@ -777,7 +801,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_nodeSaver(c),
   d_pending(u),
   d_pendingDisequal(u),
-  d_pendingEverInserted(u)
+  d_pendingEverInserted(u),
+  d_scrutinize(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
 
@@ -787,12 +812,20 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
 
   d_equalityEngine.addFunctionKind(kind::MEMBER);
   d_equalityEngine.addFunctionKind(kind::SUBSET);
+
+  if( Debug.isOn("sets-scrutinize") ) {
+    d_scrutinize = new TheorySetsScrutinize(this);
+  }
 }/* TheorySetsPrivate::TheorySetsPrivate() */
 
 
 TheorySetsPrivate::~TheorySetsPrivate()
 {
   delete d_termInfoManager;
+  if( Debug.isOn("sets-scrutinize") ) {
+    Assert(d_scrutinize != NULL);
+    delete d_scrutinize;
+  }
 }
 
 

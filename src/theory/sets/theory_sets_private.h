@@ -33,6 +33,7 @@ namespace sets {
 /** Internal classes, forward declared here */
 class TheorySetsTermInfoManager;
 class TheorySets;
+class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
 public:
@@ -166,6 +167,10 @@ private:
   const Elements& getElements(TNode setterm, SettermElementsMap& settermElementsMap) const;
   Node elementsToShape(Elements elements, TypeNode setType) const;
   bool checkModel(const SettermElementsMap& settermElementsMap, TNode S) const;
+
+  // more debugging stuff
+  friend class TheorySetsScrutinize;
+  TheorySetsScrutinize* d_scrutinize;
 };/* class TheorySetsPrivate */
 
 
