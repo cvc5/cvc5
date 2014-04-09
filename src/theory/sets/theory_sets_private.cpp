@@ -60,10 +60,12 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());
           d_equalityEngine.addTerm(atom[0]);
+          d_termInfoManager->addTerm(atom[0]);
         }
         if (!d_equalityEngine.hasTerm(atom[1])) {
           Assert(atom[1].isConst());
           d_equalityEngine.addTerm(atom[1]);
+          d_termInfoManager->addTerm(atom[1]);
         }
       }
     }
@@ -1064,6 +1066,64 @@ void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
 }
 
 void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
+(TNode x, TNode S, bool polarity)
+{
+  Node cur_atom = MEMBER(x, S);
+
+  // propagation : empty set
+  if(polarity && S.getKind() == kind::EMPTYSET) {
+    Debug("sets-prop") << "[sets-prop]  something in empty set? conflict."
+                       << std::endl;
+    d_theory.learnLiteral(cur_atom, false, cur_atom);
+    return;
+  }// propagation: empty set
+
+  // propagation : children
+  if(S.getKind() == kind::UNION ||
+     S.getKind() == kind::INTERSECTION ||
+     S.getKind() == kind::SETMINUS ||
+     S.getKind() == kind::SET_SINGLETON) {
+    d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, S));
+  }// propagation: children
+
+  // propagation : parents
+  const CDTNodeList* parentList = getParents(S);
+  for(typeof(parentList->begin()) k = parentList->begin();
+      k != parentList->end(); ++k) {
+    d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, *k));
+  }// propagation : parents
+
+}
+
+void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
+(TNode x, CDTNodeList* l, bool polarity)
+{
+  set<TNode> alreadyProcessed;
+
+  BOOST_FOREACH(TNode S, (*l) ) {
+    Debug("sets-prop") << "[sets-terminfo]  setterm todo: "
+                       << MEMBER(x, d_eqEngine->getRepresentative(S))
+                       << std::endl;
+
+    TNode repS = d_eqEngine->getRepresentative(S);
+    if(alreadyProcessed.find(repS) != alreadyProcessed.end()) {
+      continue;
+    } else {
+      alreadyProcessed.insert(repS);
+    }
+
+    d_eqEngine->addTerm(MEMBER(d_eqEngine->getRepresentative(x), repS));
+
+    for(eq::EqClassIterator j(d_eqEngine->getRepresentative(S), d_eqEngine);
+        !j.isFinished(); ++j) {
+
+      pushToSettermPropagationQueue(x, *j, polarity);
+
+    }//j loop
+  }
+}
+
+void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
 (CDTNodeList* l, TNode S, bool polarity)
 {
   BOOST_FOREACH(TNode x, (*l) ) {
@@ -1077,32 +1137,7 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
     for(eq::EqClassIterator j(d_eqEngine->getRepresentative(S), d_eqEngine);
         !j.isFinished(); ++j) {
 
-      TNode S = (*j);
-      Node cur_atom = MEMBER(x, S);
-
-      // propagation : empty set
-      if(polarity && S.getKind() == kind::EMPTYSET) {
-        Debug("sets-prop") << "[sets-prop]  something in empty set? conflict."
-                           << std::endl;
-        d_theory.learnLiteral(cur_atom, false, cur_atom);
-        return;
-      }// propagation: empty set
-
-      // propagation : children
-      if(S.getKind() == kind::UNION ||
-         S.getKind() == kind::INTERSECTION ||
-         S.getKind() == kind::SETMINUS ||
-         S.getKind() == kind::SET_SINGLETON) {
-        d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, S));
-      }// propagation: children
-
-      // propagation : parents
-      const CDTNodeList* parentList = getParents(S);
-      for(typeof(parentList->begin()) k = parentList->begin();
-          k != parentList->end(); ++k) {
-        d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, *k));
-      }// propagation : parents
-
+      pushToSettermPropagationQueue(x, *j, polarity);
 
     }//j loop
 
@@ -1110,11 +1145,10 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
 
 }
 
+
+
 void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
   // merge b into a
-
-  if(!a.getType().isSet()) return;
-
   Debug("sets-terminfo") << "[sets-terminfo] Merging (into) a = " << a
                          << ", b = " << b << std::endl;
   Debug("sets-terminfo") << "[sets-terminfo] reps"
@@ -1128,16 +1162,25 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
   Assert(ita != d_info.end());
   Assert(itb != d_info.end());
 
+  /* elements in this sets */
   pushToSettermPropagationQueue( (*ita).second->elementsInThisSet, b, true );
   pushToSettermPropagationQueue( (*ita).second->elementsNotInThisSet, b, false );
   pushToSettermPropagationQueue( (*itb).second->elementsNotInThisSet, a, false );
   pushToSettermPropagationQueue( (*itb).second->elementsInThisSet, a, true );
-
   mergeLists((*ita).second->elementsInThisSet,
              (*itb).second->elementsInThisSet);
-
   mergeLists((*ita).second->elementsNotInThisSet,
              (*itb).second->elementsNotInThisSet);
+
+  /* sets containing this element */
+  pushToSettermPropagationQueue( b, (*ita).second->setsContainingThisElement, true);
+  pushToSettermPropagationQueue( b, (*ita).second->setsNotContainingThisElement, false);
+  pushToSettermPropagationQueue( a, (*itb).second->setsNotContainingThisElement, false);
+  pushToSettermPropagationQueue( a, (*itb).second->setsContainingThisElement, true);
+  mergeLists( (*ita).second->setsContainingThisElement,
+              (*itb).second->setsContainingThisElement );
+  mergeLists( (*ita).second->setsNotContainingThisElement,
+              (*itb).second->setsNotContainingThisElement );
 }
 
 

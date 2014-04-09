@@ -108,7 +108,9 @@ private:
     std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> d_info;
 
     void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
+    void pushToSettermPropagationQueue(TNode x, TNode S, bool polarity);
     void pushToSettermPropagationQueue(CDTNodeList* l, TNode S, bool polarity);
+    void pushToSettermPropagationQueue(TNode x, CDTNodeList* l, bool polarity);
   public:
     TermInfoManager(TheorySetsPrivate&,
                     context::Context* satContext,
