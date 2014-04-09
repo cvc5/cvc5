@@ -1348,7 +1348,11 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
     return stats;
   } else if(key == "error-behavior") {
     // immediate-exit | continued-execution
-    return SExpr::Keyword("continued-execution");
+    if( options::continuedExecution() || options::interactive() ) {
+      return SExpr::Keyword("continued-execution");
+    } else {
+      return SExpr::Keyword("immediate-exit");
+    }
   } else if(key == "name") {
     return Configuration::getName();
   } else if(key == "version") {
