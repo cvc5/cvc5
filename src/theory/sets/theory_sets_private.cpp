@@ -1035,6 +1035,7 @@ void TheorySetsPrivate::TermInfoManager::notifyMembership(TNode fact) {
                          << " in " << S << " " << polarity << std::endl;
 
   d_info[S]->addToElementList(x, polarity);
+  d_info[x]->addToSetList(S, polarity);
 }
 
 const CDTNodeList* TheorySetsPrivate::TermInfoManager::getParents(TNode x) {
