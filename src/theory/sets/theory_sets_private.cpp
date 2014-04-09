@@ -1066,18 +1066,17 @@ void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
 void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
 (CDTNodeList* l, TNode S, bool polarity)
 {
-  for(typeof(l->begin()) i = l->begin(); i != l->end(); ++i) {
+  BOOST_FOREACH(TNode x, (*l) ) {
     Debug("sets-prop") << "[sets-terminfo]  setterm todo: "
-                       << MEMBER(*i, d_eqEngine->getRepresentative(S))
+                       << MEMBER(x, d_eqEngine->getRepresentative(S))
                        << std::endl;
 
-    d_eqEngine->addTerm(MEMBER(d_eqEngine->getRepresentative(*i),
+    d_eqEngine->addTerm(MEMBER(d_eqEngine->getRepresentative(x),
 			       d_eqEngine->getRepresentative(S)));
 
     for(eq::EqClassIterator j(d_eqEngine->getRepresentative(S), d_eqEngine);
         !j.isFinished(); ++j) {
 
-      TNode x = (*i);
       TNode S = (*j);
       Node cur_atom = MEMBER(x, S);
 

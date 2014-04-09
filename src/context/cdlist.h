@@ -417,6 +417,7 @@ public:
     }
 
   };/* class CDList<>::const_iterator */
+  typedef const_iterator iterator;
 
   /**
    * Returns an iterator pointing to the first item in the list.
