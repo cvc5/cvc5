@@ -108,7 +108,7 @@ common-option statistics statistics --stats bool :predicate CVC4::smt::statsEnab
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
 option statsEveryQuery --stats-every-query bool :default false :link --stats
- in incremental mode, print stats after every satisfiability or validity query 
+ in incremental mode, print stats after every satisfiability or validity query
 undocumented-alias --statistics-every-query = --stats-every-query
 undocumented-alias --no-statistics-every-query = --no-stats-every-query
 
