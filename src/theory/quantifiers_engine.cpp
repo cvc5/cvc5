@@ -508,7 +508,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
   ///*
   bool alreadyExists = false;
   if( options::incrementalSolving() ){
-    Trace("inst-add-debug") << "Adding into context-dependent inst trie" << std::endl;
+    Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
     inst::CDInstMatchTrie* imt;
     std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.find( f );
     if( it!=d_c_inst_match_trie.end() ){

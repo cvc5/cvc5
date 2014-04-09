@@ -210,7 +210,7 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
     }
   }
   if( index==(int)f[0].getNumChildren() ){
-    return false;
+    return reset;
   }else{
     Node n = m[ index ];
     std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );

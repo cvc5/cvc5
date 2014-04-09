@@ -83,14 +83,17 @@ void ModelEngine::check( Theory::Effort e ){
           Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
           //let the strong solver verify that the model is minimal
           //for debugging, this will if there are terms in the model that the strong solver was not notified of
-          ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm );
-          Trace("model-engine-debug") << "Check model..." << std::endl;
-          d_incomplete_check = false;
-          //print debug
-          Debug("fmf-model-complete") << std::endl;
-          debugPrint("fmf-model-complete");
-          //successfully built an acceptable model, now check it
-          addedLemmas += checkModel();
+          if( ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm ) ){
+            Trace("model-engine-debug") << "Check model..." << std::endl;
+            d_incomplete_check = false;
+            //print debug
+            Debug("fmf-model-complete") << std::endl;
+            debugPrint("fmf-model-complete");
+            //successfully built an acceptable model, now check it
+            addedLemmas += checkModel();
+          }else{
+            addedLemmas++;
+          }
         }
       }
       if( addedLemmas==0 ){

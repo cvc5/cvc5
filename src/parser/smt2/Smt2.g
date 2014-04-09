@@ -1351,6 +1351,8 @@ builtinOp[CVC4::Kind& kind]
   | REOPT_TOK      { $kind = CVC4::kind::REGEXP_OPT; }
   | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
   | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
+  
+  | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
 
   // NOTE: Theory operators go here
   ;
@@ -1733,6 +1735,8 @@ RERANGE_TOK : 're.range';
 RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
+
+FMFCARD_TOK : 'fmf.card';
 
 EMPTYSET_TOK: 'emptyset'; // Other set theory operators are not
                           // tokenized and handled directly when
