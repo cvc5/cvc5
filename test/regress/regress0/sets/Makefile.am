@@ -55,6 +55,10 @@ TESTS =	\
 	eqtest.smt2 \
 	mar2014/lemmabug-ListElts317minimized.smt2 \
 	mar2014/sharing-preregister.smt2 \
+	mar2014/small.smt2 \
+	mar2014/smaller.smt2 \
+	mar2014/UniqueZipper.hs.1030minimized2.cvc4.smt2 \
+	mar2014/UniqueZipper.hs.1030minimized.cvc4.smt2 \
 	emptyset.smt2 \
 	error2.smt2
 

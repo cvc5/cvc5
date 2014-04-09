@@ -31,12 +31,16 @@ class TheorySetsTermInfo {
 public:
   CDTNodeList* elementsInThisSet;
   CDTNodeList* elementsNotInThisSet;
+  CDTNodeList* setsContainingThisElement;
+  CDTNodeList* setsNotContainingThisElement;
   CDTNodeList* parents;
 
   TheorySetsTermInfo(context::Context* c)
   {
     elementsInThisSet = new(true)CDTNodeList(c);
     elementsNotInThisSet = new(true)CDTNodeList(c);
+    setsContainingThisElement = new(true)CDTNodeList(c);
+    setsNotContainingThisElement = new(true)CDTNodeList(c);
     parents = new(true)CDTNodeList(c);
   }
 
@@ -45,11 +49,19 @@ public:
     else elementsNotInThisSet -> push_back(n);
   }
 
+  void addToSetList(TNode n, bool polarity) {
+    if(polarity) setsContainingThisElement -> push_back(n);
+    else setsNotContainingThisElement -> push_back(n);
+  }
+
   ~TheorySetsTermInfo() {
     elementsInThisSet -> deleteSelf();
     elementsNotInThisSet -> deleteSelf();
+    setsContainingThisElement -> deleteSelf();
+    setsNotContainingThisElement -> deleteSelf();
     parents -> deleteSelf();
   }
+
 };
 
 }/* CVC4::theory::sets namespace */

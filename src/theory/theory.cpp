@@ -176,7 +176,7 @@ std::hash_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
 }
 
 
-void Theory::collectTerms(TNode n, set<Node>& termSet)
+void Theory::collectTerms(TNode n, set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
     return;
@@ -191,7 +191,7 @@ void Theory::collectTerms(TNode n, set<Node>& termSet)
 }
 
 
-void Theory::computeRelevantTerms(set<Node>& termSet)
+void Theory::computeRelevantTerms(set<Node>& termSet) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
