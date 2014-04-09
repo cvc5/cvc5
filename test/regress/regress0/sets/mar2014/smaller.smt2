@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --simplfication=none
+; COMMAND-LINE: --simplification=none
 
 ; demostrates core issue with UniqueZipper.hs.1030minimized.cvc4.smt2
 ; fails check-model, even though answer is correct

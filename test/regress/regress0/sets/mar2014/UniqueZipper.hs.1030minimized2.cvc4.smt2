@@ -1,3 +1,4 @@
+; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
