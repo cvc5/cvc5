@@ -81,7 +81,7 @@ Node TermDb::getOperator( Node n ) {
     }
     d_par_op_map[op][tn1][tn2] = n;
     return n;
-  }else if( n.getKind()==APPLY_UF ){
+  }else if( inst::Trigger::isAtomicTrigger( n ) ){
     return n.getOperator();
   }else{
     return Node::null();

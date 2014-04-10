@@ -889,14 +889,48 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-  m->assertEqualityEngine( &d_equalityEngine );
-/*
-  std::vector< TypeEnumerator > vec;
-  std::map< TypeNode, int > tes;
+
+  /*
+  bool eq_merged = false;
+  std::vector< Node > all_eqc;
+  eq::EqClassesIterator eqcs1_i = eq::EqClassesIterator( &d_equalityEngine );
+  while( !eqcs1_i.isFinished() ){
+    Node eqc = (*eqcs1_i);
+    all_eqc.push_back( eqc );
+    ++eqcs1_i;
+  }
+  //check if equivalence classes have merged
+  for( unsigned i=0; i<all_eqc.size(); i++ ){
+    for( unsigned j=(i+1); j<all_eqc.size(); j++ ){
+      if( m->areEqual( all_eqc[i], all_eqc[j] ) ){
+        Trace("dt-cmi") << "Pre-already forced equal : " << all_eqc[i] << " = " << all_eqc[j] << std::endl;
+        eq_merged = true;
+      }
+    }
+  }
+  Assert( !eq_merged );
   */
+
+  //combine the equality engine
+  m->assertEqualityEngine( &d_equalityEngine );
+
+  /*
+  //check again if equivalence classes have merged
+  for( unsigned i=0; i<all_eqc.size(); i++ ){
+    for( unsigned j=(i+1); j<all_eqc.size(); j++ ){
+      if( m->areEqual( all_eqc[i], all_eqc[j] ) ){
+        Trace("dt-cmi") << "Already forced equal : " << all_eqc[i] << " = " << all_eqc[j] << std::endl;
+        eq_merged = true;
+      }
+    }
+  }
+  Assert( !eq_merged );
+  */
+
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator( &d_equalityEngine );
   std::vector< Node > cons;
+  std::vector< Node > nodes;
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
     //for all equivalence classes that are datatypes
@@ -904,28 +938,13 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( !ei->d_constructor.get().isNull() ){
         cons.push_back( ei->d_constructor.get() );
+      }else{
+        nodes.push_back( eqc );
       }
     }
     ++eqccs_i;
   }
 
-  //must choose proper representatives
-  std::vector< Node > nodes;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ){
-    Node eqc = (*eqcs_i);
-    //for all equivalence classes that are datatypes
-    if( DatatypesRewriter::isTermDatatype( eqc ) ){
-      EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( !ei->d_constructor.get().isNull() ){
-        //specify that we should use the constructor as the representative
-        //m->assertRepresentative( ei->d_constructor.get() );
-      }else{
-        nodes.push_back( eqc );
-      }
-    }
-    ++eqcs_i;
-  }
   unsigned index = 0;
   while( index<nodes.size() ){
     Node eqc = nodes[index];
@@ -972,44 +991,22 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       }
       Trace("dt-cmi") << std::endl;
       /*
-      if( tes.find( eqc.getType() )==tes.end() ){
-        tes[eqc.getType()]=vec.size();
-        vec.push_back( TypeEnumerator( eqc.getType() ) );
-      }
-      bool success;
-      Node n;
-      do {
-        success = true;
-        Assert( !vec[tes[eqc.getType()]].isFinished() );
-        n = *vec[tes[eqc.getType()]];
-        ++vec[tes[eqc.getType()]];
-        Trace("dt-cmi-debug") << "Try " << n << "..." << std::endl;
-        //check if it is consistent with labels
-        size_t constructorIndex = Datatype::indexOf(n.getOperator().toExpr());
-        if( constructorIndex<pcons.size() && pcons[constructorIndex] ){
-          for( unsigned i=0; i<cons.size(); i++ ){
-            //check if it is modulo equality the same
-            if( cons[i].getOperator()==n.getOperator() ){
-              bool diff = false;
-              for( unsigned j=0; j<cons[i].getNumChildren(); j++ ){
-                if( !m->areEqual( cons[i][j], n[j] ) ){
-                  diff = true;
-                  break;
-                }
-              }
-              if( !diff ){
-                Trace("dt-cmi-debug") << "...Already equivalent modulo equality to " << cons[i] << std::endl;
-                success = false;
-                break;
-              }
-            }
-          }
-        }else{
-          Trace("dt-cmi-debug") << "...Not consistent with labels" << std::endl;
-          success = false;
+      std::map< int, std::map< int, bool > > sels;
+      Trace("dt-cmi") << "Existing selectors : ";
+      NodeListMap::iterator sel_i = d_selector_apps.find( eqc );
+      if( sel_i != d_selector_apps.end() ){
+        NodeList* sel = (*sel_i).second;
+        for( NodeList::const_iterator j = sel->begin(); j != sel->end(); j++ ){
+          Expr selectorExpr = (*j).getOperator().toExpr();
+          unsigned cindex = Datatype::cindexOf( selectorExpr );
+          unsigned index = Datatype::indexOf( selectorExpr );
+          sels[cindex][index] = true;
+          Trace("dt-cmi") << (*j) << " (" << cindex << ", " << index << ") ";
         }
-      }while( !success );
+      }
+      Trace("dt-cmi") << std::endl;
       */
+
       const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
       for( unsigned r=0; r<2; r++ ){
         if( neqc.isNull() ){
@@ -1017,6 +1014,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
             if( pcons[i] && (r==1)==dt[ i ].isFinite() ){
               neqc = getInstantiateCons( eqc, dt, i, false, false );
               for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
+                //if( sels[i].find( j )==sels[i].end() && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
                 if( !d_equalityEngine.hasTerm( neqc[j] ) && DatatypesRewriter::isTermDatatype( neqc[j] ) ){
                   nodes.push_back( neqc[j] );
                 }
@@ -1030,6 +1028,24 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     Assert( !neqc.isNull() );
     Trace("dt-cmi") << "Assign : " << neqc << std::endl;
     m->assertEquality( eqc, neqc, true );
+    /*
+    for( unsigned kk=0; kk<all_eqc.size(); kk++ ){
+      for( unsigned ll=(kk+1); ll<all_eqc.size(); ll++ ){
+        if( m->areEqual( all_eqc[kk], all_eqc[ll] ) ){
+          Trace("dt-cmi") << "Forced equal : " << kk << " " << ll << " : " << all_eqc[kk] << " = " << all_eqc[ll] << std::endl;
+          Node r = m->getRepresentative( all_eqc[kk] );
+          Trace("dt-cmi") << "  { ";
+          eq::EqClassIterator eqc_i = eq::EqClassIterator( r, m->d_equalityEngine );
+          while( !eqc_i.isFinished() ){
+            Trace("dt-cmi") << (*eqc_i) << " ";
+            ++eqc_i;
+          }
+          Trace("dt-cmi") << "} " << std::endl;
+        }
+        Assert( !m->areEqual( all_eqc[kk], all_eqc[ll] ) );
+      }
+    }
+    */
     //m->assertRepresentative( neqc );
     cons.push_back( neqc );
     ++index;

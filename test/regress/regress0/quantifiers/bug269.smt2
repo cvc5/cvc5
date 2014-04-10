@@ -1,3 +1,5 @@
+; COMMAND-LINE: --full-saturate-quant
+; EXPECT: unsat
 (set-logic LRA)
 (set-info :status unsat)
 (declare-fun x4 () Real)

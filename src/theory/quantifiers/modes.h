@@ -58,13 +58,13 @@ typedef enum {
 } AxiomInstMode;
 
 typedef enum {
-  /** default, mbqi from CADE 24 paper */
-  MBQI_DEFAULT,
+  /** mbqi from CADE 24 paper */
+  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** implementation that mimics inst-gen */
   MBQI_INST_GEN,
-  /** mbqi from Section 5.4.2 of AJR thesis */
+  /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
   /** mbqi with integer intervals */
   MBQI_FMC_INTERVAL,

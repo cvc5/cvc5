@@ -191,7 +191,7 @@ private:
                const std::vector<Type>& placeholders,
                const std::vector<Type>& replacements,
                const std::vector< SortConstructorType >& paramTypes,
-               const std::vector< DatatypeType >& paramReplacements)
+               const std::vector< DatatypeType >& paramReplacements, size_t cindex)
     throw(IllegalArgumentException, DatatypeResolutionException);
   friend class Datatype;
 
@@ -433,6 +433,12 @@ public:
    * first index.)
    */
   static size_t indexOf(Expr item) CVC4_PUBLIC;
+
+  /**
+   * Get the index of constructor corresponding to selector.  (Zero is
+   * always the first index.)
+   */
+  static size_t cindexOf(Expr item) CVC4_PUBLIC;
 
   /** The type for iterators over constructors. */
   typedef DatatypeConstructorIterator iterator;

@@ -1112,7 +1112,7 @@ void SmtEngine::setDefaults() {
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
       // ALL_SUPPORTED
-      d_logic.hasEverything() ? decision::DECISION_STRATEGY_INTERNAL :
+      d_logic.hasEverything() ? decision::DECISION_STRATEGY_JUSTIFICATION :
       ( // QF_BV
         (not d_logic.isQuantified() &&
           d_logic.isPure(THEORY_BV)
@@ -1153,9 +1153,7 @@ void SmtEngine::setDefaults() {
         // QF_LRA
         (not d_logic.isQuantified() &&
          d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-         ) ||
-        // Quantifiers
-        d_logic.isQuantified()
+         )
         ? true : false
       );
 
@@ -1172,12 +1170,17 @@ void SmtEngine::setDefaults() {
       options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
     }
   }
-  if ( options::fmfBoundInt() ){
+  if( d_logic.hasCardinalityConstraints() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );
-    if( options::mbqiMode()!=quantifiers::MBQI_NONE &&
-        options::mbqiMode()!=quantifiers::MBQI_FMC &&
-        options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ){
+  }
+  if( options::fmfBoundInt() ){
+    //must have finite model finding on
+    options::finiteModelFind.set( true );
+    if( ! options::mbqiMode.wasSetByUser() ||
+        ( options::mbqiMode()!=quantifiers::MBQI_NONE &&
+          options::mbqiMode()!=quantifiers::MBQI_FMC &&
+          options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL ) ){
       //if bounded integers are set, use no MBQI by default
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
