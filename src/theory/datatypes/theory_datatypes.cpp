@@ -54,7 +54,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR);
+  d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
 }
 
@@ -318,6 +318,47 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   flushPendingFacts();
 }
 
+Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+  switch( n.getKind() ){
+  case kind::APPLY_SELECTOR: {
+      Node selector = n.getOperator();
+      Expr selectorExpr = selector.toExpr();
+      size_t selectorIndex = Datatype::cindexOf(selectorExpr);
+      const Datatype& dt = Datatype::datatypeOf(selectorExpr);
+      const DatatypeConstructor& c = dt[selectorIndex];
+      Expr tester = c.getTester();
+      Node tst = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( tester ), n[0] );
+      tst = Rewriter::rewrite( tst );
+      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( selectorExpr ), n[0] );
+      Node n_ret;
+      if( tst==NodeManager::currentNM()->mkConst( true ) ){
+        n_ret = sel;
+      }else{
+        if( d_exp_def_skolem.find( selector )==d_exp_def_skolem.end() ){
+          std::stringstream ss;
+          ss << selector << "_uf";
+          d_exp_def_skolem[ selector ] = NodeManager::currentNM()->mkSkolem( ss.str().c_str(),
+                                            NodeManager::currentNM()->mkFunctionType( n[0].getType(), n.getType() ) );
+        }
+        Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ selector ], n[0]  );
+        if( tst==NodeManager::currentNM()->mkConst( false ) ){
+          n_ret = sk;
+        }else{
+          n_ret = NodeManager::currentNM()->mkNode( kind::ITE, tst, sel, sk );
+        }
+      }
+      //n_ret = Rewriter::rewrite( n_ret );
+      Trace("dt-expand") << "Expand def : " << n << " to " << n_ret << std::endl;
+      return n_ret;
+    }
+    break;
+  default:
+    return n;
+    break;
+  }
+  Unreachable();
+}
+
 void TheoryDatatypes::presolve() {
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
@@ -332,7 +373,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
     }
     TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
     const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][in.getOperator().getConst<TupleSelect>().getIndex()].getSelector()), in[0]);
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][in.getOperator().getConst<TupleSelect>().getIndex()].getSelector()), in[0]);
   } else if(in.getKind() == kind::RECORD_SELECT) {
     TypeNode t = in[0].getType();
     if(t.hasAttribute(expr::DatatypeRecordAttr())) {
@@ -340,7 +381,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
     }
     TypeNode dtt = NodeManager::currentNM()->getDatatypeForTupleRecord(t);
     const Datatype& dt = DatatypeType(dtt.toType()).getDatatype();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][in.getOperator().getConst<RecordSelect>().getField()].getSelector()), in[0]);
+    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][in.getOperator().getConst<RecordSelect>().getField()].getSelector()), in[0]);
   }
 
   TypeNode t = in.getType();
@@ -404,7 +445,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
         b << in[1];
         Debug("tuprec") << "arg " << i << " gets updated to " << in[1] << std::endl;
       } else {
-        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, Node::fromExpr(dt[0][i].getSelector()), in[0]);
+        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0][i].getSelector()), in[0]);
         Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
       }
     }
@@ -848,7 +889,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
-  Node r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR, s.getOperator(), c );
+  Node r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
   Node rr = Rewriter::rewrite( r );
   //if( r!=rr ){
     //Node eq_exp = NodeManager::currentNM()->mkConst(true);
@@ -1075,7 +1116,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
         //eqc->d_selectors = true;
       }
       */
-    }else if( n.getKind() == APPLY_SELECTOR ){
+    }else if( n.getKind() == APPLY_SELECTOR_TOTAL ){
       //we must also record which selectors exist
       Debug("datatypes") << "  Found selector " << n << endl;
       if (n.getType().isBoolean()) {
@@ -1117,7 +1158,7 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index,
     std::vector< Node > children;
     children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
     for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){
-      Node nc = NodeManager::currentNM()->mkNode( APPLY_SELECTOR, Node::fromExpr( dt[index][i].getSelector() ), n );
+      Node nc = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index][i].getSelector() ), n );
       if( mkVar ){
         TypeNode tn = nc.getType();
         if( dt.isParametric() ){

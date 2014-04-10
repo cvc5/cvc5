@@ -152,7 +152,7 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
       NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
       appctorb << (*dt2)[i].getConstructor();
       for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()));
+        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()));
       }
       Node appctor = appctorb;
       if(i == 0) {
@@ -191,7 +191,7 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
       for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
         TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
         asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, ctor[j].getSelector(), in), asType);
+        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType);
       }
       Node appctor = appctorb;
       if(i == 0) {

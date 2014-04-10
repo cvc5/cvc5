@@ -88,7 +88,7 @@ public:
       const Record& rec = in[0].getType().getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
       return RewriteResponse(REWRITE_DONE, in[0][rec.getIndex(in.getOperator().getConst<RecordSelect>().getField())]);
     }
-    if(in.getKind() == kind::APPLY_SELECTOR &&
+    if(in.getKind() == kind::APPLY_SELECTOR_TOTAL &&
        (in[0].getKind() == kind::TUPLE || in[0].getKind() == kind::RECORD)) {
       // These strange (half-tuple-converted) terms can be created by
       // the system if you have something like "foo.1" for a tuple
@@ -118,7 +118,7 @@ public:
       Debug("tuprec") << "==> returning " << in[0][selectorIndex] << std::endl;
       return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
     }
-    if(in.getKind() == kind::APPLY_SELECTOR &&
+    if(in.getKind() == kind::APPLY_SELECTOR_TOTAL &&
        in[0].getKind() == kind::APPLY_CONSTRUCTOR) {
       // Have to be careful not to rewrite well-typed expressions
       // where the selector doesn't match the constructor,

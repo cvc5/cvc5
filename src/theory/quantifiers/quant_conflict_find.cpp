@@ -1488,7 +1488,7 @@ bool MatchGen::isHandledBoolConnective( TNode n ) {
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
   return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR || n.getKind()==APPLY_TESTER;// || n.getKind()==GEQ;
+         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
 }
 
 Node MatchGen::getOperator( QuantConflictFind * p, Node n ) {

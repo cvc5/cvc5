@@ -166,6 +166,8 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
+  /** expand definition skolem functions */
+  std::map< Node, Node > d_exp_def_skolem;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -208,6 +210,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
   Node ppRewrite(TNode n);
   void presolve();
   void addSharedTerm(TNode t);

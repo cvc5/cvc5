@@ -324,7 +324,7 @@ bool Trigger::isUsableTrigger( Node n, Node f ){
 
 bool Trigger::isAtomicTrigger( Node n ){
   return ( n.getKind()==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) || n.getKind()==SELECT || n.getKind()==STORE ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR || n.getKind()==APPLY_TESTER;
+         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
 }
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){

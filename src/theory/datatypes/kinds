@@ -39,6 +39,7 @@ cardinality TESTER_TYPE \
 parameterized APPLY_CONSTRUCTOR APPLY_TYPE_ASCRIPTION 0: "constructor application"
 
 parameterized APPLY_SELECTOR SELECTOR_TYPE 1: "selector application"
+parameterized APPLY_SELECTOR_TOTAL [SELECTOR_TYPE] 1: "selector application (total)"
 
 parameterized APPLY_TESTER TESTER_TYPE 1: "tester application"
 
@@ -82,6 +83,7 @@ constant ASCRIPTION_TYPE \
 
 typerule APPLY_CONSTRUCTOR ::CVC4::theory::datatypes::DatatypeConstructorTypeRule
 typerule APPLY_SELECTOR ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
+typerule APPLY_SELECTOR_TOTAL ::CVC4::theory::datatypes::DatatypeSelectorTypeRule
 typerule APPLY_TESTER ::CVC4::theory::datatypes::DatatypeTesterTypeRule
 typerule APPLY_TYPE_ASCRIPTION ::CVC4::theory::datatypes::DatatypeAscriptionTypeRule
 
