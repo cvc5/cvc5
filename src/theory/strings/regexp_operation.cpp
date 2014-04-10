@@ -41,10 +41,6 @@ RegExpOpr::RegExpOpr() {
 	d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
 	std::vector< Node > nvec;
     d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
-	// All Charactors = all printable ones 32-126
-	//d_char_start = 'a';//' ';
-	//d_char_end = 'c';//'~';
-	//d_sigma = mkAllExceptOne( '\0' );
 	d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
 	d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
 	d_card = 256;
@@ -896,15 +892,13 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 			}
 			case kind::REGEXP_CONCAT: {
 				//TODO: rewrite empty
+				Node lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
 				Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
 				Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
 				Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode(kind::GEQ, b1, d_zero),
 							NodeManager::currentNM()->mkNode( kind::GEQ, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s), b1 ) );
-				Node s1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-				Node s2 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->stringType());
-				Node b2v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, s1, s2);
-				Node s12 = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s1, s2));
-				Node s1len = b1.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s1));
+				Node s1 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, d_zero, b1));
+				Node s2 = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, s, b1, NodeManager::currentNM()->mkNode(kind::MINUS, lens, b1)));
 				Node s1r1 = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s1, r[0]).negate();
 				if(r[0].getKind() == kind::STRING_TO_REGEXP) {
 					s1r1 = s1.eqNode(r[0][0]).negate();
@@ -928,8 +922,6 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 				}
 
 				conc = NodeManager::currentNM()->mkNode(kind::OR, s1r1, s2r2);
-				conc = NodeManager::currentNM()->mkNode(kind::AND, s12, s1len, conc);
-				conc = NodeManager::currentNM()->mkNode(kind::EXISTS, b2v, conc);
 				conc = NodeManager::currentNM()->mkNode(kind::IMPLIES, g1, conc);
 				conc = NodeManager::currentNM()->mkNode(kind::FORALL, b1v, conc);
 				break;
