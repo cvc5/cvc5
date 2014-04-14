@@ -1189,7 +1189,7 @@ void ValidityChecker::dataType(const std::vector<std::string>& names,
 
   // Set up the datatype specifications.
   for(unsigned i = 0; i < names.size(); ++i) {
-    CVC4::Datatype dt(names[i]);
+    CVC4::Datatype dt(names[i], false);
     CVC4::CheckArgument(constructors[i].size() == selectors[i].size(), "expected sub-vectors in constructors and selectors vectors to match in size");
     CVC4::CheckArgument(constructors[i].size() == types[i].size(), "expected sub-vectors in constructors and types vectors to match in size");
     for(unsigned j = 0; j < constructors[i].size(); ++j) {

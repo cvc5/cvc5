@@ -302,6 +302,7 @@ variable SKOLEM "skolem var"
 operator SEXPR 0: "a symbolic expression"
 
 operator LAMBDA 2 "lambda"
+operator MU 2 "mu"
 
 parameterized CHAIN CHAIN_OP 2: "chained operator"
 constant CHAIN_OP \
@@ -334,6 +335,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+typerule MU ::CVC4::theory::builtin::MuTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 

@@ -228,9 +228,9 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
         }
         vector<Datatype> newDtVector;
         if(dt.isParametric()) {
-          newDtVector.push_back(Datatype(dt.getName() + "'", dt.getParameters()));
+          newDtVector.push_back(Datatype(dt.getName() + "'", dt.getParameters(), false));
         } else {
-          newDtVector.push_back(Datatype(dt.getName() + "'"));
+          newDtVector.push_back(Datatype(dt.getName() + "'", false));
         }
         Datatype& newDt = newDtVector.front();
         Debug("boolean-terms") << "found a Boolean arg in constructor " << (*c).getName() << endl;

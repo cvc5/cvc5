@@ -195,6 +195,9 @@ public:
   /** propagate */
   bool propagate(TNode literal);
   /** explain */
+  void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
+  void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
+  void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
   /** Conflict when merging two constants */
@@ -236,6 +239,11 @@ private:
   Node searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
+  /** for checking whether two codatatype terms must be equal */
+  void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
+                          std::vector< TNode >& exp,
+                          std::map< Node, Node >& cn,
+                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */

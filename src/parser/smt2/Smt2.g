@@ -464,17 +464,8 @@ extendedCommand[CVC4::Command*& cmd]
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
-  : DECLARE_DATATYPES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { /* open a scope to keep the UnresolvedTypes contained */
-      PARSER_STATE->pushScope(true); }
-    LPAREN_TOK /* parametric sorts */
-      ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
-        sorts.push_back( PARSER_STATE->mkSort(name) ); }
-      )*
-    RPAREN_TOK
-    LPAREN_TOK ( LPAREN_TOK datatypeDef[dts, sorts] RPAREN_TOK )+ RPAREN_TOK
-    { PARSER_STATE->popScope();
-      cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
+  : DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
+  | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
   | /* get model */
     GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd = new GetModelCommand(); }
@@ -601,6 +592,26 @@ extendedCommand[CVC4::Command*& cmd]
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd = new SimplifyCommand(e); }
+  ;
+
+
+datatypesDefCommand[bool isCo, CVC4::Command*& cmd]
+@declarations {
+  std::vector<CVC4::Datatype> dts;
+  std::string name;
+  std::vector<Type> sorts;
+}
+  : { PARSER_STATE->checkThatLogicIsSet(); 
+    /* open a scope to keep the UnresolvedTypes contained */
+    PARSER_STATE->pushScope(true); }
+  LPAREN_TOK /* parametric sorts */
+  ( symbol[name,CHECK_UNDECLARED,SYM_SORT] {
+    sorts.push_back( PARSER_STATE->mkSort(name) ); }
+  )*
+  RPAREN_TOK
+  LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
+  { PARSER_STATE->popScope();
+  cmd = new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)); }
   ;
 
 rewriterulesCommand[CVC4::Command*& cmd]
@@ -1530,7 +1541,7 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
 /**
  * Parses a datatype definition
  */
-datatypeDef[std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& params]
+datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& params]
 @init {
   std::string id;
 }
@@ -1548,7 +1559,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes, std::vector< CVC4::Type >& p
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(id,params));
+    { datatypes.push_back(Datatype(id,params,isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -1623,6 +1634,7 @@ AS_TOK : 'as';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
+DECLARE_CODATATYPES_TOK : 'declare-codatatypes';
 GET_MODEL_TOK : 'get-model';
 ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';
