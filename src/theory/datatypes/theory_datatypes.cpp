@@ -327,15 +327,18 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
   switch( n.getKind() ){
   case kind::APPLY_SELECTOR: {
-      Node selector = n.getOperator();
-      Expr selectorExpr = selector.toExpr();
+    Node selector = n.getOperator();
+    Expr selectorExpr = selector.toExpr();
+    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( selectorExpr ), n[0] );
+    if( options::dtRewriteErrorSel() ){
+      return sel;
+    }else{
       size_t selectorIndex = Datatype::cindexOf(selectorExpr);
       const Datatype& dt = Datatype::datatypeOf(selectorExpr);
       const DatatypeConstructor& c = dt[selectorIndex];
       Expr tester = c.getTester();
       Node tst = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( tester ), n[0] );
       tst = Rewriter::rewrite( tst );
-      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( selectorExpr ), n[0] );
       Node n_ret;
       if( tst==NodeManager::currentNM()->mkConst( true ) ){
         n_ret = sel;
@@ -357,6 +360,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       Trace("dt-expand") << "Expand def : " << n << " to " << n_ret << std::endl;
       return n_ret;
     }
+  }
     break;
   default:
     return n;

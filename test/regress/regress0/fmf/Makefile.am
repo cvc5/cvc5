@@ -33,12 +33,13 @@ TESTS =	\
 	fc-simple.smt2 \
 	fc-unsat-tot-2.smt2 \
 	fc-unsat-pent.smt2 \
-	fc-pigeonhole19.smt2
+	fc-pigeonhole19.smt2 \
+	Hoare-z3.931718.smt
 
 EXTRA_DIST = $(TESTS)
 
 # disabled for now :
-# Hoare-z3.931718.smt bug0909.smt2
+#  bug0909.smt2
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

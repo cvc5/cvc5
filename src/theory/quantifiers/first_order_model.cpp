@@ -648,7 +648,18 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
   Node curr;
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
-    Node v = getRepresentative( d_models[op]->d_value[i] );
+    Node v = d_models[op]->d_value[i];
+    if( !hasTerm( v ) ){
+      //can happen when the model basis term does not exist in ground assignment
+      TypeNode tn = v.getType();
+      if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
+        //see full_model_check.cpp line 366
+        v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
+      }else{
+        Assert( false );
+      }
+    }
+    v = getRepresentative( v );
     if( curr.isNull() ){
       curr = v;
     }else{
@@ -664,7 +675,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
           if( !isStar(cond[j][1]) ){
             children.push_back( NodeManager::currentNM()->mkNode( LT, vars[j], cond[j][1] ) );
           }
-        }else if ( !isStar(cond[j]) &&  //handle the case where there are 0 or 1 ground representatives of this type...
+        }else if ( !isStar(cond[j]) &&  //handle the case where there are 0 or 1 ground eqc of this type
                    d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && d_rep_set.d_type_reps[ tn ].size()>1 ){
           Node c = getUsedRepresentative( cond[j] );
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );

@@ -138,26 +138,25 @@ public:
                                    << std::endl;
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }else{
-        if( options::dtRewriteErrorSel() ){
-          Node gt;
-          if( in.getType().isSort() ){
-            TypeEnumerator te(in.getType());
-            gt = *te;
-          }else{
-            gt = in.getType().mkGroundTerm();
-          }
-          TypeNode gtt = gt.getType();
-          //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
-          if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
-            gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                  NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
-          }
-          Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
-                                     << "Rewrite trivial selector " << in
-                                     << " to distinguished ground term "
-                                     << in.getType().mkGroundTerm() << std::endl;
-          return RewriteResponse(REWRITE_DONE,gt );
+        //typically should not be called
+        Node gt;
+        if( in.getType().isSort() ){
+          TypeEnumerator te(in.getType());
+          gt = *te;
+        }else{
+          gt = in.getType().mkGroundTerm();
         }
+        TypeNode gtt = gt.getType();
+        //Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
+        if( gtt.isDatatype() && !gtt.isInstantiatedDatatype() ){
+          gt = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                                NodeManager::currentNM()->mkConst(AscriptionType(in.getType().toType())), gt);
+        }
+        Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
+                                   << "Rewrite trivial selector " << in
+                                   << " to distinguished ground term "
+                                   << in.getType().mkGroundTerm() << std::endl;
+        return RewriteResponse(REWRITE_DONE,gt );
       }
     }
     if(in.getKind() == kind::TUPLE_SELECT &&
@@ -204,11 +203,18 @@ public:
       return RewriteResponse(REWRITE_DONE,
                              NodeManager::currentNM()->mkConst(true));
     }
-    if(in.getKind() == kind::EQUAL &&
-       checkClash(in[0], in[1])) {
-      Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
-      return RewriteResponse(REWRITE_DONE,
-                             NodeManager::currentNM()->mkConst(false));
+    if(in.getKind() == kind::EQUAL ) {
+      std::vector< Node > rew;
+      if( checkClash(in[0], in[1], rew) ){
+        Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
+        return RewriteResponse(REWRITE_DONE,
+                               NodeManager::currentNM()->mkConst(false));
+      }else if( rew.size()!=1 || rew[0]!=in ){
+        Node nn = rew.size()==0 ? NodeManager::currentNM()->mkConst( true ) :
+                    ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+        Trace("datatypes-rewrite") << "Rewrite equality to " << nn << std::endl;
+        return RewriteResponse(REWRITE_AGAIN_FULL, nn );
+      }
     }
 
     return RewriteResponse(REWRITE_DONE, in);
@@ -222,7 +228,7 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
-  static bool checkClash( Node n1, Node n2 ) {
+  static bool checkClash( Node n1, Node n2, std::vector< Node >& rew ) {
     if( (n1.getKind() == kind::APPLY_CONSTRUCTOR && n2.getKind() == kind::APPLY_CONSTRUCTOR) ||
         (n1.getKind() == kind::TUPLE && n2.getKind() == kind::TUPLE) ||
         (n1.getKind() == kind::RECORD && n2.getKind() == kind::RECORD) ) {
@@ -231,18 +237,14 @@ public:
       } else {
         Assert( n1.getNumChildren() == n2.getNumChildren() );
         for( int i=0; i<(int)n1.getNumChildren(); i++ ) {
-          if( checkClash( n1[i], n2[i] ) ) {
+          if( checkClash( n1[i], n2[i], rew ) ) {
             return true;
           }
         }
       }
-    }else if( !isTermDatatype( n1 ) ){
-      //also check for clashes between non-datatypes
+    }else{
       Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
-      eq = Rewriter::rewrite( eq );
-      if( eq==NodeManager::currentNM()->mkConst(false) ){
-        return true;
-      }
+      rew.push_back( eq );
     }
     return false;
   }
