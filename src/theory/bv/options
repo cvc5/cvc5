@@ -51,5 +51,8 @@ expert-option skolemizeArguments --bv-skolemize bool :default false
 
 expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
  number of function symbols in conflicts that are generalized
+
+expert-option bvEagerPropagation --bv-eager-prop bool :default false
+ compute bit-blasting propagation explanations eagerly
  
 endmodule

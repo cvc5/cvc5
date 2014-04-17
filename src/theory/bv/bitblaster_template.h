@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include <vector>
 #include <ext/hash_map>
-
+#include "context/cdhashmap.h"
 #include "bitblast_strategies_template.h"
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
@@ -104,15 +104,19 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   typedef std::vector<Node> Bits;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AtomSet;
+  typedef context::CDList<prop::SatLiteral> AssertionList;
+  typedef context::CDHashMap<prop::SatLiteral, std::vector<prop::SatLiteral> , prop::SatLiteralHashFunction> ExplanationMap;
   
   /** This class gets callbacks from minisat on propagations */
   class MinisatNotify : public prop::BVSatSolverInterface::Notify {
     prop::CnfStream* d_cnf;
     TheoryBV *d_bv;
+    TLazyBitblaster* d_lazyBB; 
   public:
-    MinisatNotify(prop::CnfStream* cnf, TheoryBV *bv)
+    MinisatNotify(prop::CnfStream* cnf, TheoryBV *bv, TLazyBitblaster* lbv)
     : d_cnf(cnf)
     , d_bv(bv)
+    , d_lazyBB(lbv)
     {}
     bool notify(prop::SatLiteral lit);
     void notify(prop::SatClause& clause);
@@ -126,8 +130,10 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
-  context::CDList<prop::SatLiteral>  d_assertedAtoms; /**< context dependent list storing the atoms
-                                                       currently asserted by the DPLL SAT solver. */
+  AssertionList d_assertedAtoms; /**< context dependent list storing the atoms
+                                     currently asserted by the DPLL SAT solver. */
+  ExplanationMap d_explanations; /**< context dependent list of explanations for the propagated literals.
+                                    Only used when bvEagerPropagate option enabled. */
   VarSet d_variables;
   AtomSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
@@ -197,6 +203,7 @@ private:
   public:
     IntStat d_numTermClauses, d_numAtomClauses;
     IntStat d_numTerms, d_numAtoms;
+    IntStat d_numExplainedPropagations;
     TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
     ~Statistics();

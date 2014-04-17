@@ -40,6 +40,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_bv(bv)
   , d_ctx(c)
   , d_assertedAtoms(c)
+  , d_explanations(c)
   , d_variables()
   , d_bbAtoms()
   , d_abstraction(NULL)
@@ -54,7 +55,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   if (bv == NULL)
     notify = new MinisatEmptyNotify();
   else
-    notify = new MinisatNotify(d_cnfStream, bv);
+    notify = new MinisatNotify(d_cnfStream, bv, this);
   Assert (notify != NULL); 
   d_satSolver->setNotify(notify);
 }
@@ -184,8 +185,20 @@ void TLazyBitblaster::addAtom(TNode atom) {
 }
 
 void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
+  prop::SatLiteral lit = d_cnfStream->getLiteral(atom);
+
+  ++(d_statistics.d_numExplainedPropagations);
+  if (options::bvEagerPropagation()) {
+    Assert (d_explanations.find(lit) != d_explanations.end());
+    const std::vector<prop::SatLiteral>& literal_explanation = d_explanations[lit].get();
+    for (unsigned i = 0; i < literal_explanation.size(); ++i) {
+      explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
+    }
+    return; 
+  }
+  
   std::vector<prop::SatLiteral> literal_explanation;
-  d_satSolver->explain(d_cnfStream->getLiteral(atom), literal_explanation);
+  d_satSolver->explain(lit, literal_explanation);
   for (unsigned i = 0; i < literal_explanation.size(); ++i) {
     explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
   }
@@ -284,12 +297,14 @@ TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
   d_numAtomClauses("theory::bv::"+prefix+"::NumberOfAtomSatClauses", 0),
   d_numTerms("theory::bv::"+prefix+"::NumberOfBitblastedTerms", 0),
   d_numAtoms("theory::bv::"+prefix+"::NumberOfBitblastedAtoms", 0),
+  d_numExplainedPropagations("theory::bv::"+prefix+"::NumberOfExplainedPropagations", 0),
   d_bitblastTimer("theory::bv::"+prefix+"::BitblastTimer")
 {
   StatisticsRegistry::registerStat(&d_numTermClauses);
   StatisticsRegistry::registerStat(&d_numAtomClauses);
   StatisticsRegistry::registerStat(&d_numTerms);
   StatisticsRegistry::registerStat(&d_numAtoms);
+  StatisticsRegistry::registerStat(&d_numExplainedPropagations);
   StatisticsRegistry::registerStat(&d_bitblastTimer);
 }
 
@@ -299,12 +314,21 @@ TLazyBitblaster::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numAtomClauses);
   StatisticsRegistry::unregisterStat(&d_numTerms);
   StatisticsRegistry::unregisterStat(&d_numAtoms);
+  StatisticsRegistry::unregisterStat(&d_numExplainedPropagations);
   StatisticsRegistry::unregisterStat(&d_bitblastTimer);
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
-  return d_bv->storePropagation(d_cnf->getNode(lit), SUB_BITBLAST);
-};
+  if(options::bvEagerPropagation()) {
+    // compute explanation
+    Assert (d_lazyBB->d_explanations.find(lit) == d_lazyBB->d_explanations.end());;
+    std::vector<prop::SatLiteral> literal_explanation;
+    d_lazyBB->d_satSolver->explain(lit, literal_explanation);
+    d_lazyBB->d_explanations.insert(lit, literal_explanation); 
+  }
+  TNode atom = d_cnf->getNode(lit); 
+  return d_bv->storePropagation(atom, SUB_BITBLAST);
+}
 
 void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   if (clause.size() > 1) {
@@ -317,7 +341,7 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
   } else {
     d_bv->d_out->lemma(d_cnf->getNode(clause[0]));
   }
-};
+}
 
 void TLazyBitblaster::MinisatNotify::safePoint() {
   d_bv->d_out->safePoint();
@@ -457,7 +481,7 @@ void TLazyBitblaster::clearSolver() {
   if (d_bv == NULL)
     notify = new MinisatEmptyNotify();
   else
-    notify = new MinisatNotify(d_cnfStream, d_bv);
+    notify = new MinisatNotify(d_cnfStream, d_bv, this);
   Assert (notify != NULL); 
   d_satSolver->setNotify(notify);
 }
