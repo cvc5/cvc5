@@ -424,12 +424,11 @@ public:
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
-   * @param name the name of the new skolem variable.  This name can
-   * contain the special character sequence "$$", in which case the
-   * $$ is replaced with the Node ID.  That way a family of skolem
-   * variables can be made with unique identifiers, used in dump,
-   * tracing, and debugging output.  By convention, you should probably
-   * call mkSkolem() with a custom name appended with "_$$".
+   * @param prefix the name of the new skolem variable is the prefix
+   * appended with the Node ID.  This way a family of skolem variables
+   * can be made with unique identifiers, used in dump, tracing, and
+   * debugging output.  Use SKOLEM_EXECT_NAME flag if you don't want
+   * Node ID appended and use prefix as the name.
    *
    * @param type the type of the skolem variable to create
    *
@@ -440,7 +439,7 @@ public:
    * @param flags an optional mask of bits from SkolemFlags to control
    * mkSkolem() behavior
    */
-  Node mkSkolem(const std::string& name, const TypeNode& type,
+  Node mkSkolem(const std::string& prefix, const TypeNode& type,
                 const std::string& comment = "", int flags = SKOLEM_DEFAULT);
 
   /** Create a instantiation constant with the given type. */

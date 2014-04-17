@@ -51,7 +51,7 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         //if value is null, must generate it
         if( val.isNull() ){
           std::stringstream ss;
-          ss << "mdo_" << it->first << "_$$";
+          ss << "mdo_" << it->first << "";
           Node op = NodeManager::currentNM()->mkSkolem( ss.str(), it->first.getType(), "op created during macro definitions" );
           //will be defined in terms of fresh operator
           std::vector< Node > children;
@@ -273,7 +273,7 @@ void QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
               if( d_macro_basis[op].empty() ){
                 for( size_t a=0; a<m.getNumChildren(); a++ ){
                   std::stringstream ss;
-                  ss << "mda_" << op << "_$$";
+                  ss << "mda_" << op << "";
                   Node v = NodeManager::currentNM()->mkSkolem( ss.str(), m[a].getType(), "created during macro definition recognition" );
                   d_macro_basis[op].push_back( v );
                 }

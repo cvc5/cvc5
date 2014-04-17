@@ -418,7 +418,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = nm->mkSkolem("deor$$", nm->booleanType());
+        Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         d_skolemsAdded.push_back(sk);

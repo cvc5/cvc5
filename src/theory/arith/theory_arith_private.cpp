@@ -226,7 +226,7 @@ Node TheoryArithPrivate::getRealDivideBy0Func(){
 
   if(d_realDivideBy0Func.isNull()){
     TypeNode realType = NodeManager::currentNM()->realType();
-    d_realDivideBy0Func = skolemFunction("/by0_$$", realType, realType);
+    d_realDivideBy0Func = skolemFunction("/by0", realType, realType);
   }
   return d_realDivideBy0Func;
 }
@@ -237,7 +237,7 @@ Node TheoryArithPrivate::getIntDivideBy0Func(){
 
   if(d_intDivideBy0Func.isNull()){
     TypeNode intType = NodeManager::currentNM()->integerType();
-    d_intDivideBy0Func = skolemFunction("divby0_$$", intType, intType);
+    d_intDivideBy0Func = skolemFunction("divby0", intType, intType);
   }
   return d_intDivideBy0Func;
 }
@@ -248,7 +248,7 @@ Node TheoryArithPrivate::getIntModulusBy0Func(){
 
   if(d_intModulusBy0Func.isNull()){
     TypeNode intType = NodeManager::currentNM()->integerType();
-    d_intModulusBy0Func = skolemFunction("modby0_$$", intType, intType);
+    d_intModulusBy0Func = skolemFunction("modby0", intType, intType);
   }
   return d_intModulusBy0Func;
 }
@@ -1498,7 +1498,7 @@ Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
   Polynomial qp = Polynomial::parsePolynomial(q);
 
   Node abs_d = (n.isConstant()) ?
-    d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs_$$");
+    d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs");
 
   Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
   Node leq0 = currNM->mkNode(LEQ, zero, r);

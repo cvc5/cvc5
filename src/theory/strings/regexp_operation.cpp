@@ -296,7 +296,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 						}
 					}
 					if(ret == 0) {
-						Node sk = NodeManager::currentNM()->mkSkolem( "rsp_$$", NodeManager::currentNM()->stringType(), "Split RegExp" );
+						Node sk = NodeManager::currentNM()->mkSkolem( "rsp", NodeManager::currentNM()->stringType(), "Split RegExp" );
 						retNode = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, sk);
 						if(!rest.isNull()) {
 							retNode = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, retNode, rest));
@@ -1038,7 +1038,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 						emptyflag = true;
 						break;
 					} else {
-						Node sk = NodeManager::currentNM()->mkSkolem( "rc_$$", s.getType(), "created for regular expression concat" );
+						Node sk = NodeManager::currentNM()->mkSkolem( "rc", s.getType(), "created for regular expression concat" );
 						Node lem = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk, r[i]);
 						nvec.push_back(lem);
 						cc.push_back(sk);
@@ -1098,8 +1098,8 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
 				} else {
 					Node se = s.eqNode(d_emptyString);
 					Node sinr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "rs_$$", s.getType(), "created for regular expression star" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "rs_$$", s.getType(), "created for regular expression star" );
+					Node sk1 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
+					Node sk2 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
 					Node s1nz = sk1.eqNode(d_emptyString).negate();
 					Node s2nz = sk2.eqNode(d_emptyString).negate();
 					Node s1inr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk1, r[0]);

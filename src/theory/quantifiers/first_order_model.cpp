@@ -585,7 +585,7 @@ void FirstOrderModelFmc::processInitialize( bool ispre ) {
         types.push_back(NodeManager::currentNM()->integerType());
       }
       TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->integerType() );
-      intervalOp = NodeManager::currentNM()->mkSkolem( "interval_$$", typ, "op representing interval" );
+      intervalOp = NodeManager::currentNM()->mkSkolem( "interval", typ, "op representing interval" );
     }
     for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
       it->second->reset();
@@ -611,7 +611,7 @@ bool FirstOrderModelFmc::isStar(Node n) {
 Node FirstOrderModelFmc::getStar(TypeNode tn) {
   std::map<TypeNode, Node >::iterator it = d_type_star.find( tn );
   if( it==d_type_star.end() ){
-    Node st = NodeManager::currentNM()->mkSkolem( "star_$$", tn, "skolem created for full-model checking" );
+    Node st = NodeManager::currentNM()->mkSkolem( "star", tn, "skolem created for full-model checking" );
     d_type_star[tn] = st;
     st.setAttribute(IsStarAttribute(), true );
     return st;

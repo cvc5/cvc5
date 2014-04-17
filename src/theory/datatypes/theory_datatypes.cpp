@@ -1107,7 +1107,7 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index,
         if( dt.isParametric() ){
           tn = TypeNode::fromType( tspec )[i];
         }
-        nc = NodeManager::currentNM()->mkSkolem( "m_$$", tn, "created during model gen" );
+        nc = NodeManager::currentNM()->mkSkolem( "m", tn, "created during model gen" );
       }
       children.push_back( nc );
       if( isActive ){
