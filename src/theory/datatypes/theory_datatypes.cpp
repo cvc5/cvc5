@@ -1173,51 +1173,23 @@ void TheoryDatatypes::processNewTerm( Node n ){
 }
 
 Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar, bool isActive ){
-  //if( !d_inst_map[n][index].isNull() ){
-  //  return d_inst_map[n][index];
-  //}else{
+  std::map< int, Node >::iterator it = d_inst_map[n].find( index );
+  if( it!=d_inst_map[n].end() ){
+    return it->second;
+  }else{
     //add constructor to equivalence class
-    Type tspec;
-    if( dt.isParametric() ){
-      tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
-    }
-    std::vector< Node > children;
-    children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
-    for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){
-      Node nc = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index][i].getSelector() ), n );
-      if( mkVar ){
-        TypeNode tn = nc.getType();
-        if( dt.isParametric() ){
-          tn = TypeNode::fromType( tspec )[i];
-        }
-        nc = NodeManager::currentNM()->mkSkolem( "m_$$", tn, "created during model gen" );
-      }
-      children.push_back( nc );
-      if( isActive ){
-        processNewTerm( nc );
-      }
-    }
-    Node n_ic = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+    Node n_ic = DatatypesRewriter::getInstCons( n, dt, index, mkVar );
     if( isActive ){
+      for( unsigned i = 0; i<n_ic.getNumChildren(); i++ ){
+        processNewTerm( n_ic[i] );
+      }
       collectTerms( n_ic );
-    }
-    //add type ascription for ambiguous constructor types
-    if(!n_ic.getType().isComparableTo(n.getType())) {
-      Assert( dt.isParametric() );
-      Debug("datatypes-parametric") << "DtInstantiate: ambiguous type for " << n_ic << ", ascribe to " << n.getType() << std::endl;
-      Debug("datatypes-parametric") << "Constructor is " << dt[index] << std::endl;
-      Type tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
-      Debug("datatypes-parametric") << "Type specification is " << tspec << std::endl;
-      children[0] = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                                                     NodeManager::currentNM()->mkConst(AscriptionType(tspec)), children[0] );
-      n_ic = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
-      Assert( n_ic.getType()==n.getType() );
     }
     n_ic = Rewriter::rewrite( n_ic );
     Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
-    //d_inst_map[n][index] = n_ic;
+    d_inst_map[n][index] = n_ic;
     return n_ic;
-  //}
+  }
 }
 
 void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
@@ -1238,7 +1210,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
     //if( eqc->d_selectors || dt[ index ].isFinite() ){ // || mustSpecifyAssignment()
     //instantiate this equivalence class
     eqc->d_inst = true;
-    Node tt_cons = getInstantiateCons( tt, dt, index );
+    Node tt_cons = getInstantiateCons( tt, dt, index, false, true );
     Node eq;
     if( tt!=tt_cons ){
       eq = tt.eqNode( tt_cons );

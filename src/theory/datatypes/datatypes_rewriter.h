@@ -248,6 +248,58 @@ public:
     }
     return false;
   }
+  /** get instantiate cons */
+  static Node getInstCons( Node n, const Datatype& dt, int index, bool mkVar = false ) {
+    Type tspec;
+    if( dt.isParametric() ){
+      tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
+    }
+    std::vector< Node > children;
+    children.push_back( Node::fromExpr( dt[index].getConstructor() ) );
+    for( int i=0; i<(int)dt[index].getNumArgs(); i++ ){
+      Node nc = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index][i].getSelector() ), n );
+      if( mkVar ){
+        TypeNode tn = nc.getType();
+        if( dt.isParametric() ){
+          tn = TypeNode::fromType( tspec )[i];
+        }
+        nc = NodeManager::currentNM()->mkSkolem( "m_$$", tn, "created for inst cons" );
+      }
+      children.push_back( nc );
+    }
+    Node n_ic = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+    //add type ascription for ambiguous constructor types
+    if(!n_ic.getType().isComparableTo(n.getType())) {
+      Assert( dt.isParametric() );
+      Debug("datatypes-parametric") << "DtInstantiate: ambiguous type for " << n_ic << ", ascribe to " << n.getType() << std::endl;
+      Debug("datatypes-parametric") << "Constructor is " << dt[index] << std::endl;
+      Type tspec = dt[index].getSpecializedConstructorType(n.getType().toType());
+      Debug("datatypes-parametric") << "Type specification is " << tspec << std::endl;
+      children[0] = NodeManager::currentNM()->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                                                     NodeManager::currentNM()->mkConst(AscriptionType(tspec)), children[0] );
+      n_ic = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, children );
+      Assert( n_ic.getType()==n.getType() );
+    }
+    Assert( isInstCons( n_ic, dt, index ) );
+    //n_ic = Rewriter::rewrite( n_ic );
+    return n_ic;
+  }
+  static bool isInstCons( Node n, const Datatype& dt, int index ){
+    if( n.getKind()==kind::APPLY_CONSTRUCTOR ){
+      const DatatypeConstructor& c = dt[index];
+      if( n.getOperator()==Node::fromExpr( c.getConstructor() ) ){
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          if( n[i].getKind()!=kind::APPLY_SELECTOR_TOTAL ||
+              n[i].getOperator()!=Node::fromExpr( c[i].getSelector() ) ){
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** is this term a datatype */
   static bool isTermDatatype( Node n ){
     TypeNode tn = n.getType();

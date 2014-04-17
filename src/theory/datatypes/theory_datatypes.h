@@ -247,7 +247,7 @@ private:
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar = false, bool isActive = true );
+  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar, bool isActive );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */
