@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "expr/command.h"
+#include "util/didyoumean.h"
 #include "util/language.h"
 
 namespace CVC4 {
@@ -99,11 +100,24 @@ inline InputLanguage stringToInputLanguage(std::string option, std::string optar
   Unreachable();
 }
 
+inline std::string suggestTags(char const* const* validTags, std::string inputTag)
+{
+  DidYouMean didYouMean;
+
+  const char* opt;
+  for(size_t i = 0; (opt = validTags[i]) != NULL; ++i) {
+    didYouMean.addWord(validTags[i]);
+  }
+
+  return  didYouMean.getMatchAsString(inputTag);
+}
+
 inline void addTraceTag(std::string option, std::string optarg, SmtEngine* smt) {
   if(Configuration::isTracingBuild()) {
     if(!Configuration::isTraceTag(optarg.c_str()))
       throw OptionException(std::string("trace tag ") + optarg +
-                            std::string(" not available"));
+                            std::string(" not available.") +
+                            suggestTags(Configuration::getTraceTags(), optarg) );
   } else {
     throw OptionException("trace tags not available in non-tracing builds");
   }
@@ -115,7 +129,8 @@ inline void addDebugTag(std::string option, std::string optarg, SmtEngine* smt) 
     if(!Configuration::isDebugTag(optarg.c_str()) &&
        !Configuration::isTraceTag(optarg.c_str())) {
       throw OptionException(std::string("debug tag ") + optarg +
-                            std::string(" not available"));
+                            std::string(" not available.") +
+                            suggestTags(Configuration::getDebugTags(), optarg) );
     }
   } else if(! Configuration::isDebugBuild()) {
     throw OptionException("debug tags not available in non-debug builds");
