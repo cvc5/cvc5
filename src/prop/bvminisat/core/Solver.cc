@@ -829,17 +829,18 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               return l_False;
             }
 
-            
-            // check if uip leads to a conflict 
-            if (backtrack_level < assumptions.size()) {
-              cancelUntil(assumptions.size());
-              uncheckedEnqueue(p, cr);
+            if (!CVC4::options::bvEagerPropagation()) {
+              // check if uip leads to a conflict 
+              if (backtrack_level < assumptions.size()) {
+                cancelUntil(assumptions.size());
+                uncheckedEnqueue(p, cr);
               
-              CRef new_confl = propagate();
-              if (new_confl != CRef_Undef) {
-                // we have a conflict we now need to explain it
-                analyzeFinal2(p, new_confl, conflict); 
-                return l_False;
+                CRef new_confl = propagate();
+                if (new_confl != CRef_Undef) {
+                  // we have a conflict we now need to explain it
+                  analyzeFinal2(p, new_confl, conflict); 
+                  return l_False;
+                }
               }
             }
 

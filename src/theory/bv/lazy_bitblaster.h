@@ -298,6 +298,7 @@ TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
   d_numTerms("theory::bv::"+prefix+"::NumberOfBitblastedTerms", 0),
   d_numAtoms("theory::bv::"+prefix+"::NumberOfBitblastedAtoms", 0),
   d_numExplainedPropagations("theory::bv::"+prefix+"::NumberOfExplainedPropagations", 0),
+  d_numBitblastingPropagations("theory::bv::"+prefix+"::NumberOfBitblastingPropagations", 0),
   d_bitblastTimer("theory::bv::"+prefix+"::BitblastTimer")
 {
   StatisticsRegistry::registerStat(&d_numTermClauses);
@@ -305,6 +306,7 @@ TLazyBitblaster::Statistics::Statistics(const std::string& prefix) :
   StatisticsRegistry::registerStat(&d_numTerms);
   StatisticsRegistry::registerStat(&d_numAtoms);
   StatisticsRegistry::registerStat(&d_numExplainedPropagations);
+  StatisticsRegistry::registerStat(&d_numBitblastingPropagations);
   StatisticsRegistry::registerStat(&d_bitblastTimer);
 }
 
@@ -315,17 +317,23 @@ TLazyBitblaster::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numTerms);
   StatisticsRegistry::unregisterStat(&d_numAtoms);
   StatisticsRegistry::unregisterStat(&d_numExplainedPropagations);
+  StatisticsRegistry::unregisterStat(&d_numBitblastingPropagations);
   StatisticsRegistry::unregisterStat(&d_bitblastTimer);
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
   if(options::bvEagerPropagation()) {
     // compute explanation
-    Assert (d_lazyBB->d_explanations.find(lit) == d_lazyBB->d_explanations.end());;
-    std::vector<prop::SatLiteral> literal_explanation;
-    d_lazyBB->d_satSolver->explain(lit, literal_explanation);
-    d_lazyBB->d_explanations.insert(lit, literal_explanation); 
+    if (d_lazyBB->d_explanations.find(lit) == d_lazyBB->d_explanations.end()) {
+      std::vector<prop::SatLiteral> literal_explanation;
+      d_lazyBB->d_satSolver->explain(lit, literal_explanation);
+      d_lazyBB->d_explanations.insert(lit, literal_explanation);
+    } else {
+      // we propagated it at a lower level
+      return true; 
+    }
   }
+  ++(d_lazyBB->d_statistics.d_numBitblastingPropagations);
   TNode atom = d_cnf->getNode(lit); 
   return d_bv->storePropagation(atom, SUB_BITBLAST);
 }

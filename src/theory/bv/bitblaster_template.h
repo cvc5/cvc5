@@ -204,6 +204,7 @@ private:
     IntStat d_numTermClauses, d_numAtomClauses;
     IntStat d_numTerms, d_numAtoms;
     IntStat d_numExplainedPropagations;
+    IntStat d_numBitblastingPropagations;
     TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
     ~Statistics();
