@@ -207,13 +207,10 @@ public:
       std::vector< Node > rew;
       if( checkClash(in[0], in[1], rew) ){
         Trace("datatypes-rewrite") << "Rewrite clashing equality " << in << " to false" << std::endl;
-        return RewriteResponse(REWRITE_DONE,
-                               NodeManager::currentNM()->mkConst(false));
-      }else if( rew.size()!=1 || rew[0]!=in ){
-        Node nn = rew.size()==0 ? NodeManager::currentNM()->mkConst( true ) :
-                    ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
-        Trace("datatypes-rewrite") << "Rewrite equality to " << nn << std::endl;
-        return RewriteResponse(REWRITE_AGAIN_FULL, nn );
+        return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(false));
+      }else if( rew.size()==1 && rew[0]!=in ){
+        Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
+        return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
       }
     }
 
@@ -242,7 +239,7 @@ public:
           }
         }
       }
-    }else{
+    }else if( n1!=n2 ){
       Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
       rew.push_back( eq );
     }

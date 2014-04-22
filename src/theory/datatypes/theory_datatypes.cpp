@@ -56,6 +56,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -412,6 +413,19 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
         NodeManager::currentNM()->getDatatypeForTupleRecord(t).setAttribute(expr::DatatypeRecordAttr(), NodeManager::currentNM()->getDatatypeForTupleRecord(in.getAttribute(smt::BooleanTermAttr()).getType()).getAttribute(expr::DatatypeRecordAttr()));
       }
     }
+
+    if( in.getKind()==EQUAL ){
+      Node nn;
+      std::vector< Node > rew;
+      if( DatatypesRewriter::checkClash(in[0], in[1], rew) ){
+        nn = NodeManager::currentNM()->mkConst(false);
+      }else{
+        nn = rew.size()==0 ? NodeManager::currentNM()->mkConst( true ) :
+                  ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+      }
+      return nn;
+    }
+
     // nothing to do
     return in;
   }
@@ -464,6 +478,7 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
   }
 
   Assert(!n.isNull());
+
 
   Debug("tuprec") << "REWROTE " << in << " to " << n << std::endl;
 
