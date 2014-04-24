@@ -344,6 +344,28 @@ command returns [CVC4::Command* cmd = NULL]
       Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
       $cmd = new DefineFunctionCommand(name, func, terms, expr);
     }
+  | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    { PARSER_STATE->checkUserSymbol(name); }
+    sortSymbol[t,CHECK_DECLARED]
+    { /* add variables to parser state before parsing term */
+      Debug("parser") << "define const: '" << name << "'" << std::endl;
+      PARSER_STATE->pushScope(true);
+      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
+            sortedVarNames.begin(), iend = sortedVarNames.end();
+          i != iend;
+          ++i) {
+        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
+      }
+    }
+    term[expr, expr2]
+    { PARSER_STATE->popScope();
+      // declare the name down here (while parsing term, signature
+      // must not be extended with the name itself; no recursion
+      // permitted)
+      Expr func = PARSER_STATE->mkFunction(name, t, ExprManager::VAR_FLAG_DEFINED);
+      $cmd = new DefineFunctionCommand(name, func, terms, expr);
+    }
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
@@ -487,7 +509,7 @@ extendedCommand[CVC4::Command*& cmd]
     sortSymbol[t,CHECK_DECLARED]
     { Expr c = PARSER_STATE->mkVar(name, t);
       $cmd = new DeclareFunctionCommand(name, c, t); }
-
+      
   | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF) &&
          !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) &&
@@ -1645,6 +1667,7 @@ DECLARE_FUNS_TOK : 'declare-funs';
 DECLARE_PREDS_TOK : 'declare-preds';
 DEFINE_TOK : 'define';
 DECLARE_CONST_TOK : 'declare-const';
+DEFINE_CONST_TOK : 'define-const';
 SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 

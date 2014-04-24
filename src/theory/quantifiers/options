@@ -67,6 +67,8 @@ option registerQuantBodyTerms --register-quant-body-terms bool :default false
 
 option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :default CVC4::theory::quantifiers::INST_WHEN_FULL :read-write :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToInstWhenMode :handler-include "theory/quantifiers/options_handlers.h" :predicate CVC4::theory::quantifiers::checkInstWhenMode :predicate-include "theory/quantifiers/options_handlers.h"
  when to apply instantiation
+option instMaxLevel --inst-max-level=N int :default -1
+ maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
  
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly

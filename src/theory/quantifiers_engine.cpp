@@ -319,7 +319,6 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
       Trace("inst") << "   " << terms[i];
       Trace("inst") << std::endl;
     }
-    //uint64_t maxInstLevel = 0;
     if( options::cbqi() ){
       for( int i=0; i<(int)terms.size(); i++ ){
         if( quantifiers::TermDb::hasInstConstAttr(terms[i]) ){
@@ -328,22 +327,21 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
             Debug("inst") << "   " << terms[i] << std::endl;
           }
           Unreachable("Bad instantiation");
-        }else{
-          Trace("inst") << "   " << terms[i];
-          //Debug("inst-engine") << " " << terms[i].getAttribute(InstLevelAttribute());
-          Trace("inst") << std::endl;
-          //if( terms[i].hasAttribute(InstLevelAttribute()) ){
-            //if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
-            //  maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
-            //}
-          //}else{
-            //setInstantiationLevelAttr( terms[i], 0 );
-          //}
         }
       }
     }
+    if( options::instMaxLevel()!=-1 ){
+      uint64_t maxInstLevel = 0;
+      for( int i=0; i<(int)terms.size(); i++ ){
+        if( terms[i].hasAttribute(InstLevelAttribute()) ){
+          if( terms[i].getAttribute(InstLevelAttribute())>maxInstLevel ){
+            maxInstLevel = terms[i].getAttribute(InstLevelAttribute());
+          }
+        }
+      }
+      setInstantiationLevelAttr( body, maxInstLevel+1 );
+    }
     Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
-    //setInstantiationLevelAttr( body, maxInstLevel+1 );
     ++(d_statistics.d_instantiations);
     return true;
   }else{
@@ -503,6 +501,17 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     }
   }
   Trace("inst-add-debug") << std::endl;
+
+  if( options::instMaxLevel()!=-1 ){
+    for( unsigned i=0; i<terms.size(); i++ ){
+      if( terms[i].hasAttribute(InstLevelAttribute()) &&
+          (int)terms[i].getAttribute(InstLevelAttribute())>options::instMaxLevel() ){
+        Trace("inst-add-debug") << "Term " << terms[i] << " has instantiation level " << terms[i].getAttribute(InstLevelAttribute());
+        Trace("inst-add-debug") << ", which is more than maximum allowed level " << options::instMaxLevel() << std::endl;
+        return false;
+      }
+    }
+  }
 
   //check for duplication
   ///*
