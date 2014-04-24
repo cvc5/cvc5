@@ -150,61 +150,63 @@ void TheoryDatatypes::check(Effort e) {
           if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
             Trace("datatypes-debug") << "No constructor..." << std::endl;
             const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
-            //if only one constructor, then this term must be this constructor
-            if( dt.getNumConstructors()==1 ){
-              Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[0].getTester() ), n );
-              d_pending.push_back( t );
-              d_pending_exp[ t ] = NodeManager::currentNM()->mkConst( true );
-              Trace("datatypes-infer") << "DtInfer : 1-cons : " << t << std::endl;
-              d_infer.push_back( t );
-            }else{
-              std::vector< bool > pcons;
-              getPossibleCons( eqc, n, pcons );
-              //std::cout << "pcons " << n << " = ";
-              //for( int i=0; i<(int)pcons.size(); i++ ){ //std::cout << pcons[i] << " "; }
-              //std::cout << std::endl;
-              //check if we do not need to resolve the constructor type for this equivalence class.
-              // this is if there are no selectors for this equivalence class, its possible values are infinite,
-              //  and we are not producing a model, then do not split.
-              int consIndex = -1;
-              bool needSplit = true;
-              for( unsigned int j=0; j<pcons.size(); j++ ) {
-                if( pcons[j] ) {
-                  if( consIndex==-1 ){
-                    consIndex = j;
-                  }
-                  if( !dt[ j ].isFinite() && !eqc->d_selectors ) {
-                    needSplit = false;
-                  }
+
+            std::vector< bool > pcons;
+            getPossibleCons( eqc, n, pcons );
+            //std::cout << "pcons " << n << " = ";
+            //for( int i=0; i<(int)pcons.size(); i++ ){ //std::cout << pcons[i] << " "; }
+            //std::cout << std::endl;
+            //check if we do not need to resolve the constructor type for this equivalence class.
+            // this is if there are no selectors for this equivalence class, its possible values are infinite,
+            //  and we are not producing a model, then do not split.
+            int consIndex = -1;
+            bool needSplit = true;
+            for( unsigned int j=0; j<pcons.size(); j++ ) {
+              if( pcons[j] ) {
+                if( consIndex==-1 ){
+                  consIndex = j;
                 }
-              }
-              /*
-              if( !needSplit && mustSpecifyAssignment() ){
-                //for the sake of termination, we must choose the constructor of a ground term
-                //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
-                // TODO: this is probably not good enough, actually need fair enumeration strategy
-                Node groundTerm = n.getType().mkGroundTerm();
-                int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-                if( pcons[index] ){
-                  consIndex = index;
+                if( !dt[ j ].isFinite() && !eqc->d_selectors ) {
+                  needSplit = false;
                 }
-                needSplit = true;
-              }
-              */
-              if( needSplit && consIndex!=-1 ) {
-                Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
-                Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
-                test = Rewriter::rewrite( test );
-                NodeBuilder<> nb(kind::OR);
-                nb << test << test.notNode();
-                Node lemma = nb;
-                d_out->lemma( lemma );
-                d_out->requirePhase( test, true );
-                return;
-              }else{
-                Trace("dt-split-debug") << "Do not split constructor for " << n << std::endl;
               }
             }
+            /*
+            if( !needSplit && mustSpecifyAssignment() ){
+              //for the sake of termination, we must choose the constructor of a ground term
+              //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
+              // TODO: this is probably not good enough, actually need fair enumeration strategy
+              Node groundTerm = n.getType().mkGroundTerm();
+              int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
+              if( pcons[index] ){
+                consIndex = index;
+              }
+              needSplit = true;
+            }
+            */
+            if( needSplit && consIndex!=-1 ) {
+              //if only one constructor, then this term must be this constructor
+              if( dt.getNumConstructors()==1 ){
+                Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[0].getTester() ), n );
+                d_pending.push_back( t );
+                d_pending_exp[ t ] = NodeManager::currentNM()->mkConst( true );
+                Trace("datatypes-infer") << "DtInfer : 1-cons : " << t << std::endl;
+                d_infer.push_back( t );
+              }else{
+                  Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
+                  Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
+                  test = Rewriter::rewrite( test );
+                  NodeBuilder<> nb(kind::OR);
+                  nb << test << test.notNode();
+                  Node lemma = nb;
+                  d_out->lemma( lemma );
+                  d_out->requirePhase( test, true );
+                  return;
+              }
+            }else{
+              Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
+            }
+
           }else{
             Trace("datatypes-debug") << "Has constructor " << eqc->d_constructor.get() << std::endl;
           }
@@ -965,7 +967,7 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
 }
 
 void TheoryDatatypes::computeCareGraph(){
-  Trace("ajr-temp") << "Compute graph for dt..." << std::endl;
+  Trace("dt-cg") << "Compute graph for dt..." << std::endl;
   vector< pair<TNode, TNode> > currentPairs;
   for( unsigned r=0; r<2; r++ ){
     unsigned functionTerms = r==0 ? d_consTerms.size() : d_selTerms.size();
@@ -974,7 +976,7 @@ void TheoryDatatypes::computeCareGraph(){
       for( unsigned j=i+1; j<functionTerms; j++ ){
         TNode f2 = r==0 ? d_consTerms[j] : d_selTerms[j];
         if( f1.getOperator()==f2.getOperator() && !areEqual( f1, f2 ) ){
-          Trace("ajr-temp") << "Check " << f1 << " and " << f2 << std::endl;
+          Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
           bool somePairIsDisequal = false;
           currentPairs.clear();
           for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
@@ -983,18 +985,23 @@ void TheoryDatatypes::computeCareGraph(){
             if( areDisequal(x, y) ){
               somePairIsDisequal = true;
               break;
-            }else if( !areEqual( x, y ) &&
-                      d_equalityEngine.isTriggerTerm(x, THEORY_UF) && 
-                      d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
-              Trace("ajr-temp") << "Arg #" << k << " is " << x << " " << y << std::endl;
-              TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
-              TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
-              Trace("ajr-temp") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
-              currentPairs.push_back(make_pair(x_shared, y_shared));
+            }else if( !areEqual( x, y ) ){
+              Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
+              //check if they are definately disequal
+              
+              if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
+                TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
+                TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
+                Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
+                //EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+                //if( eqStatus!=EQUALITY_UNKNOWN ){
+                currentPairs.push_back(make_pair(x_shared, y_shared));
+              }
             }
           } 
           if (!somePairIsDisequal) {
             for (unsigned c = 0; c < currentPairs.size(); ++ c) {
+              Trace("dt-cg-pair") << "Pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
               addCarePair(currentPairs[c].first, currentPairs[c].second);
             }
           }
@@ -1002,8 +1009,7 @@ void TheoryDatatypes::computeCareGraph(){
       }
     }
   }
-  Trace("ajr-temp") << "Done Compute graph for dt." << std::endl;
-  //Theory::computeCareGraph();
+  Trace("dt-cg") << "Done Compute graph for dt." << std::endl;
 }
 
 void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
@@ -1066,7 +1072,8 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     }
     ++eqccs_i;
   }
-
+ 
+  unsigned orig_size = nodes.size();
   unsigned index = 0;
   while( index<nodes.size() ){
     Node eqc = nodes[index];
@@ -1083,20 +1090,23 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
         neqc = *te;
         Trace("dt-cmi-debug") << "Try " << neqc << " ... " << std::endl;
         ++te;
-        for( unsigned i=0; i<cons.size(); i++ ){
-          //check if it is modulo equality the same
-          if( cons[i].getOperator()==neqc.getOperator() ){
-            bool diff = false;
-            for( unsigned j=0; j<cons[i].getNumChildren(); j++ ){
-              if( !m->areEqual( cons[i][j], neqc[j] ) ){
-                diff = true;
+        //if it is infinite or we are assigning to terms known by datatypes, make sure it is fresh
+        if( eqc.getType().getCardinality().isInfinite() || index<orig_size ){
+          for( unsigned i=0; i<cons.size(); i++ ){
+            //check if it is modulo equality the same
+            if( cons[i].getOperator()==neqc.getOperator() ){
+              bool diff = false;
+              for( unsigned j=0; j<cons[i].getNumChildren(); j++ ){
+                if( !m->areEqual( cons[i][j], neqc[j] ) ){
+                  diff = true;
+                  break;
+                }
+              }
+              if( !diff ){
+                Trace("dt-cmi-debug") << "...Already equivalent modulo equality to " << cons[i] << std::endl;
+                success = false;
                 break;
               }
-            }
-            if( !diff ){
-              Trace("dt-cmi-debug") << "...Already equivalent modulo equality to " << cons[i] << std::endl;
-              success = false;
-              break;
             }
           }
         }
@@ -1133,6 +1143,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
       for( unsigned r=0; r<2; r++ ){
         if( neqc.isNull() ){
           for( unsigned i=0; i<pcons.size(); i++ ){
+            //must try the infinite ones first
             if( pcons[i] && (r==1)==dt[ i ].isFinite() ){
               neqc = getInstantiateCons( eqc, dt, i, false, false );
               for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
