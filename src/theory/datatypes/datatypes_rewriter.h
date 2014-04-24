@@ -211,6 +211,8 @@ public:
       }else if( rew.size()==1 && rew[0]!=in ){
         Trace("datatypes-rewrite") << "Rewrite equality " << in << " to " << rew[0] << std::endl;
         return RewriteResponse(REWRITE_AGAIN_FULL, rew[0] );
+      }else{
+        Trace("datatypes-rewrite-debug") << "Did not rewrite equality " << in << " " << in[0].getKind() << " " << in[1].getKind() << std::endl;
       }
     }
 
@@ -240,8 +242,12 @@ public:
         }
       }
     }else if( n1!=n2 ){
-      Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
-      rew.push_back( eq );
+      if( n1.isConst() && n2.isConst() ){
+        return true;        
+      }else{
+        Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
+        rew.push_back( eq );
+      }
     }
     return false;
   }
