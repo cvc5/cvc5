@@ -1181,8 +1181,8 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
              (*itb).second->elementsNotInThisSet);
 
   /* sets containing this element */
-  pushToSettermPropagationQueue( b, (*ita).second->setsContainingThisElement, true);
-  pushToSettermPropagationQueue( b, (*ita).second->setsNotContainingThisElement, false);
+  // pushToSettermPropagationQueue( b, (*ita).second->setsContainingThisElement, true);
+  // pushToSettermPropagationQueue( b, (*ita).second->setsNotContainingThisElement, false);
   pushToSettermPropagationQueue( a, (*itb).second->setsNotContainingThisElement, false);
   pushToSettermPropagationQueue( a, (*itb).second->setsContainingThisElement, true);
   mergeLists( (*ita).second->setsContainingThisElement,
