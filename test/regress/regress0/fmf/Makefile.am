@@ -23,17 +23,23 @@ TESTS =	\
 	agree466.smt2 \
 	ALG008-1.smt2 \
 	german169.smt2 \
-	Hoare-z3.931718.smt \
 	QEpres-uf.855035.smt \
 	agree467.smt2 \
 	Arrow_Order-smtlib.778341.smt \
 	german73.smt2 \
 	PUZ001+1.smt2 \
 	refcount24.cvc.smt2 \
-	bug0909.smt2 \
-	fmf-bound-int.smt2
+	fmf-bound-int.smt2 \
+	fc-simple.smt2 \
+	fc-unsat-tot-2.smt2 \
+	fc-unsat-pent.smt2 \
+	fc-pigeonhole19.smt2 \
+	Hoare-z3.931718.smt
 
 EXTRA_DIST = $(TESTS)
+
+# disabled for now :
+#  bug0909.smt2
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

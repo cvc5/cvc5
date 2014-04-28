@@ -158,6 +158,7 @@ void Smt2::addTheory(Theory theory) {
     Parser::addOperator(kind::APPLY_CONSTRUCTOR);
     Parser::addOperator(kind::APPLY_TESTER);
     Parser::addOperator(kind::APPLY_SELECTOR);
+    Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
     break;
 
   case THEORY_STRINGS:

@@ -37,6 +37,7 @@ LogicInfo::LogicInfo() :
   d_reals(true),
   d_linear(true),// for now, "everything enabled" doesn't include non-linear arith
   d_differenceLogic(false),
+  d_cardinalityConstraints(false),
   d_locked(false) {
 
   for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
@@ -52,6 +53,7 @@ LogicInfo::LogicInfo(std::string logicString) throw(IllegalArgumentException) :
   d_reals(false),
   d_linear(false),
   d_differenceLogic(false),
+  d_cardinalityConstraints(false),
   d_locked(false) {
 
   setLogicString(logicString);
@@ -66,6 +68,7 @@ LogicInfo::LogicInfo(const char* logicString) throw(IllegalArgumentException) :
   d_reals(false),
   d_linear(false),
   d_differenceLogic(false),
+  d_cardinalityConstraints(false),
   d_locked(false) {
 
   setLogicString(logicString);
@@ -96,6 +99,9 @@ std::string LogicInfo::getLogicString() const {
       if(d_theories[THEORY_UF]) {
         ss << "UF";
         ++seen;
+      }
+      if( d_cardinalityConstraints ){
+        ss << "C";
       }
       if(d_theories[THEORY_BV]) {
         ss << "BV";
@@ -190,6 +196,10 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
       if(!strncmp(p, "UF", 2)) {
         enableTheory(THEORY_UF);
         p += 2;
+      }
+      if(!strncmp(p, "C", 1 )) {
+        d_cardinalityConstraints = true;
+        p += 1;
       }
       // allow BV or DT in either order
       if(!strncmp(p, "BV", 2)) {

@@ -46,7 +46,8 @@ BooleanTermConverter::BooleanTermConverter(SmtEngine& smt) :
   d_varCache(smt.d_userContext),
   d_termCache(smt.d_userContext),
   d_typeCache(),
-  d_datatypeCache() {
+  d_datatypeCache(),
+  d_datatypeReverseCache() {
 
   // set up our "false" and "true" conversions based on command-line option
   if(options::booleanTermConversionMode() == BOOLEAN_TERM_CONVERT_TO_BITVECTORS ||
@@ -116,6 +117,10 @@ static inline bool isBoolean(TNode top, unsigned i) {
 // to be for model-substitution, so the "in" is a Boolean-term-converted
 // node, and "as" is the original.  See how it's used in function
 // handling, below.
+//
+// Note this isn't the case any longer, and parts of what's below have
+// been repurposed for *forward* conversion, meaning this works in either
+// direction.
 Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
   if(in.getType() == as) {
     return in;
@@ -133,7 +138,12 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
     }
     Assert(as.isDatatype());
     const Datatype* dt2 = &as.getDatatype();
-    const Datatype* dt1 = d_datatypeCache[dt2];
+    const Datatype* dt1;
+    if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
+      dt1 = d_datatypeCache[dt2];
+    } else {
+      dt1 = d_datatypeReverseCache[dt2];
+    }
     Assert(dt1 != NULL, "expected datatype in cache");
     Assert(*dt1 == in.getType().getDatatype(), "improper rewriteAs() between datatypes");
     Node out;
@@ -142,7 +152,7 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
       NodeBuilder<> appctorb(kind::APPLY_CONSTRUCTOR);
       appctorb << (*dt2)[i].getConstructor();
       for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()));
+        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType()));
       }
       Node appctor = appctorb;
       if(i == 0) {
@@ -165,7 +175,12 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
       fromParams.push_back(TypeNode::fromType(dt2->getParameter(i)));
       toParams.push_back(as[i + 1]);
     }
-    const Datatype* dt1 = d_datatypeCache[dt2];
+    const Datatype* dt1;
+    if(d_datatypeCache.find(dt2) != d_datatypeCache.end()) {
+      dt1 = d_datatypeCache[dt2];
+    } else {
+      dt1 = d_datatypeReverseCache[dt2];
+    }
     Assert(dt1 != NULL, "expected datatype in cache");
     Assert(*dt1 == in.getType()[0].getDatatype(), "improper rewriteAs() between datatypes");
     Node out;
@@ -176,7 +191,7 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
       for(size_t j = 0; j < ctor.getNumArgs(); ++j) {
         TypeNode asType = TypeNode::fromType(SelectorType((*dt2)[i][j].getSelector().getType()).getRangeType());
         asType = asType.substitute(fromParams.begin(), fromParams.end(), toParams.begin(), toParams.end());
-        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR, ctor[j].getSelector(), in), asType);
+        appctorb << rewriteAs(NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, ctor[j].getSelector(), in), asType);
       }
       Node appctor = appctorb;
       if(i == 0) {
@@ -213,9 +228,9 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
         }
         vector<Datatype> newDtVector;
         if(dt.isParametric()) {
-          newDtVector.push_back(Datatype(dt.getName() + "'", dt.getParameters()));
+          newDtVector.push_back(Datatype(dt.getName() + "'", dt.getParameters(), false));
         } else {
-          newDtVector.push_back(Datatype(dt.getName() + "'"));
+          newDtVector.push_back(Datatype(dt.getName() + "'", false));
         }
         Datatype& newDt = newDtVector.front();
         Debug("boolean-terms") << "found a Boolean arg in constructor " << (*c).getName() << endl;
@@ -259,11 +274,13 @@ const Datatype& BooleanTermConverter::convertDatatype(const Datatype& dt) throw(
           }
         }
         out = &newD;
+        d_datatypeReverseCache[&newD] = &dt;
         return newD;
       }
     }
   }
 
+  // this is identity; don't need the reverse cache
   out = &dt;
   return dt;
 

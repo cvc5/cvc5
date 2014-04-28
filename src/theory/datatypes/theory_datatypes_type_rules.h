@@ -98,7 +98,7 @@ struct DatatypeConstructorTypeRule {
 struct DatatypeSelectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw(TypeCheckingExceptionPrivate) {
-    Assert(n.getKind() == kind::APPLY_SELECTOR);
+    Assert(n.getKind() == kind::APPLY_SELECTOR || n.getKind() == kind::APPLY_SELECTOR_TOTAL );
     TypeNode selType = n.getOperator().getType(check);
     Type t = selType[0].toType();
     Assert( t.isDatatype() );

@@ -82,8 +82,8 @@ static const std::string mbqiModeHelp = "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
-+ Default, use model-based quantifier instantiation algorithm from CADE 24 finite\n\
-  model finding paper.\n\
++ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability \n\
+  Modulo Theories.\n\
 \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
@@ -91,12 +91,12 @@ none \n\
 instgen \n\
 + Use instantiation algorithm that mimics Inst-Gen calculus. \n\
 \n\
-fmc \n\
-+ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability \n\
-  Modulo Theories.\n\
+gen-ev \n\
++ Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
+  model finding paper based on generalizing evaluations.\n\
 \n\
 fmc-interval \n\
-+ Same as fmc, but with intervals for models of integer functions.\n\
++ Same as default, but with intervals for models of integer functions.\n\
 \n\
 interval \n\
 + Use algorithm that abstracts domain elements as intervals. \n\
@@ -130,9 +130,6 @@ conflict \n\
 \n\
 partial \n\
 + Apply QCF algorithm to instantiate heuristically as well. \n\
-\n\
-partial \n\
-+ Apply QCF to instantiate heuristically as well. \n\
 \n\
 mc \n\
 + Apply QCF algorithm in a complete way, so that a model is ensured when it fails. \n\
@@ -217,21 +214,21 @@ inline AxiomInstMode stringToAxiomInstMode(std::string option, std::string optar
 }
 
 inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg ==  "default") {
-    return MBQI_DEFAULT;
-  } else if(optarg ==  "none") {
+  if(optarg == "gen-ev") {
+    return MBQI_GEN_EVAL;
+  } else if(optarg == "none") {
     return MBQI_NONE;
-  } else if(optarg ==  "instgen") {
+  } else if(optarg == "instgen") {
     return MBQI_INST_GEN;
-  } else if(optarg ==  "fmc") {
+  } else if(optarg == "default" || optarg ==  "fmc") {
     return MBQI_FMC;
-  } else if(optarg ==  "fmc-interval") {
+  } else if(optarg == "fmc-interval") {
     return MBQI_FMC_INTERVAL;
-  } else if(optarg ==  "interval") {
+  } else if(optarg == "interval") {
     return MBQI_INTERVAL;
-  } else if(optarg ==  "trust") {
+  } else if(optarg == "trust") {
     return MBQI_TRUST;
-  } else if(optarg ==  "help") {
+  } else if(optarg == "help") {
     puts(mbqiModeHelp.c_str());
     exit(1);
   } else {

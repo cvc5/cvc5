@@ -65,7 +65,7 @@ TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, Outpu
 	d_curr_cardinality(c, 0)
 {
     // The kinds we are treating as function application in congruence
-    //d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
+    d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
     d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
     d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
     d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
@@ -418,7 +418,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
 		break;
 	case kind::STRING_IN_REGEXP:
 		//do not add trigger here
-		//d_equalityEngine.addTriggerPredicate(n);
+		d_equalityEngine.addTriggerPredicate(n);
 		break;
 	case kind::STRING_SUBSTR_TOTAL: {
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
@@ -560,7 +560,7 @@ void TheoryStrings::check(Effort e) {
 	//must record string in regular expressions
 	if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
 		addMembership(assertion);
-		//d_equalityEngine.assertPredicate(atom, polarity, fact);
+		d_equalityEngine.assertPredicate(atom, polarity, fact);
 	} else if (atom.getKind() == kind::STRING_STRCTN) {
 		if(polarity) {
 			d_str_pos_ctn.push_back( atom );
@@ -1232,18 +1232,37 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 									Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
 									Assert( other_str.getKind()!=kind::STRING_CONCAT, "Other string is not CONCAT." );
 									antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
-									Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
-										NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
-									//split the string
-									Node eq1 = Rewriter::rewrite( other_str.eqNode( d_emptyString ) );
-									Node eq2 = mkSplitEq( "c_spt", "created for v/c split", other_str, firstChar, false );
-									d_pending_req_phase[ eq1 ] = true;
-									conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
-									Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
+									//Opt
+									bool optflag = false;
+									if( normal_forms[nconst_k].size() > nconst_index_k + 1 &&
+										normal_forms[nconst_k][nconst_index_k + 1].isConst() ) {
+										CVC4::String stra = const_str.getConst<String>();
+										CVC4::String strb = normal_forms[nconst_k][nconst_index_k + 1].getConst<String>();
+										CVC4::String fc = strb.substr(0, 1);
+										if( stra.find(fc) == std::string::npos ||
+											(stra.find(strb) == std::string::npos &&
+											 !stra.overlap(strb)) ) {
+											Node sk = NodeManager::currentNM()->mkSkolem( "sopt", NodeManager::currentNM()->stringType(), "created for string sp" );
+											Node eq = other_str.eqNode( mkConcat(const_str, sk) );
+											Node ant = mkExplain( antec );
+											sendLemma(ant, eq, "CST-EPS");
+											optflag = true;
+										}
+									}
+									if(!optflag){
+										Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
+											NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
+										//split the string
+										Node eq1 = Rewriter::rewrite( other_str.eqNode( d_emptyString ) );
+										Node eq2 = mkSplitEq( "c_spt", "created for v/c split", other_str, firstChar, false );
+										d_pending_req_phase[ eq1 ] = true;
+										conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
+										Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
 
-									Node ant = mkExplain( antec );
-									sendLemma( ant, conc, "CST-SPLIT" );
-									++(d_statistics.d_eq_splits);
+										Node ant = mkExplain( antec );
+										sendLemma( ant, conc, "CST-SPLIT" );
+										++(d_statistics.d_eq_splits);
+									}
 									return true;
 								} else {
 									std::vector< Node > antec_new_lits;
@@ -1785,10 +1804,7 @@ void TheoryStrings::sendSplit( Node a, Node b, const char * c, bool preq ) {
 }
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
-	std::vector< Node > c;
-	c.push_back( n1 );
-	c.push_back( n2 );
-	return mkConcat( c );
+	return NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2 );
 }
 
 Node TheoryStrings::mkConcat( std::vector< Node >& c ) {
@@ -2886,6 +2902,11 @@ void TheoryStrings::addMembership(Node assertion) {
 		}
 	}*/
 	d_regexp_memberships.push_back( assertion );
+}
+
+Node TheoryStrings::instantiateSymRegExp(Node r) {
+	//TODO:
+	return r;
 }
 
 //// Finite Model Finding

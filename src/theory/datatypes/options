@@ -9,8 +9,8 @@ module DATATYPES "theory/datatypes/options.h" Datatypes theory
 # then we do not rewrite such a selector term to an arbitrary ground term.  
 # For example, by default cvc4 considers cdr( nil ) = nil.  If this option is set, then
 # cdr( nil ) has no set value.
-expert-option dtRewriteErrorSel /--disable-dt-rewrite-error-sel bool :default true
- disable rewriting incorrectly applied selectors to arbitrary ground term
+expert-option dtRewriteErrorSel --dt-rewrite-error-sel bool :default false
+ rewrite incorrectly applied selectors to arbitrary ground term
 option dtForceAssignment /--dt-force-assignment bool :default false :read-write
  force the datatypes solver to give specific values to all datatypes terms before answering sat
  

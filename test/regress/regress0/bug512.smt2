@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --tlimit-per 2500 -iq
 ; EXPECT: unknown
-; EXPECT: (:reason-unknown timeout)
+; EXPECT: (:reason-unknown incomplete)
 ; EXPECT: unsat
 (set-option :print-success false)
 (set-info :smt-lib-version 2.0)

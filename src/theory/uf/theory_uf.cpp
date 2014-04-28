@@ -101,7 +101,12 @@ void TheoryUF::check(Effort level) {
     if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
     } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
-      // do nothing
+      if( d_thss == NULL ){
+        std::stringstream ss;
+        ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
+        ss << "Try using a logic containing \"UFC\"." << std::endl;
+        throw Exception( ss.str() );
+      }
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
     }

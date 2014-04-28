@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: invalid
 DATATYPE
   nat = succ(pred : nat) | zero
 END;

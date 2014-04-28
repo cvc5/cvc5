@@ -272,8 +272,8 @@ protected:
 	void sendInfer( Node eq_exp, Node eq, const char * c );
 	void sendSplit( Node a, Node b, const char * c, bool preq = true );
 	/** mkConcat **/
-	Node mkConcat( Node n1, Node n2 );
-	Node mkConcat( std::vector< Node >& c );
+	inline Node mkConcat( Node n1, Node n2 );
+	inline Node mkConcat( std::vector< Node >& c );
 	/** mkExplain **/
 	Node mkExplain( std::vector< Node >& a );
 	Node mkExplain( std::vector< Node >& a, std::vector< Node >& an );
@@ -323,6 +323,7 @@ private:
 	bool splitRegExp( Node x, Node r, Node ant );
 	bool addMembershipLength(Node atom);
 	void addMembership(Node assertion);
+	Node instantiateSymRegExp(Node r);
 
 
 	// Finite Model Finding

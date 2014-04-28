@@ -191,7 +191,7 @@ private:
                const std::vector<Type>& placeholders,
                const std::vector<Type>& replacements,
                const std::vector< SortConstructorType >& paramTypes,
-               const std::vector< DatatypeType >& paramReplacements)
+               const std::vector< DatatypeType >& paramReplacements, size_t cindex)
     throw(IllegalArgumentException, DatatypeResolutionException);
   friend class Datatype;
 
@@ -434,6 +434,12 @@ public:
    */
   static size_t indexOf(Expr item) CVC4_PUBLIC;
 
+  /**
+   * Get the index of constructor corresponding to selector.  (Zero is
+   * always the first index.)
+   */
+  static size_t cindexOf(Expr item) CVC4_PUBLIC;
+
   /** The type for iterators over constructors. */
   typedef DatatypeConstructorIterator iterator;
   /** The (const) type for iterators over constructors. */
@@ -442,6 +448,7 @@ public:
 private:
   std::string d_name;
   std::vector<Type> d_params;
+  bool d_isCo;
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
@@ -488,13 +495,13 @@ private:
 public:
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name);
+  inline explicit Datatype(std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, const std::vector<Type>& params);
+  inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
 
   /**
    * Add a constructor to this Datatype.  Constructor names need not
@@ -519,6 +526,9 @@ public:
 
   /** Get parameters */
   inline std::vector<Type> getParameters() const;
+
+  /** is this a co-datatype? */
+  inline bool isCodatatype() const;
 
   /**
    * Return the cardinality of this datatype (the sum of the
@@ -656,18 +666,20 @@ inline std::string DatatypeUnresolvedType::getName() const throw() {
   return d_name;
 }
 
-inline Datatype::Datatype(std::string name) :
+inline Datatype::Datatype(std::string name, bool isCo) :
   d_name(name),
   d_params(),
+  d_isCo(isCo),
   d_constructors(),
   d_resolved(false),
   d_self(),
   d_card(CardinalityUnknown()) {
 }
 
-inline Datatype::Datatype(std::string name, const std::vector<Type>& params) :
+inline Datatype::Datatype(std::string name, const std::vector<Type>& params, bool isCo) :
   d_name(name),
   d_params(params),
+  d_isCo(isCo),
   d_constructors(),
   d_resolved(false),
   d_self(),
@@ -699,6 +711,10 @@ inline Type Datatype::getParameter( unsigned int i ) const {
 inline std::vector<Type> Datatype::getParameters() const {
   CheckArgument(isParametric(), this, "cannot get type parameters of a non-parametric datatype");
   return d_params;
+}
+
+inline bool Datatype::isCodatatype() const {
+  return d_isCo;
 }
 
 inline bool Datatype::operator!=(const Datatype& other) const throw() {

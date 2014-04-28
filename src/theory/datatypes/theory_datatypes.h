@@ -166,6 +166,12 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
+  /** expand definition skolem functions */
+  std::map< Node, Node > d_exp_def_skolem;
+  /** All the constructor terms that the theory has seen */
+  context::CDList<TNode> d_consTerms;
+  /** All the selector terms that the theory has seen */
+  context::CDList<TNode> d_selTerms;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -193,6 +199,9 @@ public:
   /** propagate */
   bool propagate(TNode literal);
   /** explain */
+  void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
+  void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
+  void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
   /** Conflict when merging two constants */
@@ -208,6 +217,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
   Node ppRewrite(TNode n);
   void presolve();
   void addSharedTerm(TNode t);
@@ -233,10 +243,15 @@ private:
   Node searchForCycle( Node n, Node on,
                        std::map< Node, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
+  /** for checking whether two codatatype terms must be equal */
+  void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
+                          std::vector< TNode >& exp,
+                          std::map< Node, Node >& cn,
+                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar = false, bool isActive = true );
+  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar, bool isActive );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */
@@ -250,10 +265,10 @@ private:
   bool mustCommunicateFact( Node n, Node exp );
 private:
   //equality queries
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  Node getRepresentative( Node a );
+  bool hasTerm( TNode a );
+  bool areEqual( TNode a, TNode b );
+  bool areDisequal( TNode a, TNode b );
+  Node getRepresentative( TNode a );
 public:
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }

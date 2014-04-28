@@ -52,6 +52,7 @@ class CVC4_PUBLIC LogicInfo {
   bool d_reals; /**< are reals used in this logic? */
   bool d_linear; /**< linear-only arithmetic in this logic? */
   bool d_differenceLogic; /**< difference-only arithmetic in this logic? */
+  bool d_cardinalityConstraints; /**< cardinality constraints in this logic? */
 
   bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
 
@@ -174,6 +175,11 @@ public:
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
     CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
     return d_differenceLogic;
+  }
+  /** Does this logic allow cardinality constraints? */
+  bool hasCardinalityConstraints() const {
+    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_cardinalityConstraints;
   }
 
   // MUTATORS

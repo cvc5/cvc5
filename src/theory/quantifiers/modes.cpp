@@ -79,8 +79,8 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::AxiomInstMode m
 
 std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) {
   switch(mode) {
-  case theory::quantifiers::MBQI_DEFAULT:
-    out << "MBQI_DEFAULT";
+  case theory::quantifiers::MBQI_GEN_EVAL:
+    out << "MBQI_GEN_EVAL";
     break;
   case theory::quantifiers::MBQI_NONE:
     out << "MBQI_NONE";
@@ -93,6 +93,9 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) 
     break;
   case theory::quantifiers::MBQI_INTERVAL:
     out << "MBQI_INTERVAL";
+    break;
+  case theory::quantifiers::MBQI_TRUST:
+    out << "MBQI_TRUST";
     break;
   default:
     out << "MbqiMode!UNKNOWN";
