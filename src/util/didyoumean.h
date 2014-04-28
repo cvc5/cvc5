@@ -14,7 +14,7 @@
  ** ``What do you mean? I don't understand.'' An attempt to be more
  ** helpful than that. Similar to one in git.
  **
- ** There are no dependencies on CVC4, intentionally.
+ ** There are no dependencies on CVC4 (except namespace).
  **/
 
 #pragma once
@@ -22,6 +22,8 @@
 #include <vector>
 #include <set>
 #include <string>
+
+namespace CVC4 {
 
 class DidYouMean {
   typedef std::set<std::string> Words;
@@ -47,3 +49,5 @@ public:
 private:
   int editDistance(const std::string& a, const std::string& b);
 };
+
+}/*CVC4 namespace*/

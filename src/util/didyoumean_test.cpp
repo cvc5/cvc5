@@ -5,6 +5,7 @@
 #include <iostream>
 #include <boost/foreach.hpp>
 using namespace std;
+using namespace CVC4;
 
 set<string> getDebugTags();
 set<string> getOptionStrings();

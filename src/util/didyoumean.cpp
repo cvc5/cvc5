@@ -14,15 +14,14 @@
  ** ``What do you mean? I don't understand.'' An attempt to be more
  ** helpful than that. Similar to one in git.
  **
- ** There are no dependencies on CVC4, intentionally.
+ ** There are no dependencies on CVC4 (except namespace).
  **/
 
 #include "didyoumean.h"
 #include <iostream>
 #include <sstream>
-#include <boost/foreach.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 using namespace std;
+using namespace CVC4;
 
 vector<string> DidYouMean::getMatch(string input) {
   /** Magic numbers */
@@ -31,14 +30,15 @@ vector<string> DidYouMean::getMatch(string input) {
 
   set< pair<int, string> > scores;
   vector<string> ret;
-  BOOST_FOREACH(string s, d_words ) {
+  for(typeof(d_words.begin()) it = d_words.begin(); it != d_words.end(); ++it) {
+    string s = (*it);
     if( s == input ) {
       // if input matches AS-IS just return that
       ret.push_back(s);
       return ret;
     }
     int score;
-    if(boost::starts_with(s, input)) {
+    if(s.compare(0, input.size(), input) == 0) {
       score = 0;
     } else {
       score = editDistance(input, s) + 1;
