@@ -266,7 +266,7 @@ public:
         if( dt.isParametric() ){
           tn = TypeNode::fromType( tspec )[i];
         }
-        nc = NodeManager::currentNM()->mkSkolem( "m_$$", tn, "created for inst cons" );
+        nc = NodeManager::currentNM()->mkSkolem( "m", tn, "created for inst cons" );
       }
       children.push_back( nc );
     }
