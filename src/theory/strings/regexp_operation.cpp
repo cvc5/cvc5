@@ -33,14 +33,14 @@ namespace theory {
 namespace strings {
 
 RegExpOpr::RegExpOpr() {
-    d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-    d_true = NodeManager::currentNM()->mkConst( true );
-    d_false = NodeManager::currentNM()->mkConst( false );
+  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+  d_true = NodeManager::currentNM()->mkConst( true );
+  d_false = NodeManager::currentNM()->mkConst( false );
 	d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
 	d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
 	d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
 	std::vector< Node > nvec;
-    d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
+  d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
 	d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
 	d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
 	d_card = 256;
@@ -1315,6 +1315,119 @@ Node RegExpOpr::complement(Node r, int &ret) {
 	Trace("regexp-compl") << "COMPL( " << mkString(r) << " ) = " << mkString(rNode) << ", ret=" << ret << std::endl;
 	return rNode;
 }
+
+void RegExpOpr::splitRegExp(Node r, std::vector< PairNodes > &pset) {
+	Assert(checkConstRegExp(r));
+	if(d_split_cache.find(r) != d_split_cache.end()) {
+		pset = d_split_cache[r];
+	} else {
+		switch( r.getKind() ) {
+			case kind::REGEXP_EMPTY: {
+				break;
+			}
+			case kind::REGEXP_OPT: {
+				PairNodes tmp(d_emptySingleton, d_emptySingleton);
+				pset.push_back(tmp);
+			}
+			case kind::REGEXP_RANGE:
+			case kind::REGEXP_SIGMA: {
+				PairNodes tmp1(d_emptySingleton, r);
+				PairNodes tmp2(r, d_emptySingleton);
+				pset.push_back(tmp1);
+				pset.push_back(tmp2);
+				break;
+			}
+			case kind::STRING_TO_REGEXP: {
+				Assert(r[0].isConst());
+				CVC4::String s = r[0].getConst< CVC4::String >();
+				PairNodes tmp1(d_emptySingleton, r);
+				pset.push_back(tmp1);
+				for(unsigned i=1; i<s.size(); i++) {
+					CVC4::String s1 = s.substr(0, i);
+					CVC4::String s2 = s.substr(i);
+					Node n1 = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(s1));
+					Node n2 = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(s2));
+					PairNodes tmp3(n1, n2);
+					pset.push_back(tmp3);
+				}
+				PairNodes tmp2(r, d_emptySingleton);
+				pset.push_back(tmp2);
+				break;
+			}
+			case kind::REGEXP_CONCAT: {
+				for(unsigned i=0; i<r.getNumChildren(); i++) {
+					std::vector< PairNodes > tset;
+					splitRegExp(r[i], tset);
+					std::vector< Node > hvec;
+					std::vector< Node > tvec;
+					for(unsigned j=0; j<=i; j++) {
+						hvec.push_back(r[j]);
+					}
+					for(unsigned j=i; j<r.getNumChildren(); j++) {
+						tvec.push_back(r[j]);
+					}
+					for(unsigned j=0; j<tset.size(); j++) {
+						hvec[i] = tset[j].first;
+						tvec[0] = tset[j].second;
+						Node r1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, hvec) );
+						Node r2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, tvec) );
+						PairNodes tmp2(r1, r2);
+						pset.push_back(tmp2);
+					}
+				}
+				break;
+			}
+			case kind::REGEXP_UNION: {
+				for(unsigned i=0; i<r.getNumChildren(); ++i) {
+					std::vector< PairNodes > tset;
+					splitRegExp(r[i], tset);
+					pset.insert(pset.end(), tset.begin(), tset.end());
+				}
+				break;
+			}
+			case kind::REGEXP_INTER: {
+				bool spflag = false;
+				Node tmp = r[0];
+				for(unsigned i=1; i<r.getNumChildren(); i++) {
+					tmp = intersect(tmp, r[i], spflag);
+				}
+				splitRegExp(tmp, pset);
+				break;
+			}
+			case kind::REGEXP_STAR: {
+				std::vector< PairNodes > tset;
+				splitRegExp(r[0], tset);
+				PairNodes tmp1(d_emptySingleton, d_emptySingleton);
+				pset.push_back(tmp1);
+				for(unsigned i=0; i<tset.size(); i++) {
+					Node r1 = tset[i].first==d_emptySingleton ? r : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, r, tset[i].first);
+					Node r2 = tset[i].second==d_emptySingleton ? r : NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, tset[i].second, r);
+					PairNodes tmp2(r1, r2);
+					pset.push_back(tmp2);
+				}
+				break;
+			}
+			case kind::REGEXP_PLUS: {
+				std::vector< PairNodes > tset;
+				splitRegExp(r[0], tset);
+				for(unsigned i=0; i<tset.size(); i++) {
+					Node r1 = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, r, tset[i].first);
+					Node r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, tset[i].second, r);
+					PairNodes tmp2(r1, r2);
+					pset.push_back(tmp2);
+				}
+				break;
+			}
+			default: {
+				Trace("strings-error") << "Unsupported term: " << r << " in splitRegExp." << std::endl;
+				Assert( false );
+				//return Node::null();
+			}
+		}
+		d_split_cache[r] = pset;
+	}
+}
+
 //printing
 std::string RegExpOpr::niceChar( Node r ) {
 	if(r.isConst()) {

@@ -137,10 +137,10 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
 	return ret;
 }
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
-    std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
-    if(i != d_cache.end()) {
-      return (*i).second.isNull() ? t : (*i).second;
-    }
+  std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+  if(i != d_cache.end()) {
+    return (*i).second.isNull() ? t : (*i).second;
+  }
 
 	Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << std::endl;
 	Node retNode = t;
@@ -179,8 +179,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		retNode = n;
 	} else if( t.getKind() == kind::STRING_SUBSTR_TOTAL ) {
 		Node lenxgti = NodeManager::currentNM()->mkNode( kind::GEQ, 
-							NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
-							NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
+          NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ),
+          NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] ) );
 		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[1], d_zero);
 		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[2], d_zero);
 		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
@@ -554,10 +554,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 }
 
 Node StringsPreprocess::decompose(Node t, std::vector< Node > & new_nodes) {
-    std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
-    if(i != d_cache.end()) {
-      return (*i).second.isNull() ? t : (*i).second;
-    }
+  std::hash_map<TNode, Node, TNodeHashFunction>::const_iterator i = d_cache.find(t);
+  if(i != d_cache.end()) {
+    return (*i).second.isNull() ? t : (*i).second;
+  }
 
 	unsigned num = t.getNumChildren();
 	if(num == 0) {

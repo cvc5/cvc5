@@ -44,8 +44,8 @@ public:
     TypeEnumeratorBase<StringEnumerator>(type) {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
-	d_cardinality = 256;
-	mkCurr();
+    d_cardinality = 256;
+    mkCurr();
   }
   Node operator*() throw() {
     return d_curr;
@@ -89,10 +89,10 @@ private:
 	}
 public:
   StringEnumeratorLength(unsigned length, unsigned card = 256) : d_cardinality(card) {
-     for( unsigned i=0; i<length; i++ ){
-		d_data.push_back( 0 );
-	 }
-	 mkCurr();
+    for( unsigned i=0; i<length; i++ ){
+      d_data.push_back( 0 );
+	  }
+	  mkCurr();
   }
 
   Node operator*() throw() {
@@ -100,21 +100,21 @@ public:
   }
 
   StringEnumeratorLength& operator++() throw() {
-	bool changed = false;
-	for(unsigned i=0; i<d_data.size(); ++i) {
-		if( d_data[i] + 1 < d_cardinality ) {
-			++d_data[i]; changed = true;
-			break;
-		} else {
-			d_data[i] = 0;
-		}
-	}
-	
-	if(!changed) {
-		d_curr = Node::null();
-	}else{
-		mkCurr();
-	}
+    bool changed = false;
+    for(unsigned i=0; i<d_data.size(); ++i) {
+      if( d_data[i] + 1 < d_cardinality ) {
+        ++d_data[i]; changed = true;
+        break;
+      } else {
+        d_data[i] = 0;
+      }
+    }
+    
+    if(!changed) {
+      d_curr = Node::null();
+    }else{
+      mkCurr();
+    }
     return *this;
   }
 

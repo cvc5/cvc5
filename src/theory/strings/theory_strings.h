@@ -67,18 +67,18 @@ public:
 		bool eqNotifyTriggerEquality(TNode equality, bool value) {
 		  Debug("strings") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
 		  if (value) {
-			return d_str.propagate(equality);
+			  return d_str.propagate(equality);
 		  } else {
-			// We use only literal triggers so taking not is safe
-			return d_str.propagate(equality.notNode());
+        // We use only literal triggers so taking not is safe
+        return d_str.propagate(equality.notNode());
 		  }
 		}
 		bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
 		  Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
 		  if (value) {
-			return d_str.propagate(predicate);
+        return d_str.propagate(predicate);
 		  } else {
-		   return d_str.propagate(predicate.notNode());
+         return d_str.propagate(predicate.notNode());
 		  }
 		}
 		bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
@@ -119,11 +119,11 @@ private:
 	Node d_ufSubstr;
 
 	// Constants
-    Node d_emptyString;
+  Node d_emptyString;
 	Node d_emptyRegexp;
-    Node d_true;
-    Node d_false;
-    Node d_zero;
+  Node d_true;
+  Node d_false;
+  Node d_zero;
 	Node d_one;
 	// Options
 	bool d_opt_fmf;
@@ -137,12 +137,12 @@ private:
 	Node getLength( Node t );
 
 private:
-    /** The notify class */
-    NotifyClass d_notify;
-    /** Equaltity engine */
-    eq::EqualityEngine d_equalityEngine;
-    /** Are we in conflict */
-    context::CDO<bool> d_conflict;
+  /** The notify class */
+  NotifyClass d_notify;
+  /** Equaltity engine */
+  eq::EqualityEngine d_equalityEngine;
+  /** Are we in conflict */
+  context::CDO<bool> d_conflict;
 	//list of pairs of nodes to merge
 	std::map< Node, Node > d_pending_exp;
 	std::vector< Node > d_pending;
@@ -206,41 +206,43 @@ private:
 	NodeNodeMap d_length_inst;
 private:
 	void mergeCstVec(std::vector< Node > &vec_strings);
-    bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
-						std::vector< std::vector< Node > > &normal_forms,
-						std::vector< std::vector< Node > > &normal_forms_exp,
-						std::vector< Node > &normal_form_src);
+  bool getNormalForms(Node &eqc, std::vector< Node > & visited, std::vector< Node > & nf,
+        std::vector< std::vector< Node > > &normal_forms,
+        std::vector< std::vector< Node > > &normal_forms_exp,
+        std::vector< Node > &normal_form_src);
 	bool detectLoop(std::vector< std::vector< Node > > &normal_forms,
-					int i, int j, int index_i, int index_j, 
-					int &loop_in_i, int &loop_in_j);
+        int i, int j, int index_i, int index_j, 
+        int &loop_in_i, int &loop_in_j);
 	bool processLoop(std::vector< Node > &antec,
-					 std::vector< std::vector< Node > > &normal_forms,
-					 std::vector< Node > &normal_form_src,
-					 int i, int j, int loop_n_index, int other_n_index,
-					 int loop_index, int index, int other_index);
+        std::vector< std::vector< Node > > &normal_forms,
+        std::vector< Node > &normal_form_src,
+        int i, int j, int loop_n_index, int other_n_index,
+        int loop_index, int index, int other_index);
 	bool processNEqc(std::vector< std::vector< Node > > &normal_forms,
-					 std::vector< std::vector< Node > > &normal_forms_exp,
-					 std::vector< Node > &normal_form_src);
+        std::vector< std::vector< Node > > &normal_forms_exp,
+        std::vector< Node > &normal_form_src);
 	bool processReverseNEq(std::vector< std::vector< Node > > &normal_forms,
-						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j );
+        std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j );
 	bool processSimpleNEq( std::vector< std::vector< Node > > &normal_forms,
-						   std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
-						   unsigned& index_i, unsigned& index_j, bool isRev );
-    bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
-    bool processDeq( Node n1, Node n2 );
+        std::vector< Node > &normal_form_src, std::vector< Node > &curr_exp, unsigned i, unsigned j,
+        unsigned& index_i, unsigned& index_j, bool isRev );
+  bool normalizeEquivalenceClass( Node n, std::vector< Node > & visited, std::vector< Node > & nf, std::vector< Node > & nf_exp );
+  bool processDeq( Node n1, Node n2 );
 	int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
 	int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
 	//bool unrollStar( Node atom );
 	Node mkRegExpAntec(Node atom, Node ant);
 
 	bool checkSimple();
-    bool checkNormalForms();
+  bool checkNormalForms();
 	void checkDeqNF();
 	bool checkLengthsEqc();
-    bool checkCardinality();
-    bool checkInductiveEquations();
+  bool checkCardinality();
+  bool checkInductiveEquations();
 	bool checkMemberships();
-	bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &processed, std::vector< Node > &cprocessed);
+	bool checkPDerivative(Node x, Node r, Node atom, bool &addedLemma,
+		std::vector< Node > &processed, std::vector< Node > &cprocessed,
+		std::vector< Node > &nf_exp);
 	bool checkContains();
 	bool checkPosContains();
 	bool checkNegContains();
@@ -320,10 +322,11 @@ private:
 	RegExpOpr d_regexp_opr;
 
 	CVC4::String getHeadConst( Node x );
-	bool splitRegExp( Node x, Node r, Node ant );
+	bool deriveRegExp( Node x, Node r, Node ant );
 	bool addMembershipLength(Node atom);
 	void addMembership(Node assertion);
-	Node instantiateSymRegExp(Node r);
+	Node getNormalString(Node x, std::vector<Node> &nf_exp);
+	Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
 
 
 	// Finite Model Finding
@@ -334,7 +337,7 @@ private:
 	context::CDO< int > d_curr_cardinality;
 public:
 	//for finite model finding
-    Node getNextDecisionRequest();
+  Node getNextDecisionRequest();
 	void assertNode( Node lit );
 
 public:
