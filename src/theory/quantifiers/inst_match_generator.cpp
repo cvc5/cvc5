@@ -155,9 +155,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
   Trace("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
                     << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
   Assert( !d_match_pattern.isNull() );
-  if( qe->d_optMatchIgnoreModelBasis && t.getAttribute(ModelBasisAttribute()) ){
-    return true;
-  }else if( d_matchPolicy==MATCH_GEN_INTERNAL_ERROR ){
+  if( d_matchPolicy==MATCH_GEN_INTERNAL_ERROR ){
     return false;
   }else{
     EqualityQuery* q = qe->getEqualityQuery();
@@ -324,9 +322,6 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
       m.add( baseMatch );
       if( qe->addInstantiation( f, m ) ){
         addedLemmas++;
-        if( qe->d_optInstLimitActive && qe->d_optInstLimit<=0 ){
-          return addedLemmas;
-        }
       }
     }else{
       addedLemmas++;

@@ -254,14 +254,6 @@ public:
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
-public:
-  /** options */
-  bool d_optInstCheckDuplicate;
-  bool d_optInstMakeRepresentative;
-  bool d_optInstAddSplits;
-  bool d_optMatchIgnoreModelBasis;
-  bool d_optInstLimitActive;
-  int d_optInstLimit;
 };/* class QuantifiersEngine */
 
 

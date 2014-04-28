@@ -39,6 +39,7 @@ struct PrioritySort {
 
 RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe ) : QuantifiersModule(qe) {
   d_true = NodeManager::currentNM()->mkConst( true );
+  d_needsSort = true;
 }
 
 double RewriteEngine::getPriority( Node f ) {

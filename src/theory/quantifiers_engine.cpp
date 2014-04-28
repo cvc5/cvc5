@@ -109,12 +109,6 @@ d_lemmas_produced_c(u){
   }
 
   //options
-  d_optInstCheckDuplicate = true;
-  d_optInstMakeRepresentative = true;
-  d_optInstAddSplits = false;
-  d_optMatchIgnoreModelBasis = false;
-  d_optInstLimitActive = false;
-  d_optInstLimit = 0;
   d_total_inst_count_debug = 0;
 }
 

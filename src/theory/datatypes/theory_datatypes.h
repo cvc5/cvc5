@@ -253,6 +253,8 @@ private:
                           std::vector< TNode >& exp,
                           std::map< Node, Node >& cn,
                           std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
+  /** build model */
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
