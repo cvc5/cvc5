@@ -185,6 +185,7 @@ gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
 gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX
 gettemp outfile cvc4_stdout.$$.XXXXXXXXXX
 gettemp errfile cvc4_stderr.$$.XXXXXXXXXX
+gettemp errfilefix cvc4_stderr.$$.XXXXXXXXXX
 gettemp exitstatusfile cvc4_exitstatus.$$.XXXXXXXXXX
 
 if [ -z "$expected_output" ]; then
@@ -247,9 +248,20 @@ else
   ) > "$outfile" 2> "$errfile" )
 fi
 
+# we have to actual error file same treatment as other files. differences in
+# versions of echo/bash were causing failure on some platforms and not on others
+actual_error=$(cat $errfile)
+if [ -z "$actual_error" ]; then
+  # in case expected stderr output is empty, make sure we don't differ
+  # by a newline, which we would if we echo "" >"$experrfile"
+  touch "$errfilefix"
+else
+  echo "$actual_error" >"$errfilefix"
+fi
+
 diffs=`diff -u --strip-trailing-cr "$expoutfile" "$outfile"`
 diffexit=$?
-diffserr=`diff -u --strip-trailing-cr "$experrfile" "$errfile"`
+diffserr=`diff -u --strip-trailing-cr "$experrfile" "$errfilefix"`
 diffexiterr=$?
 exit_status=`cat "$exitstatusfile"`
 

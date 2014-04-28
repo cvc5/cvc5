@@ -504,7 +504,7 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
     return NodeManager::currentNM()->mkBoundVar( ss.str(), tn );
   }else{
     std::stringstream ss;
-    ss << "i_$$_" << old;
+    ss << "i_" << old;
     return NodeManager::currentNM()->mkSkolem( ss.str(), tn, "created during sort inference" );
   }
 }
@@ -576,7 +576,7 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
       }
       if( opChanged ){
         std::stringstream ss;
-        ss << "io_$$_" << op;
+        ss << "io_" << op;
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
         d_symbol_map[op] = NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during sort inference" );
       }else{
@@ -622,7 +622,7 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   std::vector< TypeNode > tns;
   tns.push_back( tn1 );
   TypeNode typ = NodeManager::currentNM()->mkFunctionType( tns, tn2 );
-  Node f = NodeManager::currentNM()->mkSkolem( "inj_$$", typ, "injection for monotonicity constraint" );
+  Node f = NodeManager::currentNM()->mkSkolem( "inj", typ, "injection for monotonicity constraint" );
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
   Node v1 = NodeManager::currentNM()->mkBoundVar( "?x", tn1 );
   Node v2 = NodeManager::currentNM()->mkBoundVar( "?y", tn1 );

@@ -1154,11 +1154,11 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
       for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
         //make the new function symbol
         if( argTypes.empty() ){
-          Node s = NodeManager::currentNM()->mkSkolem( "sk_$$", n[0][i].getType(), "created during pre-skolemization" );
+          Node s = NodeManager::currentNM()->mkSkolem( "sk", n[0][i].getType(), "created during pre-skolemization" );
           subs.push_back( s );
         }else{
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
-          Node op = NodeManager::currentNM()->mkSkolem( "skop_$$", typ, "op created during pre-skolemization" );
+          Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
           //DOTHIS: set attribute on op, marking that it should not be selected as trigger
           vector< Node > funcArgs;
           funcArgs.push_back( op );

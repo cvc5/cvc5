@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -119,12 +119,11 @@ public:
   static void printLanguageHelp(std::ostream& out);
 
   /**
-   * Look up long command-line option names that bear some similarity to
-   * the given name.  Don't include the initial "--".  This might be
-   * useful in case of typos.  Can return an empty vector if there are
-   * no suggestions.
+   * Look up long command-line option names that bear some similarity
+   * to the given name.  Returns an empty string if there are no
+   * suggestions.
    */
-  static std::vector<std::string> suggestCommandLineOptions(const std::string& optionName) throw();
+  static std::string suggestCommandLineOptions(const std::string& optionName) throw();
 
   /**
    * Look up SMT option names that bear some similarity to

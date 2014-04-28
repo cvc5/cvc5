@@ -413,7 +413,7 @@ Node TermDb::getSkolemizedBody( Node f ){
   if( d_skolem_body.find( f )==d_skolem_body.end() ){
     std::vector< Node > vars;
     for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-      Node skv = NodeManager::currentNM()->mkSkolem( "skv_$$", f[0][i].getType(), "is a termdb-created skolemized body" );
+      Node skv = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "is a termdb-created skolemized body" );
       d_skolem_constants[ f ].push_back( skv );
       vars.push_back( f[0][i] );
       //carry information for sort inference
@@ -441,7 +441,7 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
         Rational z(0);
         d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
       }else{
-	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
+	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar", tn, "is a free variable created by termdb" );
 	    Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }
     }

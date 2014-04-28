@@ -277,7 +277,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
         Node r = d_range[f][v];
         if( r.hasBoundVar() ){
           //introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem( "bir_$$", r.getType(), "bound for term" );
+          Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
           d_nground_range[f][v] = d_range[f][v];
           d_range[f][v] = new_range;
           r = new_range;

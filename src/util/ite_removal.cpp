@@ -93,7 +93,7 @@ Node RemoveITE::run(TNode node, std::vector<Node>& output,
     if(!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar())) {
       Node skolem;
       // Make the skolem to represent the ITE
-      skolem = nodeManager->mkSkolem("termITE_$$", nodeType, "a variable introduced due to term-level ITE removal");
+      skolem = nodeManager->mkSkolem("termITE", nodeType, "a variable introduced due to term-level ITE removal");
 
       // The new assertion
       Node newAssertion =

@@ -591,7 +591,7 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
           types.push_back(f[0][i].getType());
         }
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, NodeManager::currentNM()->booleanType() );
-        Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
+        Node op = NodeManager::currentNM()->mkSkolem( "fmc", typ, "op created for full-model checking" );
         d_quant_cond[f] = op;
       }
       //make sure all types are set
@@ -1267,7 +1267,7 @@ Node FullModelChecker::mkArrayCond( Node a ) {
   if( d_array_term_cond.find(a)==d_array_term_cond.end() ){
     if( d_array_cond.find(a.getType())==d_array_cond.end() ){
       TypeNode typ = NodeManager::currentNM()->mkFunctionType( a.getType(), NodeManager::currentNM()->booleanType() );
-      Node op = NodeManager::currentNM()->mkSkolem( "fmc_$$", typ, "op created for full-model checking" );
+      Node op = NodeManager::currentNM()->mkSkolem( "fmc", typ, "op created for full-model checking" );
       d_array_cond[a.getType()] = op;
     }
     std::vector< Node > cond;
