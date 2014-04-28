@@ -164,6 +164,15 @@ class NodeManager {
   unsigned d_abstractValueCount;
 
   /**
+   * A counter used to produce unique skolem names.
+   *
+   * Note that it is NOT incremented when skolems are created using
+   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
+   * by this node manager.
+   */
+  unsigned d_skolemCounter;
+
+  /**
    * Look up a NodeValue in the pool associated to this NodeManager.
    * The NodeValue argument need not be a "completely-constructed"
    * NodeValue.  In particular, "non-inlined" constants are permitted
@@ -425,10 +434,10 @@ public:
    * Create a skolem constant with the given name, type, and comment.
    *
    * @param prefix the name of the new skolem variable is the prefix
-   * appended with the Node ID.  This way a family of skolem variables
+   * appended with a unique ID.  This way a family of skolem variables
    * can be made with unique identifiers, used in dump, tracing, and
    * debugging output.  Use SKOLEM_EXECT_NAME flag if you don't want
-   * Node ID appended and use prefix as the name.
+   * a unique ID appended and use prefix as the name.
    *
    * @param type the type of the skolem variable to create
    *

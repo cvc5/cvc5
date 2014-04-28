@@ -158,11 +158,9 @@ private:
   context::CDQueue <TNode> d_pending;
   context::CDQueue <TNode> d_pendingDisequal;
   context::CDHashSet <Node, NodeHashFunction> d_pendingEverInserted;
-  int d_skolemCounter;
 
   void addToPending(Node n);
   bool isComplete();
-  Node newSkolem(TypeNode);
   Node getLemma();
 
   /** model generation and helper function */

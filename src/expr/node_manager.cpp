@@ -89,7 +89,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
-  d_abstractValueCount(0) {
+  d_abstractValueCount(0),
+  d_skolemCounter(0) {
   init();
 }
 
@@ -103,7 +104,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
-  d_abstractValueCount(0) {
+  d_abstractValueCount(0),
+  d_skolemCounter(0) {
   init();
 }
 
@@ -310,7 +312,7 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
   setAttribute(n, TypeCheckedAttr(), true);
   if((flags & SKOLEM_EXACT_NAME) == 0) {
     stringstream name;
-    name << prefix << '_' << n.getId();
+    name << prefix << '_' << ++d_skolemCounter;
     setAttribute(n, expr::VarNameAttr(), name.str());
   } else {
     setAttribute(n, expr::VarNameAttr(), prefix);

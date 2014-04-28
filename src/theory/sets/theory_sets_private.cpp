@@ -760,12 +760,6 @@ bool TheorySetsPrivate::isComplete() {
   return d_pending.empty() && d_pendingDisequal.empty();
 }
 
-Node TheorySetsPrivate::newSkolem(TypeNode t) {
-  ostringstream oss;
-  oss << "sde_" << (++d_skolemCounter);
-  return NodeManager::currentNM()->mkSkolem(oss.str(), t, "", NodeManager::SKOLEM_EXACT_NAME);
-}
-
 Node TheorySetsPrivate::getLemma() {
   Assert(!d_pending.empty() || !d_pendingDisequal.empty());
 
@@ -786,7 +780,7 @@ Node TheorySetsPrivate::getLemma() {
     d_pendingEverInserted.insert(n);
 
     Assert(n.getKind() == kind::EQUAL && n[0].getType().isSet());
-    Node x = newSkolem( n[0].getType().getSetElementType() );
+    Node x = NodeManager::currentNM()->mkSkolem("sde_", n[0].getType().getSetElementType() );
     Node l1 = MEMBER(x, n[0]), l2 = MEMBER(x, n[1]);
 
     lemma = OR(n, AND(l1, NOT(l2)), AND(NOT(l1), l2));
@@ -812,7 +806,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_pending(u),
   d_pendingDisequal(u),
   d_pendingEverInserted(u),
-  d_skolemCounter(0),
   d_scrutinize(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
