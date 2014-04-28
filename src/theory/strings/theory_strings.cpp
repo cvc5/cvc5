@@ -427,8 +427,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[1], d_zero);
         Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, n[2], d_zero);
         Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-        Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-        Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+        Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+        Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
         d_statistics.d_new_skolems += 2;
         Node x_eq_123 = n[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, n, sk3 ) );
         Node len_sk1_eq_i = n[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
@@ -1090,9 +1090,9 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
 			} else {
 				Trace("strings-loop") << "Strings::Loop: Normal Breaking." << std::endl;
 				//right
-				Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
-				Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
-				Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop_$$", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
+				Node sk_w= NodeManager::currentNM()->mkSkolem( "w_loop", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
+				Node sk_y= NodeManager::currentNM()->mkSkolem( "y_loop", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
+				Node sk_z= NodeManager::currentNM()->mkSkolem( "z_loop", normal_forms[other_n_index][other_index].getType(), "created for loop detection split" );
 				d_statistics.d_new_skolems += 3;
 				//t1 * ... * tn = y * z
 				Node conc1 = t_yz.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk_y, sk_z ) );
@@ -1241,7 +1241,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 										if( stra.find(fc) == std::string::npos ||
 											(stra.find(strb) == std::string::npos &&
 											 !stra.overlap(strb)) ) {
-											Node sk = NodeManager::currentNM()->mkSkolem( "sopt_$$", NodeManager::currentNM()->stringType(), "created for string sp" );
+											Node sk = NodeManager::currentNM()->mkSkolem( "sopt", NodeManager::currentNM()->stringType(), "created for string sp" );
 											Node eq = other_str.eqNode( mkConcat(const_str, sk) );
 											Node ant = mkExplain( antec );
 											sendLemma(ant, eq, "CST-EPS");
@@ -1253,7 +1253,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 											NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
 										//split the string
 										Node eq1 = Rewriter::rewrite( other_str.eqNode( d_emptyString ) );
-										Node eq2 = mkSplitEq( "c_spt_$$", "created for v/c split", other_str, firstChar, false );
+										Node eq2 = mkSplitEq( "c_spt", "created for v/c split", other_str, firstChar, false );
 										d_pending_req_phase[ eq1 ] = true;
 										conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
 										Trace("strings-solve-debug") << "Break normal form constant/variable " << std::endl;
@@ -1285,8 +1285,8 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
 										}
 									}
 
-									Node eq1 = mkSplitEq( "v_spt_l_$$", "created for v/v split", normal_forms[i][index_i], normal_forms[j][index_j], true );
-									Node eq2 = mkSplitEq( "v_spt_r_$$", "created for v/v split", normal_forms[j][index_j], normal_forms[i][index_i], true );
+									Node eq1 = mkSplitEq( "v_spt_l", "created for v/v split", normal_forms[i][index_i], normal_forms[j][index_j], true );
+									Node eq2 = mkSplitEq( "v_spt_r", "created for v/v split", normal_forms[j][index_j], normal_forms[i][index_i], true );
 									conc = NodeManager::currentNM()->mkNode( kind::OR, eq1, eq2 );
 
 									Node ant = mkExplain( antec, antec_new_lits );
@@ -1587,9 +1587,9 @@ bool TheoryStrings::processDeq( Node ni, Node nj ) {
 						}
 						antec_new_lits.push_back( li.eqNode( lj ).negate() );
 						std::vector< Node > conc;
-						Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit_$$", ni.getType(), "created for disequality normalization" );
-						Node sk2 = NodeManager::currentNM()->mkSkolem( "y_dsplit_$$", ni.getType(), "created for disequality normalization" );
-						Node sk3 = NodeManager::currentNM()->mkSkolem( "z_dsplit_$$", ni.getType(), "created for disequality normalization" );
+						Node sk1 = NodeManager::currentNM()->mkSkolem( "x_dsplit", ni.getType(), "created for disequality normalization" );
+						Node sk2 = NodeManager::currentNM()->mkSkolem( "y_dsplit", ni.getType(), "created for disequality normalization" );
+						Node sk3 = NodeManager::currentNM()->mkSkolem( "z_dsplit", ni.getType(), "created for disequality normalization" );
 						d_statistics.d_new_skolems += 3;
 						//Node nemp = sk1.eqNode(d_emptyString).negate();
 						//conc.push_back(nemp);
@@ -1908,7 +1908,7 @@ bool TheoryStrings::checkSimple() {
             Node sk;
             //if( d_length_inst.find(n)==d_length_inst.end() ) {
               //Node nr = d_equalityEngine.getRepresentative( n );
-              sk = NodeManager::currentNM()->mkSkolem( "lsym_$$", n.getType(), "created for length" );
+              sk = NodeManager::currentNM()->mkSkolem( "lsym", n.getType(), "created for length" );
               d_statistics.d_new_skolems += 1;
               d_length_intro_vars.insert( sk );
               Node eq = sk.eqNode(n);
@@ -2570,10 +2570,10 @@ bool TheoryStrings::checkMemberships() {
               }else{
                 Trace("strings-regexp-debug") << "Case 2\n";
                 std::vector< Node > conc_c;
-                Node s11 = NodeManager::currentNM()->mkSkolem( "s11_$$", NodeManager::currentNM()->stringType(), "created for re" );
-                Node s12 = NodeManager::currentNM()->mkSkolem( "s12_$$", NodeManager::currentNM()->stringType(), "created for re" );
-                Node s21 = NodeManager::currentNM()->mkSkolem( "s21_$$", NodeManager::currentNM()->stringType(), "created for re" );
-                Node s22 = NodeManager::currentNM()->mkSkolem( "s22_$$", NodeManager::currentNM()->stringType(), "created for re" );
+                Node s11 = NodeManager::currentNM()->mkSkolem( "s11", NodeManager::currentNM()->stringType(), "created for re" );
+                Node s12 = NodeManager::currentNM()->mkSkolem( "s12", NodeManager::currentNM()->stringType(), "created for re" );
+                Node s21 = NodeManager::currentNM()->mkSkolem( "s21", NodeManager::currentNM()->stringType(), "created for re" );
+                Node s22 = NodeManager::currentNM()->mkSkolem( "s22", NodeManager::currentNM()->stringType(), "created for re" );
                 conc = p1.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s11, s12));
                 conc_c.push_back(conc);
                 conc = p2.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, s21, s22));
@@ -2745,8 +2745,8 @@ bool TheoryStrings::checkPosContains() {
 			Node s = atom[1];
 			if( !areEqual( s, d_emptyString ) && !areEqual( s, x ) ) {
 				if(d_pos_ctn_cached.find(atom) == d_pos_ctn_cached.end()) {
-					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1_$$", s.getType(), "created for contain" );
-					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2_$$", s.getType(), "created for contain" );
+					Node sk1 = NodeManager::currentNM()->mkSkolem( "sc1", s.getType(), "created for contain" );
+					Node sk2 = NodeManager::currentNM()->mkSkolem( "sc2", s.getType(), "created for contain" );
 					d_statistics.d_new_skolems += 2;
 					Node eq = Rewriter::rewrite( x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, s, sk2 ) ) );
 					sendLemma( atom, eq, "POS-INC" );

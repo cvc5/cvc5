@@ -184,8 +184,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		Node t1geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[1], d_zero);
 		Node t2geq0 = NodeManager::currentNM()->mkNode(kind::GEQ, t[2], d_zero);
 		Node cond = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, lenxgti, t1geq0, t2geq0 ));
-		Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
-		Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3_$$", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for charat/substr" );
+		Node sk3 = NodeManager::currentNM()->mkSkolem( "ss3", NodeManager::currentNM()->stringType(), "created for charat/substr" );
 		Node x_eq_123 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, t, sk3 ) );
 		Node len_sk1_eq_i = t[1].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ) );
 		Node lemma = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond, 
@@ -196,11 +196,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 		d_cache[t] = t;
 	} else if( t.getKind() == kind::STRING_STRIDOF ) {
 		if(options::stringExp()) {
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "io1_$$", t[0].getType(), "created for indexof" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "io2_$$", t[0].getType(), "created for indexof" );
-			Node sk3 = NodeManager::currentNM()->mkSkolem( "io3_$$", t[0].getType(), "created for indexof" );
-			Node sk4 = NodeManager::currentNM()->mkSkolem( "io4_$$", t[0].getType(), "created for indexof" );
-			Node skk = NodeManager::currentNM()->mkSkolem( "iok_$$", t[2].getType(), "created for indexof" );
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "io1", t[0].getType(), "created for indexof" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", t[0].getType(), "created for indexof" );
+			Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", t[0].getType(), "created for indexof" );
+			Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", t[0].getType(), "created for indexof" );
+			Node skk = NodeManager::currentNM()->mkSkolem( "iok", t[2].getType(), "created for indexof" );
 			Node eq = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3, sk4 ) );
 			new_nodes.push_back( eq );
 			Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
@@ -274,11 +274,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			
 			std::vector< TypeNode > argTypes;
 			argTypes.push_back(NodeManager::currentNM()->integerType());
-			Node ufP = NodeManager::currentNM()->mkSkolem("ufP_$$", 
+			Node ufP = NodeManager::currentNM()->mkSkolem("ufP", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
 								"uf type conv P");
-			Node ufM = NodeManager::currentNM()->mkSkolem("ufM_$$", 
+			Node ufM = NodeManager::currentNM()->mkSkolem("ufM", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
 								"uf type conv M");
@@ -368,11 +368,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
 			std::vector< TypeNode > argTypes;
 			argTypes.push_back(NodeManager::currentNM()->integerType());
-			Node ufP = NodeManager::currentNM()->mkSkolem("ufP_$$", 
+			Node ufP = NodeManager::currentNM()->mkSkolem("ufP", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
 								"uf type conv P");
-			Node ufM = NodeManager::currentNM()->mkSkolem("ufM_$$", 
+			Node ufM = NodeManager::currentNM()->mkSkolem("ufM", 
 								NodeManager::currentNM()->mkFunctionType(
 									argTypes, NodeManager::currentNM()->integerType()),
 								"uf type conv M");
@@ -404,9 +404,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			//cc1 = NodeManager::currentNM()->mkNode(kind::AND, ufP0.eqNode(negone), cc1);
 			//cc2
 			std::vector< Node > vec_n;
-			Node z1 = NodeManager::currentNM()->mkSkolem("z1_$$", NodeManager::currentNM()->stringType());
-			Node z2 = NodeManager::currentNM()->mkSkolem("z2_$$", NodeManager::currentNM()->stringType());
-			Node z3 = NodeManager::currentNM()->mkSkolem("z3_$$", NodeManager::currentNM()->stringType());
+			Node z1 = NodeManager::currentNM()->mkSkolem("z1", NodeManager::currentNM()->stringType());
+			Node z2 = NodeManager::currentNM()->mkSkolem("z2", NodeManager::currentNM()->stringType());
+			Node z3 = NodeManager::currentNM()->mkSkolem("z3", NodeManager::currentNM()->stringType());
 			Node g = one.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, z2) );
 			vec_n.push_back(g);
 			g = t[0].eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, z1, z2, z3) );
@@ -499,9 +499,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 			Node x = t[0];
 			Node y = t[1];
 			Node z = t[2];
-			Node sk1 = NodeManager::currentNM()->mkSkolem( "rp1_$$", t[0].getType(), "created for replace" );
-			Node sk2 = NodeManager::currentNM()->mkSkolem( "rp2_$$", t[0].getType(), "created for replace" );
-			Node skw = NodeManager::currentNM()->mkSkolem( "rpw_$$", t[0].getType(), "created for replace" );
+			Node sk1 = NodeManager::currentNM()->mkSkolem( "rp1", t[0].getType(), "created for replace" );
+			Node sk2 = NodeManager::currentNM()->mkSkolem( "rp2", t[0].getType(), "created for replace" );
+			Node skw = NodeManager::currentNM()->mkSkolem( "rpw", t[0].getType(), "created for replace" );
 			Node cond = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, x, y );
 			Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
 			Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
