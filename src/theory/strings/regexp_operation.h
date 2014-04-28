@@ -39,9 +39,9 @@ class RegExpOpr {
 
 private:
 	unsigned d_card;
-    Node d_emptyString;
-    Node d_true;
-    Node d_false;
+  Node d_emptyString;
+  Node d_true;
+  Node d_false;
 	Node d_emptySingleton;
 	Node d_emptyRegexp;
 	Node d_zero;
@@ -62,6 +62,7 @@ private:
 	std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_cset_cache;
 	std::map< Node, std::pair< std::set<unsigned>, std::set<Node> > > d_fset_cache;
 	std::map< PairNodes, Node > d_inter_cache;
+	std::map< Node, std::vector< PairNodes > > d_split_cache;
 	//bool checkStarPlus( Node t );
 	void simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes );
 	void simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes );
@@ -80,13 +81,14 @@ public:
 	RegExpOpr();
 
 	bool checkConstRegExp( Node r );
-    void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
 	int delta( Node r, Node &exp );
 	int derivativeS( Node r, CVC4::String c, Node &retNode );
 	Node derivativeSingle( Node r, CVC4::String c );
 	bool guessLength( Node r, int &co );
 	Node intersect(Node r1, Node r2, bool &spflag);
 	Node complement(Node r, int &ret);
+	void splitRegExp(Node r, std::vector< PairNodes > &pset);
 
 	std::string mkString( Node r );
 };
