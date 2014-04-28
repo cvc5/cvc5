@@ -59,6 +59,8 @@ public:
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
   virtual Node explain(TNode n) { return TNode::null(); }
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual std::string identify() const = 0;
 };/* class QuantifiersModule */
 
 namespace quantifiers {

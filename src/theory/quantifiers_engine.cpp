@@ -166,6 +166,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
       return;
     }
+    Trace("quant-engine-debug") << "Resetting modules..." << std::endl;
     //reset relevant information
     d_hasAddedLemma = false;
     d_term_db->reset( e );
@@ -176,6 +177,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
     for( int i=0; i<(int)d_modules.size(); i++ ){
       d_modules[i]->reset_round( e );
     }
+    Trace("quant-engine-debug") << "Done resetting modules." << std::endl;
+
     if( e==Theory::EFFORT_LAST_CALL ){
       //if effort is last call, try to minimize model first
       if( options::finiteModelFind() ){
@@ -188,14 +191,19 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
     }
+    Trace("quant-engine-debug") << "Check with modules..." << std::endl;
     for( int i=0; i<(int)d_modules.size(); i++ ){
+      Trace("quant-engine-debug") << "Check " << d_modules[i]->identify().c_str() << "..." << std::endl;
       d_modules[i]->check( e );
     }
+    Trace("quant-engine-debug") << "Done check with modules." << std::endl;
     //build the model if not done so already
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
     if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
       if( options::produceModels() && !d_model->isModelSet() ){
+        Trace("quant-engine-debug") << "Build the model..." << std::endl;
         d_te->getModelBuilder()->buildModel( d_model, true );
+        Trace("quant-engine-debug") << "Done building the model." << std::endl;
       }
       if( Trace.isOn("inst-per-quant") ){
         for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){

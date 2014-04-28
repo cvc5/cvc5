@@ -56,7 +56,9 @@ public:
 
   void check( Theory::Effort e );
   void registerQuantifier( Node f );
-  void assertNode( Node n );
+  void assertNode( Node n );  
+  /** Identify this module */
+  std::string identify() const { return "RewriteEngine"; }
 };
 
 }

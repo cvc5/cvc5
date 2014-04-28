@@ -274,6 +274,8 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
+  /** Identify this module */
+  std::string identify() const { return "QcfEngine"; }
 };
 
 }

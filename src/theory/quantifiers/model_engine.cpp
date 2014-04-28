@@ -55,68 +55,74 @@ QuantifiersModule( qe ){
 
 void ModelEngine::check( Theory::Effort e ){
   if( e==Theory::EFFORT_LAST_CALL && !d_quantEngine->hasAddedLemma() ){
-    FirstOrderModel* fm = d_quantEngine->getModel();
-    //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
     int addedLemmas = 0;
-    //quantifiers are initialized, we begin an instantiation round
-    double clSet = 0;
-    if( Trace.isOn("model-engine") ){
-      clSet = double(clock())/double(CLOCKS_PER_SEC);
-    }
-    ++(d_statistics.d_inst_rounds);
-    bool buildAtFullModel = d_builder->optBuildAtFullModel();
-    //two effort levels: first try exhaustive instantiation without axioms, then with.
-    int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
-    for( int effort=startEffort; effort<2; effort++ ){
-      // for effort = 0, we only instantiate non-axioms
-      // for effort = 1, we instantiate everything
-      if( addedLemmas==0 ){
-        Trace("model-engine") << "---Model Engine Round---" << std::endl;
-        //initialize the model
-        Trace("model-engine-debug") << "Build model..." << std::endl;
-        d_builder->d_considerAxioms = effort>=1;
-        d_builder->d_addedLemmas = 0;
-        d_builder->buildModel( fm, buildAtFullModel );
-        addedLemmas += (int)d_builder->d_addedLemmas;
-        //if builder has lemmas, add and return
+    bool needsBuild = true;
+    FirstOrderModel* fm = d_quantEngine->getModel();
+    if( fm->getNumAssertedQuantifiers()>0 ){
+      //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
+      //quantifiers are initialized, we begin an instantiation round
+      double clSet = 0;
+      if( Trace.isOn("model-engine") ){
+        clSet = double(clock())/double(CLOCKS_PER_SEC);
+      }
+      ++(d_statistics.d_inst_rounds);
+      bool buildAtFullModel = d_builder->optBuildAtFullModel();
+      needsBuild = !buildAtFullModel;
+      //two effort levels: first try exhaustive instantiation without axioms, then with.
+      int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
+      for( int effort=startEffort; effort<2; effort++ ){
+        // for effort = 0, we only instantiate non-axioms
+        // for effort = 1, we instantiate everything
         if( addedLemmas==0 ){
-          Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-          //let the strong solver verify that the model is minimal
-          //for debugging, this will if there are terms in the model that the strong solver was not notified of
-          if( ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm ) ){
-            Trace("model-engine-debug") << "Check model..." << std::endl;
-            d_incomplete_check = false;
-            //print debug
-            Debug("fmf-model-complete") << std::endl;
-            debugPrint("fmf-model-complete");
-            //successfully built an acceptable model, now check it
-            addedLemmas += checkModel();
-          }else{
-            addedLemmas++;
+          Trace("model-engine") << "---Model Engine Round---" << std::endl;
+          //initialize the model
+          Trace("model-engine-debug") << "Build model..." << std::endl;
+          d_builder->d_considerAxioms = effort>=1;
+          d_builder->d_addedLemmas = 0;
+          d_builder->buildModel( fm, buildAtFullModel );
+          addedLemmas += (int)d_builder->d_addedLemmas;
+          //if builder has lemmas, add and return
+          if( addedLemmas==0 ){
+            Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
+            //let the strong solver verify that the model is minimal
+            //for debugging, this will if there are terms in the model that the strong solver was not notified of
+            if( ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm ) ){
+              Trace("model-engine-debug") << "Check model..." << std::endl;
+              d_incomplete_check = false;
+              //print debug
+              Debug("fmf-model-complete") << std::endl;
+              debugPrint("fmf-model-complete");
+              //successfully built an acceptable model, now check it
+              addedLemmas += checkModel();
+            }else{
+              addedLemmas++;
+            }
+          }
+        }
+        if( addedLemmas==0 ){
+          //if we have not added lemmas yet and axiomInstMode=trust, then we are done
+          if( options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
+            //we must return unknown if an axiom is asserted
+            if( effort==0 ){
+              d_incomplete_check = true;
+            }
+            break;
           }
         }
       }
-      if( addedLemmas==0 ){
-        //if we have not added lemmas yet and axiomInstMode=trust, then we are done
-        if( options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
-          //we must return unknown if an axiom is asserted
-          if( effort==0 ){
-            d_incomplete_check = true;
-          }
-          break;
-        }
+      if( Trace.isOn("model-engine") ){
+        double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+        Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
       }
-    }
-    if( Trace.isOn("model-engine") ){
-      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
+    }else{
+      Trace("model-engine-debug") << "No quantified formulas asserted." << std::endl;
     }
     if( addedLemmas==0 ){
       Trace("model-engine-debug") << "No lemmas added, incomplete = " << d_incomplete_check << std::endl;
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-      if( options::produceModels() && !buildAtFullModel ){
+      if( options::produceModels() && needsBuild ){
         // finish building the model
         d_builder->buildModel( fm, true );
       }

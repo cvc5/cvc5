@@ -150,6 +150,8 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
+  /** Identify this module */
+  std::string identify() const { return "InstEngine"; }
 };/* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -68,6 +68,8 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
+  /** Identify this module */
+  std::string identify() const { return "ModelEngine"; }
 };/* class ModelEngine */
 
 }/* CVC4::theory::quantifiers namespace */

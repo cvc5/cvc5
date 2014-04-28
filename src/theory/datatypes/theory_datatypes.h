@@ -50,7 +50,7 @@ private:
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
-
+  Node d_true;
   /** mkAnd */
   Node mkAnd( std::vector< TNode >& assumptions );
 private:
@@ -156,6 +156,8 @@ private:
   NodeListMap d_labels;
   /** selector apps for eqch equivalence class */
   NodeListMap d_selector_apps;
+  /** constructor terms */
+  BoolMap d_consEqc;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   /** The conflict node */
@@ -183,6 +185,8 @@ private:
   EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
   /** has eqc info */
   bool hasEqcInfo( Node n ) { return d_labels.find( n )!=d_labels.end(); }
+  /** get eqc constructor */
+  TNode getEqcConstructor( TNode r );
 protected:
   /** compute care graph */
   void computeCareGraph();
@@ -204,6 +208,7 @@ public:
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
+  Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalance class is created */
@@ -263,12 +268,14 @@ private:
   bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
+  /** check clash mod eq */
+  bool checkClashModEq( Node n1, Node n2, std::vector< Node >& exp );
 private:
   //equality queries
   bool hasTerm( TNode a );
   bool areEqual( TNode a, TNode b );
   bool areDisequal( TNode a, TNode b );
-  Node getRepresentative( TNode a );
+  TNode getRepresentative( TNode a );
 public:
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }
