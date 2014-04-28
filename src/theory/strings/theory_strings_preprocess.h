@@ -40,8 +40,8 @@ private:
 	Node simplify( Node t, std::vector< Node > &new_nodes );
 	Node decompose( Node t, std::vector< Node > &new_nodes );
 public:
-    void simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes);
-    void simplify(std::vector< Node > &vec_node);
+  void simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes);
+  void simplify(std::vector< Node > &vec_node);
 	StringsPreprocess();
 };
 
