@@ -170,6 +170,7 @@ if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
 	error.cvc \
+	errorcrash.smt2 \
 	arrayinuf_error.smt2
 endif
 
@@ -177,6 +178,7 @@ endif
 EXTRA_DIST += \
 	subranges.cvc \
 	arrayinuf_error.smt2 \
+	errorcrash.smt2 \
 	error.cvc
 
 # synonyms for "check" in this directory

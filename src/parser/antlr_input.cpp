@@ -374,9 +374,9 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         string word = slice.substr(caretPos, (caretPosOrig - caretPos + 1));
         int messagePosSt = message.find(word);
         int messagePosEn = messagePosSt + (caretPosOrig - caretPos);
-        if( messagePosSt < string::npos &&
+        if( (size_t)messagePosSt < string::npos &&
             (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
-            (messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
+            ((size_t)messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
           // ^the complicated if statement is just 'whole-word' match
           Debug("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
         }
@@ -398,9 +398,9 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
         int messagePosSt = message.find(word);
         int messagePosEn = messagePosSt + (nearestWordEn - nearestWordSt + 1);
-        if( messagePosSt < string::npos &&
+        if( (size_t)messagePosSt < string::npos &&
             (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
-            (messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
+            ((size_t)messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
           // ^the complicated if statement is just 'whole-word' match
           Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
                                   << nearestWordSt << std::endl;
