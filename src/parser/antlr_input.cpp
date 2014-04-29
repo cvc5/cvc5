@@ -372,8 +372,8 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         // likely it is also in original message? if so, very likely
         // we found the right place
         string word = slice.substr(caretPos, (caretPosOrig - caretPos + 1));
-        int messagePosSt = message.find(word);
-        int messagePosEn = messagePosSt + (caretPosOrig - caretPos);
+        unsigned messagePosSt = message.find(word);
+        unsigned messagePosEn = messagePosSt + (caretPosOrig - caretPos);
         if( messagePosSt < string::npos &&
             (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
             (messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
@@ -396,8 +396,8 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         }
         string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
         Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
-        int messagePosSt = message.find(word);
-        int messagePosEn = messagePosSt + (nearestWordEn - nearestWordSt + 1);
+        unsigned messagePosSt = message.find(word);
+        unsigned messagePosEn = messagePosSt + (nearestWordEn - nearestWordSt + 1);
         if( messagePosSt < string::npos &&
             (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
             (messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
