@@ -183,6 +183,7 @@ public:
         ++i) {
       delete i->second;
     }
+    delete d_thss;
   }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);

@@ -27,7 +27,7 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
-TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels) :
+TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
   d_substitutions(c, false), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -44,6 +44,12 @@ TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFunc
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_eeContext->push();
+}
+
+TheoryModel::~TheoryModel() {
+  d_eeContext->pop();
+  delete d_equalityEngine;
+  delete d_eeContext;
 }
 
 void TheoryModel::reset(){

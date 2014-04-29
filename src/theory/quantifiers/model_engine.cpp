@@ -53,6 +53,10 @@ QuantifiersModule( qe ){
   }
 }
 
+ModelEngine::~ModelEngine() {
+  delete d_builder;
+}
+
 void ModelEngine::check( Theory::Effort e ){
   if( e==Theory::EFFORT_LAST_CALL && !d_quantEngine->hasAddedLemma() ){
     int addedLemmas = 0;

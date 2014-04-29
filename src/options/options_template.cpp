@@ -557,6 +557,8 @@ ${all_modules_option_handlers}
 
   Debug("options") << "returning " << nonOptions.size() << " non-option arguments." << std::endl;
 
+  free(extra_argv);
+
   return nonOptions;
 }
 
@@ -573,7 +575,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 577 "${template}"
+#line 579 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -595,7 +597,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 599 "${template}"
+#line 601 "${template}"
 
   return SExpr(opts);
 }

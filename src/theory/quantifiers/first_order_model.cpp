@@ -545,6 +545,12 @@ FirstOrderModel(qe, c, name){
 
 }
 
+FirstOrderModelFmc::~FirstOrderModelFmc() {
+  for(std::map<Node, Def*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
+    delete (*i).second;
+  }
+}
+
 Node FirstOrderModelFmc::getUsedRepresentative(Node n, bool strict) {
   //Assert( fm->hasTerm(n) );
   TypeNode tn = n.getType();

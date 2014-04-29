@@ -113,11 +113,20 @@ d_lemmas_produced_c(u){
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  delete d_rr_engine;
+  delete d_bint;
   delete d_model_engine;
   delete d_inst_engine;
+  delete d_qcf;
+  delete d_quant_rel;
+  delete d_rel_dom;
   delete d_model;
+  delete d_tr_trie;
   delete d_term_db;
   delete d_eq_query;
+  for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
+    delete (*i).second;
+  }
 }
 
 EqualityQueryQuantifiersEngine* QuantifiersEngine::getEqualityQuery() {

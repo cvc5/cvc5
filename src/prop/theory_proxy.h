@@ -139,6 +139,10 @@ inline TheoryProxy::TheoryProxy(PropEngine* propEngine,
   d_queue(context)
 {}
 
+inline TheoryProxy::~TheoryProxy() {
+  /* nothing to do for now */
+}
+
 }/* CVC4::prop namespace */
 
 }/* CVC4 namespace */

@@ -48,7 +48,7 @@ private:
   int d_totalLemmas;
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
-  ~ModelEngine(){}
+  virtual ~ModelEngine();
   //get the builder
   QModelBuilder* getModelBuilder() { return d_builder; }
 public:

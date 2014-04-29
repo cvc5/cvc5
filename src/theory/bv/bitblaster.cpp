@@ -61,10 +61,12 @@ Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
     d_statistics()
   {
     d_satSolver = prop::SatSolverFactory::createMinisat(c);
-    d_cnfStream = new TseitinCnfStream(d_satSolver, new NullRegistrar(), new Context());
+    d_nullRegistrar = new NullRegistrar();
+    d_nullContext = new Context();
+    d_cnfStream = new TseitinCnfStream(d_satSolver, d_nullRegistrar, d_nullContext);
 
-    MinisatNotify* notify = new MinisatNotify(d_cnfStream, bv);
-    d_satSolver->setNotify(notify);
+    d_notify = new MinisatNotify(d_cnfStream, bv);
+    d_satSolver->setNotify(d_notify);
     // initializing the bit-blasting strategies
     initAtomBBStrategies();
     initTermBBStrategies();
@@ -72,7 +74,10 @@ Bitblaster::Bitblaster(context::Context* c, bv::TheoryBV* bv) :
 
 Bitblaster::~Bitblaster() {
   delete d_cnfStream;
+  delete d_nullContext;
+  delete d_nullRegistrar;
   delete d_satSolver;
+  delete d_notify;
 }
 
 

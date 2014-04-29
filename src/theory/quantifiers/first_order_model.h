@@ -26,14 +26,16 @@ namespace theory {
 
 class QuantifiersEngine;
 
-namespace quantifiers{
+namespace quantifiers {
 
 class TermDb;
 
 class FirstOrderModelIG;
+
 namespace fmcheck {
   class FirstOrderModelFmc;
-}
+}/* CVC4::theory::quantifiers::fmcheck namespace */
+
 class FirstOrderModelQInt;
 
 struct IsStarAttributeId {};
@@ -69,7 +71,7 @@ public: //for Theory Quantifiers:
   virtual void processInitializeQuantifier( Node q ) {}
 public:
   FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel(){}
+  virtual ~FirstOrderModel() {}
   virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
   virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
   virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
@@ -134,7 +136,7 @@ private:
   void clearEvalFailed( int index );
   std::map< Node, bool > d_eval_failed;
   std::map< int, std::vector< Node > > d_eval_failed_lits;
-};
+};/* class FirstOrderModelIG */
 
 
 namespace fmcheck {
@@ -156,6 +158,7 @@ private:
   void processInitializeModelForTerm(Node n);
 public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
+  virtual ~FirstOrderModelFmc();
   FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
   // initialize the model
   void processInitialize( bool ispre );
@@ -169,9 +172,9 @@ public:
   bool isInterval(Node n);
   Node getInterval( Node lb, Node ub );
   bool isInRange( Node v, Node i );
-};
+};/* class FirstOrderModelFmc */
 
-}
+}/* CVC4::theory::quantifiers::fmcheck namespace */
 
 
 class QIntDef;
@@ -215,7 +218,7 @@ public:
   unsigned getOrderedNumVars( Node q );
   TypeNode getOrderedVarType( Node q, int i );
   int getOrderedVarNumToVarNum( Node q, int i );
-};
+};/* class FirstOrderModelQInt */
 
 
 }/* CVC4::theory::quantifiers namespace */

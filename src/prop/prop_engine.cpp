@@ -69,7 +69,9 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_theoryEngine(te),
   d_decisionEngine(de),
   d_context(satContext),
+  d_theoryProxy(NULL),
   d_satSolver(NULL),
+  d_registrar(NULL),
   d_cnfStream(NULL),
   d_satTimer(*this),
   d_interrupted(false) {
@@ -78,16 +80,17 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
 
   d_satSolver = SatSolverFactory::createDPLLMinisat(); 
 
-  theory::TheoryRegistrar* registrar = new theory::TheoryRegistrar(d_theoryEngine);
+  d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, registrar, 
+    (d_satSolver, d_registrar,
      userContext,
      // fullLitToNode Map = 
      options::threads() > 1 || 
      options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY
      );
 
-  d_satSolver->initialize(d_context, new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream));
+  d_theoryProxy = new TheoryProxy(this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream);
+  d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
@@ -97,7 +100,9 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << endl;
   delete d_cnfStream;
+  delete d_registrar;
   delete d_satSolver;
+  delete d_theoryProxy;
 }
 
 void PropEngine::assertFormula(TNode node) {

@@ -31,8 +31,13 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
 
+}
+
+InstantiationEngine::~InstantiationEngine() {
+  delete d_i_ag;
+  delete d_isup;
 }
 
 void InstantiationEngine::finishInit(){
@@ -48,14 +53,14 @@ void InstantiationEngine::finishInit(){
     }else{
       d_isup = NULL;
     }
-    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, 3 );
-    i_ag->setGenerateAdditional( true );
-    addInstStrategy( i_ag );
+    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, 3 );
+    d_i_ag->setGenerateAdditional( true );
+    addInstStrategy( d_i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
     if( !options::finiteModelFind() && options::fullSaturateQuant() ){
       addInstStrategy( new InstStrategyFreeVariable( d_quantEngine ) );
     }
-    //d_isup->setPriorityOver( i_ag );
+    //d_isup->setPriorityOver( d_i_ag );
     //d_isup->setPriorityOver( i_agm );
     //i_ag->setPriorityOver( i_agm );
   }

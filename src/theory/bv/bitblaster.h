@@ -37,6 +37,7 @@
 #include "bitblast_strategies.h"
 
 #include "prop/sat_solver.h"
+#include "prop/registrar.h"
 
 namespace CVC4 {
 
@@ -92,8 +93,11 @@ class Bitblaster {
 
   // sat solver used for bitblasting and associated CnfStream
   theory::OutputChannel*             d_bvOutput;
+  MinisatNotify*                     d_notify;
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
+  prop::NullRegistrar*               d_nullRegistrar;
+  context::Context*                  d_nullContext;
 
   // caches and mappings
   TermDefMap                   d_termCache;

@@ -125,6 +125,7 @@ private: //for completing match
   std::vector< int > d_una_eqc_count;
 public:
   QuantInfo() : d_mg( NULL ) {}
+  ~QuantInfo() { delete d_mg; }
   std::vector< TNode > d_vars;
   std::map< TNode, int > d_var_num;
   std::map< TNode, bool > d_nbeneathQuant;
