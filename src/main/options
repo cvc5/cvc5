@@ -42,8 +42,8 @@ option incrementalParallel --incremental-parallel bool :default false :link --in
 undocumented-option interactivePrompt /--no-interactive-prompt bool :default true
  turn off interactive prompting while in interactive mode
 
-# error behaviors
-option continuedExecution --continued-execution/--immediate-exit bool :default false :link "--interactive --no-interactive-prompt"/
+# error behaviors (--immediate-exit is default in cases we support, thus no options)
+option continuedExecution --continued-execution/ bool :default false :link "--interactive --no-interactive-prompt"/
  continue executing commands, even on error
 
 option segvSpin --segv-spin bool :default false

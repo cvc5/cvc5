@@ -573,7 +573,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 589 "${template}"
+#line 577 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -595,7 +595,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 611 "${template}"
+#line 599 "${template}"
 
   return SExpr(opts);
 }
