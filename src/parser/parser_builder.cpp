@@ -25,6 +25,7 @@
 
 #include "expr/expr_manager.h"
 #include "parser/options.h"
+#include "smt/options.h"
 
 namespace CVC4 {
 namespace parser {
@@ -57,6 +58,8 @@ void ParserBuilder::init(ExprManager* exprManager,
   d_canIncludeFile = true;
   d_mmap = false;
   d_parseOnly = false;
+  d_logicIsForced = false;
+  d_forcedLogic = "";
 }
 
 Parser* ParserBuilder::build()
@@ -109,6 +112,10 @@ Parser* ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
+  if( d_logicIsForced ) {
+    parser->forceLogic(d_forcedLogic);
+  }
+
   return parser;
 }
 
@@ -148,14 +155,19 @@ ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
 }
 
 ParserBuilder& ParserBuilder::withOptions(const Options& options) {
-  return
-    withInputLanguage(options[options::inputLanguage])
+  ParserBuilder& retval = *this;
+  retval =
+    retval.withInputLanguage(options[options::inputLanguage])
       .withMmap(options[options::memoryMap])
       .withChecks(options[options::semanticChecks])
       .withStrictMode(options[options::strictParsing])
       .withParseOnly(options[options::parseOnly])
       .withIncludeFile(options[options::filesystemAccess]);
+  if(options.wasSetByUser(options::forceLogic)) {
+    retval = retval.withForcedLogic(options[options::forceLogic].getLogicString());
   }
+  return retval;
+}
 
 ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
   d_strictMode = flag;
@@ -164,6 +176,12 @@ ParserBuilder& ParserBuilder::withStrictMode(bool flag) {
 
 ParserBuilder& ParserBuilder::withIncludeFile(bool flag) {
   d_canIncludeFile = flag;
+  return *this;
+}
+
+ParserBuilder& ParserBuilder::withForcedLogic(const std::string& logic) {
+  d_logicIsForced = true;
+  d_forcedLogic = logic;
   return *this;
 }
 

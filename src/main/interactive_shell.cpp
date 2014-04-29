@@ -32,6 +32,7 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "options/options.h"
+#include "smt/options.h"
 #include "main/options.h"
 #include "util/language.h"
 #include "util/output.h"
@@ -93,6 +94,9 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
+  if(d_options.wasSetByUser(options::forceLogic)) {
+    d_parser->forceLogic(d_options[options::forceLogic].getLogicString());
+  }
 
 #if HAVE_LIBREADLINE
   if(d_in == cin) {

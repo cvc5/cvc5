@@ -48,7 +48,9 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
   d_checksEnabled(true),
   d_strictMode(strictMode),
   d_parseOnly(parseOnly),
-  d_canIncludeFile(true) {
+  d_canIncludeFile(true),
+  d_logicIsForced(false),
+  d_forcedLogic() {
   d_input->setParser(*this);
 }
 

@@ -178,7 +178,11 @@ bool Smt1::logicIsSet() {
 
 void Smt1::setLogic(const std::string& name) {
   d_logicSet = true;
-  d_logic = toLogic(name);
+  if(logicIsForced()) {
+    d_logic = toLogic(getForcedLogic());
+  } else {
+    d_logic = toLogic(name);
+  }
 
   switch(d_logic) {
   case QF_S:

@@ -233,7 +233,11 @@ bool Smt2::logicIsSet() {
 
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
-  d_logic = name;
+  if(logicIsForced()) {
+    d_logic = getForcedLogic();
+  } else {
+    d_logic = name;
+  }
 
   // Core theory belongs to every logic
   addTheory(THEORY_CORE);
