@@ -506,10 +506,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 			CVC4::String s = node[0].getConst<String>();
 			if(s.isNumber()) {
 				std::string stmp = s.toString();
-				if(stmp[0] == '0' && stmp.size() != 1) {
+				//if(stmp[0] == '0' && stmp.size() != 1) {
 					//TODO: leading zeros
-					retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
-				} else {
+					//retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
+				//} else {
 					bool flag = false;
 					CVC4::Rational r2(stmp.c_str());
 					if(node.getKind() == kind::STRING_U16TOS) {
@@ -528,7 +528,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
 					} else {
 						retNode = NodeManager::currentNM()->mkConst( r2 );
 					}
-				}
+				//}
 			} else {
 				retNode = NodeManager::currentNM()->mkConst(::CVC4::Rational(-1));
 			}
