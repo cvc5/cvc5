@@ -1060,13 +1060,13 @@ namespace attr {
  * This attribute maps the child of a to_int / is_int to the
  * corresponding integer skolem.
  */
-typedef expr::Attribute<attr::ToIntegerTag, Node> ToIntegerAttr;
+typedef expr::CDAttribute<attr::ToIntegerTag, Node> ToIntegerAttr;
 
 /**
  * This attribute maps division-by-constant-k terms to a variable
  * used to eliminate them.
  */
-typedef expr::Attribute<attr::LinearIntDivTag, Node> LinearIntDivAttr;
+typedef expr::CDAttribute<attr::LinearIntDivTag, Node> LinearIntDivAttr;
 
 Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
