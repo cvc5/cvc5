@@ -1149,27 +1149,38 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     ++eqccs_i;
   }
 
-  unsigned orig_size = nodes.size();
+  //unsigned orig_size = nodes.size();
+  std::map< TypeNode, int > typ_enum_map;
+  std::vector< TypeEnumerator > typ_enum;
   unsigned index = 0;
   while( index<nodes.size() ){
     Node eqc = nodes[index];
     Node neqc;
+    bool addCons = false;
     const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
     if( !d_equalityEngine.hasTerm( eqc ) ){
       if( !dt.isCodatatype() ){
         Trace("dt-cmi") << "NOTICE : Datatypes: need to assign constructor for " << eqc << std::endl;
         Trace("dt-cmi") << "   Type : " << eqc.getType() << std::endl;
-        //can assign arbitrary term
-        TypeEnumerator te(eqc.getType());
-        bool success;
-        do{
-          success = true;
-          Assert( !te.isFinished() );
-          neqc = *te;
-          Trace("dt-cmi-debug") << "Try " << neqc << " ... " << std::endl;
-          ++te;
-          //if it is infinite or we are assigning to terms known by datatypes, make sure it is fresh
-          if( eqc.getType().getCardinality().isInfinite() || index<orig_size ){
+        TypeNode tn = eqc.getType();
+        //if it is infinite, make sure it is fresh
+        if( eqc.getType().getCardinality().isInfinite() ){
+          std::map< TypeNode, int >::iterator it = typ_enum_map.find( tn );
+          int teIndex;
+          if( it==typ_enum_map.end() ){
+            teIndex = (int)typ_enum.size();
+            typ_enum_map[tn] = teIndex;
+            typ_enum.push_back( TypeEnumerator(tn) );
+          }else{
+            teIndex = it->second;
+          }
+          bool success;
+          do{
+            success = true;
+            Assert( !typ_enum[teIndex].isFinished() );
+            neqc = *typ_enum[teIndex];
+            Trace("dt-cmi-debug") << "Try " << neqc << " ... " << std::endl;
+            ++typ_enum[teIndex];
             for( unsigned i=0; i<cons.size(); i++ ){
               //check if it is modulo equality the same
               if( cons[i].getOperator()==neqc.getOperator() ){
@@ -1187,8 +1198,11 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
                 }
               }
             }
-          }
-        }while( !success );
+          }while( !success );
+        }else{
+          TypeEnumerator te(tn);
+          neqc = *te;
+        }
       }
     }else{
       Trace("dt-cmi") << "NOTICE : Datatypes: no constructor in equivalence class " << eqc << std::endl;
@@ -1234,6 +1248,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
           }
         }
       }
+      addCons = true;
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
@@ -1259,7 +1274,9 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     }
     */
     //m->assertRepresentative( neqc );
-    cons.push_back( neqc );
+    if( addCons ){
+      cons.push_back( neqc );
+    }
     ++index;
   }
 
