@@ -967,9 +967,7 @@ static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) thr
 }
 
 static void toStream(std::ostream& out, const SimplifyCommand* c) throw() {
-  out << "Simplify( << " << c->getTerm() << " >> )";
-
-  out << "ERROR: don't know how to output simplify command" << endl;
+  out << "(simplify " << c->getTerm() << ")";
 }
 
 static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
