@@ -66,7 +66,7 @@ public:
     d_engine(engine) {
   }
 
-  /*
+  /**
    * Return true if n has an associated SAT literal
    */
   bool isSatLiteral(TNode n) const;

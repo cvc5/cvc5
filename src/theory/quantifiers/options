@@ -72,10 +72,10 @@ option instWhenMode --inst-when=MODE CVC4::theory::quantifiers::InstWhenMode :de
  when to apply instantiation
 option instMaxLevel --inst-max-level=N int :default -1
  maximum inst level of terms used to instantiate quantified formulas with (-1 == no limit, default)
- 
+
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
- 
+
 option fullSaturateQuant --full-saturate-quant bool :default false
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
 
@@ -105,7 +105,7 @@ option mbqiMode --mbqi=MODE CVC4::theory::quantifiers::MbqiMode :read-write :def
 option fmfOneInstPerRound --mbqi-one-inst-per-round bool :default false
  only add one instantiation per quantifier per round for mbqi
 option fmfOneQuantPerRound --mbqi-one-quant-per-round bool :default false
- only add instantiations for one quantifier per round for mbqi 
+ only add instantiations for one quantifier per round for mbqi
 
 option fmfInstEngine --fmf-inst-engine bool :default false
  use instantiation engine in conjunction with finite model finding
