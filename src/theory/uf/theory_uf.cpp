@@ -45,6 +45,16 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
+TheoryUF::~TheoryUF() {
+  // destruct all ppRewrite() callbacks
+  for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
+      i != d_registeredPpRewrites.end();
+      ++i) {
+    delete i->second;
+  }
+  delete d_thss;
+}
+
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
