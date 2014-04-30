@@ -1192,7 +1192,7 @@ void SmtEngine::setDefaults() {
   if( options::ufssSymBreak() ){
     options::sortInference.set( true );
   }
-  if( options::qcfMode.wasSetByUser() ){
+  if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
 

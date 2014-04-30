@@ -415,6 +415,16 @@ public:
     return d_value == -1;
   }
 
+  /** fits the C "signed int" primitive */
+  bool fitsSignedInt() const;
+
+  /** fits the C "unsigned int" primitive */
+  bool fitsUnsignedInt() const;
+
+  int getSignedInt() const;
+
+  unsigned int getUnsignedInt() const;
+
   long getLong() const {
     // ensure there isn't overflow
     CheckArgument(d_value <= std::numeric_limits<long>::max(), this,

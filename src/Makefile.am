@@ -354,6 +354,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/fc_simplex.cpp \
 	theory/arith/soi_simplex.h \
 	theory/arith/soi_simplex.cpp \
+	theory/arith/infer_bounds.h \
+	theory/arith/infer_bounds.cpp \
 	theory/arith/approx_simplex.h \
 	theory/arith/approx_simplex.cpp \
 	theory/arith/attempt_solution_simplex.h \

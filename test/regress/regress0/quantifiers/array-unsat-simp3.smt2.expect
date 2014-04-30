@@ -1,2 +1,1 @@
-% EXPECT: unknown
-% EXPECT: (:reason-unknown incomplete)
+% EXPECT: unsat

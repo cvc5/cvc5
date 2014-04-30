@@ -84,11 +84,13 @@ public:
     typ_var,
     typ_ite_var,
     typ_bool_var,
+    typ_tconstraint,
+    typ_tsym,
   };
   void debugPrintType( const char * c, short typ, bool isTrace = false );
 public:
   MatchGen() : d_type( typ_invalid ){}
-  MatchGen( QuantInfo * qi, Node n, bool isVar = false, bool beneathQuant = false );
+  MatchGen( QuantInfo * qi, Node n, bool isVar = false );
   bool d_tgt;
   bool d_tgt_orig;
   bool d_wasSet;
@@ -128,7 +130,8 @@ public:
   ~QuantInfo() { delete d_mg; }
   std::vector< TNode > d_vars;
   std::map< TNode, int > d_var_num;
-  std::map< TNode, bool > d_nbeneathQuant;
+  std::vector< int > d_tsym_vars;
+  std::map< TNode, bool > d_inMatchConstraint;
   std::map< int, std::vector< Node > > d_var_constraint[2];
   int getVarNum( TNode v ) { return d_var_num.find( v )!=d_var_num.end() ? d_var_num[v] : -1; }
   bool isVar( TNode v ) { return d_var_num.find( v )!=d_var_num.end(); }
@@ -146,6 +149,7 @@ public:
   std::vector< TNode > d_match;
   std::vector< TNode > d_match_term;
   std::map< int, std::map< TNode, int > > d_curr_var_deq;
+  std::map< Node, bool > d_tconstraints;
   int getCurrentRepVar( int v );
   TNode getCurrentValue( TNode n );
   TNode getCurrentExpValue( TNode n );
@@ -154,6 +158,8 @@ public:
   int addConstraint( QuantConflictFind * p, int v, TNode n, int vn, bool polarity, bool doRemove );
   bool setMatch( QuantConflictFind * p, int v, TNode n );
   bool isMatchSpurious( QuantConflictFind * p );
+  bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
+  bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
   void revertMatch( std::vector< int >& assigned );
   void debugPrintMatch( const char * c );
@@ -174,6 +180,9 @@ private:
   context::CDO< bool > d_conflict;
   bool d_performCheck;
   std::vector< Node > d_quant_order;
+  std::map< Kind, Node > d_zero;
+  //for storing nodes created during t-constraint solving (prevents memory leaks)
+  std::vector< Node > d_tempCache;
 private:
   std::map< Node, Node > d_op_node;
   int d_fid_count;
@@ -182,6 +191,7 @@ private:
 public:  //for ground terms
   Node d_true;
   Node d_false;
+  TNode getZero( Kind k );
 private:
   Node evaluateTerm( Node n );
   int evaluate( Node n, bool pref = false, bool hasPref = false );
@@ -271,6 +281,7 @@ public:
     IntStat d_inst_rounds;
     IntStat d_conflict_inst;
     IntStat d_prop_inst;
+    IntStat d_entailment_checks;
     Statistics();
     ~Statistics();
   };
