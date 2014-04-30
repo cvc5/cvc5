@@ -47,7 +47,8 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
   d_curDecision(),
   d_curThreshold(0),
   d_childCache(uc),
-  d_weightCache(uc) {
+  d_weightCache(uc),
+  d_startIndexCache(c) {
   StatisticsRegistry::registerStat(&d_helfulness);
   StatisticsRegistry::registerStat(&d_giveup);
   StatisticsRegistry::registerStat(&d_timestat);
@@ -556,12 +557,20 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
     TNode curNode = getChildByWeight(node, i, desiredVal);
     if ( tryGetSatValue(curNode) != desiredValInverted ) {
       SearchResult ret = findSplitterRec(curNode, desiredVal);
-      if(ret != DONT_KNOW)
+      if(ret != DONT_KNOW) {
         return ret;
+      }
     }
   }
   Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
   return DONT_KNOW;
+}
+
+int JustificationHeuristic::getStartIndex(TNode node) {
+  return d_startIndexCache[node];
+}
+void JustificationHeuristic::saveStartIndex(TNode node, int val) {
+  d_startIndexCache[node] = val;
 }
 
 JustificationHeuristic::SearchResult JustificationHeuristic::handleAndOrHard(TNode node,
@@ -571,11 +580,14 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleAndOrHard(TNo
 
   int numChildren = node.getNumChildren();
   bool noSplitter = true;
-  for(int i = 0; i < numChildren; ++i) {
+  int i_st = getStartIndex(node);
+  for(int i = i_st; i < numChildren; ++i) {
     TNode curNode = getChildByWeight(node, i, desiredVal);
     SearchResult ret = findSplitterRec(curNode, desiredVal);
-    if (ret == FOUND_SPLITTER)
+    if (ret == FOUND_SPLITTER) {
+      if(i != i_st) saveStartIndex(node, i);
       return FOUND_SPLITTER;
+    }
     noSplitter = noSplitter && (ret == NO_SPLITTER);
   }
   return noSplitter ? NO_SPLITTER : DONT_KNOW;

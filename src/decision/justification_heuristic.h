@@ -154,6 +154,16 @@ private:
   /* Get list of all term-ITEs for the atomic formula v */
   JustificationHeuristic::IteList getITEs(TNode n);
 
+
+  /**
+   * For big and/or nodes, a cache to save starting index into children
+   * for efficiently.
+   */
+  typedef context::CDHashMap<TNode, int, TNodeHashFunction> StartIndexCache;
+  StartIndexCache d_startIndexCache;
+  int getStartIndex(TNode node);
+  void saveStartIndex(TNode node, int val);
+
   /* Compute all term-ITEs in a node recursively */
   void computeITEs(TNode n, IteList &l);
 
