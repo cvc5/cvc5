@@ -57,3 +57,26 @@ void Integer::readInt(const cln::cl_read_flags& flags, const std::string& s, uns
     throw std::invalid_argument(ss.str());
   }
 }
+
+bool Integer::fitsSignedInt() const {
+  // TODO improve performance
+  return d_value <= std::numeric_limits<signed int>::max() &&
+    d_value >= std::numeric_limits<signed int>::min();
+}
+
+bool Integer::fitsUnsignedInt() const {
+  // TODO improve performance
+  return sgn() >= 0 && d_value <= std::numeric_limits<unsigned int>::max();
+}
+
+signed int Integer::getSignedInt() const {
+  // ensure there isn't overflow
+  CheckArgument(fitsSignedInt(), this, "Overflow detected in Integer::getSignedInt()");
+  return cln::cl_I_to_int(d_value);
+}
+
+unsigned int Integer::getUnsignedInt() const {
+  // ensure there isn't overflow
+  CheckArgument(fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
+  return cln::cl_I_to_uint(d_value);
+}

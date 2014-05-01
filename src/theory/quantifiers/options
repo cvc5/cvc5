@@ -126,6 +126,8 @@ option qcfMode --quant-cf-mode=MODE CVC4::theory::quantifiers::QcfMode :default 
  what effort to apply conflict find mechanism
 option qcfWhenMode --quant-cf-when=MODE CVC4::theory::quantifiers::QcfWhenMode :default CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToQcfWhenMode :handler-include "theory/quantifiers/options_handlers.h"
  when to invoke conflict find mechanism for quantifiers
+option qcfTConstraint --qcf-tconstraint bool :read-write :default false
+ enable entailment checks for t-constraints in qcf algorithm
 
 option quantRewriteRules --rewrite-rules bool :default true
  use rewrite rules module

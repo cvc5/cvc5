@@ -121,16 +121,21 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_tableauResetDensity(1.6),
   d_tableauResetPeriod(10),
   d_conflicts(c),
+
   d_blackBoxConflict(c, Node::null()),
   d_congruenceManager(c, d_constraintDatabase, SetupLiteralCallBack(*this), d_partialModel, RaiseConflict(*this, d_conflictBuffer)),
   d_cmEnabled(c, true),
+
   d_dualSimplex(d_linEq, d_errorSet, RaiseConflict(*this, d_conflictBuffer), TempVarMalloc(*this)),
   d_fcSimplex(d_linEq, d_errorSet, RaiseConflict(*this, d_conflictBuffer), TempVarMalloc(*this)),
   d_soiSimplex(d_linEq, d_errorSet, RaiseConflict(*this, d_conflictBuffer), TempVarMalloc(*this)),
   d_attemptSolSimplex(d_linEq, d_errorSet, RaiseConflict(*this, d_conflictBuffer), TempVarMalloc(*this)),
+
   d_pass1SDP(NULL),
   d_otherSDP(NULL),
   d_lastContextIntegerAttempted(c,-1),
+
+
   d_DELTA_ZERO(0),
   d_approxCuts(c),
   d_fullCheckCounter(0),
@@ -1821,10 +1826,6 @@ Node TheoryArithPrivate::callDioSolver(){
 ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
   Assert(!done());
   TNode assertion = get();
-
-  if( options::finiteModelFind() && d_quantEngine && d_quantEngine->getBoundedIntegers() ){
-    d_quantEngine->getBoundedIntegers()->assertNode(assertion);
-  }
 
   Kind simpleKind = Comparison::comparisonKind(assertion);
   ConstraintP constraint = d_constraintDatabase.lookup(assertion);
@@ -4621,6 +4622,7 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
+
 Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node) {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -4683,6 +4685,900 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
   Unreachable();
 }
 
+
+
+
+// InferBoundsResult TheoryArithPrivate::inferBound(TNode term, const InferBoundsParameters& param){
+//   Node t = Rewriter::rewrite(term);
+//   Assert(Polynomial::isMember(t));
+//   Polynomial p = Polynomial::parsePolynomial(t);
+//   if(p.containsConstant()){
+//     Constant c = p.getHead().getConstant();
+//     if(p.isConstant()){
+//       InferBoundsResult res(t, param.findLowerBound());
+//       res.setBound((DeltaRational)c.getValue(), mkBoolNode(true));
+//       return res;
+//     }else{
+//       Polynomial tail = p.getTail();
+//       InferBoundsResult res = inferBound(tail.getNode(), param);
+//       if(res.foundBound()){
+//         DeltaRational newBound = res.getValue() + c.getValue();
+//         if(tail.isIntegral()){
+//           Integer asInt  = (param.findLowerBound()) ? newBound.ceiling() : newBound.floor();
+//           newBound = DeltaRational(asInt);
+//         }
+//         res.setBound(newBound, res.getExplanation());
+//       }
+//       return res;
+//     }
+//   }else if(param.findLowerBound()){
+//     InferBoundsParameters find_ub = param;
+//     find_ub.setFindUpperBound();
+//     if(param.useThreshold()){
+//       find_ub.setThreshold(- param.getThreshold() );
+//     }
+//     Polynomial negP = -p;
+//     InferBoundsResult res = inferBound(negP.getNode(), find_ub);
+//     res.setFindLowerBound();
+//     if(res.foundBound()){
+//       res.setTerm(p.getNode());
+//       res.setBound(-res.getValue(), res.getExplanation());
+//     }
+//     return res;
+//   }else{
+//     Assert(param.findUpperBound());
+//     // does not contain a constant
+//     switch(param.getEffort()){
+//     case InferBoundsParameters::Lookup:
+//       return inferUpperBoundLookup(t, param);
+//     case InferBoundsParameters::Simplex:
+//       return inferUpperBoundSimplex(t, param);
+//     case InferBoundsParameters::LookupAndSimplexOnFailure:
+//     case InferBoundsParameters::TryBoth:
+//       {
+//         InferBoundsResult lookup = inferUpperBoundLookup(t, param);
+//         if(lookup.foundBound()){
+//           if(param.getEffort() == InferBoundsParameters::LookupAndSimplexOnFailure ||
+//              lookup.boundIsOptimal()){
+//             return lookup;
+//           }
+//         }
+//         InferBoundsResult simplex = inferUpperBoundSimplex(t, param);
+//         if(lookup.foundBound() && simplex.foundBound()){
+//           return (lookup.getValue() <= simplex.getValue()) ? lookup : simplex;
+//         }else if(lookup.foundBound()){
+//           return lookup;
+//         }else{
+//           return simplex;
+//         }
+//       }
+//     default:
+//       Unreachable();
+//       return InferBoundsResult();
+//     }
+//   }
+// }
+
+
+std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
+  using namespace inferbounds;
+
+  // l k r
+  // diff : (l - r) k 0
+  Debug("arith::entailCheck") << "TheoryArithPrivate::entailmentCheck(" << lit << ")"<< endl;
+  Kind k;
+  int primDir;
+  Rational lm, rm, dm;
+  Node lp, rp, dp;
+  DeltaRational sep;
+  bool successful = decomposeLiteral(lit, k, primDir, lm, lp, rm, rp, dm, dp, sep);
+  if(!successful) { return make_pair(false, Node::null()); }
+
+  if(dp.getKind() == CONST_RATIONAL){
+    Node eval = Rewriter::rewrite(lit);
+    Assert(eval.getKind() == kind::CONST_BOOLEAN);
+    // if true, true is an acceptable explaination
+    // if false, the node is uninterpreted and eval can be forgotten
+    return make_pair(eval.getConst<bool>(), eval);
+  }
+  Assert(dm != Rational(0));
+  Assert(primDir == 1 || primDir == -1);
+
+  int negPrim = -primDir;
+
+  int secDir = (k == EQUAL || k == DISTINCT) ? negPrim: 0;
+  int negSecDir = (k == EQUAL || k == DISTINCT) ? primDir: 0;
+
+  // primDir*[lm*( lp )] k primDir*[ [rm*( rp )] + sep ]
+  // primDir*[lm*( lp ) - rm*( rp ) ] k primDir*sep
+  // primDir*[dm * dp] k primDir*sep
+
+  std::pair<Node, DeltaRational> bestPrimLeft, bestNegPrimRight, bestPrimDiff, tmp;
+  std::pair<Node, DeltaRational> bestSecLeft, bestNegSecRight, bestSecDiff;
+  bestPrimLeft.first = Node::null(); bestNegPrimRight.first = Node::null(); bestPrimDiff.first = Node::null();
+  bestSecLeft.first = Node::null(); bestNegSecRight.first = Node::null(); bestSecDiff.first = Node::null();
+
+
+
+  ArithEntailmentCheckParameters::const_iterator alg, alg_end;
+  for( alg = params.begin(), alg_end = params.end(); alg != alg_end; ++alg ){
+    const inferbounds::InferBoundAlgorithm& ibalg = *alg;
+
+    Debug("arith::entailCheck") << "entailmentCheck trying " << (inferbounds::Algorithms) ibalg.getAlgorithm() << endl;
+    switch(ibalg.getAlgorithm()){
+    case inferbounds::None:
+      break;
+    case inferbounds::Lookup:
+    case inferbounds::RowSum:
+      {
+        typedef void (TheoryArithPrivate::*EntailmentCheckFunc)(std::pair<Node, DeltaRational>&, int, TNode) const;
+
+        EntailmentCheckFunc ecfunc =
+          (ibalg.getAlgorithm() == inferbounds::Lookup)
+          ? (&TheoryArithPrivate::entailmentCheckBoundLookup)
+          : (&TheoryArithPrivate::entailmentCheckRowSum);
+
+        (*this.*ecfunc)(tmp, primDir * lm.sgn(), lp);
+        setToMin(primDir * lm.sgn(), bestPrimLeft, tmp);
+
+        (*this.*ecfunc)(tmp, negPrim * rm.sgn(), rp);
+        setToMin(negPrim * rm.sgn(), bestNegPrimRight, tmp);
+
+        (*this.*ecfunc)(tmp, secDir * lm.sgn(), lp);
+        setToMin(secDir * lm.sgn(), bestSecLeft, tmp);
+
+        (*this.*ecfunc)(tmp, negSecDir * rm.sgn(), rp);
+        setToMin(negSecDir * rm.sgn(), bestNegSecRight, tmp);
+
+        (*this.*ecfunc)(tmp, primDir * dm.sgn(), dp);
+        setToMin(primDir * dm.sgn(), bestPrimDiff, tmp);
+
+        (*this.*ecfunc)(tmp, secDir * dm.sgn(), dp);
+        setToMin(secDir * dm.sgn(), bestSecDiff, tmp);
+      }
+      break;
+    case inferbounds::Simplex:
+      {
+        // primDir * diffm * diff < c or primDir * diffm * diff > c
+        tmp = entailmentCheckSimplex(primDir * dm.sgn(), dp, ibalg, out.getSimplexSideEffects());
+        setToMin(primDir * dm.sgn(), bestPrimDiff, tmp);
+
+        tmp = entailmentCheckSimplex(secDir * dm.sgn(), dp, ibalg, out.getSimplexSideEffects());
+        setToMin(secDir * dm.sgn(), bestSecDiff, tmp);
+      }
+      break;
+    default:
+      Unhandled();
+    }
+
+    // turn bounds on prim * left and -prim * right into bounds on prim * diff
+    if(!bestPrimLeft.first.isNull() && !bestNegPrimRight.first.isNull()){
+      //  primDir*lm* lp <= primDir*lm*L
+      // -primDir*rm* rp <= -primDir*rm*R
+      // primDir*lm* lp -primDir*rm* rp <=  primDir*lm*L - primDir*rm*R
+      // primDir [lm* lp -rm* rp] <= primDir[lm*L - *rm*R]
+      // primDir [dm * dp] <= primDir[lm*L - *rm*R]
+      // primDir [dm * dp] <= primDir * dm * ([lm*L - *rm*R]/dm)
+      tmp.second = ((bestPrimLeft.second * lm) - (bestNegPrimRight.second * rm)) / dm;
+      tmp.first = (bestPrimLeft.first).andNode(bestNegPrimRight.first);
+      setToMin(primDir, bestPrimDiff, tmp);
+    }
+
+    // turn bounds on sec * left and sec * right into bounds on sec * diff
+    if(secDir != 0 && !bestSecLeft.first.isNull() && !bestNegSecRight.first.isNull()){
+      //  secDir*lm* lp <= secDir*lm*L
+      // -secDir*rm* rp <= -secDir*rm*R
+      // secDir*lm* lp -secDir*rm* rp <=  secDir*lm*L - secDir*rm*R
+      // secDir [lm* lp -rm* rp] <= secDir[lm*L - *rm*R]
+      // secDir [dm * dp] <= secDir[lm*L - *rm*R]
+      // secDir [dm * dp] <= secDir * dm * ([lm*L - *rm*R]/dm)
+      tmp.second = ((bestSecLeft.second * lm) - (bestNegSecRight.second * rm)) / dm;
+      tmp.first = (bestSecLeft.first).andNode(bestNegSecRight.first);
+      setToMin(secDir, bestSecDiff, tmp);
+    }
+
+    switch(k){
+    case LEQ:
+      if(!bestPrimDiff.first.isNull()){
+        DeltaRational d = (bestPrimDiff.second * dm);
+        if((primDir > 0 && d <= sep) || (primDir < 0 && d >= sep) ){
+          Debug("arith::entailCheck") << "entailmentCheck found "
+                                      << primDir << "*" << dm << "*(" << dp<<")"
+                                      << " <= " << primDir << "*" << dm << "*" << bestPrimDiff.second
+                                      << " <= " << primDir << "*" << sep << endl
+                                      << " by " << bestPrimDiff.first << endl;
+          Assert(bestPrimDiff.second * (Rational(primDir)* dm) <=  (sep * Rational(primDir)));
+          return make_pair(true, bestPrimDiff.first);
+        }
+      }
+      break;
+    case EQUAL:
+      if(!bestPrimDiff.first.isNull() && !bestSecDiff.first.isNull()){
+        // Is primDir [dm * dp] == primDir * sep entailed?
+        // Iff [dm * dp] == sep entailed?
+        // Iff dp == sep / dm entailed?
+        // Iff dp <= sep / dm and dp >= sep / dm entailed?
+
+        // primDir [dm * dp] <= primDir * dm * U
+        // secDir [dm * dp] <= secDir * dm * L
+
+        // Suppose primDir * dm > 0
+        // then secDir * dm < 0
+        //   dp >= (secDir * L) / secDir * dm
+        //   dp >= (primDir * L) / primDir * dm
+        //
+        //   dp <= U / dm
+        //   dp >= L / dm
+        //   dp == sep / dm entailed iff U == L == sep
+        // Suppose primDir * dm < 0
+        // then secDir * dm > 0
+        //   dp >= U / dm
+        //   dp <= L / dm
+        //   dp == sep / dm entailed iff U == L == sep
+        if(bestPrimDiff.second == bestSecDiff.second){
+          if(bestPrimDiff.second == sep){
+            return make_pair(true, (bestPrimDiff.first).andNode(bestSecDiff.first));
+          }
+        }
+      }
+      // intentionally fall through to DISTINCT case!
+      // entailments of negations are eager exit cases for EQUAL
+    case DISTINCT:
+      if(!bestPrimDiff.first.isNull()){
+        // primDir [dm * dp] <= primDir * dm * U < primDir * sep
+        if((primDir > 0 && (bestPrimDiff.second * dm  < sep)) ||
+           (primDir < 0 && (bestPrimDiff.second * dm  > sep))){
+          // entailment of negation
+          if(k == DISTINCT){
+            return make_pair(true, bestPrimDiff.first);
+          }else{
+            Assert(k == EQUAL);
+            return make_pair(false, Node::null());
+          }
+        }
+      }
+      if(!bestSecDiff.first.isNull()){
+        // If primDir [dm * dp] > primDir * sep, then this is not entailed.
+        // If primDir [dm * dp] >= primDir * dm * L > primDir * sep
+        // -primDir * dm * L < -primDir * sep
+        // secDir * dm * L < secDir * sep
+        if((secDir > 0 && (bestSecDiff.second * dm < sep)) ||
+           (secDir < 0 && (bestSecDiff.second * dm > sep))){
+          if(k == DISTINCT){
+            return make_pair(true, bestSecDiff.first);
+          }else{
+            Assert(k == EQUAL);
+            return make_pair(false, Node::null());
+          }
+        }
+      }
+
+      break;
+    default:
+      Unreachable();
+      break;
+    }
+  }
+  return make_pair(false, Node::null());
+}
+
+bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational& c){
+  Node t = Rewriter::rewrite(term);
+  if(!Polynomial::isMember(t)){
+    return false;
+  }
+#warning "DO NOT LET INTO TRUNK!"
+  ContainsTermITEVisitor ctv;
+  if(ctv.containsTermITE(t)){
+    return false;
+  }
+
+  Polynomial poly = Polynomial::parsePolynomial(t);
+  if(poly.isConstant()){
+    c = poly.getHead().getConstant().getValue();
+    p = mkRationalNode(Rational(0));
+    m = Rational(1);
+    return true;
+  }else if(poly.containsConstant()){
+    c = poly.getHead().getConstant().getValue();
+    poly = poly.getTail();
+  }else{
+    c = Rational(0);
+  }
+  Assert(!poly.isConstant());
+  Assert(!poly.containsConstant());
+
+  const bool intVars = poly.allIntegralVariables();
+
+  if(intVars){
+    m = Rational(1);
+    if(!poly.isIntegral()){
+      Integer denom = poly.denominatorLCM();
+      m /= denom;
+      poly = poly * denom;
+    }
+    Integer g = poly.gcd();
+    m *= g;
+    poly = poly * Rational(1,g);
+    Assert(poly.isIntegral());
+    Assert(poly.leadingCoefficientIsPositive());
+  }else{
+    Assert(!intVars);
+    m = poly.getHead().getConstant().getValue();
+    poly = poly * m.inverse();
+    Assert(poly.leadingCoefficientIsAbsOne());
+  }
+  p = poly.getNode();
+  return true;
+}
+
+void TheoryArithPrivate::setToMin(int sgn, std::pair<Node, DeltaRational>& min, const std::pair<Node, DeltaRational>& e){
+  if(sgn != 0){
+    if(min.first.isNull() && !e.first.isNull()){
+      min = e;
+    }else if(!min.first.isNull() && !e.first.isNull()){
+      if(sgn > 0 && min.second > e.second){
+        min = e;
+      }else if(sgn < 0 &&  min.second < e.second){
+        min = e;
+      }
+    }
+  }
+}
+
+// std::pair<bool, Node> TheoryArithPrivate::entailmentUpperCheck(const Rational& lm, Node lp, const Rational& rm, Node rp, const DeltaRational& sep, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
+
+//   Rational negRM = -rm;
+//   Node diff = NodeManager::currentNM()->mkNode(MULT, mkRationalConstan(lm), lp) + (negRM * rp);
+
+//   Rational diffm;
+//   Node diffp;
+//   decompose(diff, diffm, diffNode);
+
+
+//   std::pair<Node, DeltaRational> bestUbLeft, bestLbRight, bestUbDiff, tmp;
+//   bestUbLeft = bestLbRight = bestUbDiff = make_pair(Node::Null(), DeltaRational());
+
+//   return make_pair(false, Node::null());
+// }
+
+/**
+ * Decomposes a literal into the form:
+ *   dir*[lm*( lp )] k dir*[ [rm*( rp )] + sep ]
+ *   dir*[dm* dp]  k dir *sep
+ *   dir is either 1 or -1
+ */
+bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational& lm,  Node& lp, Rational& rm, Node& rp, Rational& dm, Node& dp, DeltaRational& sep){
+  bool negated = (lit.getKind() == kind::NOT);
+  TNode atom = negated ? lit[0] : lit;
+
+  TNode left = atom[0];
+  TNode right = atom[1];
+
+  // left : lm*( lp ) + lc
+  // right: rm*( rp ) + rc
+  Rational lc, rc;
+  bool success = decomposeTerm(left, lm, lp, lc);
+  if(!success){ return false; }
+  success = decomposeTerm(right, rm, rp, rc);
+  if(!success){ return false; }
+
+  Node diff = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
+  Rational dc;
+  success = decomposeTerm(diff, dm, dp, dc);
+  Assert(success);
+
+  // reduce the kind of the to not include literals
+  // GT, NOT LEQ
+  // GEQ, NOT LT
+  // LT, NOT GEQ
+  // LEQ, NOT LT
+  Kind atomKind = atom.getKind();
+  Kind normKind = negated ? negateKind(atomKind) : atomKind;
+
+  if(normKind == GEQ || normKind == GT){
+    dir = -1;
+    normKind = (normKind == GEQ) ? LEQ : LT;
+  }else{
+    dir = 1;
+  }
+
+  Debug("arith::decomp") << "arith::decomp "
+                         << lit << "(" << normKind << "*" << dir << ")"<< endl
+                         << "  left:" << lc << " + " << lm << "*(" <<  lp << ") : " <<left << endl
+                         << "  right:" << rc << " + " << rm << "*(" <<  rp << ") : " << right << endl
+                         << "  diff: " << dc << " + " << dm << "*("<< dp <<"): " << diff << endl
+                         << "  sep: " << sep << endl;
+
+
+  // k in LT, LEQ, EQUAL, DISEQUAL
+  // [dir*lm*( lp ) + dir*lc] k [dir*rm*( rp ) + dir*rc]
+  Rational change = rc - lc;
+  Assert(change == (-dc));
+  // [dir*lm*( lp )] k [dir*rm*( rp ) + dir*(rc - lc)]
+  if(normKind == LT){
+    sep = DeltaRational(change, Rational(-1));
+    k = LEQ;
+  }else{
+    sep = DeltaRational(change);
+    k = normKind;
+  }
+  // k in LEQ, EQUAL, DISEQUAL
+  // dir*lm*( lp ) k [dir*rm*( rp )] + dir*(sep + d * delta)
+  return true;
+}
+
+/**
+ *  Precondition:
+ *   tp is a polynomial not containing an ite.
+ *   either tp is constant or contains no constants.
+ *  Post:
+ *    if tmp.first is not null, then
+ *      sgn * tp <= sgn * tmp.second
+ */
+void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const {
+  tmp.first = Node::null();
+  if(sgn == 0){ return; }
+
+  Assert(Polynomial::isMember(tp));
+  if(tp.getKind() == CONST_RATIONAL){
+    tmp.first = mkBoolNode(true);
+    tmp.second = DeltaRational(tp.getConst<Rational>());
+  }else if(d_partialModel.hasArithVar(tp)){
+    Assert(tp.getKind() != CONST_RATIONAL);
+    ArithVar v = d_partialModel.asArithVar(tp);
+    Assert(v != ARITHVAR_SENTINEL);
+    ConstraintP c = (sgn > 0)
+      ? d_partialModel.getUpperBoundConstraint(v)
+      : d_partialModel.getLowerBoundConstraint(v);
+    if(c != NullConstraint){
+      tmp.first = c->externalExplainByAssertions();
+      tmp.second = c->getValue();
+    }
+  }
+}
+
+void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const {
+  tmp.first = Node::null();
+  if(sgn == 0){ return; }
+  if(tp.getKind() != PLUS){ return; }
+  Assert(Polynomial::isMember(tp));
+
+  tmp.second = DeltaRational(0);
+  NodeBuilder<> nb(kind::AND);
+
+  Polynomial p = Polynomial::parsePolynomial(tp);
+  for(Polynomial::iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
+    Monomial m = *i;
+    Node x = m.getVarList().getNode();
+    if(d_partialModel.hasArithVar(x)){
+      ArithVar v = d_partialModel.asArithVar(x);
+      const Rational& coeff = m.getConstant().getValue();
+      int dir = sgn * coeff.sgn();
+      ConstraintP c = (dir > 0)
+        ? d_partialModel.getUpperBoundConstraint(v)
+        : d_partialModel.getLowerBoundConstraint(v);
+      if(c != NullConstraint){
+        tmp.second += c->getValue() * coeff;
+        c->externalExplainByAssertions(nb);
+      }else{
+        //failed
+        return;
+      }
+    }else{
+      // failed
+      return;
+    }
+  }
+  // success
+  tmp.first = nb;
+}
+
+std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sgn, TNode tp, const inferbounds::InferBoundAlgorithm& param, InferBoundsResult& result){
+
+  if((sgn == 0) || !(d_qflraStatus == Result::SAT && d_errorSet.noSignals()) || tp.getKind() == CONST_RATIONAL){
+    return make_pair(Node::null(), DeltaRational());
+  }
+
+  Assert(d_qflraStatus == Result::SAT);
+  Assert(d_errorSet.noSignals());
+  Assert(param.getAlgorithm() == inferbounds::Simplex);
+
+  // TODO Move me into a new file
+
+  enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
+  ResultState finalState = Unset;
+
+  int maxRounds = param.getSimplexRounds().just()
+    ? param.getSimplexRounds().constValue()
+    : -1;
+
+  Maybe<DeltaRational> threshold;
+  // TODO: get this from the parameters
+
+  // setup term
+  Polynomial p = Polynomial::parsePolynomial(tp);
+  vector<ArithVar> variables;
+  vector<Rational> coefficients;
+  asVectors(p, coefficients, variables);
+  if(sgn < 0){
+    for(size_t i=0, N=coefficients.size(); i < N; ++i){
+      coefficients[i] = -coefficients[i];
+    }
+  }
+  // implicitly an upperbound
+  Node skolem = mkRealSkolem("tmpVar$$");
+  ArithVar optVar = requestArithVar(skolem, false, true);
+  d_tableau.addRow(optVar, coefficients, variables);
+  RowIndex ridx = d_tableau.basicToRowIndex(optVar);
+
+  DeltaRational newAssignment = d_linEq.computeRowValue(optVar, false);
+  d_partialModel.setAssignment(optVar, newAssignment);
+  d_linEq.trackRowIndex(d_tableau.basicToRowIndex(optVar));
+
+  // Setup simplex
+  d_partialModel.stopQueueingBoundCounts();
+  UpdateTrackingCallback utcb(&d_linEq);
+  d_partialModel.processBoundsQueue(utcb);
+  d_linEq.startTrackingBoundCounts();
+
+  // maximize optVar via primal Simplex
+  int rounds = 0;
+  while(finalState == Unset){
+    ++rounds;
+    if(maxRounds >= 0 && rounds > maxRounds){
+      finalState = ExhaustedRounds;
+      break;
+    }
+
+    // select entering by bland's rule
+    // TODO improve upon bland's
+    ArithVar entering = ARITHVAR_SENTINEL;
+    const Tableau::Entry* enteringEntry = NULL;
+    for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
+      const Tableau::Entry& entry = *ri;
+      ArithVar v = entry.getColVar();
+      if(v != optVar){
+        int sgn = entry.getCoefficient().sgn();
+        Assert(sgn != 0);
+        bool candidate = (sgn > 0)
+          ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
+          : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
+        if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
+          entering = v;
+          enteringEntry = &entry;
+        }
+      }
+    }
+    if(entering == ARITHVAR_SENTINEL){
+      finalState = Inferred;
+      break;
+    }
+    Assert(entering != ARITHVAR_SENTINEL);
+    Assert(enteringEntry != NULL);
+
+    int esgn = enteringEntry->getCoefficient().sgn();
+    Assert(esgn != 0);
+
+    // select leaving and ratio
+    ArithVar leaving = ARITHVAR_SENTINEL;
+    DeltaRational minRatio;
+    const Tableau::Entry* pivotEntry = NULL;
+
+    // Special case check the upper/lowerbound on entering
+    ConstraintP cOnEntering = (esgn > 0)
+      ? d_partialModel.getUpperBoundConstraint(entering)
+      : d_partialModel.getLowerBoundConstraint(entering);
+    if(cOnEntering != NullConstraint){
+      leaving = entering;
+      minRatio = d_partialModel.getAssignment(entering) - cOnEntering->getValue();
+    }
+    for(Tableau::ColIterator ci = d_tableau.colIterator(entering); !ci.atEnd(); ++ci){
+      const Tableau::Entry& centry = *ci;
+      ArithVar basic = d_tableau.rowIndexToBasic(centry.getRowIndex());
+      int csgn = centry.getCoefficient().sgn();
+      int basicDir = csgn * esgn;
+
+      ConstraintP bound = (basicDir > 0)
+        ? d_partialModel.getUpperBoundConstraint(basic)
+        : d_partialModel.getLowerBoundConstraint(basic);
+      if(bound != NullConstraint){
+        DeltaRational diff = d_partialModel.getAssignment(basic) - bound->getValue();
+        DeltaRational ratio = diff/(centry.getCoefficient());
+        bool selected = false;
+        if(leaving == ARITHVAR_SENTINEL){
+          selected = true;
+        }else{
+          int cmp = ratio.compare(minRatio);
+          if((csgn > 0) ? (cmp <= 0) : (cmp >= 0)){
+            selected = (cmp != 0) ||
+              ((leaving != entering) && (basic < leaving));
+          }
+        }
+        if(selected){
+          leaving = basic;
+          minRatio = ratio;
+          pivotEntry = &centry;
+        }
+      }
+    }
+
+
+    if(leaving == ARITHVAR_SENTINEL){
+      finalState = NoBound;
+      break;
+    }else if(leaving == entering){
+      d_linEq.update(entering, minRatio);
+    }else{
+      DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
+      d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
+      // no conflicts clear signals
+      Assert(d_errorSet.noSignals());
+    }
+
+    if(threshold.just()){
+      if(d_partialModel.getAssignment(optVar) >= threshold.constValue()){
+        finalState = ReachedThreshold;
+        break;
+      }
+    }
+  };
+
+  result = InferBoundsResult(tp, sgn > 0);
+
+  // tear down term
+  switch(finalState){
+  case Inferred:
+    {
+      NodeBuilder<> nb(kind::AND);
+      for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
+        const Tableau::Entry& e =*ri;
+        ArithVar colVar = e.getColVar();
+        if(colVar != optVar){
+          const Rational& q = e.getCoefficient();
+          Assert(q.sgn() != 0);
+          ConstraintP c = (q.sgn() > 0)
+            ? d_partialModel.getUpperBoundConstraint(colVar)
+            : d_partialModel.getLowerBoundConstraint(colVar);
+          c->externalExplainByAssertions(nb);
+        }
+      }
+      Assert(nb.getNumChildren() >= 1);
+      Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
+      result.setBound(d_partialModel.getAssignment(optVar), exp);
+      result.setIsOptimal();
+      break;
+    }
+  case NoBound:
+    break;
+  case ReachedThreshold:
+    result.setReachedThreshold();
+    break;
+  case ExhaustedRounds:
+    result.setBudgetExhausted();
+    break;
+  case Unset:
+  default:
+    Unreachable();
+    break;
+  };
+
+  d_linEq.stopTrackingRowIndex(ridx);
+  d_tableau.removeBasicRow(optVar);
+  releaseArithVar(optVar);
+
+  d_linEq.stopTrackingBoundCounts();
+  d_partialModel.startQueueingBoundCounts();
+
+  if(result.foundBound()){
+    return make_pair(result.getExplanation(), result.getValue());
+  }else{
+    return make_pair(Node::null(), DeltaRational());
+  }
+}
+
+// InferBoundsResult TheoryArithPrivate::inferUpperBoundSimplex(TNode t, const inferbounds::InferBoundAlgorithm& param){
+//   Assert(param.findUpperBound());
+
+//   if(!(d_qflraStatus == Result::SAT && d_errorSet.noSignals())){
+//     InferBoundsResult inconsistent;
+//     inconsistent.setInconsistent();
+//     return inconsistent;
+//   }
+
+//   Assert(d_qflraStatus == Result::SAT);
+//   Assert(d_errorSet.noSignals());
+
+//   // TODO Move me into a new file
+
+//   enum ResultState {Unset, Inferred, NoBound, ReachedThreshold, ExhaustedRounds};
+//   ResultState finalState = Unset;
+
+//   int maxRounds = 0;
+//   switch(param.getParamKind()){
+//   case InferBoundsParameters::Unbounded:
+//     maxRounds = -1;
+//     break;
+//   case InferBoundsParameters::NumVars:
+//     maxRounds = d_partialModel.getNumberOfVariables() * param.getSimplexRoundParameter();
+//     break;
+//   case InferBoundsParameters::Direct:
+//     maxRounds = param.getSimplexRoundParameter();
+//     break;
+//   default: maxRounds = 0; break;
+//   }
+
+//   // setup term
+//   Polynomial p = Polynomial::parsePolynomial(t);
+//   vector<ArithVar> variables;
+//   vector<Rational> coefficients;
+//   asVectors(p, coefficients, variables);
+
+//   Node skolem = mkRealSkolem("tmpVar$$");
+//   ArithVar optVar = requestArithVar(skolem, false, true);
+//   d_tableau.addRow(optVar, coefficients, variables);
+//   RowIndex ridx = d_tableau.basicToRowIndex(optVar);
+
+//   DeltaRational newAssignment = d_linEq.computeRowValue(optVar, false);
+//   d_partialModel.setAssignment(optVar, newAssignment);
+//   d_linEq.trackRowIndex(d_tableau.basicToRowIndex(optVar));
+
+//   // Setup simplex
+//   d_partialModel.stopQueueingBoundCounts();
+//   UpdateTrackingCallback utcb(&d_linEq);
+//   d_partialModel.processBoundsQueue(utcb);
+//   d_linEq.startTrackingBoundCounts();
+
+//   // maximize optVar via primal Simplex
+//   int rounds = 0;
+//   while(finalState == Unset){
+//     ++rounds;
+//     if(maxRounds >= 0 && rounds > maxRounds){
+//       finalState = ExhaustedRounds;
+//       break;
+//     }
+
+//     // select entering by bland's rule
+//     // TODO improve upon bland's
+//     ArithVar entering = ARITHVAR_SENTINEL;
+//     const Tableau::Entry* enteringEntry = NULL;
+//     for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
+//       const Tableau::Entry& entry = *ri;
+//       ArithVar v = entry.getColVar();
+//       if(v != optVar){
+//         int sgn = entry.getCoefficient().sgn();
+//         Assert(sgn != 0);
+//         bool candidate = (sgn > 0)
+//           ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
+//           : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
+//         if(candidate && (entering == ARITHVAR_SENTINEL || entering > v)){
+//           entering = v;
+//           enteringEntry = &entry;
+//         }
+//       }
+//     }
+//     if(entering == ARITHVAR_SENTINEL){
+//       finalState = Inferred;
+//       break;
+//     }
+//     Assert(entering != ARITHVAR_SENTINEL);
+//     Assert(enteringEntry != NULL);
+
+//     int esgn = enteringEntry->getCoefficient().sgn();
+//     Assert(esgn != 0);
+
+//     // select leaving and ratio
+//     ArithVar leaving = ARITHVAR_SENTINEL;
+//     DeltaRational minRatio;
+//     const Tableau::Entry* pivotEntry = NULL;
+
+//     // Special case check the upper/lowerbound on entering
+//     ConstraintP cOnEntering = (esgn > 0)
+//       ? d_partialModel.getUpperBoundConstraint(entering)
+//       : d_partialModel.getLowerBoundConstraint(entering);
+//     if(cOnEntering != NullConstraint){
+//       leaving = entering;
+//       minRatio = d_partialModel.getAssignment(entering) - cOnEntering->getValue();
+//     }
+//     for(Tableau::ColIterator ci = d_tableau.colIterator(entering); !ci.atEnd(); ++ci){
+//       const Tableau::Entry& centry = *ci;
+//       ArithVar basic = d_tableau.rowIndexToBasic(centry.getRowIndex());
+//       int csgn = centry.getCoefficient().sgn();
+//       int basicDir = csgn * esgn;
+
+//       ConstraintP bound = (basicDir > 0)
+//         ? d_partialModel.getUpperBoundConstraint(basic)
+//         : d_partialModel.getLowerBoundConstraint(basic);
+//       if(bound != NullConstraint){
+//         DeltaRational diff = d_partialModel.getAssignment(basic) - bound->getValue();
+//         DeltaRational ratio = diff/(centry.getCoefficient());
+//         bool selected = false;
+//         if(leaving == ARITHVAR_SENTINEL){
+//           selected = true;
+//         }else{
+//           int cmp = ratio.compare(minRatio);
+//           if((csgn > 0) ? (cmp <= 0) : (cmp >= 0)){
+//             selected = (cmp != 0) ||
+//               ((leaving != entering) && (basic < leaving));
+//           }
+//         }
+//         if(selected){
+//           leaving = basic;
+//           minRatio = ratio;
+//           pivotEntry = &centry;
+//         }
+//       }
+//     }
+
+
+//     if(leaving == ARITHVAR_SENTINEL){
+//       finalState = NoBound;
+//       break;
+//     }else if(leaving == entering){
+//       d_linEq.update(entering, minRatio);
+//     }else{
+//       DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
+//       d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
+//       // no conflicts clear signals
+//       Assert(d_errorSet.noSignals());
+//     }
+
+//     if(param.useThreshold()){
+//       if(d_partialModel.getAssignment(optVar) >= param.getThreshold()){
+//         finalState = ReachedThreshold;
+//         break;
+//       }
+//     }
+//   };
+
+//   InferBoundsResult result(t, param.findUpperBound());
+
+//   // tear down term
+//   switch(finalState){
+//   case Inferred:
+//     {
+//       NodeBuilder<> nb(kind::AND);
+//       for(Tableau::RowIterator ri = d_tableau.ridRowIterator(ridx); !ri.atEnd(); ++ri){
+//         const Tableau::Entry& e =*ri;
+//         ArithVar colVar = e.getColVar();
+//         if(colVar != optVar){
+//           const Rational& q = e.getCoefficient();
+//           Assert(q.sgn() != 0);
+//           ConstraintP c = (q.sgn() > 0)
+//             ? d_partialModel.getUpperBoundConstraint(colVar)
+//             : d_partialModel.getLowerBoundConstraint(colVar);
+//           c->externalExplainByAssertions(nb);
+//         }
+//       }
+//       Assert(nb.getNumChildren() >= 1);
+//       Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
+//       result.setBound(d_partialModel.getAssignment(optVar), exp);
+//       result.setIsOptimal();
+//       break;
+//     }
+//   case NoBound:
+//     break;
+//   case ReachedThreshold:
+//     result.setReachedThreshold();
+//     break;
+//   case ExhaustedRounds:
+//     result.setBudgetExhausted();
+//     break;
+//   case Unset:
+//   default:
+//     Unreachable();
+//     break;
+//   };
+
+//   d_linEq.stopTrackingRowIndex(ridx);
+//   d_tableau.removeBasicRow(optVar);
+//   releaseArithVar(optVar);
+
+//   d_linEq.stopTrackingBoundCounts();
+//   d_partialModel.startQueueingBoundCounts();
+
+//   return result;
+// }
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

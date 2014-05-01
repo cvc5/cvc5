@@ -228,6 +228,32 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in, SubstitutionMap& outSubstituti
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit,
+                                              const EntailmentCheckParameters* params,
+                                              EntailmentCheckSideEffects* out){
+  return make_pair(false, Node::null());
+}
+
+EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
+  : d_tid(tid) {
+}
+
+EntailmentCheckParameters::~EntailmentCheckParameters(){}
+
+TheoryId EntailmentCheckParameters::getTheoryId() const {
+  return d_tid;
+}
+
+EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
+  : d_tid(tid)
+{}
+
+TheoryId EntailmentCheckSideEffects::getTheoryId() const {
+  return d_tid;
+}
+
+EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

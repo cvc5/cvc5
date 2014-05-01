@@ -208,6 +208,7 @@ void InstantiationEngine::check( Theory::Effort e ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
     }
+    ++(d_statistics.d_instantiation_rounds);
     bool quantActive = false;
     Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size"
                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
@@ -438,7 +439,8 @@ InstantiationEngine::Statistics::Statistics():
   d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
   d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
   d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
-  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0)
+  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0),
+  d_instantiation_rounds("InstantiationEngine::Rounds", 0 )
 {
   StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
   StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
@@ -447,6 +449,7 @@ InstantiationEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_datatypes);
+  StatisticsRegistry::registerStat(&d_instantiation_rounds);
 }
 
 InstantiationEngine::Statistics::~Statistics(){
@@ -457,4 +460,5 @@ InstantiationEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_datatypes);
+  StatisticsRegistry::unregisterStat(&d_instantiation_rounds);
 }

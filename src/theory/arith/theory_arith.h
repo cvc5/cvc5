@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "theory/arith/theory_arith_private_forward.h"
 
+
 namespace CVC4 {
 namespace theory {
 
@@ -79,6 +80,12 @@ public:
   void addSharedTerm(TNode n);
 
   Node getModelValue(TNode var);
+
+
+  std::pair<bool, Node> entailmentCheck(TNode lit,
+                                        const EntailmentCheckParameters* params,
+                                        EntailmentCheckSideEffects* out);
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

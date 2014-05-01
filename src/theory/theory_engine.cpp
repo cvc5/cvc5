@@ -1658,3 +1658,15 @@ void TheoryEngine::checkTheoryAssertionsWithModel() {
     }
   }
 }
+
+std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* seffects) {
+  TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
+  theory::TheoryId tid = theory::Theory::theoryOf(mode, atom);
+  theory::Theory* th = theoryOf(tid);
+
+  Assert(th != NULL);
+  Assert(params == NULL || tid == params->getTheoryId());
+  Assert(seffects == NULL || tid == seffects->getTheoryId());
+
+  return th->entailmentCheck(lit, params, seffects);
+}

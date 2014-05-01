@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
+#include "theory/arith/infer_bounds.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -98,6 +99,43 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
 
 Node TheoryArith::getModelValue(TNode var) {
   return d_internal->getModelValue( var );
+}
+
+
+std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit,
+                                                    const EntailmentCheckParameters* params,
+                                                    EntailmentCheckSideEffects* out)
+{
+  const ArithEntailmentCheckParameters* aparams = NULL;
+  if(params == NULL){
+    ArithEntailmentCheckParameters* def = new ArithEntailmentCheckParameters();
+    def->addLookupRowSumAlgorithms();
+    aparams = def;
+  }else{
+    AlwaysAssert(params->getTheoryId() == getId());
+    aparams = dynamic_cast<const ArithEntailmentCheckParameters*>(params);
+  }
+  Assert(aparams != NULL);
+
+  ArithEntailmentCheckSideEffects* ase = NULL;
+  if(out == NULL){
+    ase = new ArithEntailmentCheckSideEffects();
+  }else{
+    AlwaysAssert(out->getTheoryId() == getId());
+    ase = dynamic_cast<ArithEntailmentCheckSideEffects*>(out);
+  }
+  Assert(ase != NULL);
+
+  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
+
+  if(params == NULL){
+    delete aparams;
+  }
+  if(out == NULL){
+    delete ase;
+  }
+
+  return res;
 }
 
 }/* CVC4::theory::arith namespace */

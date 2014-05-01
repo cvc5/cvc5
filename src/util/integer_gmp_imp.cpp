@@ -36,3 +36,32 @@ Integer::Integer(const char* s, unsigned base)
 Integer::Integer(const std::string& s, unsigned base)
   : d_value(s, base)
 {}
+
+
+bool Integer::fitsSignedInt() const {
+  return d_value.fits_sint_p();
+}
+
+bool Integer::fitsUnsignedInt() const {
+  return d_value.fits_uint_p();
+}
+
+signed int Integer::getSignedInt() const {
+  // ensure there isn't overflow
+  CheckArgument(d_value <= std::numeric_limits<int>::max(), this,
+                "Overflow detected in Integer::getSignedInt()");
+  CheckArgument(d_value >= std::numeric_limits<int>::min(), this,
+                "Overflow detected in Integer::getSignedInt()");
+  CheckArgument(fitsSignedInt(), this, "Overflow detected in Integer::getSignedInt()");
+  return (signed int) d_value.get_si();
+}
+
+unsigned int Integer::getUnsignedInt() const {
+  // ensure there isn't overflow
+  CheckArgument(d_value <= std::numeric_limits<unsigned int>::max(), this,
+                "Overflow detected in Integer::getUnsignedInt()");
+  CheckArgument(d_value >= std::numeric_limits<unsigned int>::min(), this,
+                "Overflow detected in Integer::getUnsignedInt()");
+  CheckArgument(fitsSignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
+  return (unsigned int) d_value.get_ui();
+}

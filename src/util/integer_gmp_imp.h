@@ -22,6 +22,7 @@
 
 #include <string>
 #include <iostream>
+#include <limits>
 
 #include "util/gmp_util.h"
 #include "util/exception.h"
@@ -417,7 +418,13 @@ public:
     return d_value.get_str(base);
   }
 
-  //friend std::ostream& operator<<(std::ostream& os, const Integer& n);
+  bool fitsSignedInt() const;
+
+  bool fitsUnsignedInt() const;
+
+  signed int getSignedInt() const;
+
+  unsigned int getUnsignedInt() const;
 
   long getLong() const {
     long si = d_value.get_si();

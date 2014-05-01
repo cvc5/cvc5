@@ -149,6 +149,7 @@ public:
     IntStat d_instantiations_cbqi_arith;
     IntStat d_instantiations_cbqi_arith_minus;
     IntStat d_instantiations_cbqi_datatypes;
+    IntStat d_instantiation_rounds;
     Statistics();
     ~Statistics();
   };

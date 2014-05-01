@@ -83,6 +83,9 @@ namespace theory {
   namespace eq {
     class EqualityEngine;
   }
+
+  class EntailmentCheckParameters;
+  class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 class DecisionEngine;
 class RemoveITE;
@@ -754,6 +757,12 @@ public:
    * has (or null if none);
    */
   Node getModelValue(TNode var);
+
+  /**
+   * Forwards an entailmentCheck according to the given theoryOfMode mode.
+   * See theory.h for documentation on entailmentCheck().
+   */
+  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
 
 private:
 

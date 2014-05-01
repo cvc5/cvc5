@@ -207,7 +207,7 @@ public:
   Node getSkolemizedBody( Node f );
 
 //miscellaneous
-private:
+public:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
   /** free variable for instantiation constant type */

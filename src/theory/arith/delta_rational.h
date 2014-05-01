@@ -191,6 +191,11 @@ public:
     return !(*this <= other);
   }
 
+  int compare(const DeltaRational& other) const{
+    int cmpRes = c.cmp(other.c);
+    return (cmpRes != 0) ? cmpRes : (k.cmp(other.k));
+  }
+
   DeltaRational& operator=(const DeltaRational& other){
     c = other.c;
     k = other.k;
