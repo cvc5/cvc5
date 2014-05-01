@@ -2244,7 +2244,9 @@ void QuantConflictFind::check( Theory::Effort level ) {
         }
         Trace("qcf-engine") << std::endl;
         int currEt = d_statistics.d_entailment_checks.getData();
-        Trace("qcf-engine") << "  Entailment checks = " << ( currEt - prevEt ) << std::endl;
+        if( currEt!=prevEt ){
+          Trace("qcf-engine") << "  Entailment checks = " << ( currEt - prevEt ) << std::endl;
+        }
       }
     }
     Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
@@ -2321,7 +2323,8 @@ void QuantConflictFind::computeRelevantEqr() {
         }
         ++eqc_i;
       }
-      */
+
+      */
 
       //if( r.getType().isInteger() ){
       //  Trace("qcf-mv") << "Model value for eqc(" << r << ") : " << d_quantEngine->getValuation().getModelValue( r ) << std::endl;
