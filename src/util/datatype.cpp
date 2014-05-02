@@ -124,6 +124,14 @@ void Datatype::resolve(ExprManager* em,
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
   }
   d_self = self;
+
+  d_involvesExt =  false;
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if( (*i).involvesExternalType() ){
+      d_involvesExt =  true;
+      break;
+    }
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -404,12 +412,7 @@ Expr Datatype::getConstructor(std::string name) const {
 }
 
 bool Datatype::involvesExternalType() const{
-  for(const_iterator i = begin(); i != end(); ++i) {
-    if( (*i).involvesExternalType() ){
-      return true;
-    }
-  }
-  return false;
+  return d_involvesExt;
 }
 
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,

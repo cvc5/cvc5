@@ -245,8 +245,8 @@ private:
   void collapseSelector( Node s, Node c );
   /** for checking if cycles exist */
   void checkCycles();
-  Node searchForCycle( Node n, Node on,
-                       std::map< Node, bool >& visited,
+  Node searchForCycle( TNode n, TNode on,
+                       std::map< TNode, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
   /** for checking whether two codatatype terms must be equal */
   void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,

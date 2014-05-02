@@ -161,13 +161,14 @@ void TheoryDatatypes::check(Effort e) {
       eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
       while( !eqcs_i.isFinished() ){
         Node n = (*eqcs_i);
-        if( DatatypesRewriter::isTermDatatype( n ) ){
+        TypeNode tn = n.getType();
+        if( DatatypesRewriter::isTypeDatatype( tn ) ){
           Trace("datatypes-debug") << "Process equivalence class " << n << std::endl;
           EqcInfo* eqc = getOrMakeEqcInfo( n, true );
           //if there are more than 1 possible constructors for eqc
           if( eqc->d_constructor.get().isNull() && !hasLabel( eqc, n ) ) {
             Trace("datatypes-debug") << "No constructor..." << std::endl;
-            const Datatype& dt = ((DatatypeType)(n.getType()).toType()).getDatatype();
+            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
 
             std::vector< bool > pcons;
             getPossibleCons( eqc, n, pcons );
@@ -640,8 +641,8 @@ void TheoryDatatypes::eqNotifyPostMerge(TNode t1, TNode t2){
 
 void TheoryDatatypes::merge( Node t1, Node t2 ){
   if( !d_conflict ){
-    Node trep1 = t1;
-    Node trep2 = t2;
+    TNode trep1 = t1;
+    TNode trep2 = t2;
     Debug("datatypes-debug") << "Merge " << t1 << " " << t2 << std::endl;
     EqcInfo* eqc2 = getOrMakeEqcInfo( t2 );
     if( eqc2 ){
@@ -655,8 +656,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           trep1 = eqc1->d_constructor.get();
         }
         //check for clash
-        Node cons1 = eqc1->d_constructor;
-        Node cons2 = eqc2->d_constructor;
+        TNode cons1 = eqc1->d_constructor.get();
+        TNode cons2 = eqc2->d_constructor.get();
         //if both have constructor, then either clash or unification
         if( !cons1.isNull() && !cons2.isNull() ){
           Debug("datatypes-debug") << "Constructors : " << cons1 << " " << cons2 << std::endl;
@@ -1453,11 +1454,12 @@ void TheoryDatatypes::checkCycles() {
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    if( DatatypesRewriter::isTermDatatype( eqc ) ) {
-      const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
+    TypeNode tn = eqc.getType();
+    if( DatatypesRewriter::isTypeDatatype( tn ) ) {
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       if( !dt.isCodatatype() ){
         //do cycle checks
-        map< Node, bool > visited;
+        std::map< TNode, bool > visited;
         std::vector< TNode > expl;
         Node cn = searchForCycle( eqc, eqc, visited, expl );
         //if we discovered a different cycle while searching this one
@@ -1641,12 +1643,12 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
 }
 
 //postcondition: if cycle detected, explanation is why n is a subterm of on
-Node TheoryDatatypes::searchForCycle( Node n, Node on,
-                                      map< Node, bool >& visited,
+Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
+                                      std::map< TNode, bool >& visited,
                                       std::vector< TNode >& explanation, bool firstTime ) {
   Debug("datatypes-cycle-check") << "Search for cycle " << n << " " << on << endl;
-  Node ncons;
-  Node nn;
+  TNode ncons;
+  TNode nn;
   if( !firstTime ){
     nn = getRepresentative( n );
     if( nn==on ){
@@ -1658,10 +1660,10 @@ Node TheoryDatatypes::searchForCycle( Node n, Node on,
   }
   if( visited.find( nn ) == visited.end() ) {
     visited[nn] = true;
-    Node ncons = getEqcConstructor( nn );
+    TNode ncons = getEqcConstructor( nn );
     if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
       for( int i=0; i<(int)ncons.getNumChildren(); i++ ) {
-        Node cn = searchForCycle( ncons[i], on, visited, explanation, false );
+        TNode cn = searchForCycle( ncons[i], on, visited, explanation, false );
         if( cn==on ) {
           //if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
           //  Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
@@ -1679,8 +1681,9 @@ Node TheoryDatatypes::searchForCycle( Node n, Node on,
     visited.erase( nn );
     return Node::null();
   }else{
-    if( DatatypesRewriter::isTermDatatype( nn ) ) {
-      const Datatype& dt = ((DatatypeType)(nn.getType()).toType()).getDatatype();
+    TypeNode tn = nn.getType();
+    if( DatatypesRewriter::isTypeDatatype( tn ) ) {
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       if( !dt.isCodatatype() ){
         return nn;
       }

@@ -452,6 +452,7 @@ private:
   std::vector<DatatypeConstructor> d_constructors;
   bool d_resolved;
   Type d_self;
+  bool d_involvesExt;
 
   // "mutable" because computing the cardinality can be expensive,
   // and so it's computed just once, on demand---this is the cache
@@ -673,6 +674,7 @@ inline Datatype::Datatype(std::string name, bool isCo) :
   d_constructors(),
   d_resolved(false),
   d_self(),
+  d_involvesExt(false),
   d_card(CardinalityUnknown()) {
 }
 
@@ -683,6 +685,7 @@ inline Datatype::Datatype(std::string name, const std::vector<Type>& params, boo
   d_constructors(),
   d_resolved(false),
   d_self(),
+  d_involvesExt(false),
   d_card(CardinalityUnknown()) {
 }
 

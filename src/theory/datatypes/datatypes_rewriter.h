@@ -304,8 +304,12 @@ public:
   }
 
   /** is this term a datatype */
-  static bool isTermDatatype( Node n ){
+  static bool isTermDatatype( TNode n ){
     TypeNode tn = n.getType();
+    return tn.isDatatype() || tn.isParametricDatatype() ||
+           tn.isTuple() || tn.isRecord();
+  }
+  static bool isTypeDatatype( TypeNode tn ){
     return tn.isDatatype() || tn.isParametricDatatype() ||
            tn.isTuple() || tn.isRecord();
   }
