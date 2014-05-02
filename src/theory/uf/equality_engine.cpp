@@ -1494,30 +1494,6 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
     return true;
   }
 
-  // Check the equality itself if it exists
-  Node eq = t1.eqNode(t2);
-  if (hasTerm(eq)) {
-    if (getEqualityNode(eq).getFind() == getEqualityNode(d_falseId).getFind()) {
-      if (ensureProof) {
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(getNodeId(eq), d_falseId));
-        nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
-      }
-      return true;
-    }
-  }
-
-  // Check the other equality itself if it exists
-  eq = t2.eqNode(t1);
-  if (hasTerm(eq)) {
-    if (getEqualityNode(eq).getFind() == getEqualityNode(d_false).getFind()) {
-      if (ensureProof) {
-        nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(getNodeId(eq), d_falseId));
-        nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
-      }
-      return true;
-    }
-  }
-
   // Create the equality
   FunctionApplication eqNormalized(APP_EQUALITY, t1ClassId, t2ClassId);
   ApplicationIdsMap::const_iterator find = d_applicationLookup.find(eqNormalized);
