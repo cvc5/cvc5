@@ -516,7 +516,7 @@ Node TermDb::getSkolemizedBody( Node f ){
     std::vector< TypeNode > fvTypes;
     std::vector< TNode > fvs;
     d_skolem_body[ f ] = mkSkolemizedBody( f, f[1], fvTypes, fvs, d_skolem_constants[f] );
-    Assert( d_skolem_constants.size()==f[0].getNumChildren() );
+    Assert( d_skolem_constants[f].size()==f[0].getNumChildren() );
     if( options::sortInference() ){
       for( unsigned i=0; i<d_skolem_constants[f].size(); i++ ){
         //carry information for sort inference
