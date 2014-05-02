@@ -134,4 +134,7 @@ option quantRewriteRules --rewrite-rules bool :default true
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
 
+option dtStcInduction --dt-stc-ind bool :default false
+ apply strengthening for existential quantification over datatypes based on structural induction
+
 endmodule

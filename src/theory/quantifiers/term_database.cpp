@@ -19,6 +19,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/theory_quantifiers.h"
+#include "util/datatype.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -407,22 +409,120 @@ Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & var
 }
 
 
+void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+  for( unsigned j=0; j<dc.getNumArgs(); j++ ){
+    TypeNode tn = TypeNode::fromType( ((SelectorType)dc[j].getSelector().getType()).getRangeType() );
+    std::vector< Node > ssc;
+    if( tn==ntn ){
+      ssc.push_back( n );
+    }
+    /* TODO
+    else if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
+      visited.push_back( tn );
+      const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
+      std::vector< Node > disj;
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        getSelfSel( dt[i], n, ntn, ssc );
+      }
+      visited.pop_back();
+    }
+    */
+    for( unsigned k=0; k<ssc.size(); k++ ){
+      selfSel.push_back( NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, dc[j].getSelector(), n ) );
+    }
+  }
+}
+
+
+Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes, std::vector< TNode >& fvs,
+                               std::vector< Node >& sk ) {
+  //calculate the variables and substitution
+  std::vector< TNode > ind_vars;
+  std::vector< unsigned > ind_var_indicies;
+  std::vector< TNode > vars;
+  std::vector< unsigned > var_indicies;
+  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+    if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTermDatatype( f[0][i] ) ){
+      ind_vars.push_back( f[0][i] );
+      ind_var_indicies.push_back( i );
+    }else{
+      vars.push_back( f[0][i] );
+      var_indicies.push_back( i );
+    }
+    Node s;
+    //make the new function symbol
+    if( argTypes.empty() ){
+      s = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "created during skolemization" );
+    }else{
+      TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, f[0][i].getType() );
+      Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
+      //DOTHIS: set attribute on op, marking that it should not be selected as trigger
+      std::vector< Node > funcArgs;
+      funcArgs.push_back( op );
+      funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
+      s = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
+    }
+    sk.push_back( s );
+  }
+  Node ret;
+  if( vars.empty() ){
+    ret = n;
+  }else{
+    std::vector< Node > var_sk;
+    for( unsigned i=0; i<var_indicies.size(); i++ ){
+      var_sk.push_back( sk[var_indicies[i]] );
+    }
+    Assert( vars.size()==var_sk.size() );
+    ret = n.substitute( vars.begin(), vars.end(), var_sk.begin(), var_sk.end() );
+  }
+  if( !ind_vars.empty() ){
+    Trace("stc-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
+    Trace("stc-ind") << "Skolemized is : " << ret << std::endl;
+    for( unsigned v=0; v<ind_vars.size(); v++ ){
+      Node k = sk[ind_var_indicies[v]];
+      TypeNode tn = k.getType();
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        //can strengthen this, by asserting that subs[0] is the smallest term such that the existential holds.
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        std::vector< Node > disj;
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          std::vector< Node > conj;
+          conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
+          std::vector< Node > selfSel;
+          getSelfSel( dt[i], k, tn, selfSel );
+          for( unsigned j=0; j<selfSel.size(); j++ ){
+            conj.push_back( ret.substitute( ind_vars[v], selfSel[j] ).negate() );
+          }
+          disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
+        }
+        Assert( !disj.empty() );
+        Node n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
+        Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
+
+        Node nret = ret.substitute( ind_vars[v], k );
+        ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
+      }else{
+        Assert( false );
+      }
+    }
+  }
+
+  return ret;
+}
 
 Node TermDb::getSkolemizedBody( Node f ){
   Assert( f.getKind()==FORALL );
   if( d_skolem_body.find( f )==d_skolem_body.end() ){
-    std::vector< Node > vars;
-    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-      Node skv = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "is a termdb-created skolemized body" );
-      d_skolem_constants[ f ].push_back( skv );
-      vars.push_back( f[0][i] );
-      //carry information for sort inference
-      if( options::sortInference() ){
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], skv );
+    std::vector< TypeNode > fvTypes;
+    std::vector< TNode > fvs;
+    d_skolem_body[ f ] = mkSkolemizedBody( f, f[1], fvTypes, fvs, d_skolem_constants[f] );
+    Assert( d_skolem_constants.size()==f[0].getNumChildren() );
+    if( options::sortInference() ){
+      for( unsigned i=0; i<d_skolem_constants[f].size(); i++ ){
+        //carry information for sort inference
+        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], d_skolem_constants[f][i] );
       }
     }
-    d_skolem_body[ f ] = f[ 1 ].substitute( vars.begin(), vars.end(),
-                                            d_skolem_constants[ f ].begin(), d_skolem_constants[ f ].end() );
   }
   return d_skolem_body[ f ];
 }

@@ -2893,8 +2893,9 @@ void SmtEnginePrivate::processAssertions() {
       for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
         Node prev = d_assertionsToPreprocess[i];
         Trace("quantifiers-rewrite-debug") << "Pre-skolemize " << prev << "..." << std::endl;
-        vector< Node > fvs;
-        d_assertionsToPreprocess[i] = Rewriter::rewrite( quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvs ) );
+        vector< TypeNode > fvTypes;
+        vector< TNode > fvs;
+        d_assertionsToPreprocess[i] = Rewriter::rewrite( quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs ) );
         if( prev!=d_assertionsToPreprocess[i] ){
           Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
           Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << endl;

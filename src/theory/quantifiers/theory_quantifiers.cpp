@@ -157,7 +157,7 @@ void TheoryQuantifiers::assertUniversal( Node n ){
 
 void TheoryQuantifiers::assertExistential( Node n ){
   Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
-  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
     if( d_skolemized.find( n )==d_skolemized.end() ){
       Node body = getQuantifiersEngine()->getTermDatabase()->getSkolemizedBody( n[0] );
       NodeBuilder<> nb(kind::OR);

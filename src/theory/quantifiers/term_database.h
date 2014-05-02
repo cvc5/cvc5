@@ -203,8 +203,11 @@ private:
   /** map from universal quantifiers to their skolemized body */
   std::map< Node, Node > d_skolem_body;
 public:
-  /** get the skolemized body f[e/x] */
-  Node getSkolemizedBody( Node f );
+  /** make the skolemized body f[e/x] */
+  static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
+                                std::vector< Node >& sk );
+  /** get the skolemized body */
+  Node getSkolemizedBody( Node f);
 
 //miscellaneous
 public:

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -1115,60 +1116,39 @@ bool QuantifiersRewriter::containsQuantifiers(Node n) {
   }
 }
 
-Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::vector< Node >& fvs ){
+Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs ){
   Trace("pre-sk") << "Pre-skolem " << n << " " << polarity << " " << fvs.size() << endl;
   if( n.getKind()==kind::NOT ){
-    Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvs );
+    Node nn = preSkolemizeQuantifiers( n[0], !polarity, fvTypes, fvs );
     return nn.negate();
   }else if( n.getKind()==kind::FORALL ){
     if( polarity ){
-      vector< Node > children;
-      children.push_back( n[0] );
-      //add children to current scope
-      vector< Node > fvss;
-      fvss.insert( fvss.begin(), fvs.begin(), fvs.end() );
-      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
-        fvss.push_back( n[0][i] );
+      if( options::preSkolemQuant() ){
+        vector< Node > children;
+        children.push_back( n[0] );
+        //add children to current scope
+        std::vector< TypeNode > fvt;
+        std::vector< TNode > fvss;
+        fvt.insert( fvt.begin(), fvTypes.begin(), fvTypes.end() );
+        fvss.insert( fvss.begin(), fvs.begin(), fvs.end() );
+        for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
+          fvt.push_back( n[0][i].getType() );
+          fvss.push_back( n[0][i] );
+        }
+        //process body
+        children.push_back( preSkolemizeQuantifiers( n[1], polarity, fvt, fvss ) );
+        if( n.getNumChildren()==3 ){
+          children.push_back( n[2] );
+        }
+        //return processed quantifier
+        return NodeManager::currentNM()->mkNode( kind::FORALL, children );
       }
-      //process body
-      children.push_back( preSkolemizeQuantifiers( n[1], polarity, fvss ) );
-      if( n.getNumChildren()==3 ){
-        children.push_back( n[2] );
-      }
-      //return processed quantifier
-      return NodeManager::currentNM()->mkNode( kind::FORALL, children );
     }else{
       //process body
-      Node nn = preSkolemizeQuantifiers( n[1], polarity, fvs );
-      //now, substitute skolems for the variables
-      vector< TypeNode > argTypes;
-      for( int i=0; i<(int)fvs.size(); i++ ){
-        argTypes.push_back( fvs[i].getType() );
-      }
-      //calculate the variables and substitution
-      vector< Node > vars;
-      vector< Node > subs;
-      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
-        vars.push_back( n[0][i] );
-      }
-      for( int i=0; i<(int)n[0].getNumChildren(); i++ ){
-        //make the new function symbol
-        if( argTypes.empty() ){
-          Node s = NodeManager::currentNM()->mkSkolem( "sk", n[0][i].getType(), "created during pre-skolemization" );
-          subs.push_back( s );
-        }else{
-          TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, n[0][i].getType() );
-          Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
-          //DOTHIS: set attribute on op, marking that it should not be selected as trigger
-          vector< Node > funcArgs;
-          funcArgs.push_back( op );
-          funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
-          subs.push_back( NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs ) );
-        }
-      }
-      //apply substitution
-      nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-      return nn;
+      Node nn = preSkolemizeQuantifiers( n[1], polarity, fvTypes, fvs );
+      std::vector< Node > sk;
+      //return skolemized body
+      return TermDb::mkSkolemizedBody( n, nn, fvTypes, fvs, sk );
     }
   }else{
     //check if it contains a quantifier as a subterm
@@ -1189,18 +1169,21 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
           }else if( n.getKind()==kind::IMPLIES ){
             nn = NodeManager::currentNM()->mkNode( kind::OR, n[0].notNode(), n[1] );
           }
-          return preSkolemizeQuantifiers( nn, polarity, fvs );
+          return preSkolemizeQuantifiers( nn, polarity, fvTypes, fvs );
         }else if( n.getKind()==kind::AND || n.getKind()==kind::OR ){
           vector< Node > children;
           for( int i=0; i<(int)n.getNumChildren(); i++ ){
-            children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvs ) );
+            children.push_back( preSkolemizeQuantifiers( n[i], polarity, fvTypes, fvs ) );
           }
           return NodeManager::currentNM()->mkNode( n.getKind(), children );
-        }else{
-          //must pull ite's
         }
       }
     }
-    return n;
   }
+  return n;
+}
+
+bool QuantifiersRewriter::isDtStrInductionQuantifier( Node q ){
+  Assert( q.getKind()==FORALL );
+  return q[0].getNumChildren()==1 && datatypes::DatatypesRewriter::isTermDatatype( q[0][0] );
 }
