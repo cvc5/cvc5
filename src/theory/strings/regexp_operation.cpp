@@ -1255,7 +1255,12 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 }
 Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
   std::map< unsigned, std::set< PairNodes > > cache;
-  return intersectInternal(r1, r2, cache, spflag);
+  if(checkConstRegExp(r1) && checkConstRegExp(r2)) {
+    return intersectInternal(r1, r2, cache, spflag);
+  } else {
+    spflag = true;
+    return Node::null();
+  }
 }
 
 Node RegExpOpr::complement(Node r, int &ret) {
