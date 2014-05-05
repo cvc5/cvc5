@@ -73,8 +73,7 @@ struct NodeTheoryPairHashFunction {
 };/* struct NodeTheoryPairHashFunction */
 
 
-
-/* Forward Declarations Block */
+/* Forward declarations */
 namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
@@ -82,11 +81,12 @@ namespace theory {
 
   namespace eq {
     class EqualityEngine;
-  }
+  }/* CVC4::theory::eq namespace */
 
   class EntailmentCheckParameters;
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
+
 class DecisionEngine;
 class RemoveITE;
 class UnconstrainedSimplifier;
@@ -759,7 +759,7 @@ public:
   Node getModelValue(TNode var);
 
   /**
-   * Forwards an entailmentCheck according to the given theoryOfMode mode.
+   * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
   std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
