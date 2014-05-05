@@ -35,7 +35,7 @@ elif test "$with_glpk" = yes; then
   CVC4_TRY_GLPK_WITH([-lgmp -lz -lltdl])
   CVC4_TRY_GLPK_WITH([-lgmp -lz -lltdl -ldl])
   if test -z "$GLPK_LIBS"; then
-    AC_MSG_FAILURE([cannot link against libglpk! (or it's too old, or can't get it to work)])
+    AC_MSG_FAILURE([cannot link against libglpk! (perhaps you have not switched to glpk-cut-log? see /README)])
   else
     AC_MSG_RESULT([$GLPK_LIBS])
     # make sure it works in static builds, too
@@ -95,7 +95,7 @@ if test -z "$GLPK_LIBS"; then
                                   [#else]
                                   [#include <glpk.h>]
                                   [#endif],
-                                  [int i = glp_get_it_cnt(NULL)])],
+                                  [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
     [GLPK_LIBS="-lglpk $1"],
     [])
   LIBS="$cvc4_save_LIBS"
@@ -118,7 +118,7 @@ if test -z "$GLPK_LIBS"; then
                                   [#else]
                                   [#include <glpk.h>]
                                   [#endif],
-                                  [int i = glp_get_it_cnt(NULL)])],
+                                  [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
     [GLPK_LIBS="-lglpk $1"],
     [])
   LIBS="$cvc4_save_LIBS"
