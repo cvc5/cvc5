@@ -2820,18 +2820,18 @@ bool TheoryStrings::checkNegContains() {
               std::vector< Node > vec_nodes;
               Node cc = NodeManager::currentNM()->mkNode( kind::GEQ, b2, d_zero );
               vec_nodes.push_back(cc);
-              cc = NodeManager::currentNM()->mkNode( kind::GEQ, lens, b2 );
+              cc = NodeManager::currentNM()->mkNode( kind::GT, lens, b2 );
               vec_nodes.push_back(cc);
 
               cc = s2.eqNode(s5).negate();
               vec_nodes.push_back(cc);
 
-              Node conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::AND, vec_nodes) );
-              Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
-              conc = NodeManager::currentNM()->mkNode( kind::OR, xlss, conc );
+              Node conc = NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
               conc = NodeManager::currentNM()->mkNode( kind::EXISTS, b2v, conc );
               conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
               conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
+              Node xlss = NodeManager::currentNM()->mkNode( kind::GT, lens, lenx );
+              conc = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::OR, xlss, conc ) );
 
               d_neg_ctn_cached.insert( atom );
               sendLemma( atom.negate(), conc, "NEG-CTN-BRK" );

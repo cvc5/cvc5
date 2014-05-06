@@ -403,6 +403,42 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       } else {
         retNode = NodeManager::currentNM()->mkConst( false );
       }
+    } else if( node[0].getKind() == kind::STRING_CONCAT ) {
+      if( node[1].getKind() != kind::STRING_CONCAT ){
+        bool flag = false;
+        for(unsigned i=0; i<node[0].getNumChildren(); i++) {
+          if(node[0][i] == node[1]) {
+            flag = true;
+            break;
+          }
+        }
+        if(flag) {
+          retNode = NodeManager::currentNM()->mkConst( true );
+        }
+      } else {
+        bool flag = false;
+        unsigned n1 = node[0].getNumChildren();
+        unsigned n2 = node[1].getNumChildren();
+        if(n1 - n2) {
+          for(unsigned i=0; i<=n1 - n2; i++) {
+            if(node[0][i] == node[1][0]) {
+              flag = true;
+              for(unsigned j=1; j<n2; j++) {
+                if(node[0][i+j] != node[1][j]) {
+                  flag = false;
+                  break;
+                }
+              }
+              if(flag) {
+                break;
+              }
+            }
+          }
+          if(flag) {
+            retNode = NodeManager::currentNM()->mkConst( true );
+          }
+        }
+      }
     }
   } else if(node.getKind() == kind::STRING_STRIDOF) {
     if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
