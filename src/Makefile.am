@@ -306,6 +306,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/qinterval_builder.h \
 	theory/quantifiers/qinterval_builder.cpp \
+	theory/quantifiers/ambqi_builder.h \
+	theory/quantifiers/ambqi_builder.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/options_handlers.h \

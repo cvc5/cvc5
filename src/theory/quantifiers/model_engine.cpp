@@ -23,6 +23,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/full_model_check.h"
 #include "theory/quantifiers/qinterval_builder.h"
+#include "theory/quantifiers/ambqi_builder.h"
 
 using namespace std;
 using namespace CVC4;
@@ -44,6 +45,9 @@ QuantifiersModule( qe ){
   }else if( options::mbqiMode()==MBQI_INTERVAL ){
     Trace("model-engine-debug") << "...make interval builder." << std::endl;
     d_builder = new QIntervalBuilder( c, qe );
+  }else if( options::mbqiMode()==MBQI_ABS ){
+    Trace("model-engine-debug") << "...make abs mbqi builder." << std::endl;
+    d_builder = new AbsMbqiBuilder( c, qe );
   }else if( options::mbqiMode()==MBQI_INST_GEN ){
     Trace("model-engine-debug") << "...make inst-gen builder." << std::endl;
     d_builder = new QModelBuilderInstGen( c, qe );

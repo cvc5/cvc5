@@ -101,6 +101,9 @@ fmc-interval \n\
 interval \n\
 + Use algorithm that abstracts domain elements as intervals. \n\
 \n\
+abs \n\
++ Use abstract MBQI algorithm (uses disjoint sets). \n\
+\n\
 ";
 static const std::string qcfWhenModeHelp = "\
 Quantifier conflict find modes currently supported by the --quant-cf-when option:\n\
@@ -226,6 +229,8 @@ inline MbqiMode stringToMbqiMode(std::string option, std::string optarg, SmtEngi
     return MBQI_FMC_INTERVAL;
   } else if(optarg == "interval") {
     return MBQI_INTERVAL;
+  } else if(optarg == "abs") {
+    return MBQI_ABS;
   } else if(optarg == "trust") {
     return MBQI_TRUST;
   } else if(optarg == "help") {

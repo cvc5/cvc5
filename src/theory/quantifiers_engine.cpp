@@ -60,6 +60,8 @@ d_lemmas_produced_c(u){
     d_model = new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" );
   }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
     d_model = new quantifiers::FirstOrderModelQInt( this, c, "FirstOrderModelQInt" );
+  }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
+    d_model = new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" );
   }else{
     d_model = new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" );
   }
