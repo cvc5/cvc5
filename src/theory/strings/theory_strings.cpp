@@ -2846,12 +2846,16 @@ bool TheoryStrings::checkNegContains() {
             }
           } else if(!areDisequal(lenx, lens)) {
             if(d_neg_ctn_ulen.find(atom) == d_neg_ctn_ulen.end()) {
+              lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
+              lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
               d_neg_ctn_ulen.insert( atom );
               sendSplit(lenx, lens, "NEG-CTN-SP");
               addedLemma = true;
             }
           } else {
             if(d_neg_ctn_cached.find(atom) == d_neg_ctn_cached.end()) {
+              lenx = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x);
+              lens = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, s);
               Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
               Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
               Node g1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),

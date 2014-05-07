@@ -482,9 +482,14 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       Node cond = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, x, y );
       Node c1 = x.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, y, sk2 ) );
       Node c2 = skw.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, z, sk2 ) );
-      //Node c3 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, sk1, y ).negate();
+      Node c3 = NodeManager::currentNM()->mkNode(kind::STRING_STRCTN,
+                  NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1,
+                     NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, y, d_zero,
+                        NodeManager::currentNM()->mkNode(kind::MINUS, 
+                          NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), 
+                          NodeManager::currentNM()->mkConst(::CVC4::Rational(1))))), y).negate();
       Node rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::ITE, cond,
-              NodeManager::currentNM()->mkNode( kind::AND, c1, c2), // c3 
+              NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3),
               skw.eqNode(x) ) );
       new_nodes.push_back( rr );
       rr = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::GT, NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, y), d_zero) );
