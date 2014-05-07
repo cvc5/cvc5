@@ -1237,7 +1237,51 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                     normal_forms[nconst_k][nconst_index_k + 1].isConst() ) {
                     CVC4::String stra = const_str.getConst<String>();
                     CVC4::String strb = normal_forms[nconst_k][nconst_index_k + 1].getConst<String>();
-                    CVC4::String fc = strb.substr(0, 1);
+                    Node conc;
+                    Node sk = NodeManager::currentNM()->mkSkolem( "sopt", NodeManager::currentNM()->stringType(), "created for string sp" );
+                    if(stra == strb) {
+                      conc = other_str.eqNode( d_emptyString );
+                      CVC4::String stra1 = stra.substr(1);
+                      std::size_t p = stra1.overlap(strb);
+                      Node eq = p==0? other_str.eqNode( mkConcat(const_str, sk) )
+                                    : other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
+                      conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                    } else {
+                      CVC4::String fc = strb.substr(0, 1);
+                      std::size_t p;
+                      if((p=stra.find(fc)) != std::string::npos) {
+                        if( (p = stra.find(strb)) == std::string::npos ) {
+                          if((p = stra.overlap(strb)) == 0) {
+                            conc = other_str.eqNode( mkConcat(const_str, sk) );
+                          } else {
+                            conc = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
+                          }
+                        } else {
+                          if(p == 0) {
+                            conc = other_str.eqNode( d_emptyString );
+                            CVC4::String stra1 = stra.substr(1);
+                            if((p = stra1.find(strb)) != std::string::npos) {
+                              Node eq = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, p + 1) ), sk) );
+                              conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                            } else {
+                              p = stra1.overlap(strb);
+                              Node eq = p==0? other_str.eqNode( mkConcat(const_str, sk) )
+                                            : other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
+                              conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                            }
+                          } else {
+                            conc = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, p - 1) ), sk) );
+                          }
+                        }
+                      } else {
+                        conc = other_str.eqNode( mkConcat(const_str, sk) );
+                      }
+                    }
+                    Node ant = mkExplain( antec );
+                    conc = Rewriter::rewrite( conc );
+                    sendLemma(ant, conc, "CST-EPS");
+                    optflag = true;
+                    /*
                     if( stra.find(fc) == std::string::npos ||
                       (stra.find(strb) == std::string::npos &&
                        !stra.overlap(strb)) ) {
@@ -1246,7 +1290,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                       Node ant = mkExplain( antec );
                       sendLemma(ant, eq, "CST-EPS");
                       optflag = true;
-                    }
+                    }*/
                   }
                   if(!optflag){
                     Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
@@ -2752,6 +2796,7 @@ bool TheoryStrings::checkPosContains() {
           sendLemma( atom, eq, "POS-INC" );
           addedLemma = true;
           d_pos_ctn_cached.insert( atom );
+          Trace("strings-ctn") << "... add lemma: " << eq << std::endl;
         } else {
           Trace("strings-ctn") << "... is already rewritten." << std::endl;
         }
