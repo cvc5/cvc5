@@ -30,40 +30,48 @@ class FirstOrderModelAbs;
 class AbsDef
 {
 private:
-  int addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q, std::vector< Node >& terms, unsigned depth );
-  void construct_compose( FirstOrderModelAbs * m, Node q, Node n, AbsDef * f,
+  bool addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, TNode q, std::vector< Node >& terms, int& inst, unsigned depth );
+  void construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
                           std::map< unsigned, AbsDef * >& children,
                           std::map< unsigned, int >& bchildren, std::map< unsigned, int >& vchildren,
-                          std::vector< unsigned >& entry, std::vector< bool >& entry_def,
-                          bool incomplete );
+                          std::vector< unsigned >& entry, std::vector< bool >& entry_def );
   void construct_entry( std::vector< unsigned >& entry, std::vector< bool >& entry_def, int v, unsigned depth = 0 );
-  void construct_def_entry( FirstOrderModelAbs * m, Node q, int v, unsigned depth = 0 );
-  void apply_ucompose( std::vector< unsigned >& entry, std::vector< bool >& entry_def, std::vector< int >& terms,
+  void construct_def_entry( FirstOrderModelAbs * m, TNode n, int v, unsigned depth = 0 );
+  void apply_ucompose( FirstOrderModelAbs * m, TNode q,
+                       std::vector< unsigned >& entry, std::vector< bool >& entry_def, std::vector< int >& terms,
                        std::map< unsigned, int >& vchildren, AbsDef * a, unsigned depth = 0 );
-  void construct_var_eq( FirstOrderModelAbs * m, Node q, unsigned v1, unsigned v2, int curr, int currv, unsigned depth = 0 );
-  void construct_var( FirstOrderModelAbs * m, Node q, unsigned v, int currv, unsigned depth = 0 );
+  void construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, unsigned v2, int curr, int currv, unsigned depth = 0 );
+  void construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int currv, unsigned depth = 0 );
+  void get_defs( unsigned u, std::vector< AbsDef * >& defs );
+  void construct_normalize( FirstOrderModelAbs * m, TNode q, std::vector< AbsDef * >& defs, unsigned depth = 0 );
 public:
-  AbsDef() : d_value( -1 ){}
+  enum {
+    val_none = -1,
+    val_unk = -2,
+  };
+  AbsDef() : d_default( 0 ), d_value( -1 ){}
   std::map< unsigned, AbsDef > d_def;
   unsigned d_default;
   int d_value;
 
+  void clear() { d_def.clear(); d_default = 0; d_value = -1; }
   AbsDef * getDefault() { return &d_def[d_default]; }
   void construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps, unsigned depth = 0 );
-  void debugPrintUInt( const char * c, unsigned dSize, unsigned u );
-  void debugPrint( const char * c, FirstOrderModelAbs * m, Node f, unsigned depth = 0 );
-  void simplify( FirstOrderModelAbs * m, Node q, unsigned depth = 0 );
-  int addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q ){
+  void debugPrintUInt( const char * c, unsigned dSize, unsigned u ) const;
+  void debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsigned depth = 0 ) const;
+  void simplify( FirstOrderModelAbs * m, TNode q, unsigned depth = 0 );
+  int addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q, int& inst ){
     std::vector< Node > terms;
-    return addInstantiations( m, qe, q, terms, 0 );
+    return addInstantiations( m, qe, q, terms, inst, 0 );
   }
-  bool construct( FirstOrderModelAbs * m, Node q, Node n, AbsDef * f,
+  bool construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
                   std::map< unsigned, AbsDef * >& children,
                   std::map< unsigned, int >& bchildren,
                   std::map< unsigned, int >& vchildren,
-                  int varChCount, bool incomplete );
+                  int varChCount );
   Node getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< Node >& vars, unsigned depth = 0 );
-  static unsigned getId( unsigned n );
+  static bool isSimple( unsigned n );
+  static unsigned getId( unsigned n, unsigned start=0 );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< Node >& args );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< unsigned >& iargs, unsigned depth = 0 );
 };

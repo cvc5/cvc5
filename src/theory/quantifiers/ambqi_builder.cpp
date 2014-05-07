@@ -28,10 +28,14 @@ void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps
   d_def.clear();
   Assert( !fapps.empty() );
   if( depth==fapps[0].getNumChildren() ){
+    //if( fapps.size()>1 ){
+    //  for( unsigned i=0; i<fapps.size(); i++ ){
+    //    std::cout << "...." << fapps[i] << " -> " << m->getRepresentativeId( fapps[i] ) << std::endl;
+    //  }
+    //}
     //get representative in model for this term
-    Assert( fapps.size()==1 );
     d_value = m->getRepresentativeId( fapps[0] );
-    Assert( d_value!=-1 );
+    Assert( d_value!=val_none );
   }else{
     TypeNode tn = fapps[0][depth].getType();
     std::map< unsigned, std::vector< TNode > > fapp_child;
@@ -69,20 +73,22 @@ void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps
   }
 }
 
-void AbsDef::simplify( FirstOrderModelAbs * m, Node q, unsigned depth ) {
-  if( d_value==-1 ){
+void AbsDef::simplify( FirstOrderModelAbs * m, TNode n, unsigned depth ) {
+  if( d_value==val_none && !d_def.empty() ){
     //process the default
     std::map< unsigned, AbsDef >::iterator defd = d_def.find( d_default );
+    Assert( defd!=d_def.end() );
     unsigned newDef = d_default;
     std::vector< unsigned > to_erase;
-    defd->second.simplify( m, q, depth+1 );
-    bool isConstant = ( defd->second.d_value!=-1 );
+    defd->second.simplify( m, n, depth+1 );
+    int defVal = defd->second.d_value;
+    bool isConstant = ( defVal!=val_none );
     //process each child
     for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
       if( it->first!=d_default ){
-        it->second.simplify( m, q, depth+1 );
-        if( it->second.d_value==defd->second.d_value && it->second.d_value!=-1 ){
-          newDef = d_default | it->first;
+        it->second.simplify( m, n, depth+1 );
+        if( it->second.d_value==defVal && it->second.d_value!=val_none ){
+          newDef = newDef | it->first;
           to_erase.push_back( it->first );
         }else{
           isConstant = false;
@@ -95,7 +101,7 @@ void AbsDef::simplify( FirstOrderModelAbs * m, Node q, unsigned depth ) {
       d_def.erase( d_default );
       //set new default
       d_default = newDef;
-      d_def[d_default].construct_def_entry( m, q, defVal, depth+1 );
+      d_def[d_default].construct_def_entry( m, n, defVal, depth+1 );
       //erase redundant entries
       for( unsigned i=0; i<to_erase.size(); i++ ){
         d_def.erase( to_erase[i] );
@@ -103,33 +109,35 @@ void AbsDef::simplify( FirstOrderModelAbs * m, Node q, unsigned depth ) {
     }
     //if constant, propagate the value upwards
     if( isConstant ){
-      d_value = defd->second.d_value;
+      d_value = defVal;
+    }else{
+      d_value = val_none;
     }
   }
 }
 
-void AbsDef::debugPrintUInt( const char * c, unsigned dSize, unsigned u ) {
+void AbsDef::debugPrintUInt( const char * c, unsigned dSize, unsigned u ) const{
   for( unsigned i=0; i<dSize; i++ ){
     Trace(c) << ( ( u & ( 1 << i ) )!=0 ? "1" : "0");
   }
 }
 
-void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, Node f, unsigned depth ) {
+void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsigned depth ) const{
   if( Trace.isOn(c) ){
     if( depth==f.getNumChildren() ){
       for( unsigned i=0; i<depth; i++ ){ Trace(c) << "  ";}
       Trace(c) << "V[" << d_value << "]" << std::endl;
     }else{
       TypeNode tn = f[depth].getType();
-      unsigned dSize = m->d_rep_set.d_type_reps[tn].size();
+      unsigned dSize = m->d_rep_set.getNumRepresentatives( tn );
       Assert( dSize<32 );
-      for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
+      for( std::map< unsigned, AbsDef >::const_iterator it = d_def.begin(); it != d_def.end(); ++it ){
         for( unsigned i=0; i<depth; i++ ){ Trace(c) << "  ";}
         debugPrintUInt( c, dSize, it->first );
         if( it->first==d_default ){
           Trace(c) << "*";
         }
-        if( it->second.d_value!=-1 ){
+        if( it->second.d_value!=val_none ){
           Trace(c) << " -> V[" << it->second.d_value << "]";
         }
         Trace(c) << std::endl;
@@ -139,25 +147,49 @@ void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, Node f, unsigne
   }
 }
 
-int AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q, std::vector< Node >& terms, unsigned depth ) {
-  if( depth==q[0].getNumChildren() ){
-    if( d_value!=1 ){
-      if( qe->addInstantiation( q, terms ) ){
-        return 1;
-      }
-    }
-    return 0;
+bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, TNode q, std::vector< Node >& terms, int& inst, unsigned depth ) {
+  if( d_value==1 ){
+    //instantiations are all true : ignore this
+    return true;
   }else{
-    int sum = 0;
-    TypeNode tn = q[0][depth].getType();
-    for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
-      //get witness term
-      int index = getId( it->first );
-      terms.push_back( m->d_rep_set.d_type_reps[tn][index] );
-      sum += it->second.addInstantiations( m, qe, q, terms, depth+1 );
-      terms.pop_back();
+    if( depth==q[0].getNumChildren() ){
+      if( qe->addInstantiation( q, terms ) ){
+        Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
+        inst++;
+        return true;
+      }else{
+        Trace("ambqi-inst-debug") << "-> Failed to add instantiation." << std::endl;
+        //we are incomplete
+        return false;
+      }
+    }else{
+      bool osuccess = true;
+      TypeNode tn = q[0][depth].getType();
+      for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
+        //get witness term
+        unsigned index = 0;
+        bool success;
+        do {
+          success = false;
+          index = getId( it->first, index );
+          if( index<32 ){
+            Assert( index<m->d_rep_set.d_type_reps[tn].size() );
+            terms.push_back( m->d_rep_set.d_type_reps[tn][index] );
+            if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
+              //if we are incomplete, and have not yet added an instantiation, keep trying
+              index++;
+              Trace("ambqi-inst-debug") << "At depth " << depth << ", failed branch, no instantiations and incomplete, increment index : " << index << std::endl;
+            }else{
+              success = true;
+            }
+            terms.pop_back();
+          }
+        }while( !success && index<32 );
+        //mark if we are incomplete
+        osuccess = osuccess && success;
+      }
+      return osuccess;
     }
-    return sum;
   }
 }
 
@@ -172,24 +204,82 @@ void AbsDef::construct_entry( std::vector< unsigned >& entry, std::vector< bool 
   }
 }
 
-void AbsDef::construct_def_entry( FirstOrderModelAbs * m, Node q, int v, unsigned depth ) {
+void AbsDef::get_defs( unsigned u, std::vector< AbsDef * >& defs ) {
+  for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
+    if( ( u & it->first )!=0 ){
+      Assert( (u & it->first)==u );
+      defs.push_back( &it->second );
+    }
+  }
+}
+
+void AbsDef::construct_normalize( FirstOrderModelAbs * m, TNode q, std::vector< AbsDef * >& defs, unsigned depth ) {
   if( depth==q[0].getNumChildren() ){
-    d_value = v;
+    Assert( defs.size()==1 );
+    d_value = defs[0]->d_value;
   }else{
-    unsigned dom = m->d_domain[q[0][depth].getType()];
-    d_def[dom].construct_def_entry( m, q, v, depth+1 );
+    TypeNode tn = q[0][depth].getType();
+    unsigned def = m->d_domain[tn];
+    for( unsigned i=0; i<defs.size(); i++ ){
+      //process each simple child
+      for( std::map< unsigned, AbsDef >::iterator itd = defs[i]->d_def.begin(); itd != defs[i]->d_def.end(); ++itd ){
+        if( isSimple( itd->first ) && ( def & itd->first )!=0 ){
+          def &= ~( itd->first );
+          //process this value
+          std::vector< AbsDef * > cdefs;
+          for( unsigned j=0; j<defs.size(); j++ ){
+            defs[j]->get_defs( itd->first, cdefs );
+          }
+          d_def[itd->first].construct_normalize( m, q, cdefs, depth+1 );
+          if( def==0 ){
+            d_default = itd->first;
+            break;
+          }
+        }
+      }
+      if( def==0 ){
+        break;
+      }
+    }
+    if( def!=0 ){
+      d_default = def;
+      //process the default
+      std::vector< AbsDef * > cdefs;
+      for( unsigned j=0; j<defs.size(); j++ ){
+        defs[j]->get_defs( d_default, cdefs );
+      }
+      d_def[d_default].construct_normalize( m, q, cdefs, depth+1 );
+    }
+  }
+}
+
+void AbsDef::construct_def_entry( FirstOrderModelAbs * m, TNode n, int v, unsigned depth ) {
+  d_value = v;
+  if( depth<n.getNumChildren() ){
+    unsigned dom = m->d_domain[n[depth].getType()];
+    d_def[dom].construct_def_entry( m, n, v, depth+1 );
     d_default = dom;
   }
 }
 
-void AbsDef::apply_ucompose( std::vector< unsigned >& entry, std::vector< bool >& entry_def,
+void AbsDef::apply_ucompose( FirstOrderModelAbs * m, TNode q,
+                             std::vector< unsigned >& entry, std::vector< bool >& entry_def,
                              std::vector< int >& terms, std::map< unsigned, int >& vchildren,
                              AbsDef * a, unsigned depth ) {
   if( depth==terms.size() ){
+    if( Trace.isOn("ambqi-check-debug2") ){
+      Trace("ambqi-check-debug2") << "Add entry ( ";
+      for( unsigned i=0; i<entry.size(); i++ ){
+        unsigned dSize = m->d_rep_set.d_type_reps[q[0][i].getType()].size();
+        debugPrintUInt( "ambqi-check-debug2", dSize, entry[i] );
+        Trace("ambqi-check-debug2") << " ";
+      }
+      Trace("ambqi-check-debug2") << ")" << std::endl;
+    }
     a->construct_entry( entry, entry_def, d_value );
   }else{
     unsigned id;
-    if( terms[depth]==-1 ){
+    if( terms[depth]==val_none ){
       //a variable
       std::map< unsigned, int >::iterator itv = vchildren.find( depth );
       Assert( itv!=vchildren.end() );
@@ -199,7 +289,7 @@ void AbsDef::apply_ucompose( std::vector< unsigned >& entry, std::vector< bool >
         entry[itv->second] = it->first & prev_v;
         entry_def[itv->second] = ( it->first==d_default ) && prev_vd;
         if( entry[itv->second]!=0 ){
-          it->second.apply_ucompose( entry, entry_def, terms, vchildren, a, depth+1 );
+          it->second.apply_ucompose( m, q, entry, entry_def, terms, vchildren, a, depth+1 );
         }
       }
       entry[itv->second] = prev_v;
@@ -210,28 +300,28 @@ void AbsDef::apply_ucompose( std::vector< unsigned >& entry, std::vector< bool >
       unsigned fid = 1 << id;
       std::map< unsigned, AbsDef >::iterator it = d_def.find( fid );
       if( it!=d_def.end() ){
-        it->second.apply_ucompose( entry, entry_def, terms, vchildren, a, depth+1 );
+        it->second.apply_ucompose( m, q, entry, entry_def, terms, vchildren, a, depth+1 );
       }else{
-        d_def[d_default].apply_ucompose( entry, entry_def, terms, vchildren, a, depth+1 );
+        d_def[d_default].apply_ucompose( m, q, entry, entry_def, terms, vchildren, a, depth+1 );
       }
     }
   }
 }
 
-void AbsDef::construct_var_eq( FirstOrderModelAbs * m, Node q, unsigned v1, unsigned v2, int curr, int currv, unsigned depth ) {
+void AbsDef::construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, unsigned v2, int curr, int currv, unsigned depth ) {
   if( depth==q[0].getNumChildren() ){
-    Assert( currv!=-1 );
+    Assert( currv!=val_none );
     d_value = currv;
   }else{
     TypeNode tn = q[0][depth].getType();
     unsigned dom = m->d_domain[tn];
-    int vindex = depth==v1 ? 0 : ( depth==v2 ? 1 : -1 );
-    if( vindex==-1 ){
+    int vindex = depth==v1 ? 0 : ( depth==v2 ? 1 : val_none );
+    if( vindex==val_none ){
       d_def[dom].construct_var_eq( m, q, v1, v2, curr, currv, depth+1 );
       d_default = dom;
     }else{
-      Assert( currv==-1 );
-      if( curr==-1 ){
+      Assert( currv==val_none );
+      if( curr==val_none ){
         unsigned numReps = m->d_rep_set.d_type_reps[tn].size();
         Assert( numReps < 32 );
         for( unsigned i=0; i<numReps; i++ ){
@@ -249,9 +339,9 @@ void AbsDef::construct_var_eq( FirstOrderModelAbs * m, Node q, unsigned v1, unsi
   }
 }
 
-void AbsDef::construct_var( FirstOrderModelAbs * m, Node q, unsigned v, int currv, unsigned depth ) {
+void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int currv, unsigned depth ) {
   if( depth==q[0].getNumChildren() ){
-    Assert( currv!=-1 );
+    Assert( currv!=val_none );
     d_value = currv;
   }else{
     TypeNode tn = q[0][depth].getType();
@@ -261,7 +351,7 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, Node q, unsigned v, int curr
       for( unsigned i=0; i<numReps; i++ ){
         d_def[ 1 << i ].construct_var( m, q, v, i, depth+1 );
       }
-      d_default = 1 << (numReps-1);
+      d_default = 1 << (numReps - 1);
     }else{
       unsigned dom = m->d_domain[tn];
       d_def[dom].construct_var( m, q, v, currv, depth+1 );
@@ -270,60 +360,87 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, Node q, unsigned v, int curr
   }
 }
 
-void AbsDef::construct_compose( FirstOrderModelAbs * m, Node q, Node n, AbsDef * f,
+void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
                                 std::map< unsigned, AbsDef * >& children,
                                 std::map< unsigned, int >& bchildren, std::map< unsigned, int >& vchildren,
-                                std::vector< unsigned >& entry, std::vector< bool >& entry_def,
-                                bool incomplete ) {
-  if( Trace.isOn("ambqi-check-debug2") ){
-    for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
-  }
+                                std::vector< unsigned >& entry, std::vector< bool >& entry_def ) {
   if( n.getKind()==OR || n.getKind()==AND ){
     // short circuiting
     for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
       if( ( it->second->d_value==0 && n.getKind()==AND ) ||
           ( it->second->d_value==1 && n.getKind()==OR ) ){
+        //std::cout << "Short circuit " << it->second->d_value << " " << entry.size() << "/" << q[0].getNumChildren() << std::endl;
+        unsigned count = q[0].getNumChildren() - entry.size();
+        for( unsigned i=0; i<count; i++ ){
+          entry.push_back( m->d_domain[q[0][entry.size()].getType()] );
+          entry_def.push_back( true );
+        }
         construct_entry( entry, entry_def, it->second->d_value );
+        for( unsigned i=0; i<count; i++ ){
+          entry.pop_back();
+          entry_def.pop_back();
+        }
         return;
       }
     }
   }
   if( entry.size()==q[0].getNumChildren() ){
-    if( incomplete ){
-      //if a child is unknown, we must return unknown
-      construct_entry( entry, entry_def, -1 );
-    }else{
-      if( f ){
+    if( f ){
+      if( Trace.isOn("ambqi-check-debug2") ){
+        for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
         Trace("ambqi-check-debug2") << "Evaluate uninterpreted function entry..." << std::endl;
-        //we are composing with an uninterpreted function
-        std::vector< int > values;
-        values.resize( n.getNumChildren(), -1 );
-        for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
-          values[it->first] = it->second->d_value;
-        }
-        for( std::map< unsigned, int >::iterator it = bchildren.begin(); it != bchildren.end(); ++it ){
-          values[it->first] = it->second;
-        }
-        //look up value(s)
-        f->apply_ucompose( entry, entry_def, values, vchildren, this );
-      }else{
-        //we are composing with an interpreted function
-        std::vector< TNode > values;
-        values.resize( n.getNumChildren(), TNode::null() );
-        for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
-          Assert( it->second->d_value>=0 && it->second->d_value<(int)m->d_rep_set.d_type_reps[n[it->first].getType()].size() );
+      }
+      //we are composing with an uninterpreted function
+      std::vector< int > values;
+      values.resize( n.getNumChildren(), val_none );
+      for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
+        values[it->first] = it->second->d_value;
+      }
+      for( std::map< unsigned, int >::iterator it = bchildren.begin(); it != bchildren.end(); ++it ){
+        values[it->first] = it->second;
+      }
+      //look up value(s)
+      f->apply_ucompose( m, q, entry, entry_def, values, vchildren, this );
+    }else{
+      bool incomplete = false;
+      //we are composing with an interpreted function
+      std::vector< TNode > values;
+      values.resize( n.getNumChildren(), TNode::null() );
+      for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
+        Trace("ambqi-check-debug2") << "composite : " << it->first << " : " << it->second->d_value;
+        if( it->second->d_value>=0 ){
+          if( it->second->d_value>=(int)m->d_rep_set.d_type_reps[n[it->first].getType()].size() ){
+            std::cout << it->second->d_value << " " << n[it->first] << " " << n[it->first].getType() << " " << m->d_rep_set.d_type_reps[n[it->first].getType()].size() << std::endl;
+          }
+          Assert( it->second->d_value<(int)m->d_rep_set.d_type_reps[n[it->first].getType()].size() );
           values[it->first] = m->d_rep_set.d_type_reps[n[it->first].getType()][it->second->d_value];
-          Trace("ambqi-check-debug2") << it->first << " : " << it->second->d_value << " ->> " << values[it->first] << std::endl;
+        }else{
+          incomplete = true;
         }
-        for( std::map< unsigned, int >::iterator it = bchildren.begin(); it != bchildren.end(); ++it ){
-          Assert( it->second>=0 && it->second<(int)m->d_rep_set.d_type_reps[n[it->first].getType()].size() );
+        Trace("ambqi-check-debug2") << " ->> " << values[it->first] << std::endl;
+      }
+      for( std::map< unsigned, int >::iterator it = bchildren.begin(); it != bchildren.end(); ++it ){
+        Trace("ambqi-check-debug2") << "   basic :  " << it->first << " : " << it->second;
+        if( it->second>=0 ){
+          Assert( it->second<(int)m->d_rep_set.d_type_reps[n[it->first].getType()].size() );
           values[it->first] = m->d_rep_set.d_type_reps[n[it->first].getType()][it->second];
-          Trace("ambqi-check-debug2") << it->first << " : " << it->second << " ->> " << values[it->first] << std::endl;
+        }else{
+          incomplete = true;
         }
-        Assert( vchildren.empty() );
+        Trace("ambqi-check-debug2") << " ->> " << values[it->first] << std::endl;
+      }
+      Assert( vchildren.empty() );
+      if( incomplete ){
+        Trace("ajr-temp") << "Construct incomplete entry." << std::endl;
+
+        //if a child is unknown, we must return unknown
+        construct_entry( entry, entry_def, val_unk );
+      }else{
         if( Trace.isOn("ambqi-check-debug2") ){
+          for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
           Trace("ambqi-check-debug2") << "Evaluate interpreted function entry ( ";
           for( unsigned i=0; i<values.size(); i++ ){
+            Assert( !values[i].isNull() );
             Trace("ambqi-check-debug2") << values[i] << " ";
           }
           Trace("ambqi-check-debug2") << ")..." << std::endl;
@@ -338,9 +455,14 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, Node q, Node n, AbsDef *
   }else{
     //take product of arguments
     TypeNode tn = q[0][entry.size()].getType();
+    Assert( m->isValidType( tn ) );
     unsigned def = m->d_domain[tn];
-    Trace("ambqi-check-debug2") << "Take product of arguments" << std::endl;
+    if( Trace.isOn("ambqi-check-debug2") ){
+      for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
+      Trace("ambqi-check-debug2") << "Take product of arguments" << std::endl;
+    }
     for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
+      Assert( it->second!=NULL );
       //process each child
       for( std::map< unsigned, AbsDef >::iterator itd = it->second->d_def.begin(); itd != it->second->d_def.end(); ++itd ){
         if( itd->first!=it->second->d_default && ( def & itd->first )!=0 ){
@@ -348,22 +470,24 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, Node q, Node n, AbsDef *
           //process this value
           std::map< unsigned, AbsDef * > cchildren;
           for( std::map< unsigned, AbsDef * >::iterator it2 = children.begin(); it2 != children.end(); ++it2 ){
-            std::map< unsigned, AbsDef >::iterator itdf = it->second->d_def.find( itd->first );
-            if( itdf!=it->second->d_def.end() ){
-              cchildren[it->first] = &itdf->second;
+            Assert( it2->second!=NULL );
+            std::map< unsigned, AbsDef >::iterator itdf = it2->second->d_def.find( itd->first );
+            if( itdf!=it2->second->d_def.end() ){
+              cchildren[it2->first] = &itdf->second;
             }else{
-              cchildren[it->first] = it2->second->getDefault();
+              Assert( it2->second->getDefault()!=NULL );
+              cchildren[it2->first] = it2->second->getDefault();
             }
           }
           if( Trace.isOn("ambqi-check-debug2") ){
             for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
             Trace("ambqi-check-debug2") << "...process : ";
             debugPrintUInt("ambqi-check-debug2", m->d_rep_set.d_type_reps[tn].size(), itd->first );
-            Trace("ambqi-check-debug2") << std::endl;
+            Trace("ambqi-check-debug2") << " " << children.size() << " " << cchildren.size() << std::endl;
           }
           entry.push_back( itd->first );
           entry_def.push_back( def==0 );
-          construct_compose( m, q, n, f, cchildren, bchildren, vchildren, entry, entry_def, incomplete );
+          construct_compose( m, q, n, f, cchildren, bchildren, vchildren, entry, entry_def );
           entry_def.pop_back();
           entry.pop_back();
           if( def==0 ){
@@ -376,36 +500,59 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, Node q, Node n, AbsDef *
       }
     }
     if( def!=0 ){
+      if( Trace.isOn("ambqi-check-debug2") ){
+        for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
+        Trace("ambqi-check-debug2") << "Make default argument" << std::endl;
+      }
       std::map< unsigned, AbsDef * > cdchildren;
       for( std::map< unsigned, AbsDef * >::iterator it = children.begin(); it != children.end(); ++it ){
+        Assert( it->second->getDefault()!=NULL );
         cdchildren[it->first] = it->second->getDefault();
       }
       if( Trace.isOn("ambqi-check-debug2") ){
         for( unsigned i=0; i<entry.size(); i++ ){ Trace("ambqi-check-debug2") << "  "; }
         Trace("ambqi-check-debug2") << "...process default : ";
-        debugPrintUInt("ambqi-check-debug2", m->d_rep_set.d_type_reps[tn].size(), def );
-        Trace("ambqi-check-debug2") << std::endl;
+        debugPrintUInt("ambqi-check-debug2", m->d_rep_set.getNumRepresentatives( tn ), def );
+        Trace("ambqi-check-debug2") << " " << children.size() << " " << cdchildren.size() << std::endl;
       }
       entry.push_back( def );
       entry_def.push_back( true );
-      construct_compose( m, q, n, f, cdchildren, bchildren, vchildren, entry, entry_def, incomplete );
+      construct_compose( m, q, n, f, cdchildren, bchildren, vchildren, entry, entry_def );
       entry_def.pop_back();
       entry.pop_back();
     }
   }
 }
 
-bool AbsDef::construct( FirstOrderModelAbs * m, Node q, Node n, AbsDef * f,
+bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
                         std::map< unsigned, AbsDef * >& children,
                         std::map< unsigned, int >& bchildren, std::map< unsigned, int >& vchildren,
-                        int varChCount, bool incomplete ) {
+                        int varChCount ) {
+  if( Trace.isOn("ambqi-check-debug3") ){
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      Trace("ambqi-check-debug3") << i << " : ";
+      Trace("ambqi-check-debug3") << ((children.find( i )!=children.end()) ? "X" : ".");
+      if( bchildren.find( i )!=bchildren.end() ){
+        Trace("ambqi-check-debug3") << bchildren[i];
+      }else{
+        Trace("ambqi-check-debug3") << ".";
+      }
+      if( vchildren.find( i )!=vchildren.end() ){
+        Trace("ambqi-check-debug3") << vchildren[i];
+      }else{
+        Trace("ambqi-check-debug3") << ".";
+      }
+      Trace("ambqi-check-debug3") << std::endl;
+    }
+    Trace("ambqi-check-debug3") << "varChCount : " << varChCount << std::endl;
+  }
   if( varChCount==0 || f ){
     //short-circuit
     if( n.getKind()==AND || n.getKind()==OR ){
       for( std::map< unsigned, int >::iterator it = bchildren.begin(); it !=bchildren.end(); ++it ){
         if( ( it->second==0 && n.getKind()==AND ) ||
             ( it->second==1 && n.getKind()==OR ) ){
-          construct_def_entry( m, q, it->second );
+          construct_def_entry( m, q[0], it->second );
           return true;
         }
       }
@@ -413,24 +560,33 @@ bool AbsDef::construct( FirstOrderModelAbs * m, Node q, Node n, AbsDef * f,
     Trace("ambqi-check-debug2") << "Construct compose..." << std::endl;
     std::vector< unsigned > entry;
     std::vector< bool > entry_def;
-    construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def, incomplete );
+    if( f ){
+      AbsDef unorm;
+      unorm.construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
+      //normalize
+      std::vector< AbsDef* > defs;
+      defs.push_back( &unorm );
+      construct_normalize( m, q, defs );
+    }else{
+      construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
+    }
     return true;
   }else if( varChCount==1 && n.getKind()==EQUAL ){
     Trace("ambqi-check-debug2") << "Expand variable child..." << std::endl;
     //expand the variable based on its finite domain
     AbsDef a;
-    a.construct_var( m, q, vchildren.begin()->second, -1 );
+    a.construct_var( m, q, vchildren.begin()->second, val_none );
     children[vchildren.begin()->first] = &a;
     vchildren.clear();
     std::vector< unsigned > entry;
     std::vector< bool > entry_def;
     Trace("ambqi-check-debug2") << "Construct compose with variable..." << std::endl;
-    construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def, incomplete );
+    construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
     return true;
   }else if( varChCount==2 && n.getKind()==EQUAL ){
     Trace("ambqi-check-debug2") << "Construct variable equality..." << std::endl;
     //efficient expansion of the equality
-    construct_var_eq( m, q, vchildren[0], vchildren[1], -1, -1 );
+    construct_var_eq( m, q, vchildren[0], vchildren[1], val_none, val_none );
     return true;
   }else{
     return false;
@@ -441,7 +597,7 @@ Node AbsDef::getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< No
   if( depth==vars.size() ){
     TypeNode tn = op.getType();
     if( tn.getNumChildren()>0 ){
-      tn = tn[tn.getNumChildren()-1];
+      tn = tn[tn.getNumChildren() - 1];
     }
     if( d_value>=0 ){
       Assert( d_value<(int)m->d_rep_set.d_type_reps[tn].size() );
@@ -474,13 +630,19 @@ Node AbsDef::getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< No
   }
 }
 
-unsigned AbsDef::getId( unsigned n ) {
+bool AbsDef::isSimple( unsigned n ) {
+  return (n & (n - 1))==0;
+}
+
+unsigned AbsDef::getId( unsigned n, unsigned start ) {
   Assert( n!=0 );
-  unsigned index = 0;
-  while( (n & ( 1 << index )) == 0 ){
-    index++;
+  while( (n & ( 1 << start )) == 0 ){
+    start++;
+    if( start==32 ){
+      return start;
+    }
   }
-  return index;
+  return start;
 }
 
 Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< Node >& args ) {
@@ -493,9 +655,13 @@ Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< Nod
 }
 
 Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< unsigned >& iargs, unsigned depth ) {
-  if( d_value!=-1 ){
-    Assert( d_value>=0 && d_value<(int)m->d_rep_set.d_type_reps[retTyp].size() );
-    return m->d_rep_set.d_type_reps[retTyp][d_value];
+  if( d_value!=val_none ){
+    if( d_value==val_unk ){
+      return Node::null();
+    }else{
+      Assert( d_value>=0 && d_value<(int)m->d_rep_set.d_type_reps[retTyp].size() );
+      return m->d_rep_set.d_type_reps[retTyp][d_value];
+    }
   }else{
     std::map< unsigned, AbsDef >::iterator it = d_def.find( iargs[depth] );
     if( it==d_def.end() ){
@@ -575,6 +741,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
       Node f = it->first;
       Trace("ambqi-model-debug") << "Building Model for " << f << std::endl;
       //reset the model
+      it->second->clear();
       //get all (non-redundant) f-applications
       std::vector< TNode > fapps;
       Trace("ambqi-model-debug") << "Initial terms: " << std::endl;
@@ -606,8 +773,8 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
         it->second->construct_func( fm, fapps );
         Trace("ambqi-model-debug") << "Interpretation of " << f << " : " << std::endl;
         it->second->debugPrint("ambqi-model-debug", fm, fapps[0] );
-
-        it->second->simplify( fm, Node::null() );
+        Trace("ambqi-model-debug") << "Simplifying " << f << "..." << std::endl;
+        it->second->simplify( fm, fapps[0] );
         Trace("ambqi-model") << "(Simplified) interpretation of " << f << " : " << std::endl;
         it->second->debugPrint("ambqi-model", fm, fapps[0] );
 
@@ -645,12 +812,19 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
       AbsDef ad;
       doCheck( fma, q, ad, q[1] );
       //now process entries
+      Trace("ambqi-inst-debug") << "...Current : " << d_addedLemmas << std::endl;
       Trace("ambqi-inst") << "Interpretation of " << q << " is : " << std::endl;
-      ad.debugPrint( "ambqi-inst", fma, q );
+      ad.debugPrint( "ambqi-inst", fma, q[0] );
       Trace("ambqi-inst") << std::endl;
-      int lem = ad.addInstantiations( fma, d_qe, q );
+      int lem = 0;
+      quantValid = ad.addInstantiations( fma, d_qe, q, lem );
       Trace("ambqi-inst") << "...Added " << lem << " lemmas." << std::endl;
+      if( lem>0 ){
+        //if we were incomplete but added at least one lemma, we are ok
+        quantValid = true;
+      }
       d_addedLemmas += lem;
+      Trace("ambqi-inst-debug") << "...Total : " << d_addedLemmas << std::endl;
     }
     return quantValid;
   }
@@ -662,12 +836,10 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
   std::map< unsigned, AbsDef > children;
   std::map< unsigned, int > bchildren;
   std::map< unsigned, int > vchildren;
-  bool incomplete = false;
   int varChCount = 0;
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()==FORALL ){
-      bchildren[i] = -1;
-      incomplete = true;
+      bchildren[i] = AbsDef::val_unk;
     }else if( n[i].getKind() == BOUND_VARIABLE ){
       varChCount++;
       vchildren[i] = m->getVariableId( q, n[i] );
@@ -675,8 +847,8 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
       bchildren[i] = m->getRepresentativeId( n[i] );
     }else{
       if( !doCheck( m, q, children[i], n[i] ) ){
-        bchildren[i] = -1;
-        incomplete = true;
+        bchildren[i] = AbsDef::val_unk;
+        children.erase( i );
       }
     }
   }
@@ -696,18 +868,18 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
     }
     //uninterpreted compose
     if( m->d_models_valid[op] ){
-      ad.construct( m, q, n, m->d_models[op], pchildren, bchildren, vchildren, varChCount, incomplete );
+      ad.construct( m, q, n, m->d_models[op], pchildren, bchildren, vchildren, varChCount );
     }else{
       Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (no function model)" << std::endl;
       return false;
     }
-  }else if( !ad.construct( m, q, n, NULL, pchildren, bchildren, vchildren, varChCount, incomplete ) ){
+  }else if( !ad.construct( m, q, n, NULL, pchildren, bchildren, vchildren, varChCount ) ){
     Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (variables are children of interpreted symbol)" << std::endl;
     return false;
   }
-  Trace("ambqi-check-debug2") << "Interpretation for " << n << " is : " << std::endl;
-  ad.debugPrint("ambqi-check-debug2", m, q[0] );
-  ad.simplify( m, q );
+  Trace("ambqi-check-try") << "Interpretation for " << n << " is : " << std::endl;
+  ad.debugPrint("ambqi-check-try", m, q[0] );
+  ad.simplify( m, q[0] );
   Trace("ambqi-check-debug") << "(Simplified) Interpretation for " << n << " is : " << std::endl;
   ad.debugPrint("ambqi-check-debug", m, q[0] );
   Trace("ambqi-check-debug") << std::endl;
