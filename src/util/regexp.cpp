@@ -95,16 +95,16 @@ void String::getCharSet(std::set<unsigned int> &cset) const {
     }
 }
 
-bool String::overlap(String &y) const {
-  unsigned n = d_str.size() < y.size() ? d_str.size() : y.size();
-  for(unsigned i=1; i<n; i++) {
+std::size_t String::overlap(String &y) const {
+  std::size_t i = d_str.size() < y.size() ? d_str.size() : y.size();
+  for(; i>0; i--) {
     String s = suffix(i);
     String p = y.prefix(i);
     if(s == p) {
-      return true;
+      return i;
     }
   }
-  return false;
+  return i;
 }
 
 std::string String::toString() const {

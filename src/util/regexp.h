@@ -260,7 +260,7 @@ public:
   String suffix(unsigned i) const {
     return substr(d_str.size() - i, i);
   }
-  bool overlap(String &y) const;
+  std::size_t overlap(String &y) const;
 
   bool isNumber() const {
    if(d_str.size() == 0) return false;
