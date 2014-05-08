@@ -1246,6 +1246,13 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                       Node eq = p==0? other_str.eqNode( mkConcat(const_str, sk) )
                                     : other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
                       conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                      Trace("strings-csp") << "Case 1: EQ " << stra << " = " << strb << std::endl;
+                    } else if(stra.size() == 1) {
+                      conc = other_str.eqNode( mkConcat(const_str, sk) );
+                      if(strb.size()>0 && stra[0] == strb[0]) {
+                        conc = NodeManager::currentNM()->mkNode(kind::OR, conc, other_str.eqNode(d_emptyString));
+                      }
+                      Trace("strings-csp") << "Case 8: Single Char " << stra << " vs " << strb << std::endl;
                     } else {
                       CVC4::String fc = strb.substr(0, 1);
                       std::size_t p;
@@ -1253,8 +1260,10 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                         if( (p = stra.find(strb)) == std::string::npos ) {
                           if((p = stra.overlap(strb)) == 0) {
                             conc = other_str.eqNode( mkConcat(const_str, sk) );
+                            Trace("strings-csp") << "Case 2: No Substr/Overlap " << stra << " vs " << strb << std::endl;
                           } else {
                             conc = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
+                            Trace("strings-csp") << "Case 3: No Substr but Overlap " << stra << " vs " << strb << std::endl;
                           }
                         } else {
                           if(p == 0) {
@@ -1263,18 +1272,22 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                             if((p = stra1.find(strb)) != std::string::npos) {
                               Node eq = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, p + 1) ), sk) );
                               conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                              Trace("strings-csp") << "Case 4: Substr at beginning only " << stra << " vs " << strb << std::endl;
                             } else {
                               p = stra1.overlap(strb);
                               Node eq = p==0? other_str.eqNode( mkConcat(const_str, sk) )
                                             : other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, stra.size() - p) ), sk) );
                               conc = NodeManager::currentNM()->mkNode(kind::OR, conc, eq);
+                              Trace("strings-csp") << "Case 5: Substr again " << stra << " vs " << strb << std::endl;
                             }
                           } else {
                             conc = other_str.eqNode( mkConcat(NodeManager::currentNM()->mkConst( stra.substr(0, p - 1) ), sk) );
+                            Trace("strings-csp") << "Case 6: Substr not at beginning " << stra << " vs " << strb << std::endl;
                           }
                         }
                       } else {
                         conc = other_str.eqNode( mkConcat(const_str, sk) );
+                        Trace("strings-csp") << "Case 7: No intersection " << stra << " vs " << strb << std::endl;
                       }
                     }
                     Node ant = mkExplain( antec );
@@ -1292,7 +1305,7 @@ bool TheoryStrings::processNEqc(std::vector< std::vector< Node > > &normal_forms
                       optflag = true;
                     }*/
                   }
-                  if(!optflag){
+                  if(!optflag) {
                     Node firstChar = const_str.getConst<String>().size() == 1 ? const_str :
                       NodeManager::currentNM()->mkConst( const_str.getConst<String>().substr(0, 1) );
                     //split the string
