@@ -560,7 +560,7 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
     Trace("ambqi-check-debug2") << "Construct compose..." << std::endl;
     std::vector< unsigned > entry;
     std::vector< bool > entry_def;
-    if( f ){
+    if( f && varChCount>0 ){
       AbsDef unorm;
       unorm.construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
       //normalize
@@ -570,6 +570,11 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
     }else{
       construct_compose( m, q, n, f, children, bchildren, vchildren, entry, entry_def );
     }
+    Assert( is_normalized() );
+    //if( !is_normalized() ){
+    //  std::cout << "NON NORMALIZED DEFINITION" << std::endl;
+    //  exit( 10 );
+    //}
     return true;
   }else if( varChCount==1 && n.getKind()==EQUAL ){
     Trace("ambqi-check-debug2") << "Expand variable child..." << std::endl;
@@ -590,6 +595,17 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
     return true;
   }else{
     return false;
+  }
+}
+
+void AbsDef::negate() {
+  for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
+    it->second.negate();
+  }
+  if( d_value==0 ){
+    d_value = 1;
+  }else if( d_value==1 ){
+    d_value = 0;
   }
 }
 
@@ -670,6 +686,20 @@ Node AbsDef::evaluate( FirstOrderModelAbs * m, TypeNode retTyp, std::vector< uns
       return it->second.evaluate( m, retTyp, iargs, depth+1 );
     }
   }
+}
+
+bool AbsDef::is_normalized() {
+  for( std::map< unsigned, AbsDef >::iterator it1 = d_def.begin(); it1 != d_def.end(); ++it1 ){
+    if( !it1->second.is_normalized() ){
+      return false;
+    }
+    for( std::map< unsigned, AbsDef >::iterator it2 = d_def.begin(); it2 != d_def.end(); ++it2 ){
+      if( it1->first!=it2->first && (( it1->first & it2->first )!=0) ){
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 AbsMbqiBuilder::AbsMbqiBuilder( context::Context* c, QuantifiersEngine* qe ) :
@@ -833,55 +863,61 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
 
 bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNode n ) {
   Assert( n.getKind()!=FORALL );
-  std::map< unsigned, AbsDef > children;
-  std::map< unsigned, int > bchildren;
-  std::map< unsigned, int > vchildren;
-  int varChCount = 0;
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( n[i].getKind()==FORALL ){
-      bchildren[i] = AbsDef::val_unk;
-    }else if( n[i].getKind() == BOUND_VARIABLE ){
-      varChCount++;
-      vchildren[i] = m->getVariableId( q, n[i] );
-    }else if( m->hasTerm( n[i] ) ){
-      bchildren[i] = m->getRepresentativeId( n[i] );
-    }else{
-      if( !doCheck( m, q, children[i], n[i] ) ){
+  if( n.getKind()==NOT ){
+    doCheck( m, q, ad, n[0] );
+    ad.negate();
+    return true;
+  }else{
+    std::map< unsigned, AbsDef > children;
+    std::map< unsigned, int > bchildren;
+    std::map< unsigned, int > vchildren;
+    int varChCount = 0;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n[i].getKind()==FORALL ){
         bchildren[i] = AbsDef::val_unk;
-        children.erase( i );
+      }else if( n[i].getKind() == BOUND_VARIABLE ){
+        varChCount++;
+        vchildren[i] = m->getVariableId( q, n[i] );
+      }else if( m->hasTerm( n[i] ) ){
+        bchildren[i] = m->getRepresentativeId( n[i] );
+      }else{
+        if( !doCheck( m, q, children[i], n[i] ) ){
+          bchildren[i] = AbsDef::val_unk;
+          children.erase( i );
+        }
       }
     }
-  }
-  //convert to pointers
-  std::map< unsigned, AbsDef * > pchildren;
-  for( std::map< unsigned, AbsDef >::iterator it = children.begin(); it != children.end(); ++it ){
-    pchildren[it->first] = &it->second;
-  }
-  //construct the interpretation
-  Trace("ambqi-check-debug") << "Compute Interpretation of " << n << " " << n.getKind() << std::endl;
-  if( n.getKind() == APPLY_UF || n.getKind() == VARIABLE || n.getKind() == SKOLEM ){
-    Node op;
-    if( n.getKind() == APPLY_UF ){
-      op = n.getOperator();
-    }else{
-      op = n;
+    //convert to pointers
+    std::map< unsigned, AbsDef * > pchildren;
+    for( std::map< unsigned, AbsDef >::iterator it = children.begin(); it != children.end(); ++it ){
+      pchildren[it->first] = &it->second;
     }
-    //uninterpreted compose
-    if( m->d_models_valid[op] ){
-      ad.construct( m, q, n, m->d_models[op], pchildren, bchildren, vchildren, varChCount );
-    }else{
-      Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (no function model)" << std::endl;
+    //construct the interpretation
+    Trace("ambqi-check-debug") << "Compute Interpretation of " << n << " " << n.getKind() << std::endl;
+    if( n.getKind() == APPLY_UF || n.getKind() == VARIABLE || n.getKind() == SKOLEM ){
+      Node op;
+      if( n.getKind() == APPLY_UF ){
+        op = n.getOperator();
+      }else{
+        op = n;
+      }
+      //uninterpreted compose
+      if( m->d_models_valid[op] ){
+        ad.construct( m, q, n, m->d_models[op], pchildren, bchildren, vchildren, varChCount );
+      }else{
+        Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (no function model)" << std::endl;
+        return false;
+      }
+    }else if( !ad.construct( m, q, n, NULL, pchildren, bchildren, vchildren, varChCount ) ){
+      Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (variables are children of interpreted symbol)" << std::endl;
       return false;
     }
-  }else if( !ad.construct( m, q, n, NULL, pchildren, bchildren, vchildren, varChCount ) ){
-    Trace("ambqi-check-debug") << "** Cannot produce interpretation for " << n << " (variables are children of interpreted symbol)" << std::endl;
-    return false;
+    Trace("ambqi-check-try") << "Interpretation for " << n << " is : " << std::endl;
+    ad.debugPrint("ambqi-check-try", m, q[0] );
+    ad.simplify( m, q[0] );
+    Trace("ambqi-check-debug") << "(Simplified) Interpretation for " << n << " is : " << std::endl;
+    ad.debugPrint("ambqi-check-debug", m, q[0] );
+    Trace("ambqi-check-debug") << std::endl;
+    return true;
   }
-  Trace("ambqi-check-try") << "Interpretation for " << n << " is : " << std::endl;
-  ad.debugPrint("ambqi-check-try", m, q[0] );
-  ad.simplify( m, q[0] );
-  Trace("ambqi-check-debug") << "(Simplified) Interpretation for " << n << " is : " << std::endl;
-  ad.debugPrint("ambqi-check-debug", m, q[0] );
-  Trace("ambqi-check-debug") << std::endl;
-  return true;
 }

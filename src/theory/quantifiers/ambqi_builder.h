@@ -69,11 +69,14 @@ public:
                   std::map< unsigned, int >& bchildren,
                   std::map< unsigned, int >& vchildren,
                   int varChCount );
+  void negate();
   Node getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< Node >& vars, unsigned depth = 0 );
   static bool isSimple( unsigned n );
   static unsigned getId( unsigned n, unsigned start=0 );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< Node >& args );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< unsigned >& iargs, unsigned depth = 0 );
+  //for debugging
+  bool is_normalized();
 };
 
 class AbsMbqiBuilder : public QModelBuilder
