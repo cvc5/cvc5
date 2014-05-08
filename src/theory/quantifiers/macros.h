@@ -30,20 +30,19 @@ namespace quantifiers {
 
 class QuantifierMacros{
 private:
+  void processAssertion( Node n );
+  bool isBoundVarApplyUf( Node n );
   void process( Node n, bool pol, std::vector< Node >& args, Node f );
   bool contains( Node n, Node n_s );
   bool containsBadOp( Node n, Node n_op );
   bool isMacroLiteral( Node n, bool pol );
   void getMacroCandidates( Node n, std::vector< Node >& candidates );
   Node solveInEquality( Node n, Node lit );
-  bool isConsistentDefinition( Node op, Node cond, Node def );
   bool getFreeVariables( Node n, std::vector< Node >& v_quant, std::vector< Node >& vars, bool retOnly );
   bool getSubstitution( std::vector< Node >& v_quant, std::map< Node, Node >& solved,
                         std::vector< Node >& vars, std::vector< Node >& subs, bool reqComplete );
   //map from operators to macro basis terms
   std::map< Node, std::vector< Node > > d_macro_basis;
-  //map from operators to map from conditions to definition cases
-  std::map< Node, std::vector< std::pair< Node, Node > > > d_macro_def_cases;
   //map from operators to macro definition
   std::map< Node, Node > d_macro_defs;
 private:
