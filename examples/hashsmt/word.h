@@ -79,6 +79,9 @@ public:
 
   /** Returns the comparison expression */  
   CVC4::Expr operator == (const Word& b) const;
+
+  /** Concatenate the given words */
+  static Word concat(const Word words[], unsigned size);
 };
 
 inline std::ostream& operator << (std::ostream& out, const Word& word) {

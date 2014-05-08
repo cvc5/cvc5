@@ -4,17 +4,27 @@ AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
-	sha1smt	
+	sha1_inversion \
+	sha1_collision
 
 noinst_DATA =
 
-sha1smt_SOURCES = \
-	sha1smt.cpp \
+sha1_inversion_SOURCES = \
+	sha1_inversion.cpp \
 	word.h \
 	word.cpp \
 	sha1.hpp
-sha1smt_LDADD = \
+sha1_inversion_LDADD = \
 	@builddir@/../../src/libcvc4.la
+
+sha1_collision_SOURCES = \
+	sha1_collision.cpp \
+	word.h \
+	word.cpp \
+	sha1.hpp
+sha1_collision_LDADD = \
+	@builddir@/../../src/libcvc4.la
+
 
 # for installation
 examplesdir = $(docdir)/$(subdir)

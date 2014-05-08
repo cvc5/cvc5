@@ -24,6 +24,8 @@
 
 #include "word.h"
 
+#include <vector>
+
 using namespace std;
 using namespace hashsmt;
 using namespace CVC4;
@@ -53,6 +55,14 @@ ExprManager* Word::em() {
 
 Expr Word::operator == (const Word& b) const {
   return em()->mkExpr(kind::EQUAL, d_expr, b.getExpr());
+}
+
+Word Word::concat(const Word words[], unsigned size) {
+  Expr concat = words[0].d_expr;
+  for(unsigned i = 1; i < size; ++i) {
+      concat = em()->mkExpr(kind::BITVECTOR_CONCAT, concat, words[i].d_expr);
+  }
+  return Word(concat);
 }
 
 void Word::print(ostream& out) const {
