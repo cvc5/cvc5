@@ -863,7 +863,7 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
 
 bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNode n ) {
   Assert( n.getKind()!=FORALL );
-  if( n.getKind()==NOT ){
+  if( n.getKind()==NOT && n[0].getKind()!=FORALL ){
     doCheck( m, q, ad, n[0] );
     ad.negate();
     return true;

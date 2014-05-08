@@ -506,7 +506,7 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
       }
     }
   }
-
+  Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
   return ret;
 }
 

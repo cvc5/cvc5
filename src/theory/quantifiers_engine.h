@@ -235,6 +235,8 @@ public:
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
 public:
+  /** print instantiations */
+  void printInstantiations( const char * c );
   /** statistics class */
   class Statistics {
   public:

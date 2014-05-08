@@ -623,6 +623,20 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
   }
 }
 
+void QuantifiersEngine::printInstantiations( const char * c ) {
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      Trace(c) << "Instantiations of " << it->first << " : " << std::endl;
+      it->second->print( c, it->first );
+    }
+  }else{
+    for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
+      Trace(c) << "Instantiations of " << it->first << " : " << std::endl;
+      it->second.print( c, it->first );
+    }
+  }
+}
+
 QuantifiersEngine::Statistics::Statistics():
   d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
   d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),

@@ -69,7 +69,7 @@ private:
     COMPUTE_SPLIT,
     COMPUTE_LAST
   };
-  static Node computeOperation( Node f, int computeOption );
+  static Node computeOperation( Node f, bool isNested, int computeOption );
 public:
   static RewriteResponse preRewrite(TNode in);
   static RewriteResponse postRewrite(TNode in);

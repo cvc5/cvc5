@@ -33,6 +33,9 @@ option simpleIteLiftQuant /--disable-ite-lift-quant bool :default true
 # Whether to CNF quantifier bodies
 option cnfQuant --cnf-quant bool :default false
  apply CNF conversion to quantified formulas
+# Whether to NNF quantifier bodies
+option nnfQuant --nnf-quant bool :default false
+ apply NNF conversion to quantified formulas
 
 option clauseSplit --clause-split bool :default false
  apply clause splitting to quantified formulas

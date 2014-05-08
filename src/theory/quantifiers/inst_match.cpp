@@ -198,6 +198,24 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
   }
 }
 
+void InstMatchTrie::print( const char * c, Node q, std::vector< Node >& terms ) const {
+  if( terms.size()==q[0].getNumChildren() ){
+    Trace(c) << "  ( ";
+    for( unsigned i=0; i<terms.size(); i++ ){
+      if( i>0 ) Trace(c) << ", ";
+      Trace(c) << terms[i];
+    }
+    Trace(c) << " )" << std::endl;
+  }else{
+    for( std::map< Node, InstMatchTrie >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
+      terms.push_back( it->first );
+      it->second.print( c, q, terms );
+      terms.pop_back();
+    }
+  }
+}
+
+
 bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m,
                                     context::Context* c, bool modEq, bool modInst, int index, bool onlyExist ){
   bool reset = false;
@@ -261,6 +279,25 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
       imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
     }
     return true;
+  }
+}
+
+void CDInstMatchTrie::print( const char * c, Node q, std::vector< Node >& terms ) const{
+  if( d_valid.get() ){
+    if( terms.size()==q[0].getNumChildren() ){
+      Trace(c) << "  ( ";
+      for( unsigned i=0; i<terms.size(); i++ ){
+        if( i>0 ) Trace(c) << ", ";
+        Trace(c) << terms[i];
+      }
+      Trace(c) << " )" << std::endl;
+    }else{
+      for( std::map< Node, CDInstMatchTrie* >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
+        terms.push_back( it->first );
+        it->second->print( c, q, terms );
+        terms.pop_back();
+      }
+    }
   }
 }
 
