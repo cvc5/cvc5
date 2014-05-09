@@ -3789,6 +3789,10 @@ Proof* SmtEngine::getProof() throw(ModalException) {
 #endif /* CVC4_PROOF */
 }
 
+void SmtEngine::printInstantiations() {
+  //TODO
+}
+
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
   SmtScope smts(this);
   finalOptionsAreSet();

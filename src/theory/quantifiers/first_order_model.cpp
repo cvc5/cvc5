@@ -76,12 +76,12 @@ void FirstOrderModel::initialize( bool considerAxioms ) {
   //for each quantifier, collect all operators we care about
   for( int i=0; i<getNumAssertedQuantifiers(); i++ ){
     Node f = getAssertedQuantifier( i );
-    processInitializeQuantifier( f );
     if( d_quant_var_id.find( f )==d_quant_var_id.end() ){
       for(unsigned i=0; i<f[0].getNumChildren(); i++){
         d_quant_var_id[f][f[0][i]] = i;
       }
     }
+    processInitializeQuantifier( f );
     if( considerAxioms || !f.hasAttribute(AxiomAttribute()) ){
       //initialize relevant models within bodies of all quantifiers
       initializeModelForTerm( f[1] );
@@ -980,4 +980,37 @@ void FirstOrderModelAbs::processInitializeModelForTerm( Node n ) {
       d_models_valid[op] = false;
     }
   }
+}
+
+void FirstOrderModelAbs::collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars ) {
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    if( n.getKind()==EQUAL && n[i].getKind()==BOUND_VARIABLE ){
+      int v = getVariableId( q, n[i] );
+      Assert( v>=0 && v<q.getNumChildren() );
+      eq_vars[v] = true;
+    }
+    collectEqVars( q, n[i], eq_vars );
+  }
+}
+
+void FirstOrderModelAbs::processInitializeQuantifier( Node q ) {
+  if( d_var_order.find( q )==d_var_order.end() ){
+    std::map< int, bool > eq_vars;
+    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
+      eq_vars[i] = false;
+    }
+    collectEqVars( q, q[1], eq_vars );
+    for( unsigned r=0; r<2; r++ ){
+      for( std::map< int, bool >::iterator it = eq_vars.begin(); it != eq_vars.end(); ++it ){
+        if( it->second==(r==1) ){
+          d_var_index[q][it->first] = d_var_order[q].size();
+          d_var_order[q].push_back( it->first );
+        }
+      }
+    }
+  }
+}
+
+Node FirstOrderModelAbs::getVariable( Node q, unsigned i ) {
+  return q[0][d_var_order[q][i]];
 }

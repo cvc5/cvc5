@@ -35,6 +35,8 @@ option checkProofs check-proofs --check-proofs bool :link --proof :link-smt prod
  after UNSAT/VALID, machine-check the generated proof
 option dumpProofs --dump-proofs bool :default false :link --proof
  output proofs after every UNSAT/VALID response
+option dumpInstantiations --dump-instantiations bool :default false
+ output instantiations of quantified formulas after every UNSAT/VALID response
 # this is just a placeholder for later; it doesn't show up in command-line options listings
 undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on unsat core generation (NOT YET SUPPORTED)

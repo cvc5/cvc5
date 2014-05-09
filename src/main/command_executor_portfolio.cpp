@@ -204,12 +204,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   }
 
   Debug("portfolio::outputmode") << "Mode is " << mode
-                                 << "lastWinner is " << d_lastWinner 
+                                 << "lastWinner is " << d_lastWinner
                                  << "d_seq is " << d_seq << std::endl;
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
-    Command* cmdExported = 
+    Command* cmdExported =
       d_lastWinner == 0 ?
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],
@@ -352,12 +352,16 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
         Command* gp = new GetProofCommand();
         status = doCommandSingleton(gp);
+      } else if( d_options[options::dumpInstantiations] &&
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+        Command* gi = new GetInstantiationsCommand();
+        status = doCommandSingleton(gi);
       }
     }
 
     return status;
   } else if(mode == 2) {
-    Command* cmdExported = 
+    Command* cmdExported =
       d_lastWinner == 0 ?
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],

@@ -62,6 +62,7 @@ public:
   void simplify( FirstOrderModelAbs * m, TNode q, unsigned depth = 0 );
   int addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q, int& inst ){
     std::vector< Node > terms;
+    terms.resize( q[0].getNumChildren() );
     return addInstantiations( m, qe, q, terms, inst, 0 );
   }
   bool construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,

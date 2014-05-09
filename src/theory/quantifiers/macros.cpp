@@ -77,21 +77,16 @@ bool QuantifierMacros::contains( Node n, Node n_s ){
   }
 }
 
-bool QuantifierMacros::containsBadOp( Node n, Node n_op ){
-  if( n!=n_op ){
-    if( n.getKind()==APPLY_UF ){
-      Node op = n.getOperator();
-      if( op==n_op.getOperator() ){
-        return true;
-      }
-      if( d_macro_defs.find( op )!=d_macro_defs.end() ){
-        return true;
-      }
+bool QuantifierMacros::containsBadOp( Node n, Node op ){
+  if( n.getKind()==APPLY_UF ){
+    Node nop = n.getOperator();
+    if( nop==op || d_macro_defs.find( nop )!=d_macro_defs.end()  ){
+      return true;
     }
-    for( size_t i=0; i<n.getNumChildren(); i++ ){
-      if( containsBadOp( n[i], n_op ) ){
-        return true;
-      }
+  }
+  for( size_t i=0; i<n.getNumChildren(); i++ ){
+    if( containsBadOp( n[i], op ) ){
+      return true;
     }
   }
   return false;
@@ -230,6 +225,7 @@ void QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
     //predicate case
     if( isBoundVarApplyUf( n ) ){
       Node n_def = NodeManager::currentNM()->mkConst( pol );
+      Trace("macros-quant") << "Macro found for " << f << std::endl;
       Trace("macros") << "* " << n_def << " is a macro for " << n.getOperator() << std::endl;
       d_macro_defs[ n.getOperator() ] = n_def;
     }
@@ -243,13 +239,13 @@ void QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
       for( size_t i=0; i<candidates.size(); i++ ){
         Node m = candidates[i];
         Node op = m.getOperator();
-        if( d_macro_defs.find( op )==d_macro_defs.end() && !containsBadOp( n, m ) ){
+        if( d_macro_defs.find( op )==d_macro_defs.end() ){
           std::vector< Node > fvs;
           getFreeVariables( m, args, fvs, false );
           //get definition and condition
           Node n_def = solveInEquality( m, n ); //definition for the macro
           //definition must exist and not contain any free variables apart from fvs
-          if( !n_def.isNull() && !getFreeVariables( n_def, args, fvs, true ) ){
+          if( !n_def.isNull() && !getFreeVariables( n_def, args, fvs, true )  && !containsBadOp( n_def, op ) ){
             Node n_cond;  //condition when this definition holds
             //conditional must not contain any free variables apart from fvs
             if( n_cond.isNull() || !getFreeVariables( n_cond, args, fvs, true ) ){
@@ -272,6 +268,7 @@ void QuantifierMacros::process( Node n, bool pol, std::vector< Node >& args, Nod
               std::vector< Node > subs;
               if( getSubstitution( fvs, solved, vars, subs, true ) ){
                 n_def = n_def.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+                Trace("macros-quant") << "Macro found for " << f << std::endl;
                 Trace("macros") << "* " << n_def << " is a macro for " << op << std::endl;
                 d_macro_defs[op] = n_def;
                 return;

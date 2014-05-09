@@ -87,8 +87,8 @@ public:
   /** get current model value */
   Node getCurrentModelValue( Node n, bool partial = false );
   /** get variable id */
-  int getVariableId(Node f, Node n) {
-    return d_quant_var_id.find( f )!=d_quant_var_id.end() ? d_quant_var_id[f][n] : -1;
+  int getVariableId(TNode q, TNode n) {
+    return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
   }
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
@@ -231,9 +231,14 @@ public:
   std::map< Node, bool > d_models_valid;
   std::map< TNode, unsigned > d_rep_id;
   std::map< TypeNode, unsigned > d_domain;
+  std::map< Node, std::vector< int > > d_var_order;
+  std::map< Node, std::map< int, int > > d_var_index;
+private:
   /** get current model value */
   Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
   void processInitializeModelForTerm(Node n);
+  void processInitializeQuantifier( Node q );
+  void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
 public:
   FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
   FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
@@ -242,6 +247,7 @@ public:
   TNode getUsedRepresentative( TNode n );
   bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
   Node getFunctionValue(Node op, const char* argPrefix );
+  Node getVariable( Node q, unsigned i );
 };
 
 }/* CVC4::theory::quantifiers namespace */

@@ -498,6 +498,11 @@ public:
   Proof* getProof() throw(ModalException);
 
   /**
+   * Print all instantiations made by the quantifiers module.
+   */
+  void printInstantiations();
+
+  /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */

@@ -34,7 +34,7 @@ private:
   bool isBoundVarApplyUf( Node n );
   void process( Node n, bool pol, std::vector< Node >& args, Node f );
   bool contains( Node n, Node n_s );
-  bool containsBadOp( Node n, Node n_op );
+  bool containsBadOp( Node n, Node op );
   bool isMacroLiteral( Node n, bool pol );
   void getMacroCandidates( Node n, std::vector< Node >& candidates );
   Node solveInEquality( Node n, Node lit );

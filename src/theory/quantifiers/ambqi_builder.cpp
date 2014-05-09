@@ -164,7 +164,7 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
       }
     }else{
       bool osuccess = true;
-      TypeNode tn = q[0][depth].getType();
+      TypeNode tn = m->getVariable( q, depth ).getType();
       for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
         //get witness term
         unsigned index = 0;
@@ -174,7 +174,8 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
           index = getId( it->first, index );
           if( index<32 ){
             Assert( index<m->d_rep_set.d_type_reps[tn].size() );
-            terms.push_back( m->d_rep_set.d_type_reps[tn][index] );
+            terms[m->d_var_order[q][depth]] = m->d_rep_set.d_type_reps[tn][index];
+            //terms[depth] = m->d_rep_set.d_type_reps[tn][index];
             if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
               //if we are incomplete, and have not yet added an instantiation, keep trying
               index++;
@@ -182,7 +183,6 @@ bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, 
             }else{
               success = true;
             }
-            terms.pop_back();
           }
         }while( !success && index<32 );
         //mark if we are incomplete
@@ -218,7 +218,7 @@ void AbsDef::construct_normalize( FirstOrderModelAbs * m, TNode q, std::vector< 
     Assert( defs.size()==1 );
     d_value = defs[0]->d_value;
   }else{
-    TypeNode tn = q[0][depth].getType();
+    TypeNode tn = m->getVariable( q, depth ).getType();
     unsigned def = m->d_domain[tn];
     for( unsigned i=0; i<defs.size(); i++ ){
       //process each simple child
@@ -270,7 +270,7 @@ void AbsDef::apply_ucompose( FirstOrderModelAbs * m, TNode q,
     if( Trace.isOn("ambqi-check-debug2") ){
       Trace("ambqi-check-debug2") << "Add entry ( ";
       for( unsigned i=0; i<entry.size(); i++ ){
-        unsigned dSize = m->d_rep_set.d_type_reps[q[0][i].getType()].size();
+        unsigned dSize = m->d_rep_set.d_type_reps[m->getVariable( q, i ).getType()].size();
         debugPrintUInt( "ambqi-check-debug2", dSize, entry[i] );
         Trace("ambqi-check-debug2") << " ";
       }
@@ -313,7 +313,7 @@ void AbsDef::construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, uns
     Assert( currv!=val_none );
     d_value = currv;
   }else{
-    TypeNode tn = q[0][depth].getType();
+    TypeNode tn = m->getVariable( q, depth ).getType();
     unsigned dom = m->d_domain[tn];
     int vindex = depth==v1 ? 0 : ( depth==v2 ? 1 : val_none );
     if( vindex==val_none ){
@@ -322,7 +322,7 @@ void AbsDef::construct_var_eq( FirstOrderModelAbs * m, TNode q, unsigned v1, uns
     }else{
       Assert( currv==val_none );
       if( curr==val_none ){
-        unsigned numReps = m->d_rep_set.d_type_reps[tn].size();
+        unsigned numReps = m->d_rep_set.getNumRepresentatives( tn );
         Assert( numReps < 32 );
         for( unsigned i=0; i<numReps; i++ ){
           curr = 1 << i;
@@ -344,7 +344,7 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int cur
     Assert( currv!=val_none );
     d_value = currv;
   }else{
-    TypeNode tn = q[0][depth].getType();
+    TypeNode tn = m->getVariable( q, depth ).getType();
     if( v==depth ){
       unsigned numReps = m->d_rep_set.d_type_reps[tn].size();
       Assert( numReps>0 && numReps < 32 );
@@ -372,7 +372,7 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
         //std::cout << "Short circuit " << it->second->d_value << " " << entry.size() << "/" << q[0].getNumChildren() << std::endl;
         unsigned count = q[0].getNumChildren() - entry.size();
         for( unsigned i=0; i<count; i++ ){
-          entry.push_back( m->d_domain[q[0][entry.size()].getType()] );
+          entry.push_back( m->d_domain[m->getVariable( q, entry.size() ).getType()] );
           entry_def.push_back( true );
         }
         construct_entry( entry, entry_def, it->second->d_value );
@@ -454,7 +454,7 @@ void AbsDef::construct_compose( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef
     }
   }else{
     //take product of arguments
-    TypeNode tn = q[0][entry.size()].getType();
+    TypeNode tn = m->getVariable( q, entry.size() ).getType();
     Assert( m->isValidType( tn ) );
     unsigned def = m->d_domain[tn];
     if( Trace.isOn("ambqi-check-debug2") ){
@@ -877,7 +877,8 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
         bchildren[i] = AbsDef::val_unk;
       }else if( n[i].getKind() == BOUND_VARIABLE ){
         varChCount++;
-        vchildren[i] = m->getVariableId( q, n[i] );
+        vchildren[i] = m->d_var_index[q][ m->getVariableId( q, n[i] ) ];
+        //vchildren[i] = m->getVariableId( q, n[i] );
       }else if( m->hasTerm( n[i] ) ){
         bchildren[i] = m->getRepresentativeId( n[i] );
       }else{
