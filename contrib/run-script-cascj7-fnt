@@ -1,0 +1,32 @@
+#!/bin/bash
+
+cvc4=cvc4
+bench="$1"
+let "to = $2 - 70"
+
+file=${bench##*/}
+filename=${file%.*}
+
+echo "Run $bench at $2"
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  limit=$1; shift;
+  echo "--- Run $@ at $limit...";
+  (ulimit -t "$limit";$cvc4 --no-checking --no-interactive --dump-models --produce-models "$@" $bench) 2>/dev/null |
+  (read w1 w2 w3 result w4 w5;
+  case "$result" in
+  Satisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  CounterSatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
+  esac; exit 1)
+  if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
+}
+
+trywith 30 --finite-model-find 
+trywith 30 --finite-model-find --mbqi=gen-ev --uf-ss-totality --decision=internal
+trywith 10 --finite-model-find --disable-uf-ss-min-model
+trywith $to --finite-model-find --mbqi=abs --pre-skolem-quant
+echo "% SZS status" "GaveUp for $filename"
