@@ -28,4 +28,9 @@ sha1_collision_LDADD = \
 
 # for installation
 examplesdir = $(docdir)/$(subdir)
-examples_DATA = $(DIST_SOURCES) $(EXTRA_DIST)
+examples_DATA = \
+	sha1_inversion.cpp \
+	sha1_collision.cpp \
+	word.h \
+	word.cpp \
+	sha1.hpp
