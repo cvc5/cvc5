@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/ambqi_builder.h"
 #include "theory/quantifiers/term_database.h"
-
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -148,48 +148,52 @@ void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsign
 }
 
 bool AbsDef::addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, TNode q, std::vector< Node >& terms, int& inst, unsigned depth ) {
-  if( d_value==1 ){
-    //instantiations are all true : ignore this
-    return true;
-  }else{
-    if( depth==q[0].getNumChildren() ){
-      if( qe->addInstantiation( q, terms ) ){
-        Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
-        inst++;
-        return true;
-      }else{
-        Trace("ambqi-inst-debug") << "-> Failed to add instantiation." << std::endl;
-        //we are incomplete
-        return false;
-      }
+  if( inst==0 || !options::fmfOneInstPerRound() ){
+    if( d_value==1 ){
+      //instantiations are all true : ignore this
+      return true;
     }else{
-      bool osuccess = true;
-      TypeNode tn = m->getVariable( q, depth ).getType();
-      for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
-        //get witness term
-        unsigned index = 0;
-        bool success;
-        do {
-          success = false;
-          index = getId( it->first, index );
-          if( index<32 ){
-            Assert( index<m->d_rep_set.d_type_reps[tn].size() );
-            terms[m->d_var_order[q][depth]] = m->d_rep_set.d_type_reps[tn][index];
-            //terms[depth] = m->d_rep_set.d_type_reps[tn][index];
-            if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
-              //if we are incomplete, and have not yet added an instantiation, keep trying
-              index++;
-              Trace("ambqi-inst-debug") << "At depth " << depth << ", failed branch, no instantiations and incomplete, increment index : " << index << std::endl;
-            }else{
-              success = true;
+      if( depth==q[0].getNumChildren() ){
+        if( qe->addInstantiation( q, terms ) ){
+          Trace("ambqi-inst-debug") << "-> Added instantiation." << std::endl;
+          inst++;
+          return true;
+        }else{
+          Trace("ambqi-inst-debug") << "-> Failed to add instantiation." << std::endl;
+          //we are incomplete
+          return false;
+        }
+      }else{
+        bool osuccess = true;
+        TypeNode tn = m->getVariable( q, depth ).getType();
+        for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
+          //get witness term
+          unsigned index = 0;
+          bool success;
+          do {
+            success = false;
+            index = getId( it->first, index );
+            if( index<32 ){
+              Assert( index<m->d_rep_set.d_type_reps[tn].size() );
+              terms[m->d_var_order[q][depth]] = m->d_rep_set.d_type_reps[tn][index];
+              //terms[depth] = m->d_rep_set.d_type_reps[tn][index];
+              if( !it->second.addInstantiations( m, qe, q, terms, inst, depth+1 ) && inst==0 ){
+                //if we are incomplete, and have not yet added an instantiation, keep trying
+                index++;
+                Trace("ambqi-inst-debug") << "At depth " << depth << ", failed branch, no instantiations and incomplete, increment index : " << index << std::endl;
+              }else{
+                success = true;
+              }
             }
-          }
-        }while( !success && index<32 );
-        //mark if we are incomplete
-        osuccess = osuccess && success;
+          }while( !success && index<32 );
+          //mark if we are incomplete
+          osuccess = osuccess && success;
+        }
+        return osuccess;
       }
-      return osuccess;
     }
+  }else{
+    return true;
   }
 }
 

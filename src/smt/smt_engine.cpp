@@ -1174,6 +1174,9 @@ void SmtEngine::setDefaults() {
     //must have finite model finding on
     options::finiteModelFind.set( true );
   }
+  if( options::recurseCbqi() ){
+    options::cbqi.set( true );
+  }
   if( options::fmfBoundInt() ){
     //must have finite model finding on
     options::finiteModelFind.set( true );

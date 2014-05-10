@@ -55,7 +55,7 @@ private:
   /** ce tableaux */
   std::map< Node, std::map< arith::ArithVar, std::map< Node, Node > > > d_ceTableaux;
   /** get value */
-  Node getTableauxValue( Node n, bool minus_delta = false );
+  //Node getTableauxValue( Node n, bool minus_delta = false );
   Node getTableauxValue( arith::ArithVar v, bool minus_delta = false );
   /** do instantiation */
   bool doInstantiation( Node f, Node ic, Node term, arith::ArithVar x, InstMatch& m, Node var );
@@ -67,7 +67,8 @@ private:
 private:
   /** */
   int d_counter;
-  /** negative one */
+  /** constants */
+  Node d_zero;
   Node d_negOne;
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
