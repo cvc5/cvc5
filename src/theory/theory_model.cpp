@@ -737,7 +737,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   std::map< Node, Node >::iterator itMap;
   for (itMap = constantReps.begin(); itMap != constantReps.end(); ++itMap) {
     tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second);
+    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
   }
 
   if (!fullModel) {
@@ -745,14 +745,14 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     // Make sure every EC has a rep
     for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap ) {
       tm->d_reps[itMap->first] = itMap->second;
-      tm->d_rep_set.add(itMap->second);
+      tm->d_rep_set.add(itMap->second.getType(), itMap->second);
     }
     for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
       set<Node>& noRepSet = TypeSet::getSet(it);
       set<Node>::iterator i;
       for (i = noRepSet.begin(); i != noRepSet.end(); ++i) {
         tm->d_reps[*i] = *i;
-        tm->d_rep_set.add(*i);
+        tm->d_rep_set.add((*i).getType(), *i);
       }
     }
   }

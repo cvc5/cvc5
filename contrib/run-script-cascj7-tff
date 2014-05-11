@@ -1,8 +1,8 @@
 #!/bin/bash
 
-cvc4=./cvc4
+cvc4=cvc4
 bench="$1"
-let "to = $2 - 150"
+let "to = $2 - 170"
 
 file=${bench##*/}
 filename=${file%.*}
@@ -14,7 +14,7 @@ filename=${file%.*}
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -t "$limit";$cvc4 --no-checking --no-interactive --dump-models --produce-models "$@" $bench) 2>/dev/null |
+  (ulimit -t "$limit";$cvc4 --no-checking --no-interactive --dump-instantiations "$@" $bench) 2>/dev/null |
   (read w1 w2 w3 result w4 w5;
   case "$result" in
   Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
@@ -23,7 +23,10 @@ function trywith {
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
 
-trywith 30 --full-saturate-quant
-trywith 120 --quant-cf --qcf-tconstraint --full-saturate-quant
-trywith $to --cbqi --cbqi-recurse --full-saturate-quant --flip-decision
+trywith 15 --cbqi-recurse --full-saturate-quant
+trywith 15 --decision=internal --full-saturate-quant
+trywith 30 --quant-cf --qcf-tconstraint --full-saturate-quant
+trywith 20 --finite-model-find
+trywith 90 --full-saturate-quant
+trywith $to --cbqi-recurse --full-saturate-quant --pre-skolem-quant
 echo "% SZS status" "GaveUp for $filename"

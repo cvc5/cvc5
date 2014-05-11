@@ -19,7 +19,7 @@
 #ifndef __CVC4__PRINTER__OPTIONS_HANDLERS_H
 #define __CVC4__PRINTER__OPTIONS_HANDLERS_H
 
-#include "printer/model_format_mode.h"
+#include "printer/modes.h"
 
 namespace CVC4 {
 namespace printer {
@@ -32,6 +32,16 @@ default \n\
 \n\
 table\n\
 + Print functional expressions over finite domains in a table format.\n\
+";
+
+static const std::string instFormatHelp = "\
+Inst format modes currently supported by the --model-format option:\n\
+\n\
+default \n\
++ Print instantiations as a list in the output language format.\n\
+\n\
+szs\n\
++ Print instantiations as SZS compliant proof.\n\
 ";
 
 inline ModelFormatMode stringToModelFormatMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
@@ -48,6 +58,19 @@ inline ModelFormatMode stringToModelFormatMode(std::string option, std::string o
   }
 }
 
+inline InstFormatMode stringToInstFormatMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg == "default") {
+    return INST_FORMAT_MODE_DEFAULT;
+  } else if(optarg == "szs") {
+    return INST_FORMAT_MODE_SZS;
+  } else if(optarg == "help") {
+    puts(instFormatHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --inst-format: `") +
+                          optarg + "'.  Try --inst-format help.");
+  }
+}
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 

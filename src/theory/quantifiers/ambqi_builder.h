@@ -36,7 +36,7 @@ private:
                           std::map< unsigned, int >& bchildren, std::map< unsigned, int >& vchildren,
                           std::vector< unsigned >& entry, std::vector< bool >& entry_def );
   void construct_entry( std::vector< unsigned >& entry, std::vector< bool >& entry_def, int v, unsigned depth = 0 );
-  void construct_def_entry( FirstOrderModelAbs * m, TNode n, int v, unsigned depth = 0 );
+  void construct_def_entry( FirstOrderModelAbs * m, TNode q, TNode n, int v, unsigned depth = 0 );
   void apply_ucompose( FirstOrderModelAbs * m, TNode q,
                        std::vector< unsigned >& entry, std::vector< bool >& entry_def, std::vector< int >& terms,
                        std::map< unsigned, int >& vchildren, AbsDef * a, unsigned depth = 0 );
@@ -59,7 +59,7 @@ public:
   void construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps, unsigned depth = 0 );
   void debugPrintUInt( const char * c, unsigned dSize, unsigned u ) const;
   void debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsigned depth = 0 ) const;
-  void simplify( FirstOrderModelAbs * m, TNode q, unsigned depth = 0 );
+  void simplify( FirstOrderModelAbs * m, TNode q, TNode n, unsigned depth = 0 );
   int addInstantiations( FirstOrderModelAbs * m, QuantifiersEngine * qe, Node q, int& inst ){
     std::vector< Node > terms;
     terms.resize( q[0].getNumChildren() );
@@ -73,7 +73,7 @@ public:
   void negate();
   Node getFunctionValue( FirstOrderModelAbs * m, TNode op, std::vector< Node >& vars, unsigned depth = 0 );
   static bool isSimple( unsigned n );
-  static unsigned getId( unsigned n, unsigned start=0 );
+  static unsigned getId( unsigned n, unsigned start=0, unsigned end=32 );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< Node >& args );
   Node evaluate( FirstOrderModelAbs * m, TypeNode retType, std::vector< unsigned >& iargs, unsigned depth = 0 );
   //for debugging

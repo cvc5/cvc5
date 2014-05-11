@@ -1179,6 +1179,12 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
+void TheoryEngine::printInstantiations( std::ostream& out ) {
+  if( d_quantEngine ){
+    d_quantEngine->printInstantiations( out );
+  }
+}
+
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   std::set<TNode> all;

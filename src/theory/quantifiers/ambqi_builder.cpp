@@ -73,20 +73,20 @@ void AbsDef::construct_func( FirstOrderModelAbs * m, std::vector< TNode >& fapps
   }
 }
 
-void AbsDef::simplify( FirstOrderModelAbs * m, TNode n, unsigned depth ) {
+void AbsDef::simplify( FirstOrderModelAbs * m, TNode q, TNode n, unsigned depth ) {
   if( d_value==val_none && !d_def.empty() ){
     //process the default
     std::map< unsigned, AbsDef >::iterator defd = d_def.find( d_default );
     Assert( defd!=d_def.end() );
     unsigned newDef = d_default;
     std::vector< unsigned > to_erase;
-    defd->second.simplify( m, n, depth+1 );
+    defd->second.simplify( m, q, n, depth+1 );
     int defVal = defd->second.d_value;
     bool isConstant = ( defVal!=val_none );
     //process each child
     for( std::map< unsigned, AbsDef >::iterator it = d_def.begin(); it != d_def.end(); ++it ){
       if( it->first!=d_default ){
-        it->second.simplify( m, n, depth+1 );
+        it->second.simplify( m, q, n, depth+1 );
         if( it->second.d_value==defVal && it->second.d_value!=val_none ){
           newDef = newDef | it->first;
           to_erase.push_back( it->first );
@@ -101,7 +101,7 @@ void AbsDef::simplify( FirstOrderModelAbs * m, TNode n, unsigned depth ) {
       d_def.erase( d_default );
       //set new default
       d_default = newDef;
-      d_def[d_default].construct_def_entry( m, n, defVal, depth+1 );
+      d_def[d_default].construct_def_entry( m, q, n, defVal, depth+1 );
       //erase redundant entries
       for( unsigned i=0; i<to_erase.size(); i++ ){
         d_def.erase( to_erase[i] );
@@ -120,6 +120,11 @@ void AbsDef::debugPrintUInt( const char * c, unsigned dSize, unsigned u ) const{
   for( unsigned i=0; i<dSize; i++ ){
     Trace(c) << ( ( u & ( 1 << i ) )!=0 ? "1" : "0");
   }
+  //Trace(c) << "(";
+  //for( unsigned i=0; i<32; i++ ){
+  //  Trace(c) << ( ( u & ( 1 << i ) )!=0 ? "1" : "0");
+  //}
+  //Trace(c) << ")";
 }
 
 void AbsDef::debugPrint( const char * c, FirstOrderModelAbs * m, TNode f, unsigned depth ) const{
@@ -257,11 +262,12 @@ void AbsDef::construct_normalize( FirstOrderModelAbs * m, TNode q, std::vector< 
   }
 }
 
-void AbsDef::construct_def_entry( FirstOrderModelAbs * m, TNode n, int v, unsigned depth ) {
+void AbsDef::construct_def_entry( FirstOrderModelAbs * m, TNode q, TNode n, int v, unsigned depth ) {
   d_value = v;
   if( depth<n.getNumChildren() ){
-    unsigned dom = m->d_domain[n[depth].getType()];
-    d_def[dom].construct_def_entry( m, n, v, depth+1 );
+    TypeNode tn = q.isNull() ? n[depth].getType() : m->getVariable( q, depth ).getType();
+    unsigned dom = m->d_domain[tn] ;
+    d_def[dom].construct_def_entry( m, q, n, v, depth+1 );
     d_default = dom;
   }
 }
@@ -556,7 +562,7 @@ bool AbsDef::construct( FirstOrderModelAbs * m, TNode q, TNode n, AbsDef * f,
       for( std::map< unsigned, int >::iterator it = bchildren.begin(); it !=bchildren.end(); ++it ){
         if( ( it->second==0 && n.getKind()==AND ) ||
             ( it->second==1 && n.getKind()==OR ) ){
-          construct_def_entry( m, q[0], it->second );
+          construct_def_entry( m, q, q[0], it->second );
           return true;
         }
       }
@@ -654,11 +660,11 @@ bool AbsDef::isSimple( unsigned n ) {
   return (n & (n - 1))==0;
 }
 
-unsigned AbsDef::getId( unsigned n, unsigned start ) {
+unsigned AbsDef::getId( unsigned n, unsigned start, unsigned end ) {
   Assert( n!=0 );
   while( (n & ( 1 << start )) == 0 ){
     start++;
-    if( start==32 ){
+    if( start==end ){
       return start;
     }
   }
@@ -808,7 +814,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
         Trace("ambqi-model-debug") << "Interpretation of " << f << " : " << std::endl;
         it->second->debugPrint("ambqi-model-debug", fm, fapps[0] );
         Trace("ambqi-model-debug") << "Simplifying " << f << "..." << std::endl;
-        it->second->simplify( fm, fapps[0] );
+        it->second->simplify( fm, TNode::null(), fapps[0] );
         Trace("ambqi-model") << "(Simplified) interpretation of " << f << " : " << std::endl;
         it->second->debugPrint("ambqi-model", fm, fapps[0] );
 
@@ -831,7 +837,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
 
 //do exhaustive instantiation
 bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, int effort ) {
-  Trace("ambqi-check") << "exhaustive instantiation " << q << " " << effort << std::endl;
+  Trace("ambqi-check") << "Exhaustive instantiation " << q << " " << effort << std::endl;
   if (effort==0) {
     FirstOrderModelAbs * fma = fm->asFirstOrderModelAbs();
     bool quantValid = true;
@@ -843,6 +849,7 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
       }
     }
     if( quantValid ){
+      Trace("ambqi-check") << "Compute interpretation..." << std::endl;
       AbsDef ad;
       doCheck( fma, q, ad, q[1] );
       //now process entries
@@ -850,6 +857,7 @@ bool AbsMbqiBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, in
       Trace("ambqi-inst") << "Interpretation of " << q << " is : " << std::endl;
       ad.debugPrint( "ambqi-inst", fma, q[0] );
       Trace("ambqi-inst") << std::endl;
+      Trace("ambqi-check") << "Add instantiations..." << std::endl;
       int lem = 0;
       quantValid = ad.addInstantiations( fma, d_qe, q, lem );
       Trace("ambqi-inst") << "...Added " << lem << " lemmas." << std::endl;
@@ -919,7 +927,7 @@ bool AbsMbqiBuilder::doCheck( FirstOrderModelAbs * m, TNode q, AbsDef & ad, TNod
     }
     Trace("ambqi-check-try") << "Interpretation for " << n << " is : " << std::endl;
     ad.debugPrint("ambqi-check-try", m, q[0] );
-    ad.simplify( m, q[0] );
+    ad.simplify( m, q, q[0] );
     Trace("ambqi-check-debug") << "(Simplified) Interpretation for " << n << " is : " << std::endl;
     ad.debugPrint("ambqi-check-debug", m, q[0] );
     Trace("ambqi-check-debug") << std::endl;

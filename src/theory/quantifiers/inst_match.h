@@ -101,7 +101,7 @@ public:
   /** the data */
   std::map< Node, InstMatchTrie > d_data;
 private:
-  void print( const char * c, Node q, std::vector< Node >& terms ) const;
+  void print( std::ostream& out, Node q, std::vector< Node >& terms ) const;
 public:
   InstMatchTrie(){}
   ~InstMatchTrie(){}
@@ -128,9 +128,9 @@ public:
   }
   bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq = false,
                      bool modInst = false, ImtIndexOrder* imtio = NULL, bool onlyExist = false, int index = 0 );
-  void print( const char * c, Node q ) const{
+  void print( std::ostream& out, Node q ) const{
     std::vector< Node > terms;
-    print( c, q, terms );
+    print( out, q, terms );
   }
 };/* class InstMatchTrie */
 
@@ -142,7 +142,7 @@ public:
   /** is valid */
   context::CDO< bool > d_valid;
 private:
-  void print( const char * c, Node q, std::vector< Node >& terms ) const;
+  void print( std::ostream& out, Node q, std::vector< Node >& terms ) const;
 public:
   CDInstMatchTrie( context::Context* c ) : d_valid( c, false ){}
   ~CDInstMatchTrie(){}
@@ -169,9 +169,9 @@ public:
   }
   bool addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, context::Context* c, bool modEq = false,
                      bool modInst = false, int index = 0, bool onlyExist = false );
-  void print( const char * c, Node q ) const{
+  void print( std::ostream& out, Node q ) const{
     std::vector< Node > terms;
-    print( c, q, terms );
+    print( out, q, terms );
   }
 };/* class CDInstMatchTrie */
 

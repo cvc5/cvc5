@@ -22,7 +22,7 @@
 #include "util/sort_inference.h"
 #include "theory/uf/options.h"
 #include "smt/options.h"
-//#include "theory/rewriter.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4;
 using namespace std;
@@ -172,6 +172,7 @@ bool SortInference::simplify( std::vector< Node >& assertions ){
       std::map< Node, Node > var_bound;
       assertions[i] = simplify( assertions[i], var_bound );
       if( prev!=assertions[i] ){
+        assertions[i] = theory::Rewriter::rewrite( assertions[i] );
         rewritten = true;
         Trace("sort-inference-rewrite") << prev << std::endl;
         Trace("sort-inference-rewrite") << " --> " << assertions[i] << std::endl;
@@ -626,11 +627,13 @@ Node SortInference::mkInjection( TypeNode tn1, TypeNode tn2 ) {
   Trace("sort-inference") << "-> Make injection " << f << " from " << tn1 << " to " << tn2 << std::endl;
   Node v1 = NodeManager::currentNM()->mkBoundVar( "?x", tn1 );
   Node v2 = NodeManager::currentNM()->mkBoundVar( "?y", tn1 );
-  return NodeManager::currentNM()->mkNode( kind::FORALL,
-           NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, v1, v2 ),
-           NodeManager::currentNM()->mkNode( kind::IMPLIES,
-             NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v1 ).eqNode( NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v2 ) ),
-             v1.eqNode( v2 ) ) );
+  Node ret = NodeManager::currentNM()->mkNode( kind::FORALL,
+               NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, v1, v2 ),
+               NodeManager::currentNM()->mkNode( kind::OR,
+                 NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v1 ).eqNode( NodeManager::currentNM()->mkNode( kind::APPLY_UF, f, v2 ) ).negate(),
+                 v1.eqNode( v2 ) ) );
+  ret = theory::Rewriter::rewrite( ret );
+  return ret;
 }
 
 int SortInference::getSortId( Node n ) {

@@ -102,7 +102,8 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   if (!d_rep_set.hasType(tn)) {
     Trace("fmc-model-debug") << "Must create domain element for " << tn << "..." << std::endl;
     Node mbt = d_qe->getTermDatabase()->getModelBasisTerm(tn);
-    d_rep_set.add(mbt);
+    Trace("fmc-model-debug") << "Add to representative set..." << std::endl;
+    d_rep_set.add(tn, mbt);
   }else if( d_rep_set.d_type_reps[tn].size()==0 ){
     Message() << "empty reps" << std::endl;
     exit(0);
@@ -986,7 +987,7 @@ void FirstOrderModelAbs::collectEqVars( TNode q, TNode n, std::map< int, bool >&
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n.getKind()==EQUAL && n[i].getKind()==BOUND_VARIABLE ){
       int v = getVariableId( q, n[i] );
-      Assert( v>=0 && v<q.getNumChildren() );
+      Assert( v>=0 && v<(int)q[0].getNumChildren() );
       eq_vars[v] = true;
     }
     collectEqVars( q, n[i], eq_vars );

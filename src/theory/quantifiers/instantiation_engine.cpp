@@ -210,7 +210,7 @@ void InstantiationEngine::check( Theory::Effort e ){
     }
     ++(d_statistics.d_instantiation_rounds);
     bool quantActive = false;
-    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size"
+    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size="
                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );

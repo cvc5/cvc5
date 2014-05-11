@@ -61,7 +61,7 @@ bool EntryTrie::hasGeneralization( FirstOrderModelFmc * m, Node c, int index ) {
         return true;
       }
     }
-    if( options::mbqiMode()!=quantifiers::MBQI_FMC_INTERVAL || !c[index].getType().isInteger() ){
+    if( c[index].getType().isSort() ){
       //for star: check if all children are defined and have generalizations
       if( c[index]==st ){     ///options::fmfFmcCoverSimplify()
         //check if all children exist and are complete
@@ -537,7 +537,9 @@ void FullModelChecker::initializeType( FirstOrderModelFmc * fm, TypeNode tn ){
     }else{
       mbn = d_qe->getTermDatabase()->getModelBasisTerm(tn);
     }
+    Trace("fmc") << "Get used rep for " << mbn << std::endl;
     Node mbnr = fm->getUsedRepresentative( mbn );
+    Trace("fmc") << "...got  " << mbnr << std::endl;
     fm->d_model_basis_rep[tn] = mbnr;
     Trace("fmc") << "Add model basis for type " << tn << " : " << mbn << " " << mbnr << std::endl;
   }

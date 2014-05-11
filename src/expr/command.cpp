@@ -1055,7 +1055,7 @@ GetInstantiationsCommand::GetInstantiationsCommand() throw() {
 
 void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    smtEngine->printInstantiations();
+    d_smtEngine = smtEngine;
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -1070,19 +1070,21 @@ void GetInstantiationsCommand::printResult(std::ostream& out, uint32_t verbosity
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    //d_result->toStream(out);
+    d_smtEngine->printInstantiations(out);
   }
 }
 
 Command* GetInstantiationsCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   GetInstantiationsCommand* c = new GetInstantiationsCommand();
   //c->d_result = d_result;
+  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 Command* GetInstantiationsCommand::clone() const {
   GetInstantiationsCommand* c = new GetInstantiationsCommand();
   //c->d_result = d_result;
+  c->d_smtEngine = d_smtEngine;
   return c;
 }
 

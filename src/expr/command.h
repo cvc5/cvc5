@@ -578,6 +578,7 @@ public:
 class CVC4_PUBLIC GetInstantiationsCommand : public Command {
 protected:
   //Instantiations* d_result;
+  SmtEngine* d_smtEngine;
 public:
   GetInstantiationsCommand() throw();
   ~GetInstantiationsCommand() throw() {}

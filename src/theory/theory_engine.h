@@ -759,6 +759,11 @@ public:
   Node getModelValue(TNode var);
 
   /**
+   * Print all instantiations made by the quantifiers module.
+   */
+  void printInstantiations( std::ostream& out );
+
+  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */

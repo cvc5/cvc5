@@ -236,7 +236,7 @@ public:
   eq::EqualityEngine* getMasterEqualityEngine() ;
 public:
   /** print instantiations */
-  void printInstantiations( const char * c );
+  void printInstantiations( std::ostream& out );
   /** statistics class */
   class Statistics {
   public:

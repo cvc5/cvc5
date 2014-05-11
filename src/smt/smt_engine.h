@@ -500,7 +500,7 @@ public:
   /**
    * Print all instantiations made by the quantifiers module.
    */
-  void printInstantiations();
+  void printInstantiations( std::ostream& out );
 
   /**
    * Get the current set of assertions.  Only permitted if the

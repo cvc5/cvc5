@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file model_format_mode.h
+/*! \file modes.h
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Andrew Reynolds
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PRINTER__MODEL_FORMAT_MODE_H
-#define __CVC4__PRINTER__MODEL_FORMAT_MODE_H
+#ifndef __CVC4__PRINTER__MODES_H
+#define __CVC4__PRINTER__MODES_H
 
 #include <iostream>
 
@@ -32,7 +32,16 @@ typedef enum {
   MODEL_FORMAT_MODE_TABLE,
 } ModelFormatMode;
 
+/** Enumeration of inst_format modes (how to print models from get-model command). */
+typedef enum {
+  /** default mode (print expressions in the output language format) */
+  INST_FORMAT_MODE_DEFAULT,
+  /** print as SZS proof */
+  INST_FORMAT_MODE_SZS,
+} InstFormatMode;
+
 std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, InstFormatMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

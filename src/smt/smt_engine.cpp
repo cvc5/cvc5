@@ -86,6 +86,7 @@
 #include "theory/quantifiers/options.h"
 #include "theory/datatypes/options.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "printer/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -2898,8 +2899,9 @@ void SmtEnginePrivate::processAssertions() {
         Trace("quantifiers-rewrite-debug") << "Pre-skolemize " << prev << "..." << std::endl;
         vector< TypeNode > fvTypes;
         vector< TNode > fvs;
-        d_assertionsToPreprocess[i] = Rewriter::rewrite( quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs ) );
+        d_assertionsToPreprocess[i] = quantifiers::QuantifiersRewriter::preSkolemizeQuantifiers( prev, true, fvTypes, fvs );
         if( prev!=d_assertionsToPreprocess[i] ){
+          d_assertionsToPreprocess[i] = Rewriter::rewrite( d_assertionsToPreprocess[i] );
           Trace("quantifiers-rewrite") << "*** Pre-skolemize " << prev << endl;
           Trace("quantifiers-rewrite") << "   ...got " << d_assertionsToPreprocess[i] << endl;
         }
@@ -3792,8 +3794,16 @@ Proof* SmtEngine::getProof() throw(ModalException) {
 #endif /* CVC4_PROOF */
 }
 
-void SmtEngine::printInstantiations() {
-  //TODO
+void SmtEngine::printInstantiations( std::ostream& out ) {
+  //if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  out << "% SZS CNF output start CNFRefutation for " << d_filename.c_str() << std::endl;
+  //}
+  if( d_theoryEngine ){
+    d_theoryEngine->printInstantiations( out );
+  }
+  //if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  out << "% SZS CNF output end CNFRefutation for " << d_filename.c_str() << std::endl;
+  //}
 }
 
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {

@@ -101,7 +101,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       Command* gp = new GetProofCommand();
       status = doCommandSingleton(gp);
     } else if( d_options[options::dumpInstantiations] &&
-               d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+               res.asSatisfiabilityResult() == Result::UNSAT ) {
       Command* gi = new GetInstantiationsCommand();
       status = doCommandSingleton(gi);
     }
