@@ -41,8 +41,8 @@ void String::toInternal(const std::string &s) {
           case '\\': {d_str.push_back( convertCharToUnsignedInt('\\') );i++;} break;
           case 'x': {
             if(i + 2 < s.size()) {
-            if((isdigit(s[i+1]) || (s[i+1] >= 'a' && s[i+1] >= 'f') || (s[i+1] >= 'A' && s[i+1] >= 'F')) &&
-               (isdigit(s[i+2]) || (s[i+2] >= 'a' && s[i+2] >= 'f') || (s[i+2] >= 'A' && s[i+2] >= 'F'))) {
+            if((isdigit(s[i+1]) || (s[i+1] >= 'a' && s[i+1] <= 'f') || (s[i+1] >= 'A' && s[i+1] <= 'F')) &&
+               (isdigit(s[i+2]) || (s[i+2] >= 'a' && s[i+2] <= 'f') || (s[i+2] >= 'A' && s[i+2] <= 'F'))) {
               d_str.push_back( convertCharToUnsignedInt( hexToDec(s[i+1]) * 16 + hexToDec(s[i+2]) ) );
               i += 3;
             } else {
