@@ -813,9 +813,23 @@ private:
     HistogramStat<uint32_t> d_unsatPivots;
     HistogramStat<uint32_t> d_unknownPivots;
 
+
+    IntStat d_solveIntModelsAttempts;
+    IntStat d_solveIntModelsSuccessful;
+    TimerStat d_mipTimer;
+    TimerStat d_lpTimer;
+
+    IntStat d_mipProofsAttempted;
+    IntStat d_mipProofsSuccessful;
+
+    IntStat d_numBranchesFailed;
+
+
+
     Statistics();
     ~Statistics();
   };
+
 
   Statistics d_statistics;
 
