@@ -148,4 +148,7 @@ option soiApproxMinorFailure --replay-soi-minor-threshold double :default .0001
 option soiApproxMinorFailurePen --replay-soi-minor-threshold-pen int :default 10
  threshold for a minor tolerance failure by the approximate solver
 
+option ppAssertMaxSubSize --pp-assert-max-sub-size unsigned :default 2
+ threshold threshold for substituting an equality in ppAssert
+
 endmodule

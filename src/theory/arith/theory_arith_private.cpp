@@ -291,48 +291,55 @@ TheoryArithPrivate::Statistics::Statistics()
   , d_revertsOnConflicts("theory::arith::status::revertsOnConflicts",0)
   , d_commitsOnConflicts("theory::arith::status::commitsOnConflicts",0)
   , d_nontrivialSatChecks("theory::arith::status::nontrivialSatChecks",0)
-  , d_replayLogRecCount("z::approx::replay::rec",0)
-  , d_replayLogRecConflictEscalation("z::approx::replay::rec::escalation",0)
-  , d_replayLogRecEarlyExit("z::approx::replay::rec::earlyexit",0)
-  , d_replayBranchCloseFailures("z::approx::replay::rec::branch::closefailures",0)
-  , d_replayLeafCloseFailures("z::approx::replay::rec::leaf::closefailures",0)
-  , d_replayBranchSkips("z::approx::replay::rec::branch::skips",0)
-  , d_mirCutsAttempted("z::approx::cuts::mir::attempted",0)
-  , d_gmiCutsAttempted("z::approx::cuts::gmi::attempted",0)
-  , d_branchCutsAttempted("z::approx::cuts::branch::attempted",0)
-  , d_cutsReconstructed("z::approx::cuts::reconstructed",0)
-  , d_cutsReconstructionFailed("z::approx::cuts::reconstructed::failed",0)
-  , d_cutsProven("z::approx::cuts::proofs",0)
-  , d_cutsProofFailed("z::approx::cuts::proofs::failed",0)
-  , d_mipReplayLemmaCalls("z::approx::external::calls",0)
-  , d_mipExternalCuts("z::approx::external::cuts",0)
-  , d_mipExternalBranch("z::approx::external::branches",0)
-  , d_inSolveInteger("z::approx::inSolverInteger",0)
-  , d_branchesExhausted("z::approx::exhausted::branches",0)
-  , d_execExhausted("z::approx::exhausted::exec",0)
-  , d_pivotsExhausted("z::approx::exhausted::pivots",0)
-  , d_panicBranches("z::arith::paniclemmas",0)
-  , d_relaxCalls("z::arith::relax::calls",0)
-  , d_relaxLinFeas("z::arith::relax::feasible::res",0)
-  , d_relaxLinFeasFailures("z::arith::relax::feasible::failures",0)
-  , d_relaxLinInfeas("z::arith::relax::infeasible",0)
-  , d_relaxLinInfeasFailures("z::arith::relax::infeasible::failures",0)
-  , d_relaxLinExhausted("z::arith::relax::exhausted",0)
-  , d_relaxOthers("z::arith::relax::other",0)
-  , d_applyRowsDeleted("z::arith::cuts::applyRowsDeleted",0)
-  , d_replaySimplexTimer("z::approx::replay::simplex::timer")
-  , d_replayLogTimer("z::approx::replay::log::timer")
-  , d_solveIntTimer("z::solveInt::timer")
-  , d_solveRealRelaxTimer("z::solveRealRelax::timer")
-  , d_solveIntCalls("z::solveInt::calls", 0)
-  , d_solveStandardEffort("z::solveInt::calls::standardEffort", 0)
-  , d_approxDisabled("z::approxDisabled", 0)
-  , d_replayAttemptFailed("z::replayAttemptFailed",0)
-  , d_cutsRejectedDuringReplay("z::approx::replay::cuts::rejected", 0)
-  , d_cutsRejectedDuringLemmas("z::approx::external::cuts::rejected", 0)
-  , d_satPivots("pivots::sat")
-  , d_unsatPivots("pivots::unsat")
-  , d_unknownPivots("pivots::unkown")
+  , d_replayLogRecCount("theory::arith::z::approx::replay::rec",0)
+  , d_replayLogRecConflictEscalation("theory::arith::z::approx::replay::rec::escalation",0)
+  , d_replayLogRecEarlyExit("theory::arith::z::approx::replay::rec::earlyexit",0)
+  , d_replayBranchCloseFailures("theory::arith::z::approx::replay::rec::branch::closefailures",0)
+  , d_replayLeafCloseFailures("theory::arith::z::approx::replay::rec::leaf::closefailures",0)
+  , d_replayBranchSkips("theory::arith::z::approx::replay::rec::branch::skips",0)
+  , d_mirCutsAttempted("theory::arith::z::approx::cuts::mir::attempted",0)
+  , d_gmiCutsAttempted("theory::arith::z::approx::cuts::gmi::attempted",0)
+  , d_branchCutsAttempted("theory::arith::z::approx::cuts::branch::attempted",0)
+  , d_cutsReconstructed("theory::arith::z::approx::cuts::reconstructed",0)
+  , d_cutsReconstructionFailed("theory::arith::z::approx::cuts::reconstructed::failed",0)
+  , d_cutsProven("theory::arith::z::approx::cuts::proofs",0)
+  , d_cutsProofFailed("theory::arith::z::approx::cuts::proofs::failed",0)
+  , d_mipReplayLemmaCalls("theory::arith::z::approx::external::calls",0)
+  , d_mipExternalCuts("theory::arith::z::approx::external::cuts",0)
+  , d_mipExternalBranch("theory::arith::z::approx::external::branches",0)
+  , d_inSolveInteger("theory::arith::z::approx::inSolverInteger",0)
+  , d_branchesExhausted("theory::arith::z::approx::exhausted::branches",0)
+  , d_execExhausted("theory::arith::z::approx::exhausted::exec",0)
+  , d_pivotsExhausted("theory::arith::z::approx::exhausted::pivots",0)
+  , d_panicBranches("theory::arith::z::arith::paniclemmas",0)
+  , d_relaxCalls("theory::arith::z::arith::relax::calls",0)
+  , d_relaxLinFeas("theory::arith::z::arith::relax::feasible::res",0)
+  , d_relaxLinFeasFailures("theory::arith::z::arith::relax::feasible::failures",0)
+  , d_relaxLinInfeas("theory::arith::z::arith::relax::infeasible",0)
+  , d_relaxLinInfeasFailures("theory::arith::z::arith::relax::infeasible::failures",0)
+  , d_relaxLinExhausted("theory::arith::z::arith::relax::exhausted",0)
+  , d_relaxOthers("theory::arith::z::arith::relax::other",0)
+  , d_applyRowsDeleted("theory::arith::z::arith::cuts::applyRowsDeleted",0)
+  , d_replaySimplexTimer("theory::arith::z::approx::replay::simplex::timer")
+  , d_replayLogTimer("theory::arith::z::approx::replay::log::timer")
+  , d_solveIntTimer("theory::arith::z::solveInt::timer")
+  , d_solveRealRelaxTimer("theory::arith::z::solveRealRelax::timer")
+  , d_solveIntCalls("theory::arith::z::solveInt::calls", 0)
+  , d_solveStandardEffort("theory::arith::z::solveInt::calls::standardEffort", 0)
+  , d_approxDisabled("theory::arith::z::approxDisabled", 0)
+  , d_replayAttemptFailed("theory::arith::z::replayAttemptFailed",0)
+  , d_cutsRejectedDuringReplay("theory::arith::z::approx::replay::cuts::rejected", 0)
+  , d_cutsRejectedDuringLemmas("theory::arith::z::approx::external::cuts::rejected", 0)
+  , d_satPivots("theory::arith::pivots::sat")
+  , d_unsatPivots("theory::arith::pivots::unsat")
+  , d_unknownPivots("theory::arith::pivots::unkown")
+  , d_solveIntModelsAttempts("theory::arith::z::solveInt::models::attempts", 0)
+  , d_solveIntModelsSuccessful("zzz::solveInt::models::successful", 0)
+  , d_mipTimer("theory::arith::z::approx::mip::timer")
+  , d_lpTimer("theory::arith::z::approx::lp::timer")
+  , d_mipProofsAttempted("theory::arith::z::mip::proofs::attempted", 0)
+  , d_mipProofsSuccessful("theory::arith::z::mip::proofs::successful", 0)
+  , d_numBranchesFailed("theory::arith::z::mip::branch::proof::failed", 0)
 {
   StatisticsRegistry::registerStat(&d_statAssertUpperConflicts);
   StatisticsRegistry::registerStat(&d_statAssertLowerConflicts);
@@ -417,6 +424,13 @@ TheoryArithPrivate::Statistics::Statistics()
   StatisticsRegistry::registerStat(&d_cutsRejectedDuringReplay);
   StatisticsRegistry::registerStat(&d_cutsRejectedDuringLemmas);
 
+  StatisticsRegistry::registerStat(&d_solveIntModelsAttempts);
+  StatisticsRegistry::registerStat(&d_solveIntModelsSuccessful);
+  StatisticsRegistry::registerStat(&d_mipTimer);
+  StatisticsRegistry::registerStat(&d_lpTimer);
+  StatisticsRegistry::registerStat(&d_mipProofsAttempted);
+  StatisticsRegistry::registerStat(&d_mipProofsSuccessful);
+  StatisticsRegistry::registerStat(&d_numBranchesFailed);
 }
 
 TheoryArithPrivate::Statistics::~Statistics(){
@@ -502,6 +516,15 @@ TheoryArithPrivate::Statistics::~Statistics(){
 
   StatisticsRegistry::unregisterStat(&d_cutsRejectedDuringReplay);
   StatisticsRegistry::unregisterStat(&d_cutsRejectedDuringLemmas);
+
+
+  StatisticsRegistry::unregisterStat(&d_solveIntModelsAttempts);
+  StatisticsRegistry::unregisterStat(&d_solveIntModelsSuccessful);
+  StatisticsRegistry::unregisterStat(&d_mipTimer);
+  StatisticsRegistry::unregisterStat(&d_lpTimer);
+  StatisticsRegistry::unregisterStat(&d_mipProofsAttempted);
+  StatisticsRegistry::unregisterStat(&d_mipProofsSuccessful);
+  StatisticsRegistry::unregisterStat(&d_numBranchesFailed);
 }
 
 bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
@@ -1232,8 +1255,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       Assert(elim == Rewriter::rewrite(elim));
 
 
-      static const unsigned MAX_SUB_SIZE = 20;
-      if(right.size() > MAX_SUB_SIZE){
+      if(right.size() > options::ppAssertMaxSubSize()){
         Debug("simplify") << "TheoryArithPrivate::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
       }else if(elim.hasSubterm(minVar)){
@@ -2089,6 +2111,8 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   TimerStat::CodeTimer codeTimer(d_statistics.d_replayLogTimer);
 
+  ++d_statistics.d_mipProofsAttempted;
+
   Assert(d_replayVariables.empty());
   Assert(d_replayConstraints.empty());
 
@@ -2114,7 +2138,10 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   }
   if(res.empty()){
     ++d_statistics.d_replayAttemptFailed;
+  }else{
+    ++d_statistics.d_mipProofsSuccessful;
   }
+
   if(d_currentPropagationList.size() > enteringPropN){
     d_currentPropagationList.resize(enteringPropN);
   }
@@ -2467,6 +2494,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         tryBranchCut(approx, nid, *bci);
 
         ++d_statistics.d_branchCutsAttempted;
+        if(!(conflictQueueEmpty() || ci->reconstructed())){
+          ++d_statistics.d_numBranchesFailed;
+        }
       }else{
         approx->tryCut(nid, *ci);
         if(ci->getKlass() == GmiCutKlass){
@@ -2887,12 +2917,19 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     approx->setBranchOnVariableLimit(100);
     LinResult relaxRes = approx->solveRelaxation();
     if( relaxRes == LinFeasible ){
-      MipResult mipRes = approx->solveMIP(false);
+      MipResult mipRes = MipUnknown;
+      {
+        TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+        mipRes = approx->solveMIP(false);
+      }
+
       Debug("arith::solveInteger") << "mipRes " << mipRes << endl;
       switch(mipRes) {
       case MipBingo:
         // attempt the solution
         {
+          ++(d_statistics.d_solveIntModelsAttempts);
+
           d_partialModel.stopQueueingBoundCounts();
           UpdateTrackingCallback utcb(&d_linEq);
           d_partialModel.processBoundsQueue(utcb);
@@ -2903,6 +2940,14 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
           importSolution(mipSolution);
           solveRelaxationOrPanic(effortLevel);
 
+          if(d_qflraStatus == Result::SAT){
+            if(!anyConflict()){
+              if(ARITHVAR_SENTINEL == nextIntegerViolatation(false)){
+                ++(d_statistics.d_solveIntModelsSuccessful);
+              }
+            }
+          }
+
           // shutdown simplex
           d_linEq.stopTrackingBoundCounts();
           d_partialModel.startQueueingBoundCounts();
@@ -2911,7 +2956,11 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
       case MipClosed:
         /* All integer branches closed */
         approx->setPivotLimit(2*mipLimit);
-        mipRes = approx->solveMIP(true);
+        {
+          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          mipRes = approx->solveMIP(true);
+        }
+
         if(mipRes == MipClosed){
           d_likelyIntegerInfeasible = true;
           replayLog(approx);
@@ -2933,7 +2982,10 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
 
         approx->setPivotLimit(2*mipLimit);
         approx->setBranchingDepth(2);
-        mipRes = approx->solveMIP(true);
+        {
+          TimerStat::CodeTimer codeTimer(d_statistics.d_mipTimer);
+          mipRes = approx->solveMIP(true);
+        }
         replayLemmas(approx);
         break;
       case MipUnknown:
@@ -3076,7 +3128,11 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     ++d_statistics.d_relaxCalls;
 
     ApproximateSimplex::Solution relaxSolution;
-    LinResult relaxRes = approxSolver->solveRelaxation();
+    LinResult relaxRes = LinUnknown;
+    {
+      TimerStat::CodeTimer codeTimer(d_statistics.d_lpTimer);
+      relaxRes = approxSolver->solveRelaxation();
+    }
     try{
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
       switch(relaxRes){
@@ -4967,7 +5023,8 @@ bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational
   if(!Polynomial::isMember(t)){
     return false;
   }
-#warning "DO NOT LET INTO TRUNK!"
+
+  // TODO Speed up
   ContainsTermITEVisitor ctv;
   if(ctv.containsTermITE(t)){
     return false;
