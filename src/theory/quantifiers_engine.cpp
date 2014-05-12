@@ -266,7 +266,6 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 }
 
 void QuantifiersEngine::assertNode( Node f ){
-  Assert( f.getKind()==FORALL );
   d_model->assertQuantifier( f );
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->assertNode( f );

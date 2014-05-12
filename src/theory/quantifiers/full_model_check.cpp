@@ -679,6 +679,9 @@ bool FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, 
                 if( d_qe->addInstantiation( f, inst ) ){
                   Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
                   d_addedLemmas++;
+                  if( options::fmfOneInstPerRound() ){
+                    break;
+                  }
                 }else{
                   Trace("fmc-debug-inst") << "** Instantiation was duplicate." << std::endl;
                   //this can happen if evaluation is unknown
@@ -796,6 +799,9 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         if( d_qe->addInstantiation( f, inst ) ){
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
+          if( options::fmfOneInstPerRound() ){
+            break;
+          }
         }else{
           Trace("fmc-exh-debug") << ", failed.";
         }

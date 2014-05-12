@@ -38,9 +38,13 @@ d_qe( qe ), d_axiom_asserted( c, false ), d_forall_asserts( c ), d_isModelSet( c
 }
 
 void FirstOrderModel::assertQuantifier( Node n ){
-  d_forall_asserts.push_back( n );
-  if( n.getAttribute(AxiomAttribute()) ){
-    d_axiom_asserted = true;
+  if( n.getKind()==FORALL ){
+    d_forall_asserts.push_back( n );
+    if( n.getAttribute(AxiomAttribute()) ){
+      d_axiom_asserted = true;
+    }
+  }else if( n.getKind()==NOT ){
+    Assert( n[0].getKind()==FORALL );
   }
 }
 
