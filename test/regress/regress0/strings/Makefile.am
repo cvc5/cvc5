@@ -20,6 +20,7 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
   at001.smt2 \
+  bug001.smt2 \
   cardinality.smt2 \
   escchar.smt2 \
   str001.smt2 \
