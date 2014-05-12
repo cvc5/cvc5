@@ -267,6 +267,7 @@ protected:
   void computeCareGraph();
 
   //do pending merges
+  void assertPendingFact(Node fact, Node exp);
   void doPendingFacts();
   void doPendingLemmas();
 

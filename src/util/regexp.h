@@ -63,9 +63,10 @@ private:
   char hexToDec(char c) {
     if(isdigit(c)) {
       return c - '0';
-    } else if (c >= 'a' && c >= 'f') {
+    } else if (c >= 'a' && c <= 'f') {
       return c - 'a' + 10;
     } else {
+      //Assert(c >= 'A' && c <= 'F');
       return c - 'A' + 10;
     }
   }
