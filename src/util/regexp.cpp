@@ -41,15 +41,14 @@ void String::toInternal(const std::string &s) {
           case '\\': {d_str.push_back( convertCharToUnsignedInt('\\') );i++;} break;
           case 'x': {
             if(i + 2 < s.size()) {
-            if((isdigit(s[i+1]) || (s[i+1] >= 'a' && s[i+1] <= 'f') || (s[i+1] >= 'A' && s[i+1] <= 'F')) &&
-               (isdigit(s[i+2]) || (s[i+2] >= 'a' && s[i+2] <= 'f') || (s[i+2] >= 'A' && s[i+2] <= 'F'))) {
-              d_str.push_back( convertCharToUnsignedInt( hexToDec(s[i+1]) * 16 + hexToDec(s[i+2]) ) );
-              i += 3;
+              if(isxdigit(s[i+1]) && isxdigit(s[i+2])) {
+                d_str.push_back( convertCharToUnsignedInt( hexToDec(s[i+1]) * 16 + hexToDec(s[i+2]) ) );
+                i += 3;
+              } else {
+                throw CVC4::Exception( "Illegal String Literal: \"" + s + "\"" );
+              }
             } else {
-              throw CVC4::Exception( "Error String Literal: \"" + s + "\"" );
-            }
-            } else {
-            throw CVC4::Exception( "Error String Literal: \"" + s + "\"" );
+              throw CVC4::Exception( "Illegal String Literal: \"" + s + "\", must have two digits after \\x" );
             }
           }
           break;
@@ -71,6 +70,8 @@ void String::toInternal(const std::string &s) {
                 d_str.push_back( convertCharToUnsignedInt((char)num) );
                 i++;
               }
+            } else if((unsigned)s[i] > 127) {
+              throw CVC4::Exception( "Illegal String Literal: \"" + s + "\", must use escaped sequence" );
             } else {
               d_str.push_back( convertCharToUnsignedInt(s[i]) );
               i++;
@@ -81,6 +82,8 @@ void String::toInternal(const std::string &s) {
         throw CVC4::Exception( "should be handled by lexer: \"" + s + "\"" );
         //d_str.push_back( convertCharToUnsignedInt('\\') );
       }
+    } else if((unsigned)s[i] > 127) {
+      throw CVC4::Exception( "Illegal String Literal: \"" + s + "\", must use escaped sequence" );
     } else {
       d_str.push_back( convertCharToUnsignedInt(s[i]) );
       i++;
