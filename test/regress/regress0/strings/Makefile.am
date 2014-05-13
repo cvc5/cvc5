@@ -47,7 +47,8 @@ TESTS =	\
   loop007.smt2 \
   loop008.smt2 \
   loop009.smt2 \
-  reloop.smt2
+  reloop.smt2 \
+  artemis-0512-nonterm.smt2
 
 FAILING_TESTS =
 

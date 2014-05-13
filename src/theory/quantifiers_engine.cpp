@@ -91,14 +91,14 @@ d_lemmas_produced_c(u){
     d_inst_engine = NULL;
   }
   if( options::finiteModelFind()  ){
-    d_model_engine = new quantifiers::ModelEngine( c, this );
-    d_modules.push_back( d_model_engine );
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
     }else{
       d_bint = NULL;
     }
+    d_model_engine = new quantifiers::ModelEngine( c, this );
+    d_modules.push_back( d_model_engine );
   }else{
     d_model_engine = NULL;
     d_bint = NULL;
