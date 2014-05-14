@@ -623,19 +623,18 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
-  //Trace("ajr-temp") << "QE print inst." << std::endl;
-  //if( options::incrementalSolving() ){
-  //  for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
-  //    out << "Instantiations of " << it->first << " : " << std::endl;
-  //    it->second->print( out, it->first );
-  //  }
-  //}else{
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      out << "Instantiations of " << it->first << " : " << std::endl;
+      it->second->print( out, it->first );
+    }
+  }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
       out << "Instantiations of " << it->first << " : " << std::endl;
       it->second.print( out, it->first );
       out << std::endl;
     }
-  //}
+  }
 }
 
 QuantifiersEngine::Statistics::Statistics():
