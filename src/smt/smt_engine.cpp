@@ -3803,13 +3803,13 @@ Proof* SmtEngine::getProof() throw(ModalException) {
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
-    out << "% SZS CNF output start CNFRefutation for " << d_filename.c_str() << std::endl;
+    out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
   }
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
-    out << "% SZS CNF output end CNFRefutation for " << d_filename.c_str() << std::endl;
+    out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
   }
 }
 

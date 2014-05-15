@@ -1,0 +1,82 @@
+#!/bin/bash
+
+cvc4=./cvc4
+bench="$1"
+
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+
+# use: trywith [params..]
+# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
+# which case this run script terminates immediately.  Otherwise, this
+# function returns normally.
+function trywith {
+  result="$($cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench)"
+  case "$result" in
+    sat|unsat) echo "$result"; exit 0;;
+  esac
+}
+
+# use: finishwith [params..]
+# to run cvc4 and let it output whatever it will to stdout.
+function finishwith {
+  $cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench
+}
+
+case "$logic" in
+
+QF_LRA)
+  finishwith --no-restrict-pivots --enable-miplib-trick --miplib-trick-subs=2 --fc-penalties --collect-pivot-stats --use-soi --new-prop --dio-decomps --unconstrained-simp --fancy-final
+  ;;
+AUFLIA|AUFLIRA|AUFNIRA|UFLRA|UFNIA)
+  # the following is designed for a run time of 1500s.
+  # initial runs
+  trywith 20 --simplification=none --decision=internal --full-saturate-quant
+  trywith 20 --quant-cf --pre-skolem-quant --full-saturate-quant
+  trywith 20 --finite-model-find --mbqi=none
+  # more runs...
+  trywith 30 --relevant-triggers --full-saturate-quant
+  trywith 30 --quant-cf --qcf-tconstraint --inst-when=last-call --full-saturate-quant
+  trywith 30 --finite-model-find --mbqi=gen-ev --uf-ss-totality
+  trywith 30 --disable-prenex-quant --full-saturate-quant
+  trywith 20 --simplification=none --decision=internal --pre-skolem-quant --full-saturate-quant
+  trywith 20 --quant-cf --quant-cf-mode=conflict --full-saturate-quant
+  trywith 20 --fmf-bound-int --macros-quant
+  # medium runs (2 min per)
+  trywith 120 --decision=justification-stoponly --full-saturate-quant
+  trywith 120 --quant-cf --qcf-tconstraint --full-saturate-quant
+  trywith 120 --finite-model-find --fmf-inst-engine --sort-inference --uf-ss-fair --mbqi=gen-ev
+  # last call runs (5 min per)
+  trywith 300 --full-saturate-quant
+  trywith 300 --finite-model-find --sort-inference --uf-ss-fair 
+  finishwith --quant-cf --full-saturate-quant
+  ;;
+LRA)
+  trywith 20 --enable-cbqi --full-saturate-quant
+  trywith 20 --full-saturate-quant
+  trywith 20 --cbqi-recurse --full-saturate-quant
+  trywith 30 --quant-cf --full-saturate-quant
+  trywith 60 --quant-cf --qcf-tconstraint --full-saturate-quant
+  trywith 120 --cbqi-recurse --disable-prenex-quant --full-saturate-quant
+  finishwith --cbqi-recurse --pre-skolem-quant --full-saturate-quant
+  ;;
+QF_AUFBV)
+  trywith --tlimit-per=600000
+  finishwith --decision=justification-stoponly
+  ;;
+QF_BV)
+  trywith --bv-core --decision=justification --tlimit-per=10000
+  trywith --decision=justification --tlimit-per=60000
+  trywith --decision=internal --bitblast-eager --tlimit-per=600000
+  finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  ;;
+QF_AX)
+  trywith --tlimit-per=2000
+  finishwith --no-arrays-model-based
+  ;;
+*)
+  # just run the default
+  finishwith
+  ;;
+
+esac
+

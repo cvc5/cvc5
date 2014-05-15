@@ -6,7 +6,7 @@ bench="$1"
 file=${bench##*/}
 filename=${file%.*}
 
-echo "------- cvc4-tff $bench at $2..."
+echo "------- cvc4-tff casc j7 : $bench at $2..."
 
 # use: trywith [params..]
 # to attempt a run.  If an SZS ontology result is printed, then
@@ -24,7 +24,7 @@ function trywith {
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
 function finishwith {
-  echo "--- Run $@ at $limit...";
+  echo "--- Run $@...";
   $cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs "$@" $bench
 }
 
