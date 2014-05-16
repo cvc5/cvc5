@@ -1141,7 +1141,7 @@ Expr *run_code(Expr *_e) {
     if (!r1)
       return NULL;
 
-    bool cond;
+    bool cond = true;
     if( r1->getclass() == INT_EXPR ){
       if( e->getop() == IFNEG )
         cond = mpz_sgn( ((IntExpr *)r1)->n )<0;
@@ -1244,7 +1244,7 @@ Expr *run_code(Expr *_e) {
     vector<Expr *> args;
     Expr *hd = scrut->collect_args(args);
     Expr **cases = &e->kids[1];
-    CExpr *c;
+    // CExpr *c;
     Expr *c_or_default;
     while ((c_or_default = *cases++)) {
 
