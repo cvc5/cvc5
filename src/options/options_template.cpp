@@ -570,7 +570,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }
 
-  return didYouMean.getMatchAsString(optionName);
+  return didYouMean.getMatchAsString(optionName.substr(0, optionName.find('=')));
 }
 
 static const char* smtOptions[] = {

@@ -100,13 +100,19 @@ inline InputLanguage stringToInputLanguage(std::string option, std::string optar
   Unreachable();
 }
 
-inline std::string suggestTags(char const* const* validTags, std::string inputTag)
+inline std::string suggestTags(char const* const* validTags, std::string inputTag,
+                               char const* const* additionalTags = NULL)
 {
   DidYouMean didYouMean;
 
   const char* opt;
   for(size_t i = 0; (opt = validTags[i]) != NULL; ++i) {
     didYouMean.addWord(validTags[i]);
+  }
+  if(additionalTags != NULL) {
+    for(size_t i = 0; (opt = additionalTags[i]) != NULL; ++i) {
+      didYouMean.addWord(additionalTags[i]);
+    }
   }
 
   return  didYouMean.getMatchAsString(inputTag);
@@ -130,7 +136,7 @@ inline void addDebugTag(std::string option, std::string optarg, SmtEngine* smt) 
        !Configuration::isTraceTag(optarg.c_str())) {
       throw OptionException(std::string("debug tag ") + optarg +
                             std::string(" not available.") +
-                            suggestTags(Configuration::getDebugTags(), optarg) );
+                            suggestTags(Configuration::getDebugTags(), optarg, Configuration::getTraceTags()) );
     }
   } else if(! Configuration::isDebugBuild()) {
     throw OptionException("debug tags not available in non-debug builds");
