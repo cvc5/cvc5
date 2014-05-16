@@ -29,7 +29,7 @@
 namespace CVC4 {
 namespace theory {
 
-class TheoryRegistrar: public prop::Registrar {
+class TheoryRegistrar : public prop::Registrar {
 private:
   TheoryEngine* d_theoryEngine;
 
