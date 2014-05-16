@@ -70,8 +70,8 @@ Node TheoryModel::getValue(TNode n) const {
     //normalize
     nn = Rewriter::rewrite(nn);
   }
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ):  returning"
-                          << nn << std::endl;
+  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
+                          << "[model-getvalue] returning " << nn << std::endl;
   return nn;
 }
 

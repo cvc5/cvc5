@@ -201,12 +201,13 @@ const Elements& collectConstantElements(TNode setterm, SettermElementsMap& sette
         break;
       case kind::SET_SINGLETON:
         Assert(setterm[0].isConst());
-        cur.insert(setterm[0]);
+        cur.insert(TheorySetsRewriter::preRewrite(setterm[0]).node);
         break;
       default:
         Unhandled();
       }
     }
+    Debug("sets-rewrite-constant") << "[sets-rewrite-constant] "<< setterm << " " << setterm.getId() << std::endl;
 
     it = settermElementsMap.insert(SettermElementsMap::value_type(setterm, cur)).first;
   }
@@ -246,7 +247,10 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
     //rewrite set to normal form
     SettermElementsMap setTermElementsMap;   // cache
     const Elements& elements = collectConstantElements(node, setTermElementsMap);
-    return RewriteResponse(REWRITE_DONE, elementsToNormalConstant(elements, node.getType()));
+    RewriteResponse response(REWRITE_DONE, elementsToNormalConstant(elements, node.getType()));
+    Debug("sets-rewrite-constant") << "[sets-rewrite-constant] Rewriting " << node << std::endl
+                                   << "[sets-rewrite-constant]        to " << response.node << std::endl;
+    return response;
   }
 
   return RewriteResponse(REWRITE_DONE, node);
