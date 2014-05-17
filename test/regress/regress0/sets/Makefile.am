@@ -31,6 +31,7 @@ TESTS =	\
 	jan24/remove_check_free_31_6.smt2 \
 	sets-inter.smt2 \
 	sets-equal.smt2 \
+	sets-disequal.smt2 \
 	union-2.smt2 \
 	jan27/deepmeas0.hs.fqout.cvc4.41.smt2 \
 	jan27/ListConcat.hs.fqout.cvc4.177.smt2 \
@@ -69,10 +70,10 @@ EXTRA_DIST = $(TESTS)
 #TESTS += \
 #	error.cvc
 #endif
-#
-# and make sure to distribute it
-#EXTRA_DIST += \
-#	error.cvc
+
+# disabled tests, yet distribute
+EXTRA_DIST += \
+	setofsets-disequal.smt2
 
 # synonyms for "check"
 .PHONY: regress regress0 test

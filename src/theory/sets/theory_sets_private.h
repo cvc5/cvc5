@@ -118,6 +118,8 @@ private:
     ~TermInfoManager();
     void notifyMembership(TNode fact);
     const CDTNodeList* getParents(TNode x);
+    const CDTNodeList* getMembers(TNode S);
+    const CDTNodeList* getNonMembers(TNode S);
     void addTerm(TNode n);
     void mergeTerms(TNode a, TNode b);
   };

@@ -83,7 +83,6 @@ public:
   static inline void shutdown() {
     // nothing to do
   }
-
 };/* class TheorySetsRewriter */
 
 }/* CVC4::theory::sets namespace */
