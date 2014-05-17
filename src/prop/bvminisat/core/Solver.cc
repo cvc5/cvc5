@@ -407,10 +407,8 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     out_learnt.shrink(i - j);
     tot_literals += out_learnt.size();
 
-    bool clause_all_marker = true;
     for (int i = 0; i < out_learnt.size(); ++ i) {
       if (marker[var(out_learnt[i])] == 0) {
-        clause_all_marker = false;
         break;
       }
     }
@@ -422,9 +420,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     }
     else{
         int max_i = 1;
-        if (marker[var(out_learnt[0])] == 0) {
-          clause_all_marker = false;
-        }
         // Find the first literal assigned at the next-highest level:
         for (int i = 2; i < out_learnt.size(); i++)
             if (level(var(out_learnt[i])) > level(var(out_learnt[max_i])))

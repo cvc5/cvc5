@@ -46,9 +46,11 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_abstraction(NULL)
   , d_statistics(name) {
   d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
+  d_nullRegistrar = new prop::NullRegistrar();
+  d_nullContext = new context::Context();
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
-                                           new prop::NullRegistrar(),
-                                           new context::Context());
+                                           d_nullRegistrar,
+                                           d_nullContext);
   
   // can not notify a theory
   prop::BVSatSolverInterface::Notify* notify = NULL;
@@ -66,6 +68,8 @@ void TLazyBitblaster::setAbstraction(AbstractionModule* abs) {
 
 TLazyBitblaster::~TLazyBitblaster() {
   delete d_cnfStream;
+  delete d_nullRegistrar;
+  delete d_nullContext;
   delete d_satSolver;
 }
 

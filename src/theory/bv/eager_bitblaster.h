@@ -47,8 +47,11 @@ EagerBitblaster::EagerBitblaster()
   : TBitblaster<Node>()
   , d_bbAtoms()
 {
-  d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "EagerBitblaster");
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, new BitblastingRegistrar(this), new context::Context());
+  d_bitblastingRegistrar = new BitblastingRegistrar(this); 
+  d_nullContext = new context::Context();
+
+  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar, d_nullContext);
   
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);
@@ -57,6 +60,8 @@ EagerBitblaster::EagerBitblaster()
 EagerBitblaster::~EagerBitblaster() {
   delete d_cnfStream;
   delete d_satSolver;
+  delete d_nullContext;
+  delete d_bitblastingRegistrar;
 }
 
 void EagerBitblaster::bbFormula(TNode node) {

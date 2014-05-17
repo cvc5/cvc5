@@ -135,13 +135,15 @@ AigBitblaster::AigBitblaster()
   , d_bbAtoms()
   , d_aigOutputNode(NULL)
 {
-  d_satSolver = prop::SatSolverFactory::createMinisat(new context::Context(), "AigBitblaster");
+  d_nullContext = new context::Context(); 
+  d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "AigBitblaster");
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);
 }
 
 AigBitblaster::~AigBitblaster() {
-  Assert (abcAigNetwork == NULL); 
+  Assert (abcAigNetwork == NULL);
+  delete d_nullContext;
 }
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {

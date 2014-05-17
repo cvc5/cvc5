@@ -45,6 +45,7 @@ namespace CVC4 {
 namespace prop {
 class CnfStream;
 class BVSatSolverInterface;
+class NullRegistrar;
 }
 
 namespace theory {
@@ -53,6 +54,7 @@ class TheoryModel;
 
 namespace bv {
 
+class BitblastingRegistrar;
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 class AbstractionModule;
@@ -126,6 +128,8 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   TheoryBV *d_bv;
   context::Context* d_ctx;
 
+  prop::NullRegistrar* d_nullRegistrar;
+  context::Context* d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
@@ -226,6 +230,8 @@ class EagerBitblaster : public TBitblaster<Node> {
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
   // sat solver used for bitblasting and associated CnfStream
   prop::BVSatSolverInterface*        d_satSolver;
+  BitblastingRegistrar*              d_bitblastingRegistrar;
+  context::Context*                  d_nullContext;
   prop::CnfStream*                   d_cnfStream;
   TNodeSet d_bbAtoms; 
 public:
@@ -248,6 +254,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   typedef std::hash_map<Node, Abc_Obj_t*, NodeHashFunction > NodeAigMap;
   
   static Abc_Ntk_t* abcAigNetwork;
+  context::Context* d_nullContext;
   prop::BVSatSolverInterface* d_satSolver;
   TNodeAigMap d_aigCache;
   NodeAigMap d_bbAtoms;

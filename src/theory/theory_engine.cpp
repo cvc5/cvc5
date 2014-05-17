@@ -51,7 +51,7 @@
 #include "theory/quantifiers/first_order_model.h"
 
 #include "theory/uf/equality_engine.h"
-#include "theory/rewriterules/efficient_e_matching.h"
+//#include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/bv/theory_bv_utils.h"
 
 #include "proof/proof_manager.h"
@@ -1446,6 +1446,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
 }
 
 void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
+  if (options::incrementalSolving())
+    return; 
   bool isOnlyCore = true;
   bv::utils::TNodeBoolMap cache;
   for (unsigned i = 0; i < assertions.size(); ++i) {

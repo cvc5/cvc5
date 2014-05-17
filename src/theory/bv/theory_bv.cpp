@@ -179,8 +179,8 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     unsigned width = node.getType().getBitVectorSize();
 
     if (options::bitvectorDivByZeroConst()) {
-      Kind kind = n.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
-      return nm->mkNode(kind, n[0], n[1]); 
+      Kind kind = node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
+      return nm->mkNode(kind, node[0], node[1]); 
     }
 
     Node divByZero = getBVDivByZero(node.getKind(), width);
