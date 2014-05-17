@@ -47,12 +47,14 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   d_channelsOut(),
   d_channelsIn(),
   d_ostringstreams(),
-  d_statLastWinner("portfolio::lastWinner")
+  d_statLastWinner("portfolio::lastWinner"),
+  d_statWaitTime("portfolio::waitTime")
 {
   assert(d_threadOptions.size() == d_numThreads);
 
   d_statLastWinner.setData(d_lastWinner);
   d_stats.registerStat_(&d_statLastWinner);
+  d_stats.registerStat_(&d_statWaitTime);
 
   /* Duplication, Individualisation */
   d_exprMgrs.push_back(&d_exprMgr);
@@ -86,6 +88,9 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
   }
   d_exprMgrs.clear();
   d_smts.clear();
+
+  d_stats.unregisterStat_(&d_statLastWinner);
+  d_stats.unregisterStat_(&d_statWaitTime);
 }
 
 void CommandExecutorPortfolio::lemmaSharingInit()
@@ -199,12 +204,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
   }
 
   Debug("portfolio::outputmode") << "Mode is " << mode
-                                 << "lastWinner is " << d_lastWinner 
+                                 << "lastWinner is " << d_lastWinner
                                  << "d_seq is " << d_seq << std::endl;
 
   if(mode == 0) {
     d_seq->addCommand(cmd->clone());
-    Command* cmdExported = 
+    Command* cmdExported =
       d_lastWinner == 0 ?
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],
@@ -283,6 +288,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
     assert(d_channelsOut.size() == d_numThreads
            || d_numThreads == 1);
     assert(d_smts.size() == d_numThreads);
+    assert( !d_statWaitTime.running() );
+
     boost::function<void()>
       smFn = d_numThreads <= 1 ? boost::function<void()>() :
              boost::bind(sharingManager<ChannelFormat>,
@@ -293,7 +300,10 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     pair<int, bool> portfolioReturn =
         runPortfolio(d_numThreads, smFn, fns,
-                     d_options[options::waitToJoin]);
+                     d_options[options::waitToJoin], d_statWaitTime);
+
+    assert( d_statWaitTime.running() );
+    d_statWaitTime.stop();
 
     delete d_seq;
     d_seq = new CommandSequence();
@@ -348,12 +358,16 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                  d_result.asSatisfiabilityResult() == Result::UNSAT ) {
         Command* gp = new GetProofCommand();
         status = doCommandSingleton(gp);
+      } else if( d_options[options::dumpInstantiations] &&
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+        Command* gi = new GetInstantiationsCommand();
+        status = doCommandSingleton(gi);
       }
     }
 
     return status;
   } else if(mode == 2) {
-    Command* cmdExported = 
+    Command* cmdExported =
       d_lastWinner == 0 ?
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     bool ret = smtEngineInvoke(d_smts[d_lastWinner],

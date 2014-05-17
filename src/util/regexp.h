@@ -21,40 +21,68 @@
 #define __CVC4__REGEXP_H
 
 #include <iostream>
+#include <iomanip>
 #include <string>
-//#include "util/cvc4_assert.h"
+#include <set>
+#include <sstream>
+#include "util/exception.h"
 //#include "util/integer.h"
 #include "util/hash.h"
 
 namespace CVC4 {
 
 class CVC4_PUBLIC String {
+public:
+  static unsigned int convertCharToUnsignedInt( char c ) {
+    int i = (int)c;
+    i = i-65;
+    return (unsigned int)(i<0 ? i+256 : i);
+  }
+  static char convertUnsignedIntToChar( unsigned int i ){
+    int ii = i+65;
+    return (char)(ii>=256 ? ii-256 : ii);
+  }
+  static bool isPrintable( unsigned int i ){
+    char c = convertUnsignedIntToChar( i );
+    return isprint( (int)c );
+  }
 
 private:
   std::vector<unsigned int> d_str;
 
   bool isVecSame(const std::vector<unsigned int> &a, const std::vector<unsigned int> &b) const {
-      if(a.size() != b.size()) return false;
-      else {
-          for(unsigned int i=0; i<a.size(); ++i)
-              if(a[i] != b[i]) return false;
-          return true;
-      }
+    if(a.size() != b.size()) return false;
+    else {
+      for(unsigned int i=0; i<a.size(); ++i)
+        if(a[i] != b[i]) return false;
+      return true;
+    }
   }
+
+  //guarded
+  char hexToDec(char c) {
+    if(isdigit(c)) {
+      return c - '0';
+    } else if (c >= 'a' && c <= 'f') {
+      return c - 'a' + 10;
+    } else {
+      //Assert(c >= 'A' && c <= 'F');
+      return c - 'A' + 10;
+    }
+  }
+
+  void toInternal(const std::string &s);
 
 public:
   String() {}
 
   String(const std::string &s) {
-    for(unsigned int i=0; i<s.size(); ++i) {
-        d_str.push_back( convertCharToUnsignedInt(s[i]) );
-    }
+    toInternal(s);
   }
 
   String(const char* s) {
-    for(unsigned int i=0,len=strlen(s); i<len; ++i) {
-        d_str.push_back( convertCharToUnsignedInt(s[i]) );
-    }
+    std::string stmp(s);
+    toInternal(stmp);
   }
 
   String(const char c) {
@@ -87,69 +115,67 @@ public:
   bool operator <(const String& y) const {
     if(d_str.size() != y.d_str.size()) return d_str.size() < y.d_str.size();
     else {
-        for(unsigned int i=0; i<d_str.size(); ++i)
-            if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
+      for(unsigned int i=0; i<d_str.size(); ++i)
+        if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
 
-        return false;
+      return false;
     }
   }
 
   bool operator >(const String& y) const {
     if(d_str.size() != y.d_str.size()) return d_str.size() > y.d_str.size();
     else {
-        for(unsigned int i=0; i<d_str.size(); ++i)
-            if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
+      for(unsigned int i=0; i<d_str.size(); ++i)
+        if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
 
-        return false;
+      return false;
     }
   }
 
   bool operator <=(const String& y) const {
     if(d_str.size() != y.d_str.size()) return d_str.size() < y.d_str.size();
     else {
-        for(unsigned int i=0; i<d_str.size(); ++i)
-            if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
+      for(unsigned int i=0; i<d_str.size(); ++i)
+        if(d_str[i] != y.d_str[i]) return d_str[i] < y.d_str[i];
 
-        return true;
+      return true;
     }
   }
 
   bool operator >=(const String& y) const {
     if(d_str.size() != y.d_str.size()) return d_str.size() > y.d_str.size();
     else {
-        for(unsigned int i=0; i<d_str.size(); ++i)
-            if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
+      for(unsigned int i=0; i<d_str.size(); ++i)
+        if(d_str[i] != y.d_str[i]) return d_str[i] > y.d_str[i];
 
-        return true;
+      return true;
     }
   }
 
   bool strncmp(const String &y, unsigned int n) const {
-      for(unsigned int i=0; i<n; ++i)
-          if(d_str[i] != y.d_str[i]) return false;
-      return true;
+    for(unsigned int i=0; i<n; ++i)
+      if(d_str[i] != y.d_str[i]) return false;
+    return true;
   }
 
+  bool rstrncmp(const String &y, unsigned int n) const {
+    for(unsigned int i=0; i<n; ++i)
+      if(d_str[d_str.size() - i - 1] != y.d_str[y.d_str.size() - i - 1]) return false;
+    return true;
+  }
 
   bool isEmptyString() const {
-	  return ( d_str.size() == 0 );
+    return ( d_str.size() == 0 );
   }
 
   unsigned int operator[] (const unsigned int i) const {
-	//Assert( i < d_str.size() && i >= 0);
+  //Assert( i < d_str.size() && i >= 0);
     return d_str[i];
   }
   /*
    * Convenience functions
    */
-  std::string toString() const {
-    std::string str;
-    for(unsigned int i=0; i<d_str.size(); ++i) {
-      str += convertUnsignedIntToChar( d_str[i] );
-	  //TODO isPrintable: ( "\\" + (convertUnsignedIntToChar( d_str[i] ) );
-    }
-    return str;
-  }
+  std::string toString() const;
 
   unsigned size() const {
     return d_str.size();
@@ -160,94 +186,106 @@ public:
   }
 
   bool isRepeated() const {
-	if(d_str.size() > 1) {
-		unsigned int f = d_str[0];
-		for(unsigned i=1; i<d_str.size(); ++i) {
-			if(f != d_str[i]) return false;
-		}
-	}
-	return true;
+  if(d_str.size() > 1) {
+    unsigned int f = d_str[0];
+    for(unsigned i=1; i<d_str.size(); ++i) {
+      if(f != d_str[i]) return false;
+    }
+  }
+  return true;
   }
 
   bool tailcmp(const String &y, int &c) const {
-	  int id_x = d_str.size() - 1;
-	  int id_y = y.d_str.size() - 1;
-	  while(id_x>=0 && id_y>=0) {
-		  if(d_str[id_x] != y.d_str[id_y]) {
-			  c = id_x;
-			  return false;
-		  }
-		  --id_x; --id_y;
-	  }
-	  c = id_x == -1 ? ( - (id_y+1) ) : (id_x + 1);
-	  return true;
+    int id_x = d_str.size() - 1;
+    int id_y = y.d_str.size() - 1;
+    while(id_x>=0 && id_y>=0) {
+      if(d_str[id_x] != y.d_str[id_y]) {
+        c = id_x;
+        return false;
+      }
+      --id_x; --id_y;
+    }
+    c = id_x == -1 ? ( - (id_y+1) ) : (id_x + 1);
+    return true;
   }
 
   std::size_t find(const String &y, const int start = 0) const {
-	  if(d_str.size() < y.d_str.size() + (std::size_t) start) return std::string::npos;
-	  if(y.d_str.size() == 0) return (std::size_t) start;
-	  if(d_str.size() == 0) return std::string::npos;
-	  std::size_t ret = std::string::npos;
-	  for(int i = start; i <= (int) d_str.size() - (int) y.d_str.size(); i++) {
-		  if(d_str[i] == y.d_str[0]) {
-			  std::size_t j=0;
-			  for(; j<y.d_str.size(); j++) {
-				  if(d_str[i+j] != y.d_str[j]) break;
-			  }
-			  if(j == y.d_str.size()) {
-				  ret = (std::size_t) i;
-				  break;
-			  }
-		  }
-	  }
-	  return ret;
+    if(d_str.size() < y.d_str.size() + (std::size_t) start) return std::string::npos;
+    if(y.d_str.size() == 0) return (std::size_t) start;
+    if(d_str.size() == 0) return std::string::npos;
+    std::size_t ret = std::string::npos;
+    for(int i = start; i <= (int) d_str.size() - (int) y.d_str.size(); i++) {
+      if(d_str[i] == y.d_str[0]) {
+        std::size_t j=0;
+        for(; j<y.d_str.size(); j++) {
+          if(d_str[i+j] != y.d_str[j]) break;
+        }
+        if(j == y.d_str.size()) {
+          ret = (std::size_t) i;
+          break;
+        }
+      }
+    }
+    return ret;
   }
 
   String replace(const String &s, const String &t) const {
-	std::size_t ret = find(s);
-	if( ret != std::string::npos ) {
-		std::vector<unsigned int> vec;
-		vec.insert(vec.begin(), d_str.begin(), d_str.begin() + ret); 
-		vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
-		vec.insert(vec.end(), d_str.begin() + ret + s.d_str.size(), d_str.end());
-		return String(vec);
-	} else {
-		return *this;
-	}
+    std::size_t ret = find(s);
+    if( ret != std::string::npos ) {
+      std::vector<unsigned int> vec;
+      vec.insert(vec.begin(), d_str.begin(), d_str.begin() + ret);
+      vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
+      vec.insert(vec.end(), d_str.begin() + ret + s.d_str.size(), d_str.end());
+      return String(vec);
+    } else {
+      return *this;
+    }
   }
 
   String substr(unsigned i) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
-    //for(unsigned k=0; k<i; k++) ++itr;
     ret_vec.insert(ret_vec.end(), itr, d_str.end());
-      return String(ret_vec);
+    return String(ret_vec);
   }
   String substr(unsigned i, unsigned j) const {
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
-    //for(unsigned k=0; k<i; k++) ++itr;
-    //std::vector<unsigned int>::const_iterator itr2 = itr;
-    //for(unsigned k=0; k<j; k++) ++itr2;
     ret_vec.insert( ret_vec.end(), itr, itr + j );
-      return String(ret_vec);
+    return String(ret_vec);
   }
 
-public:
-  static unsigned int convertCharToUnsignedInt( char c ) {
-	int i = (int)c;
-	i = i-65;
-	return (unsigned int)(i<0 ? i+256 : i);
+  String prefix(unsigned i) const {
+    return substr(0, i);
   }
-  static char convertUnsignedIntToChar( unsigned int i ){
-	int ii = i+65;
-	return (char)(ii>=256 ? ii-256 : ii);
+  String suffix(unsigned i) const {
+    return substr(d_str.size() - i, i);
   }
-  static bool isPrintable( unsigned int i ){
-	char c = convertUnsignedIntToChar( i );
-	return isprint( (int)c );
-  }
+  std::size_t overlap(String &y) const;
 
+  bool isNumber() const {
+   if(d_str.size() == 0) return false;
+   for(unsigned int i=0; i<d_str.size(); ++i) {
+     char c = convertUnsignedIntToChar( d_str[i] );
+     if(c<'0' || c>'9') {
+       return false;
+     }
+   }
+   return true;
+  }
+  int toNumber() const {
+   if(isNumber()) {
+     int ret=0;
+     for(unsigned int i=0; i<d_str.size(); ++i) {
+       char c = convertUnsignedIntToChar( d_str[i] );
+       ret = ret * 10 + (int)c - (int)'0';
+     }
+     return ret;
+   } else {
+     return -1;
+   }
+  }
+  void getCharSet(std::set<unsigned int> &cset) const;
 };/* class String */
 
 namespace strings {
@@ -260,75 +298,43 @@ struct CVC4_PUBLIC StringHashFunction {
 
 }/* CVC4::strings namespace */
 
-inline std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const String& s) {
-  return os << "\"" << s.toString() << "\"";
-}
+std::ostream& operator <<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 class CVC4_PUBLIC RegExp {
-
-private:
-  std::string d_str;
-
+protected:
+  int d_type;
 public:
-  RegExp() {}
+  RegExp() : d_type(1) {}
 
-  RegExp(const std::string s)
-      : d_str(s) {}
+  RegExp(const int t) : d_type(t) {}
 
   ~RegExp() {}
 
-  RegExp& operator =(const RegExp& y) {
-    if(this != &y) d_str = y.d_str;
-    return *this;
-  }
-
   bool operator ==(const RegExp& y) const {
-    return d_str == y.d_str ;
+    return d_type == y.d_type ;
   }
 
   bool operator !=(const RegExp& y) const {
-    return d_str != y.d_str ;
-  }
-
-  String concat (const RegExp& other) const {
-    return String(d_str + other.d_str);
+    return d_type != y.d_type ;
   }
 
   bool operator <(const RegExp& y) const {
-    return d_str < y.d_str;
+    return d_type < y.d_type;
   }
 
   bool operator >(const RegExp& y) const {
-    return d_str > y.d_str ;
+    return d_type > y.d_type ;
   }
 
   bool operator <=(const RegExp& y) const {
-    return d_str <= y.d_str;
+    return d_type <= y.d_type;
   }
 
   bool operator >=(const RegExp& y) const {
-    return d_str >= y.d_str ;
+    return d_type >= y.d_type ;
   }
 
-  /*
-   * Convenience functions
-   */
-
-  size_t hash() const {
-    unsigned int h = 1;
-
-    for (size_t i = 0; i < d_str.length(); ++i) {
-        h = (h << 5)  + d_str[i];
-    }
-
-    return h;
-  }
-
-  std::string toString() const {
-    return d_str;
-  }
-
+  int getType() const { return d_type; }
 };/* class RegExp */
 
 /**
@@ -336,14 +342,11 @@ public:
  */
 struct CVC4_PUBLIC RegExpHashFunction {
   inline size_t operator()(const RegExp& s) const {
-    return s.hash();
+    return (size_t)s.getType();
   }
 };/* struct RegExpHashFunction */
 
-inline std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
-inline std::ostream& operator <<(std::ostream& os, const RegExp& s) {
-  return os << s.toString();
-}
+std::ostream& operator <<(std::ostream& os, const RegExp& s) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

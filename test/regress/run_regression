@@ -114,19 +114,14 @@ elif expr "$benchmark" : '.*\.smt2$' &>/dev/null; then
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
-  elif grep '^\(%\|;\) \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
-    expected_output=`grep '^[%;] EXPECT: ' "$benchmark" | sed 's,^[%;] EXPECT: ,,'`
-    expected_error=`grep '^[%;] EXPECT-ERROR: ' "$benchmark" | sed 's,^[%;] EXPECT-ERROR: ,,'`
-    expected_exit_status=`grep -m 1 '^[%;] EXIT: ' "$benchmark" | perl -pe 's,^[%;] EXIT: ,,;s,\r,,'`
-    command_line=`grep '^[%;] COMMAND-LINE: ' "$benchmark" | sed 's,^[%;] COMMAND-LINE: ,,'`
-    # old mktemp from coreutils 7.x is broken, can't do XXXX in the middle
-    # this frustrates our auto-language-detection
-    gettemp tmpbenchmark cvc4_benchmark.smt2.$$.XXXXXXXXXX
-    grep -v '^% \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" >"$tmpbenchmark"
+  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
+    expected_output=`grep '^; EXPECT: ' "$benchmark" | sed 's,^; EXPECT: ,,'`
+    expected_error=`grep '^; EXPECT-ERROR: ' "$benchmark" | sed 's,^; EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^; EXIT: ' "$benchmark" | perl -pe 's,^; EXIT: ,,;s,\r,,'`
+    command_line=`grep '^; COMMAND-LINE: ' "$benchmark" | sed 's,^; COMMAND-LINE: ,,'`
     if [ -z "$expected_exit_status" ]; then
       expected_exit_status=0
     fi
-    benchmark=$tmpbenchmark
   elif grep '^ *( *set-info  *:status  *sat' "$benchmark" &>/dev/null; then
     expected_output=sat
     expected_exit_status=0
@@ -190,6 +185,7 @@ gettemp expoutfile cvc4_expect_stdout.$$.XXXXXXXXXX
 gettemp experrfile cvc4_expect_stderr.$$.XXXXXXXXXX
 gettemp outfile cvc4_stdout.$$.XXXXXXXXXX
 gettemp errfile cvc4_stderr.$$.XXXXXXXXXX
+gettemp errfilefix cvc4_stderr.$$.XXXXXXXXXX
 gettemp exitstatusfile cvc4_exitstatus.$$.XXXXXXXXXX
 
 if [ -z "$expected_output" ]; then
@@ -202,8 +198,8 @@ fi
 
 check_models=false
 if grep '^sat$' "$expoutfile" &>/dev/null || grep '^invalid$' "$expoutfile" &>/dev/null || grep '^unknown$' "$expoptfile" &>/dev/null; then
-  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models\>' &>/dev/null &&
-     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models\>' &>/dev/null; then
+  if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-models' &>/dev/null &&
+     ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-models' &>/dev/null; then
     # later on, we'll run another test with --check-models on
     check_models=true
   fi
@@ -212,9 +208,9 @@ check_proofs=false
 if [ "$proof" = yes ]; then
   # proofs not currently supported in incremental mode, turn it off
   if grep '^unsat$' "$expoutfile" &>/dev/null || grep '^valid$' "$expoutfile" &>/dev/null &>/dev/null; then
-    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs\>' &>/dev/null &&
-       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs\>' &>/dev/null &&
-       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental\>' &>/dev/null &&
+    if ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--check-proofs' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--no-check-proofs' &>/dev/null &&
+       ! expr "$CVC4_REGRESSION_ARGS $command_line" : '.*--incremental' &>/dev/null &&
        ! expr " $CVC4_REGRESSION_ARGS $command_line" : '.* -[a-zA-Z]*i' &>/dev/null; then
       # later on, we'll run another test with --check-proofs on
       check_proofs=true
@@ -252,9 +248,20 @@ else
   ) > "$outfile" 2> "$errfile" )
 fi
 
+# we have to actual error file same treatment as other files. differences in
+# versions of echo/bash were causing failure on some platforms and not on others
+actual_error=$(cat $errfile)
+if [ -z "$actual_error" ]; then
+  # in case expected stderr output is empty, make sure we don't differ
+  # by a newline, which we would if we echo "" >"$experrfile"
+  touch "$errfilefix"
+else
+  echo "$actual_error" >"$errfilefix"
+fi
+
 diffs=`diff -u --strip-trailing-cr "$expoutfile" "$outfile"`
 diffexit=$?
-diffserr=`diff -u --strip-trailing-cr "$experrfile" "$errfile"`
+diffserr=`diff -u --strip-trailing-cr "$experrfile" "$errfilefix"`
 diffexiterr=$?
 exit_status=`cat "$exitstatusfile"`
 

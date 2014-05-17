@@ -31,8 +31,13 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
 
+}
+
+InstantiationEngine::~InstantiationEngine() {
+  delete d_i_ag;
+  delete d_isup;
 }
 
 void InstantiationEngine::finishInit(){
@@ -42,21 +47,20 @@ void InstantiationEngine::finishInit(){
     //  addInstStrategy( new InstStrategyCheckCESolved( this, d_quantEngine ) );
     //}
     //these are the instantiation strategies for basic E-matching
-    if( options::userPatternsQuant() ){
+    if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
       addInstStrategy( d_isup );
     }else{
       d_isup = NULL;
     }
-    int rlv = options::relevantTriggers() ? InstStrategyAutoGenTriggers::RELEVANCE_DEFAULT : InstStrategyAutoGenTriggers::RELEVANCE_NONE;
-    InstStrategyAutoGenTriggers* i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, rlv, 3 );
-    i_ag->setGenerateAdditional( true );
-    addInstStrategy( i_ag );
+    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, 3 );
+    d_i_ag->setGenerateAdditional( true );
+    addInstStrategy( d_i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
-    if( !options::finiteModelFind() ){
+    if( !options::finiteModelFind() && options::fullSaturateQuant() ){
       addInstStrategy( new InstStrategyFreeVariable( d_quantEngine ) );
     }
-    //d_isup->setPriorityOver( i_ag );
+    //d_isup->setPriorityOver( d_i_ag );
     //d_isup->setPriorityOver( i_agm );
     //i_ag->setPriorityOver( i_agm );
   }
@@ -93,7 +97,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           nb << f << ceLit;
           Node lem = nb;
           Trace("cbqi") << "Counterexample lemma : " << lem << std::endl;
-          d_quantEngine->getOutputChannel().lemma( lem );
+          d_quantEngine->getOutputChannel().lemma( lem, false, true );
           addedLemma = true;
         }
       }
@@ -174,6 +178,8 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
   d_performCheck = false;
   if( options::instWhenMode()==INST_WHEN_FULL ){
     d_performCheck = ( e >= Theory::EFFORT_FULL );
+  }else if( options::instWhenMode()==INST_WHEN_FULL_DELAY ){
+    d_performCheck = ( e >= Theory::EFFORT_FULL ) && !d_quantEngine->getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
     d_performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
@@ -195,20 +201,21 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
 }
 
 void InstantiationEngine::check( Theory::Effort e ){
-  if( d_performCheck ){
+  if( d_performCheck && !d_quantEngine->hasAddedLemma() ){
     Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("inst-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
     }
+    ++(d_statistics.d_instantiation_rounds);
     bool quantActive = false;
-    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size"
+    Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size="
                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
       //it is not active if we have found the skolemized negation is unsat
-      if( n.hasAttribute(QRewriteRuleAttribute()) ){
+      if( TermDb::isRewriteRule( n ) ){
         d_quant_active[n] = false;
       }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );
@@ -250,8 +257,10 @@ void InstantiationEngine::check( Theory::Effort e ){
         Debug("quantifiers") << "  Active : " << n << ", no ce assigned." << std::endl;
       }
       Debug("quantifiers-relevance")  << "Quantifier : " << n << std::endl;
-      Debug("quantifiers-relevance")  << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
-      Debug("quantifiers") << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
+      if( options::relevantTriggers() ){
+        Debug("quantifiers-relevance")  << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
+        Debug("quantifiers") << "   Relevance : " << d_quantEngine->getQuantifierRelevance()->getRelevance( n ) << std::endl;
+      }
       Trace("inst-engine-debug") << "Process : " << n << " " << d_quant_active[n] << std::endl;
     }
     if( quantActive ){
@@ -289,19 +298,23 @@ void InstantiationEngine::check( Theory::Effort e ){
 }
 
 void InstantiationEngine::registerQuantifier( Node f ){
-  //Notice() << "do cbqi " << f << " ? " << std::endl;
-  Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
-  if( !doCbqi( f ) ){
-    d_quantEngine->addTermToDatabase( ceBody, true );
-  }
+  if( !TermDb::isRewriteRule( f ) ){
+    //Notice() << "do cbqi " << f << " ? " << std::endl;
+    if( options::cbqi() ){
+      Node ceBody = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+      if( !doCbqi( f ) ){
+        d_quantEngine->addTermToDatabase( ceBody, true );
+      }
+    }
 
-  //take into account user patterns
-  if( f.getNumChildren()==3 ){
-    Node subsPat = d_quantEngine->getTermDatabase()->getInstConstantNode( f[2], f );
-    //add patterns
-    for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
-      //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
-      addUserPattern( f, subsPat[i] );
+    //take into account user patterns
+    if( f.getNumChildren()==3 ){
+      Node subsPat = d_quantEngine->getTermDatabase()->getInstConstantNode( f[2], f );
+      //add patterns
+      for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
+        //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
+        addUserPattern( f, subsPat[i] );
+      }
     }
   }
 }
@@ -426,7 +439,8 @@ InstantiationEngine::Statistics::Statistics():
   d_instantiations_guess("InstantiationEngine::Instantiations_Guess", 0),
   d_instantiations_cbqi_arith("InstantiationEngine::Instantiations_Cbqi_Arith", 0),
   d_instantiations_cbqi_arith_minus("InstantiationEngine::Instantiations_Cbqi_Arith_Minus", 0),
-  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0)
+  d_instantiations_cbqi_datatypes("InstantiationEngine::Instantiations_Cbqi_Datatypes", 0),
+  d_instantiation_rounds("InstantiationEngine::Rounds", 0 )
 {
   StatisticsRegistry::registerStat(&d_instantiations_user_patterns);
   StatisticsRegistry::registerStat(&d_instantiations_auto_gen);
@@ -435,6 +449,7 @@ InstantiationEngine::Statistics::Statistics():
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_arith_minus);
   StatisticsRegistry::registerStat(&d_instantiations_cbqi_datatypes);
+  StatisticsRegistry::registerStat(&d_instantiation_rounds);
 }
 
 InstantiationEngine::Statistics::~Statistics(){
@@ -445,4 +460,5 @@ InstantiationEngine::Statistics::~Statistics(){
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_arith_minus);
   StatisticsRegistry::unregisterStat(&d_instantiations_cbqi_datatypes);
+  StatisticsRegistry::unregisterStat(&d_instantiation_rounds);
 }

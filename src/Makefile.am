@@ -20,7 +20,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith bv arrays datatypes quantifiers rewriterules idl strings
+THEORIES = builtin booleans uf arith bv arrays datatypes sets strings quantifiers idl
 
 lib_LTLIBRARIES = libcvc4.la
 
@@ -67,8 +67,8 @@ libcvc4_la_SOURCES = \
 	printer/printer.cpp \
 	printer/dagification_visitor.h \
 	printer/dagification_visitor.cpp \
-	printer/model_format_mode.h \
-	printer/model_format_mode.cpp \
+	printer/modes.h \
+	printer/modes.cpp \
 	printer/ast/ast_printer.h \
 	printer/ast/ast_printer.cpp \
 	printer/smt1/smt1_printer.h \
@@ -116,6 +116,7 @@ libcvc4_la_SOURCES = \
 	smt/boolean_terms.h \
 	smt/boolean_terms.cpp \
 	smt/logic_exception.h \
+	smt/logic_request.h \
 	smt/simplification_mode.h \
 	smt/simplification_mode.cpp \
 	smt/options_handlers.h \
@@ -230,6 +231,18 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes.h \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
+	theory/sets/expr_patterns.h \
+	theory/sets/options_handlers.h \
+	theory/sets/scrutinize.h \
+	theory/sets/term_info.h \
+	theory/sets/theory_sets.cpp \
+	theory/sets/theory_sets.h \
+	theory/sets/theory_sets_private.cpp \
+	theory/sets/theory_sets_private.h \
+	theory/sets/theory_sets_rewriter.cpp \
+	theory/sets/theory_sets_rewriter.h \
+	theory/sets/theory_sets_type_enumerator.h \
+	theory/sets/theory_sets_type_rules.h \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings_rewriter.h \
@@ -303,31 +316,18 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/symmetry_breaking.cpp \
 	theory/quantifiers/qinterval_builder.h \
 	theory/quantifiers/qinterval_builder.cpp \
+	theory/quantifiers/ambqi_builder.h \
+	theory/quantifiers/ambqi_builder.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/options_handlers.h \
-	theory/rewriterules/theory_rewriterules_rules.h \
-	theory/rewriterules/theory_rewriterules_rules.cpp \
-	theory/rewriterules/theory_rewriterules.h \
-	theory/rewriterules/theory_rewriterules.cpp \
-	theory/rewriterules/theory_rewriterules_rewriter.h \
-	theory/rewriterules/theory_rewriterules_type_rules.h \
-	theory/rewriterules/theory_rewriterules_preprocess.h \
-	theory/rewriterules/theory_rewriterules_params.h \
-	theory/rewriterules/rr_inst_match.h \
-	theory/rewriterules/rr_inst_match_impl.h \
-	theory/rewriterules/rr_inst_match.cpp \
-	theory/rewriterules/rr_trigger.h \
-	theory/rewriterules/rr_trigger.cpp \
-	theory/rewriterules/rr_candidate_generator.h \
-	theory/rewriterules/rr_candidate_generator.cpp \
-	theory/rewriterules/efficient_e_matching.h \
-	theory/rewriterules/efficient_e_matching.cpp \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \
 	theory/arith/arithvar.h \
 	theory/arith/arithvar.cpp \
 	theory/arith/bound_counts.h \
+	theory/arith/arith_ite_utils.h \
+	theory/arith/arith_ite_utils.cpp \
 	theory/arith/arith_rewriter.h \
 	theory/arith/arith_rewriter.cpp \
 	theory/arith/arith_static_learner.h \
@@ -366,6 +366,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/fc_simplex.cpp \
 	theory/arith/soi_simplex.h \
 	theory/arith/soi_simplex.cpp \
+	theory/arith/infer_bounds.h \
+	theory/arith/infer_bounds.cpp \
 	theory/arith/approx_simplex.h \
 	theory/arith/approx_simplex.cpp \
 	theory/arith/attempt_solution_simplex.h \
@@ -383,6 +385,8 @@ libcvc4_la_SOURCES = \
 	theory/arith/arith_unate_lemma_mode.cpp \
 	theory/arith/arith_propagation_mode.h \
 	theory/arith/arith_propagation_mode.cpp \
+	theory/arith/cut_log.h \
+	theory/arith/cut_log.cpp \
 	theory/arith/options_handlers.h \
 	theory/booleans/type_enumerator.h \
 	theory/booleans/theory_bool.h \
@@ -463,10 +467,10 @@ EXTRA_DIST = \
 	theory/idl/kinds \
 	theory/builtin/kinds \
 	theory/datatypes/kinds \
+	theory/sets/kinds \
 	theory/strings/kinds \
 	theory/arrays/kinds \
 	theory/quantifiers/kinds \
-	theory/rewriterules/kinds \
 	theory/arith/kinds \
 	theory/booleans/kinds \
 	theory/example/ecdata.h \

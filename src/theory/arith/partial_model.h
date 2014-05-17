@@ -9,10 +9,11 @@
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief Datastructures that track variable by variable information.
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** This is a datastructure that tracks variable specific information.
+ ** This is partially context dependent to back track upper/lower bounds
+ ** and information derived from these.
  **/
 
 #include "cvc4_private.h"
@@ -50,40 +51,44 @@ private:
     ArithVar d_var;
 
     DeltaRational d_assignment;
-    Constraint d_lb;
-    Constraint d_ub;
+    ConstraintP d_lb;
+    ConstraintP d_ub;
     int d_cmpAssignmentLB;
     int d_cmpAssignmentUB;
 
     unsigned d_pushCount;
     ArithType d_type;
     Node d_node;
-    bool d_slack;
+    bool d_auxiliary;
 
   public:
     VarInfo();
 
     bool setAssignment(const DeltaRational& r, BoundsInfo& prev);
-    bool setLowerBound(Constraint c, BoundsInfo& prev);
-    bool setUpperBound(Constraint c, BoundsInfo& prev);
+    bool setLowerBound(ConstraintP c, BoundsInfo& prev);
+    bool setUpperBound(ConstraintP c, BoundsInfo& prev);
 
     /** Returns true if this VarInfo has been initialized. */
     bool initialized() const;
 
     /**
      * Initializes the VarInfo with the ArithVar index it is associated with,
-     * the node that the variable represents, and whether it is a slack variable.
+     * the node that the variable represents, and whether it is an auxillary
+     * variable.
      */
-    void initialize(ArithVar v, Node n, bool slack);
+    void initialize(ArithVar v, Node n, bool aux);
+
     /** Uninitializes the VarInfo. */
     void uninitialize();
 
     bool canBeReclaimed() const;
 
-    /** Indicator variables for if the assignment is equal to the upper and lower bounds. */
+    /** Indicator variables for if the assignment is equal to the upper
+     * and lower bounds. */
     BoundCounts atBoundCounts() const;
 
-    /** Combination of indicator variables for whether it has upper and lower bounds.  */
+    /** Combination of indicator variables for whether it has upper and
+     * lower bounds.  */
     BoundCounts hasBoundCounts() const;
 
     /** Stores both atBoundCounts() and hasBoundCounts().  */
@@ -92,21 +97,22 @@ private:
 
   /**Maps from ArithVar -> VarInfo */
   typedef DenseMap<VarInfo> VarInfoVec;
+
   /** This maps an ArithVar to its Variable information.*/
   VarInfoVec d_vars;
 
-  // Partial Map from Arithvar -> PreviousAssignment
+  /** Partial Map from Arithvar -> PreviousAssignment */
   DenseMap<DeltaRational> d_safeAssignment;
 
-  // if d_vars.isKey(x), then x < d_numberOfVariables
+  /** if d_vars.isKey(x), then x < d_numberOfVariables */
   ArithVar d_numberOfVariables;
 
   /** [0, d_numberOfVariables) \intersect d_vars.keys == d_pool */
   // Everything in the pool is fair game.
   // There must be NO outstanding assertions
   std::vector<ArithVar> d_pool;
-  std::list<ArithVar> d_released;
-  std::list<ArithVar>::iterator d_releasedIterator;
+  std::vector<ArithVar> d_released;
+  //std::list<ArithVar>::iterator d_releasedIterator;
 
   // Reverse Map from Node to ArithVar
   // Inverse of d_vars[x].d_node
@@ -118,36 +124,29 @@ private:
 
   /**
    * If this is true, record the incoming changes to the bound information.
-   * If this is false, the responsibility of recording the changes is LinearEqualities's.
+   * If this is false, the responsibility of recording the changes is
+   * LinearEqualities's.
    */
   bool d_enqueueingBoundCounts;
 
  public:
 
-  inline ArithVar getNumberOfVariables() const {
-    return d_numberOfVariables;
-  }
+  /** Returns the number of variables. */
+  ArithVar getNumberOfVariables() const;
 
-  inline bool hasArithVar(TNode x) const {
-    return d_nodeToArithVarMap.find(x) != d_nodeToArithVarMap.end();
-  }
+  /** Returns true if the node has an associated variables. */
+  bool hasArithVar(TNode x) const;
 
-  inline bool hasNode(ArithVar a) const {
-    return d_vars.isKey(a);
-  }
+  /** Returns true if the variable has a defining node. */
+  bool hasNode(ArithVar a) const;
 
-  inline ArithVar asArithVar(TNode x) const{
-    Assert(hasArithVar(x));
-    Assert((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
-    return (d_nodeToArithVarMap.find(x))->second;
-  }
+  /** Returns the ArithVar associated with a node. */
+  ArithVar asArithVar(TNode x) const;
 
+  /** Returns the node associated with an ArithVar. */
+  Node asNode(ArithVar a) const;
 
-  inline Node asNode(ArithVar a) const{
-    Assert(hasNode(a));
-    return d_vars[a].d_node;
-  }
-
+  /** Allocates a freshly allocated variables. */
   ArithVar allocateVariable();
 
   class var_iterator {
@@ -155,68 +154,47 @@ private:
     const VarInfoVec* d_vars;
     VarInfoVec::const_iterator d_wrapped;
   public:
-    var_iterator(){}
-    var_iterator(const VarInfoVec* vars, VarInfoVec::const_iterator ci)
-      : d_vars(vars), d_wrapped(ci)
-    {
-      nextInitialized();
-    }
+    var_iterator();
+    var_iterator(const VarInfoVec* vars, VarInfoVec::const_iterator ci);
+    var_iterator& operator++();
 
-    var_iterator& operator++(){
-      ++d_wrapped;
-      nextInitialized();
-      return *this;
-    }
-    bool operator==(const var_iterator& other) const{
-      return d_wrapped == other.d_wrapped;
-    }
-    bool operator!=(const var_iterator& other) const{
-      return d_wrapped != other.d_wrapped;
-    }
-    ArithVar operator*() const{
-      return *d_wrapped;
-    }
+    bool operator==(const var_iterator& other) const;
+    bool operator!=(const var_iterator& other) const;
+    ArithVar operator*() const;
+
   private:
-    void nextInitialized(){
-      VarInfoVec::const_iterator end = d_vars->end();
-      while(d_wrapped != end &&
-            !((*d_vars)[*d_wrapped].initialized())){
-        ++d_wrapped;
-      }
-    }
+    void nextInitialized();
   };
-  var_iterator var_begin() const {
-    return var_iterator(&d_vars, d_vars.begin());
-  }
 
-  var_iterator var_end() const {
-    return var_iterator(&d_vars, d_vars.end());
-  }
+  var_iterator var_begin() const;
+  var_iterator var_end() const;
 
 
   bool canBeReleased(ArithVar v) const;
   void releaseArithVar(ArithVar v);
   void attemptToReclaimReleased();
 
-  bool isInteger(ArithVar x) const {
-    return d_vars[x].d_type >= ATInteger;
-  }
-  bool isSlack(ArithVar x) const {
-    return d_vars[x].d_slack;
-  }
+  /** Is this variable guaranteed to have an integer assignment?
+   * (Should agree with the type system.) */
+  bool isInteger(ArithVar x) const;
 
-  bool integralAssignment(ArithVar x) const {
-    return getAssignment(x).isIntegral();
-  }
+  /** Is the assignment to x integral? */
+  bool integralAssignment(ArithVar x) const;
+
+  /* Is this variable defined as a linear sum of other variables? */
+  bool isAuxiliary(ArithVar x) const;
+
+  /* Is the variable both input and not auxiliary? */
+  bool isIntegerInput(ArithVar x) const;
 
  private:
 
-  typedef std::pair<ArithVar, Constraint> AVCPair;
+  typedef std::pair<ArithVar, ConstraintP> AVCPair;
   class LowerBoundCleanUp {
   private:
     ArithVariables* d_pm;
   public:
-    LowerBoundCleanUp(ArithVariables* pm) : d_pm(pm) {}
+    LowerBoundCleanUp(ArithVariables* pm);
     void operator()(AVCPair* restore);
   };
 
@@ -224,7 +202,7 @@ private:
   private:
     ArithVariables* d_pm;
   public:
-    UpperBoundCleanUp(ArithVariables* pm) : d_pm(pm) {}
+    UpperBoundCleanUp(ArithVariables* pm);
     void operator()(AVCPair* restore);
   };
 
@@ -255,27 +233,27 @@ public:
    * This sets the lower bound for a variable in the current context.
    * This must be stronger the previous constraint.
    */
-  void setLowerBoundConstraint(Constraint lb);
+  void setLowerBoundConstraint(ConstraintP lb);
 
   /**
    * This sets the upper bound for a variable in the current context.
    * This must be stronger the previous constraint.
    */
-  void setUpperBoundConstraint(Constraint ub);
+  void setUpperBoundConstraint(ConstraintP ub);
 
   /** Returns the constraint for the upper bound of a variable. */
-  inline Constraint getUpperBoundConstraint(ArithVar x) const{
+  inline ConstraintP getUpperBoundConstraint(ArithVar x) const{
     return d_vars[x].d_ub;
   }
   /** Returns the constraint for the lower bound of a variable. */
-  inline Constraint getLowerBoundConstraint(ArithVar x) const{
+  inline ConstraintP getLowerBoundConstraint(ArithVar x) const{
     return d_vars[x].d_lb;
   }
 
   /* Initializes a variable to a safe value.*/
-  void initialize(ArithVar x, Node n, bool slack);
+  void initialize(ArithVar x, Node n, bool aux);
 
-  ArithVar allocate(Node n, bool slack = false);
+  ArithVar allocate(Node n, bool aux = false);
 
   /* Gets the last assignment to a variable that is known to be consistent. */
   const DeltaRational& getSafeAssignment(ArithVar x) const;
@@ -288,13 +266,8 @@ public:
   void commitAssignmentChanges();
 
 
-  inline bool lowerBoundIsZero(ArithVar x){
-    return hasLowerBound(x) && getLowerBound(x).sgn() == 0;
-  }
-
-  inline bool upperBoundIsZero(ArithVar x){
-    return hasUpperBound(x) && getUpperBound(x).sgn() == 0;
-  }
+  bool lowerBoundIsZero(ArithVar x);
+  bool upperBoundIsZero(ArithVar x);
 
   bool boundsAreEqual(ArithVar x) const;
 
@@ -393,17 +366,12 @@ public:
 
   const Rational& getDelta();
 
-  inline void invalidateDelta() {
-    d_deltaIsSafe = false;
-  }
+  void invalidateDelta();
 
-  void setDelta(const Rational& d){
-    d_delta = d;
-    d_deltaIsSafe = true;
-  }
+  void setDelta(const Rational& d);
 
-  void startQueueingBoundCounts(){ d_enqueueingBoundCounts = true; }
-  void stopQueueingBoundCounts(){ d_enqueueingBoundCounts = false; }
+  void startQueueingBoundCounts();
+  void stopQueueingBoundCounts();
   void addToBoundQueue(ArithVar v, const BoundsInfo& prev);
 
   BoundsInfo selectBoundsInfo(ArithVar v, bool old) const;
@@ -412,6 +380,15 @@ public:
   void processBoundsQueue(BoundUpdateCallback& changed);
 
   void printEntireModel(std::ostream& out) const;
+
+
+  /**
+   * Precondition: assumes boundsAreEqual(x).
+   * If the either the lower/ upper bound is an equality, eq,
+   * this returns make_pair(eq, NullConstraint).
+   * Otherwise, this returns make_pair(lb, ub).
+   */
+  std::pair<ConstraintP, ConstraintP> explainEqualBounds(ArithVar x) const;
 
 private:
 
@@ -423,9 +400,7 @@ private:
 
   bool debugEqualSizes();
 
-  bool inMaps(ArithVar x) const{
-    return x < getNumberOfVariables();
-  }
+  bool inMaps(ArithVar x) const;
 
 };/* class ArithVariables */
 

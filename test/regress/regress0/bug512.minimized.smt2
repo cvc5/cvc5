@@ -1,3 +1,4 @@
+; COMMAND-LINE: --tlimit-per 1000
 ; EXPECT: unknown
 (set-logic UF)
 (declare-sort T 0)

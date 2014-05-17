@@ -5,7 +5,7 @@
  ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef FULL_MODEL_CHECK
-#define FULL_MODEL_CHECK
+#ifndef __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#define __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
 #include "theory/quantifiers/model_builder.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -45,7 +45,7 @@ public:
 
   void collectIndices(Node c, int index, std::vector< int >& indices );
   bool isComplete(FirstOrderModelFmc * m, Node c, int index);
-};
+};/* class EntryTrie */
 
 
 class Def
@@ -79,7 +79,7 @@ public:
   int getGeneralizationIndex( FirstOrderModelFmc * m, std::vector<Node>& inst );
   void simplify( FullModelChecker * mc, FirstOrderModelFmc * m );
   void debugPrint(const char * tr, Node op, FullModelChecker * m);
-};
+};/* class Def */
 
 
 class FullModelChecker : public QModelBuilder
@@ -151,11 +151,11 @@ public:
   Node getCurrentUfModelValue( FirstOrderModelFmc* fm, Node n, std::vector< Node > & args, bool partial );
 
   bool useSimpleModels();
-};
+};/* class FullModelChecker */
 
-}
-}
-}
-}
+}/* CVC4::theory::quantifiers::fmcheck namespace */
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
 
-#endif
+#endif /* __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */

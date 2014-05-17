@@ -16,6 +16,8 @@ endif
 override CVC4_REGRESSION_ARGS += --unconstrained-simp
 export CVC4_REGRESSION_ARGS
 
+MAKEFLAGS = -k
+
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
@@ -63,6 +65,7 @@ TESTS =	\
 	bvult.smt2 \
 	geq.smt2 \
 	gt.smt2 \
+	ite.smt2 \
 	leq.smt2 \
 	lt.smt2 \
 	uf1.smt2 \

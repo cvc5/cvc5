@@ -18,6 +18,7 @@
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/inst_match_generator.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 using namespace std;
 using namespace CVC4;
@@ -60,6 +61,8 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
     return STATUS_UNFINISHED;
   }else if( e==1 ){
     d_counter[f]++;
+      Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
+
     Debug("quant-uf-strategy") << "Try user-provided patterns..." << std::endl;
     //Notice() << "Try user-provided patterns..." << std::endl;
     for( int i=0; i<(int)d_user_gen[f].size(); i++ ){
@@ -67,7 +70,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
       if( processTrigger ){
         //if( d_user_gen[f][i]->isMultiTrigger() )
           Trace("process-trigger") << "  Process (user) " << (*d_user_gen[f][i]) << "..." << std::endl;
-        InstMatch baseMatch;
+        InstMatch baseMatch( f );
         int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
         //if( d_user_gen[f][i]->isMultiTrigger() )
           Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
@@ -94,22 +97,11 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
     //extend to literal matching
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
-    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = 0;
     d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW,
                                                  options::smartTriggers() ) );
   }
 }
-/*
-InstStrategyUserPatterns::Statistics::Statistics():
-  d_instantiations("InstStrategyUserPatterns::Instantiations", 0)
-{
-  StatisticsRegistry::registerStat(&d_instantiations);
-}
-
-InstStrategyUserPatterns::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_instantiations);
-}
-*/
 
 void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers
@@ -123,68 +115,74 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  int peffort = f.getNumChildren()==3 ? 2 : 1;
-  //int peffort = f.getNumChildren()==3 ? 2 : 1;
-  //int peffort = 1;
-  if( e<peffort ){
-    return STATUS_UNFINISHED;
+  if( f.getNumChildren()==3 && options::userPatternsQuant()==USER_PAT_MODE_TRUST ){
+    return STATUS_UNKNOWN;
   }else{
-    int status = STATUS_UNKNOWN;
-    bool gen = false;
-    if( e==peffort ){
-      if( d_counter.find( f )==d_counter.end() ){
-        d_counter[f] = 0;
-        gen = true;
-      }else{
-        d_counter[f]++;
-        gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
-      }
+    int peffort = ( f.getNumChildren()==3 && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ) ? 2 : 1;
+    //int peffort = 1;
+    if( e<peffort ){
+      return STATUS_UNFINISHED;
     }else{
-      gen = true;
-    }
-    if( gen ){
-      generateTriggers( f, effort, e, status );
-      if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
-        Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
+      int status = STATUS_UNKNOWN;
+      bool gen = false;
+      if( e==peffort ){
+        if( d_counter.find( f )==d_counter.end() ){
+          d_counter[f] = 0;
+          gen = true;
+        }else{
+          d_counter[f]++;
+          gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
+        }
+      }else{
+        gen = true;
       }
-    }
-
-    //if( e==4 ){
-    //  d_processed_trigger.clear();
-    //  d_quantEngine->getEqualityQuery()->setLiberal( true );
-    //}
-    Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
-    //Notice() << "Try auto-generated triggers..." << std::endl;
-    for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[f].begin(); itt != d_auto_gen_trigger[f].end(); ++itt ){
-      Trigger* tr = itt->first;
-      if( tr ){
-        bool processTrigger = itt->second;
-        if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
-          d_processed_trigger[f][tr] = true;
-          //if( tr->isMultiTrigger() )
-            Trace("process-trigger") << "  Process " << (*tr) << "..." << std::endl;
-          InstMatch baseMatch;
-          int numInst = tr->addInstantiations( baseMatch );
-          //if( tr->isMultiTrigger() )
-            Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-          if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
-            d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
-          }else{
-            d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen += numInst;
-          }
-          if( tr->isMultiTrigger() ){
-            d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-          }
-          //d_quantEngine->d_hasInstantiated[f] = true;
+      if( gen ){
+        generateTriggers( f, effort, e, status );
+        if( d_auto_gen_trigger[f].empty() && f.getNumChildren()==2 ){
+          Trace("no-trigger") << "Could not find trigger for " << f << std::endl;
         }
       }
+      Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
+
+      //if( e==4 ){
+      //  d_processed_trigger.clear();
+      //  d_quantEngine->getEqualityQuery()->setLiberal( true );
+      //}
+      Debug("quant-uf-strategy")  << "Try auto-generated triggers... " << d_tr_strategy << " " << e << std::endl;
+      //Notice() << "Try auto-generated triggers..." << std::endl;
+      for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[f].begin(); itt != d_auto_gen_trigger[f].end(); ++itt ){
+        Trigger* tr = itt->first;
+        if( tr ){
+          bool processTrigger = itt->second;
+          if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
+            d_processed_trigger[f][tr] = true;
+            //if( tr->isMultiTrigger() )
+              Trace("process-trigger") << "  Process ";
+              tr->debugPrint("process-trigger");
+              Trace("process-trigger") << "..." << std::endl;
+            InstMatch baseMatch( f );
+            int numInst = tr->addInstantiations( baseMatch );
+            //if( tr->isMultiTrigger() )
+              Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+            if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
+              d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
+            }else{
+              d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen += numInst;
+            }
+            if( tr->isMultiTrigger() ){
+              d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
+            }
+            //d_quantEngine->d_hasInstantiated[f] = true;
+          }
+        }
+      }
+      //if( e==4 ){
+      //  d_quantEngine->getEqualityQuery()->setLiberal( false );
+      //}
+      Debug("quant-uf-strategy") << "done." << std::endl;
+      //Notice() << "done" << std::endl;
+      return status;
     }
-    //if( e==4 ){
-    //  d_quantEngine->getEqualityQuery()->setLiberal( false );
-    //}
-    Debug("quant-uf-strategy") << "done." << std::endl;
-    //Notice() << "done" << std::endl;
-    return status;
   }
 }
 
@@ -247,7 +245,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
   if( !patTerms.empty() ){
     Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
     //sort terms based on relevance
-    if( d_rlv_strategy==RELEVANCE_DEFAULT ){
+    if( options::relevantTriggers() ){
       sortQuantifiersForSymbol sqfs;
       sqfs.d_qe = d_quantEngine;
       //sort based on # occurrences (this will cause Trigger to select rarer symbols)
@@ -264,7 +262,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
       //}
     }
     //now, generate the trigger...
-    int matchOption = options::efficientEMatching() ? InstMatchGenerator::MATCH_GEN_EFFICIENT_E_MATCH : 0;
+    int matchOption = 0;
     Trigger* tr = NULL;
     if( d_is_single_trigger[ patTerms[0] ] ){
       tr = Trigger::mkTrigger( d_quantEngine, f, patTerms[0], matchOption, false, Trigger::TR_RETURN_NULL,
@@ -314,12 +312,16 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
         if( index<(int)patTerms.size() ){
           //Notice() << "check add additional" << std::endl;
           //check if similar patterns exist, and if so, add them additionally
-          int nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
+          int nqfs_curr = 0;
+          if( options::relevantTriggers() ){
+            nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
+          }
           index++;
           bool success = true;
           while( success && index<(int)patTerms.size() && d_is_single_trigger[ patTerms[index] ] ){
             success = false;
-            if( d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
+            if( !options::relevantTriggers() ||
+                d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
               d_single_trigger_gen[ patTerms[index] ] = true;
               Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], matchOption, false, Trigger::TR_RETURN_NULL,
                                                  options::smartTriggers() );
@@ -339,20 +341,6 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     }
   }
 }
-/*
-InstStrategyAutoGenTriggers::Statistics::Statistics():
-  d_instantiations("InstStrategyAutoGenTriggers::Instantiations", 0),
-  d_instantiations_min("InstStrategyAutoGenTriggers::Instantiations_min", 0)
-{
-  StatisticsRegistry::registerStat(&d_instantiations);
-  StatisticsRegistry::registerStat(&d_instantiations_min);
-}
-
-InstStrategyAutoGenTriggers::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_instantiations);
-  StatisticsRegistry::unregisterStat(&d_instantiations_min);
-}
-*/
 
 void InstStrategyFreeVariable::processResetInstantiationRound( Theory::Effort effort ){
 }
@@ -361,26 +349,98 @@ int InstStrategyFreeVariable::process( Node f, Theory::Effort effort, int e ){
   if( e<5 ){
     return STATUS_UNFINISHED;
   }else{
-    if( d_guessed.find( f )==d_guessed.end() ){
-      d_guessed[f] = true;
-      Debug("quant-uf-alg") << "Add guessed instantiation" << std::endl;
-      InstMatch m;
-      if( d_quantEngine->addInstantiation( f, m ) ){
-        ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
-        //d_quantEngine->d_hasInstantiated[f] = true;
+    //first, try from relevant domain
+    RelevantDomain * rd = d_quantEngine->getRelevantDomain();
+    for( unsigned r=0; r<2; r++ ){
+      if( rd || r==1 ){
+        if( r==0 ){
+          Trace("inst-alg") << "-> Relevant domain instantiate " << f << "..." << std::endl;
+        }else{
+          Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
+        }
+        rd->compute();
+        unsigned final_max_i = 0;
+        std::vector< unsigned > maxs;
+        for(unsigned i=0; i<f[0].getNumChildren(); i++ ){
+          unsigned ts;
+          if( r==0 ){
+            ts = rd->getRDomain( f, i )->d_terms.size();
+          }else{
+            ts = d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()].size();
+          }
+          maxs.push_back( ts );
+          Trace("inst-alg-rd") << "Variable " << i << " has " << ts << " in relevant domain." << std::endl;
+          if( ts>final_max_i ){
+            final_max_i = ts;
+          }
+        }
+        Trace("inst-alg-rd") << "Will do " << final_max_i << " stages of instantiation." << std::endl;
+
+        unsigned max_i = 0;
+        bool success;
+        while( max_i<=final_max_i ){
+          Trace("inst-alg-rd") << "Try stage " << max_i << "..." << std::endl;
+          std::vector< unsigned > childIndex;
+          int index = 0;
+          do {
+            while( index>=0 && index<(int)f[0].getNumChildren() ){
+              if( index==(int)childIndex.size() ){
+                childIndex.push_back( -1 );
+              }else{
+                Assert( index==(int)(childIndex.size())-1 );
+                unsigned nv = childIndex[index]+1;
+                if( options::cbqi() ){
+                  //skip inst constant nodes
+                  while( nv<maxs[index] && nv<=max_i &&
+                         r==1 && quantifiers::TermDb::hasInstConstAttr( d_quantEngine->getTermDatabase()->d_type_map[f[0][index].getType()][nv] ) ){
+                    childIndex[index]++;
+                    nv = childIndex[index]+1;
+                  }
+                }
+                if( nv<maxs[index] && nv<=max_i ){
+                  childIndex[index]++;
+                  index++;
+                }else{
+                  childIndex.pop_back();
+                  index--;
+                }
+              }
+            }
+            success = index>=0;
+            if( success ){
+              Trace("inst-alg-rd") << "Try instantiation..." << std::endl;
+              index--;
+              //try instantiation
+              std::vector< Node > terms;
+              for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+                if( r==0 ){
+                  terms.push_back( rd->getRDomain( f, i )->d_terms[childIndex[i]] );
+                }else{
+                  terms.push_back( d_quantEngine->getTermDatabase()->d_type_map[f[0][i].getType()][childIndex[i]] );
+                }
+              }
+              if( d_quantEngine->addInstantiation( f, terms, false ) ){
+                Trace("inst-alg-rd") << "Success!" << std::endl;
+                ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+                return STATUS_UNKNOWN;
+              }
+            }
+          }while( success );
+          max_i++;
+        }
+      }
+      if( r==0 ){
+        if( d_guessed.find( f )==d_guessed.end() ){
+          Trace("inst-alg") << "-> Guess instantiate " << f << "..." << std::endl;
+          d_guessed[f] = true;
+          InstMatch m( f );
+          if( d_quantEngine->addInstantiation( f, m ) ){
+            ++(d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_guess);
+            return STATUS_UNKNOWN;
+          }
+        }
       }
     }
     return STATUS_UNKNOWN;
   }
 }
-/*
-InstStrategyFreeVariable::Statistics::Statistics():
-  d_instantiations("InstStrategyGuess::Instantiations", 0)
-{
-  StatisticsRegistry::registerStat(&d_instantiations);
-}
-
-InstStrategyFreeVariable::Statistics::~Statistics(){
-  StatisticsRegistry::unregisterStat(&d_instantiations);
-}
-*/

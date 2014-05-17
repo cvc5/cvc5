@@ -49,8 +49,8 @@ const bool d_solveWrite2 = false;
   //bool d_lazyRIntro1 = true;
   //bool d_eagerIndexSplitting = false;
 
-TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo, qe),
+TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_ARRAY, c, u, out, valuation, logicInfo),
   d_numRow("theory::arrays::number of Row lemmas", 0),
   d_numExt("theory::arrays::number of Ext lemmas", 0),
   d_numProp("theory::arrays::number of propagations", 0),
@@ -374,10 +374,16 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
+  //eq::EqProof * eqp = new eq::EqProof;
+  eq::EqProof * eqp = NULL;
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions, eqp);
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+  }
+  if( eqp ){
+    Debug("array-pf") << " Proof is : " << std::endl;
+    eqp->debug_print("array-pf");
   }
 }
 
@@ -435,7 +441,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
+          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
           Assert(++it == stores->end());
         }
       }
@@ -482,7 +488,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true);
+      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, eq::MERGED_ARRAYS_ROW1);
     }
 
     d_infoMap.addStore(node, node);
@@ -839,7 +845,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
     else {
       std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
       if (it == d_skolemCache.end()) {
-        rep = nm->mkSkolem("array_collect_model_var_$$", n.getType(), "base model variable for array collectModelInfo");
+        rep = nm->mkSkolem("array_collect_model_var", n.getType(), "base model variable for array collectModelInfo");
         d_skolemCache[n] = rep;
       }
       else {
@@ -957,7 +963,7 @@ void TheoryArrays::check(Effort e) {
           if(fact[0][0].getType().isArray() && !d_conflict) {
             NodeManager* nm = NodeManager::currentNM();
             TypeNode indexType = fact[0][0].getType()[0];
-            TNode k = getSkolem(fact,"array_ext_index_$$", indexType, "an extensional lemma index variable from the theory of arrays", false);
+            TNode k = getSkolem(fact,"array_ext_index", indexType, "an extensional lemma index variable from the theory of arrays", false);
 
             Node ak = nm->mkNode(kind::SELECT, fact[0][0], k);
             Node bk = nm->mkNode(kind::SELECT, fact[0][1], k);
@@ -1568,18 +1574,18 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
       }
 
       // Solve equation for s: select(s,index) op val --> s = store(s',i',v') /\ index = i' /\ v' op val
-      Node newVarArr = getSkolem(s, "array_model_arr_var_$$", s.getType(), "a new array variable from the theory of arrays", false);
+      Node newVarArr = getSkolem(s, "array_model_arr_var", s.getType(), "a new array variable from the theory of arrays", false);
       Assert(d_infoMap.getModelRep(d_equalityEngine.getRepresentative(newVarArr)).isNull());
       Node lookup;
       bool checkIndex1 = false, checkIndex2 = false, checkIndex3 = false;
       if (!isLeaf(index)) {
-        index = getSkolem(index, "array_model_index_$$", index.getType(), "a new index variable from the theory of arrays");
+        index = getSkolem(index, "array_model_index", index.getType(), "a new index variable from the theory of arrays");
         if (!index.getType().isArray()) {
           checkIndex1 = true;
         }
       }
       lookup = nm->mkNode(kind::SELECT, s, index);
-      Node newVarVal = getSkolem(lookup, "array_model_var_$$", val.getType(), "a new value variable from the theory of arrays", false);
+      Node newVarVal = getSkolem(lookup, "array_model_var", val.getType(), "a new value variable from the theory of arrays", false);
 
       Node newVarVal2;
       Node index2;
@@ -1588,7 +1594,7 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
         // Special case: select(s,index) = select(s,j): solution becomes s = store(store(s',j,v'),index,w') /\ v' = w'
         index2 = val[1];
         if (!isLeaf(index2)) {
-          index2 = getSkolem(val, "array_model_index_$$", index2.getType(), "a new index variable from the theory of arrays");
+          index2 = getSkolem(val, "array_model_index", index2.getType(), "a new index variable from the theory of arrays");
           if (!index2.getType().isArray()) {
             checkIndex2 = true;
           }
@@ -1597,7 +1603,7 @@ bool TheoryArrays::setModelVal(TNode node, TNode val, bool invert, bool explain,
           checkIndex3 = true;
         }
         lookup = nm->mkNode(kind::SELECT, s, index2);
-        newVarVal2 = getSkolem(lookup, "array_model_var_$$", val.getType(), "a new value variable from the theory of arrays", false);
+        newVarVal2 = getSkolem(lookup, "array_model_var", val.getType(), "a new value variable from the theory of arrays", false);
         newVarArr = nm->mkNode(kind::STORE, newVarArr, index2, newVarVal2);
         preRegisterTermInternal(newVarArr);
         val = newVarVal2;
@@ -1892,7 +1898,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true);
+    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, eq::MERGED_ARRAYS_ROW1);
   }
 }
 
@@ -1921,7 +1927,7 @@ Node TheoryArrays::removeRepLoops(TNode a, TNode rep)
   // TODO: Change to hasLoop?
   if (!isLeaf(index)) {
     changed = true;
-    index = getSkolem(index, "array_model_index_$$", index.getType(), "a new index variable from the theory of arrays", false);
+    index = getSkolem(index, "array_model_index", index.getType(), "a new index variable from the theory of arrays", false);
     if (!d_equalityEngine.hasTerm(index) ||
         !d_equalityEngine.hasTerm(rep[1]) ||
         !d_equalityEngine.areEqual(rep[1], index)) {
@@ -1933,7 +1939,7 @@ Node TheoryArrays::removeRepLoops(TNode a, TNode rep)
   }
   if (!isLeaf(value)) {
     changed = true;
-    value = getSkolem(value, "array_model_var_$$", value.getType(), "a new value variable from the theory of arrays", false);
+    value = getSkolem(value, "array_model_var", value.getType(), "a new value variable from the theory of arrays", false);
     if (!d_equalityEngine.hasTerm(value) ||
         !d_equalityEngine.hasTerm(rep[2]) ||
         !d_equalityEngine.areEqual(rep[2], value)) {
@@ -2283,7 +2289,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine.assertEquality(aj_eq_bj, true, reason);
+      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, eq::MERGED_ARRAYS_ROW);
       ++d_numProp;
       return;
     }
@@ -2293,7 +2299,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i_eq_j, true, reason);
+      d_equalityEngine.assertEquality(i_eq_j, true, reason, eq::MERGED_ARRAYS_ROW);
       ++d_numProp;
       return;
     }

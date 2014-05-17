@@ -30,7 +30,6 @@
 #include "util/proof.h"
 #include "smt/modal_exception.h"
 #include "smt/logic_exception.h"
-#include "util/hash.h"
 #include "options/options.h"
 #include "util/result.h"
 #include "util/sexpr.h"
@@ -59,6 +58,7 @@ class TheoryEngine;
 class ProofManager;
 
 class Model;
+class LogicRequest;
 class StatisticsRegistry;
 
 namespace context {
@@ -277,11 +277,14 @@ class CVC4_PUBLIC SmtEngine {
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
    * not permitted to change after assertions and queries are made).
-   *
-   * FIXME: Above comment not true. Please don't call this more than
-   * once. (6/14/2012 -- K)
    */
   void finalOptionsAreSet();
+
+  /**
+   * Apply heuristics settings and other defaults.  Done once, at
+   * finishInit() time.
+   */
+  void setDefaults();
 
   /**
    * Create theory engine, prop engine, decision engine. Called by
@@ -334,6 +337,7 @@ class CVC4_PUBLIC SmtEngine {
   friend ::CVC4::StatisticsRegistry* ::CVC4::stats::getStatisticsRegistry(SmtEngine*);
   friend void ::CVC4::smt::beforeSearch(std::string, bool, SmtEngine*) throw(ModalException);
   friend ProofManager* ::CVC4::smt::currentProofManager();
+  friend class ::CVC4::LogicRequest;
   // to access d_modelCommands
   friend class ::CVC4::Model;
   friend class ::CVC4::theory::TheoryModel;
@@ -492,6 +496,11 @@ public:
    * support and produce-proofs is on.
    */
   Proof* getProof() throw(ModalException);
+
+  /**
+   * Print all instantiations made by the quantifiers module.
+   */
+  void printInstantiations( std::ostream& out );
 
   /**
    * Get the current set of assertions.  Only permitted if the

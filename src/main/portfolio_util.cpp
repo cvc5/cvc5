@@ -30,23 +30,12 @@ vector<Options> parseThreadSpecificOptions(Options opts)
 
   unsigned numThreads = opts[options::threads];
 
-  /**
-   * Use satRandomSeed for generating random numbers, in particular
-   * satRandomSeed-s
-   */
-  srand((unsigned int)(-opts[options::satRandomSeed]));
-
   for(unsigned i = 0; i < numThreads; ++i) {
     threadOptions.push_back(opts);
     Options& tOpts = threadOptions.back();
 
     // Set thread identifier
     tOpts.set(options::thread_id, i);
-
-    // If the random-seed is negative, pick a random seed randomly
-    if(opts[options::satRandomSeed] < 0) {
-      tOpts.set(options::satRandomSeed, (double)rand());
-    }
 
     if(i < opts[options::threadArgv].size() && 
        !opts[options::threadArgv][i].empty()) {

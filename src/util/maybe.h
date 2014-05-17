@@ -75,6 +75,7 @@ inline std::ostream& operator<<(std::ostream& out, const Maybe<T>& m){
   if(m.nothing()){
     out << "Nothing";
   }else{
+    out << "Just ";
     out << m.constValue();
   }
   out << "}";

@@ -25,6 +25,8 @@
 #include "expr/type_node.h"
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 class FirstOrderPropagation {
 private:
@@ -40,6 +42,8 @@ public:
   void simplify( std::vector< Node >& assertions );
 };
 
+}
+}
 }
 
 #endif

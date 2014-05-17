@@ -1,4 +1,4 @@
-% EXPECT: valid
+% EXPECT: invalid
 
 DATATYPE
   tree = node(left : tree, right : tree) | leaf

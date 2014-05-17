@@ -70,7 +70,8 @@ d_quantEngine( qe ), d_f( f ){
   //Notice() << "Trigger : " << (*this) << "  for " << f << std::endl;
   if( options::eagerInstQuant() ){
     for( int i=0; i<(int)d_nodes.size(); i++ ){
-      qe->getTermDatabase()->registerTrigger( this, d_nodes[i].getOperator() );
+      Node op = qe->getTermDatabase()->getOperator( d_nodes[i] );
+      qe->getTermDatabase()->registerTrigger( this, op );
     }
   }
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
@@ -323,7 +324,7 @@ bool Trigger::isUsableTrigger( Node n, Node f ){
 
 bool Trigger::isAtomicTrigger( Node n ){
   return ( n.getKind()==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) || n.getKind()==SELECT || n.getKind()==STORE ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR || n.getKind()==APPLY_TESTER;
+         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
 }
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){

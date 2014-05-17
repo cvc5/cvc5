@@ -54,7 +54,7 @@ private:
   eq::EqualityEngine* d_masterEqualityEngine;
 
 public:
-  TheoryQuantifiers(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryQuantifiers(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheoryQuantifiers();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -73,6 +73,7 @@ public:
   bool flipDecision();
   void setUserAttribute( const std::string& attr, Node n );
   eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
+  bool ppDontRewriteSubterm(TNode atom) { return atom.getKind() == kind::FORALL || atom.getKind() == kind::EXISTS; }
 private:
   void assertUniversal( Node n );
   void assertExistential( Node n );

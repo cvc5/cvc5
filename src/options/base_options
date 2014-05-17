@@ -107,6 +107,10 @@ common-option statistics statistics --stats bool :predicate CVC4::smt::statsEnab
  give statistics on exit
 undocumented-alias --statistics = --stats
 undocumented-alias --no-statistics = --no-stats
+option statsEveryQuery --stats-every-query bool :default false :link --stats
+ in incremental mode, print stats after every satisfiability or validity query
+undocumented-alias --statistics-every-query = --stats-every-query
+undocumented-alias --no-statistics-every-query = --no-stats-every-query
 
 option parseOnly parse-only --parse-only bool :read-write
  exit after parsing input

@@ -89,7 +89,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
-  d_abstractValueCount(0) {
+  d_abstractValueCount(0),
+  d_skolemCounter(0) {
   init();
 }
 
@@ -103,7 +104,8 @@ NodeManager::NodeManager(context::Context* ctxt,
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
-  d_abstractValueCount(0) {
+  d_abstractValueCount(0),
+  d_skolemCounter(0) {
   init();
 }
 
@@ -304,26 +306,16 @@ TypeNode NodeManager::getType(TNode n, bool check)
   return typeNode;
 }
 
-Node NodeManager::mkSkolem(const std::string& name, const TypeNode& type, const std::string& comment, int flags) {
+Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
   Node n = NodeBuilder<0>(this, kind::SKOLEM);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   if((flags & SKOLEM_EXACT_NAME) == 0) {
-    size_t pos = name.find("$$");
-    if(pos != string::npos) {
-      // replace a "$$" with the node ID
-      stringstream id;
-      id << n.getId();
-      string newName = name;
-      newName.replace(pos, 2, id.str());
-      setAttribute(n, expr::VarNameAttr(), newName);
-    } else {
-      stringstream newName;
-      newName << name << '_' << n.getId();
-      setAttribute(n, expr::VarNameAttr(), newName.str());
-    }
+    stringstream name;
+    name << prefix << '_' << ++d_skolemCounter;
+    setAttribute(n, expr::VarNameAttr(), name.str());
   } else {
-    setAttribute(n, expr::VarNameAttr(), name);
+    setAttribute(n, expr::VarNameAttr(), prefix);
   }
   if((flags & SKOLEM_NO_NOTIFY) == 0) {
     for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {

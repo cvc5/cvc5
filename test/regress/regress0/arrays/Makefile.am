@@ -13,6 +13,8 @@ TESTS_ENVIRONMENT = \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
+MAKEFLAGS = -k
+
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="

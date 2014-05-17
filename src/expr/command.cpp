@@ -1048,6 +1048,50 @@ std::string GetProofCommand::getCommandName() const throw() {
   return "get-proof";
 }
 
+/* class GetInstantiationsCommand */
+
+GetInstantiationsCommand::GetInstantiationsCommand() throw() {
+}
+
+void GetInstantiationsCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    d_smtEngine = smtEngine;
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+//Instantiations* GetInstantiationsCommand::getResult() const throw() {
+//  return d_result;
+//}
+
+void GetInstantiationsCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
+  if(! ok()) {
+    this->Command::printResult(out, verbosity);
+  } else {
+    d_smtEngine->printInstantiations(out);
+  }
+}
+
+Command* GetInstantiationsCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  GetInstantiationsCommand* c = new GetInstantiationsCommand();
+  //c->d_result = d_result;
+  c->d_smtEngine = d_smtEngine;
+  return c;
+}
+
+Command* GetInstantiationsCommand::clone() const {
+  GetInstantiationsCommand* c = new GetInstantiationsCommand();
+  //c->d_result = d_result;
+  c->d_smtEngine = d_smtEngine;
+  return c;
+}
+
+std::string GetInstantiationsCommand::getCommandName() const throw() {
+  return "get-instantiations";
+}
+
 /* class GetUnsatCoreCommand */
 
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {

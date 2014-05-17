@@ -73,8 +73,7 @@ struct NodeTheoryPairHashFunction {
 };/* struct NodeTheoryPairHashFunction */
 
 
-
-/* Forward Declarations Block */
+/* Forward declarations */
 namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
@@ -82,8 +81,12 @@ namespace theory {
 
   namespace eq {
     class EqualityEngine;
-  }
+  }/* CVC4::theory::eq namespace */
+
+  class EntailmentCheckParameters;
+  class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
+
 class DecisionEngine;
 class RemoveITE;
 class UnconstrainedSimplifier;
@@ -292,18 +295,18 @@ class TheoryEngine {
       return d_engine->propagate(literal, d_theory);
     }
 
-    theory::LemmaStatus lemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
+    theory::LemmaStatus lemma(TNode lemma, bool removable = false, bool preprocess = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, theory::THEORY_LAST);
+      return d_engine->lemma(lemma, false, removable, preprocess, theory::THEORY_LAST);
     }
 
     theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) throw(TypeCheckingExceptionPrivate, AssertionException) {
       Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma(" << lemma << ")" << std::endl;
       ++ d_statistics.lemmas;
       d_engine->d_outputChannelUsed = true;
-      return d_engine->lemma(lemma, false, removable, d_theory);
+      return d_engine->lemma(lemma, false, removable, false, d_theory);
     }
 
     void demandRestart() throw(TypeCheckingExceptionPrivate, AssertionException) {
@@ -451,7 +454,7 @@ class TheoryEngine {
    * @param removable can the lemma be remove (restrictions apply)
    * @param needAtoms if not THEORY_LAST, then
    */
-  theory::LemmaStatus lemma(TNode node, bool negated, bool removable, theory::TheoryId atomsTo);
+  theory::LemmaStatus lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -488,7 +491,7 @@ public:
   inline void addTheory(theory::TheoryId theoryId) {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this), d_logicInfo, getQuantifiersEngine());
+    d_theoryTable[theoryId] = new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId], theory::Valuation(this), d_logicInfo);
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
@@ -755,6 +758,17 @@ public:
    */
   Node getModelValue(TNode var);
 
+  /**
+   * Print all instantiations made by the quantifiers module.
+   */
+  void printInstantiations( std::ostream& out );
+
+  /**
+   * Forwards an entailment check according to the given theoryOfMode.
+   * See theory.h for documentation on entailmentCheck().
+   */
+  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+
 private:
 
   /** Default visitor for pre-registration */
@@ -819,6 +833,9 @@ public:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel();
+
+private:
+  IntStat d_arithSubstitutionsAdded;
 
 };/* class TheoryEngine */
 

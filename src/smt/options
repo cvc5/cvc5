@@ -5,10 +5,13 @@
 
 module SMT "smt/options.h" SMT layer
 
-common-option - --dump=MODE argument :handler CVC4::smt::dumpMode :handler-include "smt/options_handlers.h"
+common-option - dump --dump=MODE argument :handler CVC4::smt::dumpMode :handler-include "smt/options_handlers.h"
  dump preprocessed assertions, etc., see --dump=help
-common-option - --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
+common-option - dump-to --dump-to=FILE argument :handler CVC4::smt::dumpToFile :handler-include "smt/options_handlers.h"
  all dumping goes to FILE (instead of stdout)
+
+expert-option forceLogic force-logic --force-logic=LOGIC LogicInfo :include "theory/logic_info.h" :handler CVC4::smt::stringToLogicInfo :handler-include "smt/options_handlers.h" :default '""'
+ set the logic, and override all further user attempts to change it
 
 option simplificationMode simplification-mode --simplification=MODE SimplificationMode :handler CVC4::smt::stringToSimplificationMode :default SIMPLIFICATION_MODE_BATCH :read-write :include "smt/simplification_mode.h" :handler-include "smt/options_handlers.h"
  choose simplification mode, see --simplification=help
@@ -32,6 +35,8 @@ option checkProofs check-proofs --check-proofs bool :link --proof :link-smt prod
  after UNSAT/VALID, machine-check the generated proof
 option dumpProofs --dump-proofs bool :default false :link --proof
  output proofs after every UNSAT/VALID response
+option dumpInstantiations --dump-instantiations bool :default false
+ output instantiations of quantified formulas after every UNSAT/VALID response
 # this is just a placeholder for later; it doesn't show up in command-line options listings
 undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  turn on unsat core generation (NOT YET SUPPORTED)
@@ -40,7 +45,7 @@ option produceAssignments produce-assignments --produce-assignments bool :defaul
 
 # This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
 # is a mode in which the assertion list must be kept.  So it belongs here.
-common-option interactive interactive-mode --interactive bool :read-write
+common-option interactive interactive-mode --interactive bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h" :read-write
  force interactive mode
 
 option doITESimp --ite-simp bool :read-write

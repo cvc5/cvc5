@@ -18,6 +18,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -62,41 +63,63 @@ CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node op ) :
   Assert( !d_op.isNull() );
 }
 void CandidateGeneratorQE::resetInstantiationRound(){
-  d_term_iter_limit = d_qe->getTermDatabase()->d_op_map[d_op].size();
+  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
 
 void CandidateGeneratorQE::reset( Node eqc ){
   d_term_iter = 0;
   if( eqc.isNull() ){
-    d_using_term_db = true;
+    d_mode = cand_term_db;
   }else{
     //create an equivalence class iterator in eq class eqc
-    d_eqc.clear();
-    d_qe->getEqualityQuery()->getEquivalenceClass( eqc, d_eqc );
-    d_using_term_db = false;
+    //d_qe->getEqualityQuery()->getEquivalenceClass( eqc, d_eqc );
+
+    eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
+    if( ee->hasTerm( eqc ) ){
+      Node rep = ee->getRepresentative( eqc );
+      d_eqc_iter = eq::EqClassIterator( rep, ee );
+      d_mode = cand_term_eqc;
+    }else{
+      d_n = eqc;
+      d_mode = cand_term_ident;
+    }
+    //a should be in its equivalence class
+    //Assert( std::find( eqc.begin(), eqc.end(), a )!=eqc.end() );
   }
+}
+bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
+  if( n.hasOperator() ){
+    if( isLegalCandidate( n ) ){
+      return d_qe->getTermDatabase()->getOperator( n )==d_op;
+    }
+  }
+  return false;
 }
 
 Node CandidateGeneratorQE::getNextCandidate(){
-  if( d_term_iter>=0 ){
-    if( d_using_term_db ){
-      //get next candidate term in the uf term database
-      while( d_term_iter<d_term_iter_limit ){
-        Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
-        d_term_iter++;
-        if( isLegalCandidate( n ) ){
-          return n;
-        }
+  if( d_mode==cand_term_db ){
+    //get next candidate term in the uf term database
+    while( d_term_iter<d_term_iter_limit ){
+      Node n = d_qe->getTermDatabase()->d_op_map[d_op][d_term_iter];
+      d_term_iter++;
+      if( isLegalCandidate( n ) ){
+        return n;
       }
-    }else{
-      while( d_term_iter<(int)d_eqc.size() ){
-        Node n = d_eqc[d_term_iter];
-        d_term_iter++;
-        if( n.hasOperator() && n.getOperator()==d_op ){
-          if( isLegalCandidate( n ) ){
-            return n;
-          }
-        }
+    }
+  }else if( d_mode==cand_term_eqc ){
+    while( !d_eqc_iter.isFinished() ){
+      Node n = *d_eqc_iter;
+      ++d_eqc_iter;
+      if( isLegalOpCandidate( n ) ){
+        return n;
+      }
+    }
+  }else if( d_mode==cand_term_ident ){
+    if( !d_n.isNull() ){
+      Node n = d_n;
+      d_n = Node::null();
+      if( isLegalOpCandidate( n ) ){
+        return n;
       }
     }
   }

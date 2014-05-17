@@ -22,20 +22,27 @@
 #include <vector>
 #include "util/hash.h"
 #include "theory/theory.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
 class StringsPreprocess {
-	// NOTE: this class is NOT context-dependent
-	std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
+  // NOTE: this class is NOT context-dependent
+  std::hash_map<TNode, Node, TNodeHashFunction> d_cache;
+  //Constants
+  Node d_zero;
 private:
-	bool checkStarPlus( Node t );
-	void simplifyRegExp( Node s, Node r, std::vector< Node > &ret, std::vector< Node > &nn );
-	Node simplify( Node t, std::vector< Node > &new_nodes );
+  bool checkStarPlus( Node t );
+  int checkFixLenVar( Node t );
+  void processRegExp( Node s, Node r, std::vector< Node > &ret );
+  Node simplify( Node t, std::vector< Node > &new_nodes );
+  Node decompose( Node t, std::vector< Node > &new_nodes );
 public:
-    void simplify(std::vector< Node > &vec_node);
+  void simplify(std::vector< Node > &vec_node, std::vector< Node > &new_nodes);
+  void simplify(std::vector< Node > &vec_node);
+  StringsPreprocess();
 };
 
 }/* CVC4::theory::strings namespace */

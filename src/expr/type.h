@@ -49,6 +49,7 @@ class RealType;
 class StringType;
 class BitVectorType;
 class ArrayType;
+class SetType;
 class DatatypeType;
 class ConstructorType;
 class SelectorType;
@@ -301,6 +302,12 @@ public:
   bool isArray() const;
 
   /**
+   * Is this a Set type?
+   * @return true if the type is a Set type
+   */
+  bool isSet() const;
+
+ /**
    * Is this a datatype type?
    * @return true if the type is a datatype type
    */
@@ -487,6 +494,20 @@ public:
   /** Get the constituent type */
   Type getConstituentType() const;
 };/* class ArrayType */
+
+/**
+ * Class encapsulating an set type.
+ */
+class CVC4_PUBLIC SetType : public Type {
+
+public:
+
+  /** Construct from the base type */
+  SetType(const Type& type = Type()) throw(IllegalArgumentException);
+
+  /** Get the index type */
+  Type getElementType() const;
+};/* class SetType */
 
 /**
  * Class encapsulating a user-defined sort.

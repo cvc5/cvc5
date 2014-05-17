@@ -85,8 +85,11 @@ option restrictedPivots --restrict-pivots bool :default true :read-write
 option collectPivots --collect-pivot-stats bool :default false :read-write
  collect the pivot history
 
-option fancyFinal --fancy-final bool :default false :read-write
- tuning how final check works for really hard problems
+option useApprox --use-approx bool :default false :read-write
+ attempt to use an approximate solver
+
+option maxApproxDepth --approx-branch-depth int16_t :default 200 :read-write
+ maximum branch depth the approximate solver is allowed to take
 
 option exportDioDecompositions --dio-decomps bool :default false :read-write
  let skolem variables for integer divisibility constraints leak from the dio solver
@@ -100,7 +103,49 @@ option arithPropAsLemmaLength --arith-prop-clauses uint16_t :default 8 :read-wri
 option soiQuickExplain --soi-qe bool :default false :read-write
  use quick explain to minimize the sum of infeasibility conflicts
 
-option rewriteDivk rewrite-divk --rewrite-divk bool :default false
+option rewriteDivk rewrite-divk --rewrite-divk bool :default false :read-write
  rewrite division and mod when by a constant into linear terms
+
+option trySolveIntStandardEffort --se-solve-int bool :default false
+ attempt to use the approximate solve integer method on standard effort
+
+option replayFailureLemma --lemmas-on-replay-failure bool :default false
+ attempt to use external lemmas if approximate solve integer failed
+
+option dioSolverTurns --dio-turns int :default 10
+ turns in a row dio solver cutting gets
+
+option rrTurns --rr-turns int :default 3
+ round robin turn
+
+option dioRepeat --dio-repeat bool :default false
+ handle dio solver constraints in mass or one at a time
+
+option replayEarlyCloseDepths --replay-early-close-depth int :default 1
+ multiples of the depths to try to close the approx log eagerly
+
+option replayFailurePenalty --replay-failure-penalty int :default 100
+ number of solve integer attempts to skips after a numeric failure
+
+option replayNumericFailurePenalty --replay-num-err-penalty int :default 4194304
+ number of solve integer attempts to skips after a numeric failure
+
+option replayRejectCutSize --replay-reject-cut unsigned :default 25500
+ maximum complexity of any coefficient while replaying cuts
+
+option lemmaRejectCutSize --replay-lemma-reject-cut unsigned :default 25500
+ maximum complexity of any coefficient while outputing replaying cut lemmas
+
+option soiApproxMajorFailure --replay-soi-major-threshold double :default .01
+ threshold for a major tolerance failure by the approximate solver
+
+option soiApproxMajorFailurePen --replay-soi-major-threshold-pen int :default 50
+ threshold for a major tolerance failure by the approximate solver
+
+option soiApproxMinorFailure --replay-soi-minor-threshold double :default .0001
+ threshold for a minor tolerance failure by the approximate solver
+
+option soiApproxMinorFailurePen --replay-soi-minor-threshold-pen int :default 10
+ threshold for a minor tolerance failure by the approximate solver
 
 endmodule

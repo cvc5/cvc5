@@ -27,7 +27,7 @@ using namespace CVC4::kind;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
-TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFuncModels) :
+TheoryModel::TheoryModel(context::Context* c, std::string name, bool enableFuncModels) :
   d_substitutions(c, false), d_modelBuilt(c, false), d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -41,9 +41,15 @@ TheoryModel::TheoryModel( context::Context* c, std::string name, bool enableFunc
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_eeContext->push();
+}
+
+TheoryModel::~TheoryModel() {
+  d_eeContext->pop();
+  delete d_equalityEngine;
+  delete d_eeContext;
 }
 
 void TheoryModel::reset(){
@@ -64,6 +70,8 @@ Node TheoryModel::getValue(TNode n) const {
     //normalize
     nn = Rewriter::rewrite(nn);
   }
+  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ):  returning"
+                          << nn << std::endl;
   return nn;
 }
 
@@ -420,7 +428,7 @@ TheoryEngineModelBuilder::TheoryEngineModelBuilder( TheoryEngine* te ) : d_te( t
 
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
-  return (n.isVar() || n.getKind() == kind::APPLY_UF || n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR);
+  return (n.isVar() || n.getKind() == kind::APPLY_UF || n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
 }
 
 
@@ -729,7 +737,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
   std::map< Node, Node >::iterator itMap;
   for (itMap = constantReps.begin(); itMap != constantReps.end(); ++itMap) {
     tm->d_reps[itMap->first] = itMap->second;
-    tm->d_rep_set.add(itMap->second);
+    tm->d_rep_set.add(itMap->second.getType(), itMap->second);
   }
 
   if (!fullModel) {
@@ -737,14 +745,14 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
     // Make sure every EC has a rep
     for (itMap = assertedReps.begin(); itMap != assertedReps.end(); ++itMap ) {
       tm->d_reps[itMap->first] = itMap->second;
-      tm->d_rep_set.add(itMap->second);
+      tm->d_rep_set.add(itMap->second.getType(), itMap->second);
     }
     for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it) {
       set<Node>& noRepSet = TypeSet::getSet(it);
       set<Node>::iterator i;
       for (i = noRepSet.begin(); i != noRepSet.end(); ++i) {
         tm->d_reps[*i] = *i;
-        tm->d_rep_set.add(*i);
+        tm->d_rep_set.add((*i).getType(), *i);
       }
     }
   }
@@ -779,7 +787,7 @@ void TheoryEngineModelBuilder::buildModel(Model* m, bool fullModel)
           << "n: " << n << endl
           << "getValue(n): " << tm->getValue(n) << endl
           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep);
+        Assert(tm->getValue(*eqc_i) == rep, "run with -d check-model::rep-checking for details");
       }
     }
   }

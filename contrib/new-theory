@@ -121,10 +121,12 @@ function copyaltskel {
 
 # copy files from the skeleton, with proper replacements
 if $alternate; then
+  alternate01=1
   for file in `ls contrib/alttheoryskel`; do
     copyaltskel "$file"
   done
 else
+  alternate01=0
   for file in `ls contrib/theoryskel`; do
     copyskel "$file"
   done
@@ -150,7 +152,7 @@ echo "Adding sources to src/Makefile.am..."
 
 perl -e '
   while(<>) { print; last if /^libcvc4_la_SOURCES = /; }
-  if('$alternate') {
+  if('$alternate01') {
     while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/theory_'"$dir"'.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'.cpp\n"; last; } else { print; } }
   } else {
     while(<>) { if(!/\\$/) { chomp; print "$_ \\\n\ttheory/'"$dir"'/theory_'"$dir"'.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'.cpp \\\n\ttheory/'"$dir"'/theory_'"$dir"'_rewriter.h \\\n\ttheory/'"$dir"'/theory_'"$dir"'_type_rules.h\n"; last; } else { print; } }

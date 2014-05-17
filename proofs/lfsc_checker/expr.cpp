@@ -234,6 +234,7 @@ Expr* Expr::make_app(Expr* e1, Expr* e2 )
       counter = 0;
       while( ((CExpr*)e1)->kids[counter] ){
          ret->kids[counter] = ((CExpr*)e1)->kids[counter];
+         ret->kids[counter]->inc();
          counter++;
       }
       ret->kids[counter] = e2;

@@ -46,7 +46,7 @@ namespace arith {
 
 struct Border{
   // The constraint for the border
-  Constraint d_bound;
+  ConstraintP d_bound;
 
   // The change to the nonbasic to reach the border
   DeltaRational d_diff;
@@ -65,11 +65,11 @@ struct Border{
     d_bound(NullConstraint) // ignore the other values
   {}
 
-  Border(Constraint l, const DeltaRational& diff, bool areFixing, const Tableau::Entry* en, bool ub):
+  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, const Tableau::Entry* en, bool ub):
     d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(en),  d_upperbound(ub)
   {}
 
-  Border(Constraint l, const DeltaRational& diff, bool areFixing, bool ub):
+  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, bool ub):
     d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(NULL),  d_upperbound(ub)
   {}
   bool operator<(const Border& other) const{
@@ -414,13 +414,13 @@ public:
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
-  void propagateBasicFromRow(Constraint c);
+  void propagateBasicFromRow(ConstraintP c);
 
   /**
    * Exports either the explanation of an upperbound or a lower bound
    * of the basic variable basic, using the non-basic variables in the row.
    */
-  void propagateRow(std::vector<Constraint>& into, RowIndex ridx, bool rowUp, Constraint c);
+  void propagateRow(ConstraintCPVec& into, RowIndex ridx, bool rowUp, ConstraintP c);
 
   /**
    * Computes the value of a basic variable using the assignments
@@ -592,26 +592,26 @@ private:
    * with the weakest possible constraint that is consistent with the surplus
    * surplus.
    */
-  Constraint weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v,
+  ConstraintP weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v,
                                 const Rational& coeff, bool& anyWeakening, ArithVar basic) const;
 
 public:
   /**
    * Constructs a minimally weak conflict for the basic variable basicVar.
    */
-  Node minimallyWeakConflict(bool aboveUpper, ArithVar basicVar) const;
+  void minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, RaiseConflict& rc) const;
 
   /**
    * Given a non-basic variable that is know to have a conflict on it,
    * construct and return a conflict.
    * Follows section 4.2 in the CAV06 paper.
    */
-  inline Node generateConflictAboveUpperBound(ArithVar conflictVar) const {
-    return minimallyWeakConflict(true, conflictVar);
+  inline void generateConflictAboveUpperBound(ArithVar conflictVar, RaiseConflict& rc) const {
+    minimallyWeakConflict(true, conflictVar, rc);
   }
 
-  inline Node generateConflictBelowLowerBound(ArithVar conflictVar) const {
-    return minimallyWeakConflict(false, conflictVar);
+  inline void generateConflictBelowLowerBound(ArithVar conflictVar, RaiseConflict& rc) const {
+    minimallyWeakConflict(false, conflictVar, rc);
   }
 
   /**

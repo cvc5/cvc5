@@ -38,7 +38,7 @@ protected:
   SubstitutionMap d_substitutions;
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
-  virtual ~TheoryModel(){}
+  virtual ~TheoryModel();
 
   /** special local context for our equalityEngine so we can clear it independently of search context */
   context::Context* d_eeContext;

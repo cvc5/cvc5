@@ -18,12 +18,60 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/arith_utilities.h"
 #include <list>
+#include "theory/theory.h"
 
 using namespace std;
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+Constant Constant::mkConstant(const Rational& rat) {
+  return Constant(mkRationalNode(rat));
+}
+
+size_t Variable::getComplexity() const{
+  return 1u;
+}
+
+size_t VarList::getComplexity() const{
+  if(empty()){
+    return 1;
+  }else if(singleton()){
+    return 1;
+  }else{
+    return size() + 1;
+  }
+}
+
+size_t Monomial::getComplexity() const{
+  return getConstant().getComplexity() + getVarList().getComplexity();
+}
+
+size_t Polynomial::getComplexity() const{
+  size_t cmp = 0;
+  iterator i = begin(), e = end();
+  for(; i != e; ++i){
+    Monomial m = *i;
+    cmp += m.getComplexity();
+  }
+  return cmp;
+}
+
+size_t Constant::getComplexity() const{
+  return getValue().complexity();
+}
+
+bool Variable::isLeafMember(Node n){
+  return (!isRelationOperator(n.getKind())) &&
+    (Theory::isLeafOf(n, theory::THEORY_ARITH));
+}
+
+VarList::VarList(Node n)
+  : NodeWrapper(n)
+{
+  Assert(isSorted(begin(), end()));
+}
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
@@ -39,6 +87,8 @@ bool Variable::isDivMember(Node n){
   }
 }
 
+
+
 bool VarList::isSorted(iterator start, iterator end) {
   return __gnu_cxx::is_sorted(start, end);
 }
@@ -52,9 +102,15 @@ bool VarList::isMember(Node n) {
     Node prev = *curr;
     if(!Variable::isMember(prev)) return false;
 
+    Variable::VariableNodeCmp cmp;
+
     while( (++curr) != end) {
       if(!Variable::isMember(*curr)) return false;
-      if(!(prev <= *curr)) return false;
+      // prev <= curr : accept
+      // !(prev <= curr) : reject
+      // !(!(prev > curr)) : reject
+      // curr < prev : reject
+      if((cmp(*curr, prev))) return false;
       prev = *curr;
     }
     return true;
@@ -74,15 +130,16 @@ int VarList::cmp(const VarList& vl) const {
 }
 
 VarList VarList::parseVarList(Node n) {
-  if(Variable::isMember(n)) {
-    return VarList(Variable(n));
-  } else {
-    Assert(n.getKind() == kind::MULT);
-    for(Node::iterator i=n.begin(), end = n.end(); i!=end; ++i) {
-      Assert(Variable::isMember(*i));
-    }
-    return VarList(n);
-  }
+  return VarList(n);
+  // if(Variable::isMember(n)) {
+  //   return VarList(Variable(n));
+  // } else {
+  //   Assert(n.getKind() == kind::MULT);
+  //   for(Node::iterator i=n.begin(), end = n.end(); i!=end; ++i) {
+  //     Assert(Variable::isMember(*i));
+  //   }
+  //   return VarList(n);
+  // }
 }
 
 VarList VarList::operator*(const VarList& other) const {
@@ -99,7 +156,9 @@ VarList VarList::operator*(const VarList& other) const {
       otherBegin = other.internalBegin(),
       otherEnd = other.internalEnd();
 
-    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result);
+    Variable::VariableNodeCmp cmp;
+
+    merge_ranges(thisBegin, thisEnd, otherBegin, otherEnd, result, cmp);
 
     Assert(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::MULT, result);
@@ -161,27 +220,76 @@ Monomial Monomial::operator*(const Monomial& mono) const {
   return Monomial::mkMonomial(newConstant, newVL);
 }
 
-vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
-  Assert(isSorted(monos));
-  vector<Monomial> outMonomials;
-  typedef vector<Monomial>::const_iterator iterator;
-  for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
-    Rational constant = (*rangeIter).getConstant().getValue();
-    VarList varList  = (*rangeIter).getVarList();
-    ++rangeIter;
-    while(rangeIter != end && varList == (*rangeIter).getVarList()) {
-      constant += (*rangeIter).getConstant().getValue();
-      ++rangeIter;
-    }
-    if(constant != 0) {
-      Constant asConstant = Constant::mkConstant(constant);
-      Monomial nonZero = Monomial::mkMonomial(asConstant, varList);
-      outMonomials.push_back(nonZero);
-    }
-  }
+// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
+//   Assert(isSorted(monos));
+//   vector<Monomial> outMonomials;
+//   typedef vector<Monomial>::const_iterator iterator;
+//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
+//     Rational constant = (*rangeIter).getConstant().getValue();
+//     VarList varList  = (*rangeIter).getVarList();
+//     ++rangeIter;
+//     while(rangeIter != end && varList == (*rangeIter).getVarList()) {
+//       constant += (*rangeIter).getConstant().getValue();
+//       ++rangeIter;
+//     }
+//     if(constant != 0) {
+//       Constant asConstant = Constant::mkConstant(constant);
+//       Monomial nonZero = Monomial::mkMonomial(asConstant, varList);
+//       outMonomials.push_back(nonZero);
+//     }
+//   }
 
-  Assert(isStrictlySorted(outMonomials));
-  return outMonomials;
+//   Assert(isStrictlySorted(outMonomials));
+//   return outMonomials;
+// }
+
+void Monomial::sort(std::vector<Monomial>& m){
+  if(!isSorted(m)){
+    std::sort(m.begin(), m.end());
+  }
+}
+
+void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
+  Assert(isSorted(monos));
+  size_t writePos, readPos, N;
+  for(writePos = 0, readPos = 0, N = monos.size(); readPos < N;){
+    Monomial& atRead = monos[readPos];
+    const VarList& varList  = atRead.getVarList();
+
+    size_t rangeEnd = readPos+1;
+    for(; rangeEnd < N; rangeEnd++){
+      if(!(varList == monos[rangeEnd].getVarList())){ break; }
+    }
+    // monos[i] for i in [readPos, rangeEnd) has the same var list
+    if(readPos+1 == rangeEnd){ // no addition needed
+      if(!atRead.getConstant().isZero()){
+        Monomial cpy = atRead; // being paranoid here
+        monos[writePos] = cpy;
+        writePos++;
+      }
+    }else{
+      Rational constant(monos[readPos].getConstant().getValue());
+      for(size_t i=readPos+1; i < rangeEnd; ++i){
+        constant += monos[i].getConstant().getValue();
+      }
+      if(!constant.isZero()){
+        Constant asConstant = Constant::mkConstant(constant);
+        Monomial nonZero = Monomial::mkMonomial(asConstant, varList);
+        monos[writePos] = nonZero;
+        writePos++;
+      }
+    }
+    Assert(rangeEnd>readPos);
+    readPos = rangeEnd;
+  }
+  if(writePos > 0 ){
+    Monomial cp = monos[0];
+    Assert(writePos <= N);
+    monos.resize(writePos, cp);
+  }else{
+    monos.clear();
+  }
+  Assert(isStrictlySorted(monos));
 }
 
 void Monomial::print() const {
@@ -199,10 +307,54 @@ Polynomial Polynomial::operator+(const Polynomial& vl) const {
   std::vector<Monomial> sortedMonos;
   merge_ranges(begin(), end(), vl.begin(), vl.end(), sortedMonos);
 
-  std::vector<Monomial> combined = Monomial::sumLikeTerms(sortedMonos);
+  Monomial::combineAdjacentMonomials(sortedMonos);
+  //std::vector<Monomial> combined = Monomial::sumLikeTerms(sortedMonos);
 
-  Polynomial result = mkPolynomial(combined);
+  Polynomial result = mkPolynomial(sortedMonos);
   return result;
+}
+
+
+Polynomial Polynomial::sumPolynomials(const std::vector<Polynomial>& ps){
+  if(ps.empty()){
+    return mkZero();
+  }else if(ps.size() <= 4){
+    // if there are few enough polynomials just add them
+    Polynomial p = ps[0];
+    for(size_t i = 1; i < ps.size(); ++i){
+      p = p + ps[i];
+    }
+    return p;
+  }else{
+    // general case
+    std::map<Node, Rational> coeffs;
+    for(size_t i = 0, N = ps.size(); i<N; ++i){
+      const Polynomial& p = ps[i];
+      for(iterator pi = p.begin(), pend = p.end(); pi != pend; ++pi) {
+        Monomial m = *pi;
+        coeffs[m.getVarList().getNode()] += m.getConstant().getValue();
+      }
+    }
+    std::vector<Monomial> monos;
+    std::map<Node, Rational>::const_iterator ci = coeffs.begin(), cend = coeffs.end();
+    for(; ci != cend; ++ci){
+      if(!(*ci).second.isZero()){
+        Constant c = Constant::mkConstant((*ci).second);
+        Node n = (*ci).first;
+        VarList vl = VarList::parseVarList(n);
+        if(vl.empty()){
+          monos.push_back(Monomial(c));
+        }else{
+          monos.push_back(Monomial(c, vl));
+        }
+      }
+    }
+    Monomial::sort(monos);
+    Monomial::combineAdjacentMonomials(monos);
+
+    Polynomial result = mkPolynomial(monos);
+    return result;
+  }
 }
 
 Polynomial Polynomial::operator-(const Polynomial& vl) const {
@@ -257,7 +409,7 @@ Polynomial Polynomial::operator*(const Monomial& mono) const {
     // Suppose this = (+ x y), mono = x, (* x y).getId() < (* x x).getId()
     // newMonos = <(* x x), (* x y)> after this loop.
     // This is not sorted according to the current VarList order.
-    std::sort(newMonos.begin(), newMonos.end());
+    Monomial::sort(newMonos);
     return Polynomial::mkPolynomial(newMonos);
   }
 }
@@ -281,7 +433,7 @@ Monomial Polynomial::selectAbsMinimum() const {
   ++iter;
   for(; iter != end(); ++iter){
     Monomial curr = *iter;
-    if(curr.absLessThan(min)){
+    if(curr.absCmp(min) < 0){
       min = curr;
     }
   }
@@ -315,10 +467,16 @@ Integer Polynomial::numeratorGCD() const {
   Assert(i!=e);
 
   Integer d = (*i).getConstant().getValue().getNumerator().abs();
+  if(d.isOne()){
+    return d;
+  }
   ++i;
   for(; i!=e; ++i){
     Integer c = (*i).getConstant().getValue().getNumerator();
     d = d.gcd(c);
+    if(d.isOne()){
+      return d;
+    }
   }
   return d;
 }
@@ -615,6 +773,22 @@ bool Comparison::rightIsConstant() const {
   }
 }
 
+size_t Comparison::getComplexity() const{
+  switch(comparisonKind()){
+  case kind::CONST_BOOLEAN: return 1;
+  case kind::LT:
+  case kind::LEQ:
+  case kind::DISTINCT:
+  case kind::EQUAL:
+  case kind::GT:
+  case kind::GEQ:
+    return getLeft().getComplexity() +  getRight().getComplexity();
+  default:
+    Unhandled(comparisonKind());
+    return -1;
+  }
+}
+
 Polynomial Comparison::getLeft() const {
   TNode left;
   Kind k = comparisonKind();
@@ -804,10 +978,10 @@ bool Comparison::isNormalEqualityOrDisequality() const {
           }else{
             Monomial absMinRight = varRight.selectAbsMinimum();
             Debug("nf::tmp") << mleft.getNode() << " " << absMinRight.getNode() << endl;
-            if( mleft.absLessThan(absMinRight) ){
+            if( mleft.absCmp(absMinRight) < 0){
               return true;
             }else{
-              return (!absMinRight.absLessThan(mleft)) && mleft < absMinRight;
+              return (!(absMinRight.absCmp(mleft)< 0)) && mleft < absMinRight;
             }
           }
         }
@@ -1082,6 +1256,17 @@ Node Polynomial::makeAbsCondition(Variable v, Polynomial p){
 
   Node absCnd = (pLeq0.getNode()).iteNode(negP.getNode(), posP.getNode());
   return absCnd;
+}
+
+bool Polynomial::isNonlinear() const {
+
+  for(iterator i=begin(), iend =end(); i != iend; ++i){
+    Monomial m = *i;
+    if(m.isNonlinear()){
+      return true;
+    }
+  }
+  return false;
 }
 
 } //namespace arith

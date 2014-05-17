@@ -87,11 +87,16 @@ libutil_la_SOURCES = \
 	abstract_value.cpp \
 	array_store_all.h \
 	array_store_all.cpp \
+	emptyset.h \
+	emptyset.cpp \
 	model.h \
 	model.cpp \
 	sort_inference.h \
 	sort_inference.cpp \
-	regexp.h
+	regexp.h \
+	regexp.cpp \
+	didyoumean.h \
+	didyoumean.cpp
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
@@ -104,19 +109,23 @@ BUILT_SOURCES = \
 
 if CVC4_CLN_IMP
 libutil_la_SOURCES += \
-	rational_cln_imp.cpp
+	rational_cln_imp.cpp \
+	integer_cln_imp.cpp
 endif
 if CVC4_GMP_IMP
 libutil_la_SOURCES += \
-	rational_gmp_imp.cpp
+	rational_gmp_imp.cpp \
+	integer_gmp_imp.cpp
 endif
 
 EXTRA_DIST = \
 	rational_cln_imp.h \
 	integer_cln_imp.h \
+	integer_cln_imp.cpp \
 	rational_cln_imp.cpp \
 	rational_gmp_imp.h \
 	integer_gmp_imp.h \
+	integer_gmp_imp.cpp \
 	rational_gmp_imp.cpp \
 	rational.h.in \
 	integer.h.in \

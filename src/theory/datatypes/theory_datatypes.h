@@ -44,13 +44,13 @@ private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
 
   /** transitive closure to record equivalence/subterm relation.  */
-  TransitiveClosureNode d_cycle_check;
+  //TransitiveClosureNode d_cycle_check;
   /** has seen cycle */
   context::CDO< bool > d_hasSeenCycle;
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
-
+  Node d_true;
   /** mkAnd */
   Node mkAnd( std::vector< TNode >& assumptions );
 private:
@@ -156,6 +156,8 @@ private:
   NodeListMap d_labels;
   /** selector apps for eqch equivalence class */
   NodeListMap d_selector_apps;
+  /** constructor terms */
+  BoolMap d_consEqc;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   /** The conflict node */
@@ -166,6 +168,12 @@ private:
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
   std::vector< Node > d_pending_merge;
+  /** expand definition skolem functions */
+  std::map< Node, Node > d_exp_def_skolem;
+  /** All the constructor terms that the theory has seen */
+  context::CDList<TNode> d_consTerms;
+  /** All the selector terms that the theory has seen */
+  context::CDList<TNode> d_selTerms;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
@@ -174,15 +182,18 @@ private:
   /** do pending merged */
   void doPendingMerges();
   /** get or make eqc info */
-  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
+  EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
   /** has eqc info */
-  bool hasEqcInfo( Node n ) { return d_labels.find( n )!=d_labels.end(); }
+  bool hasEqcInfo( TNode n ) { return d_labels.find( n )!=d_labels.end(); }
+  /** get eqc constructor */
+  TNode getEqcConstructor( TNode r );
 protected:
   /** compute care graph */
   void computeCareGraph();
 public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryDatatypes(context::Context* c, context::UserContext* u,
+                  OutputChannel& out, Valuation valuation,
+                  const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
@@ -192,8 +203,12 @@ public:
   /** propagate */
   bool propagate(TNode literal);
   /** explain */
+  void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
+  void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
+  void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain( TNode literal );
+  Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
   /** called when a new equivalance class is created */
@@ -207,6 +222,7 @@ public:
 
   void check(Effort e);
   void preRegisterTerm(TNode n);
+  Node expandDefinition(LogicRequest &logicRequest, Node n);
   Node ppRewrite(TNode n);
   void presolve();
   void addSharedTerm(TNode t);
@@ -229,13 +245,20 @@ private:
   void collapseSelector( Node s, Node c );
   /** for checking if cycles exist */
   void checkCycles();
-  Node searchForCycle( Node n, Node on,
-                       std::map< Node, bool >& visited,
+  Node searchForCycle( TNode n, TNode on,
+                       std::map< TNode, bool >& visited,
                        std::vector< TNode >& explanation, bool firstTime = true );
+  /** for checking whether two codatatype terms must be equal */
+  void separateBisimilar( std::vector< Node >& part, std::vector< std::vector< Node > >& part_out,
+                          std::vector< TNode >& exp,
+                          std::map< Node, Node >& cn,
+                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp );
+  /** build model */
+  Node getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap );
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar = false, bool isActive = true );
+  Node getInstantiateCons( Node n, const Datatype& dt, int index, bool mkVar, bool isActive );
   /** process new term that was created internally */
   void processNewTerm( Node n );
   /** check instantiate */
@@ -247,12 +270,14 @@ private:
   bool mustSpecifyAssignment();
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
+  /** check clash mod eq */
+  bool checkClashModEq( TNode n1, TNode n2, std::vector< Node >& exp, std::vector< std::pair< TNode, TNode > >& deq_cand );
 private:
   //equality queries
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  Node getRepresentative( Node a );
+  bool hasTerm( TNode a );
+  bool areEqual( TNode a, TNode b );
+  bool areDisequal( TNode a, TNode b );
+  TNode getRepresentative( TNode a );
 public:
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() { return &d_equalityEngine; }

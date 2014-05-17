@@ -575,6 +575,21 @@ public:
   std::string getCommandName() const throw();
 };/* class GetProofCommand */
 
+class CVC4_PUBLIC GetInstantiationsCommand : public Command {
+protected:
+  //Instantiations* d_result;
+  SmtEngine* d_smtEngine;
+public:
+  GetInstantiationsCommand() throw();
+  ~GetInstantiationsCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  //Instantiations* getResult() const throw();
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class GetInstantiationsCommand */
+
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
   //UnsatCore* d_result;

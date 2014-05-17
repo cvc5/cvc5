@@ -22,6 +22,7 @@
 #include "expr/node.h"
 //#include "expr/attribute.h"
 #include "expr/command.h"
+#include "smt/logic_request.h"
 #include "theory/valuation.h"
 #include "theory/output_channel.h"
 #include "theory/logic_info.h"
@@ -50,6 +51,9 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
+
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -228,19 +232,20 @@ protected:
   /**
    * Helper function for computeRelevantTerms
    */
-  void collectTerms(TNode n, std::set<Node>& termSet);
+  void collectTerms(TNode n, std::set<Node>& termSet) const;
   /**
-   * Scans the current set of assertions and shared terms top-down until a theory-leaf is reached, and adds all terms found to termSet.
-   * This is used by collectModelInfo to delimit the set of terms that should be used when constructing a model
+   * Scans the current set of assertions and shared terms top-down
+   * until a theory-leaf is reached, and adds all terms found to
+   * termSet.  This is used by collectModelInfo to delimit the set of
+   * terms that should be used when constructing a model
    */
-  void computeRelevantTerms(std::set<Node>& termSet);
+  void computeRelevantTerms(std::set<Node>& termSet) const;
 
   /**
    * Construct a Theory.
    */
   Theory(TheoryId id, context::Context* satContext, context::UserContext* userContext,
-         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo,
-         QuantifiersEngine* qe, eq::EqualityEngine* master = 0) throw()
+         OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) throw()
   : d_id(id)
   , d_satContext(satContext)
   , d_userContext(userContext)
@@ -248,8 +253,8 @@ protected:
   , d_facts(satContext)
   , d_factsHead(satContext, 0)
   , d_sharedTermsIndex(satContext, 0)
-  , d_careGraph(0)
-  , d_quantEngine(qe)
+  , d_careGraph(NULL)
+  , d_quantEngine(NULL)
   , d_computeCareGraphTime(statName(id, "computeCareGraphTime"))
   , d_sharedTerms(satContext)
   , d_out(&out)
@@ -474,7 +479,31 @@ public:
   }
 
   /**
-   * Pre-register a term.  Done one time for a Node, ever.
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, and the master equality engine and quantifiers
+   * engine (if any) are initialized.  This base class implementation
+   * does nothing.
+   */
+  virtual void finishInit() { }
+
+  /**
+   * Some theories have kinds that are effectively definitions and
+   * should be expanded before they are handled.  Definitions allow
+   * a much wider range of actions than the normal forms given by the
+   * rewriter; they can enable other theories and create new terms.
+   * However no assumptions can be made about subterms having been
+   * expanded or rewritten.  Where possible rewrite rules should be
+   * used, definitions should only be used when rewrites are not
+   * possible, for example in handling under-specified operations
+   * using partially defined functions.
+   */
+  virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
+    // by default, do nothing
+    return node;
+  }
+
+  /**
+   * Pre-register a term.  Done one time for a Node per SAT context level.
    */
   virtual void preRegisterTerm(TNode) { }
 
@@ -496,6 +525,13 @@ public:
    * Called to set the master equality engine.
    */
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
+
+  /**
+   * Called to set the quantifiers engine.
+   */
+  virtual void setQuantifiersEngine(QuantifiersEngine* qe) {
+    d_quantEngine = qe;
+  }
 
   /**
    * Return the current theory care graph. Theories should overload computeCareGraph to do
@@ -606,6 +642,9 @@ public:
    * check() or propagate() method called.  A Theory may empty its
    * assertFact() queue using get().  A Theory can raise conflicts,
    * add lemmas, and propagate literals during presolve().
+   *
+   * NOTE: The presolve property must be added to the kinds file for
+   * the theory.
    */
   virtual void presolve() { }
 
@@ -772,6 +811,63 @@ public:
    * in a queriable form.  As this is
    */
   std::hash_set<TNode, TNodeHashFunction> currentlySharedTerms() const;
+
+  /**
+   * This allows the theory to be queried for whether a literal, lit, is
+   * entailed by the theory.  This returns a pair of a Boolean and a node E.
+   *
+   * If the Boolean is true, then E is a formula that entails lit and E is propositionally
+   * entailed by the assertions to the theory.
+   *
+   * If the Boolean is false, it is "unknown" if lit is entailed and E may be
+   * any node.
+   *
+   * The literal lit is either an atom a or (not a), which must belong to the theory:
+   *   There is some TheoryOfMode m s.t. Theory::theoryOf(m, a) == this->getId().
+   *
+   * There are NO assumptions that a or the subterms of a have been
+   * preprocessed in any form.  This includes ppRewrite, rewriting,
+   * preregistering, registering, definition expansion or ITE removal!
+   *
+   * Theories are free to limit the amount of effort they use and so may
+   * always opt to return "unknown".  Both "unknown" and "not entailed",
+   * may return for E a non-boolean Node (e.g. Node::null()).  (There is no explicit output
+   * for the negation of lit is entailed.)
+   *
+   * If lit is theory valid, the return result may be the Boolean constant
+   * true for E.
+   *
+   * If lit is entailed by multiple assertions on the theory's getFact()
+   * queue, a_1, a_2, ... and a_k, this may return E=(and a_1 a_2 ... a_k) or
+   * another theory entailed explanation E=(and (and a_1 a_2) (and a3 a_4) ... a_k)
+   *
+   * If lit is entailed by a single assertion on the theory's getFact()
+   * queue, say a, this may return E=a.
+   *
+   * The theory may always return false!
+   *
+   * The search is controlled by the parameter params.  For default behavior,
+   * this may be left NULL.
+   *
+   * Theories that want parameters extend the virtual EntailmentCheckParameters
+   * class.  Users ask the theory for an appropriate subclass from the theory
+   * and configure that.  How this is implemented is on a per theory basis.
+   *
+   * The search may provide additional output to guide the user of
+   * this function.  This output is stored in a EntailmentCheckSideEffects*
+   * output parameter.  The implementation of this is theory specific.  For
+   * no output, this is NULL.
+   *
+   * Theories may not touch their output stream during an entailment check.
+   *
+   * @param  lit     a literal belonging to the theory.
+   * @param  params  the control parameters for the entailment check.
+   * @param  out     a theory specific output object of the entailment search.
+   * @return         a pair <b,E> s.t. if b is true, then a formula E such that
+   * E |= lit in the theory.
+   */
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit, const EntailmentCheckParameters* params = NULL, EntailmentCheckSideEffects* out = NULL);
+
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
@@ -815,6 +911,26 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
+
+class EntailmentCheckParameters {
+private:
+  TheoryId d_tid;
+protected:
+  EntailmentCheckParameters(TheoryId tid);
+public:
+  TheoryId getTheoryId() const;
+  virtual ~EntailmentCheckParameters();
+};/* class EntailmentCheckParameters */
+
+class EntailmentCheckSideEffects {
+private:
+  TheoryId d_tid;
+protected:
+  EntailmentCheckSideEffects(TheoryId tid);
+public:
+  TheoryId getTheoryId() const;
+  virtual ~EntailmentCheckSideEffects();
+};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

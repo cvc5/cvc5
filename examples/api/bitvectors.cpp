@@ -101,7 +101,7 @@ int main() {
 
   // Assert encoding to CVC4 in current context;
   cout << "Asserting " << assignment2 << " to CVC4 " << endl;
-  smt.assertFormula(assignment1);
+  smt.assertFormula(assignment2);
 
   cout << " Querying: " << new_x_eq_new_x_ << endl;
   cout << " Expect valid. " << endl;

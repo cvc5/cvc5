@@ -75,8 +75,6 @@ public:
   }
 
   ~Info() {
-    //FIXME!
-    //indices->deleteSelf();
     indices->deleteSelf();
     stores->deleteSelf();
     in_stores->deleteSelf();

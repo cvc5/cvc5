@@ -8,8 +8,8 @@ CPLUSPLUS_TESTS = \
 	statistics
 
 if CVC4_BUILD_LIBCOMPAT
-CPLUSPLUS_TESTS += \
-	cvc3_main
+#CPLUSPLUS_TESTS += \
+#	cvc3_main
 endif
 
 TESTS = $(CPLUSPLUS_TESTS)
@@ -85,8 +85,8 @@ LIBADD += \
 	@abs_top_builddir@/src/libcvc4.la
 
 # WHEN SYSTEM TESTS ARE ADDED, BUILD LIKE THIS:
-$(filter-out %.class.lo,$(TESTS:%=%.lo)): %.lo: %.cpp
-	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $+
+$(filter-out %.class.lo,$(TESTS:%=%.lo)): %.lo: %.cpp $(LIBADD)
+	$(AM_V_CXX)$(LTCXXCOMPILE) $(AM_CXXFLAGS) -c -o $@ $<
 $(filter-out %.class,$(TESTS)): %: %.lo $(LIBADD)
 	$(AM_V_CXXLD)$(system_LINK) $(LIBADD) $(AM_LDFLAGS) $(LIBS) $<
 CVC4JavaTest.class: CVC4JavaTest.java @abs_top_builddir@/src/bindings/CVC4.jar @abs_top_builddir@/src/bindings/java/libcvc4jni.la

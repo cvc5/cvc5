@@ -40,7 +40,7 @@ public:
   /** get cardinality for type */
   int getNumRepresentatives( TypeNode tn ) const;
   /** add representative for type */
-  void add( Node n );
+  void add( TypeNode tn, Node n );
   /** returns index in d_type_reps for node n */
   int getIndexFor( Node n ) const;
   /** complete all values */

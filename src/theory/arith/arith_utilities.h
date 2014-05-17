@@ -162,7 +162,7 @@ inline int deltaCoeff(Kind k){
  * - (NOT (GT left right))    -> LEQ
  * If none of these match, it returns UNDEFINED_KIND.
  */
- inline Kind oldSimplifiedKind(TNode literal){
+inline Kind oldSimplifiedKind(TNode literal){
   switch(literal.getKind()){
   case kind::LT:
   case kind::GT:
@@ -191,6 +191,19 @@ inline int deltaCoeff(Kind k){
     }
   default:
     Unreachable();
+    return kind::UNDEFINED_KIND;
+  }
+}
+
+inline Kind negateKind(Kind k){
+  switch(k){
+  case kind::LT:       return kind::GEQ;
+  case kind::GT:       return kind::LEQ;
+  case kind::LEQ:      return kind::GT;
+  case kind::GEQ:      return kind::LT;
+  case kind::EQUAL:    return kind::DISTINCT;
+  case kind::DISTINCT: return kind::EQUAL;
+  default:
     return kind::UNDEFINED_KIND;
   }
 }
@@ -236,6 +249,25 @@ inline Node flattenAnd(Node n){
   std::vector<TNode> out;
   flattenAnd(n, out);
   return NodeManager::currentNM()->mkNode(kind::AND, out);
+}
+
+inline Node getIdentity(Kind k){
+  switch(k){
+  case kind::AND:
+    return NodeManager::currentNM()->mkConst<bool>(true);
+  case kind::PLUS:
+    return NodeManager::currentNM()->mkConst(Rational(1));
+  default:
+    Unreachable();
+  }
+}
+
+inline Node safeConstructNary(NodeBuilder<>& nb){
+  switch(nb.getNumChildren()){
+  case 0:  return getIdentity(nb.getKind());
+  case 1:  return nb[0];
+  default: return (Node)nb;
+  }
 }
 
 }/* CVC4::theory::arith namespace */

@@ -48,7 +48,9 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode, bool par
   d_checksEnabled(true),
   d_strictMode(strictMode),
   d_parseOnly(parseOnly),
-  d_canIncludeFile(true) {
+  d_canIncludeFile(true),
+  d_logicIsForced(false),
+  d_forcedLogic() {
   d_input->setParser(*this);
 }
 
@@ -377,7 +379,7 @@ void Parser::checkDeclaration(const std::string& varName,
   switch(check) {
   case CHECK_DECLARED:
     if( !isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " not declared as a " +
+      parseError("Symbol '" + varName + "' not declared as a " +
                  (type == SYM_VARIABLE ? "variable" : "type") +
                  (notes.size() == 0 ? notes : "\n" + notes));
     }
@@ -385,7 +387,7 @@ void Parser::checkDeclaration(const std::string& varName,
 
   case CHECK_UNDECLARED:
     if( isDeclared(varName, type) ) {
-      parseError("Symbol " + varName + " previously declared as a " +
+      parseError("Symbol '" + varName + "' previously declared as a " +
                  (type == SYM_VARIABLE ? "variable" : "type") +
                  (notes.size() == 0 ? notes : "\n" + notes));
     }
@@ -491,7 +493,7 @@ Expr Parser::nextExpression() throw(ParserException) {
 void Parser::attributeNotSupported(const std::string& attr) {
   if(d_attributesWarnedAbout.find(attr) == d_attributesWarnedAbout.end()) {
     stringstream ss;
-    ss << "warning: Attribute " << attr << " not supported (ignoring this and all following uses)";
+    ss << "warning: Attribute '" << attr << "' not supported (ignoring this and all following uses)";
     d_input->warning(ss.str());
     d_attributesWarnedAbout.insert(attr);
   }

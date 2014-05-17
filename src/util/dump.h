@@ -14,7 +14,7 @@
  ** Dump utility classes and functions.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef __CVC4__DUMP_H
 #define __CVC4__DUMP_H

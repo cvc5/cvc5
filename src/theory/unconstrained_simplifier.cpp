@@ -92,7 +92,7 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
 
 Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 {
-  Node n = NodeManager::currentNM()->mkSkolem("unconstrained_$$", t, "a new var introduced because of unconstrained variable " + var.toString());
+  Node n = NodeManager::currentNM()->mkSkolem("unconstrained", t, "a new var introduced because of unconstrained variable " + var.toString());
   return n;
 }
 
@@ -163,25 +163,26 @@ void UnconstrainedSimplifier::processUnconstrained()
               currentSub = Node();
             }
           }
-          else if (uCond && parent.getType().getCardinality().isFinite() &&
-                   !parent.getType().getCardinality().isLargeFinite() &&
-                   parent.getType().getCardinality().getFiniteCardinality() == 2) {
-            // Special case: condition is unconstrained, then and else are different, and total cardinality of the type is 2, then the result
-            // is unconstrained
-            Node test;
-            if (parent.getType().isBoolean()) {
-              test = Rewriter::rewrite(parent[1].iffNode(parent[2]));
-            }
-            else {
-              test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
-            }
-            if (test == NodeManager::currentNM()->mkConst<bool>(false)) {
-              ++d_numUnconstrainedElim;
-              if (currentSub.isNull()) {
-                currentSub = current;
+          else if (uCond) {
+            Cardinality card = parent.getType().getCardinality();
+            if (card.isFinite() && !card.isLargeFinite() && card.getFiniteCardinality() == 2) {
+              // Special case: condition is unconstrained, then and else are different, and total cardinality of the type is 2, then the result
+              // is unconstrained
+              Node test;
+              if (parent.getType().isBoolean()) {
+                test = Rewriter::rewrite(parent[1].iffNode(parent[2]));
               }
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
-              current = parent;
+              else {
+                test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
+              }
+              if (test == NodeManager::currentNM()->mkConst<bool>(false)) {
+                ++d_numUnconstrainedElim;
+                if (currentSub.isNull()) {
+                  currentSub = current;
+                }
+                currentSub = newUnconstrainedVar(parent.getType(), currentSub);
+                current = parent;
+              }
             }
           }
           break;

@@ -58,7 +58,7 @@ class sha1
 public:
     typedef cvc4_uint32(&digest_type)[5];
 public:
-    sha1();
+    sha1(unsigned rounds = 80);
 
     void reset();
 
@@ -78,9 +78,12 @@ private:
 
     std::size_t block_byte_index_;
     std::size_t byte_count_;
+
+    unsigned rounds_;
 };
 
-inline sha1::sha1()
+inline sha1::sha1(unsigned rounds)
+: rounds_(rounds)
 {
     reset();
 }
@@ -141,7 +144,7 @@ inline void sha1::process_block()
     cvc4_uint32 d = h_[3];
     cvc4_uint32 e = h_[4];
 
-    for (std::size_t i=0; i<80; ++i) {
+    for (std::size_t i=0; i<rounds_; ++i) {
         cvc4_uint32 f;
         cvc4_uint32 k;
 

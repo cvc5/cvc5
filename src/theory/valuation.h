@@ -5,7 +5,7 @@
  ** Major contributors: Dejan Jovanovic
  ** Minor contributors (to current version): Tim King, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -22,12 +22,16 @@
 #define __CVC4__THEORY__VALUATION_H
 
 #include "expr/node.h"
+#include "theory/theoryof_mode.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 
 /**
  * The status of an equality in the current context.
@@ -47,11 +51,11 @@ enum EqualityStatus {
   EQUALITY_FALSE_IN_MODEL,
   /** The equality is completely unknown */
   EQUALITY_UNKNOWN
-};
+};/* enum EqualityStatus */
 
 /**
- * Returns true if the two statuses are compatible, i.e. bot TRUE
- * or both FALSE (regardles of inmodel/propagation).
+ * Returns true if the two statuses are compatible, i.e. both TRUE
+ * or both FALSE (regardless of inmodel/propagation).
  */
 bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2);
 
@@ -124,6 +128,12 @@ public:
    * Get the assertion level of the SAT solver.
    */
   unsigned getAssertionLevel() const;
+
+  /**
+   * Request an entailment check according to the given theoryOfMode.
+   * See theory.h for documentation on entailmentCheck().
+   */
+  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
 
 };/* class Valuation */
 

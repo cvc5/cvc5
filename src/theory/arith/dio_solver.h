@@ -102,17 +102,17 @@ private:
   };
   context::CDList<Constraint> d_trail;
 
-  /** Compare by d_minimal. */
-  struct TrailMinimalCoefficientOrder {
-    const context::CDList<Constraint>& d_trail;
-    TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
-      d_trail(trail)
-    {}
+  // /** Compare by d_minimal. */
+  // struct TrailMinimalCoefficientOrder {
+  //   const context::CDList<Constraint>& d_trail;
+  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>& trail):
+  //     d_trail(trail)
+  //   {}
 
-    bool operator()(TrailIndex i, TrailIndex j){
-      return d_trail[i].d_minimalMonomial.absLessThan(d_trail[j].d_minimalMonomial);
-    }
-  };
+  //   bool operator()(TrailIndex i, TrailIndex j){
+  //     return d_trail[i].d_minimalMonomial.absLessThan(d_trail[j].d_minimalMonomial);
+  //   }
+  // };
 
   /**
    * A substitution is stored as a constraint in the trail together with
@@ -191,6 +191,8 @@ public:
    * orig can either be of the form (= p c) or (and ub lb).
    * where ub is either (leq p c) or (not (> p [- c 1])), and
    * where lb is either (geq p c) or (not (< p [+ c 1]))
+   *
+   * If eq cannot be used, this constraint is dropped.
    */
   void pushInputConstraint(const Comparison& eq, Node reason);
 

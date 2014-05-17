@@ -141,6 +141,10 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
   Assert(eq.getNode().getKind() == kind::EQUAL);
 
   SumPair sp = eq.toSumPair();
+  if(sp.isNonlinear()){
+    return;
+  }
+
   uint32_t length = sp.maxLength();
   if(length > d_maxInputCoefficientLength){
     d_maxInputCoefficientLength = length;
@@ -277,7 +281,7 @@ void DioSolver::moveMinimumByAbsToQueueFront(){
   size_t N = d_currentF.size();
   for(size_t i=1; i < N; ++i){
     Monomial curr = d_trail[d_currentF[i]].d_minimalMonomial;
-    if(curr.absLessThan(minMonomial)){
+    if(curr.absCmp(minMonomial) < 0){
       indexInQueue = i;
       minMonomial = curr;
     }

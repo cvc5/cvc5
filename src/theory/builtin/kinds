@@ -97,9 +97,9 @@
 #
 #         operator PLUS 2: "addition on two or more arguments"
 #
-#   parameterized K #children ["comment"]
+#   parameterized K1 K2 #children ["comment"]
 #
-#     Declares a "built-in" parameterized operator kind K.  This is a
+#     Declares a "built-in" parameterized operator kind K1.  This is a
 #     theory-specific APPLY, e.g., APPLY_UF, which applies its first
 #     parameter (say, "f"), to its operands (say, "x" and "y", making
 #     the full application "f(x,y)").  Nodes with such a kind will
@@ -107,7 +107,10 @@
 #     Node::getOperator() returns the Node of functional type
 #     representing "f" here), and the "children" are defined to be
 #     this operator's parameters, and don't include the operator
-#     itself (here, there are only two children "x" and "y").
+#     itself (here, there are only two children "x" and "y").  The
+#     operator ("f") should have kind K2 (and this should be enforced
+#     by the custom typechecker, at present this isn't done uniformly
+#     by the expression package).
 #
 #     LB and UB are the same as documented for the operator command,
 #     except that parameterized operators may have zero children.  The
@@ -299,6 +302,7 @@ variable SKOLEM "skolem var"
 operator SEXPR 0: "a symbolic expression"
 
 operator LAMBDA 2 "lambda"
+operator MU 2 "mu"
 
 parameterized CHAIN CHAIN_OP 2: "chained operator"
 constant CHAIN_OP \
@@ -331,6 +335,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
+typerule MU ::CVC4::theory::builtin::MuTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 

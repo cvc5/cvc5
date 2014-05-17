@@ -99,7 +99,7 @@ public class BitVectors {
 
     // Assert encoding to CVC4 in current context;
     System.out.println("Asserting " + assignment2 + " to CVC4 ");
-    smt.assertFormula(assignment1);
+    smt.assertFormula(assignment2);
 
     System.out.println(" Querying: " + new_x_eq_new_x_);
     System.out.println(" Expect valid. ");

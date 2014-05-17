@@ -86,6 +86,21 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   return s;
 }
 
+static bool stringifyRegexp(Node n, stringstream& ss) {
+  if(n.getKind() == kind::STRING_TO_REGEXP) {
+    ss << n[0].getConst<String>().toString();
+  } else if(n.getKind() == kind::REGEXP_CONCAT) {
+    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+      if(!stringifyRegexp(n[i], ss)) {
+        return false;
+      }
+    }
+  } else {
+    return false;
+  }
+  return true;
+}
+
 void Smt2Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types) const throw() {
   // null
@@ -124,6 +139,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       case BOOLEAN_TYPE: out << "Bool"; break;
       case REAL_TYPE: out << "Real"; break;
       case INTEGER_TYPE: out << "Int"; break;
+      case STRING_TYPE: out << "String"; break;
       default:
         // fall back on whatever operator<< does on underlying type; we
         // might luck out and be SMT-LIB v2 compliant
@@ -202,6 +218,10 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       break;
     }
 
+    case kind::EMPTYSET:
+      out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
+      break;
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and be SMT-LIB v2 compliant
@@ -261,7 +281,8 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::ABS:
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
-  case kind::TO_REAL: out << smtKindString(k) << " "; break;
+  case kind::TO_REAL:
+  case kind::POW: out << smtKindString(k) << " "; break;
 
   case kind::DIVISIBLE:
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -274,22 +295,65 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
   // string theory
-  case kind::STRING_CONCAT: out << "str.++ "; break;
-  case kind::STRING_IN_REGEXP: out << "str.in.re "; break;
-  case kind::STRING_LENGTH: out << "str.len "; break;
+  case kind::STRING_CONCAT:
+    if(d_variant == z3str_variant) {
+      out << "Concat ";
+      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
+        toStream(out, n[i], -1, types);
+        if(i + 1 < n.getNumChildren()) {
+          out << ' ';
+        }
+        if(i + 2 < n.getNumChildren()) {
+          out << "(Concat ";
+        }
+      }
+      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
+        out << ")";
+      }
+      return;
+    }
+    out << "str.++ ";
+    break;
+  case kind::STRING_IN_REGEXP: {
+    stringstream ss;
+    if(d_variant == z3str_variant && stringifyRegexp(n[1], ss)) {
+      out << "= ";
+      toStream(out, n[0], -1, types);
+      out << " ";
+      Node str = NodeManager::currentNM()->mkConst(String(ss.str()));
+      toStream(out, str, -1, types);
+      out << ")";
+      return;
+    }
+    out << "str.in.re ";
+    break;
+  }
+  case kind::STRING_LENGTH: out << (d_variant == z3str_variant ? "Length " : "str.len "); break;
+  case kind::STRING_SUBSTR_TOTAL:
   case kind::STRING_SUBSTR: out << "str.substr "; break;
-  case kind::STRING_STRCTN: out << "str.contain "; break;
   case kind::STRING_CHARAT: out << "str.at "; break;
+  case kind::STRING_STRCTN: out << "str.contains "; break;
   case kind::STRING_STRIDOF: out << "str.indexof "; break;
   case kind::STRING_STRREPL: out << "str.replace "; break;
+  case kind::STRING_PREFIX: out << "str.prefixof "; break;
+  case kind::STRING_SUFFIX: out << "str.suffixof "; break;
+  case kind::STRING_ITOS: out << "int.to.str "; break;
+  case kind::STRING_STOI: out << "str.to.int "; break;
+  case kind::STRING_U16TOS: out << "u16.to.str "; break;
+  case kind::STRING_STOU16: out << "str.to.u16 "; break;
+  case kind::STRING_U32TOS: out << "u32.to.str "; break;
+  case kind::STRING_STOU32: out << "str.to.u32 "; break;
   case kind::STRING_TO_REGEXP: out << "str.to.re "; break;
   case kind::REGEXP_CONCAT: out << "re.++ "; break;
-  case kind::REGEXP_OR: out << "re.or "; break;
-  case kind::REGEXP_INTER: out << "re.itr "; break;
+  case kind::REGEXP_UNION: out << "re.union "; break;
+  case kind::REGEXP_INTER: out << "re.inter "; break;
   case kind::REGEXP_STAR: out << "re.* "; break;
   case kind::REGEXP_PLUS: out << "re.+ "; break;
   case kind::REGEXP_OPT: out << "re.opt "; break;
   case kind::REGEXP_RANGE: out << "re.range "; break;
+  case kind::REGEXP_LOOP: out << "re.loop "; break;
+  case kind::REGEXP_EMPTY: out << "re.nostr "; break;
+  case kind::REGEXP_SIGMA: out << "re.allchar "; break;
 
     // bv theory
   case kind::BITVECTOR_CONCAT: out << "concat "; break;
@@ -337,7 +401,16 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     stillNeedToPrintParams = false;
     break;
 
-    // datatypes
+    // sets
+  case kind::UNION:
+  case kind::INTERSECTION:
+  case kind::SETMINUS:
+  case kind::SUBSET:
+  case kind::MEMBER:
+  case kind::SET_TYPE:
+  case kind::SET_SINGLETON: out << smtKindString(k) << " "; break;
+
+   // datatypes
   case kind::APPLY_TYPE_ASCRIPTION: {
       out << "as ";
       toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types);
@@ -351,6 +424,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::APPLY_TESTER:
   case kind::APPLY_CONSTRUCTOR:
   case kind::APPLY_SELECTOR:
+  case kind::APPLY_SELECTOR_TOTAL:
   case kind::PARAMETRIC_DATATYPE:
     break;
 
@@ -478,6 +552,7 @@ static string smtKindString(Kind k) throw() {
   case kind::IS_INTEGER: return "is_int";
   case kind::TO_INTEGER: return "to_int";
   case kind::TO_REAL: return "to_real";
+  case kind::POW: return "^";
 
     // arrays theory
   case kind::SELECT: return "select";
@@ -522,6 +597,14 @@ static string smtKindString(Kind k) throw() {
   case kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
   case kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
   case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
+
+  case kind::UNION: return "union";
+  case kind::INTERSECTION: return "intersection";
+  case kind::SETMINUS: return "setminus";
+  case kind::SUBSET: return "subseteq";
+  case kind::MEMBER: return "in";
+  case kind::SET_TYPE: return "Set";
+  case kind::SET_SINGLETON: return "setenum";
   default:
     ; /* fall through */
   }
@@ -570,6 +653,8 @@ static void printBvParameterizedOp(std::ostream& out, TNode n) throw() {
 
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c) throw();
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c, Variant v) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const Command* c,
                            int toDepth, bool types, size_t dag) const throw() {
@@ -597,7 +682,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<GetProofCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
-     tryToStream<SetBenchmarkLogicCommand>(out, c) ||
+     tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant) ||
      tryToStream<SetInfoCommand>(out, c) ||
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
@@ -616,6 +701,35 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 
 static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
   Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
+}
+
+// SMT-LIB quoting for symbols
+static std::string quoteSymbol(std::string s) {
+  if(s.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@%^&*_-+=<>.?/") == std::string::npos) {
+    // simple unquoted symbol
+    return s;
+  }
+
+  // must quote the symbol, but it cannot contain | or \, we turn those into _
+  size_t p;
+  while((p = s.find_first_of("\\|")) != std::string::npos) {
+    s = s.replace(p, 1, "_");
+  }
+  return "|" + s + "|";
+}
+
+static std::string quoteSymbol(TNode n) {
+  std::stringstream ss;
+  ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+  return quoteSymbol(ss.str());
+}
+
+void Smt2Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
+  if(sexpr.isKeyword()) {
+    out << quoteSymbol(sexpr.getValue());
+  } else {
+    this->Printer::toStream(out, sexpr);
+  }
 }
 
 template <class T>
@@ -666,7 +780,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
         if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
           for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
             if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-              out << "(declare-fun " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << " () " << tn << ")" << std::endl;
+              out << "(declare-fun " << quoteSymbol((*tm.d_rep_set.d_type_reps.find(tn)).second[i]) << " () " << tn << ")" << std::endl;
             }else{
               out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
             }
@@ -746,7 +860,7 @@ static void toStream(std::ostream& out, const PopCommand* c) throw() {
 
 static void toStream(std::ostream& out, const CheckSatCommand* c) throw() {
   Expr e = c->getExpr();
-  if(!e.isNull()) {
+  if(!e.isNull() && !(e.getKind() == kind::CONST_BOOLEAN && e.getConst<bool>())) {
     out << PushCommand() << endl
         << AssertCommand(e) << endl
         << CheckSatCommand() << endl
@@ -782,7 +896,7 @@ static void toStream(std::ostream& out, const CommandSequence* c) throw() {
 
 static void toStream(std::ostream& out, const DeclareFunctionCommand* c) throw() {
   Type type = c->getType();
-  out << "(declare-fun " << c->getSymbol() << " (";
+  out << "(declare-fun " << quoteSymbol(c->getSymbol()) << " (";
   if(type.isFunction()) {
     FunctionType ft = type;
     const vector<Type> argTypes = ft.getArgTypes();
@@ -853,9 +967,7 @@ static void toStream(std::ostream& out, const DefineNamedFunctionCommand* c) thr
 }
 
 static void toStream(std::ostream& out, const SimplifyCommand* c) throw() {
-  out << "Simplify( << " << c->getTerm() << " >> )";
-
-  out << "ERROR: don't know how to output simplify command" << endl;
+  out << "(simplify " << c->getTerm() << ")";
 }
 
 static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
@@ -885,8 +997,13 @@ static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) thro
   out << "(set-info :status " << c->getStatus() << ")";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c) throw() {
-  out << "(set-logic " << c->getLogic() << ")";
+static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, Variant v) throw() {
+  // Z3-str doesn't have string-specific logic strings(?), so comment it
+  if(v == z3str_variant) {
+    out << "; (set-logic " << c->getLogic() << ")";
+  } else {
+    out << "(set-logic " << c->getLogic() << ")";
+  }
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
@@ -963,6 +1080,15 @@ static bool tryToStream(std::ostream& out, const Command* c) throw() {
   return false;
 }
 
+template <class T>
+static bool tryToStream(std::ostream& out, const Command* c, Variant v) throw() {
+  if(typeid(*c) == typeid(T)) {
+    toStream(out, dynamic_cast<const T*>(c), v);
+    return true;
+  }
+  return false;
+}
+
 static void toStream(std::ostream& out, const CommandSuccess* s) throw() {
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "success" << endl;
@@ -983,9 +1109,10 @@ static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {
 static void toStream(std::ostream& out, const CommandFailure* s) throw() {
   string message = s->getMessage();
   // escape all double-quotes
-  size_t pos;
-  while((pos = message.find('"')) != string::npos) {
+  size_t pos = 0;
+  while((pos = message.find('"', pos)) != string::npos) {
     message = message.replace(pos, 1, "\\\"");
+    pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
 }

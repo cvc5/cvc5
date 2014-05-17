@@ -36,6 +36,7 @@ namespace CVC4 {
 namespace expr {
   namespace attr {
     struct DatatypeIndexTag {};
+    struct DatatypeConsIndexTag {};
     struct DatatypeFiniteTag {};
     struct DatatypeWellFoundedTag {};
     struct DatatypeFiniteComputedTag {};
@@ -45,6 +46,7 @@ namespace expr {
 }/* CVC4::expr namespace */
 
 typedef expr::Attribute<expr::attr::DatatypeIndexTag, uint64_t> DatatypeIndexAttr;
+typedef expr::Attribute<expr::attr::DatatypeConsIndexTag, uint64_t> DatatypeConsIndexAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeWellFoundedTag, bool> DatatypeWellFoundedAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
@@ -81,6 +83,20 @@ size_t Datatype::indexOf(Expr item) {
   }
 }
 
+size_t Datatype::cindexOf(Expr item) {
+  ExprManagerScope ems(item);
+  CheckArgument(item.getType().isSelector(),
+                item,
+                "arg must be a datatype selector");
+  TNode n = Node::fromExpr(item);
+  if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
+    return cindexOf( item[0] );
+  }else{
+    Assert(n.hasAttribute(DatatypeConsIndexAttr()));
+    return n.getAttribute(DatatypeConsIndexAttr());
+  }
+}
+
 void Datatype::resolve(ExprManager* em,
                        const std::map<std::string, DatatypeType>& resolutions,
                        const std::vector<Type>& placeholders,
@@ -103,11 +119,19 @@ void Datatype::resolve(ExprManager* em,
   d_resolved = true;
   size_t index = 0;
   for(std::vector<DatatypeConstructor>::iterator i = d_constructors.begin(), i_end = d_constructors.end(); i != i_end; ++i) {
-    (*i).resolve(em, self, resolutions, placeholders, replacements, paramTypes, paramReplacements);
+    (*i).resolve(em, self, resolutions, placeholders, replacements, paramTypes, paramReplacements, index);
     Node::fromExpr((*i).d_constructor).setAttribute(DatatypeIndexAttr(), index);
     Node::fromExpr((*i).d_tester).setAttribute(DatatypeIndexAttr(), index++);
   }
   d_self = self;
+
+  d_involvesExt =  false;
+  for(const_iterator i = begin(); i != end(); ++i) {
+    if( (*i).involvesExternalType() ){
+      d_involvesExt =  true;
+      break;
+    }
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -388,12 +412,7 @@ Expr Datatype::getConstructor(std::string name) const {
 }
 
 bool Datatype::involvesExternalType() const{
-  for(const_iterator i = begin(); i != end(); ++i) {
-    if( (*i).involvesExternalType() ){
-      return true;
-    }
-  }
-  return false;
+  return d_involvesExt;
 }
 
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
@@ -401,7 +420,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
                                   const std::vector<Type>& placeholders,
                                   const std::vector<Type>& replacements,
                                   const std::vector< SortConstructorType >& paramTypes,
-                                  const std::vector< DatatypeType >& paramReplacements)
+                                  const std::vector< DatatypeType >& paramReplacements, size_t cindex)
   throw(IllegalArgumentException, DatatypeResolutionException) {
 
   CheckArgument(em != NULL, em, "cannot resolve a Datatype with a NULL expression manager");
@@ -447,6 +466,7 @@ void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
       }
       (*i).d_selector = nm->mkSkolem((*i).d_name, nm->mkSelectorType(selfTypeNode, TypeNode::fromType(range)), "is a selector", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
     }
+    Node::fromExpr((*i).d_selector).setAttribute(DatatypeConsIndexAttr(), cindex);
     Node::fromExpr((*i).d_selector).setAttribute(DatatypeIndexAttr(), index++);
     (*i).d_resolved = true;
   }

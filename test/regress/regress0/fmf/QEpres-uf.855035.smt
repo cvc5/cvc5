@@ -1,4 +1,4 @@
-% COMMAND-LINE: --finite-model-find
+% COMMAND-LINE: --finite-model-find --mbqi=gen-ev
 % EXPECT: sat
 (benchmark Isabelle
 :status sat

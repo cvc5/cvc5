@@ -25,7 +25,6 @@ TESTS =	\
 	bitvec5.smt \
 	quant-Arrays_Q1-noinfer.smt2 \
 	quant-ex1.smt2 \
-	quant-ex1.disable_miniscope.smt2 \
 	uflia-xs-09-16-3-4-1-5.delta03.smt \
 	aufbv-fuzz01.smt \
 	bug347.smt \

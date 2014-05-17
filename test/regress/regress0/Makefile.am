@@ -1,5 +1,5 @@
-SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings
-DIST_SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings
+SUBDIRS = . arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets
+DIST_SUBDIRS = $(SUBDIRS) #. arith precedence uf uflra uflia bv arrays aufbv auflia datatypes quantifiers rewriterules lemmas push-pop preprocess tptp unconstrained decision fmf strings sets
 
 # don't override a BINARY imported from a personal.mk
 @mk_if@eq ($(BINARY),)
@@ -46,10 +46,14 @@ SMT_TESTS = \
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = \
+	arrayinuf_declare.smt2 \
+	boolean-terms-kernel1.smt2 \
+	boolean-terms-kernel2.smt2 \
 	chained-equality.smt2 \
 	ite2.smt2 \
 	ite3.smt2 \
 	ite4.smt2 \
+	ite5.smt2 \
 	simple-lra.smt2 \
 	simple-rdl.smt2 \
 	simple-uf.smt2 \
@@ -153,7 +157,8 @@ BUG_TESTS = \
 	bug522.smt2 \
 	bug528a.smt2 \
 	bug541.smt2 \
-	bug544.smt2
+	bug544.smt2 \
+	bug548a.smt2
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
@@ -164,12 +169,16 @@ EXTRA_DIST = $(TESTS) \
 if CVC4_BUILD_PROFILE_COMPETITION
 else
 TESTS += \
-	error.cvc
+	error.cvc \
+	errorcrash.smt2 \
+	arrayinuf_error.smt2
 endif
 
 # and make sure to distribute it
 EXTRA_DIST += \
 	subranges.cvc \
+	arrayinuf_error.smt2 \
+	errorcrash.smt2 \
 	error.cvc
 
 # synonyms for "check" in this directory

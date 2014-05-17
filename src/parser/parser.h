@@ -164,6 +164,16 @@ class CVC4_PUBLIC Parser {
    */
   bool d_canIncludeFile;
 
+  /**
+   * Whether the logic has been forced with --force-logic.
+   */
+  bool d_logicIsForced;
+
+  /**
+   * The logic, if d_logicIsForced == true.
+   */
+  std::string d_forcedLogic;
+
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
 
@@ -261,6 +271,10 @@ public:
   void allowIncludeFile() { d_canIncludeFile = true; }
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
+
+  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  const std::string& getForcedLogic() const { return d_forcedLogic; }
+  bool logicIsForced() const { return d_logicIsForced; }
 
   /**
    * Returns a variable, given a name.

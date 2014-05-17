@@ -1,0 +1,52 @@
+#!/bin/bash -x
+#
+set -e
+
+commit=0c11cea52a36
+
+cd "$(dirname "$0")/.."
+
+if ! [ -e src/parser/cvc/Cvc.g ]; then
+  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "but apparently:" >&2
+  echo >&2
+  echo "  $(pwd)" >&2
+  echo >&2
+  echo "is not a CVC4 source tree ?!" >&2
+  exit 1
+fi
+
+function webget {
+  if which wget &>/dev/null; then
+    wget -c -O "$2" "$1"
+  elif which curl &>/dev/null; then
+    curl "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+if [ -z "${MACHINE_TYPE}" ]; then
+  # get first nibble from config.guess (x86_64, i686, ...)
+  MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
+fi
+
+mkdir -p abc
+cd abc
+webget https://bitbucket.org/alanmi/abc/get/$commit.tar.gz abc-$commit.tar.gz
+gunzip -f abc-$commit.tar.gz
+tar xfv abc-$commit.tar
+cd alanmi-abc-$commit
+
+cp src/base/main/main.c src/base/main/main.c.orig
+sed 's,^// *#define ABC_LIB *$,#define ABC_LIB,' src/base/main/main.c.orig > src/base/main/main.c
+
+make libabc.a OPTFLAGS=-O
+mv libabc.a libabc-static.a
+make clean
+make libabc.a OPTFLAGS='-O -fPIC'
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --with-abc=`pwd`

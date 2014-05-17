@@ -25,6 +25,7 @@ namespace theory {
 namespace quantifiers {
 
 class InstStrategyUserPatterns;
+class InstStrategyAutoGenTriggers;
 
 /** instantiation strategy class */
 class InstStrategy {
@@ -79,6 +80,8 @@ private:
   std::map< InstStrategy*, bool > d_instStrategyActive;
   /** user-pattern instantiation strategy */
   InstStrategyUserPatterns* d_isup;
+  /** auto gen triggers; only kept for destructor cleanup */
+  InstStrategyAutoGenTriggers* d_i_ag;
   /** is instantiation strategy active */
   bool isActiveStrategy( InstStrategy* is ) {
     return d_instStrategyActive.find( is )!=d_instStrategyActive.end() && d_instStrategyActive[is];
@@ -123,7 +126,7 @@ private:
   void debugSat( int reason );
 public:
   InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete = true );
-  ~InstantiationEngine(){}
+  ~InstantiationEngine();
   /** initialize */
   void finishInit();
 
@@ -146,10 +149,13 @@ public:
     IntStat d_instantiations_cbqi_arith;
     IntStat d_instantiations_cbqi_arith_minus;
     IntStat d_instantiations_cbqi_datatypes;
+    IntStat d_instantiation_rounds;
     Statistics();
     ~Statistics();
   };
   Statistics d_statistics;
+  /** Identify this module */
+  std::string identify() const { return "InstEngine"; }
 };/* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

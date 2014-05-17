@@ -203,7 +203,9 @@ function parameterized {
 
   check_theory_seen
   register_metakind PARAMETERIZED "$1" "$3"
-  registerOperatorToKind "$1" "$2"
+  if ! expr "$2" : '\[.*\]' &>/dev/null; then
+    registerOperatorToKind "$1" "$2"
+  fi
 }
 
 function constant {

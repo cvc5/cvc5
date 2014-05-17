@@ -65,6 +65,12 @@ public:
       if( valType != nodeManager->integerType() ) {
         throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be integer");
       }
+      if( n[1].getKind()!=kind::CONST_RATIONAL ){
+        throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be a constant");
+      }
+      if( n[1].getConst<Rational>().getNumerator().sgn()!=1 ){
+        throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be positive");
+      }
     }
     return nodeManager->booleanType();
   }

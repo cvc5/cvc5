@@ -18,6 +18,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/model_engine.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace CVC4;
 using namespace std;
@@ -104,7 +105,7 @@ Node BoundedIntegers::RangeModel::getNextDecisionRequest() {
         if (!d_lit_to_pol[it->first]) {
           rn = rn.negate();
         }
-        Trace("bound-int-dec") << "For " << d_range << ", make decision " << rn << " to make range " << i << std::endl;
+        Trace("bound-int-dec-debug") << "For " << d_range << ", make decision " << rn << " to make range " << i << std::endl;
         return rn;
       }
     }
@@ -274,9 +275,9 @@ void BoundedIntegers::registerQuantifier( Node f ) {
       for( unsigned i=0; i<d_set[f].size(); i++) {
         Node v = d_set[f][i];
         Node r = d_range[f][v];
-        if( quantifiers::TermDb::hasBoundVarAttr(r) ){
+        if( r.hasBoundVar() ){
           //introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem( "bir_$$", r.getType(), "bound for term" );
+          Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
           d_nground_range[f][v] = d_range[f][v];
           d_range[f][v] = new_range;
           r = new_range;
@@ -312,11 +313,26 @@ void BoundedIntegers::assertNode( Node n ) {
 }
 
 Node BoundedIntegers::getNextDecisionRequest() {
-  Trace("bound-int-dec") << "bi: Get next decision request?" << std::endl;
+  Trace("bound-int-dec-debug") << "bi: Get next decision request?" << std::endl;
   for( unsigned i=0; i<d_ranges.size(); i++) {
     Node d = d_rms[d_ranges[i]]->getNextDecisionRequest();
     if (!d.isNull()) {
-      return d;
+      bool polLit = d.getKind()!=NOT;
+      Node lit = d.getKind()==NOT ? d[0] : d;
+      bool value;
+      if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
+        if( value==polLit ){
+          Trace("bound-int-dec-debug") << "...already asserted properly." << std::endl;
+          //already true, we're already fine
+        }else{
+          Trace("bound-int-dec-debug") << "...already asserted with wrong polarity, re-assert." << std::endl;
+          assertNode( d.negate() );
+          i--;
+        }
+      }else{
+        Trace("bound-int-dec") << "Bounded Integers : Decide " << d << std::endl;
+        return d;
+      }
     }
   }
   return Node::null();
@@ -348,7 +364,7 @@ void BoundedIntegers::getBounds( Node f, Node v, RepSetIterator * rsi, Node & l,
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[f][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
+      d_quantEngine->getOutputChannel().lemma(lem, false, true);
       l = Node::null();
       u = Node::null();
       return;
@@ -369,5 +385,5 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
 }
 
 bool BoundedIntegers::isGroundRange(Node f, Node v) {
-  return isBoundVar(f,v) && !quantifiers::TermDb::hasBoundVarAttr(getLowerBound(f,v)) && !quantifiers::TermDb::hasBoundVarAttr(getUpperBound(f,v));
+  return isBoundVar(f,v) && !getLowerBound(f,v).hasBoundVar() && !getUpperBound(f,v).hasBoundVar();
 }

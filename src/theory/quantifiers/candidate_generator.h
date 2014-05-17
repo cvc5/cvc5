@@ -79,10 +79,19 @@ private:
   //instantiator pointer
   QuantifiersEngine* d_qe;
   //the equality class iterator
-  std::vector< Node > d_eqc;
+  eq::EqClassIterator d_eqc_iter;
+  //std::vector< Node > d_eqc;
   int d_term_iter;
   int d_term_iter_limit;
   bool d_using_term_db;
+  enum {
+    cand_term_db,
+    cand_term_ident,
+    cand_term_eqc,
+  };
+  short d_mode;
+  bool isLegalOpCandidate( Node n );
+  Node d_n;
 public:
   CandidateGeneratorQE( QuantifiersEngine* qe, Node op );
   ~CandidateGeneratorQE(){}

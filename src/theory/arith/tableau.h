@@ -81,7 +81,7 @@ public:
   }
 
   ArithVar rowIndexToBasic(RowIndex rid) const {
-    Assert(rid < d_rowIndex2basic.size());
+    Assert(d_rowIndex2basic.isKey(rid));
     return d_rowIndex2basic[rid];
   }
 

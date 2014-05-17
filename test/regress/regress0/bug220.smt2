@@ -1,2 +1,2 @@
-% EXIT: 0
+; EXIT: 0
 (exit)

@@ -48,4 +48,25 @@ typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeR
 typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
 
+# for rewrite rules
+# types...
+sort RRHB_TYPE \
+    Cardinality::INTEGERS \
+    not-well-founded \
+    "head and body of the rule type"
+
+# operators...
+
+# variables, guards, RR_REWRITE/REDUCTION_RULE/DEDUCTION_RULE
+operator REWRITE_RULE 3 "general rewrite rule"
+#HEAD/BODY/TRIGGER
+operator RR_REWRITE 2:3 "actual rewrite rule"
+operator RR_REDUCTION 2:3 "actual reduction rule"
+operator RR_DEDUCTION 2:3 "actual deduction rule"
+
+typerule REWRITE_RULE ::CVC4::theory::quantifiers::RewriteRuleTypeRule
+typerule RR_REWRITE   ::CVC4::theory::quantifiers::RRRewriteTypeRule
+typerule RR_REDUCTION ::CVC4::theory::quantifiers::RRRedDedTypeRule
+typerule RR_DEDUCTION ::CVC4::theory::quantifiers::RRRedDedTypeRule
+
 endtheory

@@ -32,6 +32,8 @@
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "options/options.h"
+#include "smt/options.h"
+#include "main/options.h"
 #include "util/language.h"
 #include "util/output.h"
 
@@ -92,6 +94,9 @@ InteractiveShell::InteractiveShell(ExprManager& exprManager,
   ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
+  if(d_options.wasSetByUser(options::forceLogic)) {
+    d_parser->forceLogic(d_options[options::forceLogic].getLogicString());
+  }
 
 #if HAVE_LIBREADLINE
   if(d_in == cin) {
@@ -183,7 +188,7 @@ restart:
   /* Prompt the user for input. */
   if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-    lineBuf = ::readline(d_options[options::verbosity] >= 0 ? (line == "" ? "CVC4> " : "... > ") : "");
+    lineBuf = ::readline(d_options[options::interactivePrompt] ? (line == "" ? "CVC4> " : "... > ") : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -191,7 +196,7 @@ restart:
     free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
   } else {
-    if(d_options[options::verbosity] >= 0) {
+    if(d_options[options::interactivePrompt]) {
       if(line == "") {
         d_out << "CVC4> " << flush;
       } else {
@@ -259,7 +264,7 @@ restart:
       input[n] = '\n';
       if(d_usingReadline) {
 #if HAVE_LIBREADLINE
-        lineBuf = ::readline(d_options[options::verbosity] >= 0 ? "... > " : "");
+        lineBuf = ::readline(d_options[options::interactivePrompt] ? "... > " : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
@@ -267,7 +272,7 @@ restart:
         free(lineBuf);
 #endif /* HAVE_LIBREADLINE */
       } else {
-        if(d_options[options::verbosity] >= 0) {
+        if(d_options[options::interactivePrompt]) {
           d_out << "... > " << flush;
         }
 

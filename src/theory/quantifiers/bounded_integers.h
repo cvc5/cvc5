@@ -121,6 +121,9 @@ public:
   void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   bool isGroundRange(Node f, Node v);
+
+  /** Identify this module */
+  std::string identify() const { return "BoundedIntegers"; }
 };
 
 }

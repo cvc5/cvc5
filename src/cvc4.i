@@ -71,7 +71,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %template(vectorString) std::vector< std::string >;
 %template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
 %template(pairStringType) std::pair< std::string, CVC4::Type >;
-%template(setType) std::set< CVC4::Type >;
+%template(setOfType) std::set< CVC4::Type >;
 %template(hashmapExpr) std::hash_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 // This is unfortunate, but seems to be necessary; if we leave NULL
@@ -146,6 +146,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %typemap(throws) CVC4::AssertionException = CVC4::Exception;
 %typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
 %typemap(throws) CVC4::parser::ParserException = CVC4::Exception;
+
+%typemap(throws) CVC4::RationalFromDoubleException = Exception;
 
 // Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{

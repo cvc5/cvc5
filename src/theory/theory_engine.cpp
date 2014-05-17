@@ -17,6 +17,8 @@
 #include <vector>
 #include <list>
 
+#include "theory/arith/arith_ite_utils.h"
+
 #include "decision/decision_engine.h"
 
 #include "expr/attribute.h"
@@ -60,6 +62,9 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
+  // initialize the quantifiers engine
+  d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
+
   if (d_logicInfo.isQuantified()) {
     d_quantEngine->finishInit();
     Assert(d_masterEqualityEngine == 0);
@@ -67,8 +72,15 @@ void TheoryEngine::finishInit() {
 
     for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
       if (d_theoryTable[theoryId]) {
+        d_theoryTable[theoryId]->setQuantifiersEngine(d_quantEngine);
         d_theoryTable[theoryId]->setMasterEqualityEngine(d_masterEqualityEngine);
       }
+    }
+  }
+
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+    if (d_theoryTable[theoryId]) {
+      d_theoryTable[theoryId]->finishInit();
     }
   }
 }
@@ -83,7 +95,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
   //TODO: add notification to efficient E-matching
   if( d_logicInfo.isQuantified() ){
-    d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
+    //d_quantEngine->getEfficientEMatcher()->merge( t1, t2 );
     if( options::quantConflictFind() ){
       d_quantEngine->getConflictFind()->merge( t1, t2 );
     }
@@ -139,15 +151,13 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_bvToBoolPreprocessor()
+  d_bvToBoolPreprocessor(),
+  d_arithSubstitutionsAdded("zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
-
-  // initialize the quantifiers engine
-  d_quantEngine = new QuantifiersEngine(context, userContext, this);
 
   // build model information if applicable
   d_curr_model = new theory::TheoryModel(userContext, "DefaultModel", true);
@@ -160,6 +170,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
   PROOF (ProofManager::currentPM()->initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
+
+  StatisticsRegistry::registerStat(&d_arithSubstitutionsAdded);
 }
 
 TheoryEngine::~TheoryEngine() {
@@ -184,6 +196,8 @@ TheoryEngine::~TheoryEngine() {
   delete d_unconstrainedSimp;
 
   delete d_iteUtilities;
+
+  StatisticsRegistry::unregisterStat(&d_arithSubstitutionsAdded);
 }
 
 void TheoryEngine::interrupt() throw(ModalException) {
@@ -412,6 +426,10 @@ void TheoryEngine::check(Theory::Effort effort) {
         // must build model at this point
         d_curr_model_builder->buildModel(d_curr_model, true);
       }
+	  Trace("theory::assertions-model") << endl;
+      if (Trace.isOn("theory::assertions-model")) {
+        printAssertions("theory::assertions-model");
+      }
     }
 
     Debug("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas") << endl;
@@ -419,11 +437,9 @@ void TheoryEngine::check(Theory::Effort effort) {
     if(!d_inConflict && Theory::fullEffort(effort) && d_masterEqualityEngine != NULL && !d_lemmasAdded) {
       AlwaysAssert(d_masterEqualityEngine->consistent());
     }
-
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
   }
-
   // If fulleffort, check all theories
   if(Dump.isOn("theory::fullcheck") && Theory::fullEffort(effort)) {
     if (!d_inConflict && !needCheck()) {
@@ -470,7 +486,7 @@ void TheoryEngine::combineTheories() {
 
     // We need to split on it
     Debug("sharing") << "TheoryEngine::combineTheories(): requesting a split " << endl;
-    lemma(equality.orNode(equality.notNode()), false, false, carePair.theory);
+    lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
   }
 }
 
@@ -666,6 +682,7 @@ bool TheoryEngine::presolve() {
 void TheoryEngine::postsolve() {
   // Reset the interrupt flag
   d_interrupted = false;
+  bool CVC4_UNUSED wasInConflict = d_inConflict;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -675,7 +692,7 @@ void TheoryEngine::postsolve() {
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
     if (theory::TheoryTraits<THEORY>::hasPostsolve) { \
       theoryOf(THEORY)->postsolve(); \
-      Assert(! d_inConflict, "conflict raised during postsolve()"); \
+      Assert(! d_inConflict || wasInConflict, "conflict raised during postsolve()"); \
     }
 
     // Postsolve for each theory using the statement above
@@ -773,7 +790,7 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
   Node newTerm;
   if (theoryOf(term)->ppDontRewriteSubterm(term)) {
-    newTerm = term;
+    newTerm = Rewriter::rewrite(term);
   } else {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -956,7 +973,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       bool value;
       if (d_propEngine->hasValue(assertion, value)) {
         if (!value) {
-          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict" << endl;
+          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (no sharing)" << endl;
           d_inConflict = true;
         } else {
           return;
@@ -1006,6 +1023,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
       // Check for propositional conflicts
       bool value;
       if (d_propEngine->hasValue(assertion, value) && !value) {
+          Trace("theory::propagate") << "TheoryEngine::assertToTheory(" << assertion << ", " << toTheoryId << ", " << fromTheoryId << "): conflict (sharing)" << endl;
         d_inConflict = true;
       }
     }
@@ -1161,6 +1179,12 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
+void TheoryEngine::printInstantiations( std::ostream& out ) {
+  if( d_quantEngine ){
+    d_quantEngine->printInstantiations( out );
+  }
+}
+
 static Node mkExplanation(const std::vector<NodeTheoryPair>& explanation) {
 
   std::set<TNode> all;
@@ -1313,7 +1337,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, theory::TheoryId atomsTo) {
+theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
@@ -1337,15 +1361,18 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
     options::lemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
+  // Run theory preprocessing, maybe
+  Node ppNode = preprocess ? this->preprocess(node) : Node(node);
+
   // Remove the ITEs
   std::vector<Node> additionalLemmas;
   IteSkolemMap iteSkolemMap;
-  additionalLemmas.push_back(node);
+  additionalLemmas.push_back(ppNode);
   d_iteRemover.run(additionalLemmas, iteSkolemMap);
   additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
 
   if(Debug.isOn("lemma-ites")) {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << node << endl;
+    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
     Debug("lemma-ites") << " + now have the following "
                         << additionalLemmas.size() << " lemma(s):" << endl;
     for(std::vector<Node>::const_iterator i = additionalLemmas.begin();
@@ -1410,11 +1437,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, true, true, THEORY_LAST);
+    lemma(fullConflict, true, true, false, THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    lemma(conflict, true, true, THEORY_LAST);
+    lemma(conflict, true, true, false, THEORY_LAST);
   }
 }
 
@@ -1464,7 +1491,8 @@ Node TheoryEngine::ppSimpITE(TNode assertion)
 
 bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
   bool result = true;
-  if(d_iteUtilities->simpIteDidALotOfWorkHeuristic()){
+  bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
+  if(simpDidALotOfWork){
     if(options::compressItes()){
       result = d_iteUtilities->compress(assertions);
     }
@@ -1480,6 +1508,57 @@ bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
         d_iteRemover.garbageCollect();
         nm->reclaimZombiesUntil(options::zombieHuntThreshold());
         Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
+      }
+    }
+  }
+
+  // Do theory specific preprocessing passes
+  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)){
+    if(!simpDidALotOfWork){
+      ContainsTermITEVisitor& contains = *d_iteRemover.getContainsVisitor();
+      arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
+      bool anyItes = false;
+      for(size_t i = 0;  i < assertions.size(); ++i){
+        Node curr = assertions[i];
+        if(contains.containsTermITE(curr)){
+          anyItes = true;
+          Node res = aiteu.reduceVariablesInItes(curr);
+          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl << "   ->" << res << endl;
+          if(curr != res){
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            assertions[i] = more;
+          }
+        }
+      }
+      if(!anyItes){
+        unsigned prevSubCount = aiteu.getSubCount();
+        aiteu.learnSubstitutions(assertions);
+        if(prevSubCount < aiteu.getSubCount()){
+          d_arithSubstitutionsAdded += aiteu.getSubCount() - prevSubCount;
+          bool anySuccess = false;
+          for(size_t i = 0, N =  assertions.size();  i < N; ++i){
+            Node curr = assertions[i];
+            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node res = aiteu.reduceVariablesInItes(next);
+            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            if(more != next){
+              anySuccess = true;
+              break;
+            }
+          }
+          for(size_t i = 0, N =  assertions.size();  anySuccess && i < N; ++i){
+            Node curr = assertions[i];
+            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
+            Node res = aiteu.reduceVariablesInItes(next);
+            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
+            Node more = aiteu.reduceConstantIteByGCD(res);
+            Debug("arith::ite::red") << "  gcd->" << more << endl;
+            assertions[i] = Rewriter::rewrite(more);
+          }
+        }
       }
     }
   }
@@ -1583,24 +1662,34 @@ void TheoryEngine::handleUserAttribute(const char* attr, Theory* t) {
 
 void TheoryEngine::checkTheoryAssertionsWithModel() {
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
-    if(theoryId != THEORY_REWRITERULES) {
-      Theory* theory = d_theoryTable[theoryId];
-      if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
-        for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
-              it_end = theory->facts_end();
-            it != it_end;
-            ++it) {
-          Node assertion = (*it).assertion;
-          Node val = getModel()->getValue(assertion);
-          if(val != d_true) {
-            stringstream ss;
-            ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
-               << "The fact: " << assertion << endl
-               << "Model value: " << val << endl;
-            InternalError(ss.str());
-          }
+    Theory* theory = d_theoryTable[theoryId];
+    if(theory && d_logicInfo.isTheoryEnabled(theoryId)) {
+      for(context::CDList<Assertion>::const_iterator it = theory->facts_begin(),
+            it_end = theory->facts_end();
+          it != it_end;
+          ++it) {
+        Node assertion = (*it).assertion;
+        Node val = getModel()->getValue(assertion);
+        if(val != d_true) {
+          stringstream ss;
+          ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
+             << "The fact: " << assertion << endl
+             << "Model value: " << val << endl;
+          InternalError(ss.str());
         }
       }
     }
   }
+}
+
+std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* seffects) {
+  TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
+  theory::TheoryId tid = theory::Theory::theoryOf(mode, atom);
+  theory::Theory* th = theoryOf(tid);
+
+  Assert(th != NULL);
+  Assert(params == NULL || tid == params->getTheoryId());
+  Assert(seffects == NULL || tid == seffects->getTheoryId());
+
+  return th->entailmentCheck(lit, params, seffects);
 }

@@ -58,7 +58,7 @@ class FakeOutputChannel : public OutputChannel {
   void propagateAsDecision(TNode n) throw(AssertionException) {
     Unimplemented();
   }
-  LemmaStatus lemma(TNode n, bool removable) throw(AssertionException) {
+  LemmaStatus lemma(TNode n, bool removable, bool preprocess) throw(AssertionException) {
     Unimplemented();
   }
   void requirePhase(TNode, bool) throw(AssertionException) {
@@ -120,8 +120,8 @@ class FakeTheory : public Theory {
   // static std::deque<RewriteItem> s_expected;
 
 public:
-  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-    Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, qe)
+  FakeTheory(context::Context* ctxt, context::UserContext* uctxt, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+    Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
   { }
 
   /** Register an expected rewrite call */

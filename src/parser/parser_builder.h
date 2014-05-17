@@ -80,6 +80,12 @@ class CVC4_PUBLIC ParserBuilder {
   /** Are we parsing only? */
   bool d_parseOnly;
 
+  /** Is the logic forced by the user? */
+  bool d_logicIsForced;
+
+  /** The forced logic name */
+  std::string d_forcedLogic;
+
   /** Initialize this parser builder */
   void init(ExprManager* exprManager, const std::string& filename);
 
@@ -164,6 +170,9 @@ public:
 
   /** Set the parser to use the given string for its input. */
   ParserBuilder& withStringInput(const std::string& input);
+
+  /** Set the parser to use the given logic string. */
+  ParserBuilder& withForcedLogic(const std::string& logic);
 };/* class ParserBuilder */
 
 }/* CVC4::parser namespace */

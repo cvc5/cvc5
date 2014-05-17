@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "theory/arith/theory_arith_private_forward.h"
 
+
 namespace CVC4 {
 namespace theory {
 
@@ -45,7 +46,7 @@ private:
   KEEP_STATISTIC(TimerStat, d_ppRewriteTimer, "theory::arith::ppRewriteTimer");
 
 public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe);
+  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   virtual ~TheoryArith();
 
   /**
@@ -53,7 +54,10 @@ public:
    */
   void preRegisterTerm(TNode n);
 
+  Node expandDefinition(LogicRequest &logicRequest, Node node);
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  void setQuantifiersEngine(QuantifiersEngine* qe);
 
   void check(Effort e);
   void propagate(Effort e);
@@ -76,6 +80,12 @@ public:
   void addSharedTerm(TNode n);
 
   Node getModelValue(TNode var);
+
+
+  std::pair<bool, Node> entailmentCheck(TNode lit,
+                                        const EntailmentCheckParameters* params,
+                                        EntailmentCheckSideEffects* out);
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

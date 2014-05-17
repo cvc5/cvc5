@@ -33,8 +33,8 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, qe),
+TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo),
   d_numRestarts(0),
   d_masterEqualityEngine(0)
 {
@@ -157,14 +157,14 @@ void TheoryQuantifiers::assertUniversal( Node n ){
 
 void TheoryQuantifiers::assertExistential( Node n ){
   Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
-  if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
+  if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
     if( d_skolemized.find( n )==d_skolemized.end() ){
       Node body = getQuantifiersEngine()->getTermDatabase()->getSkolemizedBody( n[0] );
       NodeBuilder<> nb(kind::OR);
       nb << n[0] << body.notNode();
       Node lem = nb;
       Trace("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
-      d_out->lemma( lem );
+      d_out->lemma( lem, false, true );
       d_skolemized[n] = true;
     }
   }

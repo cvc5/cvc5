@@ -164,6 +164,15 @@ class NodeManager {
   unsigned d_abstractValueCount;
 
   /**
+   * A counter used to produce unique skolem names.
+   *
+   * Note that it is NOT incremented when skolems are created using
+   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
+   * by this node manager.
+   */
+  unsigned d_skolemCounter;
+
+  /**
    * Look up a NodeValue in the pool associated to this NodeManager.
    * The NodeValue argument need not be a "completely-constructed"
    * NodeValue.  In particular, "non-inlined" constants are permitted
@@ -424,12 +433,11 @@ public:
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
-   * @param name the name of the new skolem variable.  This name can
-   * contain the special character sequence "$$", in which case the
-   * $$ is replaced with the Node ID.  That way a family of skolem
-   * variables can be made with unique identifiers, used in dump,
-   * tracing, and debugging output.  By convention, you should probably
-   * call mkSkolem() with a custom name appended with "_$$".
+   * @param prefix the name of the new skolem variable is the prefix
+   * appended with a unique ID.  This way a family of skolem variables
+   * can be made with unique identifiers, used in dump, tracing, and
+   * debugging output.  Use SKOLEM_EXECT_NAME flag if you don't want
+   * a unique ID appended and use prefix as the name.
    *
    * @param type the type of the skolem variable to create
    *
@@ -440,7 +448,7 @@ public:
    * @param flags an optional mask of bits from SkolemFlags to control
    * mkSkolem() behavior
    */
-  Node mkSkolem(const std::string& name, const TypeNode& type,
+  Node mkSkolem(const std::string& prefix, const TypeNode& type,
                 const std::string& comment = "", int flags = SKOLEM_DEFAULT);
 
   /** Create a instantiation constant with the given type. */
@@ -751,6 +759,9 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
+  /** Make the type of arrays with the given parameterization */
+  inline TypeNode mkSetType(TypeNode elementType);
+
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
 
@@ -1056,6 +1067,16 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "cannot store function-like types in arrays");
   Debug("arrays") << "making array type " << indexType << " " << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
+}
+
+inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
+  CheckArgument(!elementType.isNull(), elementType,
+                "unexpected NULL element type");
+  // TODO: Confirm meaning of isFunctionLike(). --K
+  CheckArgument(!elementType.isFunctionLike(), elementType,
+                "cannot store function-like types in sets");
+  Debug("sets") << "making sets type " << elementType << std::endl;
+  return mkTypeNode(kind::SET_TYPE, elementType);
 }
 
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
@@ -1463,4 +1484,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_H */
+#endif /* __CVC4__NODE_MANAGER_H */

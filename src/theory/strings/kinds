@@ -13,11 +13,20 @@ typechecker "theory/strings/theory_strings_type_rules.h"
 operator STRING_CONCAT 2: "string concat"
 operator STRING_IN_REGEXP 2 "membership"
 operator STRING_LENGTH 1 "string length"
-operator STRING_SUBSTR 3 "string substr"
+operator STRING_SUBSTR 3 "string substr (user symbol)"
+operator STRING_SUBSTR_TOTAL 3 "string substr (internal symbol)"
+operator STRING_CHARAT 2 "string charat (user symbol)"
 operator STRING_STRCTN 2 "string contains"
-operator STRING_CHARAT 2 "string charat"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
+operator STRING_PREFIX 2 "string prefixof"
+operator STRING_SUFFIX 2 "string suffixof"
+operator STRING_ITOS 1 "integer to string"
+operator STRING_STOI 1 "string to integer (total function)"
+operator STRING_U16TOS 1 "uint16 to string"
+operator STRING_STOU16 1 "string to uint16"
+operator STRING_U32TOS 1 "uint32 to string"
+operator STRING_STOU32 1 "string to uint32"
 
 #sort CHAR_TYPE \
 #    Cardinality::INTEGERS \
@@ -66,38 +75,25 @@ typerule CONST_REGEXP ::CVC4::theory::strings::RegExpConstantTypeRule
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
 operator REGEXP_CONCAT 2: "regexp concat"
-operator REGEXP_OR 2: "regexp or"
+operator REGEXP_UNION 2: "regexp union"
 operator REGEXP_INTER 2: "regexp intersection"
 operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
 operator REGEXP_RANGE 2 "regexp range"
+operator REGEXP_LOOP 2:3 "regexp loop"
 
-#constant REGEXP_EMPTY \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains nothing"
-
-#constant REGEXP_ALL \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains all strings"
-
-#constant REGEXP_SIGMA \
-#	::CVC4::RegExp \
-#	::CVC4::RegExpHashFunction \
-#	"util/string.h" \
-#	"a regexp contains an arbitrary charactor"
+operator REGEXP_EMPTY 0 "regexp empty"
+operator REGEXP_SIGMA 0 "regexp all charactors"
 
 typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
-typerule REGEXP_OR ::CVC4::theory::strings::RegExpOrTypeRule
+typerule REGEXP_UNION ::CVC4::theory::strings::RegExpUnionTypeRule
 typerule REGEXP_INTER ::CVC4::theory::strings::RegExpInterTypeRule
 typerule REGEXP_STAR ::CVC4::theory::strings::RegExpStarTypeRule
 typerule REGEXP_PLUS ::CVC4::theory::strings::RegExpPlusTypeRule
 typerule REGEXP_OPT ::CVC4::theory::strings::RegExpOptTypeRule
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
+typerule REGEXP_LOOP ::CVC4::theory::strings::RegExpLoopTypeRule
 
 typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
 
@@ -105,11 +101,23 @@ typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
 typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
 typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
-typerule STRING_STRCTN ::CVC4::theory::strings::StringContainTypeRule
+typerule STRING_SUBSTR_TOTAL ::CVC4::theory::strings::StringSubstrTypeRule
 typerule STRING_CHARAT ::CVC4::theory::strings::StringCharAtTypeRule
+typerule STRING_STRCTN ::CVC4::theory::strings::StringContainTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
 typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
+typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
+typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
+typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_U16TOS ::CVC4::theory::strings::StringIntToStrTypeRule
+typerule STRING_STOU16 ::CVC4::theory::strings::StringStrToIntTypeRule
+typerule STRING_U32TOS ::CVC4::theory::strings::StringIntToStrTypeRule
+typerule STRING_STOU32 ::CVC4::theory::strings::StringStrToIntTypeRule
 
 typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
+
+typerule REGEXP_EMPTY ::CVC4::theory::strings::EmptyRegExpTypeRule
+typerule REGEXP_SIGMA ::CVC4::theory::strings::SigmaRegExpTypeRule
 
 endtheory

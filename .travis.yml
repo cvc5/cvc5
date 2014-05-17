@@ -20,18 +20,41 @@ before_script:
  - export JAVA_CPPFLAGS=-I$JAVA_HOME/include
  - ./autogen.sh
 script:
- - normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
- - if [ -n "$TRAVIS_CVC4" ]; then
-     echo "CVC4 config - $TRAVIS_CVC4_CONFIG" &&
-     (./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
-     if [ -n "$TRAVIS_CVC4_DISTCHECK" ]; then
-       make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}DISTCHECK FAILED${normal}"; echo; exit 1);
-     else
-       (make -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || (echo; echo "${red}BUILD/TEST FAILED${normal}"; echo; exit 1)) &&
-       (make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= || (echo; echo "${red}PORTFOLIO TEST FAILED${normal}"; echo; exit 1)) &&
-       (make -j2 examples || (echo; echo "${red}COULD NOT BUILD EXAMPLES${normal}"; echo; exit 1));
-     fi;
-   elif [ -n "$TRAVIS_LFSC" ]; then
+ - |
+   echo "travis_fold:start:load_script"
+   normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
+   configureCVC4() {
+     echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
+     ./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG ||
+       (echo; cat builds/config.log; error "CONFIGURE FAILED");
+   }
+   error() {
+     echo;
+     echo "${red}${1}${normal}";
+     echo;
+     exit 1;
+   }
+   makeDistcheck() {
+     make -j2 distcheck CVC4_REGRESSION_ARGS='--no-early-exit' ||
+       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
+   }
+   makeCheck() {
+     make -j2 check CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/TEST FAILED";
+   }
+   makeCheckPortfolio() {
+     make check BINARY=pcvc4 CVC4_REGRESSION_ARGS='--fallback-sequential --no-early-exit' RUN_REGRESSION_ARGS= ||
+       error "PORTFOLIO TEST FAILED";
+   }
+   makeExamples() {
+     make -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
+   }
+   addNewTheoryTest() {
+       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
+       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.am || error "NEWTHEORY FAILED";
+       contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
+       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.am || error "NEWTHEORY-ALTERNATE FAILED";
+   }
+   LFSCchecks() {
      cd proofs/lfsc_checker &&
      (./configure || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
      if [ -n "$TRAVIS_LFSC_DISTCHECK" ]; then
@@ -39,11 +62,21 @@ script:
      else
        make -j2 || (echo; echo "${red}LFSC BUILD FAILED${normal}"; echo; exit 1);
      fi;
-   else
-     echo "${red}Unknown Travis-CI configuration${normal}";
-     exit 1;
-   fi &&
-   (echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}")
+   }
+   run() {
+     echo "travis_fold:start:$1"
+     echo "Running $1"
+     $1 || exit 1
+     echo "travis_fold:end:$1"
+   }
+   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
+   [ -n "$TRAVIS_CVC4" ] && run configureCVC4
+   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
+   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeCheckPortfolio && run makeExamples
+   [ -n "$TRAVIS_LFSC" ] && run LFSCchecks
+   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && error "Unknown Travis-CI configuration"
+   echo "travis_fold:end:load_script"
+ - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
 matrix:
   fast_finish: true
 notifications:

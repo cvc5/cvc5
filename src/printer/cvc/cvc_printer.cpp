@@ -316,6 +316,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::APPLY_CONSTRUCTOR:
     case kind::APPLY_SELECTOR:
+    case kind::APPLY_SELECTOR_TOTAL:
     case kind::APPLY_TESTER:
       toStream(op, n.getOperator(), depth, types, false);
       break;
@@ -476,6 +477,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     case kind::GEQ:
       op << ">=";
+      opType = INFIX;
+      break;
+    case kind::POW:
+      op << '^';
       opType = INFIX;
       break;
 

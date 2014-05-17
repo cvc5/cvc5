@@ -65,6 +65,8 @@ private:
   Node d_eq_class;
   /** for arithmetic matching */
   std::map< Node, Node > d_arith_coeffs;
+  /** variable numbers */
+  std::map< int, int > d_var_num;
   /** initialize pattern */
   void initialize( QuantifiersEngine* qe, std::vector< InstMatchGenerator * > & gens );
 public:
@@ -92,6 +94,8 @@ public:
   Node d_pattern;
   /** match pattern */
   Node d_match_pattern;
+  /** match pattern op */
+  Node d_match_pattern_op;
 public:
   /** reset instantiation round (call this whenever equivalence classes have changed) */
   void resetInstantiationRound( QuantifiersEngine* qe );
@@ -165,15 +169,19 @@ private:
   Node d_f;
   /** match term */
   Node d_match_pattern;
+  /** operator */
+  Node d_op;
+  /** to indicies */
+  std::map< int, int > d_var_num;
   /** add instantiations */
   void addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat );
 public:
   /** constructors */
-  InstMatchGeneratorSimple( Node f, Node pat ) : d_f( f ), d_match_pattern( pat ){}
+  InstMatchGeneratorSimple( Node f, Node pat );
   /** destructor */
   ~InstMatchGeneratorSimple(){}
   /** reset instantiation round (call this whenever equivalence classes have changed) */
-  void resetInstantiationRound( QuantifiersEngine* qe ) {}
+  void resetInstantiationRound( QuantifiersEngine* qe );
   /** reset, eqc is the equivalence class to search in (any if eqc=null) */
   void reset( Node eqc, QuantifiersEngine* qe ) {}
   /** get the next match.  must call reset( eqc ) before this function. (not implemented) */

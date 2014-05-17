@@ -21,7 +21,9 @@
 
 #include "smt/smt_engine.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 #include "options/options.h"
+
 
 namespace CVC4 {
 
@@ -60,7 +62,8 @@ template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads,
                                boost::function<T()> driverFn,
                                boost::function<S()> threadFns[],
-                               bool optionWaitToJoin) {
+                               bool optionWaitToJoin,
+                               TimerStat& statWaitTime) {
   boost::thread thread_driver;
   boost::thread* threads = new boost::thread[numThreads];
   S* threads_returnValue = new S[numThreads];
@@ -81,6 +84,8 @@ std::pair<int, S> runPortfolio(int numThreads,
   while(global_flag_done == false) {
     condition_var_main_wait.wait(lock);
   }
+
+  statWaitTime.start();
 
   if(not driverFn.empty()) {
     thread_driver.interrupt();
@@ -107,6 +112,7 @@ std::pair<int, bool>
 runPortfolio<void, bool>(int,
                          boost::function<void()>, 
                          boost::function<bool()>*,
-                         bool);
+                         bool,
+                         TimerStat&);
 
 }/* CVC4 namespace */

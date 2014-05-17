@@ -13,6 +13,8 @@ TESTS_ENVIRONMENT = \
 	$(AM_LOG_FLAGS) $(LOG_FLAGS)
 endif
 
+MAKEFLAGS = -k
+
 # escape the `=' in file names
 equals = =
 
@@ -33,7 +35,6 @@ TESTS =	\
 	tff0.p \
 	tff0-arith.p \
 	ARI086$(equals)1.p \
-	BOO003-4.p \
 	DAT001$(equals)1.p \
 	KRS018+1.p \
 	KRS063+1.p \
@@ -60,6 +61,7 @@ TEST_DEPS_DIST = \
 EXTRA_DIST = $(TESTS) \
 	$(TEST_DEPS_DIST) \
 	BOO027-1.p \
+	BOO003-4.p \
 	MGT031-1.p \
 	NLP114-1.p \
 	SYN075+1.p

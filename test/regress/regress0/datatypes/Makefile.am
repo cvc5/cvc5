@@ -31,7 +31,6 @@ TESTS =	\
 	datatype0.cvc \
 	datatype1.cvc \
 	datatype2.cvc \
-	datatype3.cvc \
 	datatype4.cvc \
 	datatype13.cvc \
 	empty_tuprec.cvc \
@@ -63,6 +62,8 @@ TESTS =	\
 
 FAILING_TESTS = \
 	datatype-dump.cvc
+
+# takes a long time to build model on debug : datatype3.cvc
 
 EXTRA_DIST = $(TESTS)
 

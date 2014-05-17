@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/inst_gen.h"
 #include "theory/quantifiers/trigger.h"
+#include "theory/quantifiers/options.h"
 
 using namespace std;
 using namespace CVC4;
@@ -39,7 +40,7 @@ TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_curr_model( c, NULL ), d_qe
 }
 
 bool QModelBuilder::isQuantifierActive( Node f ) {
-  return !f.hasAttribute(QRewriteRuleAttribute());
+  return !TermDb::isRewriteRule( f );
 }
 
 
@@ -264,18 +265,18 @@ int QModelBuilderIG::initializeQuantifier( Node f, Node fp ){
       //    Notice() << "Unhandled phase req: " << n << std::endl;
       //  }
       //}
+      d_quant_basis_match[f] = InstMatch( f );
       for( int j=0; j<(int)f[0].getNumChildren(); j++ ){
-        Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, j );
-        Node t = d_qe->getTermDatabase()->getModelBasisTerm( ic.getType() );
+        Node t = d_qe->getTermDatabase()->getModelBasisTerm( f[0][j].getType() );
         //calculate the basis match for f
-        d_quant_basis_match[f].set( ic, t);
+        d_quant_basis_match[f].setValue( j, t );
       }
       ++(d_statistics.d_num_quants_init);
     }
     //try to add it
     Trace("inst-fmf-init") << "Init: try to add match " << d_quant_basis_match[f] << std::endl;
     //add model basis instantiation
-    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false, false, false ) ){
+    if( d_qe->addInstantiation( fp, d_quant_basis_match[f], false ) ){
       d_quant_basis_match_added[f] = true;
       return 1;
     }else{
@@ -381,7 +382,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 }
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){
-  return !f.hasAttribute(QRewriteRuleAttribute()) &&
+  return !TermDb::isRewriteRule( f ) &&
          ( d_considerAxioms || !f.getAttribute(AxiomAttribute()) ) && d_quant_sat.find( f )==d_quant_sat.end();
 }
 
@@ -428,9 +429,9 @@ bool QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
           riter.increment2( depIndex );
         }else{
           //instantiation was not shown to be true, construct the match
-          InstMatch m;
+          InstMatch m( f );
           for( int i=0; i<riter.getNumTerms(); i++ ){
-            m.set( d_qe, f, riter.d_index_order[i], riter.getTerm( i ) );
+            m.set( d_qe, riter.d_index_order[i], riter.getTerm( i ) );
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           //add as instantiation
@@ -840,7 +841,7 @@ int QModelBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
         for( int i=0; i<igp.getNumMatches(); i++ ){
           //if the match is not already true in the model
           if( igp.getMatchValue( i )!=fm->d_true ){
-            InstMatch m;
+            InstMatch m( f );
             igp.getMatch( d_qe->getEqualityQuery(), i, m );
             //Trace("inst-gen-debug") << "Inst Gen : " << m << std::endl;
             //we only consider matches that are non-empty
@@ -848,10 +849,10 @@ int QModelBuilderInstGen::doInstGen( FirstOrderModel* fm, Node f ){
             if( !m.empty() ){
               Trace("inst-gen-debug") << "Get in terms of parent..." << std::endl;
               //translate to be in terms match in terms of fp
-              InstMatch mp;
+              InstMatch mp(f);
               getParentQuantifierMatch( mp, fp, m, f );
               //if this is a partial instantion
-              if( !m.isComplete( f ) ){
+              if( !m.isComplete() ){
                 //need to make it internal here
                 //Trace("mkInternal") << "Make internal representative " << mp << std::endl;
                 //mp.makeInternalRepresentative( d_qe );
@@ -1038,7 +1039,7 @@ int QModelBuilderInstGen::getSelectionFormulaScore( Node fn ){
     if( fn.getKind()==APPLY_UF ){
       Node op = fn.getOperator();
       //return total number of terms
-      return d_qe->getTermDatabase()->d_op_count[op];
+      return d_qe->getTermDatabase()->d_op_nonred_count[op];
     }else{
       int score = 0;
       for( size_t i=0; i<fn.getNumChildren(); i++ ){
@@ -1092,13 +1093,11 @@ void QModelBuilderInstGen::getParentQuantifierMatch( InstMatch& mp, Node fp, Ins
     //std::cout << "     " << fp[0].getNumChildren() << " " << f[0].getNumChildren() << std::endl;
     int counter = 0;
     for( size_t i=0; i<fp[0].getNumChildren(); i++ ){
-      Node icp = d_qe->getTermDatabase()->getInstantiationConstant( fp, i );
       if( (int)counter< (int)f[0].getNumChildren() ){
         if( fp[0][i]==f[0][counter] ){
-          Node ic = d_qe->getTermDatabase()->getInstantiationConstant( f, counter );
-          Node n = m.getValue( ic );
+          Node n = m.get( counter );
           if( !n.isNull() ){
-            mp.setMatch( d_qe->getEqualityQuery(), icp, n );
+            mp.set( d_qe, i, n );
           }
           counter++;
         }

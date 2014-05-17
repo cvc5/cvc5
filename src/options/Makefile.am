@@ -21,8 +21,6 @@ OPTIONS_FILES_SRCS = \
 	../theory/arrays/options.h \
 	../theory/quantifiers/options.cpp \
 	../theory/quantifiers/options.h \
-	../theory/rewriterules/options.cpp \
-	../theory/rewriterules/options.h \
 	../theory/strings/options.cpp \
 	../theory/strings/options.h \
 	../prop/options.cpp \
@@ -40,7 +38,9 @@ OPTIONS_FILES_SRCS = \
 	../parser/options.cpp \
 	../parser/options.h \
 	../theory/idl/options.cpp \
-	../theory/idl/options.h
+	../theory/idl/options.h \
+	../theory/sets/options.cpp \
+	../theory/sets/options.h
 
 OPTIONS_FILES = \
 	$(patsubst %.cpp,%,$(filter %.cpp,$(OPTIONS_FILES_SRCS)))
@@ -82,8 +82,6 @@ nodist_liboptions_la_SOURCES = \
 	../theory/arrays/options.h \
 	../theory/quantifiers/options.cpp \
 	../theory/quantifiers/options.h \
-	../theory/rewriterules/options.cpp \
-	../theory/rewriterules/options.h \
 	../theory/strings/options.cpp \
 	../theory/strings/options.h \
 	../prop/options.cpp \
@@ -101,7 +99,9 @@ nodist_liboptions_la_SOURCES = \
 	../parser/options.cpp \
 	../parser/options.h \
 	../theory/idl/options.cpp \
-	../theory/idl/options.h
+	../theory/idl/options.h \
+	../theory/sets/options.cpp \
+	../theory/sets/options.h
 
 BUILT_SOURCES = \
 	exprs-builts \

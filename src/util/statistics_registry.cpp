@@ -119,6 +119,10 @@ void TimerStat::stop() {
   }
 }/* TimerStat::stop() */
 
+bool TimerStat::running() const {
+  return d_running;
+}/* TimerStat::running() */
+
 timespec TimerStat::getData() const {
   ::timespec data = d_data;
   if(__CVC4_USE_STATISTICS && d_running) {

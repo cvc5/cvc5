@@ -40,16 +40,20 @@ public:
     THEORY_ARRAYS,
     THEORY_BITVECTORS,
     THEORY_CORE,
+    THEORY_DATATYPES,
     THEORY_INTS,
     THEORY_REALS,
     THEORY_REALS_INTS,
     THEORY_QUANTIFIERS,
-    THEORY_STRINGS
+    THEORY_SETS,
+    THEORY_STRINGS,
+    THEORY_UF
   };
 
 private:
   bool d_logicSet;
   LogicInfo d_logic;
+  std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -62,6 +66,14 @@ public:
    */
   void addTheory(Theory theory);
 
+  void addOperator(Kind k, const std::string& name);
+
+  Kind getOperatorKind(const std::string& name) const;
+
+  bool isOperatorEnabled(const std::string& name) const;
+
+  bool isTheoryEnabled(Theory theory) const;
+
   bool logicIsSet();
 
   /**
@@ -71,6 +83,11 @@ public:
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    */
   void setLogic(const std::string& name);
+
+  /**
+   * Get the logic.
+   */
+  const LogicInfo& getLogic() const { return d_logic; }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 

@@ -22,22 +22,19 @@ QUERY
 ( 0bin0011 << 3 = 0bin0011000 ) AND
 ( 0bin1000 >> 3 = 0bin0001 ) AND
 
-% these not working yet..
-%
-%( BVZEROEXTEND(0bin100, 2) = 0bin00100 ) AND
-%( SX(0bin100, 5) = 0bin11100 ) AND
-%
-%( BVZEROEXTEND(0bin100, 0) = 0bin100 ) AND
-%( SX(0bin100, 3) = 0bin100 ) AND
-%
-%( (BVPLUS(9, x@0bin0000, (0bin000@(~y)@0bin11)))[8:4] = BVPLUS(5, x, ~(y[3:2])) ) AND
-%
-%( x4 = 0hex5 AND y4 = 0bin0101 ) =>
-%( ( BVMULT(8,x4,y4)=BVMULT(8,y4,x4) ) AND
-%  ( NOT(BVLT(x4,y4)) ) AND
-%  ( BVLE(BVSUB(8,x4,y4), BVPLUS(8, x4, BVUMINUS(x4))) ) AND
-%  ( x4 = BVSUB(4, BVUMINUS(x4), BVPLUS(4, x4,0hex1)) ) ) AND
+( BVZEROEXTEND(0bin100, 2) = 0bin00100 ) AND
+( SX(0bin100, 5) = 0bin11100 ) AND
 
+( BVZEROEXTEND(0bin100, 0) = 0bin100 ) AND
+( SX(0bin100, 3) = 0bin100 ) AND
+
+( (BVPLUS(9, x@0bin0000, (0bin000@(~y)@0bin11)))[8:4] = BVPLUS(5, x, ~(y[3:2])) ) AND
+
+( x4 = 0hex5 AND y4 = 0bin0101 ) =>
+( ( BVMULT(8,x4,y4)=BVMULT(8,y4,x4) ) AND
+  ( NOT(BVLT(x4,y4)) ) AND
+  ( BVLE(BVSUB(8,x4,y4), BVPLUS(8, x4, BVUMINUS(x4))) ) AND
+  ( x4 = BVSUB(4, BVUMINUS(x4), BVPLUS(4, x4,0hex1)) ) ) AND
 
 ( 0bin01100000[5:3]=(0bin1111001@bv[0:0])[4:2] ) AND
 ( 0bin1@(IF a THEN 0bin0 ELSE 0bin1 ENDIF) = (IF a THEN 0bin110 ELSE 0bin011 ENDIF)[1:0] ) AND

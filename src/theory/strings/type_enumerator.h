@@ -31,43 +31,43 @@ namespace theory {
 namespace strings {
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
-	std::vector< unsigned > d_data;
-	unsigned d_cardinality;
-	Node d_curr;
-	void mkCurr() {
-		//make constant from d_data
-		d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-	}
+  std::vector< unsigned > d_data;
+  unsigned d_cardinality;
+  Node d_curr;
+  void mkCurr() {
+    //make constant from d_data
+    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
+  }
 public:
 
   StringEnumerator(TypeNode type) throw(AssertionException) :
     TypeEnumeratorBase<StringEnumerator>(type) {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
-	d_cardinality = 256;
-	mkCurr();
+    d_cardinality = 256;
+    mkCurr();
   }
   Node operator*() throw() {
     return d_curr;
   }
   StringEnumerator& operator++() throw() {
-	bool changed = false;
-	do{
-		for(unsigned i=0; i<d_data.size(); ++i) {
-			if( d_data[i] + 1 < d_cardinality ) {
-				++d_data[i]; changed = true;
-				break;
-			} else {
-				d_data[i] = 0;
-			}
-		}
-		
-		if(!changed) {
-			d_data.push_back( 0 );
-		}
-	}while(!changed);
+  bool changed = false;
+  do{
+    for(unsigned i=0; i<d_data.size(); ++i) {
+      if( d_data[i] + 1 < d_cardinality ) {
+        ++d_data[i]; changed = true;
+        break;
+      } else {
+        d_data[i] = 0;
+      }
+    }
 
-	mkCurr();
+    if(!changed) {
+      d_data.push_back( 0 );
+    }
+  }while(!changed);
+
+  mkCurr();
     return *this;
   }
 
@@ -80,19 +80,19 @@ public:
 
 class StringEnumeratorLength {
 private:
-	unsigned d_cardinality;
-	std::vector< unsigned > d_data;
-	Node d_curr;
-	void mkCurr() {
-		//make constant from d_data
-		d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
-	}
+  unsigned d_cardinality;
+  std::vector< unsigned > d_data;
+  Node d_curr;
+  void mkCurr() {
+    //make constant from d_data
+    d_curr = NodeManager::currentNM()->mkConst( ::CVC4::String( d_data ) );
+  }
 public:
   StringEnumeratorLength(unsigned length, unsigned card = 256) : d_cardinality(card) {
-     for( unsigned i=0; i<length; i++ ){
-		d_data.push_back( 0 );
-	 }
-	 mkCurr();
+    for( unsigned i=0; i<length; i++ ){
+      d_data.push_back( 0 );
+    }
+    mkCurr();
   }
 
   Node operator*() throw() {
@@ -100,21 +100,21 @@ public:
   }
 
   StringEnumeratorLength& operator++() throw() {
-	bool changed = false;
-	for(unsigned i=0; i<d_data.size(); ++i) {
-		if( d_data[i] + 1 < d_cardinality ) {
-			++d_data[i]; changed = true;
-			break;
-		} else {
-			d_data[i] = 0;
-		}
-	}
-	
-	if(!changed) {
-		d_curr = Node::null();
-	}else{
-		mkCurr();
-	}
+    bool changed = false;
+    for(unsigned i=0; i<d_data.size(); ++i) {
+      if( d_data[i] + 1 < d_cardinality ) {
+        ++d_data[i]; changed = true;
+        break;
+      } else {
+        d_data[i] = 0;
+      }
+    }
+
+    if(!changed) {
+      d_curr = Node::null();
+    }else{
+      mkCurr();
+    }
     return *this;
   }
 

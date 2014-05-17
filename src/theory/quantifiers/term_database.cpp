@@ -18,8 +18,9 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/options.h"
-#include "theory/rewriterules/efficient_e_matching.h"
 #include "theory/quantifiers/theory_quantifiers.h"
+#include "util/datatype.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -47,19 +48,47 @@ bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
   }
 }
 
-void TermDb::addTermEfficient( Node n, std::set< Node >& added){
-  static AvailableInTermDb aitdi;
-  if (inst::Trigger::isAtomicTrigger( n ) && !n.getAttribute(aitdi)){
-    //Already processed but new in this branch
-    n.setAttribute(aitdi,true);
-    added.insert( n );
-    for( size_t i=0; i< n.getNumChildren(); i++ ){
-      addTermEfficient(n[i],added);
-    }
-  }
+TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ) {
 
 }
 
+/** ground terms */
+unsigned TermDb::getNumGroundTerms( Node f ) {
+  std::map< Node, std::vector< Node > >::iterator it = d_op_map.find( f );
+  if( it!=d_op_map.end() ){
+    return it->second.size();
+  }else{
+    return 0;
+  }
+  //return d_op_ccount[f];
+}
+
+Node TermDb::getOperator( Node n ) {
+  //return n.getOperator();
+
+  if( n.getKind()==SELECT || n.getKind()==STORE ){
+    //since it is parametric, use a particular one as op
+    TypeNode tn1 = n[0].getType();
+    TypeNode tn2 = n[1].getType();
+    Node op = n.getOperator();
+    std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > >::iterator ito = d_par_op_map.find( op );
+    if( ito!=d_par_op_map.end() ){
+      std::map< TypeNode, std::map< TypeNode, Node > >::iterator it = ito->second.find( tn1 );
+      if( it!=ito->second.end() ){
+        std::map< TypeNode, Node >::iterator it2 = it->second.find( tn2 );
+        if( it2!=it->second.end() ){
+          return it2->second;
+        }
+      }
+    }
+    d_par_op_map[op][tn1][tn2] = n;
+    return n;
+  }else if( inst::Trigger::isAtomicTrigger( n ) ){
+    return n.getOperator();
+  }else{
+    return Node::null();
+  }
+}
 
 void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
   //don't add terms in quantifier bodies
@@ -67,38 +96,29 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
     return;
   }
   if( d_processed.find( n )==d_processed.end() ){
-    ++(d_quantEngine->d_statistics.d_term_in_termdb);
     d_processed.insert(n);
     d_type_map[ n.getType() ].push_back( n );
-    n.setAttribute(AvailableInTermDb(),true);
     //if this is an atomic trigger, consider adding it
     //Call the children?
     if( inst::Trigger::isAtomicTrigger( n ) ){
       if( !TermDb::hasInstConstAttr(n) ){
         Trace("term-db") << "register term in db " << n << std::endl;
         //std::cout << "register trigger term " << n << std::endl;
-        Node op = n.getOperator();
+        Node op = getOperator( n );
+        /*
+        int occ = d_op_ccount[op];
+        if( occ<(int)d_op_map[op].size() ){
+          d_op_map[op][occ] = n;
+        }else{
+          d_op_map[op].push_back( n );
+        }
+        d_op_ccount[op].set( occ + 1 );
+        */
         d_op_map[op].push_back( n );
         added.insert( n );
 
         for( size_t i=0; i<n.getNumChildren(); i++ ){
           addTerm( n[i], added, withinQuant );
-          if( options::efficientEMatching() ){
-            EfficientEMatcher* eem = d_quantEngine->getEfficientEMatcher();
-            if( d_parents[n[i]][op].empty() ){
-              //must add parent to equivalence class info
-              Node nir = d_quantEngine->getEqualityQuery()->getRepresentative( n[i] );
-              EqClassInfo* eci_nir = eem->getEquivalenceClassInfo( nir );
-              if( eci_nir ){
-                eci_nir->d_pfuns[ op ] = true;
-              }
-            }
-            //add to parent structure
-            if( std::find( d_parents[n[i]][op][i].begin(), d_parents[n[i]][op][i].end(), n )==d_parents[n[i]][op][i].end() ){
-              d_parents[n[i]][op][i].push_back( n );
-              Assert(!getParents(n[i],op,i).empty());
-            }
-          }
           if( options::eagerInstQuant() ){
             if( !n.hasAttribute(InstLevelAttribute()) && n.getAttribute(InstLevelAttribute())==0 ){
               int addedLemmas = 0;
@@ -116,13 +136,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
         addTerm( n[i], added, withinQuant );
       }
     }
-  }else{
-    if( options::efficientEMatching() && !TermDb::hasInstConstAttr(n)){
-      //Efficient e-matching must be notified
-      //The term in triggers are not important here
-      Debug("term-db") << "New in this branch term " << n << std::endl;
-      addTermEfficient(n,added);
-    }
   }
 }
 
@@ -132,7 +145,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    int alreadyCongruentCount = 0;
    //rebuild d_func/pred_map_trie for each operation, this will calculate all congruent terms
    for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
-     d_op_count[ it->first ] = 0;
+     d_op_nonred_count[ it->first ] = 0;
      if( !it->second.empty() ){
        if( it->second[0].getType().isBoolean() ){
          d_pred_map_trie[ 0 ][ it->first ].d_data.clear();
@@ -150,7 +163,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                congruentCount++;
              }else{
                nonCongruentCount++;
-               d_op_count[ it->first ]++;
+               d_op_nonred_count[ it->first ]++;
              }
            }else{
              congruentCount++;
@@ -170,7 +183,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
          computeModelBasisArgAttribute( en );
          if( en.getKind()==APPLY_UF && !TermDb::hasInstConstAttr(en) ){
            if( !en.getAttribute(NoMatchAttribute()) ){
-             Node op = en.getOperator();
+             Node op = getOperator( en );
              if( !d_pred_map_trie[i][op].addTerm( d_quantEngine, en ) ){
                NoMatchAttribute nma;
                en.setAttribute(nma,true);
@@ -178,7 +191,7 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
                congruentCount++;
              }else{
                nonCongruentCount++;
-               d_op_count[ op ]++;
+               d_op_nonred_count[ op ]++;
              }
            }else{
              alreadyCongruentCount++;
@@ -321,28 +334,6 @@ bool TermDb::hasInstConstAttr( Node n ) {
   return !getInstConstAttr(n).isNull();
 }
 
-bool TermDb::hasBoundVarAttr( Node n ) {
-  if( !n.getAttribute(HasBoundVarComputedAttribute()) ){
-    bool hasBv = false;
-    if( n.getKind()==BOUND_VARIABLE ){
-      hasBv = true;
-    }else{
-      for (unsigned i=0; i<n.getNumChildren(); i++) {
-        if( hasBoundVarAttr(n[i]) ){
-          hasBv = true;
-          break;
-        }
-      }
-    }
-    HasBoundVarAttribute hbva;
-    n.setAttribute(hbva, hasBv);
-    HasBoundVarComputedAttribute hbvca;
-    n.setAttribute(hbvca, true);
-    Trace("bva") << n << " has bva : " << n.getAttribute(HasBoundVarAttribute()) << std::endl;
-  }
-  return n.getAttribute(HasBoundVarAttribute());
-}
-
 void TermDb::getBoundVars( Node n, std::vector< Node >& bvs) {
   if (n.getKind()==BOUND_VARIABLE ){
     if ( std::find( bvs.begin(), bvs.end(), n)==bvs.end() ){
@@ -418,22 +409,120 @@ Node TermDb::convertNodeToPattern( Node n, Node f, const std::vector<Node> & var
 }
 
 
+void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vector< Node >& selfSel ){
+  for( unsigned j=0; j<dc.getNumArgs(); j++ ){
+    TypeNode tn = TypeNode::fromType( ((SelectorType)dc[j].getSelector().getType()).getRangeType() );
+    std::vector< Node > ssc;
+    if( tn==ntn ){
+      ssc.push_back( n );
+    }
+    /* TODO
+    else if( datatypes::DatatypesRewriter::isTypeDatatype( tn ) && std::find( visited.begin(), visited.end(), tn )==visited.end() ){
+      visited.push_back( tn );
+      const Datatype& dt = ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
+      std::vector< Node > disj;
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+        getSelfSel( dt[i], n, ntn, ssc );
+      }
+      visited.pop_back();
+    }
+    */
+    for( unsigned k=0; k<ssc.size(); k++ ){
+      selfSel.push_back( NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, dc[j].getSelector(), n ) );
+    }
+  }
+}
+
+
+Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes, std::vector< TNode >& fvs,
+                               std::vector< Node >& sk ) {
+  //calculate the variables and substitution
+  std::vector< TNode > ind_vars;
+  std::vector< unsigned > ind_var_indicies;
+  std::vector< TNode > vars;
+  std::vector< unsigned > var_indicies;
+  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+    if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTermDatatype( f[0][i] ) ){
+      ind_vars.push_back( f[0][i] );
+      ind_var_indicies.push_back( i );
+    }else{
+      vars.push_back( f[0][i] );
+      var_indicies.push_back( i );
+    }
+    Node s;
+    //make the new function symbol
+    if( argTypes.empty() ){
+      s = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "created during skolemization" );
+    }else{
+      TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, f[0][i].getType() );
+      Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
+      //DOTHIS: set attribute on op, marking that it should not be selected as trigger
+      std::vector< Node > funcArgs;
+      funcArgs.push_back( op );
+      funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
+      s = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
+    }
+    sk.push_back( s );
+  }
+  Node ret;
+  if( vars.empty() ){
+    ret = n;
+  }else{
+    std::vector< Node > var_sk;
+    for( unsigned i=0; i<var_indicies.size(); i++ ){
+      var_sk.push_back( sk[var_indicies[i]] );
+    }
+    Assert( vars.size()==var_sk.size() );
+    ret = n.substitute( vars.begin(), vars.end(), var_sk.begin(), var_sk.end() );
+  }
+  if( !ind_vars.empty() ){
+    Trace("stc-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
+    Trace("stc-ind") << "Skolemized is : " << ret << std::endl;
+    for( unsigned v=0; v<ind_vars.size(); v++ ){
+      Node k = sk[ind_var_indicies[v]];
+      TypeNode tn = k.getType();
+      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+        //can strengthen this, by asserting that subs[0] is the smallest term such that the existential holds.
+        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        std::vector< Node > disj;
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          std::vector< Node > conj;
+          conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
+          std::vector< Node > selfSel;
+          getSelfSel( dt[i], k, tn, selfSel );
+          for( unsigned j=0; j<selfSel.size(); j++ ){
+            conj.push_back( ret.substitute( ind_vars[v], selfSel[j] ).negate() );
+          }
+          disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
+        }
+        Assert( !disj.empty() );
+        Node n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
+        Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
+
+        Node nret = ret.substitute( ind_vars[v], k );
+        ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
+      }else{
+        Assert( false );
+      }
+    }
+  }
+  Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
+  return ret;
+}
 
 Node TermDb::getSkolemizedBody( Node f ){
   Assert( f.getKind()==FORALL );
   if( d_skolem_body.find( f )==d_skolem_body.end() ){
-    std::vector< Node > vars;
-    for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-      Node skv = NodeManager::currentNM()->mkSkolem( "skv_$$", f[0][i].getType(), "is a termdb-created skolemized body" );
-      d_skolem_constants[ f ].push_back( skv );
-      vars.push_back( f[0][i] );
-      //carry information for sort inference
-      if( options::sortInference() ){
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], skv );
+    std::vector< TypeNode > fvTypes;
+    std::vector< TNode > fvs;
+    d_skolem_body[ f ] = mkSkolemizedBody( f, f[1], fvTypes, fvs, d_skolem_constants[f] );
+    Assert( d_skolem_constants[f].size()==f[0].getNumChildren() );
+    if( options::sortInference() ){
+      for( unsigned i=0; i<d_skolem_constants[f].size(); i++ ){
+        //carry information for sort inference
+        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar( f, f[0][i], d_skolem_constants[f][i] );
       }
     }
-    d_skolem_body[ f ] = f[ 1 ].substitute( vars.begin(), vars.end(),
-                                            d_skolem_constants[ f ].begin(), d_skolem_constants[ f ].end() );
   }
   return d_skolem_body[ f ];
 }
@@ -452,7 +541,7 @@ Node TermDb::getFreeVariableForInstConstant( Node n ){
         Rational z(0);
         d_free_vars[tn] = NodeManager::currentNM()->mkConst( z );
       }else{
-	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar_$$", tn, "is a free variable created by termdb" );
+	    d_free_vars[tn] = NodeManager::currentNM()->mkSkolem( "freevar", tn, "is a free variable created by termdb" );
 	    Trace("mkVar") << "FreeVar:: Make variable " << d_free_vars[tn] << " : " << tn << std::endl;
       }
     }
@@ -640,5 +729,17 @@ void TermDb::filterInstances( std::vector< Node >& nodes ){
 void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
   if( std::find( d_op_triggers[op].begin(), d_op_triggers[op].end(), tr )==d_op_triggers[op].end() ){
     d_op_triggers[op].push_back( tr );
+  }
+}
+
+bool TermDb::isRewriteRule( Node q ) {
+  return !getRewriteRule( q ).isNull();
+}
+
+Node TermDb::getRewriteRule( Node q ) {
+  if( q.getKind()==FORALL && q.getNumChildren()==3 && q[2].getNumChildren()>0 && q[2][0][0].getKind()==REWRITE_RULE ){
+    return q[2][0][0];
+  }else{
+    return Node::null();
   }
 }

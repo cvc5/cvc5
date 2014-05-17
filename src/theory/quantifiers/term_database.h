@@ -44,30 +44,12 @@ typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 struct InstVarNumAttributeId {};
 typedef expr::Attribute<InstVarNumAttributeId, uint64_t> InstVarNumAttribute;
 
-// Attribute that tell if a node have been asserted in this branch
-struct AvailableInTermDbId {};
-/** use the special for boolean flag */
-typedef expr::Attribute<AvailableInTermDbId,
-                        bool,
-                        expr::attr::NullCleanupStrategy,
-                        true  // context dependent
-                        > AvailableInTermDb;
-
 struct ModelBasisAttributeId {};
 typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
 //for APPLY_UF terms, 1 : term has direct child with model basis attribute,
 //                    0 : term has no direct child with model basis attribute.
 struct ModelBasisArgAttributeId {};
 typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribute;
-
-struct HasBoundVarAttributeId {};
-typedef expr::Attribute<HasBoundVarAttributeId, bool> HasBoundVarAttribute;
-struct HasBoundVarComputedAttributeId {};
-typedef expr::Attribute<HasBoundVarComputedAttributeId, bool> HasBoundVarComputedAttribute;
-
-//for rewrite rules
-struct QRewriteRuleAttributeId {};
-typedef expr::Attribute<QRewriteRuleAttributeId, Node> QRewriteRuleAttribute;
 
 //for bounded integers
 struct BoundIntLitAttributeId {};
@@ -106,18 +88,26 @@ class TermDb {
   friend class ::CVC4::theory::inst::Trigger;
   friend class ::CVC4::theory::rrinst::Trigger;
   friend class ::CVC4::theory::quantifiers::fmcheck::FullModelChecker;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
   /** terms processed */
   std::hash_set< Node, NodeHashFunction > d_processed;
+private:
+  /** select op map */
+  std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > > d_par_op_map;
+  /** count number of ground terms per operator (user-context dependent) */
+  NodeIntMap d_op_ccount;
 public:
-  TermDb( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
+  /** ground terms */
+  unsigned getNumGroundTerms( Node f );
+  /** count number of non-redundant ground terms per operator */
+  std::map< Node, int > d_op_nonred_count;
   /** map from APPLY_UF operators to ground terms for that operator */
   std::map< Node, std::vector< Node > > d_op_map;
-  /** count number of APPLY_UF terms per operator */
-  std::map< Node, int > d_op_count;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
   /** map from APPLY_UF predicates to trie */
@@ -128,9 +118,8 @@ public:
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
-private:
-  /** for efficient e-matching */
-  void addTermEfficient( Node n, std::set< Node >& added);
+  /** get operation */
+  Node getOperator( Node n );
 public:
   /** parent structure (for efficient E-matching):
       n -> op -> index -> L
@@ -205,8 +194,6 @@ public:
   static bool hasInstConstAttr( Node n );
 //for bound variables
 public:
-  //does n have bound variables?
-  static bool hasBoundVarAttr( Node n );
   //get bound variables in n
   static void getBoundVars( Node n, std::vector< Node >& bvs);
 //for skolem
@@ -216,11 +203,14 @@ private:
   /** map from universal quantifiers to their skolemized body */
   std::map< Node, Node > d_skolem_body;
 public:
-  /** get the skolemized body f[e/x] */
-  Node getSkolemizedBody( Node f );
+  /** make the skolemized body f[e/x] */
+  static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
+                                std::vector< Node >& sk );
+  /** get the skolemized body */
+  Node getSkolemizedBody( Node f);
 
 //miscellaneous
-private:
+public:
   /** map from universal quantifiers to the list of variables */
   std::map< Node, std::vector< Node > > d_vars;
   /** free variable for instantiation constant type */
@@ -254,6 +244,11 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
+public:
+  /** is quantifier treated as a rewrite rule? */
+  static bool isRewriteRule( Node q );
+  /** get the rewrite rule associated with the quanfied formula */
+  static Node getRewriteRule( Node q );
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

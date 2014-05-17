@@ -20,7 +20,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/model_builder.h"
 #include "theory/theory_model.h"
-#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,8 +31,6 @@ class ModelEngine : public QuantifiersModule
 private:
   /** builder class */
   QModelBuilder* d_builder;
-private:    //analysis of current model:
-  RelevantDomain* d_rel_dom;
 private:
   //options
   bool optOneQuantPerRound();
@@ -51,9 +48,7 @@ private:
   int d_totalLemmas;
 public:
   ModelEngine( context::Context* c, QuantifiersEngine* qe );
-  ~ModelEngine(){}
-  //get relevant domain
-  RelevantDomain * getRelevantDomain() { return d_rel_dom; }
+  virtual ~ModelEngine();
   //get the builder
   QModelBuilder* getModelBuilder() { return d_builder; }
 public:
@@ -73,6 +68,8 @@ public:
     ~Statistics();
   };
   Statistics d_statistics;
+  /** Identify this module */
+  std::string identify() const { return "ModelEngine"; }
 };/* class ModelEngine */
 
 }/* CVC4::theory::quantifiers namespace */

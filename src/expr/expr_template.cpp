@@ -135,6 +135,10 @@ public:
     }
 
     if(n.getMetaKind() == metakind::CONSTANT) {
+      if(n.getKind() == kind::EMPTYSET) {
+        Type type = from->exportType(n.getConst< ::CVC4::EmptySet >().getType(), to, vmap);
+        return to->mkConst(::CVC4::EmptySet(type));
+      }
       return exportConstant(n, NodeManager::fromExprManager(to));
     } else if(n.isVar()) {
       Expr from_e(from, new Node(n));
@@ -572,6 +576,7 @@ namespace expr {
 
 static Node exportConstant(TNode n, NodeManager* to) {
   Assert(n.isConst());
+  Debug("export") << "constant: " << n << std::endl;
   switch(n.getKind()) {
 ${exportConstant_cases}
 

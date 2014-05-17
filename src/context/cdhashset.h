@@ -57,6 +57,10 @@ public:
     return super::size();
   }
 
+  bool empty() const {
+    return super::empty();
+  }
+
   bool insert(const V& v) {
     return super::insert_safe(v, true);
   }

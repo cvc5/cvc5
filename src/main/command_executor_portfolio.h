@@ -52,6 +52,7 @@ class CommandExecutorPortfolio : public CommandExecutor {
 
   // Stats
   ReferenceStat<int> d_statLastWinner;
+  TimerStat d_statWaitTime;
 
 public:
   CommandExecutorPortfolio(ExprManager &exprMgr,

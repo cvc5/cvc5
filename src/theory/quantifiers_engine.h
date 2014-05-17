@@ -20,8 +20,8 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "theory/quantifiers/inst_match.h"
-#include "theory/rewriterules/rr_inst_match.h"
 #include "theory/quantifiers/quant_util.h"
+#include "expr/attribute.h"
 
 #include "util/statistics_registry.h"
 
@@ -49,6 +49,8 @@ public:
   virtual void finishInit() {}
   /* whether this module needs to check this round */
   virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
+  /* reset at a round */
+  virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
   virtual void check( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
@@ -57,6 +59,8 @@ public:
   virtual void propagate( Theory::Effort level ){}
   virtual Node getNextDecisionRequest() { return TNode::null(); }
   virtual Node explain(TNode n) { return TNode::null(); }
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual std::string identify() const = 0;
 };/* class QuantifiersModule */
 
 namespace quantifiers {
@@ -68,23 +72,21 @@ namespace quantifiers {
   class BoundedIntegers;
   class QuantConflictFind;
   class RewriteEngine;
+  class RelevantDomain;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
   class TriggerTrie;
 }/* CVC4::theory::inst */
 
-namespace rrinst {
-  class TriggerTrie;
-}/* CVC4::theory::inst */
-
-class EfficientEMatcher;
+//class EfficientEMatcher;
 class EqualityQueryQuantifiersEngine;
 
 class QuantifiersEngine {
   friend class quantifiers::InstantiationEngine;
   friend class quantifiers::ModelEngine;
   friend class quantifiers::RewriteEngine;
+  friend class quantifiers::QuantConflictFind;
   friend class inst::InstMatch;
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -95,11 +97,11 @@ private:
   /** equality query class */
   EqualityQueryQuantifiersEngine* d_eq_query;
   /** for computing relevance of quantifiers */
-  QuantRelevance d_quant_rel;
+  QuantRelevance * d_quant_rel;
+  /** relevant domain */
+  quantifiers::RelevantDomain* d_rel_dom;
   /** phase requirements for each quantifier for each instantiation literal */
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
-  /** efficient e-matcher */
-  EfficientEMatcher* d_eem;
   /** instantiation engine */
   quantifiers::InstantiationEngine* d_inst_engine;
   /** model engine */
@@ -121,13 +123,12 @@ private:
   /** has added lemma this round */
   bool d_hasAddedLemma;
   /** list of all instantiations produced for each quantifier */
-  std::map< Node, inst::CDInstMatchTrie* > d_inst_match_trie;
+  std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
+  std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */
   inst::TriggerTrie* d_tr_trie;
-  /** all triggers for rewrite rules will be stored in this trie */
-  rrinst::TriggerTrie* d_rr_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   /** statistics for debugging */
@@ -139,8 +140,6 @@ private:
 public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
   ~QuantifiersEngine();
-  /** get instantiator for id */
-  //Instantiator* getInstantiator( theory::TheoryId id );
   /** get theory engine */
   TheoryEngine* getTheoryEngine() { return d_te; }
   /** get equality query object for the given type. The default is the
@@ -158,14 +157,14 @@ public:
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
+  /** get relevant domain */
+  quantifiers::RelevantDomain* getRelevantDomain() { return d_rel_dom; }
   /** get quantifier relevance */
-  QuantRelevance* getQuantifierRelevance() { return &d_quant_rel; }
+  QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
   /** get phase requirement information */
   QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
   /** get phase requirement terms */
   void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
-  /** get efficient e-matching utility */
-  EfficientEMatcher* getEfficientEMatcher() { return d_eem; }
   /** get bounded integers utility */
   quantifiers::BoundedIntegers * getBoundedIntegers() { return d_bint; }
   /** Conflict find mechanism for quantifiers */
@@ -192,8 +191,6 @@ private:
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** set instantiation level attr */
   void setInstantiationLevelAttr( Node n, uint64_t level );
-  /** do substitution */
-  Node doSubstitute( Node n, std::vector< Node >& terms );
 public:
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
@@ -201,12 +198,16 @@ public:
   Node getInstantiation( Node f, InstMatch& m );
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& terms );
+  /** do substitution */
+  Node getSubstitute( Node n, std::vector< Node >& terms );
   /** exist instantiation ? */
   bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
-  bool addLemma( Node lem );
+  bool addLemma( Node lem, bool doCache = true );
   /** do instantiation specified by m */
-  bool addInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false, bool mkRep = true );
+  bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
+  /** add instantiation */
+  bool addInstantiation( Node f, std::vector< Node >& terms, bool mkRep = true, bool modEq = false, bool modInst = false );
   /** split on node n */
   bool addSplit( Node n, bool reqPhase = false, bool reqPhasePol = true );
   /** add split equality */
@@ -229,13 +230,13 @@ public:
   quantifiers::TermDb* getTermDatabase() { return d_term_db; }
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie; }
-  /** get rewrite trigger database */
-  rrinst::TriggerTrie* getRRTriggerDatabase() { return d_rr_tr_trie; }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false );
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
 public:
+  /** print instantiations */
+  void printInstantiations( std::ostream& out );
   /** statistics class */
   class Statistics {
   public:
@@ -251,26 +252,10 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_multi_trigger_instantiations;
-    IntStat d_term_in_termdb;
-    IntStat d_num_mono_candidates;
-    IntStat d_num_mono_candidates_new_term;
-    IntStat d_num_multi_candidates;
-    IntStat d_mono_candidates_cache_hit;
-    IntStat d_mono_candidates_cache_miss;
-    IntStat d_multi_candidates_cache_hit;
-    IntStat d_multi_candidates_cache_miss;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
-public:
-  /** options */
-  bool d_optInstCheckDuplicate;
-  bool d_optInstMakeRepresentative;
-  bool d_optInstAddSplits;
-  bool d_optMatchIgnoreModelBasis;
-  bool d_optInstLimitActive;
-  int d_optInstLimit;
 };/* class QuantifiersEngine */
 
 

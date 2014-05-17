@@ -153,7 +153,13 @@ IntegerType ExprManager::integerType() const {
 }
 
 Expr ExprManager::mkExpr(Kind kind, Expr child1) {
-  const unsigned n = 1 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -169,7 +175,13 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1) {
 }
 
 Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
-  const unsigned n = 2 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -186,9 +198,14 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2) {
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
-                         Expr child3) {
-  const unsigned n = 3 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3) {
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -206,9 +223,15 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
-                         Expr child3, Expr child4) {
-  const unsigned n = 4 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
+                         Expr child4) {
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = 4 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -227,10 +250,15 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
-                         Expr child3, Expr child4,
-                         Expr child5) {
-  const unsigned n = 5 - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
+                         Expr child4, Expr child5) {
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = 5 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -251,7 +279,13 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2,
 }
 
 Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
-  const unsigned n = children.size() - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0);
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -275,8 +309,15 @@ Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, Expr child1, const std::vector<Expr>& otherChildren) {
-  const unsigned n = otherChildren.size() - (kind::metaKindOf(kind) == kind::metakind::PARAMETERIZED ? 1 : 0) + 1;
+Expr ExprManager::mkExpr(Kind kind, Expr child1,
+                         const std::vector<Expr>& otherChildren) {
+  const kind::MetaKind mk = kind::metaKindOf(kind);
+  const unsigned n = otherChildren.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0) + 1;
+  CheckArgument(mk == kind::metakind::PARAMETERIZED ||
+                mk == kind::metakind::OPERATOR, kind,
+                "Only operator-style expressions are made with mkExpr(); "
+                "to make variables and constants, see mkVar(), mkBoundVar(), "
+                "and mkConst().");
   CheckArgument(n >= minArity(kind) && n <= maxArity(kind), kind,
                 "Exprs with kind %s must have at least %u children and "
                 "at most %u children (the one under construction has %u)",
@@ -538,6 +579,11 @@ BitVectorType ExprManager::mkBitVectorType(unsigned size) const {
 ArrayType ExprManager::mkArrayType(Type indexType, Type constituentType) const {
   NodeManagerScope nms(d_nodeManager);
   return ArrayType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkArrayType(*indexType.d_typeNode, *constituentType.d_typeNode))));
+}
+
+SetType ExprManager::mkSetType(Type elementType) const {
+  NodeManagerScope nms(d_nodeManager);
+  return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
 DatatypeType ExprManager::mkDatatypeType(const Datatype& datatype) {
@@ -929,7 +975,7 @@ namespace expr {
 Node exportInternal(TNode n, ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap);
 
 TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, ExprManagerMapCollection& vmap) {
-  Debug("export") << "type: " << n << std::endl;
+  Debug("export") << "type: " << n << " " << n.getId() << std::endl;
   if(theory::kindToTheoryId(n.getKind()) == theory::THEORY_DATATYPES) {
     throw ExportUnsupportedException
       ("export of types belonging to theory of DATATYPES kinds unsupported");

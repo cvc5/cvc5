@@ -19,21 +19,28 @@
 
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
 
-namespace quantifiers{
+namespace quantifiers {
 
 class TermDb;
 
 class FirstOrderModelIG;
+
 namespace fmcheck {
   class FirstOrderModelFmc;
-}
+}/* CVC4::theory::quantifiers::fmcheck namespace */
+
 class FirstOrderModelQInt;
+class FirstOrderModelAbs;
+
+struct IsStarAttributeId {};
+typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
 class FirstOrderModel : public TheoryModel
 {
@@ -65,10 +72,11 @@ public: //for Theory Quantifiers:
   virtual void processInitializeQuantifier( Node q ) {}
 public:
   FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name );
-  virtual ~FirstOrderModel(){}
+  virtual ~FirstOrderModel() {}
   virtual FirstOrderModelIG * asFirstOrderModelIG() { return NULL; }
   virtual fmcheck::FirstOrderModelFmc * asFirstOrderModelFmc() { return NULL; }
   virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
+  virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
   // initialize the model
   void initialize( bool considerAxioms = true );
   virtual void processInitialize( bool ispre ) = 0;
@@ -79,8 +87,8 @@ public:
   /** get current model value */
   Node getCurrentModelValue( Node n, bool partial = false );
   /** get variable id */
-  int getVariableId(Node f, Node n) {
-    return d_quant_var_id.find( f )!=d_quant_var_id.end() ? d_quant_var_id[f][n] : -1;
+  int getVariableId(TNode q, TNode n) {
+    return d_quant_var_id.find( q )!=d_quant_var_id.end() ? d_quant_var_id[q][n] : -1;
   }
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
@@ -130,7 +138,7 @@ private:
   void clearEvalFailed( int index );
   std::map< Node, bool > d_eval_failed;
   std::map< int, std::vector< Node > > d_eval_failed_lits;
-};
+};/* class FirstOrderModelIG */
 
 
 namespace fmcheck {
@@ -152,6 +160,7 @@ private:
   void processInitializeModelForTerm(Node n);
 public:
   FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
+  virtual ~FirstOrderModelFmc();
   FirstOrderModelFmc * asFirstOrderModelFmc() { return this; }
   // initialize the model
   void processInitialize( bool ispre );
@@ -165,9 +174,9 @@ public:
   bool isInterval(Node n);
   Node getInterval( Node lb, Node ub );
   bool isInRange( Node v, Node i );
-};
+};/* class FirstOrderModelFmc */
 
-}
+}/* CVC4::theory::quantifiers::fmcheck namespace */
 
 
 class QIntDef;
@@ -211,8 +220,35 @@ public:
   unsigned getOrderedNumVars( Node q );
   TypeNode getOrderedVarType( Node q, int i );
   int getOrderedVarNumToVarNum( Node q, int i );
-};
+};/* class FirstOrderModelQInt */
 
+class AbsDef;
+
+class FirstOrderModelAbs : public FirstOrderModel
+{
+public:
+  std::map< Node, AbsDef * > d_models;
+  std::map< Node, bool > d_models_valid;
+  std::map< TNode, unsigned > d_rep_id;
+  std::map< TypeNode, unsigned > d_domain;
+  std::map< Node, std::vector< int > > d_var_order;
+  std::map< Node, std::map< int, int > > d_var_index;
+private:
+  /** get current model value */
+  Node getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial );
+  void processInitializeModelForTerm(Node n);
+  void processInitializeQuantifier( Node q );
+  void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
+public:
+  FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
+  FirstOrderModelAbs * asFirstOrderModelAbs() { return this; }
+  void processInitialize( bool ispre );
+  unsigned getRepresentativeId( TNode n );
+  TNode getUsedRepresentative( TNode n );
+  bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
+  Node getFunctionValue(Node op, const char* argPrefix );
+  Node getVariable( Node q, unsigned i );
+};
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

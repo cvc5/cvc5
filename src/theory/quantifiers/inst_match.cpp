@@ -27,55 +27,33 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatch::InstMatch() {
-}
-
-InstMatch::InstMatch( InstMatch* m ) {
-  d_map = m->d_map;
-}
-
-bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m, bool & set ){
-  std::map< Node, Node >::iterator vn = d_map.find( v );
-  if( !m.isNull() && !m.getType().isSubtypeOf( v.getType() ) ){
-    set = false;
-    return false;
-  }else if( vn==d_map.end() || vn->second.isNull() ){
-    set = true;
-    this->set(v,m);
-    Debug("matching-debug") << "Add partial " << v << "->" << m << std::endl;
-    return true;
-  }else{
-    set = false;
-    return q->areEqual( vn->second, m );
+InstMatch::InstMatch( Node f ) {
+  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+    d_vals.push_back( Node::null() );
   }
 }
 
-bool InstMatch::setMatch( EqualityQuery* q, TNode v, TNode m ){
-  bool set;
-  return setMatch(q,v,m,set);
+InstMatch::InstMatch( InstMatch* m ) {
+  d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
 }
 
 bool InstMatch::add( InstMatch& m ){
-  for( std::map< Node, Node >::iterator it = m.d_map.begin(); it != m.d_map.end(); ++it ){
-    if( !it->second.isNull() ){
-      std::map< Node, Node >::iterator itf = d_map.find( it->first );
-      if( itf==d_map.end() || itf->second.isNull() ){
-        d_map[it->first] = it->second;
-      }
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( d_vals[i].isNull() ){
+      d_vals[i] = m.d_vals[i];
     }
   }
   return true;
 }
 
 bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
-  for( std::map< Node, Node >::iterator it = m.d_map.begin(); it != m.d_map.end(); ++it ){
-    if( !it->second.isNull() ){
-      std::map< Node, Node >::iterator itf = d_map.find( it->first );
-      if( itf==d_map.end() || itf->second.isNull() ){
-        d_map[ it->first ] = it->second;
+  for( unsigned i=0; i<m.d_vals.size(); i++ ){
+    if( !m.d_vals[i].isNull() ){
+      if( d_vals[i].isNull() ){
+        d_vals[i] = m.d_vals[i];
       }else{
-        if( !q->areEqual( it->second, itf->second ) ){
-          d_map.clear();
+        if( !q->areEqual( d_vals[i], m.d_vals[i]) ){
+          clear();
           return false;
         }
       }
@@ -85,113 +63,115 @@ bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
 }
 
 void InstMatch::debugPrint( const char* c ){
-  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-    Debug( c ) << "   " << it->first << " -> " << it->second << std::endl;
-  }
-  //if( !d_splits.empty() ){
-  //  Debug( c ) << "   Conditions: ";
-  //  for( std::map< Node, Node >::iterator it = d_splits.begin(); it !=d_splits.end(); ++it ){
-  //    Debug( c ) << it->first << " = " << it->second << " ";
-  //  }
-  //  Debug( c ) << std::endl;
-  //}
-}
-
-void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
-  for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-    Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
-    if( d_map.find( ic )==d_map.end() ){
-      d_map[ ic ] = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( !d_vals[i].isNull() ){
+      Debug( c ) << "   " << i << " -> " << d_vals[i] << std::endl;
     }
   }
 }
 
-//void InstMatch::makeInternalRepresentative( QuantifiersEngine* qe ){
-//  EqualityQueryQuantifiersEngine* eqqe = (EqualityQueryQuantifiersEngine*)qe->getEqualityQuery();
-//  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-//    d_map[ it->first ] = eqqe->getInternalRepresentative( it->second );
-//  }
-//}
+bool InstMatch::isComplete() {
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( d_vals[i].isNull() ){
+      return false;
+    }
+  }
+  return true;
+}
+
+bool InstMatch::empty() {
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( !d_vals[i].isNull() ){
+      return false;
+    }
+  }
+  return true;
+}
+
+void InstMatch::makeComplete( Node f, QuantifiersEngine* qe ){
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( d_vals[i].isNull() ){
+      Node ic = qe->getTermDatabase()->getInstantiationConstant( f, i );
+      d_vals[i] = qe->getTermDatabase()->getFreeVariableForInstConstant( ic );
+    }
+  }
+}
 
 void InstMatch::makeRepresentative( QuantifiersEngine* qe ){
-  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-    if( qe->getEqualityQuery()->getEngine()->hasTerm( it->second ) ){
-      d_map[ it->first ] = qe->getEqualityQuery()->getEngine()->getRepresentative( it->second );
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( !d_vals[i].isNull() ){
+      if( qe->getEqualityQuery()->getEngine()->hasTerm( d_vals[i] ) ){
+        d_vals[i] = qe->getEqualityQuery()->getEngine()->getRepresentative( d_vals[i] );
+      }
     }
   }
 }
 
 void InstMatch::applyRewrite(){
-  for( std::map< Node, Node >::iterator it = d_map.begin(); it != d_map.end(); ++it ){
-    it->second = Rewriter::rewrite(it->second);
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    if( !d_vals[i].isNull() ){
+      d_vals[i] = Rewriter::rewrite( d_vals[i] );
+    }
+  }
+}
+
+void InstMatch::clear() {
+  for( unsigned i=0; i<d_vals.size(); i++ ){
+    d_vals[i] = Node::null();
   }
 }
 
 /** get value */
-Node InstMatch::getValue( Node var ) const{
-  std::map< Node, Node >::const_iterator it = d_map.find( var );
-  if( it!=d_map.end() ){
-    return it->second;
-  }else{
-    return Node::null();
-  }
+
+Node InstMatch::get( int i ) {
+  return d_vals[i];
 }
 
-Node InstMatch::get( QuantifiersEngine* qe, Node f, int i ) {
-  return get( qe->getTermDatabase()->getInstantiationConstant( f, i ) );
+void InstMatch::setValue( int i, TNode n ) {
+  d_vals[i] = n;
 }
 
-void InstMatch::set(TNode var, TNode n){
-  Assert( !var.isNull() );
-  if (Trace.isOn("inst-match-warn")) {
-    // For a strange use in inst_match.cpp InstMatchGeneratorSimple::addInstantiations
-    if( !n.isNull() && !n.getType().isSubtypeOf( var.getType() ) ){
-      Trace("inst-match-warn") << quantifiers::TermDb::getInstConstAttr(var) << std::endl;
-      Trace("inst-match-warn") << var << " " << var.getType() << " " << n << " " << n.getType() << std::endl ;
+bool InstMatch::set( QuantifiersEngine* qe, int i, TNode n ) {
+  if( !d_vals[i].isNull() ){
+    if( qe->getEqualityQuery()->areEqual( d_vals[i], n ) ){
+      return true;
+    }else{
+      return false;
     }
-  }
-  Assert( n.isNull() || n.getType().isSubtypeOf( var.getType() ) );
-  d_map[var] = n;
-}
-
-void InstMatch::set( QuantifiersEngine* qe, Node f, int i, TNode n ) {
-  set( qe->getTermDatabase()->getInstantiationConstant( f, i ), n );
-}
-
-/** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
-void InstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, int index, ImtIndexOrder* imtio ){
-  if( long(index)<long(f[0].getNumChildren()) && ( !imtio || long(index)<long(imtio->d_order.size()) ) ){
-    int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
-    d_data[n].addInstMatch2( qe, f, m, index+1, imtio );
-  }
-}
-
-/** exists match */
-bool InstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, int index, ImtIndexOrder* imtio ){
-  if( long(index)==long(f[0].getNumChildren()) || ( imtio && long(index)==long(imtio->d_order.size()) ) ){
+  }else{
+    d_vals[i] = n;
     return true;
+  }
+}
+
+bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m, bool modEq,
+                                  bool modInst, ImtIndexOrder* imtio, bool onlyExist, int index ) {
+  if( index==(int)f[0].getNumChildren() || ( imtio && index==(int)imtio->d_order.size() ) ){
+    return false;
   }else{
     int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
+    Node n = m[i_index];
     std::map< Node, InstMatchTrie >::iterator it = d_data.find( n );
     if( it!=d_data.end() ){
-      if( it->second.existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-        return true;
+      bool ret = it->second.addInstMatch( qe, f, m, modEq, modInst, imtio, onlyExist, index+1 );
+      if( !onlyExist || !ret ){
+        return ret;
       }
     }
+    /*
     //check if m is an instance of another instantiation if modInst is true
     if( modInst ){
       if( !n.isNull() ){
         Node nl;
-        it = d_data.find( nl );
-        if( it!=d_data.end() ){
-          if( it->second.existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-            return true;
+        std::map< Node, InstMatchTrie >::iterator itm = d_data.find( nl );
+        if( itm!=d_data.end() ){
+          if( !itm->second.addInstMatch( qe, f, m, modEq, modInst, imtio, true, index+1 ) ){
+            return false;
           }
         }
       }
     }
+    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -202,8 +182,8 @@ bool InstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& 
           if( en!=n ){
             std::map< Node, InstMatchTrie >::iterator itc = d_data.find( en );
             if( itc!=d_data.end() ){
-              if( itc->second.existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-                return true;
+              if( itc->second.addInstMatch( qe, f, m, modEq, modInst, imtio, true, index+1 ) ){
+                return false;
               }
             }
           }
@@ -211,69 +191,67 @@ bool InstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& 
         }
       }
     }
-    return false;
-  }
-}
-
-bool InstMatchTrie::existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, ImtIndexOrder* imtio ){
-  return existsInstMatch2( qe, f, m, modEq, modInst, 0, imtio );
-}
-
-bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, ImtIndexOrder* imtio ){
-  if( !existsInstMatch( qe, f, m, modEq, modInst, imtio ) ){
-    addInstMatch2( qe, f, m, 0, imtio );
+    if( !onlyExist ){
+      d_data[n].addInstMatch( qe, f, m, modEq, modInst, imtio, false, index+1 );
+    }
     return true;
-  }else{
-    return false;
   }
 }
 
-
-
-/** add match m for quantifier f starting at index, take into account equalities q, return true if successful */
-void CDInstMatchTrie::addInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, context::Context* c, int index, ImtIndexOrder* imtio ){
-  if( long(index)<long(f[0].getNumChildren()) && ( !imtio || long(index)<long(imtio->d_order.size()) ) ){
-    int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
-    std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
-    if( it!=d_data.end() ){
-      it->second->addInstMatch2( qe, f, m, c, index+1, imtio );
-    }else{
-      CDInstMatchTrie* imt = new CDInstMatchTrie( c );
-      d_data[n] = imt;
-      imt->d_valid = true;
-      imt->addInstMatch2( qe, f, m, c, index+1, imtio );
+void InstMatchTrie::print( std::ostream& out, Node q, std::vector< Node >& terms ) const {
+  if( terms.size()==q[0].getNumChildren() ){
+    out << "  ( ";
+    for( unsigned i=0; i<terms.size(); i++ ){
+      if( i>0 ) out << ", ";
+      //out << terms[i];
+    }
+    out << " )" << std::endl;
+  }else{
+    for( std::map< Node, InstMatchTrie >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
+      terms.push_back( it->first );
+      it->second.print( out, q, terms );
+      terms.pop_back();
     }
   }
 }
 
-/** exists match */
-bool CDInstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, int index, ImtIndexOrder* imtio ){
-  if( !d_valid ){
-    return false;
-  }else if( long(index)==long(f[0].getNumChildren()) || ( imtio && long(index)==long(imtio->d_order.size()) ) ){
-    return true;
+
+bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< Node >& m,
+                                    context::Context* c, bool modEq, bool modInst, int index, bool onlyExist ){
+  bool reset = false;
+  if( !d_valid.get() ){
+    if( onlyExist ){
+      return true;
+    }else{
+      d_valid.set( true );
+      reset = true;
+    }
+  }
+  if( index==(int)f[0].getNumChildren() ){
+    return reset;
   }else{
-    int i_index = imtio ? imtio->d_order[index] : index;
-    Node n = m.getValue( qe->getTermDatabase()->getInstantiationConstant( f, i_index ) );
+    Node n = m[ index ];
     std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
     if( it!=d_data.end() ){
-      if( it->second->existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-        return true;
+      bool ret = it->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, onlyExist );
+      if( !onlyExist || !ret ){
+        return reset || ret;
       }
     }
     //check if m is an instance of another instantiation if modInst is true
+    /*
     if( modInst ){
       if( !n.isNull() ){
         Node nl;
-        it = d_data.find( nl );
-        if( it!=d_data.end() ){
-          if( it->second->existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-            return true;
+        std::map< Node, CDInstMatchTrie* >::iterator itm = d_data.find( nl );
+        if( itm!=d_data.end() ){
+          if( !itm->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, true ) ){
+            return false;
           }
         }
       }
     }
+    */
     if( modEq ){
       //check modulo equality if any other instantiation match exists
       if( !n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm( n ) ){
@@ -284,8 +262,8 @@ bool CDInstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch
           if( en!=n ){
             std::map< Node, CDInstMatchTrie* >::iterator itc = d_data.find( en );
             if( itc!=d_data.end() ){
-              if( itc->second->existsInstMatch2( qe, f, m, modEq, modInst, index+1, imtio ) ){
-                return true;
+              if( itc->second->addInstMatch( qe, f, m, c, modEq, modInst, index+1, true ) ){
+                return false;
               }
             }
           }
@@ -293,23 +271,35 @@ bool CDInstMatchTrie::existsInstMatch2( QuantifiersEngine* qe, Node f, InstMatch
         }
       }
     }
-    return false;
-  }
-}
 
-bool CDInstMatchTrie::existsInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, bool modEq, bool modInst, ImtIndexOrder* imtio ){
-  return existsInstMatch2( qe, f, m, modEq, modInst, 0, imtio );
-}
-
-bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, InstMatch& m, Context* c, bool modEq, bool modInst, ImtIndexOrder* imtio ){
-  if( !existsInstMatch( qe, f, m, modEq, modInst, imtio ) ){
-    addInstMatch2( qe, f, m, c, 0, imtio );
+    if( !onlyExist ){
+      // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
+      CDInstMatchTrie* imt = new CDInstMatchTrie( c );
+      d_data[n] = imt;
+      imt->addInstMatch( qe, f, m, c, modEq, modInst, index+1, false );
+    }
     return true;
-  }else{
-    return false;
   }
 }
 
+void CDInstMatchTrie::print( std::ostream& out, Node q, std::vector< Node >& terms ) const{
+  if( d_valid.get() ){
+    if( terms.size()==q[0].getNumChildren() ){
+      out << "  ( ";
+      for( unsigned i=0; i<terms.size(); i++ ){
+        if( i>0 ) out << ", ";
+        //out << terms[i];
+      }
+      out << " )" << std::endl;
+    }else{
+      for( std::map< Node, CDInstMatchTrie* >::const_iterator it = d_data.begin(); it != d_data.end(); ++it ){
+        terms.push_back( it->first );
+        it->second->print( out, q, terms );
+        terms.pop_back();
+      }
+    }
+  }
+}
 
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */

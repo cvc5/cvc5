@@ -31,6 +31,8 @@ typedef enum {
   INST_WHEN_PRE_FULL,
   /** Apply instantiation round at full effort or above  */
   INST_WHEN_FULL,
+  /** Apply instantiation round at full effort, after all other theories finish, or above  */
+  INST_WHEN_FULL_DELAY,
   /** Apply instantiation round at full effort half the time, and last call always */
   INST_WHEN_FULL_LAST_CALL,
   /** Apply instantiation round at last call only */
@@ -56,28 +58,54 @@ typedef enum {
 } AxiomInstMode;
 
 typedef enum {
-  /** default, mbqi from CADE 24 paper */
-  MBQI_DEFAULT,
+  /** mbqi from CADE 24 paper */
+  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** implementation that mimics inst-gen */
   MBQI_INST_GEN,
-  /** mbqi from Section 5.4.2 of AJR thesis */
+  /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
   /** mbqi with integer intervals */
   MBQI_FMC_INTERVAL,
   /** mbqi with interval abstraction of uninterpreted sorts */
   MBQI_INTERVAL,
+  /** abstract mbqi algorithm */
+  MBQI_ABS,
+  /** mbqi trust (produce no instantiations) */
+  MBQI_TRUST,
 } MbqiMode;
 
 typedef enum {
   /** default, apply at full effort */
   QCF_WHEN_MODE_DEFAULT,
+  /** apply at last call */
+  QCF_WHEN_MODE_LAST_CALL,
   /** apply at standard effort */
   QCF_WHEN_MODE_STD,
-  /** default */
+  /** apply based on heuristics */
   QCF_WHEN_MODE_STD_H,
 } QcfWhenMode;
+
+typedef enum {
+  /** default, use qcf for conflicts only */
+  QCF_CONFLICT_ONLY,
+  /** use qcf for conflicts and propagations */
+  QCF_PROP_EQ,
+  /** use qcf for conflicts, propagations and heuristic instantiations */
+  QCF_PARTIAL,
+  /** use qcf for model checking */
+  QCF_MC,
+} QcfMode;
+
+typedef enum {
+  /** default, use but do not trust */
+  USER_PAT_MODE_DEFAULT,
+  /** if patterns are supplied for a quantifier, use only those */
+  USER_PAT_MODE_TRUST,
+  /** ignore user patterns */
+  USER_PAT_MODE_IGNORE,
+} UserPatMode;
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

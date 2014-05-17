@@ -32,6 +32,10 @@ namespace CVC4 {
 class DecisionEngine;
 class TheoryEngine;
 
+namespace theory {
+  class TheoryRegistrar;
+}/* CVC4::theory namespace */
+
 namespace prop {
 
 class CnfStream;
@@ -132,11 +136,17 @@ class PropEngine {
   /** The context */
   context::Context* d_context;
 
+  /** SAT solver's proxy back to theories; kept around for dtor cleanup */
+  TheoryProxy* d_theoryProxy;
+
   /** The SAT solver proxy */
   DPLLSatSolverInterface* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
+
+  /** Theory registrar; kept around for destructor cleanup */
+  theory::TheoryRegistrar* d_registrar;
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;

@@ -808,6 +808,9 @@ public:
    */
   void stop();
 
+  /** If the timer is currently running */
+  bool running() const;
+
   timespec getData() const;
 
   SExpr getValue() const;
@@ -821,6 +824,7 @@ public:
  */
 class CodeTimer {
   TimerStat& d_timer;
+  bool d_reentrant;
 
   /** Private copy constructor undefined (no copy permitted). */
   CodeTimer(const CodeTimer& timer) CVC4_UNDEFINED;
@@ -828,11 +832,15 @@ class CodeTimer {
   CodeTimer& operator=(const CodeTimer& timer) CVC4_UNDEFINED;
 
 public:
-  CodeTimer(TimerStat& timer) : d_timer(timer) {
-    d_timer.start();
+  CodeTimer(TimerStat& timer, bool allow_reentrant = false) : d_timer(timer), d_reentrant(false) {
+    if(!allow_reentrant || !(d_reentrant = d_timer.running())) {
+      d_timer.start();
+    }
   }
   ~CodeTimer() {
-    d_timer.stop();
+    if(!d_reentrant) {
+      d_timer.stop();
+    }
   }
 };/* class CodeTimer */
 

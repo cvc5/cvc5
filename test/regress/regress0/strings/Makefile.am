@@ -19,7 +19,9 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
+  at001.smt2 \
   cardinality.smt2 \
+  escchar.smt2 \
   str001.smt2 \
   str002.smt2 \
   str003.smt2 \
@@ -29,10 +31,12 @@ TESTS =	\
   str007.smt2 \
   fmf001.smt2 \
   fmf002.smt2 \
+  type001.smt2 \
+  type003.smt2 \
   model001.smt2 \
   substr001.smt2 \
   regexp001.smt2 \
-  regexp002.smt2 \
+  leadingzero001.smt2 \
   loop001.smt2 \
   loop002.smt2 \
   loop003.smt2 \
@@ -41,12 +45,14 @@ TESTS =	\
   loop006.smt2 \
   loop007.smt2 \
   loop008.smt2 \
-  loop009.smt2
+  loop009.smt2 \
+  reloop.smt2
 
 FAILING_TESTS =
 
-EXTRA_DIST = $(TESTS)
-
+EXTRA_DIST = $(TESTS) \
+  regexp002.smt2 \
+  type002.smt2
 
 # and make sure to distribute it
 EXTRA_DIST +=

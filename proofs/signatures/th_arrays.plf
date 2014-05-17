@@ -12,42 +12,40 @@
 ; functions
 (declare write (! s1 sort
                (! s2 sort
-               (! t1 (term (array s1 s2))
-               (! t2 (term s1)
-               (! t3 (term s2)
-                (term (array s1 s2))))))))
+                 (term (arrow (array s1 s2)
+                       (arrow s1
+                       (arrow s2 (array s1 s2))))))))
+
 (declare read (! s1 sort
               (! s2 sort
-              (! t1 (term (array s1 s2))
-              (! t2 (term s1)
-                (term s2))))))
-                
+              	(term (arrow (array s1 s2)
+               	      (arrow s1 s2))))))
+
 ; inference rules
 (declare row1 (! s1 sort
               (! s2 sort
               (! t1 (term (array s1 s2))
               (! t2 (term s1)
               (! t3 (term s2)
-              	(th_holds (= _ (read (write t1 t2 t3) t2) t3))))))))
+              	(th_holds (= _ (apply _ _ (apply _ _ (read s1 s2) (apply _ _ (apply _ _ (apply _ _ (write s1 s2) t1) t2) t3)) t2)
+              		       t3))))))))
               	
 
 (declare row (! s1 sort
              (! s2 sort
-             (! t1 (term (array s1 s2))
              (! t2 (term s1)
              (! t3 (term s1)
+             (! t1 (term (array s1 s2))
              (! t4 (term s2)
              (! u (th_holds (not (= _ t2 t3)))
-               (th_holds (= _ (read (write t1 t2 t4) t3) (read t1 t3))))))))))
+               (th_holds (= _ (apply _ _ (apply _ _ (read s1 s2) (apply _ _ (apply _ _ (apply _ _ (write s1 s2) t1) t2) t4)) t3)
+               		      (apply _ _ (apply _ _ (read s1 s2) t1) t3)))))))))))
 
 (declare ext (! s1 sort
              (! s2 sort
-             (! f formula
              (! t1 (term (array s1 s2))
              (! t2 (term (array s1 s2))
-             (! u (th_holds (not (= _ t1 t2)))
              (! u1 (! k (term s1)
-                   (! u2 (th_holds (not (= _ (read t1 k) (read t2 k))))
-                     (th_holds f)))
-               (th_holds f)))))))))
-               
+                   (! u2 (th_holds (or (= _ t1 t2) (not (= _ (apply _ _ (apply _ _ (read s1 s2) t1) k) (apply _ _ (apply _ _ (read s1 s2) t2) k)))))
+                     (holds cln)))
+               (holds cln)))))))

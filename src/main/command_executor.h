@@ -28,6 +28,8 @@ namespace CVC4 {
 namespace main {
 
 class CommandExecutor {
+private:
+  std::string d_lastStatistics;
 
 protected:
   ExprManager& d_exprMgr;

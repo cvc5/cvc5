@@ -164,6 +164,24 @@ public:
   }
 };/* class LambdaTypeRule */
 
+class MuTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
+    if( n[0].getType(check) != nodeManager->boundVarListType() ) {
+      std::stringstream ss;
+      ss << "expected a bound var list for MU expression, got `"
+         << n[0].getType().toString() << "'";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes;
+    for(TNode::iterator i = n[0].begin(); i != n[0].end(); ++i) {
+      argTypes.push_back((*i).getType());
+    }
+    TypeNode rangeType = n[1].getType(check);
+    return nodeManager->mkFunctionType(argTypes, rangeType);
+  }
+};/* class MuTypeRule */
+
 class ChainTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
@@ -227,7 +245,7 @@ public:
   }
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem("groundTerm_$$", type, "a ground term created for type " + type.toString());
+    return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
   }
 };/* class SortProperties */
 

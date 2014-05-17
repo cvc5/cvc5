@@ -49,6 +49,9 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_CVC4:
     return new printer::cvc::CvcPrinter();
 
+  case LANG_Z3STR:
+    return new printer::smt2::Smt2Printer(printer::smt2::z3str_variant);
+
   case LANG_AST:
     return new printer::ast::AstPrinter();
 

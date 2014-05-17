@@ -14,6 +14,8 @@
 
 
 #include "theory/quantifiers/qinterval_builder.h"
+#include "theory/quantifiers/term_database.h"
+
 
 using namespace std;
 using namespace CVC4;
@@ -1036,14 +1038,12 @@ bool QIntervalBuilder::doExhaustiveInstantiation( FirstOrderModel * fm, Node q, 
         if( fmqint->d_var_order[q]->getInstantiation( fmqint, l, u, inst ) ){
           Trace("qint-inst") << "** Instantiate with ";
           //just add the instance
-          InstMatch m;
           for( unsigned j=0; j<inst.size(); j++) {
-            m.set( d_qe, q, j, inst[j] );
             Trace("qint-inst") << inst[j] << " ";
           }
           Trace("qint-inst") << std::endl;
           d_triedLemmas++;
-          if( d_qe->addInstantiation( q, m ) ){
+          if( d_qe->addInstantiation( q, inst ) ){
             Trace("qint-inst") << "   ...added instantiation." << std::endl;
             d_addedLemmas++;
           }else{

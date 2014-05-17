@@ -57,43 +57,19 @@ private:
   private:
     ArithCongruenceManager& d_acm;
   public:
-    ArithCongruenceNotify(ArithCongruenceManager& acm): d_acm(acm) {}
+    ArithCongruenceNotify(ArithCongruenceManager& acm);
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) {
-      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_acm.propagate(equality);
-      } else {
-        return d_acm.propagate(equality.notNode());
-      }
-    }
+    bool eqNotifyTriggerEquality(TNode equality, bool value);
 
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) {
-      Unreachable();
-    }
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value);
 
-    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
-      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_acm.propagate(t1.eqNode(t2));
-      } else {
-        return d_acm.propagate(t1.eqNode(t2).notNode());
-      }
-    }
+    bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value);
 
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-      Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
-      if (t1.getKind() == kind::CONST_BOOLEAN) {
-        d_acm.propagate(t1.iffNode(t2));
-      } else {
-        d_acm.propagate(t1.eqNode(t2));
-      }
-    }
-
-    void eqNotifyNewClass(TNode t) { }
-    void eqNotifyPreMerge(TNode t1, TNode t2) { }
-    void eqNotifyPostMerge(TNode t1, TNode t2) { }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) { }
+    void eqNotifyConstantTermMerge(TNode t1, TNode t2);
+    void eqNotifyNewClass(TNode t);
+    void eqNotifyPreMerge(TNode t1, TNode t2);
+    void eqNotifyPostMerge(TNode t1, TNode t2);
+    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   };
   ArithCongruenceNotify d_notify;
 
@@ -117,66 +93,27 @@ private:
 
   eq::EqualityEngine d_ee;
 
-  void raiseConflict(Node conflict){
-    Assert(!inConflict());
-    Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
-    d_inConflict.raise();
-    d_raiseConflict(conflict);
-  }
+  void raiseConflict(Node conflict);
 public:
 
-  bool inConflict() const{
-    return d_inConflict.isRaised();
-  };
+  bool inConflict() const;
 
-  bool hasMorePropagations() const {
-    return !d_propagatations.empty();
-  }
+  bool hasMorePropagations() const;
 
-  const Node getNextPropagation() {
-    Assert(hasMorePropagations());
-    Node prop = d_propagatations.front();
-    d_propagatations.dequeue();
-    return prop;
-  }
+  const Node getNextPropagation();
 
-  bool canExplain(TNode n) const {
-    return d_explanationMap.find(n) != d_explanationMap.end();
-  }
+  bool canExplain(TNode n) const;
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
 private:
-  Node externalToInternal(TNode n) const{
-    Assert(canExplain(n));
-    ExplainMap::const_iterator iter = d_explanationMap.find(n);
-    size_t pos = (*iter).second;
-    return d_propagatations[pos];
-  }
+  Node externalToInternal(TNode n) const;
 
-  void pushBack(TNode n){
-    d_explanationMap.insert(n, d_propagatations.size());
-    d_propagatations.enqueue(n);
+  void pushBack(TNode n);
 
-    ++(d_statistics.d_propagations);
-  }
+  void pushBack(TNode n, TNode r);
 
-  void pushBack(TNode n, TNode r){
-    d_explanationMap.insert(r, d_propagatations.size());
-    d_explanationMap.insert(n, d_propagatations.size());
-    d_propagatations.enqueue(n);
-
-    ++(d_statistics.d_propagations);
-  }
-
-  void pushBack(TNode n, TNode r, TNode w){
-    d_explanationMap.insert(w, d_propagatations.size());
-    d_explanationMap.insert(r, d_propagatations.size());
-    d_explanationMap.insert(n, d_propagatations.size());
-    d_propagatations.enqueue(n);
-
-    ++(d_statistics.d_propagations);
-  }
+  void pushBack(TNode n, TNode r, TNode w);
 
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
@@ -207,21 +144,21 @@ public:
   }
 
   /** Assert an equality. */
-  void watchedVariableIsZero(Constraint eq);
+  void watchedVariableIsZero(ConstraintCP eq);
 
   /** Assert a conjunction from lb and ub. */
-  void watchedVariableIsZero(Constraint lb, Constraint ub);
+  void watchedVariableIsZero(ConstraintCP lb, ConstraintCP ub);
 
   /** Assert that the value cannot be zero. */
-  void watchedVariableCannotBeZero(Constraint c);
+  void watchedVariableCannotBeZero(ConstraintCP c);
 
   /** Assert that the value cannot be zero. */
-  void watchedVariableCannotBeZero(Constraint c, Constraint d);
+  void watchedVariableCannotBeZero(ConstraintCP c, ConstraintCP d);
 
 
   /** Assert that the value is congruent to a constant. */
-  void equalsConstant(Constraint eq);
-  void equalsConstant(Constraint lb, Constraint ub);
+  void equalsConstant(ConstraintCP eq);
+  void equalsConstant(ConstraintCP lb, ConstraintCP ub);
 
 
   void addSharedTerm(Node x);

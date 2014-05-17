@@ -52,6 +52,7 @@ class CVC4_PUBLIC LogicInfo {
   bool d_reals; /**< are reals used in this logic? */
   bool d_linear; /**< linear-only arithmetic in this logic? */
   bool d_differenceLogic; /**< difference-only arithmetic in this logic? */
+  bool d_cardinalityConstraints; /**< cardinality constraints in this logic? */
 
   bool d_locked; /**< is this LogicInfo instance locked (and thus immutable)? */
 
@@ -64,7 +65,6 @@ class CVC4_PUBLIC LogicInfo {
     case theory::THEORY_BUILTIN:
     case theory::THEORY_BOOL:
     case theory::THEORY_QUANTIFIERS:
-    case theory::THEORY_REWRITERULES:
       return false;
     default:
       return true;
@@ -117,7 +117,7 @@ public:
   /** Is this a quantified logic? */
   bool isQuantified() const {
     CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
-    return isTheoryEnabled(theory::THEORY_QUANTIFIERS) || isTheoryEnabled(theory::THEORY_REWRITERULES);
+    return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
   }
 
   /** Is this the all-inclusive logic? */
@@ -176,6 +176,11 @@ public:
     CheckArgument(isTheoryEnabled(theory::THEORY_ARITH), *this, "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
     return d_differenceLogic;
   }
+  /** Does this logic allow cardinality constraints? */
+  bool hasCardinalityConstraints() const {
+    CheckArgument(d_locked, *this, "This LogicInfo isn't locked yet, and cannot be queried");
+    return d_cardinalityConstraints;
+  }
 
   // MUTATORS
 
@@ -214,7 +219,6 @@ public:
    */
   void enableQuantifiers() {
     enableTheory(theory::THEORY_QUANTIFIERS);
-    enableTheory(theory::THEORY_REWRITERULES);
   }
 
   /**
@@ -222,7 +226,6 @@ public:
    */
   void disableQuantifiers() {
     disableTheory(theory::THEORY_QUANTIFIERS);
-    disableTheory(theory::THEORY_REWRITERULES);
   }
 
   // these are for arithmetic

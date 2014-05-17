@@ -457,7 +457,6 @@ public:
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_BV ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( info.isTheoryEnabled( THEORY_REWRITERULES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_BUILTIN ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_BOOL ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_UF ), CVC4::IllegalArgumentException );
@@ -466,7 +465,6 @@ public:
     TS_ASSERT_THROWS( ! info.isPure( THEORY_BV ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_DATATYPES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( ! info.isPure( THEORY_QUANTIFIERS ), CVC4::IllegalArgumentException );
-    TS_ASSERT_THROWS( ! info.isPure( THEORY_REWRITERULES ), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.isQuantified(), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.areIntegersUsed(), CVC4::IllegalArgumentException );
     TS_ASSERT_THROWS( info.areRealsUsed(), CVC4::IllegalArgumentException );
@@ -484,7 +482,6 @@ public:
     TS_ASSERT( info.isTheoryEnabled( THEORY_BV ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_DATATYPES ) );
     TS_ASSERT( info.isTheoryEnabled( THEORY_QUANTIFIERS ) );
-    TS_ASSERT( info.isTheoryEnabled( THEORY_REWRITERULES ) );
     TS_ASSERT( ! info.isPure( THEORY_BUILTIN ) );
     TS_ASSERT( ! info.isPure( THEORY_BOOL ) );
     TS_ASSERT( ! info.isPure( THEORY_UF ) );
@@ -493,7 +490,6 @@ public:
     TS_ASSERT( ! info.isPure( THEORY_BV ) );
     TS_ASSERT( ! info.isPure( THEORY_DATATYPES ) );
     TS_ASSERT( ! info.isPure( THEORY_QUANTIFIERS ) );
-    TS_ASSERT( ! info.isPure( THEORY_REWRITERULES ) );
     TS_ASSERT( info.isQuantified() );
     TS_ASSERT( info.areIntegersUsed() );
     TS_ASSERT( info.areRealsUsed() );
@@ -512,6 +508,7 @@ public:
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
     info.disableTheory(THEORY_STRINGS);
+    info.disableTheory(THEORY_SETS);
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();

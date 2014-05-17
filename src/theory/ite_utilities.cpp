@@ -28,6 +28,7 @@ namespace CVC4 {
 namespace theory {
 
 namespace ite {
+
 inline static bool isTermITE(TNode e) {
   return (e.getKind() == kind::ITE && !e.getType().isBoolean());
 }
@@ -77,9 +78,7 @@ struct CTIVStackElement {
 
 } /* CVC4::theory::ite */
 
-
-
-ITEUtilities::ITEUtilities(ContainsTermITEVistor* containsVisitor)
+ITEUtilities::ITEUtilities(ContainsTermITEVisitor* containsVisitor)
   : d_containsVisitor(containsVisitor)
   , d_compressor(NULL)
   , d_simplifier(NULL)
@@ -144,11 +143,11 @@ void ITEUtilities::clear(){
 }
 
 /*********************                                                        */
-/* ContainsTermITEVistor
+/* ContainsTermITEVisitor
  */
-ContainsTermITEVistor::ContainsTermITEVistor(): d_cache() {}
-ContainsTermITEVistor::~ContainsTermITEVistor(){}
-bool ContainsTermITEVistor::containsTermITE(TNode e){
+ContainsTermITEVisitor::ContainsTermITEVisitor(): d_cache() {}
+ContainsTermITEVisitor::~ContainsTermITEVisitor(){}
+bool ContainsTermITEVisitor::containsTermITE(TNode e){
   /* throughout execution skip through NOT nodes. */
   e = (e.getKind() == kind::NOT) ? e[0] : e;
   if(ite::triviallyContainsNoTermITEs(e)){ return false; }
@@ -197,7 +196,7 @@ bool ContainsTermITEVistor::containsTermITE(TNode e){
   }
   return foundTermIte;
 }
-void ContainsTermITEVistor::garbageCollect() {
+void ContainsTermITEVisitor::garbageCollect() {
   d_cache.clear();
 }
 
@@ -249,7 +248,7 @@ void IncomingArcCounter::clear() {
 /*********************                                                        */
 /* ITECompressor
  */
-ITECompressor::ITECompressor(ContainsTermITEVistor* contains)
+ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
   : d_contains(contains)
   , d_assertions(NULL)
   , d_incoming(true, true)
@@ -308,7 +307,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed){
     return rewritten;
   }else{
     NodeManager* nm = NodeManager::currentNM();
-    Node skolem = nm->mkSkolem("compress_$$", nm->booleanType());
+    Node skolem = nm->mkSkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
@@ -547,7 +546,7 @@ uint32_t TermITEHeightCounter::termITEHeight(TNode e){
 
 
 
-ITESimplifier::ITESimplifier(ContainsTermITEVistor* contains)
+ITESimplifier::ITESimplifier(ContainsTermITEVisitor* contains)
   : d_containsVisitor(contains)
   , d_termITEHeight()
   , d_constantLeaves()
@@ -1176,7 +1175,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
     return (*it).second;
   }
   else {
-    Node var = NodeManager::currentNM()->mkSkolem("iteSimp_$$", t, "is a variable resulting from ITE simplification");
+    Node var = NodeManager::currentNM()->mkSkolem("iteSimp", t, "is a variable resulting from ITE simplification");
     d_simpVars[t] = var;
     return var;
   }
@@ -1607,7 +1606,6 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
   TNodeMap cache;
   return substitute(e, substTable, cache);
 }
-
 
 } /* namespace theory */
 } /* namespace CVC4 */

@@ -28,12 +28,12 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::uf;
 
 /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo, QuantifiersEngine* qe) :
-  Theory(THEORY_UF, c, u, out, valuation, logicInfo, qe),
+TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
+  Theory(THEORY_UF, c, u, out, valuation, logicInfo),
   d_notify(*this),
   /* The strong theory solver can be notified by EqualityEngine::init(),
    * so make sure it's initialized first. */
-  d_thss(options::finiteModelFind() ? new StrongSolverTheoryUF(c, u, out, this) : NULL),
+  d_thss(NULL),
   d_equalityEngine(d_notify, c, "theory::uf::TheoryUF"),
   d_conflict(c, false),
   d_literalsToPropagate(c),
@@ -45,8 +45,25 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
 
+TheoryUF::~TheoryUF() {
+  // destruct all ppRewrite() callbacks
+  for(RegisterPpRewrites::iterator i = d_registeredPpRewrites.begin();
+      i != d_registeredPpRewrites.end();
+      ++i) {
+    delete i->second;
+  }
+  delete d_thss;
+}
+
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
+void TheoryUF::finishInit() {
+  // initialize the strong solver
+  if (options::finiteModelFind()) {
+    d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
+  }
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
@@ -94,7 +111,12 @@ void TheoryUF::check(Effort level) {
     if (atom.getKind() == kind::EQUAL) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
     } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
-      // do nothing
+      if( d_thss == NULL ){
+        std::stringstream ss;
+        ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
+        ss << "Try using a logic containing \"UFC\"." << std::endl;
+        throw Exception( ss.str() );
+      }
     } else {
       d_equalityEngine.assertPredicate(atom, polarity, fact);
     }
@@ -248,6 +270,13 @@ void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 
   while(!workList.empty()) {
     n = workList.back();
+
+    if(n.getKind() == kind::FORALL || n.getKind() == kind::EXISTS) {
+      // unsafe to go under quantifiers; we might pull bound vars out of scope!
+      processed.insert(n);
+      workList.pop_back();
+      continue;
+    }
 
     bool unprocessedChildren = false;
     for(TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
