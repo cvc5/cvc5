@@ -114,12 +114,13 @@ CVC4 with CLN support, you are licensing CVC4 under that same license.
 (Usually CVC4's license is more permissive than GPL is; see the file
 COPYING in the CVC4 source distribution for details.)  Please visit
 http://www.ginac.de/CLN/ for more details about CLN.
+
 glpk-cut-log is a fork of GLPK (the GNU Linear Programming Kit).
 This can be used to speed up certain classes of problems for the arithmetic
 implementation in CVC4. (This is not recommended for most users.) The source
 code for glpk-cut-log is available at:
 https://github.com/timothy-king/glpk-cut-log/
-The only option for installation of glpk-cut-log i downloading the library,
+The only option for installation of glpk-cut-log is downloading the library,
 compiling and installing it manually.  CVC4 is no longer compatible with the
 main GLPK library. GLPK and glpk-cut-log are covered by the GNU General Public
 License, version 3; so if you choose to use CVC4 with GLPK support, you are
