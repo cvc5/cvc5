@@ -732,6 +732,15 @@ void TheoryStrings::assertPendingFact(Node fact, Node exp) {
     }
     d_equalityEngine.assertEquality( atom, polarity, exp );
   } else {
+    if ( atom.getKind() == kind::STRING_IN_REGEXP ) {
+      addMembership(fact);
+    } else if (atom.getKind() == kind::STRING_STRCTN) {
+      if(polarity) {
+        d_str_pos_ctn.push_back( atom );
+      } else {
+        d_str_neg_ctn.push_back( atom );
+      }
+    }
     d_equalityEngine.assertPredicate( atom, polarity, exp );
   }
 }
@@ -741,7 +750,7 @@ void TheoryStrings::doPendingFacts() {
   while( !d_conflict && i<d_pending.size() ) {
     Node fact = d_pending[i];
     Node exp = d_pending_exp[ fact ];
-    if(fact.getKind() == kind::STRING_CONCAT) {
+    if(fact.getKind() == kind::AND) {
       for(size_t j=0; j<fact.getNumChildren(); j++) {
         assertPendingFact(fact[j], exp);
       }
@@ -1128,7 +1137,7 @@ bool TheoryStrings::processLoop(std::vector< Node > &antec,
         d_regexp_ant[str_in_re] = ant;
       }
 
-      //if(conc.isNull() || conc.getKind() == kind::OR) {
+      //if(conc.isNull() || conc == d_false || conc.getKind() == kind::OR) {
         sendLemma( ant, conc, "LOOP-BREAK" );
       //} else {
         //sendInfer( ant, conc, "LOOP-BREAK" );
