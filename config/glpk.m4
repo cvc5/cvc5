@@ -35,7 +35,7 @@ elif test "$with_glpk" = yes; then
   CVC4_TRY_GLPK_WITH([-lgmp -lz -lltdl])
   CVC4_TRY_GLPK_WITH([-lgmp -lz -lltdl -ldl])
   if test -z "$GLPK_LIBS"; then
-    AC_MSG_FAILURE([cannot link against libglpk! (perhaps you have not switched to glpk-cut-log? see /README)])
+    AC_MSG_FAILURE([cannot link against libglpk! (perhaps you have not switched to glpk-cut-log? see /INSTALL)])
   else
     AC_MSG_RESULT([$GLPK_LIBS])
     # make sure it works in static builds, too
