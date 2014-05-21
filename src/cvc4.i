@@ -244,6 +244,43 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   }
 %}
 
+/* Copied (and modified) from java.swg; the standard swig version causes
+ * negative BigInteger to be interpreted unsigned.  Here we throw an
+ * exception. */
+%typemap(in) unsigned long long {
+  jclass clazz;
+  jmethodID mid;
+  jbyteArray ba;
+  jbyte* bae;
+  jsize sz;
+  int i;
+
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
+    return $null;
+  }
+  clazz = JCALL1(GetObjectClass, jenv, $input);
+  mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
+  ba = (jbyteArray)JCALL2(CallObjectMethod, jenv, $input, mid);
+  bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  sz = JCALL1(GetArrayLength, jenv, ba);
+  if((bae[0] & 0x80) != 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "BigInteger argument must be nonnegative.");
+  }
+  jsize test_sz = sz;
+  if(sz > 1 && bae[0] == 0) {
+    --test_sz;
+  }
+  if(test_sz > sizeof(unsigned long long)) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "BigInteger argument out of bounds.");
+  }
+  $1 = 0;
+  for(i=0; i<sz; i++) {
+    $1 = ($1 << 8) | ($1_type)(unsigned char)bae[i];
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+}
+
 #endif /* SWIGJAVA */
 
 %include "util/integer.i"
