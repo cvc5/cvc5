@@ -48,6 +48,14 @@ bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
   }
 }
 
+void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
+  for( std::map< Node, TermArgTrie >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
+    for( unsigned i=0; i<depth; i++ ){ Debug(c) << "  "; }
+    Debug(c) << it->first << std::endl;
+    it->second.debugPrint( c, n, depth+1 );
+  }
+}
+
 TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ) {
 
 }
@@ -204,6 +212,15 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    Debug("term-db-cong") << "TermDb: Reset" << std::endl;
    Debug("term-db-cong") << "Congruent/Non-Congruent = ";
    Debug("term-db-cong") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << std::endl;
+   if( Debug.isOn("term-db") ){
+      Debug("term-db") << "functions : " << std::endl;
+      for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+        if( it->second.size()>0 ){
+          Debug("term-db") << "- " << it->first << std::endl;
+          d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+        }
+      }
+   }
 }
 
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){

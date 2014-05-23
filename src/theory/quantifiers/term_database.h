@@ -76,6 +76,7 @@ public:
   std::map< Node, TermArgTrie > d_data;
 public:
   bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
+  void debugPrint( const char * c, Node n, unsigned depth = 0 );
 };/* class TermArgTrie */
 
 

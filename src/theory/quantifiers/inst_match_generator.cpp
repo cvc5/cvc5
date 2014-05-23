@@ -32,6 +32,7 @@ namespace inst {
 
 
 InstMatchGenerator::InstMatchGenerator( Node pat, int matchPolicy ) : d_matchPolicy( matchPolicy ){
+  d_needsReset = true;
   d_active_add = false;
   Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
   d_pattern = pat;
@@ -298,7 +299,7 @@ bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* 
     t = d_cg->getNextCandidate();
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
     //if t not null, try to fit it into match m
-    if( !t.isNull() && t.getType()==d_match_pattern.getType() ){
+    if( !t.isNull() && t.getType().isSubtypeOf( d_match_pattern.getType() ) ){
       success = getMatch( f, t, m, qe );
     }
   }while( !success && !t.isNull() );
@@ -628,6 +629,7 @@ int InstMatchGeneratorSimple::addInstantiations( Node f, InstMatch& baseMatch, Q
 }
 
 void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat ){
+  Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if( argIndex==(int)d_match_pattern.getNumChildren() ){
     //m is an instantiation
     if( qe->addInstantiation( d_f, m ) ){
@@ -640,7 +642,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
       for( std::map< Node, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
         Node t = it->first;
         Node prev = m.get( v );
-        if( ( prev.isNull() || prev==t ) && d_match_pattern[argIndex].getType()==t.getType() ){
+        if( ( prev.isNull() || prev==t ) && t.getType().isSubtypeOf( d_match_pattern[argIndex].getType() ) ){
           m.setValue( v, t);
           addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
           m.setValue( v, prev);

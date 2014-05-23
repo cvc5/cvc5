@@ -61,7 +61,7 @@ void report_error(const string &msg) {
     not_defeq2->print(cout);
   }
   cout.flush();
-  _exit(1);
+  exit(1);
 }
 
 Expr *call_run_code(Expr *code) {

@@ -175,7 +175,7 @@ Node CandidateGeneratorQELitEq::getNextCandidate(){
   while( !d_eq.isFinished() ){
     Node n = (*d_eq);
     ++d_eq;
-    if( n.getType()==d_match_pattern[0].getType() ){
+    if( n.getType().isSubtypeOf( d_match_pattern[0].getType() ) ){
       //an equivalence class with the same type as the pattern, return reflexive equality
       return NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), n, n );
     }
@@ -228,7 +228,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
     Node n = (*d_eq);
     ++d_eq;
-    if( n.getType()==d_match_pattern.getType() ){
+    if( n.getType().isSubtypeOf( d_match_pattern.getType() ) ){
       //an equivalence class with the same type as the pattern, return it
       return n;
     }
