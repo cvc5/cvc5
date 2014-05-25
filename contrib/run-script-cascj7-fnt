@@ -33,4 +33,4 @@ trywith 30 --finite-model-find --mbqi=gen-ev --uf-ss-totality --decision=interna
 trywith 10 --finite-model-find --disable-uf-ss-min-model --sort-inference --uf-ss-fair
 trywith 30 --finite-model-find --mbqi=abs --pre-skolem-quant --sort-inference --uf-ss-fair
 finishwith --finite-model-find --mbqi=abs --pre-skolem-quant --sort-inference --uf-ss-fair --mbqi-one-inst-per-round
-echo "% SZS status" "GaveUp for $filename"
+# echo "% SZS status" "GaveUp for $filename"

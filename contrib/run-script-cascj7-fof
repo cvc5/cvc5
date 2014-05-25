@@ -35,4 +35,4 @@ trywith 30 --relevant-triggers --full-saturate-quant
 trywith 15 --finite-model-find --decision=justification-stoponly
 trywith 30 --pre-skolem-quant --full-saturate-quant
 finishwith --quant-cf --full-saturate-quant
-echo "% SZS status" "GaveUp for $filename"
+# echo "% SZS status" "GaveUp for $filename"

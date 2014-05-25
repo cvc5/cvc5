@@ -153,7 +153,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
                 if( inst.size()>f[0].getNumChildren() ){
                   inst.resize( f[0].getNumChildren() );
                 }
-                if( d_quantEngine->addInstantiation( f, inst ) ){
+                if( d_quantEngine->addInstantiation( f, inst, false ) ){
                   addedLemmas++;
                   tempAddedLemmas++;
                   /*

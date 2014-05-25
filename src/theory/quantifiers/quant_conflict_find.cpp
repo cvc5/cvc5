@@ -2196,7 +2196,7 @@ void QuantConflictFind::check( Theory::Effort level ) {
                       Assert( evaluate( inst )==-1 || e>effort_conflict );
                       //}
                     }
-                    if( d_quantEngine->addInstantiation( q, terms ) ){
+                    if( d_quantEngine->addInstantiation( q, terms, false ) ){
                       Trace("qcf-check") << "   ... Added instantiation" << std::endl;
                       Trace("qcf-inst") << "*** Was from effort " << e << " : " << std::endl;
                       qi->debugPrintMatch("qcf-inst");
