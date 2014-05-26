@@ -141,6 +141,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   VarSet d_variables;
   AtomSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
+  bool d_emptyNotify;
   
   void addAtom(TNode atom);
   bool hasValue(TNode a);
@@ -150,7 +151,7 @@ public:
   Node getBBAtom(TNode atom) const;
   void storeBBAtom(TNode atom, Node atom_bb);
   bool hasBBAtom(TNode atom) const; 
-  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="");
+  TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name="", bool emptyNotify = false);
   ~TLazyBitblaster();
   /** 
    * Pushes the assumption literal associated with node to the SAT

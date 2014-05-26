@@ -35,7 +35,7 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name)
+TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name, bool emptyNotify)
   : TBitblaster()
   , d_bv(bv)
   , d_ctx(c)
@@ -44,6 +44,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_variables()
   , d_bbAtoms()
   , d_abstraction(NULL)
+  , d_emptyNotify(emptyNotify)
   , d_statistics(name) {
   d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
   d_nullRegistrar = new prop::NullRegistrar();
@@ -52,13 +53,10 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
                                            d_nullRegistrar,
                                            d_nullContext);
   
-  // can not notify a theory
-  prop::BVSatSolverInterface::Notify* notify = NULL;
-  if (bv == NULL)
-    notify = new MinisatEmptyNotify();
-  else
-    notify = new MinisatNotify(d_cnfStream, bv, this);
-  Assert (notify != NULL); 
+  prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
+    (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
+    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
+
   d_satSolver->setNotify(notify);
 }
 
@@ -488,13 +486,9 @@ void TLazyBitblaster::clearSolver() {
                                            new prop::NullRegistrar(),
                                            new context::Context());
 
-  // can not notify a theory
-  prop::BVSatSolverInterface::Notify* notify = NULL;
-  if (d_bv == NULL)
-    notify = new MinisatEmptyNotify();
-  else
-    notify = new MinisatNotify(d_cnfStream, d_bv, this);
-  Assert (notify != NULL); 
+  prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
+    (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
+    (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv, this);
   d_satSolver->setNotify(notify);
 }
 

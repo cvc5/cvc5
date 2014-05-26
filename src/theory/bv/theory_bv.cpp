@@ -346,7 +346,7 @@ void TheoryBV::check(Effort e)
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
-  //  Assert (fullModel); // can only query full model
+
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
       d_subtheories[i]->collectModelInfo(m, fullModel);

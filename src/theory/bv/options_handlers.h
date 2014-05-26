@@ -49,8 +49,13 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
       options::bitvectorEqualitySolver.set(true);
     }
     if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      options::bitvectorEqualitySlicer.set(BITVECTOR_SLICER_AUTO);
+      if (options::incrementalSolving()) {
+        options::bitvectorEqualitySlicer.set(BITVECTOR_SLICER_OFF);
+      } else {
+        options::bitvectorEqualitySlicer.set(BITVECTOR_SLICER_AUTO);
+      }
     }
+    
     if (!options::bitvectorInequalitySolver.wasSetByUser()) {
       options::bitvectorInequalitySolver.set(true);
     }

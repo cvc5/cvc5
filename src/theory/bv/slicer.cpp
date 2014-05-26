@@ -469,7 +469,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     low = utils::getExtractLow(node);
     top = node[0]; 
   }
-  Assert (d_nodeToId.find(top) != d_nodeToId.end()); 
+  AlwaysAssert (d_nodeToId.find(top) != d_nodeToId.end()); 
   TermId id = d_nodeToId[top];
   NormalForm nf(high-low+1); 
   d_unionFind.getNormalForm(ExtractTerm(id, high, low), nf);

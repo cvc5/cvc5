@@ -25,6 +25,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+class AlgebraicSolver;
+
 /**
  * Non-context dependent substitution with explanations.
  * 
@@ -59,6 +61,8 @@ class SubstitutionEx {
   Substitutions d_substitutions;
   SubstitutionsCache d_cache;
   bool d_cacheInvalid;
+  theory::SubstitutionMap* d_modelMap; 
+
   
   Node getReason(TNode node) const;
   bool hasCache(TNode node) const;
@@ -67,7 +71,7 @@ class SubstitutionEx {
   Node internalApply(TNode node);
 
 public:
-  SubstitutionEx();
+  SubstitutionEx(theory::SubstitutionMap* modelMap);
   void addSubstitution(TNode from, TNode to, TNode reason);
   Node apply(TNode node);
   Node explain(TNode node) const;
@@ -106,8 +110,9 @@ class ExtractSkolemizer {
     void addExtract(Extract& e); 
   };
   typedef   __gnu_cxx::hash_map<Node, ExtractList, NodeHashFunction> VarExtractMap;
-  
+  context::Context d_emptyContext;
   VarExtractMap d_varToExtract;
+  theory::SubstitutionMap* d_modelMap;
   theory::SubstitutionMap d_skolemSubst;
   theory::SubstitutionMap d_skolemSubstRev;
 
@@ -119,9 +124,10 @@ class ExtractSkolemizer {
 
   Node mkSkolem(Node node);
 public:
-  ExtractSkolemizer(context::Context* ctx); 
+  ExtractSkolemizer(theory::SubstitutionMap* modelMap); 
   void skolemize(std::vector<WorklistElement>&);
   void unSkolemize(std::vector<WorklistElement>&);
+  ~ExtractSkolemizer();
 }; 
 
 class BVQuickCheck;
@@ -145,6 +151,7 @@ class AlgebraicSolver : public SubtheorySolver {
     ~Statistics();
   };
 
+  SubstitutionMap* d_modelMap;
   BVQuickCheck* d_quickSolver;
   context::CDO<bool> d_isComplete; 
   context::CDO<bool> d_isDifficult; /**< flag to indicate whether the current assertions contain expensive BV operators */
@@ -202,9 +209,9 @@ public:
   void  preRegister(TNode node) {}
   bool  check(Theory::Effort e);
   void  explain(TNode literal, std::vector<TNode>& assumptions) {Unreachable("AlgebraicSolver does not propagate.\n");}
-  EqualityStatus getEqualityStatus(TNode a, TNode b) { Unreachable();}
-  void collectModelInfo(TheoryModel* m, bool fullModel) { Unreachable(); }
-  Node getModelValue(TNode node) { Unreachable(); }
+  EqualityStatus getEqualityStatus(TNode a, TNode b); 
+  void collectModelInfo(TheoryModel* m, bool fullModel); 
+  Node getModelValue(TNode node); 
   bool isComplete();
   virtual void assertFact(TNode fact);
 };

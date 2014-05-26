@@ -14,6 +14,7 @@
 ** Algebraic solver.
 **/
 
+#include "theory/theory_model.h"
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
@@ -31,16 +32,19 @@ using namespace CVC4::theory::bv::utils;
 
 bool hasExpensiveBVOperators(TNode fact);
 
-SubstitutionEx::SubstitutionEx()
+SubstitutionEx::SubstitutionEx(theory::SubstitutionMap* modelMap)
   : d_substitutions()
   , d_cache()
   , d_cacheInvalid(true)
+  , d_modelMap(modelMap)
 {}
 
 void SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
   Debug("bv-substitution") << "SubstitutionEx::addSubstitution: "<< from <<" => "<< to <<"\n";
   Debug("bv-substitution") << " reason "<<reason << "\n";
   
+  d_modelMap->addSubstitution(from, to); 
+
   d_cacheInvalid = true;
   Assert (from != to);
   Assert (d_substitutions.find(from) == d_substitutions.end());
@@ -180,7 +184,8 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
 
 AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   : SubtheorySolver(c, bv)
-  , d_quickSolver(new BVQuickCheck("alg"))
+  , d_modelMap(NULL)
+  , d_quickSolver(new BVQuickCheck("alg", bv))
   , d_isComplete(c, false)
   , d_isDifficult(c, false)
   , d_budget(options::bitvectorAlgebraicBudget())
@@ -243,14 +248,16 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
   Assert (d_explanations.size() == worklist.size()); 
 
-  SubstitutionEx subst;
+  delete d_modelMap;
+  d_modelMap = new SubstitutionMap(d_context);
+  SubstitutionEx subst(d_modelMap);
 
   // first round of substitutions
   processAssertions(worklist, subst); 
 
   if (!d_isDifficult.get()) {
     // skolemize all possible extracts
-    ExtractSkolemizer skolemizer(d_ctx);
+    ExtractSkolemizer skolemizer(d_modelMap);
     skolemizer.skolemize(worklist);
     // second round of substitutions
     processAssertions(worklist, subst); 
@@ -323,15 +330,6 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   }
 
   
-  double ratio = ((double)subst_bb_cost)/original_bb_cost;
-
-  if (ratio > 0.5 ||
-      !d_isDifficult.get()) {
-    // give up if problem not reduced enough
-    d_isComplete = false;
-    return true;
-  }
-  
   // all facts solved to true
   if (worklist.empty()) {
     Debug("bv-subtheory-algebraic") << " SAT: everything simplifies to true.\n";
@@ -340,6 +338,14 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     return true;
   }
 
+  double ratio = ((double)subst_bb_cost)/original_bb_cost;
+  if (ratio > 0.5 ||
+      !d_isDifficult.get()) {
+    // give up if problem not reduced enough
+    d_isComplete = false;
+    return true;
+  }
+  
   d_quickSolver->clearSolver();
 
   d_quickSolver->push();
@@ -643,6 +649,33 @@ void AlgebraicSolver::assertFact(TNode fact) {
   }
 }
 
+EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
+  return EQUALITY_UNKNOWN;
+}
+void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
+  Debug("bv-subtheory-algebraic-models") << "AlgebraicSolver::collectModelInfo\n"; 
+  AlwaysAssert (!d_quickSolver->inConflict());
+  set<Node> termSet;
+  d_bv->computeRelevantTerms(termSet);
+  // assert substitution equalities
+
+  for (set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
+    TNode term = *it;
+    Node subst_term = d_modelMap->apply(term);
+    if (term.getType().isBoolean()) {
+      model->assertPredicate(utils::mkNode(kind::IFF, term, subst_term), true);
+    } else {
+      model->assertEquality(term, subst_term, true);
+    }
+    Debug("bv-subtheory-algebraic-models") << "   " << term <<" => " << subst_term <<"\n"; 
+  }
+  // get values from SAT solver
+  d_quickSolver->collectModelInfo(model, fullModel);
+}
+
+Node AlgebraicSolver::getModelValue(TNode node) {
+  return Node::null(); 
+}
 
 AlgebraicSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::AlgebraicSolver::NumCallsToCheck", 0)
@@ -781,6 +814,7 @@ void ExtractSkolemizer::unSkolemize(std::vector<WorklistElement>& facts) {
 
 void ExtractSkolemizer::storeSkolem(TNode node, TNode skolem) {
   d_skolemSubst.addSubstitution(node, skolem);
+  d_modelMap->addSubstitution(node, skolem); 
   d_skolemSubstRev.addSubstitution(skolem, node);
 }
 
@@ -791,7 +825,6 @@ Node ExtractSkolemizer::unSkolemize(TNode node) {
 Node ExtractSkolemizer::skolemize(TNode node) {
   return d_skolemSubst.apply(node); 
 }
-
 
 void ExtractSkolemizer::ExtractList::addExtract(Extract& e) {
   extracts.push_back(e);
@@ -835,8 +868,14 @@ void ExtractSkolemizer::collectExtracts(TNode node, TNodeSet& seen) {
   seen.insert(node); 
 }
 
-ExtractSkolemizer::ExtractSkolemizer(context::Context* c)
-  : d_varToExtract()
-  , d_skolemSubst(c)
-  , d_skolemSubstRev(c)
+ExtractSkolemizer::ExtractSkolemizer(theory::SubstitutionMap* modelMap)
+  : d_emptyContext()
+  , d_varToExtract()
+  , d_modelMap(modelMap)
+  , d_skolemSubst(&d_emptyContext)
+  , d_skolemSubstRev(&d_emptyContext)
 {}
+
+ExtractSkolemizer::~ExtractSkolemizer() {
+}
+

@@ -40,7 +40,7 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_lemmaAtomsQueue(c),
     d_useSatPropagation(options::bitvectorPropagate()),
     d_abstractionModule(NULL),
-    d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb") : NULL),
+    d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
 {}
 

@@ -37,6 +37,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_isCoreTheory(c, true),
     d_useSlicer(false),
     d_preregisterCalled(false),
+    d_checkCalled(false),
     d_reasons(c)
 {
   // The kinds we are treating as function application in congruence
@@ -80,7 +81,7 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 }
 
 void CoreSolver::enableSlicer() {
-  Assert (!d_preregisterCalled);
+  AlwaysAssert (!d_preregisterCalled);
   d_useSlicer = true;
   d_statistics.d_slicerEnabled.setData(true);
 }
@@ -91,6 +92,7 @@ void CoreSolver::preRegister(TNode node) {
       d_equalityEngine.addTriggerEquality(node);
       if (d_useSlicer) {
         d_slicer->processEquality(node);
+        AlwaysAssert(!d_checkCalled); 
       }
   } else {
     d_equalityEngine.addTerm(node);
@@ -117,11 +119,6 @@ Node CoreSolver::getBaseDecomposition(TNode a) {
 }
 
 bool CoreSolver::decomposeFact(TNode fact) {
-  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
-  // assert decompositions since the equality engine does not know the semantics of
-  // concat:
-  //   a == a_1 concat ... concat a_k
-  //   b == b_1 concat ... concat b_k
   Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
   // FIXME: are this the right things to assert?
   // assert decompositions since the equality engine does not know the semantics of
@@ -169,25 +166,18 @@ bool CoreSolver::decomposeFact(TNode fact) {
 
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
+  d_checkCalled = true; 
   Assert (!d_bv->inConflict());
   ++(d_statistics.d_numCallstoCheck);
   bool ok = true;
   std::vector<Node> core_eqs;
+  TNodeBoolMap seen;
   while (! done()) {
     TNode fact = get();
-
-    if (d_useSlicer) {
-      TNodeBoolMap seen;
-      if (d_isCoreTheory && !utils::isCoreTerm(fact, seen)) {
-        d_isCoreTheory = false;
-      }
-    } else {
-      // update whether we are in the core fragment
-      if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
-        d_isCoreTheory = false;
-      }
+    if (d_isCoreTheory && !utils::isCoreTerm(fact, seen)) {
+      d_isCoreTheory = false;
     }
-
+    
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
       if (d_useSlicer) {
@@ -210,11 +200,6 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 void CoreSolver::buildModel() {
-  // if (d_useSlicer) {
-  //   // FIXME
-  //   Unreachable();
-  //   return;
-  // }
   Debug("bv-core") << "CoreSolver::buildModel() \n";
   d_modelValues.clear();
   TNodeSet constants;
@@ -233,6 +218,7 @@ void CoreSolver::buildModel() {
     }
     ++eqcs_i;
   }
+
   // build repr to value map
 
   eqcs_i = eq::EqClassesIterator(&d_equalityEngine);

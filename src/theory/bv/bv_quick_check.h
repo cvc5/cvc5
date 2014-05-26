@@ -29,12 +29,18 @@
 
 namespace CVC4 {
 namespace theory {
+
+class TheoryModel;
+
 namespace bv {
+
+
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 class TLazyBitblaster; 
+class TheoryBV;
 
 class BVQuickCheck {
   context::Context* d_ctx;
@@ -44,7 +50,7 @@ class BVQuickCheck {
   void setConflict();
 
 public:
-  BVQuickCheck(const std::string& name);
+  BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv);
   ~BVQuickCheck();
   bool inConflict();
   Node getConflict() { return d_conflict; }
@@ -95,6 +101,7 @@ public:
    * @return 
    */
   uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
+  void collectModelInfo(theory::TheoryModel* model, bool fullModel); 
 };
 
 

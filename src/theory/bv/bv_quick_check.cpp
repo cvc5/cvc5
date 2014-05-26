@@ -24,9 +24,9 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::prop;
 
-BVQuickCheck::BVQuickCheck(const std::string& name)
+BVQuickCheck::BVQuickCheck(const std::string& name, theory::bv::TheoryBV* bv)
   : d_ctx(new context::Context())
-  , d_bitblaster(new TLazyBitblaster(d_ctx, NULL, name))
+  , d_bitblaster(new TLazyBitblaster(d_ctx, bv, name, true))
   , d_conflict()
   , d_inConflict(d_ctx, false)
 {}
@@ -121,6 +121,10 @@ void BVQuickCheck::popToZero() {
   while (d_ctx->getLevel() > 0) {
     d_ctx->pop();
   }
+}
+
+void BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel) {
+  d_bitblaster->collectModelInfo(model, fullModel);
 }
 
 BVQuickCheck::~BVQuickCheck() {
