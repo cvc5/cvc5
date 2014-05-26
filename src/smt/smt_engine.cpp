@@ -900,11 +900,6 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if(options::bitvectorEagerBitblast()) {
-    // Eager solver should use the internal decision strategy
-    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
-  }
-
   if(options::checkModels()) {
     if(! options::interactive()) {
       Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
@@ -1613,6 +1608,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   AlwaysAssert(result.size() == 1);
 
+  
   return result.top();
 }
 
@@ -1975,13 +1971,10 @@ void SmtEnginePrivate::bvAbstraction() {
   }
   // if we are using the lazy solver and the abstraction
   // applies, then UF symbols were introduced 
-  if (!options::bitvectorEagerBitblast() &&
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
       changed) {
-    if(!d_smt.d_logic.isTheoryEnabled(THEORY_UF)) {
-      d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-      d_smt.d_logic.enableTheory(THEORY_UF);
-      d_smt.d_logic.lock();
-    }
+    LogicRequest req(d_smt);
+    req.widenLogic(THEORY_UF); 
   }
 }
 
@@ -2840,6 +2833,13 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-definition-expansion", d_assertionsToPreprocess);
 
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
+      !d_smt.d_logic.isPure(THEORY_BV)) {
+    throw LogicException("Eager bit-blasting does not currently support theory combination. "
+                         "Note that in a QF_BV problem UF symbols can be introduced for division. "
+                         "Try --bv-div-zero-const to interpret division by zero as a constant."); 
+  }
+  
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
@@ -2906,7 +2906,7 @@ void SmtEnginePrivate::processAssertions() {
 
 
   // Lift bit-vectors of size 1 to bool
-  if(options::bvToBool()) {
+  if(options::bitvectorToBool()) {
     dumpAssertions("pre-bv-to-bool", d_assertionsToPreprocess);
     Chat() << "...doing bvToBool..." << endl;
     bvToBool();
@@ -3122,6 +3122,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-theory-preprocessing", d_assertionsToCheck);
 
+  // If we are using eager bit-blasting wrap assertions in fake atom so that
+  // everything gets bit-blasted to internal SAT solver
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
+      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
+      d_assertionsToCheck[i] = eager_atom; 
+    }
+  }
+  
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -3134,19 +3143,6 @@ void SmtEnginePrivate::processAssertions() {
   // introducing new ones
 
   dumpAssertions("post-everything", d_assertionsToCheck);
-
-  // Eagerly bit-blast to bvminisat
-  if (options::bitvectorEagerBitblast()) {
-    if (d_smt.getLogicInfo().getLogicString().compare("QF_BV") != 0) {
-      std::cout << "Probably DIVISION. \n";
-      exit(57); 
-    }
-      
-    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
-      d_assertionsToCheck[i] = eager_atom; 
-    }
-  }
 
   {
     Chat() << "converting to CNF..." << endl;
@@ -3429,6 +3425,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   hash_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
   n = postprocess(n, TypeNode::fromType(e.getType()));
+
   return n.toExpr();
 }
 

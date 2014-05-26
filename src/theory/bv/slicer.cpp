@@ -498,7 +498,7 @@ bool Slicer::isCoreTerm(TNode node) {
   if (d_coreTermCache.find(node) == d_coreTermCache.end()) {
     Kind kind = node.getKind();
     bool not_core;
-    if (options::bitvectorCoreSolver()) {
+    if (options::bitvectorEqualitySlicer()) {
       not_core = (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT); 
     } else {
       not_core = true; 

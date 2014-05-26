@@ -333,7 +333,7 @@ void AigBitblaster::simplifyAig() {
   Abc_AigCleanup(currentAigM());
   Assert (Abc_NtkCheck(currentAigNtk()));
 
-  const char* command = options::bvAigSimplifications().c_str(); 
+  const char* command = options::bitvectorAigSimplifications().c_str(); 
   Abc_Frame_t* pAbc = Abc_FrameGetGlobalFrame();
   Abc_FrameSetCurrentNetwork(pAbc, currentAigNtk());
 

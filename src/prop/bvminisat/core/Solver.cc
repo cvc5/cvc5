@@ -824,7 +824,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               return l_False;
             }
 
-            if (!CVC4::options::bvEagerPropagation()) {
+            if (!CVC4::options::bvEagerExplanations()) {
               // check if uip leads to a conflict 
               if (backtrack_level < assumptions.size()) {
                 cancelUntil(assumptions.size());

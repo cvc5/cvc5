@@ -183,7 +183,7 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   , d_quickSolver(new BVQuickCheck("alg"))
   , d_isComplete(c, false)
   , d_isDifficult(c, false)
-  , d_budget(options::bvAlgebraicBudget())
+  , d_budget(options::bitvectorAlgebraicBudget())
   , d_explanations()
   , d_ctx(new context::Context())
   , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("alg", d_quickSolver) : NULL)
@@ -197,7 +197,7 @@ AlgebraicSolver::~AlgebraicSolver() {
 }
 
 bool AlgebraicSolver::check(Theory::Effort e) {
-  Assert(!options::bitvectorEagerBitblast());
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY); 
 
   if (!Theory::fullEffort(e))
     return true;

@@ -38,7 +38,7 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_statistics(),
     d_validModelCache(c, true),
     d_lemmaAtomsQueue(c),
-    d_useSatPropagation(options::bvPropagate()),
+    d_useSatPropagation(options::bitvectorPropagate()),
     d_abstractionModule(NULL),
     d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb") : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
@@ -107,7 +107,7 @@ void BitblastSolver::bitblastQueue() {
 
 bool BitblastSolver::check(Theory::Effort e) {
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
-  Assert(!options::bitvectorEagerBitblast()); 
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY); 
 
   ++(d_statistics.d_numCallstoCheck);
 

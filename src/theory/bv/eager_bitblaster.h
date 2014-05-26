@@ -92,7 +92,7 @@ void EagerBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
 
-  Assert (options::bitvectorEagerBitblast());
+  AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER); 
   storeBBAtom(node, atom_definition);
   d_cnfStream->convertAndAssert(atom_definition, false, false);
 }

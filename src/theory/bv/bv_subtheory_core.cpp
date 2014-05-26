@@ -372,10 +372,6 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
-  if (d_useSlicer) {
-    Unreachable();
-    return;
-  }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
@@ -421,7 +417,7 @@ Node CoreSolver::getModelValue(TNode var) {
 
 CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
-  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", options::bitvectorCoreSolver())
+  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", options::bitvectorEqualitySlicer())
 {
   StatisticsRegistry::registerStat(&d_numCallstoCheck);
   StatisticsRegistry::registerStat(&d_slicerEnabled);

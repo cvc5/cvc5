@@ -192,7 +192,7 @@ void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
   prop::SatLiteral lit = d_cnfStream->getLiteral(atom);
 
   ++(d_statistics.d_numExplainedPropagations);
-  if (options::bvEagerPropagation()) {
+  if (options::bvEagerExplanations()) {
     Assert (d_explanations.find(lit) != d_explanations.end());
     const std::vector<prop::SatLiteral>& literal_explanation = d_explanations[lit].get();
     for (unsigned i = 0; i < literal_explanation.size(); ++i) {
@@ -326,7 +326,7 @@ TLazyBitblaster::Statistics::~Statistics() {
 }
 
 bool TLazyBitblaster::MinisatNotify::notify(prop::SatLiteral lit) {
-  if(options::bvEagerPropagation()) {
+  if(options::bvEagerExplanations()) {
     // compute explanation
     if (d_lazyBB->d_explanations.find(lit) == d_lazyBB->d_explanations.end()) {
       std::vector<prop::SatLiteral> literal_explanation;

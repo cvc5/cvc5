@@ -5,42 +5,45 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
-option bitvectorEagerBitblast --bitblast-eager bool
- eagerly bitblast the bitvectors to the BV SAT solver
+# Option to set the bit-blasting mode (lazy, eager, eager-aig)
 
-option bitvectorAig --bitblast-aig bool :default false
- bitblast by first converting to AIG
- 
-option bitvectorQuickXplain --bv-quick-xplain bool :default false
- minimize bv conflicts using the QuickXplain algorithm
- 
-option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default false
- turn on the algebraic solver for the bit-vector theory 
- 
-option bitvectorInequalitySolver --bv-inequality-solver bool :default true
- turn on the inequality solver for the bit-vector theory 
- 
-option bitvectorCoreSolver --bv-core-solver bool :default false
- turn on the core solver for the bit-vector theory
+option bitblastMode --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"
+ choose bitblasting mode, see --bitblast=help
 
-option bvEquality --bv-eq-solver bool :default true
- use the equality engine for the bit-vector theory
+# Options for eager bit-blasting
  
-option bvAlgebraicBudget --bv-algebraic-budget unsigned :default 1500
- the budget allowed for the algebraic solver in number of SAT conflicts
- 
-option bvToBool --bv-to-bool bool
- lift bit-vectors of size 1 to booleans when possible
+option bitvectorAig --bitblast-aig bool :default false :read-write :link --bitblast=eager
+ bitblast by first converting to AIG (only if --bitblast=eager)
 
-option bvPropagate --bv-propagate bool :default true
- use bit-vector propagation in the bit-blaster
-
-
-# crazy aig simplification options 
-expert-option bvAigSimplifications --bv-aig-simp=FILE std::string :default ""
+expert-option bitvectorAigSimplifications --bv-aig-simp=FILE std::string :default "" :read-write :link --bitblast-aig
  abc command to run AIG simplifications
 
-expert-option bitvectorDivByZeroConst --bv-div-zero-const bool
+# Options for lazy bit-blasting  
+
+option bitvectorPropagate --bv-propagate bool :default true :read-write :link --bitblast=lazy 
+ use bit-vector propagation in the bit-blaster
+
+option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write :link --bitblast=lazy
+ use the equality engine for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMode :handler CVC4::theory::bv::stringToBvSlicerMode :default CVC4::theory::bv::BITVECTOR_SLICER_AUTO :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h" :read-write :link --bv-eq-solver
+ turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write :link --bitblast=lazy
+ turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default true :read-write :link --bitblast=lazy
+ turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)
+ 
+expert-option bitvectorAlgebraicBudget --bv-algebraic-budget unsigned :default 1500 :read-write :link --bv-algebraic-solver
+ the budget allowed for the algebraic solver in number of SAT conflicts
+
+# General options
+
+option bitvectorToBool --bv-to-bool bool :default false :read-write 
+ lift bit-vectors of size 1 to booleans when possible
+
+option bitvectorDivByZeroConst --bv-div-zero-const bool :default false
  always return -1 on division by zero
 
 expert-option bvAbstraction --bv-abstraction bool :default false
@@ -52,7 +55,11 @@ expert-option skolemizeArguments --bv-skolemize bool :default false
 expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
  number of function symbols in conflicts that are generalized
 
-expert-option bvEagerPropagation --bv-eager-prop bool :default false
+expert-option bvEagerExplanations --bv-eager-explanations bool :default false
  compute bit-blasting propagation explanations eagerly
+
+expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false
+ minimize bv conflicts using the QuickXplain algorithm
+ 
  
 endmodule

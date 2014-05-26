@@ -212,6 +212,9 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_quick_check.cpp \
 	theory/bv/bv_subtheory_algebraic.h \
 	theory/bv/bv_subtheory_algebraic.cpp \
+	theory/bv/options_handlers.h \
+	theory/bv/bitblast_mode.h \
+	theory/bv/bitblast_mode.cpp \
 	theory/idl/idl_model.h \
 	theory/idl/idl_model.cpp \
 	theory/idl/idl_assertion.h \
