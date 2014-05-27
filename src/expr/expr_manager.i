@@ -17,7 +17,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        CVC4JNI.delete_SmtEngine(swigCPtr);
+        CVC4JNI.delete_ExprManager(swigCPtr);
       }
       swigCPtr = 0;
     }
