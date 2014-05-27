@@ -53,4 +53,7 @@ undocumented-alias --segv-nospin = --no-segv-spin
 expert-option waitToJoin --wait-to-join bool :default true
  wait for other threads to join before quitting
 
+expert-option periodicStatsInterval --periodic-stats int :default 0
+ print total time we have been running every N decisions
+
 endmodule

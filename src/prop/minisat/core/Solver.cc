@@ -29,6 +29,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/minisat.h"
 #include "prop/options.h"
 #include "util/output.h"
+#include "util/periodic_statistics.h"
 #include "expr/command.h"
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
@@ -477,6 +478,13 @@ void Solver::popTrail() {
 Lit Solver::pickBranchLit()
 {
     Lit nextLit;
+
+    // Every so-many-decisions print the total time
+    if(options::periodicStatsInterval() && decisions % options::periodicStatsInterval() == 0) {
+      PeriodicStatistic::print("sat::decisions", decisions);
+      PeriodicStatistic::print("sat::conflicts", conflicts);
+      PeriodicStatistic::print("sat::propagations", propagations);
+    }
 
 #ifdef CVC4_REPLAY
     nextLit = MinisatSatSolver::toMinisatLit(proxy->getNextReplayDecision());
