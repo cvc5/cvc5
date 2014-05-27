@@ -157,8 +157,8 @@ private:
   context::CDHashSet <Node, NodeHashFunction> d_nodeSaver;
 
   /** Lemmas and helper functions */
-  context::CDQueue <TNode> d_pending;
-  context::CDQueue <TNode> d_pendingDisequal;
+  context::CDQueue <Node> d_pending;
+  context::CDQueue <Node> d_pendingDisequal;
   context::CDHashSet <Node, NodeHashFunction> d_pendingEverInserted;
 
   void addToPending(Node n);
