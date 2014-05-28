@@ -15,6 +15,50 @@
 %rename(apply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
 #endif /* SWIGPYTHON */
 
+#ifdef SWIGJAVA
+%typemap(javabody) CVC4::Expr %{
+  private long swigCPtr;
+  protected boolean swigCMemOwn;
+
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+%javamethodmodifiers CVC4::Expr::operator=(const Expr&) "protected";
+%typemap(javacode) CVC4::Expr %{
+  // a ref is kept here to keep Java GC from collecting the ExprManager
+  // before the Expr
+  private Object em;
+
+  public Expr assign(Expr e) {
+    Expr r = assignInternal(e);
+    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
+    return r;
+  }
+%}
+%typemap(javaconstruct) Expr {
+    this($imcall, true);
+    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
+  }
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") CVC4::Expr {
+    SmtEngine.dlRef(em);
+    em = null;
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        CVC4JNI.delete_Expr(swigCPtr);
+      }
+      swigCPtr = 0;
+    }
+  }
+#endif /* SWIGJAVA */
+
 %ignore CVC4::operator<<(std::ostream&, const Expr&);
 %ignore CVC4::operator<<(std::ostream&, const TypeCheckingException&);
 
@@ -23,7 +67,7 @@
 %ignore CVC4::expr::operator<<(std::ostream&, ExprDag);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprSetLanguage);
 
-%rename(assign) CVC4::Expr::operator=(const Expr&);
+%rename(assignInternal) CVC4::Expr::operator=(const Expr&);
 %rename(equals) CVC4::Expr::operator==(const Expr&) const;
 %ignore CVC4::Expr::operator!=(const Expr&) const;
 %rename(less) CVC4::Expr::operator<(const Expr&) const;
