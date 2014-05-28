@@ -393,7 +393,7 @@ void InstantiationEngine::debugSat( int reason ){
         }
       }
     }
-    if( options::recurseCbqi() && !options::preSkolemQuant() && d_setIncomplete ){
+    if( d_setIncomplete ){
       Debug("quantifiers-sat") << "Cannot conclude SAT with nested quantifiers in recursive strategy." << std::endl;
       //TODO : only when existentials with inst constants
       d_quantEngine->getOutputChannel().setIncomplete();

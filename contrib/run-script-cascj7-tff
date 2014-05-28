@@ -25,14 +25,14 @@ function trywith {
 }
 function finishwith {
   echo "--- Run $@...";
-  $cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs "$@" $bench
+  $cvc4 --no-checking --no-interactive "$@" $bench
 }
 
 trywith 15 --cbqi-recurse --full-saturate-quant
 trywith 15 --decision=internal --full-saturate-quant
 trywith 30 --quant-cf --qcf-tconstraint --full-saturate-quant
 trywith 20 --finite-model-find
-trywith 30 --full-saturate-quant
+trywith 30 --fmf-bound-int
 trywith 60 --quant-cf --full-saturate-quant
 finishwith --cbqi-recurse --full-saturate-quant --pre-skolem-quant
 # echo "% SZS status" "GaveUp for $filename"
