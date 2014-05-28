@@ -21,8 +21,22 @@
 
 #include "smt/options.h"
 
+#include <sys/resource.h>
+
 namespace CVC4 {
 namespace main {
+
+//function to set no limit on CPU time.
+//this is used for competitions while a solution (proof or model) is being dumped.
+void setNoLimitCPU(){
+  struct rlimit rlc;
+  int st = getrlimit(RLIMIT_CPU, &rlc );
+  if( st==0 ){
+    rlc.rlim_cur = rlc.rlim_max;
+    setrlimit(RLIMIT_CPU, &rlc );
+  }
+}
+
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
@@ -98,21 +112,26 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   // dump the model/proof if option is set
   if(status) {
+    Command * g = NULL;
     if( d_options[options::produceModels] &&
         d_options[options::dumpModels] &&
         ( res.asSatisfiabilityResult() == Result::SAT ||
           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
-      Command* gm = new GetModelCommand();
-      status = doCommandSingleton(gm);
+      g = new GetModelCommand();
     } else if( d_options[options::proof] &&
                d_options[options::dumpProofs] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {
-      Command* gp = new GetProofCommand();
-      status = doCommandSingleton(gp);
+      g = new GetProofCommand();
     } else if( d_options[options::dumpInstantiations] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {
-      Command* gi = new GetInstantiationsCommand();
-      status = doCommandSingleton(gi);
+      g = new GetInstantiationsCommand();
+    }
+    if( g ){
+      //set no time limit during dumping if applicable
+      if( d_options[options::forceNoLimitCpuWhileDump] ){
+        setNoLimitCPU();
+      }
+      status = doCommandSingleton(g);
     }
   }
   return status;
