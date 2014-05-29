@@ -214,7 +214,7 @@ private:
     Statistics(const std::string& name);
     ~Statistics();
   };
-
+  std::string d_name; 
   Statistics d_statistics;
 };
 

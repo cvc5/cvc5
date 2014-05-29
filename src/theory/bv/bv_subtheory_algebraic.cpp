@@ -656,19 +656,28 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
   Debug("bv-subtheory-algebraic-models") << "AlgebraicSolver::collectModelInfo\n"; 
   AlwaysAssert (!d_quickSolver->inConflict());
   set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
+  // d_bv->computeRelevantTerms(termSet);
   // assert substitution equalities
 
-  for (set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
-    TNode term = *it;
-    Node subst_term = d_modelMap->apply(term);
-    if (term.getType().isBoolean()) {
-      model->assertPredicate(utils::mkNode(kind::IFF, term, subst_term), true);
-    } else {
-      model->assertEquality(term, subst_term, true);
-    }
-    Debug("bv-subtheory-algebraic-models") << "   " << term <<" => " << subst_term <<"\n"; 
+  for (SubstitutionMap::const_iterator it = d_modelMap->begin(); it != d_modelMap->end(); ++it) {
+    TNode from = (*it).first;
+    TNode to = (*it).second; 
+    Debug("bv-subtheory-algebraic-models") << "   " << from <<" => " << to <<"\n";
+    model->assertEquality(from, to, true);
   }
+  
+  // for (set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
+  //   TNode term = *it;
+  //   Node subst_term = d_modelMap->apply(term);
+  //   if (term.getType().isBoolean()) {
+  //     model->assertPredicate(utils::mkNode(kind::IFF, term, subst_term), true);
+  //   } else {
+  //     model->assertEquality(term, subst_term, true);
+  //   }
+  //   if (term != subst_term) {
+  //     Debug("bv-subtheory-algebraic-models") << "   " << term <<" => " << subst_term <<"\n";
+  //   }
+  // }
   // get values from SAT solver
   d_quickSolver->collectModelInfo(model, fullModel);
 }

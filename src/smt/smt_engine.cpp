@@ -2835,7 +2835,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       !d_smt.d_logic.isPure(THEORY_BV)) {
-    throw LogicException("Eager bit-blasting does not currently support theory combination. "
+    throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant."); 
   }

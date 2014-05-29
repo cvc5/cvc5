@@ -45,6 +45,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_bbAtoms()
   , d_abstraction(NULL)
   , d_emptyNotify(emptyNotify)
+  , d_name(name)
   , d_statistics(name) {
   d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
   d_nullRegistrar = new prop::NullRegistrar();
@@ -442,7 +443,6 @@ Node TLazyBitblaster::getVarValue(TNode a, bool fullModel) {
       bit_value = d_satSolver->value(bit);
       Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
-      //TODO: return Node() if fullModel=false?
       // the bit is unconstrainted so we can give it an arbitrary value
       bit_value = prop::SAT_VALUE_FALSE;
     }
@@ -475,10 +475,14 @@ void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
 }
 
 void TLazyBitblaster::clearSolver() {
+  Assert (d_ctx->getLevel() == 0); 
   delete d_satSolver;
   delete d_cnfStream;
   d_assertedAtoms = context::CDList<prop::SatLiteral>(d_ctx);
+  d_explanations = ExplanationMap(d_ctx);
   d_bbAtoms.clear();
+  d_variables.clear();
+  d_termCache.clear(); 
 
   // recreate sat solver
   d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
