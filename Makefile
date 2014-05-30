@@ -46,7 +46,7 @@ submission submission-main:
 	  echo 'ERROR: Please make maintainer-clean first.' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
-        fi
+	fi
 	./autogen.sh
 	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --enable-gpl
 	$(MAKE)
@@ -58,6 +58,7 @@ submission submission-main:
 	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
 	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/starexec_run_default
 	chmod 755 cvc4-smtcomp-$(YEAR)/starexec_run_default
+	echo "CVC4 for SMT-COMP main track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
 	zip -r cvc4-smtcomp-$(YEAR).zip cvc4-smtcomp-$(YEAR)
 submission-application:
 	# application track is a separate build because it has different preprocessor #defines
@@ -66,7 +67,7 @@ submission-application:
 	  echo 'ERROR: Please make maintainer-clean first.' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
-        fi
+	fi
 	./autogen.sh
 	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK
 	$(MAKE)
@@ -78,6 +79,7 @@ submission-application:
 	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
 	cp contrib/run-script-smtcomp2014-application cvc4-application-smtcomp-$(YEAR)/starexec_run_default
 	chmod 755 cvc4-application-smtcomp-$(YEAR)/starexec_run_default
+	echo "CVC4 for SMT-COMP application track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
 	zip -r cvc4-application-smtcomp-$(YEAR).zip cvc4-application-smtcomp-$(YEAR)
 submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
@@ -86,7 +88,7 @@ submission-parallel:
 	  echo 'ERROR: Please make maintainer-clean first.' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
-        fi
+	fi
 	./autogen.sh
 	./configure competition --disable-shared --enable-static-binary --with-gmp --with-portfolio --with-glpk --enable-gpl
 	$(MAKE)
@@ -100,4 +102,5 @@ submission-parallel:
 	( echo '#!/bin/sh'; \
 	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/starexec_run_default
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/starexec_run_default
+	echo "CVC4 for SMT-COMP parallel track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
 	zip -r cvc4-parallel-smtcomp-$(YEAR).zip cvc4-parallel-smtcomp-$(YEAR)
