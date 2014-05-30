@@ -56,10 +56,11 @@ submission submission-main:
 	# main track
 	mkdir -p cvc4-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
-	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/starexec_run_default
-	chmod 755 cvc4-smtcomp-$(YEAR)/starexec_run_default
-	echo "CVC4 for SMT-COMP main track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
-	zip -r cvc4-smtcomp-$(YEAR).zip cvc4-smtcomp-$(YEAR)
+	mkdir cvc4-smtcomp-$(YEAR)/bin
+	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
+	chmod 755 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
+	#echo "CVC4 for SMT-COMP main track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
+	cd cvc4-smtcomp-$(YEAR) && zip -r ../cvc4-smtcomp-$(YEAR).zip *
 submission-application:
 	# application track is a separate build because it has different preprocessor #defines
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -77,10 +78,11 @@ submission-application:
 	# package the application track zipfile
 	mkdir -p cvc4-application-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
-	cp contrib/run-script-smtcomp2014-application cvc4-application-smtcomp-$(YEAR)/starexec_run_default
-	chmod 755 cvc4-application-smtcomp-$(YEAR)/starexec_run_default
-	echo "CVC4 for SMT-COMP application track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
-	zip -r cvc4-application-smtcomp-$(YEAR).zip cvc4-application-smtcomp-$(YEAR)
+	mkdir cvc4-application-smtcomp-$(YEAR)/bin
+	cp contrib/run-script-smtcomp2014-application cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
+	chmod 755 cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
+	#echo "CVC4 for SMT-COMP application track `builds/bin/cvc4 --version`" > cvc4-application-smtcomp-$(YEAR)/starexec_description.txt
+	cd cvc4-application-smtcomp-$(YEAR) && zip -r ../cvc4-application-smtcomp-$(YEAR).zip *
 submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
@@ -99,8 +101,9 @@ submission-parallel:
 	# package the parallel track zipfile
 	mkdir -p cvc4-parallel-smtcomp-$(YEAR)
 	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/pcvc4
+	mkdir cvc4-parallel-smtcomp-$(YEAR)/bin
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/starexec_run_default
-	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/starexec_run_default
-	echo "CVC4 for SMT-COMP parallel track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
-	zip -r cvc4-parallel-smtcomp-$(YEAR).zip cvc4-parallel-smtcomp-$(YEAR)
+	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
+	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
+	#echo "CVC4 for SMT-COMP parallel track `builds/bin/cvc4 --version`" > cvc4-parallel-smtcomp-$(YEAR)/starexec_description.txt
+	cd cvc4-parallel-smtcomp-$(YEAR) && zip -r ../cvc4-parallel-smtcomp-$(YEAR).zip *
