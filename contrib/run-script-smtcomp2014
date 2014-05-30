@@ -10,7 +10,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # which case this run script terminates immediately.  Otherwise, this
 # function returns normally.
 function trywith {
-  result="$($cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench)"
+  result="$($cvc4 -L smt2 --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
   esac
@@ -19,7 +19,7 @@ function trywith {
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc4 --stats -L smt2 --no-checking --no-interactive "$@" $bench
+  $cvc4 -L smt2 --no-checking --no-interactive "$@" $bench
 }
 
 case "$logic" in
