@@ -713,7 +713,7 @@ static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
 
 // SMT-LIB quoting for symbols
 static std::string quoteSymbol(std::string s) {
-  if(s.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@%^&*_-+=<>.?/") == std::string::npos) {
+  if(s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@$%^&*_-+=<>.?/") == std::string::npos) {
     // simple unquoted symbol
     return s;
   }

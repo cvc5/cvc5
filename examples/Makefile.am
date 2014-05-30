@@ -1,13 +1,15 @@
-SUBDIRS = nra-translate hashsmt api .
+SUBDIRS = nra-translate sets-translate hashsmt api .
 
 AM_CPPFLAGS = \
 	-I@srcdir@/../src/include -I@srcdir@/../src -I@builddir@/../src $(ANTLR_INCLUDES)
 AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
+
 noinst_PROGRAMS = \
 	simple_vc_cxx \
 	translator
+
 
 if CVC4_BUILD_LIBCOMPAT
 noinst_PROGRAMS += \

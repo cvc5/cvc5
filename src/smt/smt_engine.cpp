@@ -3444,7 +3444,8 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
   Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType));
+  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType),
+         "Run with -t smt for details.");
 
   // ensure it's a constant
   Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
