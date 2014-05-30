@@ -495,33 +495,40 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
   if( !ind_vars.empty() ){
     Trace("stc-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
     Trace("stc-ind") << "Skolemized is : " << ret << std::endl;
-    for( unsigned v=0; v<ind_vars.size(); v++ ){
-      Node k = sk[ind_var_indicies[v]];
-      TypeNode tn = k.getType();
-      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
-        //can strengthen this, by asserting that subs[0] is the smallest term such that the existential holds.
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        std::vector< Node > disj;
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          std::vector< Node > conj;
-          conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
-          std::vector< Node > selfSel;
-          getSelfSel( dt[i], k, tn, selfSel );
-          for( unsigned j=0; j<selfSel.size(); j++ ){
-            conj.push_back( ret.substitute( ind_vars[v], selfSel[j] ).negate() );
-          }
-          disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
-        }
-        Assert( !disj.empty() );
-        Node n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
-        Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
-
-        Node nret = ret.substitute( ind_vars[v], k );
-        ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
-      }else{
-        Assert( false );
+    Node nret;
+    Node n_str_ind;
+    TypeNode tn = ind_vars[0].getType();
+    if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+      Node k = sk[ind_var_indicies[0]];
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      std::vector< Node > disj;
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+	std::vector< Node > selfSel;
+	getSelfSel( dt[i], k, tn, selfSel );
+	std::vector< Node > conj;
+	conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
+	for( unsigned j=0; j<selfSel.size(); j++ ){
+	  conj.push_back( ret.substitute( ind_vars[0], selfSel[j] ).negate() );
+	}
+	disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
       }
+      Assert( !disj.empty() );
+      n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
+      Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
+      nret = ret.substitute( ind_vars[0], k );
+    }else{
+      Trace("stc-ind") << "Unknown induction for term : " << ind_vars[0] << ", type = " << tn << std::endl;
+      Assert( false );
     }
+    
+    std::vector< Node > rem_ind_vars;
+    rem_ind_vars.insert( rem_ind_vars.end(), ind_vars.begin()+1, ind_vars.end() );
+    if( !rem_ind_vars.empty() ){
+      Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, rem_ind_vars );
+      nret = NodeManager::currentNM()->mkNode( FORALL, bvl, nret );
+      n_str_ind = NodeManager::currentNM()->mkNode( FORALL, bvl, n_str_ind.negate() ).negate();
+    }
+    ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
   }
   Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
   return ret;
