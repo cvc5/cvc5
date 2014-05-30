@@ -351,7 +351,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
           }
         }
       }
-      setInstantiationLevelAttr( body, maxInstLevel+1 );
+      setInstantiationLevelAttr( body, f[1], maxInstLevel+1, terms );
     }
     Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
     ++(d_statistics.d_instantiations);
@@ -362,13 +362,19 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   }
 }
 
-void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
-  if( !n.hasAttribute(InstLevelAttribute()) ){
-    InstLevelAttribute ila;
-    n.setAttribute(ila,level);
-  }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
+void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms ){
+  //if not from the vector of terms we instantiatied
+  if( std::find( inst_terms.begin(), inst_terms.end(), n )==inst_terms.end() ){
+    //if this is a new term, without an instantiation level
+    if( n!=qn && !n.hasAttribute(InstLevelAttribute()) ){
+      InstLevelAttribute ila;
+      n.setAttribute(ila,level);
+    }
+    Assert( qn.getKind()!=BOUND_VARIABLE );
+    Assert( n.getNumChildren()==qn.getNumChildren() );
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      setInstantiationLevelAttr( n[i], qn[i], level, inst_terms );
+    }
   }
 }
 
