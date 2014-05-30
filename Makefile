@@ -56,7 +56,7 @@ submission submission-main:
 	# main track
 	mkdir -p cvc4-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
-	mkdir cvc4-smtcomp-$(YEAR)/bin
+	mkdir -p cvc4-smtcomp-$(YEAR)/bin
 	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
 	#echo "CVC4 for SMT-COMP main track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
@@ -78,7 +78,7 @@ submission-application:
 	# package the application track zipfile
 	mkdir -p cvc4-application-smtcomp-$(YEAR)
 	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
-	mkdir cvc4-application-smtcomp-$(YEAR)/bin
+	mkdir -p cvc4-application-smtcomp-$(YEAR)/bin
 	cp contrib/run-script-smtcomp2014-application cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
 	#echo "CVC4 for SMT-COMP application track `builds/bin/cvc4 --version`" > cvc4-application-smtcomp-$(YEAR)/starexec_description.txt
@@ -101,7 +101,7 @@ submission-parallel:
 	# package the parallel track zipfile
 	mkdir -p cvc4-parallel-smtcomp-$(YEAR)
 	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/pcvc4
-	mkdir cvc4-parallel-smtcomp-$(YEAR)/bin
+	mkdir -p cvc4-parallel-smtcomp-$(YEAR)/bin
 	( echo '#!/bin/sh'; \
 	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
