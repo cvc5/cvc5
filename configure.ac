@@ -854,6 +854,7 @@ if test "$enable_personal_make_rules" = yes; then
   # comes last, so it gets other definitions (in particular top_srcdir).
   zz_cvc4_use_personal_make_rules='yes
 
+all:;
 include $(top_srcdir)/personal.mk
 $(top_srcdir)/personal.mk:; @touch "$@"'
   AC_SUBST([zz_cvc4_use_personal_make_rules])
