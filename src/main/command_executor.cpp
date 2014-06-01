@@ -21,20 +21,27 @@
 
 #include "smt/options.h"
 
-#include <sys/resource.h>
+#ifndef __WIN32__
+#  include <sys/resource.h>
+#endif /* ! __WIN32__ */
 
 namespace CVC4 {
 namespace main {
 
-//function to set no limit on CPU time.
-//this is used for competitions while a solution (proof or model) is being dumped.
-void setNoLimitCPU(){
+// Function to cancel any (externally-imposed) limit on CPU time.
+// This is used for competitions while a solution (proof or model)
+// is being dumped (so that we don't give "sat" or "unsat" then get
+// interrupted partway through outputting a proof!).
+void setNoLimitCPU() {
+  // Windows doesn't have these things, just ignore
+#ifndef __WIN32__
   struct rlimit rlc;
-  int st = getrlimit(RLIMIT_CPU, &rlc );
-  if( st==0 ){
+  int st = getrlimit(RLIMIT_CPU, &rlc);
+  if(st == 0) {
     rlc.rlim_cur = rlc.rlim_max;
-    setrlimit(RLIMIT_CPU, &rlc );
+    setrlimit(RLIMIT_CPU, &rlc);
   }
+#endif /* ! __WIN32__ */
 }
 
 
