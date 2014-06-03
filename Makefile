@@ -47,6 +47,12 @@ submission submission-main:
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
 	fi
+	@if test -d cvc4-smtcomp-$(YEAR) || test -e cvc4-smtcomp-$(YEAR).zip; then \
+	  echo 'ERROR:' >&2; \
+	  echo 'ERROR: Please remove cvc4-smtcomp-$(YEAR) and cvc4-smtcomp-$(YEAR).zip first.' >&2; \
+	  echo 'ERROR:' >&2; \
+	  exit 1; \
+	fi
 	./autogen.sh
 	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --enable-gpl
 	$(MAKE)
@@ -68,6 +74,12 @@ submission-application:
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
 	fi
+	@if test -d cvc4-application-smtcomp-$(YEAR) || test -e cvc4-application-smtcomp-$(YEAR).zip; then \
+	  echo 'ERROR:' >&2; \
+	  echo 'ERROR: Please remove cvc4-application-smtcomp-$(YEAR) and cvc4-application-smtcomp-$(YEAR).zip first.' >&2; \
+	  echo 'ERROR:' >&2; \
+	  exit 1; \
+	fi
 	./autogen.sh
 	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK
 	$(MAKE)
@@ -86,6 +98,12 @@ submission-parallel:
 	@if [ -n "`ls src/parser/*/generated 2>/dev/null`" ]; then \
 	  echo 'ERROR:' >&2; \
 	  echo 'ERROR: Please make maintainer-clean first.' >&2; \
+	  echo 'ERROR:' >&2; \
+	  exit 1; \
+	fi
+	@if test -d cvc4-parallel-smtcomp-$(YEAR) || test -e cvc4-parallel-smtcomp-$(YEAR).zip; then \
+	  echo 'ERROR:' >&2; \
+	  echo 'ERROR: Please remove cvc4-parallel-smtcomp-$(YEAR) and cvc4-parallel-smtcomp-$(YEAR).zip first.' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
 	fi
