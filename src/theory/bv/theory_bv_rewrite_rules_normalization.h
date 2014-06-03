@@ -684,7 +684,7 @@ Node RewriteRule<SolveEq>::apply(TNode node) {
     return utils::mkTrue();
   }
 
-  if (newLeft < newRight) {
+  if (newLeft > newRight) {
     Assert((newRight == left && newLeft == right) ||
            Rewriter::rewrite(newRight) != left ||
            Rewriter::rewrite(newLeft) != right);

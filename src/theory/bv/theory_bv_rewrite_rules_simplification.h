@@ -1084,6 +1084,13 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND) {
     unsigned ammount2 = node[0].getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+    if (ammount2 == 0) {
+      NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
+      Node op = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(ammount1));
+      nb << op << node[0][0];
+      Node res = nb;
+      return res;
+    }
     NodeBuilder<> nb(kind::BITVECTOR_ZERO_EXTEND);
     Node op = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(ammount1 + ammount2));
     nb << op << node[0][0];

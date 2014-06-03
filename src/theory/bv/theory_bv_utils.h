@@ -500,7 +500,7 @@ inline T gcd(T a, T b) {
 typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 
 bool isCoreTerm(TNode term, TNodeBoolMap& cache);
-
+bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 
 uint64_t numNodes(TNode node, NodeSet& seen);

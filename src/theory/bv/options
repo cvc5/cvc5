@@ -26,7 +26,7 @@ option bitvectorPropagate --bv-propagate bool :default true :read-write :link --
 option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write :link --bitblast=lazy
  use the equality engine for the bit-vector theory (only if --bitblast=lazy)
 
-option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMode :handler CVC4::theory::bv::stringToBvSlicerMode :default CVC4::theory::bv::BITVECTOR_SLICER_AUTO :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h" :read-write :link --bv-eq-solver
+option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMode :handler CVC4::theory::bv::stringToBvSlicerMode :default CVC4::theory::bv::BITVECTOR_SLICER_OFF :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h" :read-write :link --bv-eq-solver
  turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)
 
 option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write :link --bitblast=lazy

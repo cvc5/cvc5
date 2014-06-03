@@ -34,12 +34,13 @@ bool CVC4::theory::bv::utils::isCoreTerm(TNode term, TNodeBoolMap& cache) {
   if (term.getNumChildren() == 0)
     return true;
   
-  if (theory::Theory::theoryOf(term) == THEORY_BV) {
+  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV) {
     Kind k = term.getKind();
     if (k != kind::CONST_BITVECTOR &&
         k != kind::BITVECTOR_CONCAT &&
         k != kind::BITVECTOR_EXTRACT &&
-        k != kind::EQUAL) {
+        k != kind::EQUAL &&
+        term.getMetaKind() != kind::metakind::VARIABLE) {
       cache[term] = false;
       return false;
     }
@@ -55,6 +56,38 @@ bool CVC4::theory::bv::utils::isCoreTerm(TNode term, TNodeBoolMap& cache) {
   cache[term]= true; 
   return true;
 }
+
+bool CVC4::theory::bv::utils::isEqualityTerm(TNode term, TNodeBoolMap& cache) {
+  term = term.getKind() == kind::NOT ? term[0] : term; 
+  TNodeBoolMap::const_iterator it = cache.find(term); 
+  if (it != cache.end()) {
+    return it->second;
+  }
+    
+  if (term.getNumChildren() == 0)
+    return true;
+  
+  if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, term) == THEORY_BV) {
+    Kind k = term.getKind();
+    if (k != kind::CONST_BITVECTOR &&
+        k != kind::EQUAL &&
+        term.getMetaKind() != kind::metakind::VARIABLE) {
+      cache[term] = false;
+      return false;
+    }
+  }
+
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    if (!isEqualityTerm(term[i], cache)) {
+      cache[term] = false;
+      return false;
+    }
+  }
+  
+  cache[term]= true; 
+  return true;
+}
+
 
 uint64_t CVC4::theory::bv::utils::numNodes(TNode node, NodeSet& seen) {
   if (seen.find(node) != seen.end())

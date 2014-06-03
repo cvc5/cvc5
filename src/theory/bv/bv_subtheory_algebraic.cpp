@@ -13,8 +13,9 @@
 **
 ** Algebraic solver.
 **/
-
+#include "util/boolean_simplification.h"
 #include "theory/theory_model.h"
+
 #include "theory/bv/options.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/bv_subtheory_algebraic.h"
@@ -292,7 +293,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
     if (fact.isConst() &&
         fact.getConst<bool>() == false) {
       // we have a conflict
-      Node conflict = Rewriter::rewrite(d_explanations[id]);
+      Node conflict = BooleanSimplification::simplify(d_explanations[id]);
       d_bv->setConflict(conflict);
       d_isComplete.set(true);
       Debug("bv-subtheory-algebraic") << " UNSAT: assertion simplfies to false with conflict: "<< conflict << "\n";
@@ -313,7 +314,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
 
     subst_bb_cost+= d_quickSolver->computeAtomWeight(fact, subst_seen);
     worklist[w] = WorklistElement(fact, id);
-    Node expl = Rewriter::rewrite(d_explanations[id]);
+    Node expl =  BooleanSimplification::simplify(d_explanations[id]);
     storeExplanation(id, expl);
     d_ids[fact] = id;
     ++w;
@@ -417,7 +418,7 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
     theory_confl.push_back(c_expl);
   }
   
-  Node confl = Rewriter::rewrite(utils::mkAnd(theory_confl));
+  Node confl = BooleanSimplification::simplify(utils::mkAnd(theory_confl));
 
   Debug("bv-subtheory-algebraic") << " Out Conflict: " << confl << "\n";
   setConflict(confl);
@@ -615,12 +616,12 @@ void AlgebraicSolver::storeExplanation(TNode explanation) {
 }
 
 bool AlgebraicSolver::checkExplanation(TNode explanation) {
-  explanation = Rewriter::rewrite(explanation);
-  if (explanation.getKind() != kind::AND) {
-    return d_inputAssertions.find(explanation) != d_inputAssertions.end();
+  Node simplified_explanation = BooleanSimplification::simplify(explanation);
+  if (simplified_explanation.getKind() != kind::AND) {
+    return d_inputAssertions.find(simplified_explanation) != d_inputAssertions.end();
   }
-  for (unsigned i = 0; i < explanation.getNumChildren(); ++i) {
-    if (d_inputAssertions.find(explanation[i]) == d_inputAssertions.end()) {
+  for (unsigned i = 0; i < simplified_explanation.getNumChildren(); ++i) {
+    if (d_inputAssertions.find(simplified_explanation[i]) == d_inputAssertions.end()) {
       return false;
     }
   }

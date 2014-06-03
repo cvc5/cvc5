@@ -60,7 +60,14 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   if(res.node!= node) {
     Debug("bitvector-rewrite") << "TheoryBV::postRewrite    " << node << std::endl;
     Debug("bitvector-rewrite") << "TheoryBV::postRewrite to " << res.node << std::endl;
+    if (res.node.getKind() == kind::EQUAL) {
+      Assert (res.node[0] < res.node[1]); 
+    }
   }
+  if (res.node.getKind() == kind::EQUAL) {
+    Assert (res.node[0] < res.node[1]); 
+  }
+
   // if (res.status == REWRITE_DONE) {
   //   Node rewr = res.node;
   //   Node rerewr = d_rewriteTable[rewr.getKind()](rewr, false).node;

@@ -197,7 +197,8 @@ public:
 
     CheckArgument(d_size == y.d_size, y);
     if (y.d_value == 0) {
-      return BitVector(d_size, 0u);
+      // under division by zero return -1
+      return BitVector(d_size, Integer(1).oneExtend(1, d_size - 1));
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);
@@ -210,7 +211,7 @@ public:
   BitVector unsignedRemTotal(const BitVector& y) const {
     CheckArgument(d_size == y.d_size, y);
     if (y.d_value == 0) {
-      return BitVector(d_size, 0u);
+      return BitVector(d_size, d_value);
     }
     CheckArgument(d_value >= 0, this);
     CheckArgument(y.d_value > 0, y);

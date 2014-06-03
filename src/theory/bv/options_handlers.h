@@ -73,7 +73,8 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
       options::bitvectorAig.set(true);
     }
     if (!options::bitvectorAigSimplifications.wasSetByUser()) {
-      options::bitvectorAigSimplifications.set("balance;rewrite");
+      // due to a known bug in abc switching to using drw instead of rw
+      options::bitvectorAigSimplifications.set("balance;drw");
     }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);

@@ -34,7 +34,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_slicer(new Slicer()),
-    d_isCoreTheory(c, true),
+    d_isComplete(c, true),
     d_useSlicer(false),
     d_preregisterCalled(false),
     d_checkCalled(false),
@@ -174,8 +174,8 @@ bool CoreSolver::check(Theory::Effort e) {
   TNodeBoolMap seen;
   while (! done()) {
     TNode fact = get();
-    if (d_isCoreTheory && !utils::isCoreTerm(fact, seen)) {
-      d_isCoreTheory = false;
+    if (d_isComplete && !isCompleteForTerm(fact, seen)) {
+      d_isComplete = false;
     }
     
     // only reason about equalities
@@ -357,7 +357,17 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
+bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
+  if (d_useSlicer)
+    return utils::isCoreTerm(term, seen);
+  
+  return utils::isEqualityTerm(term, seen); 
+}
+
 void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+  if (d_useSlicer) {
+    Unreachable(); 
+  }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
@@ -367,7 +377,7 @@ void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
   }
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
-  m->assertEqualityEngine(&d_equalityEngine, termSet);
+  m->assertEqualityEngine(&d_equalityEngine, &termSet);
   if (isComplete()) {
     Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
