@@ -55,11 +55,10 @@ submission submission-main:
 	#$(MAKE) -C test/regress/regress1 check
 	# main track
 	mkdir -p cvc4-smtcomp-$(YEAR)
-	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/cvc4
-	mkdir -p cvc4-smtcomp-$(YEAR)/bin
+	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/bin/cvc4
 	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
-	#echo "CVC4 for SMT-COMP main track `builds/bin/cvc4 --version`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
+	echo "CVC4 for SMT_COMP main track `builds/bin/cvc4 --version | head -1 | sed 's,.*version ,,;s,-,_,g;s,[^a-zA-Z0-9. _],,g'`" > cvc4-smtcomp-$(YEAR)/starexec_description.txt
 	cd cvc4-smtcomp-$(YEAR) && zip -r ../cvc4-smtcomp-$(YEAR).zip *
 submission-application:
 	# application track is a separate build because it has different preprocessor #defines
@@ -76,12 +75,11 @@ submission-application:
 	$(MAKE) check
 	#$(MAKE) -C test/regress/regress1 check
 	# package the application track zipfile
-	mkdir -p cvc4-application-smtcomp-$(YEAR)
-	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/cvc4
 	mkdir -p cvc4-application-smtcomp-$(YEAR)/bin
+	cp -p builds/bin/cvc4 cvc4-application-smtcomp-$(YEAR)/bin/cvc4
 	cp contrib/run-script-smtcomp2014-application cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-application-smtcomp-$(YEAR)/bin/starexec_run_default
-	#echo "CVC4 for SMT-COMP application track `builds/bin/cvc4 --version`" > cvc4-application-smtcomp-$(YEAR)/starexec_description.txt
+	echo "CVC4 for SMT_COMP application track `builds/bin/cvc4 --version | head -1 | sed 's,.*version ,,;s,-,_,g;s,[^a-zA-Z0-9. _],,g'`" > cvc4-application-smtcomp-$(YEAR)/starexec_description.txt
 	cd cvc4-application-smtcomp-$(YEAR) && zip -r ../cvc4-application-smtcomp-$(YEAR).zip *
 submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
@@ -99,11 +97,10 @@ submission-parallel:
 	-$(MAKE) check BINARY=pcvc4
 	#$(MAKE) -C test/regress/regress1 check BINARY=pcvc4
 	# package the parallel track zipfile
-	mkdir -p cvc4-parallel-smtcomp-$(YEAR)
-	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/pcvc4
 	mkdir -p cvc4-parallel-smtcomp-$(YEAR)/bin
+	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/bin/pcvc4
 	( echo '#!/bin/sh'; \
 	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
-	#echo "CVC4 for SMT-COMP parallel track `builds/bin/cvc4 --version`" > cvc4-parallel-smtcomp-$(YEAR)/starexec_description.txt
+	echo "CVC4 for SMT_COMP parallel track `builds/bin/cvc4 --version | head -1 | sed 's,.*version ,,;s,-,_,g;s,[^a-zA-Z0-9. _],,g'`" > cvc4-parallel-smtcomp-$(YEAR)/starexec_description.txt
 	cd cvc4-parallel-smtcomp-$(YEAR) && zip -r ../cvc4-parallel-smtcomp-$(YEAR).zip *
