@@ -880,6 +880,10 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 }/* TheorySetsPropagate::propagate(TNode) */
 
 
+void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
 void TheorySetsPrivate::addSharedTerm(TNode n) {
   Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);

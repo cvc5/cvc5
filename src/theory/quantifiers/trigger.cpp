@@ -323,9 +323,16 @@ bool Trigger::isUsableTrigger( Node n, Node f ){
 }
 
 bool Trigger::isAtomicTrigger( Node n ){
-  return ( n.getKind()==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) || n.getKind()==SELECT || n.getKind()==STORE ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
+  Kind k = n.getKind();
+  return ( k==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) || 
+         ( k!=APPLY_UF && isAtomicTriggerKind( k ) );
 }
+bool Trigger::isAtomicTriggerKind( Kind k ) {
+  return k==APPLY_UF || k==SELECT || k==STORE ||
+         k==APPLY_CONSTRUCTOR || k==APPLY_SELECTOR_TOTAL || k==APPLY_TESTER ||
+         k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SET_SINGLETON;
+}
+
 bool Trigger::isSimpleTrigger( Node n ){
   if( isAtomicTrigger( n ) ){
     for( int i=0; i<(int)n.getNumChildren(); i++ ){

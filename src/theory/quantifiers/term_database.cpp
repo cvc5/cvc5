@@ -73,25 +73,21 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
 
 Node TermDb::getOperator( Node n ) {
   //return n.getOperator();
-
-  if( n.getKind()==SELECT || n.getKind()==STORE ){
+  Kind k = n.getKind();
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SET_SINGLETON ){
     //since it is parametric, use a particular one as op
-    TypeNode tn1 = n[0].getType();
-    TypeNode tn2 = n[1].getType();
+    TypeNode tn = n[0].getType();
     Node op = n.getOperator();
-    std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > >::iterator ito = d_par_op_map.find( op );
+    std::map< Node, std::map< TypeNode, Node > >::iterator ito = d_par_op_map.find( op );
     if( ito!=d_par_op_map.end() ){
-      std::map< TypeNode, std::map< TypeNode, Node > >::iterator it = ito->second.find( tn1 );
+      std::map< TypeNode, Node >::iterator it = ito->second.find( tn );
       if( it!=ito->second.end() ){
-        std::map< TypeNode, Node >::iterator it2 = it->second.find( tn2 );
-        if( it2!=it->second.end() ){
-          return it2->second;
-        }
+        return it->second;
       }
     }
-    d_par_op_map[op][tn1][tn2] = n;
+    d_par_op_map[op][tn] = n;
     return n;
-  }else if( inst::Trigger::isAtomicTrigger( n ) ){
+  }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
     return n.getOperator();
   }else{
     return Node::null();

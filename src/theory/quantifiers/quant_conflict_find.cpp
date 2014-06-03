@@ -20,6 +20,7 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/options.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/trigger.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -1692,8 +1693,9 @@ bool MatchGen::isHandledBoolConnective( TNode n ) {
 }
 
 bool MatchGen::isHandledUfTerm( TNode n ) {
-  return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
-         n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
+  //return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
+  //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
+  return inst::Trigger::isAtomicTriggerKind( n.getKind() );  
 }
 
 Node MatchGen::getOperator( QuantConflictFind * p, Node n ) {

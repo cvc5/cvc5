@@ -107,6 +107,7 @@ public:
   static bool isUsableTrigger( std::vector< Node >& nodes, Node f );
   static bool isUsableTrigger( Node n, Node f );
   static bool isAtomicTrigger( Node n );
+  static bool isAtomicTriggerKind( Kind k );
   static bool isSimpleTrigger( Node n );
   /** get pattern arithmetic */
   static bool isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs );
