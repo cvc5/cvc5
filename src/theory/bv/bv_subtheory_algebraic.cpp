@@ -343,7 +343,7 @@ bool AlgebraicSolver::check(Theory::Effort e) {
   if (ratio > 0.5 ||
       !d_isDifficult.get()) {
     // give up if problem not reduced enough
-    d_isComplete = false;
+    d_isComplete.set(false);
     return true;
   }
   
@@ -380,7 +380,8 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
 
   Assert (res == SAT_VALUE_FALSE);
   Assert (d_quickSolver->inConflict());  
-
+  d_isComplete.set(true);
+  
   Debug("bv-subtheory-algebraic") << " Unsat.\n";
   ++(d_numSolved);
   ++(d_statistics.d_numUnsat);
@@ -657,31 +658,50 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
   Debug("bv-subtheory-algebraic-models") << "AlgebraicSolver::collectModelInfo\n"; 
   AlwaysAssert (!d_quickSolver->inConflict());
   set<Node> termSet;
-  // d_bv->computeRelevantTerms(termSet);
-  // assert substitution equalities
+  d_bv->computeRelevantTerms(termSet);
 
-  for (SubstitutionMap::const_iterator it = d_modelMap->begin(); it != d_modelMap->end(); ++it) {
-    TNode from = (*it).first;
-    TNode to = (*it).second; 
-    Debug("bv-subtheory-algebraic-models") << "   " << from <<" => " << to <<"\n";
-    model->assertEquality(from, to, true);
+  // collect relevant terms that the bv theory abstracts to variables
+  // (variables and parametric terms such as select apply_uf)
+  std::vector<TNode> variables;
+  std::vector<Node> values;
+  for (set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
+    TNode term = *it; 
+    if (term.getType().isBitVector() &&
+        (term.getMetaKind() == kind::metakind::VARIABLE ||
+         Theory::theoryOf(term) != THEORY_BV)) {
+      variables.push_back(term);
+      values.push_back(term);
+    }
   }
-  
-  // for (set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
-  //   TNode term = *it;
-  //   Node subst_term = d_modelMap->apply(term);
-  //   if (term.getType().isBoolean()) {
-  //     model->assertPredicate(utils::mkNode(kind::IFF, term, subst_term), true);
-  //   } else {
-  //     model->assertEquality(term, subst_term, true);
-  //   }
-  //   if (term != subst_term) {
-  //     Debug("bv-subtheory-algebraic-models") << "   " << term <<" => " << subst_term <<"\n";
-  //   }
-  // }
-  // get values from SAT solver
-  d_quickSolver->collectModelInfo(model, fullModel);
-}
+
+  Debug("bv-subtheory-algebraic-models") << "Substitutions:\n";
+  for (unsigned i = 0; i < variables.size(); ++i) {
+    TNode current = variables[i];
+    TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
+    Debug("bv-subtheory-algebraic-models") << "   " << current << " => " << subst << "\n";
+    values[i] = subst;
+  }
+
+  Debug("bv-subtheory-algebraic-models") << "Model:\n";
+  for (BVQuickCheck::vars_iterator it = d_quickSolver->beginVars(); it != d_quickSolver->endVars(); ++it) {
+    TNode var = *it;
+    Node value = d_quickSolver->getVarValue(var);
+    Debug("bv-subtheory-algebraic-models") << "   " << var << " => " << value << "\n";
+    Assert (value.getKind() == kind::CONST_BITVECTOR); 
+    d_modelMap->addSubstitution(var, value); 
+  }
+
+  Debug("bv-subtheory-algebraic-models") << "Final Model:\n";
+  for (unsigned i = 0; i < variables.size(); ++i) {
+    TNode current = values[i];
+    TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
+    Debug("bv-subtheory-algebraic-models") << "   " << variables[i] << " => " << subst << "\n"; 
+    // Doesn't have to be constant as it may be irrelevant
+    // Assert (subst.getKind() == kind::CONST_BITVECTOR); 
+    model->assertEquality(variables[i], subst, true);
+  }
+
+ }
 
 Node AlgebraicSolver::getModelValue(TNode node) {
   return Node::null(); 

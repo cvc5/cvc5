@@ -107,6 +107,18 @@ void BVQuickCheck::pop() {
   d_ctx->pop();
 }
 
+BVQuickCheck::vars_iterator BVQuickCheck::beginVars() {
+  return d_bitblaster->beginVars(); 
+}
+BVQuickCheck::vars_iterator BVQuickCheck::endVars() {
+  return d_bitblaster->endVars(); 
+}
+
+Node BVQuickCheck::getVarValue(TNode var) {
+  return d_bitblaster->getVarValue(var); 
+}
+
+
 /** 
  * Constructs a new sat solver which requires throwing out the atomBBCache
  * but keeps all the termBBCache

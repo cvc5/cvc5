@@ -187,6 +187,11 @@ public:
    * constants to equivalence classes that don't already have them
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
+
+  typedef VarSet::const_iterator vars_iterator;
+  vars_iterator beginVars() { return d_variables.begin(); }
+  vars_iterator endVars() { return d_variables.end(); }
+
   /**
    * Creates the bits corresponding to the variable (or non-bv term). 
    *
@@ -381,7 +386,7 @@ void TBitblaster<T>::getBBTerm(TNode node, Bits& bits) const {
 
 template <class T>
 void TBitblaster<T>::storeBBTerm(TNode node, const Bits& bits) {
-  d_termCache.insert(std::make_pair(node, bits)); 
+  d_termCache.insert(std::make_pair(node, bits));
 }
 
 

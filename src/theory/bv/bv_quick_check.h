@@ -102,6 +102,13 @@ public:
    */
   uint64_t computeAtomWeight(TNode atom, NodeSet& seen);
   void collectModelInfo(theory::TheoryModel* model, bool fullModel); 
+
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>::const_iterator vars_iterator;
+  vars_iterator beginVars(); 
+  vars_iterator endVars(); 
+
+  Node getVarValue(TNode var); 
+
 };
 
 
