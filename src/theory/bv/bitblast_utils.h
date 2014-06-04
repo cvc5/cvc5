@@ -22,13 +22,15 @@
 
 #include <ostream>
 #include "expr/node.h"
+
+#ifdef CVC4_USE_ABC
 #include "base/main/main.h"
 #include "base/abc/abc.h"
 
 extern "C" {
 #include "sat/cnf/cnf.h"
 }
-
+#endif
 
 namespace CVC4 {
 

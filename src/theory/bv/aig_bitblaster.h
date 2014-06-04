@@ -25,7 +25,9 @@
 #include "prop/sat_solver_factory.h"
 #include "theory/bv/options.h"
 
-// FIXME: sketchy copy paste because the function is defined as static in ABC
+
+#ifdef CVC4_USE_ABC
+// Function is defined as static in ABC. Not sure how else to do this. 
 static inline int Cnf_Lit2Var( int Lit ) { return (Lit & 1)? -(Lit >> 1)-1 : (Lit >> 1)+1;  }
 
 extern "C" {
@@ -472,5 +474,185 @@ AigBitblaster::Statistics::~Statistics() {
 } /* CVC4 namespace*/
 
 
+#else // CVC4_USE_ABC
 
-#endif
+namespace CVC4 {
+namespace theory {
+namespace bv {
+
+template <> inline
+std::string toString<Abc_Obj_t*> (const std::vector<Abc_Obj_t*>& bits) {
+  Unreachable("Don't know how to print AIG");
+} 
+
+
+template <> inline
+Abc_Obj_t* mkTrue<Abc_Obj_t*>() {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkFalse<Abc_Obj_t*>() {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkNot<Abc_Obj_t*>(Abc_Obj_t* a) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkOr<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkOr<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
+  Unreachable();
+  return NULL;
+}
+
+
+template <> inline
+Abc_Obj_t* mkAnd<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkAnd<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkXor<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkIff<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
+  Unreachable();
+  return NULL;
+}
+
+template <> inline
+Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
+  Unreachable();
+  return NULL;
+}
+
+
+Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
+
+Abc_Ntk_t* AigBitblaster::currentAigNtk() {
+  Unreachable();
+  return NULL;
+}
+
+
+Abc_Aig_t* AigBitblaster::currentAigM() {
+  Unreachable();
+  return NULL;
+}
+
+AigBitblaster::~AigBitblaster() {
+  Unreachable();
+}
+
+Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
+  Unreachable();
+  return NULL;
+}
+
+void AigBitblaster::bbAtom(TNode node) {
+  Unreachable();
+}
+
+void AigBitblaster::bbTerm(TNode node, Bits& bits) {
+  Unreachable();
+}
+
+
+void AigBitblaster::cacheAig(TNode node, Abc_Obj_t* aig) {
+  Unreachable();
+}
+bool AigBitblaster::hasAig(TNode node) {
+  Unreachable();
+  return false; 
+}
+Abc_Obj_t* AigBitblaster::getAig(TNode node) {
+  Unreachable();
+  return NULL;
+}
+
+void AigBitblaster::makeVariable(TNode node, Bits& bits) {
+  Unreachable();  
+}
+
+Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
+  Unreachable();
+  return NULL;
+} 
+
+bool AigBitblaster::hasInput(TNode input) {
+  Unreachable();
+  return false; 
+}
+
+bool AigBitblaster::solve(TNode node) {
+  Unreachable();
+  return false; 
+}
+void AigBitblaster::simplifyAig() {
+  Unreachable();
+}
+
+void AigBitblaster::convertToCnfAndAssert() {
+  Unreachable();
+}
+
+void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
+  Unreachable();
+}
+bool AigBitblaster::hasBBAtom(TNode atom) const {
+  Unreachable();
+  return false;
+}
+
+void AigBitblaster::storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) {
+  Unreachable();
+}
+
+Abc_Obj_t* AigBitblaster::getBBAtom(TNode atom) const {
+  Unreachable();
+  return NULL;
+}
+
+AigBitblaster::Statistics::Statistics()
+  : d_numClauses("theory::bv::AigBitblaster::numClauses", 0)
+  , d_numVariables("theory::bv::AigBitblaster::numVariables", 0)
+  , d_simplificationTime("theory::bv::AigBitblaster::simplificationTime")
+  , d_cnfConversionTime("theory::bv::AigBitblaster::cnfConversionTime")
+  , d_solveTime("theory::bv::AigBitblaster::solveTime")
+{}
+
+AigBitblaster::Statistics::~Statistics() {}
+
+AigBitblaster::AigBitblaster() {
+  Unreachable();
+}
+
+} // namespace bv
+} // namespace theory
+} // namespace CVC4
+
+
+#endif // CVC4_USE_ABC
+
+#endif // __CVC4__AIG__BITBLASTER_H

@@ -1474,6 +1474,9 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
+
+
+
 Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
   throw(TypeCheckingException, LogicException) {
 
@@ -1614,7 +1617,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
 
   AlwaysAssert(result.size() == 1);
 
-  
   return result.top();
 }
 
@@ -2047,7 +2049,6 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
 
 void SmtEnginePrivate::unconstrainedSimp(std::vector<Node>& assertions) {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
-
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
   d_smt.d_theoryEngine->ppUnconstrainedSimp(assertions);
 }
@@ -2673,11 +2674,11 @@ Result SmtEngine::check() {
   }
 
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
+
   Chat() << "solving..." << endl;
   Trace("smt") << "SmtEngine::check(): running check" << endl;
-  
   Result result = d_propEngine->checkSat(millis, resource);
-  
+
   // PropEngine::checkSat() returns the actual amount used in these
   // variables.
   d_cumulativeTimeUsed += millis;
