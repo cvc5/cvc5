@@ -2,7 +2,7 @@
 #
 set -e
 
-commit=0c11cea52a36
+commit=3c5d3319120b
 
 cd "$(dirname "$0")/.."
 
