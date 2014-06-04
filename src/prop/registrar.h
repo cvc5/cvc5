@@ -28,6 +28,7 @@ namespace prop {
 
 class Registrar {
 public:
+  virtual ~Registrar() {}
   virtual void preRegister(Node n) = 0;
 
 };/* class Registrar */

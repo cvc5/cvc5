@@ -91,14 +91,14 @@ d_lemmas_produced_c(u){
     d_inst_engine = NULL;
   }
   if( options::finiteModelFind()  ){
-    d_model_engine = new quantifiers::ModelEngine( c, this );
-    d_modules.push_back( d_model_engine );
     if( options::fmfBoundInt() ){
       d_bint = new quantifiers::BoundedIntegers( c, this );
       d_modules.push_back( d_bint );
     }else{
       d_bint = NULL;
     }
+    d_model_engine = new quantifiers::ModelEngine( c, this );
+    d_modules.push_back( d_model_engine );
   }else{
     d_model_engine = NULL;
     d_bint = NULL;
@@ -266,7 +266,6 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
 }
 
 void QuantifiersEngine::assertNode( Node f ){
-  Assert( f.getKind()==FORALL );
   d_model->assertQuantifier( f );
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->assertNode( f );
@@ -352,7 +351,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
           }
         }
       }
-      setInstantiationLevelAttr( body, maxInstLevel+1 );
+      setInstantiationLevelAttr( body, f[1], maxInstLevel+1, terms );
     }
     Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
     ++(d_statistics.d_instantiations);
@@ -363,13 +362,19 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   }
 }
 
-void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
-  if( !n.hasAttribute(InstLevelAttribute()) ){
-    InstLevelAttribute ila;
-    n.setAttribute(ila,level);
-  }
-  for( int i=0; i<(int)n.getNumChildren(); i++ ){
-    setInstantiationLevelAttr( n[i], level );
+void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms ){
+  //if not from the vector of terms we instantiatied
+  if( std::find( inst_terms.begin(), inst_terms.end(), n )==inst_terms.end() ){
+    //if this is a new term, without an instantiation level
+    if( n!=qn && !n.hasAttribute(InstLevelAttribute()) ){
+      InstLevelAttribute ila;
+      n.setAttribute(ila,level);
+    }
+    Assert( qn.getKind()!=BOUND_VARIABLE );
+    Assert( n.getNumChildren()==qn.getNumChildren() );
+    for( int i=0; i<(int)n.getNumChildren(); i++ ){
+      setInstantiationLevelAttr( n[i], qn[i], level, inst_terms );
+    }
   }
 }
 
@@ -624,19 +629,18 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
-  //Trace("ajr-temp") << "QE print inst." << std::endl;
-  //if( options::incrementalSolving() ){
-  //  for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
-  //    out << "Instantiations of " << it->first << " : " << std::endl;
-  //    it->second->print( out, it->first );
-  //  }
-  //}else{
+  if( options::incrementalSolving() ){
+    for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
+      out << "Instantiations of " << it->first << " : " << std::endl;
+      it->second->print( out, it->first );
+    }
+  }else{
     for( std::map< Node, inst::InstMatchTrie >::iterator it = d_inst_match_trie.begin(); it != d_inst_match_trie.end(); ++it ){
       out << "Instantiations of " << it->first << " : " << std::endl;
       it->second.print( out, it->first );
       out << std::endl;
     }
-  //}
+  }
 }
 
 QuantifiersEngine::Statistics::Statistics():

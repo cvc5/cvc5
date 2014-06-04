@@ -33,7 +33,7 @@ private:
 
 protected:
   ExprManager& d_exprMgr;
-  SmtEngine d_smtEngine;
+  SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
   Result d_result;
@@ -41,7 +41,9 @@ protected:
 public:
   CommandExecutor(ExprManager &exprMgr, Options &options);
 
-  virtual ~CommandExecutor() {}
+  virtual ~CommandExecutor() {
+    delete d_smtEngine;
+  }
 
   /**
    * Executes a command. Recursively handles if cmd is a command
@@ -51,6 +53,7 @@ public:
   bool doCommand(CVC4::Command* cmd);
 
   Result getResult() const { return d_result; }
+  void reset();
 
   StatisticsRegistry& getStatisticsRegistry() {
     return d_stats;
@@ -58,7 +61,7 @@ public:
 
   virtual void flushStatistics(std::ostream& out) const {
     d_exprMgr.getStatistics().flushInformation(out);
-    d_smtEngine.getStatistics().flushInformation(out);
+    d_smtEngine->getStatistics().flushInformation(out);
     d_stats.flushInformation(out);
   }
 

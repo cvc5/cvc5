@@ -27,7 +27,7 @@ SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jc
 }
 }
 %}
-%typemap(javaconstruct) CVC4::SmtEngine {
+%typemap(javaconstruct) SmtEngine {
     this($imcall, true);
     emRef = mkRef(em); // keep ref to expr manager in SWIG proxy class
   }

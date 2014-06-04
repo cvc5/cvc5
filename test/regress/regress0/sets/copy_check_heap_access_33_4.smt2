@@ -1,3 +1,5 @@
+; COMMAND-LINE: --full-saturate-quant
+; EXPECT: unsat
 (set-option :print-success false)
 (set-logic AUFLIA_SETS)
 (set-info :status unsat)

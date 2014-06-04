@@ -63,7 +63,7 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   }
 
   // Create the SmtEngine(s)
-  d_smts.push_back(&d_smtEngine);
+  d_smts.push_back(d_smtEngine);
   for(unsigned i = 1; i < d_numThreads; ++i) {
     d_smts.push_back(new SmtEngine(d_exprMgrs[i]));
   }

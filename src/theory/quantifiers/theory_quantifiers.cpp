@@ -109,10 +109,10 @@ void TheoryQuantifiers::collectModelInfo(TheoryModel* m, bool fullModel) {
 void TheoryQuantifiers::check(Effort e) {
   CodeTimer codeTimer(d_theoryTime);
 
-  Debug("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;
+  Trace("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;
   while(!done()) {
     Node assertion = get();
-    Debug("quantifiers-assert") << "quantifiers::assert(): " << assertion << std::endl;
+    Trace("quantifiers-assert") << "quantifiers::assert(): " << assertion << std::endl;
     switch(assertion.getKind()) {
     case kind::FORALL:
       assertUniversal( assertion );

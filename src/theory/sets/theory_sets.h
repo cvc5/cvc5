@@ -48,6 +48,8 @@ public:
 
   ~TheorySets();
 
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  
   void addSharedTerm(TNode);
 
   void check(Effort);

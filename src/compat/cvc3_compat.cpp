@@ -341,6 +341,14 @@ bool Expr::isBoundVar() const {
   return getKind() == CVC4::kind::BOUND_VARIABLE;
 }
 
+bool Expr::isForall() const {
+  return getKind() == CVC4::kind::FORALL;
+}
+
+bool Expr::isExists() const {
+  return getKind() == CVC4::kind::EXISTS;
+}
+
 bool Expr::isLambda() const {
   // when implemented, also fix isClosure() below
   Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");

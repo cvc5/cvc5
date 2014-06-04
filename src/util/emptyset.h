@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file emptyset.h
+ ** \verbatim
+ ** Original author: Kshitij Bansal
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
 #include "cvc4_public.h"
 
@@ -30,36 +46,34 @@ public:
 
   SetType getType() const { return d_type; }
 
-  bool operator==(const EmptySet& asa) const throw() {
-    return d_type == asa.d_type;
+  bool operator==(const EmptySet& es) const throw() {
+    return d_type == es.d_type;
   }
-  bool operator!=(const EmptySet& asa) const throw() {
-    return !(*this == asa);
-  }
-
-  bool operator<(const EmptySet& asa) const throw() {
-    return d_type < asa.d_type;
-  }
-  bool operator<=(const EmptySet& asa) const throw() {
-    return d_type <= asa.d_type;
-  }
-  bool operator>(const EmptySet& asa) const throw() {
-    return !(*this <= asa);
-  }
-  bool operator>=(const EmptySet& asa) const throw() {
-    return !(*this < asa);
+  bool operator!=(const EmptySet& es) const throw() {
+    return !(*this == es);
   }
 
+  bool operator<(const EmptySet& es) const throw() {
+    return d_type < es.d_type;
+  }
+  bool operator<=(const EmptySet& es) const throw() {
+    return d_type <= es.d_type;
+  }
+  bool operator>(const EmptySet& es) const throw() {
+    return !(*this <= es);
+  }
+  bool operator>=(const EmptySet& es) const throw() {
+    return !(*this < es);
+  }
 
 };/* class EmptySet */
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& asa) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
 
 struct CVC4_PUBLIC EmptySetHashFunction {
-  inline size_t operator()(const EmptySet& asa) const {
-    return TypeHashFunction()(asa.getType());
+  inline size_t operator()(const EmptySet& es) const {
+    return TypeHashFunction()(es.getType());
   }
-};/* struct EmptysetHashFunction */
+};/* struct EmptySetHashFunction */
 
-
-}
+}/* CVC4 namespace */

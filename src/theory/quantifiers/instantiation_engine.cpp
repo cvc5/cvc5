@@ -393,17 +393,15 @@ void InstantiationEngine::debugSat( int reason ){
         }
       }
     }
+    if( d_setIncomplete ){
+      Debug("quantifiers-sat") << "Cannot conclude SAT with nested quantifiers in recursive strategy." << std::endl;
+      //TODO : only when existentials with inst constants
+      d_quantEngine->getOutputChannel().setIncomplete();
+    }
     //}
     Debug("quantifiers-sat") << "return SAT: Cbqi, no quantifier is active. " << std::endl;
-    //static bool setTrust = false;
-    //if( !setTrust ){
-    //  setTrust = true;
-    //  Notice() << "trust-";
-    //}
   }else if( reason==SAT_INST_STRATEGY ){
     Debug("quantifiers-sat") << "return SAT: No strategy chose to add an instantiation." << std::endl;
-    //Notice() << "sat ";
-    //Unimplemented();
   }
 }
 

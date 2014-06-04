@@ -190,6 +190,29 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
     return;
   }
 
+  /**
+   * Disequality propagation if element type is set
+   */
+  if(x.getType().isSet()) {
+    if(polarity) {
+      const CDTNodeList* l = d_termInfoManager->getNonMembers(S);
+      for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+        TNode n = *it;
+        learnLiteral( /* atom = */ EQUAL(x, n),
+                      /* polarity = */ false,
+                      /* reason = */ AND( MEMBER(x, S), NOT( MEMBER(n, S)) ) );
+      }
+    } else {
+      const CDTNodeList* l = d_termInfoManager->getMembers(S);
+      for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+        TNode n = *it;
+        learnLiteral( /* atom = */ EQUAL(x, n),
+                      /* polarity = */ false,
+                      /* reason = */ AND( NOT(MEMBER(x, S)), MEMBER(n, S)) );
+      }
+    }
+  }
+
   for(; !j.isFinished(); ++j) {
     TNode S = (*j);
     Node cur_atom = MEMBER(x, S);
@@ -227,7 +250,10 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
   Debug("sets-prop") << "[sets-prop] doSettermPropagation("
                      << x << ", " << S << std::endl;
 
-  Assert(S.getType().isSet() && S.getType().getSetElementType() == x.getType());
+  Assert(S.getType().isSet() && S.getType().getSetElementType() == x.getType(),
+         ( std::string("types of S and x are ") + S.getType().toString() +
+           std::string(" and ") + x.getType().toString() +
+           std::string(" respectively") ).c_str()  );
 
   Node literal, left_literal, right_literal;
 
@@ -416,7 +442,8 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
         Unhandled();
       }
     } else {
-      Assert(k == kind::VARIABLE || k == kind::APPLY_UF);
+      Assert(k == kind::VARIABLE || k == kind::APPLY_UF || k == kind::SKOLEM,
+             (std::string("Expect variable or UF got ") + kindToString(k)).c_str() );
       /* assign emptyset, which is default */
     }
 
@@ -598,6 +625,7 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
   BOOST_FOREACH( TNode setterm, settermsModEq ) {
     Elements elements = getElements(setterm, settermElementsMap);
     Node shape = elementsToShape(elements, setterm.getType());
+    shape = theory::Rewriter::rewrite(shape);
     m->assertEquality(shape, setterm, true);
     m->assertRepresentative(shape);
   }
@@ -852,6 +880,10 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 }/* TheorySetsPropagate::propagate(TNode) */
 
 
+void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
 void TheorySetsPrivate::addSharedTerm(TNode n) {
   Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
@@ -1042,6 +1074,14 @@ const CDTNodeList* TheorySetsPrivate::TermInfoManager::getParents(TNode x) {
   return d_info[x]->parents;
 }
 
+const CDTNodeList* TheorySetsPrivate::TermInfoManager::getMembers(TNode S) {
+  return d_info[S]->elementsInThisSet;
+}
+
+const CDTNodeList* TheorySetsPrivate::TermInfoManager::getNonMembers(TNode S) {
+  return d_info[S]->elementsNotInThisSet;
+}
+
 void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
   unsigned numChild = n.getNumChildren();
 
@@ -1052,8 +1092,7 @@ void TheorySetsPrivate::TermInfoManager::addTerm(TNode n) {
 
   if(n.getKind() == kind::UNION ||
      n.getKind() == kind::INTERSECTION ||
-     n.getKind() == kind::SETMINUS ||
-     n.getKind() == kind::SET_SINGLETON) {
+     n.getKind() == kind::SETMINUS) {
 
     for(unsigned i = 0; i < numChild; ++i) {
       if(d_terms.contains(n[i])) {

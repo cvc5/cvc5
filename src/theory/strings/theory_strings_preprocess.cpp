@@ -196,18 +196,24 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     d_cache[t] = t;
   } else if( t.getKind() == kind::STRING_STRIDOF ) {
     if(options::stringExp()) {
-      Node sk1 = NodeManager::currentNM()->mkSkolem( "io1", t[0].getType(), "created for indexof" );
-      Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", t[0].getType(), "created for indexof" );
-      Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", t[0].getType(), "created for indexof" );
-      Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", t[0].getType(), "created for indexof" );
-      Node skk = NodeManager::currentNM()->mkSkolem( "iok", t[2].getType(), "created for indexof" );
+      Node sk1 = NodeManager::currentNM()->mkSkolem( "io1", NodeManager::currentNM()->stringType(), "created for indexof" );
+      Node sk2 = NodeManager::currentNM()->mkSkolem( "io2", NodeManager::currentNM()->stringType(), "created for indexof" );
+      Node sk3 = NodeManager::currentNM()->mkSkolem( "io3", NodeManager::currentNM()->stringType(), "created for indexof" );
+      Node sk4 = NodeManager::currentNM()->mkSkolem( "io4", NodeManager::currentNM()->stringType(), "created for indexof" );
+      Node skk = NodeManager::currentNM()->mkSkolem( "iok", NodeManager::currentNM()->integerType(), "created for indexof" );
       Node eq = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2, sk3, sk4 ) );
       new_nodes.push_back( eq );
       Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
       Node krange = NodeManager::currentNM()->mkNode( kind::GEQ, skk, negone );
       new_nodes.push_back( krange );
-      krange = NodeManager::currentNM()->mkNode( kind::GT,
-            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk);
+      krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT,
+            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] ), skk) );
+      new_nodes.push_back( krange );
+      krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT,
+            NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[1] ), d_zero) );
+      new_nodes.push_back( krange );
+      krange = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GEQ,
+            t[2], d_zero) );
       new_nodes.push_back( krange );
 
       //str.len(s1) < y + str.len(s2)
@@ -224,7 +230,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       //t3 = s2
       Node c4 = t[1].eqNode( sk3 );
       //~contain(t2, s2)
-      Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, sk2, t[1] ).negate();
+      Node c5 = NodeManager::currentNM()->mkNode( kind::STRING_STRCTN, 
+                  NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk2,
+                    NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR_TOTAL, t[1], d_zero,
+                      NodeManager::currentNM()->mkNode(kind::MINUS,
+                        NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, t[1]),
+                        NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) )))),
+                  t[1] ).negate();
       //k=str.len(s1, s2)
       Node c6 = skk.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH,
                   NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, sk2 )));

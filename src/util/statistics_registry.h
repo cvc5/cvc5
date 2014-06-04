@@ -762,7 +762,7 @@ inline bool operator>=(const timespec& a, const timespec& b) {
 inline std::ostream& operator<<(std::ostream& os, const timespec& t) {
   // assumes t.tv_nsec is in range
   return os << t.tv_sec << "."
-            << std::setfill('0') << std::setw(8) << std::right << t.tv_nsec;
+            << std::setfill('0') << std::setw(9) << std::right << t.tv_nsec;
 }
 
 namespace CVC4 {

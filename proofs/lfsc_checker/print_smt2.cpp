@@ -54,7 +54,7 @@ void print_smt2( Expr* p, std::ostream& s, short mode )
             s << " ";
             for( int a=0; a<(int)args.size(); a++ ){
               print_smt2( args[a], s, newMode );
-              if( a!=args.size()-1 )
+              if( a!=(int)args.size()-1 )
                 s << " ";
             }
             s << ")";

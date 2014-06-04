@@ -190,7 +190,7 @@ private:
   /** instantiate f with arguments terms */
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** set instantiation level attr */
-  void setInstantiationLevelAttr( Node n, uint64_t level );
+  void setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms );
 public:
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );

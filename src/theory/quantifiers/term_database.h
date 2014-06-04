@@ -76,6 +76,7 @@ public:
   std::map< Node, TermArgTrie > d_data;
 public:
   bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
+  void debugPrint( const char * c, Node n, unsigned depth = 0 );
 };/* class TermArgTrie */
 
 
@@ -96,7 +97,7 @@ private:
   std::hash_set< Node, NodeHashFunction > d_processed;
 private:
   /** select op map */
-  std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > > d_par_op_map;
+  std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** count number of ground terms per operator (user-context dependent) */
   NodeIntMap d_op_ccount;
 public:

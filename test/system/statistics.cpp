@@ -59,10 +59,12 @@ int main() {
     different = different || stats.getStatistic((*i).first) != (*i).second;
   }
 
+#ifdef CVC4_STATISTICS_ON
   if(!different) {
     cout << "stats are the same!  bailing.." << endl;
     exit(1);
   }
+#endif /* CVC4_STATISTICS_ON */
 
   return r == Result::VALID ? 0 : 1;
 }

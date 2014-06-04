@@ -2,19 +2,20 @@
 
 cvc4=cvc4
 bench="$1"
-let "to = $2 - 85"
 
 file=${bench##*/}
 filename=${file%.*}
 
+echo "------- cvc4-fof casc j7 : $bench at $2..."
+
 # use: trywith [params..]
-# to attempt a run.  Only thing printed on stdout is "sat" or "unsat", in
-# which case this run script terminates immediately.  Otherwise, this
+# to attempt a run.  If an SZS ontology result is printed, then
+# the run script terminates immediately.  Otherwise, this
 # function returns normally.
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -t "$limit";$cvc4 --no-checking --no-interactive --dump-instantiations "$@" $bench) 2>/dev/null |
+  (ulimit -S -t "$limit";$cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
   (read w1 w2 w3 result w4 w5;
   case "$result" in
   Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
@@ -22,10 +23,16 @@ function trywith {
   esac; exit 1)
   if [ ${PIPESTATUS[1]} -eq 0 ]; then exit 0; fi
 }
+function finishwith {
+  echo "--- Run $@...";
+  $cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
+}
 
+trywith 15 --quant-cf --pre-skolem-quant --full-saturate-quant
 trywith 30 --full-saturate-quant
-trywith 10 --decision=internal --full-saturate-quant
 trywith 30 --finite-model-find --fmf-inst-engine --mbqi=gen-ev
+trywith 30 --relevant-triggers --full-saturate-quant
 trywith 15 --finite-model-find --decision=justification-stoponly
-trywith $to --quant-cf --full-saturate-quant
-echo "% SZS status" "GaveUp for $filename"
+trywith 30 --pre-skolem-quant --full-saturate-quant
+finishwith --quant-cf --full-saturate-quant
+# echo "% SZS status" "GaveUp for $filename"

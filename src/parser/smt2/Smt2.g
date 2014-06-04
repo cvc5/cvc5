@@ -1263,6 +1263,11 @@ str[std::string& s, bool fsmtlib]
     { s = AntlrInput::tokenText($STRING_LITERAL);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
+	  for(size_t i=0; i<s.size(); i++) {
+		if((unsigned)s[i] > 127) {
+			PARSER_STATE->parseError("Extended characters are not part of SMT-LIB, and they must be encoded as esacped sequences");
+		}
+	  }
       if(fsmtlib) {
         /* handle SMT-LIB standard escapes '\\' and '\"' */
         char* p_orig = strdup(s.c_str());

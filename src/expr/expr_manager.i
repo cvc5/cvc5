@@ -7,7 +7,7 @@
   // before the ExprManager
   private Object options;
 %}
-%typemap(javaconstruct) CVC4::ExprManager {
+%typemap(javaconstruct) ExprManager {
     this($imcall, true);
     this.options = SmtEngine.mkRef(options); // keep ref to options in SWIG proxy class
   }
@@ -17,7 +17,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        CVC4JNI.delete_SmtEngine(swigCPtr);
+        CVC4JNI.delete_ExprManager(swigCPtr);
       }
       swigCPtr = 0;
     }

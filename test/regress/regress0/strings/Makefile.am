@@ -20,6 +20,7 @@ MAKEFLAGS = -k
 # put it below in "TESTS +="
 TESTS =	\
   at001.smt2 \
+  bug001.smt2 \
   cardinality.smt2 \
   escchar.smt2 \
   str001.smt2 \
@@ -46,7 +47,8 @@ TESTS =	\
   loop007.smt2 \
   loop008.smt2 \
   loop009.smt2 \
-  reloop.smt2
+  reloop.smt2 \
+  artemis-0512-nonterm.smt2
 
 FAILING_TESTS =
 

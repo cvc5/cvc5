@@ -48,6 +48,14 @@ bool TermArgTrie::addTerm2( QuantifiersEngine* qe, Node n, int argIndex ){
   }
 }
 
+void TermArgTrie::debugPrint( const char * c, Node n, unsigned depth ) {
+  for( std::map< Node, TermArgTrie >::iterator it = d_data.begin(); it != d_data.end(); ++it ){
+    for( unsigned i=0; i<depth; i++ ){ Debug(c) << "  "; }
+    Debug(c) << it->first << std::endl;
+    it->second.debugPrint( c, n, depth+1 );
+  }
+}
+
 TermDb::TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe ) : d_quantEngine( qe ), d_op_ccount( u ) {
 
 }
@@ -65,25 +73,21 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
 
 Node TermDb::getOperator( Node n ) {
   //return n.getOperator();
-
-  if( n.getKind()==SELECT || n.getKind()==STORE ){
+  Kind k = n.getKind();
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SET_SINGLETON ){
     //since it is parametric, use a particular one as op
-    TypeNode tn1 = n[0].getType();
-    TypeNode tn2 = n[1].getType();
+    TypeNode tn = n[0].getType();
     Node op = n.getOperator();
-    std::map< Node, std::map< TypeNode, std::map< TypeNode, Node > > >::iterator ito = d_par_op_map.find( op );
+    std::map< Node, std::map< TypeNode, Node > >::iterator ito = d_par_op_map.find( op );
     if( ito!=d_par_op_map.end() ){
-      std::map< TypeNode, std::map< TypeNode, Node > >::iterator it = ito->second.find( tn1 );
+      std::map< TypeNode, Node >::iterator it = ito->second.find( tn );
       if( it!=ito->second.end() ){
-        std::map< TypeNode, Node >::iterator it2 = it->second.find( tn2 );
-        if( it2!=it->second.end() ){
-          return it2->second;
-        }
+        return it->second;
       }
     }
-    d_par_op_map[op][tn1][tn2] = n;
+    d_par_op_map[op][tn] = n;
     return n;
-  }else if( inst::Trigger::isAtomicTrigger( n ) ){
+  }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
     return n.getOperator();
   }else{
     return Node::null();
@@ -204,6 +208,15 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
    Debug("term-db-cong") << "TermDb: Reset" << std::endl;
    Debug("term-db-cong") << "Congruent/Non-Congruent = ";
    Debug("term-db-cong") << congruentCount << "(" << alreadyCongruentCount << ") / " << nonCongruentCount << std::endl;
+   if( Debug.isOn("term-db") ){
+      Debug("term-db") << "functions : " << std::endl;
+      for( std::map< Node, std::vector< Node > >::iterator it = d_op_map.begin(); it != d_op_map.end(); ++it ){
+        if( it->second.size()>0 ){
+          Debug("term-db") << "- " << it->first << std::endl;
+          d_func_map_trie[ it->first ].debugPrint("term-db", it->second[0]);
+        }
+      }
+   }
 }
 
 Node TermDb::getModelBasisTerm( TypeNode tn, int i ){
@@ -478,33 +491,40 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
   if( !ind_vars.empty() ){
     Trace("stc-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
     Trace("stc-ind") << "Skolemized is : " << ret << std::endl;
-    for( unsigned v=0; v<ind_vars.size(); v++ ){
-      Node k = sk[ind_var_indicies[v]];
-      TypeNode tn = k.getType();
-      if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
-        //can strengthen this, by asserting that subs[0] is the smallest term such that the existential holds.
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        std::vector< Node > disj;
-        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          std::vector< Node > conj;
-          conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
-          std::vector< Node > selfSel;
-          getSelfSel( dt[i], k, tn, selfSel );
-          for( unsigned j=0; j<selfSel.size(); j++ ){
-            conj.push_back( ret.substitute( ind_vars[v], selfSel[j] ).negate() );
-          }
-          disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
-        }
-        Assert( !disj.empty() );
-        Node n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
-        Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
-
-        Node nret = ret.substitute( ind_vars[v], k );
-        ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
-      }else{
-        Assert( false );
+    Node nret;
+    Node n_str_ind;
+    TypeNode tn = ind_vars[0].getType();
+    if( datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
+      Node k = sk[ind_var_indicies[0]];
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      std::vector< Node > disj;
+      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+	std::vector< Node > selfSel;
+	getSelfSel( dt[i], k, tn, selfSel );
+	std::vector< Node > conj;
+	conj.push_back( NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), k ).negate() );
+	for( unsigned j=0; j<selfSel.size(); j++ ){
+	  conj.push_back( ret.substitute( ind_vars[0], selfSel[j] ).negate() );
+	}
+	disj.push_back( conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( OR, conj ) );
       }
+      Assert( !disj.empty() );
+      n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
+      Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
+      nret = ret.substitute( ind_vars[0], k );
+    }else{
+      Trace("stc-ind") << "Unknown induction for term : " << ind_vars[0] << ", type = " << tn << std::endl;
+      Assert( false );
     }
+    
+    std::vector< Node > rem_ind_vars;
+    rem_ind_vars.insert( rem_ind_vars.end(), ind_vars.begin()+1, ind_vars.end() );
+    if( !rem_ind_vars.empty() ){
+      Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, rem_ind_vars );
+      nret = NodeManager::currentNM()->mkNode( FORALL, bvl, nret );
+      n_str_ind = NodeManager::currentNM()->mkNode( FORALL, bvl, n_str_ind.negate() ).negate();
+    }
+    ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
   }
   Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
   return ret;

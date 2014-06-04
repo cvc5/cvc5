@@ -32,6 +32,7 @@ namespace inst {
 
 
 InstMatchGenerator::InstMatchGenerator( Node pat, int matchPolicy ) : d_matchPolicy( matchPolicy ){
+  d_needsReset = true;
   d_active_add = false;
   Assert( quantifiers::TermDb::hasInstConstAttr(pat) );
   d_pattern = pat;
@@ -243,7 +244,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
       }else{
         if( d_active_add ){
           Trace("active-add") << "Active Adding instantiation " << m << std::endl;
-          success = qe->addInstantiation( f, m );
+          success = qe->addInstantiation( f, m, false );
           Trace("active-add") << "Success = " << success << std::endl;
         }
       }
@@ -298,7 +299,7 @@ bool InstMatchGenerator::getNextMatch( Node f, InstMatch& m, QuantifiersEngine* 
     t = d_cg->getNextCandidate();
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
     //if t not null, try to fit it into match m
-    if( !t.isNull() && t.getType()==d_match_pattern.getType() ){
+    if( !t.isNull() && t.getType().isSubtypeOf( d_match_pattern.getType() ) ){
       success = getMatch( f, t, m, qe );
     }
   }while( !success && !t.isNull() );
@@ -628,9 +629,17 @@ int InstMatchGeneratorSimple::addInstantiations( Node f, InstMatch& baseMatch, Q
 }
 
 void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngine* qe, int& addedLemmas, int argIndex, quantifiers::TermArgTrie* tat ){
+  Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if( argIndex==(int)d_match_pattern.getNumChildren() ){
-    //m is an instantiation
-    if( qe->addInstantiation( d_f, m ) ){
+    Assert( !tat->d_data.empty() );
+    Node t = tat->d_data.begin()->first;
+    Debug("simple-trigger") << "Actual term is " << t << std::endl;
+    //convert to actual used terms
+    for( std::map< int, int >::iterator it = d_var_num.begin(); it != d_var_num.end(); ++it ){
+      Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
+      m.setValue( it->second, t[it->first] );
+    }
+    if( qe->addInstantiation( d_f, m, false ) ){
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
     }
@@ -640,7 +649,8 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
       for( std::map< Node, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
         Node t = it->first;
         Node prev = m.get( v );
-        if( ( prev.isNull() || prev==t ) && d_match_pattern[argIndex].getType()==t.getType() ){
+        //using representatives, just check if equal
+        if( ( prev.isNull() || prev==t ) && t.getType().isSubtypeOf( d_match_pattern[argIndex].getType() ) ){
           m.setValue( v, t);
           addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
           m.setValue( v, prev);

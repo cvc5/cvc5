@@ -90,7 +90,7 @@ public:
     TS_ASSERT_EQUALS(sstr.str(), "100");
     sstr.str("");
     sTimer.flushInformation(sstr);
-    TS_ASSERT_EQUALS(sstr.str(), "0.00000000");
+    TS_ASSERT_EQUALS(sstr.str(), "0.000000000");
 
     sTimer.start();
     timespec zero = { 0, 0 };

@@ -99,11 +99,11 @@ Expr* f_litpol( Expr* l ){
    e3 = e_neg;
    e3->inc();
    if( e1==e2 ){
-      Expr* x = ((CExpr*)l->followDefs())->kids[1];
+      // Expr* x = ((CExpr*)l->followDefs())->kids[1];
       e0 = e_tt;
       e0->inc();
    }else if( e1==e3 ){
-      Expr* x = ((CExpr*)l->followDefs())->kids[1];
+      // Expr* x = ((CExpr*)l->followDefs())->kids[1];
       e0 = e_ff;
       e0->inc();
    }else{

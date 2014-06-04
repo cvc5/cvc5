@@ -21,14 +21,35 @@
 
 #include "smt/options.h"
 
+#ifndef __WIN32__
+#  include <sys/resource.h>
+#endif /* ! __WIN32__ */
+
 namespace CVC4 {
 namespace main {
+
+// Function to cancel any (externally-imposed) limit on CPU time.
+// This is used for competitions while a solution (proof or model)
+// is being dumped (so that we don't give "sat" or "unsat" then get
+// interrupted partway through outputting a proof!).
+void setNoLimitCPU() {
+  // Windows doesn't have these things, just ignore
+#ifndef __WIN32__
+  struct rlimit rlc;
+  int st = getrlimit(RLIMIT_CPU, &rlc);
+  if(st == 0) {
+    rlc.rlim_cur = rlc.rlim_max;
+    setrlimit(RLIMIT_CPU, &rlc);
+  }
+#endif /* ! __WIN32__ */
+}
+
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
 CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
   d_exprMgr(exprMgr),
-  d_smtEngine(SmtEngine(&exprMgr)),
+  d_smtEngine(new SmtEngine(&exprMgr)),
   d_options(options),
   d_stats("driver"),
   d_result() {
@@ -61,13 +82,22 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 }
 
+void CommandExecutor::reset()
+{
+  if(d_options[options::statistics]) {
+    flushStatistics(*d_options[options::err]);
+  }
+  delete d_smtEngine;
+  d_smtEngine = new SmtEngine(&d_exprMgr);
+}
+
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options[options::verbosity] >= -1) {
-    status = smtEngineInvoke(&d_smtEngine, cmd, d_options[options::out]);
+    status = smtEngineInvoke(d_smtEngine, cmd, d_options[options::out]);
   } else {
-    status = smtEngineInvoke(&d_smtEngine, cmd, NULL);
+    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
   }
 
   Result res;
@@ -89,21 +119,26 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 
   // dump the model/proof if option is set
   if(status) {
+    Command * g = NULL;
     if( d_options[options::produceModels] &&
         d_options[options::dumpModels] &&
         ( res.asSatisfiabilityResult() == Result::SAT ||
           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
-      Command* gm = new GetModelCommand();
-      status = doCommandSingleton(gm);
+      g = new GetModelCommand();
     } else if( d_options[options::proof] &&
                d_options[options::dumpProofs] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {
-      Command* gp = new GetProofCommand();
-      status = doCommandSingleton(gp);
+      g = new GetProofCommand();
     } else if( d_options[options::dumpInstantiations] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {
-      Command* gi = new GetInstantiationsCommand();
-      status = doCommandSingleton(gi);
+      g = new GetInstantiationsCommand();
+    }
+    if( g ){
+      //set no time limit during dumping if applicable
+      if( d_options[options::forceNoLimitCpuWhileDump] ){
+        setNoLimitCPU();
+      }
+      status = doCommandSingleton(g);
     }
   }
   return status;

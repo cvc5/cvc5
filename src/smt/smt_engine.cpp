@@ -940,6 +940,9 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
     }
     if(! options::fmfBoundInt.wasSetByUser()) {
+      if(! options::fmfBoundIntLazy.wasSetByUser()) {
+        options::fmfBoundIntLazy.set( true );
+      }
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
@@ -1176,6 +1179,9 @@ void SmtEngine::setDefaults() {
   }
   if( options::recurseCbqi() ){
     options::cbqi.set( true );
+  }
+  if(options::fmfBoundIntLazy.wasSetByUser() && options::fmfBoundIntLazy()) {
+    options::fmfBoundInt.set( true );
   }
   if( options::fmfBoundInt() ){
     //must have finite model finding on
@@ -3847,15 +3853,16 @@ Proof* SmtEngine::getProof() throw(ModalException) {
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
-  //if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
-  out << "% SZS CNF output start CNFRefutation for " << d_filename.c_str() << std::endl;
-  //}
+  SmtScope smts(this);
+  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+    out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
+  }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
   }
-  //if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
-  out << "% SZS CNF output end CNFRefutation for " << d_filename.c_str() << std::endl;
-  //}
+  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+    out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
+  }
 }
 
 vector<Expr> SmtEngine::getAssertions() throw(ModalException) {

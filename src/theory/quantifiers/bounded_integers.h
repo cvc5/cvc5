@@ -60,9 +60,9 @@ private:
   private:
     BoundedIntegers * d_bi;
     void allocateRange();
+    Node d_proxy_range;
   public:
-    RangeModel(BoundedIntegers * bi, Node r, context::Context* c) : d_bi(bi),
-      d_range(r), d_curr_max(-1), d_range_assertions(c), d_has_range(c,false), d_curr_range(c,-1) {}
+    RangeModel(BoundedIntegers * bi, Node r, context::Context* c, bool isProxy);
     Node d_range;
     int d_curr_max;
     std::map< int, Node > d_range_literal;
@@ -71,9 +71,11 @@ private:
     NodeBoolMap d_range_assertions;
     context::CDO< bool > d_has_range;
     context::CDO< int > d_curr_range;
+    std::map< int, bool > d_ranges_proxied;
     void initialize();
     void assertNode(Node n);
     Node getNextDecisionRequest();
+    bool proxyCurrentRange();
   };
 private:
   //information for minimizing ranges

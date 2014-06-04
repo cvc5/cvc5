@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatch::InstMatch( Node f ) {
+InstMatch::InstMatch( TNode f ) {
   for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
     d_vals.push_back( Node::null() );
   }
@@ -198,12 +198,12 @@ bool InstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< No
   }
 }
 
-void InstMatchTrie::print( std::ostream& out, Node q, std::vector< Node >& terms ) const {
+void InstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& terms ) const {
   if( terms.size()==q[0].getNumChildren() ){
     out << "  ( ";
     for( unsigned i=0; i<terms.size(); i++ ){
-      if( i>0 ) out << ", ";
-      //out << terms[i];
+      if( i>0 ){ out << ", ";}
+      out << terms[i];
     }
     out << " )" << std::endl;
   }else{
@@ -282,13 +282,13 @@ bool CDInstMatchTrie::addInstMatch( QuantifiersEngine* qe, Node f, std::vector< 
   }
 }
 
-void CDInstMatchTrie::print( std::ostream& out, Node q, std::vector< Node >& terms ) const{
+void CDInstMatchTrie::print( std::ostream& out, Node q, std::vector< TNode >& terms ) const{
   if( d_valid.get() ){
     if( terms.size()==q[0].getNumChildren() ){
       out << "  ( ";
       for( unsigned i=0; i<terms.size(); i++ ){
         if( i>0 ) out << ", ";
-        //out << terms[i];
+        out << terms[i];
       }
       out << " )" << std::endl;
     }else{

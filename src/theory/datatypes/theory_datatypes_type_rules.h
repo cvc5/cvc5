@@ -282,6 +282,9 @@ struct TupleTypeRule {
 struct TupleSelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::TUPLE_SELECT);
+    if(n.getOperator().getKind() != kind::TUPLE_SELECT_OP) {
+      throw TypeCheckingExceptionPrivate(n, "Tuple-select expression requires TupleSelect operator");
+    }
     const TupleSelect& ts = n.getOperator().getConst<TupleSelect>();
     TypeNode tupleType = n[0].getType(check);
     if(!tupleType.isTuple()) {
@@ -422,6 +425,9 @@ struct RecordSelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     Assert(n.getKind() == kind::RECORD_SELECT);
     NodeManagerScope nms(nodeManager);
+    if(n.getOperator().getKind() != kind::RECORD_SELECT_OP) {
+      throw TypeCheckingExceptionPrivate(n, "Tuple-select expression requires TupleSelect operator");
+    }
     const RecordSelect& rs = n.getOperator().getConst<RecordSelect>();
     TypeNode recordType = n[0].getType(check);
     if(!recordType.isRecord()) {

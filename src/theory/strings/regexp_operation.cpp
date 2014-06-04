@@ -211,7 +211,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
   Assert( c.size() < 2 );
-  Trace("regexp-deriv") << "RegExp-deriv starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
+  Trace("regexp-derive") << "RegExp-derive starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
 
   int ret = 1;
   retNode = d_emptyRegexp;
@@ -353,7 +353,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
               vec_nodes.push_back( dc );
             }
           }
-          Trace("regexp-deriv") << "RegExp-deriv OR R[" << i << "]{ " << mkString(r[i]) << " returns " << mkString(dc) << std::endl;
+          Trace("regexp-derive") << "RegExp-derive OR R[" << i << "]{ " << mkString(r[i]) << " returns " << mkString(dc) << std::endl;
         }
         retNode = vec_nodes.size() == 0 ? d_emptyRegexp :
               ( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes ) );
@@ -417,13 +417,13 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
     d_deriv_cache[dv] = p;
   }
 
-  Trace("regexp-deriv") << "RegExp-deriv returns : " << mkString( retNode ) << std::endl;
+  Trace("regexp-derive") << "RegExp-derive returns : " << mkString( retNode ) << std::endl;
   return ret;
 }
 
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
   Assert( c.size() < 2 );
-  Trace("regexp-deriv") << "RegExp-deriv starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
+  Trace("regexp-derive") << "RegExp-derive starts with R{ " << mkString( r ) << " }, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
   if( d_dv_cache.find( dv ) != d_dv_cache.end() ) {
@@ -507,7 +507,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
               vec_nodes.push_back( dc );
             }
           }
-          Trace("regexp-deriv") << "RegExp-deriv OR R[" << i << "]{ " << mkString(r[i]) << " returns " << mkString(dc) << std::endl;
+          Trace("regexp-derive") << "RegExp-derive OR R[" << i << "]{ " << mkString(r[i]) << " returns " << mkString(dc) << std::endl;
         }
         retNode = vec_nodes.size() == 0 ? d_emptyRegexp :
               ( vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode( kind::REGEXP_UNION, vec_nodes ) );
@@ -565,7 +565,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
     }
     d_dv_cache[dv] = retNode;
   }
-  Trace("regexp-deriv") << "RegExp-deriv returns : " << mkString( retNode ) << std::endl;
+  Trace("regexp-derive") << "RegExp-derive returns : " << mkString( retNode ) << std::endl;
   return retNode;
 }
 
@@ -1364,8 +1364,8 @@ void RegExpOpr::splitRegExp(Node r, std::vector< PairNodes > &pset) {
           for(unsigned j=0; j<tset.size(); j++) {
             hvec[i] = tset[j].first;
             tvec[0] = tset[j].second;
-            Node r1 = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, hvec) );
-            Node r2 = Rewriter::rewrite( NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, tvec) );
+            Node r1 = Rewriter::rewrite( hvec.size()==1?hvec[0]:NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, hvec) );
+            Node r2 = Rewriter::rewrite( tvec.size()==1?tvec[0]:NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, tvec) );
             PairNodes tmp2(r1, r2);
             pset.push_back(tmp2);
           }
