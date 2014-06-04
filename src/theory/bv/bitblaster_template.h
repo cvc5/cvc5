@@ -69,8 +69,8 @@ template <class T>
 class TBitblaster {
 protected:
   typedef std::vector<T> Bits;
-  typedef __gnu_cxx::hash_map <Node, Bits, TNodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>        AtomSet;
+  typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       AtomSet;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
