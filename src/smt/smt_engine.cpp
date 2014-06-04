@@ -3697,7 +3697,22 @@ void SmtEngine::checkModel(bool hardFailure) {
         InternalError(ss.str());
       }
 
-      // (3) checks complete, add the substitution
+      // (3) check that it's the correct (sub)type
+      // This was intended to be a more general check, but for now we can't do that because
+      // e.g. "1" is an INT, which isn't a subrange type [1..10] (etc.).
+      else if(func.getType().isInteger() && !val.getType().isInteger()) {
+        Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT CORRECT TYPE ***" << endl;
+        stringstream ss;
+        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+           << "model value for " << func << endl
+           << "             is " << val << endl
+           << "value type is     " << val.getType() << endl
+           << "should be of type " << func.getType() << endl
+           << "Run with `--check-models -v' for additional diagnostics.";
+        InternalError(ss.str());
+      }
+
+      // (4) checks complete, add the substitution
       Debug("boolean-terms") << "cm: adding subs " << func << " :=> " << val << endl;
       substitutions.addSubstitution(func, val);
     }
