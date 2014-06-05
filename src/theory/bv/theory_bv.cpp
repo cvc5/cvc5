@@ -54,7 +54,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_propagatedBy(c),
     d_eagerSolver(NULL),
     d_abstractionModule(new AbstractionModule()),
-    d_isCoreTheory(options::bitvectorEqualitySlicer()),
+    d_isCoreTheory(false),
     d_calledPreregister(false)
 {
 

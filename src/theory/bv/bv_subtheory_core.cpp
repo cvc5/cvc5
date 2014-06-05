@@ -415,7 +415,7 @@ Node CoreSolver::getModelValue(TNode var) {
 
 CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
-  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", options::bitvectorEqualitySlicer())
+  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", false)
 {
   StatisticsRegistry::registerStat(&d_numCallstoCheck);
   StatisticsRegistry::registerStat(&d_slicerEnabled);
