@@ -27,6 +27,11 @@ namespace bv {
 
 class AlgebraicSolver;
 
+
+Node mergeExplanations(TNode expl1, TNode expl2);
+Node mergeExplanations(const std::vector<Node>& expls);
+
+
 /**
  * Non-context dependent substitution with explanations.
  * 
@@ -172,7 +177,7 @@ class AlgebraicSolver : public SubtheorySolver {
   bool isSubstitutableIn(TNode node, TNode in);
   bool checkExplanation(TNode expl);
   void storeExplanation(TNode expl);
-  void storeExplanation(unsigned id, TNode expl); 
+  void storeExplanation(unsigned id, TNode expl);
   /** 
    * Apply substitutions and rewriting to the worklist assertions to a fixpoint.
    * Subsitutions learned store in subst. 

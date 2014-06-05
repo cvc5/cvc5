@@ -99,7 +99,7 @@ Node SubstitutionEx::internalApply(TNode node) {
       TNode res = internalApply(to);
       // update reasons
       reasons.push_back(getReason(to));
-      Node reason = utils::mkAnd(reasons);
+      Node reason = mergeExplanations(reasons);
       storeCache(current, res, reason);
       continue;
     }
@@ -133,7 +133,7 @@ Node SubstitutionEx::internalApply(TNode node) {
         subst_result = result!= current? internalApply(result) : result;
         reasons.push_back(getReason(result));
       }
-      Node reason = utils::mkAnd(reasons);
+      Node reason = mergeExplanations(reasons);
       storeCache(current, subst_result, reason);
       continue;
     } else {
@@ -201,6 +201,8 @@ AlgebraicSolver::~AlgebraicSolver() {
   delete d_quickSolver;
   delete d_ctx;
 }
+
+
 
 bool AlgebraicSolver::check(Theory::Effort e) {
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY); 
@@ -557,8 +559,7 @@ void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, 
       worklist[i] = WorklistElement(Rewriter::rewrite(current), current_id);
       // explanation for this assertion
       Node old_expl = d_explanations[current_id];
-      Node new_expl = subst_expl == utils::mkTrue() ? old_expl
-                                                    : utils::mkAnd(subst_expl, old_expl);
+      Node new_expl = mergeExplanations(subst_expl, old_expl); 
       storeExplanation(current_id, new_expl);
       
       // use the new substitution to solve
@@ -617,7 +618,7 @@ void AlgebraicSolver::storeExplanation(TNode explanation) {
 }
 
 bool AlgebraicSolver::checkExplanation(TNode explanation) {
-  Node simplified_explanation = BooleanSimplification::simplify(explanation);
+  Node simplified_explanation = explanation; //BooleanSimplification::simplify(explanation);
   if (simplified_explanation.getKind() != kind::AND) {
     return d_inputAssertions.find(simplified_explanation) != d_inputAssertions.end();
   }
@@ -909,3 +910,39 @@ ExtractSkolemizer::ExtractSkolemizer(theory::SubstitutionMap* modelMap)
 ExtractSkolemizer::~ExtractSkolemizer() {
 }
 
+Node CVC4::theory::bv::mergeExplanations(const std::vector<Node>& expls) {
+  TNodeSet literals;
+  for (unsigned i = 0; i < expls.size(); ++i) {
+    TNode expl = expls[i]; 
+    Assert (expl.getType().isBoolean()); 
+    if (expl.getKind() == kind::AND) {
+      for (unsigned i = 0; i < expl.getNumChildren(); ++i) {
+        TNode child = expl[i];
+        if (child == utils::mkTrue())
+          continue;
+        literals.insert(child); 
+      }
+    } else if (expl != utils::mkTrue()) {
+      literals.insert(expl);
+    }
+  }
+  if (literals.size() == 0)
+    return utils::mkTrue();
+
+  if (literals.size() == 1) 
+    return *literals.begin(); 
+  
+  NodeBuilder<> nb(kind::AND); 
+
+  for (TNodeSet::const_iterator it = literals.begin(); it!= literals.end(); ++it) {
+    nb << *it; 
+  }
+  return nb; 
+}
+
+Node CVC4::theory::bv::mergeExplanations(TNode expl1, TNode expl2) {
+  std::vector<Node> expls;
+  expls.push_back(expl1);
+  expls.push_back(expl2);
+  return mergeExplanations(expls); 
+}
