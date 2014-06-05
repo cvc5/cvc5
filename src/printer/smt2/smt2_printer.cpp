@@ -240,6 +240,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   }
 
   bool stillNeedToPrintParams = true;
+  bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
   if(n.getNumChildren() != 0 && n.getKind()!=kind::INST_PATTERN_LIST) out << '(';
   switch(Kind k = n.getKind()) {
@@ -356,17 +357,17 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::REGEXP_SIGMA: out << "re.allchar "; break;
 
     // bv theory
-  case kind::BITVECTOR_CONCAT: out << "concat "; break;
-  case kind::BITVECTOR_AND: out << "bvand "; break;
-  case kind::BITVECTOR_OR: out << "bvor "; break;
-  case kind::BITVECTOR_XOR: out << "bvxor "; break;
+  case kind::BITVECTOR_CONCAT: out << "concat "; forceBinary = true; break;
+  case kind::BITVECTOR_AND: out << "bvand "; forceBinary = true; break;
+  case kind::BITVECTOR_OR: out << "bvor "; forceBinary = true; break;
+  case kind::BITVECTOR_XOR: out << "bvxor "; forceBinary = true; break;
   case kind::BITVECTOR_NOT: out << "bvnot "; break;
   case kind::BITVECTOR_NAND: out << "bvnand "; break;
   case kind::BITVECTOR_NOR: out << "bvnor "; break;
   case kind::BITVECTOR_XNOR: out << "bvxnor "; break;
   case kind::BITVECTOR_COMP: out << "bvcomp "; break;
-  case kind::BITVECTOR_MULT: out << "bvmul "; break;
-  case kind::BITVECTOR_PLUS: out << "bvadd "; break;
+  case kind::BITVECTOR_MULT: out << "bvmul "; forceBinary = true; break;
+  case kind::BITVECTOR_PLUS: out << "bvadd "; forceBinary = true; break;
   case kind::BITVECTOR_SUB: out << "bvsub "; break;
   case kind::BITVECTOR_NEG: out << "bvneg "; break;
   case kind::BITVECTOR_UDIV: out << "bvudiv "; break;
@@ -494,20 +495,27 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << ' ';
     }
   }
-  for(TNode::iterator i = n.begin(),
-        iend = n.end();
-      i != iend; ) {
+  stringstream parens;
+  for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
-      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types);
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, types);
     } else {
       out << "(...)";
     }
-    if(++i != iend) {
-      out << ' ';
+    if(++i < n.getNumChildren()) {
+      if(forceBinary && i < n.getNumChildren() - 1) {
+        // not going to work properly for parameterized kinds!
+        Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+        out << " (" << smtKindString(n.getKind()) << ' ';
+        parens << ')';
+        ++c;
+      } else {
+        out << ' ';
+      }
     }
   }
   if(n.getNumChildren() != 0) {
-    out << ')';
+    out << parens.str() << ')';
   }
 }/* Smt2Printer::toStream(TNode) */
 
