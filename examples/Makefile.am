@@ -6,7 +6,8 @@ AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
-	simple_vc_cxx
+	simple_vc_cxx \
+	translator
 
 if CVC4_BUILD_LIBCOMPAT
 noinst_PROGRAMS += \
@@ -46,6 +47,12 @@ simple_vc_compat_c_SOURCES = \
 	simple_vc_compat_c.c
 simple_vc_compat_c_LDADD = \
 	@builddir@/../src/bindings/compat/c/libcvc4bindings_c_compat.la
+
+translator_SOURCES = \
+	translator.cpp
+translator_LDADD = \
+	@builddir@/../src/parser/libcvc4parser.la \
+	@builddir@/../src/libcvc4.la
 
 SimpleVC.class: SimpleVC.java
 	$(AM_V_JAVAC)$(JAVAC) -classpath "@builddir@/../src/bindings/CVC4.jar" -d "@builddir@" $<
