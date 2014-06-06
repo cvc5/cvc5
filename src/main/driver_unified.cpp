@@ -85,6 +85,35 @@ void printUsage(Options& opts, bool full) {
   }
 }
 
+void printStatsFilterZeros(std::ostream& out, const std::string& statsString) {
+  // read each line, if a number, check zero and skip if so
+  // Stat are assumed to one-per line: "<statName>, <statValue>"
+
+  std::istringstream iss(statsString);
+  std::string statName, statValue;
+
+  std::getline(iss, statName, ',');
+
+  while( !iss.eof() ) {
+
+    std::getline(iss, statValue, '\n');
+
+    double curFloat;
+    bool isFloat = (std::istringstream(statValue) >> curFloat);
+
+    if( (isFloat && curFloat == 0) ||
+        statValue == " \"0\"" ||
+        statValue == " \"[]\"") {
+      // skip
+    } else {
+      out << statName << "," << statValue << std::endl;
+    }
+
+    std::getline(iss, statName, ',');
+  }
+
+}
+
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
@@ -419,7 +448,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // Set the global executor pointer to NULL first.  If we get a
     // signal while dumping statistics, we don't want to try again.
     if(opts[options::statistics]) {
-      pExecutor->flushStatistics(*opts[options::err]);
+      if(opts[options::statsHideZeros] == false) {
+        pExecutor->flushStatistics(*opts[options::err]);
+      } else {
+        std::ostringstream ossStats;
+        pExecutor->flushStatistics(ossStats);
+        printStatsFilterZeros(*opts[options::err], ossStats.str());
+      }
     }
 
     // make sure to flush replay output log before early-exit

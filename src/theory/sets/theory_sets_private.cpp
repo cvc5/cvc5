@@ -990,6 +990,7 @@ bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, T
   if(value) {
     d_theory.d_termInfoManager->mergeTerms(t1, t2);
   }
+  d_theory.propagate( value ? EQUAL(t1, t2) : NOT(EQUAL(t1, t2)) );
   return true;
 }
 
