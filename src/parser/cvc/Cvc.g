@@ -150,6 +150,8 @@ tokens {
   MOD_TOK = 'MOD';
   INTDIV_TOK = 'DIV';
   FLOOR_TOK = 'FLOOR';
+  ABS_TOK = 'ABS';
+  DIVISIBLE_TOK = 'DIVISIBLE';
   DISTINCT_TOK = 'DISTINCT';
 
   // Bitvectors
@@ -180,7 +182,7 @@ tokens {
   //BVTOINT_TOK = 'BVTOINT';
   //INTTOBV_TOK = 'INTTOBV';
   //BOOLEXTRACT_TOK = 'BOOLEXTRACT';
-  //IS_INTEGER_TOK = 'IS_INTEGER';
+  IS_INTEGER_TOK = 'IS_INTEGER';
   BVLT_TOK = 'BVLT';
   BVGT_TOK = 'BVGT';
   BVLE_TOK = 'BVLE';
@@ -237,7 +239,7 @@ int getOperatorPrecedence(int type) {
   case LBRACE: return 2;
   case LBRACKET: return 3;
   case ARROW_TOK: return 4;
-  //case IS_INTEGER_TOK: return 5;
+  case IS_INTEGER_TOK: return 5;
   case BVSLT_TOK:
   case BVSLE_TOK:
   case BVSGT_TOK:
@@ -567,7 +569,7 @@ using namespace CVC4::parser;
   } else if (k < size) {                                       \
     f = MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f);      \
   }                                                            \
-}                                            
+}
 
 }/* @parser::postinclude */
 
@@ -1679,6 +1681,12 @@ postfixTerm[CVC4::Expr& f]
     )*
     | FLOOR_TOK LPAREN formula[f] RPAREN
       { f = MK_EXPR(CVC4::kind::TO_INTEGER, f); }
+    | IS_INTEGER_TOK LPAREN formula[f] RPAREN
+      { f = MK_EXPR(CVC4::kind::IS_INTEGER, f); }
+    | ABS_TOK LPAREN formula[f] RPAREN
+      { f = MK_EXPR(CVC4::kind::ABS, f); }
+    | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
+      { f = MK_EXPR(CVC4::kind::DIVISIBLE, MK_CONST(CVC4::Divisible(n)), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -1724,11 +1732,11 @@ bvTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_NEG, f); }
     /* BV addition */
   | BVPLUS_TOK LPAREN k=numeral COMMA formula[f] { args.push_back(f); }
-    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN 
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
     {
       if (k <= 0) {
         PARSER_STATE->parseError("BVPLUS(k,_,_) must have k > 0");
-      }      
+      }
       for (unsigned i = 0; i < args.size(); ++ i) {
         ENSURE_BV_SIZE(k, args[i]);
       }
@@ -1736,17 +1744,17 @@ bvTerm[CVC4::Expr& f]
     }
     /* BV subtraction */
   | BVSUB_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
-    {       
+    {
       if (k <= 0) {
         PARSER_STATE->parseError("BVSUB(k,_,_) must have k > 0");
-      }      
+      }
       ENSURE_BV_SIZE(k, f);
       ENSURE_BV_SIZE(k, f2);
       f = MK_EXPR(CVC4::kind::BITVECTOR_SUB, f, f2);
     }
     /* BV multiplication */
   | BVMULT_TOK LPAREN k=numeral COMMA formula[f] COMMA formula[f2] RPAREN
-    { 
+    {
       if (k <= 0) {
         PARSER_STATE->parseError("BVMULT(k,_,_) must have k > 0");
       }
@@ -1821,11 +1829,6 @@ bvTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGT, f, f2); }
   | BVSGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::BITVECTOR_SGE, f, f2); }
-
-  /*
-  | IS_INTEGER_TOK LPAREN formula[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::BITVECTOR_IS_INTEGER, f); }
-  */
 
   | stringTerm[f]
   ;

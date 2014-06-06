@@ -483,6 +483,27 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << '^';
       opType = INFIX;
       break;
+    case kind::ABS:
+      op << "ABS";
+      opType = PREFIX;
+      break;
+    case kind::IS_INTEGER:
+      op << "IS_INTEGER";
+      opType = PREFIX;
+      break;
+    case kind::TO_INTEGER:
+      op << "FLOOR";
+      opType = PREFIX;
+      break;
+    case kind::TO_REAL:
+      // ignore, there is no to-real in CVC language
+      toStream(out, n[0], depth, types, false);
+      return;
+    case kind::DIVISIBLE:
+      out << "DIVISIBLE(";
+      toStream(out, n[0], depth, types, false);
+      out << ", " << n.getOperator().getConst<Divisible>().k << ")";
+      return;
 
     // BITVECTORS
     case kind::BITVECTOR_XOR:
@@ -573,7 +594,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       opType = INFIX;
       break;
     case kind::BITVECTOR_PLUS: {
-      //This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
+      // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
       Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
@@ -590,7 +611,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ',';
       toStream(out, n[child], depth, types, false);
       out << ',';
-      toStream(out, n[child+1], depth, types, false);
+      toStream(out, n[child + 1], depth, types, false);
       while (child > 0) {
         out << ')';
         --child;
@@ -627,7 +648,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ',';
       toStream(out, n[child], depth, types, false);
       out << ',';
-      toStream(out, n[child+1], depth, types, false);
+      toStream(out, n[child + 1], depth, types, false);
       while (child > 0) {
         out << ')';
         --child;
