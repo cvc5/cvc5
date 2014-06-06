@@ -60,7 +60,7 @@ submission submission-main:
 	$(MAKE) check
 	#$(MAKE) -C test/regress/regress1 check
 	# main track
-	mkdir -p cvc4-smtcomp-$(YEAR)
+	mkdir -p cvc4-smtcomp-$(YEAR)/bin
 	cp -p builds/bin/cvc4 cvc4-smtcomp-$(YEAR)/bin/cvc4
 	cp contrib/run-script-smtcomp2014 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
