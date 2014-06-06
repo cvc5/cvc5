@@ -118,10 +118,32 @@ bool VarList::isMember(Node n) {
     return false;
   }
 }
+
 int VarList::cmp(const VarList& vl) const {
   int dif = this->size() - vl.size();
   if (dif == 0) {
-    return this->getNode().getId() - vl.getNode().getId();
+    if(this->getNode() == vl.getNode()) {
+      return 0;
+    }
+
+    Assert(!empty());
+    Assert(!vl.empty());
+    if(this->size() == 1){
+      return Variable::VariableNodeCmp::cmp(this->getNode(), vl.getNode());
+    }
+
+
+    internal_iterator ii=this->internalBegin(), ie=this->internalEnd();
+    internal_iterator ci=vl.internalBegin(), ce=vl.internalEnd();
+    for(; ii != ie; ++ii, ++ci){
+      Node vi = *ii;
+      Node vc = *ci;
+      int tmp = Variable::VariableNodeCmp::cmp(vi, vc);
+      if(tmp != 0){
+        return tmp;
+      }
+    }
+    Unreachable();
   } else if(dif < 0) {
     return -1;
   } else {
@@ -556,6 +578,36 @@ bool Polynomial::variableMonomialAreStrictlyGreater(const Monomial& m) const{
     Debug("nf::tmp") << "minimum " << minimum.getNode() << endl;
     Debug("nf::tmp") << "m " << m.getNode() << endl;
     return m < minimum;
+  }
+}
+
+bool Polynomial::isMember(TNode n) {
+  if(Monomial::isMember(n)){
+    return true;
+  }else if(n.getKind() == kind::PLUS){
+    Assert(n.getNumChildren() >= 2);
+    Node::iterator currIter = n.begin(), end = n.end();
+    Node prev = *currIter;
+    if(!Monomial::isMember(prev)){
+      return false;
+    }
+
+    Monomial mprev = Monomial::parseMonomial(prev);
+    ++currIter;
+    for(; currIter != end; ++currIter){
+      Node curr = *currIter;
+      if(!Monomial::isMember(curr)){
+        return false;
+      }
+      Monomial mcurr = Monomial::parseMonomial(curr);
+      if(!(mprev < mcurr)){
+        return false;
+      }
+      mprev = mcurr;
+    }
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -1156,6 +1208,7 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
     VarList vRight = r.asVarList();
 
     if(vLeft == vRight){
+      // return true for equalities and false for disequalities
       return Comparison(k == kind::EQUAL);
     }else{
       Node eqNode = vLeft < vRight ? toNode( kind::EQUAL, l, r) : toNode( kind::EQUAL, r, l);
