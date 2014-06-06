@@ -43,6 +43,7 @@ class Mapper {
   hash_map< Expr, Expr, ExprHashFunction > substitutions;
   ostringstream sout;
   ExprManager* em;
+  int depth;
 
   Expr add(SetType t, Expr e) {
 
@@ -140,7 +141,7 @@ class Mapper {
   }
 
 public:
-  Mapper(ExprManager* e) : em(e) {
+  Mapper(ExprManager* e) : em(e),depth(0) {
     sout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
   }
 
@@ -153,17 +154,24 @@ public:
 
   Expr collectSortsExpr(Expr e)
   {
+    if(substitutions.find(e) != substitutions.end()) {
+      return substitutions[e];
+    }
+    ++depth;
     Expr old_e = e;
     for(unsigned i = 0; i < e.getNumChildren(); ++i) {
       collectSortsExpr(e[i]);
     }
     e = e.substitute(substitutions);
+    // cout << "[debug] " << e << " " << e.getKind() << " " << theory::kindToTheoryId(e.getKind()) << endl;
     if(theory::kindToTheoryId(e.getKind()) == theory::THEORY_SETS) {
       SetType t = SetType(e.getType().isBoolean() ? e[1].getType() : e.getType());
       substitutions[e] = add(t, e);
       e = e.substitute(substitutions);
     }
-    // cout << old_e << " => " << e << endl;
+    substitutions[old_e] = e;
+    // cout << ";"; for(int i = 0; i < depth; ++i) cout << " "; cout << old_e << " => " << e << endl;
+    --depth;
     return e;
   }
 
@@ -187,6 +195,7 @@ int main(int argc, char* argv[])
     Options options;
     options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
     cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+    // cout << Expr::dag(0);
     ExprManager exprManager(options);
 
     Mapper m(&exprManager);
