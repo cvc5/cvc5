@@ -142,8 +142,22 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
   }
+
+  Kind new_kind;
+  // special case for XOR as it has to be binary
+  // while BITVECTOR_XOR can be n-ary
+  if (kind == kind::BITVECTOR_XOR) {
+    new_kind = kind::XOR;
+    Node result = convertBvTerm(node[0]);
+    for (unsigned i = 1; i < node.getNumChildren(); ++i) {
+      Node converted = convertBvTerm(node[i]);
+      result = utils::mkNode(kind::XOR, result, converted); 
+    }
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
+    return result; 
+  }
   
-  Kind new_kind; 
+
   switch(kind) {
   case kind::BITVECTOR_OR:
     new_kind = kind::OR;
