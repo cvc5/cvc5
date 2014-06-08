@@ -1551,8 +1551,12 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-  | UNTERMINATED_QUOTED_SYMBOL EOF
-    { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
+  | UNTERMINATED_QUOTED_SYMBOL
+    ( EOF
+      { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
+    | '\\'
+      { PARSER_STATE->unexpectedEOF("backslash not permitted in |quoted| symbol"); }
+    )
   ;
 
 /**
