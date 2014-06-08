@@ -1206,7 +1206,7 @@ indexedFunctionName[CVC4::Expr& op]
     ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
       { op = MK_CONST(BitVectorExtract(AntlrInput::tokenToUnsigned($n1),
                                        AntlrInput::tokenToUnsigned($n2))); }
-    | 'repeat' n=INTEGER_LITERAL
+    | ('repeat')=>'repeat' n=INTEGER_LITERAL
       { op = MK_CONST(BitVectorRepeat(AntlrInput::tokenToUnsigned($n))); }
     | 'zero_extend' n=INTEGER_LITERAL
       { op = MK_CONST(BitVectorZeroExtend(AntlrInput::tokenToUnsigned($n))); }
@@ -1535,8 +1535,8 @@ symbolList[std::vector<std::string>& names,
 symbol[std::string& id,
        CVC4::parser::DeclarationCheck check,
        CVC4::parser::SymbolType type]
-  : SIMPLE_SYMBOL
-    { id = AntlrInput::tokenText($SIMPLE_SYMBOL);
+  : s=( SIMPLE_SYMBOL | 'repeat' )
+    { id = AntlrInput::tokenText($s);
       if(!PARSER_STATE->isAbstractValue(id)) {
         // if an abstract value, SmtEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
