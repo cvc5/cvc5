@@ -120,7 +120,7 @@ inline std::string suggestTags(char const* const* validTags, std::string inputTa
 
 inline void addTraceTag(std::string option, std::string optarg, SmtEngine* smt) {
   if(Configuration::isTracingBuild()) {
-    if(!Configuration::isTraceTag(optarg.c_str()))
+    if(!Configuration::isTraceTag(optarg.c_str())) {
 
       if(optarg == "help") {
         printf("available tags:");
@@ -136,6 +136,7 @@ inline void addTraceTag(std::string option, std::string optarg, SmtEngine* smt) 
       throw OptionException(std::string("trace tag ") + optarg +
                             std::string(" not available.") +
                             suggestTags(Configuration::getTraceTags(), optarg) );
+    }
   } else {
     throw OptionException("trace tags not available in non-tracing builds");
   }
