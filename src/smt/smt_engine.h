@@ -361,6 +361,10 @@ class CVC4_PUBLIC SmtEngine {
    */
   Model* getModel() throw(ModalException);
 
+  // disallow copy/assignment
+  SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
+  SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
+
 public:
 
   /**
