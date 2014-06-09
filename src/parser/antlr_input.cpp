@@ -296,6 +296,27 @@ inline bool isSimpleChar(char ch) {
   return isalnum(ch) || (strchr("~!@$%^&*_-+=<>.?/", ch) != NULL);
 }
 
+size_t wholeWordMatch(string input, string pattern, bool (*isWordChar)(char)) {
+  size_t st = 0;
+  size_t N = input.size();
+  while(st < N) {
+    while( st < N && (*isWordChar)(input[st])  == false ) st++;
+    size_t en = st;
+    while(en + 1 < N && (*isWordChar)(input[en + 1]) == true) en++;
+    if(en - st + 1 == pattern.size()) {
+      bool match = true;
+      for(size_t i = 0; match && i < pattern.size(); ++i) {
+        match &= (pattern[i] == input[st+i]);
+      }
+      if(match == true) {
+        return st;
+      }
+    }
+    st = en + 1;
+  }
+  return string::npos;
+}
+
 /**
  * Gets part of original input and tries to visually hint where the
  * error might be.
@@ -372,12 +393,9 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         // likely it is also in original message? if so, very likely
         // we found the right place
         string word = slice.substr(caretPos, (caretPosOrig - caretPos + 1));
-        int messagePosSt = message.find(word);
-        int messagePosEn = messagePosSt + (caretPosOrig - caretPos);
-        if( (size_t)messagePosSt < string::npos &&
-            (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
-            ((size_t)messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
-          // ^the complicated if statement is just 'whole-word' match
+        size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
+        Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+        if( matchLoc != string::npos ) {
           Debug("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
         }
       }
@@ -395,13 +413,10 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
           --nearestWordSt;
         }
         string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
+        size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
         Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
-        int messagePosSt = message.find(word);
-        int messagePosEn = messagePosSt + (nearestWordEn - nearestWordSt + 1);
-        if( (size_t)messagePosSt < string::npos &&
-            (messagePosSt == 0 || !isSimpleChar(message[messagePosSt-1]) ) &&
-            ((size_t)messagePosEn+1 == message.size() || !isSimpleChar(message[messagePosEn+1]) ) ) {
-          // ^the complicated if statement is just 'whole-word' match
+        Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+        if( matchLoc != string::npos ) {
           Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
                                   << nearestWordSt << std::endl;
           caretPos = nearestWordSt;

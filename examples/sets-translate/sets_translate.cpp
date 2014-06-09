@@ -20,6 +20,7 @@
 #include <typeinfo>
 #include <cassert>
 #include <vector>
+#include <boost/algorithm/string.hpp> // include Boost, a C++ library
 
 
 #include "options/options.h"
@@ -36,6 +37,43 @@ using namespace CVC4::options;
 
 bool nonsense(char c) { return !isalnum(c); } 
 
+const bool enableAxioms = true;
+
+string setaxioms[] = {
+  "(declare-fun inHOLDA (HOLDB (Set HOLDB)) Bool)",
+  "",
+  "(declare-fun unionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
+  "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
+  "                (= (inHOLDA ?x (unionHOLDA ?X ?Y))",
+  "                     (or (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                ) ) )",
+  "",
+  "",
+  "(declare-fun intersectionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
+  "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
+  "                (= (inHOLDA ?x (intersectionHOLDA ?X ?Y))",
+  "                     (and (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                ) ) )",
+  "",
+  "(declare-fun setminusHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
+  "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
+  "                (= (inHOLDA ?x (setminusHOLDA ?X ?Y))",
+  "                     (and (inHOLDA ?x ?X) (not (inHOLDA ?x ?Y)))",
+  "                ) ) )",
+  "",
+  "(declare-fun setenumHOLDA (HOLDB) (Set HOLDB))",
+  "(assert (forall ((?x HOLDB) (?y HOLDB))",
+  "                (= (inHOLDA ?x (setenumHOLDA ?y))",
+  "                     (= ?x ?y)",
+  "                ) ) )",
+  "",
+  "(declare-fun emptysetHOLDA () (Set HOLDB))",
+  "(assert (forall ((?x HOLDB)) (not (inHOLDA ?x emptysetHOLDA)) ) )",
+  "",
+  "(define-fun subseteqHOLDA ((X (Set HOLDB)) (Y (Set HOLDB))) Bool (= (unionHOLDA X Y) Y))",
+  ""
+};
+
 class Mapper {
   set< Type > setTypes;
   map< Type, Type > mapTypes;
@@ -43,6 +81,7 @@ class Mapper {
   hash_map< Expr, Expr, ExprHashFunction > substitutions;
   ostringstream sout;
   ExprManager* em;
+  int depth;
 
   Expr add(SetType t, Expr e) {
 
@@ -70,61 +109,80 @@ class Mapper {
       elet_t.push_back(elementType);
       elet_t.push_back(t);
 
-      sout << "(define-fun emptyset" << elementTypeAsString << "    "
-           << " ()"
-           << " " << name
-           << " ( (as const " << name << ") false ) )" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun emptyset" << elementTypeAsString << "    "
+             << " ()"
+             << " " << name
+             << " ( (as const " << name << ") false ) )" << endl;
       setoperators[ make_pair(t, kind::EMPTYSET) ] =
         em->mkVar( std::string("emptyset") + elementTypeAsString,
                    t);
 
-      sout << "(define-fun setenum" << elementTypeAsString << "     "
-           << " ( (x " << elementType << ") )"
-           << " " << name << ""
-           << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun setenum" << elementTypeAsString << "     "
+             << " ( (x " << elementType << ") )"
+             << " " << name << ""
+             << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
       setoperators[ make_pair(t, kind::SET_SINGLETON) ] =
         em->mkVar( std::string("setenum") + elementTypeAsString,
                    em->mkFunctionType( elementType, t ) );
 
-      sout << "(define-fun union" << elementTypeAsString << "       "
-           << " ( (s1 " << name << ") (s2 " << name << ") )"
-           << " " << name << ""
-           << " ((_ map or) s1 s2))" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun union" << elementTypeAsString << "       "
+             << " ( (s1 " << name << ") (s2 " << name << ") )"
+             << " " << name << ""
+             << " ((_ map or) s1 s2))" << endl;
       setoperators[ make_pair(t, kind::UNION) ] =
         em->mkVar( std::string("union") + elementTypeAsString,
                    em->mkFunctionType( t_t, t ) );
 
-      sout << "(define-fun intersection" << elementTypeAsString << ""
-           << " ( (s1 " << name << ") (s2 " << name << ") )"
-           << " " << name << ""
-           << " ((_ map and) s1 s2))" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun intersection" << elementTypeAsString << ""
+             << " ( (s1 " << name << ") (s2 " << name << ") )"
+             << " " << name << ""
+             << " ((_ map and) s1 s2))" << endl;
       setoperators[ make_pair(t, kind::INTERSECTION) ] =
         em->mkVar( std::string("intersection") + elementTypeAsString,
                    em->mkFunctionType( t_t, t ) );
 
-      sout << "(define-fun setminus" << elementTypeAsString << "    "
-           << " ( (s1 " << name << ") (s2 " << name << ") )"
-           << " " << name << ""
-           << " (intersection" << elementTypeAsString << " s1 ((_ map not) s2)))" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun setminus" << elementTypeAsString << "    "
+             << " ( (s1 " << name << ") (s2 " << name << ") )"
+             << " " << name << ""
+             << " (intersection" << elementTypeAsString << " s1 ((_ map not) s2)))" << endl;
       setoperators[ make_pair(t, kind::SETMINUS) ] =
         em->mkVar( std::string("setminus") + elementTypeAsString,
                    em->mkFunctionType( t_t, t ) );
 
-      sout << "(define-fun in" << elementTypeAsString << "          "
-           << " ( (x " << elementType << ")" << " (s " << name << "))"
-           << " Bool"
-           << " (select s x) )" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun in" << elementTypeAsString << "          "
+             << " ( (x " << elementType << ")" << " (s " << name << "))"
+             << " Bool"
+             << " (select s x) )" << endl;
       setoperators[ make_pair(t, kind::MEMBER) ] =
         em->mkVar( std::string("in") + elementTypeAsString,
                    em->mkPredicateType( elet_t ) );
 
-      sout << "(define-fun subseteq" << elementTypeAsString << "    "
-           << " ( (s1 " << name << ") (s2 " << name << ") )"
-           << " Bool"
-           <<" (= emptyset" << elementTypeAsString << " (setminus" << elementTypeAsString << " s1 s2)) )" << endl;
+      if(!enableAxioms)
+        sout << "(define-fun subseteq" << elementTypeAsString << "    "
+             << " ( (s1 " << name << ") (s2 " << name << ") )"
+             << " Bool"
+             <<" (= emptyset" << elementTypeAsString << " (setminus" << elementTypeAsString << " s1 s2)) )" << endl;
       setoperators[ make_pair(t, kind::SUBSET) ] =
         em->mkVar( std::string("subseteq") + elementTypeAsString,
                    em->mkPredicateType( t_t ) );
+
+      if(enableAxioms) {
+        int N = sizeof(setaxioms) / sizeof(setaxioms[0]);
+        for(int i = 0; i < N; ++i) {
+          string s = setaxioms[i];
+          ostringstream oss; oss << Expr::setlanguage(language::output::LANG_SMTLIB_V2) << elementType;
+          boost::replace_all(s, "HOLDA", elementTypeAsString);
+          boost::replace_all(s, "HOLDB", oss.str());
+          if( s == "" ) continue;
+          sout << s << endl;
+        }
+      }
 
     }
     Expr ret;
@@ -140,7 +198,7 @@ class Mapper {
   }
 
 public:
-  Mapper(ExprManager* e) : em(e) {
+  Mapper(ExprManager* e) : em(e),depth(0) {
     sout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
   }
 
@@ -153,17 +211,24 @@ public:
 
   Expr collectSortsExpr(Expr e)
   {
+    if(substitutions.find(e) != substitutions.end()) {
+      return substitutions[e];
+    }
+    ++depth;
     Expr old_e = e;
     for(unsigned i = 0; i < e.getNumChildren(); ++i) {
       collectSortsExpr(e[i]);
     }
     e = e.substitute(substitutions);
+    // cout << "[debug] " << e << " " << e.getKind() << " " << theory::kindToTheoryId(e.getKind()) << endl;
     if(theory::kindToTheoryId(e.getKind()) == theory::THEORY_SETS) {
       SetType t = SetType(e.getType().isBoolean() ? e[1].getType() : e.getType());
       substitutions[e] = add(t, e);
       e = e.substitute(substitutions);
     }
-    // cout << old_e << " => " << e << endl;
+    substitutions[old_e] = e;
+    // cout << ";"; for(int i = 0; i < depth; ++i) cout << " "; cout << old_e << " => " << e << endl;
+    --depth;
     return e;
   }
 
@@ -187,6 +252,7 @@ int main(int argc, char* argv[])
     Options options;
     options.set(inputLanguage, language::input::LANG_SMTLIB_V2);
     cout << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+    // cout << Expr::dag(0);
     ExprManager exprManager(options);
 
     Mapper m(&exprManager);
