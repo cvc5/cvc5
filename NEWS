@@ -20,6 +20,10 @@ Changes since 1.3
   should now (correctly) default to the same as the input language
   (if the input language is supported as an output language), or the
   "CVC4" native output language if no input language setting is applied.
+* The SmtEngine cannot be safely copied with the copy constructor.
+  Previous versions inadvertently permitted clients to do this via the
+  API.  This has been corrected, copy and assignment of the SmtEngine
+  is no longer permitted.
 
 Changes since 1.2
 =================
