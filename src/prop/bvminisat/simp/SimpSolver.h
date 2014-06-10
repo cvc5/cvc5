@@ -58,6 +58,7 @@ class SimpSolver : public Solver {
     //
     bool    solve       (const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
     lbool   solveLimited(const vec<Lit>& assumps, bool do_simp = true, bool turn_off_simp = false);
+    lbool   solveLimited(bool do_simp = true, bool turn_off_simp = false);
     bool    solve       (                     bool do_simp = true, bool turn_off_simp = false);
     bool    solve       (Lit p       ,        bool do_simp = true, bool turn_off_simp = false);       
     bool    solve       (Lit p, Lit q,        bool do_simp = true, bool turn_off_simp = false);
@@ -96,7 +97,7 @@ class SimpSolver : public Solver {
     int     merges;
     int     asymm_lits;
     int     eliminated_vars;
-    CVC4::TimerStat total_eliminate_time;
+  //    CVC4::TimerStat total_eliminate_time;
 
  protected:
 
@@ -194,6 +195,9 @@ inline bool SimpSolver::solve        (const vec<Lit>& assumps, bool do_simp, boo
 
 inline lbool SimpSolver::solveLimited (const vec<Lit>& assumps, bool do_simp, bool turn_off_simp){ 
     assumps.copyTo(assumptions); return solve_(do_simp, turn_off_simp); }
+
+inline lbool SimpSolver::solveLimited (bool do_simp, bool turn_off_simp){ 
+    return solve_(do_simp, turn_off_simp); }
 
 //=================================================================================================
 }

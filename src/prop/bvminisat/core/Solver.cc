@@ -59,18 +59,30 @@ std::ostream& operator << (std::ostream& out, const BVMinisat::Clause& c) {
 
 static const char* _cat = "CORE";
 
+// static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
+// static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
+// static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0.0, DoubleRange(0, true, 1, true));
+// static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
+// static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 2));
+// static IntOption     opt_phase_saving      (_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
+// static BoolOption    opt_rnd_init_act      (_cat, "rnd-init",    "Randomize the initial activity", false);
+// static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby restart sequence", true);
+// static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 100, IntRange(1, INT32_MAX)); 
+// static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 1.5, DoubleRange(1, false, HUGE_VAL, false));
+// static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
+
+
 static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
 static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
-static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0.0, DoubleRange(0, true, 1, true));
+static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
-static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 0, IntRange(0, 2));
+static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 2, IntRange(0, 2));
 static IntOption     opt_phase_saving      (_cat, "phase-saving", "Controls the level of phase saving (0=none, 1=limited, 2=full)", 2, IntRange(0, 2));
 static BoolOption    opt_rnd_init_act      (_cat, "rnd-init",    "Randomize the initial activity", false);
 static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby restart sequence", true);
-static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 100, IntRange(1, INT32_MAX));
-static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 1.5, DoubleRange(1, false, HUGE_VAL, false));
+static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 25, IntRange(1, INT32_MAX));
+static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 3, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
-
 
 //=================================================================================================
 // Constructor/Destructor:
@@ -395,10 +407,8 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     out_learnt.shrink(i - j);
     tot_literals += out_learnt.size();
 
-    bool clause_all_marker = true;
     for (int i = 0; i < out_learnt.size(); ++ i) {
       if (marker[var(out_learnt[i])] == 0) {
-        clause_all_marker = false;
         break;
       }
     }
@@ -410,9 +420,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     }
     else{
         int max_i = 1;
-        if (marker[var(out_learnt[0])] == 0) {
-          clause_all_marker = false;
-        }
         // Find the first literal assigned at the next-highest level:
         for (int i = 2; i < out_learnt.size(); i++)
             if (level(var(out_learnt[i])) > level(var(out_learnt[max_i])))
@@ -422,10 +429,6 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         out_learnt[max_i] = out_learnt[1];
         out_learnt[1]     = p;
         out_btlevel       = level(var(p));
-    }
-
-    if (out_learnt.size() > 0 && clause_all_marker && CVC4::options::bitvectorShareLemmas()) {
-      notify->notify(out_learnt);
     }
 
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
@@ -462,6 +465,48 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     return true;
 }
 
+/** 
+ * Specialized analyzeFinal procedure where we test the consistency
+ * of the assumptions before backtracking bellow the assumption level.
+ * 
+ * @param p the original uip (may be unit)
+ * @param confl_clause the conflict clause
+ * @param out_conflict the conflict in terms of assumptions we are building
+ */
+void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
+  assert (confl_clause != CRef_Undef);
+  assert (decisionLevel() == assumptions.size());
+  assert (level(var(p)) == assumptions.size());
+
+  out_conflict.clear(); 
+  
+  Clause& cl = ca[confl_clause];
+  for (int i = 0; i < cl.size(); ++i) {
+    seen[var(cl[i])] = 1;
+  }
+
+  for (int i = trail.size() - 1; i >= trail_lim[0]; i--) {
+    Var x = var(trail[i]);
+    if (seen[x]) {
+      if (reason(x) == CRef_Undef) {
+        // this is the case when p was a unit
+        if (x == var(p))
+          continue;
+        
+        assert (marker[x] == 2);
+        assert (level(x) > 0);
+        out_conflict.push(~trail[i]); 
+      } else {
+        Clause& c = ca[reason(x)];
+        for (int j = 1; j < c.size(); j++)
+          if (level(var(c[j])) > 0)
+            seen[var(c[j])] = 1;
+      }
+      seen[x] = 0;
+    }
+  }
+  assert (out_conflict.size()); 
+}
 
 /*_________________________________________________________________________________________________
 |
@@ -475,7 +520,9 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
 void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 {
     out_conflict.clear();
-    out_conflict.push(p);
+    if (marker[var(p)] == 2) {
+      out_conflict.push(p);
+    }
 
     if (decisionLevel() == 0)
         return;
@@ -500,6 +547,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
     }
 
     seen[var(p)] = 0;
+    assert (out_conflict.size());
 }
 
 
@@ -755,28 +803,46 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             analyze(confl, learnt_clause, backtrack_level, uip);
 
             Lit p = learnt_clause[0];
-            bool assumption = marker[var(p)] == 2;
+            //bool assumption = marker[var(p)] == 2;
 
-            cancelUntil(backtrack_level);
-
-            if (learnt_clause.size() == 1){
-                uncheckedEnqueue(p);
-            }else{
-                CRef cr = ca.alloc(learnt_clause, true);
-                learnts.push(cr);
-                attachClause(cr);
-                claBumpActivity(ca[cr]);
-                uncheckedEnqueue(p, cr);
+            CRef cr = CRef_Undef;
+            if (learnt_clause.size() > 1) {
+              cr = ca.alloc(learnt_clause, true);
+              learnts.push(cr);
+              attachClause(cr);
+              claBumpActivity(ca[cr]);
             }
 
-            // if an assumption, we're done
-            if (assumption) {
-              assert(decisionLevel() < assumptions.size());
+            //  if the uip was an assumption we are unsat
+            if (level(var(p)) <= assumptions.size()) {
+              for (int i = 0; i < learnt_clause.size(); ++i) {
+                assert (level(var(learnt_clause[i])) <= decisionLevel()); 
+                seen[var(learnt_clause[i])] = 1;
+              }
               analyzeFinal(p, conflict);
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
-            
+
+            if (!CVC4::options::bvEagerExplanations()) {
+              // check if uip leads to a conflict 
+              if (backtrack_level < assumptions.size()) {
+                cancelUntil(assumptions.size());
+                uncheckedEnqueue(p, cr);
+              
+                CRef new_confl = propagate();
+                if (new_confl != CRef_Undef) {
+                  // we have a conflict we now need to explain it
+                  analyzeFinal2(p, new_confl, conflict); 
+                  return l_False;
+                }
+              }
+            }
+
+            cancelUntil(backtrack_level);
+            uncheckedEnqueue(p, cr);
+    
+         
             varDecayActivity();
             claDecayActivity();
 
@@ -835,6 +901,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     // Dummy decision level:
                     newDecisionLevel();
                 }else if (value(p) == l_False){
+                    marker[var(p)] = 2;
                     analyzeFinal(~p, conflict);
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;

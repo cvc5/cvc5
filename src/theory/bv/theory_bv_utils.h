@@ -23,7 +23,7 @@
 #include <vector>
 #include <sstream>
 #include "expr/node_manager.h"
-#include "theory/decision_attributes.h"
+
 
 namespace CVC4 {
 namespace theory {
@@ -65,7 +65,8 @@ inline Node mkFalse() {
 
 inline Node mkVar(unsigned size) {
   NodeManager* nm =  NodeManager::currentNM();
-  return nm->mkSkolem("bv", nm->mkBitVectorType(size), "is a variable created by the theory of bitvectors"); 
+
+  return nm->mkSkolem("BVSKOLEM$$", nm->mkBitVectorType(size), "is a variable created by the theory of bitvectors"); 
 }
 
 
@@ -435,8 +436,6 @@ inline Node mkConjunction(const std::vector<TNode>& nodes) {
 
 
 
-
-
 // Turn a set into a string
 inline std::string setToString(const std::set<TNode>& nodeSet) {
   std::stringstream out;
@@ -498,26 +497,13 @@ inline T gcd(T a, T b) {
   return a;
 }
 
+typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
 
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+bool isCoreTerm(TNode term, TNodeBoolMap& cache);
+bool isEqualityTerm(TNode term, TNodeBoolMap& cache);
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
 
-inline uint64_t numNodesAux(TNode node, TNodeSet& seen) {
-  if (seen.find(node) != seen.end())
-    return 0;
-
-  uint64_t size = 1;
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    size += numNodesAux(node[i], seen);
-  }
-  seen.insert(node);
-  return size;
-}
-
-inline uint64_t numNodes(TNode node) {
-  TNodeSet seen;
-  uint64_t size = numNodesAux(node, seen);
-  return size;
-}
+uint64_t numNodes(TNode node, NodeSet& seen);
 
 }
 }

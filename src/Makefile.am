@@ -173,9 +173,8 @@ libcvc4_la_SOURCES = \
 	theory/uf/theory_uf_model.cpp \
 	theory/uf/options_handlers.h \
 	theory/bv/theory_bv_utils.h \
+	theory/bv/theory_bv_utils.cpp \
 	theory/bv/type_enumerator.h \
-	theory/bv/bitblaster.h \
-	theory/bv/bitblaster.cpp \
 	theory/bv/bv_to_bool.h \
 	theory/bv/bv_to_bool.cpp \
 	theory/bv/bv_subtheory.h \
@@ -187,8 +186,13 @@ libcvc4_la_SOURCES = \
 	theory/bv/bv_subtheory_inequality.cpp \
 	theory/bv/bv_inequality_graph.h \
 	theory/bv/bv_inequality_graph.cpp \
-	theory/bv/bitblast_strategies.h \
-	theory/bv/bitblast_strategies.cpp \
+	theory/bv/bitblast_strategies_template.h \
+	theory/bv/bitblaster_template.h \
+	theory/bv/lazy_bitblaster.h \
+	theory/bv/eager_bitblaster.h \
+	theory/bv/aig_bitblaster.h \
+	theory/bv/bv_eager_solver.h \
+	theory/bv/bv_eager_solver.cpp \
 	theory/bv/slicer.h \
 	theory/bv/slicer.cpp \
 	theory/bv/theory_bv.h \
@@ -203,6 +207,15 @@ libcvc4_la_SOURCES = \
 	theory/bv/theory_bv_rewriter.h \
 	theory/bv/theory_bv_rewriter.cpp \
 	theory/bv/cd_set_collection.h \
+	theory/bv/abstraction.h \
+	theory/bv/abstraction.cpp \
+	theory/bv/bv_quick_check.h \
+	theory/bv/bv_quick_check.cpp \
+	theory/bv/bv_subtheory_algebraic.h \
+	theory/bv/bv_subtheory_algebraic.cpp \
+	theory/bv/options_handlers.h \
+	theory/bv/bitblast_mode.h \
+	theory/bv/bitblast_mode.cpp \
 	theory/idl/idl_model.h \
 	theory/idl/idl_model.cpp \
 	theory/idl/idl_assertion.h \

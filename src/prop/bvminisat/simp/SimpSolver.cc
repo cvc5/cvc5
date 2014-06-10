@@ -21,7 +21,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "mtl/Sort.h"
 #include "simp/SimpSolver.h"
 #include "utils/System.h"
-
+#include "theory/bv/options.h"
+#include "smt/options.h"
 using namespace BVMinisat;
 
 //=================================================================================================
@@ -32,7 +33,7 @@ static const char* _cat = "SIMP";
 
 static BoolOption   opt_use_asymm        (_cat, "asymm",        "Shrink clauses by asymmetric branching.", false);
 static BoolOption   opt_use_rcheck       (_cat, "rcheck",       "Check if a clause is already implied. (costly)", false);
-static BoolOption   opt_use_elim         (_cat, "elim",         "Perform variable elimination.", false);
+static BoolOption   opt_use_elim         (_cat, "elim",         "Perform variable elimination.", true);
 static IntOption    opt_grow             (_cat, "grow",         "Allow a variable elimination step to grow by a number of clauses.", 0);
 static IntOption    opt_clause_lim       (_cat, "cl-lim",       "Variables are not eliminated if it produces a resolvent with a length above this limit. -1 means no limit", 20,   IntRange(-1, INT32_MAX));
 static IntOption    opt_subsumption_lim  (_cat, "sub-lim",      "Do not check if subsumption against a clause larger than this. -1 means no limit.", 1000, IntRange(-1, INT32_MAX));
@@ -51,11 +52,12 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , simp_garbage_frac  (opt_simp_garbage_frac)
   , use_asymm          (opt_use_asymm)
   , use_rcheck         (opt_use_rcheck)
-  , use_elim           (opt_use_elim)
+  , use_elim           (opt_use_elim &&
+                        CVC4::options::bitblastMode() == CVC4::theory::bv::BITBLAST_MODE_EAGER &&
+                        !CVC4::options::produceModels())
   , merges             (0)
   , asymm_lits         (0)
   , eliminated_vars    (0)
-  , total_eliminate_time("theory::bv::bvminisat::TotalVariableEliminationTime")
   , elimorder          (1)
   , use_simplification (true)
   , occurs             (ClauseDeleted(ca))
@@ -63,7 +65,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
   , bwdsub_assigns     (0)
   , n_touched          (0)
 {
-    CVC4::StatisticsRegistry::registerStat(&total_eliminate_time);
+
     vec<Lit> dummy(1,lit_Undef);
     ca.extra_clause_field = true; // NOTE: must happen before allocating the dummy clause below.
     bwdsub_tmpunit        = ca.alloc(dummy);
@@ -87,7 +89,7 @@ SimpSolver::SimpSolver(CVC4::context::Context* c) :
 
 SimpSolver::~SimpSolver()
 {
-  CVC4::StatisticsRegistry::unregisterStat(&total_eliminate_time); 
+  //  CVC4::StatisticsRegistry::unregisterStat(&total_eliminate_time); 
 }
 
 
@@ -606,7 +608,7 @@ void SimpSolver::extendModel()
 bool SimpSolver::eliminate(bool turn_off_elim)
 {
 
-  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
+  //  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
   
     if (!simplify())
         return false;

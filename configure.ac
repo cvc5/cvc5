@@ -254,6 +254,9 @@ AC_ARG_WITH(
   ]
 )
 
+# [chris 8/24/2010] --with-gmp has no practical effect, since GMP is
+# the default. Could be useful if other options are added later.
+
 AC_ARG_WITH(
   [gmp],
   AS_HELP_STRING(
@@ -745,6 +748,27 @@ fi
 AM_CONDITIONAL([CVC4_USE_GLPK], [test $have_libglpk -eq 1])
 AC_SUBST([GLPK_LIBS])
 
+AC_ARG_WITH(
+  [abc],
+  AS_HELP_STRING(
+    [--with-abc],
+    [use the ABC AIG library]
+  ),
+  [case "$withval" in
+   y|ye|yes|Y|YE|YES) cvc4_use_abc=1 ;;
+   n|no|N|NO) cvc4_use_abc=0 ;;
+   esac
+  ]
+)
+
+if test $cvc4_use_abc -eq 1; then
+   # must add dl and pthread separately and before abc
+   AC_CHECK_LIB(dl, dlopen, , [AC_MSG_ERROR([dl not found])], [])
+   AC_CHECK_LIB(pthread, pthread_create, , [AC_MSG_ERROR([pthread not found])], [])
+   AC_CHECK_LIB(abc, Abc_Start, , [AC_MSG_ERROR([abc not found])], [-lm -ldl -rdynamic -lreadline -ltermcap -lpthread -lrt -ldl])
+   AC_DEFINE_UNQUOTED(CVC4_USE_ABC, [], [Defined if linked against the ABC AIG library.]) 
+fi
+
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates __gnu_cxx::hash<uint64_t> or not.  Some do, some don't.
 # See src/util/hash.h.
@@ -1214,7 +1238,7 @@ AC_DEFINE_UNQUOTED(CVC4_RELEASE_STRING, ["${CVC4_RELEASE_STRING}"], [Full releas
 CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }${BOOST_CPPFLAGS:+$BOOST_CPPFLAGS }$CVC4CPPFLAGS"
 CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$CVC4CXXFLAGS -Wno-deprecated"
 CFLAGS="${CFLAGS:+$CFLAGS }$CVC4CFLAGS -Wno-deprecated -fexceptions"
-LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS"
+LDFLAGS="${LDFLAGS:+$LDFLAGS }$CVC4LDFLAGS -ldl"
 
 # visibility flag not supported for Windows builds
 # also increase default stack size for Windows binaries

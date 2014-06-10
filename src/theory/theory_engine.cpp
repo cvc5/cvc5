@@ -51,8 +51,9 @@
 #include "theory/quantifiers/first_order_model.h"
 
 #include "theory/uf/equality_engine.h"
-
 //#include "theory/rewriterules/efficient_e_matching.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/bv/options.h"
 
 #include "proof/proof_manager.h"
 
@@ -1445,8 +1446,49 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
   }
 }
 
+void TheoryEngine::staticInitializeBVOptions(const std::vector<Node>& assertions) {
+  bool useSlicer = true;
+  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON) {
+    if (options::incrementalSolving())
+      throw ModalException("Slicer does not currently support incremental mode. Use --bv-eq-slicer=off");
+    if (options::produceModels())
+      throw ModalException("Slicer does not currently support model generation. Use --bv-eq-slicer=off");
+    useSlicer = true;
+    
+  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF) {
+    return;
+    
+  } else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO) {
+    if (options::incrementalSolving() ||
+        options::produceModels())
+      return;
+
+    useSlicer = true; 
+    bv::utils::TNodeBoolMap cache;
+    for (unsigned i = 0; i < assertions.size(); ++i) {
+      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache); 
+    }
+  }
+  
+  if (useSlicer) {
+    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+    bv_theory->enableCoreTheorySlicer();
+  }
+  
+}
+
 void TheoryEngine::ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
-  d_bvToBoolPreprocessor.liftBoolToBV(assertions, new_assertions);
+  d_bvToBoolPreprocessor.liftBvToBool(assertions, new_assertions);
+}
+
+bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+  return bv_theory->applyAbstraction(assertions, new_assertions); 
+}
+
+void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+  bv_theory->mkAckermanizationAsssertions(assertions);
 }
 
 Node TheoryEngine::ppSimpITE(TNode assertion)

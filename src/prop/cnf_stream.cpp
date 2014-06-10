@@ -228,12 +228,6 @@ SatLiteral CnfStream::convertAtom(TNode node) {
     theoryLiteral = true;
     canEliminate = false;
     preRegister = true;
-
-    if (options::bitvectorEagerBitblast() && theory::Theory::theoryOf(node) == theory::THEORY_BV) {
-      // All BV atoms are treated as boolean except for equality
-      theoryLiteral = false;
-      canEliminate = true;
-    }
   }
 
   // Make a new literal (variables are not considered theory literals)

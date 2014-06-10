@@ -69,9 +69,10 @@ public:
   BVMinisatSatSolver() :
     ContextNotifyObj(NULL, false),
     d_assertionsRealCount(NULL, (unsigned)0),
-    d_lastPropagation(NULL, (unsigned)0)
+    d_lastPropagation(NULL, (unsigned)0),
+    d_statistics("")
   { Unreachable(); }
-  BVMinisatSatSolver(context::Context* mainSatContext);
+  BVMinisatSatSolver(context::Context* mainSatContext, const std::string& name = "");
   ~BVMinisatSatSolver() throw(AssertionException);
 
   void setNotify(Notify* notify);
@@ -91,7 +92,6 @@ public:
   
   SatValue solve();
   SatValue solve(long unsigned int&);
-  SatValue solve(bool quick_solve);
   void getUnsatCore(SatClause& unsatCore);
 
   SatValue value(SatLiteral l);
@@ -129,8 +129,9 @@ public:
     ReferenceStat<uint64_t> d_statTotLiterals;
     ReferenceStat<int> d_statEliminatedVars;
     IntStat d_statCallsToSolve;
-    BackedStat<double> d_statSolveTime; 
-    Statistics();
+    BackedStat<double> d_statSolveTime;
+    bool d_registerStats;
+    Statistics(const std::string& prefix);
     ~Statistics();
     void init(BVMinisat::SimpSolver* minisat);
   };

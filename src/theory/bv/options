@@ -5,28 +5,61 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
-option bitvectorEagerBitblast --bitblast-eager bool
- eagerly bitblast the bitvectors to the main SAT solver
+# Option to set the bit-blasting mode (lazy, eager, eager-aig)
 
-option bitvectorShareLemmas --bitblast-share-lemmas bool
- share lemmas from the bitblasting solver with the main solver
+option bitblastMode --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"
+ choose bitblasting mode, see --bitblast=help
 
-option bitvectorEagerFullcheck --bitblast-eager-fullcheck bool
- check the bitblasting eagerly
+# Options for eager bit-blasting
+ 
+option bitvectorAig --bitblast-aig bool :default false :read-write :link --bitblast=eager
+ bitblast by first converting to AIG (only if --bitblast=eager)
 
-option bitvectorInequalitySolver --bv-inequality-solver bool :default true
- turn on the inequality solver for the bit-vector theory 
+expert-option bitvectorAigSimplifications --bv-aig-simp=FILE std::string :default "" :read-write :link --bitblast-aig
+ abc command to run AIG simplifications
 
-option bitvectorCoreSolver --bv-core-solver bool
- turn on the core solver for the bit-vector theory 
+# Options for lazy bit-blasting  
 
-option bvToBool --bv-to-bool bool
- lift bit-vectors of size 1 to booleans when possible
-
-option bvPropagate --bv-propagate bool :default true
+option bitvectorPropagate --bv-propagate bool :default true :read-write :link --bitblast=lazy 
  use bit-vector propagation in the bit-blaster
 
-option bvEquality --bv-eq bool :default true
- use the equality engine for the bit-vector theory
+option bitvectorEqualitySolver --bv-eq-solver bool :default true :read-write :link --bitblast=lazy
+ use the equality engine for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorEqualitySlicer --bv-eq-slicer=MODE CVC4::theory::bv::BvSlicerMode :handler CVC4::theory::bv::stringToBvSlicerMode :default CVC4::theory::bv::BITVECTOR_SLICER_OFF :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h" :read-write :link --bv-eq-solver
+ turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorInequalitySolver --bv-inequality-solver bool :default true :read-write :link --bitblast=lazy
+ turn on the inequality solver for the bit-vector theory (only if --bitblast=lazy)
+
+option bitvectorAlgebraicSolver --bv-algebraic-solver bool :default true :read-write :link --bitblast=lazy
+ turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)
+ 
+expert-option bitvectorAlgebraicBudget --bv-algebraic-budget unsigned :default 1500 :read-write :link --bv-algebraic-solver
+ the budget allowed for the algebraic solver in number of SAT conflicts
+
+# General options
+
+option bitvectorToBool --bv-to-bool bool :default false :read-write 
+ lift bit-vectors of size 1 to booleans when possible
+
+option bitvectorDivByZeroConst --bv-div-zero-const bool :default false
+ always return -1 on division by zero
+
+expert-option bvAbstraction --bv-abstraction bool :default false :read-write
+ mcm benchmark abstraction 
+
+expert-option skolemizeArguments --bv-skolemize bool :default false :read-write 
+ skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
+
+expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
+ number of function symbols in conflicts that are generalized
+
+expert-option bvEagerExplanations --bv-eager-explanations bool :default false :read-write
+ compute bit-blasting propagation explanations eagerly
+
+expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false
+ minimize bv conflicts using the QuickXplain algorithm
+ 
  
 endmodule

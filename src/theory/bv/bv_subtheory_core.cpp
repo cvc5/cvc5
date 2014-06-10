@@ -34,10 +34,12 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::TheoryBV"),
     d_slicer(new Slicer()),
-    d_isCoreTheory(c, true),
+    d_isComplete(c, true),
+    d_useSlicer(false),
+    d_preregisterCalled(false),
+    d_checkCalled(false),
     d_reasons(c)
 {
-
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
   //    d_equalityEngine.addFunctionKind(kind::BITVECTOR_AND);
@@ -78,11 +80,19 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
+void CoreSolver::enableSlicer() {
+  AlwaysAssert (!d_preregisterCalled);
+  d_useSlicer = true;
+  d_statistics.d_slicerEnabled.setData(true);
+}
+
 void CoreSolver::preRegister(TNode node) {
+  d_preregisterCalled = true;
   if (node.getKind() == kind::EQUAL) {
       d_equalityEngine.addTriggerEquality(node);
-      if (options::bitvectorCoreSolver()) {
+      if (d_useSlicer) {
         d_slicer->processEquality(node);
+        AlwaysAssert(!d_checkCalled); 
       }
   } else {
     d_equalityEngine.addTerm(node);
@@ -109,11 +119,6 @@ Node CoreSolver::getBaseDecomposition(TNode a) {
 }
 
 bool CoreSolver::decomposeFact(TNode fact) {
-  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
-  // assert decompositions since the equality engine does not know the semantics of
-  // concat:
-  //   a == a_1 concat ... concat a_k
-  //   b == b_1 concat ... concat b_k
   Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
   // FIXME: are this the right things to assert?
   // assert decompositions since the equality engine does not know the semantics of
@@ -161,21 +166,21 @@ bool CoreSolver::decomposeFact(TNode fact) {
 
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
+  d_checkCalled = true; 
   Assert (!d_bv->inConflict());
   ++(d_statistics.d_numCallstoCheck);
   bool ok = true;
   std::vector<Node> core_eqs;
+  TNodeBoolMap seen;
   while (! done()) {
     TNode fact = get();
-
-    // update whether we are in the core fragment
-    if (d_isCoreTheory && !d_slicer->isCoreTerm(fact)) {
-      d_isCoreTheory = false;
+    if (d_isComplete && !isCompleteForTerm(fact, seen)) {
+      d_isComplete = false;
     }
-
+    
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
-      if (options::bitvectorCoreSolver()) {
+      if (d_useSlicer) {
         ok = decomposeFact(fact);
       } else {
         ok = assertFactToEqualityEngine(fact, fact);
@@ -195,11 +200,6 @@ bool CoreSolver::check(Theory::Effort e) {
 }
 
 void CoreSolver::buildModel() {
-  if (options::bitvectorCoreSolver()) {
-    // FIXME
-    Unreachable();
-    return;
-  }
   Debug("bv-core") << "CoreSolver::buildModel() \n";
   d_modelValues.clear();
   TNodeSet constants;
@@ -218,6 +218,7 @@ void CoreSolver::buildModel() {
     }
     ++eqcs_i;
   }
+
   // build repr to value map
 
   eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
@@ -356,10 +357,16 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
+bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
+  if (d_useSlicer)
+    return utils::isCoreTerm(term, seen);
+  
+  return utils::isEqualityTerm(term, seen); 
+}
+
 void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
-  if (options::bitvectorCoreSolver()) {
-    Unreachable();
-    return;
+  if (d_useSlicer) {
+    Unreachable(); 
   }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
@@ -376,6 +383,8 @@ void CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
+      Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
+                               << a << " => " << b <<")\n"; 
       m->assertEquality(a, b, true);
     }
   }
@@ -406,9 +415,12 @@ Node CoreSolver::getModelValue(TNode var) {
 
 CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
+  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", false)
 {
   StatisticsRegistry::registerStat(&d_numCallstoCheck);
+  StatisticsRegistry::registerStat(&d_slicerEnabled);
 }
 CoreSolver::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_numCallstoCheck);
+  StatisticsRegistry::unregisterStat(&d_slicerEnabled);
 }

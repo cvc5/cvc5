@@ -469,7 +469,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     low = utils::getExtractLow(node);
     top = node[0]; 
   }
-  Assert (d_nodeToId.find(top) != d_nodeToId.end()); 
+  AlwaysAssert (d_nodeToId.find(top) != d_nodeToId.end()); 
   TermId id = d_nodeToId[top];
   NormalForm nf(high-low+1); 
   d_unionFind.getNormalForm(ExtractTerm(id, high, low), nf);
@@ -498,7 +498,7 @@ bool Slicer::isCoreTerm(TNode node) {
   if (d_coreTermCache.find(node) == d_coreTermCache.end()) {
     Kind kind = node.getKind();
     bool not_core;
-    if (options::bitvectorCoreSolver()) {
+    if (options::bitvectorEqualitySlicer()) {
       not_core = (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT); 
     } else {
       not_core = true; 

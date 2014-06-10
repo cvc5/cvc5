@@ -95,7 +95,7 @@ std::pair<int, S> runPortfolio(int numThreads,
   for(int t = 0; t < numThreads; ++t) {
     if(optionWaitToJoin) {
       threads[t].join();
-    }
+    } 
   }
 
   std::pair<int, S> retval(global_winner, threads_returnValue[global_winner]);

@@ -66,7 +66,7 @@ QF_AUFBV)
   finishwith --decision=justification-stoponly
   ;;
 QF_BV)
-  trywith 10 --bv-core --decision=justification
+  trywith 10 --bv-eq-slicer=auto --decision=justification
   trywith 60 --decision=justification
   trywith 600 --decision=internal --bitblast-eager
   finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1

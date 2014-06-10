@@ -121,6 +121,8 @@ enum RewriteRuleId {
   NotUlt,
   NotUle,
   MultPow2,
+  MultSlice,
+  ExtractMultLeadingBit,
   NegIdemp,
   UdivPow2,
   UdivOne,
@@ -133,6 +135,7 @@ enum RewriteRuleId {
   UltOne,
   SltZero, 
   ZeroUlt,
+  MergeSignExtend,
   
   /// normalization rules
   ExtractBitwise,
@@ -152,7 +155,7 @@ enum RewriteRuleId {
   PlusCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
-  MultDistribVariable,
+  MultDistrib,
   SolveEq,
   BitwiseEq,
   AndSimplify,
@@ -248,6 +251,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case XorOne :       out << "XorOne";        return out;
   case XorZero :       out << "XorZero";        return out;
   case MultPow2 :            out << "MultPow2";             return out;
+  case MultSlice :            out << "MultSlice";             return out;
+  case ExtractMultLeadingBit :            out << "ExtractMultLeadingBit";             return out;
   case NegIdemp :            out << "NegIdemp";             return out;
   case UdivPow2 :            out << "UdivPow2";             return out;
   case UdivOne :            out << "UdivOne";             return out;
@@ -266,7 +271,6 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
-  case MultDistribVariable: out << "MultDistribConst"; return out;
   case SolveEq : out << "SolveEq"; return out;
   case BitwiseEq : out << "BitwiseEq"; return out;
   case NegMult : out << "NegMult"; return out;
@@ -279,9 +283,12 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UltOne : out << "UltOne"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
+  case MergeSignExtend : out << "MergeSignExtend"; return out;
+    
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
-  case ExtractSignExtend : out << "ExtractSignExtend"; return out; 
+  case ExtractSignExtend : out << "ExtractSignExtend"; return out;
+  case MultDistrib: out << "MultDistrib"; return out;
   default:
     Unreachable();
   }
@@ -473,6 +480,8 @@ struct AllRewriteRules {
   RewriteRule<XorOne> rule83;
   RewriteRule<XorZero> rule84;
   RewriteRule<MultPow2> rule87;
+  RewriteRule<MultSlice> rule85;
+  RewriteRule<ExtractMultLeadingBit> rule88;
   RewriteRule<NegIdemp> rule91;
   RewriteRule<UdivPow2> rule92;
   RewriteRule<UdivOne> rule93;
@@ -500,7 +509,7 @@ struct AllRewriteRules {
   RewriteRule<SltZero> rule115;
   RewriteRule<BVToNatEliminate>  rule116;
   RewriteRule<IntToBVEliminate>  rule117;
-  RewriteRule<MultDistribVariable> rule118;
+  RewriteRule<MultDistrib> rule118;
 };
 
 template<> inline

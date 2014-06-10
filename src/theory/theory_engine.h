@@ -795,8 +795,11 @@ private:
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
   theory::bv::BvToBoolPreprocessor d_bvToBoolPreprocessor;
 public:
-
+  void staticInitializeBVOptions(const std::vector<Node>& assertions);
   void ppBvToBool(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  bool ppBvAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */
   bool donePPSimpITE(std::vector<Node>& assertions);

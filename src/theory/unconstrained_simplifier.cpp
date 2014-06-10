@@ -280,8 +280,8 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_SHL:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
-        case kind::BITVECTOR_UDIV:
-        case kind::BITVECTOR_UREM:
+        case kind::BITVECTOR_UDIV_TOTAL:
+        case kind::BITVECTOR_UREM_TOTAL:
         case kind::BITVECTOR_SDIV:
         case kind::BITVECTOR_SREM:
         case kind::BITVECTOR_SMOD: {
@@ -634,16 +634,13 @@ void UnconstrainedSimplifier::processUnconstrained()
           break;
         }
 
-        // These should have been rewritten up front
-        case kind::BITVECTOR_REPEAT:
+        // Do nothing 
+        case kind::BITVECTOR_SIGN_EXTEND:
         case kind::BITVECTOR_ZERO_EXTEND:
+        case kind::BITVECTOR_REPEAT:
         case kind::BITVECTOR_ROTATE_LEFT:
         case kind::BITVECTOR_ROTATE_RIGHT:
-          Unreachable();
-          break;
 
-        // Do nothing
-        case kind::BITVECTOR_SIGN_EXTEND:
         default:
           break;
       }

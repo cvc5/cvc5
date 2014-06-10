@@ -32,10 +32,13 @@ class Base;
  */
 class CoreSolver : public SubtheorySolver {
   typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ModelValue;
+  typedef __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> TNodeBoolMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
 
   struct Statistics {
     IntStat d_numCallstoCheck;
+    BackedStat<bool> d_slicerEnabled;
     Statistics();
     ~Statistics();
   };
@@ -70,7 +73,13 @@ class CoreSolver : public SubtheorySolver {
   void conflict(TNode a, TNode b);
 
   Slicer* d_slicer;
-  context::CDO<bool> d_isCoreTheory;
+  context::CDO<bool> d_isComplete;
+  
+  /** Used to ensure that the core slicer is used properly*/
+  bool d_useSlicer; 
+  bool d_preregisterCalled;
+  bool d_checkCalled;
+  
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
   ModelValue d_modelValues;
@@ -78,11 +87,12 @@ class CoreSolver : public SubtheorySolver {
   bool assertFactToEqualityEngine(TNode fact, TNode reason);
   bool decomposeFact(TNode fact);
   Node getBaseDecomposition(TNode a);
+  bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 public:
   CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
-  bool  isComplete() { return d_isCoreTheory; }
+  bool  isComplete() { return d_isComplete; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);
   void  preRegister(TNode node);
   bool  check(Theory::Effort e);
@@ -105,6 +115,7 @@ public:
   }
   bool hasTerm(TNode node) const { return d_equalityEngine.hasTerm(node); }
   void addTermToEqualityEngine(TNode node) { d_equalityEngine.addTerm(node); }
+  void enableSlicer();
 };
 
 

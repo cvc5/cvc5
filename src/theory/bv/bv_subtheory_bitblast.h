@@ -19,11 +19,16 @@
 #pragma once
 
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/bitblaster_template.h"
+
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class Bitblaster;
+class LazyBitblaster;
+class AbstractionModule;
+class BVQuickCheck;
+class QuickXPlain;
 
 /**
  * BitblastSolver
@@ -31,11 +36,12 @@ class Bitblaster;
 class BitblastSolver : public SubtheorySolver {
   struct Statistics {
     IntStat d_numCallstoCheck;
+    IntStat d_numBBLemmas;
     Statistics();
     ~Statistics();
   };
   /** Bitblaster */
-  Bitblaster* d_bitblaster;
+  TLazyBitblaster* d_bitblaster;
 
   /** Nodes that still need to be bit-blasted */
   context::CDQueue<TNode> d_bitblastQueue;
@@ -44,9 +50,15 @@ class BitblastSolver : public SubtheorySolver {
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeMap;
   NodeMap d_modelCache;
   context::CDO<bool> d_validModelCache;
-  Node getModelValueRec(TNode node);
 
+  /** Queue for bit-blasting lemma atoms only in full check if we are sat */
+  context::CDQueue<TNode> d_lemmaAtomsQueue;
   bool  d_useSatPropagation;
+  AbstractionModule* d_abstractionModule;
+  BVQuickCheck* d_quickCheck;
+  QuickXPlain* d_quickXplain;
+  Node getModelValueRec(TNode node);
+  void setConflict(TNode conflict); 
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);
   ~BitblastSolver();
@@ -59,6 +71,8 @@ public:
   Node getModelValue(TNode node);
   bool isComplete() { return true; }
   void bitblastQueue();
+  void setAbstraction(AbstractionModule* module); 
+  uint64_t computeAtomWeight(TNode atom); 
 };
 
 }

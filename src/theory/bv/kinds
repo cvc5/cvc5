@@ -8,7 +8,7 @@ theory THEORY_BV ::CVC4::theory::bv::TheoryBV "theory/bv/theory_bv.h"
 typechecker "theory/bv/theory_bv_type_rules.h"
 
 properties finite
-properties check propagate presolve
+properties check propagate presolve ppStaticLearn
 
 rewriter ::CVC4::theory::bv::TheoryBVRewriter "theory/bv/theory_bv_rewriter.h"
 
@@ -69,6 +69,10 @@ operator BITVECTOR_SLT 2 "bit-vector signed less than"
 operator BITVECTOR_SLE 2 "bit-vector signed less than or equal"
 operator BITVECTOR_SGT 2 "bit-vector signed greater than"
 operator BITVECTOR_SGE 2 "signed greater than or equal"
+
+operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bit-blasting"
+operator BITVECTOR_ACKERMANIZE_UDIV 1 "term to be treated as a variable; used for eager bitblasting ackerman expansion of bvudiv"
+operator BITVECTOR_ACKERMANIZE_UREM 1 "term to be treated as a variable; used for eager bitblasting ackerman expansion of bvurem"
 
 constant BITVECTOR_BITOF_OP \
 	::CVC4::BitVectorBitOf \
@@ -166,6 +170,10 @@ typerule BITVECTOR_SLT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SLE ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SGE ::CVC4::theory::bv::BitVectorPredicateTypeRule
+
+typerule BITVECTOR_EAGER_ATOM ::CVC4::theory::bv::BitVectorEagerAtomTypeRule
+typerule BITVECTOR_ACKERMANIZE_UDIV ::CVC4::theory::bv::BitVectorAckermanizationUdivTypeRule
+typerule BITVECTOR_ACKERMANIZE_UREM ::CVC4::theory::bv::BitVectorAckermanizationUremTypeRule
 
 typerule BITVECTOR_EXTRACT_OP ::CVC4::theory::bv::BitVectorExtractOpTypeRule
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule

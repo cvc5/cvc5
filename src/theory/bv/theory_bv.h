@@ -14,11 +14,10 @@
  ** Bitvector theory.
  **/
 
-#include "cvc4_private.h"
-
 #ifndef __CVC4__THEORY__BV__THEORY_BV_H
 #define __CVC4__THEORY__BV__THEORY_BV_H
 
+#include "cvc4_private.h"
 #include "theory/theory.h"
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -34,7 +33,12 @@ namespace bv {
 
 class CoreSolver;
 class InequalitySolver;
+class AlgebraicSolver;
 class BitblastSolver; 
+
+class EagerBitblastSolver;
+  
+class AbstractionModule;
 
 class TheoryBV : public Theory {
 
@@ -58,6 +62,8 @@ public:
 
   Node expandDefinition(LogicRequest &logicRequest, Node node);
 
+  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+
   void preRegisterTerm(TNode n);
 
   void check(Effort e);
@@ -71,9 +77,15 @@ public:
   std::string identify() const { return std::string("TheoryBV"); }
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
+
+  void enableCoreTheorySlicer();
+  
   Node ppRewrite(TNode t);
 
+  void ppStaticLearn(TNode in, NodeBuilder<>& learned);
+  
   void presolve();
+  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions); 
 private:
 
   class Statistics {
@@ -81,9 +93,10 @@ private:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
-    IntStat d_numCallsToCheckFullEffort;
-    IntStat d_numCallsToCheckStandardEffort; 
+    IntStat     d_numCallsToCheckFullEffort;
+    IntStat     d_numCallsToCheckStandardEffort; 
     TimerStat   d_weightComputationTimer;
+    IntStat     d_numMultSlice;
     Statistics();
     ~Statistics();
   };
@@ -101,6 +114,9 @@ private:
    */
   Node getBVDivByZero(Kind k, unsigned width);
 
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+  void collectNumerators(TNode term, TNodeSet& seen);
+  
   /**
    * Maps from bit-vector width to divison-by-zero uninterpreted
    * function symbols.
@@ -108,6 +124,14 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
+  /**
+   * Maps from bit-vector width to numerators
+   * of uninterpreted function symbol
+   */
+  typedef __gnu_cxx::hash_map<unsigned, TNodeSet > WidthToNumerators;
+
+  WidthToNumerators d_BVDivByZeroAckerman;
+  WidthToNumerators d_BVRemByZeroAckerman;
 
   context::CDO<bool> d_lemmasAdded;
   
@@ -130,6 +154,11 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
+  EagerBitblastSolver* d_eagerSolver; 
+  AbstractionModule* d_abstractionModule;
+  bool d_isCoreTheory;
+  bool d_calledPreregister;
+  
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end(); 
   }
@@ -162,10 +191,7 @@ private:
     return indentStr;
   }
 
-  void setConflict(Node conflict = Node::null()) {
-    d_conflict = true;
-    d_conflictNode = conflict;
-  }
+  void setConflict(Node conflict = Node::null());
 
   bool inConflict() {
     return d_conflict;
@@ -176,12 +202,15 @@ private:
   void lemma(TNode node) { d_out->lemma(node); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node); 
-  
-  friend class Bitblaster;
+
+ 
+  friend class LazyBitblaster;
+  friend class TLazyBitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;
-  friend class InequalitySolver; 
+  friend class InequalitySolver;
+  friend class AlgebraicSolver;
 };/* class TheoryBV */
 
 }/* CVC4::theory::bv namespace */

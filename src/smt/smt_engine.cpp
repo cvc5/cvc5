@@ -361,11 +361,15 @@ private:
   // Lift bit-vectors of size 1 to booleans
   void bvToBool();
 
+  // Abstract common structure over small domains to UF
+  // return true if changes were made. 
+  void bvAbstraction(); 
+  
   // Simplify ITE structure
   bool simpITE();
 
   // Simplify based on unconstrained values
-  void unconstrainedSimp();
+  void unconstrainedSimp(std::vector<Node>& assertions);
 
   // Ensures the assertions asserted after before now
   // effectively come before d_realAssertionsEnd
@@ -896,11 +900,6 @@ void SmtEngine::setDefaults() {
     */
   }
 
-  if(options::bitvectorEagerBitblast()) {
-    // Eager solver should use the internal decision strategy
-    options::decisionMode.set(DECISION_STRATEGY_INTERNAL);
-  }
-
   if(options::checkModels()) {
     if(! options::interactive()) {
       Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
@@ -1069,6 +1068,27 @@ void SmtEngine::setDefaults() {
       setOption("check-models", SExpr("false"));
     }
   }
+
+
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
+      options::incrementalSolving()) {
+    if (options::incrementalSolving.wasSetByUser()) {
+      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
+                                         Try --bitblast=lazy"));
+    }
+    Notice() << "SmtEngine: turning off incremental to support eager bit-blasting" << endl;
+    setOption("incremental", SExpr("false"));
+  }
+  
+  if (! options::bvEagerExplanations.wasSetByUser() &&
+      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_BV)) {
+    Trace("smt") << "enabling eager bit-vector explanations " << endl;
+    options::bvEagerExplanations.set(true);
+  }
+
+  
+  
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();
@@ -1971,13 +1991,29 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   return true;
 }
 
+void SmtEnginePrivate::bvAbstraction() {
+  Trace("bv-abstraction") << "SmtEnginePrivate::bvAbstraction()" << endl;
+  std::vector<Node> new_assertions;
+  bool changed = d_smt.d_theoryEngine->ppBvAbstraction(d_assertionsToPreprocess, new_assertions);
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
+  }
+  // if we are using the lazy solver and the abstraction
+  // applies, then UF symbols were introduced 
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
+      changed) {
+    LogicRequest req(d_smt);
+    req.widenLogic(THEORY_UF); 
+  }
+}
+
 
 void SmtEnginePrivate::bvToBool() {
   Trace("bv-to-bool") << "SmtEnginePrivate::bvToBool()" << endl;
   std::vector<Node> new_assertions;
-  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToCheck, new_assertions);
-  for (unsigned i = 0; i < d_assertionsToCheck.size(); ++ i) {
-    d_assertionsToCheck[i] = Rewriter::rewrite(new_assertions[i]);
+  d_smt.d_theoryEngine->ppBvToBool(d_assertionsToPreprocess, new_assertions);
+  for (unsigned i = 0; i < d_assertionsToPreprocess.size(); ++ i) {
+    d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
   }
 }
 
@@ -2032,11 +2068,10 @@ void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
   Assert(d_assertionsToCheck.size() == before);
 }
 
-void SmtEnginePrivate::unconstrainedSimp() {
+void SmtEnginePrivate::unconstrainedSimp(std::vector<Node>& assertions) {
   TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
-
   Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
-  d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertionsToCheck);
+  d_smt.d_theoryEngine->ppUnconstrainedSimp(assertions);
 }
 
 
@@ -2533,6 +2568,9 @@ bool SmtEnginePrivate::simplifyAssertions()
     Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
     Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+    // before ppRewrite check if only core theory for BV theory
+    d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertionsToCheck);
+    
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP) {
       Chat() << "...doing early theory preprocessing..." << endl;
@@ -2570,7 +2608,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     // Unconstrained simplification
     if(options::unconstrainedSimp()) {
       Chat() << "...doing unconstrained simplification..." << endl;
-      unconstrainedSimp();
+      unconstrainedSimp(d_assertionsToCheck);
     }
 
     dumpAssertions("post-unconstrained", d_assertionsToCheck);
@@ -2825,7 +2863,26 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+  
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
+      !d_smt.d_logic.isPure(THEORY_BV)) {
+    throw ModalException("Eager bit-blasting does not currently support theory combination. "
+                         "Note that in a QF_BV problem UF symbols can be introduced for division. "
+                         "Try --bv-div-zero-const to interpret division by zero as a constant."); 
+  }
 
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertionsToPreprocess); 
+  }
+  
+
+  if ( options::bvAbstraction() &&
+      !options::incrementalSolving()) {
+    dumpAssertions("pre-bv-abstraction", d_assertionsToPreprocess);
+    bvAbstraction();
+    dumpAssertions("post-bv-abstraction", d_assertionsToPreprocess);
+  }
+  
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {
     Chat() << "rewriting Boolean terms..." << endl;
@@ -2855,6 +2912,15 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
+
+  // Unconstrained simplification
+  if(options::unconstrainedSimp()) {
+    dumpAssertions("pre-unconstrained-simp", d_assertionsToPreprocess);
+    Chat() << "...doing unconstrained simplification..." << endl;
+    unconstrainedSimp(d_assertionsToPreprocess);
+    dumpAssertions("post-unconstrained-simp", d_assertionsToPreprocess);
+  }
+
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);
 
   // Apply the substitutions we already have, and normalize
@@ -2871,6 +2937,15 @@ void SmtEnginePrivate::processAssertions() {
 
   // Assertions ARE guaranteed to be rewritten by this point
 
+
+  // Lift bit-vectors of size 1 to bool
+  if(options::bitvectorToBool()) {
+    dumpAssertions("pre-bv-to-bool", d_assertionsToPreprocess);
+    Chat() << "...doing bvToBool..." << endl;
+    bvToBool();
+    dumpAssertions("post-bv-to-bool", d_assertionsToPreprocess);
+  }
+  
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     dumpAssertions("pre-strings-pp", d_assertionsToPreprocess);
     CVC4::theory::strings::StringsPreprocess sp;
@@ -2956,12 +3031,6 @@ void SmtEnginePrivate::processAssertions() {
     staticLearning();
   }
   dumpAssertions("post-static-learning", d_assertionsToCheck);
-
-  // Lift bit-vectors of size 1 to bool
-  if(options::bvToBool()) {
-    Chat() << "...doing bvToBool..." << endl;
-    bvToBool();
-  }
 
   Trace("smt") << "POST bvToBool" << endl;
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
@@ -3086,6 +3155,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-theory-preprocessing", d_assertionsToCheck);
 
+  // If we are using eager bit-blasting wrap assertions in fake atom so that
+  // everything gets bit-blasted to internal SAT solver
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
+      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
+      d_assertionsToCheck[i] = eager_atom; 
+    }
+  }
+  
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -3099,7 +3177,6 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("post-everything", d_assertionsToCheck);
 
-  // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
@@ -3107,6 +3184,7 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
     }
   }
+  
 
   d_assertionsProcessed = true;
 
@@ -3380,6 +3458,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
   hash_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
   n = postprocess(n, TypeNode::fromType(e.getType()));
+
   return n.toExpr();
 }
 
