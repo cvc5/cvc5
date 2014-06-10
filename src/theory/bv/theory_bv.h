@@ -62,6 +62,8 @@ public:
 
   Node expandDefinition(LogicRequest &logicRequest, Node node);
 
+  void mkAckermanizationAsssertions(std::vector<Node>& assertions);
+
   void preRegisterTerm(TNode n);
 
   void check(Effort e);
@@ -111,7 +113,16 @@ private:
    * @return
    */
   Node getBVDivByZero(Kind k, unsigned width);
-
+  /**
+   * Return the free variable corresponding to the ackermanization
+   * of the uninterpreted function symbol applied to arg.
+   * @param k should be UREM or UDIV
+   * @param arg numerator
+   *
+   * @return
+   */
+  Node getBVDivByZeroAckermanVariable(Kind k, TNode arg);
+  
   /**
    * Maps from bit-vector width to divison-by-zero uninterpreted
    * function symbols.
@@ -119,6 +130,15 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
+  /**
+   * Maps from bit-vector numerator to ackermanization
+   * of uninterpreted function symbol
+   */
+  typedef __gnu_cxx::hash_map<unsigned, std::vector<std::pair<TNode, TNode> > > WidthToFuncs;
+  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ArgToFunc;
+  ArgToFunc d_BVDivByZeroAckerman;
+  ArgToFunc d_BVRemByZeroAckerman;
+  
 
   context::CDO<bool> d_lemmasAdded;
   

@@ -1486,6 +1486,11 @@ bool  TheoryEngine::ppBvAbstraction(const std::vector<Node>& assertions, std::ve
   return bv_theory->applyAbstraction(assertions, new_assertions); 
 }
 
+void TheoryEngine::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
+  bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV]; 
+  bv_theory->mkAckermanizationAsssertions(assertions);
+}
+
 Node TheoryEngine::ppSimpITE(TNode assertion)
 {
   if(!d_iteRemover.containsTermITE(assertion)){

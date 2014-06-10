@@ -162,6 +162,92 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   Unreachable();
 }
 
+Node TheoryBV::getBVDivByZeroAckermanVariable(Kind k, TNode arg) {
+  NodeManager* nm = NodeManager::currentNM();
+  unsigned size = utils::getSize(arg); 
+  if (k == kind::BITVECTOR_UDIV) {
+    if (d_BVDivByZeroAckerman.find(arg) == d_BVDivByZeroAckerman.end()) {
+      Node ackerman_var = nm->mkSkolem("BVUDivByZero_Acker_$$", nm->mkBitVectorType(size), "Ackermanization variable for bit-vector division");
+      d_BVDivByZeroAckerman[arg] = ackerman_var;
+    }
+    return d_BVDivByZeroAckerman[arg];
+  } else if (k == kind::BITVECTOR_UREM) {
+    if (d_BVRemByZeroAckerman.find(arg) == d_BVRemByZeroAckerman.end()) {
+      Node ackerman_var = nm->mkSkolem("BVRemByZero_Acker_$$", nm->mkBitVectorType(size), "Ackermanization variable for bit-vector division");
+      d_BVRemByZeroAckerman[arg] = ackerman_var;
+    }
+    return d_BVRemByZeroAckerman[arg];
+  }
+  Unreachable(); 
+}
+
+void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
+  Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAsssertions\n";
+  
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
+
+  // process division UF
+  Debug("bv-ackermanize") << "Process division UF...\n";
+  WidthToFuncs width_to_functions;
+  for (ArgToFunc::const_iterator it = d_BVDivByZeroAckerman.begin(); it != d_BVDivByZeroAckerman.end(); ++it) {
+    TNode arg = it->first;
+    TNode func = it->second;
+    unsigned size = utils::getSize(arg);
+    if (width_to_functions.find(size) == width_to_functions.end())
+      width_to_functions[size] = std::vector<std::pair<TNode, TNode> >();
+    width_to_functions[size].push_back(make_pair(arg, func)); 
+  }
+
+  for (WidthToFuncs::const_iterator it = width_to_functions.begin(); it != width_to_functions.end(); ++it) {
+    const std::vector< std::pair<TNode, TNode> >& vec = it->second;
+    for (unsigned i = 0; i < vec.size()-1; ++i) {
+      for (unsigned j = i+1; j < vec.size(); ++j) {
+        TNode arg1 = vec[i].first;
+        TNode arg2 = vec[j].first;
+        TNode func1 = vec[i].second;
+        TNode func2 = vec[j].second;
+
+        Node arg_eq = utils::mkNode(kind::EQUAL, arg1, arg2);
+        Node func_eq = utils::mkNode(kind::EQUAL, func1, func2);
+        Node assump = utils::mkNode(kind::IMPLIES, arg_eq, func_eq);
+        Debug("bv-ackermanize") << "  " << assump << "\n";
+        assertions.push_back(assump); 
+      }
+    }
+  }
+
+  width_to_functions.clear();
+
+  // process remainder UF
+  Debug("bv-ackermanize") << "Process remainder UF...\n";
+  for (ArgToFunc::const_iterator it = d_BVRemByZeroAckerman.begin(); it != d_BVRemByZeroAckerman.end(); ++it) {
+    TNode arg = it->first;
+    TNode func = it->second;
+    unsigned size = utils::getSize(arg);
+    if (width_to_functions.find(size) == width_to_functions.end())
+      width_to_functions[size] = std::vector<std::pair<TNode, TNode> >();
+    width_to_functions[size].push_back(make_pair(arg, func)); 
+  }
+
+  for (WidthToFuncs::const_iterator it = width_to_functions.begin(); it != width_to_functions.end(); ++it) {
+    const std::vector< std::pair<TNode, TNode> >& vec = it->second;
+    for (unsigned i = 0; i < vec.size()-1; ++i) {
+      for (unsigned j = i+1; j < vec.size(); ++j) {
+        TNode arg1 = vec[i].first;
+        TNode arg2 = vec[j].first;
+        TNode func1 = vec[i].second;
+        TNode func2 = vec[j].second;
+
+        Node arg_eq = utils::mkNode(kind::EQUAL, arg1, arg2);
+        Node func_eq = utils::mkNode(kind::EQUAL, func1, func2);
+        Node assump = utils::mkNode(kind::IMPLIES, arg_eq, func_eq);
+        Debug("bv-ackermanize") << "  " << assump << "\n";
+        assertions.push_back(assump); 
+      }
+    }
+  }
+
+}
 
 Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
@@ -186,12 +272,20 @@ Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
     Node divByZero = getBVDivByZero(node.getKind(), width);
     TNode num = node[0], den = node[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(BitVector(width, Integer(0))));
-    Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
     Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
-    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    logicRequest.widenLogic(THEORY_UF);
-    return node;
+
+    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+      // Ackermanize UF if using eager bit-blasting
+      Node ackerman_var = getBVDivByZeroAckermanVariable(node.getKind(), num);
+      node = nm->mkNode(kind::ITE, den_eq_0, ackerman_var, divTotalNumDen);
+      return node; 
+    } else {
+      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
+      node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+      logicRequest.widenLogic(THEORY_UF);
+      return node;
+    }
   }
     break;
 

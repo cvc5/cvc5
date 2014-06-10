@@ -2840,15 +2840,20 @@ void SmtEnginePrivate::processAssertions() {
   }
   dumpAssertions("post-definition-expansion", d_assertionsToPreprocess);
 
+  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
+  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
+  
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       !d_smt.d_logic.isPure(THEORY_BV)) {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant."); 
   }
+
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertionsToPreprocess); 
+  }
   
-  Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
-  Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
 
   if ( options::bvAbstraction() &&
       !options::incrementalSolving()) {
