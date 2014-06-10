@@ -128,6 +128,34 @@ public:
   }
 };
 
+class BitVectorAckermanizationUdivTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TypeNode lhsType = n[0].getType(check);
+    if( check ) {
+      if (!lhsType.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+    }
+    return lhsType; 
+  }
+};
+
+class BitVectorAckermanizationUremTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TypeNode lhsType = n[0].getType(check);
+    if( check ) {
+      if (!lhsType.isBitVector()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+      }
+    }
+    return lhsType; 
+  }
+};
+
 
 class BitVectorExtractTypeRule {
 public:

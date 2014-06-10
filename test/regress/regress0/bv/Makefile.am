@@ -94,7 +94,7 @@ SMT_TESTS = \
 	smtcompbug.smt
 
 # Regression tests for SMT2 inputs
-SMT2_TESTS =
+SMT2_TESTS = divtest.smt2
 
 # Regression tests for PL inputs
 CVC_TESTS = bvsimple.cvc sizecheck.cvc

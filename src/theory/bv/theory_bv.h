@@ -113,15 +113,9 @@ private:
    * @return
    */
   Node getBVDivByZero(Kind k, unsigned width);
-  /**
-   * Return the free variable corresponding to the ackermanization
-   * of the uninterpreted function symbol applied to arg.
-   * @param k should be UREM or UDIV
-   * @param arg numerator
-   *
-   * @return
-   */
-  Node getBVDivByZeroAckermanVariable(Kind k, TNode arg);
+
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
+  void collectNumerators(TNode term, TNodeSet& seen);
   
   /**
    * Maps from bit-vector width to divison-by-zero uninterpreted
@@ -131,14 +125,13 @@ private:
   __gnu_cxx::hash_map<unsigned, Node> d_BVRemByZero;
 
   /**
-   * Maps from bit-vector numerator to ackermanization
+   * Maps from bit-vector width to numerators
    * of uninterpreted function symbol
    */
-  typedef __gnu_cxx::hash_map<unsigned, std::vector<std::pair<TNode, TNode> > > WidthToFuncs;
-  typedef __gnu_cxx::hash_map<TNode, Node, TNodeHashFunction> ArgToFunc;
-  ArgToFunc d_BVDivByZeroAckerman;
-  ArgToFunc d_BVRemByZeroAckerman;
-  
+  typedef __gnu_cxx::hash_map<unsigned, TNodeSet > WidthToNumerators;
+
+  WidthToNumerators d_BVDivByZeroAckerman;
+  WidthToNumerators d_BVRemByZeroAckerman;
 
   context::CDO<bool> d_lemmasAdded;
   
