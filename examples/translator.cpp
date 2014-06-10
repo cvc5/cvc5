@@ -19,6 +19,8 @@
 #include <fstream>
 #include <getopt.h>
 #include <cstring>
+#include <cstdlib>
+#include <cerrno>
 #include "util/language.h"
 #include "expr/command.h"
 #include "expr/expr.h"
@@ -34,12 +36,14 @@ enum {
   INPUT_LANG = 'L',
   OUTPUT_LANG = 'O',
   OUTPUT_FILE = 'o',
-  HELP = 'h'
+  HELP = 'h',
+  DEFAULT_DAG_THRESH,
 };/* enum */
 
 const struct option longopts[] = {
   { "output-lang", required_argument, NULL, OUTPUT_LANG },
   { "output-language", required_argument, NULL, OUTPUT_LANG },
+  { "default-dag-thresh", required_argument, NULL, DEFAULT_DAG_THRESH },
   { "lang", required_argument, NULL, INPUT_LANG },
   { "language", required_argument, NULL, INPUT_LANG },
   { "out", required_argument, NULL, OUTPUT_FILE },
@@ -52,6 +56,7 @@ static void showHelp() {
        << "  --output-language | -O  set output language (default smt2)" << endl
        << "  --input-language | -L   set input language (default auto)" << endl
        << "  --out | -o              set output file (- for stdout)" << endl
+       << "  --default-dag-thresh=N  set DAG threshold" << endl
        << "  --help | -h             this help" << endl
        << "Options and input filenames can be intermixed, and order is important." << endl
        << "For instance, \"-O smt2 x -O cvc4 y\" reads file x in smt2 format and"
@@ -115,6 +120,7 @@ int main(int argc, char* argv[]) {
   InputLanguage fromLang = input::LANG_AUTO;
   OutputLanguage toLang = output::LANG_SMTLIB_V2;
   size_t files = 0;
+  int dag_thresh = 1;
 
   try {
     int c;
@@ -122,6 +128,7 @@ int main(int argc, char* argv[]) {
       switch(c) {
       case 1:
         ++files;
+        *out << Expr::dag(dag_thresh);
         readFile(optarg, (!strcmp(optarg, "-") && fromLang == input::LANG_AUTO) ? input::LANG_CVC4 : fromLang, toLang, out);
         break;
       case INPUT_LANG:
@@ -150,6 +157,22 @@ int main(int argc, char* argv[]) {
           out = &cout;
         }
         break;
+      case DEFAULT_DAG_THRESH: {
+          if(!isdigit(*optarg)) {
+            cerr << "error: --default-dag-thresh requires non-negative argument: `"
+                 << optarg << "' invalid." << endl;
+            exit(1);
+          }
+          char* end;
+          unsigned long ul = strtoul(optarg, &end, 10);
+          if(errno != 0 || *end != '\0') {
+            cerr << "error: --default-dag-thresh argument malformed: `"
+                 << optarg << "'." << endl;
+            exit(1);
+          }
+          dag_thresh = ul > INT_MAX ? INT_MAX : int(ul);
+        }
+        break;
       case 'h':
         showHelp();
         exit(0);
@@ -164,6 +187,7 @@ int main(int argc, char* argv[]) {
     }
 
     if(files == 0) {
+      *out << Expr::dag(dag_thresh);
       readFile("-", fromLang == input::LANG_AUTO ? input::LANG_CVC4 : fromLang, toLang, out);
       exit(0);
     }

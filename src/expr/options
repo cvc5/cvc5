@@ -7,8 +7,13 @@ module EXPR "expr/options.h" Expression package
 
 option defaultExprDepth --default-expr-depth=N int :default 0 :predicate CVC4::expr::setDefaultExprDepth :predicate-include "expr/options_handlers.h"
  print exprs to depth N (0 == default, -1 == no limit)
+undocumented-alias --expr-depth = --default-expr-depth
+
 option defaultDagThresh default-dag-thresh --default-dag-thresh=N int :default 1 :predicate CVC4::expr::setDefaultDagThresh :predicate-include "expr/options_handlers.h"
  dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)
+undocumented-alias --dag-thresh = --default-dag-thresh
+undocumented-alias --dag-threshold = --default-dag-thresh
+
 option - --print-expr-types void :handler CVC4::expr::setPrintExprTypes :handler-include "expr/options_handlers.h"
  print types with variables when printing exprs
 

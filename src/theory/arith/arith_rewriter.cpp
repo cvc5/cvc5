@@ -355,6 +355,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   Polynomial pleft = Polynomial::parsePolynomial(left);
   Polynomial pright = Polynomial::parsePolynomial(right);
 
+  Debug("arith::rewriter") << "pleft " << pleft.getNode() << std::endl;
+  Debug("arith::rewriter") << "pright " << pright.getNode() << std::endl;
+
   Comparison cmp = Comparison::mkComparison(atom.getKind(), pleft, pright);
   Assert(cmp.isNormalForm());
   return RewriteResponse(REWRITE_DONE, cmp.getNode());

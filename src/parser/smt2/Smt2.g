@@ -1542,6 +1542,10 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
+  | 'repeat'
+    { id = "repeat";
+      PARSER_STATE->checkDeclaration(id, check, type);
+    }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
       /* strip off the quotes */
@@ -1551,8 +1555,12 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-  | UNTERMINATED_QUOTED_SYMBOL EOF
-    { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
+  | UNTERMINATED_QUOTED_SYMBOL
+    ( EOF
+      { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
+    | '\\'
+      { PARSER_STATE->unexpectedEOF("backslash not permitted in |quoted| symbol"); }
+    )
   ;
 
 /**
@@ -1778,10 +1786,10 @@ REALLCHAR_TOK : 're.allchar';
 
 FMFCARD_TOK : 'fmf.card';
 
-EMPTYSET_TOK: 'emptyset'; // Other set theory operators are not
-                          // tokenized and handled directly when
-                          // processing a term
-
+EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
+// Other set theory operators are not
+// tokenized and handled directly when
+// processing a term
 
 /**
  * A sequence of printable ASCII characters (except backslash) that starts

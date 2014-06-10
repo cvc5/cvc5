@@ -15,9 +15,13 @@
  **/
 
 #include <iostream>
-#warning "To use helloworld.cpp as given in the wiki, instead of make examples, change the following two includes lines."
+
+#ifdef CVC4_MAKE_EXAMPLES
 #include "smt/smt_engine.h" // for use with make examples
-//#include <cvc4/cvc4.h> // To follow the wiki
+#else
+#include <cvc4/cvc4.h>      // To follow the wiki
+#endif /* CVC4_MAKE_EXAMPLES */
+
 using namespace CVC4;
 int main() {
   ExprManager em;

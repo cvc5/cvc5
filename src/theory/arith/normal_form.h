@@ -270,39 +270,47 @@ public:
   bool operator<(const Variable& v) const {
     VariableNodeCmp cmp;
     return cmp(this->getNode(), v.getNode());
-
-    // bool thisIsVariable = isMetaKindVariable();
-    // bool vIsVariable = v.isMetaKindVariable();
-
-    // if(thisIsVariable == vIsVariable){
-    //   bool thisIsInteger = isIntegral();
-    //   bool vIsInteger = v.isIntegral();
-    //   if(thisIsInteger == vIsInteger){
-    //     return getNode() < v.getNode();
-    //   }else{
-    //     return thisIsInteger && !vIsInteger;
-    //   }
-    // }else{
-    //   return thisIsVariable && !vIsVariable;
-    // }
   }
 
   struct VariableNodeCmp {
-    bool operator()(Node n, Node m) const {
-      bool nIsVariable = n.isVar();
-      bool mIsVariable = m.isVar();
+    static inline int cmp(Node n, Node m) {
+      if ( n == m ) { return 0; }
 
-      if(nIsVariable == mIsVariable){
-        bool nIsInteger = n.getType().isInteger();
-        bool mIsInteger = m.getType().isInteger();
-        if(nIsInteger == mIsInteger){
-          return n < m;
+      // this is now slightly off of the old variable order.
+
+      bool nIsInteger = n.getType().isInteger();
+      bool mIsInteger = m.getType().isInteger();
+
+      if(nIsInteger == mIsInteger){
+        bool nIsVariable = n.isVar();
+        bool mIsVariable = m.isVar();
+
+        if(nIsVariable == mIsVariable){
+          if(n < m){
+            return -1;
+          }else{
+            Assert( n != m );
+            return 1;
+          }
         }else{
-          return nIsInteger && !mIsInteger;
+          if(nIsVariable){
+            return -1; // nIsVariable => !mIsVariable
+          }else{
+            return 1; // !nIsVariable => mIsVariable
+          }
         }
       }else{
-        return nIsVariable && !mIsVariable;
+        Assert(nIsInteger != mIsInteger);
+        if(nIsInteger){
+          return 1; // nIsInteger => !mIsInteger
+        }else{
+          return -1; // !nIsInteger => mIsInteger
+        }
       }
+    }
+
+    bool operator()(Node n, Node m) const {
+      return VariableNodeCmp::cmp(n,m) < 0;
     }
   };
 
@@ -821,35 +829,7 @@ private:
   bool singleton() const { return d_singleton; }
 
 public:
-  static bool isMember(TNode n) {
-    if(Monomial::isMember(n)){
-      return true;
-    }else if(n.getKind() == kind::PLUS){
-      Assert(n.getNumChildren() >= 2);
-      Node::iterator currIter = n.begin(), end = n.end();
-      Node prev = *currIter;
-      if(!Monomial::isMember(prev)){
-        return false;
-      }
-
-      Monomial mprev = Monomial::parseMonomial(prev);
-      ++currIter;
-      for(; currIter != end; ++currIter){
-        Node curr = *currIter;
-        if(!Monomial::isMember(curr)){
-          return false;
-        }
-        Monomial mcurr = Monomial::parseMonomial(curr);
-        if(!(mprev < mcurr)){
-          return false;
-        }
-        mprev = mcurr;
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
+  static bool isMember(TNode n);
 
   class iterator {
   private:

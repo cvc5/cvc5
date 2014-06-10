@@ -333,8 +333,9 @@ function register_kind {
   r=$1
   nc=$2
   comment=$3
+  register_kind_counter=$[register_kind_counter+1]
 
-  kind_decls="${kind_decls}  $r, /**< $comment */
+  kind_decls="${kind_decls}  $r, /**< $comment ($register_kind_counter) */
 "
   kind_printers="${kind_printers}  case $r: out << \"$r\"; break;
 "

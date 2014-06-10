@@ -171,7 +171,7 @@ Debug_tags.tmp Trace_tags.tmp:
 	$(AM_V_GEN)\
 	grep '\<$(@:_tags.tmp=)\(\.isOn\)* *( *\".*\" *)' \
 		`find @srcdir@/../ -name "*.cpp" -o -name "*.h" -o -name "*.cc" -o -name "*.g"` | \
-	sed 's/^$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | LC_ALL=C sort | uniq >"$@"
+	sed 's/\/\/.*//;s/^$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/;s/.*[^a-zA-Z0-9_]$(@:_tags.tmp=)\(\.isOn\)* *( *\"\([^"]*\)\".*/\2/' | LC_ALL=C sort | uniq >"$@"
 
 MOSTLYCLEANFILES = \
 	Debug_tags \

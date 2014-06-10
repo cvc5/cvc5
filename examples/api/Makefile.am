@@ -32,6 +32,8 @@ combination_LDADD = \
 
 helloworld_SOURCES = \
 	helloworld.cpp
+helloworld_CXXFLAGS = \
+	-DCVC4_MAKE_EXAMPLES
 helloworld_LDADD = \
 	@builddir@/../../src/libcvc4.la
 

@@ -19,49 +19,46 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	union-1b-flip.smt2 \
-	sets-sharing.smt2 \
-	union-1a-flip.smt2 \
-	copy_check_heap_access_33_4.smt2 \
-	rec_copy_loop_check_heap_access_43_4.smt2 \
-	sets-testlemma.smt2 \
 	jan24/insert_invariant_37_2.smt2 \
 	jan24/deepmeas0.hs.fqout.cvc4.47.smt2 \
 	jan24/deepmeas0.hs.fqout.small.smt2 \
 	jan24/remove_check_free_31_6.smt2 \
-	sets-inter.smt2 \
-	sets-equal.smt2 \
-	sets-disequal.smt2 \
-	union-2.smt2 \
 	jan27/deepmeas0.hs.fqout.cvc4.41.smt2 \
 	jan27/ListConcat.hs.fqout.cvc4.177.smt2 \
 	jan27/ListConcat.hs.fqout.177minimized.smt2 \
 	jan27/ListElem.hs.fqout.cvc4.38.smt2 \
-	feb3/ListElts.hs.fqout.cvc4.317.smt2 \
-	setel-eq.smt2 \
-	sets-new.smt2 \
+	jan28/TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
+	jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2 \
 	jan30/UniqueZipper.hs.fqout.minimized10.smt2 \
 	jan30/UniqueZipper.hs.fqout.cvc4.10.smt2 \
 	jan30/UniqueZipper.hs.fqout.minimized1832.smt2 \
 	jan30/UniqueZipper.hs.fqout.cvc4.1832.smt2 \
-	emptyset.smt2 \
-	sets-union.smt2 \
-	error2.smt2 \
-	union-1b.smt2 \
-	union-1a.smt2 \
-	error1.smt2 \
-	jan28/TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
-	jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2 \
-	sets-sample.smt2 \
-	eqtest.smt2 \
+	feb3/ListElts.hs.fqout.cvc4.317.smt2 \
 	mar2014/lemmabug-ListElts317minimized.smt2 \
 	mar2014/sharing-preregister.smt2 \
 	mar2014/small.smt2 \
 	mar2014/smaller.smt2 \
 	mar2014/UniqueZipper.hs.1030minimized2.cvc4.smt2 \
 	mar2014/UniqueZipper.hs.1030minimized.cvc4.smt2 \
+	copy_check_heap_access_33_4.smt2 \
 	emptyset.smt2 \
-	error2.smt2
+	error1.smt2 \
+	error2.smt2 \
+	eqtest.smt2 \
+	rec_copy_loop_check_heap_access_43_4.smt2 \
+	sets-disequal.smt2 \
+	sets-equal.smt2 \
+	sets-inter.smt2 \
+	sets-sample.smt2 \
+	sets-sharing.smt2 \
+	sets-testlemma.smt2 \
+	sets-union.smt2 \
+	sharingbug.smt2 \
+	union-1a-flip.smt2 \
+	union-1a.smt2 \
+	union-1b-flip.smt2 \
+	union-1b.smt2 \
+	union-2.smt2
 
 EXTRA_DIST = $(TESTS)
 

@@ -120,10 +120,23 @@ inline std::string suggestTags(char const* const* validTags, std::string inputTa
 
 inline void addTraceTag(std::string option, std::string optarg, SmtEngine* smt) {
   if(Configuration::isTracingBuild()) {
-    if(!Configuration::isTraceTag(optarg.c_str()))
+    if(!Configuration::isTraceTag(optarg.c_str())) {
+
+      if(optarg == "help") {
+        printf("available tags:");
+        unsigned ntags = Configuration::getNumTraceTags();
+        char const* const* tags = Configuration::getTraceTags();
+        for(unsigned i = 0; i < ntags; ++ i) {
+          printf(" %s", tags[i]);
+        }
+        printf("\n");
+        exit(0);
+      }
+
       throw OptionException(std::string("trace tag ") + optarg +
                             std::string(" not available.") +
                             suggestTags(Configuration::getTraceTags(), optarg) );
+    }
   } else {
     throw OptionException("trace tags not available in non-tracing builds");
   }
@@ -134,6 +147,18 @@ inline void addDebugTag(std::string option, std::string optarg, SmtEngine* smt) 
   if(Configuration::isDebugBuild() && Configuration::isTracingBuild()) {
     if(!Configuration::isDebugTag(optarg.c_str()) &&
        !Configuration::isTraceTag(optarg.c_str())) {
+
+      if(optarg == "help") {
+        printf("available tags:");
+        unsigned ntags = Configuration::getNumDebugTags();
+        char const* const* tags = Configuration::getDebugTags();
+        for(unsigned i = 0; i < ntags; ++ i) {
+          printf(" %s", tags[i]);
+        }
+        printf("\n");
+        exit(0);
+      }
+
       throw OptionException(std::string("debug tag ") + optarg +
                             std::string(" not available.") +
                             suggestTags(Configuration::getDebugTags(), optarg, Configuration::getTraceTags()) );
