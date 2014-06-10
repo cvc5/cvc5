@@ -88,6 +88,8 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "printer/options.h"
 
+#include "theory/arith/pseudoboolean_proc.h"
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -325,6 +327,9 @@ public:
   RemoveITE d_iteRemover;
 
 private:
+
+  theory::arith::PseudoBooleanProcessor d_pbsProcessor;
+
   /** The top level substitutions */
   SubstitutionMap d_topLevelSubstitutions;
 
@@ -419,6 +424,7 @@ public:
     d_simplifyAssertionsDepth(0),
     d_iteSkolemMap(),
     d_iteRemover(smt.d_userContext),
+    d_pbsProcessor(smt.d_userContext),
     d_topLevelSubstitutions(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -1692,6 +1698,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   d_smt.finalOptionsAreSet();
 
   TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
+
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
@@ -3013,6 +3020,13 @@ void SmtEnginePrivate::processAssertions() {
   //if( options::quantConflictFind() ){
   //  d_smt.d_theoryEngine->getQuantConflictFind()->registerAssertions( d_assertionsToPreprocess );
   //}
+
+  if( options::pbRewrites() ){
+    d_pbsProcessor.learn(d_assertionsToPreprocess);
+    if(d_pbsProcessor.likelyToHelp()){
+      d_pbsProcessor.applyReplacements(d_assertionsToPreprocess);
+    }
+  }
 
   dumpAssertions("pre-simplify", d_assertionsToPreprocess);
   Chat() << "simplifying assertions..." << endl;

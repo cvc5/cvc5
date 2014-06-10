@@ -149,6 +149,16 @@ option soiApproxMinorFailurePen --replay-soi-minor-threshold-pen int :default 10
  threshold for a minor tolerance failure by the approximate solver
 
 option ppAssertMaxSubSize --pp-assert-max-sub-size unsigned :default 2
- threshold threshold for substituting an equality in ppAssert
+ threshold for substituting an equality in ppAssert
+
+option maxReplayTree --max-replay-tree int :default 512
+ threshold for attempting to replay a tree
+
+
+option pbRewrites --pb-rewrites bool :default false
+ apply pseudo boolean rewrites
+
+option pbRewriteThreshold --pb-rewrite-threshold int :default 256
+ threshold of number of pseudoboolean variables to have before doing rewrites
 
 endmodule
