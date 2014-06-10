@@ -79,6 +79,12 @@ handle_option() {
       if expr "$ac_option" : '.*-glpk' >/dev/null || expr "$ac_option" : '.*-glpk-' >/dev/null; then
         eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--with-glpk\""'
       fi
+      if expr "$ac_option" : '.*-noabc' >/dev/null || expr "$ac_option" : '.*-noabc-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-abc\""'
+      fi
+      if expr "$ac_option" : '.*-abc' >/dev/null || expr "$ac_option" : '.*-abc-' >/dev/null; then
+        eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--with-abc\""'
+      fi
       for x in cln gmp; do
         if expr "$ac_option" : '.*-no'$x'$' >/dev/null || expr "$ac_option" : '.*-no'$x'-' >/dev/null; then
           eval 'ac_cvc4_rewritten_args="${ac_cvc4_rewritten_args+$ac_cvc4_rewritten_args }\"--without-$x\""'

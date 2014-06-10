@@ -433,6 +433,11 @@ if CVC4_USE_GLPK
 libcvc4_la_LIBADD += $(GLPK_LIBS)
 endif
 
+if CVC4_USE_ABC
+libcvc4_la_LIBADD += $(ABC_LIBS)
+libcvc4_la_LDFLAGS += $(ABC_LDFLAGS)
+endif
+
 BUILT_SOURCES = \
 	theory/rewriter_tables.h \
 	theory/theory_traits.h \

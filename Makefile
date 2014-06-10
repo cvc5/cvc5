@@ -54,7 +54,7 @@ submission submission-main:
 	  exit 1; \
 	fi
 	./autogen.sh
-	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --enable-gpl
+	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --without-readline --enable-gpl
 	$(MAKE)
 	strip builds/bin/cvc4
 	$(MAKE) check
@@ -81,7 +81,7 @@ submission-application:
 	  exit 1; \
 	fi
 	./autogen.sh
-	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK
+	./configure competition --disable-shared --enable-static-binary --with-cln --with-glpk --with-abc --without-readline --enable-gpl CXXFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK CFLAGS=-DCVC4_SMTCOMP_APPLICATION_TRACK
 	$(MAKE)
 	strip builds/bin/cvc4
 	$(MAKE) check
@@ -108,7 +108,7 @@ submission-parallel:
 	  exit 1; \
 	fi
 	./autogen.sh
-	./configure competition --disable-shared --enable-static-binary --with-gmp --with-portfolio --with-glpk --with-abc --enable-gpl
+	./configure competition --disable-shared --enable-static-binary --with-gmp --with-portfolio --with-glpk --with-abc --without-readline --enable-gpl
 	$(MAKE)
 	strip builds/bin/pcvc4
 	# some test cases fail (and are known to fail)

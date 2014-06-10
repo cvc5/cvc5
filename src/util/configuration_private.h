@@ -5,7 +5,7 @@
  ** Major contributors: ACSYS, Morgan Deters
  ** Minor contributors (to current version): Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -106,6 +106,12 @@ namespace CVC4 {
 #else /* CVC4_USE_GLPK */
 #  define IS_GLPK_BUILD false
 #endif /* CVC4_USE_GLPK */
+
+#if CVC4_USE_ABC
+#  define IS_ABC_BUILD true
+#else /* CVC4_USE_ABC */
+#  define IS_ABC_BUILD false
+#endif /* CVC4_USE_ABC */
 
 #ifdef HAVE_LIBREADLINE
 #  define IS_READLINE_BUILD true

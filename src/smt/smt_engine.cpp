@@ -367,9 +367,9 @@ private:
   void bvToBool();
 
   // Abstract common structure over small domains to UF
-  // return true if changes were made. 
-  void bvAbstraction(); 
-  
+  // return true if changes were made.
+  void bvAbstraction();
+
   // Simplify ITE structure
   bool simpITE();
 
@@ -1085,7 +1085,7 @@ void SmtEngine::setDefaults() {
     Notice() << "SmtEngine: turning off incremental to support eager bit-blasting" << endl;
     setOption("incremental", SExpr("false"));
   }
-  
+
   if (! options::bvEagerExplanations.wasSetByUser() &&
       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
       d_logic.isTheoryEnabled(THEORY_BV)) {
@@ -1093,8 +1093,6 @@ void SmtEngine::setDefaults() {
     options::bvEagerExplanations.set(true);
   }
 
-  
-  
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();
@@ -2006,11 +2004,11 @@ void SmtEnginePrivate::bvAbstraction() {
     d_assertionsToPreprocess[i] = Rewriter::rewrite(new_assertions[i]);
   }
   // if we are using the lazy solver and the abstraction
-  // applies, then UF symbols were introduced 
+  // applies, then UF symbols were introduced
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
       changed) {
     LogicRequest req(d_smt);
-    req.widenLogic(THEORY_UF); 
+    req.widenLogic(THEORY_UF);
   }
 }
 
@@ -2577,7 +2575,7 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     // before ppRewrite check if only core theory for BV theory
     d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertionsToCheck);
-    
+
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP) {
       Chat() << "...doing early theory preprocessing..." << endl;
@@ -2870,18 +2868,17 @@ void SmtEnginePrivate::processAssertions() {
 
   Debug("smt") << " d_assertionsToPreprocess: " << d_assertionsToPreprocess.size() << endl;
   Debug("smt") << " d_assertionsToCheck     : " << d_assertionsToCheck.size() << endl;
-  
+
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       !d_smt.d_logic.isPure(THEORY_BV)) {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
-                         "Try --bv-div-zero-const to interpret division by zero as a constant."); 
+                         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertionsToPreprocess); 
+    d_smt.d_theoryEngine->mkAckermanizationAsssertions(d_assertionsToPreprocess);
   }
-  
 
   if ( options::bvAbstraction() &&
       !options::incrementalSolving()) {
@@ -2889,7 +2886,7 @@ void SmtEnginePrivate::processAssertions() {
     bvAbstraction();
     dumpAssertions("post-bv-abstraction", d_assertionsToPreprocess);
   }
-  
+
   dumpAssertions("pre-boolean-terms", d_assertionsToPreprocess);
   {
     Chat() << "rewriting Boolean terms..." << endl;
@@ -2952,7 +2949,7 @@ void SmtEnginePrivate::processAssertions() {
     bvToBool();
     dumpAssertions("post-bv-to-bool", d_assertionsToPreprocess);
   }
-  
+
   if( d_smt.d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     dumpAssertions("pre-strings-pp", d_assertionsToPreprocess);
     CVC4::theory::strings::StringsPreprocess sp;
@@ -3174,10 +3171,10 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
       Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
-      d_assertionsToCheck[i] = eager_atom; 
+      d_assertionsToCheck[i] = eager_atom;
     }
   }
-  
+
   // Push the formula to decision engine
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
@@ -3191,6 +3188,7 @@ void SmtEnginePrivate::processAssertions() {
 
   dumpAssertions("post-everything", d_assertionsToCheck);
 
+  // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
@@ -3198,7 +3196,6 @@ void SmtEnginePrivate::processAssertions() {
       d_smt.d_propEngine->assertFormula(d_assertionsToCheck[i]);
     }
   }
-  
 
   d_assertionsProcessed = true;
 

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 #
 set -e
 
@@ -42,11 +42,13 @@ cd alanmi-abc-$commit
 cp src/base/main/main.c src/base/main/main.c.orig
 sed 's,^// *#define ABC_LIB *$,#define ABC_LIB,' src/base/main/main.c.orig > src/base/main/main.c
 
-make libabc.a OPTFLAGS=-O
+# Build optimized, without readline, without pthreads.
+# These aren't necessary for our usage and we don't want the dependencies.
+make libabc.a OPTFLAGS=-O READLINE=0 PTHREADS=0
 mv libabc.a libabc-static.a
 make clean
-make libabc.a OPTFLAGS='-O -fPIC'
+make libabc.a OPTFLAGS='-O -fPIC' READLINE=0 PTHREADS=0
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-abc=`pwd`
+echo ./configure --with-abc --with-abc-dir=`pwd`
