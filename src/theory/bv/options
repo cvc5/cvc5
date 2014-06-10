@@ -55,7 +55,7 @@ expert-option skolemizeArguments --bv-skolemize bool :default false
 expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1
  number of function symbols in conflicts that are generalized
 
-expert-option bvEagerExplanations --bv-eager-explanations bool :default false
+expert-option bvEagerExplanations --bv-eager-explanations bool :default false :read-write
  compute bit-blasting propagation explanations eagerly
 
 expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false

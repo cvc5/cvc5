@@ -1068,6 +1068,17 @@ void SmtEngine::setDefaults() {
       setOption("check-models", SExpr("false"));
     }
   }
+
+
+  if (! options::bvEagerExplanations.wasSetByUser() &&
+      d_logic.isTheoryEnabled(THEORY_ARRAY) &&
+      d_logic.isTheoryEnabled(THEORY_BV)) {
+    Trace("smt") << "enabling eager bit-vector explanations " << endl;
+    options::bvEagerExplanations.set(true);
+  }
+
+  
+  
   // Turn on arith rewrite equalities only for pure arithmetic
   if(! options::arithRewriteEq.wasSetByUser()) {
     bool arithRewriteEq = d_logic.isPure(THEORY_ARITH) && !d_logic.isQuantified();

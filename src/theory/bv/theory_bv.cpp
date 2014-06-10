@@ -15,6 +15,7 @@
 ** \todo document this file
 **/
 
+#include "smt/options.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/bv/slicer.h"
@@ -190,6 +191,7 @@ void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
   Debug("bv-ackermanize") << "TheoryBV::mkAckermanizationAsssertions\n";
   
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
+  AlwaysAssert(!options::incrementalSolving());
   TNodeSet seen; 
   for (unsigned i = 0; i < assertions.size(); ++i) {
     collectNumerators(assertions[i], seen); 

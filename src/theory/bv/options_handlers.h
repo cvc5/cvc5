@@ -69,6 +69,12 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
                                          Try --bitblast=lazy")); 
     }
 
+    if (options::incrementalSolving()) {
+      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
+                                         Try --bitblast=lazy")); 
+    }
+
+    
     if (!options::bitvectorAig.wasSetByUser()) {
       options::bitvectorAig.set(true);
     }
