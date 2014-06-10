@@ -46,10 +46,10 @@ option bitvectorToBool --bv-to-bool bool :default false :read-write
 option bitvectorDivByZeroConst --bv-div-zero-const bool :default false
  always return -1 on division by zero
 
-expert-option bvAbstraction --bv-abstraction bool :default false
+expert-option bvAbstraction --bv-abstraction bool :default false :read-write
  mcm benchmark abstraction 
 
-expert-option skolemizeArguments --bv-skolemize bool :default false
+expert-option skolemizeArguments --bv-skolemize bool :default false :read-write 
  skolemize arguments for bv abstraction (only does something if --bv-abstraction is on)
 
 expert-option bvNumFunc --bv-num-func=NUM unsigned :default 1

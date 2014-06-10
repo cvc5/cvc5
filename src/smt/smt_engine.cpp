@@ -1070,6 +1070,16 @@ void SmtEngine::setDefaults() {
   }
 
 
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
+      options::incrementalSolving()) {
+    if (options::incrementalSolving.wasSetByUser()) {
+      throw OptionException(std::string("Eager bit-blasting does not currently support incremental mode. \n\
+                                         Try --bitblast=lazy"));
+    }
+    Notice() << "SmtEngine: turning off incremental to support eager bit-blasting" << endl;
+    setOption("incremental", SExpr("false"));
+  }
+  
   if (! options::bvEagerExplanations.wasSetByUser() &&
       d_logic.isTheoryEnabled(THEORY_ARRAY) &&
       d_logic.isTheoryEnabled(THEORY_BV)) {
