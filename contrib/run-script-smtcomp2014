@@ -25,9 +25,12 @@ function finishwith {
 
 case "$logic" in
 
-QF_LRA|QF_LIA)
-  # need also --pb-rewrites after tim's merge
+QF_LRA)
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --stats --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  ;;
+QF_LIA)
+  # same as QF_LRA but add --pb-rewrites
+  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --stats --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
 AUFLIA|AUFLIRA|AUFNIRA|UFLRA|UFNIA)
   # the following is designed for a run time of 1500s.
