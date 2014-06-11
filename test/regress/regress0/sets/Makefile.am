@@ -45,6 +45,7 @@ TESTS =	\
 	error1.smt2 \
 	error2.smt2 \
 	eqtest.smt2 \
+	fuzz15201.smt2 \
 	rec_copy_loop_check_heap_access_43_4.smt2 \
 	sets-disequal.smt2 \
 	sets-equal.smt2 \
