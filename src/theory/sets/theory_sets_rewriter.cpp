@@ -117,10 +117,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
               node[1].getKind() == kind::EMPTYSET) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_DONE, node[0]);
-    } else if (node[0] > node[1]) {
-      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
-      return RewriteResponse(REWRITE_DONE, newNode);
     }
     break;
   }//kind::INTERSECION

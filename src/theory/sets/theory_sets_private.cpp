@@ -90,7 +90,9 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     finishPropagation();
 
     Debug("sets") << "[sets]  in conflict = " << d_conflict << std::endl;
-    Assert( d_conflict ^ d_equalityEngine.consistent() );
+    // Assert( d_conflict ^ d_equalityEngine.consistent() );
+    // ^ doesn't hold when we propagate equality/disequality between shared terms
+    // and that leads to conflict (externally).
     if(d_conflict) { return; }
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
@@ -831,8 +833,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_propagationQueue(c),
   d_settermPropagationQueue(c),
   d_nodeSaver(c),
-  d_pending(u),
-  d_pendingDisequal(u),
+  d_pending(c),
+  d_pendingDisequal(c),
   d_pendingEverInserted(u),
   d_scrutinize(NULL)
 {

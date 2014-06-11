@@ -27,7 +27,6 @@ TESTS =	\
 	jan27/ListConcat.hs.fqout.cvc4.177.smt2 \
 	jan27/ListConcat.hs.fqout.177minimized.smt2 \
 	jan27/ListElem.hs.fqout.cvc4.38.smt2 \
-	jan28/TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
 	jan28/TalkingAboutSets.hs.fqout.3577minimized.smt2 \
 	jan30/UniqueZipper.hs.fqout.minimized10.smt2 \
 	jan30/UniqueZipper.hs.fqout.cvc4.10.smt2 \
@@ -45,6 +44,9 @@ TESTS =	\
 	error1.smt2 \
 	error2.smt2 \
 	eqtest.smt2 \
+	fuzz14418.smt2 \
+	fuzz15201.smt2 \
+	fuzz31811.smt2 \
 	rec_copy_loop_check_heap_access_43_4.smt2 \
 	sets-disequal.smt2 \
 	sets-equal.smt2 \
@@ -70,6 +72,7 @@ EXTRA_DIST = $(TESTS)
 
 # disabled tests, yet distribute
 EXTRA_DIST += \
+	jan28/TalkingAboutSets.hs.fqout.cvc4.3577.smt2 \
 	setofsets-disequal.smt2
 
 # synonyms for "check"
