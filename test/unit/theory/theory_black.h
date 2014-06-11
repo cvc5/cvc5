@@ -92,6 +92,7 @@ public:
     arr = Rewriter::rewrite(arr);
     TS_ASSERT(arr.isConst());
     arr = d_nm->mkNode(STORE, storeAll, zero, one);
+    arr = Rewriter::rewrite(arr); 
     TS_ASSERT(arr.isConst());
     arr2 = d_nm->mkNode(STORE, arr, one, zero);
     TS_ASSERT(!arr2.isConst());

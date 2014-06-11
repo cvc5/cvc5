@@ -7,7 +7,7 @@ module BV "theory/bv/options.h" Bitvector theory
 
 # Option to set the bit-blasting mode (lazy, eager, eager-aig)
 
-option bitblastMode --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"
+option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"
  choose bitblasting mode, see --bitblast=help
 
 # Options for eager bit-blasting

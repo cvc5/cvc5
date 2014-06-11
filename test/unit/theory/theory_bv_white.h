@@ -19,7 +19,9 @@
 #include <cxxtest/TestSuite.h>
 
 #include "theory/theory.h"
-#include "theory/bv/bitblaster.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/bv/eager_bitblaster.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
@@ -34,82 +36,52 @@ using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils; 
 using namespace CVC4::expr;
 using namespace CVC4::context;
+using namespace CVC4::smt;
 
 using namespace std;
 
 class TheoryBVWhite : public CxxTest::TestSuite {
 
-  Context* d_ctxt;
+  ExprManager* d_em;
   NodeManager* d_nm;
-  NodeManagerScope* d_scope;
-
-  bool debug;
+  SmtEngine* d_smt;
+  SmtScope* d_scope;
+  EagerBitblaster* d_bb;
 
 public:
 
-  TheoryBVWhite() : debug(false) {}
+  TheoryBVWhite() {}
 
 
   void setUp() {
-    // d_ctxt = new Context();
-    // d_nm = new NodeManager(d_ctxt, NULL);
-    // d_scope = new NodeManagerScope(d_nm);
-
+    d_em = new ExprManager();
+    d_nm = NodeManager::fromExprManager(d_em);
+    d_smt = new SmtEngine(d_em);
+    d_scope = new SmtScope(d_smt);
+    d_smt->setOption("bitblast", SExpr("eager"));
+    d_bb = new EagerBitblaster();
+    
   }
-
   void tearDown() {
-    // delete d_scope;
-    // delete d_nm;
-    // delete d_ctxt;
+    // delete d_bb;
+    delete d_em;
   }
 
  
   void testBitblasterCore() {
-    // ClauseManager tests 
-    // Context* ctx = new Context();
-    // Bitblaster* bb = new Bitblaster(ctx); 
+    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
+    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
+    Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_PLUS, x, y);
+    Node one = d_nm->mkConst<BitVector>(BitVector(16, 1u));
+    Node x_shl_one = d_nm->mkNode(kind::BITVECTOR_SHL, x, one);
+    Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
+    Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
     
-    // NodeManager* nm = NodeManager::currentNM();
-    // TODO: update this
-    // Node a = nm->mkVar("a", nm->mkBitVectorType(4));
-    // Node b = nm->mkVar("b", nm->mkBitVectorType(4));
-    // Node a1 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(2,1)), a);
-    // Node b1 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(2,1)), b);
-    
-    // Node abeq = nm->mkNode(kind::EQUAL, a, b);
-    // Node neq = nm->mkNode(kind::NOT, abeq);
-    // Node a1b1eq = nm->mkNode(kind::EQUAL, a1, b1);
-    
-    // bb->bitblast(neq);
-    // bb->bitblast(a1b1eq); 
+    d_bb->bbFormula(eq);
+    d_bb->bbFormula(not_x_eq_y);
 
-    // /// constructing the rest of the problem 
-    // Node a2 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(0,0)), a);
-    // Node b2 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(0,0)), b);
-    // Node eq2 = nm->mkNode(kind::EQUAL, a2, b2); 
-    
-    // Node a3 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(3,3)), a);
-    // Node b3 = nm->mkNode(nm->mkConst<BitVectorExtract>(BitVectorExtract(3,3)), b);
-    // Node eq3 = nm->mkNode(kind::EQUAL, a3, b3);
-
-    // bb->bitblast(eq2);
-    // bb->bitblast(eq3); 
-
-    // ctx->push();
-    // bb->assertToSat(neq);
-    // bb->assertToSat(a1b1eq);
-    // bool res = bb->solve();
-    // TS_ASSERT (res == true);
-
-    // ctx->push();
-    // bb->assertToSat(eq2);
-    // bb->assertToSat(eq3); 
-
-    // res = bb->solve();
-    // TS_ASSERT(res == false); 
-    
-    //delete bb;    
-    
+    bool res = d_bb->solve(); 
+    TS_ASSERT (res == false);
   }
 
 };
