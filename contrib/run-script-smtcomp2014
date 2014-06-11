@@ -32,7 +32,7 @@ QF_LIA)
   # same as QF_LRA but add --pb-rewrites
   finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --stats --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
   ;;
-AUFLIA|AUFLIRA|AUFNIRA|UFLRA|UFNIA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
   # the following is designed for a run time of 1500s.
   # initial runs
   trywith 20 --simplification=none --decision=internal --full-saturate-quant
@@ -55,7 +55,7 @@ AUFLIA|AUFLIRA|AUFNIRA|UFLRA|UFNIA)
   trywith 300 --finite-model-find --sort-inference --uf-ss-fair 
   finishwith --quant-cf --full-saturate-quant
   ;;
-LRA)
+LIA|LRA|NIA|NRA)
   trywith 20 --enable-cbqi --full-saturate-quant
   trywith 20 --full-saturate-quant
   trywith 20 --cbqi-recurse --full-saturate-quant
