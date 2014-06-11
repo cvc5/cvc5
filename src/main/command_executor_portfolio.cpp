@@ -30,6 +30,12 @@
 #include "options/options.h"
 #include "smt/options.h"
 
+#include "cvc4autoconfig.h"
+
+#if HAVE_UNISTD_H
+#  include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
 using namespace std;
 
 namespace CVC4 {
@@ -302,8 +308,10 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         runPortfolio(d_numThreads, smFn, fns,
                      d_options[options::waitToJoin], d_statWaitTime);
 
+#ifdef CVC4_STATISTICS_ON
     assert( d_statWaitTime.running() );
     d_statWaitTime.stop();
+#endif /* CVC4_STATISTICS_ON */
 
     delete d_seq;
     d_seq = new CommandSequence();
@@ -330,6 +338,12 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
       *d_options[options::out]
         << d_ostringstreams[portfolioReturn.first]->str();
+
+#ifdef CVC4_COMPETITION_MODE
+      // There's some hang-up in thread destruction?
+      // Anyway for SMT-COMP we don't care, just exit now.
+      _exit(0);
+#endif /* CVC4_COMPETITION_MODE */
     }
 
     /* cleanup this check sat specific stuff */
