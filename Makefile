@@ -118,7 +118,7 @@ submission-parallel:
 	mkdir -p cvc4-parallel-smtcomp-$(YEAR)/bin
 	cp -p builds/bin/pcvc4 cvc4-parallel-smtcomp-$(YEAR)/bin/pcvc4
 	( echo '#!/bin/sh'; \
-	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive' ) > cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
+	  echo 'exec ./pcvc4 --threads 2 -L smt2 --no-checking --no-interactive "$@"' ) > cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
 	chmod 755 cvc4-parallel-smtcomp-$(YEAR)/bin/starexec_run_default
 	echo "CVC4 for SMT_COMP parallel track `builds/bin/cvc4 --version | head -1 | sed 's,.*version ,,;s,-,_,g;s,[^a-zA-Z0-9. _],,g'`" > cvc4-parallel-smtcomp-$(YEAR)/starexec_description.txt
 	cd cvc4-parallel-smtcomp-$(YEAR) && zip -r ../cvc4-parallel-smtcomp-$(YEAR).zip *
