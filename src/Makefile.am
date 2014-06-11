@@ -216,6 +216,7 @@ libcvc4_la_SOURCES = \
 	theory/bv/options_handlers.h \
 	theory/bv/bitblast_mode.h \
 	theory/bv/bitblast_mode.cpp \
+	theory/bv/bitblast_utils.h \
 	theory/idl/idl_model.h \
 	theory/idl/idl_model.cpp \
 	theory/idl/idl_assertion.h \
