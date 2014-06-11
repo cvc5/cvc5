@@ -831,8 +831,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_propagationQueue(c),
   d_settermPropagationQueue(c),
   d_nodeSaver(c),
-  d_pending(u),
-  d_pendingDisequal(u),
+  d_pending(c),
+  d_pendingDisequal(c),
   d_pendingEverInserted(u),
   d_scrutinize(NULL)
 {
