@@ -40,6 +40,8 @@ handle_option() {
       # set the best configuration
       handle_option --with-readline
       handle_option --with-cln
+      handle_option --with-glpk
+      handle_option --with-abc
       return
       ;;
     -enable-proofs|--enable-proofs)
