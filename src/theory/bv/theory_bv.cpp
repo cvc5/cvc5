@@ -185,6 +185,7 @@ void TheoryBV::collectNumerators(TNode term, TNodeSet& seen) {
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     collectNumerators(term[i], seen); 
   }
+  seen.insert(term); 
 }
 
 void TheoryBV::mkAckermanizationAsssertions(std::vector<Node>& assertions) {
