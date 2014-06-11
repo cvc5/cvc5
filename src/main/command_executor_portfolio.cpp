@@ -337,7 +337,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       }
 
       *d_options[options::out]
-        << d_ostringstreams[portfolioReturn.first]->str();
+        << d_ostringstreams[portfolioReturn.first]->str()
+        << std::flush;
 
 #ifdef CVC4_COMPETITION_MODE
       // There's some hang-up in thread destruction?
