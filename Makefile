@@ -60,12 +60,14 @@ submission:
 	cp -p cvc4-smtcomp-main-$(YEAR)/bin/starexec_run_default cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
 	cp -p cvc4-smtcomp-application-$(YEAR)/bin/cvc4 cvc4-smtcomp-$(YEAR)/bin/cvc4-application
 	cp -p cvc4-smtcomp-application-$(YEAR)/bin/starexec_run_default cvc4-smtcomp-$(YEAR)/bin/starexec_run_application
-	cp -p cvc4-smtcomp-parallel-$(YEAR)/bin/cvc4 cvc4-smtcomp-$(YEAR)/bin/pcvc4
+	cp -p cvc4-smtcomp-parallel-$(YEAR)/bin/pcvc4 cvc4-smtcomp-$(YEAR)/bin/pcvc4
 	cp -p cvc4-smtcomp-parallel-$(YEAR)/bin/starexec_run_default cvc4-smtcomp-$(YEAR)/bin/starexec_run_parallel
 	cat cvc4-smtcomp-main-$(YEAR)/starexec_description.txt \
 	    cvc4-smtcomp-application-$(YEAR)/starexec_description.txt \
 	    cvc4-smtcomp-parallel-$(YEAR)/starexec_description.txt \
 	    > cvc4-smtcomp-$(YEAR)/starexec_description.txt
+	perl -pi -e 's,\<cvc4\>,cvc4-main,g' cvc4-smtcomp-$(YEAR)/bin/starexec_run_default
+	perl -pi -e 's,\<cvc4\>,cvc4-application,g' cvc4-smtcomp-$(YEAR)/bin/starexec_run_application
 	cd cvc4-smtcomp-$(YEAR) && zip -r ../cvc4-smtcomp-$(YEAR).zip *
 submission-main:
 	@if [ -d builds-smtcomp/main ]; then \
