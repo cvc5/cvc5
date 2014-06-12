@@ -26,6 +26,27 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+inline void abcEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
+#ifndef CVC4_USE_ABC
+  if(value) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_ABC */
+}
+
+inline void abcEnabledBuild(std::string option, std::string value, SmtEngine* smt) throw(OptionException) {
+#ifndef CVC4_USE_ABC
+  if(!value.empty()) {
+    std::stringstream ss;
+    ss << "option `" << option << "' requires an abc-enabled build of CVC4; this binary was not built with abc support";
+    throw OptionException(ss.str());
+  }
+#endif /* CVC4_USE_ABC */
+}
+
+
 static const std::string bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -77,6 +98,7 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
     
     if (!options::bitvectorAig.wasSetByUser()) {
       options::bitvectorAig.set(true);
+      abcEnabledBuild("--bitblast-aig", true, NULL); 
     }
     if (!options::bitvectorAigSimplifications.wasSetByUser()) {
       // due to a known bug in abc switching to using drw instead of rw

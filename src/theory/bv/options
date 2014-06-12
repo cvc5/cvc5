@@ -12,10 +12,10 @@ option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :han
 
 # Options for eager bit-blasting
  
-option bitvectorAig --bitblast-aig bool :default false :read-write :link --bitblast=eager
+option bitvectorAig --bitblast-aig bool :default false :predicate CVC4::theory::bv::abcEnabledBuild :predicate-include "theory/bv/options_handlers.h" :read-write :link --bitblast=eager
  bitblast by first converting to AIG (only if --bitblast=eager)
 
-expert-option bitvectorAigSimplifications --bv-aig-simp=FILE std::string :default "" :read-write :link --bitblast-aig
+expert-option bitvectorAigSimplifications --bv-aig-simp=FILE std::string :default "" :predicate CVC4::theory::bv::abcEnabledBuild :read-write :link --bitblast-aig
  abc command to run AIG simplifications
 
 # Options for lazy bit-blasting  
