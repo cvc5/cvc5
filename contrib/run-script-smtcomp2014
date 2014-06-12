@@ -76,8 +76,7 @@ QF_BV)
   finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
 QF_AX)
-  trywith 2
-  finishwith --no-arrays-model-based
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
   # just run the default
