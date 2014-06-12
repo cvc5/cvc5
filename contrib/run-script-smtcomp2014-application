@@ -5,24 +5,34 @@ bench="$1"
 
 logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
 
+function runcvc4 {
+  # we run in this way for line-buffered input, otherwise memory's a
+  # concern (plus it mimics what we'll end up getting from an
+  # application-track trace runner?)
+  cat "$bench" | $cvc4 -L smt2 --no-checking --no-interactive --tear-down-incremental "$@"
+}
+
 case "$logic" in
 
-QF_BV)
-  # run tear-down incremental
-  #
-  # we run in this way for line-buffered input, otherwise memory's a
-  # concern (plus it mimics what we'll end up getting from an
-  # application-track trace runner?)
-  cat "$bench" | $cvc4 -L smt2 --no-checking --no-interactive --tear-down-incremental
+QF_LRA)
+  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
   ;;
-
+QF_LIA)
+  # same as QF_LRA but add --pb-rewrites
+  runcvc4 --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi --pb-rewrites
+  ;;
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|BV|UF|UFBV|UFIDL|UFLIA|UFLRA|UFNIA)
+  runcvc4 --simplification=none --decision=internal --full-saturate-quant
+  ;;
+LIA|LRA|NIA|NRA)
+  runcvc4 --enable-cbqi --full-saturate-quant
+  ;;
+QF_BV)
+  runcvc4 --bv-eq-slicer=auto --decision=justification
+  ;;
 *)
-  # just run the default --incremental
-  #
-  # we run in this way for line-buffered input, otherwise memory's a
-  # concern (plus it mimics what we'll end up getting from an
-  # application-track trace runner?)
-  cat "$bench" | $cvc4 -L smt2 --no-checking --no-interactive --incremental
+  # just run the default
+  runcvc4
   ;;
 
 esac
