@@ -79,7 +79,9 @@ bool InequalitySolver::check(Theory::Effort e) {
   if (!ok) {
     std::vector<TNode> conflict;
     d_inequalityGraph.getConflict(conflict);
-    d_bv->setConflict(utils::flattenAnd(conflict));
+    Node confl = utils::flattenAnd(conflict);
+    d_bv->setConflict(confl);
+    Debug("bv-subtheory-inequality") << "InequalitySolver::conflict:  "<< confl <<"\n";
     return false;
   }
 
@@ -92,6 +94,7 @@ bool InequalitySolver::check(Theory::Effort e) {
       d_bv->lemma(lemmas[i]);
     }
   }
+  Debug("bv-subtheory-inequality") << "InequalitySolver done. ";
   return true;
 }
 

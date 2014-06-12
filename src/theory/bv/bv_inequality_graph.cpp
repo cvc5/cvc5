@@ -141,6 +141,11 @@ bool InequalityGraph::processQueue(BFSQueue& queue, TermId start) {
         // it means we have an overflow and hence a conflict
         std::vector<TermId> conflict;
         conflict.push_back(it->reason);
+        Assert (hasModelValue(start));
+        ReasonId start_reason = getModelValue(start).reason;
+        if (start_reason != UndefinedReasonId) {
+          conflict.push_back(start_reason);
+        }
         computeExplanation(start, current, conflict);
         Debug("bv-inequality") << "InequalityGraph::addInequality conflict: cycle \n"; 
         setConflict(conflict); 
@@ -261,6 +266,7 @@ ReasonId InequalityGraph::registerReason(TNode reason) {
   ReasonId id = d_reasonNodes.size();
   d_reasonNodes.push_back(reason);
   d_reasonToIdMap[reason] = id;
+  Debug("bv-inequality-internal") << "InequalityGraph::registerReason " << reason << " => id"<< id << "\n"; 
   return id; 
 }
 
