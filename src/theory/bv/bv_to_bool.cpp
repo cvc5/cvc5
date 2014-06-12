@@ -86,7 +86,8 @@ bool BvToBoolPreprocessor::isConvertibleBvTerm(TNode node) {
       kind == kind::BITVECTOR_AND ||
       kind == kind::BITVECTOR_OR ||
       kind == kind::BITVECTOR_NOT ||
-      kind == kind::BITVECTOR_XOR) {
+      kind == kind::BITVECTOR_XOR ||
+      kind == kind::BITVECTOR_COMP) {
     return true; 
   }
 
@@ -156,7 +157,13 @@ Node BvToBoolPreprocessor::convertBvTerm(TNode node) {
     Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
     return result; 
   }
-  
+
+  if (kind == kind::BITVECTOR_COMP) {
+    Node result = utils::mkNode(kind::EQUAL, node[0], node[1]);
+    addToBoolCache(node, result);
+    Debug("bv-to-bool") << "BvToBoolPreprocessor::convertBvTerm " << node <<" => " << result << "\n"; 
+    return result; 
+  }
 
   switch(kind) {
   case kind::BITVECTOR_OR:
