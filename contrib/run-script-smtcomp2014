@@ -26,7 +26,8 @@ function finishwith {
 case "$logic" in
 
 QF_LRA)
-  finishwith --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  trywith 200 --enable-miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
   ;;
 QF_LIA)
   # same as QF_LRA but add --pb-rewrites
