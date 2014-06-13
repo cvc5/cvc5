@@ -980,7 +980,8 @@ void SmtEngine::setDefaults() {
   }
 
   // If in arrays, set the UF handler to arrays
-  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && !d_logic.isQuantified()) {
+  if(d_logic.isTheoryEnabled(THEORY_ARRAY) && ( !d_logic.isQuantified() || 
+     (d_logic.isQuantified() && !d_logic.isTheoryEnabled(THEORY_UF)))) {
     Theory::setUninterpretedSortOwner(THEORY_ARRAY);
   } else {
     Theory::setUninterpretedSortOwner(THEORY_UF);
