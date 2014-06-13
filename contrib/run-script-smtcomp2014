@@ -11,7 +11,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # function returns normally.
 function trywith {
   limit=$1; shift;
-  result="$(ulimit -S -t "$limit";$cvc4 -L smt2 --no-checking --no-interactive "$@" $bench)"
+  result="$(ulimit -S -t "$limit";$cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
   esac
@@ -20,7 +20,7 @@ function trywith {
 # use: finishwith [params..]
 # to run cvc4 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc4 -L smt2 --no-checking --no-interactive "$@" $bench
+  $cvc4 -L smt2 --no-incremental --no-checking --no-interactive "$@" $bench
 }
 
 case "$logic" in
@@ -70,10 +70,16 @@ QF_AUFBV)
   finishwith --decision=justification-stoponly
   ;;
 QF_BV)
-  trywith 10 --bv-eq-slicer=auto --decision=justification
-  trywith 60 --decision=justification
-  trywith 600 --decision=internal --bitblast-eager
-  finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
+  exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive \
+         --threads 2 \
+         --thread0 '--unconstrained-simp --bv-eq-slicer=auto' \
+         --thread1 '--bitblast=eager --unconstrained-simp' \
+         --no-wait-to-join \
+         "$bench"
+  #trywith 10 --bv-eq-slicer=auto --decision=justification
+  #trywith 60 --decision=justification
+  #trywith 600 --decision=internal --bitblast-eager
+  #finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
 QF_AUFLIA|QF_AX)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas
