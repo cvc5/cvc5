@@ -161,7 +161,7 @@ submission-parallel:
 	  ../../configure competition --disable-shared --enable-static-binary --with-gmp --with-portfolio --with-glpk --with-abc --without-readline --enable-gpl; \
 	  $(MAKE) V=1; \
 	  strip src/main/pcvc4; \
-	  $(MAKE) check BINARY=pcvc4 CVC4_REGRESSION_ARGS=--fallback-sequential )
+	  $(MAKE) check BINARY=pcvc4 CVC4_REGRESSION_ARGS=--fallback-sequential || true )
 	# package the parallel track zipfile
 	mkdir -p cvc4-smtcomp-parallel-$(YEAR)/bin
 	cp -p builds-smtcomp/parallel/src/main/pcvc4 cvc4-smtcomp-parallel-$(YEAR)/bin/pcvc4
