@@ -75,7 +75,7 @@ QF_BV)
   trywith 600 --decision=internal --bitblast-eager
   finishwith --decision=justification --decision-use-weight --decision-weight-internal=usr1
   ;;
-QF_AX)
+QF_AUFLIA|QF_AX)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
