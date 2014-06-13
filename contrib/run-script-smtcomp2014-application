@@ -30,7 +30,7 @@ LIA|LRA|NIA|NRA)
 QF_BV)
   runcvc4 --bv-eq-slicer=auto --decision=justification
   ;;
-QF_AX)
+QF_AUFLIA|QF_AX)
   runcvc4 --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 *)
