@@ -489,13 +489,12 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {
-        // this is the case when p was a unit
-        if (x == var(p))
-          continue;
-        
-        assert (marker[x] == 2);
-        assert (level(x) > 0);
-        out_conflict.push(~trail[i]); 
+        // we skip p if was a learnt unit
+        if (x != var(p)) {
+          assert (marker[x] == 2);
+          assert (level(x) > 0);
+          out_conflict.push(~trail[i]);
+        }
       } else {
         Clause& c = ca[reason(x)];
         for (int j = 1; j < c.size(); j++)
@@ -504,6 +503,7 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
       }
       seen[x] = 0;
     }
+    assert (seen[x] == 0); 
   }
   assert (out_conflict.size()); 
 }
