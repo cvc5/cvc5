@@ -164,7 +164,8 @@ enum RewriteRuleId {
   BitwiseSlicing,
   // rules to simplify bitblasting
   BBPlusNeg,
-  UltPlusOne
+  UltPlusOne,
+  ConcatToMult
 };
 
 
@@ -291,6 +292,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
   case MultDistrib: out << "MultDistrib"; return out;
   case UltPlusOne: out << "UltPlusOne"; return out;
+  case ConcatToMult: out << "ConcatToMult"; return out;
   default:
     Unreachable();
   }
@@ -513,6 +515,7 @@ struct AllRewriteRules {
   RewriteRule<IntToBVEliminate>  rule117;
   RewriteRule<MultDistrib> rule118;
   RewriteRule<UltPlusOne> rule119;
+  RewriteRule<ConcatToMult> rule120;
 };
 
 template<> inline

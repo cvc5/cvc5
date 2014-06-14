@@ -506,6 +506,38 @@ Node RewriteRule<MultDistrib>::apply(TNode node) {
   return utils::mkNode(sum.getKind(), children); 
 }
 
+template<> inline
+bool RewriteRule<ConcatToMult>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_CONCAT) return false;
+  if (node.getNumChildren() != 2) return false;
+  if (node[0].getKind()!= kind::BITVECTOR_EXTRACT) return false;
+  if (!node[1].isConst()) return false;
+  TNode extract = node[0];
+  TNode c = node[1];
+  unsigned ammount = utils::getSize(c);
+  
+  if (utils::getSize(node) != utils::getSize(extract[0])) return false; 
+  if (c != utils::mkConst(ammount, 0)) return false;
+
+  unsigned low = utils::getExtractLow(extract);
+  if (low != 0) return false; 
+  unsigned high = utils::getExtractHigh(extract);
+  if (high + ammount + 1 != utils::getSize(node)) return false;
+  return true;
+}
+
+template<> inline
+Node RewriteRule<ConcatToMult>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<ConcatToMult>(" << node << ")" << std::endl;
+  unsigned size = utils::getSize(node); 
+  Node factor = node[0][0];
+  Assert(utils::getSize(factor) == utils::getSize(node)); 
+  BitVector ammount = BitVector(size, utils::getSize(node[1]));
+  Node coef = utils::mkConst(BitVector(size, 1u).leftShift(ammount));
+  return utils::mkNode(kind::BITVECTOR_MULT, factor, coef); 
+}
+
+
 
 template<> inline
 bool RewriteRule<SolveEq>::applies(TNode node) {

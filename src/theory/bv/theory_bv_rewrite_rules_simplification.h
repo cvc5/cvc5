@@ -1169,6 +1169,10 @@ bool RewriteRule<UltPlusOne>::applies(TNode node) {
       y1[1].getKind() != kind::CONST_BITVECTOR)
     return false;
   
+  if (y1[0].getKind() == kind::CONST_BITVECTOR &&
+      y1[1].getKind() == kind::CONST_BITVECTOR)
+    return false;
+  
   if (y1.getNumChildren() != 2)
     return false; 
 
