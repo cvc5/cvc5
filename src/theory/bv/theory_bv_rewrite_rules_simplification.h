@@ -1152,6 +1152,38 @@ Node RewriteRule<MultSlice>::apply(TNode node) {
   return utils::mkNode(kind::BITVECTOR_PLUS, term1, term2, term3); 
 }
 
+/** 
+ * x < y + 1 <=> (not y < x) and y != 1...1
+ * 
+ * @param node 
+ * 
+ * @return 
+ */
+template<> inline
+bool RewriteRule<UltPlusOne>::applies(TNode node) {
+  if (node.getKind() != kind::BITVECTOR_ULT) return false;
+  TNode x = node[0];
+  TNode y1 = node[1];
+  if (y1.getKind() != kind::BITVECTOR_PLUS) return false;
+  if (y1[0].getKind() != kind::CONST_BITVECTOR &&
+      y1[1].getKind() != kind::CONST_BITVECTOR)
+    return false;
+  TNode one = y1[0].getKind() == kind::CONST_BITVECTOR ? y1[0] : y1[1];
+  if (one != utils::mkConst(utils::getSize(one), 1)) return false;
+  return true; 
+}
+
+template<> inline
+Node RewriteRule<UltPlusOne>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<UltPlusOne>(" << node << ")" << std::endl;
+  TNode x = node[0];
+  TNode y1 = node[1];
+  TNode y = y1[0].getKind() != kind::CONST_BITVECTOR ? y1[0] : y1[1];
+  unsigned size = utils::getSize(x); 
+  Node not_y_eq_1 = utils::mkNode(kind::NOT, utils::mkNode(kind::EQUAL, y, utils::mkOnes(size)));
+  Node not_y_lt_x = utils::mkNode(kind::NOT, utils::mkNode(kind::BITVECTOR_ULT, y, x));
+  return utils::mkNode(kind::AND, not_y_eq_1, not_y_lt_x);
+}
 
 
 // /**

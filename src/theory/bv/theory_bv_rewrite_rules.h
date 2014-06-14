@@ -163,8 +163,9 @@ enum RewriteRuleId {
   XorSimplify,
   BitwiseSlicing,
   // rules to simplify bitblasting
-  BBPlusNeg
- };
+  BBPlusNeg,
+  UltPlusOne
+};
 
 
 inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
@@ -289,6 +290,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
   case MultDistrib: out << "MultDistrib"; return out;
+  case UltPlusOne: out << "UltPlusOne"; return out;
   default:
     Unreachable();
   }
@@ -510,6 +512,7 @@ struct AllRewriteRules {
   RewriteRule<BVToNatEliminate>  rule116;
   RewriteRule<IntToBVEliminate>  rule117;
   RewriteRule<MultDistrib> rule118;
+  RewriteRule<UltPlusOne> rule119;
 };
 
 template<> inline

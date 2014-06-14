@@ -548,6 +548,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in, SubstitutionMap& outSubstitu
 
 Node TheoryBV::ppRewrite(TNode t)
 {
+  Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n"; 
   Node res = t;
   if (RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
@@ -556,6 +557,9 @@ Node TheoryBV::ppRewrite(TNode t)
     std::vector<Node> equalities;
     Slicer::splitEqualities(t, equalities);
     res = utils::mkAnd(equalities);
+  } else if (RewriteRule<UltPlusOne>::applies(t)) {
+    Node result = RewriteRule<UltPlusOne>::run<false>(t);
+    res = Rewriter::rewrite(result);
   }
 
   // if(t.getKind() == kind::EQUAL &&
@@ -593,6 +597,7 @@ Node TheoryBV::ppRewrite(TNode t)
   if (options::bvAbstraction() && t.getType().isBoolean()) {
     d_abstractionModule->addInputAtom(res); 
   }
+  Debug("bv-pp-rewrite") << "to   " << res << "\n"; 
   return res;
 }
 
