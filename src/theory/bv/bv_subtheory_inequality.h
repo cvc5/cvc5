@@ -38,8 +38,11 @@ class InequalitySolver: public SubtheorySolver {
   InequalityGraph d_inequalityGraph;
   context::CDHashMap<Node, TNode, NodeHashFunction> d_explanations;
   context::CDO<bool> d_isComplete;
-  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_ineqTermCache;
+  __gnu_cxx::hash_map<TNode, bool, TNodeHashFunction> d_ineqOnlyCache;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+  TNodeSet d_ineqTerms;
   bool isInequalityOnly(TNode node);
+  bool addInequality(TNode a, TNode b, bool strict, TNode fact);
   Statistics d_statistics;
 public:
   InequalitySolver(context::Context* c, TheoryBV* bv)
@@ -48,7 +51,8 @@ public:
       d_inequalityGraph(c),
       d_explanations(c),
       d_isComplete(c, true),
-      d_ineqTermCache(),
+      d_ineqOnlyCache(),
+      d_ineqTerms(),
       d_statistics()
   {}
 
@@ -60,6 +64,7 @@ public:
   Node getModelValue(TNode var);
   EqualityStatus getEqualityStatus(TNode a, TNode b);
   void assertFact(TNode fact);
+  void preRegister(TNode node);
 };
 
 }
