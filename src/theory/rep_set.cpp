@@ -169,7 +169,8 @@ bool RepSetIterator::initialize(){
         }
       }
     //enumerate if the sort is reasonably small, the upper bound of 1000 is chosen arbitrarily for now
-    }else if( tn.getCardinality().isFinite() && tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
+    }else if( tn.getCardinality().isFinite() && !tn.getCardinality().isLargeFinite() &&
+              tn.getCardinality().getFiniteCardinality().toUnsignedInt()<=1000 ){
       d_rep_set->complete( tn );
     }else{
       Trace("fmf-incomplete") << "Incomplete because of quantification of type " << tn << std::endl;
