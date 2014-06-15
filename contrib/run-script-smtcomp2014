@@ -69,6 +69,9 @@ QF_AUFBV)
   trywith 600
   finishwith --decision=justification-stoponly
   ;;
+QF_ABV)
+  finishwith --ite-simp --simp-with-care --repeat-simp
+  ;;
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive \
          --threads 2 \
