@@ -13,7 +13,8 @@ before_install:
 # dhart/ppa is for cxxtest package, which doesn't appear officially until quantal
  - travis_retry sudo apt-add-repository -y ppa:dhart/ppa
  - travis_retry sudo apt-get update -qq
- - travis_retry sudo apt-get install -qq libgmp-dev antlr3 libantlr3c-dev libboost-dev libboost-thread-dev swig2.0 libcln-dev cxxtest openjdk-7-jdk
+ - travis_retry sudo apt-get install -qq libgmp-dev antlr3 libantlr3c-dev libboost-dev libboost-thread-dev swig2.0 libcln-dev openjdk-7-jdk
+ - travis_retry sudo apt-get install -qq --force-yes cxxtest
 before_script:
  - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
  - export PATH=$PATH:$JAVA_HOME/bin
