@@ -61,5 +61,7 @@ expert-option bvEagerExplanations --bv-eager-explanations bool :default false :r
 expert-option bitvectorQuickXplain --bv-quick-xplain bool :default false
  minimize bv conflicts using the QuickXplain algorithm
  
+expert-option bvIntroducePow2 --bv-intro-pow2 bool :default false
+ introduce bitvector powers of two as a preprocessing pass
  
 endmodule

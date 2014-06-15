@@ -89,6 +89,7 @@
 #include "printer/options.h"
 
 #include "theory/arith/pseudoboolean_proc.h"
+#include "theory/bv/bvintropow2.h"
 
 using namespace std;
 using namespace CVC4;
@@ -2924,6 +2925,10 @@ void SmtEnginePrivate::processAssertions() {
     Chat() << "...doing unconstrained simplification..." << endl;
     unconstrainedSimp(d_assertionsToPreprocess);
     dumpAssertions("post-unconstrained-simp", d_assertionsToPreprocess);
+  }
+
+  if(options::bvIntroducePow2()){
+    theory::bv::BVIntroducePow2::pow2Rewrite(d_assertionsToPreprocess);
   }
 
   dumpAssertions("pre-substitution", d_assertionsToPreprocess);

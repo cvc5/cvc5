@@ -48,6 +48,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_subtheories(),
     d_subtheoryMap(),
     d_statistics(),
+    d_staticLearnCache(),
     d_lemmasAdded(c, false),
     d_conflict(c, false),
     d_literalsToPropagate(c),
@@ -730,6 +731,11 @@ void TheoryBV::enableCoreTheorySlicer() {
 
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+  if(d_staticLearnCache.find(in) != d_staticLearnCache.end()){
+    return;
+  }
+  d_staticLearnCache.insert(in);
+    
   if (in.getKind() == kind::EQUAL) {
     if(in[0].getKind() == kind::BITVECTOR_PLUS && in[1].getKind() == kind::BITVECTOR_SHL ||
        in[1].getKind() == kind::BITVECTOR_PLUS && in[0].getKind() == kind::BITVECTOR_SHL){
@@ -756,7 +762,11 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
         }
       }
     }
-  }       
+  }else if(in.getKind() == kind::AND){
+    for(size_t i = 0, N = in.getNumChildren(); i < N; ++i){
+      ppStaticLearn(in[i], learned);
+    }
+  }
 }
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {

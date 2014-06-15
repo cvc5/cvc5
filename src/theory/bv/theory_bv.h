@@ -117,6 +117,9 @@ private:
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet; 
   void collectNumerators(TNode term, TNodeSet& seen);
   
+  typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+  NodeSet d_staticLearnCache;
+  
   /**
    * Maps from bit-vector width to divison-by-zero uninterpreted
    * function symbols.
