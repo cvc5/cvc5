@@ -12,6 +12,10 @@ void BVIntroducePow2::pow2Rewrite(std::vector<Node>& assertionsToPreprocess){
   for(size_t i = 0, N= assertionsToPreprocess.size(); i < N; ++i){
     Node curr = assertionsToPreprocess[i];
     Node next = pow2Rewrite(curr, cache);
+    if(next != curr){
+      Node tmp = Rewriter::rewrite(next);
+      next = tmp;
+    }
     assertionsToPreprocess[i] = next;
   }
 }
