@@ -96,6 +96,7 @@ void BitblastSolver::bitblastQueue() {
   while (!d_bitblastQueue.empty()) {
     TNode atom = d_bitblastQueue.front();
     d_bitblastQueue.pop();
+    Debug("bv-bitblast-queue") << "BitblastSolver::bitblastQueue (" << atom << ")\n";
     if (options::bvAbstraction() &&
         d_abstractionModule->isLemmaAtom(atom)) {
       // don't bit-blast lemma atoms

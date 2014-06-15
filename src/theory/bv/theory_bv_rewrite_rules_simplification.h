@@ -1193,67 +1193,52 @@ Node RewriteRule<UltPlusOne>::apply(TNode node) {
   return utils::mkNode(kind::AND, not_y_eq_1, not_y_lt_x);
 }
 
+/** 
+ * x ^(x-1) = 0 => 1 << sk
+ * Note: only to be called in ppRewrite and not rewrite!
+ * (it calls the rewriter)
+ * 
+ * @param node 
+ * 
+ * @return 
+ */
+template<> inline
+bool RewriteRule<IsPowerOfTwo>::applies(TNode node) {
+  if (node.getKind()!= kind::EQUAL) return false;
+  if (node[0].getKind() != kind::BITVECTOR_AND &&
+      node[1].getKind() != kind::BITVECTOR_AND)
+    return false;
+  if (!utils::isZero(node[0]) &&
+      !utils::isZero(node[1]))
+    return false;
 
-// /**
-//  * 
-//  *
-//  * 
-//  */
+  TNode t = !utils::isZero(node[0])? node[0]: node[1];
+  if (t.getNumChildren() != 2) return false; 
+  TNode a = t[0];
+  TNode b = t[1];
+  unsigned size = utils::getSize(t);
+  if(size < 2) return false;
+  Node diff = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_SUB, a, b));
+  return (diff.isConst() && (diff == utils::mkConst(size, 1u) || diff == utils::mkOnes(size)));
+}
 
-// template<> inline
-// bool RewriteRule<BBFactorOut>::applies(TNode node) {
-//   if (node.getKind() != kind::BITVECTOR_PLUS) {
-//     return false; 
-//   }
+template<> inline
+Node RewriteRule<IsPowerOfTwo>::apply(TNode node) {
+  Debug("bv-rewrite") << "RewriteRule<IsPowerOfTwo>(" << node << ")" << std::endl;
+  TNode term = utils::isZero(node[0])? node[1] : node[0];
+  TNode a = term[0];
+  TNode b = term[1];
+  unsigned size = utils::getSize(term); 
+  Node diff = Rewriter::rewrite(utils::mkNode(kind::BITVECTOR_SUB, a, b));
+  Assert (diff.isConst());
+  TNode x = diff == utils::mkConst(size, 1u) ? a : b;
+  Node one = utils::mkConst(size, 1u);
+  Node sk = utils::mkVar(size);
+  Node sh = utils::mkNode(kind::BITVECTOR_SHL, one, sk);
+  Node x_eq_sh = utils::mkNode(kind::EQUAL, x, sh);
+  return x_eq_sh;
+}
 
-//   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-//     if (node[i].getKind() != kind::BITVECTOR_MULT) {
-//       return false; 
-//     }
-//   }
-// }
-
-// template<> inline
-// Node RewriteRule<BBFactorOut>::apply(TNode node) {
-//   Debug("bv-rewrite") << "RewriteRule<BBFactorOut>(" << node << ")" << std::endl;
-//   std::hash_set<TNode, TNodeHashFunction> factors;
-
-//   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-//     Assert (node[i].getKind() == kind::BITVECTOR_MULT);
-//     for (unsigned j = 0; j < node[i].getNumChildren(); ++j) {
-//       factors.insert(node[i][j]); 
-//     }
-//   }
-
-//   std::vector<TNode> gcd; 
-//   std::hash_set<TNode, TNodeHashFunction>::const_iterator it;
-//   for (it = factors.begin(); it != factors.end(); ++it) {
-//     // for each factor check if it occurs in all children
-//     TNode f = *it; 
-//     for (unsigned i = 0; i < node.getNumChildren
-    
-//     }
-//   }
-//   return ; 
-// }
-
-
-// /**
-//  * 
-//  *
-//  * 
-//  */
-
-// template<> inline
-// bool RewriteRule<>::applies(TNode node) {
-//   return (node.getKind() == );
-// }
-
-// template<> inline
-// Node RewriteRule<>::apply(TNode node) {
-//   Debug("bv-rewrite") << "RewriteRule<>(" << node << ")" << std::endl;
-//   return ; 
-// }
 
 
 

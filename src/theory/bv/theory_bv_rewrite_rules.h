@@ -165,7 +165,8 @@ enum RewriteRuleId {
   // rules to simplify bitblasting
   BBPlusNeg,
   UltPlusOne,
-  ConcatToMult
+  ConcatToMult,
+  IsPowerOfTwo
 };
 
 
@@ -293,6 +294,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case MultDistrib: out << "MultDistrib"; return out;
   case UltPlusOne: out << "UltPlusOne"; return out;
   case ConcatToMult: out << "ConcatToMult"; return out;
+  case IsPowerOfTwo: out << "IsPowerOfTwo"; return out;
   default:
     Unreachable();
   }
@@ -516,6 +518,7 @@ struct AllRewriteRules {
   RewriteRule<MultDistrib> rule118;
   RewriteRule<UltPlusOne> rule119;
   RewriteRule<ConcatToMult> rule120;
+  RewriteRule<IsPowerOfTwo> rule121;
 };
 
 template<> inline

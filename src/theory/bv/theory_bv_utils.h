@@ -332,7 +332,10 @@ inline Node mkAnd(const std::vector<Node>& conjunctions) {
   return conjunction;
 }/* mkAnd() */
 
-
+inline bool isZero(TNode node) {
+  if (!node.isConst()) return false; 
+  return node == utils::mkConst(utils::getSize(node), 0u); 
+}
 
 inline Node flattenAnd(std::vector<TNode>& queue) {
   TNodeSet nodes;

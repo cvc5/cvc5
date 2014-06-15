@@ -560,9 +560,7 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<UltPlusOne>::applies(t)) {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
-  }
-
-  if( res.getKind() == kind::EQUAL &&
+  } else if( res.getKind() == kind::EQUAL &&
       ((res[0].getKind() == kind::BITVECTOR_PLUS &&
         RewriteRule<ConcatToMult>::applies(res[1])) ||
        res[1].getKind() == kind::BITVECTOR_PLUS &&
@@ -579,6 +577,8 @@ Node TheoryBV::ppRewrite(TNode t)
     } else {
       res = t;
     }
+  } else if (RewriteRule<IsPowerOfTwo>::applies(t)) {
+    res = RewriteRule<IsPowerOfTwo>::run<false>(t);
   }
   
 
@@ -729,7 +729,35 @@ void TheoryBV::enableCoreTheorySlicer() {
 }
 
 
-void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {}
+void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
+  if (in.getKind() == kind::EQUAL) {
+    if(in[0].getKind() == kind::BITVECTOR_PLUS && in[1].getKind() == kind::BITVECTOR_SHL ||
+       in[1].getKind() == kind::BITVECTOR_PLUS && in[0].getKind() == kind::BITVECTOR_SHL){
+      TNode p = in[0].getKind() == kind::BITVECTOR_PLUS ? in[0] : in[1];
+      TNode s = in[0].getKind() == kind::BITVECTOR_PLUS ? in[1] : in[0];
+
+      if(p.getNumChildren() == 2
+         && p[0].getKind()  == kind::BITVECTOR_SHL 
+         && p[1].getKind()  == kind::BITVECTOR_SHL ){
+        unsigned size = utils::getSize(s);
+        Node one = utils::mkConst(size, 1u);
+        if(s[0] == one && p[0][0] == one && p[1][0] == one){
+          Node zero = utils::mkConst(size, 0u);
+          TNode b = p[0];
+          TNode c = p[1];
+          // (s : 1 << S) = (b : 1 << B) + (c : 1 << C)
+          Node b_eq_0 = b.eqNode(zero);
+          Node c_eq_0 = c.eqNode(zero);
+          Node b_eq_c = b.eqNode(c);
+
+          Node dis = utils::mkNode(kind::OR, b_eq_0, c_eq_0, b_eq_c);
+          Node imp = in.impNode(dis);
+          learned << imp;
+        }
+      }
+    }
+  }       
+}
 
 bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions) {
   bool changed = d_abstractionModule->applyAbstraction(assertions, new_assertions);
