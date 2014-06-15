@@ -1166,7 +1166,8 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
       node.getKind() != kind::BITVECTOR_XOR) ||
       utils::getSize(node) == 1)
     return false; 
-  
+  // find the first constant and return true if it's not only 1..1 or only 0..0
+  // (there could be more than one constant)
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
     if (node[i].getKind() == kind::CONST_BITVECTOR) {
       BitVector constant = node[i].getConst<BitVector>();
@@ -1178,6 +1179,7 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
         if (!constant.isBitSet(i)) 
           return true; 
       }
+      return false; 
     }
   }
   return false; 
@@ -1187,13 +1189,12 @@ template<> inline
 Node RewriteRule<BitwiseSlicing>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<BitwiseSlicing>(" << node << ")" << std::endl;
   // get the constant
-  bool found_constant CVC4_UNUSED = false ;
+  bool found_constant = false ;
   TNode constant;
   std::vector<Node> other_children; 
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    if (node[i].getKind() == kind::CONST_BITVECTOR) {
+    if (node[i].getKind() == kind::CONST_BITVECTOR && !found_constant) {
       constant = node[i];
-      Assert (!found_constant); 
       found_constant = true; 
     } else {
       other_children.push_back(node[i]); 

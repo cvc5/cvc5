@@ -40,16 +40,18 @@ SubstitutionEx::SubstitutionEx(theory::SubstitutionMap* modelMap)
   , d_modelMap(modelMap)
 {}
 
-void SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
+bool SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
   Debug("bv-substitution") << "SubstitutionEx::addSubstitution: "<< from <<" => "<< to <<"\n";
   Debug("bv-substitution") << " reason "<<reason << "\n";
+  Assert (from != to);
+  if (d_substitutions.find(from) != d_substitutions.end())
+    return false; 
   
   d_modelMap->addSubstitution(from, to); 
 
   d_cacheInvalid = true;
-  Assert (from != to);
-  Assert (d_substitutions.find(from) == d_substitutions.end());
   d_substitutions[from] = SubstitutionElement(to, reason);
+  return true; 
 }
 
 Node SubstitutionEx::apply(TNode node) {
@@ -446,12 +448,12 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
 
   
   if (left.isVar() && !right.hasSubterm(left)) {
-    subst.addSubstitution(left, right, reason);
-    return true;
+    bool changed  = subst.addSubstitution(left, right, reason);
+    return changed;
   }
   if (right.isVar() && !left.hasSubterm(right)) {
-    subst.addSubstitution(right, left, reason);
-    return true;
+    bool changed = subst.addSubstitution(right, left, reason);
+    return changed;
   }
 
   // xor simplification
@@ -478,8 +480,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       Node new_left = left_children.size() > 1 ? utils::mkNode(kind::BITVECTOR_XOR, left_children)
                                                : left_children[0];
       Node new_fact = utils::mkNode(kind::EQUAL, new_left, new_right);
-      subst.addSubstitution(fact, new_fact, reason);
-      return true;
+      bool changed = subst.addSubstitution(fact, new_fact, reason);
+      return changed;
     }
     
     NodeBuilder<> nb(kind::BITVECTOR_XOR);
@@ -488,7 +490,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     }
     Node inverse = left.getNumChildren() == 2? (Node)left[1] : (Node)nb;
     Node new_right = utils::mkNode(kind::BITVECTOR_XOR, right, inverse);
-    subst.addSubstitution(var, new_right, reason);
+    bool changed = subst.addSubstitution(var, new_right, reason);
 
     if (Dump.isOn("bv-algebraic")) {
       Node query = utils::mkNot(utils::mkNode(kind::IFF, fact, utils::mkNode(kind::EQUAL, var, new_right)));
@@ -500,7 +502,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     }
 
     
-    return true;
+    return changed;
   }
 
   // (a xor t = a) <=> (t = 0)
@@ -511,8 +513,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     Node new_left = utils::mkNode(kind::BITVECTOR_XOR, var, left);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
     Node new_fact = utils::mkNode(kind::EQUAL, zero, new_left);
-    subst.addSubstitution(fact, new_fact, reason);
-    return true; 
+    bool changed = subst.addSubstitution(fact, new_fact, reason);
+    return changed; 
   }
   
   if (right.getKind() == kind::BITVECTOR_XOR &&
@@ -522,8 +524,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     Node new_right = utils::mkNode(kind::BITVECTOR_XOR, var, right);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
     Node new_fact = utils::mkNode(kind::EQUAL, zero, new_right);
-    subst.addSubstitution(fact, new_fact, reason);
-    return true; 
+    bool changed = subst.addSubstitution(fact, new_fact, reason);
+    return changed; 
   }
 
   // (a xor b = 0) <=> (a = b)
@@ -532,8 +534,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       right.getKind() == kind::CONST_BITVECTOR &&
       right.getConst<BitVector>() == BitVector(utils::getSize(left), 0u)) {
     Node new_fact = utils::mkNode(kind::EQUAL, left[0], left[1]);
-    subst.addSubstitution(fact, new_fact, reason);
-    return true; 
+    bool changed = subst.addSubstitution(fact, new_fact, reason);
+    return changed; 
   }
   
 

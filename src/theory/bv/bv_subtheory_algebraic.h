@@ -77,7 +77,16 @@ class SubstitutionEx {
 
 public:
   SubstitutionEx(theory::SubstitutionMap* modelMap);
-  void addSubstitution(TNode from, TNode to, TNode reason);
+  /** 
+   * Returnst true if the substitution map did not contain from. 
+   * 
+   * @param from 
+   * @param to 
+   * @param reason 
+   * 
+   * @return 
+   */
+  bool addSubstitution(TNode from, TNode to, TNode reason);
   Node apply(TNode node);
   Node explain(TNode node) const;
 };
