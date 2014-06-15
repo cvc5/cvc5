@@ -72,8 +72,8 @@ QF_AUFBV)
 QF_BV)
   exec ./pcvc4 -L smt2 --no-incremental --no-checking --no-interactive \
          --threads 2 \
-         --thread0 '--unconstrained-simp --bv-eq-slicer=auto' \
-         --thread1 '--bitblast=eager --unconstrained-simp' \
+         --thread0 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --no-bv-abstraction' \
+         --thread1 '--unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bv-eq-slicer=auto ' \
          --no-wait-to-join \
          "$bench"
   #trywith 10 --bv-eq-slicer=auto --decision=justification
