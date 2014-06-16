@@ -6,6 +6,7 @@ AC_MSG_CHECKING([whether user requested abc support])
 LIBABC=
 have_libabc=0
 ABC_LIBS=
+ABC_LDFLAGS=
 if test "$with_abc" = no; then
   AC_MSG_RESULT([no, abc disabled by user])
 elif test "$with_abc" = yes; then

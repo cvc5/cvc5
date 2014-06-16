@@ -27,12 +27,12 @@ function webget {
   fi
 }
 
-if [ -z "${MACHINE_TYPE}" ]; then
-  # get first nibble from config.guess (x86_64, i686, ...)
-  MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
+if [ -e abc ]; then
+  echo 'error: file or directory "abc" exists; please move it out of the way.' >&2
+  exit 1
 fi
 
-mkdir -p abc
+mkdir abc
 cd abc
 webget https://bitbucket.org/alanmi/abc/get/$commit.tar.gz abc-$commit.tar.gz
 gunzip -f abc-$commit.tar.gz
