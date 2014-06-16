@@ -578,9 +578,7 @@ Node TheoryBV::ppRewrite(TNode t)
     } else {
       res = t;
     }
-  } else if (RewriteRule<IsPowerOfTwo>::applies(t)) {
-    res = RewriteRule<IsPowerOfTwo>::run<false>(t);
-  }
+  } 
   
 
   // if(t.getKind() == kind::EQUAL &&

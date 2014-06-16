@@ -1195,8 +1195,8 @@ Node RewriteRule<UltPlusOne>::apply(TNode node) {
 
 /** 
  * x ^(x-1) = 0 => 1 << sk
- * Note: only to be called in ppRewrite and not rewrite!
- * (it calls the rewriter)
+ * WARNING: this is an **EQUISATISFIABLE** transformation!
+ * Only to be called on top level assertions. 
  * 
  * @param node 
  * 
