@@ -128,7 +128,7 @@ option - trace -t --trace=TAG argument :handler CVC4::options::addTraceTag
 option - debug -d --debug=TAG argument :handler CVC4::options::addDebugTag
  debug something (e.g. -d arith), can repeat
 
-option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h"
+option printSuccess print-success --print-success bool :predicate CVC4::options::setPrintSuccess :predicate-include "options/base_options_handlers.h" :read-write
  print the "success" output required of SMT-LIBv2
 
 alias --smtlib-strict = --lang=smt2 --output-lang=smt2 --strict-parsing --default-expr-depth=-1 --print-success --incremental --abstract-values

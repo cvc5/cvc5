@@ -338,6 +338,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
+            bool succ = opts[options::printSuccess];
+            opts.set(options::printSuccess, false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
                 Command* cmd = allCommands[i][j]->clone();
@@ -345,12 +347,15 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
+            opts.set(options::printSuccess, succ);
             needReset = false;
           }
           allCommands.push_back(vector<Command*>());
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
           pExecutor->reset();
+          bool succ = opts[options::printSuccess];
+          opts.set(options::printSuccess, false);
           for(size_t i = 0; i < allCommands.size(); ++i) {
             for(size_t j = 0; j < allCommands[i].size(); ++j) {
               Command* cmd = allCommands[i][j]->clone();
@@ -358,10 +363,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               delete cmd;
             }
           }
+          opts.set(options::printSuccess, succ);
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
+            bool succ = opts[options::printSuccess];
+            opts.set(options::printSuccess, false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
                 Command* cmd = allCommands[i][j]->clone();
@@ -369,6 +377,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
+            opts.set(options::printSuccess, succ);
           }
           status = pExecutor->doCommand(cmd);
           needReset = true;
