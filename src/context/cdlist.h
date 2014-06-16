@@ -103,7 +103,7 @@ protected:
    * d_sizeAlloc are not copied: only the base class information and
    * d_size are needed in restore.
    */
-  CDList(const CDList<T, CleanUp, Allocator>& l) :
+  CDList(const CDList& l) :
     ContextObj(l),
     d_list(NULL),
     d_size(l.d_size),
@@ -115,6 +115,7 @@ protected:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
+  CDList& operator=(const CDList& l) CVC4_UNDEFINED;
 
 private:
   /**

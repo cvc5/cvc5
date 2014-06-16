@@ -174,6 +174,7 @@ class CDOhash_map : public ContextObj {
     d_prev(NULL),
     d_next(NULL) {
   }
+  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
 
 public:
 
@@ -304,6 +305,10 @@ class CDHashMap : public ContextObj {
     }
     d_trash.clear();
   }
+
+  // no copy or assignment
+  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
 
 public:
 

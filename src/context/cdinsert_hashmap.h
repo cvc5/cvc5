@@ -179,7 +179,7 @@ public:
   }
 };/* class TrailHashMap<> */
 
-template <class Key, class Data, class HashFcn >
+template <class Key, class Data, class HashFcn>
 class CDInsertHashMap : public ContextObj {
 private:
   typedef InsertHashMap<Key, Data, HashFcn> IHM;
@@ -201,7 +201,7 @@ private:
    * not copied: only the base class information and
    * d_size and d_pushFronts are needed in restore.
    */
-  CDInsertHashMap(const CDInsertHashMap<Key, Data, HashFcn>& l) :
+  CDInsertHashMap(const CDInsertHashMap& l) :
     ContextObj(l),
     d_insertMap(NULL),
     d_size(l.d_size),
@@ -211,6 +211,7 @@ private:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
+  CDInsertHashMap& operator=(const CDInsertHashMap&) CVC4_UNDEFINED;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies
