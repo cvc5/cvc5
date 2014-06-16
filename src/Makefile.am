@@ -434,6 +434,7 @@ endif
 
 if CVC4_USE_GLPK
 libcvc4_la_LIBADD += $(GLPK_LIBS)
+libcvc4_la_LDFLAGS += $(GLPK_LDFLAGS)
 endif
 
 if CVC4_USE_ABC

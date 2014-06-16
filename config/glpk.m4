@@ -6,10 +6,31 @@ AC_MSG_CHECKING([whether user requested glpk support])
 LIBGLPK=
 have_libglpk=0
 GLPK_LIBS=
+GLPK_LDFLAGS=
 if test "$with_glpk" = no; then
   AC_MSG_RESULT([no, glpk disabled by user])
 elif test "$with_glpk" = yes; then
   AC_MSG_RESULT([yes, glpk requested by user])
+
+  # Get the location of all the GLPK stuff
+  AC_ARG_VAR(GLPK_HOME, [path to top level of glpk installation])
+  AC_ARG_WITH(
+    [glpk-dir],
+    AS_HELP_STRING(
+      [--with-glpk-dir=PATH],
+      [path to top level of glpk installation]
+    ),
+    [GLPK_HOME="$withval"],
+    [ if test -z "$GLPK_HOME"; then
+        AC_MSG_FAILURE([must give --with-glpk-dir=PATH or define environment variable GLPK_HOME!])
+      fi
+    ]
+  )
+
+  if test -n "$GLPK_HOME"; then
+    CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-I$GLPK_HOME/include"
+    GLPK_LDFLAGS="-L$GLPK_HOME/lib"
+  fi
 
   dnl Try a bunch of combinations until something works :-/
   GLPK_LIBS=
@@ -89,6 +110,10 @@ AC_DEFUN([CVC4_TRY_GLPK_WITH], [
 if test -z "$GLPK_LIBS"; then
   AC_LANG_PUSH([C++])
   cvc4_save_LIBS="$LIBS"
+  cvc4_save_CPPFLAGS="$LDFLAGS"
+  cvc4_save_LDFLAGS="$LDFLAGS"
+  CPPFLAGS="$CVC4CPPFLAGS $CPPFLAGS"
+  LDFLAGS="$GLPK_LDFLAGS $LDFLAGS"
   LIBS="-lglpk $1"
   AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
                                   [#include <glpk/glpk.h>]
@@ -99,6 +124,8 @@ if test -z "$GLPK_LIBS"; then
     [GLPK_LIBS="-lglpk $1"],
     [])
   LIBS="$cvc4_save_LIBS"
+  CPPFLAGS="$cvc4_save_CPPFLAGS"
+  LDFLAGS="$cvc4_save_LDFLAGS"
   AC_LANG_POP([C++])
 fi
 ])# CVC4_TRY_GLPK_WITH
@@ -110,18 +137,29 @@ AC_DEFUN([CVC4_TRY_STATIC_GLPK_WITH], [
 if test -z "$GLPK_LIBS"; then
   AC_LANG_PUSH([C++])
   cvc4_save_LIBS="$LIBS"
+  cvc4_save_CPPFLAGS="$CPPFLAGS"
   cvc4_save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="-static $LDFLAGS"
-  LIBS="-lglpk $1"
+  CPPFLAGS="$CVC4_CPPFLAGS $CPPFLAGS"
+  LDFLAGS="-static $GLPK_LDFLAGS $LDFLAGS"
+  LIBS="-lglpk-static $1"
   AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
                                   [#include <glpk/glpk.h>]
                                   [#else]
                                   [#include <glpk.h>]
                                   [#endif],
                                   [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
-    [GLPK_LIBS="-lglpk $1"],
-    [])
+    [GLPK_LIBS="-lglpk-static $1"],
+    [ LIBS="-lglpk $1"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
+                                      [#include <glpk/glpk.h>]
+                                      [#else]
+                                      [#include <glpk.h>]
+                                      [#endif],
+                                      [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
+
+        [GLPK_LIBS="-lglpk $1"]) ])
   LIBS="$cvc4_save_LIBS"
+  CPPFLAGS="$cvc4_save_CPPFLAGS"
   LDFLAGS="$cvc4_save_LDFLAGS"
   AC_LANG_POP([C++])
 fi

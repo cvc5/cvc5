@@ -748,6 +748,7 @@ if test $have_libglpk -eq 1; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_USE_GLPK"
 fi
 AM_CONDITIONAL([CVC4_USE_GLPK], [test $have_libglpk -eq 1])
+AC_SUBST([GLPK_LDFLAGS])
 AC_SUBST([GLPK_LIBS])
 
 # Build with libabc (defined in config/abc.m4)
