@@ -26,6 +26,7 @@
 #include "context/cdo.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,11 +34,6 @@ namespace theory {
 class TheoryModel;
 
 namespace bv {
-
-
-
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 class TLazyBitblaster; 
 class TheoryBV;
