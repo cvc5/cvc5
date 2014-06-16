@@ -172,6 +172,10 @@ bool CoreSolver::check(Theory::Effort e) {
   bool ok = true;
   std::vector<Node> core_eqs;
   TNodeBoolMap seen;
+  // slicer does not deal with cardinality constraints yet
+  if (d_useSlicer) {
+    d_isComplete = false; 
+  }
   while (! done()) {
     TNode fact = get();
     if (d_isComplete && !isCompleteForTerm(fact, seen)) {
