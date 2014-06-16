@@ -199,11 +199,11 @@ public:
   static void getBoundVars( Node n, std::vector< Node >& bvs);
 //for skolem
 private:
-  /** map from universal quantifiers to the list of skolem constants */
-  std::map< Node, std::vector< Node > > d_skolem_constants;
   /** map from universal quantifiers to their skolemized body */
   std::map< Node, Node > d_skolem_body;
 public:
+  /** map from universal quantifiers to the list of skolem constants */
+  std::map< Node, std::vector< Node > > d_skolem_constants;
   /** make the skolemized body f[e/x] */
   static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
                                 std::vector< Node >& sk );
