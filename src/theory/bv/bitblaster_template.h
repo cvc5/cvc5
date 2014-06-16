@@ -134,7 +134,7 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
-  AssertionList d_assertedAtoms; /**< context dependent list storing the atoms
+  AssertionList* d_assertedAtoms; /**< context dependent list storing the atoms
                                      currently asserted by the DPLL SAT solver. */
   ExplanationMap d_explanations; /**< context dependent list of explanations for the propagated literals.
                                     Only used when bvEagerPropagate option enabled. */

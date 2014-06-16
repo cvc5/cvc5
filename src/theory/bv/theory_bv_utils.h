@@ -24,10 +24,13 @@
 #include <sstream>
 #include "expr/node_manager.h"
 
-
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
 namespace utils {
 
 inline uint32_t pow2(uint32_t power) {
@@ -253,8 +256,6 @@ inline unsigned isPow2Const(TNode node) {
   BitVector bv = node.getConst<BitVector>();
   return bv.isPow2(); 
 }
-
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 inline Node mkOr(const std::vector<Node>& nodes) {
   std::set<TNode> all;

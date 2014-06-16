@@ -36,10 +36,10 @@ namespace theory {
 namespace bv {
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name, bool emptyNotify)
-  : TBitblaster()
+  : TBitblaster<Node>()
   , d_bv(bv)
   , d_ctx(c)
-  , d_assertedAtoms(c)
+  , d_assertedAtoms(new(true) context::CDList<prop::SatLiteral>(c))
   , d_explanations(c)
   , d_variables()
   , d_bbAtoms()
@@ -241,7 +241,7 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
-  d_assertedAtoms.push_back(markerLit);
+  d_assertedAtoms->push_back(markerLit);
 
   return ret == prop::SAT_VALUE_TRUE || ret == prop::SAT_VALUE_UNKNOWN;
 }
@@ -256,24 +256,24 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
 bool TLazyBitblaster::solve() {
   if (Trace.isOn("bitvector")) {
     Trace("bitvector") << "TLazyBitblaster::solve() asserted atoms ";
-    context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms.begin();
-    for (; it != d_assertedAtoms.end(); ++it) {
+    context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms->begin();
+    for (; it != d_assertedAtoms->end(); ++it) {
       Trace("bitvector") << "     " << d_cnfStream->getNode(*it) << "\n";
     }
   }
-  Debug("bitvector") << "TLazyBitblaster::solve() asserted atoms " << d_assertedAtoms.size() <<"\n";
+  Debug("bitvector") << "TLazyBitblaster::solve() asserted atoms " << d_assertedAtoms->size() <<"\n";
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
 prop::SatValue TLazyBitblaster::solveWithBudget(unsigned long budget) {
   if (Trace.isOn("bitvector")) {
     Trace("bitvector") << "TLazyBitblaster::solveWithBudget() asserted atoms ";
-    context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms.begin();
-    for (; it != d_assertedAtoms.end(); ++it) {
+    context::CDList<prop::SatLiteral>::const_iterator it = d_assertedAtoms->begin();
+    for (; it != d_assertedAtoms->end(); ++it) {
       Trace("bitvector") << "     " << d_cnfStream->getNode(*it) << "\n";
     }
   }
-  Debug("bitvector") << "TLazyBitblaster::solveWithBudget() asserted atoms " << d_assertedAtoms.size() <<"\n";
+  Debug("bitvector") << "TLazyBitblaster::solveWithBudget() asserted atoms " << d_assertedAtoms->size() <<"\n";
   return d_satSolver->solve(budget);
 }
 
@@ -478,7 +478,8 @@ void TLazyBitblaster::clearSolver() {
   Assert (d_ctx->getLevel() == 0); 
   delete d_satSolver;
   delete d_cnfStream;
-  d_assertedAtoms = context::CDList<prop::SatLiteral>(d_ctx);
+  d_assertedAtoms->deleteSelf();
+  d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
   d_explanations = ExplanationMap(d_ctx);
   d_bbAtoms.clear();
   d_variables.clear();
