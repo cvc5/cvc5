@@ -269,18 +269,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     if(opts[options::interactive] && inputFromStdin) {
       if(opts[options::tearDownIncremental] && opts[options::incrementalSolving]) {
         if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --interactive");
+          throw OptionException("--tear-down-incremental incompatible with --incremental");
         }
 
-        cmd = new SetOptionCommand("incremental", false);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+        pExecutor->setOption("incremental", false);
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", true);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+        pExecutor->setOption("incremental", true);
       }
 #endif /* PORTFOLIO_BUILD */
       InteractiveShell shell(*exprMgr, opts);
@@ -308,12 +304,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     } else if(opts[options::tearDownIncremental]) {
       if(opts[options::incrementalSolving]) {
         if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --interactive");
+          throw OptionException("--tear-down-incremental incompatible with --incremental");
         }
 
-        cmd = new SetOptionCommand("incremental", false);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+        pExecutor->setOption("incremental", false);
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
@@ -338,7 +332,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            bool succ = opts[options::printSuccess];
+            bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
+            Command::printsuccess::setPrintSuccess(*opts[options::out], false);
             opts.set(options::printSuccess, false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
@@ -347,15 +342,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
-            opts.set(options::printSuccess, succ);
+            Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
             needReset = false;
           }
+          *opts[options::out] << CommandSuccess();
           allCommands.push_back(vector<Command*>());
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
           pExecutor->reset();
-          bool succ = opts[options::printSuccess];
-          opts.set(options::printSuccess, false);
+          bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
+          Command::printsuccess::setPrintSuccess(*opts[options::out], false);
           for(size_t i = 0; i < allCommands.size(); ++i) {
             for(size_t j = 0; j < allCommands[i].size(); ++j) {
               Command* cmd = allCommands[i][j]->clone();
@@ -363,13 +359,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               delete cmd;
             }
           }
-          opts.set(options::printSuccess, succ);
+          Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
+          *opts[options::out] << CommandSuccess();
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            bool succ = opts[options::printSuccess];
-            opts.set(options::printSuccess, false);
+            bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
+            Command::printsuccess::setPrintSuccess(*opts[options::out], false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
                 Command* cmd = allCommands[i][j]->clone();
@@ -377,7 +374,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                 delete cmd;
               }
             }
-            opts.set(options::printSuccess, succ);
+            Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
           }
           status = pExecutor->doCommand(cmd);
           needReset = true;
@@ -395,9 +392,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       delete parser;
     } else {
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        cmd = new SetOptionCommand("incremental", false);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+        pExecutor->setOption("incremental", false);
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
