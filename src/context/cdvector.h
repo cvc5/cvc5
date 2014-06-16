@@ -86,6 +86,10 @@ private:
 
   Context* d_context;
 
+  // no copy or assignment
+  CDVector(const CDVector&) CVC4_UNDEFINED;
+  CDVector& operator=(const CDVector&) CVC4_UNDEFINED;
+
 public:
   CDVector(Context* c) :
     d_current(),

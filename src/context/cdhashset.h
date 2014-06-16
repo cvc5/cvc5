@@ -30,6 +30,10 @@ template <class V, class HashFcn>
 class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
+  // no copy or assignment
+  CDHashSet(const CDHashSet&) CVC4_UNDEFINED;
+  CDHashSet& operator=(const CDHashSet&) CVC4_UNDEFINED;
+
 public:
 
   // ensure these are publicly accessible
@@ -148,7 +152,7 @@ public:
     return super::insertAtContextLevelZero(v, true);
   }
 
-};/* class CDSet */
+};/* class CDHashSet */
 
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
