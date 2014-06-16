@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+set -e
+
+commit=b420454e732f4b3d229c552ef7cd46fec75fe65c
+
+cd "$(dirname "$0")/.."
+
+if ! [ -e src/parser/cvc/Cvc.g ]; then
+  echo "$(basename $0): I expect to be in the contrib/ of a CVC4 source tree," >&2
+  echo "but apparently:" >&2
+  echo >&2
+  echo "  $(pwd)" >&2
+  echo >&2
+  echo "is not a CVC4 source tree ?!" >&2
+  exit 1
+fi
+
+function webget {
+  if which wget &>/dev/null; then
+    wget -c -O "$2" "$1"
+  elif which curl &>/dev/null; then
+    curl "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+if [ -e glpk-cut-log ]; then
+  echo 'error: file or directory "glpk-cut-log" exists; please move it out of the way.' >&2
+  exit 1
+fi
+
+mkdir glpk-cut-log
+cd glpk-cut-log
+webget https://github.com/timothy-king/glpk-cut-log/archive/$commit.zip glpk-cut-log-$commit.zip
+unzip glpk-cut-log-$commit.zip
+cd glpk-cut-log-$commit
+
+libtoolize
+aclocal
+autoheader
+autoconf
+automake --add-missing
+./configure --without-pic --prefix=`pwd`/.. --disable-shared --enable-static --disable-dependency-tracking
+make && make install
+mv `pwd`/../lib/libglpk.a `pwd`/../lib/libglpk-static.a
+make distclean
+./configure --with-pic --prefix=`pwd`/.. --disable-shared --enable-static --disable-dependency-tracking
+make && make install
+
+cd ..
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure --enable-gpl --with-glpk --with-glpk-dir=`pwd`
