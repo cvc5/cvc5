@@ -49,27 +49,27 @@ const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
 const unsigned NBITS_CONSTBLOCKS = 32;
 
 struct BlockHeader {
-  unsigned d_kind          : NBITS_KIND;
+  uint64_t d_kind          : NBITS_KIND;
 };/* struct BlockHeader */
 
 struct BlockHeaderOperator {
-  unsigned d_kind          : NBITS_KIND;
-  unsigned d_nchildren     : NBITS_NCHILDREN;
-  unsigned long            : NBITS_BLOCK - (NBITS_KIND + NBITS_NCHILDREN);
+  uint64_t d_kind          : NBITS_KIND;
+  uint64_t d_nchildren     : NBITS_NCHILDREN;
+  uint64_t                 : NBITS_BLOCK - (NBITS_KIND + NBITS_NCHILDREN);
 };/* struct BlockHeaderOperator */
 
 struct BlockHeaderConstant {
-  unsigned d_kind          : NBITS_KIND;
-  unsigned long d_constblocks   : NBITS_BLOCK - NBITS_KIND;
+  uint64_t d_kind          : NBITS_KIND;
+  uint64_t d_constblocks   : NBITS_BLOCK - NBITS_KIND;
 };/* struct BlockHeaderConstant */
 
 struct BlockHeaderVariable {
-  unsigned d_kind          : NBITS_KIND;
-  unsigned long            : NBITS_BLOCK - NBITS_KIND;
+  uint64_t d_kind          : NBITS_KIND;
+  uint64_t                 : NBITS_BLOCK - NBITS_KIND;
 };/* struct BlockHeaderVariable */
 
 struct BlockBody  {
-  unsigned long d_data          : NBITS_BLOCK;
+  uint64_t d_data          : NBITS_BLOCK;
 };/* struct BlockBody */
 
 union Block {
