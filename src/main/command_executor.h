@@ -52,6 +52,17 @@ public:
    */
   bool doCommand(CVC4::Command* cmd);
 
+  /**
+   * Allow one to set an option on the underlying SmtEngine.
+   * This could be done with a Command object, but then it's
+   * interpreted as a user command (and might result in "success"
+   * or "error" output, for example.  This function can throw
+   * exceptions.
+   */
+  void setOption(const std::string& key, const CVC4::SExpr& value) {
+    d_smtEngine->setOption(key, value);
+  }
+
   Result getResult() const { return d_result; }
   void reset();
 

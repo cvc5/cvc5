@@ -9,7 +9,7 @@ function runcvc4 {
   # we run in this way for line-buffered input, otherwise memory's a
   # concern (plus it mimics what we'll end up getting from an
   # application-track trace runner?)
-  cat "$bench" | $cvc4 -L smt2 --print-success --no-checking --no-interactive --tear-down-incremental "$@"
+  cat "$bench" | $cvc4 -L smt2 --print-success --no-checking --no-interactive --no-incremental --tear-down-incremental "$@"
 }
 
 case "$logic" in
