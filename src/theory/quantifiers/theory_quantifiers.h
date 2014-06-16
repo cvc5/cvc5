@@ -41,8 +41,6 @@ class InstantiationEngine;
 class TheoryQuantifiers : public Theory {
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  /** quantifiers that have been skolemized */
-  std::map< Node, bool > d_skolemized;
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;
