@@ -95,6 +95,7 @@ libutil_la_SOURCES = \
 	sort_inference.cpp \
 	regexp.h \
 	regexp.cpp \
+	bin_heap.h \
 	didyoumean.h \
 	didyoumean.cpp
 
