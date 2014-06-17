@@ -528,7 +528,7 @@ public:
   /**
    * Expand definitions in n.
    */
-  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
+  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly = false)
     throw(TypeCheckingException, LogicException);
 
   /**
@@ -1501,10 +1501,7 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-
-
-
-Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
+Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException) {
 
   stack< triple<Node, Node, bool> > worklist;
@@ -1586,12 +1583,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
                                       n.begin(), n.end());
         Debug("expand") << "made : " << instance << endl;
 
-        Node expanded = expandDefinitions(instance, cache);
+        Node expanded = expandDefinitions(instance, cache, expandOnly);
         cache[n] = (n == expanded ? Node::null() : expanded);
         result.push(expanded);
         continue;
 
-      } else {
+      } else if(! expandOnly) {
+        // do not do any theory stuff if expandOnly is true
+
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
@@ -3478,7 +3477,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
   hash_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
+  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
   n = postprocess(n, TypeNode::fromType(e.getType()));
 
   return n.toExpr();
