@@ -439,7 +439,7 @@ public:
    * explicit Expr(Node) constructor---but that dirties the public
    * interface.
    */
-  inline Expr toExpr();
+  inline Expr toExpr() const;
 
   /**
    * Convert an Expr into a Node.
@@ -1451,7 +1451,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
 }
 
 template <bool ref_count>
-inline Expr NodeTemplate<ref_count>::toExpr() {
+inline Expr NodeTemplate<ref_count>::toExpr() const {
   assertTNodeNotExpired();
   return NodeManager::currentNM()->toExpr(*this);
 }
