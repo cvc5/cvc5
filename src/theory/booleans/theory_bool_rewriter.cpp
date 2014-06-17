@@ -233,7 +233,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         }
         else if (n[1][1] == t && n[1][0].isConst()) {
           matchesForm = true;
-          constantsEqual = (n[1][1] == c);
+          constantsEqual = (n[1][0] == c);
         }
       }
       if(matchesForm){
