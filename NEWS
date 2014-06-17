@@ -3,7 +3,6 @@ This file contains a summary of important user-visible changes.
 Changes since 1.3
 =================
 
-* Timed statistics are now properly updated even on process abort.
 * The LFSC proof checker has been incorporated into CVC4 sources.
 * By default, CVC4 builds in "production" mode (optimized, with fewer
   internal checks on).  The common alternative is a "debug" build, which
@@ -14,6 +13,7 @@ Changes since 1.3
   licensing and dependences, see the README file.
 * Small API adjustments to Datatypes to even out the API and make it
   function better in Java.
+* Timed statistics are now properly updated even on process abort.
 * Better automatic handling of output language setting when using CVC4
   via API.  Previously, the "automatic" language setting was sometimes
   (though not always) defaulting to the internal "AST" language; it
