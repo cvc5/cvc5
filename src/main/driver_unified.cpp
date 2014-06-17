@@ -272,11 +272,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           throw OptionException("--tear-down-incremental incompatible with --incremental");
         }
 
-        pExecutor->setOption("incremental", false);
+        cmd = new SetOptionCommand("incremental", false);
+        cmd->setMuted(true);
+        pExecutor->doCommand(cmd);
+        delete cmd;
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        pExecutor->setOption("incremental", true);
+        cmd = new SetOptionCommand("incremental", true);
+        cmd->setMuted(true);
+        pExecutor->doCommand(cmd);
+        delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
       InteractiveShell shell(*exprMgr, opts);
@@ -307,7 +313,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           throw OptionException("--tear-down-incremental incompatible with --incremental");
         }
 
-        pExecutor->setOption("incremental", false);
+        cmd = new SetOptionCommand("incremental", false);
+        cmd->setMuted(true);
+        pExecutor->doCommand(cmd);
+        delete cmd;
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
@@ -386,7 +395,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       delete parser;
     } else {
       if(!opts.wasSetByUser(options::incrementalSolving)) {
-        pExecutor->setOption("incremental", false);
+        cmd = new SetOptionCommand("incremental", false);
+        cmd->setMuted(true);
+        pExecutor->doCommand(cmd);
+        delete cmd;
       }
 
       ParserBuilder parserBuilder(exprMgr, filename, opts);
