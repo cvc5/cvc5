@@ -1,11 +1,25 @@
+/*********************                                                        */
+/*! \file bin_heap.h
+ ** \verbatim
+ ** Original author: Tim King
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief An implementation of a binary heap
+ **
+ ** An implementation of a binary heap.
+ ** Attempts to roughly follow the contract of Boost's d_ary_heap.
+ ** (http://www.boost.org/doc/libs/1_49_0/doc/html/boost/heap/d_ary_heap.html)
+ ** Also attempts to generalize ext/pd_bs/priority_queue.
+ ** (http://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/priority_queue.html)
+ **/
 
-/**
- * An implementation of a binary heap.
- * Attempts to roughly follow the contract of Boost's d_ary_heap.
- * (http://www.boost.org/doc/libs/1_49_0/doc/html/boost/heap/d_ary_heap.html)
- * Also attempts to generalize ext/pd_bs/priority_queue.
- * (http://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/priority_queue.html)
- */
+#include "cvc4_private.h"
+
 namespace CVC4 {
 
 template <class Elem, class CmpFcn = std::less<Elem> >
