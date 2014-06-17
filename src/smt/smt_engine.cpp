@@ -3020,8 +3020,8 @@ void SmtEnginePrivate::processAssertions() {
     SortInference * si = d_smt.d_theoryEngine->getSortInference();
     si->simplify( d_assertionsToPreprocess );
     for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
-      d_smt.setPrintFuncInModel( it->first, false );
-      d_smt.setPrintFuncInModel( it->second, true );
+      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
+      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
     }
   }
 
@@ -4125,14 +4125,13 @@ void SmtEngine::setUserAttribute(const std::string& attr, Expr expr) {
   d_theoryEngine->setUserAttribute(attr, expr.getNode());
 }
 
-void SmtEngine::setPrintFuncInModel( Node f, bool p ) {
+void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  Expr fe = f.toExpr();
   for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
     Command * c = d_modelGlobalCommands[i];
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
     if(dfc != NULL) {
-      if( dfc->getFunction()==fe ){
+      if( dfc->getFunction()==f ){
         dfc->setPrintInModel( p );
       }
     }
@@ -4141,7 +4140,7 @@ void SmtEngine::setPrintFuncInModel( Node f, bool p ) {
     Command * c = (*d_modelCommands)[i];
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
     if(dfc != NULL) {
-      if( dfc->getFunction()==fe ){
+      if( dfc->getFunction()==f ){
         dfc->setPrintInModel( p );
       }
     }

@@ -656,7 +656,7 @@ public:
   /**
    * Set print function in model
    */
-  void setPrintFuncInModel( Node f, bool p );
+  void setPrintFuncInModel(Expr f, bool p);
   
 };/* class SmtEngine */
 
