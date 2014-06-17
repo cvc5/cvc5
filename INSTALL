@@ -97,6 +97,7 @@ None of these is required, but can improve CVC4 as described below:
   Optional: SWIG 2.0.x (Simplified Wrapper and Interface Generator)
   Optional: CLN v1.3 or newer (Class Library for Numbers)
   Optional: glpk-cut-log (A fork of the GNU Linear Programming Kit)
+  Optional: ABC library (for improved bitvector support)
   Optional: GNU Readline library (for an improved interactive experience)
   Optional: The Boost C++ threading library (libboost_thread)
   Optional: CxxTest unit testing framework
@@ -127,6 +128,9 @@ License, version 3; so if you choose to use CVC4 with GLPK support, you are
 licensing CVC4 under that same license.
 (Usually CVC4's license is more permissive; see above discussion.)
 Please visit http://www.gnu.org/software/glpk/ for more details about GLPK.
+
+ABC: A System for Sequential Synthesis and Verification is a library
+for synthesis and verification of logic circuits.
 
 The GNU Readline library is optionally used to provide command
 editing, tab completion, and history functionality at the CVC prompt
@@ -230,8 +234,7 @@ directory, the objects will actually all appear in
 builds/${arch}/${build_id}.  This is to allow multiple, separate
 builds in the same place (e.g., an assertions-enabled debugging build
 alongside a production build), without changing directories at the
-shell.  The "current" build is maintained, and you can still use
-(e.g.) "make -C src/main" to rebuild objects in just one subdirectory.
+shell.  The "current" build is maintained until you re-configure.
 
 You can also create your own build directory inside or outside of the
 source tree and configure from there.  All objects will then be built
