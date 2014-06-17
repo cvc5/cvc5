@@ -653,6 +653,11 @@ public:
    */
   void setUserAttribute(const std::string& attr, Expr expr);
 
+  /**
+   * Set print function in model
+   */
+  void setPrintFuncInModel( Node f, bool p );
+  
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

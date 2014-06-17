@@ -580,6 +580,8 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
         ss << "io_" << op;
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
         d_symbol_map[op] = NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during sort inference" );
+        Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
+        d_model_replace_f[op] = d_symbol_map[op];
       }else{
         d_symbol_map[op] = op;
       }
