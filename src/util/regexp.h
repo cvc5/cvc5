@@ -20,8 +20,7 @@
 #ifndef __CVC4__REGEXP_H
 #define __CVC4__REGEXP_H
 
-#include <iostream>
-#include <iomanip>
+#include <vector>
 #include <string>
 #include <set>
 #include <sstream>
