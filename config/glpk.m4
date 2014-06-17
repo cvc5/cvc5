@@ -34,10 +34,7 @@ elif test "$with_glpk" = yes; then
 
   dnl Try a bunch of combinations until something works :-/
   GLPK_LIBS=
-  AC_CHECK_HEADERS([glpk/glpk.h glpk.h], [break])
-  if test x$ac_cv_header_glpk_glpk_h = xno && test x$ac_cv_header_glpk_h = xno; then
-    AC_MSG_FAILURE([cannot find glpk.h, the GLPK header!])
-  fi
+  AC_CHECK_HEADER([glpk.h], [], [AC_MSG_FAILURE([cannot find glpk.h, the GLPK header!])])
   AC_MSG_CHECKING([how to link glpk])
   CVC4_TRY_GLPK_WITH([])
   CVC4_TRY_GLPK_WITH([-lgmp])
@@ -115,11 +112,7 @@ if test -z "$GLPK_LIBS"; then
   CPPFLAGS="$CVC4CPPFLAGS $CPPFLAGS"
   LDFLAGS="$GLPK_LDFLAGS $LDFLAGS"
   LIBS="-lglpk $1"
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
-                                  [#include <glpk/glpk.h>]
-                                  [#else]
-                                  [#include <glpk.h>]
-                                  [#endif],
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <glpk.h>],
                                   [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
     [GLPK_LIBS="-lglpk $1"],
     [])
@@ -139,22 +132,14 @@ if test -z "$GLPK_LIBS"; then
   cvc4_save_LIBS="$LIBS"
   cvc4_save_CPPFLAGS="$CPPFLAGS"
   cvc4_save_LDFLAGS="$LDFLAGS"
-  CPPFLAGS="$CVC4_CPPFLAGS $CPPFLAGS"
+  CPPFLAGS="$CVC4CPPFLAGS $CPPFLAGS"
   LDFLAGS="-static $GLPK_LDFLAGS $LDFLAGS"
   LIBS="-lglpk-static $1"
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
-                                  [#include <glpk/glpk.h>]
-                                  [#else]
-                                  [#include <glpk.h>]
-                                  [#endif],
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <glpk.h>],
                                   [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
     [GLPK_LIBS="-lglpk-static $1"],
     [ LIBS="-lglpk $1"
-      AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_GLPK_GLPK_H]
-                                      [#include <glpk/glpk.h>]
-                                      [#else]
-                                      [#include <glpk.h>]
-                                      [#endif],
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <glpk.h>],
                                       [int i = glp_ios_get_cut(NULL, 0, NULL, NULL, NULL, NULL, NULL)])],
 
         [GLPK_LIBS="-lglpk $1"]) ])
