@@ -519,7 +519,9 @@ std::string DeclarationDefinitionCommand::getSymbol() const throw() {
 DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id, Expr func, Type t) throw() :
   DeclarationDefinitionCommand(id),
   d_func(func),
-  d_type(t) {
+  d_type(t),
+  d_printInModel(true),
+  d_printInModelSetByUser(false){
 }
 
 Expr DeclareFunctionCommand::getFunction() const throw() {
@@ -530,18 +532,37 @@ Type DeclareFunctionCommand::getType() const throw() {
   return d_type;
 }
 
+bool DeclareFunctionCommand::getPrintInModel() const throw() {
+  return d_printInModel;
+}
+
+bool DeclareFunctionCommand::getPrintInModelSetByUser() const throw() {
+  return d_printInModelSetByUser;
+}
+
+void DeclareFunctionCommand::setPrintInModel( bool p ) {
+  d_printInModel = p;
+  d_printInModelSetByUser = true;
+}
+
 void DeclareFunctionCommand::invoke(SmtEngine* smtEngine) throw() {
   d_commandStatus = CommandSuccess::instance();
 }
 
 Command* DeclareFunctionCommand::exportTo(ExprManager* exprManager,
                                           ExprManagerMapCollection& variableMap) {
-  return new DeclareFunctionCommand(d_symbol, d_func.exportTo(exprManager, variableMap),
-                                    d_type.exportTo(exprManager, variableMap));
+  DeclareFunctionCommand * dfc = new DeclareFunctionCommand(d_symbol, d_func.exportTo(exprManager, variableMap),
+                                                            d_type.exportTo(exprManager, variableMap));
+  dfc->d_printInModel = d_printInModel;
+  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
+  return dfc;
 }
 
 Command* DeclareFunctionCommand::clone() const {
-  return new DeclareFunctionCommand(d_symbol, d_func, d_type);
+  DeclareFunctionCommand * dfc = new DeclareFunctionCommand(d_symbol, d_func, d_type);
+  dfc->d_printInModel = d_printInModel;
+  dfc->d_printInModelSetByUser = d_printInModelSetByUser;
+  return dfc;
 }
 
 std::string DeclareFunctionCommand::getCommandName() const throw() {

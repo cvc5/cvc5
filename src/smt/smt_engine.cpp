@@ -3017,7 +3017,12 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::sortInference() ){
     //sort inference technique
-    d_smt.d_theoryEngine->getSortInference()->simplify( d_assertionsToPreprocess );
+    SortInference * si = d_smt.d_theoryEngine->getSortInference();
+    si->simplify( d_assertionsToPreprocess );
+    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
+      d_smt.setPrintFuncInModel( it->first, false );
+      d_smt.setPrintFuncInModel( it->second, true );
+    }
   }
 
   //if( options::quantConflictFind() ){
@@ -4118,6 +4123,29 @@ SExpr SmtEngine::getStatistic(std::string name) const throw() {
 void SmtEngine::setUserAttribute(const std::string& attr, Expr expr) {
   SmtScope smts(this);
   d_theoryEngine->setUserAttribute(attr, expr.getNode());
+}
+
+void SmtEngine::setPrintFuncInModel( Node f, bool p ) {
+  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
+  Expr fe = f.toExpr();
+  for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
+    Command * c = d_modelGlobalCommands[i];
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      if( dfc->getFunction()==fe ){
+        dfc->setPrintInModel( p );
+      }
+    }
+  }
+  for( unsigned i=0; i<d_modelCommands->size(); i++ ){
+    Command * c = (*d_modelCommands)[i];
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      if( dfc->getFunction()==fe ){
+        dfc->setPrintInModel( p );
+      }
+    }
+  }
 }
 
 }/* CVC4 namespace */

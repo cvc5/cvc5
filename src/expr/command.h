@@ -351,11 +351,16 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand {
 protected:
   Expr d_func;
   Type d_type;
+  bool d_printInModel;
+  bool d_printInModelSetByUser;
 public:
   DeclareFunctionCommand(const std::string& id, Expr func, Type type) throw();
   ~DeclareFunctionCommand() throw() {}
   Expr getFunction() const throw();
   Type getType() const throw();
+  bool getPrintInModel() const throw();
+  bool getPrintInModelSetByUser() const throw();
+  void setPrintInModel( bool p );
   void invoke(SmtEngine* smtEngine) throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;

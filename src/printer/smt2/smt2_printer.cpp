@@ -797,8 +797,13 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       }
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
-    if(n.getKind() == kind::SKOLEM) {
+    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c; 
+    Node n = Node::fromExpr( dfc->getFunction() );
+    if(dfc->getPrintInModelSetByUser()){
+      if(!dfc->getPrintInModel()){
+        return;
+      }
+    }else if(n.getKind() == kind::SKOLEM) {
       // don't print out internal stuff
       return;
     }
