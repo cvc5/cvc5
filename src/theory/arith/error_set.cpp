@@ -253,11 +253,11 @@ void ErrorSet::update(ErrorInformation& ei){
     case MINIMUM_AMOUNT:
     case MAXIMUM_AMOUNT:
       ei.setAmount(computeDiff(ei.getVariable()));
-      d_focus.modify(ei.getHandle(), ei.getVariable());
+      d_focus.update(ei.getHandle(), ei.getVariable());
       break;
     case  SUM_METRIC:
       ei.setMetric(sumMetric(ei.getVariable()));
-      d_focus.modify(ei.getHandle(), ei.getVariable());
+      d_focus.update(ei.getHandle(), ei.getVariable());
       break;
     case  VAR_ORDER:
       //do nothing
