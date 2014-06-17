@@ -111,7 +111,7 @@ submission-application:
 	# application track is a separate build because it has different preprocessor #defines
 	@if [ -d builds-smtcomp/application ]; then \
 	  echo 'ERROR:' >&2; \
-	  echo 'ERROR: Please remove the builds-smtcomp/main directory' >&2; \
+	  echo 'ERROR: Please remove the builds-smtcomp/application directory' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
 	fi
@@ -145,7 +145,7 @@ submission-parallel:
 	# parallel track can't be built with -cln, so it's a separate build
 	@if [ -d builds-smtcomp/parallel ]; then \
 	  echo 'ERROR:' >&2; \
-	  echo 'ERROR: Please remove the builds-smtcomp/main directory' >&2; \
+	  echo 'ERROR: Please remove the builds-smtcomp/parallel directory' >&2; \
 	  echo 'ERROR:' >&2; \
 	  exit 1; \
 	fi
