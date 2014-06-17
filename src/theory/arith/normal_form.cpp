@@ -90,7 +90,7 @@ bool Variable::isDivMember(Node n){
 
 
 bool VarList::isSorted(iterator start, iterator end) {
-  return __gnu_cxx::is_sorted(start, end);
+  return std::is_sorted(start, end);
 }
 
 bool VarList::isMember(Node n) {

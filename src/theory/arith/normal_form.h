@@ -28,7 +28,6 @@
 
 #include <list>
 #include <algorithm>
-#include <ext/algorithm>
 
 namespace CVC4 {
 namespace theory {
@@ -510,7 +509,7 @@ private:
 
 public:
 
-  class iterator {
+  class iterator : public std::iterator<std::input_iterator_tag, Variable> {
   private:
     internal_iterator d_iter;
 
@@ -732,7 +731,7 @@ public:
   }
 
   static bool isSorted(const std::vector<Monomial>& m) {
-    return __gnu_cxx::is_sorted(m.begin(), m.end());
+    return std::is_sorted(m.begin(), m.end());
   }
 
   static bool isStrictlySorted(const std::vector<Monomial>& m) {
