@@ -332,17 +332,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
-            Command::printsuccess::setPrintSuccess(*opts[options::out], false);
-            opts.set(options::printSuccess, false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
                 Command* cmd = allCommands[i][j]->clone();
+                cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
                 delete cmd;
               }
             }
-            Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
             needReset = false;
           }
           *opts[options::out] << CommandSuccess();
@@ -350,36 +347,33 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
           pExecutor->reset();
-          bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
-          Command::printsuccess::setPrintSuccess(*opts[options::out], false);
           for(size_t i = 0; i < allCommands.size(); ++i) {
             for(size_t j = 0; j < allCommands[i].size(); ++j) {
               Command* cmd = allCommands[i][j]->clone();
+              cmd->setMuted(true);
               pExecutor->doCommand(cmd);
               delete cmd;
             }
           }
-          Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
           *opts[options::out] << CommandSuccess();
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
-            bool succ = Command::printsuccess::getPrintSuccess(*opts[options::out]);
-            Command::printsuccess::setPrintSuccess(*opts[options::out], false);
             for(size_t i = 0; i < allCommands.size(); ++i) {
               for(size_t j = 0; j < allCommands[i].size(); ++j) {
                 Command* cmd = allCommands[i][j]->clone();
+                cmd->setMuted(true);
                 pExecutor->doCommand(cmd);
                 delete cmd;
               }
             }
-            Command::printsuccess::setPrintSuccess(*opts[options::out], succ);
           }
           status = pExecutor->doCommand(cmd);
           needReset = true;
         } else {
-          allCommands.back().push_back(cmd->clone());
+          Command* copy = cmd->clone();
+          allCommands.back().push_back(copy);
           if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
             delete cmd;
             break;
