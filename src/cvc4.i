@@ -283,9 +283,9 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #endif /* SWIGJAVA */
 
+%include "util/exception.i"
 %include "util/integer.i"
 %include "util/rational.i"
-%include "util/exception.i"
 %include "util/language.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
@@ -303,6 +303,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 %include "expr/type.i"
 %include "util/ascription_type.i"
+%include "util/emptyset.i"
 %include "util/datatype.i"
 %include "util/tuple.i"
 %include "util/record.i"

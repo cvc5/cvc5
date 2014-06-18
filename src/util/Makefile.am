@@ -148,6 +148,7 @@ EXTRA_DIST = \
 	language.i \
 	array.i \
 	array_store_all.i \
+	emptyset.i \
 	ascription_type.i \
 	rational.i \
 	hash.i \

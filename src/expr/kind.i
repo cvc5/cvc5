@@ -8,6 +8,9 @@
 
 %ignore CVC4::theory::operator++(TheoryId&);
 
+%rename(apply) CVC4::kind::KindHashFunction::operator()(::CVC4::Kind) const;
+%rename(apply) CVC4::TypeConstantHashFunction::operator()(TypeConstant) const;
+
 %rename(Kind) CVC4::kind::Kind_t;
 
 %include "expr/kind.h"
