@@ -125,11 +125,11 @@ public:
 };
 std::ostream& operator<<(std::ostream& os, const CutInfo& ci);
 
-struct BranchCutInfo : public CutInfo {
+class BranchCutInfo : public CutInfo {
   BranchCutInfo(int execOrd, int br,  Kind dir, double val);
 };
 
-struct RowsDeleted : public CutInfo {
+class RowsDeleted : public CutInfo {
   RowsDeleted(int execOrd, int nrows, const int num[]);
 };
 

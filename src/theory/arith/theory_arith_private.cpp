@@ -40,6 +40,7 @@
 
 #include "smt/logic_request.h"
 #include "smt/logic_exception.h"
+#include "smt/options.h"  // for incrementalSolving()
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/cut_log.h"
@@ -4212,21 +4213,23 @@ void TheoryArithPrivate::presolve(){
   }
 
   vector<Node> lemmas;
-  switch(options::arithUnateLemmaMode()){
-  case NO_PRESOLVE_LEMMAS:
-    break;
-  case INEQUALITY_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-    break;
-  case EQUALITY_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-    break;
-  case ALL_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-    d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-    break;
-  default:
-    Unhandled(options::arithUnateLemmaMode());
+  if(!options::incrementalSolving()) {
+    switch(options::arithUnateLemmaMode()){
+    case NO_PRESOLVE_LEMMAS:
+      break;
+    case INEQUALITY_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+      break;
+    case EQUALITY_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+      break;
+    case ALL_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+      break;
+    default:
+      Unhandled(options::arithUnateLemmaMode());
+    }
   }
 
   vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
