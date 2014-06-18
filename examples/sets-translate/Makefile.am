@@ -4,15 +4,24 @@ AM_CXXFLAGS = -Wall
 AM_CFLAGS = -Wall
 
 noinst_PROGRAMS = \
-	sets_translate	
+	sets2arrays \
+	sets2axioms
 
 noinst_DATA =
 
-sets_translate_SOURCES = \
+sets2arrays_SOURCES = \
 	sets_translate.cpp
-sets_translate_LDADD = \
+sets2arrays_LDADD = \
 	@builddir@/../../src/parser/libcvc4parser.la \
 	@builddir@/../../src/libcvc4.la
+
+sets2axioms_SOURCES = \
+	sets_translate.cpp
+sets2axioms_LDADD = \
+	@builddir@/../../src/parser/libcvc4parser.la \
+	@builddir@/../../src/libcvc4.la
+sets2axioms_CXXFLAGS = \
+	-DENABLE_AXIOMS
 
 # for installation
 examplesdir = $(docdir)/$(subdir)

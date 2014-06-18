@@ -37,7 +37,11 @@ using namespace CVC4::options;
 
 bool nonsense(char c) { return !isalnum(c); } 
 
+#ifdef ENABLE_AXIOMS
 const bool enableAxioms = true;
+#else
+const bool enableAxioms = false;
+#endif
 
 string setaxioms[] = {
   "(declare-fun inHOLDA (HOLDB (Set HOLDB)) Bool)",
@@ -245,7 +249,7 @@ int main(int argc, char* argv[])
 
     // Get the filename 
     string input;
-    if(argv > 0) input = (argv[1]);
+    if(argc > 1) input = string(argv[1]);
     else input = "<stdin>";
 
     // Create the expression manager
@@ -259,6 +263,7 @@ int main(int argc, char* argv[])
   
     // Create the parser
     ParserBuilder parserBuilder(&exprManager, input, options);
+    if(input == "<stdin>") parserBuilder.withStreamInput(cin);
     Parser* parser = parserBuilder.build();
   
     // Variables and assertions
@@ -289,10 +294,19 @@ int main(int argc, char* argv[])
 	  return 0;
 	}
         logicinfo = logicinfo.getUnlockedCopy();
-        logicinfo.disableTheory(theory::THEORY_SETS);
-        logicinfo.enableTheory(theory::THEORY_ARRAY);
-        logicinfo.lock();
-        // cout << SetBenchmarkLogicCommand(logicinfo.getLogicString()) << endl;
+        if(enableAxioms) {
+          logicinfo.enableQuantifiers();
+          logicinfo.lock();
+          if(!logicinfo.hasEverything()) {
+            (logicinfo = logicinfo.getUnlockedCopy()).disableTheory(theory::THEORY_SETS);
+            logicinfo.lock();
+            cout << SetBenchmarkLogicCommand(logicinfo.getLogicString()) << endl;
+          }
+        } else {
+          logicinfo.enableTheory(theory::THEORY_ARRAY);
+          // we print logic string only for Quantifiers, for Z3 stuff
+          // we don't set the logic
+        }
 
         delete cmd;
         continue;
