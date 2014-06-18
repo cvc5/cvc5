@@ -43,7 +43,9 @@
 #if HAVE_LIBREADLINE
 #  include <readline/readline.h>
 #  include <readline/history.h>
-#  include <ext/stdio_filebuf.h>
+#  if HAVE_EXT_STDIO_FILEBUF_H
+#    include <ext/stdio_filebuf.h>
+#  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif /* HAVE_LIBREADLINE */
 
 using namespace std;
@@ -57,7 +59,9 @@ const string InteractiveShell::INPUT_FILENAME = "<shell>";
 
 #if HAVE_LIBREADLINE
 
+#if HAVE_EXT_STDIO_FILEBUF_H
 using __gnu_cxx::stdio_filebuf;
+#endif /* HAVE_EXT_STDIO_FILEBUF_H */
 
 char** commandCompletion(const char* text, int start, int end);
 char* commandGenerator(const char* text, int state);
