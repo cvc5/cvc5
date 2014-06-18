@@ -147,7 +147,6 @@ BUG_TESTS = \
 	bug484.smt2 \
 	bug486.cvc \
 	bug507.smt2 \
-	bug512.smt2 \
 	bug512.minimized.smt2 \
 	bug516.smt2 \
 	bug519.smt2 \
@@ -162,6 +161,11 @@ BUG_TESTS = \
 
 TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
+# bug512 -- taking too long, --time-per not working perhaps? in any case,
+# we have a minimized version still getting tested
+DISABLED_TESTS = \
+	bug512.smt2
+
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
 	bug216.smt2.expect
@@ -175,7 +179,7 @@ TESTS += \
 endif
 
 # and make sure to distribute it
-EXTRA_DIST += \
+EXTRA_DIST += $(DISABLED_TESTS) \
 	subranges.cvc \
 	arrayinuf_error.smt2 \
 	errorcrash.smt2 \
