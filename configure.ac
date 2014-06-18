@@ -982,7 +982,7 @@ AC_LIB_ANTLR
 CVC4_CHECK_BINDINGS([c java])dnl csharp perl php python ruby tcl ocaml])
 
 # Checks for header files and their contents.
-AC_CHECK_HEADERS([getopt.h unistd.h])
+AC_CHECK_HEADERS([getopt.h unistd.h ext/stdio_filebuf.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_HEADER_STDBOOL
