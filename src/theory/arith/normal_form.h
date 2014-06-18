@@ -29,6 +29,10 @@
 #include <list>
 #include <algorithm>
 
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
+#  include <ext/algorithm>
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -731,7 +735,11 @@ public:
   }
 
   static bool isSorted(const std::vector<Monomial>& m) {
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
+    return __gnu_cxx::is_sorted(m.begin(), m.end());
+#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
     return std::is_sorted(m.begin(), m.end());
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   }
 
   static bool isStrictlySorted(const std::vector<Monomial>& m) {

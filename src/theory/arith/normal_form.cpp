@@ -90,7 +90,11 @@ bool Variable::isDivMember(Node n){
 
 
 bool VarList::isSorted(iterator start, iterator end) {
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
+  return __gnu_cxx::is_sorted(start, end);
+#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   return std::is_sorted(start, end);
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 }
 
 bool VarList::isMember(Node n) {
