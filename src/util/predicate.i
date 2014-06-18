@@ -7,6 +7,6 @@
 
 %rename(apply) CVC4::PredicateHashFunction::operator()(const Predicate&) const;
 
-%ignore CVC4::operator<<(std::ostream& out, const Predicate& p);
+%ignore CVC4::operator<<(std::ostream&, const Predicate&);
 
 %include "util/predicate.h"

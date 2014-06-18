@@ -52,7 +52,7 @@ public:
 
   bool operator==(const Predicate& p) const;
 
-  friend std::ostream& operator<<(std::ostream& out, const Predicate& p);
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Predicate& p);
   friend size_t PredicateHashFunction::operator()(const Predicate& p) const;
 
 };/* class Predicate */
