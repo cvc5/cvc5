@@ -1483,7 +1483,9 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
-      if(name == "Array" &&
+      if(args.empty()) {
+        PARSER_STATE->parseError("Extra parentheses around sort name not permitted in SMT-LIB");
+      } else if(name == "Array" &&
          PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
         if(args.size() != 2) {
           PARSER_STATE->parseError("Illegal array type.");
