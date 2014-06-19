@@ -1060,13 +1060,14 @@ function doc {
             if [ "$category" = EXPERT ]; then
               mansmtdoc="$mansmtdoc (EXPERTS only)"
             fi
+            altmanopt="`echo "$altopt" | sed 's,-,\\\\\\-,g'`"
             if [ "$category" = COMMON ]; then
               common_manpage_internals_documentation="${common_manpage_internals_documentation}
 .TP
 .B \"$internal\"
 $typedefault
 .br
-.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altmanopt which reverses the sense of the option, is documented thusly:\"
 $mansmtdoc"
             else
               remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
@@ -1074,7 +1075,7 @@ $mansmtdoc"
 .B \"$internal\"
 $typedefault
 .br
-.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altmanopt which reverses the sense of the option, is documented thusly:\"
 $mansmtdoc"
             fi
           else
