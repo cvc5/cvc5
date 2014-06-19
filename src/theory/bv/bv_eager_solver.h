@@ -16,6 +16,8 @@
 
 #include "cvc4_private.h"
 #include "expr/node.h"
+#include "theory/theory_model.h"
+#include "theory/bv/theory_bv.h"
 #include <vector>
 #pragma once
 
@@ -37,8 +39,9 @@ class EagerBitblastSolver {
   EagerBitblaster* d_bitblaster;
   AigBitblaster* d_aigBitblaster;
   bool d_useAig;
+  TheoryBV* d_bv; 
 public:
-  EagerBitblastSolver(); 
+  EagerBitblastSolver(theory::bv::TheoryBV* bv); 
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
@@ -48,6 +51,7 @@ public:
   void turnOffAig();
   bool isInitialized();
   void initialize();
+  void collectModelInfo(theory::TheoryModel* m, bool fullModel);
 };
 
 }

@@ -3180,8 +3180,11 @@ void SmtEnginePrivate::processAssertions() {
   // everything gets bit-blasted to internal SAT solver
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
+      TNode atom = d_assertionsToCheck[i];
+      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
       d_assertionsToCheck[i] = eager_atom;
+      TheoryModel* m = d_smt.d_theoryEngine->getModel();
+      m->addSubstitution(eager_atom, atom);
     }
   }
 

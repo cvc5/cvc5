@@ -24,11 +24,12 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-EagerBitblastSolver::EagerBitblastSolver()
+EagerBitblastSolver::EagerBitblastSolver(TheoryBV* bv)
   : d_assertionSet()
   , d_bitblaster(NULL)
   , d_aigBitblaster(NULL)
   , d_useAig(options::bitvectorAig())
+  , d_bv(bv)
 {}
 
 EagerBitblastSolver::~EagerBitblastSolver() {
@@ -53,7 +54,7 @@ void EagerBitblastSolver::initialize() {
   if (d_useAig) {
     d_aigBitblaster = new AigBitblaster();
   } else {
-    d_bitblaster = new EagerBitblaster();
+    d_bitblaster = new EagerBitblaster(d_bv);
   }
 }
 
@@ -105,4 +106,9 @@ bool EagerBitblastSolver::hasAssertions(const std::vector<TNode> &formulas) {
       return false; 
   }
   return true; 
+}
+
+void EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
+  AlwaysAssert(!d_useAig && d_bitblaster);
+  d_bitblaster->collectModelInfo(m, fullModel); 
 }

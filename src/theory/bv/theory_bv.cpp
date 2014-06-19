@@ -61,7 +61,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
 {
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver = new EagerBitblastSolver();
+    d_eagerSolver = new EagerBitblastSolver(this);
     return; 
   }
 
@@ -434,7 +434,9 @@ void TheoryBV::check(Effort e)
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
-
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_eagerSolver->collectModelInfo(m, fullModel); 
+  }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
       d_subtheories[i]->collectModelInfo(m, fullModel);

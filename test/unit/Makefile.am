@@ -11,6 +11,7 @@ UNIT_TESTS += \
 	theory/theory_black \
 	theory/theory_white \
 	theory/theory_arith_white \
+	theory/theory_bv_white \
 	theory/type_enumerator_white \
 	expr/node_white \
 	expr/node_black \

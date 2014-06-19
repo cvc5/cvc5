@@ -453,7 +453,7 @@ Node TLazyBitblaster::getVarValue(TNode a, bool fullModel) {
 }
 
 void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
-  __gnu_cxx::hash_set<TNode, TNodeHashFunction>::iterator it = d_variables.begin();
+  TNodeSet::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
     if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {

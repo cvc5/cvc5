@@ -57,6 +57,8 @@ namespace bv {
 class BitblastingRegistrar;
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
 class AbstractionModule;
 
 /**
@@ -70,7 +72,7 @@ class TBitblaster {
 protected:
   typedef std::vector<T> Bits;
   typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       AtomSet;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       TNodeSet;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
@@ -104,8 +106,6 @@ class TheoryBV;
 
 class TLazyBitblaster :  public TBitblaster<Node> {
   typedef std::vector<Node> Bits;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AtomSet;
   typedef context::CDList<prop::SatLiteral> AssertionList;
   typedef context::CDHashMap<prop::SatLiteral, std::vector<prop::SatLiteral> , prop::SatLiteralHashFunction> ExplanationMap;
   
@@ -138,8 +138,8 @@ class TLazyBitblaster :  public TBitblaster<Node> {
                                      currently asserted by the DPLL SAT solver. */
   ExplanationMap* d_explanations; /**< context dependent list of explanations for the propagated literals.
                                     Only used when bvEagerPropagate option enabled. */
-  VarSet d_variables;
-  AtomSet d_bbAtoms; 
+  TNodeSet d_variables;
+  TNodeSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
   bool d_emptyNotify;
   
@@ -188,7 +188,7 @@ public:
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
 
-  typedef VarSet::const_iterator vars_iterator;
+  typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
   vars_iterator endVars() { return d_variables.end(); }
 
@@ -239,7 +239,14 @@ class EagerBitblaster : public TBitblaster<Node> {
   BitblastingRegistrar*              d_bitblastingRegistrar;
   context::Context*                  d_nullContext;
   prop::CnfStream*                   d_cnfStream;
-  TNodeSet d_bbAtoms; 
+
+  theory::bv::TheoryBV* d_bv;
+  TNodeSet d_bbAtoms;
+  TNodeSet d_variables;
+
+  Node getVarValue(TNode a, bool fullModel);
+  bool isSharedTerm(TNode node); 
+
 public:
   void addAtom(TNode atom);
   void makeVariable(TNode node, Bits& bits);
@@ -249,10 +256,11 @@ public:
   bool hasBBAtom(TNode atom) const; 
   void bbFormula(TNode formula);
   void storeBBAtom(TNode atom, Node atom_bb);
-  EagerBitblaster(); 
+  EagerBitblaster(theory::bv::TheoryBV* theory_bv); 
   ~EagerBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
-  bool solve(); 
+  bool solve();
+  void collectModelInfo(TheoryModel* m, bool fullModel);
 };
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {

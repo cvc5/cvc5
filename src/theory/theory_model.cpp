@@ -152,7 +152,9 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       Unreachable();
     }
 
-    if (n.getNumChildren() > 0) {
+    if (n.getNumChildren() > 0 &&
+        n.getKind() != kind::BITVECTOR_ACKERMANIZE_UDIV &&
+        n.getKind() != kind::BITVECTOR_ACKERMANIZE_UREM) {
       std::vector<Node> children;
       if (n.getKind() == APPLY_UF) {
         Node op = getModelValue(n.getOperator(), hasBoundVars);
