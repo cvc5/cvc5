@@ -15,7 +15,8 @@ sets2arrays_LDADD = \
 	@builddir@/../../src/parser/libcvc4parser.la \
 	@builddir@/../../src/libcvc4.la
 
-sets2axioms_SOURCES = \
+# give nodist_: only distribute/install once
+nodist_sets2axioms_SOURCES = \
 	sets_translate.cpp
 sets2axioms_LDADD = \
 	@builddir@/../../src/parser/libcvc4parser.la \
