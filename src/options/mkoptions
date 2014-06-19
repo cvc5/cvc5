@@ -1124,6 +1124,11 @@ $@"
       mandoc="$mandoc [*]"
     fi
 
+    # in man, minus sign is \-, different from hyphen
+    the_manopt="`echo "$the_opt" | sed 's,-,\\\\\\-,g'`"
+    mandoc="`echo "$mandoc" | sed 's,-,\\\\\\-,g'`"
+    mansmtdoc="`echo "$mansmtdoc" | sed 's,-,\\\\\\-,g'`"
+
     if [ "$the_opt" ]; then
       doc_line=
       while [ -n "$the_doc" ]; do
@@ -1147,14 +1152,14 @@ $@"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
         common_manpage_documentation="${common_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $mandoc"
       elif [ "$category" != UNDOCUMENTED ]; then
         remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
         remaining_manpage_documentation="${remaining_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $mandoc"
       fi
     fi
@@ -1286,19 +1291,22 @@ function doc-alternate {
       the_doc="$(expr "$remaining_doc" : '\(.*\) ')"
     done
 
+    # in man, minus sign is \-, different from hyphen
+    the_manopt="`echo "$the_opt" | sed 's,-,\\\\\\-,g'`"
+
     if [ "$category" = COMMON ]; then
       common_documentation="${common_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
       common_manpage_documentation="${common_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $@"
     else
       remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
       remaining_manpage_documentation="${remaining_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $@"
     fi
   else
