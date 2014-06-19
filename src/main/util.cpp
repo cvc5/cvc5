@@ -106,7 +106,8 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
     abort();
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
-    cerr << "Try:  gdb " << progName << " " << getpid() << endl;
+    cerr << "Try:  gdb " << progName << " " << getpid() << endl
+         << " or:  gdb --pid=" << getpid() << " " << progName << endl;
     for(;;) {
       sleep(60);
     }
@@ -141,6 +142,7 @@ void ill_handler(int sig, siginfo_t* info, void*) {
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
     fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    fprintf(stderr, " or:  gdb --pid=%u %s\n", getpid(), progName);
     for(;;) {
       sleep(60);
     }
@@ -181,6 +183,7 @@ void cvc4unexpected() {
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
     fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    fprintf(stderr, " or:  gdb --pid=%u %s\n", getpid(), progName);
     for(;;) {
       sleep(60);
     }
