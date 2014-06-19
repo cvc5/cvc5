@@ -130,7 +130,16 @@ licensing CVC4 under that same license.
 Please visit http://www.gnu.org/software/glpk/ for more details about GLPK.
 
 ABC: A System for Sequential Synthesis and Verification is a library
-for synthesis and verification of logic circuits.
+for synthesis and verification of logic circuits. This can be used to
+speed up the eager bit-vector solver by first encoding the bit-blasted
+formula into AIG format and then using ABC to simplify the AIG. To
+install abc run the contrib/get-abc script which will download and
+install a compatible version of ABC in the cvc4 directory. To configure
+CVC4 to use abc configure with --with-abc and --with-abc-dir=PATH, where
+PATH corresponds to the install path of ABC. To run CVC4 using ABC use
+the --bitblast-aig command line argument.
+Please visit http://www.eecs.berkeley.edu/~alanmi/abc/ for more details
+on ABC. 
 
 The GNU Readline library is optionally used to provide command
 editing, tab completion, and history functionality at the CVC prompt
