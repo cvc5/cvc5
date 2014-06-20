@@ -58,10 +58,6 @@ UNIT_TESTS += \
 	main/interactive_shell_black
 endif
 
-# disabled/failing:
-#	theory/theory_bv_white \
-#
-
 export VERBOSE = 1
 
 # Things that aren't tests but that tests rely on and need to
