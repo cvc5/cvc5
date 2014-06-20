@@ -1064,14 +1064,23 @@ void SmtEngine::setDefaults() {
   // Unconstrained simp currently does *not* support model generation
   if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp()) {
     if (options::produceModels()) {
+      if (options::produceModels.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation.");
+      }
       Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::produceAssignments()) {
+      if (options::produceAssignments.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation (produce-assignments).");
+      }
       Notice() << "SmtEngine: turning off produce-assignments to support unconstrainedSimp" << endl;
       setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
+      if (options::checkModels.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation (check-models).");
+      }
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
