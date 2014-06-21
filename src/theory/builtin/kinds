@@ -246,19 +246,18 @@ typechecker "theory/builtin/theory_builtin_type_rules.h"
 
 properties stable-infinite
 
-# Rewriter responisble for all the terms of the theory
+# Rewriter responsible for all the terms of the theory
 rewriter ::CVC4::theory::builtin::TheoryBuiltinRewriter "theory/builtin/theory_builtin_rewriter.h"
 
 sort BUILTIN_OPERATOR_TYPE \
     Cardinality::INTEGERS \
     not-well-founded \
-    "Built in type for built in operators"
+    "the type for built-in operators"
 
 variable SORT_TAG "sort tag"
-parameterized SORT_TYPE SORT_TAG 0: "sort type"
+parameterized SORT_TYPE SORT_TAG 0: "specifies types of user-declared 'uninterpreted' sorts"
 # This is really "unknown" cardinality, but maybe this will be good
-# enough (for now) ?  Once we support quantifiers, maybe reconsider
-# this..
+# enough (for now) ?
 cardinality SORT_TYPE "Cardinality(Cardinality::INTEGERS)"
 well-founded SORT_TYPE \
     "::CVC4::theory::builtin::SortProperties::isWellFounded(%TYPE%)" \
@@ -268,7 +267,7 @@ constant UNINTERPRETED_CONSTANT \
     ::CVC4::UninterpretedConstant \
     ::CVC4::UninterpretedConstantHashFunction \
     "util/uninterpreted_constant.h" \
-    "The kind of expressions representing uninterpreted constants"
+    "the kind of expressions representing uninterpreted constants; payload is an instance of the CVC4::UninterpretedConstant class (used in models)"
 typerule UNINTERPRETED_CONSTANT ::CVC4::theory::builtin::UninterpretedConstantTypeRule
 enumerator SORT_TYPE \
     ::CVC4::theory::builtin::UninterpretedSortEnumerator \
@@ -278,7 +277,7 @@ constant ABSTRACT_VALUE \
     ::CVC4::AbstractValue \
     ::CVC4::AbstractValueHashFunction \
     "util/abstract_value.h" \
-    "The kind of expressions representing abstract values (other than uninterpreted sort constants)"
+    "the kind of expressions representing abstract values (other than uninterpreted sort constants); payload is an instance of the CVC4::AbstractValue class (used in models)"
 typerule ABSTRACT_VALUE ::CVC4::theory::builtin::AbstractValueTypeRule
 
 # A kind representing "inlined" operators defined with OPERATOR
@@ -289,39 +288,41 @@ constant BUILTIN \
     ::CVC4::Kind \
     ::CVC4::kind::KindHashFunction \
     "expr/kind.h" \
-    "The kind of expressions representing built-in operators"
+    "the kind of expressions representing built-in operators"
 
-variable FUNCTION "function"
-parameterized APPLY FUNCTION 0: "defined function application"
+variable FUNCTION "a defined function"
+parameterized APPLY FUNCTION 0: "application of a defined function"
 
-operator EQUAL 2 "equality"
-operator DISTINCT 2: "disequality"
-variable VARIABLE "variable"
-variable BOUND_VARIABLE "bound variable"
-variable SKOLEM "skolem var"
-operator SEXPR 0: "a symbolic expression"
+operator EQUAL 2 "equality (two parameters only, sorts must match)"
+operator DISTINCT 2: "disequality (N-ary, sorts must match)"
+variable VARIABLE "a variable (not permitted in bindings)"
+variable BOUND_VARIABLE "a bound variable (permitted in bindings and the associated lambda and quantifier bodies only)"
+variable SKOLEM "a Skolem variable (internal only)"
+operator SEXPR 0: "a symbolic expression (any arity)"
 
-operator LAMBDA 2 "lambda"
-operator MU 2 "mu"
+operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-parameterized CHAIN CHAIN_OP 2: "chained operator"
+## for co-datatypes, not yet supported
+# operator MU 2 "mu"
+
+parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjuction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
 constant CHAIN_OP \
     ::CVC4::Chain \
     ::CVC4::ChainHashFunction \
     "util/chain.h" \
-    "the chained operator"
+    "the chained operator; payload is an instance of the CVC4::Chain class"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
     ::CVC4::TypeConstantHashFunction \
     "expr/kind.h" \
-    "basic types"
-operator FUNCTION_TYPE 2: "function type"
+    "a representation for basic types"
+operator FUNCTION_TYPE 2: "a function type"
 cardinality FUNCTION_TYPE \
     "::CVC4::theory::builtin::FunctionProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
 well-founded FUNCTION_TYPE false
-operator SEXPR_TYPE 0: "symbolic expression type"
+operator SEXPR_TYPE 0: "the type of a symbolic expression"
 cardinality SEXPR_TYPE \
     "::CVC4::theory::builtin::SExprProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"
@@ -335,7 +336,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule MU ::CVC4::theory::builtin::MuTypeRule
+#typerule MU ::CVC4::theory::builtin::MuTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 
@@ -343,7 +344,7 @@ constant SUBTYPE_TYPE \
     ::CVC4::Predicate \
     ::CVC4::PredicateHashFunction \
     "util/predicate.h" \
-    "predicate subtype"
+    "predicate subtype; payload is an instance of the CVC4::Predicate class"
 cardinality SUBTYPE_TYPE \
     "::CVC4::theory::builtin::SubtypeProperties::computeCardinality(%TYPE%)" \
     "theory/builtin/theory_builtin_type_rules.h"

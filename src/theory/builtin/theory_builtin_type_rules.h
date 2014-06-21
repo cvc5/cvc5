@@ -164,6 +164,8 @@ public:
   }
 };/* class LambdaTypeRule */
 
+/* For co-datatypes, not yet supported--
+**
 class MuTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
@@ -180,7 +182,8 @@ public:
     TypeNode rangeType = n[1].getType(check);
     return nodeManager->mkFunctionType(argTypes, rangeType);
   }
-};/* class MuTypeRule */
+};
+**/
 
 class ChainTypeRule {
 public:

@@ -1,4 +1,7 @@
-# kinds [for strings theory]
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
 #
 
 theory THEORY_STRINGS ::CVC4::theory::strings::TheoryStrings "theory/strings/theory_strings.h"
@@ -9,8 +12,7 @@ rewriter ::CVC4::theory::strings::TheoryStringsRewriter "theory/strings/theory_s
 
 typechecker "theory/strings/theory_strings_type_rules.h"
 
-
-operator STRING_CONCAT 2: "string concat"
+operator STRING_CONCAT 2: "string concat (N-ary)"
 operator STRING_IN_REGEXP 2 "membership"
 operator STRING_LENGTH 1 "string length"
 operator STRING_SUBSTR 3 "string substr (user symbol)"
@@ -96,7 +98,6 @@ typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
 typerule REGEXP_LOOP ::CVC4::theory::strings::RegExpLoopTypeRule
 
 typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
-
 
 typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
