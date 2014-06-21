@@ -33,9 +33,8 @@ libcvc4compatjni_la_LDFLAGS = \
 	-shrext $(CVC4_JAVA_MODULE_EXT) \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4compatjni_la_LIBADD = \
-	-L@builddir@/../../.. -lcvc4 \
-	-L@builddir@/../../../parser -lcvc4parser \
-	-L@builddir@/../../../compat -lcvc4compat
+	-L@builddir@/../../../compat -lcvc4compat \
+	-L@builddir@/../../.. -lcvc4
 BUILT_SOURCES += $(JNI_CPP_FILES)
 
 endif

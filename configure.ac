@@ -335,8 +335,10 @@ if test $cvc4_use_cln != 0; then
   )
 fi
 if test $cvc4_use_cln = 0; then
-  # try GMPXX, fail if not found
-  AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
+  # try GMPXX, fail if not found; don't need to link against it, only need its header
+  AC_LANG_PUSH([C++])
+  AC_CHECK_HEADER([gmpxx.h], , [AC_MSG_ERROR([GNU MP C++ library header (gmpxx.h) required but not found, see http://gmplib.org/])])
+  AC_LANG_POP([C++])
   cvc4_cln_or_gmp=gmp
 else
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }$CLN_CFLAGS"
