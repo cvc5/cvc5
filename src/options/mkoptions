@@ -1061,6 +1061,8 @@ function doc {
               mansmtdoc="$mansmtdoc (EXPERTS only)"
             fi
             altmanopt="`echo "$altopt" | sed 's,-,\\\\\\-,g'`"
+            mansmtdoc="`echo "$mansmtdoc" | sed 's,-,\\\\\\-,g'`"
+            typedefault="`echo "$typedefault" | sed 's,-,\\\\\\-,g'`"
             if [ "$category" = COMMON ]; then
               common_manpage_internals_documentation="${common_manpage_internals_documentation}
 .TP
@@ -1184,6 +1186,7 @@ $mandoc"
       else
         typedefault="($type, default = $default_value)"
       fi
+      typedefault="`echo "$typedefault" | sed 's,-,\\\\\\-,g'`"
       if [ "$category" = COMMON ]; then
         common_manpage_internals_documentation="${common_manpage_internals_documentation}
 .TP
