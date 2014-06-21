@@ -350,12 +350,11 @@ bool Expr::isExists() const {
 }
 
 bool Expr::isLambda() const {
-  // when implemented, also fix isClosure() below
-  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+  return getKind() == CVC4::kind::LAMBDA;
 }
 
 bool Expr::isClosure() const {
-  return isQuantifier();
+  return isQuantifier() || isLambda();
 }
 
 bool Expr::isQuantifier() const {
@@ -366,8 +365,20 @@ bool Expr::isApply() const {
   return hasOperator();
 }
 
+bool Expr::isSymbol() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
 bool Expr::isTheorem() const {
   return false;
+}
+
+bool Expr::isType() const {
+  return s_exprToType.find(*this) != s_exprToType.end();
+}
+
+bool Expr::isTerm() const {
+  return !getType().isBool();
 }
 
 bool Expr::isConstant() const {
@@ -376,6 +387,115 @@ bool Expr::isConstant() const {
 
 bool Expr::isRawList() const {
   return false;
+}
+
+bool Expr::isAtomicFormula() const {
+  if (!getType().isBool()) {
+    return false;
+  }
+  switch(getKind()) {
+    case CVC4::kind::FORALL:
+    case CVC4::kind::EXISTS:
+    case CVC4::kind::XOR:
+    case CVC4::kind::NOT:
+    case CVC4::kind::AND:
+    case CVC4::kind::OR:
+    case CVC4::kind::ITE:
+    case CVC4::kind::IFF:
+    case CVC4::kind::IMPLIES:
+      return false;
+  }
+  for (Expr::iterator k = begin(), kend=end(); k != kend; ++k) {
+    if (!CVC3::Expr(*k).isAtomic()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Expr::isAbsAtomicFormula() const {
+  return isQuantifier() || isAtomicFormula();
+}
+
+bool Expr::isLiteral() const {
+  return isAtomicFormula() || (isNot() && (*this)[0].isAtomicFormula());
+}
+
+bool Expr::isAbsLiteral() const {
+  return isAbsAtomicFormula() || (isNot() && (*this)[0].isAbsAtomicFormula());
+}
+
+bool Expr::isBoolConnective() const {
+  if (!getType().isBool()) {
+    return false;
+  }
+  switch (getKind()) {
+  case CVC4::kind::NOT:
+  case CVC4::kind::AND:
+  case CVC4::kind::OR:
+  case CVC4::kind::IMPLIES:
+  case CVC4::kind::IFF:
+  case CVC4::kind::XOR:
+  case CVC4::kind::ITE:
+    return true;
+  }
+  return false;
+}
+
+bool Expr::isPropLiteral() const {
+  return (isNot() && (*this)[0].isPropAtom()) || isPropAtom();
+}
+
+bool Expr::isPropAtom() const {
+  return !isTerm() && !isBoolConnective();
+}
+
+std::string Expr::getName() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
+std::string Expr::getUid() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
+std::string Expr::getString() const {
+  if(getKind() == CVC4::kind::SEXPR) {
+    CVC4::SExpr s = getConst<CVC4::SExpr>();
+    if(s.isString() || s.isKeyword()) {
+      return s.getValue();
+    }
+  } else if(getKind() == CVC4::kind::CONST_STRING) {
+    return getConst<CVC4::String>().toString();
+  }
+
+  CVC4::CheckArgument(false, *this, "CVC3::Expr::getString(): not a string Expr: `%s'", toString().c_str());
+}
+
+std::vector<Expr> Expr::getVars() const {
+  CVC4::CheckArgument(isClosure(), *this, "CVC3::Expr::getVars(): not a closure Expr: `%s'", toString().c_str());
+  const vector<CVC4::Expr>& kids = (*this)[0].getChildren();
+  vector<Expr> v;
+  for(vector<CVC4::Expr>::const_iterator i = kids.begin(); i != kids.end(); ++i) {
+    v.push_back(*i);
+  }
+  return v;
+}
+
+Expr Expr::getExistential() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
+int Expr::getBoundIndex() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
+Expr Expr::getBody() const {
+  CVC4::CheckArgument(isClosure(), *this, "CVC3::Expr::getBody(): not a closure Expr: `%s'", toString().c_str());
+  return (*this)[1];
+}
+
+Theorem Expr::getTheorem() const {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
 }
 
 bool Expr::isEq() const {
@@ -416,6 +536,11 @@ bool Expr::isRational() const {
 
 bool Expr::isSkolem() const {
   return getKind() == CVC4::kind::SKOLEM;
+}
+
+const Rational& Expr::getRational() const {
+  CVC4::CheckArgument(isRational(), *this, "CVC3::Expr::getRational(): not a rational Expr: `%s'", toString().c_str());
+  return getConst<CVC4::Rational>();
 }
 
 Op Expr::mkOp() const {
@@ -490,6 +615,31 @@ Type Expr::getType() const {
 
 Type Expr::lookupType() const {
   return getType();
+}
+
+void Expr::pprint() const {
+  std::cout << *this << std::endl;
+}
+
+void Expr::pprintnodag() const {
+  CVC4::expr::ExprDag::Scope scope(std::cout, 0);
+  std::cout << *this << std::endl;
+}
+
+bool isArrayLiteral(const Expr& e) {
+  Unimplemented("This CVC3 compatibility function not yet implemented (sorry!)");
+}
+
+std::string ExprManager::getKindName(int kind) {
+  return CVC4::kind::kindToString(CVC4::Kind(kind));
+}
+
+InputLanguage ExprManager::getInputLang() const {
+  return getOptions()[CVC4::options::inputLanguage];
+}
+
+InputLanguage ExprManager::getOutputLang() const {
+  return CVC4::language::toInputLanguage(getOptions()[CVC4::options::outputLanguage]);
 }
 
 Expr Expr::operator[](int i) const {

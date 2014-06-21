@@ -68,6 +68,7 @@ inline void showConfiguration(std::string option, SmtEngine* smt) {
   printf("gmp        : %s\n", Configuration::isBuiltWithGmp() ? "yes" : "no");
   printf("glpk       : %s\n", Configuration::isBuiltWithGlpk() ? "yes" : "no");
   printf("abc        : %s\n", Configuration::isBuiltWithAbc() ? "yes" : "no");
+  printf("readline   : %s\n", Configuration::isBuiltWithReadline() ? "yes" : "no");
   printf("tls        : %s\n", Configuration::isBuiltWithTlsSupport() ? "yes" : "no");
   exit(0);
 }

@@ -129,6 +129,10 @@ bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
 }
 
+bool Configuration::isBuiltWithReadline() {
+  return IS_READLINE_BUILD;
+}
+
 bool Configuration::isBuiltWithCudd() {
   return false;
 }
