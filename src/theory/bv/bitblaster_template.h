@@ -27,6 +27,7 @@
 #include "bitblast_strategies_template.h"
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
+#include "theory/theory_registrar.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -262,6 +263,15 @@ public:
   bool solve();
   void collectModelInfo(TheoryModel* m, bool fullModel);
 };
+
+class BitblastingRegistrar: public prop::Registrar {
+  EagerBitblaster* d_bitblaster; 
+public:
+  BitblastingRegistrar(EagerBitblaster* bb)
+    : d_bitblaster(bb)
+  {}
+  void preRegister(Node n);
+}; /* class Registrar */
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;

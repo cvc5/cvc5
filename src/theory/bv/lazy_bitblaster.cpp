@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lazy_bitblaster.h
+/*! \file lazy_bitblaster.cpp
 ** \verbatim
 ** Original author: Liana Hadarean
 ** Major contributors: none
@@ -15,11 +15,6 @@
 **/
 
 #include "cvc4_private.h"
-
-#ifndef __CVC4__LAZY__BITBLASTER_H
-#define __CVC4__LAZY__BITBLASTER_H
-
-
 #include "bitblaster_template.h"
 #include "theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -31,9 +26,10 @@
 #include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
 
-namespace CVC4 {
-namespace theory {
-namespace bv {
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv; 
+
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const std::string name, bool emptyNotify)
   : TBitblaster<Node>()
@@ -497,9 +493,3 @@ void TLazyBitblaster::clearSolver() {
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, d_bv, this);
   d_satSolver->setNotify(notify);
 }
-
-} /*bv namespace */
-} /* theory namespace */
-} /* CVC4 namespace*/
-
-#endif

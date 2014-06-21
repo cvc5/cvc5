@@ -17,9 +17,10 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/bv/lazy_bitblaster.h"
+#include "theory/bv/bitblaster_template.h"
 #include "theory/bv/bv_quick_check.h"
 #include "theory/bv/options.h"
+#include "theory/bv/abstraction.h"
 #include "theory/decision_attributes.h"
 #include "decision/options.h"
 

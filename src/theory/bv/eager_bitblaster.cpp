@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file eager_bitblaster.h
+/*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
@@ -11,39 +11,26 @@
  **
  ** \brief 
  **
- ** Bitblaster for the lazy bv solver. 
+ ** Bitblaster for the eager bv solver. 
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EAGER__BITBLASTER_H
-#define __CVC4__EAGER__BITBLASTER_H
-
-
-#include "theory/theory_registrar.h"
 #include "theory/bv/bitblaster_template.h"
 #include "theory/bv/options.h"
 #include "theory/theory_model.h"
+#include "theory/bv/theory_bv.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 
 
-namespace CVC4 {
-namespace theory {
-namespace bv {
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv; 
 
-
-class BitblastingRegistrar: public prop::Registrar {
-  EagerBitblaster* d_bitblaster; 
-public:
-  BitblastingRegistrar(EagerBitblaster* bb)
-    : d_bitblaster(bb)
-  {}
-  void preRegister(Node n) {
-    d_bitblaster->bbAtom(n); 
-  };
-
-};/* class Registrar */
+void BitblastingRegistrar::preRegister(Node n) {
+  d_bitblaster->bbAtom(n); 
+};
 
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   : TBitblaster<Node>()
@@ -219,12 +206,3 @@ void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
 bool EagerBitblaster::isSharedTerm(TNode node) {
   return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
 }
-
-
-} /*bv namespace */
-} /* theory namespace */
-} /* CVC4 namespace*/
-
-
-
-#endif

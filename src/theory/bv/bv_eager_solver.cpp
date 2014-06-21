@@ -16,8 +16,7 @@
 
 #include "theory/bv/bv_eager_solver.h"
 #include "theory/bv/bitblaster_template.h"
-#include "theory/bv/eager_bitblaster.h"
-#include "theory/bv/aig_bitblaster.h"
+#include "theory/bv/options.h"
 
 using namespace std;
 using namespace CVC4;
