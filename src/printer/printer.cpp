@@ -37,7 +37,7 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V1:
+  case LANG_SMTLIB_V1: // TODO the printer
     return new printer::smt1::Smt1Printer();
 
   case LANG_SMTLIB_V2:

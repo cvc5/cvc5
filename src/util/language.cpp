@@ -110,7 +110,7 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_AUTO;
   }
 
-  throw OptionException(std::string("unknown input language " + language + "'"));
+  throw OptionException(std::string("unknown input language `" + language + "'"));
 }/* toInputLanguage() */
 
 }/* CVC4::language namespace */

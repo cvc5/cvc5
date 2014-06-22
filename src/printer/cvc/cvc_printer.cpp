@@ -661,6 +661,10 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       op << n.getOperator().getConst<BitVectorExtract>();
       opType = POSTFIX;
       break;
+    case kind::BITVECTOR_BITOF:
+      op << n.getOperator().getConst<BitVectorBitOf>();
+      opType = POSTFIX;
+      break;
     case kind::BITVECTOR_REPEAT:
       out << "BVREPEAT(";
       toStream(out, n[0], depth, types, false);

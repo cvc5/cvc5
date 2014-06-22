@@ -250,6 +250,15 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::DISTINCT: out << smtKindString(k) << " "; break;
   case kind::CHAIN: break;
   case kind::TUPLE: break;
+  case kind::FUNCTION_TYPE:
+    for(size_t i = 0; i < n.getNumChildren() - 1; ++i) {
+      if(i > 0) {
+        out << ' ';
+      }
+      out << n[i];
+    }
+    out << ") " << n[n.getNumChildren() - 1];
+    return;
   case kind::SEXPR: break;
 
     // bool theory
@@ -455,7 +464,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     for(TNode::iterator i = n.begin(), iend = n.end();
         i != iend; ) {
       out << '(';
-      toStream(out, (*i), toDepth < 0 ? toDepth : toDepth - 1, types);
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types, 0);
       out << ' ';
       out << (*i).getType();
       // The following code do stange things
