@@ -19,7 +19,7 @@ constant EMPTYSET \
     ::CVC4::EmptySet \
     ::CVC4::EmptySetHashFunction \
     "util/emptyset.h" \
-    "empty set"
+    "the empty set constant; payload is an instance of the CVC4::EmptySet class"
 
 # the type
 operator SET_TYPE 1 "set type"
@@ -38,9 +38,9 @@ enumerator SET_TYPE \
 operator UNION         2  "set union"
 operator INTERSECTION  2  "set intersection"
 operator SETMINUS      2  "set subtraction"
-operator SUBSET        2  "subset"
-operator MEMBER        2  "set membership"
-operator SET_SINGLETON 1  "singleton set"
+operator SUBSET        2  "subset predicate; first parameter a subset of second"
+operator MEMBER        2  "set membership predicate; first parameter a member of second"
+operator SET_SINGLETON 1  "the set of the single element given as a parameter"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule

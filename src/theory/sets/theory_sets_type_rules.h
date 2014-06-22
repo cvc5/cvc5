@@ -105,7 +105,7 @@ struct MemberTypeRule {
     }
     return nodeManager->booleanType();
   }
-};/* struct SetInTypeRule */
+};/* struct MemberTypeRule */
 
 struct SetSingletonTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -118,7 +118,7 @@ struct SetSingletonTypeRule {
     Assert(n.getKind() == kind::SET_SINGLETON);
     return n[0].isConst();
   }
-};/* struct SetInTypeRule */
+};/* struct SetSingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -128,7 +128,7 @@ struct EmptySetTypeRule {
     Type setType = emptySet.getType();
     return TypeNode::fromType(setType);
   }
-};
+};/* struct EmptySetTypeRule */
 
 
 struct SetsProperties {
@@ -146,7 +146,7 @@ struct SetsProperties {
     Assert(type.isSet());
     return NodeManager::currentNM()->mkConst(EmptySet(type.toType()));
   }
-};
+};/* struct SetsProperties */
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */
