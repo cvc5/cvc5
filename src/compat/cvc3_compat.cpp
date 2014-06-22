@@ -389,6 +389,18 @@ bool Expr::isRawList() const {
   return false;
 }
 
+bool Expr::isAtomic() const {
+  if (getType().isBool()) {
+    return isBoolConst();
+  }
+  for (int k = 0; k < arity(); ++k) {
+    if (!(*this)[k].isAtomic()) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool Expr::isAtomicFormula() const {
   if (!getType().isBool()) {
     return false;
@@ -459,16 +471,8 @@ std::string Expr::getUid() const {
 }
 
 std::string Expr::getString() const {
-  if(getKind() == CVC4::kind::SEXPR) {
-    CVC4::SExpr s = getConst<CVC4::SExpr>();
-    if(s.isString() || s.isKeyword()) {
-      return s.getValue();
-    }
-  } else if(getKind() == CVC4::kind::CONST_STRING) {
-    return getConst<CVC4::String>().toString();
-  }
-
-  CVC4::CheckArgument(false, *this, "CVC3::Expr::getString(): not a string Expr: `%s'", toString().c_str());
+  CVC4::CheckArgument(getKind() == CVC4::kind::CONST_STRING, *this, "CVC3::Expr::getString(): not a string Expr: `%s'", toString().c_str());
+  return getConst<CVC4::String>().toString();
 }
 
 std::vector<Expr> Expr::getVars() const {
