@@ -26,7 +26,6 @@ BVMinisatSatSolver::BVMinisatSatSolver(context::Context* mainSatContext, const s
 : context::ContextNotifyObj(mainSatContext, false),
   d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
   d_minisatNotify(0),
-  d_solveCount(0),
   d_assertionsCount(0),
   d_assertionsRealCount(mainSatContext, 0),
   d_lastPropagation(mainSatContext, 0),
