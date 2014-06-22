@@ -1115,7 +1115,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_SIGMA, nvec ); }
 
   | EMPTYSET_TOK
-    { expr = MK_CONST( ::CVC4::EmptySet()); }
+    { expr = MK_CONST( ::CVC4::EmptySet(Type())); }
 
     // NOTE: Theory constants go here
   ;
