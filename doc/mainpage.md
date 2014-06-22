@@ -1,4 +1,5 @@
-Getting started with the CVC4 API
+/**
+\mainpage Getting started with the CVC4 API
 
 The main classes of the CVC4 API are:
 - CVC4::Expr - an expression (a formula, term, variable, constant, etc.)
@@ -24,3 +25,19 @@ For examples of Java programs using the CVC4 API, look in the directory examples
 Thank you for your interest in CVC4!
 
 The CVC4 Development team
+
+\page authors AUTHORS
+\verbinclude AUTHORS
+\page copying COPYING
+\verbinclude COPYING
+\page install INSTALL
+\verbinclude INSTALL
+\page news NEWS
+\verbinclude NEWS
+\page release-notes RELEASE-NOTES
+\verbinclude RELEASE-NOTES
+\page readme README
+\verbinclude README
+\page thanks THANKS
+\verbinclude THANKS
+*/
