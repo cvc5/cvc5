@@ -10,7 +10,7 @@
 /cvc4-*.tar.gz
 /cvc4-*.tar.bz2
 /builds/
-/doc/
+/doc/doxygen
 .dep
 Makefile.in
 /configure

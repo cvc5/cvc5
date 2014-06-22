@@ -327,6 +327,7 @@ public:
    * @param name the symbol to check
    * @param check the kind of check to perform
    * @param type the type of the symbol
+   * @param notes notes to add to a parse error (if one is generated)
    * @throws ParserException if checks are enabled and the check fails
    */
   void checkDeclaration(const std::string& name, DeclarationCheck check,
