@@ -383,11 +383,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         } else {
           Command* copy = cmd->clone();
           allCommands.back().push_back(copy);
+          status = pExecutor->doCommand(cmd);
           if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
             delete cmd;
             break;
           }
-          status = pExecutor->doCommand(cmd);
         }
         delete cmd;
       }
@@ -417,11 +417,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser);
       }
       while(status && (cmd = parser->nextCommand())) {
+        status = pExecutor->doCommand(cmd);
         if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
           delete cmd;
           break;
         }
-        status = pExecutor->doCommand(cmd);
         delete cmd;
       }
       // Remove the parser
