@@ -55,7 +55,6 @@ private:
   BVMinisat::SimpSolver* d_minisat;
   MinisatNotify* d_minisatNotify;
 
-  unsigned d_solveCount;
   unsigned d_assertionsCount;
   context::CDO<unsigned> d_assertionsRealCount;
   context::CDO<unsigned> d_lastPropagation;
