@@ -7,12 +7,12 @@
 (declare-fun S () (Set Int))
 (declare-fun T () (Set Int))
 
-(assert (in x S))
+(assert (member x S))
 
-(assert (= S (union T (setenum y))))
+(assert (= S (union T (singleton y))))
 
 (assert (not (= x y)))
 
-(assert (not (in x T)))
+(assert (not (member x T)))
 
 (check-sat)

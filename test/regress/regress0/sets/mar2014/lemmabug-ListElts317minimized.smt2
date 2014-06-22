@@ -1,7 +1,7 @@
 ; EXPECT: sat
 
 ; Observed behavior:
-;   --check-model failed for set-term (union (z3f69 z3v151) (setenum z3v143))
+;   --check-model failed for set-term (union (z3f69 z3v151) (singleton z3v143))
 ; with different set of elements in the model for representative and the node
 ; itself.
 ;
@@ -24,8 +24,8 @@
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
 (define-fun smt_set_emp () mySet (as emptyset mySet))
-(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (in x s))
-(define-fun smt_set_add ((s mySet) (x Elt)) mySet (union s (setenum x)))
+(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (member x s))
+(define-fun smt_set_add ((s mySet) (x Elt)) mySet (union s (singleton x)))
 (define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (union s1 s2))
 (define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (intersection s1 s2))
 ;(define-fun smt_set_com ((s mySet)) mySet ((_ map not) s))
@@ -69,16 +69,16 @@
                         (z3f69 z3v140))))
 
 (assert (= (z3f69 z3v152)
-           (smt_set_cup (setenum z3v143) (z3f69 z3v151))))
+           (smt_set_cup (singleton z3v143) (z3f69 z3v151))))
 
 (assert (= (z3f70 z3v152)
-           (smt_set_cup (setenum z3v143) (z3f70 z3v151))))
+           (smt_set_cup (singleton z3v143) (z3f70 z3v151))))
 
 (assert (and
         (= (z3f69 z3v142)
-           (smt_set_cup (setenum z3v143) (z3f69 z3v141)))
+           (smt_set_cup (singleton z3v143) (z3f69 z3v141)))
         (= (z3f70 z3v142)
-           (smt_set_cup (setenum z3v143) (z3f70 z3v141)))
+           (smt_set_cup (singleton z3v143) (z3f70 z3v141)))
          (= z3v142 (z3f92 z3v143 z3v141))
          (= z3v142 z3v144)
          (= (z3f62 z3v61) z3v61)

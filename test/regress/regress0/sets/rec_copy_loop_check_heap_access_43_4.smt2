@@ -45,15 +45,15 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 curr$0 l1 null$0)
-                    (in l1 (lseg_domain$0 next$0 curr$0 null$0))
+                    (member l1 (lseg_domain$0 next$0 curr$0 null$0))
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 curr$0 l1 null$0)))
-                    (not (in l1 (lseg_domain$0 next$0 curr$0 null$0))))))
+                    (not (member l1 (lseg_domain$0 next$0 curr$0 null$0))))))
    :named lseg_footprint_14))
 
-(assert (! (not (in tmp_1$0 Alloc$0)) :named new_42_10))
+(assert (! (not (member tmp_1$0 Alloc$0)) :named new_42_10))
 
-(assert (! (not (in null$0 Alloc$0))
+(assert (! (not (member null$0 Alloc$0))
    :named initial_footprint_of_rec_copy_loop_34_11_4))
 
 (assert (! (not (= curr$0 null$0)) :named if_else_37_6))
@@ -73,7 +73,7 @@
 
 (assert (! (= FP_Caller_2$0 (setminus FP_Caller$0 FP$0)) :named assign_37_2_2))
 
-(assert (! (= Alloc_2$0 (union Alloc$0 (setenum tmp_1$0))) :named assign_42_10))
+(assert (! (= Alloc_2$0 (union Alloc$0 (singleton tmp_1$0))) :named assign_42_10))
 
 (assert (! (or (Btwn$0 next$0 cp$0 null$0 null$0)
        (not (lseg_struct$0 sk_?X_38$0 next$0 cp$0 null$0)))
@@ -82,13 +82,13 @@
 (assert (! (forall ((l1 Loc))
            (or
                (and (Btwn$0 next$0 cp$0 l1 null$0)
-                    (in l1 (lseg_domain$0 next$0 cp$0 null$0))
+                    (member l1 (lseg_domain$0 next$0 cp$0 null$0))
                     (not (= l1 null$0)))
                (and (or (= l1 null$0) (not (Btwn$0 next$0 cp$0 l1 null$0)))
-                    (not (in l1 (lseg_domain$0 next$0 cp$0 null$0))))))
+                    (not (member l1 (lseg_domain$0 next$0 cp$0 null$0))))))
    :named lseg_footprint_15))
 
-(assert (! (not (in cp_1$0 FP_3$0)) :named check_heap_access_43_4))
+(assert (! (not (member cp_1$0 FP_3$0)) :named check_heap_access_43_4))
 
 (assert (! (not (= tmp_1$0 null$0)) :named new_42_10_1))
 
@@ -109,7 +109,7 @@
 
 (assert (! (= cp_1$0 tmp_1$0) :named assign_42_4))
 
-(assert (! (= FP_3$0 (union FP$0 (setenum tmp_1$0))) :named assign_42_10_1))
+(assert (! (= FP_3$0 (union FP$0 (singleton tmp_1$0))) :named assign_42_10_1))
 
 (assert (! (or (Btwn$0 next$0 curr$0 null$0 null$0)
        (not (lseg_struct$0 sk_?X_37$0 next$0 curr$0 null$0)))

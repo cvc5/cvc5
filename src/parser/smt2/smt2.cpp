@@ -150,8 +150,8 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INTERSECTION, "intersection");
     addOperator(kind::SETMINUS, "setminus");
     addOperator(kind::SUBSET, "subseteq");
-    addOperator(kind::MEMBER, "in");
-    addOperator(kind::SET_SINGLETON, "setenum");
+    addOperator(kind::MEMBER, "member");
+    addOperator(kind::SINGLETON, "singleton");
     break;
 
   case THEORY_DATATYPES:

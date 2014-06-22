@@ -74,7 +74,7 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
 Node TermDb::getOperator( Node n ) {
   //return n.getOperator();
   Kind k = n.getKind();
-  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SET_SINGLETON ){
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();

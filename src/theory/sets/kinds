@@ -22,7 +22,7 @@ constant EMPTYSET \
     "the empty set constant; payload is an instance of the CVC4::EmptySet class"
 
 # the type
-operator SET_TYPE 1 "set type"
+operator SET_TYPE 1 "set type, takes as parameter the type of the elements"
 cardinality SET_TYPE \
     "::CVC4::theory::sets::SetsProperties::computeCardinality(%TYPE%)" \
     "theory/sets/theory_sets_type_rules.h"
@@ -40,19 +40,19 @@ operator INTERSECTION  2  "set intersection"
 operator SETMINUS      2  "set subtraction"
 operator SUBSET        2  "subset predicate; first parameter a subset of second"
 operator MEMBER        2  "set membership predicate; first parameter a member of second"
-operator SET_SINGLETON 1  "the set of the single element given as a parameter"
+operator SINGLETON     1  "the set of the single element given as a parameter"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule SETMINUS       ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule SUBSET         ::CVC4::theory::sets::SubsetTypeRule
 typerule MEMBER         ::CVC4::theory::sets::MemberTypeRule
-typerule SET_SINGLETON  ::CVC4::theory::sets::SetSingletonTypeRule
+typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
-construle SET_SINGLETON ::CVC4::theory::sets::SetSingletonTypeRule
+construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
 
 endtheory

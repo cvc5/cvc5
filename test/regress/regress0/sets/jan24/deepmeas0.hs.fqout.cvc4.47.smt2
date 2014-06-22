@@ -3,8 +3,8 @@
 (define-sort Elt () Int)
 (define-sort mySet () (Set Elt ))
 (define-fun smt_set_emp () mySet (as emptyset mySet))
-(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (in x s))
-(define-fun smt_set_add ((s mySet) (x Elt)) mySet (union s (setenum x)))
+(define-fun smt_set_mem ((x Elt) (s mySet)) Bool (member x s))
+(define-fun smt_set_add ((s mySet) (x Elt)) mySet (union s (singleton x)))
 (define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (union s1 s2))
 (define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (intersection s1 s2))
 

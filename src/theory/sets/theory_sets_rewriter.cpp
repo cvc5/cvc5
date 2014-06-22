@@ -32,11 +32,11 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return false;
   }
 
-  if(setTerm.getKind() == kind::SET_SINGLETON) {
+  if(setTerm.getKind() == kind::SINGLETON) {
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SET_SINGLETON,
+  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
          "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
 
   return elementTerm == setTerm[1][0] || checkConstantMembership(elementTerm, setTerm[0]);
@@ -44,7 +44,7 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
   // switch(setTerm.getKind()) {
   // case kind::EMPTYSET:
   //   return false;
-  // case kind::SET_SINGLETON:
+  // case kind::SINGLETON:
   //   return elementTerm == setTerm[0];
   // case kind::UNION:
   //   return checkConstantMembership(elementTerm, setTerm[0]) ||
@@ -195,7 +195,7 @@ const Elements& collectConstantElements(TNode setterm, SettermElementsMap& sette
       case kind::EMPTYSET:
         /* assign emptyset, which is default */
         break;
-      case kind::SET_SINGLETON:
+      case kind::SINGLETON:
         Assert(setterm[0].isConst());
         cur.insert(TheorySetsRewriter::preRewrite(setterm[0]).node);
         break;
@@ -220,10 +220,10 @@ Node elementsToNormalConstant(Elements elements,
   } else {
 
     Elements::iterator it = elements.begin();
-    Node cur = nm->mkNode(kind::SET_SINGLETON, *it);
+    Node cur = nm->mkNode(kind::SINGLETON, *it);
     while( ++it != elements.end() ) {
       cur = nm->mkNode(kind::UNION, cur,
-                       nm->mkNode(kind::SET_SINGLETON, *it));
+                       nm->mkNode(kind::SINGLETON, *it));
     }
     return cur;
   }

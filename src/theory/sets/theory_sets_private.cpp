@@ -225,7 +225,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
     if(S.getKind() == kind::UNION ||
        S.getKind() == kind::INTERSECTION ||
        S.getKind() == kind::SETMINUS ||
-       S.getKind() == kind::SET_SINGLETON) {
+       S.getKind() == kind::SINGLETON) {
       doSettermPropagation(x, S);
       if(d_conflict) return;
     }// propagation: children
@@ -276,7 +276,7 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
     left_literal  =       MEMBER(x, S[0])   ;
     right_literal = NOT(  MEMBER(x, S[1])  );
     break;
-  case kind::SET_SINGLETON: {
+  case kind::SINGLETON: {
     Node atom = MEMBER(x, S);
     if(holds(atom, true)) {
       learnLiteral(EQUAL(x, S[0]), true, atom);
@@ -535,9 +535,9 @@ Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) con
     return nm->mkConst(EmptySet(nm->toType(setType)));
   } else {
     Elements::iterator it = elements.begin();
-    Node cur = SET_SINGLETON(*it);
+    Node cur = SINGLETON(*it);
     while( ++it != elements.end() ) {
-      cur = nm->mkNode(kind::UNION, cur, SET_SINGLETON(*it));
+      cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
     }
     return cur;
   }
@@ -948,7 +948,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
     // d_equalityEngine.addTerm(node);
   }
-  if(node.getKind() == kind::SET_SINGLETON) {
+  if(node.getKind() == kind::SINGLETON) {
     Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
     learnLiteral(MEMBER(node[0], node), true, true_node);
     //intentional fallthrough
@@ -1125,7 +1125,7 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
   if(S.getKind() == kind::UNION ||
      S.getKind() == kind::INTERSECTION ||
      S.getKind() == kind::SETMINUS ||
-     S.getKind() == kind::SET_SINGLETON) {
+     S.getKind() == kind::SINGLETON) {
     d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, S));
   }// propagation: children
 
