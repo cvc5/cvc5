@@ -444,6 +444,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     }
 
 #ifdef CVC4_COMPETITION_MODE
+    *opts[options::out] << flush;
     // exit, don't return (don't want destructors to run)
     // _exit() from unistd.h doesn't run global destructors
     // or other on_exit/atexit stuff.
