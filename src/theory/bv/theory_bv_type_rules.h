@@ -5,13 +5,13 @@
  ** Major contributors: Liana Hadarean, Christopher L. Conway, Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
- ** \brief Bitvector theory.
+ ** \brief Bitvector theory typing rules
  **
- ** Bitvector theory.
+ ** Bitvector theory typing rules.
  **/
 
 #include "cvc4_private.h"
@@ -36,18 +36,17 @@ public:
     }
     return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
   }
-};
-
+};/* class BitVectorConstantTypeRule */
 
 class BitVectorBitOfTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate) {
-    
+
     if(check) {
       BitVectorBitOf info = n.getOperator().getConst<BitVectorBitOf>();
       TypeNode t = n[0].getType(check);
-      
+
       if (!t.isBitVector()) {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
@@ -55,12 +54,11 @@ public:
         throw TypeCheckingExceptionPrivate(n, "extract index is larger than the bitvector size");
       }
     }
-    return nodeManager->booleanType(); 
+    return nodeManager->booleanType();
   }
-};
+};/* class BitVectorBitOfTypeRule */
 
-
-class BitVectorCompRule {
+class BitVectorCompTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
@@ -73,7 +71,7 @@ public:
     }
     return nodeManager->mkBitVectorType(1);
   }
-};
+};/* class BitVectorCompTypeRule */
 
 class BitVectorFixedWidthTypeRule {
 public:
@@ -94,7 +92,7 @@ public:
     }
     return t;
   }
-};
+};/* class BitVectorFixedWidthTypeRule */
 
 class BitVectorPredicateTypeRule {
 public:
@@ -112,7 +110,7 @@ public:
     }
     return nodeManager->booleanType();
   }
-};
+};/* class BitVectorPredicateTypeRule */
 
 class BitVectorEagerAtomTypeRule {
 public:
@@ -126,7 +124,7 @@ public:
     }
     return nodeManager->booleanType();
   }
-};
+};/* class BitVectorEagerAtomTypeRule */
 
 class BitVectorAckermanizationUdivTypeRule {
 public:
@@ -138,9 +136,9 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
     }
-    return lhsType; 
+    return lhsType;
   }
-};
+};/* class BitVectorAckermanizationUdivTypeRule */
 
 class BitVectorAckermanizationUremTypeRule {
 public:
@@ -152,10 +150,9 @@ public:
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
     }
-    return lhsType; 
+    return lhsType;
   }
-};
-
+};/* class BitVectorAckermanizationUremTypeRule */
 
 class BitVectorExtractTypeRule {
 public:
@@ -181,7 +178,7 @@ public:
     }
     return nodeManager->mkBitVectorType(extractInfo.high - extractInfo.low + 1);
   }
-};
+};/* class BitVectorExtractTypeRule */
 
 class BitVectorExtractOpTypeRule {
 public:
@@ -190,9 +187,9 @@ public:
     Assert(n.getKind() == kind::BITVECTOR_EXTRACT_OP);
     return nodeManager->builtinOperatorType();
   }
-};
+};/* class BitVectorExtractOpTypeRule */
 
-class BitVectorConcatRule {
+class BitVectorConcatTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw (TypeCheckingExceptionPrivate, AssertionException) {
@@ -211,7 +208,7 @@ public:
     }
     return nodeManager->mkBitVectorType(size);
   }
-};
+};/* class BitVectorConcatTypeRule */
 
 class BitVectorRepeatTypeRule {
 public:
@@ -227,7 +224,7 @@ public:
     unsigned repeatAmount = n.getOperator().getConst<BitVectorRepeat>();
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
-};
+};/* class BitVectorRepeatTypeRule */
 
 class BitVectorExtendTypeRule {
 public:
@@ -245,7 +242,7 @@ public:
         (unsigned) n.getOperator().getConst<BitVectorZeroExtend>();
     return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
   }
-};
+};/* class BitVectorExtendTypeRule */
 
 class BitVectorConversionTypeRule {
 public:
@@ -268,7 +265,7 @@ public:
 
     InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
   }
-};
+};/* class BitVectorConversionTypeRule */
 
 class CardinalityComputer {
 public:
