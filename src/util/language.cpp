@@ -68,6 +68,8 @@ OutputLanguage toOutputLanguage(std::string language) {
      language == "presentation" || language == "native" ||
      language == "LANG_CVC4") {
     return output::LANG_CVC4;
+  } else if(language == "cvc3" || language == "LANG_CVC3") {
+    return output::LANG_CVC3;
   } else if(language == "smtlib1" || language == "smt1" ||
             language == "LANG_SMTLIB_V1") {
     return output::LANG_SMTLIB_V1;

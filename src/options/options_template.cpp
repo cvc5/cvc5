@@ -259,6 +259,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
+  cvc3                           CVC3 presentation language\n\
   smt1 | smtlib1                 SMT-LIB format 1.2\n\
   smt | smtlib | smt2 | smtlib2  SMT-LIB format 2.0\n\
   z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\

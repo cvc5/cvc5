@@ -55,6 +55,9 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_AST:
     return new printer::ast::AstPrinter();
 
+  case LANG_CVC3:
+    return new printer::cvc::CvcPrinter(/* cvc3-mode = */ true);
+
   default:
     Unhandled(lang);
   }
