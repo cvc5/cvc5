@@ -53,9 +53,6 @@ private:
 
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeCache;
 
-  /** The context within which this SubstitutionMap was constructed. */
-  context::Context* d_context;
-
   /** The variables, in order of addition */
   NodeMap d_substitutions;
 
@@ -98,7 +95,6 @@ private:
 public:
 
   SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true, bool solvedForm = false) :
-    d_context(context),
     d_substitutions(context),
     d_substitutionCache(),
     d_substituteUnderQuantifiers(substituteUnderQuantifiers),

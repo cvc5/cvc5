@@ -416,6 +416,8 @@ bool Expr::isAtomicFormula() const {
     case CVC4::kind::IFF:
     case CVC4::kind::IMPLIES:
       return false;
+    default:
+      ; /* fall through */
   }
   for (Expr::iterator k = begin(), kend=end(); k != kend; ++k) {
     if (!CVC3::Expr(*k).isAtomic()) {
@@ -450,8 +452,9 @@ bool Expr::isBoolConnective() const {
   case CVC4::kind::XOR:
   case CVC4::kind::ITE:
     return true;
+  default:
+    return false;
   }
-  return false;
 }
 
 bool Expr::isPropLiteral() const {

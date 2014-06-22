@@ -57,9 +57,6 @@ class TheoryProxy {
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;
 
-  /** Context we will be using to synchronzie the sat solver */
-  context::Context* d_context;
-
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
 
@@ -135,7 +132,6 @@ inline TheoryProxy::TheoryProxy(PropEngine* propEngine,
   d_cnfStream(cnfStream),
   d_decisionEngine(decisionEngine),
   d_theoryEngine(theoryEngine),
-  d_context(context),
   d_queue(context)
 {}
 

@@ -86,7 +86,7 @@ class ProofManager {
   VarSet     d_propVars;
 
   Proof* d_fullProof;
-  ProofFormat d_format;
+  ProofFormat d_format; // used for now only in debug builds
 
 protected:
   std::string d_logic;

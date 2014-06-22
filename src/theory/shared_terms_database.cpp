@@ -23,7 +23,6 @@ using namespace theory;
 
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine, context::Context* context)
 : ContextNotifyObj(context)
-, d_context(context)
 , d_statSharedTerms("theory::shared_terms", 0)
 , d_addedSharedTermsSize(context, 0)
 , d_termsToTheories(context)

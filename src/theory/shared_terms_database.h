@@ -39,9 +39,6 @@ public:
 
 private:
 
-  /** The context */
-  context::Context* d_context;
-
   /** Some statistics */
   IntStat d_statSharedTerms;
 
