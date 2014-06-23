@@ -34,7 +34,13 @@ elif test "$with_glpk" = yes; then
 
   dnl Try a bunch of combinations until something works :-/
   GLPK_LIBS=
+  AC_LANG_PUSH([C++])
+  cvc4_save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CVC4CPPFLAGS $CPPFLAGS"
   AC_CHECK_HEADER([glpk.h], [], [AC_MSG_FAILURE([cannot find glpk.h, the GLPK header!])])
+  CPPFLAGS="$cvc4_save_CPPFLAGS"
+  AC_LANG_POP([C++])
+
   AC_MSG_CHECKING([how to link glpk])
   CVC4_TRY_GLPK_WITH([])
   CVC4_TRY_GLPK_WITH([-lgmp])
@@ -107,7 +113,7 @@ AC_DEFUN([CVC4_TRY_GLPK_WITH], [
 if test -z "$GLPK_LIBS"; then
   AC_LANG_PUSH([C++])
   cvc4_save_LIBS="$LIBS"
-  cvc4_save_CPPFLAGS="$LDFLAGS"
+  cvc4_save_CPPFLAGS="$CPPFLAGS"
   cvc4_save_LDFLAGS="$LDFLAGS"
   CPPFLAGS="$CVC4CPPFLAGS $CPPFLAGS"
   LDFLAGS="$GLPK_LDFLAGS $LDFLAGS"
