@@ -15,7 +15,7 @@ echo "------- cvc4-fnt casc j7 : $bench at $2..."
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -S -t "$limit";$cvc4 --no-checking --no-interactive --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
+  (ulimit -S -t "$limit";$cvc4 --lang=tptp --no-checking --no-interactive --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
   (read w1 w2 w3 result w4 w5;
   case "$result" in
   Satisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
@@ -25,7 +25,7 @@ function trywith {
 }
 function finishwith {
   echo "--- Run $@...";
-  $cvc4 --no-checking --no-interactive --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench
+  $cvc4 --lang=tptp --no-checking --no-interactive --dump-models --produce-models --force-no-limit-cpu-while-dump "$@" $bench
 }
 
 trywith 30 --finite-model-find --sort-inference --uf-ss-fair
