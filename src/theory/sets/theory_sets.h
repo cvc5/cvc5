@@ -48,13 +48,13 @@ public:
 
   ~TheorySets();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  
   void addSharedTerm(TNode);
 
   void check(Effort);
 
   void collectModelInfo(TheoryModel*, bool fullModel);
+
+  void computeCareGraph();
 
   Node explain(TNode);
 
@@ -63,6 +63,8 @@ public:
   void preRegisterTerm(TNode node);
 
   void propagate(Effort);
+
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
 };/* class TheorySets */
 
