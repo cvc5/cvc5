@@ -408,6 +408,42 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 }/*TheorySetsPrivate::learnLiteral(...)*/
 
 
+/************************ Sharing ************************/
+/************************ Sharing ************************/
+/************************ Sharing ************************/
+
+void TheorySetsPrivate::addSharedTerm(TNode n) {
+  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
+}
+
+
+void TheorySetsPrivate::computeCareGraph() {
+  Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
+  for (unsigned i = 0; i < d_external.d_sharedTerms.size(); ++ i) {
+    TNode a = d_external.d_sharedTerms[i];
+    TypeNode aType = a.getType();
+    for (unsigned j = i + 1; j < d_external.d_sharedTerms.size(); ++ j) {
+      TNode b = d_external.d_sharedTerms[j];
+      if (b.getType() != aType) {
+        // We don't care about the terms of different types
+        continue;
+      }
+      switch (d_external.d_valuation.getEqualityStatus(a, b)) {
+      case EQUALITY_TRUE_AND_PROPAGATED:
+      case EQUALITY_FALSE_AND_PROPAGATED:
+        // If we know about it, we should have propagated it, so we can skip
+        break;
+      default:
+        // Let's split on it
+        d_external.addCarePair(a, b);
+        break;
+      }
+    }
+  }
+}
+
+
 /******************** Model generation ********************/
 /******************** Model generation ********************/
 /******************** Model generation ********************/
@@ -884,11 +920,6 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
-void TheorySetsPrivate::addSharedTerm(TNode n) {
-  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
