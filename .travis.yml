@@ -9,6 +9,16 @@ env:
  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
  - TRAVIS_LFSC=yes
  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
+matrix:
+  fast_finish: true
+  # exclude gcc with libc++ variant (gcc won't do that)
+  include:
+    - compiler: clang
+      env: TRAVIS_CVC4=yes CXXFLAGS=-stdlib=libc++ TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
+    - compiler: clang
+      env: TRAVIS_CVC4=yes CXXFLAGS=-stdlib=libc++ TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
+    - compiler: clang
+      env: TRAVIS_LFSC=yes CXXFLAGS=-stdlib=libc++
 before_install:
 # dhart/ppa is for cxxtest package, which doesn't appear officially until quantal
  - travis_retry sudo apt-add-repository -y ppa:dhart/ppa
@@ -78,8 +88,6 @@ script:
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
-matrix:
-  fast_finish: true
 notifications:
   email:
     on_success: change
