@@ -149,7 +149,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::UNION, "union");
     addOperator(kind::INTERSECTION, "intersection");
     addOperator(kind::SETMINUS, "setminus");
-    addOperator(kind::SUBSET, "subseteq");
+    addOperator(kind::SUBSET, "subset");
     addOperator(kind::MEMBER, "member");
     addOperator(kind::SINGLETON, "singleton");
     break;

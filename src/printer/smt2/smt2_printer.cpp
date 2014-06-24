@@ -609,7 +609,7 @@ static string smtKindString(Kind k) throw() {
   case kind::UNION: return "union";
   case kind::INTERSECTION: return "intersection";
   case kind::SETMINUS: return "setminus";
-  case kind::SUBSET: return "subseteq";
+  case kind::SUBSET: return "subset";
   case kind::MEMBER: return "member";
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";

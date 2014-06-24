@@ -31,7 +31,7 @@
 ;(define-fun smt_set_com ((s mySet)) mySet ((_ map not) s))
 (define-fun smt_set_dif ((s1 mySet) (s2 mySet)) mySet (setminus s1 s2))
 ;(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (= smt_set_emp (smt_set_dif s1 s2)))
-(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (subseteq s1 s2))
+(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (subset s1 s2))
 
 (declare-fun z3v58 () Int)
 (declare-fun z3v59 () Int)

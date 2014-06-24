@@ -8,7 +8,7 @@
 (define-fun smt_set_cup ((s1 mySet) (s2 mySet)) mySet (union s1 s2))
 (define-fun smt_set_cap ((s1 mySet) (s2 mySet)) mySet (intersection s1 s2))
 (define-fun smt_set_dif ((s1 mySet) (s2 mySet)) mySet (setminus s1 s2))
-(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (subseteq s1 s2))
+(define-fun smt_set_sub ((s1 mySet) (s2 mySet)) Bool (subset s1 s2))
 
 (declare-fun z3v66 () Int)
 (declare-fun z3v67 () Int)
