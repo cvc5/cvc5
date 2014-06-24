@@ -72,9 +72,21 @@ std::pair<int, S> runPortfolio(int numThreads,
   global_winner = -1;
 
   for(int t = 0; t < numThreads; ++t) {
+
+    boost::thread::attributes attrs;
+    attrs.set_stack_size(256 * 1024 * 1024);
+
     threads[t] = 
-      boost::thread(boost::bind(runThread<S>, t, threadFns[t],
+      boost::thread(attrs, boost::bind(runThread<S>, t, threadFns[t],
                                 boost::ref(threads_returnValue[t]) ) );
+  /*
+    void *stackaddr;
+    size_t stacksize;
+    pthread_attr_t attr;
+    pthread_getattr_np(threads[t].native_handle(), &attr);
+    pthread_attr_getstack(&attr, &stackaddr, &stacksize);
+    std::cerr << "I am " << t << " with stack size " << stacksize << std::endl;
+   */
   }
 
   if(not driverFn.empty())
