@@ -56,6 +56,8 @@ public:
 
   void collectModelInfo(TheoryModel*, bool fullModel);
 
+  void computeCareGraph();
+
   Node explain(TNode);
 
   void preRegisterTerm(TNode node);

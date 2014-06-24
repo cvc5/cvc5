@@ -127,7 +127,7 @@ class Mapper {
              << " ( (x " << elementType << ") )"
              << " " << name << ""
              << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
-      setoperators[ make_pair(t, kind::SET_SINGLETON) ] =
+      setoperators[ make_pair(t, kind::SINGLETON) ] =
         em->mkVar( std::string("setenum") + elementTypeAsString,
                    em->mkFunctionType( elementType, t ) );
 
