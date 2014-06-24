@@ -308,6 +308,9 @@ void ArithIteUtils::addImplications(Node x, Node y){
   // (=> (not x) y)
   // (=> (not y) x)
 
+  x = Rewriter::rewrite(x);
+  y = Rewriter::rewrite(y);
+
   Node xneg = x.negate();
   Node yneg = y.negate();
   d_implies[xneg].insert(y);
@@ -369,9 +372,21 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(binor[0].getKind() ==  kind::EQUAL);
   Assert(binor[1].getKind() ==  kind::EQUAL);
 
+  //Node n = 
   Node n = applySubstitutions(binor);
+  if(n != binor){
+    n = Rewriter::rewrite(n);
+
+    if(!(n.getKind() == kind::OR &&
+	 n.getNumChildren() == 2 &&
+	 n[0].getKind() ==  kind::EQUAL &&
+	 n[1].getKind() ==  kind::EQUAL)){
+      return false;
+    }
+  }
+
   Assert(n.getKind() == kind::OR);
-  Assert(binor.getNumChildren() == 2);
+  Assert(n.getNumChildren() == 2);
   TNode l = n[0];
   TNode r = n[1];
 
@@ -416,7 +431,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
         NodeManager* nm = NodeManager::currentNM();
 
-        Node cnd = findIteCnd(binor[0], binor[1]);
+        Node cnd = findIteCnd(l, r);
 
         Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
