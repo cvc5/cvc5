@@ -62,6 +62,7 @@ template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads,
                                boost::function<T()> driverFn,
                                boost::function<S()> threadFns[],
+                               uint64_t stackSize,
                                bool optionWaitToJoin,
                                TimerStat& statWaitTime) {
   boost::thread thread_driver;
@@ -72,9 +73,27 @@ std::pair<int, S> runPortfolio(int numThreads,
   global_winner = -1;
 
   for(int t = 0; t < numThreads; ++t) {
-    threads[t] = 
+
+#if BOOST_HAS_THREAD_ATTR
+    boost::thread::attributes attrs;
+
+    if(stackSize > 0) {
+      attrs.set_stack_size(stackSize);
+    }
+
+    threads[t] =
+      boost::thread(attrs, boost::bind(runThread<S>, t, threadFns[t],
+                                       boost::ref(threads_returnValue[t]) ) );
+#else /* BOOST_HAS_THREAD_ATTR */
+    if(stackSize > 0) {
+      throw OptionException("cannot specify a stack size for worker threads; requires CVC4 to be built with Boost thread library >= 1.50.0");
+    }
+
+    threads[t] =
       boost::thread(boost::bind(runThread<S>, t, threadFns[t],
                                 boost::ref(threads_returnValue[t]) ) );
+#endif /* BOOST_HAS_THREAD_ATTR */
+
   }
 
   if(not driverFn.empty())
@@ -112,6 +131,7 @@ std::pair<int, bool>
 runPortfolio<void, bool>(int,
                          boost::function<void()>, 
                          boost::function<bool()>*,
+                         uint64_t,
                          bool,
                          TimerStat&);
 

@@ -1045,7 +1045,31 @@ fi
 AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
 if test "$with_portfolio" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_PORTFOLIO"
+
+  # see if Boost has thread attributes (should be any version >= 1.50.0)
+  # non-fatal error if not, but we won't support --thread-stack option
+  AC_MSG_CHECKING([whether Boost threads support thread attrs])
+  AC_LANG_PUSH([C++])
+  cvc4_save_CPPFLAGS="$CPPFLAGS"
+  cvc4_save_LIBS="$LIBS"
+  cvc4_save_LDFLAGS="$LDFLAGS"
+  CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
+  LIBS="$LIBS $BOOST_THREAD_LIBS"
+  LDFLAGS="$LDFLAGS $BOOST_THREAD_LDFLAGS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <boost/thread.hpp>],
+         [boost::thread::attributes attrs; attrs.set_stack_size(10 * 1024 * 1024);])],
+    [cvc4_boost_has_thread_attr=1;
+     AC_MSG_RESULT([yes])],
+    [cvc4_boost_has_thread_attr=0;
+     AC_MSG_RESULT([no])])
+  CPPFLAGS="$cvc4_save_CPPFLAGS"
+  LIBS="$cvc4_save_LIBS"
+  LDFLAGS="$cvc4_save_LDFLAGS"
+  AC_LANG_POP([C++])
+else
+  cvc4_boost_has_thread_attr=0
 fi
+AC_DEFINE_UNQUOTED([BOOST_HAS_THREAD_ATTR], $cvc4_boost_has_thread_attr, [Define to 1 if Boost threading library has support for thread attributes])
 
 # Check for libreadline (defined in config/readline.m4)
 AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
