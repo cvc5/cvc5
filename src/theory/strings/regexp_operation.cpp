@@ -1220,6 +1220,17 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
         cset.clear();
         firstChars(r1, cset, vset);
         std::vector< Node > vec_nodes;
+        Node delta_exp;
+        int flag = delta(r1, delta_exp);
+        int flag2 = delta(r2, delta_exp);
+        if(flag != 2 && flag2 != 2) {
+          if(flag == 1 && flag2 == 1) {
+            vec_nodes.push_back(d_emptySingleton);
+          } else {
+            //TODO
+            spflag = true;
+          }
+        }
         for(std::set<unsigned>::const_iterator itr = cset.begin();
           itr != cset.end(); itr++) {
           CVC4::String c( CVC4::String::convertUnsignedIntToChar(*itr) );
