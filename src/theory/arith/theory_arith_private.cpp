@@ -2964,6 +2964,19 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         if(mipRes == MipClosed){
           d_likelyIntegerInfeasible = true;
           replayLog(approx);
+
+	  if(!anyConflict()){
+	    //start up simplex
+	    d_partialModel.stopQueueingBoundCounts();
+	    UpdateTrackingCallback utcb(&d_linEq);
+	    d_partialModel.processBoundsQueue(utcb);
+	    d_linEq.startTrackingBoundCounts();
+	    //call simplex
+	    solveRelaxationOrPanic(effortLevel);
+	    // shutdown simplex
+	    d_linEq.stopTrackingBoundCounts();
+	    d_partialModel.startQueueingBoundCounts();
+	  }
         }
         if(!(anyConflict() || !d_approxCuts.empty())){
           turnOffApproxFor(options::replayNumericFailurePenalty());
