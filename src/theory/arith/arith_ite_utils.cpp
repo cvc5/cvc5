@@ -308,9 +308,6 @@ void ArithIteUtils::addImplications(Node x, Node y){
   // (=> (not x) y)
   // (=> (not y) x)
 
-  x = Rewriter::rewrite(x);
-  y = Rewriter::rewrite(y);
-
   Node xneg = x.negate();
   Node yneg = y.negate();
   d_implies[xneg].insert(y);
@@ -431,7 +428,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
         NodeManager* nm = NodeManager::currentNM();
 
-        Node cnd = findIteCnd(l, r);
+        Node cnd = findIteCnd(binor[0], binor[1]);
 
         Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
