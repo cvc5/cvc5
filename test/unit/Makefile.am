@@ -41,6 +41,7 @@ UNIT_TESTS += \
 	context/stacking_vector_black \
 	util/array_store_all_black \
 	util/assert_white \
+	util/binary_heap_black \
 	util/bitvector_black \
 	util/datatype_black \
 	util/configuration_black \

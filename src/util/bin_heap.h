@@ -20,8 +20,24 @@
 
 #include "cvc4_private.h"
 
+#ifndef __CVC4__BIN_HEAP_H
+#define __CVC4__BIN_HEAP_H
+
+#include <limits>
+#include <functional>
+
+#include "util/exception.h"
+
 namespace CVC4 {
 
+/**
+ * BinaryHeap that orders its elements greatest-first (i.e., in the opposite
+ * direction of the provided comparator).  Update of elements is permitted
+ * via handles, which are not invalidated by mutation (pushes and pops etc.).
+ * Handles are invalidted when their element is no longer a member of the
+ * heap.  Iteration over elements is supported but iteration is unsorted and
+ * iterators are immutable.
+ */
 template <class Elem, class CmpFcn = std::less<Elem> >
 class BinaryHeap {
 private:
@@ -34,13 +50,17 @@ private:
     HElement(size_t pos, const T& elem): d_pos(pos), d_elem(elem) {}
     size_t d_pos;
     T d_elem;
-  };
+  };/* struct HElement */
 
   /** A 0 indexed binary heap. */
   ElementVector d_heap;
 
   /** The comparator. */
   CmpFcn d_cmp;
+
+  // disallow copy and assignment
+  BinaryHeap(const BinaryHeap&) CVC4_UNDEFINED;
+  BinaryHeap& operator=(const BinaryHeap&) CVC4_UNDEFINED;
 
 public:
   BinaryHeap(const CmpFcn& c = CmpFcn())
@@ -52,28 +72,29 @@ public:
     clear();
   }
 
-  BinaryHeap& operator=(const BinaryHeap& other);
-
-
   class handle {
   private:
     HElement* d_pointer;
     handle(HElement* p) : d_pointer(p){}
-    friend class const_handle;
     friend class BinaryHeap;
   public:
     handle() : d_pointer(NULL) {}
     const T& operator*() const {
       Assert(d_pointer != NULL);
-      return *d_pointer;
+      return d_pointer->d_elem;
     }
 
     bool operator==(const handle& h) const {
       return d_pointer == h.d_pointer;
     }
+
+    bool operator!=(const handle& h) const {
+      return d_pointer != h.d_pointer;
+    }
+
   }; /* BinaryHeap<>::handle */
 
-  class const_iterator {
+  class const_iterator : public std::iterator<std::input_iterator_tag, Elem> {
   private:
     typename ElementVector::const_iterator d_iter;
     friend class BinaryHeap;
@@ -92,6 +113,11 @@ public:
       ++d_iter;
       return *this;
     }
+    inline const_iterator operator++(int){
+      const_iterator i = *this;
+      ++d_iter;
+      return i;
+    }
     inline const T& operator*() const{
       const HElement* he = *d_iter;
       return he->d_elem;
@@ -99,28 +125,7 @@ public:
 
   };/* BinaryHeap<>::const_iterator */
 
-  class const_handle {
-  private:
-    const HElement* d_pointer;
-    const_handle(const HElement* p) : d_pointer(p){}
-    friend class BinaryHeap;
-  public:
-    const_handle() : d_pointer(NULL) {}
-    const_handle(const handle& h) : d_pointer(h.d_pointer) { }
-
-    const T& operator*() const {
-      Assert(d_pointer != NULL);
-      return *d_pointer;
-    }
-
-    bool operator==(const handle& h) const {
-      return d_pointer == h.d_pointer;
-    }
-    bool operator!=(const handle& h) const {
-      return d_pointer != h.d_pointer;
-    }
-  }; /* BinaryHeap<>::const_handle */
-
+  typedef const_iterator iterator;
 
   inline size_t size() const { return d_heap.size(); }
   inline bool empty() const { return d_heap.empty(); }
@@ -197,6 +202,7 @@ public:
     return (d_heap.front())->d_elem;
   }
 
+private:
   void update(handle h){
     Assert(!empty());
     Assert(debugHandle(h));
@@ -224,6 +230,7 @@ public:
     }
   }
 
+public:
   void update(handle h, const T& val){
     Assert(!empty());
     Assert(debugHandle(h));
@@ -234,6 +241,7 @@ public:
   /** (std::numeric_limits<size_t>::max()-2)/2; */
   static const size_t MAX_SIZE;
 
+private:
   inline bool gt(const T& a, const T& b) const{
     // cmp acts like an operator<
     return d_cmp(b, a);
@@ -243,7 +251,6 @@ public:
     return d_cmp(a, b);
   }
 
-private:
   inline static size_t parent(size_t p){
     Assert(p != root());
     return (p-1)/2;
@@ -271,6 +278,8 @@ private:
 
   inline void swap(size_t i, size_t j, HElement* at_i, HElement* at_j){
     // still works if i == j
+    Assert(i == at_i->d_pos);
+    Assert(j == at_j->d_pos);
     d_heap[i] = at_j;
     d_heap[j] = at_i;
     at_i->d_pos = j;
@@ -317,10 +326,10 @@ private:
       }else{
         // at_left <= he
         if(lt(he->d_elem, at_right->d_elem)){
-          // left <= he < at_right
+          // at_left <= he < at_right
           swap(curr, r, he, at_right);
         }else{
-          // left <= he
+          // at_left  <= he
           // at_right <= he
           break;
         }
@@ -331,13 +340,11 @@ private:
       // there is a left but not a right
       HElement* at_left = d_heap[l];
       if(lt(he->d_elem, at_left->d_elem)){
-        //       he < at_left
+        // he < at_left
         swap(curr, l, he, at_left);
       }
     }
-
   }
-
 
   bool debugHandle(handle h) const{
     HElement* he = h.d_pointer;
@@ -355,4 +362,6 @@ private:
 template <class Elem, class CmpFcn>
 const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::max()-2)/2;
 
-} /* namespace CVC4 */
+}/* CVC4 namespace */
+
+#endif /* __CVC4__BIN_HEAP_H */
