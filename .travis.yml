@@ -9,6 +9,16 @@ env:
  - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes
  - TRAVIS_LFSC=yes
  - TRAVIS_LFSC=yes TRAVIS_LFSC_DISTCHECK=yes
+matrix:
+  fast_finish: true
+  # exclude gcc with libc++ variant (gcc won't do that)
+  include:
+    - compiler: clang
+      env: TRAVIS_CVC4=yes CXXFLAGS=-stdlib=libc++ TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c'
+    - compiler: clang
+      env: TRAVIS_CVC4=yes CXXFLAGS=-stdlib=libc++ TRAVIS_CVC4_CONFIG='debug --enable-language-bindings=java,c'
+    - compiler: clang
+      env: TRAVIS_LFSC=yes CXXFLAGS=-stdlib=libc++
 before_install:
 # dhart/ppa is for cxxtest package, which doesn't appear officially until quantal
  - travis_retry sudo apt-add-repository -y ppa:dhart/ppa
@@ -27,7 +37,7 @@ script:
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
      ./configure --enable-unit-testing --enable-proof --with-portfolio $TRAVIS_CVC4_CONFIG ||
-       (echo; cat builds/config.log; error "CONFIGURE FAILED");
+       (echo; if test -e builds/config.log; then cat builds/config.log; else cat config.log; fi; error "CONFIGURE FAILED");
    }
    error() {
      echo;
@@ -57,7 +67,7 @@ script:
    }
    LFSCchecks() {
      cd proofs/lfsc_checker &&
-     (./configure || (echo; cat builds/config.log; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
+     (./configure || (echo; if test -e builds/config.log; then cat builds/config.log; else cat config.log; fi; echo; echo "${red}CONFIGURE FAILED${normal}"; exit 1)) &&
      if [ -n "$TRAVIS_LFSC_DISTCHECK" ]; then
        make -j2 distcheck || (echo; echo "${red}LFSC DISTCHECK FAILED${normal}"; echo; exit 1);
      else
@@ -78,8 +88,6 @@ script:
    [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_LFSC" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
-matrix:
-  fast_finish: true
 notifications:
   email:
     on_success: change
