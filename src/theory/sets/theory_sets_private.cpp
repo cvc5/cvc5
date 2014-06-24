@@ -97,7 +97,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
 
-  if( (Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
+  if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
     return;
   }
