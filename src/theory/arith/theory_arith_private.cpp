@@ -2147,6 +2147,9 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
     d_currentPropagationList.resize(enteringPropN);
   }
 
+  /* It is not clear what the d_qflraStatus is at this point */
+  d_qflraStatus = Result::SAT_UNKNOWN;
+
   Assert(d_replayVariables.empty());
   Assert(d_replayConstraints.empty());
 
@@ -2289,6 +2292,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
 
       SimplexDecisionProcedure& simplex = selectSimplex(true);
       simplex.findModel(false);
+      // Can change d_qflraStatus
 
       d_linEq.stopTrackingBoundCounts();
       d_partialModel.startQueueingBoundCounts();
@@ -2564,6 +2568,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
         SimplexDecisionProcedure& simplex = selectSimplex(true);
         simplex.findModel(false);
+	// can change d_qflraStatus
 
         d_linEq.stopTrackingBoundCounts();
         d_partialModel.startQueueingBoundCounts();
@@ -2965,18 +2970,10 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         if(mipRes == MipClosed){
           d_likelyIntegerInfeasible = true;
           replayLog(approx);
+	  AlwaysAssert(anyConflict() || d_qflraStatus != Result::SAT);
 
 	  if(!anyConflict()){
-	    //start up simplex
-	    d_partialModel.stopQueueingBoundCounts();
-	    UpdateTrackingCallback utcb(&d_linEq);
-	    d_partialModel.processBoundsQueue(utcb);
-	    d_linEq.startTrackingBoundCounts();
-	    //call simplex
-	    solveRelaxationOrPanic(effortLevel);
-	    // shutdown simplex
-	    d_linEq.stopTrackingBoundCounts();
-	    d_partialModel.startQueueingBoundCounts();
+	    solveRealRelaxation(effortLevel);
 	  }
         }
         if(!(anyConflict() || !d_approxCuts.empty())){
