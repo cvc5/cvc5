@@ -314,7 +314,7 @@ static struct option cmdlineOptions[] = {${all_modules_long_options}
   { NULL, no_argument, NULL, '\0' }
 };/* cmdlineOptions */
 
-#line 317 "${template}"
+#line 318 "${template}"
 
 static void preemptGetopt(int& argc, char**& argv, const char* opt) {
   const size_t maxoptlen = 128;
@@ -507,7 +507,7 @@ std::vector<std::string> Options::parseOptions(int argc, char* main_argv[]) thro
     switch(c) {
 ${all_modules_option_handlers}
 
-#line 510 "${template}"
+#line 511 "${template}"
 
     case ':':
       // This can be a long or short option, and the way to get at the
@@ -576,7 +576,7 @@ std::string Options::suggestCommandLineOptions(const std::string& optionName) th
 
 static const char* smtOptions[] = {
   ${all_modules_smt_options},
-#line 579 "${template}"
+#line 580 "${template}"
   NULL
 };/* smtOptions[] */
 
@@ -598,7 +598,7 @@ SExpr Options::getOptions() const throw() {
 
   ${all_modules_get_options}
 
-#line 601 "${template}"
+#line 602 "${template}"
 
   return SExpr(opts);
 }
