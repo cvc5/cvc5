@@ -133,6 +133,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
 # ifndef PORTFOLIO_BUILD
   if( opts.wasSetByUser(options::threads) ||
+      opts.wasSetByUser(options::threadStackSize) ||
       ! opts[options::threadArgv].empty() ) {
     throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
   }

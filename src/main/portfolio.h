@@ -30,6 +30,7 @@ template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads, 
                                boost::function<T()> driverFn,
                                boost::function<S()> threadFns[],
+                               size_t stackSize,
                                bool optionWaitToJoin,
                                TimerStat& statWaitTime);
 // as we have defined things, S=void would give compile errors

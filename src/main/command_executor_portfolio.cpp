@@ -304,8 +304,11 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                          &d_channelsIn[0],
                          &d_smts[0]);
 
+    uint64_t threadStackSize = d_options[options::threadStackSize];
+    threadStackSize *= 1024 * 1024;
+
     pair<int, bool> portfolioReturn =
-        runPortfolio(d_numThreads, smFn, fns,
+        runPortfolio(d_numThreads, smFn, fns, threadStackSize,
                      d_options[options::waitToJoin], d_statWaitTime);
 
 #ifdef CVC4_STATISTICS_ON
