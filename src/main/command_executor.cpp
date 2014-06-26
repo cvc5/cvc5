@@ -69,7 +69,7 @@ bool CommandExecutor::doCommand(Command* cmd)
     bool status = true;
 
     for(CommandSequence::iterator subcmd = seq->begin();
-        status && subcmd != seq->end();
+        (status || d_options[options::continuedExecution]) && subcmd != seq->end();
         ++subcmd) {
       status = doCommand(*subcmd);
     }

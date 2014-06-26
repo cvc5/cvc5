@@ -338,7 +338,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser);
       }
       bool needReset = false;
-      while(status && (cmd = parser->nextCommand())) {
+      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
@@ -417,7 +417,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      while(status && (cmd = parser->nextCommand())) {
+      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
         status = pExecutor->doCommand(cmd);
         if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
           delete cmd;
