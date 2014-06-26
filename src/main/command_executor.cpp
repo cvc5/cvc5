@@ -13,12 +13,14 @@
  **/
 
 #include <iostream>
+#include <string>
 
 #include "main/command_executor.h"
 #include "expr/command.h"
 
 #include "main/main.h"
 
+#include "main/options.h"
 #include "smt/options.h"
 
 #ifndef __WIN32__
@@ -150,6 +152,10 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
     cmd->invoke(smt);
   } else {
     cmd->invoke(smt, *out);
+  }
+  // ignore the error if the command-verbosity is 0 for this command
+  if(smt->getOption(std::string("command-verbosity:") + cmd->getCommandName()).getIntegerValue() == 0) {
+    return true;
   }
   return !cmd->fail();
 }
