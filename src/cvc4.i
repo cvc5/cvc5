@@ -61,6 +61,17 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #endif
 %}
 
+#ifdef SWIGPYTHON
+%pythonappend CVC4::SmtEngine::SmtEngine %{
+  print 'hello smtengine'
+  self.thisown = 0
+%}
+%pythonappend CVC4::ExprManager::ExprManager %{
+  print 'hello exprmanager'
+  self.thisown = 0
+%}
+#endif /* SWIGPYTHON */
+
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;
 %template(vectorType) std::vector< CVC4::Type >;
 %template(vectorExpr) std::vector< CVC4::Expr >;
