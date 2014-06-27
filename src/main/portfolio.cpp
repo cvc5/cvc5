@@ -62,7 +62,7 @@ template<typename T, typename S>
 std::pair<int, S> runPortfolio(int numThreads,
                                boost::function<T()> driverFn,
                                boost::function<S()> threadFns[],
-                               uint64_t stackSize,
+                               size_t stackSize,
                                bool optionWaitToJoin,
                                TimerStat& statWaitTime) {
   boost::thread thread_driver;
@@ -131,7 +131,7 @@ std::pair<int, bool>
 runPortfolio<void, bool>(int,
                          boost::function<void()>, 
                          boost::function<bool()>*,
-                         uint64_t,
+                         size_t,
                          bool,
                          TimerStat&);
 
