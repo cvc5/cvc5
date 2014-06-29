@@ -152,6 +152,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::SUBSET, "subset");
     addOperator(kind::MEMBER, "member");
     addOperator(kind::SINGLETON, "singleton");
+    addOperator(kind::INSERT, "insert");
     break;
 
   case THEORY_DATATYPES:

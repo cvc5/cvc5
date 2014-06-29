@@ -130,6 +130,34 @@ struct EmptySetTypeRule {
   }
 };/* struct EmptySetTypeRule */
 
+struct InsertTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::INSERT);
+    size_t numChildren = n.getNumChildren();
+    Assert( numChildren >= 2 );
+    TypeNode setType = n[numChildren-1].getType(check);
+    if( check ) {
+      if(!setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, "inserting into a non-set");
+      }
+      for(size_t i = 0; i < numChildren-1; ++i) {
+        TypeNode elementType = n[i].getType(check);
+        if(elementType != setType.getSetElementType()) {
+          throw TypeCheckingExceptionPrivate
+            (n, "type of element should be same as element type of set being inserted into");
+        }
+      }
+    }
+    return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::INSERT);
+    return n[0].isConst() && n[1].isConst();
+  }
+};/* struct InsertTypeRule */
+
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {

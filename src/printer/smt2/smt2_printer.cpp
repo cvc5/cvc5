@@ -613,6 +613,7 @@ static string smtKindString(Kind k) throw() {
   case kind::MEMBER: return "member";
   case kind::SET_TYPE: return "Set";
   case kind::SINGLETON: return "singleton";
+  case kind::INSERT: return "insert";
   default:
     ; /* fall through */
   }

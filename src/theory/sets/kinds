@@ -41,6 +41,7 @@ operator SETMINUS      2  "set subtraction"
 operator SUBSET        2  "subset predicate; first parameter a subset of second"
 operator MEMBER        2  "set membership predicate; first parameter a member of second"
 operator SINGLETON     1  "the set of the single element given as a parameter"
+operator INSERT        2: "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
 
 typerule UNION          ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 typerule INTERSECTION   ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
@@ -49,10 +50,12 @@ typerule SUBSET         ::CVC4::theory::sets::SubsetTypeRule
 typerule MEMBER         ::CVC4::theory::sets::MemberTypeRule
 typerule SINGLETON      ::CVC4::theory::sets::SingletonTypeRule
 typerule EMPTYSET       ::CVC4::theory::sets::EmptySetTypeRule
+typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 
 construle UNION         ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle INTERSECTION  ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SETMINUS      ::CVC4::theory::sets::SetsBinaryOperatorTypeRule
 construle SINGLETON     ::CVC4::theory::sets::SingletonTypeRule
+construle INSERT        ::CVC4::theory::sets::InsertTypeRule
 
 endtheory

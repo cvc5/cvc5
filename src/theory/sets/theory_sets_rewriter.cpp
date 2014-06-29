@@ -239,6 +239,15 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
     return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
   // Further optimization, if constants but differing ones
 
+  if(node.getKind() == kind::INSERT) {
+    Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
+    size_t setNodeIndex =  node.getNumChildren()-1;
+    for(size_t i = 1; i < setNodeIndex; ++i) {
+      insertedElements = nm->mkNode(kind::UNION, insertedElements, nm->mkNode(kind::SINGLETON, node[i]));
+    }
+    return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::UNION, insertedElements, node[setNodeIndex]));
+  }//kind::INSERT
+
   if(node.getType().isSet() && node.isConst()) {
     //rewrite set to normal form
     SettermElementsMap setTermElementsMap;   // cache
