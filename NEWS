@@ -25,6 +25,8 @@ Changes since 1.3
   Previous versions inadvertently permitted clients to do this via the
   API.  This has been corrected, copy and assignment of the SmtEngine
   is no longer permitted.
+* Theory of finite sets, handling the MLSS fragment (singleton, union,
+  intersection, set subtraction, membership and subset).
 
 Changes since 1.2
 =================
