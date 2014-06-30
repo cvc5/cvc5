@@ -34,10 +34,6 @@ TheorySets::~TheorySets() {
   delete d_internal;
 }
 
-void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
-}
-
 void TheorySets::addSharedTerm(TNode n) {
   d_internal->addSharedTerm(n);
 }
@@ -50,8 +46,8 @@ void TheorySets::collectModelInfo(TheoryModel* m, bool fullModel) {
   d_internal->collectModelInfo(m, fullModel);
 }
 
-void TheorySets::propagate(Effort e) {
-  d_internal->propagate(e);
+void TheorySets::computeCareGraph() {
+  d_internal->computeCareGraph();
 }
 
 Node TheorySets::explain(TNode node) {
@@ -59,7 +55,15 @@ Node TheorySets::explain(TNode node) {
 }
 
 void TheorySets::preRegisterTerm(TNode node) {
-  return d_internal->preRegisterTerm(node);
+  d_internal->preRegisterTerm(node);
+}
+
+void TheorySets::propagate(Effort e) {
+  d_internal->propagate(e);
+}
+
+void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+  d_internal->setMasterEqualityEngine(eq);
 }
 
 }/* CVC4::theory::sets namespace */

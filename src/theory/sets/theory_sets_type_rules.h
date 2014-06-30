@@ -105,20 +105,20 @@ struct MemberTypeRule {
     }
     return nodeManager->booleanType();
   }
-};/* struct SetInTypeRule */
+};/* struct MemberTypeRule */
 
-struct SetSingletonTypeRule {
+struct SingletonTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
     throw (TypeCheckingExceptionPrivate, AssertionException) {
-    Assert(n.getKind() == kind::SET_SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON);
     return nodeManager->mkSetType(n[0].getType(check));
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::SET_SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
-};/* struct SetInTypeRule */
+};/* struct SingletonTypeRule */
 
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -128,7 +128,35 @@ struct EmptySetTypeRule {
     Type setType = emptySet.getType();
     return TypeNode::fromType(setType);
   }
-};
+};/* struct EmptySetTypeRule */
+
+struct InsertTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::INSERT);
+    size_t numChildren = n.getNumChildren();
+    Assert( numChildren >= 2 );
+    TypeNode setType = n[numChildren-1].getType(check);
+    if( check ) {
+      if(!setType.isSet()) {
+        throw TypeCheckingExceptionPrivate(n, "inserting into a non-set");
+      }
+      for(size_t i = 0; i < numChildren-1; ++i) {
+        TypeNode elementType = n[i].getType(check);
+        if(elementType != setType.getSetElementType()) {
+          throw TypeCheckingExceptionPrivate
+            (n, "type of element should be same as element type of set being inserted into");
+        }
+      }
+    }
+    return setType;
+  }
+
+  inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
+    Assert(n.getKind() == kind::INSERT);
+    return n[0].isConst() && n[1].isConst();
+  }
+};/* struct InsertTypeRule */
 
 
 struct SetsProperties {
@@ -146,7 +174,7 @@ struct SetsProperties {
     Assert(type.isSet());
     return NodeManager::currentNM()->mkConst(EmptySet(type.toType()));
   }
-};
+};/* struct SetsProperties */
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

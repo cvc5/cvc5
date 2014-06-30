@@ -6,11 +6,11 @@
 (declare-fun A () SetInt)
 (declare-fun B () SetInt)
 (declare-fun x () Int)
-(assert (in x (union A B)))
+(assert (member x (union A B)))
 
-(assert (not (in x (intersection A B))))
-(assert (not (in x (setminus A B))))
-;(assert (not (in x (setminus B A))))
-;(assert (in x B))
+(assert (not (member x (intersection A B))))
+(assert (not (member x (setminus A B))))
+;(assert (not (member x (setminus B A))))
+;(assert (member x B))
 
 (check-sat)

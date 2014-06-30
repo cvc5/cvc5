@@ -44,37 +44,37 @@ const bool enableAxioms = false;
 #endif
 
 string setaxioms[] = {
-  "(declare-fun inHOLDA (HOLDB (Set HOLDB)) Bool)",
+  "(declare-fun memberHOLDA (HOLDB (Set HOLDB)) Bool)",
   "",
   "(declare-fun unionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (unionHOLDA ?X ?Y))",
-  "                     (or (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                (= (memberHOLDA ?x (unionHOLDA ?X ?Y))",
+  "                     (or (memberHOLDA ?x ?X) (memberHOLDA ?x ?Y))",
   "                ) ) )",
   "",
   "",
   "(declare-fun intersectionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (intersectionHOLDA ?X ?Y))",
-  "                     (and (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                (= (memberHOLDA ?x (intersectionHOLDA ?X ?Y))",
+  "                     (and (memberHOLDA ?x ?X) (memberHOLDA ?x ?Y))",
   "                ) ) )",
   "",
   "(declare-fun setminusHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (setminusHOLDA ?X ?Y))",
-  "                     (and (inHOLDA ?x ?X) (not (inHOLDA ?x ?Y)))",
+  "                (= (memberHOLDA ?x (setminusHOLDA ?X ?Y))",
+  "                     (and (memberHOLDA ?x ?X) (not (memberHOLDA ?x ?Y)))",
   "                ) ) )",
   "",
-  "(declare-fun setenumHOLDA (HOLDB) (Set HOLDB))",
+  "(declare-fun singletonHOLDA (HOLDB) (Set HOLDB))",
   "(assert (forall ((?x HOLDB) (?y HOLDB))",
-  "                (= (inHOLDA ?x (setenumHOLDA ?y))",
+  "                (= (memberHOLDA ?x (singletonHOLDA ?y))",
   "                     (= ?x ?y)",
   "                ) ) )",
   "",
   "(declare-fun emptysetHOLDA () (Set HOLDB))",
-  "(assert (forall ((?x HOLDB)) (not (inHOLDA ?x emptysetHOLDA)) ) )",
+  "(assert (forall ((?x HOLDB)) (not (memberHOLDA ?x emptysetHOLDA)) ) )",
   "",
-  "(define-fun subseteqHOLDA ((X (Set HOLDB)) (Y (Set HOLDB))) Bool (= (unionHOLDA X Y) Y))",
+  "(define-fun subsetHOLDA ((X (Set HOLDB)) (Y (Set HOLDB))) Bool (= (unionHOLDA X Y) Y))",
   ""
 };
 
@@ -123,12 +123,12 @@ class Mapper {
                    t);
 
       if(!enableAxioms)
-        sout << "(define-fun setenum" << elementTypeAsString << "     "
+        sout << "(define-fun singleton" << elementTypeAsString << "     "
              << " ( (x " << elementType << ") )"
              << " " << name << ""
              << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
-      setoperators[ make_pair(t, kind::SET_SINGLETON) ] =
-        em->mkVar( std::string("setenum") + elementTypeAsString,
+      setoperators[ make_pair(t, kind::SINGLETON) ] =
+        em->mkVar( std::string("singleton") + elementTypeAsString,
                    em->mkFunctionType( elementType, t ) );
 
       if(!enableAxioms)
@@ -164,16 +164,16 @@ class Mapper {
              << " Bool"
              << " (select s x) )" << endl;
       setoperators[ make_pair(t, kind::MEMBER) ] =
-        em->mkVar( std::string("in") + elementTypeAsString,
+        em->mkVar( std::string("member") + elementTypeAsString,
                    em->mkPredicateType( elet_t ) );
 
       if(!enableAxioms)
-        sout << "(define-fun subseteq" << elementTypeAsString << "    "
+        sout << "(define-fun subset" << elementTypeAsString << "    "
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " Bool"
              <<" (= emptyset" << elementTypeAsString << " (setminus" << elementTypeAsString << " s1 s2)) )" << endl;
       setoperators[ make_pair(t, kind::SUBSET) ] =
-        em->mkVar( std::string("subseteq") + elementTypeAsString,
+        em->mkVar( std::string("subset") + elementTypeAsString,
                    em->mkPredicateType( t_t ) );
 
       if(enableAxioms) {

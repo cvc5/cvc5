@@ -76,7 +76,7 @@ public:
     Assert(d_index == 0 || d_index == 1);
 
     if(d_index == 1) {
-      n = d_nm->mkNode(kind::SET_SINGLETON, *(*(d_constituentVec[0])));
+      n = d_nm->mkNode(kind::SINGLETON, *(*(d_constituentVec[0])));
     }
 
     // for (unsigned i = 0; i < d_indexVec.size(); ++i) {
