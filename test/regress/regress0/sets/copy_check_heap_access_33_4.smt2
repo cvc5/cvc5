@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-option :print-success false)
-(set-logic AUFLIA_SETS)
+(set-logic AUFLIAFS)
 (set-info :status unsat)
 (declare-sort Loc 0)
 (define-sort SetLoc () (Set Loc))

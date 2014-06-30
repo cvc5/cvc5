@@ -26,6 +26,10 @@ int main() {
   ExprManager em;
   SmtEngine smt(&em);
 
+  // Optionally, set the logic. We need at least UF for equality predicate,
+  // integers (LIA) and sets (FS).
+  smt.setLogic("QF_UFLIAFS");
+
   // Produce models
   smt.setOption("produce-models", true);
 

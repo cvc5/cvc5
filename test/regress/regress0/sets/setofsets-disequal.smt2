@@ -1,7 +1,7 @@
 ; On a production build (as of 2014-05-16), takes several minutes
 ; to finish (2967466 decisions).
 
-(set-logic QF_BV_SETS)
+(set-logic QF_BVFS)
 (set-info :status unsat)
 
 (define-sort myset () (Set (Set (_ BitVec 1))))

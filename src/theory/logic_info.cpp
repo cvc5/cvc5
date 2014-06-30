@@ -129,7 +129,7 @@ std::string LogicInfo::getLogicString() const {
         ++seen;
       }
       if(d_theories[THEORY_SETS]) {
-        ss << "_SETS";
+        ss << "FS";
         ++seen;
       }
 
@@ -272,9 +272,9 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         arithNonLinear();
         p += 4;
       }
-      if(!strncmp(p, "_SETS", 5)) {
+      if(!strncmp(p, "FS", 2)) {
         enableTheory(THEORY_SETS);
-        p += 5;
+        p += 2;
       }
     }
   }

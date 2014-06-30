@@ -2,7 +2,7 @@
 (set-info :smt-lib-version 2.0)
 (set-info :category "random")
 (set-info :status sat)
-(set-logic QF_UFLIA_SETS)
+(set-logic QF_UFLIAFS)
 (define-sort Element () Int)
 (declare-fun f0 ( Int Int Int) Int)
 (declare-fun f1 ( (Set Element)) (Set Element))
