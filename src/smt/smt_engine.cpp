@@ -872,12 +872,14 @@ void SmtEngine::setDefaults() {
   }
 
   // set strings-exp
+  /* - disabled for 1.4 release [MGD 2014.06.25]
   if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     if(! options::stringExp.wasSetByUser()) {
       options::stringExp.set( true );
       Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
     }
   }
+  */
   // for strings
   if(options::stringExp()) {
     if( !d_logic.isQuantified() ) {
@@ -891,6 +893,9 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
     }
     if(! options::fmfBoundInt.wasSetByUser()) {
+      if(! options::fmfBoundIntLazy.wasSetByUser()) {
+        options::fmfBoundIntLazy.set( true );
+      }
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
@@ -927,44 +932,6 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  // set strings-exp
-  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS)) {
-    if(! options::stringExp.wasSetByUser()) {
-      options::stringExp.set(true);
-      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
-    }
-  }
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableQuantifiers();
-      d_logic.lock();
-      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
-    }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
-    }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      if(! options::fmfBoundIntLazy.wasSetByUser()) {
-        options::fmfBoundIntLazy.set( true );
-      }
-      options::fmfBoundInt.set( true );
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
-    }
-        /*
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }*/
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
-    }
-    */
-  }
   // by default, symmetry breaker is on only for QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
     bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified();
