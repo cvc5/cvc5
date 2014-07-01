@@ -2,10 +2,10 @@
 /*! \file type_node.cpp
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: Tim King, Morgan Deters
- ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett
+ ** Major contributors: Kshitij Bansal, Morgan Deters
+ ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

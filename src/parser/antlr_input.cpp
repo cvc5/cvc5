@@ -2,8 +2,8 @@
 /*! \file antlr_input.cpp
  ** \verbatim
  ** Original author: Christopher L. Conway
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Francois Bobot, Kshitij Bansal
+ ** Major contributors: Morgan Deters, Kshitij Bansal
+ ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing

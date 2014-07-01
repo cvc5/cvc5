@@ -2,10 +2,10 @@
 /*! \file ite_removal.cpp
  ** \verbatim
  ** Original author: Dejan Jovanovic
- ** Major contributors: Morgan Deters, Andrew Reynolds, Tim King
- ** Minor contributors (to current version): Clark Barrett
+ ** Major contributors: Tim King, Morgan Deters
+ ** Minor contributors (to current version): Kshitij Bansal, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

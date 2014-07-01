@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file bvintropow2.cpp
+ ** \verbatim
+ ** Original author: Liana Hadarean
+ ** Major contributors: none
+ ** Minor contributors (to current version): none
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 #include "theory/bv/bvintropow2.h"
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"

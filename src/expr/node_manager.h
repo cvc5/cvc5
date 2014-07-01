@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Christopher L. Conway, Morgan Deters
- ** Minor contributors (to current version): ACSYS, Tianyi Liang, Tim King
+ ** Minor contributors (to current version): ACSYS, Tianyi Liang, Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
