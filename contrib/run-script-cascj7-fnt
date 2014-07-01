@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=cvc4
+cvc4=./cvc4
 bench="$1"
 
 file=${bench##*/}
