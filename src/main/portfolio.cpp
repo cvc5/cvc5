@@ -20,6 +20,7 @@
 #include <boost/exception_ptr.hpp>
 
 #include "smt/smt_engine.h"
+#include "util/output.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
 #include "options/options.h"
@@ -79,14 +80,15 @@ std::pair<int, S> runPortfolio(int numThreads,
     threads[t] = 
       boost::thread(attrs, boost::bind(runThread<S>, t, threadFns[t],
                                 boost::ref(threads_returnValue[t]) ) );
-  /*
-    void *stackaddr;
-    size_t stacksize;
-    pthread_attr_t attr;
-    pthread_getattr_np(threads[t].native_handle(), &attr);
-    pthread_attr_getstack(&attr, &stackaddr, &stacksize);
-    std::cerr << "I am " << t << " with stack size " << stacksize << std::endl;
-   */
+
+    if(Chat.isOn()) {
+      void *stackaddr;
+      size_t stacksize;
+      pthread_attr_t attr;
+      pthread_getattr_np(threads[t].native_handle(), &attr);
+      pthread_attr_getstack(&attr, &stackaddr, &stacksize);
+      Chat() << "Created worker thread " << t << " with stack size " << stacksize << std::endl;
+    }
   }
 
   if(not driverFn.empty())
