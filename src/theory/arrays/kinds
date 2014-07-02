@@ -41,10 +41,18 @@ constant STORE_ALL \
 # used internally by array theory
 operator ARR_TABLE_FUN 4 "array table function (internal-only symbol)"
 
+# used internally for substitutions in models (e.g. the Boolean terms converter)
+# The (single) argument is a lambda(x:T):U.  Type of the array lambda is
+# Array T of U.  Thus ARRAY_LAMBDA LAMBDA(x:INT) . (read a x) is the same array
+# as a.  ARRAY_LAMBDA LAMBDA(x:INT) . (read a (- x 1)) is the same array as
+# as a shifted over one.
+operator ARRAY_LAMBDA 1 "array lambda (internal-only symbol)"
+
 typerule SELECT ::CVC4::theory::arrays::ArraySelectTypeRule
 typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
+typerule ARRAY_LAMBDA ::CVC4::theory::arrays::ArrayLambdaTypeRule
 
 # store operations that are ordered (by index) over a store-all are constant
 construle STORE ::CVC4::theory::arrays::ArrayStoreTypeRule

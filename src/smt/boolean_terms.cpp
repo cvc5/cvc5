@@ -164,6 +164,23 @@ Node BooleanTermConverter::rewriteAs(TNode in, TypeNode as) throw() {
     }
     return out;
   }
+  if(in.getType().isArray()) {
+    // convert in to in'
+    // e.g. in : (Array Int Bool)
+    // for in' : (Array Int (_ BitVec 1))
+    // then subs  in  |=>  \array_lambda ( \lambda (x:Int) . [convert (read a' x) x]
+    Assert(as.isArray());
+    Assert(as.getArrayIndexType() == in.getType().getArrayIndexType());
+    Assert(as.getArrayConstituentType() != in.getType().getArrayConstituentType());
+    Node x = NodeManager::currentNM()->mkBoundVar(as.getArrayIndexType());
+    Node boundvars = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, x);
+    Node sel = NodeManager::currentNM()->mkNode(kind::SELECT, in, x);
+    Node selprime = rewriteAs(sel, as.getArrayConstituentType());
+    Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, boundvars, selprime);
+    Node out = NodeManager::currentNM()->mkNode(kind::ARRAY_LAMBDA, lam);
+    Assert(out.getType() == as);
+    return out;
+  }
   if(in.getType().isParametricDatatype() &&
      in.getType().isInstantiatedDatatype()) {
     // We have something here like (Pair Bool Bool)---need to dig inside
@@ -725,17 +742,19 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
       case kind::EXISTS: {
         Debug("bt") << "looking at quantifier -> " << top << endl;
         set<TNode> ourVars;
+        set<TNode> output;
         for(TNode::iterator i = top[0].begin(); i != top[0].end(); ++i) {
           if((*i).getType().isBoolean()) {
             ourVars.insert(*i);
+          } else if(convertType((*i).getType(), false) != (*i).getType()) {
+            output.insert(*i);
           }
         }
-        if(ourVars.empty()) {
+        if(ourVars.empty() && output.empty()) {
           // Simple case, quantifier doesn't quantify over Boolean vars,
           // no special handling needed for quantifier.  Fall through.
           Debug("bt") << "- quantifier simple case (1), no Boolean vars bound" << endl;
         } else {
-          set<TNode> output;
           hash_set< pair<TNode, bool>, PairHashFunction<TNode, bool, TNodeHashFunction, BoolHashFunction> > alreadySeen;
           collectVarsInTermContext(top[1], ourVars, output, true, alreadySeen);
           if(output.empty()) {
@@ -747,7 +766,7 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
             // We have Boolean vars appearing in term context.  Convert their
             // types in the quantifier.
             for(set<TNode>::const_iterator i = output.begin(); i != output.end(); ++i) {
-              Node newVar = nm->mkBoundVar((*i).toString(), nm->mkBitVectorType(1));
+              Node newVar = nm->mkBoundVar((*i).toString(), convertType((*i).getType(), false));
               Assert(quantBoolVars.find(*i) == quantBoolVars.end(), "bad quantifier: shares a bound var with another quantifier (don't do that!)");
               quantBoolVars[*i] = newVar;
             }

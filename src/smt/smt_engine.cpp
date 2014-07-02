@@ -3840,6 +3840,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = d_private->d_iteRemover.replace(n);
     Notice() << "SmtEngine::checkModel(): -- ite replacement gives " << n << endl;
 
+    // Apply our model value substitutions (again), as things may have been simplified.
+    Debug("boolean-terms") << "applying subses to " << n << endl;
+    n = substitutions.apply(n);
+    Debug("boolean-terms") << "++ got " << n << endl;
+    Notice() << "SmtEngine::checkModel(): -- re-substitutes to " << n << endl;
+
     // As a last-ditch effort, ask model to simplify it.
     // Presently, this is only an issue for quantifiers, which can have a value
     // but don't show up in our substitution map above.

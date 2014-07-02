@@ -178,6 +178,23 @@ struct ArrayTableFunTypeRule {
   }
 };/* struct ArrayTableFunTypeRule */
 
+struct ArrayLambdaTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    Assert(n.getKind() == kind::ARRAY_LAMBDA);
+    TypeNode lamType = n[0].getType(check);
+    if( check ) {
+      if(n[0].getKind() != kind::LAMBDA) {
+        throw TypeCheckingExceptionPrivate(n, "array lambda arg is non-lambda");
+      }
+    }
+    if(lamType.getNumChildren() != 2) {
+      throw TypeCheckingExceptionPrivate(n, "array lambda arg is not unary lambda");
+    }
+    return nodeManager->mkArrayType(lamType[0], lamType[1]);
+  }
+};/* struct ArrayLambdaTypeRule */
+
 struct ArraysProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
     Assert(type.getKind() == kind::ARRAY_TYPE);
