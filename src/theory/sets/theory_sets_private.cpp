@@ -814,15 +814,19 @@ void TheorySetsPrivate::addToPending(Node n) {
       Assert(n.getKind() == kind::EQUAL);
       d_pendingDisequal.push(n);
     }
+    d_external.d_out->lemma(getLemma());
+    Assert(isComplete());
   }
 }
 
 bool TheorySetsPrivate::isComplete() {
-  while(!d_pending.empty() && present(d_pending.front())) {
-    Debug("sets-pending") << "[sets-pending] removing as already present: "
-                          << d_pending.front() << std::endl;
-    d_pending.pop();
-  }
+  // while(!d_pending.empty() &&
+  //       (d_pendingEverInserted.find(d_pending.front()) != d_pendingEverInserted.end()
+  //        || present(d_pending.front()) ) ) {
+  //   Debug("sets-pending") << "[sets-pending] removing as already present: "
+  //                         << d_pending.front() << std::endl;
+  //   d_pending.pop();
+  // }
   return d_pending.empty() && d_pendingDisequal.empty();
 }
 
