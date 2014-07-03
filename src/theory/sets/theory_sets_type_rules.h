@@ -100,7 +100,7 @@ struct MemberTypeRule {
       }
       TypeNode elementType = n[0].getType(check);
       if(elementType != setType.getSetElementType()) {
-        throw TypeCheckingExceptionPrivate(n, "set in operating on sets of different types");
+        throw TypeCheckingExceptionPrivate(n, "member operating on sets of different types");
       }
     }
     return nodeManager->booleanType();

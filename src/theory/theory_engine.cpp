@@ -155,7 +155,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_sharedTermsVisitor(d_sharedTerms),
   d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
   d_bvToBoolPreprocessor(),
-  d_arithSubstitutionsAdded("zzz::arith::substitutions", 0)
+  d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     d_theoryTable[theoryId] = NULL;
@@ -453,7 +453,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
 void TheoryEngine::combineTheories() {
 
-  Debug("sharing") << "TheoryEngine::combineTheories()" << endl;
+  Trace("sharing") << "TheoryEngine::combineTheories()" << endl;
 
   TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
 
@@ -471,7 +471,7 @@ void TheoryEngine::combineTheories() {
   // Call on each parametric theory to give us its care graph
   CVC4_FOR_EACH_THEORY;
 
-  Debug("sharing") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
+  Trace("sharing") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
 
   // Now add splitters for the ones we are interested in
   CareGraph::const_iterator care_it = careGraph.begin();
@@ -1394,16 +1394,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
   if(negated) {
-    // Can't we just get rid of passing around this 'negated' stuff?
-    // Is it that hard for the propEngine to figure that out itself?
-    // (I like the use of triple negation <evil laugh>.) --K
     additionalLemmas[0] = additionalLemmas[0].notNode();
     negated = false;
   }
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
-  // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
 
   // assert to decision engine
   if(!removable) {

@@ -54,6 +54,14 @@ Node TheorySets::explain(TNode node) {
   return d_internal->explain(node);
 }
 
+EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
+  return d_internal->getEqualityStatus(a, b);
+}
+
+Node TheorySets::getModelValue(TNode node) {
+  return d_internal->getModelValue(node);
+}
+
 void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }

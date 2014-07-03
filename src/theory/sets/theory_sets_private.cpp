@@ -27,6 +27,8 @@
 #include "util/emptyset.h"
 #include "util/result.h"
 
+#include "util/partitions.h"
+
 using namespace std;
 using namespace CVC4::expr::pattern;
 
@@ -420,29 +422,213 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
 
 void TheorySetsPrivate::computeCareGraph() {
   Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
-  for (unsigned i = 0; i < d_external.d_sharedTerms.size(); ++ i) {
+
+  // dump our understanding of assertions
+  if(Trace.isOn("sets-assertions")
+     || Trace.isOn("sets-care-dump"))
+  {
+    std::string tag = "sets-assertions";
+    context::CDList<Assertion>::const_iterator it = d_external.facts_begin(), it_end = d_external.facts_end();
+
+    std::map<TNode, std::set<TNode> > equalities;
+    std::set< pair<TNode, TNode> > disequalities;
+    std::map<TNode, std::pair<std::set<TNode>, std::set<TNode> > > members;
+    static std::map<TNode, int> numbering;
+    static int number = 0;
+
+    for (unsigned i = 0; it != it_end; ++ it, ++i) {
+      TNode ass = (*it).assertion;
+      Trace("sets-care-dump") << AssertCommand(ass.toExpr()) << endl;
+      bool polarity = ass.getKind() != kind::NOT;
+      ass = polarity ? ass : ass[0];
+      Assert( ass.getNumChildren() == 2);
+      TNode left = d_equalityEngine.getRepresentative(ass[0]);
+      TNode right = d_equalityEngine.getRepresentative(ass[1]);
+      if(numbering[left] == 0) numbering[left] = ++number;
+      if(numbering[right] == 0) numbering[right] = ++number;
+      equalities[left].insert(ass[0]);
+      equalities[right].insert(ass[1]);
+      if(ass.getKind() == kind::EQUAL) {
+        if(polarity) {
+          Assert(left == right);
+        } else {
+          if(left > right) std::swap(left, right);
+          disequalities.insert(make_pair(left, right));
+        }
+      } else if(ass.getKind() == kind::MEMBER) {
+        (polarity ? members[right].first : members[right].second).insert(left);
+      }
+    }
+#define FORIT(it, container) for(typeof((container).begin()) it=(container).begin(); (it) != (container).end(); ++(it))
+    FORIT(kt, equalities) {
+      Trace(tag) << " Eq class of t" << numbering[(*kt).first] << ": " << std::endl;
+      FORIT(jt, (*kt).second) {
+        TNode S = (*jt);
+        if( S.getKind() != kind::UNION && S.getKind() != kind::INTERSECTION && S.getKind() != kind::SETMINUS) {
+          Trace(tag) << "    " << *jt << ((*jt).getType().isSet() ? "\n": " ");
+        } else {
+          Trace(tag) << "    ";
+          if(S[0].isConst() || numbering.find(d_equalityEngine.getRepresentative(S[0])) == numbering.end()) {
+            Trace(tag) << S[0];
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(S[0])];
+          }
+          Trace(tag) << " " << (S.getKind() == kind::UNION ? "|" : (S.getKind() == kind::INTERSECTION ? "&" : "-")) << " ";
+          if(S[1].isConst() || numbering.find(d_equalityEngine.getRepresentative(S[1])) == numbering.end()) {
+            Trace(tag) << S[1];
+          } else {
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(S[1])];
+          }
+          Trace(tag) << std::endl;
+        }
+      }
+      Trace(tag) << std::endl;
+    }
+    FORIT(kt, disequalities) Trace(tag) << "NOT(t"<<numbering[(*kt).first]<<" = t" <<numbering[(*kt).second] <<")"<< std::endl;
+    FORIT(kt, members) {
+      if( (*kt).second.first.size() > 0) {
+        Trace(tag) << "IN t" << numbering[(*kt).first] << ": ";
+        FORIT(jt, (*kt).second.first) {
+          TNode x = (*jt);
+          if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
+            Trace(tag) << x;
+          } else {
+            Trace(tag) << "x" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+          }
+        }
+        Trace(tag) << std::endl;
+      }
+      if( (*kt).second.second.size() > 0) {
+        Trace(tag) << "NOT IN t" << numbering[(*kt).first] << ": ";
+        FORIT(jt, (*kt).second.second) {
+          TNode x = (*jt);
+          if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
+            Trace(tag) << x;
+          } else {
+            Trace(tag) << "x" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+          }
+        }
+        Trace(tag) << std::endl;
+      }
+    }
+    Trace(tag) << std::endl;
+
+  }
+
+  std::map<TypeNode, std::set<TNode> > careGraphVertices;
+
+  for (unsigned i = d_ccg_i; i < d_external.d_sharedTerms.size(); ++ i) {
     TNode a = d_external.d_sharedTerms[i];
     TypeNode aType = a.getType();
-    for (unsigned j = i + 1; j < d_external.d_sharedTerms.size(); ++ j) {
+    // if(a.getType().isSet()) {
+    //   int sizeMem = d_termInfoManager->getMembers(d_equalityEngine.getRepresentative(a))->size();
+    //   int sizeNonMem = d_termInfoManager->getNonMembers(d_equalityEngine.getRepresentative(a))->size();
+    //   Debug("sets-care") << "[sets-care] " << a << " : " << sizeMem << " " << sizeNonMem << std::endl;
+    //   if(sizeMem == 0 && sizeNonMem == 0) continue;
+    // }
+    unsigned j_st;
+    if(i == d_ccg_i) j_st = d_ccg_j + 1;
+    else j_st = i + 1;
+    for (unsigned j = j_st; j < d_external.d_sharedTerms.size(); ++ j) {
       TNode b = d_external.d_sharedTerms[j];
       if (b.getType() != aType) {
         // We don't care about the terms of different types
         continue;
       }
+      // if(b.getType().isSet()) {
+      //   int sizeMem = d_termInfoManager->getMembers(d_equalityEngine.getRepresentative(b))->size();
+      //   int sizeNonMem = d_termInfoManager->getNonMembers(d_equalityEngine.getRepresentative(b))->size();
+      //   Debug("sets-care") << "[sets-care] " << a << " : " << sizeMem << " " << sizeNonMem << std::endl;
+      //   if(sizeMem == 0 && sizeNonMem == 0) continue;
+      // }
       switch (d_external.d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
+        // If we know about it, we should have propagated it, so we can skip
+        Trace("sets-care") << "[sets-care] Know: " << EQUAL(a, b) << std::endl;
+        break;
       case EQUALITY_FALSE_AND_PROPAGATED:
         // If we know about it, we should have propagated it, so we can skip
+        Trace("sets-care") << "[sets-care] Know: " << NOT(EQUAL(a, b)) << std::endl;
         break;
-      default:
+      case EQUALITY_FALSE:
+      case EQUALITY_TRUE:
+        Assert(false, "ERROR: Equality status true/false but not propagated (sets care graph computation).");
+        break;
+      case EQUALITY_TRUE_IN_MODEL:
+        d_external.addCarePair(a, b);
+      case EQUALITY_FALSE_IN_MODEL:
+        if(Trace.isOn("sets-care-performance-test")) {
+          // TODO: delete these lines, only for performance testing for now
+          d_external.addCarePair(a, b);
+        }
+        break;
+      case EQUALITY_UNKNOWN:
         // Let's split on it
         d_external.addCarePair(a, b);
+        if(options::setsCare1()) {
+          d_ccg_i = i;
+          d_ccg_j = j;
+          return;
+        }
+        if(Trace.isOn("sets-care-dump")) {
+          careGraphVertices[a.getType()].insert(a);
+          careGraphVertices[a.getType()].insert(b);
+        }
         break;
+      default:
+	Unreachable();
       }
     }
   }
+
+  if(Trace.isOn("sets-care-dump")) {
+    FORIT(it, careGraphVertices) {
+      // Trace("sets-care-dump") << "For " << (*it).first << ": " << std::endl;
+      std::set<TNode>& S = (*it).second;
+      for(util::partition::iterator subsets(S.size());
+          !subsets.isFinished(); ++subsets) {
+        Trace("sets-care-dump") << ";---split---" << std::endl;
+        Trace("sets-care-dump") << ";";
+        for(unsigned i = 0; i < S.size(); ++i) Trace("sets-care-dump") << subsets.get(i);
+        Trace("sets-care-dump") << std::endl;
+        int j = 0;
+        FORIT(jt, (*it).second) {
+          int k = 0;
+          FORIT(kt, (*it).second) {
+            if(j == k) continue;
+            Node n = EQUAL( (*jt), (*kt) );
+            if(!subsets.equal(j, k)) n = NOT(n);
+            Trace("sets-care-dump") << AssertCommand(n.toExpr()) << std::endl;
+            ++k;
+          }
+          ++j;
+        }
+      }
+    }
+    Trace("sets-care-dump") << ";---split---" << std::endl;
+#undef FORIT
+  }
 }
 
+EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
+  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
+  if (d_equalityEngine.areEqual(a, b)) {
+    // The terms are implied to be equal
+    return EQUALITY_TRUE;
+  }
+  if (d_equalityEngine.areDisequal(a, b, false)) {
+    // The terms are implied to be dis-equal
+    return EQUALITY_FALSE;
+  }
+  if( d_external.d_valuation.getModelValue(a) == d_external.d_valuation.getModelValue(b) ) {
+    // Ther term are true in current model
+    return EQUALITY_TRUE_IN_MODEL;
+  }
+  return EQUALITY_FALSE_IN_MODEL;
+  // }
+  // //TODO: can we be more precise sometimes?
+  // return EQUALITY_UNKNOWN;
+}
 
 /******************** Model generation ********************/
 /******************** Model generation ********************/
@@ -578,6 +764,21 @@ Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) con
     return cur;
   }
 }
+Node TheorySetsPrivate::elementsToShape(set<Node> elements, TypeNode setType) const
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  if(elements.size() == 0) {
+    return nm->mkConst(EmptySet(nm->toType(setType)));
+  } else {
+    typeof(elements.begin()) it = elements.begin();
+    Node cur = SINGLETON(*it);
+    while( ++it != elements.end() ) {
+      cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
+    }
+    return cur;
+  }
+}
 
 void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 {
@@ -684,6 +885,11 @@ void TheorySetsPrivate::collectModelInfo(TheoryModel* m, bool fullModel)
 #endif
 }
 
+Node TheorySetsPrivate::getModelValue(TNode n)
+{
+  CodeTimer codeTimer(d_statistics.d_getModelValueTime);
+  return d_termInfoManager->getModelValue(n);
+}
 
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
@@ -730,14 +936,17 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 
 
 TheorySetsPrivate::Statistics::Statistics() :
-  d_checkTime("theory::sets::time") {
-
+  d_checkTime("theory::sets::time")
+  , d_getModelValueTime("theory::sets::getModelValueTime")
+{
   StatisticsRegistry::registerStat(&d_checkTime);
+  StatisticsRegistry::registerStat(&d_getModelValueTime);
 }
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_checkTime);
+  StatisticsRegistry::unregisterStat(&d_getModelValueTime);
 }
 
 
@@ -876,6 +1085,9 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_pending(c),
   d_pendingDisequal(c),
   d_pendingEverInserted(u),
+  d_modelCache(c),
+  d_ccg_i(c),
+  d_ccg_j(c),
   d_scrutinize(NULL)
 {
   d_termInfoManager = new TermInfoManager(*this, c, &d_equalityEngine);
@@ -1106,6 +1318,8 @@ void TheorySetsPrivate::TermInfoManager::notifyMembership(TNode fact) {
 
   d_info[S]->addToElementList(x, polarity);
   d_info[x]->addToSetList(S, polarity);
+
+  d_theory.d_modelCache.clear();
 }
 
 const CDTNodeList* TheorySetsPrivate::TermInfoManager::getParents(TNode x) {
@@ -1259,8 +1473,35 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
               (*itb).second->setsContainingThisElement );
   mergeLists( (*ita).second->setsNotContainingThisElement,
               (*itb).second->setsNotContainingThisElement );
+
+  d_theory.d_modelCache.clear();
 }
 
+Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
+{
+  Assert(n.getType().isSet());
+  set<Node> elements, elements_const;
+  Node S = d_eqEngine->getRepresentative(n);
+  typeof(d_theory.d_modelCache.begin()) it = d_theory.d_modelCache.find(S);
+  if(it != d_theory.d_modelCache.end()) {
+    return (*it).second;
+  }
+  const CDTNodeList* l = getMembers(S);
+  for(typeof(l->begin()) it = l->begin(); it != l->end(); ++it) {
+    TNode n = *it;
+    elements.insert(d_eqEngine->getRepresentative(n));
+  }
+  BOOST_FOREACH(TNode e, elements) {
+    if(e.isConst()) {
+      elements_const.insert(e);
+    } else {
+      elements_const.insert(d_theory.d_external.d_valuation.getModelValue(e));
+    }
+  }
+  Node v = d_theory.elementsToShape(elements_const, n.getType());
+  d_theory.d_modelCache[n] = v;
+  return v;
+}
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */
