@@ -80,7 +80,7 @@ vector<Options> parseThreadSpecificOptions(Options opts)
         }
       }
       free(targv[0]);
-      delete targv;
+      delete [] targv;
       free(tbuf);
     }
   }

@@ -135,6 +135,15 @@ Solver::Solver(CVC4::context::Context* c) :
   , progress_estimate  (0)
   , remove_satisfied   (true)
 
+  , ca                 ()
+
+  // even though these are temporaries and technically should be set
+  // before calling, lets intialize them. this will reduces chances of
+  // non-determinism in portfolio (parallel) solver if variables are
+  // being (incorrectly) used without initialization.
+  , seen(),  analyze_stack(), analyze_toclear(), add_tmp()
+  , max_learnts(0.0), learntsize_adjust_confl(0.0), learntsize_adjust_cnt(0)
+
     // Resource constraints:
     //
   , conflict_budget    (-1)

@@ -193,6 +193,10 @@ AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
   , d_isDifficult(c, false)
   , d_budget(options::bitvectorAlgebraicBudget())
   , d_explanations()
+  , d_inputAssertions()
+  , d_ids()
+  , d_numSolved(0)
+  , d_numCalls(0)
   , d_ctx(new context::Context())
   , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("alg", d_quickSolver) : NULL)
   , d_statistics()
@@ -641,7 +645,7 @@ bool AlgebraicSolver::useHeuristic() {
   if (d_numCalls == 0)
     return true;
   
-  double success_rate = d_numSolved/d_numCalls;
+  double success_rate = double(d_numSolved)/double(d_numCalls);
   d_statistics.d_useHeuristic.setData(success_rate);
   return success_rate > 0.8;
 }

@@ -174,8 +174,8 @@ class AlgebraicSolver : public SubtheorySolver {
   std::vector<Node> d_explanations; /**< explanations for assertions indexed by assertion id */
   TNodeSet d_inputAssertions;   /**< assertions in current context (for debugging purposes only) */
   NodeIdMap d_ids;              /**< map from assertions to ids */
-  double d_numSolved;
-  double d_numCalls;
+  uint64_t d_numSolved;
+  uint64_t d_numCalls;
 
   context::Context* d_ctx;
   QuickXPlain* d_quickXplain;   /**< separate quickXplain module as it can reuse the current SAT solver */
