@@ -162,6 +162,12 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << n.getConst<Datatype>().getName();
       break;
 
+    case kind::EMPTYSET: {
+      out << "{} :: " << n.getConst<EmptySet>().getType();
+      return;
+      break;
+    }
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and print something reasonable
@@ -695,6 +701,58 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << ", " << n.getOperator().getConst<BitVectorRotateRight>() << ')';
       return;
       break;
+
+    // SETS
+    case kind::SET_TYPE:
+      out << "SET OF ";
+      toStream(out, n[0], depth, types, false);
+      return;
+      break;
+    case kind::UNION:
+      op << '|';
+      opType = INFIX;
+      break;
+    case kind::INTERSECTION:
+      op << '&';
+      opType = INFIX;
+      break;
+    case kind::SETMINUS:
+      op << '-';
+      opType = INFIX;
+      break;
+    case kind::SUBSET:
+      op << "<=";
+      opType = INFIX;
+      break;
+    case kind::MEMBER:
+      op << "IN";
+      opType = INFIX;
+      break;
+    case kind::SINGLETON:
+      out << "{";
+      toStream(out, n[0], depth, types, false);
+      out << "}";
+      return;
+      break;
+    case kind::INSERT: {
+      if(bracket) {
+	out << '(';
+      }
+      out << '{';
+      size_t i = 0;
+      toStream(out, n[i++], depth, types, false);
+      for(;i+1 < n.getNumChildren(); ++i) {
+        out << ", ";
+        toStream(out, n[i], depth, types, false);
+      }
+      out << "} | ";
+      toStream(out, n[i], depth, types, true);
+      if(bracket) {
+	out << ')';
+      }
+      return;
+      break;
+    }
 
     // Quantifiers
     case kind::FORALL:
