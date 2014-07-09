@@ -104,6 +104,7 @@ tokens {
   WITH_TOK = 'WITH';
 
   SUBTYPE_TOK = 'SUBTYPE';
+  SET_TOK = 'SET';
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
@@ -326,6 +327,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case GEQ_TOK: return kind::GEQ;
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
+  case IN_TOK: return kind::MEMBER;
 
     // arithmeticBinop
   case PLUS_TOK: return kind::PLUS;
@@ -388,12 +390,23 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   Kind k = getOperatorKind(operators[pivot], negate);
   Expr lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
   Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
-  if(k == kind::EQUAL && lhs.getType().isBoolean()) {
-    if(parser->strictModeEnabled()) {
-      WarningOnce() << "Warning: in strict parsing mode, will not convert BOOL = BOOL to BOOL <=> BOOL" << std::endl;
-    } else {
-      k = kind::IFF;
+
+  switch(k) {
+  case kind::EQUAL: {
+    if(lhs.getType().isBoolean()) {
+      if(parser->strictModeEnabled()) {
+        WarningOnce() << "Warning: in strict parsing mode, will not convert BOOL = BOOL to BOOL <=> BOOL" << std::endl;
+      } else {
+        k = kind::IFF;
+      }
     }
+    break;
+  }
+  case kind::LEQ          : if(lhs.getType().isSet()) { k = kind::SUBSET; } break;
+  case kind::MINUS        : if(lhs.getType().isSet()) { k = kind::SETMINUS; } break;
+  case kind::BITVECTOR_AND: if(lhs.getType().isSet()) { k = kind::INTERSECTION; } break;
+  case kind::BITVECTOR_OR : if(lhs.getType().isSet()) { k = kind::UNION; } break;
+  default: break;
   }
   Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
@@ -1146,6 +1159,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::Type& t,
     /* array types */
   | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
     { t = EXPR_MANAGER->mkArrayType(t, t2); }
+  | SET_TOK OF_TOK restrictedType[t,check]
+    { t = EXPR_MANAGER->mkSetType(t); }
 
     /* subtypes */
   | SUBTYPE_TOK LPAREN
@@ -1427,6 +1442,7 @@ comparisonBinop[unsigned& op]
   | GEQ_TOK
   | LT_TOK
   | LEQ_TOK
+  | IN_TOK
   ;
 
 term[CVC4::Expr& f]
@@ -1701,6 +1717,8 @@ postfixTerm[CVC4::Expr& f]
                                MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(t))), f.getOperator() ));
           v.insert(v.end(), f.begin(), f.end());
           f = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        } else if(f.getKind() == CVC4::kind::EMPTYSET && t.isSet()) {
+          f = MK_CONST(CVC4::EmptySet(t));
         } else {
           if(f.getType() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -1906,6 +1924,20 @@ simpleTerm[CVC4::Expr& f]
   | PARENHASH HASHPAREN
     { RecordType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
       f = MK_EXPR(kind::RECORD, MK_CONST(t.getRecord()), std::vector<Expr>());
+    }
+
+
+    /* empty set literal */
+  | LBRACE RBRACE
+    { f = MK_CONST(EmptySet(Type())); }
+
+    /* finite set literal */
+  | LBRACE formula[f] { args.push_back(f); }
+    ( COMMA formula[f] { args.push_back(f); } )* RBRACE
+    { f = MK_EXPR(kind::SINGLETON, args[0]);
+      for(size_t i = 1; i < args.size(); ++i) {
+        f = MK_EXPR(kind::UNION, f, MK_EXPR(kind::SINGLETON, args[i]));
+      }
     }
 
     /* boolean literals */

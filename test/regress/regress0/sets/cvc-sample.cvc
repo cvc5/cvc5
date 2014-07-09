@@ -1,5 +1,17 @@
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: valid
+OPTION "incremental" true;
 OPTION "logic" "ALL_SUPPORTED";
 SetInt : TYPE = SET OF INT;
+x : SET OF INT;
+y : SET OF INT;
+z : SET OF INT;
+e1 : INT;
+e2 : INT;
 PUSH;
 a : SET OF INT;
 b : SET OF INT;
@@ -16,18 +28,11 @@ ASSERT e IN (a & b);
 CHECKSAT TRUE;
 POP;
 PUSH;
-x : SET OF INT;
-y : SET OF INT;
-z : SET OF INT;
 ASSERT x = y;
 ASSERT NOT((x | z) = (y | z));
 CHECKSAT TRUE;
 POP;
 PUSH;
-x : SET OF INT;
-y : SET OF INT;
-e1 : INT;
-e2 : INT;
 ASSERT x = y;
 ASSERT e1 = e2;
 ASSERT e1 IN x;
@@ -35,11 +40,6 @@ ASSERT NOT(e2 IN y);
 CHECKSAT TRUE;
 POP;
 PUSH;
-x : SET OF INT;
-y : SET OF INT;
-z : SET OF INT;
-e1 : INT;
-e2 : INT;
 ASSERT x = y;
 ASSERT e1 = e2;
 ASSERT e1 IN (x | z);
@@ -50,4 +50,8 @@ PUSH;
 ASSERT 5 IN ({1, 2, 3, 4} | {5});
 ASSERT 5 IN ({1, 2, 3, 4} | {} :: SET OF INT);
 CHECKSAT TRUE;
-
+POP;
+PUSH;
+QUERY LET v_0 = e1 IN z
+IN NOT (v_0 AND NOT v_0);
+POP;
