@@ -91,6 +91,7 @@ tokens {
   IN_TOK = 'IN';
   INT_TOK = 'INT';
   LET_TOK = 'LET';
+  MEMBER_TOK = 'IS_IN';
   NOT_TOK = 'NOT';
   OR_TOK = 'OR';
   REAL_TOK = 'REAL';
@@ -288,7 +289,8 @@ int getOperatorPrecedence(int type) {
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
-  case GT_TOK: return 25;
+  case GT_TOK:
+  case MEMBER_TOK: return 25;
   case EQUAL_TOK:
   case DISEQUAL_TOK: return 26;
   case NOT_TOK: return 27;
@@ -327,7 +329,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case GEQ_TOK: return kind::GEQ;
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
-  case IN_TOK: return kind::MEMBER;
+  case MEMBER_TOK: return kind::MEMBER;
 
     // arithmeticBinop
   case PLUS_TOK: return kind::PLUS;
@@ -1442,7 +1444,7 @@ comparisonBinop[unsigned& op]
   | GEQ_TOK
   | LT_TOK
   | LEQ_TOK
-  | IN_TOK
+  | MEMBER_TOK
   ;
 
 term[CVC4::Expr& f]

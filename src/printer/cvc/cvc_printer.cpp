@@ -725,7 +725,7 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       opType = INFIX;
       break;
     case kind::MEMBER:
-      op << "IN";
+      op << "IS_IN";
       opType = INFIX;
       break;
     case kind::SINGLETON:
