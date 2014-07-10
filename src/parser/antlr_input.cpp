@@ -402,7 +402,7 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
     } else {
       bool foundCaretPos = false;
 
-      for(int tries = 0; tries < 1 && caretPos > 0 && !foundCaretPos; ++tries) {
+      for(int tries = 0; tries < 2 && caretPos > 0 && !foundCaretPos; ++tries) {
         // go to nearest alphanumeric string (before current position),
         // see if that word can be found in original message. If so,
         // point to that, else keep pointer where it was.
