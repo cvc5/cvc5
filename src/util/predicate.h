@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -52,7 +52,7 @@ public:
 
   bool operator==(const Predicate& p) const;
 
-  friend std::ostream& operator<<(std::ostream& out, const Predicate& p);
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Predicate& p);
   friend size_t PredicateHashFunction::operator()(const Predicate& p) const;
 
 };/* class Predicate */

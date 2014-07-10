@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=cvc4
+cvc4=./cvc4
 bench="$1"
 
 file=${bench##*/}
@@ -15,7 +15,7 @@ echo "------- cvc4-fof casc j7 : $bench at $2..."
 function trywith {
   limit=$1; shift;
   echo "--- Run $@ at $limit...";
-  (ulimit -S -t "$limit";$cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
+  (ulimit -S -t "$limit";$cvc4 --lang=tptp --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench) 2>/dev/null |
   (read w1 w2 w3 result w4 w5;
   case "$result" in
   Unsatisfiable) echo "$w1 $w2 $w3 $result $w4 $w5";cat;exit 0;;
@@ -25,7 +25,7 @@ function trywith {
 }
 function finishwith {
   echo "--- Run $@...";
-  $cvc4 --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
+  $cvc4 --lang=tptp --no-checking --no-interactive --dump-instantiations --inst-format=szs --force-no-limit-cpu-while-dump "$@" $bench
 }
 
 trywith 15 --quant-cf --pre-skolem-quant --full-saturate-quant

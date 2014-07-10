@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -28,7 +28,10 @@
 
 #include <list>
 #include <algorithm>
-#include <ext/algorithm>
+
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
+#  include <ext/algorithm>
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 
 namespace CVC4 {
 namespace theory {
@@ -510,7 +513,7 @@ private:
 
 public:
 
-  class iterator {
+  class iterator : public std::iterator<std::input_iterator_tag, Variable> {
   private:
     internal_iterator d_iter;
 
@@ -732,7 +735,11 @@ public:
   }
 
   static bool isSorted(const std::vector<Monomial>& m) {
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
     return __gnu_cxx::is_sorted(m.begin(), m.end());
+#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
+    return std::is_sorted(m.begin(), m.end());
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
   }
 
   static bool isStrictlySorted(const std::vector<Monomial>& m) {

@@ -1,5 +1,5 @@
 ; EXPECT: sat
-(set-logic QF_UFLIA_SETS)
+(set-logic QF_UFLIAFS)
 (set-info :status sat)
 (declare-fun A () (Set Int))
 (declare-fun C () (Set Int))

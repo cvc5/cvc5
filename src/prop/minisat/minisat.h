@@ -30,9 +30,6 @@ class MinisatSatSolver : public DPLLSatSolverInterface {
   /** The SatSolver used */
   Minisat::SimpSolver* d_minisat;
 
-  /** The SatSolver uses this to communicate with the theories */
-  TheoryProxy* d_theoryProxy;
-
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
 

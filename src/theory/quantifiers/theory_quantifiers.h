@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Francois Bobot, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -41,8 +41,6 @@ class InstantiationEngine;
 class TheoryQuantifiers : public Theory {
 private:
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  /** quantifiers that have been skolemized */
-  std::map< Node, bool > d_skolemized;
   /** number of instantiations */
   int d_numInstantiations;
   int d_baseDecLevel;

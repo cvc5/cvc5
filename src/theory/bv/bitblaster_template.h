@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file bitblaster.h
+/*! \file bitblaster_template.h
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
- ** Minor contributors (to current version): lianah, Morgan Deters, Dejan Jovanovic
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -27,6 +27,7 @@
 #include "bitblast_strategies_template.h"
 #include "prop/sat_solver.h"
 #include "theory/valuation.h"
+#include "theory/theory_registrar.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -57,6 +58,8 @@ namespace bv {
 class BitblastingRegistrar;
 
 typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
 class AbstractionModule;
 
 /**
@@ -70,7 +73,7 @@ class TBitblaster {
 protected:
   typedef std::vector<T> Bits;
   typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       AtomSet;
+  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       TNodeSet;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
@@ -104,8 +107,6 @@ class TheoryBV;
 
 class TLazyBitblaster :  public TBitblaster<Node> {
   typedef std::vector<Node> Bits;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> VarSet;
-  typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> AtomSet;
   typedef context::CDList<prop::SatLiteral> AssertionList;
   typedef context::CDHashMap<prop::SatLiteral, std::vector<prop::SatLiteral> , prop::SatLiteralHashFunction> ExplanationMap;
   
@@ -134,12 +135,12 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   prop::BVSatSolverInterface*        d_satSolver;
   prop::CnfStream*                   d_cnfStream;
 
-  AssertionList d_assertedAtoms; /**< context dependent list storing the atoms
+  AssertionList* d_assertedAtoms; /**< context dependent list storing the atoms
                                      currently asserted by the DPLL SAT solver. */
-  ExplanationMap d_explanations; /**< context dependent list of explanations for the propagated literals.
+  ExplanationMap* d_explanations; /**< context dependent list of explanations for the propagated literals.
                                     Only used when bvEagerPropagate option enabled. */
-  VarSet d_variables;
-  AtomSet d_bbAtoms; 
+  TNodeSet d_variables;
+  TNodeSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
   bool d_emptyNotify;
   
@@ -188,7 +189,7 @@ public:
    */
   void collectModelInfo(TheoryModel* m, bool fullModel);
 
-  typedef VarSet::const_iterator vars_iterator;
+  typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
   vars_iterator endVars() { return d_variables.end(); }
 
@@ -239,7 +240,14 @@ class EagerBitblaster : public TBitblaster<Node> {
   BitblastingRegistrar*              d_bitblastingRegistrar;
   context::Context*                  d_nullContext;
   prop::CnfStream*                   d_cnfStream;
-  TNodeSet d_bbAtoms; 
+
+  theory::bv::TheoryBV* d_bv;
+  TNodeSet d_bbAtoms;
+  TNodeSet d_variables;
+
+  Node getVarValue(TNode a, bool fullModel);
+  bool isSharedTerm(TNode node); 
+
 public:
   void addAtom(TNode atom);
   void makeVariable(TNode node, Bits& bits);
@@ -249,11 +257,21 @@ public:
   bool hasBBAtom(TNode atom) const; 
   void bbFormula(TNode formula);
   void storeBBAtom(TNode atom, Node atom_bb);
-  EagerBitblaster(); 
+  EagerBitblaster(theory::bv::TheoryBV* theory_bv); 
   ~EagerBitblaster();
   bool assertToSat(TNode node, bool propagate = true);
-  bool solve(); 
+  bool solve();
+  void collectModelInfo(TheoryModel* m, bool fullModel);
 };
+
+class BitblastingRegistrar: public prop::Registrar {
+  EagerBitblaster* d_bitblaster; 
+public:
+  BitblastingRegistrar(EagerBitblaster* bb)
+    : d_bitblaster(bb)
+  {}
+  void preRegister(Node n);
+}; /* class Registrar */
 
 class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   typedef std::hash_map<TNode, Abc_Obj_t*, TNodeHashFunction > TNodeAigMap;

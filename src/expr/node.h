@@ -5,7 +5,7 @@
  ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): Kshitij Bansal, Francois Bobot, Clark Barrett, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -439,7 +439,7 @@ public:
    * explicit Expr(Node) constructor---but that dirties the public
    * interface.
    */
-  inline Expr toExpr();
+  inline Expr toExpr() const;
 
   /**
    * Convert an Expr into a Node.
@@ -1451,7 +1451,7 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
 }
 
 template <bool ref_count>
-inline Expr NodeTemplate<ref_count>::toExpr() {
+inline Expr NodeTemplate<ref_count>::toExpr() const {
   assertTNodeNotExpired();
   return NodeManager::currentNM()->toExpr(*this);
 }

@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): Tianyi Liang, Christopher L. Conway, Kshitij Bansal, Liana Hadarean, Dejan Jovanovic, Tim King, Andrew Reynolds
+ ** Minor contributors (to current version): Christopher L. Conway, Tianyi Liang, Martin Brain <>, Kshitij Bansal, Liana Hadarean, Dejan Jovanovic, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -528,7 +528,7 @@ public:
   /**
    * Expand definitions in n.
    */
-  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
+  Node expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly = false)
     throw(TypeCheckingException, LogicException);
 
   /**
@@ -872,12 +872,14 @@ void SmtEngine::setDefaults() {
   }
 
   // set strings-exp
+  /* - disabled for 1.4 release [MGD 2014.06.25]
   if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
     if(! options::stringExp.wasSetByUser()) {
       options::stringExp.set( true );
       Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
     }
   }
+  */
   // for strings
   if(options::stringExp()) {
     if( !d_logic.isQuantified() ) {
@@ -891,6 +893,9 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
     }
     if(! options::fmfBoundInt.wasSetByUser()) {
+      if(! options::fmfBoundIntLazy.wasSetByUser()) {
+        options::fmfBoundIntLazy.set( true );
+      }
       options::fmfBoundInt.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
@@ -927,44 +932,6 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  // set strings-exp
-  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS)) {
-    if(! options::stringExp.wasSetByUser()) {
-      options::stringExp.set(true);
-      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
-    }
-  }
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.enableQuantifiers();
-      d_logic.lock();
-      Trace("smt") << "turning on quantifier logic, for strings-exp" << std::endl;
-    }
-    if(! options::finiteModelFind.wasSetByUser()) {
-      options::finiteModelFind.set( true );
-      Trace("smt") << "turning on finite-model-find, for strings-exp" << std::endl;
-    }
-    if(! options::fmfBoundInt.wasSetByUser()) {
-      if(! options::fmfBoundIntLazy.wasSetByUser()) {
-        options::fmfBoundIntLazy.set( true );
-      }
-      options::fmfBoundInt.set( true );
-      Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
-    }
-        /*
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }*/
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
-    }
-    */
-  }
   // by default, symmetry breaker is on only for QF_UF
   if(! options::ufSymmetryBreaker.wasSetByUser()) {
     bool qf_uf = d_logic.isPure(THEORY_UF) && !d_logic.isQuantified();
@@ -1064,14 +1031,23 @@ void SmtEngine::setDefaults() {
   // Unconstrained simp currently does *not* support model generation
   if (options::unconstrainedSimp.wasSetByUser() && options::unconstrainedSimp()) {
     if (options::produceModels()) {
+      if (options::produceModels.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation.");
+      }
       Notice() << "SmtEngine: turning off produce-models to support unconstrainedSimp" << endl;
       setOption("produce-models", SExpr("false"));
     }
     if (options::produceAssignments()) {
+      if (options::produceAssignments.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation (produce-assignments).");
+      }
       Notice() << "SmtEngine: turning off produce-assignments to support unconstrainedSimp" << endl;
       setOption("produce-assignments", SExpr("false"));
     }
     if (options::checkModels()) {
+      if (options::checkModels.wasSetByUser()) {
+        throw OptionException("Cannot use unconstrained-simp with model generation (check-models).");
+      }
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
@@ -1501,10 +1477,7 @@ void SmtEngine::defineFunction(Expr func,
   d_definedFunctions->insert(funcNode, def);
 }
 
-
-
-
-Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache)
+Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
   throw(TypeCheckingException, LogicException) {
 
   stack< triple<Node, Node, bool> > worklist;
@@ -1586,12 +1559,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, hash_map<Node, Node, NodeHashF
                                       n.begin(), n.end());
         Debug("expand") << "made : " << instance << endl;
 
-        Node expanded = expandDefinitions(instance, cache);
+        Node expanded = expandDefinitions(instance, cache, expandOnly);
         cache[n] = (n == expanded ? Node::null() : expanded);
         result.push(expanded);
         continue;
 
-      } else {
+      } else if(! expandOnly) {
+        // do not do any theory stuff if expandOnly is true
+
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
@@ -3017,7 +2992,12 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::sortInference() ){
     //sort inference technique
-    d_smt.d_theoryEngine->getSortInference()->simplify( d_assertionsToPreprocess );
+    SortInference * si = d_smt.d_theoryEngine->getSortInference();
+    si->simplify( d_assertionsToPreprocess );
+    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
+      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
+      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
+    }
   }
 
   //if( options::quantConflictFind() ){
@@ -3176,8 +3156,11 @@ void SmtEnginePrivate::processAssertions() {
   // everything gets bit-blasted to internal SAT solver
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     for (unsigned i = 0; i < d_assertionsToCheck.size(); ++i) {
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, d_assertionsToCheck[i]);
+      TNode atom = d_assertionsToCheck[i];
+      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
       d_assertionsToCheck[i] = eager_atom;
+      TheoryModel* m = d_smt.d_theoryEngine->getModel();
+      m->addSubstitution(eager_atom, atom);
     }
   }
 
@@ -3473,7 +3456,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex) throw(TypeCheckingException, L
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
   hash_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
+  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
   n = postprocess(n, TypeNode::fromType(e.getType()));
 
   return n.toExpr();
@@ -4118,6 +4101,28 @@ SExpr SmtEngine::getStatistic(std::string name) const throw() {
 void SmtEngine::setUserAttribute(const std::string& attr, Expr expr) {
   SmtScope smts(this);
   d_theoryEngine->setUserAttribute(attr, expr.getNode());
+}
+
+void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
+  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
+  for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
+    Command * c = d_modelGlobalCommands[i];
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      if( dfc->getFunction()==f ){
+        dfc->setPrintInModel( p );
+      }
+    }
+  }
+  for( unsigned i=0; i<d_modelCommands->size(); i++ ){
+    Command * c = (*d_modelCommands)[i];
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      if( dfc->getFunction()==f ){
+        dfc->setPrintInModel( p );
+      }
+    }
+  }
 }
 
 }/* CVC4 namespace */

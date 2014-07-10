@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file sets-translate.cpp
+/*! \file sets_translate.cpp
  ** \verbatim
  ** Original author: Kshitij Bansal
- ** Major contributors: None
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -37,40 +37,44 @@ using namespace CVC4::options;
 
 bool nonsense(char c) { return !isalnum(c); } 
 
+#ifdef ENABLE_AXIOMS
 const bool enableAxioms = true;
+#else
+const bool enableAxioms = false;
+#endif
 
 string setaxioms[] = {
-  "(declare-fun inHOLDA (HOLDB (Set HOLDB)) Bool)",
+  "(declare-fun memberHOLDA (HOLDB (Set HOLDB)) Bool)",
   "",
   "(declare-fun unionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (unionHOLDA ?X ?Y))",
-  "                     (or (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                (= (memberHOLDA ?x (unionHOLDA ?X ?Y))",
+  "                     (or (memberHOLDA ?x ?X) (memberHOLDA ?x ?Y))",
   "                ) ) )",
   "",
   "",
   "(declare-fun intersectionHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (intersectionHOLDA ?X ?Y))",
-  "                     (and (inHOLDA ?x ?X) (inHOLDA ?x ?Y))",
+  "                (= (memberHOLDA ?x (intersectionHOLDA ?X ?Y))",
+  "                     (and (memberHOLDA ?x ?X) (memberHOLDA ?x ?Y))",
   "                ) ) )",
   "",
   "(declare-fun setminusHOLDA ((Set HOLDB) (Set HOLDB)) (Set HOLDB))",
   "(assert (forall ((?X (Set HOLDB)) (?Y (Set HOLDB)) (?x HOLDB))",
-  "                (= (inHOLDA ?x (setminusHOLDA ?X ?Y))",
-  "                     (and (inHOLDA ?x ?X) (not (inHOLDA ?x ?Y)))",
+  "                (= (memberHOLDA ?x (setminusHOLDA ?X ?Y))",
+  "                     (and (memberHOLDA ?x ?X) (not (memberHOLDA ?x ?Y)))",
   "                ) ) )",
   "",
-  "(declare-fun setenumHOLDA (HOLDB) (Set HOLDB))",
+  "(declare-fun singletonHOLDA (HOLDB) (Set HOLDB))",
   "(assert (forall ((?x HOLDB) (?y HOLDB))",
-  "                (= (inHOLDA ?x (setenumHOLDA ?y))",
+  "                (= (memberHOLDA ?x (singletonHOLDA ?y))",
   "                     (= ?x ?y)",
   "                ) ) )",
   "",
   "(declare-fun emptysetHOLDA () (Set HOLDB))",
-  "(assert (forall ((?x HOLDB)) (not (inHOLDA ?x emptysetHOLDA)) ) )",
+  "(assert (forall ((?x HOLDB)) (not (memberHOLDA ?x emptysetHOLDA)) ) )",
   "",
-  "(define-fun subseteqHOLDA ((X (Set HOLDB)) (Y (Set HOLDB))) Bool (= (unionHOLDA X Y) Y))",
+  "(define-fun subsetHOLDA ((X (Set HOLDB)) (Y (Set HOLDB))) Bool (= (unionHOLDA X Y) Y))",
   ""
 };
 
@@ -119,12 +123,12 @@ class Mapper {
                    t);
 
       if(!enableAxioms)
-        sout << "(define-fun setenum" << elementTypeAsString << "     "
+        sout << "(define-fun singleton" << elementTypeAsString << "     "
              << " ( (x " << elementType << ") )"
              << " " << name << ""
              << " (store emptyset" << elementTypeAsString << " x true) )" << endl;
-      setoperators[ make_pair(t, kind::SET_SINGLETON) ] =
-        em->mkVar( std::string("setenum") + elementTypeAsString,
+      setoperators[ make_pair(t, kind::SINGLETON) ] =
+        em->mkVar( std::string("singleton") + elementTypeAsString,
                    em->mkFunctionType( elementType, t ) );
 
       if(!enableAxioms)
@@ -160,16 +164,16 @@ class Mapper {
              << " Bool"
              << " (select s x) )" << endl;
       setoperators[ make_pair(t, kind::MEMBER) ] =
-        em->mkVar( std::string("in") + elementTypeAsString,
+        em->mkVar( std::string("member") + elementTypeAsString,
                    em->mkPredicateType( elet_t ) );
 
       if(!enableAxioms)
-        sout << "(define-fun subseteq" << elementTypeAsString << "    "
+        sout << "(define-fun subset" << elementTypeAsString << "    "
              << " ( (s1 " << name << ") (s2 " << name << ") )"
              << " Bool"
              <<" (= emptyset" << elementTypeAsString << " (setminus" << elementTypeAsString << " s1 s2)) )" << endl;
       setoperators[ make_pair(t, kind::SUBSET) ] =
-        em->mkVar( std::string("subseteq") + elementTypeAsString,
+        em->mkVar( std::string("subset") + elementTypeAsString,
                    em->mkPredicateType( t_t ) );
 
       if(enableAxioms) {
@@ -245,7 +249,7 @@ int main(int argc, char* argv[])
 
     // Get the filename 
     string input;
-    if(argv > 0) input = (argv[1]);
+    if(argc > 1) input = string(argv[1]);
     else input = "<stdin>";
 
     // Create the expression manager
@@ -259,6 +263,7 @@ int main(int argc, char* argv[])
   
     // Create the parser
     ParserBuilder parserBuilder(&exprManager, input, options);
+    if(input == "<stdin>") parserBuilder.withStreamInput(cin);
     Parser* parser = parserBuilder.build();
   
     // Variables and assertions
@@ -289,10 +294,19 @@ int main(int argc, char* argv[])
 	  return 0;
 	}
         logicinfo = logicinfo.getUnlockedCopy();
-        logicinfo.disableTheory(theory::THEORY_SETS);
-        logicinfo.enableTheory(theory::THEORY_ARRAY);
-        logicinfo.lock();
-        // cout << SetBenchmarkLogicCommand(logicinfo.getLogicString()) << endl;
+        if(enableAxioms) {
+          logicinfo.enableQuantifiers();
+          logicinfo.lock();
+          if(!logicinfo.hasEverything()) {
+            (logicinfo = logicinfo.getUnlockedCopy()).disableTheory(theory::THEORY_SETS);
+            logicinfo.lock();
+            cout << SetBenchmarkLogicCommand(logicinfo.getLogicString()) << endl;
+          }
+        } else {
+          logicinfo.enableTheory(theory::THEORY_ARRAY);
+          // we print logic string only for Quantifiers, for Z3 stuff
+          // we don't set the logic
+        }
 
         delete cmd;
         continue;

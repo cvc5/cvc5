@@ -5,7 +5,7 @@
  ** Major contributors: Dejan Jovanovic
  ** Minor contributors (to current version): Clark Barrett, Liana Hadarean, Kshitij Bansal, Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

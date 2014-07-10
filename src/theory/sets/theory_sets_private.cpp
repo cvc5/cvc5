@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Kshitij Bansal
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -97,7 +97,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     Debug("sets") << "[sets]  is complete = " << isComplete() << std::endl;
   }
 
-  if( (Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
+  if( (level == Theory::EFFORT_FULL || options::setsEagerLemmas() ) && !isComplete()) {
     d_external.d_out->lemma(getLemma());
     return;
   }
@@ -225,7 +225,7 @@ void TheorySetsPrivate::assertMemebership(TNode fact, TNode reason, bool learnt)
     if(S.getKind() == kind::UNION ||
        S.getKind() == kind::INTERSECTION ||
        S.getKind() == kind::SETMINUS ||
-       S.getKind() == kind::SET_SINGLETON) {
+       S.getKind() == kind::SINGLETON) {
       doSettermPropagation(x, S);
       if(d_conflict) return;
     }// propagation: children
@@ -276,7 +276,7 @@ void TheorySetsPrivate::doSettermPropagation(TNode x, TNode S)
     left_literal  =       MEMBER(x, S[0])   ;
     right_literal = NOT(  MEMBER(x, S[1])  );
     break;
-  case kind::SET_SINGLETON: {
+  case kind::SINGLETON: {
     Node atom = MEMBER(x, S);
     if(holds(atom, true)) {
       learnLiteral(EQUAL(x, S[0]), true, atom);
@@ -408,6 +408,42 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 }/*TheorySetsPrivate::learnLiteral(...)*/
 
 
+/************************ Sharing ************************/
+/************************ Sharing ************************/
+/************************ Sharing ************************/
+
+void TheorySetsPrivate::addSharedTerm(TNode n) {
+  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
+}
+
+
+void TheorySetsPrivate::computeCareGraph() {
+  Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
+  for (unsigned i = 0; i < d_external.d_sharedTerms.size(); ++ i) {
+    TNode a = d_external.d_sharedTerms[i];
+    TypeNode aType = a.getType();
+    for (unsigned j = i + 1; j < d_external.d_sharedTerms.size(); ++ j) {
+      TNode b = d_external.d_sharedTerms[j];
+      if (b.getType() != aType) {
+        // We don't care about the terms of different types
+        continue;
+      }
+      switch (d_external.d_valuation.getEqualityStatus(a, b)) {
+      case EQUALITY_TRUE_AND_PROPAGATED:
+      case EQUALITY_FALSE_AND_PROPAGATED:
+        // If we know about it, we should have propagated it, so we can skip
+        break;
+      default:
+        // Let's split on it
+        d_external.addCarePair(a, b);
+        break;
+      }
+    }
+  }
+}
+
+
 /******************** Model generation ********************/
 /******************** Model generation ********************/
 /******************** Model generation ********************/
@@ -535,9 +571,9 @@ Node TheorySetsPrivate::elementsToShape(Elements elements, TypeNode setType) con
     return nm->mkConst(EmptySet(nm->toType(setType)));
   } else {
     Elements::iterator it = elements.begin();
-    Node cur = SET_SINGLETON(*it);
+    Node cur = SINGLETON(*it);
     while( ++it != elements.end() ) {
-      cur = nm->mkNode(kind::UNION, cur, SET_SINGLETON(*it));
+      cur = nm->mkNode(kind::UNION, cur, SINGLETON(*it));
     }
     return cur;
   }
@@ -778,15 +814,19 @@ void TheorySetsPrivate::addToPending(Node n) {
       Assert(n.getKind() == kind::EQUAL);
       d_pendingDisequal.push(n);
     }
+    d_external.d_out->lemma(getLemma());
+    Assert(isComplete());
   }
 }
 
 bool TheorySetsPrivate::isComplete() {
-  while(!d_pending.empty() && present(d_pending.front())) {
-    Debug("sets-pending") << "[sets-pending] removing as already present: "
-                          << d_pending.front() << std::endl;
-    d_pending.pop();
-  }
+  // while(!d_pending.empty() &&
+  //       (d_pendingEverInserted.find(d_pending.front()) != d_pendingEverInserted.end()
+  //        || present(d_pending.front()) ) ) {
+  //   Debug("sets-pending") << "[sets-pending] removing as already present: "
+  //                         << d_pending.front() << std::endl;
+  //   d_pending.pop();
+  // }
   return d_pending.empty() && d_pendingDisequal.empty();
 }
 
@@ -886,11 +926,6 @@ void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
-void TheorySetsPrivate::addSharedTerm(TNode n) {
-  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
-}
-
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
   if (a.getKind() == kind::CONST_BOOLEAN) {
@@ -948,7 +983,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
     // d_equalityEngine.addTerm(node);
   }
-  if(node.getKind() == kind::SET_SINGLETON) {
+  if(node.getKind() == kind::SINGLETON) {
     Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
     learnLiteral(MEMBER(node[0], node), true, true_node);
     //intentional fallthrough
@@ -1125,7 +1160,7 @@ void TheorySetsPrivate::TermInfoManager::pushToSettermPropagationQueue
   if(S.getKind() == kind::UNION ||
      S.getKind() == kind::INTERSECTION ||
      S.getKind() == kind::SETMINUS ||
-     S.getKind() == kind::SET_SINGLETON) {
+     S.getKind() == kind::SINGLETON) {
     d_theory.d_settermPropagationQueue.push_back(std::make_pair(x, S));
   }// propagation: children
 

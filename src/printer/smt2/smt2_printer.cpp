@@ -2,10 +2,10 @@
 /*! \file smt2_printer.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: Andrew Reynolds
- ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Francois Bobot
+ ** Major contributors: none
+ ** Minor contributors (to current version): Dejan Jovanovic, Tim King, Liana Hadarean, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -250,6 +250,15 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::DISTINCT: out << smtKindString(k) << " "; break;
   case kind::CHAIN: break;
   case kind::TUPLE: break;
+  case kind::FUNCTION_TYPE:
+    for(size_t i = 0; i < n.getNumChildren() - 1; ++i) {
+      if(i > 0) {
+        out << ' ';
+      }
+      out << n[i];
+    }
+    out << ") " << n[n.getNumChildren() - 1];
+    return;
   case kind::SEXPR: break;
 
     // bool theory
@@ -409,7 +418,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::SUBSET:
   case kind::MEMBER:
   case kind::SET_TYPE:
-  case kind::SET_SINGLETON: out << smtKindString(k) << " "; break;
+  case kind::SINGLETON: out << smtKindString(k) << " "; break;
 
    // datatypes
   case kind::APPLY_TYPE_ASCRIPTION: {
@@ -455,7 +464,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     for(TNode::iterator i = n.begin(), iend = n.end();
         i != iend; ) {
       out << '(';
-      toStream(out, (*i), toDepth < 0 ? toDepth : toDepth - 1, types);
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types, 0);
       out << ' ';
       out << (*i).getType();
       // The following code do stange things
@@ -609,10 +618,11 @@ static string smtKindString(Kind k) throw() {
   case kind::UNION: return "union";
   case kind::INTERSECTION: return "intersection";
   case kind::SETMINUS: return "setminus";
-  case kind::SUBSET: return "subseteq";
-  case kind::MEMBER: return "in";
+  case kind::SUBSET: return "subset";
+  case kind::MEMBER: return "member";
   case kind::SET_TYPE: return "Set";
-  case kind::SET_SINGLETON: return "setenum";
+  case kind::SINGLETON: return "singleton";
+  case kind::INSERT: return "insert";
   default:
     ; /* fall through */
   }
@@ -758,9 +768,9 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 
 
 void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
-  out << "(model" << std::endl;
+  out << "(model" << endl;
   this->Printer::toStream(out, m);
-  out << ")" << std::endl;
+  out << ")" << endl;
 }
 
 
@@ -774,31 +784,36 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
         out << "(" << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << ")";
       }
-      out << ")))" << std::endl;
+      out << ")))" << endl;
     } else {
       if( tn.isSort() ){
         //print the cardinality
         if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
-          out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << std::endl;
+          out << "; cardinality of " << tn << " is " << (*tm.d_rep_set.d_type_reps.find(tn)).second.size() << endl;
         }
       }
-      out << c << std::endl;
+      out << c << endl;
       if( tn.isSort() ){
         //print the representatives
         if( tm.d_rep_set.d_type_reps.find( tn )!=tm.d_rep_set.d_type_reps.end() ){
           for( size_t i=0; i<(*tm.d_rep_set.d_type_reps.find(tn)).second.size(); i++ ){
             if( (*tm.d_rep_set.d_type_reps.find(tn)).second[i].isVar() ){
-              out << "(declare-fun " << quoteSymbol((*tm.d_rep_set.d_type_reps.find(tn)).second[i]) << " () " << tn << ")" << std::endl;
+              out << "(declare-fun " << quoteSymbol((*tm.d_rep_set.d_type_reps.find(tn)).second[i]) << " () " << tn << ")" << endl;
             }else{
-              out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << std::endl;
+              out << "; rep: " << (*tm.d_rep_set.d_type_reps.find(tn)).second[i] << endl;
             }
           }
         }
       }
     }
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
-    Node n = Node::fromExpr( ((const DeclareFunctionCommand*)c)->getFunction() );
-    if(n.getKind() == kind::SKOLEM) {
+    const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c; 
+    Node n = Node::fromExpr( dfc->getFunction() );
+    if(dfc->getPrintInModelSetByUser()){
+      if(!dfc->getPrintInModel()){
+        return;
+      }
+    }else if(n.getKind() == kind::SKOLEM) {
       // don't print out internal stuff
       return;
     }
@@ -806,7 +821,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     if(val.getKind() == kind::LAMBDA) {
       out << "(define-fun " << n << " " << val[0]
           << " " << n.getType().getRangeType()
-          << " " << val[1] << ")" << std::endl;
+          << " " << val[1] << ")" << endl;
     } else {
       if( options::modelUninterpDtEnum() && val.getKind() == kind::STORE ) {
         TypeNode tn = val[1].getType();
@@ -816,7 +831,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
         }
       }
       out << "(define-fun " << n << " () "
-          << n.getType() << " " << val << ")" << std::endl;
+          << n.getType() << " " << val << ")" << endl;
     }
 /*
     //for table format (work in progress)
@@ -842,7 +857,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
     }
 */
   }else{
-    out << c << std::endl;
+    out << c << endl;
   }
 }
 
@@ -872,7 +887,7 @@ static void toStream(std::ostream& out, const CheckSatCommand* c) throw() {
     out << PushCommand() << endl
         << AssertCommand(e) << endl
         << CheckSatCommand() << endl
-        << PopCommand() << endl;
+        << PopCommand();
   } else {
     out << "(check-sat)";
   }
@@ -884,7 +899,7 @@ static void toStream(std::ostream& out, const QueryCommand* c) throw() {
     out << PushCommand() << endl
         << AssertCommand(BooleanSimplification::negate(e)) << endl
         << CheckSatCommand() << endl
-        << PopCommand() << endl;
+        << PopCommand();
   } else {
     out << "(check-sat)";
   }
@@ -895,10 +910,16 @@ static void toStream(std::ostream& out, const QuitCommand* c) throw() {
 }
 
 static void toStream(std::ostream& out, const CommandSequence* c) throw() {
-  for(CommandSequence::const_iterator i = c->begin();
-      i != c->end();
-      ++i) {
-    out << *i << endl;
+  CommandSequence::const_iterator i = c->begin();
+  if(i != c->end()) {
+    for(;;) {
+      out << *i;
+      if(++i != c->end()) {
+        out << endl;
+      } else {
+        break;
+      }
+    }
   }
 }
 
@@ -982,7 +1003,7 @@ static void toStream(std::ostream& out, const GetValueCommand* c) throw() {
   out << "(get-value ( ";
   const vector<Expr>& terms = c->getTerms();
   copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
-  out << " ))";
+  out << "))";
 }
 
 static void toStream(std::ostream& out, const GetModelCommand* c) throw() {
@@ -1044,7 +1065,7 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
 
     const Datatype & d = i->getDatatype();
 
-    out << "(" << maybeQuoteSymbol(d.getName()) << "  ";
+    out << "(" << maybeQuoteSymbol(d.getName()) << " ";
     for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
         ctor != ctor_end; ++ctor){
       if( ctor!=d.begin() ) out << " ";

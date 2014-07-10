@@ -5,7 +5,7 @@
  ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -26,7 +26,7 @@
 
 namespace CVC4 {
 
-class SortInference{
+class SortInference {
 private:
   //all subsorts
   std::vector< int > d_sub_sorts;
@@ -69,7 +69,6 @@ private:
   void printSort( const char* c, int t );
   //process
   int process( Node n, std::map< Node, Node >& var_bound );
-
 //for monotonicity inference
 private:
   void processMonotonic( Node n, bool pol, bool hasPol, std::map< Node, Node >& var_bound );
@@ -107,6 +106,9 @@ public:
   bool isWellSorted( Node n );
   //get constraints for being well-typed according to computed sub-types
   void getSortConstraints( Node n, SortInference::UnionFind& uf );
+public:
+  //list of all functions and the uninterpreted symbols they were replaced with
+  std::map< Node, Node > d_model_replace_f;
 };
 
 }

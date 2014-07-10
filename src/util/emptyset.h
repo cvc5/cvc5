@@ -2,7 +2,7 @@
 /*! \file emptyset.h
  ** \verbatim
  ** Original author: Kshitij Bansal
- ** Major contributors: none
+ ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -35,10 +35,14 @@ class CVC4_PUBLIC EmptySet {
 
   const SetType d_type;
 
+  EmptySet() { }
 public:
 
-  EmptySet() { }		/* Null typed */
-  EmptySet(SetType t):d_type(t) { }
+  /**
+   * Constructs an emptyset of the specified type. Note that the argument
+   * is the type of the set itself, NOT the type of the elements.
+   */
+  EmptySet(SetType setType):d_type(setType) { }
 
 
   ~EmptySet() throw() {

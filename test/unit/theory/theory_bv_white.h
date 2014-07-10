@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Morgan Deters
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -21,7 +21,8 @@
 #include "theory/theory.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/bv/eager_bitblaster.h"
+#include "theory/bv/theory_bv.h"
+#include "theory/bv/bitblaster_template.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "context/context.h"
@@ -59,7 +60,7 @@ public:
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
     d_smt->setOption("bitblast", SExpr("eager"));
-    d_bb = new EagerBitblaster();
+    d_bb = new EagerBitblaster(NULL);
     
   }
   void tearDown() {

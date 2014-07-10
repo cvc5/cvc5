@@ -1,11 +1,11 @@
 /*********************                                                        */
-/*! \file aig_bitblaster.h
+/*! \file aig_bitblaster.cpp
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
- ** Minor contributors (to current version): lianah
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -15,11 +15,6 @@
  **/
 
 #include "cvc4_private.h"
-
-#ifndef __CVC4__AIG__BITBLASTER_H
-#define __CVC4__AIG__BITBLASTER_H
-
-
 #include "bitblaster_template.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
@@ -111,6 +106,14 @@ template <> inline
 Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
+
+} /* CVC4::theory::bv */
+} /* CVC4::theory */
+} /* CVC4 */
+
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv;
 
 
 Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
@@ -467,13 +470,6 @@ AigBitblaster::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_solveTime); 
 }
 
-
-
-} /*bv namespace */
-} /* theory namespace */
-} /* CVC4 namespace*/
-
-
 #else // CVC4_USE_ABC
 
 namespace CVC4 {
@@ -547,6 +543,13 @@ Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return NULL;
 }
 
+} /* CVC4::theory::bv */
+} /* CVC4::theory */
+} /* CVC4 */
+
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv;
 
 Abc_Ntk_t* AigBitblaster::abcAigNetwork = NULL;
 
@@ -647,12 +650,4 @@ AigBitblaster::Statistics::~Statistics() {}
 AigBitblaster::AigBitblaster() {
   Unreachable();
 }
-
-} // namespace bv
-} // namespace theory
-} // namespace CVC4
-
-
 #endif // CVC4_USE_ABC
-
-#endif // __CVC4__AIG__BITBLASTER_H

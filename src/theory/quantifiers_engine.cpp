@@ -5,7 +5,7 @@
  ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -265,10 +265,31 @@ void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
   }
 }
 
-void QuantifiersEngine::assertNode( Node f ){
-  d_model->assertQuantifier( f );
-  for( int i=0; i<(int)d_modules.size(); i++ ){
-    d_modules[i]->assertNode( f );
+void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
+  if( !pol ){
+    //do skolemization
+    if( d_skolemized.find( f )==d_skolemized.end() ){
+      Node body = d_term_db->getSkolemizedBody( f );
+      NodeBuilder<> nb(kind::OR);
+      nb << f << body.notNode();
+      Node lem = nb;
+      if( Trace.isOn("quantifiers-sk") ){
+        Node slem = Rewriter::rewrite( lem );
+        Trace("quantifiers-sk") << "Skolemize lemma : " << slem << std::endl;
+      }
+      getOutputChannel().lemma( lem, false, true );
+      d_skolemized[f] = true;
+    }
+  }
+  //assert to modules TODO : handle !pol
+  if( pol ){
+    //register the quantifier
+    registerQuantifier( f );
+    //assert it to each module
+    d_model->assertQuantifier( f );
+    for( int i=0; i<(int)d_modules.size(); i++ ){
+      d_modules[i]->assertNode( f );
+    }
   }
 }
 
@@ -629,6 +650,16 @@ void QuantifiersEngine::getPhaseReqTerms( Node f, std::vector< Node >& nodes ){
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
+  for( std::map< Node, bool >::iterator it = d_skolemized.begin(); it != d_skolemized.end(); ++it ){
+    out << "Skolem constants of " << it->first << " : " << std::endl;
+    out << "  ( ";
+    for( unsigned i=0; i<d_term_db->d_skolem_constants[it->first].size(); i++ ){
+      if( i>0 ){ out << ", "; }
+      out << d_term_db->d_skolem_constants[it->first][i];
+    }
+    out << " )" << std::endl;
+    out << std::endl;
+  }
   if( options::incrementalSolving() ){
     for( std::map< Node, inst::CDInstMatchTrie* >::iterator it = d_c_inst_match_trie.begin(); it != d_c_inst_match_trie.end(); ++it ){
       out << "Instantiations of " << it->first << " : " << std::endl;

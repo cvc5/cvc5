@@ -113,6 +113,10 @@ std::string Configuration::about() {
   return CVC4_ABOUT_STRING;
 }
 
+bool Configuration::licenseIsGpl() {
+  return IS_GPL_BUILD;
+}
+
 bool Configuration::isBuiltWithGmp() {
   return IS_GMP_BUILD;
 }
@@ -127,6 +131,10 @@ bool Configuration::isBuiltWithGlpk() {
 
 bool Configuration::isBuiltWithAbc() {
   return IS_ABC_BUILD;
+}
+
+bool Configuration::isBuiltWithReadline() {
+  return IS_READLINE_BUILD;
 }
 
 bool Configuration::isBuiltWithCudd() {

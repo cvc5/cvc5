@@ -5,7 +5,7 @@
  ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -477,7 +477,18 @@ struct RecordUpdateTypeRule {
 
 struct RecordProperties {
   inline static Node mkGroundTerm(TypeNode type) {
-    Unimplemented();
+    Assert(type.getKind() == kind::RECORD_TYPE);
+
+    const Record& rec = type.getRecord();
+    std::vector<Node> children;
+    for(Record::iterator i = rec.begin(),
+          i_end = rec.end();
+        i != i_end;
+        ++i) {
+      children.push_back((*i).second.mkGroundTerm());
+    }
+
+    return NodeManager::currentNM()->mkNode(NodeManager::currentNM()->mkConst(rec), children);
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {

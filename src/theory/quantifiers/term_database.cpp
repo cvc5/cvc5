@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: Francois Bobot
- ** Minor contributors (to current version): Morgan Deters
+ ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -74,7 +74,7 @@ unsigned TermDb::getNumGroundTerms( Node f ) {
 Node TermDb::getOperator( Node n ) {
   //return n.getOperator();
   Kind k = n.getKind();
-  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SET_SINGLETON ){
+  if( k==SELECT || k==STORE || k==UNION || k==INTERSECTION || k==SUBSET || k==SETMINUS || k==MEMBER || k==SINGLETON ){
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
     Node op = n.getOperator();

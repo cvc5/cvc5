@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -253,11 +253,11 @@ void ErrorSet::update(ErrorInformation& ei){
     case MINIMUM_AMOUNT:
     case MAXIMUM_AMOUNT:
       ei.setAmount(computeDiff(ei.getVariable()));
-      d_focus.modify(ei.getHandle(), ei.getVariable());
+      d_focus.update(ei.getHandle(), ei.getVariable());
       break;
     case  SUM_METRIC:
       ei.setMetric(sumMetric(ei.getVariable()));
-      d_focus.modify(ei.getHandle(), ei.getVariable());
+      d_focus.update(ei.getHandle(), ei.getVariable());
       break;
     case  VAR_ORDER:
       //do nothing

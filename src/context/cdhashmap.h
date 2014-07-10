@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King
+ ** Minor contributors (to current version): Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -174,12 +174,13 @@ class CDOhash_map : public ContextObj {
     d_prev(NULL),
     d_next(NULL) {
   }
+  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
 
 public:
 
   CDOhash_map(Context* context,
          CDHashMap<Key, Data, HashFcn>* map,
-	 const Key& key,
+         const Key& key,
          const Data& data,
          bool atLevelZero = false,
          bool allocatedInCMM = false) :
@@ -304,6 +305,10 @@ class CDHashMap : public ContextObj {
     }
     d_trash.clear();
   }
+
+  // no copy or assignment
+  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
 
 public:
 

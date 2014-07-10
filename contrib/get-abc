@@ -42,6 +42,14 @@ cd alanmi-abc-$commit
 cp src/base/main/main.c src/base/main/main.c.orig
 sed 's,^// *#define ABC_LIB *$,#define ABC_LIB,' src/base/main/main.c.orig > src/base/main/main.c
 
+# Strip out libSupport.c, it is in charge of loading extensions and we
+# don't want different behavior based on ABC_LIB_PATH, or based on what
+# .so is in the current directory!
+cp src/base/main/module.make src/base/main/module.make.orig
+grep -v 'libSupport\.c' src/base/main/module.make.orig > src/base/main/module.make
+cp src/base/main/mainInit.c src/base/main/mainInit.c.orig
+sed 's,\( *\)\(.*Libs_Init(\),\1//\2,;s,\( *\)\(.*Libs_End(\),\1//\2,' src/base/main/mainInit.c.orig > src/base/main/mainInit.c
+
 # Build optimized, without readline, without pthreads.
 # These aren't necessary for our usage and we don't want the dependencies.
 make libabc.a OPTFLAGS=-O READLINE=0 PTHREADS=0

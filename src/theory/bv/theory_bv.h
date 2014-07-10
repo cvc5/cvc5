@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Dejan Jovanovic, Liana Hadarean
- ** Minor contributors (to current version): Clark Barrett, Kshitij Bansal, Tim King, Andrew Reynolds
+ ** Minor contributors (to current version): Clark Barrett, Kshitij Bansal, Tim King, Andrew Reynolds, Martin Brain <>
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -105,7 +105,7 @@ private:
 
 
   /**
-   * Return the uinterpreted function symbol corresponding to division-by-zero
+   * Return the uninterpreted function symbol corresponding to division-by-zero
    * for this particular bit-width
    * @param k should be UREM or UDIV
    * @param width
@@ -121,7 +121,7 @@ private:
   NodeSet d_staticLearnCache;
   
   /**
-   * Maps from bit-vector width to divison-by-zero uninterpreted
+   * Maps from bit-vector width to division-by-zero uninterpreted
    * function symbols.
    */
   __gnu_cxx::hash_map<unsigned, Node> d_BVDivByZero;
@@ -209,6 +209,7 @@ private:
  
   friend class LazyBitblaster;
   friend class TLazyBitblaster;
+  friend class EagerBitblaster;
   friend class BitblastSolver;
   friend class EqualitySolver;
   friend class CoreSolver;

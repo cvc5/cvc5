@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Dejan Jovanovic
  ** Major contributors: Liana Hadarean
- ** Minor contributors (to current version): Clark Barrett, Morgan Deters, Kshitij Bansal
+ ** Minor contributors (to current version): Kshitij Bansal, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -24,10 +24,13 @@
 #include <sstream>
 #include "expr/node_manager.h"
 
-
 namespace CVC4 {
 namespace theory {
 namespace bv {
+
+typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
+typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
+
 namespace utils {
 
 inline uint32_t pow2(uint32_t power) {
@@ -253,8 +256,6 @@ inline unsigned isPow2Const(TNode node) {
   BitVector bv = node.getConst<BitVector>();
   return bv.isPow2(); 
 }
-
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 inline Node mkOr(const std::vector<Node>& nodes) {
   std::set<TNode> all;

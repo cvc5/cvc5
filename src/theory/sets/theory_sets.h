@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -48,13 +48,13 @@ public:
 
   ~TheorySets();
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  
   void addSharedTerm(TNode);
 
   void check(Effort);
 
   void collectModelInfo(TheoryModel*, bool fullModel);
+
+  void computeCareGraph();
 
   Node explain(TNode);
 
@@ -63,6 +63,8 @@ public:
   void preRegisterTerm(TNode node);
 
   void propagate(Effort);
+
+  void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
 };/* class TheorySets */
 

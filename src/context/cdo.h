@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Clark Barrett, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -49,7 +49,7 @@ protected:
   /**
    * operator= for CDO is private to ensure CDO object is not copied.
    */
-  CDO<T>& operator=(const CDO<T>& cdo) CVC4_UNUSED;
+  CDO<T>& operator=(const CDO<T>& cdo) CVC4_UNDEFINED;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies the

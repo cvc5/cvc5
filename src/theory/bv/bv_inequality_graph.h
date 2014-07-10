@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -38,9 +38,6 @@ extern const ReasonId UndefinedReasonId;
 extern const ReasonId AxiomReasonId; 
 
 class InequalityGraph : public context::ContextNotifyObj{
-
-
-  context::Context* d_context;
 
   struct InequalityEdge {
     TermId next;
@@ -126,7 +123,6 @@ class InequalityGraph : public context::ContextNotifyObj{
 
   context::CDO<bool> d_inConflict;
   std::vector<TNode> d_conflict;
-  bool d_signed; 
 
   ModelValues  d_modelValues;
   void initializeModelValue(TNode node); 
@@ -214,12 +210,10 @@ public:
   
   InequalityGraph(context::Context* c, bool s = false)
     : ContextNotifyObj(c), 
-      d_context(c),
       d_ineqNodes(),
       d_ineqEdges(),
       d_inConflict(c, false),
       d_conflict(),
-      d_signed(s),
       d_modelValues(c),
       d_disequalities(c),
       d_disequalitiesAlreadySplit(),

@@ -5,14 +5,14 @@
 
 module BV "theory/bv/options.h" Bitvector theory
 
-# Option to set the bit-blasting mode (lazy, eager, eager-aig)
+# Option to set the bit-blasting mode (lazy, eager)
 
 option bitblastMode bitblast --bitblast=MODE CVC4::theory::bv::BitblastMode :handler CVC4::theory::bv::stringToBitblastMode :default CVC4::theory::bv::BITBLAST_MODE_LAZY :read-write :include "theory/bv/bitblast_mode.h" :handler-include "theory/bv/options_handlers.h"
  choose bitblasting mode, see --bitblast=help
 
 # Options for eager bit-blasting
  
-option bitvectorAig --bitblast-aig bool :default false :predicate CVC4::theory::bv::abcEnabledBuild :predicate-include "theory/bv/options_handlers.h" :read-write :link --bitblast=eager
+option bitvectorAig --bitblast-aig bool :default false :predicate CVC4::theory::bv::abcEnabledBuild :predicate-include "theory/bv/options_handlers.h" :read-write :link --bitblast=eager :link --bv-aig-simp="balance;drw"
  bitblast by first converting to AIG (only if --bitblast=eager)
 
 expert-option bitvectorAigSimplifications --bv-aig-simp=FILE std::string :default "" :predicate CVC4::theory::bv::abcEnabledBuild :read-write :link --bitblast-aig

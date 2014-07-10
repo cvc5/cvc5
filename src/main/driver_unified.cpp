@@ -5,7 +5,7 @@
  ** Major contributors: Morgan Deters
  ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -133,6 +133,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
 # ifndef PORTFOLIO_BUILD
   if( opts.wasSetByUser(options::threads) ||
+      opts.wasSetByUser(options::threadStackSize) ||
       ! opts[options::threadArgv].empty() ) {
     throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
   }
@@ -337,7 +338,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser);
       }
       bool needReset = false;
-      while(status && (cmd = parser->nextCommand())) {
+      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
           if(needReset) {
             pExecutor->reset();
@@ -416,7 +417,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // have the replay parser use the file's declarations
         replayParser->useDeclarationsFrom(parser);
       }
-      while(status && (cmd = parser->nextCommand())) {
+      while((status || opts[options::continuedExecution]) && (cmd = parser->nextCommand())) {
         status = pExecutor->doCommand(cmd);
         if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
           delete cmd;

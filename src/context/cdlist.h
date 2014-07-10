@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Tim King
- ** Minor contributors (to current version): Francois Bobot
+ ** Minor contributors (to current version): Kshitij Bansal, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -103,7 +103,7 @@ protected:
    * d_sizeAlloc are not copied: only the base class information and
    * d_size are needed in restore.
    */
-  CDList(const CDList<T, CleanUp, Allocator>& l) :
+  CDList(const CDList& l) :
     ContextObj(l),
     d_list(NULL),
     d_size(l.d_size),
@@ -115,6 +115,7 @@ protected:
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
+  CDList& operator=(const CDList& l) CVC4_UNDEFINED;
 
 private:
   /**

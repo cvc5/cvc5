@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds, Tim King, Clark Barrett, Christopher L. Conway, Kshitij Bansal, Dejan Jovanovic
+ ** Minor contributors (to current version): Martin Brain <>, Tim King, Clark Barrett, Christopher L. Conway, Andrew Reynolds, Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -653,6 +653,11 @@ public:
    */
   void setUserAttribute(const std::string& attr, Expr expr);
 
+  /**
+   * Set print function in model
+   */
+  void setPrintFuncInModel(Expr f, bool p);
+  
 };/* class SmtEngine */
 
 }/* CVC4 namespace */

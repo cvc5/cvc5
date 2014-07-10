@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -56,9 +56,6 @@ lazy (default)\n\
 \n\
 eager\n\
 + Bitblast eagerly to bv SAT solver\n\
-\n\
-aig\n\
-+ Bitblast eagerly to bv SAT solver by converting to AIG\n\
 ";
 
 inline BitblastMode stringToBitblastMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
@@ -70,7 +67,8 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
       options::bitvectorEqualitySolver.set(true);
     }
     if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      if (options::incrementalSolving()) {
+      if (options::incrementalSolving() ||
+          options::produceModels()) {
         options::bitvectorEqualitySlicer.set(BITVECTOR_SLICER_OFF);
       } else {
         options::bitvectorEqualitySlicer.set(BITVECTOR_SLICER_AUTO);
@@ -85,10 +83,6 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
     }
     return BITBLAST_MODE_LAZY;
   } else if(optarg == "eager") {
-    if (options::produceModels()) {
-      throw OptionException(std::string("Eager bit-blasting does not currently support model generation. \n\
-                                         Try --bitblast=lazy")); 
-    }
 
     if (options::incrementalSolving() &&
         options::incrementalSolving.wasSetByUser()) {
@@ -96,14 +90,6 @@ inline BitblastMode stringToBitblastMode(std::string option, std::string optarg,
                                          Try --bitblast=lazy"));
     }
     
-    if (!options::bitvectorAig.wasSetByUser()) {
-      options::bitvectorAig.set(true);
-      abcEnabledBuild("--bitblast-aig", true, NULL); 
-    }
-    if (!options::bitvectorAigSimplifications.wasSetByUser()) {
-      // due to a known bug in abc switching to using drw instead of rw
-      options::bitvectorAigSimplifications.set("balance;drw");
-    }
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }

@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Christopher L. Conway
- ** Minor contributors (to current version): Dejan Jovanovic, Francois Bobot, Andrew Reynolds
+ ** Minor contributors (to current version): Dejan Jovanovic, Kshitij Bansal, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -327,6 +327,7 @@ public:
    * @param name the symbol to check
    * @param check the kind of check to perform
    * @param type the type of the symbol
+   * @param notes notes to add to a parse error (if one is generated)
    * @throws ParserException if checks are enabled and the check fails
    */
   void checkDeclaration(const std::string& name, DeclarationCheck check,

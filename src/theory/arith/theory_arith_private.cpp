@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Tim King
  ** Major contributors: none
- ** Minor contributors (to current version): Andrew Reynolds, Tianyi Liang, Morgan Deters
+ ** Minor contributors (to current version): Andrew Reynolds, Tianyi Liang, Kshitij Bansal, Martin Brain <>, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -40,6 +40,7 @@
 
 #include "smt/logic_request.h"
 #include "smt/logic_exception.h"
+#include "smt/options.h"  // for incrementalSolving()
 
 #include "theory/arith/arithvar.h"
 #include "theory/arith/cut_log.h"
@@ -4222,21 +4223,23 @@ void TheoryArithPrivate::presolve(){
   }
 
   vector<Node> lemmas;
-  switch(options::arithUnateLemmaMode()){
-  case NO_PRESOLVE_LEMMAS:
-    break;
-  case INEQUALITY_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-    break;
-  case EQUALITY_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-    break;
-  case ALL_PRESOLVE_LEMMAS:
-    d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-    d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-    break;
-  default:
-    Unhandled(options::arithUnateLemmaMode());
+  if(!options::incrementalSolving()) {
+    switch(options::arithUnateLemmaMode()){
+    case NO_PRESOLVE_LEMMAS:
+      break;
+    case INEQUALITY_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+      break;
+    case EQUALITY_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+      break;
+    case ALL_PRESOLVE_LEMMAS:
+      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+      break;
+    default:
+      Unhandled(options::arithUnateLemmaMode());
+    }
   }
 
   vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();

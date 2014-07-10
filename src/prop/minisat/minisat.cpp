@@ -29,7 +29,6 @@ using namespace CVC4::prop;
 
 MinisatSatSolver::MinisatSatSolver() :
   d_minisat(NULL),
-  d_theoryProxy(NULL),
   d_context(NULL)
 {}
 

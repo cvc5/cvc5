@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -44,8 +44,8 @@ static Node MEMBER(TNode a, TNode b) {
   return NodeManager::currentNM()->mkNode(kind::MEMBER, a, b);
 }
 
-static Node SET_SINGLETON(TNode a) {
-  return NodeManager::currentNM()->mkNode(kind::SET_SINGLETON, a);
+static Node SINGLETON(TNode a) {
+  return NodeManager::currentNM()->mkNode(kind::SINGLETON, a);
 }
 
 static Node EQUAL(TNode a, TNode b) {

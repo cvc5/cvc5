@@ -2,10 +2,10 @@
 /*! \file command_executor.cpp
  ** \verbatim
  ** Original author: Morgan Deters
- ** Major contributors: Kshitij Bansal
- ** Minor contributors (to current version): Andrew Reynolds
+ ** Major contributors: Andrew Reynolds, Kshitij Bansal
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -13,12 +13,14 @@
  **/
 
 #include <iostream>
+#include <string>
 
 #include "main/command_executor.h"
 #include "expr/command.h"
 
 #include "main/main.h"
 
+#include "main/options.h"
 #include "smt/options.h"
 
 #ifndef __WIN32__
@@ -67,7 +69,7 @@ bool CommandExecutor::doCommand(Command* cmd)
     bool status = true;
 
     for(CommandSequence::iterator subcmd = seq->begin();
-        status && subcmd != seq->end();
+        (status || d_options[options::continuedExecution]) && subcmd != seq->end();
         ++subcmd) {
       status = doCommand(*subcmd);
     }
@@ -150,6 +152,10 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
     cmd->invoke(smt);
   } else {
     cmd->invoke(smt, *out);
+  }
+  // ignore the error if the command-verbosity is 0 for this command
+  if(smt->getOption(std::string("command-verbosity:") + cmd->getCommandName()).getIntegerValue() == 0) {
+    return true;
   }
   return !cmd->fail();
 }

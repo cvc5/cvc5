@@ -3,8 +3,11 @@ This file contains a summary of important user-visible changes.
 Changes since 1.3
 =================
 
-* Timed statistics are now properly updated even on process abort.
+* CVC4 now supports libc++ in addition to libstdc++ (this especially
+  helps on Mac OS Mavericks).
 * The LFSC proof checker has been incorporated into CVC4 sources.
+* Theory of finite sets, handling the MLSS fragment (singleton, union,
+  intersection, set subtraction, membership and subset).
 * By default, CVC4 builds in "production" mode (optimized, with fewer
   internal checks on).  The common alternative is a "debug" build, which
   is much slower.  By default, CVC4 builds with no GPL'ed dependences.
@@ -14,6 +17,7 @@ Changes since 1.3
   licensing and dependences, see the README file.
 * Small API adjustments to Datatypes to even out the API and make it
   function better in Java.
+* Timed statistics are now properly updated even on process abort.
 * Better automatic handling of output language setting when using CVC4
   via API.  Previously, the "automatic" language setting was sometimes
   (though not always) defaulting to the internal "AST" language; it
@@ -95,4 +99,4 @@ Changes since 1.0
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 05 Dec 2013 14:22:26 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 02 Jul 2014 14:45:05 -0400

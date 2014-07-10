@@ -33,9 +33,8 @@ libcvc4compatjni_la_LDFLAGS = \
 	-shrext $(CVC4_JAVA_MODULE_EXT) \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4compatjni_la_LIBADD = \
-	-L@builddir@/../../.. -lcvc4 \
-	-L@builddir@/../../../parser -lcvc4parser \
-	-L@builddir@/../../../compat -lcvc4compat
+	-L@builddir@/../../../compat -lcvc4compat \
+	-L@builddir@/../../.. -lcvc4
 BUILT_SOURCES += $(JNI_CPP_FILES)
 
 endif
@@ -139,7 +138,7 @@ JniUtils.lo: src/cvc3/JniUtils.cpp .headers
 
 $(LIB_FILES:%=classes/cvc3/%.class) classes/cvc3/JniUtils.class: .classes
 .classes:
-	$(AM_V_GEN)mkdir -p classes && $(JAVAC) -source 1.4 -sourcepath $(srcdir)/src -d classes $(LIB_FILES:%=$(srcdir)/src/cvc3/%.java)
+	$(AM_V_GEN)mkdir -p classes && $(JAVAC) -source 1.4 -target 1.4 -sourcepath $(srcdir)/src -d classes $(LIB_FILES:%=$(srcdir)/src/cvc3/%.java)
 	@touch .classes
 .headers: $(LIB_FILES:%=cvc3/%.h)
 	@touch .headers

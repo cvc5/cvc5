@@ -1,18 +1,16 @@
 /*********************                                                        */
 /*! \file theory_bv.cpp
-** \verbatim
-** Original author: Dejan Jovanovic
-** Major contributors: Morgan Deters, Liana Hadarean
-** Minor contributors (to current version): Tim King, Kshitij Bansal, Clark Barrett, Andrew Reynolds
-** This file is part of the CVC4 project.
-** Copyright (c) 2009-2013  New York University and The University of Iowa
-** See the file COPYING in the top-level source directory for licensing
-** information.\endverbatim
-**
-** \brief [[ Add one-line brief description here ]]
-**
-** [[ Add lengthier description here ]]
-** \todo document this file
+ ** \verbatim
+ ** Original author: Dejan Jovanovic
+ ** Major contributors: Liana Hadarean
+ ** Minor contributors (to current version): Tim King, Kshitij Bansal, Clark Barrett, Andrew Reynolds, Morgan Deters, Martin Brain <>
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
 **/
 
 #include "smt/options.h"
@@ -61,7 +59,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
 {
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver = new EagerBitblastSolver();
+    d_eagerSolver = new EagerBitblastSolver(this);
     return; 
   }
 
@@ -434,7 +432,9 @@ void TheoryBV::check(Effort e)
 
 void TheoryBV::collectModelInfo( TheoryModel* m, bool fullModel ){
   Assert(!inConflict());
-
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+    d_eagerSolver->collectModelInfo(m, fullModel); 
+  }
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
       d_subtheories[i]->collectModelInfo(m, fullModel);

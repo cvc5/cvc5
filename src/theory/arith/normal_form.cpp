@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -90,7 +90,11 @@ bool Variable::isDivMember(Node n){
 
 
 bool VarList::isSorted(iterator start, iterator end) {
+#if IS_SORTED_IN_GNUCXX_NAMESPACE
   return __gnu_cxx::is_sorted(start, end);
+#else /* IS_SORTED_IN_GNUCXX_NAMESPACE */
+  return std::is_sorted(start, end);
+#endif /* IS_SORTED_IN_GNUCXX_NAMESPACE */
 }
 
 bool VarList::isMember(Node n) {

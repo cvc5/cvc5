@@ -335,8 +335,10 @@ if test $cvc4_use_cln != 0; then
   )
 fi
 if test $cvc4_use_cln = 0; then
-  # try GMPXX, fail if not found
-  AC_CHECK_LIB(gmpxx, __gmpz_init, , [AC_MSG_ERROR([GNU MP C++ library (libgmpxx) not found, see http://gmplib.org/])])
+  # try GMPXX, fail if not found; don't need to link against it, only need its header
+  AC_LANG_PUSH([C++])
+  AC_CHECK_HEADER([gmpxx.h], , [AC_MSG_ERROR([GNU MP C++ library header (gmpxx.h) required but not found, see http://gmplib.org/])])
+  AC_LANG_POP([C++])
   cvc4_cln_or_gmp=gmp
 else
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }$CLN_CFLAGS"
@@ -795,43 +797,6 @@ void foo(int64_t) {}])],
 AC_LANG_POP([C++])
 AC_SUBST([CVC4_NEED_INT64_T_OVERLOADS])
 
-AC_MSG_CHECKING([for the pb_ds namespace])
-AC_LANG_PUSH([C++])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include <ext/pb_ds/priority_queue.hpp>
-typedef pb_ds::priority_queue<void, void, void> pq;])],
-  [CVC4_PB_DS_NAMESPACE=pb_ds],
-  [AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-    #include <ext/pb_ds/priority_queue.hpp>
-    typedef __gnu_pbds::priority_queue<void, void, void> pq;])],
-      [CVC4_PB_DS_NAMESPACE=__gnu_pbds],
-      [AC_MSG_ERROR([cannot find required priority_queue in either __gnu_pbds or pb_ds namespace.
-
-If you're using a non-GCC compiler (such as clang), you may need to explicitly
-use the GNU standard C++ library by passing:
-    CXXFLAGS='-stdlib=libstdc++' CPPFLAGS='-stdlib=libstdc++'
-as arguments to this configure script.
-This is the case on Mac OS Mavericks, for example.])])])
-AC_LANG_POP([C++])
-AC_MSG_RESULT([$CVC4_PB_DS_NAMESPACE])
-AC_DEFINE_UNQUOTED(CVC4_PB_DS_NAMESPACE, ${CVC4_PB_DS_NAMESPACE}, [The namespace for pb_ds data structures.])
-
-# for information: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36612
-AC_MSG_CHECKING([whether pb_ds has bug 36612])
-AC_LANG_PUSH([C++])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#define __throw_container_error inline __throw_container_error
-#define __throw_insert_error inline __throw_insert_error
-#define __throw_join_error inline __throw_join_error
-#define __throw_resize_error inline __throw_resize_error
-#include <ext/pb_ds/exception.hpp>
-])],
-  [CVC4_GCC_HAS_PB_DS_BUG=1; bugverb=is],
-  [CVC4_GCC_HAS_PB_DS_BUG=0; bugverb="is not"])
-AC_LANG_POP([C++])
-AC_MSG_RESULT([bug $bugverb present])
-AC_DEFINE_UNQUOTED(CVC4_GCC_HAS_PB_DS_BUG, ${CVC4_GCC_HAS_PB_DS_BUG}, [Whether libstdc++ has a certain bug; see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36612])
-
 # Check for ANTLR runantlr script (defined in config/antlr.m4)
 AC_PROG_ANTLR
 
@@ -1019,7 +984,7 @@ AC_LIB_ANTLR
 CVC4_CHECK_BINDINGS([c java])dnl csharp perl php python ruby tcl ocaml])
 
 # Checks for header files and their contents.
-AC_CHECK_HEADERS([getopt.h unistd.h])
+AC_CHECK_HEADERS([getopt.h unistd.h ext/stdio_filebuf.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 #AC_HEADER_STDBOOL
@@ -1038,6 +1003,9 @@ AC_CHECK_DECLS([optreset], [], [], [#include <getopt.h>])
 
 # check with which standard strerror_r() complies
 AC_FUNC_STRERROR_R
+
+# is is_sorted() in std or __gnu_cxx?
+CHECK_FOR_IS_SORTED
 
 # require boost library
 BOOST_REQUIRE()
@@ -1077,7 +1045,31 @@ fi
 AM_CONDITIONAL([CVC4_BUILD_PCVC4], [test "$with_portfolio" = yes])
 if test "$with_portfolio" = yes; then
   CVC4CPPFLAGS="${CVC4CPPFLAGS:+$CVC4CPPFLAGS }-DCVC4_PORTFOLIO"
+
+  # see if Boost has thread attributes (should be any version >= 1.50.0)
+  # non-fatal error if not, but we won't support --thread-stack option
+  AC_MSG_CHECKING([whether Boost threads support thread attrs])
+  AC_LANG_PUSH([C++])
+  cvc4_save_CPPFLAGS="$CPPFLAGS"
+  cvc4_save_LIBS="$LIBS"
+  cvc4_save_LDFLAGS="$LDFLAGS"
+  CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
+  LIBS="$LIBS $BOOST_THREAD_LIBS"
+  LDFLAGS="$LDFLAGS $BOOST_THREAD_LDFLAGS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <boost/thread.hpp>],
+         [boost::thread::attributes attrs; attrs.set_stack_size(10 * 1024 * 1024);])],
+    [cvc4_boost_has_thread_attr=1;
+     AC_MSG_RESULT([yes])],
+    [cvc4_boost_has_thread_attr=0;
+     AC_MSG_RESULT([no])])
+  CPPFLAGS="$cvc4_save_CPPFLAGS"
+  LIBS="$cvc4_save_LIBS"
+  LDFLAGS="$cvc4_save_LDFLAGS"
+  AC_LANG_POP([C++])
+else
+  cvc4_boost_has_thread_attr=0
 fi
+AC_DEFINE_UNQUOTED([BOOST_HAS_THREAD_ATTR], $cvc4_boost_has_thread_attr, [Define to 1 if Boost threading library has support for thread attributes])
 
 # Check for libreadline (defined in config/readline.m4)
 AC_ARG_WITH([readline], [AS_HELP_STRING([--with-readline], [support the readline library])], [], [with_readline=check])
@@ -1473,9 +1465,11 @@ EOF
 
 if test -n "$CVC4_UNSUPPORTED_LANGUAGE_BINDINGS"; then
   AC_MSG_WARN([])
-  AC_MSG_WARN([You are electing to build unsupported language binding(s): $CVC4_UNSUPPORTED_LANGUAGE_BINDINGS])
-  AC_MSG_WARN([Please be aware that these bindings may not compile, or work, and the interface to CVC4 via])
-  AC_MSG_WARN([these bindings may change drastically in upcoming releases of CVC4.])
+  AC_MSG_WARN([You are electing to build unsupported language binding(s):])
+  AC_MSG_WARN([    $CVC4_UNSUPPORTED_LANGUAGE_BINDINGS])
+  AC_MSG_WARN([Please be aware that these bindings may not compile, or])
+  AC_MSG_WARN([work, and the interface to CVC4 via these bindings may])
+  AC_MSG_WARN([change drastically in upcoming releases of CVC4.])
   AC_MSG_WARN([])
 fi
 

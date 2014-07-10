@@ -25,7 +25,8 @@ lib_LTLIBRARIES += libcvc4bindings_c_compat.la
 libcvc4bindings_c_compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 libcvc4bindings_c_compat_la_LIBADD = \
-	-L@builddir@/../../../compat -lcvc4compat
+	-L@builddir@/../../../compat -lcvc4compat \
+	-L@builddir@/../../.. -lcvc4
 
 endif
 

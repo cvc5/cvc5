@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Christopher L. Conway, Tim King, ACSYS
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -106,7 +106,8 @@ void segv_handler(int sig, siginfo_t* info, void* c) {
     abort();
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
-    cerr << "Try:  gdb " << progName << " " << getpid() << endl;
+    cerr << "Try:  gdb " << progName << " " << getpid() << endl
+         << " or:  gdb --pid=" << getpid() << " " << progName << endl;
     for(;;) {
       sleep(60);
     }
@@ -141,6 +142,7 @@ void ill_handler(int sig, siginfo_t* info, void*) {
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
     fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    fprintf(stderr, " or:  gdb --pid=%u %s\n", getpid(), progName);
     for(;;) {
       sleep(60);
     }
@@ -181,6 +183,7 @@ void cvc4unexpected() {
   } else {
     fprintf(stderr, "Spinning so that a debugger can be connected.\n");
     fprintf(stderr, "Try:  gdb %s %u\n", progName, getpid());
+    fprintf(stderr, " or:  gdb --pid=%u %s\n", getpid(), progName);
     for(;;) {
       sleep(60);
     }

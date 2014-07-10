@@ -234,7 +234,7 @@ return toJavaVConstRef(env, expr->getVars());
 
 DEFINITION: Java_cvc3_Expr_jniGetExistential
 jobject c Expr expr
-return embed_const_ref<Expr>(env, &expr->getExistential());
+return embed_copy<Expr>(env, expr->getExistential());
 
 DEFINITION: Java_cvc3_Expr_jniGetBoundIndex
 jint c Expr expr
@@ -242,7 +242,7 @@ return expr->getBoundIndex();
 
 DEFINITION: Java_cvc3_Expr_jniGetBody
 jobject c Expr expr
-return embed_const_ref<Expr>(env, &expr->getBody());
+return embed_copy<Expr>(env, expr->getBody());
 
 DEFINITION: Java_cvc3_Expr_jniGetRational
 jobject c Expr expr
@@ -254,7 +254,7 @@ return toJavaVVConstRef(env, expr->getTriggers());
 
 DEFINITION: Java_cvc3_Expr_jniGetTheorem
 jobject c Expr expr
-return embed_const_ref<Theorem>(env, &expr->getTheorem());
+return embed_copy<Theorem>(env, expr->getTheorem());
 
 DEFINITION: Java_cvc3_Expr_jniGetType
 jobject c Expr expr

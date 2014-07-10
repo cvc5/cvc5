@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Tim King
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic
+ ** Minor contributors (to current version): Kshitij Bansal, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -103,6 +103,7 @@ public:
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
+    d_smt->setOption("incremental", false);
     d_ctxt = d_smt->d_context;
     d_uctxt = d_smt->d_userContext;
     d_scope = new SmtScope(d_smt);

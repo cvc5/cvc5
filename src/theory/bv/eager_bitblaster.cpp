@@ -1,51 +1,42 @@
 /*********************                                                        */
-/*! \file eager_bitblaster.h
+/*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
- ** Minor contributors (to current version): lianah
+ ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
  ** \brief 
  **
- ** Bitblaster for the lazy bv solver. 
+ ** Bitblaster for the eager bv solver. 
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EAGER__BITBLASTER_H
-#define __CVC4__EAGER__BITBLASTER_H
-
-
-#include "bitblaster_template.h"
-#include "theory/theory_registrar.h"
+#include "theory/bv/bitblaster_template.h"
+#include "theory/bv/options.h"
+#include "theory/theory_model.h"
+#include "theory/bv/theory_bv.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
-#include "theory/bv/options.h"
-
-namespace CVC4 {
-namespace theory {
-namespace bv {
 
 
-class BitblastingRegistrar: public prop::Registrar {
-  EagerBitblaster* d_bitblaster; 
-public:
-  BitblastingRegistrar(EagerBitblaster* bb)
-    : d_bitblaster(bb)
-  {}
-  void preRegister(Node n) {
-    d_bitblaster->bbAtom(n); 
-  };
+using namespace CVC4;
+using namespace CVC4::theory;
+using namespace CVC4::theory::bv; 
 
-};/* class Registrar */
+void BitblastingRegistrar::preRegister(Node n) {
+  d_bitblaster->bbAtom(n); 
+};
 
-EagerBitblaster::EagerBitblaster()
+EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   : TBitblaster<Node>()
+  , d_bv(theory_bv)
   , d_bbAtoms()
+  , d_variables()
 {
   d_bitblastingRegistrar = new BitblastingRegistrar(this); 
   d_nullContext = new context::Context();
@@ -126,6 +117,7 @@ void EagerBitblaster::makeVariable(TNode var, Bits& bits) {
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
     bits.push_back(utils::mkBitOf(var, i)); 
   }
+  d_variables.insert(var); 
 }
 
 Node EagerBitblaster::getBBAtom(TNode node) const {
@@ -154,10 +146,63 @@ bool EagerBitblaster::solve() {
 }
 
 
-} /*bv namespace */
-} /* theory namespace */
-} /* CVC4 namespace*/
+/**
+ * Returns the value a is currently assigned to in the SAT solver
+ * or null if the value is completely unassigned.
+ *
+ * @param a
+ * @param fullModel whether to create a "full model," i.e., add
+ * constants to equivalence classes that don't already have them
+ *
+ * @return
+ */
+Node EagerBitblaster::getVarValue(TNode a, bool fullModel) {
+  if (!hasBBTerm(a)) {
+    Assert(isSharedTerm(a));
+    return Node();
+  }
+  Bits bits;
+  getBBTerm(a, bits);
+  Integer value(0);
+  for (int i = bits.size() -1; i >= 0; --i) {
+    prop::SatValue bit_value;
+    if (d_cnfStream->hasLiteral(bits[i])) {
+      prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
+      bit_value = d_satSolver->value(bit);
+      Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
+    } else {
+      // the bit is unconstrainted so we can give it an arbitrary value
+      bit_value = prop::SAT_VALUE_FALSE;
+    }
+    Integer bit_int = bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
+    value = value * 2 + bit_int;
+  }
+  return utils::mkConst(BitVector(bits.size(), value));
+}
 
 
+void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
+  TNodeSet::const_iterator it = d_variables.begin();
+  for (; it!= d_variables.end(); ++it) {
+    TNode var = *it;
+    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
+      Node const_value = getVarValue(var, fullModel);
+      if(const_value == Node()) {
+        if( fullModel ){
+          // if the value is unassigned just set it to zero
+          const_value = utils::mkConst(BitVector(utils::getSize(var), 0u));
+        }
+      }
+      if(const_value != Node()) {
+        Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
+                                 << var << " "
+                                 << const_value << "))\n";
+        m->assertEquality(var, const_value, true);
+      }
+    }
+  }
+}
 
-#endif
+bool EagerBitblaster::isSharedTerm(TNode node) {
+  return d_bv->d_sharedTermsSet.find(node) != d_bv->d_sharedTermsSet.end();
+}

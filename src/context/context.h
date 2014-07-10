@@ -5,7 +5,7 @@
  ** Major contributors: Clark Barrett
  ** Minor contributors (to current version): Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -94,8 +94,8 @@ class Context {
   operator<<(std::ostream&, const Context&) throw(AssertionException);
 
   // disable copy, assignment
-  Context(const Context&) CVC4_UNUSED;
-  Context& operator=(const Context&) CVC4_UNUSED;
+  Context(const Context&) CVC4_UNDEFINED;
+  Context& operator=(const Context&) CVC4_UNDEFINED;
 
 public:
 
@@ -208,8 +208,8 @@ public:
 class UserContext : public Context {
 private:
   // disable copy, assignment
-  UserContext(const UserContext&) CVC4_UNUSED;
-  UserContext& operator=(const UserContext&) CVC4_UNUSED;
+  UserContext(const UserContext&) CVC4_UNDEFINED;
+  UserContext& operator=(const UserContext&) CVC4_UNDEFINED;
 public:
   UserContext() {}
 };/* class UserContext */

@@ -2,7 +2,7 @@
 #
 # mkoptions
 # Morgan Deters <mdeters@cs.nyu.edu> for CVC4
-# Copyright (c) 2011-2013  The CVC4 Project
+# Copyright (c) 2011-2014  The CVC4 Project
 #
 # The purpose of this script is to create options.{h,cpp}
 # from template files and a list of options.
@@ -344,6 +344,15 @@ function handle_option {
     ERR "cannot use alternate long option --$long_option_alternate for \`$internal' because it's not of bool type"
   fi
 
+  # check that normal options are accessible via SmtEngine too
+  if [ -n "$long_option$short_option$long_option_alternate$short_option_alternate" -a -z "$smtname" -a "$internal" != - ]; then
+    if [ -n "$long_option" ]; then
+      smtname="$long_option"
+    else
+      WARN "$internal is inaccessible via SmtEngine (no smt name for option) but can be set via command-line: $long_option $short_option $long_option_alternate $short_option_alternate"
+    fi
+  fi
+
   # check for duplicates
   if [ "$internal" != - ]; then
     if echo " $all_declared_internal_options " | grep -q " $internal "; then
@@ -565,9 +574,9 @@ template <> bool Options::wasSetByUser(options::${internal}__option_t) const { r
   run_links_alternate=
   run_smt_links=
   if [ -n "$links" -a -z "$smt_links" -a -n "$smtname" ]; then
-    echo "$kf:$lineno: warning: $smtname has no :link-smt, but equivalent command-line has :link" >&2
+    WARN "$smtname has no :link-smt, but equivalent command-line has :link"
   elif [ -n "$smt_links" -a -z "$links" ] && [ -n "$short_option" -o -n "$short_option_alternate" -o -n "$long_option" -o "$long_option_alternate" ]; then
-    echo "$kf:$lineno: warning: $smtname has a :link-smt, but equivalent command-line has no :link" >&2
+    WARN "$smtname has a :link-smt, but equivalent command-line has no :link"
   fi
   if [ -n "$links" ]; then
     # command-line links
@@ -1060,13 +1069,16 @@ function doc {
             if [ "$category" = EXPERT ]; then
               mansmtdoc="$mansmtdoc (EXPERTS only)"
             fi
+            altmanopt="`echo "$altopt" | sed 's,-,\\\\\\-,g'`"
+            mansmtdoc="`echo "$mansmtdoc" | sed 's,-,\\\\\\-,g'`"
+            typedefault="`echo "$typedefault" | sed 's,-,\\\\\\-,g'`"
             if [ "$category" = COMMON ]; then
               common_manpage_internals_documentation="${common_manpage_internals_documentation}
 .TP
 .B \"$internal\"
 $typedefault
 .br
-.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altmanopt which reverses the sense of the option, is documented thusly:\"
 $mansmtdoc"
             else
               remaining_manpage_internals_documentation="${remaining_manpage_internals_documentation}
@@ -1074,7 +1086,7 @@ $mansmtdoc"
 .B \"$internal\"
 $typedefault
 .br
-.B \"This internal Boolean flag is undocumented; however, its alternate option$altopt which reverses the sense of the option, is documented thusly:\"
+.B \"This internal Boolean flag is undocumented; however, its alternate option$altmanopt which reverses the sense of the option, is documented thusly:\"
 $mansmtdoc"
             fi
           else
@@ -1124,6 +1136,11 @@ $@"
       mandoc="$mandoc [*]"
     fi
 
+    # in man, minus sign is \-, different from hyphen
+    the_manopt="`echo "$the_opt" | sed 's,-,\\\\\\-,g'`"
+    mandoc="`echo "$mandoc" | sed 's,-,\\\\\\-,g'`"
+    mansmtdoc="`echo "$mansmtdoc" | sed 's,-,\\\\\\-,g'`"
+
     if [ "$the_opt" ]; then
       doc_line=
       while [ -n "$the_doc" ]; do
@@ -1147,14 +1164,14 @@ $@"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
         common_manpage_documentation="${common_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $mandoc"
       elif [ "$category" != UNDOCUMENTED ]; then
         remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
         remaining_manpage_documentation="${remaining_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $mandoc"
       fi
     fi
@@ -1178,6 +1195,7 @@ $mandoc"
       else
         typedefault="($type, default = $default_value)"
       fi
+      typedefault="`echo "$typedefault" | sed 's,-,\\\\\\-,g'`"
       if [ "$category" = COMMON ]; then
         common_manpage_internals_documentation="${common_manpage_internals_documentation}
 .TP
@@ -1286,19 +1304,22 @@ function doc-alternate {
       the_doc="$(expr "$remaining_doc" : '\(.*\) ')"
     done
 
+    # in man, minus sign is \-, different from hyphen
+    the_manopt="`echo "$the_opt" | sed 's,-,\\\\\\-,g'`"
+
     if [ "$category" = COMMON ]; then
       common_documentation="${common_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
       common_manpage_documentation="${common_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $@"
     else
       remaining_documentation="${remaining_documentation}\\n\"
 #line $lineno \"$kf\"
 \"$(echo "$doc_line" | sed 's,'\'',\\'\'',g;s,",\\",g')"
       remaining_manpage_documentation="${remaining_manpage_documentation}
-.IP \"$the_opt\"
+.IP \"$the_manopt\"
 $@"
     fi
   else
@@ -1478,7 +1499,7 @@ EOF
   fi
 }
 
-total=$(($#/2+21*${#templates[@]}))
+total=$(($#/2+23*${#templates[@]}))
 count=0
 while [ $# -gt 0 ]; do
   kf="$1"; shift

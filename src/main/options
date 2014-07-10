@@ -28,6 +28,8 @@ option threads --threads=N unsigned :default 2 :predicate greater(0)
  Total number of threads for portfolio
 option - --threadN=string void :handler CVC4::main::threadN :handler-include "main/options_handlers.h"
  configures portfolio thread N (0..#threads-1)
+option threadStackSize --thread-stack=N unsigned :default 0
+ stack size for worker threads in MB (0 means use Boost/thread lib default)
 option threadArgv std::vector<std::string> :include <vector> <string>
  Thread configuration (a string to be passed to parseOptions)
 option thread_id int :default -1

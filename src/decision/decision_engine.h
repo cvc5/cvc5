@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Clark Barrett, Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -144,9 +144,9 @@ public:
   /** Is the DecisionEngine in a state where it has solved everything? */
   bool isDone() {
     Trace("decision") << "DecisionEngine::isDone() returning "
-		      << (d_result != SAT_VALUE_UNKNOWN)
-		      << (d_result != SAT_VALUE_UNKNOWN ? "true" : "false")
-		      << std::endl;
+                      << (d_result != SAT_VALUE_UNKNOWN)
+                      << (d_result != SAT_VALUE_UNKNOWN ? "true" : "false")
+                      << std::endl;
     return (d_result != SAT_VALUE_UNKNOWN);
   }
 

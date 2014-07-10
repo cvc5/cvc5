@@ -9,10 +9,10 @@
 (declare-fun T () (Set Int))
 (declare-fun x () Int)
 
-(assert (or (not (= S smt_set_emp)) (in x T)))
+(assert (or (not (= S smt_set_emp)) (member x T)))
 
 (assert (= smt_set_emp 
-           (ite (in x T) 
-                (union (union smt_set_emp (setenum x)) S) 
+           (ite (member x T) 
+                (union (union smt_set_emp (singleton x)) S) 
                 S)))
 (check-sat)

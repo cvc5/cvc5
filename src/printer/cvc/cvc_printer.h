@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -28,10 +28,13 @@ namespace printer {
 namespace cvc {
 
 class CvcPrinter : public CVC4::Printer {
+  bool d_cvc3Mode;
+
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const throw();
   void toStream(std::ostream& out, const Model& m, const Command* c) const throw();
 public:
   using CVC4::Printer::toStream;
+  CvcPrinter(bool cvc3Mode = false) : d_cvc3Mode(cvc3Mode) { }
   void toStream(std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const Command* c, int toDepth, bool types, size_t dag) const throw();
   void toStream(std::ostream& out, const CommandStatus* s) const throw();

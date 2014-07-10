@@ -18,17 +18,17 @@ authors of previous CVC tools is included with their distributions.
 
 CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson.
 
-The CVC4 parser incorporates some code from ANTLR3, by Jim Idle,
-Temporal Wave LLC.
+The CVC4 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
+Wave LLC.
 
 CVC4 contains the doxygen.m4 autoconf module by Oren Ben-Kiki.
 
 CVC4 contains the pkg.m4 autoconf module by Scott James Remnant.
 
-CVC4 contains the ax_tls.m4 autoconf module by Alan Woodland and
-Diego Elio Petteno.
+CVC4 contains the ax_tls.m4 autoconf module by Alan Woodland and Diego Elio
+Petteno.
 
 CVC4 contains the boost.m4 autoconf module by Benoit Sigoure.
 
-CVC4 maintainer versions contain the script autogen.sh, by the
-U.S. Army Research Laboratory.
+CVC4 maintainer versions contain the script autogen.sh by Christopher Sean
+Morrison, and copyright U.S. Army Research Laboratory.

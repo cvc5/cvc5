@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Tim King
+ ** Minor contributors (to current version): Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -25,10 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-static const std::string arithPresolveLemmasHelp = "\
-Presolve lemmas are generated before SAT search begins using the relationship\n\
+static const std::string arithUnateLemmasHelp = "\
+Unate lemmas are generated before SAT search begins using the relationship\n\
 of constant terms and polynomials.\n\
-Modes currently supported by the --arith-presolve-lemmas option:\n\
+Modes currently supported by the --unate-lemmas option:\n\
 + none \n\
 + ineqs \n\
   Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d.\n\
@@ -73,7 +73,7 @@ inline ArithUnateLemmaMode stringToArithUnateLemmaMode(std::string option, std::
   } else if(optarg == "eqs") {
     return EQUALITY_PRESOLVE_LEMMAS;
   } else if(optarg == "help") {
-    puts(arithPresolveLemmasHelp.c_str());
+    puts(arithUnateLemmasHelp.c_str());
     exit(1);
   } else {
     throw OptionException(std::string("unknown option for --unate-lemmas: `") +

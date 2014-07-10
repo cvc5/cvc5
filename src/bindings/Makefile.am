@@ -180,7 +180,7 @@ CVC4.jar: java.cpp
 	(cd java && \
 	rm -fr classes && \
 	mkdir -p classes && \
-	$(JAVAC) -classpath . -d classes `find . -name '*.java'` && \
+	$(JAVAC) -source 1.5 -target 1.5 -classpath . -d classes `find . -name '*.java'` && \
 	cd classes) && \
 	$(JAR) cf $@ -C java/classes .
 #java.cpp:;

@@ -5,7 +5,7 @@
  ** Major contributors: Liana Hadarean, Kshitij Bansal, Morgan Deters
  ** Minor contributors (to current version): Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -56,9 +56,6 @@ class TheoryProxy {
 
   /** The theory engine we are using */
   TheoryEngine* d_theoryEngine;
-
-  /** Context we will be using to synchronzie the sat solver */
-  context::Context* d_context;
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
@@ -135,7 +132,6 @@ inline TheoryProxy::TheoryProxy(PropEngine* propEngine,
   d_cnfStream(cnfStream),
   d_decisionEngine(decisionEngine),
   d_theoryEngine(theoryEngine),
-  d_context(context),
   d_queue(context)
 {}
 

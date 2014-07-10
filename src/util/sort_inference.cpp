@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -580,6 +580,8 @@ Node SortInference::simplify( Node n, std::map< Node, Node >& var_bound ){
         ss << "io_" << op;
         TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, retType );
         d_symbol_map[op] = NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during sort inference" );
+        Trace("setp-model") << "Function " << op << " is replaced with " << d_symbol_map[op] << std::endl;
+        d_model_replace_f[op] = d_symbol_map[op];
       }else{
         d_symbol_map[op] = op;
       }

@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: Kshitij Bansal
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -304,8 +304,11 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
                          &d_channelsIn[0],
                          &d_smts[0]);
 
+    size_t threadStackSize = d_options[options::threadStackSize];
+    threadStackSize *= 1024 * 1024;
+
     pair<int, bool> portfolioReturn =
-        runPortfolio(d_numThreads, smFn, fns,
+        runPortfolio(d_numThreads, smFn, fns, threadStackSize,
                      d_options[options::waitToJoin], d_statWaitTime);
 
 #ifdef CVC4_STATISTICS_ON

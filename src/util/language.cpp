@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -68,6 +68,8 @@ OutputLanguage toOutputLanguage(std::string language) {
      language == "presentation" || language == "native" ||
      language == "LANG_CVC4") {
     return output::LANG_CVC4;
+  } else if(language == "cvc3" || language == "LANG_CVC3") {
+    return output::LANG_CVC3;
   } else if(language == "smtlib1" || language == "smt1" ||
             language == "LANG_SMTLIB_V1") {
     return output::LANG_SMTLIB_V1;
@@ -110,7 +112,7 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_AUTO;
   }
 
-  throw OptionException(std::string("unknown input language " + language + "'"));
+  throw OptionException(std::string("unknown input language `" + language + "'"));
 }/* toInputLanguage() */
 
 }/* CVC4::language namespace */

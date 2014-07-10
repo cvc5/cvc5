@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -29,23 +29,24 @@
 #include "theory/arith/callbacks.h"
 
 #include "util/statistics_registry.h"
+#include "util/bin_heap.h"
 
-#if CVC4_GCC_HAS_PB_DS_BUG
-   // Unfortunate bug in some older GCCs (e.g., v4.2):
-   //   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36612
-   // Requires some header-hacking to work around
-#  define __throw_container_error inline __throw_container_error
-#  define __throw_insert_error inline __throw_insert_error
-#  define __throw_join_error inline __throw_join_error
-#  define __throw_resize_error inline __throw_resize_error
-#  include <ext/pb_ds/exception.hpp>
-#  undef __throw_container_error
-#  undef __throw_insert_error
-#  undef __throw_join_error
-#  undef __throw_resize_error
-#endif /* CVC4_GCC_HAS_PB_DS_BUG */
+// #if CVC4_GCC_HAS_PB_DS_BUG
+//    // Unfortunate bug in some older GCCs (e.g., v4.2):
+//    //   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36612
+//    // Requires some header-hacking to work around
+// #  define __throw_container_error inline __throw_container_error
+// #  define __throw_insert_error inline __throw_insert_error
+// #  define __throw_join_error inline __throw_join_error
+// #  define __throw_resize_error inline __throw_resize_error
+// #  include <ext/pb_ds/exception.hpp>
+// #  undef __throw_container_error
+// #  undef __throw_insert_error
+// #  undef __throw_join_error
+// #  undef __throw_resize_error
+// #endif /* CVC4_GCC_HAS_PB_DS_BUG */
 
-#include <ext/pb_ds/priority_queue.hpp>
+// #include <ext/pb_ds/priority_queue.hpp>
 
 #include <vector>
 
@@ -103,12 +104,16 @@ public:
 //
 // typedef FocusSet::handle_type FocusSetHandle;
 
-typedef CVC4_PB_DS_NAMESPACE::priority_queue<
-  ArithVar,
-  ComparatorPivotRule,
-  CVC4_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
+// typedef CVC4_PB_DS_NAMESPACE::priority_queue<
+//   ArithVar,
+//   ComparatorPivotRule,
+//   CVC4_PB_DS_NAMESPACE::pairing_heap_tag> FocusSet;
 
-typedef FocusSet::point_iterator FocusSetHandle;
+// typedef FocusSet::point_iterator FocusSetHandle;
+
+typedef BinaryHeap<ArithVar, ComparatorPivotRule> FocusSet;
+typedef FocusSet::handle FocusSetHandle;
+
 
 class ErrorInformation {
 private:

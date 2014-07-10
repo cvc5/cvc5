@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Morgan Deters
  ** Major contributors: none
- ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang
+ ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang, Kshitij Bansal, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -129,7 +129,7 @@ std::string LogicInfo::getLogicString() const {
         ++seen;
       }
       if(d_theories[THEORY_SETS]) {
-        ss << "_SETS";
+        ss << "FS";
         ++seen;
       }
 
@@ -272,9 +272,9 @@ void LogicInfo::setLogicString(std::string logicString) throw(IllegalArgumentExc
         arithNonLinear();
         p += 4;
       }
-      if(!strncmp(p, "_SETS", 5)) {
+      if(!strncmp(p, "FS", 2)) {
         enableTheory(THEORY_SETS);
-        p += 5;
+        p += 2;
       }
     }
   }

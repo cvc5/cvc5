@@ -44,6 +44,7 @@ TESTS =	\
 	error1.smt2 \
 	error2.smt2 \
 	eqtest.smt2 \
+	insert.smt2 \
 	fuzz14418.smt2 \
 	fuzz15201.smt2 \
 	fuzz31811.smt2 \

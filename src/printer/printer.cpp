@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -37,7 +37,7 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V1:
+  case LANG_SMTLIB_V1: // TODO the printer
     return new printer::smt1::Smt1Printer();
 
   case LANG_SMTLIB_V2:
@@ -54,6 +54,9 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
 
   case LANG_AST:
     return new printer::ast::AstPrinter();
+
+  case LANG_CVC3:
+    return new printer::cvc::CvcPrinter(/* cvc3-mode = */ true);
 
   default:
     Unhandled(lang);

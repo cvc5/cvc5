@@ -5,7 +5,7 @@
  ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -150,23 +150,14 @@ Node TheoryQuantifiers::getNextDecisionRequest(){
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
   if( options::recurseCbqi() || !TermDb::hasInstConstAttr(n) ){
-    getQuantifiersEngine()->registerQuantifier( n );
-    getQuantifiersEngine()->assertNode( n );
+    getQuantifiersEngine()->assertQuantifier( n, true );
   }
 }
 
 void TheoryQuantifiers::assertExistential( Node n ){
   Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
   if( !options::cbqi() || options::recurseCbqi() || !TermDb::hasInstConstAttr(n[0]) ){
-    if( d_skolemized.find( n )==d_skolemized.end() ){
-      Node body = getQuantifiersEngine()->getTermDatabase()->getSkolemizedBody( n[0] );
-      NodeBuilder<> nb(kind::OR);
-      nb << n[0] << body.notNode();
-      Node lem = nb;
-      Trace("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
-      d_out->lemma( lem, false, true );
-      d_skolemized[n] = true;
-    }
+    getQuantifiersEngine()->assertQuantifier( n[0], false );
   }
 }
 

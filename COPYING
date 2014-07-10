@@ -23,7 +23,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--- Morgan Deters <mdeters@cs.nyu.edu>  Thu, 02 Jan 2014 14:02:28 -0500
+-- Morgan Deters <mdeters@cs.nyu.edu>  Wed, 02 Jul 2014 14:44:39 -0400
 
 CVC4 incorporates MiniSat code, excluded from the above copyright.
 See src/sat/minisat.  Its copyright:

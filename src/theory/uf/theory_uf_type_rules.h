@@ -5,7 +5,7 @@
  ** Major contributors: Christopher L. Conway, Andrew Reynolds, Morgan Deters
  ** Minor contributors (to current version): Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -61,6 +61,9 @@ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
       throw(TypeCheckingExceptionPrivate) {
     if( check ) {
+      // don't care what it is, but it should be well-typed
+      n[0].getType(check);
+
       TypeNode valType = n[1].getType(check);
       if( valType != nodeManager->integerType() ) {
         throw TypeCheckingExceptionPrivate(n, "cardinality constraint must be integer");
@@ -84,6 +87,12 @@ public:
       TypeNode valType = n[0].getType(check);
       if( valType != nodeManager->integerType() ) {
         throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be integer");
+      }
+      if( n[0].getKind()!=kind::CONST_RATIONAL ){
+        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be a constant");
+      }
+      if( n[0].getConst<Rational>().getNumerator().sgn()!=1 ){
+        throw TypeCheckingExceptionPrivate(n, "combined cardinality constraint must be positive");
       }
     }
     return nodeManager->booleanType();

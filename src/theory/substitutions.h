@@ -5,7 +5,7 @@
  ** Major contributors: Clark Barrett, Dejan Jovanovic
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -53,9 +53,6 @@ private:
 
   typedef std::hash_map<Node, Node, NodeHashFunction> NodeCache;
 
-  /** The context within which this SubstitutionMap was constructed. */
-  context::Context* d_context;
-
   /** The variables, in order of addition */
   NodeMap d_substitutions;
 
@@ -98,7 +95,6 @@ private:
 public:
 
   SubstitutionMap(context::Context* context, bool substituteUnderQuantifiers = true, bool solvedForm = false) :
-    d_context(context),
     d_substitutions(context),
     d_substitutionCache(),
     d_substituteUnderQuantifiers(substituteUnderQuantifiers),

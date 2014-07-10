@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Christopher L. Conway
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Dejan Jovanovic, Tianyi Liang, Andrew Reynolds, Francois Bobot
+ ** Minor contributors (to current version): Dejan Jovanovic, Kshitij Bansal, Tianyi Liang, Francois Bobot, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -1115,7 +1115,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_SIGMA, nvec ); }
 
   | EMPTYSET_TOK
-    { expr = MK_CONST( ::CVC4::EmptySet()); }
+    { expr = MK_CONST( ::CVC4::EmptySet(Type())); }
 
     // NOTE: Theory constants go here
   ;
@@ -1483,7 +1483,9 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
     }
   | LPAREN_TOK symbol[name,CHECK_NONE,SYM_SORT] sortList[args] RPAREN_TOK
     {
-      if(name == "Array" &&
+      if(args.empty()) {
+        PARSER_STATE->parseError("Extra parentheses around sort name not permitted in SMT-LIB");
+      } else if(name == "Array" &&
          PARSER_STATE->isTheoryEnabled(Smt2::THEORY_ARRAYS) ) {
         if(args.size() != 2) {
           PARSER_STATE->parseError("Illegal array type.");
@@ -1555,12 +1557,12 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-  /*| UNTERMINATED_QUOTED_SYMBOL
+  | UNTERMINATED_QUOTED_SYMBOL
     ( EOF
       { PARSER_STATE->unexpectedEOF("unterminated |quoted| symbol"); }
     | '\\'
       { PARSER_STATE->unexpectedEOF("backslash not permitted in |quoted| symbol"); }
-    )*/
+    )
   ;
 
 /**
@@ -1801,9 +1803,9 @@ EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
 QUOTED_SYMBOL
   : '|' ~('|' | '\\')* '|'
   ;
-/*UNTERMINATED_QUOTED_SYMBOL
+UNTERMINATED_QUOTED_SYMBOL
   : '|' ~('|' | '\\')*
-  ;*/
+  ;
 
 /**
  * Matches a keyword from the input. A keyword is a simple symbol prefixed

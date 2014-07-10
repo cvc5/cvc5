@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Clark Barrett
  ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Tim King, Andrew Reynolds, Dejan Jovanovic
+ ** Minor contributors (to current version): Tim King, Kshitij Bansal, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -727,7 +727,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
           termSet.insert(r);
         }
         else if (!computeRep) {
-          arrays.push_back(eqc);
+          arrays.push_back(n);
           computeRep = true;
         }
       }
@@ -818,15 +818,16 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
   // Loop through all array equivalence classes that need a representative computed
   for (size_t i=0; i<arrays.size(); ++i) {
     TNode n = arrays[i];
+    TNode nrep = d_equalityEngine.getRepresentative(n);
 
     if (fullModel) {
       // Compute default value for this array - there is one default value for every mayEqual equivalence class
-      d_mayEqualEqualityEngine.addTerm(n); // add the term in case it isn't there already
-      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(n);
+      d_mayEqualEqualityEngine.addTerm(nrep); // add the term in case it isn't there already
+      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
       it = defValues.find(mayRep);
       // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
       if (it == defValues.end()) {
-        TypeNode valueType = n.getType().getArrayConstituentType();
+        TypeNode valueType = nrep.getType().getArrayConstituentType();
         rep = defaultValuesSet.nextTypeEnum(valueType);
         if (rep.isNull()) {
           Assert(defaultValuesSet.getSet(valueType)->begin() != defaultValuesSet.getSet(valueType)->end());
@@ -840,7 +841,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
       }
 
       // Build the STORE_ALL term with the default value
-      rep = nm->mkConst(ArrayStoreAll(n.getType().toType(), rep.toExpr()));
+      rep = nm->mkConst(ArrayStoreAll(nrep.getType().toType(), rep.toExpr()));
     }
     else {
       std::hash_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(n);
@@ -854,7 +855,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
     }
 
     // For each read, require that the rep stores the right value
-    vector<Node>& reads = selects[n];
+    vector<Node>& reads = selects[nrep];
     for (unsigned j = 0; j < reads.size(); ++j) {
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }

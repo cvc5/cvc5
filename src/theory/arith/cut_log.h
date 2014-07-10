@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file cut_log.h
+ ** \verbatim
+ ** Original author: Tim King
+ ** Major contributors: none
+ ** Minor contributors (to current version): Kshitij Bansal, Morgan Deters
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
+ ** See the file COPYING in the top-level source directory for licensing
+ ** information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 
 #include "cvc4_private.h"
 
@@ -125,11 +142,13 @@ public:
 };
 std::ostream& operator<<(std::ostream& os, const CutInfo& ci);
 
-struct BranchCutInfo : public CutInfo {
+class BranchCutInfo : public CutInfo {
+public:
   BranchCutInfo(int execOrd, int br,  Kind dir, double val);
 };
 
-struct RowsDeleted : public CutInfo {
+class RowsDeleted : public CutInfo {
+public:
   RowsDeleted(int execOrd, int nrows, const int num[]);
 };
 

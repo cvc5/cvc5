@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -318,6 +318,8 @@ typedef Expr Op;
  */
 class CVC4_PUBLIC Expr : public CVC4::Expr {
 public:
+  typedef CVC4::Expr::const_iterator iterator;
+
   Expr();
   Expr(const Expr& e);
   Expr(const CVC4::Expr& e);
@@ -376,15 +378,15 @@ public:
   bool isPropLiteral() const;
   bool isPropAtom() const;
 
-  const std::string& getName() const;
-  const std::string& getUid() const;
+  std::string getName() const;
+  std::string getUid() const;
 
-  const std::string& getString() const;
-  const std::vector<Expr>& getVars() const;
-  const Expr& getExistential() const;
+  std::string getString() const;
+  std::vector<Expr> getVars() const;
+  Expr getExistential() const;
   int getBoundIndex() const;
-  const Expr& getBody() const;
-  const Theorem& getTheorem() const;
+  Expr getBody() const;
+  Theorem getTheorem() const;
 
   bool isEq() const;
   bool isNot() const;
@@ -450,7 +452,7 @@ bool isArrayLiteral(const Expr&) CVC4_PUBLIC;
 
 class CVC4_PUBLIC ExprManager : public CVC4::ExprManager {
 public:
-  const std::string& getKindName(int kind);
+  std::string getKindName(int kind);
   //! Get the input language for printing
   InputLanguage getInputLang() const;
   //! Get the output language for printing

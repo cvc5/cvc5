@@ -95,6 +95,7 @@ libutil_la_SOURCES = \
 	sort_inference.cpp \
 	regexp.h \
 	regexp.cpp \
+	bin_heap.h \
 	didyoumean.h \
 	didyoumean.cpp
 
@@ -147,6 +148,7 @@ EXTRA_DIST = \
 	language.i \
 	array.i \
 	array_store_all.i \
+	emptyset.i \
 	ascription_type.i \
 	rational.i \
 	hash.i \

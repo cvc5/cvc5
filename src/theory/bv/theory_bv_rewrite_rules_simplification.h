@@ -2,10 +2,10 @@
 /*! \file theory_bv_rewrite_rules_simplification.h
  ** \verbatim
  ** Original author: Liana Hadarean
- ** Major contributors: Clark Barrett
- ** Minor contributors (to current version): Morgan Deters, Dejan Jovanovic, Tim King
+ ** Major contributors: none
+ ** Minor contributors (to current version): Morgan Deters, Dejan Jovanovic, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **

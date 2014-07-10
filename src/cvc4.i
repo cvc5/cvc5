@@ -61,6 +61,15 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #endif
 %}
 
+#ifdef SWIGPYTHON
+%pythonappend CVC4::SmtEngine::SmtEngine %{
+  self.thisown = 0
+%}
+%pythonappend CVC4::ExprManager::ExprManager %{
+  self.thisown = 0
+%}
+#endif /* SWIGPYTHON */
+
 %template(vectorCommandPtr) std::vector< CVC4::Command* >;
 %template(vectorType) std::vector< CVC4::Type >;
 %template(vectorExpr) std::vector< CVC4::Expr >;
@@ -283,9 +292,9 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #endif /* SWIGJAVA */
 
+%include "util/exception.i"
 %include "util/integer.i"
 %include "util/rational.i"
-%include "util/exception.i"
 %include "util/language.i"
 %include "util/cardinality.i"
 %include "util/bool.i"
@@ -303,6 +312,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 %include "expr/type.i"
 %include "util/ascription_type.i"
+%include "util/emptyset.i"
 %include "util/datatype.i"
 %include "util/tuple.i"
 %include "util/record.i"

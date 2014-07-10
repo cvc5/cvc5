@@ -12,39 +12,38 @@ properties check propagate ppStaticLearn presolve notifyRestart
 
 rewriter ::CVC4::theory::arith::ArithRewriter "theory/arith/arith_rewriter.h"
 
-
-operator PLUS 2: "arithmetic addition"
-operator MULT 2: "arithmetic multiplication"
+operator PLUS 2: "arithmetic addition (N-ary)"
+operator MULT 2: "arithmetic multiplication (N-ary)"
 operator MINUS 2 "arithmetic binary subtraction operator"
 operator UMINUS 1 "arithmetic unary negation"
-operator DIVISION 2 "real division (user symbol)"
+operator DIVISION 2 "real division, division by 0 undefined (user symbol)"
 operator DIVISION_TOTAL 2 "real division with interpreted division by 0 (internal symbol)"
-operator INTS_DIVISION 2 "ints division (user symbol)"
-operator INTS_DIVISION_TOTAL 2 "ints division with interpreted division by 0 (internal symbol)"
-operator INTS_MODULUS 2 "ints modulus (user symbol)"
-operator INTS_MODULUS_TOTAL 2 "ints modulus with interpreted division by 0 (internal symbol)"
+operator INTS_DIVISION 2 "integer division, division by 0 undefined (user symbol)"
+operator INTS_DIVISION_TOTAL 2 "integer division with interpreted division by 0 (internal symbol)"
+operator INTS_MODULUS 2 "integer modulus, division by 0 undefined (user symbol)"
+operator INTS_MODULUS_TOTAL 2 "integer modulus with interpreted division by 0 (internal symbol)"
 operator ABS 1 "absolute value"
-parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate"
+parameterized DIVISIBLE DIVISIBLE_OP 1 "divisibility-by-k predicate; first parameter is a DIVISIBLE_OP, second is integer term"
 operator POW 2 "arithmetic power"
 
 constant DIVISIBLE_OP \
         ::CVC4::Divisible \
         ::CVC4::DivisibleHashFunction \
         "util/divisible.h" \
-        "operator for the divisibility-by-k predicate"
+        "operator for the divisibility-by-k predicate; payload is an instance of the CVC4::Divisible class"
 
 sort REAL_TYPE \
     Cardinality::REALS \
     well-founded \
         "NodeManager::currentNM()->mkConst(Rational(0))" \
         "expr/node_manager.h" \
-    "Real type"
+    "real type"
 sort INTEGER_TYPE \
     Cardinality::INTEGERS \
     well-founded \
         "NodeManager::currentNM()->mkConst(Rational(0))" \
         "expr/node_manager.h" \
-    "Integer type"
+    "integer type"
 
 constant SUBRANGE_TYPE \
     ::CVC4::SubrangeBounds \
@@ -63,7 +62,7 @@ constant CONST_RATIONAL \
     ::CVC4::Rational \
     ::CVC4::RationalHashFunction \
     "util/rational.h" \
-    "a multiple-precision rational constant"
+    "a multiple-precision rational constant; payload is an instance of the CVC4::Rational class"
 
 enumerator REAL_TYPE \
     "::CVC4::theory::arith::RationalEnumerator" \
@@ -80,9 +79,9 @@ operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
 
-operator IS_INTEGER 1 "term is integer"
-operator TO_INTEGER 1 "cast term to integer"
-operator TO_REAL 1 "cast term to real"
+operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
+operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
+operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in CVC4, as integer is a subtype of real)"
 
 typerule PLUS ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule MULT ::CVC4::theory::arith::ArithOperatorTypeRule

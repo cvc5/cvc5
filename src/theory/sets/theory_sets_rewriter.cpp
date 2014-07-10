@@ -5,7 +5,7 @@
  ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2013-2014  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -32,11 +32,11 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return false;
   }
 
-  if(setTerm.getKind() == kind::SET_SINGLETON) {
+  if(setTerm.getKind() == kind::SINGLETON) {
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SET_SINGLETON,
+  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
          "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
 
   return elementTerm == setTerm[1][0] || checkConstantMembership(elementTerm, setTerm[0]);
@@ -44,7 +44,7 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
   // switch(setTerm.getKind()) {
   // case kind::EMPTYSET:
   //   return false;
-  // case kind::SET_SINGLETON:
+  // case kind::SINGLETON:
   //   return elementTerm == setTerm[0];
   // case kind::UNION:
   //   return checkConstantMembership(elementTerm, setTerm[0]) ||
@@ -195,7 +195,7 @@ const Elements& collectConstantElements(TNode setterm, SettermElementsMap& sette
       case kind::EMPTYSET:
         /* assign emptyset, which is default */
         break;
-      case kind::SET_SINGLETON:
+      case kind::SINGLETON:
         Assert(setterm[0].isConst());
         cur.insert(TheorySetsRewriter::preRewrite(setterm[0]).node);
         break;
@@ -220,10 +220,10 @@ Node elementsToNormalConstant(Elements elements,
   } else {
 
     Elements::iterator it = elements.begin();
-    Node cur = nm->mkNode(kind::SET_SINGLETON, *it);
+    Node cur = nm->mkNode(kind::SINGLETON, *it);
     while( ++it != elements.end() ) {
       cur = nm->mkNode(kind::UNION, cur,
-                       nm->mkNode(kind::SET_SINGLETON, *it));
+                       nm->mkNode(kind::SINGLETON, *it));
     }
     return cur;
   }
@@ -238,6 +238,15 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   if(node.getKind() == kind::EQUAL && node[0] == node[1])
     return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
   // Further optimization, if constants but differing ones
+
+  if(node.getKind() == kind::INSERT) {
+    Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
+    size_t setNodeIndex =  node.getNumChildren()-1;
+    for(size_t i = 1; i < setNodeIndex; ++i) {
+      insertedElements = nm->mkNode(kind::UNION, insertedElements, nm->mkNode(kind::SINGLETON, node[i]));
+    }
+    return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::UNION, insertedElements, node[setNodeIndex]));
+  }//kind::INSERT
 
   if(node.getType().isSet() && node.isConst()) {
     //rewrite set to normal form

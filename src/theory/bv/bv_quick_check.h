@@ -3,9 +3,9 @@
  ** \verbatim
  ** Original author: Liana Hadarean
  ** Major contributors: none
- ** Minor contributors (to current version): none
+ ** Minor contributors (to current version): Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -26,6 +26,7 @@
 #include "context/cdo.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,11 +34,6 @@ namespace theory {
 class TheoryModel;
 
 namespace bv {
-
-
-
-typedef __gnu_cxx::hash_set<Node, NodeHashFunction> NodeSet;
-typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction> TNodeSet;
 
 class TLazyBitblaster; 
 class TheoryBV;

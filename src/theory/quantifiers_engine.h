@@ -5,7 +5,7 @@
  ** Major contributors: Andrew Reynolds
  ** Minor contributors (to current version): Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -125,6 +125,8 @@ private:
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
+  /** quantifiers that have been skolemized */
+  std::map< Node, bool > d_skolemized;
   /** term database */
   quantifiers::TermDb* d_term_db;
   /** all triggers will be stored in this trie */
@@ -179,7 +181,7 @@ public:
   /** register quantifier */
   void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
-  void assertNode( Node f );
+  void assertQuantifier( Node q, bool pol );
   /** propagate */
   void propagate( Theory::Effort level );
   /** get next decision request */

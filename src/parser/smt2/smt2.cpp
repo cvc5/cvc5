@@ -2,10 +2,10 @@
 /*! \file smt2.cpp
  ** \verbatim
  ** Original author: Christopher L. Conway
- ** Major contributors: Morgan Deters
- ** Minor contributors (to current version): Clark Barrett, Tianyi Liang
+ ** Major contributors: Kshitij Bansal, Morgan Deters
+ ** Minor contributors (to current version): Andrew Reynolds, Clark Barrett, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2013  New York University and The University of Iowa
+ ** Copyright (c) 2009-2014  New York University and The University of Iowa
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
  **
@@ -149,9 +149,10 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::UNION, "union");
     addOperator(kind::INTERSECTION, "intersection");
     addOperator(kind::SETMINUS, "setminus");
-    addOperator(kind::SUBSET, "subseteq");
-    addOperator(kind::MEMBER, "in");
-    addOperator(kind::SET_SINGLETON, "setenum");
+    addOperator(kind::SUBSET, "subset");
+    addOperator(kind::MEMBER, "member");
+    addOperator(kind::SINGLETON, "singleton");
+    addOperator(kind::INSERT, "insert");
     break;
 
   case THEORY_DATATYPES:
