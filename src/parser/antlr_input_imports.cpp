@@ -143,6 +143,9 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
         ss << "Missing end of file marker.";
       } else if( ex->expecting == 0 ) {
         ss << "Unexpected token: '" << tokenText((pANTLR3_COMMON_TOKEN)ex->token) << "'.";
+        if( std::string(tokenText((pANTLR3_COMMON_TOKEN)ex->token)) == std::string("IN") ) {
+          ss << " Did you mean: `IS_IN'?";
+        }
       } else {
         ss << "Missing " << tokenNames[ex->expecting] << ".";
       }

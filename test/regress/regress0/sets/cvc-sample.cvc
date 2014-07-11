@@ -1,0 +1,55 @@
+% COMMAND-LINE: --incremental
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: unsat
+% EXPECT: invalid
+OPTION "incremental" true;
+OPTION "logic" "ALL_SUPPORTED";
+SetInt : TYPE = SET OF INT;
+x : SET OF INT;
+y : SET OF INT;
+z : SET OF INT;
+e1 : INT;
+e2 : INT;
+PUSH;
+a : SET OF INT;
+b : SET OF INT;
+c : SET OF INT;
+e : INT;
+ASSERT a = {5};
+ASSERT c = (a | b);
+ASSERT NOT(c = (a & b));
+ASSERT c = (a - b);
+ASSERT a <= b;
+ASSERT e IS_IN c;
+ASSERT e IS_IN a;
+ASSERT e IS_IN (a & b);
+CHECKSAT TRUE;
+POP;
+PUSH;
+ASSERT x = y;
+ASSERT NOT((x | z) = (y | z));
+CHECKSAT TRUE;
+POP;
+PUSH;
+ASSERT x = y;
+ASSERT e1 = e2;
+ASSERT e1 IS_IN x;
+ASSERT NOT(e2 IS_IN y);
+CHECKSAT TRUE;
+POP;
+PUSH;
+ASSERT x = y;
+ASSERT e1 = e2;
+ASSERT e1 IS_IN (x | z);
+ASSERT NOT(e2 IS_IN (y | z));
+CHECKSAT TRUE;
+POP;
+PUSH;
+ASSERT 5 IS_IN ({1, 2, 3, 4} | {5});
+ASSERT 5 IS_IN ({1, 2, 3, 4} | {} :: SET OF INT);
+CHECKSAT TRUE;
+POP;
+QUERY LET v_0 = e1 IS_IN z IN v_0 AND NOT v_0;

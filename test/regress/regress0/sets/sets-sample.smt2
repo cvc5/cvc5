@@ -3,6 +3,7 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
+; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 (define-sort SetInt () (Set Int))
 
@@ -59,6 +60,11 @@
 (assert (not (member e2 (union y z))))
 (check-sat)
 (pop 1)
+
+; test all the other kinds for completeness
+(push 1)
+(assert (member 5 (insert 1 2 3 4 (singleton 5))))
+(assert (member 5 (insert 1 2 3 4 (as emptyset (Set Int)))))
+(check-sat)
  
 (exit) 
-(exit)

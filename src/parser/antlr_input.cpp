@@ -400,31 +400,37 @@ std::string parseErrorHelper(const char* lineStart, int charPositionInLine, cons
         }
       }
     } else {
-      // go to nearest alphanumeric string (before current position),
-      // see if that word can be found in original message. If so,
-      // point to that, else keep pointer where it was.
-      int nearestWordEn = caretPos - 1;
-      while(nearestWordEn > 0 && !isSimpleChar(slice[nearestWordEn])) {
-        --nearestWordEn;
-      }
-      if(isSimpleChar(slice[nearestWordEn])) {
-        int nearestWordSt = nearestWordEn;
-        while(nearestWordSt > 0 && isSimpleChar(slice[nearestWordSt - 1])) {
-          --nearestWordSt;
+      bool foundCaretPos = false;
+
+      for(int tries = 0; tries < 2 && caretPos > 0 && !foundCaretPos; ++tries) {
+        // go to nearest alphanumeric string (before current position),
+        // see if that word can be found in original message. If so,
+        // point to that, else keep pointer where it was.
+        int nearestWordEn = caretPos - 1;
+        while(nearestWordEn > 0 && !isSimpleChar(slice[nearestWordEn])) {
+          --nearestWordEn;
         }
-        string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
-        size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
-        Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
-        Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
-        if( matchLoc != string::npos ) {
-          Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
-                                  << nearestWordSt << std::endl;
+        if(isSimpleChar(slice[nearestWordEn])) {
+          int nearestWordSt = nearestWordEn;
+          while(nearestWordSt > 0 && isSimpleChar(slice[nearestWordSt - 1])) {
+            --nearestWordSt;
+          }
+          string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
+          size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
+          Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
+          Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+          if( matchLoc != string::npos ) {
+            Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
+                                    << nearestWordSt << std::endl;
+            foundCaretPos = true;
+          }
           caretPos = nearestWordSt;
-        } else {
-          // this doesn't look good. caret generally getting printed
-          // at unhelpful positions. improve upstream?
-          return message;
         }
+      }
+      if( !foundCaretPos) {
+        // this doesn't look good. caret generally getting printed
+        // at unhelpful positions. improve upstream?
+        return message;
       }
     }
     caretPos += caretPosExtra;
