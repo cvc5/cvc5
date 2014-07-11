@@ -96,6 +96,7 @@ std::pair<int, S> runPortfolio(int numThreads,
 
 #endif /* BOOST_HAS_THREAD_ATTR */
 
+#if defined(BOOST_THREAD_PLATFORM_PTHREAD)
     if(Chat.isOn()) {
       void *stackaddr;
       size_t stacksize;
@@ -104,6 +105,7 @@ std::pair<int, S> runPortfolio(int numThreads,
       pthread_attr_getstack(&attr, &stackaddr, &stacksize);
       Chat() << "Created worker thread " << t << " with stack size " << stacksize << std::endl;
     }
+#endif
   }
 
   if(not driverFn.empty())
