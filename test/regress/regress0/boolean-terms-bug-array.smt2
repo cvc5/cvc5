@@ -1,4 +1,5 @@
 (set-logic AUFLIRA)
+(set-info :status sat)
 
 (declare-fun f ((Array Int Bool)) Bool)
 (declare-fun y () (Array Int Bool))
