@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 m4_define(_CVC4_MAJOR,          1)       dnl version (major)
-m4_define(_CVC4_MINOR,          4)       dnl version (minor)
-m4_define(_CVC4_RELEASE,        1)       dnl version (alpha)
+m4_define(_CVC4_MINOR,          5)       dnl version (minor)
+m4_define(_CVC4_RELEASE,        0)       dnl version (alpha)
 m4_define(_CVC4_EXTRAVERSION,   [-prerelease])      dnl version (extra)
 m4_define(_CVC4_RELEASE_STRING, _CVC4_MAJOR[.]_CVC4_MINOR[]m4_if(_CVC4_RELEASE,[0],,[.]_CVC4_RELEASE)_CVC4_EXTRAVERSION) dnl version string
 
