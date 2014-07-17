@@ -159,7 +159,7 @@ class Mapper {
                    em->mkFunctionType( t_t, t ) );
 
       if(!enableAxioms)
-        sout << "(define-fun in" << elementTypeAsString << "          "
+        sout << "(define-fun member" << elementTypeAsString << "          "
              << " ( (x " << elementType << ")" << " (s " << name << "))"
              << " Bool"
              << " (select s x) )" << endl;
