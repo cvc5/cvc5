@@ -38,6 +38,7 @@ int RepSet::getNumRepresentatives( TypeNode tn ) const{
 }
 
 void RepSet::add( TypeNode tn, Node n ){
+  Assert( n.getType()==tn );
   d_tmap[ n ] = (int)d_type_reps[tn].size();
   Trace("rsi-debug") << "Add rep #" << d_type_reps[tn].size() << " for " << tn << " : " << n << std::endl;
   d_type_reps[tn].push_back( n );

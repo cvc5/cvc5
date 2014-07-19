@@ -871,7 +871,7 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
       Trace("fmc-debug") << "Can't process base array " << r << std::endl;
       //can't process this array
       d.reset();
-      d.addEntry(fm, defC, Node::null());
+      d.addEntry(fm, mkCondDefault(fm, f), Node::null());
     }
   }
   else if( n.getNumChildren()==0 ){

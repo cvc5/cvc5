@@ -570,7 +570,12 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   TNode atom = polarity ? literal : literal[0];
   if (atom.getKind() == kind::EQUAL || atom.getKind() == kind::IFF) {
     explainEquality( atom[0], atom[1], polarity, assumptions );
+  } else if( atom.getKind() == kind::AND && polarity ){
+    for( unsigned i=0; i<atom.getNumChildren(); i++ ){
+      explain( atom[i], assumptions );
+    }
   } else {
+    Assert( atom.getKind()!=kind::AND );
     explainPredicate( atom, polarity, assumptions );
   }
 }
@@ -670,7 +675,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             for( unsigned i=0; i<deq_cand.size(); i++ ){
               if( d_equalityEngine.areDisequal( deq_cand[i].first, deq_cand[i].second, true ) ){
                 conf = true;
-                Node eq = NodeManager::currentNM()->mkNode( deq_cand[i].first.getType().isBoolean() ? kind::IFF : kind::EQUAL, 
+                Node eq = NodeManager::currentNM()->mkNode( deq_cand[i].first.getType().isBoolean() ? kind::IFF : kind::EQUAL,
                                                             deq_cand[i].first, deq_cand[i].second );
                 exp.push_back( eq.negate() );
               }
@@ -1488,6 +1493,7 @@ void TheoryDatatypes::checkCycles() {
   }
   //process codatatypes
   if( cod_eqc.size()>1 ){
+    Trace("dt-cod-debug") << "Process " << cod_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
     std::vector< TNode > exp;
     std::map< Node, Node > cn;
@@ -1496,7 +1502,9 @@ void TheoryDatatypes::checkCycles() {
       cn[cod_eqc[i]] = cod_eqc[i];
     }
     separateBisimilar( cod_eqc, part_out, exp, cn, dni, 0, false );
+    Trace("dt-cod-debug") << "Done separate bisimilar." << std::endl;
     if( !part_out.empty() ){
+      Trace("dt-cod-debug") << "Process partition size " << part_out.size() << std::endl;
       for( unsigned i=0; i<part_out.size(); i++ ){
         std::vector< Node > part;
         part.push_back( part_out[i][0] );
