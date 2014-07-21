@@ -41,6 +41,10 @@ while [ $# -gt 2 ]; do
   shift
 done
 
+[[ "$VALGRIND" = "1" ]] && {
+  wrapper="libtool --mode=execute valgrind $wrapper"
+}
+
 cvc4=$1
 benchmark_orig=$2
 benchmark="$benchmark_orig"
@@ -250,7 +254,15 @@ fi
 
 # we have to actual error file same treatment as other files. differences in
 # versions of echo/bash were causing failure on some platforms and not on others
+# (also grep out valgrind output, if 0 errors reported by valgrind)
 actual_error=$(cat $errfile)
+if [[ "$VALGRIND" = "1" ]]; then
+  #valgrind_output=$(cat $errfile|grep -E "^==[0-9]+== "|)
+  valgrind_num_errors=$(cat $errfile|grep -E "^==[0-9]+== "|tail -n1|awk '{print $4}')
+  echo "valgrind errors (not suppressed): $valgrind_num_errors" 1>&2
+
+  ((valgrind_num_errors == 0)) && actual_error=$(echo "$actual_error"|grep -vE "^==[0-9]+== ")
+fi
 if [ -z "$actual_error" ]; then
   # in case expected stderr output is empty, make sure we don't differ
   # by a newline, which we would if we echo "" >"$experrfile"
