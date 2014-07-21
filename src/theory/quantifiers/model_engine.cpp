@@ -35,7 +35,12 @@ using namespace CVC4::theory::inst;
 
 //Model Engine constructor
 ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
-QuantifiersModule( qe ){
+QuantifiersModule( qe ),
+d_incomplete_check(false),
+d_addedLemmas(0),
+d_triedLemmas(0),
+d_totalLemmas(0)
+{
 
   Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
   if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
