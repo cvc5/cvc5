@@ -204,6 +204,7 @@ bool TheoryStringsRewriter::checkConstRegExp( TNode t ) {
 
 bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r ) {
   Assert( index_start <= s.size() );
+  Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at " << index_start << std::endl;
   int k = r.getKind();
   switch( k ) {
     case kind::STRING_TO_REGEXP: {
@@ -282,7 +283,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       return false;
     }
     case kind::REGEXP_SIGMA: {
-      if(s.size() == 1) {
+      if(s.size() == index_start + 1) {
         return true;
       } else {
         return false;
