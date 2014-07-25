@@ -2500,6 +2500,7 @@ bool TheoryStrings::checkMemberships() {
   std::vector< Node > processed;
   std::vector< Node > cprocessed;
 
+  Trace("regexp-debug") << "Checking Memberships ... " << std::endl;
   //if(options::stringEIT()) {
     //TODO: Opt for normal forms
     for(NodeListMap::const_iterator itr_xr = d_str_re_map.begin();
@@ -2507,6 +2508,7 @@ bool TheoryStrings::checkMemberships() {
       bool spflag = false;
       Node x = (*itr_xr).first;
       NodeList* lst = (*itr_xr).second;
+      Trace("regexp-debug") << "Checking Memberships for " << x << std::endl;
       if(d_inter_index.find(x) == d_inter_index.end()) {
         d_inter_index[x] = 0;
       }
@@ -2515,6 +2517,7 @@ bool TheoryStrings::checkMemberships() {
         if(lst->size() == 1) {
           d_inter_cache[x] = (*lst)[0];
           d_inter_index[x] = 1;
+          Trace("regexp-debug") << "... only one choice " << std::endl;
         } else if(lst->size() > 1) {
           Node r;
           if(d_inter_cache.find(x) != d_inter_cache.end()) {
@@ -2528,6 +2531,7 @@ bool TheoryStrings::checkMemberships() {
           for(int i=0; i<cur_inter_idx; i++) {
             ++itr_lst;
           }
+          Trace("regexp-debug") << "... staring from : " << cur_inter_idx << ", we have " << lst->size() << std::endl;
           for(;itr_lst != lst->end(); ++itr_lst) {
             Node r2 = *itr_lst;
             r = d_regexp_opr.intersect(r, r2, spflag);
@@ -2561,6 +2565,7 @@ bool TheoryStrings::checkMemberships() {
     }
   //}
 
+  Trace("regexp-debug") << "... No Intersec Conflict in Memberships " << std::endl;
   if(!addedLemma) {
     for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
       //check regular expression membership

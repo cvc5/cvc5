@@ -69,9 +69,14 @@ private:
   std::string niceChar( Node r );
   int gcd ( int a, int b );
   Node mkAllExceptOne( char c );
+  bool isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2);
 
   void getCharSet( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
   Node intersectInternal( Node r1, Node r2, std::map< unsigned, std::set< PairNodes > > cache, bool &spflag );
+  bool containC2(unsigned cnt, Node n);
+  Node convert1(unsigned cnt, Node n);
+  void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
+  Node intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node > cache, bool &spflag, unsigned cnt );
   void firstChars( Node r, std::set<unsigned> &pcset, SetNodes &pvset );
 
   //TODO: for intersection

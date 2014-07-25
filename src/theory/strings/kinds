@@ -88,6 +88,11 @@ operator REGEXP_LOOP 2:3 "regexp loop"
 operator REGEXP_EMPTY 0 "regexp empty"
 operator REGEXP_SIGMA 0 "regexp all characters"
 
+#internal
+operator REGEXP_RV 1 "regexp rv (internal use only)"
+typerule REGEXP_RV ::CVC4::theory::strings::RegExpRVTypeRule
+
+#typerules
 typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
 typerule REGEXP_UNION ::CVC4::theory::strings::RegExpUnionTypeRule
 typerule REGEXP_INTER ::CVC4::theory::strings::RegExpInterTypeRule

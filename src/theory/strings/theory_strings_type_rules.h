@@ -466,6 +466,21 @@ public:
   }
 };
 
+class RegExpRVTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isInteger()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting an integer term in RV");
+      }
+    }
+    return nodeManager->regexpType();
+  }
+};
+
+
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

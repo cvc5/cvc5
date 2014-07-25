@@ -302,7 +302,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
 
   if(node[1].getKind() == kind::REGEXP_EMPTY) {
     retNode = NodeManager::currentNM()->mkConst( false );
-  } else if( x.getKind() == kind::CONST_STRING && checkConstRegExp(node[1]) ) {
+  } else if(x.getKind()==kind::CONST_STRING && checkConstRegExp(node[1])) {
     //test whether x in node[1]
     CVC4::String s = x.getConst<String>();
     retNode = NodeManager::currentNM()->mkConst( testConstStringInRegExp( s, 0, node[1] ) );
@@ -311,10 +311,12 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     retNode = one.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
   } else if(node[1].getKind() == kind::REGEXP_STAR && node[1][0].getKind() == kind::REGEXP_SIGMA) {
     retNode = NodeManager::currentNM()->mkConst( true );
-  } else if( x != node[0] ) {
+  } else if(node[1].getKind() == kind::STRING_TO_REGEXP) {
+    retNode = x.eqNode(node[1][0]);
+  } else if(x != node[0]) {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, node[1] );
   }
-    return retNode;
+  return retNode;
 }
 
 RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {

@@ -30,7 +30,6 @@ TESTS =	\
   str005.smt2 \
   str006.smt2 \
   str007.smt2 \
-  fmf001.smt2 \
   fmf002.smt2 \
   type001.smt2 \
   type003.smt2 \
@@ -53,6 +52,7 @@ TESTS =	\
 FAILING_TESTS =
 
 EXTRA_DIST = $(TESTS) \
+  fmf001.smt2 \
   regexp002.smt2 \
   type002.smt2
 
