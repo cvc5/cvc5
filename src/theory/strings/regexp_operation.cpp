@@ -1304,14 +1304,14 @@ bool RegExpOpr::containC2(unsigned cnt, Node n) {
   return false;
 }
 Node RegExpOpr::convert1(unsigned cnt, Node n) {
-  Trace("regexp-debug") << "Converting " << n << " ... " << std::endl;
+  Trace("regexp-debug") << "Converting " << n << " at " << cnt << "... " << std::endl;
   Node r1, r2;
   convert2(cnt, n, r1, r2);
   Trace("regexp-debug") << "... getting r1=" << r1 << ", and r2=" << r2 << std::endl;
   Node ret = NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, 
      NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, r1), r2);
   ret = Rewriter::rewrite( ret );
-  Trace("regexp-debug") << "... done convert, with return " << ret << std::endl;
+  Trace("regexp-debug") << "... done convert at " << cnt << ", with return " << ret << std::endl;
   return ret;
 }
 void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
@@ -1379,6 +1379,13 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
 }
 Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node > cache, bool &spflag, unsigned cnt ) {
   Trace("regexp-intersect") << "Starting INTERSECT:\n  "<< mkString(r1) << ",\n  " << mkString(r2) << std::endl;
+  //if(Trace.isOn("regexp-debug")) {
+  //  Trace("regexp-debug") << "... with cache:\n";
+  //  for(std::map< PairNodes, Node >::const_iterator itr=cache.begin();
+  //      itr!=cache.end();itr++) {
+  //        Trace("regexp-debug") << "(" << itr->first.first << "," << itr->first.second << ")->" << itr->second << std::endl;
+  //      }
+  //}
   if(spflag) {
     //TODO: var
     return Node::null();
@@ -1408,7 +1415,7 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
       PairNodes p(r1, r2);
       std::map< PairNodes, Node >::const_iterator itrcache = cache.find(p);
       if(itrcache != cache.end()) {
-        rNode = convert1(cnt, itrcache->second);
+        rNode = itrcache->second;
       } else {
         if(checkConstRegExp(r1) && checkConstRegExp(r2)) {
           std::vector< unsigned > cset;
@@ -1445,7 +1452,7 @@ Node RegExpOpr::intersectInternal2( Node r1, Node r2, std::map< PairNodes, Node 
             Node r1l = derivativeSingle(r1, c);
             Node r2l = derivativeSingle(r2, c);
             std::map< PairNodes, Node > cache2(cache);
-            PairNodes p(r1l, r2l);
+            PairNodes p(r1, r2);
             cache2[ p ] = NodeManager::currentNM()->mkNode(kind::REGEXP_RV, NodeManager::currentNM()->mkConst(CVC4::Rational(cnt)));
             Node rt = intersectInternal2(r1l, r2l, cache2, spflag, cnt+1);
             rt = convert1(cnt, rt);
@@ -1723,6 +1730,12 @@ std::string RegExpOpr::mkString( Node r ) {
         retStr += "-";
         retStr += niceChar( r[1] );
         retStr += "]";
+        break;
+      }
+      case kind::REGEXP_RV: {
+        retStr += "<";
+        retStr += r[0].getConst<Rational>().getNumerator().toString();
+        retStr += ">";
         break;
       }
       default:

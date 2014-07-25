@@ -164,8 +164,12 @@ Node TheoryStringsRewriter::prerewriteOrRegExp(TNode node) {
   for(unsigned i=0; i<node.getNumChildren(); ++i) {
     if(node[i].getKind() == kind::REGEXP_UNION) {
       Node tmpNode = prerewriteOrRegExp( node[i] );
-      for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
-        node_vec.push_back( tmpNode[j] );
+      if(tmpNode.getKind() == kind::REGEXP_UNION) {
+        for(unsigned int j=0; j<tmpNode.getNumChildren(); ++j) {
+          node_vec.push_back( tmpNode[j] );
+        }
+      } else {
+        node_vec.push_back( tmpNode );
       }
       flag = true;
     } else if(node[i].getKind() == kind::REGEXP_EMPTY) {
