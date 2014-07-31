@@ -115,6 +115,24 @@ Node FirstOrderModel::getSomeDomainElement(TypeNode tn){
   return d_rep_set.d_type_reps[tn][0];
 }
 
+void FirstOrderModel::reset_round() {
+  d_quant_active.clear();
+}
+
+void FirstOrderModel::setQuantifierActive( TNode q, bool active ) {
+  d_quant_active[q] = active;
+}
+
+bool FirstOrderModel::isQuantifierActive( TNode q ) {
+  std::map< TNode, bool >::iterator it = d_quant_active.find( q );
+  if( it==d_quant_active.end() ){
+    return true;
+  }else{
+    return it->second;
+  }
+}
+
+
 FirstOrderModelIG::FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name) :
 FirstOrderModel(qe, c,name) {
 

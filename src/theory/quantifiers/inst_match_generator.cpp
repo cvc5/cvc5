@@ -618,13 +618,7 @@ int InstMatchGeneratorSimple::addInstantiations( Node f, InstMatch& baseMatch, Q
   m.add( baseMatch );
   int addedLemmas = 0;
 
-  if( d_match_pattern.getType()==NodeManager::currentNM()->booleanType() ){
-    for( int i=0; i<2; i++ ){
-      addInstantiations( m, qe, addedLemmas, 0, &(qe->getTermDatabase()->d_pred_map_trie[i][ d_op ]) );
-    }
-  }else{
-    addInstantiations( m, qe, addedLemmas, 0, &(qe->getTermDatabase()->d_func_map_trie[ d_op ]) );
-  }
+  addInstantiations( m, qe, addedLemmas, 0, &(qe->getTermDatabase()->d_func_map_trie[ d_op ]) );
   return addedLemmas;
 }
 
@@ -646,7 +640,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
   }else{
     if( d_match_pattern[argIndex].getKind()==INST_CONSTANT ){
       int v = d_var_num[argIndex];
-      for( std::map< Node, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
+      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
         Node t = it->first;
         Node prev = m.get( v );
         //using representatives, just check if equal
@@ -658,7 +652,7 @@ void InstMatchGeneratorSimple::addInstantiations( InstMatch& m, QuantifiersEngin
       }
     }else{
       Node r = qe->getEqualityQuery()->getRepresentative( d_match_pattern[argIndex] );
-      std::map< Node, quantifiers::TermArgTrie >::iterator it = tat->d_data.find( r );
+      std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.find( r );
       if( it!=tat->d_data.end() ){
         addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
       }

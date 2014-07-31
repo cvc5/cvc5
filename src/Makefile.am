@@ -327,6 +327,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/ambqi_builder.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_conflict_find.cpp \
+	theory/quantifiers/conjecture_generator.h \
+	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \

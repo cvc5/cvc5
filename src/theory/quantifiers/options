@@ -63,6 +63,8 @@ option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
  choose relational triggers such as x = f(y), x >= f(y)
+option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
+ selection mode for triggers
 
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
@@ -75,6 +77,9 @@ option instMaxLevel --inst-max-level=N int :default -1
 
 option eagerInstQuant --eager-inst-quant bool :default false
  apply quantifier instantiation eagerly
+
+option instNoEntail --inst-no-entail bool :read-write :default false
+ do not consider instances of quantified formulas that are currently entailed
 
 option fullSaturateQuant --full-saturate-quant bool :default false
  when all other quantifier instantiation strategies fail, instantiate with ground terms from relevant domain, then arbitrary ground terms before answering unknown
@@ -140,6 +145,8 @@ option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
 
 option dtStcInduction --dt-stc-ind bool :default false
- apply strengthening for existential quantification over datatypes based on structural induction
+ apply strengthening for existential quantification over datatypes based on structural 
+option conjectureGen --conjecture-gen bool :default false
+ generate candidate conjectures for inductive strengthening
 
 endmodule

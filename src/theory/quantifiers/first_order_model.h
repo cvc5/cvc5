@@ -92,6 +92,19 @@ public:
   }
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
+private:
+  //list of inactive quantified formulas
+  std::map< TNode, bool > d_quant_active;
+public:
+  /** reset round */
+  void reset_round();
+  /** set quantified formula active/inactive 
+   * a quantified formula may be set inactive if for instance:
+   *   - it is entailed by other quantified formulas
+   */
+  void setQuantifierActive( TNode q, bool active );
+  /** is quantified formula active */
+  bool isQuantifierActive( TNode q );
 };/* class FirstOrderModel */
 
 

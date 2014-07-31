@@ -107,6 +107,15 @@ typedef enum {
   USER_PAT_MODE_IGNORE,
 } UserPatMode;
 
+typedef enum {
+  /** default for trigger selection */
+  TRIGGER_SEL_DEFAULT,
+  /** only consider minimal terms for triggers */
+  TRIGGER_SEL_MIN,
+  /** only consider maximal terms for triggers */
+  TRIGGER_SEL_MAX,
+} TriggerSelMode;
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

@@ -152,6 +152,19 @@ ignore \n\
 + Ignore user-provided patterns. \n\
 \n\
 ";
+static const std::string triggerSelModeHelp = "\
+User pattern modes currently supported by the --trigger-sel option:\n\
+\n\
+default \n\
++ Default, consider all subterms of quantified formulas for trigger selection.\n\
+\n\
+min \n\
++ Consider only minimal subterms that meet criteria for triggers.\n\
+\n\
+max \n\
++ Consider only maximal subterms that meet criteria for triggers. \n\
+\n\
+";
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
     return INST_WHEN_PRE_FULL;
@@ -294,6 +307,21 @@ inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, S
   } else {
     throw OptionException(std::string("unknown option for --user-pat: `") +
                           optarg + "'.  Try --user-pat help.");
+  }
+}
+inline TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default" || optarg == "all" ) {
+    return TRIGGER_SEL_DEFAULT;
+  } else if(optarg == "min") {
+    return TRIGGER_SEL_MIN;
+  } else if(optarg == "max") {
+    return TRIGGER_SEL_MAX;
+  } else if(optarg ==  "help") {
+    puts(triggerSelModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --trigger-sel: `") +
+                          optarg + "'.  Try --trigger-sel help.");
   }
 }
 }/* CVC4::theory::quantifiers namespace */

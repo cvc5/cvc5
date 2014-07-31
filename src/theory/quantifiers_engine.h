@@ -73,6 +73,7 @@ namespace quantifiers {
   class QuantConflictFind;
   class RewriteEngine;
   class RelevantDomain;
+  class ConjectureGenerator;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -112,6 +113,8 @@ private:
   quantifiers::QuantConflictFind* d_qcf;
   /** rewrite rules utility */
   quantifiers::RewriteEngine * d_rr_engine;
+  /** subgoal generator */
+  quantifiers::ConjectureGenerator * d_sg_gen;
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;

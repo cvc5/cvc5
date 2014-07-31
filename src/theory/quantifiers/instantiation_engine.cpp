@@ -53,7 +53,13 @@ void InstantiationEngine::finishInit(){
     }else{
       d_isup = NULL;
     }
-    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, Trigger::TS_ALL, 3 );
+    int tstrt = Trigger::TS_ALL;
+    if( options::triggerSelMode()==TRIGGER_SEL_MIN ){
+      tstrt = Trigger::TS_MIN_TRIGGER;
+    }else if( options::triggerSelMode()==TRIGGER_SEL_MAX ){
+      tstrt = Trigger::TS_MAX_TRIGGER;
+    }
+    d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, tstrt, 3 );
     d_i_ag->setGenerateAdditional( true );
     addInstStrategy( d_i_ag );
     //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
@@ -214,9 +220,12 @@ void InstantiationEngine::check( Theory::Effort e ){
                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
-      //it is not active if we have found the skolemized negation is unsat
+      //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       if( TermDb::isRewriteRule( n ) ){
         d_quant_active[n] = false;
+      }else if( !d_quantEngine->getModel()->isQuantifierActive( n ) ){
+        d_quant_active[n] = false;
+      //it is not active if we have found the skolemized negation is unsat
       }else if( options::cbqi() && hasAddedCbqiLemma( n ) ){
         Node cel = d_quantEngine->getTermDatabase()->getCounterexampleLiteral( n );
         bool active, value;
@@ -248,7 +257,6 @@ void InstantiationEngine::check( Theory::Effort e ){
           Debug("quantifiers") << ", ce is asserted";
         }
         Debug("quantifiers") << std::endl;
-      //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
       }else{
         d_quant_active[n] = true;
         if( !TermDb::hasInstConstAttr(n) ){

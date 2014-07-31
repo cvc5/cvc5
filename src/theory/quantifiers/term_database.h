@@ -69,14 +69,14 @@ namespace rrinst{
 namespace quantifiers {
 
 class TermArgTrie {
-private:
-  bool addTerm2( QuantifiersEngine* qe, Node n, int argIndex );
 public:
   /** the data */
-  std::map< Node, TermArgTrie > d_data;
+  std::map< TNode, TermArgTrie > d_data;
 public:
-  bool addTerm( QuantifiersEngine* qe, Node n ) { return addTerm2( qe, n, 0 ); }
+  TNode existsTerm( std::vector< TNode >& reps, int argIndex = 0 );
+  bool addTerm( TNode n, std::vector< TNode >& reps, int argIndex = 0 );
   void debugPrint( const char * c, Node n, unsigned depth = 0 );
+  void clear() { d_data.clear(); }
 };/* class TermArgTrie */
 
 
@@ -103,6 +103,9 @@ private:
 public:
   TermDb( context::Context* c, context::UserContext* u, QuantifiersEngine* qe );
   ~TermDb(){}
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** ground terms */
   unsigned getNumGroundTerms( Node f );
   /** count number of non-redundant ground terms per operator */
@@ -111,16 +114,32 @@ public:
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from APPLY_UF functions to trie */
   std::map< Node, TermArgTrie > d_func_map_trie;
-  /** map from APPLY_UF predicates to trie */
-  std::map< Node, TermArgTrie > d_pred_map_trie[2];
+  std::map< Node, TermArgTrie > d_func_map_eqc_trie;
+  /**mapping from UF terms to representatives of their arguments */
+  std::map< TNode, std::vector< TNode > > d_arg_reps;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
   /** add a term to the database */
   void addTerm( Node n, std::set< Node >& added, bool withinQuant = false );
   /** reset (calculate which terms are active) */
   void reset( Theory::Effort effort );
-  /** get operation */
+  /** get operator*/
   Node getOperator( Node n );
+  /** get term arg index */
+  TermArgTrie * getTermArgTrie( Node f );
+  TermArgTrie * getTermArgTrie( Node eqc, Node f );
+  /** exists term */
+  TNode existsTerm( Node f, Node n );
+  /** compute arg reps */
+  void computeArgReps( TNode n );
+  /** compute uf eqc terms */
+  void computeUfEqcTerms( TNode f );
+  /** evaluate a term under a substitution.  Return representative in EE if possible.
+   * subsRep is whether subs contains only representatives
+   */
+  TNode evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep );
+  /** is entailed (incomplete check) */
+  bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
 public:
   /** parent structure (for efficient E-matching):
       n -> op -> index -> L
@@ -204,11 +223,16 @@ private:
 public:
   /** map from universal quantifiers to the list of skolem constants */
   std::map< Node, std::vector< Node > > d_skolem_constants;
+  /** for quantified formulas whose skolemization was strengthened by induction */
+  std::map< Node, Node > d_skolem_sub_quant;
+  std::map< Node, std::vector< unsigned > > d_skolem_sub_quant_vars;
   /** make the skolemized body f[e/x] */
   static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
-                                std::vector< Node >& sk );
+                                std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
   /** get the skolemized body */
   Node getSkolemizedBody( Node f);
+  /** get skolem constants */
+  void getSkolemConstants( Node f, std::vector< Node >& sk, bool expSub = false );
 
 //miscellaneous
 public:
@@ -245,11 +269,18 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
-public:
+  
+public: //for induction
+  /** is induction variable */
+  static bool isInductionTerm( Node n );
+  
+  
+public: //general queries concerning quantified formulas wrt modules
   /** is quantifier treated as a rewrite rule? */
   static bool isRewriteRule( Node q );
   /** get the rewrite rule associated with the quanfied formula */
   static Node getRewriteRule( Node q );
+  
 };/* class TermDb */
 
 }/* CVC4::theory::quantifiers namespace */

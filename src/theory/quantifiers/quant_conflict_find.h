@@ -2,7 +2,7 @@
 /*! \file quant_conflict_find.h
  ** \verbatim
  ** Original author: Andrew Reynolds
- ** Major contributors: Morgan Deters
+ ** Major contributors: none
  ** Minor contributors (to current version): none
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2014  New York University and The University of Iowa
@@ -20,24 +20,13 @@
 #include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class QcfNode;
-
 class QuantConflictFind;
-
-class QcfNodeIndex {
-public:
-  std::map< TNode, QcfNodeIndex > d_children;
-  void clear() { d_children.clear(); }
-  void debugPrint( const char * c, int t );
-  Node existsTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
-  Node addTerm( TNode n, std::vector< TNode >& reps, int index = 0 );
-};
-
 class QuantInfo;
 
 //match generator
@@ -52,8 +41,8 @@ private:
   MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
   //MatchGen * getChild( int i ) { return &d_children[i]; }
   //current matching information
-  std::vector< QcfNodeIndex * > d_qn;
-  std::vector< std::map< TNode, QcfNodeIndex >::iterator > d_qni;
+  std::vector< TermArgTrie * > d_qn;
+  std::vector< std::map< TNode, TermArgTrie >::iterator > d_qni;
   bool doMatching( QuantConflictFind * p, QuantInfo * qi );
   //for matching : each index is either a variable or a ground term
   unsigned d_qni_size;
@@ -170,7 +159,6 @@ public:
 
 class QuantConflictFind : public QuantifiersModule
 {
-  friend class QcfNodeIndex;
   friend class MatchGen;
   friend class QuantInfo;
   typedef context::CDChunkList<Node> NodeList;
@@ -204,35 +192,10 @@ private:  //for equivalence classes
   bool areDisequal( Node n1, Node n2 );
   bool areEqual( Node n1, Node n2 );
   Node getRepresentative( Node n );
-
-/*
-  class EqcInfo {
-  public:
-    EqcInfo( context::Context* c ) : d_diseq( c ) {}
-    NodeBoolMap d_diseq;
-    bool isDisequal( Node n ) { return d_diseq.find( n )!=d_diseq.end() && d_diseq[n]; }
-    void setDisequal( Node n, bool val = true ) { d_diseq[n] = val; }
-    //NodeBoolMap& getRelEqr( int index ) { return index==0 ? d_rel_eqr_e : d_rel_eqr_d; }
-  };
-  std::map< Node, EqcInfo * > d_eqc_info;
-  EqcInfo * getEqcInfo( Node n, bool doCreate = true );
-*/
-  // operator -> index(terms)
-  std::map< TNode, QcfNodeIndex > d_uf_terms;
-  // operator -> index(eqc -> terms)
-  std::map< TNode, QcfNodeIndex > d_eqc_uf_terms;
-  //get qcf node index
-  QcfNodeIndex * getQcfNodeIndex( Node eqc, Node f );
-  QcfNodeIndex * getQcfNodeIndex( Node f );
+  TermDb* getTermDatabase();
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
   std::map< TypeNode, Node > d_model_basis;
-  //mapping from UF terms to representatives of their arguments
-  std::map< TNode, std::vector< TNode > > d_arg_reps;
-  //compute arg reps
-  void computeArgReps( TNode n );
-  //compute
-  void computeUfTerms( TNode f );
 public:
   enum {
     effort_conflict,

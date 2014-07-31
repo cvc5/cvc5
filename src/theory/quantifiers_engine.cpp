@@ -30,6 +30,7 @@
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
@@ -82,6 +83,12 @@ d_lemmas_produced_c(u){
     d_modules.push_back( d_qcf );
   }else{
     d_qcf = NULL;
+  }
+  if( options::conjectureGen() ){
+    d_sg_gen = new quantifiers::ConjectureGenerator( this, c );
+    d_modules.push_back( d_sg_gen );
+  }else{
+    d_sg_gen = NULL;
   }
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
     //the instantiation must set incomplete flag unless finite model finding is turned on
@@ -167,6 +174,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
+    Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
     if( !getMasterEqualityEngine()->consistent() ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
       return;
@@ -179,6 +187,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( d_rel_dom ){
       d_rel_dom->reset();
     }
+    d_model->reset_round();
     for( int i=0; i<(int)d_modules.size(); i++ ){
       d_modules[i]->reset_round( e );
     }
@@ -551,9 +560,20 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
       }
     }
   }
+  //check for entailment
+  if( options::instNoEntail() ){
+    std::map< TNode, TNode > subs;
+    for( unsigned i=0; i<terms.size(); i++ ){
+      subs[f[0][i]] = terms[i];
+    }
+    if( d_term_db->isEntailed( f[1], subs, false, true ) ){
+      Trace("inst-add-debug") << " -> Currently entailed." << std::endl;
+      Trace("inst-add-entail") << " -> instantiation for " << f[1] << " currently entailed." << std::endl;
+      return false;
+    }
+  }
 
   //check for duplication
-  ///*
   bool alreadyExists = false;
   if( options::incrementalSolving() ){
     Trace("inst-add-debug") << "Adding into context-dependent inst trie, modEq = " << modEq << ", modInst = " << modInst << std::endl;
@@ -575,7 +595,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     ++(d_statistics.d_inst_duplicate_eq);
     return false;
   }
-  //*/
+
 
   //add the instantiation
   bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );
