@@ -31,7 +31,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 InstantiationEngine::InstantiationEngine( QuantifiersEngine* qe, bool setIncomplete ) :
-QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ), d_performCheck( false ){
+QuantifiersModule( qe ), d_isup(NULL), d_i_ag(NULL), d_setIncomplete( setIncomplete ), d_ierCounter( 0 ){
 
 }
 
@@ -41,18 +41,19 @@ InstantiationEngine::~InstantiationEngine() {
 }
 
 void InstantiationEngine::finishInit(){
-  //for UF terms
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    //if( options::cbqi() ){
-    //  addInstStrategy( new InstStrategyCheckCESolved( this, d_quantEngine ) );
-    //}
-    //these are the instantiation strategies for basic E-matching
+
+    //these are the instantiation strategies for E-matching
+    
+    //user-provided patterns
     if( options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ){
       d_isup = new InstStrategyUserPatterns( d_quantEngine );
       addInstStrategy( d_isup );
     }else{
       d_isup = NULL;
     }
+    
+    //auto-generated patterns
     int tstrt = Trigger::TS_ALL;
     if( options::triggerSelMode()==TRIGGER_SEL_MIN ){
       tstrt = Trigger::TS_MIN_TRIGGER;
@@ -62,26 +63,23 @@ void InstantiationEngine::finishInit(){
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, tstrt, 3 );
     d_i_ag->setGenerateAdditional( true );
     addInstStrategy( d_i_ag );
-    //addInstStrategy( new InstStrategyAddFailSplits( this, ie ) );
+    
+    //full saturation : instantiate from relevant domain, then arbitrary terms
     if( !options::finiteModelFind() && options::fullSaturateQuant() ){
       addInstStrategy( new InstStrategyFreeVariable( d_quantEngine ) );
     }
-    //d_isup->setPriorityOver( d_i_ag );
-    //d_isup->setPriorityOver( i_agm );
-    //i_ag->setPriorityOver( i_agm );
   }
-  //for arithmetic
+  
+  //counterexample-based quantifier instantiation
   if( options::cbqi() ){
     addInstStrategy( new InstStrategySimplex( (arith::TheoryArith*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_ARITH ), d_quantEngine ) );
-  }
-  //for datatypes
-  //if( options::cbqi() ){
   //  addInstStrategy( new InstStrategyDatatypesValue( d_quantEngine ) );
-  //}
+  }
 }
 
 
 bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
+  unsigned lastWaiting = d_quantEngine->d_lemmas_waiting.size();
   //if counterexample-based quantifier instantiation is active
   if( options::cbqi() ){
     //check if any cbqi lemma has not been added yet
@@ -155,7 +153,7 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_quantEngine->hasAddedLemma() ){
+    if( d_quantEngine->d_lemmas_waiting.size()>lastWaiting ){
       d_inst_round_status = InstStrategy::STATUS_UNKNOWN;
     }
     e++;
@@ -164,14 +162,11 @@ bool InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
   Debug("inst-engine") << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
   //Notice() << "All instantiators finished, # added lemmas = " << (int)d_lemmas_waiting.size() << std::endl;
   if( !d_quantEngine->hasAddedLemma() ){
-    Debug("inst-engine-stuck") << "No instantiations produced at this state." << std::endl;
     Debug("inst-engine-ctrl") << "---Fail." << std::endl;
     return false;
   }else{
-    Debug("inst-engine-ctrl") << "---Done. " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
-    Trace("inst-engine") << "Added lemmas = " << (int)d_quantEngine->d_lemmas_waiting.size() << std::endl;
-    //flush lemmas to output channel
-    d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
+    Debug("inst-engine-ctrl") << "---Done. " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting) << std::endl;
+    Trace("inst-engine") << "Added lemmas = " << (int)(d_quantEngine->d_lemmas_waiting.size()-lastWaiting)  << std::endl;
     return true;
   }
 }
@@ -181,17 +176,17 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
     d_ierCounter++;
   }
   //determine if we should perform check, based on instWhenMode
-  d_performCheck = false;
+  bool performCheck = false;
   if( options::instWhenMode()==INST_WHEN_FULL ){
-    d_performCheck = ( e >= Theory::EFFORT_FULL );
+    performCheck = ( e >= Theory::EFFORT_FULL );
   }else if( options::instWhenMode()==INST_WHEN_FULL_DELAY ){
-    d_performCheck = ( e >= Theory::EFFORT_FULL ) && !d_quantEngine->getTheoryEngine()->needCheck();
+    performCheck = ( e >= Theory::EFFORT_FULL ) && !d_quantEngine->getTheoryEngine()->needCheck();
   }else if( options::instWhenMode()==INST_WHEN_FULL_LAST_CALL ){
-    d_performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
+    performCheck = ( ( e==Theory::EFFORT_FULL  && d_ierCounter%2==0 ) || e==Theory::EFFORT_LAST_CALL );
   }else if( options::instWhenMode()==INST_WHEN_LAST_CALL ){
-    d_performCheck = ( e >= Theory::EFFORT_LAST_CALL );
+    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
   }else{
-    d_performCheck = true;
+    performCheck = true;
   }
   static int ierCounter2 = 0;
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -199,15 +194,14 @@ bool InstantiationEngine::needsCheck( Theory::Effort e ){
     //with bounded integers, skip every other last call,
     // since matching loops may occur with infinite quantification
     if( ierCounter2%2==0 && options::fmfBoundInt() ){
-      d_performCheck = false;
+      performCheck = false;
     }
   }
-
-  return d_performCheck;
+  return performCheck;
 }
 
-void InstantiationEngine::check( Theory::Effort e ){
-  if( d_performCheck && !d_quantEngine->hasAddedLemma() ){
+void InstantiationEngine::check( Theory::Effort e, unsigned quant_e ){
+  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
     Debug("inst-engine") << "IE: Check " << e << " " << d_ierCounter << std::endl;
     double clSet = 0;
     if( Trace.isOn("inst-engine") ){
@@ -217,7 +211,7 @@ void InstantiationEngine::check( Theory::Effort e ){
     ++(d_statistics.d_instantiation_rounds);
     bool quantActive = false;
     Debug("quantifiers") << "quantifiers:  check:  asserted quantifiers size="
-                         << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
+                          << d_quantEngine->getModel()->getNumAssertedQuantifiers() << std::endl;
     for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       Node n = d_quantEngine->getModel()->getAssertedQuantifier( i );
       //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine

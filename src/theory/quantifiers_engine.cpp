@@ -167,20 +167,29 @@ void QuantifiersEngine::finishInit(){
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
   bool needsCheck = e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
+  std::vector< QuantifiersModule* > qm;
   for( int i=0; i<(int)d_modules.size(); i++ ){
     if( d_modules[i]->needsCheck( e ) ){
+      qm.push_back( d_modules[i] );
       needsCheck = true;
     }
   }
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
+    Trace("quant-engine-debug") << "  modules to check : ";
+    for( unsigned i=0; i<qm.size(); i++ ){
+      Trace("quant-engine-debug") << qm[i]->identify() << " ";
+    }
+    Trace("quant-engine-debug") << std::endl;
     Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
+    
     if( !getMasterEqualityEngine()->consistent() ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
       return;
     }
-    Trace("quant-engine-debug") << "Resetting modules..." << std::endl;
+    Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
     //reset relevant information
+    d_conflict = false;
     d_hasAddedLemma = false;
     d_term_db->reset( e );
     d_eq_query->reset();
@@ -191,12 +200,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
     for( int i=0; i<(int)d_modules.size(); i++ ){
       d_modules[i]->reset_round( e );
     }
-    Trace("quant-engine-debug") << "Done resetting modules." << std::endl;
+    Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
 
     if( e==Theory::EFFORT_LAST_CALL ){
       //if effort is last call, try to minimize model first
       if( options::finiteModelFind() ){
-        //first, check if we can minimize the model further
+        //first, check if we can minimize the model further  FIXME: remove?
         if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
           return;
         }
@@ -205,12 +214,22 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
     }
-    Trace("quant-engine-debug") << "Check with modules..." << std::endl;
-    for( int i=0; i<(int)d_modules.size(); i++ ){
-      Trace("quant-engine-debug") << "Check " << d_modules[i]->identify().c_str() << "..." << std::endl;
-      d_modules[i]->check( e );
+    
+    Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
+    for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
+      for( int i=0; i<(int)qm.size(); i++ ){
+        Trace("quant-engine-debug") << "Check " << d_modules[i]->identify().c_str() << "..." << std::endl;
+        qm[i]->check( e, quant_e );
+      }
+      //flush all current lemmas
+      flushLemmas();
+      //if we have added one, stop
+      if( d_hasAddedLemma ){
+        break;
+      }
     }
-    Trace("quant-engine-debug") << "Done check with modules." << std::endl;
+    Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
+    
     //build the model if not done so already
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
     if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
@@ -270,7 +289,7 @@ void QuantifiersEngine::registerQuantifier( Node f ){
 void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
   for(std::vector<Node>::iterator p = pattern.begin(); p != pattern.end(); ++p){
     std::set< Node > added;
-    getTermDatabase()->addTerm(*p,added);
+    getTermDatabase()->addTerm( *p, added );
   }
 }
 
@@ -323,6 +342,10 @@ Node QuantifiersEngine::getNextDecisionRequest(){
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
   std::set< Node > added;
   getTermDatabase()->addTerm( n, added, withinQuant );
+  //maybe have triggered instantiations if we are doing eager instantiation
+  if( options::eagerInstQuant() ){
+    flushLemmas();
+  }
   //added contains also the Node that just have been asserted in this branch
   if( d_quant_rel ){
     for( std::set< Node >::iterator i=added.begin(), end=added.end(); i!=end; i++ ){
@@ -520,6 +543,10 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
   }
 }
 
+void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
+  d_phase_req_waiting[lit] = req;
+}
+
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst ){
   std::vector< Node > terms;
   //make sure there are values for each variable we are instantiating
@@ -568,7 +595,6 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     }
     if( d_term_db->isEntailed( f[1], subs, false, true ) ){
       Trace("inst-add-debug") << " -> Currently entailed." << std::endl;
-      Trace("inst-add-entail") << " -> instantiation for " << f[1] << " currently entailed." << std::endl;
       return false;
     }
   }
@@ -628,17 +654,20 @@ bool QuantifiersEngine::addSplitEquality( Node n1, Node n2, bool reqPhase, bool 
   return addSplit( fm );
 }
 
-void QuantifiersEngine::flushLemmas( OutputChannel* out ){
+void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
-    if( !out ){
-      out = &getOutputChannel();
-    }
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     for( int i=0; i<(int)d_lemmas_waiting.size(); i++ ){
-      out->lemma( d_lemmas_waiting[i], false, true );
+      getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
     }
     d_lemmas_waiting.clear();
+  }
+  if( !d_phase_req_waiting.empty() ){
+    for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
+      getOutputChannel().requirePhase( it->first, it->second );
+    }
+    d_phase_req_waiting.clear();
   }
 }
 

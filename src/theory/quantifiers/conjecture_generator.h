@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file subgoal_generator.h
+/*! \file conjecture_generator.h
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: none
@@ -339,12 +339,6 @@ public:  //for property enumeration
   void addCandidateConjecture( TNode lhs, TNode rhs, unsigned depth );
   //process candidate conjecture at depth
   void processCandidateConjecture( unsigned cid, unsigned depth );
-  
-  //process candidate conjecture at depth
-  bool processCandidateConjecture2( TNode rhs, TypeNode tn, unsigned depth );
-  //process candidate conjecture 
-  bool processCandidateConjecture2( TNode lhs, TNode rhs );
-  
   //whether it should be considered
   bool considerCandidateConjecture( TNode lhs, TNode rhs );
   //notified of a substitution
@@ -381,7 +375,7 @@ public:
   /* reset at a round */
   void reset_round( Theory::Effort e );
   /* Call during quantifier engine's check */
-  void check( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */
   void registerQuantifier( Node q );
   void assertNode( Node n );
@@ -395,7 +389,7 @@ private:
   bool optFilterConfirmation();
   bool optFilterConfirmationDomain();
   bool optFilterConfirmationOnlyGround();
-  bool optWaitForFullCheck();
+  bool optFilterConfirmationNonCanonical();   //filter if all ground confirmations are non-canonical
   unsigned optFullCheckFrequency();
   unsigned optFullCheckConjectures();
 };

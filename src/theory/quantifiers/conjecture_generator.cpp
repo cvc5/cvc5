@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file subgoal_generator.cpp
+/*! \file conjecture_generator.cpp
  ** \verbatim
  ** Original author: Andrew Reynolds
  ** Major contributors: none
@@ -156,7 +156,7 @@ void ConjectureGenerator::doPendingAddUniversalTerms() {
       Node t = pending[i];
       TypeNode tn = t.getType();
       Trace("thm-ee-add") << "UEE : Add universal term " << t << std::endl;
-      //get all equivalent terms from conjecture database
+      //get all equivalent terms based on theorem database
       std::vector< Node > eq_terms;
       d_thm_index.getEquivalentTerms( t, eq_terms );
       if( !eq_terms.empty() ){
@@ -184,6 +184,17 @@ void ConjectureGenerator::doPendingAddUniversalTerms() {
       }else{
         Trace("thm-ee-add") << "UEE : No equivalent terms." << std::endl;
       }
+      //if occurs at ground level, merge with representative of ground equality engine
+      /*
+      eq::EqualityEngine * ee = getEqualityEngine();
+      if( ee->hasTerm( t ) ){
+        TNode grt = ee->getRepresentative( t );
+        if( t!=grt ){
+          Node exp;
+          d_uequalityEngine.assertEquality( t.eqNode( grt ), true, exp );
+        }
+      }
+      */
     }
   }
 }
@@ -289,19 +300,6 @@ TermDb * ConjectureGenerator::getTermDatabase() {
   return d_quantEngine->getTermDatabase();
 }
 
-bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
-  if( e==Theory::EFFORT_FULL ){
-    //d_fullEffortCount++;
-    return d_fullEffortCount%optFullCheckFrequency()==0;
-  }else{
-    return false;
-  }
-}
-
-void ConjectureGenerator::reset_round( Theory::Effort e ) {
-
-}
-
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
   Assert( !tn.isNull() );
   while( d_free_var[tn].size()<=i ){
@@ -374,16 +372,19 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
   return std::find( d_ground_terms.begin(), d_ground_terms.end(), n )!=d_ground_terms.end();
 }
 
-void ConjectureGenerator::check( Theory::Effort e ) {
-  if( e==Theory::EFFORT_FULL ){
-    bool doCheck = d_fullEffortCount%optFullCheckFrequency()==0;
-    if( d_quantEngine->hasAddedLemma() ){
-     doCheck = false;
-    }else{
-      d_fullEffortCount++;
-    }
-    if( doCheck ){
-      Trace("sg-engine") << "---Subgoal engine, effort = " << e << "--- " << std::endl;
+bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
+  return e==Theory::EFFORT_FULL;
+}
+
+void ConjectureGenerator::reset_round( Theory::Effort e ) {
+
+}
+
+void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
+  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+    d_fullEffortCount++;
+    if( d_fullEffortCount%optFullCheckFrequency()==0 ){
+      Trace("sg-engine") << "---Conjecture generator, effort = " << e << "--- " << std::endl;
       eq::EqualityEngine * ee = getEqualityEngine();
 
       Trace("sg-proc") << "Get eq classes..." << std::endl;
@@ -559,7 +560,7 @@ void ConjectureGenerator::check( Theory::Effort e ) {
       quantifiers::FirstOrderModel* m = d_quantEngine->getModel();
       for( int i=0; i<m->getNumAssertedQuantifiers(); i++ ){
         Node q = m->getAssertedQuantifier( i );
-        Trace("sg-conjecture-debug") << "Is " << q << " a relevant theorem?" << std::endl;
+        Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
         Node conjEq;
         if( q[1].getKind()==EQUAL ){
           bool isSubsume = false;
@@ -614,12 +615,12 @@ void ConjectureGenerator::check( Theory::Effort e ) {
         if( std::find( provenConj.begin(), provenConj.end(), q )==provenConj.end() ){
           //check each skolem variable
           bool disproven = true;
-          std::vector< Node > sk;
-          getTermDatabase()->getSkolemConstants( q, sk, true );
+          //std::vector< Node > sk;
+          //getTermDatabase()->getSkolemConstants( q, sk, true );
           Trace("sg-conjecture") << "    CONJECTURE : ";
           std::vector< Node > ce;
-          for( unsigned j=0; j<sk.size(); j++ ){
-            TNode k = sk[j];
+          for( unsigned j=0; j<getTermDatabase()->d_skolem_constants[q].size(); j++ ){
+            TNode k = getTermDatabase()->d_skolem_constants[q][j];
             TNode rk = getRepresentative( k );
             std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( rk );
             //check if it is a ground term
@@ -627,7 +628,7 @@ void ConjectureGenerator::check( Theory::Effort e ) {
               Trace("sg-conjecture") << "ACTIVE : " << q;
               if( Trace.isOn("sg-gen-eqc") ){
                 Trace("sg-conjecture") << " { ";
-                for( unsigned k=0; k<sk.size(); k++ ){ Trace("sg-conjecture") << sk[k] << ( j==k ? "*" : "" ) << " "; }
+                for( unsigned k=0; k<getTermDatabase()->d_skolem_constants[q].size(); k++ ){ Trace("sg-conjecture") << getTermDatabase()->d_skolem_constants[q][k] << ( j==k ? "*" : "" ) << " "; }
                 Trace("sg-conjecture") << "}";
               }
               Trace("sg-conjecture") << std::endl;
@@ -903,8 +904,8 @@ void ConjectureGenerator::check( Theory::Effort e ) {
         for( unsigned i=0; i<d_waiting_conjectures.size(); i++ ){
           Assert( d_waiting_conjectures[i].getKind()==FORALL );
           Node lem = NodeManager::currentNM()->mkNode( OR, d_waiting_conjectures[i].negate(), d_waiting_conjectures[i] );
-          d_quantEngine->getOutputChannel().lemma( lem );
-          d_quantEngine->getOutputChannel().requirePhase( d_waiting_conjectures[i], false );
+          d_quantEngine->addLemma( lem, false );
+          d_quantEngine->addRequirePhase( d_waiting_conjectures[i], false );
         }
         d_waiting_conjectures.clear();
       }
@@ -1244,20 +1245,13 @@ void ConjectureGenerator::processCandidateConjecture( unsigned cid, unsigned dep
           Trace("sg-conjecture-debug") << ", ";
         }
         Trace("sg-conjecture-debug") << it->first << " : " << it->second.size() << "/" << d_pattern_fun_id[lhs][it->first];
+        if( it->second.size()==1 ){
+          Trace("sg-conjecture-debug") << " (" << it->second[0] << ")";
+        }
         firstTime = false;
       }
       Trace("sg-conjecture-debug") << std::endl;
     }
-    /*
-    if( getUniversalRepresentative( lhs )!=lhs ){
-      std::cout << "bad universal representative LHS : " << lhs << " " << getUniversalRepresentative( lhs ) << std::endl;
-      exit(0);
-    }
-    if( getUniversalRepresentative( rhs )!=rhs ){
-      std::cout << "bad universal representative RHS : " << rhs << " " << getUniversalRepresentative( rhs ) << std::endl;
-      exit(0);
-    }
-    */
     Assert( getUniversalRepresentative( rhs )==rhs );
     Assert( getUniversalRepresentative( lhs )==lhs );
     //make universal quantified formula
@@ -1273,7 +1267,6 @@ void ConjectureGenerator::processCandidateConjecture( unsigned cid, unsigned dep
     Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
     Node conj = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
     conj = Rewriter::rewrite( conj );
-    Trace("sg-conjecture-debug") << "   formula is : " << conj << std::endl;
     d_waiting_conjectures.push_back( conj );
   }
 }
@@ -1331,6 +1324,8 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
         }
       }
       if( optFilterConfirmationDomain() ){
+        std::vector< TNode > vars;
+        std::vector< TNode > subs;
         for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
           Assert( d_pattern_fun_id[lhs].find( it->first )!=d_pattern_fun_id[lhs].end() );
           unsigned req = d_pattern_fun_id[lhs][it->first];
@@ -1341,6 +1336,22 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
           if( it->second.size()<req ){
             Trace("sg-cconj") << "  -> did not find at least " << d_pattern_fun_id[lhs][it->first] << " different values in ground substitutions for variable " << it->first << "." << std::endl;
             return false;
+          }
+          if( it->second.size()==1 ){
+            vars.push_back( it->first );
+            subs.push_back( it->second[0] );
+          }
+        }
+        if( optFilterConfirmationNonCanonical() && !vars.empty() ){
+          Node slhs = lhs.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          Node srhs = rhs.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+          TNode slhsr = getUniversalRepresentative( slhs, true );
+          TNode srhsr = getUniversalRepresentative( srhs, true );
+          if( areUniversalEqual( slhsr, srhsr ) ){
+            Trace("sg-cconj") << "  -> all ground witnesses can be proven by other theorems." << std::endl;
+            return false; 
+          }else{
+            Trace("sg-cconj-debug") << "Checked if " << slhsr << " and " << srhsr << " were equal." << std::endl;
           }
         }
       }
@@ -1353,69 +1364,26 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
         Trace("sg-cconj") << "     #witnesses for " << it->first << " : " << it->second.size() << std::endl;
       }
     }
-
-    return true;
-  }
-}
-
-
-
-bool ConjectureGenerator::processCandidateConjecture2( TNode rhs, TypeNode tn, unsigned depth ) {
-  for( unsigned j=0; j<d_rel_patterns_at_depth[tn][depth].size(); j++ ){
-    if( processCandidateConjecture2( d_rel_patterns_at_depth[tn][depth][j], rhs ) ){
-      return true;
-    }
-  }
-  return false;
-}
-
-bool ConjectureGenerator::processCandidateConjecture2( TNode lhs, TNode rhs ) {
-  if( !considerCandidateConjecture( lhs, rhs ) ){
-    return false;
-  }else{
-    Trace("sg-conjecture") << "* Candidate conjecture : " << lhs << " == " << rhs << std::endl;
-    Trace("sg-conjecture-debug") << "     LHS generalization depth : " << d_gen_depth[lhs] << std::endl;
-    if( optFilterConfirmation() || optFilterFalsification() ){
-      Trace("sg-conjecture-debug") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
-      Trace("sg-conjecture-debug") << "     #witnesses for ";
-      bool firstTime = true;
-      for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
-        if( !firstTime ){
-          Trace("sg-conjecture-debug") << ", ";
-        }
-        Trace("sg-conjecture-debug") << it->first << " : " << it->second.size() << "/" << d_pattern_fun_id[lhs][it->first];
-        firstTime = false;
-      }
-      Trace("sg-conjecture-debug") << std::endl;
-    }
+    
+    /*
     if( getUniversalRepresentative( lhs )!=lhs ){
-      Trace("ajr-temp") << "bad universal representative : " << lhs << " " << getUniversalRepresentative( lhs ) << std::endl;
+      std::cout << "bad universal representative LHS : " << lhs << " " << getUniversalRepresentative( lhs ) << std::endl;
+      exit(0);
     }
-    Assert( getUniversalRepresentative( rhs )==rhs );
-    Assert( getUniversalRepresentative( lhs )==lhs );
-    //make universal quantified formula
-    Assert( std::find( d_eq_conjectures[lhs].begin(), d_eq_conjectures[lhs].end(), rhs )==d_eq_conjectures[lhs].end() );
-    d_eq_conjectures[lhs].push_back( rhs );
-    d_eq_conjectures[rhs].push_back( lhs );
-    std::vector< Node > bvs;
-    for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-      for( unsigned i=0; i<=it->second; i++ ){
-        bvs.push_back( getFreeVar( it->first, i ) );
-      }
+    if( getUniversalRepresentative( rhs )!=rhs ){
+      std::cout << "bad universal representative RHS : " << rhs << " " << getUniversalRepresentative( rhs ) << std::endl;
+      exit(0);
     }
-    Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
-    Node conj = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
-    conj = Rewriter::rewrite( conj );
-    Trace("sg-conjecture-debug") << "   formula is : " << conj << std::endl;
-    d_waiting_conjectures.push_back( conj );
+    */
+    
+    //check if still canonical representation (should be, but for efficiency this is not guarenteed)
+    if( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ){
+      Trace("sg-cconj") << "  -> after processing, not canonical." << std::endl;
+    }
+    
     return true;
   }
 }
-
-
-
-
-
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
   if( Trace.isOn("sg-cconj-debug") ){
@@ -1807,30 +1775,6 @@ Node TermGenerator::getTerm( ConjectureGenerator * s ) {
   return Node::null();
 }
 
-/*
-int TermGenerator::getActiveChild( ConjectureGenerator * s ) {
-  if( d_status==1 || d_status==2 ){
-    return d_id;
-  }else if( d_status==5 ){
-    Node f = s->getTgFunc( d_typ, d_status_num );
-    int i = d_children.size()-1;
-    if( d_children.size()==s->d_func_args[f].size() ){
-      if( d_children.empty() ){
-        return d_id;
-      }else{
-        int cac = s->d_tg_alloc[d_children[i]].getActiveChild( s );
-        return cac==(int)d_children[i] ? d_id : cac;
-      }
-    }else if( !d_children.empty() ){
-      return s->d_tg_alloc[d_children[i]].getActiveChild( s );
-    }
-  }else{
-    Assert( false );
-  }
-  return -1;
-}
-*/
-
 void TermGenerator::debugPrint( ConjectureGenerator * s, const char * c, const char * cd ) {
   Trace(cd) << "[*" << d_id << "," << d_status << "]:";
   if( d_status==1 || d_status==2 ){
@@ -1999,10 +1943,9 @@ bool ConjectureGenerator::optFilterFalsification() { return true; }
 bool ConjectureGenerator::optFilterConfirmation() { return true; }
 bool ConjectureGenerator::optFilterConfirmationDomain() { return true; }
 bool ConjectureGenerator::optFilterConfirmationOnlyGround() { return true; }//false; }
-bool ConjectureGenerator::optWaitForFullCheck() { return true; }
+bool ConjectureGenerator::optFilterConfirmationNonCanonical() { return false; }//true; }
 unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 unsigned ConjectureGenerator::optFullCheckConjectures() { return 1; }
-
 
 }
 

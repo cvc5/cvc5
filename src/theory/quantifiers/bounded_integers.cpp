@@ -243,8 +243,13 @@ void BoundedIntegers::process( Node f, Node n, bool pol,
   }
 }
 
-void BoundedIntegers::check( Theory::Effort e ) {
-  if( e==Theory::EFFORT_LAST_CALL ){
+bool BoundedIntegers::needsCheck( Theory::Effort e ) {
+  return e==Theory::EFFORT_LAST_CALL;
+}
+
+void BoundedIntegers::check( Theory::Effort e, unsigned quant_e ) {
+  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+    Trace("bint-engine") << "---Bounded Integers---" << std::endl;
     bool addedLemma = false;
     //make sure proxies are up-to-date with range
     for( unsigned i=0; i<d_ranges.size(); i++) {
@@ -252,9 +257,7 @@ void BoundedIntegers::check( Theory::Effort e ) {
         addedLemma = true;
       }
     }
-    if( addedLemma ){
-      d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
-    }
+    Trace("bint-engine") << "   addedLemma = " << addedLemma << std::endl;
   }
 }
 

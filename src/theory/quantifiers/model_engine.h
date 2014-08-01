@@ -52,7 +52,8 @@ public:
   //get the builder
   QModelBuilder* getModelBuilder() { return d_builder; }
 public:
-  void check( Theory::Effort e );
+  bool needsCheck( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node f );
   Node explain(TNode n){ return Node::null(); }

@@ -61,8 +61,14 @@ double RewriteEngine::getPriority( Node f ) {
   //return deterministic ? 0.0 : 1.0;
 }
 
-void RewriteEngine::check( Theory::Effort e ) {
-  if( e==Theory::EFFORT_FULL ){
+bool RewriteEngine::needsCheck( Theory::Effort e ){
+  return e==Theory::EFFORT_FULL;
+  //return e>=Theory::EFFORT_LAST_CALL;
+}
+
+void RewriteEngine::check( Theory::Effort e, unsigned quant_e ) {
+  if( quant_e==QuantifiersEngine::QEFFORT_STANDARD ){
+  //if( e==Theory::EFFORT_FULL ){  
     Trace("rewrite-engine") << "---Rewrite Engine Round, effort = " << e << "---" << std::endl;
     //if( e==Theory::EFFORT_LAST_CALL ){
     //  if( !d_quantEngine->getModel()->isModelSet() ){
@@ -102,7 +108,6 @@ void RewriteEngine::check( Theory::Effort e ) {
 
     }else{
       //otherwise, the search will continue
-      d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
     }
   }
 }

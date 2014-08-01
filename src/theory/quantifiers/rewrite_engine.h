@@ -54,7 +54,8 @@ private:
 public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe );
 
-  void check( Theory::Effort e );
+  bool needsCheck( Theory::Effort e );
+  void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node n );  
   /** Identify this module */

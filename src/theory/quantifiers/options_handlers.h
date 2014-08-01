@@ -153,7 +153,7 @@ ignore \n\
 \n\
 ";
 static const std::string triggerSelModeHelp = "\
-User pattern modes currently supported by the --trigger-sel option:\n\
+Trigger selection modes currently supported by the --trigger-sel option:\n\
 \n\
 default \n\
 + Default, consider all subterms of quantified formulas for trigger selection.\n\

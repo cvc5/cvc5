@@ -52,7 +52,7 @@ public:
   /* reset at a round */
   virtual void reset_round( Theory::Effort e ){}
   /* Call during quantifier engine's check */
-  virtual void check( Theory::Effort e ) = 0;
+  virtual void check( Theory::Effort e, unsigned quant_e ) = 0;
   /* Called for new quantifiers */
   virtual void registerQuantifier( Node q ) = 0;
   virtual void assertNode( Node n ) = 0;
@@ -115,6 +115,12 @@ private:
   quantifiers::RewriteEngine * d_rr_engine;
   /** subgoal generator */
   quantifiers::ConjectureGenerator * d_sg_gen;
+public: //effort levels
+  enum {
+    QEFFORT_CONFLICT,
+    QEFFORT_STANDARD,
+    QEFFORT_MODEL,
+  };
 private:
   /** list of all quantifiers seen */
   std::vector< Node > d_quants;
@@ -123,8 +129,12 @@ private:
   BoolMap d_lemmas_produced_c;
   /** lemmas waiting */
   std::vector< Node > d_lemmas_waiting;
+  /** phase requirements waiting */
+  std::map< Node, bool > d_phase_req_waiting;
   /** has added lemma this round */
   bool d_hasAddedLemma;
+  /** has a conflict been found */
+  bool d_conflict;
   /** list of all instantiations produced for each quantifier */
   std::map< Node, inst::InstMatchTrie > d_inst_match_trie;
   std::map< Node, inst::CDInstMatchTrie* > d_c_inst_match_trie;
@@ -196,6 +206,8 @@ private:
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** set instantiation level attr */
   void setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms );
+  /** flush lemmas */
+  void flushLemmas();
 public:
   /** get instantiation */
   Node getInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
@@ -209,6 +221,8 @@ public:
   bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false );
   /** add lemma lem */
   bool addLemma( Node lem, bool doCache = true );
+  /** add require phase */
+  void addRequirePhase( Node lit, bool req );
   /** do instantiation specified by m */
   bool addInstantiation( Node f, InstMatch& m, bool mkRep = true, bool modEq = false, bool modInst = false );
   /** add instantiation */
@@ -219,8 +233,6 @@ public:
   bool addSplitEquality( Node n1, Node n2, bool reqPhase = false, bool reqPhasePol = true );
   /** has added lemma */
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
-  /** flush lemmas */
-  void flushLemmas( OutputChannel* out = NULL );
   /** get number of waiting lemmas */
   int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
 public:

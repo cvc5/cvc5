@@ -144,8 +144,6 @@ void TermDb::addTerm( Node n, std::set< Node >& added, bool withinQuant ){
               for( size_t i=0; i<d_op_triggers[op].size(); i++ ){
                 addedLemmas += d_op_triggers[op][i]->addTerm( n );
               }
-              //Message() << "Terms, added lemmas: " << addedLemmas << std::endl;
-              d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
             }
           }
         }
@@ -241,9 +239,9 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
         Assert( ee->hasTerm( n1 ) );
         Assert( ee->hasTerm( n2 ) );
         if( pol ){
-          return ee->areEqual( n1, n2 );
+          return n1==n2 || ee->areEqual( n1, n2 );
         }else{
-          return ee->areDisequal( n1, n2, false );
+          return n1!=n2 && ee->areDisequal( n1, n2, false );
         }
       }
     }
@@ -260,18 +258,19 @@ bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, 
   }else if( n.getKind()==NOT ){
     return isEntailed( n[0], subs, subsRep, !pol );
   }else if( n.getKind()==OR || n.getKind()==AND ){
+    bool simPol = ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND );
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( isEntailed( n[i], subs, subsRep, pol ) ){
-        if( ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND ) ){
+        if( simPol ){
           return true;
         }
       }else{
-        if( ( !pol && n.getKind()==OR ) || ( pol && n.getKind()==AND ) ){
+        if( !simPol ){
           return false;
         }
       }
     }
-    return true;
+    return !simPol;
   }else if( n.getKind()==IFF || n.getKind()==ITE ){
     for( unsigned i=0; i<2; i++ ){
       if( isEntailed( n[0], subs, subsRep, i==0 ) ){
@@ -594,6 +593,7 @@ void getSelfSel( const DatatypeConstructor& dc, Node n, TypeNode ntn, std::vecto
 
 Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes, std::vector< TNode >& fvs,
                                std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars ) {
+  Assert( sk.empty() || sk.size()==f[0].getNumChildren() );
   //calculate the variables and substitution
   std::vector< TNode > ind_vars;
   std::vector< unsigned > ind_var_indicies;
@@ -608,19 +608,23 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
       var_indicies.push_back( i );
     }
     Node s;
-    //make the new function symbol
-    if( argTypes.empty() ){
-      s = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "created during skolemization" );
+    //make the new function symbol or use existing
+    if( i>=sk.size() ){
+      if( argTypes.empty() ){
+        s = NodeManager::currentNM()->mkSkolem( "skv", f[0][i].getType(), "created during skolemization" );
+      }else{
+        TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, f[0][i].getType() );
+        Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
+        //DOTHIS: set attribute on op, marking that it should not be selected as trigger
+        std::vector< Node > funcArgs;
+        funcArgs.push_back( op );
+        funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
+        s = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
+      }
+      sk.push_back( s );
     }else{
-      TypeNode typ = NodeManager::currentNM()->mkFunctionType( argTypes, f[0][i].getType() );
-      Node op = NodeManager::currentNM()->mkSkolem( "skop", typ, "op created during pre-skolemization" );
-      //DOTHIS: set attribute on op, marking that it should not be selected as trigger
-      std::vector< Node > funcArgs;
-      funcArgs.push_back( op );
-      funcArgs.insert( funcArgs.end(), fvs.begin(), fvs.end() );
-      s = NodeManager::currentNM()->mkNode( kind::APPLY_UF, funcArgs );
+      Assert( sk[i].getType()==f[0][i].getType() );
     }
-    sk.push_back( s );
   }
   Node ret;
   if( vars.empty() ){
@@ -688,9 +692,11 @@ Node TermDb::getSkolemizedBody( Node f ){
     d_skolem_body[ f ] = mkSkolemizedBody( f, f[1], fvTypes, fvs, d_skolem_constants[f], sub, sub_vars );
     //store sub quantifier information
     if( !sub.isNull() ){
-      Assert( sub[0].getNumChildren()==sub_vars.size() );
-      d_skolem_sub_quant[f] = sub;
-      d_skolem_sub_quant_vars[f].insert( d_skolem_sub_quant_vars[f].end(), sub_vars.begin(), sub_vars.end() );
+      //if we are skolemizing one at a time, we already know the skolem constants of the sub-quantified formula, store them
+      Assert( d_skolem_constants[sub].empty() );
+      for( unsigned i=0; i<sub_vars.size(); i++ ){
+        d_skolem_constants[sub].push_back( d_skolem_constants[f][sub_vars[i]] );
+      }
     }
     Assert( d_skolem_constants[f].size()==f[0].getNumChildren() );
     if( options::sortInference() ){
@@ -701,25 +707,6 @@ Node TermDb::getSkolemizedBody( Node f ){
     }
   }
   return d_skolem_body[ f ];
-}
-
-void TermDb::getSkolemConstants( Node f, std::vector< Node >& sk, bool expSub ) {
-  std::map< Node, std::vector< Node > >::iterator it = d_skolem_constants.find( f );
-  if( it!=d_skolem_constants.end() ){
-    sk.insert( sk.end(), it->second.begin(), it->second.end() );
-    if( expSub ){
-      std::map< Node, Node >::iterator its = d_skolem_sub_quant.find( f );
-      if( its!=d_skolem_sub_quant.end() && !its->second.isNull() ){
-        std::vector< Node > ssk;
-        getSkolemConstants( its->second, ssk, true );
-        Assert( ssk.size()==d_skolem_sub_quant_vars[f].size() );
-        for( unsigned i=0; i<d_skolem_sub_quant_vars[f].size(); i++ ){
-          sk[d_skolem_sub_quant_vars[f][i]] = ssk[i];
-        }
-      }
-    }
-    Assert( sk.size()==f[0].getNumChildren() );
-  }
 }
 
 Node TermDb::getFreeVariableForInstConstant( Node n ){

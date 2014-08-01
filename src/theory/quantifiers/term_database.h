@@ -223,16 +223,11 @@ private:
 public:
   /** map from universal quantifiers to the list of skolem constants */
   std::map< Node, std::vector< Node > > d_skolem_constants;
-  /** for quantified formulas whose skolemization was strengthened by induction */
-  std::map< Node, Node > d_skolem_sub_quant;
-  std::map< Node, std::vector< unsigned > > d_skolem_sub_quant_vars;
   /** make the skolemized body f[e/x] */
   static Node mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& fvTypes, std::vector< TNode >& fvs,
                                 std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
   /** get the skolemized body */
   Node getSkolemizedBody( Node f);
-  /** get skolem constants */
-  void getSkolemConstants( Node f, std::vector< Node >& sk, bool expSub = false );
 
 //miscellaneous
 public:

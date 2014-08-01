@@ -1922,22 +1922,36 @@ void QuantConflictFind::assertDisequal( Node a, Node b ) {
 
 //-------------------------------------------------- check function
 
+bool QuantConflictFind::needsCheck( Theory::Effort level ) {
+  bool performCheck = false;
+  if( options::quantConflictFind() && !d_conflict ){
+    if( level==Theory::EFFORT_LAST_CALL ){
+      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_LAST_CALL;
+    }else if( level==Theory::EFFORT_FULL ){
+      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
+    }else if( level==Theory::EFFORT_STANDARD ){
+      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+    }
+  }
+  return performCheck;
+}
+
 void QuantConflictFind::reset_round( Theory::Effort level ) {
   d_needs_computeRelEqr = true;
 }
 
 /** check */
-void QuantConflictFind::check( Theory::Effort level ) {
-  Trace("qcf-check") << "QCF : check : " << level << std::endl;
-  if( d_conflict ){
-    Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;
-    if( level>=Theory::EFFORT_FULL ){
-      Trace("qcf-warn") << "ALREADY IN CONFLICT? " << level << std::endl;
-      //Assert( false );
-    }
-  }else{
-    int addedLemmas = 0;
-    if( d_performCheck ){
+void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
+  if( quant_e==QuantifiersEngine::QEFFORT_CONFLICT ){
+    Trace("qcf-check") << "QCF : check : " << level << std::endl;
+    if( d_conflict ){
+      Trace("qcf-check2") << "QCF : finished check : already in conflict." << std::endl;
+      if( level>=Theory::EFFORT_FULL ){
+        Trace("qcf-warn") << "ALREADY IN CONFLICT? " << level << std::endl;
+        //Assert( false );
+      }
+    }else{
+      int addedLemmas = 0;
       ++(d_statistics.d_inst_rounds);
       double clSet = 0;
       int prevEt = 0;
@@ -2048,7 +2062,6 @@ void QuantConflictFind::check( Theory::Effort level ) {
           }
         }
         if( addedLemmas>0 ){
-          d_quantEngine->flushLemmas();
           break;
         }
       }
@@ -2065,23 +2078,9 @@ void QuantConflictFind::check( Theory::Effort level ) {
           Trace("qcf-engine") << "  Entailment checks = " << ( currEt - prevEt ) << std::endl;
         }
       }
-    }
-    Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
-  }
-}
-
-bool QuantConflictFind::needsCheck( Theory::Effort level ) {
-  d_performCheck = false;
-  if( options::quantConflictFind() && !d_conflict ){
-    if( level==Theory::EFFORT_LAST_CALL ){
-      d_performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_LAST_CALL;
-    }else if( level==Theory::EFFORT_FULL ){
-      d_performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
-    }else if( level==Theory::EFFORT_STANDARD ){
-      d_performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+      Trace("qcf-check2") << "QCF : finished check : " << level << std::endl;
     }
   }
-  return d_performCheck;
 }
 
 void QuantConflictFind::computeRelevantEqr() {

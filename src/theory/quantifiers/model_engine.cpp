@@ -66,8 +66,12 @@ ModelEngine::~ModelEngine() {
   delete d_builder;
 }
 
-void ModelEngine::check( Theory::Effort e ){
-  if( e==Theory::EFFORT_LAST_CALL && !d_quantEngine->hasAddedLemma() ){
+bool ModelEngine::needsCheck( Theory::Effort e ) {
+  return e==Theory::EFFORT_LAST_CALL;
+}
+
+void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
+  if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
     int addedLemmas = 0;
     bool needsBuild = true;
     FirstOrderModel* fm = d_quantEngine->getModel();
@@ -145,7 +149,6 @@ void ModelEngine::check( Theory::Effort e ){
       }
     }else{
       //otherwise, the search will continue
-      d_quantEngine->flushLemmas( &d_quantEngine->getOutputChannel() );
     }
   }
 }

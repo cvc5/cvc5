@@ -166,7 +166,6 @@ class QuantConflictFind : public QuantifiersModule
 private:
   context::Context* d_c;
   context::CDO< bool > d_conflict;
-  bool d_performCheck;
   std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
   //for storing nodes created during t-constraint solving (prevents memory leaks)
@@ -220,12 +219,12 @@ public:
   void merge( Node a, Node b );
   /** assert disequal */
   void assertDisequal( Node a, Node b );
+  /** needs check */
+  bool needsCheck( Theory::Effort level );
   /** reset round */
   void reset_round( Theory::Effort level );
   /** check */
-  void check( Theory::Effort level );
-  /** needs check */
-  bool needsCheck( Theory::Effort level );
+  void check( Theory::Effort level, unsigned quant_e );
 private:
   bool d_needs_computeRelEqr;
 public:
