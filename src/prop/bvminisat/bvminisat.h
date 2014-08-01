@@ -87,6 +87,8 @@ public:
 
   void markUnremovable(SatLiteral lit);
 
+  void spendResource();
+
   void interrupt();
   
   SatValue solve();

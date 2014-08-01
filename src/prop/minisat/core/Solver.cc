@@ -106,7 +106,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
 
     // Statistics: (formerly in 'SolverStats')
     //
-  , solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0)
+  , solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0), resources_consumed(0)
   , dec_vars(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
 
   , ok                 (true)
@@ -1587,6 +1587,9 @@ bool Solver::flipDecision() {
 CRef Solver::updateLemmas() {
 
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;
+
+  // Avoid adding lemmas indefinitely without resource-out
+  spendResource();
 
   CRef conflict = CRef_Undef;
 

@@ -215,6 +215,7 @@ public:
     void    budgetOff();
     void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
     void    clearInterrupt();     // Clear interrupt indicator flag.
+    void    spendResource();
 
     // Memory managment:
     //
@@ -252,7 +253,7 @@ public:
 
     // Statistics: (read-only member variable)
     //
-    uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
+    uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts, resources_consumed;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
 protected:
@@ -526,8 +527,9 @@ inline void     Solver::clearInterrupt(){ asynch_interrupt = false; }
 inline void     Solver::budgetOff(){ conflict_budget = propagation_budget = -1; }
 inline bool     Solver::withinBudget() const {
     return !asynch_interrupt &&
-           (conflict_budget    < 0 || conflicts < (uint64_t)conflict_budget) &&
+           (conflict_budget    < 0 || conflicts + resources_consumed < (uint64_t)conflict_budget) &&
            (propagation_budget < 0 || propagations < (uint64_t)propagation_budget); }
+inline void     Solver::spendResource() { ++resources_consumed; }
 
 // FIXME: after the introduction of asynchronous interrruptions the solve-versions that return a
 // pure bool do not give a safe interface. Either interrupts must be possible to turn off here, or

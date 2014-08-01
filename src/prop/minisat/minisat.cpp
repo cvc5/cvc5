@@ -168,10 +168,10 @@ SatValue MinisatSatSolver::solve(unsigned long& resource) {
     d_minisat->setConfBudget(resource);
   }
   Minisat::vec<Minisat::Lit> empty;
-  unsigned long conflictsBefore = d_minisat->conflicts;
+  unsigned long conflictsBefore = d_minisat->conflicts + d_minisat->resources_consumed;
   SatValue result = toSatLiteralValue(d_minisat->solveLimited(empty));
   d_minisat->clearInterrupt();
-  resource = d_minisat->conflicts - conflictsBefore;
+  resource = d_minisat->conflicts + d_minisat->resources_consumed - conflictsBefore;
   Trace("limit") << "SatSolver::solve(): it took " << resource << " conflicts" << std::endl;
   return result;
 }
@@ -182,6 +182,9 @@ SatValue MinisatSatSolver::solve() {
   return toSatLiteralValue(d_minisat->solve());
 }
 
+void MinisatSatSolver::spendResource() {
+  d_minisat->spendResource();
+}
 
 void MinisatSatSolver::interrupt() {
   d_minisat->interrupt();
