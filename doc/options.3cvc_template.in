@@ -7,6 +7,8 @@ options \- the options infrastructure
 
 .SH AVAILABLE INTERNAL OPTIONS
 
+.ad l
+
 .RS
 .TP 10
 .I "COMMON OPTIONS"
@@ -15,6 +17,8 @@ ${common_manpage_internals_documentation}
 ${remaining_manpage_internals_documentation}
 .PD
 .RE
+
+.ad b
 
 .SH VERSION
 This manual page refers to

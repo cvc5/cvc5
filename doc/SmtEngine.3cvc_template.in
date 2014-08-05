@@ -19,6 +19,8 @@ and
 .I SmtEngine::getOption()
 use the following option keys.
 
+.ad l
+
 .RS
 .TP 10
 .I "COMMON OPTIONS"
@@ -27,6 +29,8 @@ ${common_manpage_smt_documentation}
 ${remaining_manpage_smt_documentation}
 .PD
 .RE
+
+.ad b
 
 .SH VERSION
 This manual page refers to
