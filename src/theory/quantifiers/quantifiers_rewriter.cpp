@@ -159,7 +159,13 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
     }
     Node body = in[1];
     bool doRewrite = false;
+    std::vector< Node > ipl;
     while( body.getNumChildren()>=2 && body.getKind()==in.getKind() ){
+      if( body.getNumChildren()==3 ){
+        for( unsigned i=0; i<body[2].getNumChildren(); i++ ){
+          ipl.push_back( body[2][i] );
+        }
+      }
       for( int i=0; i<(int)body[0].getNumChildren(); i++ ){
         args.push_back( body[0][i] );
       }
@@ -171,7 +177,12 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
       children.push_back( body );
       if( in.getNumChildren()==3 ){
-        children.push_back( in[2] );
+        for( unsigned i=0; i<in[2].getNumChildren(); i++ ){
+          ipl.push_back( in[2][i] );
+        }
+      }
+      if( !ipl.empty() ){
+        children.push_back( NodeManager::currentNM()->mkNode( INST_PATTERN_LIST, ipl ) );
       }
       Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
       if( in!=n ){
