@@ -388,7 +388,7 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
   }
 
   Assert (res == SAT_VALUE_FALSE);
-  Assert (d_quickSolver->inConflict());  
+  Assert (d_quickSolver->inConflict());
   d_isComplete.set(true);
   
   Debug("bv-subtheory-algebraic") << " Unsat.\n";
@@ -654,6 +654,7 @@ bool AlgebraicSolver::useHeuristic() {
 
 void AlgebraicSolver::assertFact(TNode fact) {
   d_assertionQueue.push_back(fact);
+  d_isComplete.set(false);
   if (!d_isDifficult.get()) {
     d_isDifficult.set(hasExpensiveBVOperators(fact));
   }
@@ -663,7 +664,7 @@ EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
-  Debug("bv-subtheory-algebraic-models") << "AlgebraicSolver::collectModelInfo\n"; 
+  Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n"; 
   AlwaysAssert (!d_quickSolver->inConflict());
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
@@ -682,28 +683,28 @@ void AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel) {
     }
   }
 
-  Debug("bv-subtheory-algebraic-models") << "Substitutions:\n";
+  Debug("bitvector-model") << "Substitutions:\n";
   for (unsigned i = 0; i < variables.size(); ++i) {
     TNode current = variables[i];
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
-    Debug("bv-subtheory-algebraic-models") << "   " << current << " => " << subst << "\n";
+    Debug("bitvector-model") << "   " << current << " => " << subst << "\n";
     values[i] = subst;
   }
 
-  Debug("bv-subtheory-algebraic-models") << "Model:\n";
+  Debug("bitvector-model") << "Model:\n";
   for (BVQuickCheck::vars_iterator it = d_quickSolver->beginVars(); it != d_quickSolver->endVars(); ++it) {
     TNode var = *it;
     Node value = d_quickSolver->getVarValue(var);
-    Debug("bv-subtheory-algebraic-models") << "   " << var << " => " << value << "\n";
+    Debug("bitvector-model") << "   " << var << " => " << value << "\n";
     Assert (value.getKind() == kind::CONST_BITVECTOR); 
     d_modelMap->addSubstitution(var, value); 
   }
 
-  Debug("bv-subtheory-algebraic-models") << "Final Model:\n";
+  Debug("bitvector-model") << "Final Model:\n";
   for (unsigned i = 0; i < variables.size(); ++i) {
     TNode current = values[i];
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
-    Debug("bv-subtheory-algebraic-models") << "   " << variables[i] << " => " << subst << "\n"; 
+    Debug("bitvector-model") << "   " << variables[i] << " => " << subst << "\n"; 
     // Doesn't have to be constant as it may be irrelevant
     // Assert (subst.getKind() == kind::CONST_BITVECTOR); 
     model->assertEquality(variables[i], subst, true);
@@ -875,7 +876,6 @@ void ExtractSkolemizer::storeExtract(TNode var, unsigned high, unsigned low) {
   if (d_varToExtract.find(var) == d_varToExtract.end()) {
     d_varToExtract[var] = ExtractList(utils::getSize(var));
   }
-  //  std::cout << "extract " << var <<"["<<high<<":"<<low<<"]\n"; 
   VarExtractMap::iterator it = d_varToExtract.find(var);
   ExtractList& el = it->second;
   Extract e(high, low);
