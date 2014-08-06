@@ -63,8 +63,8 @@ java_libcvc4jni_la_LDFLAGS = \
 	-shrext $(CVC4_JAVA_MODULE_EXT) \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 java_libcvc4jni_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 endif
 if CVC4_LANGUAGE_BINDING_CSHARP
 csharplib_LTLIBRARIES += csharp/CVC4.la
@@ -72,8 +72,8 @@ csharp_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 csharp_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 endif
 if CVC4_LANGUAGE_BINDING_PERL
 perllib_LTLIBRARIES += perl/CVC4.la
@@ -81,8 +81,8 @@ perl_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 perl_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 perldata_DATA += perl/CVC4.pm
 endif
 if CVC4_LANGUAGE_BINDING_PHP
@@ -91,8 +91,8 @@ php_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 php_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 phpdata_DATA += php/CVC4.php
 endif
 if CVC4_LANGUAGE_BINDING_PYTHON
@@ -102,8 +102,8 @@ python_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 python_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 pythondata_DATA += python/CVC4.py
 endif
 if CVC4_LANGUAGE_BINDING_OCAML
@@ -117,8 +117,8 @@ ocaml_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 ocaml_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 endif
 if CVC4_LANGUAGE_BINDING_RUBY
 rubylib_LTLIBRARIES += ruby/CVC4.la
@@ -126,8 +126,8 @@ ruby_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 ruby_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 endif
 if CVC4_LANGUAGE_BINDING_TCL
 tcllib_LTLIBRARIES += tcl/CVC4.la
@@ -135,8 +135,8 @@ tcl_CVC4_la_LDFLAGS = \
 	-module \
 	-version-info $(LIBCVC4BINDINGS_VERSION)
 tcl_CVC4_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 endif
 # this endif matches the "if CVC4_HAS_SWIG" above
 endif

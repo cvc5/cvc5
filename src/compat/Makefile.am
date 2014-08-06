@@ -25,8 +25,8 @@ libcvc4compat_la_LDFLAGS = \
 	-version-info $(LIBCVC4COMPAT_VERSION)
 
 libcvc4compat_la_LIBADD = \
-	-L@builddir@/.. -lcvc4 \
-	-L@builddir@/../parser -lcvc4parser
+	@builddir@/../libcvc4.la \
+	@builddir@/../parser/libcvc4parser.la
 
 if CVC4_NEEDS_REPLACEMENT_FUNCTIONS
 libcvc4compat_la_LIBADD += \
