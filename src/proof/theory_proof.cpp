@@ -71,6 +71,14 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
     return;
   }
 
+  os << "(bvatom " << term << ")";
+  return;
+  
+  if (term.getType().isBitVector()) {
+    os << " bvatom ;; " << term << "\n";
+    return; 
+  }
+  
   switch(Kind k = term.getKind()) {
   case kind::APPLY_UF: {
     if(term.getType().isBoolean()) {
@@ -154,6 +162,7 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
 
   case kind::CONST_BOOLEAN:
     os << (term.getConst<bool>() ? "true" : "false");
+    std::cout << "WTF" <<"\n"; 
     return;
 
   case kind::CHAIN: {
