@@ -86,10 +86,12 @@ ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 	ln -sf ../src/compat/.libs/libcvc4compat.* \
 		.
 endif
-#	symlink the binary
-	cd $(CURRENT_BUILD)/bin && \
-	ln -sf ../src/main/cvc4 \
-		.
+#	symlink the binaries
+	for binary in $(CVC4_BINARIES); do \
+		cd $(CURRENT_BUILD)/bin && \
+		ln -sf ../src/main/$$binary \
+			. ; \
+	done
 #	set up builds/doc and builds/examples
 	rm -f bin; ln -sf $(CURRENT_BUILD)/bin bin
 	rm -f lib; ln -sf $(CURRENT_BUILD)/lib lib
