@@ -87,8 +87,8 @@ ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 		.
 endif
 #	symlink the binaries
+	cd $(CURRENT_BUILD)/bin && \
 	for binary in $(CVC4_BINARIES); do \
-		cd $(CURRENT_BUILD)/bin && \
 		ln -sf ../src/main/$$binary \
 			. ; \
 	done
