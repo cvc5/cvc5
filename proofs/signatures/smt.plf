@@ -54,7 +54,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; binding between an LF var and an (atomic) formula
+
 (declare atom (! v var (! p formula type)))
+
+; binding between two LF vars
+(declare bvatom (! sat_v var (! bv_v var type)))
 
 (declare decl_atom
   (! f formula
@@ -63,6 +67,19 @@
          (holds cln)))
     (holds cln))))
 
+;; declare atom enhanced with mapping
+;; between SAT prop variable and BVSAT prop variable
+(declare decl_bvatom
+  (! f formula
+  (! u (! v var
+       (! bv_v var
+       (! a (atom v f)
+       (! bva (atom bv_v f)
+       (! vbv (bvatom v bv_v)
+         (holds cln))))))
+    (holds cln))))
+    
+    
 ; clausify a formula directly
 (declare clausify_form
   (! f formula
@@ -295,8 +312,33 @@
   (! u (! o (th_holds (not f))
          (holds C))
     (holds (clc (pos v) C))))))))
-    
 
+;; Bitvector lemma constructors to assume
+;; the unit clause containing the assumptions
+;; it also requires the mapping between bv_v and v
+;; The resolution proof proving false will use bv_v as the definition clauses use bv_v
+;; but the Problem clauses in the main SAT solver will use v so the learned clause is in terms of v
+(declare bv_asf
+  (! v var
+  (! bv_v var
+  (! f formula
+  (! C clause
+  (! r (atom v f) ;; passed in
+  (! x (bvatom v bv_v) ; establishes the equivalence of v to bv_
+  (! u (! o (holds (clc (neg bv_v) cln)) ;; l binding to be used in proof
+         (holds C))
+    (holds (clc (pos v) C))))))))))
+    
+(declare bv_ast
+  (! v var
+  (! bv_v var	
+  (! f formula
+  (! C clause
+  (! r (atom v f)       ; this is specified
+  (! x (bvatom v bv_v) ; establishes the equivalence of v to bv_v
+  (! u (! o (holds (clc (pos bv_v) cln))
+         (holds C))
+    (holds (clc (neg v) C))))))))))
 
 
 ;; Example:

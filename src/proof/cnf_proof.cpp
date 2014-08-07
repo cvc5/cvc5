@@ -60,8 +60,8 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
       Expr atom = getAtom(*it);
       LFSCTheoryProof::printTerm(atom, os);
     } else {
-      // print fake atoms for all other logics
-      os << "true ";
+      // print fake atom until we have a signature
+      os << "(fakeatom " << atom << ")";
     }
 
     os << " (\\ " << ProofManager::getVarName(*it) << " (\\ " << ProofManager::getAtomName(*it) << "\n";
