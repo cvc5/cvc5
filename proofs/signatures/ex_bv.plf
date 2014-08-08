@@ -1,0 +1,73 @@
+; a = b ^ a = 00000 ^ b = 11111 is UNSAT
+
+(check
+(% a var_bv
+(% b var_bv
+(% f1 (th_holds (= BitVec (a_var_bv a) (a_var_bv b)))
+(% f2 (th_holds (= BitVec (a_var_bv a) (a_bv (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))))))
+(% f3 (th_holds (= BitVec (a_var_bv b) (a_bv (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))))))
+(: (holds cln)
+
+(decl_bv_atom_var 5 a (\ bv1 (\ ba1
+(decl_bv_atom_var 5 b (\ bv2 (\ ba2
+(decl_bv_atom_const _ (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))) (\ bv3 (\ ba3
+(decl_bv_atom_const _ (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))) (\ bv4 (\ ba4
+
+(decl_atom (bblast bv1 4) (\ v1 (\ a1
+(decl_atom (bblast bv2 4) (\ v2 (\ a2
+(decl_atom (bblast bv3 4) (\ v3 (\ a3
+(decl_atom (bblast bv4 4) (\ v4 (\ a4
+
+; bitblasting
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba1 ba2 f1) (\ bf1
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba1 ba3 f2) (\ bf2
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba2 ba4 f3) (\ bf3
+(th_let_pf _ (bv_bbl_const _ _ _ _ ba3) (\ bf4
+(th_let_pf _ (bv_bbl_const _ _ _ _ ba4) (\ bf5
+
+; CNFication
+; a.4 V ~b.4
+(satlem _ _
+(asf _ _ _ a1 (\ l1
+(ast _ _ _ a2 (\ l2
+(clausify_false
+  (contra _ (impl_elim _ _ l2 (iff_elim_2 _ _ (and_elim_1 _ _ bf1))) l1)
+))))) (\ C2
+
+; ~a.4 V 00000.4 
+(satlem _ _
+(ast _ _ _ a1 (\ l1
+(asf _ _ _ a3 (\ l3
+(clausify_false
+  (contra _ (impl_elim _ _ l1 (iff_elim_1 _ _ (and_elim_1 _ _ bf2))) l3)
+))))) (\ C3
+
+; b.4 V ~11111.4 
+(satlem _ _
+(asf _ _ _ a2 (\ l2
+(ast _ _ _ a4 (\ l4
+(clausify_false
+  (contra _ (impl_elim _ _ l4 (iff_elim_2 _ _ (and_elim_1 _ _ bf3))) l2)
+))))) (\ C6
+
+; ~00000.4
+(satlem _ _
+(ast _ _ _ a3 (\ l3
+(clausify_false
+  (contra _ l3 (and_elim_1 _ _ bf4))
+))) (\ C7
+
+; 11111.4
+(satlem _ _
+(asf _ _ _ a4 (\ l4
+(clausify_false
+  (contra _ (and_elim_1 _ _ bf5) l4)
+))) (\ C8
+
+
+(satlem_simplify _ _ _ 
+(R _ _ 
+  (R _ _ (R _ _ C8 C6 v4) C2 v2)
+  (R _ _ C3 C7 v3) v1) (\ x x))
+
+)))))))))))))))))))))))))))))))))))))))))))))))))))
