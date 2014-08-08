@@ -68,11 +68,11 @@ all:
 	ln -sf ../src/libcvc4.* \
 		../src/parser/libcvc4parser.* \
 		.
-	cd $(CURRENT_BUILD)/lib && \
+	-cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/.libs && \
 	ln -sf ../src/.libs/libcvc4.* \
 		.
-	cd $(CURRENT_BUILD)/lib && \
+	-cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/parser/.libs && \
 	ln -sf ../src/parser/.libs/libcvc4parser.* \
 		.
@@ -81,7 +81,7 @@ ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 	cd $(CURRENT_BUILD)/lib && \
 	ln -sf ../src/compat/libcvc4compat.* \
 		.
-	cd $(CURRENT_BUILD)/lib && \
+	-cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/compat/.libs && \
 	ln -sf ../src/compat/.libs/libcvc4compat.* \
 		.
