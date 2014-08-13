@@ -126,6 +126,10 @@ if test -n "${enable_optimized+set}"; then
     btargs="$btargs nooptimized"
   fi
 fi
+# --enable-staticbinary is an alias for --enable-static-binary
+if test -n "${enable_staticbinary+set}"; then
+  enable_static_binary="$enable_staticbinary"
+fi
 if test -n "${enable_static_binary+set}"; then
   if test "$enable_static_binary" = yes; then
     btargs="$btargs staticbinary"
