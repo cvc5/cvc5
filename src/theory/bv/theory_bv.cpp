@@ -49,6 +49,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_staticLearnCache(),
     d_lemmasAdded(c, false),
     d_conflict(c, false),
+    d_invalidateModelCache(c, true),
     d_literalsToPropagate(c),
     d_literalsToPropagateIndex(c, 0),
     d_propagatedBy(c),
@@ -357,7 +358,8 @@ void TheoryBV::checkForLemma(TNode fact) {
 void TheoryBV::check(Effort e)
 {
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
-
+  // we may be getting new assertions so the model cache may not be sound
+  d_invalidateModelCache.set(true); 
   // if we are using the eager solver
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     // this can only happen on an empty benchmark

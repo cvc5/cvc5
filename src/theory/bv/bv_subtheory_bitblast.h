@@ -57,7 +57,7 @@ class BitblastSolver : public SubtheorySolver {
   AbstractionModule* d_abstractionModule;
   BVQuickCheck* d_quickCheck;
   QuickXPlain* d_quickXplain;
-  Node getModelValueRec(TNode node);
+  //  Node getModelValueRec(TNode node);
   void setConflict(TNode conflict); 
 public:
   BitblastSolver(context::Context* c, TheoryBV* bv);

@@ -115,7 +115,7 @@ BVQuickCheck::vars_iterator BVQuickCheck::endVars() {
 }
 
 Node BVQuickCheck::getVarValue(TNode var) {
-  return d_bitblaster->getVarValue(var); 
+  return d_bitblaster->getTermModel(var, true); 
 }
 
 

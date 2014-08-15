@@ -74,19 +74,22 @@ protected:
   typedef std::vector<T> Bits;
   typedef __gnu_cxx::hash_map <Node, Bits, NodeHashFunction>  TermDefMap;
   typedef __gnu_cxx::hash_set<TNode, TNodeHashFunction>       TNodeSet;
+  typedef __gnu_cxx::hash_map<Node, Node, NodeHashFunction>   ModelCache;
 
   typedef void  (*TermBBStrategy) (TNode, Bits&, TBitblaster<T>*);
   typedef T     (*AtomBBStrategy) (TNode, TBitblaster<T>*);
 
   // caches and mappings
-  TermDefMap                   d_termCache;
-
+  TermDefMap d_termCache;
+  ModelCache d_modelCache;
+  
   void initAtomBBStrategies();
   void initTermBBStrategies();
 protected:
   /// function tables for the various bitblasting strategies indexed by node kind
   TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
   AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND]; 
+  virtual Node getModelFromSatSolver(TNode node, bool fullModel) = 0; 
 public:
   TBitblaster(); 
   virtual ~TBitblaster() {}
@@ -97,9 +100,18 @@ public:
   virtual bool hasBBAtom(TNode atom) const = 0;
   virtual void storeBBAtom(TNode atom, T atom_bb) = 0;
   
+  
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
-  void storeBBTerm(TNode term, const Bits& bits); 
+  void storeBBTerm(TNode term, const Bits& bits);
+  /**
+   * Return a constant representing the value of a in the  model.
+   * If fullModel is true set unconstrained bits to 0. If not return
+   * NullNode() for a fully or partially unconstrained.
+   *
+   */
+  Node getTermModel(TNode node, bool fullModel);
+  void invalidateModelCache();
 }; 
 
 
@@ -109,7 +121,6 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   typedef std::vector<Node> Bits;
   typedef context::CDList<prop::SatLiteral> AssertionList;
   typedef context::CDHashMap<prop::SatLiteral, std::vector<prop::SatLiteral> , prop::SatLiteralHashFunction> ExplanationMap;
-  
   /** This class gets callbacks from minisat on propagations */
   class MinisatNotify : public prop::BVSatSolverInterface::Notify {
     prop::CnfStream* d_cnf;
@@ -143,9 +154,12 @@ class TLazyBitblaster :  public TBitblaster<Node> {
   TNodeSet d_bbAtoms; 
   AbstractionModule* d_abstraction;
   bool d_emptyNotify;
+
+  context::CDO<bool> d_satSolverFullModel;
   
   void addAtom(TNode atom);
   bool hasValue(TNode a);
+  Node getModelFromSatSolver(TNode a, bool fullModel);  
 public:
   void bbTerm(TNode node, Bits&  bits);
   void bbAtom(TNode node);
@@ -172,14 +186,7 @@ public:
   void setAbstraction(AbstractionModule* abs);
   
   theory::EqualityStatus getEqualityStatus(TNode a, TNode b);
-  /**
-   * Return a constant Node representing the value of a variable
-   * in the current model.
-   * @param a
-   *
-   * @return
-   */
-  Node getVarValue(TNode a, bool fullModel=true);
+
   /**
    * Adds a constant value for each bit-blasted variable in the model.
    *
@@ -245,7 +252,7 @@ class EagerBitblaster : public TBitblaster<Node> {
   TNodeSet d_bbAtoms;
   TNodeSet d_variables;
 
-  Node getVarValue(TNode a, bool fullModel);
+  Node getModelFromSatSolver(TNode a, bool fullModel);
   bool isSharedTerm(TNode node); 
 
 public:
@@ -299,7 +306,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*> {
   bool hasInput(TNode input);
   void convertToCnfAndAssert();
   void assertToSatSolver(Cnf_Dat_t* pCnf);
-
+  Node getModelFromSatSolver(TNode a, bool fullModel) { Unreachable(); }
 public:
   AigBitblaster();
   ~AigBitblaster();
@@ -387,6 +394,7 @@ template <class T> void TBitblaster<T>::initTermBBStrategies() {
 template <class T>
 TBitblaster<T>::TBitblaster()
   : d_termCache()
+  , d_modelCache()
 {
   initAtomBBStrategies();
   initTermBBStrategies(); 
@@ -405,6 +413,53 @@ void TBitblaster<T>::getBBTerm(TNode node, Bits& bits) const {
 template <class T>
 void TBitblaster<T>::storeBBTerm(TNode node, const Bits& bits) {
   d_termCache.insert(std::make_pair(node, bits));
+}
+
+template <class T>
+void TBitblaster<T>::invalidateModelCache() {
+  d_modelCache.clear();
+}
+
+template <class T>
+Node TBitblaster<T>::getTermModel(TNode node, bool fullModel) {
+  if (d_modelCache.find(node) != d_modelCache.end())
+    return d_modelCache[node]; 
+
+  if (node.isConst())
+    return node; 
+
+  Node value = getModelFromSatSolver(node, false);
+  if (!value.isNull()) {
+    Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from SatSolver" << node <<" => " << value <<"\n";
+    d_modelCache[node] = value;
+    Assert (value.isConst()); 
+    return value;
+  }
+
+  if (Theory::isLeafOf(node, theory::THEORY_BV)) {
+    // if it is a leaf may ask for fullModel
+    value = getModelFromSatSolver(node, fullModel); 
+    Debug("bv-equality-status")<< "TLazyBitblaster::getTermModel from VarValue" << node <<" => " << value <<"\n";
+    Assert (!value.isNull()); 
+    d_modelCache[node] = value;
+    return value;
+  }
+  Assert (node.getType().isBitVector());
+  
+  NodeBuilder<> nb(node.getKind());
+  if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    nb << node.getOperator(); 
+  }
+
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+    nb << getTermModel(node[i], fullModel); 
+  }
+  value = nb; 
+  value = Rewriter::rewrite(value);
+  Assert (value.isConst()); 
+  d_modelCache[node] = value;
+  Debug("bv-term-model")<< "TLazyBitblaster::getTermModel Building Value" << node <<" => " << value <<"\n";
+  return value; 
 }
 
 

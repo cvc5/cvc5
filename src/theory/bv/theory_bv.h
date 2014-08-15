@@ -141,6 +141,9 @@ private:
   // Are we in conflict?
   context::CDO<bool> d_conflict;
 
+  // Invalidate the model cache if check was called
+  context::CDO<bool> d_invalidateModelCache;
+
   /** The conflict node */
   Node d_conflictNode;
 

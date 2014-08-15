@@ -156,11 +156,11 @@ bool EagerBitblaster::solve() {
  *
  * @return
  */
-Node EagerBitblaster::getVarValue(TNode a, bool fullModel) {
+Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   if (!hasBBTerm(a)) {
-    Assert(isSharedTerm(a));
-    return Node();
+    return fullModel? utils::mkConst(utils::getSize(a), 0u) : Node();
   }
+  
   Bits bits;
   getBBTerm(a, bits);
   Integer value(0);
@@ -171,7 +171,8 @@ Node EagerBitblaster::getVarValue(TNode a, bool fullModel) {
       bit_value = d_satSolver->value(bit);
       Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
-      // the bit is unconstrainted so we can give it an arbitrary value
+      if (!fullModel) return Node();
+      // unconstrained bits default to false
       bit_value = prop::SAT_VALUE_FALSE;
     }
     Integer bit_int = bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
@@ -182,19 +183,17 @@ Node EagerBitblaster::getVarValue(TNode a, bool fullModel) {
 
 
 void EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
-  TNodeSet::const_iterator it = d_variables.begin();
+  TNodeSet::iterator it = d_variables.begin();
   for (; it!= d_variables.end(); ++it) {
     TNode var = *it;
-    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
-      Node const_value = getVarValue(var, fullModel);
-      if(const_value == Node()) {
-        if( fullModel ){
-          // if the value is unassigned just set it to zero
-          const_value = utils::mkConst(BitVector(utils::getSize(var), 0u));
-        }
-      }
+    if (d_bv->isLeaf(var) || isSharedTerm(var))  {
+      // only shared terms could not have been bit-blasted
+      Assert (hasBBTerm(var) || isSharedTerm(var));
+      
+      Node const_value = getModelFromSatSolver(var, fullModel);
+      
       if(const_value != Node()) {
-        Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
+        Debug("bitvector-model") << "EagerBitblaster::collectModelInfo (assert (= "
                                  << var << " "
                                  << const_value << "))\n";
         m->assertEquality(var, const_value, true);

@@ -103,6 +103,7 @@ void BitblastSolver::bitblastQueue() {
       // don't bit-blast lemma atoms
       continue;
     }
+    Debug("bitblast-queue") << "Bitblasting atom " << atom <<"\n"; 
     d_bitblaster->bbAtom(atom);
   }
 }
@@ -218,47 +219,44 @@ void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
 
 Node BitblastSolver::getModelValue(TNode node)
 {
-  if (!d_validModelCache) {
-    d_modelCache.clear();
-    d_validModelCache = true;
-  }
-  return getModelValueRec(node);
-}
-
-Node BitblastSolver::getModelValueRec(TNode node)
-{
-  Node val;
-  if (node.isConst()) {
-    return node;
-  }
-  NodeMap::iterator it = d_modelCache.find(node);
-  if (it != d_modelCache.end()) {
-    val = (*it).second;
-    Debug("bitvector-model") << node << " => (cached) " << val <<"\n";
-    return val;
-  }
-  if (d_bv->isLeaf(node)) {
-    val = d_bitblaster->getVarValue(node);
-    if (val == Node()) {
-      // If no value in model, just set to 0
-      val = utils::mkConst(utils::getSize(node), (unsigned)0);
-    }
-  } else {
-    NodeBuilder<> valBuilder(node.getKind());
-    if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      valBuilder << node.getOperator();
-    }
-    for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-      valBuilder << getModelValueRec(node[i]);
-    }
-    val = valBuilder;
-    val = Rewriter::rewrite(val);
-  }
-  Assert(val.isConst());
-  d_modelCache[node] = val;
-  Debug("bitvector-model") << node << " => " << val <<"\n";
+  Node val = d_bitblaster->getTermModel(node, false);
   return val;
 }
+
+// Node BitblastSolver::getModelValueRec(TNode node)
+// {
+//   Node val;
+//   if (node.isConst()) {
+//     return node;
+//   }
+//   NodeMap::iterator it = d_modelCache.find(node);
+//   if (it != d_modelCache.end()) {
+//     val = (*it).second;
+//     Debug("bitvector-model") << node << " => (cached) " << val <<"\n";
+//     return val;
+//   }
+//   if (d_bv->isLeaf(node)) {
+//     val = d_bitblaster->getVarValue(node);
+//     if (val == Node()) {
+//       // If no value in model, just set to 0
+//       val = utils::mkConst(utils::getSize(node), (unsigned)0);
+//     }
+//   } else {
+//     NodeBuilder<> valBuilder(node.getKind());
+//     if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
+//       valBuilder << node.getOperator();
+//     }
+//     for (unsigned i = 0; i < node.getNumChildren(); ++i) {
+//       valBuilder << getModelValueRec(node[i]);
+//     }
+//     val = valBuilder;
+//     val = Rewriter::rewrite(val);
+//   }
+//   Assert(val.isConst());
+//   d_modelCache[node] = val;
+//   Debug("bitvector-model") << node << " => " << val <<"\n";
+//   return val;
+// }
 
 
 void BitblastSolver::setConflict(TNode conflict) {

@@ -41,6 +41,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   , d_bbAtoms()
   , d_abstraction(NULL)
   , d_emptyNotify(emptyNotify)
+  , d_satSolverFullModel(c, false)
   , d_name(name)
   , d_statistics(name) {
   d_satSolver = prop::SatSolverFactory::createMinisat(c, name);
@@ -258,6 +259,7 @@ bool TLazyBitblaster::solve() {
     }
   }
   Debug("bitvector") << "TLazyBitblaster::solve() asserted atoms " << d_assertedAtoms->size() <<"\n";
+  d_satSolverFullModel.set(true); 
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
@@ -354,42 +356,38 @@ void TLazyBitblaster::MinisatNotify::safePoint() {
   d_bv->d_out->safePoint();
 }
 
+
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b) {
+  Debug("bv-equality-status")<< "TLazyBitblaster::getEqualityStatus " << a <<" = " << b <<"\n";
+  Debug("bv-equality-status")<< "BVSatSolver has full model? " << d_satSolverFullModel.get() <<"\n";
 
-  // We don't want to bit-blast every possibly expensive term for the sake of equality checking
-  if (hasBBTerm(a) && hasBBTerm(b)) {
+  // First check if it trivially rewrites to false/true
+  Node a_eq_b = Rewriter::rewrite(utils::mkNode(kind::EQUAL, a, b));
 
-    Bits a_bits, b_bits;
-    getBBTerm(a, a_bits);
-    getBBTerm(b, b_bits);
-    theory::EqualityStatus status = theory::EQUALITY_TRUE_IN_MODEL;
-    for (unsigned i = 0; i < a_bits.size(); ++ i) {
-      if (d_cnfStream->hasLiteral(a_bits[i]) && d_cnfStream->hasLiteral(b_bits[i])) {
-        prop::SatLiteral a_lit = d_cnfStream->getLiteral(a_bits[i]);
-        prop::SatValue a_lit_value = d_satSolver->value(a_lit);
-        if (a_lit_value != prop::SAT_VALUE_UNKNOWN) {
-          prop::SatLiteral b_lit = d_cnfStream->getLiteral(b_bits[i]);
-          prop::SatValue b_lit_value = d_satSolver->value(b_lit);
-          if (b_lit_value != prop::SAT_VALUE_UNKNOWN) {
-            if (a_lit_value != b_lit_value) {
-              return theory::EQUALITY_FALSE_IN_MODEL;
-            }
-          } else {
-            status = theory::EQUALITY_UNKNOWN;
-          }
-        } {
-          status = theory::EQUALITY_UNKNOWN;
-        }
-      } else {
-        status = theory::EQUALITY_UNKNOWN;
-      }
-    }
+  if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
+  if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-    return status;
-
-  } else {
-    return theory::EQUALITY_UNKNOWN;
+  if (!d_satSolverFullModel.get())
+    return theory::EQUALITY_UNKNOWN; 
+  
+  // Check if cache is valid (invalidated in check and pops)
+  if (d_bv->d_invalidateModelCache.get()) {
+    invalidateModelCache(); 
   }
+  d_bv->d_invalidateModelCache.set(false); 
+
+  Node a_value = getTermModel(a, true);
+  Node b_value = getTermModel(b, true);
+
+  Assert (a_value.isConst() &&
+          b_value.isConst());
+
+  if (a_value == b_value) {
+    Debug("bv-equality-status")<< "theory::EQUALITY_TRUE_IN_MODEL\n";
+    return theory::EQUALITY_TRUE_IN_MODEL; 
+  }
+  Debug("bv-equality-status")<< "theory::EQUALITY_FALSE_IN_MODEL\n";
+  return theory::EQUALITY_FALSE_IN_MODEL; 
 }
 
 
@@ -424,11 +422,11 @@ bool TLazyBitblaster::hasValue(TNode a) {
  *
  * @return
  */
-Node TLazyBitblaster::getVarValue(TNode a, bool fullModel) {
+Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
   if (!hasBBTerm(a)) {
-    Assert(isSharedTerm(a));
-    return Node();
+    return fullModel? utils::mkConst(utils::getSize(a), 0u) : Node();
   }
+  
   Bits bits;
   getBBTerm(a, bits);
   Integer value(0);
@@ -439,7 +437,8 @@ Node TLazyBitblaster::getVarValue(TNode a, bool fullModel) {
       bit_value = d_satSolver->value(bit);
       Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
-      // the bit is unconstrainted so we can give it an arbitrary value
+      if (!fullModel) return Node();
+      // unconstrained bits default to false
       bit_value = prop::SAT_VALUE_FALSE;
     }
     Integer bit_int = bit_value == prop::SAT_VALUE_TRUE ? Integer(1) : Integer(0);
@@ -449,23 +448,26 @@ Node TLazyBitblaster::getVarValue(TNode a, bool fullModel) {
 }
 
 void TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel) {
-  TNodeSet::iterator it = d_variables.begin();
-  for (; it!= d_variables.end(); ++it) {
+  std::set<Node> termSet;
+  d_bv->computeRelevantTerms(termSet);
+
+  for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
-    if (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var))  {
-      Node const_value = getVarValue(var, fullModel);
-      if(const_value == Node()) {
-        if( fullModel ){
-          // if the value is unassigned just set it to zero
-          const_value = utils::mkConst(BitVector(utils::getSize(var), 0u));
-        }
-      }
-      if(const_value != Node()) {
-        Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
-                                 << var << " "
-                                 << const_value << "))\n";
+    // not actually a leaf of the bit-vector theory
+    if (d_variables.find(var) == d_variables.end())
+      continue;
+    
+    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var)); 
+    // only shared terms could not have been bit-blasted
+    Assert (hasBBTerm(var) || isSharedTerm(var));
+    
+    Node const_value = getModelFromSatSolver(var, fullModel);
+    Assert (const_value.isNull() || const_value.isConst()); 
+    if(const_value != Node()) {
+      Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
+                               << var << " "
+                               << const_value << "))\n";
         m->assertEquality(var, const_value, true);
-      }
     }
   }
 }
@@ -481,7 +483,7 @@ void TLazyBitblaster::clearSolver() {
   d_bbAtoms.clear();
   d_variables.clear();
   d_termCache.clear(); 
-
+  
   // recreate sat solver
   d_satSolver = prop::SatSolverFactory::createMinisat(d_ctx);
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
