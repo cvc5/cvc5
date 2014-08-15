@@ -1111,10 +1111,8 @@ void SmtEngine::setDefaults() {
   if (options::arithRewriteEq()) {
     d_earlyTheoryPP = false;
   }
-  // Turn on justification heuristic of the decision engine for QF_BV and QF_AUFBV
-  // and also use it in stop-only mode for QF_AUFLIA, QF_LRA and Quantifiers
-  // BUT use neither in ALL_SUPPORTED mode (since it doesn't yet work well
-  // with incrementality)
+
+  // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
       // ALL_SUPPORTED
