@@ -686,6 +686,201 @@ Node NodeManager::mkAbstractValue(const TypeNode& type) {
   return n;
 }
 
+void NodeManager::newPolymorphicFunction(TNode n){
+  Assert ( n.getType(false).isFunction() );
+  Assert ( !isPolymorphicFunctionInstance(n) );
+  d_polymorphicFunction[n] = n;
+}
+
+bool NodeManager::isPolymorphicFunction(TNode n){
+  Assert ( n.getType(false).isFunction() );
+  return d_polymorphicFunction.find(n) != d_polymorphicFunction.end();
+}
+
+bool NodeManager::isPolymorphicFunctionInstance(TNode n){
+  Assert ( n.getType(false).isFunction() );
+  return d_instanceFunction.find(n) != d_instanceFunction.end();
+}
+
+TNode NodeManager::getPolymorphicFunction(TNode n){
+  std::hash_map<Node, Node, NodeHashFunction>::const_iterator i = d_instanceFunction.find(n);
+  Assert ( n.getType(false).isFunction() );
+  if (i != d_instanceFunction.end()) {
+    return (*i).second;
+  } else {
+    return TNode::null();
+  }
+}
+
+/**
+   The matching is done without Subtyping,
+   t2 must be ground
+*/
+bool NodeManager::matchPolymorphicType(TypeNode t1,
+                                      TypeNode t2,
+                                      std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst){
+
+  std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>::const_iterator i = subst.find(t1);
+  if(i != subst.end()) {
+    return t2 == (*i).second;
+  }
+
+  if(t1 == t2) {
+    subst[t1] = t2;
+    return true;
+  } else if ( isPolymorphicTypeVarSchema(t1) ) {
+    /* type variable not yet binded */
+    subst[t1] = t2;
+    return true;
+  } else if (t1.getNumChildren() > 0 && t1.getNumChildren() == t2.getNumChildren()) {
+    /* arity n */
+    if(t1.getMetaKind() != t2.getMetaKind()) return false;
+
+    if(t1.getMetaKind() == kind::metakind::PARAMETERIZED &&
+       t1.getOperator() != t2.getOperator()) return false;
+
+    for(size_t i = 0, len = t1.getNumChildren(); i < len; ++i) {
+      if(!(matchPolymorphicType(t1[i],t2[i],subst))) {
+        return false;
+      }
+    }
+    subst[t1] = t2;
+    return true;
+  }
+
+  return false;
+}
+
+bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
+
+  if (ty.getNumChildren() == 0) {
+    /* variable case */
+    return !nm.isPolymorphicTypeVarSchema(ty);
+
+  } else {
+    /* arity n */
+
+    for(size_t i = 0, len = ty.getNumChildren(); i < len; ++i) {
+      if(!(isCloseSchemaVar(nm,ty[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+
+}
+
+TNode NodeManager::instanciatePolymorphicFunction(TNode n,
+                                                 TypeNode ty)
+  throw(TypeCheckingExceptionPrivate){
+  Assert ( n.getType(false).isFunction() );
+  Assert ( ty.isFunction() );
+  Assert ( isPolymorphicFunction(n) );
+
+  n = d_polymorphicFunction[n];
+
+  std::hash_map<TypeNode, Node, TypeNodeHashFunction>& h = d_functionMonomorphization[n];
+  std::hash_map<TypeNode, Node, TypeNodeHashFunction>::const_iterator i = h.find(ty);
+
+  if (i != h.end()) {
+    Debug("polymorphic") << "For function " << n << " and signature " << ty
+                        << " reuse existing instance " << (*i).second << "."
+                        << std::endl;
+    return (*i).second;
+  } else {
+    Node ni;
+    string name;
+    if(n.getAttribute(expr::VarNameAttr(), name)) {
+      ni = mkVar(name,ty);
+    } else {
+      ni = mkVar(ty);
+    };
+    Debug("polymorphic") << "For function " << n << " and signature " << ty
+                        << " create new instance " << ni << "."
+                        << std::endl;
+    h[ty] = ni;
+    if(isCloseSchemaVar(*this, ty.getRangeType())){
+      d_instanceFunction[ni] = n;
+    } else {
+      d_polymorphicFunction[ni] = n;
+    }
+    return ni;
+  }
+}
+
+TNode NodeManager::instanciatePolymorphicFunction(TNode n,
+                                                 std::vector< TypeNode >& tys)
+  throw(TypeCheckingExceptionPrivate) {
+  TypeNode sig = n.getType();
+  Assert ( sig.isFunction() );
+  Assert ( sig.getNumChildren() - 1 == tys.size() );
+  Assert ( isPolymorphicFunction(n) );
+
+  std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
+
+  //Debug("parser") << "instanciatePolymorphicFunction " << sig << " size " << sig.getNumChildren() << " tys " << tys[0] << std::endl;
+
+  for(size_t i = 0, len = sig.getNumChildren() - 1; i < len; ++i) {
+    if(!(matchPolymorphicType(sig[i],tys[i],subst))) {
+      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on this argument");
+    }
+  }
+
+  sig = mkFunctionType(tys,sig.getRangeType().substitute(subst));
+
+  return instanciatePolymorphicFunction(n,sig);
+}
+
+bool NodeManager::isPolymorphicTypeVar(TypeNode tv){
+  return d_parameterVariables.find(tv) != d_parameterVariables.end();
+}
+
+
+bool NodeManager::isPolymorphicTypeVarSchema(TypeNode tv){
+  return d_schemaVariables.find(tv) != d_schemaVariables.end();
+}
+
+std::vector<std::pair<TypeNode,TNode> > NodeManager::getPolymorphicTypeVars(size_t nb){
+  std::hash_map<TypeNode, Node, TypeNode::HashFunction>::const_iterator i = d_parameterVariables.begin();
+  std::vector<std::pair<TypeNode,TNode> > res;
+  res.reserve(nb);
+  while(i != d_parameterVariables.end() && nb > 0){
+    res.push_back(*i);
+    ++i;
+    --nb;
+  }
+  while(nb > 0){
+    TypeNode ty = mkSort("cvc4_tyvar");
+    Node n = mkBoundVar(ty);
+    d_parameterVariables[ty] = n;
+    res.push_back( std::make_pair(ty,n) );
+    --nb;
+  }
+  return res;
+}
+
+std::vector< TypeNode > NodeManager::getPolymorphicTypeVarsSchema(size_t nb){
+  std::hash_set<TypeNode, TypeNode::HashFunction>::const_iterator i = d_schemaVariables.begin();
+  std::vector< TypeNode > res;
+  res.reserve(nb);
+  while(i != d_schemaVariables.end() && nb > 0){
+    res.push_back(*i);
+    ++i;
+    --nb;
+  }
+  while(nb > 0){
+    TypeNode ty = mkSort("cvc4_par");
+    Node n = mkBoundVar(ty);
+    d_schemaVariables.insert(ty);
+    res.push_back( ty );
+    --nb;
+  }
+  return res;
+}
+
+
 bool NodeManager::safeToReclaimZombies() const{
   // FIXME multithreading
   return !d_inReclaimZombies && !d_attrManager->inGarbageCollection();

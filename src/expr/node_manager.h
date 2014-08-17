@@ -159,7 +159,36 @@ class NodeManager {
   /**
    * A map of tuple and record types to their corresponding datatype.
    */
-  std::hash_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tupleAndRecordTypes;
+  std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> d_tupleAndRecordTypes;
+
+
+  /**
+   * A map of polymorphic function symbols to the original polymorphic function
+   * The signature of these function is still a schema that contain type variables
+   * They should not appear in final terms
+   */
+  std::hash_map<Node, Node, NodeHashFunction> d_polymorphicFunction;
+
+  /**
+   * A map of function symbols to the original polymorphic function
+   */
+  std::hash_map<Node, Node, NodeHashFunction> d_instanceFunction;
+
+  /**
+   * A map of polymorphic function symbols to map of monomorphization
+   * according to the signature
+   */
+  std::hash_map<Node, std::hash_map<TypeNode, Node, TypeNode::HashFunction>, NodeHashFunction > d_functionMonomorphization;
+
+  /**
+   * The set of type used for polymorphic axioms with their corresponding term variable
+   */
+  std::hash_map<TypeNode, Node, TypeNode::HashFunction> d_parameterVariables;
+
+  /**
+   * The set of type used for polymorphic function schema
+   */
+  std::hash_set<TypeNode, TypeNode::HashFunction> d_schemaVariables;
 
   /**
    * Keep a count of all abstract values produced by this NodeManager.
@@ -862,6 +891,72 @@ public:
    */
   TypeNode getType(TNode n, bool check = false)
     throw(TypeCheckingExceptionPrivate, AssertionException);
+
+  /**
+   * Register a function as a polymorphic function;
+   */
+  void newPolymorphicFunction(TNode n);
+
+  /**
+   * Returns true if the function is a polymorphic function.
+   */
+  bool isPolymorphicFunction(TNode n);
+
+  /**
+   * Returns true if the function is an instance of a polymorphic
+   * function.
+   */
+  bool isPolymorphicFunctionInstance(TNode n);
+
+  /**
+   * Returns the original polymorphic function
+   * or null if the function is not a monomorphised function
+   */
+  TNode getPolymorphicFunction(TNode n);
+
+  /**
+   * Returns the instanciation of a polymorphic function with the given signature
+   */
+  TNode instanciatePolymorphicFunction(TNode n, TypeNode ty)
+    throw(TypeCheckingExceptionPrivate);
+
+  /**
+   * Returns the instanciation of a polymorphic function with the given type arguments.
+   * The return type is instanciated accordingly but type variable can remains
+   */
+  TNode instanciatePolymorphicFunction(TNode n, std::vector< TypeNode >& args)
+    throw(TypeCheckingExceptionPrivate);
+
+  /**
+   * Complete the given substitution with the substitution that
+   * instanciated the given polymorphic type to the ground type given
+   * Return false if a type variable is already associated with an incompatible type;
+   * in that case the given subtitution is already modified
+   */
+  bool matchPolymorphicType(TypeNode t1, TypeNode t2,
+                           std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst);
+
+
+  /**
+   * Check if the given type is used as type variable
+   */
+  bool isPolymorphicTypeVar(TypeNode tv);
+
+
+  /**
+   * Check if the given type is used as type variable in schema
+   */
+  bool isPolymorphicTypeVarSchema(TypeNode tv);
+
+  /**
+   * Return the given number of type usable for polymorphicity
+   */
+  std::vector<std::pair<TypeNode,TNode> > getPolymorphicTypeVars(size_t nb);
+
+  /**
+   * Return the given number of type usable for polymorphic function schema
+   */
+  std::vector< TypeNode > getPolymorphicTypeVarsSchema(size_t nb);
 
   /**
    * Convert a node to an expression.  Uses the ExprManager

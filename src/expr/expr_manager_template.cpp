@@ -959,6 +959,89 @@ Expr ExprManager::mkAssociative(Kind kind,
   return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
 }
 
+
+void ExprManager::newPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  d_nodeManager->newPolymorphicFunction(n);
+}
+
+bool ExprManager::isPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicFunction(n);
+}
+
+bool ExprManager::isPolymorphicFunctionInstance(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicFunctionInstance(n);
+}
+
+Expr ExprManager::getPolymorphicFunction(Expr n){
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this,new Node(d_nodeManager->getPolymorphicFunction(n.getNode())));
+}
+
+Expr ExprManager::instanciatePolymorphicFunction(Expr n, FunctionType ty)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  try {
+    return Expr(this,new Node (d_nodeManager->instanciatePolymorphicFunction(n.getNode(),*ty.d_typeNode)));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+Expr ExprManager::instanciatePolymorphicFunction(Expr n, std::vector<Type> tys)
+  throw(TypeCheckingException) {
+  NodeManagerScope nms(d_nodeManager);
+  Debug("parser") << "em tys " << tys[0] << std::endl;
+  std::vector<TypeNode> tys2; tys2.reserve(tys.size());
+  for(size_t i=0, len = tys.size(); i < len; ++i){
+    tys2.push_back(*(tys[i]).d_typeNode);
+  };
+  try {
+    return Expr(this,new Node (d_nodeManager->instanciatePolymorphicFunction(n.getNode(),tys2)));
+  } catch (const TypeCheckingExceptionPrivate& e) {
+    throw TypeCheckingException(this, &e);
+  }
+}
+
+bool ExprManager::isPolymorphicTypeVar(Type tv){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicTypeVar(*tv.d_typeNode);
+}
+
+std::vector<std::pair<Type,Expr> > ExprManager::getPolymorphicTypeVars(size_t nb){
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< std::pair<TypeNode,TNode> > res = d_nodeManager->getPolymorphicTypeVars(nb);
+  std::vector< std::pair<Type,Expr> > res2;
+  res2.reserve(nb);
+  for(std::vector< std::pair<TypeNode,TNode> >::const_iterator i =
+        res.begin();
+      i != res.end(); ++i){
+    res2.push_back( std::make_pair(Type(d_nodeManager,new TypeNode(i->first)),
+                                   Expr(this,new Node(i->second))));
+  }
+  return res2;
+}
+
+bool ExprManager::isPolymorphicTypeVarSchema(Type tv){
+  NodeManagerScope nms(d_nodeManager);
+  return d_nodeManager->isPolymorphicTypeVarSchema(*tv.d_typeNode);
+}
+
+std::vector< Type > ExprManager::getPolymorphicTypeVarsSchema(size_t nb){
+  NodeManagerScope nms(d_nodeManager);
+  std::vector< TypeNode > res = d_nodeManager->getPolymorphicTypeVarsSchema(nb);
+  std::vector< Type > res2;
+  res2.reserve(nb);
+  for(std::vector< TypeNode >::const_iterator i = res.begin(); i != res.end(); ++i){
+    res2.push_back( Type(d_nodeManager,new TypeNode(*i)));
+  }
+  return res2;
+}
+
+
+
 unsigned ExprManager::minArity(Kind kind) {
   return metakind::getLowerBoundForKind(kind);
 }
