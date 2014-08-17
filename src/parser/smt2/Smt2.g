@@ -1463,8 +1463,11 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_CONST( ::CVC4::EmptySet(type) );
       } else {
         if(f.getType() != type) {
+          Debug("parser") << "Type " << f.getType() << " and "
+                          << type << " not equal." <<  std::endl;
           PARSER_STATE->parseError("Type ascription not satisfied.");
         }
+        expr = f;
       }
     }
   | LPAREN_TOK quantOp[kind]
