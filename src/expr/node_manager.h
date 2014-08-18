@@ -340,6 +340,9 @@ class NodeManager {
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
+  /** Notify all the type constructor instantiation in the given type */
+  void registerTypeNode(TypeNode n, uint32_t flags = ExprManager::SORT_FLAG_NONE);
+
 public:
 
   explicit NodeManager(ExprManager* exprManager);

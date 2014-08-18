@@ -810,6 +810,28 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
   }
 }
 
+/** Shouldn't this be done by TypeNode::substitute? */
+void NodeManager::registerTypeNode(TypeNode n, uint32_t flags){
+
+  if(n.getNumChildren() != 0) {
+    for(TypeNode::const_iterator i = n.begin(), iend = n.end(); i != iend; ++i) {
+      registerTypeNode((*i),flags);
+    }
+
+    if(n.getKind() == kind::SORT_TYPE) {
+      NodeBuilder<> nb(this, kind::SORT_TYPE);
+      Node sortTag = Node(n.d_nv->d_children[0]);
+      nb << sortTag;
+      TypeNode ctor = nb.constructTypeNode();
+
+      vector< TypeNode > args(n.begin(),n.end());
+      TypeNode n2 = mkSort(ctor,args);
+
+      Assert ( n2 == n);
+    }
+  }
+}
+
 TNode NodeManager::instanciatePolymorphicFunction(TNode n,
                                                  std::vector< TypeNode >& tys)
   throw(TypeCheckingExceptionPrivate) {
@@ -828,7 +850,9 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
     }
   }
 
-  sig = mkFunctionType(tys,sig.getRangeType().substitute(subst));
+  TypeNode range = sig.getRangeType().substitute(subst);
+  registerTypeNode(range);
+  sig = mkFunctionType(tys,range);
 
   return instanciatePolymorphicFunction(n,sig);
 }
