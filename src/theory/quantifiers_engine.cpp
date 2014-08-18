@@ -404,7 +404,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
           }
         }
       }
-      setInstantiationLevelAttr( body, f[1], maxInstLevel+1, terms );
+      setInstantiationLevelAttr( body, f[1], maxInstLevel+1 );
     }
     Trace("inst-debug") << "*** Lemma is " << lem << std::endl;
     ++(d_statistics.d_instantiations);
@@ -415,19 +415,28 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   }
 }
 
-void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms ){
+void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level ){
+  Trace("inst-level-debug") << "IL : " << n << " " << qn << " " << level << std::endl;
   //if not from the vector of terms we instantiatied
-  if( std::find( inst_terms.begin(), inst_terms.end(), n )==inst_terms.end() ){
+  if( qn.getKind()!=BOUND_VARIABLE && n!=qn ){
     //if this is a new term, without an instantiation level
-    if( n!=qn && !n.hasAttribute(InstLevelAttribute()) ){
+    if( !n.hasAttribute(InstLevelAttribute()) ){
       InstLevelAttribute ila;
       n.setAttribute(ila,level);
+      Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
     }
-    Assert( qn.getKind()!=BOUND_VARIABLE );
     Assert( n.getNumChildren()==qn.getNumChildren() );
     for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      setInstantiationLevelAttr( n[i], qn[i], level, inst_terms );
+      setInstantiationLevelAttr( n[i], qn[i], level );
     }
+  }
+}
+
+void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
+  InstLevelAttribute ila;
+  n.setAttribute(ila,level);
+  for( int i=0; i<(int)n.getNumChildren(); i++ ){
+    setInstantiationLevelAttr( n[i], level );
   }
 }
 
@@ -579,11 +588,21 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
 
   if( options::instMaxLevel()!=-1 ){
     for( unsigned i=0; i<terms.size(); i++ ){
-      if( terms[i].hasAttribute(InstLevelAttribute()) &&
-          (int)terms[i].getAttribute(InstLevelAttribute())>options::instMaxLevel() ){
-        Trace("inst-add-debug") << "Term " << terms[i] << " has instantiation level " << terms[i].getAttribute(InstLevelAttribute());
-        Trace("inst-add-debug") << ", which is more than maximum allowed level " << options::instMaxLevel() << std::endl;
-        return false;
+      if( terms[i].hasAttribute(InstLevelAttribute()) ){
+        unsigned ml = options::instMaxLevel();
+        if( f.hasAttribute(QuantInstLevelAttribute()) ){
+          ml = f.getAttribute(QuantInstLevelAttribute());
+        }
+        if( terms[i].getAttribute(InstLevelAttribute())>ml ){
+          Trace("inst-add-debug") << "Term " << terms[i] << " has instantiation level " << terms[i].getAttribute(InstLevelAttribute());
+          Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
+          return false;
+        }
+      }else{
+        if( options::instLevelInputOnly() ){
+          Trace("inst-add-debug") << "Term " << terms[i] << " does not have an instantiation level." << std::endl;
+          return false;
+        }
       }
     }
   }

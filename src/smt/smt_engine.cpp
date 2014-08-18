@@ -3174,6 +3174,14 @@ void SmtEnginePrivate::processAssertions() {
   // introducing new ones
 
   dumpAssertions("post-everything", d_assertionsToCheck);
+  
+  //set instantiation level of everything to zero
+  if( options::instLevelInputOnly() && options::instMaxLevel()!=-1 ){
+    for( unsigned i=0; i < d_assertionsToCheck.size(); i++ ) {
+      theory::QuantifiersEngine::setInstantiationLevelAttr( d_assertionsToCheck[i], 0 );
+    }
+  }
+  
 
   // Push the formula to SAT
   {
@@ -4102,9 +4110,13 @@ SExpr SmtEngine::getStatistic(std::string name) const throw() {
   return d_statisticsRegistry->getStatistic(name);
 }
 
-void SmtEngine::setUserAttribute(const std::string& attr, Expr expr) {
+void SmtEngine::setUserAttribute(const std::string& attr, Expr expr, std::vector<Expr> expr_values, std::string str_value) {
   SmtScope smts(this);
-  d_theoryEngine->setUserAttribute(attr, expr.getNode());
+  std::vector<Node> node_values;
+  for( unsigned i=0; i<expr_values.size(); i++ ){
+    node_values.push_back( expr_values[i].getNode() );
+  }
+  d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
 }
 
 void SmtEngine::setPrintFuncInModel(Expr f, bool p) {

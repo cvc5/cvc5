@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/options.h"
+#include "theory/quantifiers/term_database.h"
 
 using namespace std;
 using namespace CVC4;
@@ -22,7 +23,8 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n ){
+void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value ){
+  Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if( n.getKind()==FORALL ){
     if( attr=="axiom" ){
       Trace("quant-attr") << "Set axiom " << n << std::endl;
@@ -32,14 +34,22 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n ){
       Trace("quant-attr") << "Set conjecture " << n << std::endl;
       ConjectureAttribute ca;
       n.setAttribute( ca, true );
-    }else if( attr=="rr_priority" ){
-      //Trace("quant-attr") << "Set rr priority " << n << std::endl;
-      //RrPriorityAttribute rra;
-
+    }else if( attr=="inst-level" ){
+      Assert( node_values.size()==1 );
+      uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
+      Trace("quant-attr") << "Set instantiation level " << n << " to " << lvl << std::endl;
+      QuantInstLevelAttribute qila;
+      n.setAttribute( qila, lvl );
+    }else if( attr=="rr-priority" ){
+      Assert( node_values.size()==1 );
+      uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
+      Trace("quant-attr") << "Set rewrite rule priority " << n << " to " << lvl << std::endl;
+      RrPriorityAttribute rrpa;
+      n.setAttribute( rrpa, lvl );
     }
   }else{
     for( size_t i=0; i<n.getNumChildren(); i++ ){
-      setUserAttribute( attr, n[i] );
+      setUserAttribute( attr, n[i], node_values, str_value );
     }
   }
 }

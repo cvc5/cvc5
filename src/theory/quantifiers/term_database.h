@@ -55,6 +55,13 @@ typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t> ModelBasisArgAttribu
 struct BoundIntLitAttributeId {};
 typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
 
+//for quantifier instantiation level
+struct QuantInstLevelAttributeId {};
+typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
+
+//rewrite-rule priority
+struct RrPriorityAttributeId {};
+typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 
 class QuantifiersEngine;
 

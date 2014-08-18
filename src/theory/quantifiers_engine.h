@@ -205,7 +205,7 @@ private:
   /** instantiate f with arguments terms */
   bool addInstantiation( Node f, std::vector< Node >& vars, std::vector< Node >& terms );
   /** set instantiation level attr */
-  void setInstantiationLevelAttr( Node n, Node qn, uint64_t level, std::vector< Node >& inst_terms );
+  static void setInstantiationLevelAttr( Node n, Node qn, uint64_t level );
   /** flush lemmas */
   void flushLemmas();
 public:
@@ -235,6 +235,8 @@ public:
   bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
   /** get number of waiting lemmas */
   int getNumLemmasWaiting() { return (int)d_lemmas_waiting.size(); }
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr( Node n, uint64_t level );
 public:
   /** get number of quantifiers */
   int getNumQuantifiers() { return (int)d_quants.size(); }

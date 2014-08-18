@@ -69,7 +69,7 @@ public:
   void shutdown() { }
   std::string identify() const { return std::string("TheoryQuantifiers"); }
   bool flipDecision();
-  void setUserAttribute( const std::string& attr, Node n );
+  void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value);
   eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
   bool ppDontRewriteSubterm(TNode atom) { return atom.getKind() == kind::FORALL || atom.getKind() == kind::EXISTS; }
 private:

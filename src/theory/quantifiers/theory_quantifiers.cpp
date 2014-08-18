@@ -42,6 +42,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   d_baseDecLevel = -1;
   out.handleUserAttribute( "axiom", this );
   out.handleUserAttribute( "conjecture", this );
+  out.handleUserAttribute( "inst-level", this );
+  out.handleUserAttribute( "rr-priority", this );
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
@@ -193,6 +195,6 @@ bool TheoryQuantifiers::restart(){
   }
 }
 
-void TheoryQuantifiers::setUserAttribute( const std::string& attr, Node n ){
-  QuantifiersAttributes::setUserAttribute( attr, n );
+void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
+  QuantifiersAttributes::setUserAttribute( attr, n, node_values, str_value );
 }

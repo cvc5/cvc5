@@ -1167,6 +1167,26 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       attr = std::string(":no-pattern");
       PARSER_STATE->attributeNotSupported(attr);
     }
+  | ATTRIBUTE_INST_LEVEL INTEGER_LITERAL
+    {
+      Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
+      std::vector<Expr> values;
+      values.push_back( n );
+      std::string attr_name("inst-level");
+      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
+    }
+  | ATTRIBUTE_RR_PRIORITY_LEVEL INTEGER_LITERAL
+    {
+      Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
+      std::vector<Expr> values;
+      values.push_back( n );
+      std::string attr_name("rr-priority");
+      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
+    }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
@@ -1690,6 +1710,8 @@ INCLUDE_TOK : 'include';
 ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
+ATTRIBUTE_INST_LEVEL : ':inst-level';
+ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
 AMPERSAND_TOK     : '&';
