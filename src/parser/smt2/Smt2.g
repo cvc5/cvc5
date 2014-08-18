@@ -1462,7 +1462,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
         expr = MK_CONST( ::CVC4::EmptySet(type) );
-      } else if(f.getKind() == CVC4::kind::APPLY_UF && EXPR_MANAGER->isPolymorphicFunction(f.getOperator())){
+      } else if( !PARSER_STATE->strictModeEnabled() &&
+                 f.getKind() == CVC4::kind::APPLY_UF &&
+                 EXPR_MANAGER->isPolymorphicFunction(f.getOperator())){
           Debug("parser") << "Polymorphic function " << f.getOperator() << std::endl;
         std::vector<Type> sorts;
         sorts.reserve(f.getNumChildren() + 1);
@@ -1556,7 +1558,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       if(isBuiltinOperator) {
         PARSER_STATE->checkOperator(kind, args.size());
       }
-      if(kind == CVC4::kind::APPLY_UF && EXPR_MANAGER->isPolymorphicFunction(args[0])){
+      if(!PARSER_STATE->strictModeEnabled() &&
+         kind == CVC4::kind::APPLY_UF &&
+         EXPR_MANAGER->isPolymorphicFunction(args[0])){
         std::vector<Type> sorts;
         sorts.reserve(args.size() - 1 /* operator */);
         for(size_t i = 1; i < args.size(); ++i){
@@ -2146,6 +2150,11 @@ polymorphicSignature[std::vector<std::string>& pars, std::vector<CVC4::Type>& so
     LPAREN_TOK sortList[sorts] RPAREN_TOK
     sortSymbol[result,CHECK_DECLARED]
   | LPAREN_TOK PAR_TOK
+    {
+      if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Polymorphic functions are not permitted while operating in strict compliance mode.");
+      }
+    }
     LPAREN_TOK symbolList[pars,CHECK_NONE,SYM_SORT] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
