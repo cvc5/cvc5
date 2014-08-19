@@ -1236,8 +1236,8 @@ badIndexedFunctionName
 @declarations {
   std::string name;
 }
-  : symbol[name,CHECK_NONE,SYM_VARIABLE] INTEGER_LITERAL+
-      { PARSER_STATE->parseError(std::string("Unknown indexed function `") + name + "'"); }
+  : id=(SIMPLE_SYMBOL | QUOTED_SYMBOL | UNTERMINATED_QUOTED_SYMBOL)
+      { PARSER_STATE->parseError(std::string("Unknown indexed function `") + AntlrInput::tokenText($id) + "'"); }
   ;
 
 /**
