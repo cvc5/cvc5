@@ -88,13 +88,7 @@ Node Valuation::getModelValue(TNode var) {
 }
 
 Node Valuation::ensureLiteral(TNode n) {
-  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
-  Node rewritten = Rewriter::rewrite(n);
-  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
-  Node preprocessed = d_engine->preprocess(rewritten);
-  Debug("ensureLiteral") << "preproced: " << preprocessed << std::endl;
-  d_engine->getPropEngine()->ensureLiteral(preprocessed);
-  return preprocessed;
+  return d_engine->ensureLiteral(n);
 }
 
 bool Valuation::isDecision(Node lit) const {

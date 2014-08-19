@@ -566,12 +566,11 @@ EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
   }
-  if (d_equalityEngine.areDisequal(a, b, false)) {
+  else if (d_equalityEngine.areDisequal(a, b, false)) {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
-  //TODO: can we be more precise sometimes?
-  return EQUALITY_UNKNOWN;
+  return EQUALITY_UNKNOWN;//FALSE_IN_MODEL;
 }
 
 
@@ -665,18 +664,17 @@ void TheoryArrays::computeCareGraph()
             // Should have been propagated to us
             Assert(false);
             break;
-          case EQUALITY_FALSE_AND_PROPAGATED:
-            // Should have been propagated to us
-            Assert(false);
-            break;
-          case EQUALITY_FALSE:
           case EQUALITY_TRUE:
             // Missed propagation - need to add the pair so that theory engine can force propagation
             Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
             break;
+          case EQUALITY_FALSE_AND_PROPAGATED:
+            // Should have been propagated to us
+            Assert(false);
+          case EQUALITY_FALSE:
           case EQUALITY_FALSE_IN_MODEL:
-            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): false in model" << std::endl;
-            break;
+            // Don't need to include this pair
+            continue;
           default:
             break;
         }

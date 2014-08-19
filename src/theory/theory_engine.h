@@ -759,6 +759,11 @@ public:
   Node getModelValue(TNode var);
 
   /**
+   * Takes a literal and returns an equivalent literal that is guaranteed to be a SAT literal
+   */
+  Node ensureLiteral(TNode n);
+
+  /**
    * Print all instantiations made by the quantifiers module.
    */
   void printInstantiations( std::ostream& out );

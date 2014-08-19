@@ -405,7 +405,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       propagate(effort);
 
       // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled() && !d_factsAsserted && !d_lemmasAdded) {
+      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled() && !d_factsAsserted && !d_lemmasAdded && !d_inConflict) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         combineTheories();
@@ -453,7 +453,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
 void TheoryEngine::combineTheories() {
 
-  Trace("sharing") << "TheoryEngine::combineTheories()" << endl;
+  Trace("combineTheories") << "TheoryEngine::combineTheories()" << endl;
 
   TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
 
@@ -471,25 +471,46 @@ void TheoryEngine::combineTheories() {
   // Call on each parametric theory to give us its care graph
   CVC4_FOR_EACH_THEORY;
 
-  Trace("sharing") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
+  Trace("combineTheories") << "TheoryEngine::combineTheories(): care graph size = " << careGraph.size() << endl;
 
   // Now add splitters for the ones we are interested in
   CareGraph::const_iterator care_it = careGraph.begin();
   CareGraph::const_iterator care_it_end = careGraph.end();
+
   for (; care_it != care_it_end; ++ care_it) {
     const CarePair& carePair = *care_it;
 
-    Debug("sharing") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
+    Debug("combineTheories") << "TheoryEngine::combineTheories(): checking " << carePair.a << " = " << carePair.b << " from " << carePair.theory << endl;
 
     Assert(d_sharedTerms.isShared(carePair.a) || carePair.a.isConst());
     Assert(d_sharedTerms.isShared(carePair.b) || carePair.b.isConst());
 
     // The equality in question (order for no repetition)
     Node equality = carePair.a.eqNode(carePair.b);
+    EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
+    Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
+      (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
+      es == EQUALITY_FALSE_AND_PROPAGATED ? "EQUALITY_FALSE_AND_PROPAGATED" :
+      es == EQUALITY_TRUE ? "EQUALITY_TRUE" :
+      es == EQUALITY_FALSE ? "EQUALITY_FALSE" :
+      es == EQUALITY_TRUE_IN_MODEL ? "EQUALITY_TRUE_IN_MODEL" :
+      es == EQUALITY_FALSE_IN_MODEL ? "EQUALITY_FALSE_IN_MODEL" :
+      es == EQUALITY_UNKNOWN ? "EQUALITY_UNKNOWN" :
+       "Unexpected case") << endl;
 
     // We need to split on it
-    Debug("sharing") << "TheoryEngine::combineTheories(): requesting a split " << endl;
+    Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
     lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
+    if (false) {
+      if (es == EQUALITY_TRUE_IN_MODEL) {
+        Node e = ensureLiteral(equality);
+        d_propEngine->requirePhase(e, true);
+      }
+      else if (es == EQUALITY_FALSE_IN_MODEL) {
+        Node e = ensureLiteral(equality);
+        d_propEngine->requirePhase(e, false);
+      }
+    }
   }
 }
 
@@ -1181,6 +1202,18 @@ Node TheoryEngine::getModelValue(TNode var) {
   Assert(d_sharedTerms.isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
+
+
+Node TheoryEngine::ensureLiteral(TNode n) {
+  Debug("ensureLiteral") << "rewriting: " << n << std::endl;
+  Node rewritten = Rewriter::rewrite(n);
+  Debug("ensureLiteral") << "      got: " << rewritten << std::endl;
+  Node preprocessed = preprocess(rewritten);
+  Debug("ensureLiteral") << "preprocessed: " << preprocessed << std::endl;
+  d_propEngine->ensureLiteral(preprocessed);
+  return preprocessed;
+}
+
 
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
