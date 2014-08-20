@@ -638,13 +638,15 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
     ret = n.substitute( vars.begin(), vars.end(), var_sk.begin(), var_sk.end() );
   }
   if( !ind_vars.empty() ){
-    Trace("stc-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
-    Trace("stc-ind") << "Skolemized is : " << ret << std::endl;
-    Node nret;
+    Trace("sk-ind") << "Ind strengthen : (not " << f << ")" << std::endl;
+    Trace("sk-ind") << "Skolemized is : " << ret << std::endl;
     Node n_str_ind;
     TypeNode tn = ind_vars[0].getType();
+    Node k = sk[ind_var_indicies[0]];
+    Node nret = ret.substitute( ind_vars[0], k );
+    //note : everything is under a negation
+    //the following constructs ~( R( x, k ) => ~P( x ) )
     if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTypeDatatype(tn) ){
-      Node k = sk[ind_var_indicies[0]];
       const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
       std::vector< Node > disj;
       for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -659,12 +661,16 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
       }
       Assert( !disj.empty() );
       n_str_ind = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( AND, disj );
-      Trace("stc-ind") << "Strengthening is : " << n_str_ind << std::endl;
-      nret = ret.substitute( ind_vars[0], k );
+    }else if( options::intWfInduction() && tn.isInteger() ){
+      Node icond = NodeManager::currentNM()->mkNode( GEQ, k, NodeManager::currentNM()->mkConst( Rational(0) ) );
+      Node iret = ret.substitute( ind_vars[0], NodeManager::currentNM()->mkNode( MINUS, k, NodeManager::currentNM()->mkConst( Rational(1) ) ) ).negate();
+      n_str_ind = NodeManager::currentNM()->mkNode( OR, icond.negate(), iret );
+      n_str_ind = NodeManager::currentNM()->mkNode( AND, icond, n_str_ind );
     }else{
-      Trace("stc-ind") << "Unknown induction for term : " << ind_vars[0] << ", type = " << tn << std::endl;
+      Trace("sk-ind") << "Unknown induction for term : " << ind_vars[0] << ", type = " << tn << std::endl;
       Assert( false );
     }
+    Trace("sk-ind") << "Strengthening is : " << n_str_ind << std::endl;
 
     std::vector< Node > rem_ind_vars;
     rem_ind_vars.insert( rem_ind_vars.end(), ind_vars.begin()+1, ind_vars.end() );
@@ -916,6 +922,9 @@ void TermDb::registerTrigger( theory::inst::Trigger* tr, Node op ){
 
 bool TermDb::isInductionTerm( Node n ) {
   if( options::dtStcInduction() && datatypes::DatatypesRewriter::isTermDatatype( n ) ){
+    return true;
+  }
+  if( options::intWfInduction() && n.getType().isInteger() ){
     return true;
   }
   return false;

@@ -148,6 +148,8 @@ option rrOneInstPerRound --rr-one-inst-per-round bool :default false
 
 option dtStcInduction --dt-stc-ind bool :default false
  apply strengthening for existential quantification over datatypes based on structural induction
+option intWfInduction --int-wf-ind bool :default false
+ apply strengthening for integers based on well-founded induction
 option conjectureGen --conjecture-gen bool :default false
  generate candidate conjectures for inductive proofs
 
