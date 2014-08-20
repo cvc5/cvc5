@@ -182,7 +182,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << std::endl;
     Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-    
+
     if( !getMasterEqualityEngine()->consistent() ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
       return;
@@ -214,7 +214,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
     }
-    
+
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
       for( int i=0; i<(int)qm.size(); i++ ){
@@ -229,7 +229,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
-    
+
     //build the model if not done so already
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
     if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
@@ -440,6 +440,27 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
   }
 }
 
+bool QuantifiersEngine::isTermEligibleForInstantiation( Node n, Node f, bool print ) {
+  if( n.hasAttribute(InstLevelAttribute()) ){
+    unsigned ml = options::instMaxLevel();
+    if( f.hasAttribute(QuantInstLevelAttribute()) ){
+      ml = f.getAttribute(QuantInstLevelAttribute());
+    }
+    if( n.getAttribute(InstLevelAttribute())>ml ){
+      Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
+      Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
+      return false;
+    }
+  }else{
+    if( options::instLevelInputOnly() ){
+      Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
+
+
 Node QuantifiersEngine::getSubstitute( Node n, std::vector< Node >& terms ){
   if( n.getKind()==INST_CONSTANT ){
     Debug("check-inst") << "Substitute inst constant : " << n << std::endl;
@@ -581,28 +602,16 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
     if( mkRep ){
       //pick the best possible representative for instantiation, based on past use and simplicity of term
       terms[i] = d_eq_query->getInternalRepresentative( terms[i], f, i );
-      //Trace("inst-add-debug") << " (" << terms[i] << ")";
+      Trace("inst-add-debug2") << " (" << terms[i] << ")";
     }
   }
   Trace("inst-add-debug") << std::endl;
 
+  //check based on instantiation level
   if( options::instMaxLevel()!=-1 ){
     for( unsigned i=0; i<terms.size(); i++ ){
-      if( terms[i].hasAttribute(InstLevelAttribute()) ){
-        unsigned ml = options::instMaxLevel();
-        if( f.hasAttribute(QuantInstLevelAttribute()) ){
-          ml = f.getAttribute(QuantInstLevelAttribute());
-        }
-        if( terms[i].getAttribute(InstLevelAttribute())>ml ){
-          Trace("inst-add-debug") << "Term " << terms[i] << " has instantiation level " << terms[i].getAttribute(InstLevelAttribute());
-          Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;
-          return false;
-        }
-      }else{
-        if( options::instLevelInputOnly() ){
-          Trace("inst-add-debug") << "Term " << terms[i] << " does not have an instantiation level." << std::endl;
-          return false;
-        }
+      if( !isTermEligibleForInstantiation( terms[i], f, true ) ){
+        return false;
       }
     }
   }
@@ -861,7 +870,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         //if cbqi is active, do not choose instantiation constant terms
         if( !options::cbqi() || !quantifiers::TermDb::hasInstConstAttr(eqc[i]) ){
           int score = getRepScore( eqc[i], f, index );
-          //score prefers earliest use of this term as a representative
           if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
             r_best = eqc[i];
             r_best_score = score;
@@ -1013,8 +1021,21 @@ int getDepth( Node n ){
   }
 }
 
+//smaller the score, the better
 int EqualityQueryQuantifiersEngine::getRepScore( Node n, Node f, int index ){
-  return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];          //initial
+  int s;
+  if( options::instMaxLevel()!=-1 ){
+    //score prefer lowest instantiation level
+    if( n.hasAttribute(InstLevelAttribute()) ){
+      s = n.getAttribute(InstLevelAttribute());
+    }else{
+      s = options::instLevelInputOnly() ? -1 : 0;
+    }
+  }else{
+    //score prefers earliest use of this term as a representative
+    s = d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+  }
+  return s;
   //return ( d_rep_score.find( n )==d_rep_score.end() ? 100 : 0 ) + getDepth( n );    //term depth
 }
 
