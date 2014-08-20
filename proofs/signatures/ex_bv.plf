@@ -8,22 +8,24 @@
 (% f3 (th_holds (= BitVec (a_var_bv b) (a_bv (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))))))
 (: (holds cln)
 
-(decl_bv_atom_var 5 a (\ bv1 (\ ba1
-(decl_bv_atom_var 5 b (\ bv2 (\ ba2
-(decl_bv_atom_const _ (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))) (\ bv3 (\ ba3
-(decl_bv_atom_const _ (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))) (\ bv4 (\ ba4
+(decl_bv_atom_var 5 a (\ ba1
+(decl_bv_atom_var 5 b (\ ba2
+(decl_bv_atom_const _ (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))) (\ c (\ ba3
+(decl_bv_atom_const _ (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))) (\ d (\ ba4
 
-(decl_atom (bblast bv1 4) (\ v1 (\ a1
-(decl_atom (bblast bv2 4) (\ v2 (\ a2
-(decl_atom (bblast bv3 4) (\ v3 (\ a3
-(decl_atom (bblast bv4 4) (\ v4 (\ a4
+(decl_atom (bblast a 4) (\ v1 (\ a1
+(decl_atom (bblast b 4) (\ v2 (\ a2
 
-; bitblasting
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba1 ba2 f1) (\ bf1
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba1 ba3 f2) (\ bf2
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ ba2 ba4 f3) (\ bf3
-(th_let_pf _ (bv_bbl_const _ _ _ _ ba3) (\ bf4
-(th_let_pf _ (bv_bbl_const _ _ _ _ ba4) (\ bf5
+; bitblasting terms
+(th_let_pf _ (bv_bbl_var _ _ _ ba1) (\ bt1
+(th_let_pf _ (bv_bbl_var _ _ _ ba2) (\ bt2
+(th_let_pf _ (bv_bbl_const _ _ _ _ ba3) (\ bt3
+(th_let_pf _ (bv_bbl_const _ _ _ _ ba4) (\ bt4
+
+; bitblasting formulas
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ bt1 bt2) (\ bf1
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ bt1 bt3) (\ bf2
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ bt2 bt4) (\ bf3
 
 ; CNFication
 ; a.4 V ~b.4
@@ -31,43 +33,25 @@
 (asf _ _ _ a1 (\ l1
 (ast _ _ _ a2 (\ l2
 (clausify_false
-  (contra _ (impl_elim _ _ l2 (iff_elim_2 _ _ (and_elim_1 _ _ bf1))) l1)
+  (contra _ (impl_elim _ _ l2 (iff_elim_2 _ _ (and_elim_1 _ _ (impl_elim _ _ f1 bf1)))) l1)   ; notice at the intermost we impl_elim, which converts from atom to bit-blasting representation
 ))))) (\ C2
 
-; ~a.4 V 00000.4 
+; ~a.4
 (satlem _ _
 (ast _ _ _ a1 (\ l1
-(asf _ _ _ a3 (\ l3
 (clausify_false
-  (contra _ (impl_elim _ _ l1 (iff_elim_1 _ _ (and_elim_1 _ _ bf2))) l3)
-))))) (\ C3
+  (impl_elim _ _ l1 (iff_elim_1 _ _ (and_elim_1 _ _ (impl_elim _ _ f2 bf2))))
+))) (\ C3
 
-; b.4 V ~11111.4 
+; b.4 
 (satlem _ _
 (asf _ _ _ a2 (\ l2
-(ast _ _ _ a4 (\ l4
 (clausify_false
-  (contra _ (impl_elim _ _ l4 (iff_elim_2 _ _ (and_elim_1 _ _ bf3))) l2)
-))))) (\ C6
-
-; ~00000.4
-(satlem _ _
-(ast _ _ _ a3 (\ l3
-(clausify_false
-  (contra _ l3 (and_elim_1 _ _ bf4))
-))) (\ C7
-
-; 11111.4
-(satlem _ _
-(asf _ _ _ a4 (\ l4
-(clausify_false
-  (contra _ (and_elim_1 _ _ bf5) l4)
-))) (\ C8
+  (contra _ (impl_elim _ _ truth (iff_elim_2 _ _ (and_elim_1 _ _ (impl_elim _ _ f3 bf3)))) l2)
+))) (\ C6
 
 
 (satlem_simplify _ _ _ 
-(R _ _ 
-  (R _ _ (R _ _ C8 C6 v4) C2 v2)
-  (R _ _ C3 C7 v3) v1) (\ x x))
+(R _ _ (R _ _ C6 C2 v2) C3 v1) (\ x x))
 
-)))))))))))))))))))))))))))))))))))))))))))))))))))
+)))))))))))))))))))))))))))))))))))))))))))

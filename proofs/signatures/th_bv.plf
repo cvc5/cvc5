@@ -1,5 +1,3 @@
-;a = b ^ a = 0 ^ b = 1
-
 ; "bitvec" is a term of type "sort"
 (declare BitVec sort)
 
@@ -27,7 +25,6 @@
 (declare a_var_bv (! v var_bv (term BitVec)))
 
 
-
 ; bit vector operators
 (define bvoper (! x (term BitVec) 
                (! y (term BitVec) 
@@ -36,79 +33,102 @@
 (declare bvadd bvoper)
 ;....
 
-; variable used for bit-blasting (must be simply-typed)
-(declare bbl_var type)
-
 ; all bit-vector terms are mapped with "bv_atom" to:
-;  - a simply-typed term of type "bbl_var", which is used for bit-blasting
+;  - a simply-typed term of type "var_bv", which is necessary for bit-blasting
 ;  - a integer size
-(declare bv_atom (! x (term BitVec) (! y bbl_var (! n mpz type))))
+(declare bv_atom (! x (term BitVec) (! y var_bv (! n mpz type))))
 
 (declare decl_bv_atom_var (! n mpz    ; must be specified
                           (! x var_bv
-                          (! p (! w bbl_var
-                               (! u (bv_atom (a_var_bv x) w n)
-                                 (holds cln)))
+                          (! p (! u (bv_atom (a_var_bv x) x n)
+                                 (holds cln))
                              (holds cln)))))
 
 (declare decl_bv_atom_const (! n mpz
                             (! v bv
                             (! s (^ (bv_len v) n)
-                            (! p (! w bbl_var
+                            (! p (! w var_bv
                                  (! u (bv_atom (a_bv v) w n)
                                    (holds cln)))
 			      (holds cln))))))
 
 
+; other terms here?
+
+
+; bit blasted terms
+(declare bblt type)
+(declare bbltn bblt)
+(declare bbltc (! f formula (! v bblt bblt)))
+
+; (bblast_term x y) means term x corresponds to bit level interpretation y
+(declare bblast_term (! x (term BitVec) (! y bblt formula)))
+
 ; a predicate to represent the n^th bit of a bitvector term
-(declare bblast (! x bbl_var (! n mpz formula)))
+(declare bblast (! x var_bv (! n mpz formula)))
+
 
 ; bit blast  constant
-(program bblast_const ((x bbl_var) (v bv) (n mpz)) formula
-  (match v
-    (bvn (mp_ifneg n true (fail formula)))
-    ((bvc b v') (let n' (mp_add n (~ 1))
-                (let f (match b (b0 (not (bblast x n))) (b1 (bblast x n)))
-                  (mp_ifzero n' f (and f (bblast_const x v' n'))))))))
-
+(program bblast_const ((v bv) (n mpz)) bblt
+  (mp_ifneg n (match v (bvn bbltn) 
+                       (default (fail bblt)))
+              (match v ((bvc b v') (bbltc (match b (b0 false) (b1 true)) (bblast_const v' (mp_add n (~ 1)))))
+                       (default (fail bblt)))))
+              
 (declare bv_bbl_const (! n mpz
-                      (! f formula
                       (! v bv
-                      (! x bbl_var
+                      (! x var_bv
+                      (! f bblt
                       (! u (bv_atom (a_bv v) x n)
-                      (! c (^ (bblast_const x v (mp_add n (~ 1))) f)
-                         (th_holds f))))))))
+                      (! c (^ (bblast_const v (mp_add n (~ 1))) f)
+                         (th_holds (bblast_term (a_bv v) f)))))))))
+
+; bit blast  variable
+(program bblast_var ((x var_bv) (n mpz)) bblt
+  (mp_ifneg n bbltn 
+              (bbltc (bblast x n) (bblast_var x (mp_add n (~ 1))))))
+
+(declare bv_bbl_var (! n mpz
+                    (! x var_bv
+                    (! f bblt                    
+                    (! u (bv_atom (a_var_bv x) x n)
+                    (! c (^ (bblast_var x (mp_add n (~ 1))) f)
+                       (th_holds (bblast_term (a_var_bv x) f))))))))
 
 ; bit blast  x = y
-(program bblast_eq ((x bbl_var) (y bbl_var) (n mpz)) formula
-  (let n' (mp_add n (~ 1))
-  (let f (iff (bblast x n) (bblast y n))
-  (mp_ifzero n' f (and f (bblast_eq x y n'))))))
+;  for x,y of size n, it will return a conjuction (x.{n-1} = y.{n-1} ^ ( ... ^ (x.0 = y.0 ^ true)))
+(program bblast_eq ((x bblt) (y bblt)) formula
+  (match x 
+    (bbltn (match y (bbltn true) (default (fail formula))))
+    ((bbltc fx x') (match y 
+                      (bbltn (fail formula))
+                      ((bbltc fy y') (and (iff fx fy) (bblast_eq x' y')))))))
 
 (declare bv_bbl_eq (! x (term BitVec)
                    (! y (term BitVec)
-                   (! n mpz
+                   (! fx bblt
+                   (! fy bblt
                    (! f formula
-                   (! x' bbl_var
-                   (! y' bbl_var
-                   (! ux' (bv_atom x x' n)
-                   (! uy' (bv_atom y y' n)
-                   (! u (th_holds (= BitVec x y))
-                   (! c (^ (bblast_eq x' y' (mp_add n (~ 1))) f)
-                      (th_holds f))))))))))))
+                   (! ux (th_holds (bblast_term x fx))
+                   (! uy (th_holds (bblast_term y fy))
+                   (! c (^ (bblast_eq fx fy) f)
+                      (th_holds (impl (= BitVec x y) f)))))))))))
 
 
 ; rewrite rule :
 ; x + y = y + x
 (declare bvadd_symm (! x (term BitVec)
                     (! y (term BitVec)
-                    (! x' bbl_var
-                    (! y' bbl_var
+                    (! x' var_bv
+                    (! y' var_bv
                     (! n mpz
                     (! ux (bv_atom x x' n)
                     (! uy (bv_atom y y' n)
                        (th_holds (= BitVec (bvadd x y) (bvadd y x)))))))))))
 
+
+
+; necessary? 
 (program calc_bvand ((a bv) (b bv)) bv
   (match a
     (bvn (match b (bvn bvn) (default (fail bv))))

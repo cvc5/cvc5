@@ -104,6 +104,9 @@
   (! r2 (th_holds (not f))
     (th_holds false)))))
 
+; truth
+(declare truth (th_holds true))
+
 ;; not not
 
 (declare not_not_intro
