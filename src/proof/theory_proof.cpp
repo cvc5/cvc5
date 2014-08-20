@@ -171,34 +171,6 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
     return;
   }
 
-  os << "(bvatom " << term << ")";
-  return;
-  
-  if (term.getType().isBitVector()) {
-    os << " bvatom ;; " << term << "\n";
-    return; 
-  }
-  
-  switch(Kind k = term.getKind()) {
-  case kind::APPLY_UF: {
-    if(term.getType().isBoolean()) {
-      os << "(p_app ";
-    }
-    Expr func = term.getOperator();
-    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-      os << "(apply _ _ ";
-    }
-    os << func << " ";
-    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-      printTerm(term[i], os);
-      os << ")";
-    }
-    if(term.getType().isBoolean()) {
-      os << ")";
->>>>>>> e97b719... proofs work in progress
-    }
-    return;
-  }
   Kind k = term.getKind(); 
   switch(k) {
   case kind::ITE:
