@@ -165,7 +165,7 @@ void ProofProxy::updateCRef(CRef oldref, CRef newref) {
 
 /// SatProof
 
-SatProof::SatProof(Minisat::Solver* solver, bool checkRes) :
+SatProof::SatProof(::Minisat::Solver* solver, bool checkRes) :
     d_solver(solver),
     d_idClause(),
     d_clauseId(),

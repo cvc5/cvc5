@@ -87,6 +87,11 @@ libcvc4_la_SOURCES = \
 	proof/cnf_proof.cpp \
 	proof/theory_proof.h \
 	proof/theory_proof.cpp \
+	proof/uf_proof.h \
+	proof/uf_proof.cpp \
+	proof/array_proof.h \
+	proof/bitvector_proof.h \
+	proof/bitvector_proof.cpp \
 	proof/proof_manager.h \
 	proof/proof_manager.cpp \
 	prop/registrar.h \

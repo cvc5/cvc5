@@ -32,14 +32,19 @@ std::string append(const std::string& str, uint64_t num) {
   return os.str();
 }
 
-ProofManager::ProofManager(ProofFormat format):
-  d_satProof(NULL),
-  d_cnfProof(NULL),
-  d_theoryProof(NULL),
-  d_fullProof(NULL),
-  d_format(format)
-{
-}
+ProofManager::ProofManager(ProofFormat format)
+  : d_satProof(NULL)
+  , d_cnfProof(NULL)
+  , d_theoryProof(NULL)
+  , d_inputClauses()
+  , d_theoryLemmas()
+  , d_inputFormulas()
+  , d_atomToSatVar()
+  , d_satVarToAtom()
+  , d_propVars()
+  , d_fullProof(NULL)
+  , d_format(format)
+{}
 
 ProofManager::~ProofManager() {
   delete d_satProof;
@@ -76,7 +81,7 @@ Proof* ProofManager::getProof(SmtEngine* smt) {
   currentPM()->d_fullProof = new LFSCProof(smt,
                                            (LFSCSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
-                                           (LFSCTheoryProof*)getTheoryProof());
+                                           (LFSCTheoryProofEngine*)getTheoryProofEngine());
   return currentPM()->d_fullProof;
 }
 
@@ -90,11 +95,24 @@ CnfProof* ProofManager::getCnfProof() {
   return currentPM()->d_cnfProof;
 }
 
-TheoryProof* ProofManager::getTheoryProof() {
+TheoryProofEngine* ProofManager::getTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof);
   return currentPM()->d_theoryProof;
 }
 
+UFProof* ProofManager::getUfProof() {
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
+  return (UFProof*)pf; 
+}
+BitVectorProof* ProofManager::getBitVectorProof() {
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
+  return (BitVectorProof*)pf; 
+}
+
+ArrayProof* ProofManager::getArrayProof() {
+  TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAY);
+  return (ArrayProof*)pf; 
+}
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
   Assert (currentPM()->d_satProof == NULL);
@@ -108,10 +126,10 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
   currentPM()->d_cnfProof = new LFSCCnfProof(cnfStream);
 }
 
-void ProofManager::initTheoryProof() {
+void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
   Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_theoryProof = new LFSCTheoryProof();
+  currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
 }
 
 
@@ -144,7 +162,7 @@ void ProofManager::setLogic(const std::string& logic_string) {
 }
 
 
-LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProof* theory)
+LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
   , d_theoryProof(theory)
@@ -158,17 +176,25 @@ void LFSCProof::toStream(std::ostream& out) {
   std::ostringstream paren;
   out << "(check\n";
   if (d_theoryProof == NULL) {
-    d_theoryProof = new LFSCTheoryProof();
+    d_theoryProof = new LFSCTheoryProofEngine();
   }
-  for(LFSCCnfProof::iterator i = d_cnfProof->begin_atom_mapping();
-      i != d_cnfProof->end_atom_mapping();
-      ++i) {
-    d_theoryProof->addDeclaration(*i);
+
+  // declare the theory atoms
+  ProofManager::atom_iterator begin = ProofManager::currentPM()->begin_atoms();
+  ProofManager::atom_iterator end = ProofManager::currentPM()->begin_atoms();
+  for(ProofManager::atom_iterator it = begin; it != end; ++it) {
+    d_theoryProof->registerTerm(it->first);
   }
+  // print out the assertions
   d_theoryProof->printAssertions(out, paren);
   out << "(: (holds cln)\n";
+  // print mapping between theory atoms and internal SAT variables
   d_cnfProof->printAtomMapping(out, paren);
+  // print input clauses in resolution proof
   d_cnfProof->printClauses(out, paren);
+  // print theory lemmas for resolution proof
+  d_theoryProof->printTheoryLemmas(out, paren);
+  // priunt actual resolution proof
   d_satProof->printResolutions(out, paren);
   paren <<")))\n;;";
   out << paren.str();

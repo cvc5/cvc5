@@ -41,37 +41,25 @@ Expr CnfProof::getAtom(prop::SatVariable var) {
 CnfProof::~CnfProof() {
 }
 
-LFSCCnfProof::iterator LFSCCnfProof::begin_atom_mapping() {
-  return iterator(*this, ProofManager::currentPM()->begin_vars());
-}
-
-LFSCCnfProof::iterator LFSCCnfProof::end_atom_mapping() {
-  return iterator(*this, ProofManager::currentPM()->end_vars());
-}
-
 void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
   ProofManager::var_iterator it = ProofManager::currentPM()->begin_vars();
   ProofManager::var_iterator end = ProofManager::currentPM()->end_vars();
 
   for (;it != end;  ++it) {
     os << "(decl_atom ";
-
-    if (ProofManager::currentPM()->getLogic().compare("QF_UF") == 0) {
-      Expr atom = getAtom(*it);
-      LFSCTheoryProof::printTerm(atom, os);
-    } else {
-      // print fake atom until we have a signature
-      os << "(fakeatom " << atom << ")";
-    }
-
-    os << " (\\ " << ProofManager::getVarName(*it) << " (\\ " << ProofManager::getAtomName(*it) << "\n";
+    prop::SatVariable var = it->first;
+    Expr atom = getAtom(var);
+    //FIXME hideous
+    LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
+    pe->printTerm(atom, os);
+    
+    os << " (\\ " << ProofManager::getVarName(var) << " (\\ " << ProofManager::getAtomName(var) << "\n";
     paren << ")))";
   }
 }
 
 void LFSCCnfProof::printClauses(std::ostream& os, std::ostream& paren) {
   printInputClauses(os, paren);
-  printTheoryLemmas(os, paren);
 }
 
 void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
@@ -87,24 +75,6 @@ void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
     printClause(*clause, os, clause_paren);
     os << " (clausify_false trust)" << clause_paren.str();
     os << "( \\ " << ProofManager::getInputClauseName(id) << "\n";
-    paren << "))";
-  }
-}
-
-
-void LFSCCnfProof::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
-  os << " ;; Theory Lemmas \n";
-  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_lemmas();
-  ProofManager::clause_iterator end = ProofManager::currentPM()->end_lemmas();
-
-  for (; it != end; ++it) {
-    ClauseId id = it->first;
-    const prop::SatClause* clause = it->second;
-    os << "(satlem _ _ ";
-    std::ostringstream clause_paren;
-    printClause(*clause, os, clause_paren);
-    os << " (clausify_false trust)" << clause_paren.str();
-    os << "( \\ " << ProofManager::getLemmaClauseName(id) <<"\n";
     paren << "))";
   }
 }

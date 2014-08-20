@@ -34,32 +34,32 @@ namespace prop {
 
 class CnfProof;
 
-class AtomIterator {
-  CnfProof& d_cnf;
-  ProofManager::var_iterator d_it;
+// class AtomIterator {
+//   CnfProof& d_cnf;
+//   ProofManager::var_iterator d_it;
 
-public:
-  AtomIterator(CnfProof& cnf, const ProofManager::var_iterator& it)
-    : d_cnf(cnf), d_it(it)
-  {}
-  inline Expr operator*();
-  AtomIterator& operator++() { ++d_it; return *this; }
-  AtomIterator operator++(int) { AtomIterator x = *this; ++d_it; return x; }
-  bool operator==(const AtomIterator& it) const { return &d_cnf == &it.d_cnf && d_it == it.d_it; }
-  bool operator!=(const AtomIterator& it) const { return !(*this == it); }
-};/* class AtomIterator */
+// public:
+//   AtomIterator(CnfProof& cnf, const ProofManager::var_iterator& it)
+//     : d_cnf(cnf), d_it(it)
+//   {}
+//   inline Expr operator*();
+//   AtomIterator& operator++() { ++d_it; return *this; }
+//   AtomIterator operator++(int) { AtomIterator x = *this; ++d_it; return x; }
+//   bool operator==(const AtomIterator& it) const { return &d_cnf == &it.d_cnf && d_it == it.d_it; }
+//   bool operator!=(const AtomIterator& it) const { return !(*this == it); }
+// };/* class AtomIterator */
 
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
   Expr getAtom(prop::SatVariable var);
-  friend class AtomIterator;
+  //  friend class AtomIterator;
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);
 
-  typedef AtomIterator iterator;
-  virtual iterator begin_atom_mapping() = 0;
-  virtual iterator end_atom_mapping() = 0;
+  //typedef AtomIterator iterator;
+  // virtual iterator begin_atom_mapping() = 0;
+  // virtual iterator end_atom_mapping() = 0;
 
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
@@ -68,24 +68,24 @@ public:
 
 class LFSCCnfProof : public CnfProof {
   void printInputClauses(std::ostream& os, std::ostream& paren);
-  void printTheoryLemmas(std::ostream& os, std::ostream& paren);
-  void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren);
 
 public:
   LFSCCnfProof(CVC4::prop::CnfStream* cnfStream)
     : CnfProof(cnfStream)
   {}
 
-  virtual iterator begin_atom_mapping();
-  virtual iterator end_atom_mapping();
+  // virtual iterator begin_atom_mapping();
+  // virtual iterator end_atom_mapping();
 
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren);
   virtual void printClauses(std::ostream& os, std::ostream& paren);
+  static void printClause(const prop::SatClause& clause, std::ostream& os, std::ostream& paren);
 };
 
-inline Expr AtomIterator::operator*() {
-  return d_cnf.getAtom(*d_it);
-}
+
+// inline Expr AtomIterator::operator*() {
+//   return d_cnf.getAtom(*d_it);
+// }
 
 } /* CVC4 namespace */
 

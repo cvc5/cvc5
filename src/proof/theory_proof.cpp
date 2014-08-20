@@ -17,35 +17,135 @@
 
 #include "proof/theory_proof.h"
 #include "proof/proof_manager.h"
-using namespace CVC4;
+#include "theory/theory.h"
+#include "proof/uf_proof.h"
+#include "proof/array_proof.h"
+#include "proof/bitvector_proof.h"
+#include "proof/cnf_proof.h"
 
-TheoryProof::TheoryProof()
-  : d_termDeclarations()
-  , d_sortDeclarations()
-  , d_declarationCache()
+using namespace CVC4;
+using namespace CVC4::theory;
+
+TheoryProofEngine::TheoryProofEngine()
+  : d_registrationCache()
 {}
 
-void TheoryProof::addDeclaration(Expr term) {
-  if (d_declarationCache.count(term)) {
-    return;
+TheoryProofEngine::~TheoryProofEngine() {
+  TheoryProofTable::iterator it = d_theoryProofTable.begin();
+  TheoryProofTable::iterator end = d_theoryProofTable.end();
+  for (; it != end; ++it) {
+    delete it->second; 
+  }
+}
+
+
+void TheoryProofEngine::registerTheory(theory::Theory* th) {
+  TheoryId id = th->getId();
+  Assert (d_theoryProofTable.find(id) == d_theoryProofTable.end());
+  
+  if (id == THEORY_UF) {
+    d_theoryProofTable[id] = new LFSCUFProof((uf::TheoryUF*)th, this);
   }
 
-  Type type = term.getType();
-  if (type.isSort())
-    d_sortDeclarations.insert(type);
-  if (term.getKind() == kind::APPLY_UF) {
-    Expr function = term.getOperator();
-    d_termDeclarations.insert(function);
-  } else if (term.isVariable()) {
-    //Assert (type.isSort() || type.isBoolean());
-    d_termDeclarations.insert(term);
+  if (id == THEORY_BV) {
+    d_theoryProofTable[id] = new LFSCBitVectorProof((bv::TheoryBV*)th, this);
   }
-  // recursively declare all other terms
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    addDeclaration(term[i]);
-  }
-  d_declarationCache.insert(term);
+  // TODO Arrays and other theories
 }
+
+TheoryProof* TheoryProofEngine::getTheoryProof(TheoryId id) {
+  Assert (d_theoryProofTable.find(id) != d_theoryProofTable.end());
+  return d_theoryProofTable[id];
+}
+
+void TheoryProofEngine::registerTerm(Expr term) {
+  if (d_registrationCache.count(term)) {
+    return;
+  }
+  
+  TheoryId theory_id = Theory::theoryOf(term);
+  getTheoryProof(theory_id)->registerTerm(term);
+  d_registrationCache.insert(term);
+}
+
+theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
+  // TODO: have proper dispatch here
+  return theory::THEORY_UF;
+}
+
+void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
+  TheoryId theory_id = Theory::theoryOf(term);
+  // boolean terms and ITEs are special because they
+  // are common to all theories
+  if (theory_id == THEORY_BOOL ||
+      term.getId() == kind::ITE) {
+    printCoreTerm(term, os);
+    return;
+  }
+  // dispatch to proper theory
+  getTheoryProof(theory_id)->printTerm(term, os);
+}
+
+void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
+  unsigned counter = 0;
+  ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
+  ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
+
+  // collect declarations first
+  for(; it != end; ++it) {
+    registerTerm(*it);
+  }
+  printDeclarations(os, paren);
+
+  it = ProofManager::currentPM()->begin_assertions();
+  for (; it != end; ++it) {
+    os << "(% A" << counter++ << " (th_holds ";
+    printTerm(*it,  os);
+    os << ")\n";
+    paren << ")";
+  }
+}
+
+void LFSCTheoryProofEngine::printDeclarations(std::ostream& os, std::ostream& paren) {
+  TheoryProofTable::const_iterator it = d_theoryProofTable.begin();
+  TheoryProofTable::const_iterator end = d_theoryProofTable.end();
+  for (; it != end; ++it) {
+    it->second->printDeclarations(os, paren);
+  }
+}
+
+void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& paren) {
+  os << " ;; Theory Lemmas \n";
+  ProofManager* pm = ProofManager::currentPM();
+  ProofManager::clause_iterator it = pm->begin_lemmas();
+  ProofManager::clause_iterator end = pm->end_lemmas();
+
+  for (; it != end; ++it) {
+    ClauseId id = it->first;
+    const prop::SatClause* clause = it->second;
+    // printing clause as it appears in resolution proof
+    os << "(satlem _ _ ";
+    std::ostringstream clause_paren;
+    LFSCCnfProof::printClause(*clause, os, clause_paren);
+    
+    std::vector<Expr> clause_expr;
+    for(unsigned i = 0; i < clause->size(); ++i) {
+      prop::SatLiteral lit = (*clause)[i];
+      Expr atom = pm->getAtomForSatVar(lit.getSatVariable());
+      Expr expr_lit = lit.isNegated() ? atom.notExpr() :  atom;
+      clause_expr.push_back(expr_lit);
+    }
+    
+    // query appropriate theory for proof of clause
+    TheoryId theory_id = getTheoryForLemma(id);
+    getTheoryProof(theory_id)->printTheoryLemmaProof(clause_expr, os, paren); 
+    // os << " (clausify_false trust)";
+    os << clause_paren.str();
+    os << "( \\ " << ProofManager::getLemmaClauseName(id) <<"\n";
+    paren << "))";
+  }
+}
+
 
 std::string toLFSCKind(Kind kind) {
   switch(kind) {
@@ -61,12 +161,12 @@ std::string toLFSCKind(Kind kind) {
   }
 }
 
-void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
+void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   if (term.isVariable()) {
-    if(term.getType().isBoolean()) {
-      os << "(p_app " << term << ")";
+    if (term.getType().isBoolean()) {
+      os << "(p_app" << term <<")";
     } else {
-      os << term;
+      os << term; 
     }
     return;
   }
@@ -95,10 +195,12 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
     }
     if(term.getType().isBoolean()) {
       os << ")";
+>>>>>>> e97b719... proofs work in progress
     }
     return;
   }
-
+  Kind k = term.getKind(); 
+  switch(k) {
   case kind::ITE:
     os << (term.getType().isBoolean() ? "(ifte " : "(ite _ ");
     printTerm(term[0], os);
@@ -192,66 +294,5 @@ void LFSCTheoryProof::printTerm(Expr term, std::ostream& os) {
   default:
     Unhandled(k);
   }
-
-  Unreachable();
-}
-
-void LFSCTheoryProof::printAssertions(std::ostream& os, std::ostream& paren) {
-  unsigned counter = 0;
-  ProofManager::assertions_iterator it = ProofManager::currentPM()->begin_assertions();
-  ProofManager::assertions_iterator end = ProofManager::currentPM()->end_assertions();
-
-  // collect declarations first
-  for(; it != end; ++it) {
-    addDeclaration(*it);
-  }
-  printDeclarations(os, paren);
-
-  it = ProofManager::currentPM()->begin_assertions();
-  for (; it != end; ++it) {
-    os << "(% A" << counter++ << " (th_holds ";
-    printTerm(*it,  os);
-    os << ")\n";
-    paren << ")";
-  }
-}
-
-void LFSCTheoryProof::printDeclarations(std::ostream& os, std::ostream& paren) {
-  // declaring the sorts
-  for (SortSet::const_iterator it = d_sortDeclarations.begin(); it != d_sortDeclarations.end(); ++it) {
-    os << "(% " << *it << " sort\n";
-    paren << ")";
-  }
-
-  // declaring the terms
-  for (ExprSet::const_iterator it = d_termDeclarations.begin(); it != d_termDeclarations.end(); ++it) {
-    Expr term = *it;
-
-    os << "(% " << term << " ";
-    os << "(term ";
-
-    Type type = term.getType();
-    if (type.isFunction()) {
-      std::ostringstream fparen;
-      FunctionType ftype = (FunctionType)type;
-      std::vector<Type> args = ftype.getArgTypes();
-      args.push_back(ftype.getRangeType());
-      os << "(arrow";
-      for (unsigned i = 0; i < args.size(); i++) {
-        Type arg_type = args[i];
-        //Assert (arg_type.isSort() || arg_type.isBoolean());
-        os << " " << arg_type;
-        if (i < args.size() - 2) {
-          os << " (arrow";
-          fparen << ")";
-        }
-      }
-      os << fparen.str() << "))\n";
-    } else {
-      Assert (term.isVariable());
-      //Assert (type.isSort() || type.isBoolean());
-      os << type << ")\n";
-    }
-    paren << ")";
-  }
+ 
 }
