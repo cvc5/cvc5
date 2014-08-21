@@ -166,12 +166,16 @@ void QuantifiersEngine::finishInit(){
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
-  bool needsCheck = e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
+  bool needsCheck = false;
+  bool needsBuildModel = false;
   std::vector< QuantifiersModule* > qm;
-  for( int i=0; i<(int)d_modules.size(); i++ ){
-    if( d_modules[i]->needsCheck( e ) ){
-      qm.push_back( d_modules[i] );
-      needsCheck = true;
+  if( d_model->getNumAssertedQuantifiers()>0 ){
+    needsCheck = e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
+    for( int i=0; i<(int)d_modules.size(); i++ ){
+      if( d_modules[i]->needsCheck( e ) ){
+        qm.push_back( d_modules[i] );
+        needsCheck = true;
+      }
     }
   }
   if( needsCheck ){
@@ -234,9 +238,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
     if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
       if( options::produceModels() && !d_model->isModelSet() ){
-        Trace("quant-engine-debug") << "Build the model..." << std::endl;
-        d_te->getModelBuilder()->buildModel( d_model, true );
-        Trace("quant-engine-debug") << "Done building the model." << std::endl;
+        needsBuildModel = true;
       }
       if( Trace.isOn("inst-per-quant") ){
         for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){
@@ -252,6 +254,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
+  }else{
+    if( e==Theory::EFFORT_LAST_CALL && options::produceModels() ){
+      needsBuildModel = true;
+    }
+  }
+
+  if( needsBuildModel ){
+    Trace("quant-engine-debug") << "Build the model..." << std::endl;
+    d_te->getModelBuilder()->buildModel( d_model, true );
+    Trace("quant-engine-debug") << "Done building the model." << std::endl;
   }
 }
 
