@@ -80,7 +80,11 @@ void TheoryProofEngine::registerTerm(Expr term) {
 
 theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   // TODO: have proper dispatch here
-  return theory::THEORY_UF;
+  ProofManager* pm = ProofManager::currentPM(); 
+  
+  if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
+  if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
+  Unreachable(); 
 }
 
 void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
@@ -88,9 +92,9 @@ void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
   // boolean terms and ITEs are special because they
   // are common to all theories
   if (theory_id == THEORY_BOOL ||
+      theory_id == THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
-      term.getKind() == kind::EQUAL ||
-      term.getKind() == kind::VARIABLE) {
+      term.getKind() == kind::EQUAL) {
     printCoreTerm(term, os);
     return;
   }
@@ -176,7 +180,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
 }
 
 
-std::string toLFSCKind(Kind kind) {
+std::string toLFSCCoreKind(Kind kind) {
   switch(kind) {
   case kind::OR : return "or";
   case kind::AND: return "and";
@@ -238,7 +242,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   case kind::IMPLIES:
   case kind::NOT:
     // print the Boolean operators
-    os << "(" << toLFSCKind(k);
+    os << "(" << toLFSCCoreKind(k);
     if(term.getNumChildren() > 2) {
       // LFSC doesn't allow declarations with variable numbers of
       // arguments, so we have to flatten these N-ary versions.
@@ -248,7 +252,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
         printTerm(term[i], os);
         os << " ";
         if(i < term.getNumChildren() - 2) {
-          os << "(" << toLFSCKind(k) << " ";
+          os << "(" << toLFSCCoreKind(k) << " ";
           paren << ")";
         }
       }
@@ -275,10 +279,10 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
     std::ostringstream paren;
     for(size_t i = 1; i < n; ++i) {
       if(i + 1 < n) {
-        os << "(" << toLFSCKind(kind::AND) << " ";
+        os << "(" << toLFSCCoreKind(kind::AND) << " ";
         paren << ")";
       }
-      os << "(" << toLFSCKind(op) << " ";
+      os << "(" << toLFSCCoreKind(op) << " ";
       printTerm(term[i - 1], os);
       os << " ";
       printTerm(term[i], os);

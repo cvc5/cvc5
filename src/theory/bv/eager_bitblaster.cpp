@@ -42,7 +42,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
   d_nullContext = new context::Context();
 
   d_satSolver = prop::SatSolverFactory::createMinisat(d_nullContext, "EagerBitblaster");
-  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar, d_nullContext);
+  d_cnfStream = new prop::TseitinCnfStream(d_satSolver, d_bitblastingRegistrar, d_nullContext, false, "EagerBitblaster");
   
   MinisatEmptyNotify* notify = new MinisatEmptyNotify();
   d_satSolver->setNotify(notify);

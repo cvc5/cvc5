@@ -83,8 +83,12 @@ void LFSCUFProof::printSort(Type type, std::ostream& os) {
 }
 
 void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  os << " ;; UF Theory Lemma \n";
-  // TODO: proper UF proof
+  os << " ;; UF Theory Lemma \n;;";
+  for (unsigned i = 0; i < lemma.size(); ++i) {
+    os << lemma[i] <<" "; 
+  }
+  os <<"\n";
+  // TODO proper UF proof
   os << " (clausify_false trust)";
 }
 

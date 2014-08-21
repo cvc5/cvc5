@@ -45,18 +45,19 @@ namespace CVC4 {
 namespace prop {
 
 
-CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
+CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap, std::string name) :
   d_satSolver(satSolver),
   d_booleanVariables(context),
   d_nodeToLiteralMap(context),
   d_literalToNodeMap(context),
   d_fullLitToNodeMap(fullLitToNodeMap),
   d_registrar(registrar),
+  d_name(name),
   d_removable(false) {
 }
 
-TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
-  CnfStream(satSolver, registrar, context, fullLitToNodeMap) {
+TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap, std::string name) :
+  CnfStream(satSolver, registrar, context, fullLitToNodeMap, name) {
 }
 
 void CnfStream::assertClause(TNode node, SatClause& c) {
@@ -174,9 +175,10 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
     PROOF (
-           if (isTheoryAtom) {
+           if (isTheoryAtom && d_name.compare("") == 0) {
              ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
            }
+           // TODO: register for bit-vector theory
            ); 
   } else {
     lit = getLiteral(node);

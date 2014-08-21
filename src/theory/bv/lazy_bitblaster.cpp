@@ -49,7 +49,9 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   d_nullContext = new context::Context();
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
                                            d_nullRegistrar,
-                                           d_nullContext);
+                                           d_nullContext,
+                                           false,
+                                           "LazyBitblaster");
   
   prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :

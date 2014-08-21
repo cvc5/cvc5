@@ -76,7 +76,9 @@ protected:
 
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
-
+  /** The name of this CNF stream*/
+  std::string d_name;
+  
   /**
    * How many literals were already mapped at the top-level when we
    * tried to convertAndAssert() something.  This
@@ -174,7 +176,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
+  CnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false, std::string name="");
 
   /**
    * Destructs a CnfStream.  This implementation does nothing, but we
@@ -267,7 +269,7 @@ public:
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false);
+  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap = false, std::string name = "");
 
 private:
 
