@@ -47,6 +47,7 @@ public:
   virtual void registerTerm(Expr term) {}
 
   virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printSort(Type type, std::ostream& os) = 0; 
   /** 
    * Print a proof for the theory lemma. Must prove
    * clause representing lemma to be used in resolution proof.
@@ -71,6 +72,7 @@ public:
     :BitVectorProof(bv, proofEngine)
   {}
   virtual void printTerm(Expr term, std::ostream& os);
+  virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
   virtual void printBitblasting(std::ostream& os, std::ostream& paren); 

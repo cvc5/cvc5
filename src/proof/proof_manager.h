@@ -154,6 +154,8 @@ public:
     Assert (d_satVarToAtom.find(var) != d_satVarToAtom.end()); 
     return d_satVarToAtom.find(var)->second;
   }
+
+  void registerTheoryAtom(Expr atom, prop::SatVariable var);
   
   void addAssertion(Expr formula);
   void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);

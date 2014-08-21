@@ -29,6 +29,8 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
+#include "proof/theory_proof.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -88,6 +90,8 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
   }
   d_subtheories.push_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+
+  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 

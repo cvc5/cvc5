@@ -24,7 +24,8 @@
 #include "theory/theory_model.h"
 #include "theory/arrays/options.h"
 #include "smt/logic_exception.h"
-
+#include "proof/theory_proof.h"
+#include "proof/proof_manager.h"
 
 using namespace std;
 
@@ -120,6 +121,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   if (d_useArrTable) {
     d_equalityEngine.addFunctionKind(kind::ARR_TABLE_FUN);
   }
+  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 TheoryArrays::~TheoryArrays() {

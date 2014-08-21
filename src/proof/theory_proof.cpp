@@ -64,6 +64,16 @@ void TheoryProofEngine::registerTerm(Expr term) {
   }
   
   TheoryId theory_id = Theory::theoryOf(term);
+
+  // don't need to register boolean terms 
+  if (theory_id == THEORY_BOOL) {
+    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+      registerTerm(term[i]); 
+    }
+    d_registrationCache.insert(term);
+    return;
+  }
+  
   getTheoryProof(theory_id)->registerTerm(term);
   d_registrationCache.insert(term);
 }
@@ -78,12 +88,31 @@ void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
   // boolean terms and ITEs are special because they
   // are common to all theories
   if (theory_id == THEORY_BOOL ||
-      term.getId() == kind::ITE) {
+      term.getKind() == kind::ITE ||
+      term.getKind() == kind::EQUAL ||
+      term.getKind() == kind::VARIABLE) {
     printCoreTerm(term, os);
     return;
   }
   // dispatch to proper theory
   getTheoryProof(theory_id)->printTerm(term, os);
+}
+
+void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
+  if (type.isSort()) {
+    getTheoryProof(THEORY_UF)->printSort(type, os);
+    return; 
+  }
+  if (type.isBitVector()) {
+    getTheoryProof(THEORY_BV)->printSort(type, os);
+    return; 
+  }
+  
+  if (type.isArray()) {
+    getTheoryProof(THEORY_ARRAY)->printSort(type, os);
+    return; 
+  }
+  Unreachable(); 
 }
 
 void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& paren) {
@@ -186,7 +215,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   case kind::EQUAL:
     os << "(";
     os << "= ";
-    os << term[0].getType() << " ";
+    printSort(term[0].getType(), os);
     printTerm(term[0], os);
     os << " ";
     printTerm(term[1], os);
@@ -236,7 +265,6 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
 
   case kind::CONST_BOOLEAN:
     os << (term.getConst<bool>() ? "true" : "false");
-    std::cout << "WTF" <<"\n"; 
     return;
 
   case kind::CHAIN: {

@@ -57,6 +57,12 @@ public:
    */
   virtual void printTerm(Expr term, std::ostream& os) = 0;
   /** 
+   * Print the proof representation of the given sort.
+   * 
+   * @param os 
+   */
+  virtual void printSort(Type type, std::ostream& os) = 0; 
+  /** 
    * Print the theory assertions (arbitrary formulas over
    * theory atoms)
    * 
@@ -96,6 +102,7 @@ public:
   virtual void printTerm(Expr term, std::ostream& os);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
   virtual void printTheoryLemmas(std::ostream& os, std::ostream& paren);
+  virtual void printSort(Type type, std::ostream& os); 
 };
 
 class TheoryProof {
@@ -116,6 +123,13 @@ public:
    * @param os output stream
    */
   virtual void printTerm(Expr term, std::ostream& os) = 0;
+  /** 
+   * Print the proof representation of the given type.
+   * 
+   * @param type 
+   * @param os 
+   */
+  virtual void printSort(Type type, std::ostream& os) = 0; 
   /** 
    * Print a proof for the theory lemmas. Must prove
    * clause representing lemmas to be used in resolution proof.

@@ -21,6 +21,8 @@
 #include "theory/uf/theory_uf_strong_solver.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "proof/theory_proof.h"
+#include "proof/proof_manager.h"
 
 using namespace std;
 using namespace CVC4;
@@ -43,6 +45,7 @@ TheoryUF::TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& 
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
+  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 TheoryUF::~TheoryUF() {

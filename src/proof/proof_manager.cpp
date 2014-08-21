@@ -157,6 +157,13 @@ void ProofManager::addAssertion(Expr formula) {
   d_inputFormulas.insert(formula);
 }
 
+void ProofManager::registerTheoryAtom(Expr atom, prop::SatVariable var) {
+  Assert (d_satVarToAtom.find(var) == d_satVarToAtom.end() &&
+          d_atomToSatVar.find(atom) == d_atomToSatVar.end());
+  d_satVarToAtom[var] = atom;
+  d_atomToSatVar[atom] = var; 
+}
+
 void ProofManager::setLogic(const std::string& logic_string) {
   d_logic = logic_string;
 }

@@ -57,7 +57,7 @@ void UFProof::registerTerm(Expr term) {
 
 void LFSCUFProof::printTerm(Expr term, std::ostream& os) {
   Assert (Theory::theoryOf(term) == THEORY_UF);
-  // only kind in the theory
+
   Assert (term.getKind() == kind::APPLY_UF);
   
   if(term.getType().isBoolean()) {
@@ -75,7 +75,11 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os) {
   if(term.getType().isBoolean()) {
     os << ")";
   }
-  return;
+}
+
+void LFSCUFProof::printSort(Type type, std::ostream& os) {
+  Assert (type.isSort());
+  os << type <<" "; 
 }
 
 void LFSCUFProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {

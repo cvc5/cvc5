@@ -37,6 +37,11 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   os << "bvterm "; 
 }
 
+void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
+  Assert (type.isBitVector()); 
+  os << "BitVec ";  
+}
+
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
   os << ";; TODO print bit-vector lemma proof \n";
   os << "(clausify_false trust)\n"; 

@@ -173,6 +173,11 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
+    PROOF (
+           if (isTheoryAtom) {
+             ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
+           }
+           ); 
   } else {
     lit = getLiteral(node);
   }
