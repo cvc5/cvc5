@@ -1753,8 +1753,11 @@ static void dumpAssertions(const char* key, const AssertionPipeline& assertionLi
 bool SmtEnginePrivate::nonClausalSimplify() {
   d_smt.finalOptionsAreSet();
 
-  TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
+  if(options::unsatCores()) {
+    return true;
+  }
 
+  TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
 
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
 
