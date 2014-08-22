@@ -3,7 +3,8 @@ This file contains a summary of important user-visible changes.
 Changes since 1.4
 =================
 
-* nothing yet
+* Support for unsat cores.
+* Simplification mode "incremental" no longer supported.
 
 Changes since 1.3
 =================

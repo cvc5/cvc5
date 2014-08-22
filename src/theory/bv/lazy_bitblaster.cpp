@@ -114,7 +114,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
     Assert (!atom_bb.isNull()); 
     Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(atom_definition, false, false); 
+    d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
     return; 
   }
 
@@ -126,7 +126,7 @@ void TLazyBitblaster::bbAtom(TNode node) {
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(atom_definition, false, false);
+  d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {

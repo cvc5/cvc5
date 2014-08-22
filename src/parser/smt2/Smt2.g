@@ -378,7 +378,9 @@ command returns [CVC4::Command* cmd = NULL]
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[expr, expr2]
-    { cmd = new AssertCommand(expr); }
+    { cmd = new AssertCommand(expr, /* inUnsatCore */ PARSER_STATE->lastNamedTerm() == expr);
+      PARSER_STATE->setLastNamedTerm(Expr());
+    }
   | /* check-sat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( term[expr, expr2]
@@ -684,7 +686,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
       };
       args.push_back(expr);
       expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd = new AssertCommand(expr); }
+      cmd = new AssertCommand(expr, false); }
     /* propagation rule */
   | rewritePropaKind[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
@@ -735,7 +737,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
       };
       args.push_back(expr);
       expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd = new AssertCommand(expr); }
+      cmd = new AssertCommand(expr, false); }
   ;
 
 rewritePropaKind[CVC4::Kind& kind]
@@ -1035,8 +1037,8 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
-    ( attribute[expr, attexpr,attr]
-      { if( attr == ":pattern" && ! attexpr.isNull()) {
+    ( attribute[expr, attexpr, attr]
+      { if(attr == ":pattern" && ! attexpr.isNull()) {
           patexprs.push_back( attexpr );
         }
       }
@@ -1074,7 +1076,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
           }
         }
         expr2 = MK_EXPR(kind::INST_PATTERN_LIST, patexprs);
-      }else{
+      } else {
         expr2 = f2;
       }
     }
@@ -1210,6 +1212,8 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       PARSER_STATE->reserveSymbolAtAssertionLevel(name);
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
+      // remember the last term to have been given a :named attribute
+      PARSER_STATE->setLastNamedTerm(expr);
       // bind name to expr with define-fun
       Command* c =
         new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);

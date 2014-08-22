@@ -105,7 +105,6 @@ CVC_TESTS = \
 	wiki.19.cvc \
 	wiki.20.cvc \
 	wiki.21.cvc \
-	simplification_bug3.cvc \
 	queries0.cvc \
 	print_lambda.cvc
 

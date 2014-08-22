@@ -34,6 +34,8 @@
 
 #include "smt/logic_exception.h"
 
+#include "proof/proof_manager.h"
+
 #include "util/node_visitor.h"
 #include "util/ite_removal.h"
 
@@ -168,7 +170,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 
-  PROOF (ProofManager::currentPM()->initTheoryProof(); );
+  PROOF (ProofManager::initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
@@ -1385,10 +1387,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable
   }
 
   // assert to prop engine
-  d_propEngine->assertLemma(additionalLemmas[0], negated, removable);
+  d_propEngine->assertLemma(additionalLemmas[0], negated, removable, RULE_INVALID, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
     additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
-    d_propEngine->assertLemma(additionalLemmas[i], false, removable);
+    d_propEngine->assertLemma(additionalLemmas[i], false, removable, RULE_INVALID, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.

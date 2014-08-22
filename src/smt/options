@@ -37,9 +37,11 @@ option dumpProofs --dump-proofs bool :default false :link --proof
  output proofs after every UNSAT/VALID response
 option dumpInstantiations --dump-instantiations bool :default false
  output instantiations of quantified formulas after every UNSAT/VALID response
-# this is just a placeholder for later; it doesn't show up in command-line options listings
-undocumented-option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::unsatCoresEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
- turn on unsat core generation (NOT YET SUPPORTED)
+option unsatCores produce-unsat-cores --produce-unsat-cores bool :predicate CVC4::smt::proofEnabledBuild CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ turn on unsat core generation
+option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-unsat-cores :link-smt produce-unsat-cores :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+ output unsat cores after every UNSAT/VALID response
+
 option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  support the get-assignment command
 

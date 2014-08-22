@@ -28,6 +28,7 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "util/proof.h"
+#include "util/unsat_core.h"
 #include "smt/modal_exception.h"
 #include "smt/logic_exception.h"
 #include "options/options.h"
@@ -255,7 +256,7 @@ class CVC4_PUBLIC SmtEngine {
   smt::SmtEnginePrivate* d_private;
 
   /**
-   * Check that a generated Proof (via getProof()) checks.
+   * Check that a generated proof (via getProof()) checks.
    */
   void checkProof();
 
@@ -424,8 +425,8 @@ public:
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false iff
-   * inconsistent.
+   * literals and conjunction of literals.  Returns false if
+   * immediately determined to be inconsistent.
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
@@ -434,23 +435,25 @@ public:
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
-   * literals and conjunction of literals.  Returns false iff
-   * inconsistent.
+   * literals and conjunction of literals.  Returns false if
+   * immediately determined to be inconsistent.  This version
+   * takes a Boolean flag to determine whether to include this asserted
+   * formula in an unsat core (if one is later requested).
    */
-  Result assertFormula(const Expr& e) throw(TypeCheckingException, LogicException);
+  Result assertFormula(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, LogicException);
 
   /**
    * Check validity of an expression with respect to the current set
    * of assertions by asserting the query expression's negation and
    * calling check().  Returns valid, invalid, or unknown result.
    */
-  Result query(const Expr& e) throw(TypeCheckingException, ModalException, LogicException);
+  Result query(const Expr& e, bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
    * Assert a formula (if provided) to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSat(const Expr& e = Expr()) throw(TypeCheckingException, ModalException, LogicException);
+  Result checkSat(const Expr& e = Expr(), bool inUnsatCore = true) throw(TypeCheckingException, ModalException, LogicException);
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -505,6 +508,13 @@ public:
    * Print all instantiations made by the quantifiers module.
    */
   void printInstantiations( std::ostream& out );
+
+  /**
+   * Get an unsatisfiable core (only if immediately preceded by an
+   * UNSAT or VALID query).  Only permitted if CVC4 was built with
+   * unsat-core support and produce-unsat-cores is on.
+   */
+  UnsatCore getUnsatCore() throw(ModalException);
 
   /**
    * Get the current set of assertions.  Only permitted if the

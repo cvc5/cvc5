@@ -24,6 +24,7 @@
 #include "util/statistics_registry.h"
 #include "context/cdlist.h"
 #include "prop/sat_solver_types.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace prop {
@@ -38,7 +39,7 @@ public:
   virtual ~SatSolver() { }
 
   /** Assert a clause in the solver. */
-  virtual void addClause(SatClause& clause, bool removable) = 0;
+  virtual void addClause(SatClause& clause, bool removable, uint64_t proof_id) = 0;
 
   /**
    * Create a new boolean variable in the solver.

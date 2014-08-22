@@ -97,7 +97,9 @@ libutil_la_SOURCES = \
 	regexp.cpp \
 	bin_heap.h \
 	didyoumean.h \
-	didyoumean.cpp
+	didyoumean.cpp \
+	unsat_core.h \
+	unsat_core.cpp
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \
@@ -156,7 +158,8 @@ EXTRA_DIST = \
 	uninterpreted_constant.i \
 	chain.i \
 	regexp.i \
-	proof.i
+	proof.i \
+	unsat_core.i
 
 DISTCLEANFILES = \
 	integer.h.tmp \

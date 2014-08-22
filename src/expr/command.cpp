@@ -189,8 +189,8 @@ std::string EchoCommand::getCommandName() const throw() {
 
 /* class AssertCommand */
 
-AssertCommand::AssertCommand(const Expr& e) throw() :
-  d_expr(e) {
+AssertCommand::AssertCommand(const Expr& e, bool inUnsatCore) throw() :
+  d_expr(e), d_inUnsatCore(inUnsatCore) {
 }
 
 Expr AssertCommand::getExpr() const throw() {
@@ -199,7 +199,7 @@ Expr AssertCommand::getExpr() const throw() {
 
 void AssertCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
-    smtEngine->assertFormula(d_expr);
+    smtEngine->assertFormula(d_expr, d_inUnsatCore);
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
@@ -207,17 +207,16 @@ void AssertCommand::invoke(SmtEngine* smtEngine) throw() {
 }
 
 Command* AssertCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  return new AssertCommand(d_expr.exportTo(exprManager, variableMap));
+  return new AssertCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
 }
 
 Command* AssertCommand::clone() const {
-  return new AssertCommand(d_expr);
+  return new AssertCommand(d_expr, d_inUnsatCore);
 }
 
 std::string AssertCommand::getCommandName() const throw() {
   return "assert";
 }
-
 
 /* class PushCommand */
 
@@ -271,8 +270,8 @@ CheckSatCommand::CheckSatCommand() throw() :
   d_expr() {
 }
 
-CheckSatCommand::CheckSatCommand(const Expr& expr) throw() :
-  d_expr(expr) {
+CheckSatCommand::CheckSatCommand(const Expr& expr, bool inUnsatCore) throw() :
+  d_expr(expr), d_inUnsatCore(inUnsatCore) {
 }
 
 Expr CheckSatCommand::getExpr() const throw() {
@@ -301,13 +300,13 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const t
 }
 
 Command* CheckSatCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  CheckSatCommand* c = new CheckSatCommand(d_expr.exportTo(exprManager, variableMap));
+  CheckSatCommand* c = new CheckSatCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSatCommand::clone() const {
-  CheckSatCommand* c = new CheckSatCommand(d_expr);
+  CheckSatCommand* c = new CheckSatCommand(d_expr, d_inUnsatCore);
   c->d_result = d_result;
   return c;
 }
@@ -318,8 +317,8 @@ std::string CheckSatCommand::getCommandName() const throw() {
 
 /* class QueryCommand */
 
-QueryCommand::QueryCommand(const Expr& e) throw() :
-  d_expr(e) {
+QueryCommand::QueryCommand(const Expr& e, bool inUnsatCore) throw() :
+  d_expr(e), d_inUnsatCore(inUnsatCore) {
 }
 
 Expr QueryCommand::getExpr() const throw() {
@@ -348,13 +347,13 @@ void QueryCommand::printResult(std::ostream& out, uint32_t verbosity) const thro
 }
 
 Command* QueryCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  QueryCommand* c = new QueryCommand(d_expr.exportTo(exprManager, variableMap));
+  QueryCommand* c = new QueryCommand(d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
   c->d_result = d_result;
   return c;
 }
 
 Command* QueryCommand::clone() const {
-  QueryCommand* c = new QueryCommand(d_expr);
+  QueryCommand* c = new QueryCommand(d_expr, d_inUnsatCore);
   c->d_result = d_result;
   return c;
 }
@@ -1123,35 +1122,31 @@ GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 }
 
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
-  /*
   try {
     d_result = smtEngine->getUnsatCore();
     d_commandStatus = CommandSuccess::instance();
   } catch(exception& e) {
     d_commandStatus = new CommandFailure(e.what());
   }
-  */
-  d_commandStatus = new CommandUnsupported();
 }
 
 void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) const throw() {
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    //do nothing -- unsat cores not yet supported
-    // d_result->toStream(out);
+    d_result.toStream(out);
   }
 }
 
 Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
-  //c->d_result = d_result;
+  c->d_result = d_result;
   return c;
 }
 
 Command* GetUnsatCoreCommand::clone() const {
   GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
-  //c->d_result = d_result;
+  c->d_result = d_result;
   return c;
 }
 

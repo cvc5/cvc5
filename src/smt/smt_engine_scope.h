@@ -40,9 +40,14 @@ inline SmtEngine* currentSmtEngine() {
 }
 
 inline ProofManager* currentProofManager() {
-  Assert(PROOF_ON());
+#ifdef CVC4_PROOF
+  Assert(options::proof() || options::unsatCores());
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->d_proofManager;
+#else /* CVC4_PROOF */
+  InternalError("proofs/unsat cores are not on, but ProofManager requested");
+  return NULL;
+#endif /* CVC4_PROOF */
 }
 
 class SmtScope : public NodeManagerScope {

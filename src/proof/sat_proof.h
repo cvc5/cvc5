@@ -86,6 +86,7 @@ typedef std::hash_map < ClauseId, ::Minisat::Lit>   IdUnitMap;
 typedef std::hash_map < int, ClauseId>            UnitIdMap; //FIXME
 typedef std::hash_map < ClauseId, ResChain*>      IdResMap;
 typedef std::hash_set < ClauseId >                IdHashSet;
+typedef std::hash_map < ClauseId, uint64_t >      IdProofRuleMap;
 typedef std::vector   < ResChain* >               ResStack;
 typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
 typedef std::set < ClauseId >                     IdSet;
@@ -115,14 +116,15 @@ protected:
   UnitIdMap           d_unitId;
   IdHashSet           d_deleted;
   IdToSatClause       d_deletedTheoryLemmas;
-  IdHashSet           d_inputClauses;
-  IdHashSet           d_lemmaClauses;
+public:
+  IdProofRuleMap      d_inputClauses;
+  IdProofRuleMap      d_lemmaClauses;
+protected:
   // resolutions
   IdResMap            d_resChains;
   ResStack            d_resStack;
   bool                d_checkRes;
 
-  static ClauseId     d_idCounter;
   const ClauseId      d_emptyClauseId;
   const ClauseId      d_nullId;
   // proxy class to break circular dependencies
@@ -144,6 +146,7 @@ protected:
   void printRes(ResChain* res);
 
   bool isInputClause(ClauseId id);
+  bool isTheoryConflict(ClauseId id);
   bool isLemmaClause(ClauseId id);
   bool isUnit(ClauseId id);
   bool isUnit(::Minisat::Lit lit);
@@ -207,10 +210,10 @@ public:
   void finalizeProof(::Minisat::CRef conflict);
 
   /// clause registration methods
-  ClauseId registerClause(const ::Minisat::CRef clause, ClauseKind kind = LEARNT);
-  ClauseId registerUnitClause(const ::Minisat::Lit lit, ClauseKind kind = LEARNT);
+  ClauseId registerClause(const ::Minisat::CRef clause, ClauseKind kind, uint64_t proof_id);
+  ClauseId registerUnitClause(const ::Minisat::Lit lit, ClauseKind kind, uint64_t proof_id);
 
-  void storeUnitConflict(::Minisat::Lit lit, ClauseKind kind = LEARNT);
+  void storeUnitConflict(::Minisat::Lit lit, ClauseKind kind, uint64_t proof_id);
 
   /**
    * Marks the deleted clauses as deleted. Note we may still use them in the final
@@ -242,6 +245,7 @@ public:
 protected:
   IdSet              d_seenLearnt;
   IdHashSet          d_seenInput;
+  IdHashSet          d_seenTheoryConflicts;
   IdHashSet          d_seenLemmas;
 
   inline std::string varName(::Minisat::Lit lit);

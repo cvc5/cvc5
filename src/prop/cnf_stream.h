@@ -28,6 +28,7 @@
 #include "expr/node.h"
 #include "prop/theory_proxy.h"
 #include "prop/registrar.h"
+#include "proof/proof_manager.h"
 #include "context/cdlist.h"
 #include "context/cdinsert_hashmap.h"
 
@@ -35,7 +36,6 @@
 
 namespace CVC4 {
 namespace prop {
-
 
 class PropEngine;
 
@@ -77,6 +77,9 @@ protected:
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
 
+  /** A table of assertions, used for regenerating proofs. */
+  context::CDList<Node> d_assertionTable;
+
   /**
    * How many literals were already mapped at the top-level when we
    * tried to convertAndAssert() something.  This
@@ -104,10 +107,18 @@ protected:
   }
 
   /**
+   * A reference into the assertion table, used to map clauses back to
+   * their "original" input assertion/lemma.  This variable is manipulated
+   * by the top-level convertAndAssert().  This is needed in proofs-enabled
+   * runs, to justify where the SAT solver's clauses came from.
+   */
+  uint64_t d_proofId;
+
+  /**
    * Are we asserting a removable clause (true) or a permanent clause (false).
    * This is set at the beginning of convertAndAssert so that it doesn't
-   * need to be passed on over the stack. Only pure clauses  can be asserted as
-   * removable.
+   * need to be passed on over the stack.  Only pure clauses can be asserted
+   * as removable.
    */
   bool d_removable;
 
@@ -190,7 +201,7 @@ public:
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated) = 0;
+  virtual void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null()) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -221,6 +232,13 @@ public:
    * node? E.g., it needs to be a boolean? -Chris]
    */
   SatLiteral getLiteral(TNode node);
+
+  /**
+   * Get the assertion with a given ID.  (Used for reconstructing proofs.)
+   */
+  TNode getAssertion(uint64_t id) {
+    return d_assertionTable[id];
+  }
 
   /**
    * Returns the Boolean variables from the input problem.
@@ -258,7 +276,7 @@ public:
    * @param removable is this something that can be erased
    * @param negated true if negated
    */
-  void convertAndAssert(TNode node, bool removable, bool negated);
+  void convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from = TNode::null());
 
   /**
    * Constructs the stream to use the given sat solver.

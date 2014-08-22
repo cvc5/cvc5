@@ -153,10 +153,6 @@ batch (default) \n\
   (MiniSat) propagation for all of them only after reaching a querying command\n\
   (CHECKSAT or QUERY or predicate SUBTYPE declaration)\n\
 \n\
-incremental\n\
-+ run nonclausal simplification and clausal propagation at each ASSERT\n\
-  (and at CHECKSAT/QUERY/SUBTYPE)\n\
-\n\
 none\n\
 + do not perform nonclausal simplification\n\
 ";
@@ -283,8 +279,6 @@ inline LogicInfo stringToLogicInfo(std::string option, std::string optarg, SmtEn
 inline SimplificationMode stringToSimplificationMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "batch") {
     return SIMPLIFICATION_MODE_BATCH;
-  } else if(optarg == "incremental") {
-    return SIMPLIFICATION_MODE_INCREMENTAL;
   } else if(optarg == "none") {
     return SIMPLIFICATION_MODE_NONE;
   } else if(optarg == "help") {
@@ -314,12 +308,6 @@ inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) th
     throw OptionException(ss.str());
   }
 #endif /* CVC4_PROOF */
-}
-
-inline void unsatCoresEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
-  if(value) {
-    throw UnrecognizedOptionException("CVC4 does not yet have support for unsatisfiable cores");
-  }
 }
 
 // This macro is used for setting :regular-output-channel and :diagnostic-output-channel

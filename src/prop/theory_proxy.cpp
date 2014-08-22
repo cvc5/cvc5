@@ -122,7 +122,7 @@ void TheoryProxy::notifyRestart() {
           if(lemmaCount % 1 == 0) {
             Debug("shared") << "=) " << asNode << std::endl;
           }
-          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true);
+          d_propEngine->assertLemma(d_theoryEngine->preprocess(asNode), false, true, RULE_INVALID);
         } else {
           Debug("shared") << "=(" << asNode << std::endl;
         }

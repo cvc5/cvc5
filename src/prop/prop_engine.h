@@ -25,6 +25,7 @@
 #include "options/options.h"
 #include "util/result.h"
 #include "smt/modal_exception.h"
+#include "proof/proof_manager.h"
 #include <sys/time.h>
 
 namespace CVC4 {
@@ -199,7 +200,7 @@ public:
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node, bool negated, bool removable);
+  void assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from = TNode::null());
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This

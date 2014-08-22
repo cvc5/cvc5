@@ -5,7 +5,7 @@
  ** Major contributors:
  ** Minor contributors (to current version):
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2014  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -45,7 +45,7 @@ void BVMinisatSatSolver::setNotify(Notify* notify) {
   d_minisat->setNotify(d_minisatNotify);
 }
 
-void BVMinisatSatSolver::addClause(SatClause& clause, bool removable) {
+void BVMinisatSatSolver::addClause(SatClause& clause, bool removable, uint64_t proof_id) {
   Debug("sat::minisat") << "Add clause " << clause <<"\n";
   BVMinisat::vec<BVMinisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);

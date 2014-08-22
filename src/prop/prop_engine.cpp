@@ -25,6 +25,7 @@
 #include "decision/options.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
+#include "proof/proof_manager.h"
 #include "util/cvc4_assert.h"
 #include "options/options.h"
 #include "smt/options.h"
@@ -109,15 +110,15 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false);
+  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated, bool removable) {
+void PropEngine::assertLemma(TNode node, bool negated, bool removable, ProofRule rule, TNode from) {
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
-  // Assert as removable
-  d_cnfStream->convertAndAssert(node, removable, negated);
+  // Assert as (possibly) removable
+  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {

@@ -54,6 +54,7 @@ private:
   bool d_logicSet;
   LogicInfo d_logic;
   std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
+  Expr d_lastNamedTerm;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -104,6 +105,14 @@ public:
   }
 
   void includeFile(const std::string& filename);
+
+  void setLastNamedTerm(Expr e) {
+    d_lastNamedTerm = e;
+  }
+
+  Expr lastNamedTerm() {
+    return d_lastNamedTerm;
+  }
 
   bool isAbstractValue(const std::string& name) {
     return name.length() >= 2 && name[0] == '@' && name[1] != '0' &&

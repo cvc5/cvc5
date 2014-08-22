@@ -50,8 +50,11 @@ public:
    * contains a map from introduced skolem variables to the index in
    * assertions containing the new Boolean ite created in conjunction
    * with that skolem variable.
+   *
+   * With reportDeps true, report reasoning dependences to the proof
+   * manager (for unsat cores).
    */
-  void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap);
+  void run(std::vector<Node>& assertions, IteSkolemMap& iteSkolemMap, bool reportDeps = false);
 
   /**
    * Removes the ITE from the node by introducing skolem

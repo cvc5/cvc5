@@ -57,9 +57,6 @@ void printDebug (Minisat::Clause& c) {
   Debug("proof:sat") << endl;
 }
 
-
-int SatProof::d_idCounter = 0;
-
 /**
  * Converts the clause associated to id to a set of literals
  *
@@ -274,7 +271,7 @@ ClauseId SatProof::getClauseId(::Minisat::Lit lit) {
 
 Minisat::CRef SatProof::getClauseRef(ClauseId id) {
   if (d_idClause.find(id) == d_idClause.end()) {
-    Debug("proof:sat") << "proof:getClauseRef cannot find clause "<<id<<" "
+    Debug("proof:sat") << "proof:getClauseRef cannot find clause " << id << " "
                        << ((d_deleted.find(id) != d_deleted.end()) ? "deleted" : "")
                        << (isUnit(id)? "Unit" : "") << endl;
   }
@@ -318,16 +315,14 @@ bool SatProof::isLemmaClause(ClauseId id) {
   return (d_lemmaClauses.find(id) != d_lemmaClauses.end());
 }
 
-
 void SatProof::print(ClauseId id) {
   if (d_deleted.find(id) != d_deleted.end()) {
-    Debug("proof:sat") << "del"<<id;
+    Debug("proof:sat") << "del" << id;
   } else if (isUnit(id)) {
     printLit(getUnit(id));
   } else if (id == d_emptyClauseId) {
-    Debug("proof:sat") << "empty "<< endl;
-  }
-  else {
+    Debug("proof:sat") << "empty " << endl;
+  } else {
     CRef ref = getClauseRef(id);
     printClause(getClause(ref));
   }
@@ -335,7 +330,7 @@ void SatProof::print(ClauseId id) {
 
 void SatProof::printRes(ClauseId id) {
   Assert(hasResolution(id));
-  Debug("proof:sat") << "id "<< id <<": ";
+  Debug("proof:sat") << "id " << id << ": ";
   printRes(d_resChains[id]);
 }
 
@@ -364,42 +359,44 @@ void SatProof::printRes(ResChain* res) {
 
 /// registration methods
 
-ClauseId SatProof::registerClause(::Minisat::CRef clause, ClauseKind kind) {
+ClauseId SatProof::registerClause(::Minisat::CRef clause, ClauseKind kind, uint64_t proof_id) {
+  Debug("cores") << "registerClause " << proof_id << std::endl;
   Assert(clause != CRef_Undef);
   ClauseIdMap::iterator it = d_clauseId.find(clause);
   if (it == d_clauseId.end()) {
-    ClauseId newId = d_idCounter++;
+    ClauseId newId = ProofManager::currentPM()->nextId();
     d_clauseId[clause] = newId;
     d_idClause[newId] = clause;
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(newId);
+      d_inputClauses[newId] = proof_id;
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(newId);
+      d_lemmaClauses[newId] = proof_id;
     }
   }
-  Debug("proof:sat:detailed") <<"registerClause CRef:" << clause <<" id:" << d_clauseId[clause] << " " << kind << "\n";
+  Debug("proof:sat:detailed") << "registerClause CRef:" << clause << " id:" << d_clauseId[clause] << " " << kind << " " << int32_t((proof_id >> 32) & 0xffffffff) << "\n";
   return d_clauseId[clause];
 }
 
-ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, ClauseKind kind) {
+ClauseId SatProof::registerUnitClause(::Minisat::Lit lit, ClauseKind kind, uint64_t proof_id) {
+  Debug("cores") << "registerUnitClause " << kind << " " << proof_id << std::endl;
   UnitIdMap::iterator it = d_unitId.find(toInt(lit));
   if (it == d_unitId.end()) {
-    ClauseId newId = d_idCounter++;
+    ClauseId newId = ProofManager::currentPM()->nextId();
     d_unitId[toInt(lit)] = newId;
     d_idUnit[newId] = lit;
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
-      d_inputClauses.insert(newId);
+      d_inputClauses[newId] = proof_id;
     }
     if (kind == THEORY_LEMMA) {
       Assert(d_lemmaClauses.find(newId) == d_lemmaClauses.end());
-      d_lemmaClauses.insert(newId);
+      d_lemmaClauses[newId] = proof_id;
     }
   }
-  Debug("proof:sat:detailed") <<"registerUnitClause " << d_unitId[toInt(lit)] << " " << kind <<"\n";
+  Debug("proof:sat:detailed") << "registerUnitClause " << d_unitId[toInt(lit)] << " " << kind << "\n";
   return d_unitId[toInt(lit)];
 }
 
@@ -445,7 +442,7 @@ void SatProof::removeRedundantFromRes(ResChain* res, ClauseId id) {
     removedDfs(*it, removed, removeStack, inClause, seen);
   }
 
-  for (int i = removeStack.size()-1; i >= 0; --i) {
+  for (int i = removeStack.size() - 1; i >= 0; --i) {
     Lit lit = removeStack[i];
     CRef reason_ref = d_solver->reason(var(lit));
     ClauseId reason_id;
@@ -454,7 +451,7 @@ void SatProof::removeRedundantFromRes(ResChain* res, ClauseId id) {
       Assert(isUnit(~lit));
       reason_id = getUnitId(~lit);
     } else {
-      reason_id = registerClause(reason_ref);
+      reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
     }
     res->addStep(lit, reason_id, !sign(lit));
   }
@@ -486,14 +483,14 @@ void SatProof::startResChain(::Minisat::CRef start) {
 }
 
 void SatProof::addResolutionStep(::Minisat::Lit lit, ::Minisat::CRef clause, bool sign) {
-  ClauseId id = registerClause(clause);
+  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
   ResChain* res = d_resStack.back();
   res->addStep(lit, id, sign);
 }
 
 void SatProof::endResChain(CRef clause) {
   Assert(d_resStack.size() > 0);
-  ClauseId id = registerClause(clause);
+  ClauseId id = registerClause(clause, LEARNT, uint64_t(-1));
   ResChain* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -502,7 +499,7 @@ void SatProof::endResChain(CRef clause) {
 
 void SatProof::endResChain(::Minisat::Lit lit) {
   Assert(d_resStack.size() > 0);
-  ClauseId id = registerUnitClause(lit);
+  ClauseId id = registerUnitClause(lit, LEARNT, uint64_t(-1));
   ResChain* res = d_resStack.back();
   registerResolution(id, res);
   d_resStack.pop_back();
@@ -523,6 +520,7 @@ void SatProof::resolveOutUnit(::Minisat::Lit lit) {
 }
 
 void SatProof::storeUnitResolution(::Minisat::Lit lit) {
+  Debug("cores") << "STORE UNIT RESOLUTION" << std::endl;
   resolveUnit(lit);
 }
 
@@ -536,7 +534,7 @@ ClauseId SatProof::resolveUnit(::Minisat::Lit lit) {
   CRef reason_ref = d_solver->reason(var(lit));
   Assert(reason_ref != CRef_Undef);
 
-  ClauseId reason_id = registerClause(reason_ref);
+  ClauseId reason_id = registerClause(reason_ref, LEARNT, uint64_t(-1));
 
   ResChain* res = new ResChain(reason_id);
   // Here, the call to resolveUnit() can reallocate memory in the
@@ -551,7 +549,7 @@ ClauseId SatProof::resolveUnit(::Minisat::Lit lit) {
       res->addStep(l, res_id, !sign(l));
     }
   }
-  ClauseId unit_id = registerUnitClause(lit);
+  ClauseId unit_id = registerUnitClause(lit, LEARNT, uint64_t(-1));
   registerResolution(unit_id, res);
   return unit_id;
 }
@@ -561,11 +559,12 @@ void SatProof::toStream(std::ostream& out) {
   Unimplemented("native proof printing not supported yet");
 }
 
-void SatProof::storeUnitConflict(::Minisat::Lit conflict_lit, ClauseKind kind) {
+void SatProof::storeUnitConflict(::Minisat::Lit conflict_lit, ClauseKind kind, uint64_t proof_id) {
+  Debug("cores") << "STORE UNIT CONFLICT" << std::endl;
   Assert(!d_storedUnitConflict);
-  d_unitConflictId = registerUnitClause(conflict_lit, kind);
+  d_unitConflictId = registerUnitClause(conflict_lit, kind, proof_id);
   d_storedUnitConflict = true;
-  Debug("proof:sat:detailed") <<"storeUnitConflict " << d_unitConflictId << "\n";
+  Debug("proof:sat:detailed") << "storeUnitConflict " << d_unitConflictId << "\n";
 }
 
 void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
@@ -586,7 +585,7 @@ void SatProof::finalizeProof(::Minisat::CRef conflict_ref) {
     return;
   } else {
     Assert(!d_storedUnitConflict);
-    conflict_id = registerClause(conflict_ref); //FIXME
+    conflict_id = registerClause(conflict_ref, LEARNT, uint64_t(-1)); //FIXME
   }
 
   if(Debug.isOn("proof:sat")) {
@@ -652,11 +651,10 @@ std::string SatProof::clauseName(ClauseId id) {
   if (isInputClause(id)) {
     os << ProofManager::getInputClauseName(id);
     return os.str();
-  } else
-  if (isLemmaClause(id)) {
+  } else if (isLemmaClause(id)) {
     os << ProofManager::getLemmaClauseName(id);
     return os.str();
-  }else {
+  } else {
     os << ProofManager::getLearntClauseName(id);
     return os.str();
   }
@@ -728,10 +726,9 @@ void LFSCSatProof::printResolution(ClauseId id, std::ostream& out, std::ostream&
   ResChain* res = d_resChains[id];
   ResSteps& steps = res->getSteps();
 
-  for (int i = steps.size()-1; i >= 0; i--) {
+  for (int i = steps.size() - 1; i >= 0; --i) {
     out << "(";
     out << (steps[i].sign? "R" : "Q") << " _ _ ";
-
   }
 
   ClauseId start_id = res->getStart();
@@ -742,11 +739,13 @@ void LFSCSatProof::printResolution(ClauseId id, std::ostream& out, std::ostream&
   out << clauseName(start_id) << " ";
 
   for(unsigned i = 0; i < steps.size(); i++) {
-    out << clauseName(steps[i].id) << " "<<ProofManager::getVarName(MinisatSatSolver::toSatVariable(var(steps[i].lit))) <<")";
+    out << clauseName(steps[i].id) << " "
+        << ProofManager::getVarName(MinisatSatSolver::toSatVariable(var(steps[i].lit)))
+        << ") ";
   }
 
   if (id == d_emptyClauseId) {
-    out <<"(\\empty empty)";
+    out << "(\\empty empty)";
     return;
   }
 
@@ -763,6 +762,4 @@ void LFSCSatProof::printResolutions(std::ostream& out, std::ostream& paren) {
   printResolution(d_emptyClauseId, out, paren);
 }
 
-
 } /* CVC4 namespace */
-

@@ -44,7 +44,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace prop {
 
-
 CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Context* context, bool fullLitToNodeMap) :
   d_satSolver(satSolver),
   d_booleanVariables(context),
@@ -52,6 +51,7 @@ CnfStream::CnfStream(SatSolver *satSolver, Registrar* registrar, context::Contex
   d_literalToNodeMap(context),
   d_fullLitToNodeMap(fullLitToNodeMap),
   d_registrar(registrar),
+  d_assertionTable(context),
   d_removable(false) {
 }
 
@@ -74,7 +74,7 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
       Dump("clauses") << AssertCommand(Expr(n.toExpr()));
     }
   }
-  d_satSolver->addClause(c, d_removable);
+  d_satSolver->addClause(c, d_removable, d_proofId);
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {
@@ -104,9 +104,9 @@ bool CnfStream::hasLiteral(TNode n) const {
 }
 
 void TseitinCnfStream::ensureLiteral(TNode n) {
-
-  // These are not removable
+  // These are not removable and have no proof ID
   d_removable = false;
+  d_proofId = uint64_t(-1);
 
   Debug("cnf") << "ensureLiteral(" << n << ")" << endl;
   if(hasLiteral(n)) {
@@ -188,9 +188,12 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
 
   // If a theory literal, we pre-register it
   if (preRegister) {
-    bool backup = d_removable;
+    // In case we are re-entered due to lemmas, save our state
+    bool backupRemovable = d_removable;
+    uint64_t backupProofId= d_proofId;
     d_registrar->preRegister(node);
-    d_removable = backup;
+    d_removable = backupRemovable;
+    d_proofId = backupProofId;
   }
 
   // Here, you can have it
@@ -642,9 +645,20 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
 // At the top level we must ensure that all clauses that are asserted are
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
-void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated) {
+void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated, ProofRule proof_id, TNode from) {
   Debug("cnf") << "convertAndAssert(" << node << ", removable = " << (removable ? "true" : "false") << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
+  if(options::proof() || options::unsatCores()) {
+    // Encode the assertion ID in the proof_id to store with generated clauses.
+    uint64_t assertionTableIndex = d_assertionTable.size();
+    Assert((uint64_t(proof_id) & 0xffffffff00000000) == 0 && (assertionTableIndex & 0xffffffff00000000) == 0, "proof_id/table_index collision");
+    d_proofId = assertionTableIndex | (uint64_t(proof_id) << 32);
+    d_assertionTable.push_back(from.isNull() ? node : from);
+    Debug("cores") << "cnf ix " << assertionTableIndex << " asst " << node << "  proof_id " << proof_id << " from " << from << endl;
+  } else {
+    // We aren't producing proofs or unsat cores; use an invalid proof id.
+    d_proofId = uint64_t(-1);
+  }
   convertAndAssert(node, negated);
 }
 

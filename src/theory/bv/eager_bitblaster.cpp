@@ -56,7 +56,7 @@ EagerBitblaster::~EagerBitblaster() {
 }
 
 void EagerBitblaster::bbFormula(TNode node) {
-  d_cnfStream->convertAndAssert(node, false, false); 
+  d_cnfStream->convertAndAssert(node, false, false, RULE_INVALID, TNode::null());
 }
 
 /**
@@ -85,7 +85,7 @@ void EagerBitblaster::bbAtom(TNode node) {
 
   AlwaysAssert (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER); 
   storeBBAtom(node, atom_definition);
-  d_cnfStream->convertAndAssert(atom_definition, false, false);
+  d_cnfStream->convertAndAssert(atom_definition, false, false, RULE_INVALID, TNode::null());
 }
 
 void EagerBitblaster::storeBBAtom(TNode atom, Node atom_bb) {

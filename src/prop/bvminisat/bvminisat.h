@@ -5,7 +5,7 @@
  ** Major contributors:
  ** Minor contributors (to current version):
  ** This file is part of the CVC4 prototype.
- ** Copyright (c) 2009, 2010, 2011  The Analysis of Computer Systems Group (ACSys)
+ ** Copyright (c) 2009-2014  The Analysis of Computer Systems Group (ACSys)
  ** Courant Institute of Mathematical Sciences
  ** New York University
  ** See the file COPYING in the top-level source directory for licensing
@@ -76,7 +76,7 @@ public:
 
   void setNotify(Notify* notify);
 
-  void addClause(SatClause& clause, bool removable);
+  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
 
   SatValue propagate();
 

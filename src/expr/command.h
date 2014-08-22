@@ -35,6 +35,7 @@
 #include "util/sexpr.h"
 #include "util/datatype.h"
 #include "util/proof.h"
+#include "util/unsat_core.h"
 
 namespace CVC4 {
 
@@ -309,8 +310,9 @@ public:
 class CVC4_PUBLIC AssertCommand : public Command {
 protected:
   Expr d_expr;
+  bool d_inUnsatCore;
 public:
-  AssertCommand(const Expr& e) throw();
+  AssertCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~AssertCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -457,9 +459,10 @@ class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
   Expr d_expr;
   Result d_result;
+  bool d_inUnsatCore;
 public:
   CheckSatCommand() throw();
-  CheckSatCommand(const Expr& expr) throw();
+  CheckSatCommand(const Expr& expr, bool inUnsatCore = true) throw();
   ~CheckSatCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -474,8 +477,9 @@ class CVC4_PUBLIC QueryCommand : public Command {
 protected:
   Expr d_expr;
   Result d_result;
+  bool d_inUnsatCore;
 public:
-  QueryCommand(const Expr& e) throw();
+  QueryCommand(const Expr& e, bool inUnsatCore = true) throw();
   ~QueryCommand() throw() {}
   Expr getExpr() const throw();
   void invoke(SmtEngine* smtEngine) throw();
@@ -597,7 +601,7 @@ public:
 
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
-  //UnsatCore* d_result;
+  UnsatCore d_result;
 public:
   GetUnsatCoreCommand() throw();
   ~GetUnsatCoreCommand() throw() {}

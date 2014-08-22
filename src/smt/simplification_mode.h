@@ -26,8 +26,6 @@ namespace CVC4 {
 
 /** Enumeration of simplification modes (when to simplify). */
 typedef enum {
-  /** Simplify the assertions as they come in */
-  SIMPLIFICATION_MODE_INCREMENTAL,
   /** Simplify the assertions all together once a check is requested */
   SIMPLIFICATION_MODE_BATCH,
   /** Don't do simplification */

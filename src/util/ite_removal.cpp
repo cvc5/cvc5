@@ -19,6 +19,7 @@
 #include "util/ite_removal.h"
 #include "expr/command.h"
 #include "theory/ite_utilities.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace std;
@@ -47,13 +48,23 @@ size_t RemoveITE::collectedCacheSizes() const{
   return d_containsVisitor->cache_size() + d_iteCache.size();
 }
 
-void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap)
+void RemoveITE::run(std::vector<Node>& output, IteSkolemMap& iteSkolemMap, bool reportDeps)
 {
+  size_t n = output.size();
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
     // Do this in two steps to avoid Node problems(?)
     // Appears related to bug 512, splitting this into two lines
     // fixes the bug on clang on Mac OS
     Node itesRemoved = run(output[i], output, iteSkolemMap, false);
+    // In some calling contexts, not necessary to report dependence information.
+    if(reportDeps && options::unsatCores()) {
+      // new assertions have a dependence on the node
+      PROOF( ProofManager::currentPM()->addDependence(itesRemoved, output[i]); )
+      while(n < output.size()) {
+        PROOF( ProofManager::currentPM()->addDependence(output[n], output[i]); )
+        ++n;
+      }
+    }
     output[i] = itesRemoved;
   }
 }

@@ -53,7 +53,7 @@ public:
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
   void initialize(context::Context* context, TheoryProxy* theoryProxy);
 
-  void addClause(SatClause& clause, bool removable);
+  void addClause(SatClause& clause, bool removable, uint64_t proof_id);
 
   SatVariable newVar(bool isTheoryAtom, bool preRegister, bool canErase);
   SatVariable trueVar() { return d_minisat->trueVar(); }

@@ -702,6 +702,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssignmentCommand>(out, c) ||
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<GetProofCommand>(out, c) ||
+     tryToStream<GetUnsatCoreCommand>(out, c) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant) ||
      tryToStream<SetInfoCommand>(out, c) ||
@@ -1023,6 +1024,10 @@ static void toStream(std::ostream& out, const GetAssertionsCommand* c) throw() {
 
 static void toStream(std::ostream& out, const GetProofCommand* c) throw() {
   out << "(get-proof)";
+}
+
+static void toStream(std::ostream& out, const GetUnsatCoreCommand* c) throw() {
+  out << "(get-unsat-core)";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {
