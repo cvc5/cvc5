@@ -64,7 +64,7 @@ public:
 // Solver -- the main class:
 class Solver {
     friend class CVC4::TSatProof< ::BVMinisat::Solver>;
-
+public:
     typedef Lit TLit;
     typedef Clause TClause; 
     typedef CRef TCRef;

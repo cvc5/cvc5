@@ -41,21 +41,25 @@ class TheoryBV;
 }
 }
 
-template <class Solver> class SatProof;
+template <class Solver> class TSatProof;
+typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
+
+template <class Solver> class LFSCSatProof;
+typedef LFSCSatProof< ::BVMinisat::Solver> LFSCBVSatProof;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 
 class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations; 
-  // SatProof* d_resolutionProof;
-  CnfProof* d_cnfProof; 
+  BVSatProof* d_resolutionProof;
+  // CnfProof* d_cnfProof; 
   // TODO:  add proofs for all subtheories
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
-  void initSatProof(::BVMinisat::Solver* solver) {}
-  //  SatProof* getSatProof(); 
+  void initSatProof(::BVMinisat::Solver* solver);
+  BVSatProof* getSatProof(); 
   virtual void registerTerm(Expr term);
   virtual void printTerm(Expr term, std::ostream& os) = 0;
   virtual void printSort(Type type, std::ostream& os) = 0; 

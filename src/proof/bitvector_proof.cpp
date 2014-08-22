@@ -15,11 +15,10 @@
 ** \todo document this file
 **/
 
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/bitvector_proof.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "proof/bitvector_proof.h"
+#include "proof/sat_proof_implementation.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -30,9 +29,14 @@ std::string toLFSCBVKind(Kind kind);
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
-    //  , d_resolutionProof()
-  , d_cnfProof()
+  , d_resolutionProof(NULL)
+    //  , d_cnfProof()
 {}
+
+void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
+  Assert (d_resolutionProof == NULL);
+  d_resolutionProof = new LFSCBVSatProof(solver);
+}
 
 void BitVectorProof::registerTerm(Expr term) {
   if (term.getKind() == kind::VARIABLE ||
