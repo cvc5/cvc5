@@ -171,6 +171,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     case kind::BUILTIN:
       out << smtKindString(n.getConst<Kind>());
       break;
+    case kind::CHAIN_OP:
+      out << smtKindString(n.getConst<Chain>().getOperator());
+      break;
     case kind::CONST_RATIONAL: {
       Rational r = n.getConst<Rational>();
       if(r < 0) {
