@@ -37,7 +37,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "expr/command.h"
 
 namespace CVC4 {
-class SatProof;
+template <class Solvar> class TSatProof;
 
 namespace prop {
   class TheoryProxy;
@@ -54,7 +54,16 @@ class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::TheoryProxy;
-  friend class CVC4::SatProof;
+  friend class CVC4::TSatProof<Minisat::Solver>;
+
+public:
+  static CRef TCRef_Undef;
+  static CRef TCRef_Lazy;
+
+  typedef Lit TLit;
+  typedef Clause TClause; 
+  typedef CRef TCRef; 
+
 protected:
 
   /** The pointer to the proxy that provides interfaces to the SMT engine */

@@ -40,18 +40,23 @@ class SmtEngine;
 typedef int ClauseId;
 
 class Proof;
-class SatProof;
+template <class Solver> class TSatProof; 
+typedef TSatProof< ::Minisat::Solver> CoreSatProof;
 class CnfProof;
 class TheoryProofEngine;
 class UFProof;
 class ArrayProof;
 class BitVectorProof;
 
-class LFSCSatProof;
+template <class Solver> class LFSCSatProof; 
+typedef LFSCSatProof< ::Minisat::Solver> LFSCCoreSatProof;
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
 class LFSCUFProof;
 class LFSCBitVectorProof;
+
+template <class Solver> class ProofProxy;
+typedef ProofProxy< ::Minisat::Solver> CoreProofProxy; 
 
 namespace prop {
   typedef uint64_t SatVariable;
@@ -82,7 +87,7 @@ enum ClauseKind {
 };/* enum ClauseKind */
 
 class ProofManager {
-  SatProof*    d_satProof;
+  CoreSatProof*    d_satProof;
   CnfProof*    d_cnfProof;
   TheoryProofEngine* d_theoryProof;
 
@@ -111,9 +116,9 @@ public:
   static void         initTheoryProofEngine();
 
   // getting various proofs
-  static Proof*       getProof(SmtEngine* smt);
-  static SatProof*    getSatProof();
-  static CnfProof*    getCnfProof();
+  static Proof*         getProof(SmtEngine* smt);
+  static CoreSatProof*  getSatProof();
+  static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
   
   static UFProof* getUfProof();
@@ -176,12 +181,12 @@ public:
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
-  LFSCSatProof* d_satProof;
+  LFSCCoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
 public:
-  LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory);
+  LFSCProof(SmtEngine* smtEngine, LFSCCoreSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory);
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}
 };/* class LFSCProof */

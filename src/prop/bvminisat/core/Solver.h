@@ -26,11 +26,16 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/bvminisat/mtl/Heap.h"
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/utils/Options.h"
-
 #include "context/cdhashmap.h"
 
 #include <ext/hash_set>
 #include <vector>
+
+namespace CVC4 {
+template <class Solver> class TSatProof;
+
+} /* CVC4 namespace*/
+
 
 namespace BVMinisat {
 
@@ -58,7 +63,15 @@ public:
 //=================================================================================================
 // Solver -- the main class:
 class Solver {
+    friend class CVC4::TSatProof< ::BVMinisat::Solver>;
 
+    typedef Lit TLit;
+    typedef Clause TClause; 
+    typedef CRef TCRef;
+  
+    static CRef TCRef_Undef;
+    static CRef TCRef_Lazy;
+private:
     /** To notify */
     Notify* notify;
 

@@ -17,7 +17,7 @@
 
 #include "proof/proof_manager.h"
 #include "util/proof.h"
-#include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "util/cvc4_assert.h"
@@ -79,13 +79,13 @@ Proof* ProofManager::getProof(SmtEngine* smt) {
   Assert (currentPM()->d_format == LFSC);
 
   currentPM()->d_fullProof = new LFSCProof(smt,
-                                           (LFSCSatProof*)getSatProof(),
+                                           (LFSCCoreSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
                                            (LFSCTheoryProofEngine*)getTheoryProofEngine());
   return currentPM()->d_fullProof;
 }
 
-SatProof* ProofManager::getSatProof() {
+CoreSatProof* ProofManager::getSatProof() {
   Assert (currentPM()->d_satProof);
   return currentPM()->d_satProof;
 }
@@ -117,7 +117,7 @@ ArrayProof* ProofManager::getArrayProof() {
 void ProofManager::initSatProof(Minisat::Solver* solver) {
   Assert (currentPM()->d_satProof == NULL);
   Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_satProof = new LFSCSatProof(solver);
+  currentPM()->d_satProof = new LFSCCoreSatProof(solver);
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
@@ -169,7 +169,7 @@ void ProofManager::setLogic(const std::string& logic_string) {
 }
 
 
-LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory)
+LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCCoreSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory)
   : d_satProof(sat)
   , d_cnfProof(cnf)
   , d_theoryProof(theory)

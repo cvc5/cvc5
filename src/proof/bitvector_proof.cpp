@@ -30,7 +30,7 @@ std::string toLFSCBVKind(Kind kind);
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
-  , d_resolutionProof()
+    //  , d_resolutionProof()
   , d_cnfProof()
 {}
 

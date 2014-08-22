@@ -22,9 +22,9 @@
 #include "smt/options.h"
 
 #ifdef CVC4_PROOF
-#  define PROOF(x) if(options::proof()) { x; }
-#  define NULLPROOF(x) (options::proof()) ? x : NULL
-#  define PROOF_ON() options::proof()
+#  define PROOF(x) if(CVC4::options::proof()) { x; }
+#  define NULLPROOF(x) (CVC4::options::proof()) ? x : NULL
+#  define PROOF_ON() CVC4::options::proof()
 #else /* CVC4_PROOF */
 #  define PROOF(x)
 #  define NULLPROOF(x) NULL

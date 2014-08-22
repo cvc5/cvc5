@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "util/output.h"
 #include "expr/command.h"
 #include "proof/proof_manager.h"
-#include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 
 using namespace Minisat;
 using namespace CVC4;
@@ -39,7 +39,6 @@ using namespace CVC4::prop;
 
 //=================================================================================================
 // Options:
-
 
 static const char* _cat = "CORE";
 
@@ -54,6 +53,11 @@ static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby r
 static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 25, IntRange(1, INT32_MAX));
 static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 3, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
+
+//=================================================================================================
+// Proof declarations
+CRef Solver::TCRef_Undef = CRef_Undef;
+CRef Solver::TCRef_Lazy = CRef_Lazy;
 
 
 class ScopedBool {
@@ -595,7 +599,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
 
-            if (!seen[var(q)] && level(var(q)) > 0){
+            if (!seen[var(q)] && level(var(q)) > 0) {
                 varBumpActivity(var(q));
                 seen[var(q)] = 1;
                 if (level(var(q)) >= decisionLevel())
@@ -1702,4 +1706,26 @@ CRef Solver::updateLemmas() {
   Debug("minisat::lemmas") << "Solver::updateLemmas() end" << std::endl;
 
   return conflict;
+}
+
+void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy)
+{
+ 
+  // FIXME what is this CRef_lazy
+  if (cr == CRef_Lazy) return;
+  
+  CRef old = cr;  // save the old reference
+  Clause& c = operator[](cr);
+  if (c.reloced()) { cr = c.relocation(); return; }
+  
+  cr = to.alloc(c.level(), c, c.removable());
+  c.relocate(cr);
+  if (proxy) {
+    proxy->updateCRef(old, cr); 
+  }
+  // Copy extra data-fields: 
+  // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
+  to[cr].mark(c.mark());
+  if (to[cr].removable())         to[cr].activity() = c.activity();
+  else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }

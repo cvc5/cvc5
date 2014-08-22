@@ -82,7 +82,7 @@ libcvc4_la_SOURCES = \
 	printer/options_handlers.h \
 	proof/proof.h \
 	proof/sat_proof.h \
-	proof/sat_proof.cpp \
+	proof/sat_proof_implementation.h \
 	proof/cnf_proof.h \
 	proof/cnf_proof.cpp \
 	proof/theory_proof.h \

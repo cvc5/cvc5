@@ -30,8 +30,13 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "util/exception.h"
 #include "theory/bv/options.h"
 #include "theory/interrupted.h"
-using namespace BVMinisat;
 
+#include "proof/proof_manager.h"
+#include "proof/bitvector_proof.h"
+#include "proof/sat_proof.h"
+
+using namespace BVMinisat;
+using namespace CVC4;
 namespace BVMinisat {
 
 #define OUTPUT_TAG "bvminisat: [a=" << assumptions.size() << ",l=" << decisionLevel() << "] "
@@ -150,6 +155,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , propagation_budget (-1)
   , asynch_interrupt   (false)
 {
+  // PROOF(ProofManager::getBitVectorProof()->initSatProof(this);)
   // Create the constant variables
   varTrue = newVar(true, false);
   varFalse = newVar(false, false);
@@ -157,6 +163,8 @@ Solver::Solver(CVC4::context::Context* c) :
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
+  // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
+  // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
 }
 
 
@@ -212,16 +220,19 @@ bool Solver::addClause_(vec<Lit>& ps)
 
     clause_added = true;
 
+    // TODO // PROOF unit conflict?
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
         uncheckedEnqueue(ps[0]);
+        // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
         return ok = (propagate() == CRef_Undef);
     } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
-    }
+        // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+     }
     return ok; 
 }
 
@@ -236,6 +247,8 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
+    // PROOF( ProofManager::getBitVectorProof()->getSatProof()->markDeleted(cr); );
+    
     assert(c.size() > 1);
     
     if (strict){
@@ -341,6 +354,9 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
     int index   = trail.size() - 1;
 
     bool done = false;
+    
+    // PROOF( ProofManager::getBitVectorProof()->getSatProof()->startResChain(confl); )
+
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
         Clause& c = ca[confl];
@@ -351,13 +367,17 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         for (int j = (p == lit_Undef) ? 0 : 1; j < c.size(); j++){
             Lit q = c[j];
 
-            if (!seen[var(q)] && level(var(q)) > 0){
+            if (!seen[var(q)] && level(var(q)) > 0) {
                 varBumpActivity(var(q));
                 seen[var(q)] = 1;
                 if (level(var(q)) >= decisionLevel())
                     pathC++;
                 else
                     out_learnt.push(q);
+            }
+            
+            if (level(var(q)) == 0) {
+              // PROOF( ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(q); );
             }
         }
         
@@ -367,6 +387,10 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         confl = reason(var(p));
         seen[var(p)] = 0;
         pathC--;
+
+        if ( pathC > 0 && confl != CRef_Undef ) {
+          // PROOF( ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(p, confl, sign(p)););
+        }
 
         switch (uip) {
         case UIP_FIRST:

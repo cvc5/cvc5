@@ -27,7 +27,11 @@
 #include <ext/hash_set>
 #include <sstream>
 #include "expr/expr.h"
-#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
+
+namespace BVMinisat {
+class Solver; 
+}
 
 namespace CVC4 {
 
@@ -37,17 +41,21 @@ class TheoryBV;
 }
 }
 
+template <class Solver> class SatProof;
+
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 
 class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations; 
-  SatProof* d_resolutionProof;
+  // SatProof* d_resolutionProof;
   CnfProof* d_cnfProof; 
   // TODO:  add proofs for all subtheories
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
+  void initSatProof(::BVMinisat::Solver* solver) {}
+  //  SatProof* getSatProof(); 
   virtual void registerTerm(Expr term);
   virtual void printTerm(Expr term, std::ostream& os) = 0;
   virtual void printSort(Type type, std::ostream& os) = 0; 

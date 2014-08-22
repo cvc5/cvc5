@@ -170,18 +170,17 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
 
 } /* Minisat */
 
-
-
-namespace CVC4 {
-class ProofProxyAbstract {
-public:
-  virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
-};
+namespace Minisat{
+class Solver;
 }
 
-
+namespace CVC4 {
+template <class Solver> class ProofProxy;
+typedef ProofProxy<Minisat::Solver> CoreProofProxy;
+} 
 
 namespace Minisat{
+
 
 //=================================================================================================
 // Clause -- a simple class for representing a clause:
@@ -301,27 +300,8 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-  void reloc(CRef& cr, ClauseAllocator& to, CVC4::ProofProxyAbstract* proxy = NULL)
-    {
-
-        // FIXME what is this CRef_lazy
-        if (cr == CRef_Lazy) return;
-
-        CRef old = cr;  // save the old reference
-        Clause& c = operator[](cr);
-        if (c.reloced()) { cr = c.relocation(); return; }
-        
-        cr = to.alloc(c.level(), c, c.removable());
-        c.relocate(cr);
-        if (proxy) {
-          proxy->updateCRef(old, cr); 
-        }
-        // Copy extra data-fields: 
-        // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
-        to[cr].mark(c.mark());
-        if (to[cr].removable())         to[cr].activity() = c.activity();
-        else if (to[cr].has_extra()) to[cr].calcAbstraction();
-    }
+  void reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy = NULL);
+  // moved to Solver.cc
 };
 
 

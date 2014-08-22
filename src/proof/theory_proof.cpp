@@ -22,6 +22,7 @@
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/cnf_proof.h"
+#include "prop/sat_solver_types.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
