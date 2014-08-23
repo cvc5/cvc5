@@ -718,7 +718,12 @@ TNode NodeManager::getPolymorphicFunction(TNode n){
 */
 bool NodeManager::matchPolymorphicType(TypeNode t1,
                                       TypeNode t2,
-                                      std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst){
+                                      std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst)
+  throw(TypeCheckingExceptionPrivate){
+
+  if(isPolymorphicTypeVarSchema(t2)){
+    throw TypeCheckingExceptionPrivate(Node::null(),"No inference is done, you should add an (as term ty) for specifying the return type.");
+  };
 
   std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>::const_iterator i = subst.find(t1);
   if(i != subst.end()) {
@@ -773,11 +778,19 @@ bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
 }
 
 TNode NodeManager::instanciatePolymorphicFunction(TNode n,
-                                                 TypeNode ty)
+                                                 TypeNode ty, bool check)
   throw(TypeCheckingExceptionPrivate){
   Assert ( n.getType(false).isFunction() );
   Assert ( ty.isFunction() );
   Assert ( isPolymorphicFunction(n) );
+  Assert ( n.getType(false).getNumChildren() == ty.getNumChildren());
+
+  if (check){
+    std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> subst;
+    if(!(matchPolymorphicType(n.getType(false),ty,subst))){
+      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on these arguments and return value");
+    }
+  }
 
   n = d_polymorphicFunction[n];
 
@@ -846,7 +859,7 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
 
   for(size_t i = 0, len = sig.getNumChildren() - 1; i < len; ++i) {
     if(!(matchPolymorphicType(sig[i],tys[i],subst))) {
-      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on this argument");
+      throw TypeCheckingExceptionPrivate(n, "cannot apply this polymorphic function on these arguments");
     }
   }
 
@@ -854,7 +867,7 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
   registerTypeNode(range);
   sig = mkFunctionType(tys,range);
 
-  return instanciatePolymorphicFunction(n,sig);
+  return instanciatePolymorphicFunction(n,sig,false);
 }
 
 bool NodeManager::isPolymorphicTypeVar(TypeNode tv){

@@ -983,6 +983,10 @@ Expr ExprManager::getPolymorphicFunction(Expr n){
 Expr ExprManager::instanciatePolymorphicFunction(Expr n, FunctionType ty)
   throw(TypeCheckingException) {
   NodeManagerScope nms(d_nodeManager);
+  if (FunctionType(n.getType()).getArity() != ty.getArity()){
+    throw TypeCheckingException(n,"application arity mismatch");
+  };
+
   try {
     return Expr(this,new Node (d_nodeManager->instanciatePolymorphicFunction(n.getNode(),*ty.d_typeNode)));
   } catch (const TypeCheckingExceptionPrivate& e) {
@@ -993,7 +997,10 @@ Expr ExprManager::instanciatePolymorphicFunction(Expr n, FunctionType ty)
 Expr ExprManager::instanciatePolymorphicFunction(Expr n, std::vector<Type> tys)
   throw(TypeCheckingException) {
   NodeManagerScope nms(d_nodeManager);
-  Debug("parser") << "em tys " << tys[0] << std::endl;
+  if (FunctionType(n.getType()).getArity() != tys.size()){
+    throw TypeCheckingException(n,"arity application mismatch");
+  };
+
   std::vector<TypeNode> tys2; tys2.reserve(tys.size());
   for(size_t i=0, len = tys.size(); i < len; ++i){
     tys2.push_back(*(tys[i]).d_typeNode);

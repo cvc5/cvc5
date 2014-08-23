@@ -920,7 +920,7 @@ public:
   /**
    * Returns the instanciation of a polymorphic function with the given signature
    */
-  TNode instanciatePolymorphicFunction(TNode n, TypeNode ty)
+  TNode instanciatePolymorphicFunction(TNode n, TypeNode ty, bool check = true)
     throw(TypeCheckingExceptionPrivate);
 
   /**
@@ -935,9 +935,11 @@ public:
    * instanciated the given polymorphic type to the ground type given
    * Return false if a type variable is already associated with an incompatible type;
    * in that case the given subtitution is already modified
+   * Throw TypeCheckingExceptionPrivate if t2 contains schema variable
    */
   bool matchPolymorphicType(TypeNode t1, TypeNode t2,
-                           std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst);
+                           std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& subst)
+    throw(TypeCheckingExceptionPrivate);
 
 
   /**

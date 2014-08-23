@@ -21,7 +21,14 @@ MAKEFLAGS = -k
 TESTS =	\
 	parsing.smt2 \
 	parsing2.smt2 \
-	parsing3.smt2
+	parsing3.smt2 \
+	typing_bad1.smt2 \
+	typing_bad2.smt2 \
+	typing_bad3.smt2 \
+	typing_bad4.smt2 \
+	typing_bad5.smt2 \
+	typing_bad6.smt2 \
+	typing_bad7.smt2
 
 EXTRA_DIST = $(TESTS)
 
