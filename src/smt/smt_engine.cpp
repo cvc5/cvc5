@@ -3968,7 +3968,7 @@ UnsatCore SmtEngine::getUnsatCore() throw(ModalException) {
     throw ModalException("Cannot get an unsat core unless immediately preceded by UNSAT/VALID response.");
   }
 
-  delete d_proofManager->getProof(this);// just to trigger core creation
+  d_proofManager->getProof(this);// just to trigger core creation
   return UnsatCore(d_proofManager->begin_unsat_core(), d_proofManager->end_unsat_core());
 #else /* CVC4_PROOF */
   throw ModalException("This build of CVC4 doesn't have proof support (required for unsat cores).");

@@ -134,6 +134,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     } else if( d_options[options::dumpInstantiations] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetInstantiationsCommand();
+    } else if( d_options[options::dumpUnsatCores] &&
+               res.asSatisfiabilityResult() == Result::UNSAT ) {
+      g = new GetUnsatCoreCommand();
     }
     if( g ){
       //set no time limit during dumping if applicable
