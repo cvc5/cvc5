@@ -357,7 +357,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
 
     bool status = portfolioReturn.second;
 
-    // dump the model/proof if option is set
+    // dump the model/proof/unsat core if option is set
     if(status) {
       if( d_options[options::produceModels] &&
           d_options[options::dumpModels] &&

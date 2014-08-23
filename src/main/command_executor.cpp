@@ -119,9 +119,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_lastStatistics = ossCurStats.str();
   }
 
-  // dump the model/proof if option is set
+  // dump the model/proof/unsat core if option is set
   if(status) {
-    Command * g = NULL;
+    Command* g = NULL;
     if( d_options[options::produceModels] &&
         d_options[options::dumpModels] &&
         ( res.asSatisfiabilityResult() == Result::SAT ||
@@ -138,8 +138,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
                res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetUnsatCoreCommand();
     }
-    if( g ){
-      //set no time limit during dumping if applicable
+    if(g != NULL) {
+      // set no time limit during dumping if applicable
       if( d_options[options::forceNoLimitCpuWhileDump] ){
         setNoLimitCPU();
       }

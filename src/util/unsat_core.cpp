@@ -16,6 +16,8 @@
 
 #include "util/unsat_core.h"
 #include "expr/command.h"
+#include "smt/smt_engine_scope.h"
+#include "printer/printer.h"
 
 namespace CVC4 {
 
@@ -34,7 +36,9 @@ void UnsatCore::toStream(std::ostream& out) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
-  core.toStream(out);
+  smt::SmtScope smts(core.d_smt);
+  Expr::dag::Scope scope(out, false);
+  Printer::getPrinter(options::outputLanguage())->toStream(out, core);
   return out;
 }
 

@@ -771,6 +771,13 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
+void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+  out << "(" << endl;
+  this->Printer::toStream(out, core);
+  out << ")" << endl;
+}
+
+
 void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {
   out << "(model" << endl;
   this->Printer::toStream(out, m);

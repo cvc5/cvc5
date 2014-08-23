@@ -153,4 +153,11 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
   }
 }/* Printer::toStream(Model) */
 
+void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+  for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
+    toStream(out, Node::fromExpr(*i), -1, false, -1);
+    out << std::endl;
+  }
+}/* Printer::toStream(UnsatCore) */
+
 }/* CVC4 namespace */

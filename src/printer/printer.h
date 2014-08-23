@@ -103,6 +103,9 @@ public:
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const Model& m) const throw();
 
+  /** Write an UnsatCore out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const UnsatCore& core) const throw();
+
 };/* class Printer */
 
 /**

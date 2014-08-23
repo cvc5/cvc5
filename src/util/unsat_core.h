@@ -26,16 +26,29 @@
 
 namespace CVC4 {
 
+class SmtEngine;
+class UnsatCore;
+
+std::ostream& operator<<(std::ostream& out, const UnsatCore& core) CVC4_PUBLIC;
+
 class CVC4_PUBLIC UnsatCore {
+  friend std::ostream& operator<<(std::ostream&, const UnsatCore&);
+
+  /** The SmtEngine we're associated with */
+  SmtEngine* d_smt;
+
   std::vector<Expr> d_core;
 
 public:
-  UnsatCore() {}
+  UnsatCore() : d_smt(NULL) {}
 
   template <class T>
-  UnsatCore(T begin, T end) : d_core(begin, end) {}
+  UnsatCore(SmtEngine* smt, T begin, T end) : d_smt(smt), d_core(begin, end) {}
 
   ~UnsatCore() {}
+
+  /** get the smt engine that this unsat core is hooked up to */
+  SmtEngine* getSmtEngine() { return d_smt; }
 
   typedef std::vector<Expr>::const_iterator iterator;
   typedef std::vector<Expr>::const_iterator const_iterator;
@@ -46,8 +59,6 @@ public:
   void toStream(std::ostream& out) const;
 
 };/* class UnsatCore */
-
-std::ostream& operator<<(std::ostream& out, const UnsatCore& core) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
