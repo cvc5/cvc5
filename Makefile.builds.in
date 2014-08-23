@@ -64,39 +64,39 @@ all:
 	$(AM_V_mkdir) $(CURRENT_BUILD)/bin
 	$(AM_V_mkdir) $(CURRENT_BUILD)/lib
 #	symlink libcvc4, libcvc4parser
-	cd $(CURRENT_BUILD)/lib && \
+	$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
 	ln -sf ../src/libcvc4.* \
 		../src/parser/libcvc4parser.* \
 		.
-	-cd $(CURRENT_BUILD)/lib && \
+	-$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/.libs && \
 	ln -sf ../src/.libs/libcvc4.* \
 		.
-	-cd $(CURRENT_BUILD)/lib && \
+	-$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/parser/.libs && \
 	ln -sf ../src/parser/.libs/libcvc4parser.* \
 		.
 ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
 #	symlink libcvc4compat
-	cd $(CURRENT_BUILD)/lib && \
+	$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
 	ln -sf ../src/compat/libcvc4compat.* \
 		.
-	-cd $(CURRENT_BUILD)/lib && \
+	-$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
 	test -d ../src/compat/.libs && \
 	ln -sf ../src/compat/.libs/libcvc4compat.* \
 		.
 endif
 #	symlink the binaries
-	cd $(CURRENT_BUILD)/bin && \
+	$(AM_V_at)cd $(CURRENT_BUILD)/bin && \
 	for binary in $(CVC4_BINARIES); do \
 		ln -sf ../src/main/$$binary \
 			. ; \
 	done
 #	set up builds/doc and builds/examples
-	rm -f bin; ln -sf $(CURRENT_BUILD)/bin bin
-	rm -f lib; ln -sf $(CURRENT_BUILD)/lib lib
-	rm -f doc; ln -sf $(CURRENT_BUILD)/doc doc
-	rm -f examples; ln -sf $(CURRENT_BUILD)/examples examples
+	$(AM_V_at)rm -f bin; ln -sf $(CURRENT_BUILD)/bin bin
+	$(AM_V_at)rm -f lib; ln -sf $(CURRENT_BUILD)/lib lib
+	$(AM_V_at)rm -f doc; ln -sf $(CURRENT_BUILD)/doc doc
+	$(AM_V_at)rm -f examples; ln -sf $(CURRENT_BUILD)/examples examples
 
 # The descent into "src" with target "check" is to build check
 # prerequisites (e.g. CHECK_PROGRAMS, CHECK_LTLIBRARIES, ...).
