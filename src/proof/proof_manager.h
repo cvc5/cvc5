@@ -29,6 +29,11 @@ namespace Minisat {
   class Solver;
 }/* Minisat namespace */
 
+namespace BVMinisat {
+  class Solver;
+}/* BVMinisat namespace */
+
+
 namespace CVC4 {
 
 namespace prop {
@@ -42,6 +47,7 @@ typedef int ClauseId;
 class Proof;
 template <class Solver> class TSatProof; 
 typedef TSatProof< ::Minisat::Solver> CoreSatProof;
+//typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
 class CnfProof;
 class TheoryProofEngine;
 class UFProof;
@@ -50,13 +56,15 @@ class BitVectorProof;
 
 template <class Solver> class LFSCSatProof; 
 typedef LFSCSatProof< ::Minisat::Solver> LFSCCoreSatProof;
+//typedef LFSCSatProof< ::BVMinisat::Solver> LFSCBVSatProof;
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
 class LFSCUFProof;
 class LFSCBitVectorProof;
 
 template <class Solver> class ProofProxy;
-typedef ProofProxy< ::Minisat::Solver> CoreProofProxy; 
+typedef ProofProxy< ::Minisat::Solver> CoreProofProxy;
+typedef ProofProxy< ::BVMinisat::Solver> BVProofProxy; 
 
 namespace prop {
   typedef uint64_t SatVariable;

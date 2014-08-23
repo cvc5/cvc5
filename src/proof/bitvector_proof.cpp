@@ -38,6 +38,11 @@ void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
   d_resolutionProof = new LFSCBVSatProof(solver);
 }
 
+BVSatProof* BitVectorProof::getSatProof() {
+  Assert (d_resolutionProof != NULL);
+  return d_resolutionProof;
+}
+
 void BitVectorProof::registerTerm(Expr term) {
   if (term.getKind() == kind::VARIABLE ||
       term.getKind() == kind::SKOLEM) {

@@ -18,6 +18,7 @@
 
 #include "prop/bvminisat/bvminisat.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
+#include "proof/sat_proof.h"
 
 using namespace CVC4;
 using namespace prop;
@@ -205,8 +206,8 @@ void BVMinisatSatSolver::toMinisatClause(SatClause& clause,
   Assert(clause.size() == (unsigned)minisat_clause.size());
 }
 
-void BVMinisatSatSolver::toSatClause(BVMinisat::vec<BVMinisat::Lit>& clause,
-                                       SatClause& sat_clause) {
+void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
+                                     SatClause& sat_clause) {
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
   }
@@ -279,4 +280,18 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
   d_statMaxLiterals.setData(minisat->max_literals);
   d_statTotLiterals.setData(minisat->tot_literals);
   d_statEliminatedVars.setData(minisat->eliminated_vars);
+}
+
+namespace CVC4 {
+template<>
+prop::SatLiteral toSatLiteral< ::BVMinisat::Solver>(BVMinisat::Solver::TLit lit) {
+  return prop::BVMinisatSatSolver::toSatLiteral(lit);
+} 
+
+template<>
+void toSatClause< ::BVMinisat::Solver> (const BVMinisat::Solver::TClause& minisat_cl,
+                                        prop::SatClause& sat_cl) {
+  prop::BVMinisatSatSolver::toSatClause(minisat_cl, sat_cl);
+}
+
 }

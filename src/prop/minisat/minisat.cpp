@@ -21,6 +21,7 @@
 #include "prop/options.h"
 #include "smt/options.h"
 #include "decision/options.h"
+#include "proof/sat_proof.h"
 
 using namespace CVC4;
 using namespace CVC4::prop;
@@ -92,14 +93,6 @@ void MinisatSatSolver::toMinisatClause(SatClause& clause,
     minisat_clause.push(toMinisatLit(clause[i]));
   }
   Assert(clause.size() == (unsigned)minisat_clause.size());
-}
-
-void MinisatSatSolver::toSatClause(Minisat::vec<Minisat::Lit>& clause,
-                                       SatClause& sat_clause) {
-  for (int i = 0; i < clause.size(); ++i) {
-    sat_clause.push_back(toSatLiteral(clause[i]));
-  }
-  Assert((unsigned)clause.size() == sat_clause.size());
 }
 
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
@@ -276,4 +269,18 @@ void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
   d_statLearntsLiterals.setData(d_minisat->learnts_literals);
   d_statMaxLiterals.setData(d_minisat->max_literals);
   d_statTotLiterals.setData(d_minisat->tot_literals);
+}
+
+namespace CVC4 {
+template<>
+prop::SatLiteral toSatLiteral< ::Minisat::Solver>(Minisat::Solver::TLit lit) {
+  return prop::MinisatSatSolver::toSatLiteral(lit);
+} 
+
+template<>
+void toSatClause< ::Minisat::Solver> (const Minisat::Solver::TClause& minisat_cl,
+                                      prop::SatClause& sat_cl) {
+  prop::MinisatSatSolver::toSatClause(minisat_cl, sat_cl);
+}
+
 }

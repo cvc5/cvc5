@@ -62,7 +62,9 @@ public:
   BVSatProof* getSatProof(); 
   virtual void registerTerm(Expr term);
   virtual void printTerm(Expr term, std::ostream& os) = 0;
-  virtual void printSort(Type type, std::ostream& os) = 0; 
+  virtual void printSort(Type type, std::ostream& os) = 0;
+  // TODO ask for all off the lemmas at once, to be able to compute the
+  // relevant learnt clauses that we need and which we will print upfront
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0; 

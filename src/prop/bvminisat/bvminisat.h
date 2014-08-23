@@ -43,7 +43,9 @@ private:
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) {
       SatClause satClause;
-      toSatClause(clause, satClause);
+      for (int i = 0; i < clause.size(); ++i) {
+        satClause.push_back(toSatLiteral(clause[i])); 
+      }
       d_notify->notify(satClause);
     }
 
@@ -112,7 +114,7 @@ public:
   static SatValue toSatLiteralValue(BVMinisat::lbool res);
 
   static void  toMinisatClause(SatClause& clause, BVMinisat::vec<BVMinisat::Lit>& minisat_clause);
-  static void  toSatClause    (BVMinisat::vec<BVMinisat::Lit>& clause, SatClause& sat_clause);
+  static void  toSatClause    (const BVMinisat::Clause& clause, SatClause& sat_clause);
   void addMarkerLiteral(SatLiteral lit);
 
   void explain(SatLiteral lit, std::vector<SatLiteral>& explanation);

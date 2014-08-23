@@ -641,7 +641,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         uint32_t abstract_level = 0;
         for (i = 1; i < out_learnt.size(); i++)
             abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
-        
+
         for (i = j = 1; i < out_learnt.size(); i++) {
             if (reason(var(out_learnt[i])) == CRef_Undef) {
                 out_learnt[j++] = out_learnt[i];

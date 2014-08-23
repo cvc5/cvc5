@@ -217,7 +217,6 @@ public:
   void storeUnitResolution(typename Solver::TLit lit);
 
   ProofProxy<Solver>* getProxy() {return d_proxy; }
-
   /**
      Constructs the SAT proof identifying the needed lemmas
    */
@@ -261,6 +260,23 @@ public:
   {}
   virtual void printResolutions(std::ostream& out, std::ostream& paren);
 };/* class LFSCSatProof */
+
+
+
+template<class Solver>
+prop::SatLiteral toSatLiteral(typename Solver::TLit lit); 
+
+
+/** 
+* Convert from minisat clause to SatClause
+* 
+* @param minisat_cl 
+* @param sat_cl 
+*/
+template<class Solver>
+void toSatClause(const typename Solver::TClause& minisat_cl,
+                 prop::SatClause& sat_cl);
+
 
 }/* CVC4 namespace */
 

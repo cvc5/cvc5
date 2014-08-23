@@ -34,6 +34,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "proof/proof_manager.h"
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof.h"
+#include "proof/sat_proof_implementation.h"
 
 using namespace BVMinisat;
 using namespace CVC4;
@@ -88,6 +89,12 @@ static BoolOption    opt_luby_restart      (_cat, "luby",        "Use the Luby r
 static IntOption     opt_restart_first     (_cat, "rfirst",      "The base restart interval", 25, IntRange(1, INT32_MAX));
 static DoubleOption  opt_restart_inc       (_cat, "rinc",        "Restart interval increase factor", 3, DoubleRange(1, false, HUGE_VAL, false));
 static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction of wasted memory allowed before a garbage collection is triggered",  0.20, DoubleRange(0, false, HUGE_VAL, false));
+
+//=================================================================================================
+// Proof declarations
+CRef Solver::TCRef_Undef = CRef_Undef;
+CRef Solver::TCRef_Lazy = CRef_Undef - 1; // no real lazy ref here
+
 
 //=================================================================================================
 // Constructor/Destructor:
@@ -155,7 +162,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , propagation_budget (-1)
   , asynch_interrupt   (false)
 {
-  // PROOF(ProofManager::getBitVectorProof()->initSatProof(this);)
+  PROOF(ProofManager::getBitVectorProof()->initSatProof(this);)
   // Create the constant variables
   varTrue = newVar(true, false);
   varFalse = newVar(false, false);
@@ -163,8 +170,8 @@ Solver::Solver(CVC4::context::Context* c) :
   // Assert the constants
   uncheckedEnqueue(mkLit(varTrue, false));
   uncheckedEnqueue(mkLit(varFalse, true));
-  // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
-  // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
+  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varTrue, false), INPUT); )
+  PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(mkLit(varFalse, true), INPUT); )
 }
 
 
@@ -225,13 +232,13 @@ bool Solver::addClause_(vec<Lit>& ps)
         return ok = false;
     else if (ps.size() == 1){
         uncheckedEnqueue(ps[0]);
-        // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
         return ok = (propagate() == CRef_Undef);
     } else {
         CRef cr = ca.alloc(ps, false);
         clauses.push(cr);
         attachClause(cr);
-        // PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
+        PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerClause(cr, INPUT););
      }
     return ok; 
 }
@@ -247,7 +254,7 @@ void Solver::attachClause(CRef cr) {
 
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
-    // PROOF( ProofManager::getBitVectorProof()->getSatProof()->markDeleted(cr); );
+    PROOF( ProofManager::getBitVectorProof()->getSatProof()->markDeleted(cr); );
     
     assert(c.size() > 1);
     
@@ -355,7 +362,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
 
     bool done = false;
     
-    // PROOF( ProofManager::getBitVectorProof()->getSatProof()->startResChain(confl); )
+    PROOF( ProofManager::getBitVectorProof()->getSatProof()->startResChain(confl); )
 
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
@@ -377,7 +384,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
             }
             
             if (level(var(q)) == 0) {
-              // PROOF( ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(q); );
+              PROOF( ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(q); );
             }
         }
         
@@ -389,7 +396,7 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         pathC--;
 
         if ( pathC > 0 && confl != CRef_Undef ) {
-          // PROOF( ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(p, confl, sign(p)););
+          PROOF( ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(p, confl, sign(p)););
         }
 
         switch (uip) {
@@ -415,11 +422,22 @@ void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip
         for (i = 1; i < out_learnt.size(); i++)
             abstract_level |= abstractLevel(var(out_learnt[i])); // (maintain an abstraction of levels involved in conflict)
 
-        for (i = j = 1; i < out_learnt.size(); i++)
-            if (reason(var(out_learnt[i])) == CRef_Undef || !litRedundant(out_learnt[i], abstract_level))
+        for (i = j = 1; i < out_learnt.size(); i++) {
+            if (reason(var(out_learnt[i])) == CRef_Undef) {
                 out_learnt[j++] = out_learnt[i];
+            } else {
+              // Check if the literal is redundant
+              if (!litRedundant(out_learnt[i], abstract_level)) {
+                // Literal is not redundant
+                out_learnt[j++] = out_learnt[i];
+              } else {
+                PROOF( ProofManager::getBitVectorProof()->getSatProof()->storeLitRedundant(out_learnt[i]); )
+              }
+            }
+        }
         
     }else if (ccmin_mode == 1){
+        Unreachable();
         for (i = j = 1; i < out_learnt.size(); i++){
             Var x = var(out_learnt[i]);
 
@@ -475,10 +493,13 @@ bool Solver::litRedundant(Lit p, uint32_t abstract_levels)
     analyze_stack.clear(); analyze_stack.push(p);
     int top = analyze_toclear.size();
     while (analyze_stack.size() > 0){
-        assert(reason(var(analyze_stack.last())) != CRef_Undef);
-        Clause& c = ca[reason(var(analyze_stack.last()))]; analyze_stack.pop();
+        CRef c_reason = reason(var(analyze_stack.last()));
+        assert(c_reason != CRef_Undef);
+        Clause& c = ca[c_reason];
+        int c_size = c.size();
+        analyze_stack.pop();
 
-        for (int i = 1; i < c.size(); i++){
+        for (int i = 1; i < c_size; i++){
             Lit p  = c[i];
             if (!seen[var(p)] && level(var(p)) > 0){
                 if (reason(var(p)) != CRef_Undef && (abstractLevel(var(p)) & abstract_levels) != 0){
@@ -571,6 +592,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
               out_conflict.push(~trail[i]);
             } else {
               Clause& c = ca[reason(x)];
+              // TODO add resolution step here?
               for (int j = 1; j < c.size(); j++)
                 if (level(var(c[j])) > 0)
                   seen[var(c[j])] = 1;
@@ -611,9 +633,11 @@ lbool Solver::propagateAssumptions() {
 }
 
 lbool Solver::assertAssumption(Lit p, bool propagate) {
+  // TODO need to somehow mark the assumption as unit in the current context?
+  // it's not always unit though, but this would be useful for debugging
   
   // assert(marker[var(p)] == 1);
-
+  
   if (decisionLevel() > assumptions.size()) {
     cancelUntil(assumptions.size());
   }
@@ -753,8 +777,13 @@ void Solver::removeSatisfied(vec<CRef>& cs)
     int i, j;
     for (i = j = 0; i < cs.size(); i++){
         Clause& c = ca[cs[i]];
-        if (satisfied(c))
+        if (satisfied(c)) {
+          if (locked(c)) {
+            // store a resolution of the literal c propagated
+            PROOF( ProofManager::getBitVectorProof()->getSatProof()->storeUnitResolution(c[0]); )
+          }
             removeClause(cs[i]);
+        }
         else
             cs[j++] = cs[i];
     }
@@ -830,7 +859,12 @@ lbool Solver::search(int nof_conflicts, UIP uip)
         if (confl != CRef_Undef){
             // CONFLICT
             conflicts++; conflictC++;
-            if (decisionLevel() == 0) return l_False;
+
+            if (decisionLevel() == 0) {
+              // can this happen for bv?
+              PROOF( ProofManager::getBitVectorProof()->getSatProof()->finalizeProof(confl););
+              return l_False;
+            }
 
             learnt_clause.clear();
             analyze(confl, learnt_clause, backtrack_level, uip);
@@ -844,14 +878,23 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               learnts.push(cr);
               attachClause(cr);
               claBumpActivity(ca[cr]);
+              PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(cr); );
             }
-
+            
+            if (learnt_clause.size() == 1) {
+              // learning a unit clause
+              PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(learnt_clause[0]););
+            }
+            
             //  if the uip was an assumption we are unsat
             if (level(var(p)) <= assumptions.size()) {
               for (int i = 0; i < learnt_clause.size(); ++i) {
                 assert (level(var(learnt_clause[i])) <= decisionLevel()); 
                 seen[var(learnt_clause[i])] = 1;
               }
+              // TODO : proof for analyzeFinal
+              // TODO start resolution chain with learned clause because
+              // it is the one propagating p 
               analyzeFinal(p, conflict);
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
@@ -866,6 +909,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 CRef new_confl = propagate();
                 if (new_confl != CRef_Undef) {
                   // we have a conflict we now need to explain it
+                  // TODO: proof for analyzeFinal2
                   analyzeFinal2(p, new_confl, conflict); 
                   return l_False;
                 }
@@ -935,6 +979,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     newDecisionLevel();
                 }else if (value(p) == l_False){
                     marker[var(p)] = 2;
+                    // TODO Start resolution chain with reason for var(p)?
                     analyzeFinal(~p, conflict);
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
@@ -1194,7 +1239,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-                ca.reloc(ws[j].cref, to);
+              ca.reloc(ws[j].cref, to, NULLPROOF( ProofManager::getBitVectorProof()->getSatProof()->getProxy() ));
         }
 
     // All reasons:
@@ -1203,18 +1248,20 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to);
+            ca.reloc(vardata[v].reason, to, NULLPROOF( ProofManager::getBitVectorProof()->getSatProof()->getProxy() ));
     }
 
     // All learnt:
     //
     for (int i = 0; i < learnts.size(); i++)
-        ca.reloc(learnts[i], to);
+        ca.reloc(learnts[i], to, NULLPROOF( ProofManager::getBitVectorProof()->getSatProof()->getProxy() ));
 
     // All original:
     //
     for (int i = 0; i < clauses.size(); i++)
-        ca.reloc(clauses[i], to);
+        ca.reloc(clauses[i], to, NULLPROOF( ProofManager::getBitVectorProof()->getSatProof()->getProxy() ));
+	
+    PROOF( ProofManager::getBitVectorProof()->getSatProof()->finishUpdateCRef(); );
 }
 
 
@@ -1229,4 +1276,24 @@ void Solver::garbageCollect()
         printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n", 
                ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
     to.moveTo(ca);
+}
+
+void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* proxy)
+{
+  CRef old = cr;  // save the old reference
+
+  Clause& c = operator[](cr);
+  if (c.reloced()) { cr = c.relocation(); return; }
+  
+  cr = to.alloc(c, c.learnt());
+  c.relocate(cr);
+  if (proxy) {
+    proxy->updateCRef(old, cr); 
+  }
+  
+  // Copy extra data-fields: 
+  // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
+  to[cr].mark(c.mark());
+  if (to[cr].learnt())         to[cr].activity() = c.activity();
+  else if (to[cr].has_extra()) to[cr].calcAbstraction();
 }
