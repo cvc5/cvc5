@@ -67,7 +67,7 @@ public:
     return d_nextVar++;
   }
 
-  void addClause(SatClause& c, bool lemma) {
+  void addClause(SatClause& c, bool lemma, uint64_t) {
     d_addClauseCalled = true;
   }
 
@@ -182,7 +182,7 @@ public:
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::AND, a, b, c), false, false);
+    d_cnfStream->convertAndAssert(d_nodeManager->mkNode(kind::AND, a, b, c), false, false, RULE_INVALID, Node::null());
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -199,19 +199,19 @@ public:
                                                         d_nodeManager->mkNode(kind::IFF,
                                                                               d_nodeManager->mkNode(kind::OR, c, d),
                                                                               d_nodeManager->mkNode(kind::NOT,
-                                                                                                    d_nodeManager->mkNode(kind::XOR, e, f)))), false, false );
+                                                                                                    d_nodeManager->mkNode(kind::XOR, e, f)))), false, false, RULE_INVALID, Node::null());
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
   void testTrue() {
     NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(true), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
   void testFalse() {
     NodeManagerScope nms(d_nodeManager);
-    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(false), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkConst(false), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -219,7 +219,7 @@ public:
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::IFF, a, b), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::IFF, a, b), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -227,7 +227,7 @@ public:
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::IMPLIES, a, b), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::IMPLIES, a, b), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -244,14 +244,14 @@ public:
   //              d_nodeManager->mkVar(d_nodeManager->integerType())
   //          ),
   //          d_nodeManager->mkVar(d_nodeManager->integerType())
-  //                            ), false, false);
+  //                            ), false, false, RULE_INVALID, Node::null());
   //
   //}
 
   void testNot() {
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::NOT, a), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::NOT, a), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -260,7 +260,7 @@ public:
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::OR, a, b, c), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::OR, a, b, c), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -268,10 +268,10 @@ public:
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert(a, false, false);
+    d_cnfStream->convertAndAssert(a, false, false, RULE_INVALID, Node::null());
     TS_ASSERT( d_satSolver->addClauseCalled() );
     d_satSolver->reset();
-    d_cnfStream->convertAndAssert(b, false, false);
+    d_cnfStream->convertAndAssert(b, false, false, RULE_INVALID, Node::null());
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
@@ -279,7 +279,7 @@ public:
     NodeManagerScope nms(d_nodeManager);
     Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
     Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::XOR, a, b), false, false );
+    d_cnfStream->convertAndAssert( d_nodeManager->mkNode(kind::XOR, a, b), false, false, RULE_INVALID, Node::null() );
     TS_ASSERT( d_satSolver->addClauseCalled() );
   }
 
