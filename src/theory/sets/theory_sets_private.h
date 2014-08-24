@@ -192,6 +192,7 @@ private:
   // more debugging stuff
   friend class TheorySetsScrutinize;
   TheorySetsScrutinize* d_scrutinize;
+  void dumpAssertionsHumanified() const;  /** do some formatting to make them more readable */
 };/* class TheorySetsPrivate */
 
 

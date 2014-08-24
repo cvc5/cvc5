@@ -27,8 +27,6 @@
 #include "util/emptyset.h"
 #include "util/result.h"
 
-#include "util/partitions.h"
-
 using namespace std;
 using namespace CVC4::expr::pattern;
 
@@ -419,14 +417,8 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
-
-void TheorySetsPrivate::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
-
-  // dump our understanding of assertions
-  if(Trace.isOn("sets-assertions")
-     || Trace.isOn("sets-care-dump"))
-  {
+void TheorySetsPrivate::dumpAssertionsHumanified() const
+{
     std::string tag = "sets-assertions";
     context::CDList<Assertion>::const_iterator it = d_external.facts_begin(), it_end = d_external.facts_end();
 
@@ -438,7 +430,7 @@ void TheorySetsPrivate::computeCareGraph() {
 
     for (unsigned i = 0; it != it_end; ++ it, ++i) {
       TNode ass = (*it).assertion;
-      Trace("sets-care-dump") << AssertCommand(ass.toExpr()) << endl;
+      // Trace("sets-care-dump") << AssertCommand(ass.toExpr()) << endl;
       bool polarity = ass.getKind() != kind::NOT;
       ass = polarity ? ass : ass[0];
       Assert( ass.getNumChildren() == 2);
@@ -512,35 +504,33 @@ void TheorySetsPrivate::computeCareGraph() {
       }
     }
     Trace(tag) << std::endl;
+#undef FORIT
+}
 
+void TheorySetsPrivate::computeCareGraph() {
+  Debug("sharing") << "Theory::computeCareGraph<" << d_external.identify() << ">()" << endl;
+
+  if(Trace.isOn("sets-assertions")) {
+    // dump our understanding of assertions
+    dumpAssertionsHumanified();
   }
 
-  std::map<TypeNode, std::set<TNode> > careGraphVertices;
-
-  for (unsigned i = d_ccg_i; i < d_external.d_sharedTerms.size(); ++ i) {
+  unsigned i_st = 0;
+  if(options::setsCare1()) { i_st = d_ccg_i; }
+  for (unsigned i = i_st; i < d_external.d_sharedTerms.size(); ++ i) {
     TNode a = d_external.d_sharedTerms[i];
     TypeNode aType = a.getType();
-    // if(a.getType().isSet()) {
-    //   int sizeMem = d_termInfoManager->getMembers(d_equalityEngine.getRepresentative(a))->size();
-    //   int sizeNonMem = d_termInfoManager->getNonMembers(d_equalityEngine.getRepresentative(a))->size();
-    //   Debug("sets-care") << "[sets-care] " << a << " : " << sizeMem << " " << sizeNonMem << std::endl;
-    //   if(sizeMem == 0 && sizeNonMem == 0) continue;
-    // }
-    unsigned j_st;
-    if(i == d_ccg_i) j_st = d_ccg_j + 1;
-    else j_st = i + 1;
+
+    unsigned j_st = i + 1;
+    if(options::setsCare1()) { if(i == d_ccg_i) j_st = d_ccg_j + 1; }
+
     for (unsigned j = j_st; j < d_external.d_sharedTerms.size(); ++ j) {
       TNode b = d_external.d_sharedTerms[j];
       if (b.getType() != aType) {
         // We don't care about the terms of different types
         continue;
       }
-      // if(b.getType().isSet()) {
-      //   int sizeMem = d_termInfoManager->getMembers(d_equalityEngine.getRepresentative(b))->size();
-      //   int sizeNonMem = d_termInfoManager->getNonMembers(d_equalityEngine.getRepresentative(b))->size();
-      //   Debug("sets-care") << "[sets-care] " << a << " : " << sizeMem << " " << sizeNonMem << std::endl;
-      //   if(sizeMem == 0 && sizeNonMem == 0) continue;
-      // }
+
       switch (d_external.d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
         // If we know about it, we should have propagated it, so we can skip
@@ -570,43 +560,11 @@ void TheorySetsPrivate::computeCareGraph() {
           d_ccg_j = j;
           return;
         }
-        if(Trace.isOn("sets-care-dump")) {
-          careGraphVertices[a.getType()].insert(a);
-          careGraphVertices[a.getType()].insert(b);
-        }
         break;
       default:
 	Unreachable();
       }
     }
-  }
-
-  if(Trace.isOn("sets-care-dump")) {
-    FORIT(it, careGraphVertices) {
-      // Trace("sets-care-dump") << "For " << (*it).first << ": " << std::endl;
-      std::set<TNode>& S = (*it).second;
-      for(util::partition::iterator subsets(S.size());
-          !subsets.isFinished(); ++subsets) {
-        Trace("sets-care-dump") << ";---split---" << std::endl;
-        Trace("sets-care-dump") << ";";
-        for(unsigned i = 0; i < S.size(); ++i) Trace("sets-care-dump") << subsets.get(i);
-        Trace("sets-care-dump") << std::endl;
-        int j = 0;
-        FORIT(jt, (*it).second) {
-          int k = 0;
-          FORIT(kt, (*it).second) {
-            if(j == k) continue;
-            Node n = EQUAL( (*jt), (*kt) );
-            if(!subsets.equal(j, k)) n = NOT(n);
-            Trace("sets-care-dump") << AssertCommand(n.toExpr()) << std::endl;
-            ++k;
-          }
-          ++j;
-        }
-      }
-    }
-    Trace("sets-care-dump") << ";---split---" << std::endl;
-#undef FORIT
   }
 }
 
