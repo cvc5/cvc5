@@ -377,9 +377,13 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetAssignmentCommand(); }
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
-    { cmd = new AssertCommand(expr, /* inUnsatCore */ PARSER_STATE->lastNamedTerm() == expr);
-      PARSER_STATE->setLastNamedTerm(Expr());
+    { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
+      cmd = new AssertCommand(expr, inUnsatCore);
+      if(inUnsatCore) {
+        PARSER_STATE->registerUnsatCoreName(PARSER_STATE->lastNamedTerm());
+      }
     }
   | /* check-sat */
     CHECKSAT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -398,7 +402,7 @@ command returns [CVC4::Command* cmd = NULL]
     { cmd = new GetProofCommand(); }
   | /* get-unsat-core */
     GET_UNSAT_CORE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd = new GetUnsatCoreCommand(); }
+    { cmd = new GetUnsatCoreCommand(PARSER_STATE->getUnsatCoreNames()); }
   | /* push */
     PUSH_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( k=INTEGER_LITERAL
@@ -407,11 +411,13 @@ command returns [CVC4::Command* cmd = NULL]
           cmd = new EmptyCommand();
         } else if(n == 1) {
           PARSER_STATE->pushScope();
+          PARSER_STATE->pushUnsatCoreNameScope();
           cmd = new PushCommand();
         } else {
           CommandSequence* seq = new CommandSequence();
           do {
             PARSER_STATE->pushScope();
+            PARSER_STATE->pushUnsatCoreNameScope();
             Command* c = new PushCommand();
             c->setMuted(n > 1);
             seq->addCommand(c);
@@ -434,11 +440,13 @@ command returns [CVC4::Command* cmd = NULL]
         if(n == 0) {
           cmd = new EmptyCommand();
         } else if(n == 1) {
+          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd = new PopCommand();
         } else {
           CommandSequence* seq = new CommandSequence();
           do {
+            PARSER_STATE->popUnsatCoreNameScope();
             PARSER_STATE->popScope();
             Command* c = new PopCommand();
             c->setMuted(n > 1);
@@ -1213,7 +1221,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       // define it
       Expr func = PARSER_STATE->mkFunction(name, expr.getType());
       // remember the last term to have been given a :named attribute
-      PARSER_STATE->setLastNamedTerm(expr);
+      PARSER_STATE->setLastNamedTerm(expr, name);
       // bind name to expr with define-fun
       Command* c =
         new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);

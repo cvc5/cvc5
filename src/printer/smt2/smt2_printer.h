@@ -46,7 +46,7 @@ public:
   void toStream(std::ostream& out, const Result& r) const throw();
   void toStream(std::ostream& out, const SExpr& sexpr) const throw();
   void toStream(std::ostream& out, const Model& m) const throw();
-  void toStream(std::ostream& out, const UnsatCore& core) const throw();
+  void toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw();
 };/* class Smt2Printer */
 
 }/* CVC4::printer::smt2 namespace */

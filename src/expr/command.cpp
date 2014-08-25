@@ -1121,6 +1121,9 @@ std::string GetInstantiationsCommand::getCommandName() const throw() {
 GetUnsatCoreCommand::GetUnsatCoreCommand() throw() {
 }
 
+GetUnsatCoreCommand::GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw() : d_names(names) {
+}
+
 void GetUnsatCoreCommand::invoke(SmtEngine* smtEngine) throw() {
   try {
     d_result = smtEngine->getUnsatCore();
@@ -1134,18 +1137,23 @@ void GetUnsatCoreCommand::printResult(std::ostream& out, uint32_t verbosity) con
   if(! ok()) {
     this->Command::printResult(out, verbosity);
   } else {
-    d_result.toStream(out);
+    d_result.toStream(out, d_names);
   }
 }
 
+const UnsatCore& GetUnsatCoreCommand::getUnsatCore() const throw() {
+  // of course, this will be empty if the command hasn't been invoked yet
+  return d_result;
+}
+
 Command* GetUnsatCoreCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
   c->d_result = d_result;
   return c;
 }
 
 Command* GetUnsatCoreCommand::clone() const {
-  GetUnsatCoreCommand* c = new GetUnsatCoreCommand();
+  GetUnsatCoreCommand* c = new GetUnsatCoreCommand(d_names);
   c->d_result = d_result;
   return c;
 }

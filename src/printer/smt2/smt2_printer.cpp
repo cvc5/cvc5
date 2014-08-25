@@ -771,11 +771,18 @@ void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const thro
 }/* Smt2Printer::toStream(CommandStatus*) */
 
 
-void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
-  out << "(" << endl;
-  this->Printer::toStream(out, core);
+void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
+  out << "(" << std::endl;
+  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
+    map<Expr, string>::const_iterator j = names.find(*i);
+    if(j == names.end()) {
+      out << *i << endl;
+    } else {
+      out << (*j).second << endl;
+    }
+  }
   out << ")" << endl;
-}
+}/* Smt2Printer::toStream(UnsatCore, map<Expr, string>) */
 
 
 void Smt2Printer::toStream(std::ostream& out, const Model& m) const throw() {

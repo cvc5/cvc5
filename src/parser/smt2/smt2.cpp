@@ -31,6 +31,7 @@ namespace parser {
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
   d_logicSet(false) {
+  d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
   }

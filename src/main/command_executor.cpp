@@ -165,12 +165,12 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString) {
   if(prvsStatsString == "") {
-      out << curStatsString;
-      return;
+    out << curStatsString;
+    return;
   }
 
   // read each line
-  // if a number, subtract and add that to parantheses
+  // if a number, subtract and add that to parentheses
   std::istringstream issPrvs(prvsStatsString);
   std::istringstream issCur(curStatsString);
 

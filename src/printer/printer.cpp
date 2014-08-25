@@ -154,10 +154,16 @@ void Printer::toStream(std::ostream& out, const Model& m) const throw() {
 }/* Printer::toStream(Model) */
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const throw() {
+  std::map<Expr, std::string> names;
+  toStream(out, core, names);
+}/* Printer::toStream(UnsatCore) */
+
+void Printer::toStream(std::ostream& out, const UnsatCore& core, const std::map<Expr, std::string>& names) const throw() {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    toStream(out, Node::fromExpr(*i), -1, false, -1);
+    AssertCommand cmd(*i);
+    toStream(out, &cmd, -1, false, -1);
     out << std::endl;
   }
-}/* Printer::toStream(UnsatCore) */
+}/* Printer::toStream(UnsatCore, std::map<Expr, std::string>) */
 
 }/* CVC4 namespace */

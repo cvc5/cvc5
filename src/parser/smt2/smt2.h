@@ -24,7 +24,10 @@
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
+#include <string>
 #include <sstream>
+#include <utility>
+#include <stack>
 
 namespace CVC4 {
 
@@ -54,7 +57,9 @@ private:
   bool d_logicSet;
   LogicInfo d_logic;
   std::hash_map<std::string, Kind, StringHashFunction> operatorKindMap;
-  Expr d_lastNamedTerm;
+  std::pair<Expr, std::string> d_lastNamedTerm;
+  // this is a user-context stack
+  std::stack< std::map<Expr, std::string> > d_unsatCoreNames;
 
 protected:
   Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
@@ -106,12 +111,32 @@ public:
 
   void includeFile(const std::string& filename);
 
-  void setLastNamedTerm(Expr e) {
-    d_lastNamedTerm = e;
+  void setLastNamedTerm(Expr e, std::string name) {
+    d_lastNamedTerm = std::make_pair(e, name);
   }
 
-  Expr lastNamedTerm() {
+  void clearLastNamedTerm() {
+    d_lastNamedTerm = std::make_pair(Expr(), "");
+  }
+
+  std::pair<Expr, std::string> lastNamedTerm() {
     return d_lastNamedTerm;
+  }
+
+  void pushUnsatCoreNameScope() {
+    d_unsatCoreNames.push(d_unsatCoreNames.top());
+  }
+
+  void popUnsatCoreNameScope() {
+    d_unsatCoreNames.pop();
+  }
+
+  void registerUnsatCoreName(std::pair<Expr, std::string> name) {
+    d_unsatCoreNames.top().insert(name);
+  }
+
+  std::map<Expr, std::string> getUnsatCoreNames() {
+    return d_unsatCoreNames.top();
   }
 
   bool isAbstractValue(const std::string& name) {

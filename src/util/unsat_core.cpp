@@ -30,15 +30,19 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  for(UnsatCore::const_iterator i = begin(); i != end(); ++i) {
-    out << AssertCommand(*i) << std::endl;
-  }
+  smt::SmtScope smts(d_smt);
+  Expr::dag::Scope scope(out, false);
+  Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
+}
+
+void UnsatCore::toStream(std::ostream& out, const std::map<Expr, std::string>& names) const {
+  smt::SmtScope smts(d_smt);
+  Expr::dag::Scope scope(out, false);
+  Printer::getPrinter(options::outputLanguage())->toStream(out, *this, names);
 }
 
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
-  smt::SmtScope smts(core.d_smt);
-  Expr::dag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, core);
+  core.toStream(out);
   return out;
 }
 

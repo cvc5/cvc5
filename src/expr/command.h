@@ -602,11 +602,14 @@ public:
 class CVC4_PUBLIC GetUnsatCoreCommand : public Command {
 protected:
   UnsatCore d_result;
+  std::map<Expr, std::string> d_names;
 public:
   GetUnsatCoreCommand() throw();
+  GetUnsatCoreCommand(const std::map<Expr, std::string>& names) throw();
   ~GetUnsatCoreCommand() throw() {}
   void invoke(SmtEngine* smtEngine) throw();
   void printResult(std::ostream& out, uint32_t verbosity = 2) const throw();
+  const UnsatCore& getUnsatCore() const throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
   Command* clone() const;
   std::string getCommandName() const throw();

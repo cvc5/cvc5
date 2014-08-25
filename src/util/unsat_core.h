@@ -57,6 +57,7 @@ public:
   const_iterator end() const;
 
   void toStream(std::ostream& out) const;
+  void toStream(std::ostream& out, const std::map<Expr, std::string>& names) const;
 
 };/* class UnsatCore */
 
