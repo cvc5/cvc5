@@ -191,6 +191,11 @@ class NodeManager {
   std::hash_set<TypeNode, TypeNode::HashFunction> d_schemaVariables;
 
   /**
+   * The Node used for making polymorphic constant a function
+   */
+  Node d_polymorphicConstantArg;
+
+  /**
    * Keep a count of all abstract values produced by this NodeManager.
    * Abstract values have a type attribute, so if multiple SmtEngines
    * are attached to this NodeManager, we don't want their abstract
@@ -962,6 +967,11 @@ public:
    * Return the given number of type usable for polymorphic function schema
    */
   std::vector< TypeNode > getPolymorphicTypeVarsSchema(size_t nb);
+
+  /**
+   * Return the expr used for making polymorphic constant a function
+   */
+  Node getPolymorphicConstantArg();
 
   /**
    * Convert a node to an expression.  Uses the ExprManager

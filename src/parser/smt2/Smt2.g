@@ -308,10 +308,16 @@ command returns [CVC4::Command* cmd = NULL]
     { PARSER_STATE->checkUserSymbol(name); }
     polymorphicSignature[par_sorts,sorts,t]
     { Debug("parser") << "declare fun: '" << name << "'" << std::endl;
-      if( sorts.size() > 0 ) {
+      if( sorts.size() > 0 || par_sorts.size() > 0) {
         if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
           PARSER_STATE->parseError(std::string("Functions (of non-zero arity) cannot be declared in logic ") + PARSER_STATE->getLogic().getLogicString());
         }
+
+        //Polymorphic constant are transformed into function
+        if(sorts.size() == 0 && par_sorts.size() > 0){
+          sorts.push_back(EXPR_MANAGER->getPolymorphicConstantArg().getType());
+        };
+
         t = EXPR_MANAGER->mkFunctionType(sorts, t);
       }
       Expr func = PARSER_STATE->mkVar(name, t);
@@ -1644,7 +1650,12 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         expr = PARSER_STATE->getVariable(name);
         Type t = PARSER_STATE->getType(name);
-        if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
+        if(!PARSER_STATE->strictModeEnabled() &&
+           expr.getType().isFunction() &&
+           EXPR_MANAGER->isPolymorphicFunction(expr) ) {
+          /* constant polymorphic are turned into an unary function */
+          expr = MK_EXPR(CVC4::kind::APPLY_UF,expr,EXPR_MANAGER->getPolymorphicConstantArg());
+        } else if(t.isConstructor() && ConstructorType(t).getArity() == 0) {
           // don't require parentheses, immediately turn it into an apply
           expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, expr);
         }

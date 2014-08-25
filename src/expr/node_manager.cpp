@@ -917,6 +917,14 @@ std::vector< TypeNode > NodeManager::getPolymorphicTypeVarsSchema(size_t nb){
   return res;
 }
 
+Node NodeManager::getPolymorphicConstantArg(){
+  if (d_polymorphicConstantArg.isNull()){
+    TypeNode cst_para_type = mkSort("cst_para");
+    d_polymorphicConstantArg = mkVar("cst_para",cst_para_type);
+  }
+  return d_polymorphicConstantArg;
+}
+
 
 bool NodeManager::safeToReclaimZombies() const{
   // FIXME multithreading

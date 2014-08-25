@@ -606,6 +606,11 @@ public:
    */
   std::vector< Type > getPolymorphicTypeVarsSchema(size_t nb);
 
+  /**
+   * Return the expr used for making polymorphic constant a function
+   */
+  Expr getPolymorphicConstantArg();
+
   /** Get a reference to the statistics registry for this ExprManager */
   Statistics getStatistics() const throw();
 

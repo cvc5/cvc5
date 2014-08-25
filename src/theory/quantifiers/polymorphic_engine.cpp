@@ -62,7 +62,8 @@ Node substituteAll(TNode n,
     };
     subst[n] = n2;
     return n2;
-  } else if (n.getType().isFunction() && NodeManager::currentNM()->isPolymorphicFunctionInstance(n)){
+  } else if (n.getType().isFunction() &&
+             NodeManager::currentNM()->isPolymorphicFunctionInstance(n)){
     TypeNode sig = n.getType().substitute(ty_subst);
     Node n2 = n;
     if(sig != n.getType() ){
@@ -72,6 +73,10 @@ Node substituteAll(TNode n,
     Trace("para-substitute") << "PolymorphicFunction " << n << " becomes " << n2 << std::endl;
     subst[n] = n2;
     return n2;
+  } else if ( n.getNumChildren() == 0 ){
+    subst[n] = n;
+    Trace("para-substitute") << "Constant " << n << " stays as " << n << std::endl;
+    return n;
   } else {
 
     Kind kind = n.getKind();
@@ -132,7 +137,10 @@ void PolymorphicEngine::check( Theory::Effort e, unsigned quant_e ){
                 std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> ty_subst2 = ty_subst;
                 std::hash_map<TNode, TNode, TNodeHashFunction> subst;
 
-                d_quantEngine->addLemma(substituteAll(body,ty_subst2,subst));
+                Node lem = substituteAll(body,ty_subst2,subst);
+                Trace("para") << "  -instantiated to:" << lem << std::endl;
+                lem = NodeManager::currentNM()->mkNode( OR, (*lemma).negate(), lem );
+                d_quantEngine->addLemma(lem);
               } else {
                 ++v_id;
                 next_ty[v_id] = type_map.begin();

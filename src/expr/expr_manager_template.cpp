@@ -1047,6 +1047,11 @@ std::vector< Type > ExprManager::getPolymorphicTypeVarsSchema(size_t nb){
   return res2;
 }
 
+Expr ExprManager::getPolymorphicConstantArg(){
+  NodeManagerScope nms(d_nodeManager);
+  return Expr(this,new Node(d_nodeManager->getPolymorphicConstantArg()));
+}
+
 
 
 unsigned ExprManager::minArity(Kind kind) {
