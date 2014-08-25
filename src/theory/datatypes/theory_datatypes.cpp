@@ -811,7 +811,7 @@ d_inst( c, false ), d_constructor( c, Node::null() ), d_selectors( c, false ){
 }
 
 bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
-  return !eqc->d_constructor.get().isNull() || !getLabel( n ).isNull();
+  return (eqc != NULL && !eqc->d_constructor.get().isNull()) || !getLabel( n ).isNull();
 }
 
 Node TheoryDatatypes::getLabel( Node n ) {
@@ -1164,7 +1164,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     //for all equivalence classes that are datatypes
     if( DatatypesRewriter::isTermDatatype( eqc ) ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( !ei->d_constructor.get().isNull() ){
+      if( ei && !ei->d_constructor.get().isNull() ){
         cons.push_back( ei->d_constructor.get() );
         eqc_cons[ eqc ] = ei->d_constructor.get();
       }else{

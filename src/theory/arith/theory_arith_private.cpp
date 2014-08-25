@@ -101,7 +101,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing, context::Context
   d_rowTracking(),
   d_conflictBuffer(),
   d_constraintDatabase(c, u, d_partialModel, d_congruenceManager, RaiseConflict(*this, d_conflictBuffer)),
-  d_qflraStatus(Result::SAT_UNKNOWN),
+  d_qflraStatus(Result::SAT),
   d_unknownsInARow(0),
   d_hasDoneWorkSinceCut(false),
   d_learner(u),

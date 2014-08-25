@@ -783,6 +783,13 @@ public:
     return d_facts.end();
   }
 
+  /**
+   * @return true if no facts are currently asserted to the theory
+   */
+  bool facts_empty() const {
+    return (d_facts.size() == 0);
+  }
+
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
