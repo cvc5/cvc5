@@ -30,6 +30,7 @@ class QuantifiersEngine;
 namespace inst {
 
 class IMGenerator;
+class InstMatchGenerator;
 
 //a collect of nodes representing a trigger
 class Trigger {
@@ -112,6 +113,10 @@ public:
   /** get pattern arithmetic */
   static bool isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs );
   static bool isBooleanTermTrigger( Node n );
+  /** return data structure for producing matches for this trigger. */
+  static InstMatchGenerator* getInstMatchGenerator( Node n );
+  static Node getInversionVariable( Node n );
+  static Node getInversion( Node n, Node x );
 
   inline void toStream(std::ostream& out) const {
     /*

@@ -63,6 +63,8 @@ option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
  choose relational triggers such as x = f(y), x >= f(y)
+option purifyTriggers --purify-triggers bool :default false
+ purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
  selection mode for triggers
 

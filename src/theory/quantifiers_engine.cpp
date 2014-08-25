@@ -664,6 +664,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& terms, bo
 
 
   //add the instantiation
+  Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   bool addedInst = addInstantiation( f, d_term_db->d_vars[f], terms );
   //report the result
   if( addedInst ){

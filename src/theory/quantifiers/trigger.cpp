@@ -324,7 +324,7 @@ bool Trigger::isUsableTrigger( Node n, Node f ){
 
 bool Trigger::isAtomicTrigger( Node n ){
   Kind k = n.getKind();
-  return ( k==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) || 
+  return ( k==APPLY_UF && !n.getOperator().getAttribute(NoMatchAttribute()) ) ||
          ( k!=APPLY_UF && isAtomicTriggerKind( k ) );
 }
 bool Trigger::isAtomicTriggerKind( Kind k ) {
@@ -501,6 +501,93 @@ bool Trigger::isBooleanTermTrigger( Node n ) {
     }
   }
   return false;
+}
+
+Node Trigger::getInversionVariable( Node n ) {
+  if( n.getKind()==INST_CONSTANT ){
+    return n;
+  }else if( n.getKind()==PLUS || n.getKind()==MULT ){
+    Node ret;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( quantifiers::TermDb::hasInstConstAttr(n[i]) ){
+        if( ret.isNull() ){
+          ret = getInversionVariable( n[i] );
+          if( ret.isNull() ){
+            Trace("var-trigger-debug") << "No : multiple variables " << n << std::endl;
+            return Node::null();
+          }
+        }else{
+          return Node::null();
+        }
+      }else if( n.getKind()==MULT ){
+        if( !n[i].isConst() ){
+          Trace("var-trigger-debug") << "No : non-linear coefficient " << n << std::endl;
+          return Node::null();
+        }else if( n.getType().isInteger() ){
+          Rational r = n[i].getConst<Rational>();
+          if( r!=Rational(-1) && r!=Rational(1) ){
+            Trace("var-trigger-debug") << "No : not integer coefficient " << n << std::endl;
+            return Node::null();
+          }
+        }
+      }
+    }
+    return ret;
+  }else{
+    Trace("var-trigger-debug") << "No : unsupported operator " << n << "." << std::endl;
+  }
+  return Node::null();
+}
+
+Node Trigger::getInversion( Node n, Node x ) {
+  if( n.getKind()==INST_CONSTANT ){
+    return x;
+  }else if( n.getKind()==PLUS || n.getKind()==MULT ){
+    int cindex = -1;
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( !quantifiers::TermDb::hasInstConstAttr(n[i]) ){
+        if( n.getKind()==PLUS ){
+          x = NodeManager::currentNM()->mkNode( MINUS, x, n[i] );
+        }else if( n.getKind()==MULT ){
+          Assert( n[i].isConst() );
+          Node coeff = NodeManager::currentNM()->mkConst( Rational(1) / n[i].getConst<Rational>() );
+          x = NodeManager::currentNM()->mkNode( MULT, x, coeff );
+        }
+      }else{
+        Assert( cindex==-1 );
+        cindex = i;
+      }
+    }
+    Assert( cindex!=-1 );
+    return getInversion( n[cindex], x );
+  }
+  return Node::null();
+}
+
+InstMatchGenerator* Trigger::getInstMatchGenerator( Node n ) {
+  if( n.getKind()==INST_CONSTANT ){
+    return NULL;
+  }else{
+    Trace("var-trigger-debug") << "Is " << n << " a variable trigger?" << std::endl;
+    if( isBooleanTermTrigger( n ) ){
+      VarMatchGeneratorBooleanTerm* vmg = new VarMatchGeneratorBooleanTerm( n[0], n[1] );
+      Trace("var-trigger") << "Boolean term trigger : " << n << ", var = " << n[0] << std::endl;
+      return vmg;
+    }else{
+      Node x;
+      if( options::purifyTriggers() ){
+        x = getInversionVariable( n );
+      }
+      if( !x.isNull() ){
+        Node s = getInversion( n, x );
+        VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs( x, s );
+        Trace("var-trigger") << "Term substitution trigger : " << n << ", var = " << x << ", subs = " << s << std::endl;
+        return vmg;
+      }else{
+        return new InstMatchGenerator( n );
+      }
+    }
+  }
 }
 
 Trigger* TriggerTrie::getTrigger2( std::vector< Node >& nodes ){
