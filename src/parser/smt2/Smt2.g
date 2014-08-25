@@ -364,7 +364,7 @@ command returns [CVC4::Command* cmd = NULL]
   | /* assertion */
     ASSERT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { PARSER_STATE->clearLastNamedTerm(); }
-    term[expr, expr2]
+    polymorphicAssert[par_sorts,expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
       cmd = new AssertCommand(expr, inUnsatCore);
       if(inUnsatCore) {
@@ -2169,6 +2169,45 @@ polymorphicSignature[std::vector<std::string>& pars, std::vector<CVC4::Type>& so
     RPAREN_TOK
     { PARSER_STATE->popScope(); }
   ;
+
+polymorphicAssert[std::vector<std::string>& pars, CVC4::Expr& expr, CVC4::Expr& expr2]
+@declarations {
+  std::vector< Expr > args;
+}
+  :
+  | LPAREN_TOK PAR_TOK
+    {
+      if(PARSER_STATE->strictModeEnabled()) {
+        PARSER_STATE->parseError("Polymorphic functions are not permitted while operating in strict compliance mode.");
+      }
+    }
+    LPAREN_TOK symbolList[pars,CHECK_NONE,SYM_SORT] RPAREN_TOK
+    {
+      PARSER_STATE->pushScope(true);
+
+      std::vector< std::pair <Type,Expr> > typars =
+        EXPR_MANAGER->getPolymorphicTypeVars( pars.size() );
+
+      for(size_t i = 0; i < pars.size(); ++i){
+        PARSER_STATE->defineType(pars[i],typars[i].first);
+        args.push_back(typars[i].second);
+      }
+
+      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
+      args.clear();
+      args.push_back(bvl);
+
+    }
+    term[expr,expr2]
+    RPAREN_TOK
+    {
+      args.push_back(expr);
+      expr = MK_EXPR(CVC4::kind::FORALL, args);
+
+      PARSER_STATE->popScope(); }
+  | term[expr,expr2]
+  ;
+
 
 
 /**

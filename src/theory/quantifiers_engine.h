@@ -86,6 +86,7 @@ namespace quantifiers {
   class BoundedIntegers;
   class QuantConflictFind;
   class RewriteEngine;
+  class PolymorphicEngine;
   class RelevantDomain;
   class QModelBuilder;
   class ConjectureGenerator;
@@ -138,6 +139,8 @@ private:
   quantifiers::CegInstantiation * d_ceg_inst;
   /** lte partial instantiation */
   quantifiers::LtePartialInst * d_lte_part_inst;
+  /** polymorphic engine  */
+  quantifiers::PolymorphicEngine * d_para_engine;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -215,6 +218,8 @@ public:  //modules
   quantifiers::QuantConflictFind* getConflictFind() { return d_qcf; }
   /** rewrite rules utility */
   quantifiers::RewriteEngine * getRewriteEngine() { return d_rr_engine; }
+  /** polymorphic quantifier utility */
+  quantifiers::PolymorphicEngine * getPolymorphicEngine() { return d_para_engine; }
   /** subgoal generator */
   quantifiers::ConjectureGenerator * getConjectureGenerator() { return d_sg_gen; }
   /** ceg instantiation */

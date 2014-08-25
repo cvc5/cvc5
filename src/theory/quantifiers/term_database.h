@@ -371,6 +371,9 @@ public:
   /** get rewrite rule priority */
   int getQAttrRewriteRulePriority( Node q );
 
+  /** is quantifier polymorphic? */
+  static bool isPolymorphic( Node q );
+
 };/* class TermDb */
 
 class TermDbSygus {

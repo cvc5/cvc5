@@ -154,6 +154,12 @@ bool QuantifiersRewriter::hasArg1( Node a, Node n ) {
 }
 
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
+  /* polymorphic lemmas are rewritten once the types are instantiated */
+  if( TermDb::isPolymorphic(in) ) {
+    Trace("quantifiers-rewrite-debug") << "no pre-rewriting for polymorphic" << in << std::endl;
+    return RewriteResponse(REWRITE_DONE, in);
+  }
+
   if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
     Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
     std::vector< Node > args;
@@ -200,6 +206,12 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
 }
 
 RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
+  /* polymorphic lemmas are rewritten once the types are instantiated */
+  if( TermDb::isPolymorphic(in) ) {
+    Trace("quantifiers-rewrite-debug") << "no post-rewriting for polymorphic" << in << std::endl;
+    return RewriteResponse(REWRITE_DONE, in);
+  }
+
   Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
   Trace("quantifiers-rewrite-debug") << "Attributes : " << std::endl;
   if( !options::quantRewriteRules() || !TermDb::isRewriteRule( in ) ){
