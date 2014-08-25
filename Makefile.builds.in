@@ -89,8 +89,12 @@ endif
 #	symlink the binaries
 	$(AM_V_at)cd $(CURRENT_BUILD)/bin && \
 	for binary in $(CVC4_BINARIES); do \
-		ln -sf ../src/main/$$binary \
-			. ; \
+		if test -x ../src/main/$$binary; then \
+			ln -sf ../src/main/$$binary \
+				. ; \
+		else \
+			rm -f "$$binary"; \
+		fi; \
 	done
 #	set up builds/doc and builds/examples
 	$(AM_V_at)rm -f bin; ln -sf $(CURRENT_BUILD)/bin bin
