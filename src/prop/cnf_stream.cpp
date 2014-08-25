@@ -651,7 +651,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool removable, bool negated
   if(options::proof() || options::unsatCores()) {
     // Encode the assertion ID in the proof_id to store with generated clauses.
     uint64_t assertionTableIndex = d_assertionTable.size();
-    Assert((uint64_t(proof_id) & 0xffffffff00000000) == 0 && (assertionTableIndex & 0xffffffff00000000) == 0, "proof_id/table_index collision");
+    Assert((uint64_t(proof_id) & 0xffffffff00000000llu) == 0 && (assertionTableIndex & 0xffffffff00000000llu) == 0, "proof_id/table_index collision");
     d_proofId = assertionTableIndex | (uint64_t(proof_id) << 32);
     d_assertionTable.push_back(from.isNull() ? node : from);
     Debug("cores") << "cnf ix " << assertionTableIndex << " asst " << node << "  proof_id " << proof_id << " from " << from << endl;

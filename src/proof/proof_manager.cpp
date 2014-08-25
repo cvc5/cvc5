@@ -174,12 +174,12 @@ void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseK
     } else if(options::unsatCores()) {
       Expr e = d_cnfProof->getAssertion(d_satProof->d_inputClauses[id] & 0xffffffff);
       Debug("cores") << "core input assertion from CnfStream is " << e << std::endl;
-      Debug("cores") << "with proof rule " << ((d_satProof->d_inputClauses[id] & 0xffffffff00000000) >> 32) << std::endl;
+      Debug("cores") << "with proof rule " << ((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) << std::endl;
       // Invalid proof rules are currently used for parts of CVC4 that don't
       // support proofs (these are e.g. unproven theory lemmas) or don't need
       // proofs (e.g. split lemmas).  We can ignore these safely when
       // constructing unsat cores.
-      if(((d_satProof->d_inputClauses[id] & 0xffffffff00000000) >> 32) != RULE_INVALID) {
+      if(((d_satProof->d_inputClauses[id] & 0xffffffff00000000llu) >> 32) != RULE_INVALID) {
         // trace dependences back to actual assertions
         traceDeps(Node::fromExpr(e));
       }
