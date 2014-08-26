@@ -190,19 +190,23 @@ void TheoryDatatypes::check(Effort e) {
                 }
               }
             }
-            /*
-            if( !needSplit && mustSpecifyAssignment() ){
+
+            if( !needSplit && options::dtForceAssignment() ){
               //for the sake of termination, we must choose the constructor of a ground term
               //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
               // TODO: this is probably not good enough, actually need fair enumeration strategy
-              Node groundTerm = n.getType().mkGroundTerm();
-              int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
-              if( pcons[index] ){
-                consIndex = index;
+              if( !n.getType().isRecord() ){ //FIXME
+                Node groundTerm = n.getType().mkGroundTerm();
+                if( groundTerm.getOperator().getType().isConstructor() ){ //FIXME
+                  int index = Datatype::indexOf( groundTerm.getOperator().toExpr() );
+                  if( pcons[index] ){
+                    consIndex = index;
+                  }
+                  needSplit = true;
+                }
               }
-              needSplit = true;
             }
-            */
+
             if( needSplit && consIndex!=-1 ) {
               //if only one constructor, then this term must be this constructor
               if( dt.getNumConstructors()==1 ){

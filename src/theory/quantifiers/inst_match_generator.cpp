@@ -235,8 +235,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
       //now, fit children into match
       //we will be requesting candidates for matching terms for each child
       for( int i=0; i<(int)d_children.size(); i++ ){
-        Node rep = q->getRepresentative( t[ d_children_index[i] ] );
-        d_children[i]->reset( rep, qe );
+        d_children[i]->reset( t[ d_children_index[i] ], qe );
       }
       success = continueNextMatch( f, m, qe );
     }
@@ -277,6 +276,7 @@ void InstMatchGenerator::resetInstantiationRound( QuantifiersEngine* qe ){
 }
 
 void InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
+  eqc = qe->getEqualityQuery()->getRepresentative( eqc );
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !eqc.isNull() ){
     d_eq_class = eqc;
@@ -400,14 +400,16 @@ bool VarMatchGeneratorBooleanTerm::getNextMatch( Node f, InstMatch& m, Quantifie
     if( !m.set( qe, d_var_num[0], s ) ){
       return false;
     }else{
-      return continueNextMatch( f, m, qe );
+      if( continueNextMatch( f, m, qe ) ){
+        return true;
+      }
     }
-  }else{
-    if( d_rm_prev ){
-      m.d_vals[d_var_num[0]] = Node::null();
-    }
-    return false;
   }
+  if( d_rm_prev ){
+    m.d_vals[d_var_num[0]] = Node::null();
+    d_rm_prev = false;
+  }
+  return false;
 }
 
 VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) : 
@@ -419,20 +421,23 @@ bool VarMatchGeneratorTermSubs::getNextMatch( Node f, InstMatch& m, QuantifiersE
   if( !d_eq_class.isNull() ){
     Trace("var-trigger-matching") << "Matching " << d_eq_class << " against " << d_var << " in " << d_subs << std::endl;
     Node s = d_subs.substitute( d_var, d_eq_class );
+    s = Rewriter::rewrite( s );
     Trace("var-trigger-matching") << "...got " << s << std::endl;
     d_eq_class = Node::null();
     d_rm_prev = m.get( d_var_num[0] ).isNull();
     if( !m.set( qe, d_var_num[0], s ) ){
       return false;
     }else{
-      return continueNextMatch( f, m, qe );
+      if( continueNextMatch( f, m, qe ) ){
+        return true;
+      }
     }
-  }else{
-    if( d_rm_prev ){
-      m.d_vals[d_var_num[0]] = Node::null();
-    }
-    return false;
   }
+  if( d_rm_prev ){
+    m.d_vals[d_var_num[0]] = Node::null();
+    d_rm_prev = false;
+  }
+  return false;
 }
 
 /** constructors */

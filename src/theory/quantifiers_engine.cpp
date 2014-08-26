@@ -382,6 +382,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
   Assert( f.getKind()==FORALL );
   Assert( vars.size()==terms.size() );
   Node body = getInstantiation( f, vars, terms );
+  Trace("inst-assert") << "(assert " << body << ")" << std::endl;
   //make the lemma
   NodeBuilder<> nb(kind::OR);
   nb << f.notNode() << body;

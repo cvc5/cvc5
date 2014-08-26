@@ -63,7 +63,7 @@ option relevantTriggers --relevant-triggers bool :default false
  prefer triggers that are more relevant based on SInE style analysis
 option relationalTriggers --relational-triggers bool :default false
  choose relational triggers such as x = f(y), x >= f(y)
-option purifyTriggers --purify-triggers bool :default false
+option purifyTriggers --purify-triggers bool :default false :read-write
  purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
  selection mode for triggers
@@ -148,11 +148,13 @@ option quantRewriteRules --rewrite-rules bool :default true
 option rrOneInstPerRound --rr-one-inst-per-round bool :default false
  add one instance of rewrite rule per round
 
-option dtStcInduction --dt-stc-ind bool :default false
+option quantInduction --quant-ind bool :default false
+ use all available techniques for inductive reasoning
+option dtStcInduction --dt-stc-ind bool :read-write :default false
  apply strengthening for existential quantification over datatypes based on structural induction
-option intWfInduction --int-wf-ind bool :default false
+option intWfInduction --int-wf-ind bool :read-write :default false
  apply strengthening for integers based on well-founded induction
-option conjectureGen --conjecture-gen bool :default false
+option conjectureGen --conjecture-gen bool :read-write :default false
  generate candidate conjectures for inductive proofs
 
 endmodule

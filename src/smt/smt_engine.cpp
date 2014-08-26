@@ -1290,6 +1290,20 @@ void SmtEngine::setDefaults() {
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
     options::quantConflictFind.set( true );
   }
+  //for induction techniques
+  if( options::quantInduction() ){
+    if( !options::dtStcInduction.wasSetByUser() ){
+      options::dtStcInduction.set( true );
+    }
+    if( !options::intWfInduction.wasSetByUser() ){
+      options::intWfInduction.set( true );
+    }
+  }
+  if( options::intWfInduction() ){
+    if( !options::purifyTriggers.wasSetByUser() ){
+      options::purifyTriggers.set( true );
+    }
+  }
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){
@@ -1338,13 +1352,6 @@ void SmtEngine::setDefaults() {
   if (options::incrementalSolving() && options::proof()) {
     Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof" << endl;
     setOption("incremental", SExpr("false"));
-  }
-
-  // datatypes theory should assign values to all datatypes terms if logic is quantified
-  if (d_logic.isQuantified() && d_logic.isTheoryEnabled(THEORY_DATATYPES)) {
-    if( !options::dtForceAssignment.wasSetByUser() ){
-      options::dtForceAssignment.set(true);
-    }
   }
 }
 
