@@ -31,7 +31,8 @@ TESTS =	\
 	typing_bad4.smt2 \
 	typing_bad5.smt2 \
 	typing_bad6.smt2 \
-	typing_bad7.smt2
+	typing_bad7.smt2 \
+	typing_bad8.smt2
 
 EXTRA_DIST = $(TESTS)
 

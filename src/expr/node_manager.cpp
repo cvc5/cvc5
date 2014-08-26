@@ -712,6 +712,27 @@ TNode NodeManager::getPolymorphicFunction(TNode n){
   }
 }
 
+bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
+
+  if (ty.getNumChildren() == 0) {
+    /* variable case */
+    return !nm.isPolymorphicTypeVarSchema(ty);
+
+  } else {
+    /* arity n */
+
+    for(size_t i = 0, len = ty.getNumChildren(); i < len; ++i) {
+      if(!(isCloseSchemaVar(nm,ty[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+
+}
+
 /**
    The matching is done without Subtyping,
    t2 must be ground
@@ -731,6 +752,9 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
   }
 
   if(t1 == t2) {
+    if(!isCloseSchemaVar(*this,t2)){
+      throw TypeCheckingExceptionPrivate(Node::null(),"No inference is done, you should add an (as term ty) for specifying the return type.");
+    }
     subst[t1] = t2;
     return true;
   } else if ( isPolymorphicTypeVarSchema(t1) ) {
@@ -754,27 +778,6 @@ bool NodeManager::matchPolymorphicType(TypeNode t1,
   }
 
   return false;
-}
-
-bool isCloseSchemaVar(NodeManager& nm, TypeNode ty){
-
-  if (ty.getNumChildren() == 0) {
-    /* variable case */
-    return !nm.isPolymorphicTypeVarSchema(ty);
-
-  } else {
-    /* arity n */
-
-    for(size_t i = 0, len = ty.getNumChildren(); i < len; ++i) {
-      if(!(isCloseSchemaVar(nm,ty[i]))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  return false;
-
 }
 
 TNode NodeManager::instanciatePolymorphicFunction(TNode n,
@@ -908,7 +911,7 @@ std::vector< TypeNode > NodeManager::getPolymorphicTypeVarsSchema(size_t nb){
     --nb;
   }
   while(nb > 0){
-    TypeNode ty = mkSort("cvc4_par");
+    TypeNode ty = mkSort("cvc4_schema");
     Node n = mkBoundVar(ty);
     d_schemaVariables.insert(ty);
     res.push_back( ty );
