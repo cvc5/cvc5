@@ -142,7 +142,7 @@ void TheoryDatatypes::check(Effort e) {
     flushPendingFacts();
   }
 
-  if( e == EFFORT_FULL ) {
+  if( e == EFFORT_FULL && !d_conflict ) {
     //check for cycles
     bool addedFact;
     do {

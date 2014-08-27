@@ -26,6 +26,8 @@ option prenexQuant /--disable-prenex-quant bool :default true
 #   forall y. P( c, y )
 option varElimQuant /--disable-var-elim-quant bool :default true
  disable simple variable elimination for quantified formulas
+option dtVarExpandQuant --dt-var-exp-quant bool :default false
+ expand datatype variables bound to one constructor in quantifiers
 
 option simpleIteLiftQuant /--disable-ite-lift-quant bool :default true
  disable simple ite lifting for quantified formulas

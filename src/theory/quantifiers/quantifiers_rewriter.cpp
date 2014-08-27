@@ -388,6 +388,14 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
         }
       }
     }
+    /*
+    else if( options::dtVarExpandQuant() && it->first.getKind()==APPLY_TESTER && it->first[0].getKind()==BOUND_VARIABLE ){
+      if( it->second ){
+        Trace("dt-var-expand") << "Expand datatype variable based on : " << it->first << std::endl;
+        std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), it->first[0] );
+      }
+    }
+    */
   }
   if( !vars.empty() ){
     Trace("var-elim-quant") << "VE " << vars.size() << "/" << args.size() << std::endl;
