@@ -146,7 +146,7 @@ bool InequalityGraph::processQueue(BFSQueue& queue, TermId start) {
         if (start_reason != UndefinedReasonId) {
           conflict.push_back(start_reason);
         }
-        computeExplanation(start, current, conflict);
+        computeExplanation(UndefinedTermId, current, conflict);
         Debug("bv-inequality") << "InequalityGraph::addInequality conflict: cycle \n"; 
         setConflict(conflict); 
         return false; 
