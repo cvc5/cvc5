@@ -483,9 +483,9 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
         FORIT(jt, (*kt).second.first) {
           TNode x = (*jt);
           if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
-            Trace(tag) << x;
+            Trace(tag) << x << ", ";
           } else {
-            Trace(tag) << "x" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
           }
         }
         Trace(tag) << std::endl;
@@ -495,9 +495,9 @@ void TheorySetsPrivate::dumpAssertionsHumanified() const
         FORIT(jt, (*kt).second.second) {
           TNode x = (*jt);
           if(x.isConst() || numbering.find(d_equalityEngine.getRepresentative(x)) == numbering.end()) {
-            Trace(tag) << x;
+            Trace(tag) << x << ", ";
           } else {
-            Trace(tag) << "x" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
+            Trace(tag) << "t" << numbering[d_equalityEngine.getRepresentative(x)] << ", ";
           }
         }
         Trace(tag) << std::endl;
@@ -514,6 +514,8 @@ void TheorySetsPrivate::computeCareGraph() {
     // dump our understanding of assertions
     dumpAssertionsHumanified();
   }
+
+  CVC4_UNUSED unsigned edgesAddedCnt = 0;
 
   unsigned i_st = 0;
   if(options::setsCare1()) { i_st = d_ccg_i; }
@@ -546,6 +548,15 @@ void TheorySetsPrivate::computeCareGraph() {
         break;
       case EQUALITY_TRUE_IN_MODEL:
         d_external.addCarePair(a, b);
+        if(Trace.isOn("sharing")) {
+          ++edgesAddedCnt;
+        }
+	if(Debug.isOn("sets-care")) {
+	  Debug("sets-care") << "[sets-care] Requesting split between" << a << " and "
+			     << b << "." << std::endl << "[sets-care] " 
+			     << "  Both current have value "
+			     << d_external.d_valuation.getModelValue(a) << std::endl;
+	}
       case EQUALITY_FALSE_IN_MODEL:
         if(Trace.isOn("sets-care-performance-test")) {
           // TODO: delete these lines, only for performance testing for now
@@ -566,6 +577,7 @@ void TheorySetsPrivate::computeCareGraph() {
       }
     }
   }
+  Trace("sharing") << "TheorySetsPrivate::computeCareGraph(): size = " << edgesAddedCnt << std::endl;
 }
 
 EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
@@ -1075,8 +1087,42 @@ TheorySetsPrivate::~TheorySetsPrivate()
     Assert(d_scrutinize != NULL);
     delete d_scrutinize;
   }
-}
+}/* TheorySetsPrivate::~TheorySetsPrivate() */
 
+void TheorySetsPrivate::propagate(Theory::Effort effort) {
+  if(effort != Theory::EFFORT_FULL || !options::setsPropFull()) {
+    return;
+  }
+
+  // build a model
+  Trace("sets-prop-full") << "[sets-prop-full] propagate(FULL_EFFORT)" << std::endl;
+  dumpAssertionsHumanified();
+
+  const CDNodeSet& terms = (d_termInfoManager->d_terms);
+  for(typeof(terms.begin()) it = terms.begin(); it != terms.end(); ++it) {
+    Node node = (*it);
+    Kind k = node.getKind();
+    if(k == kind::UNION && node[0].getKind() == kind::SINGLETON ) {
+
+      if(holds(MEMBER(node[0][0], node[1]))) {
+        Trace("sets-prop-full") << "[sets-prop-full] " << MEMBER(node[0][0], node[1])
+                                << " => " << EQUAL(node[1], node) << std::endl;
+        learnLiteral(EQUAL(node[1], node), MEMBER(node[0][0], node[1]));
+      }
+
+    } else if(k == kind::UNION && node[1].getKind() == kind::SINGLETON ) {
+
+      if(holds(MEMBER(node[1][0], node[0]))) {
+        Trace("sets-prop-full") << "[sets-prop-full] " << MEMBER(node[1][0], node[0])
+                                << " => " << EQUAL(node[0], node) << std::endl;
+        learnLiteral(EQUAL(node[0], node), MEMBER(node[1][0], node[0]));
+      }
+
+    }
+  }
+
+  finishPropagation();
+}
 
 bool TheorySetsPrivate::propagate(TNode literal) {
   Debug("sets-prop") << " propagate(" << literal  << ")" << std::endl;
@@ -1094,12 +1140,13 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   }
 
   return ok;
-}/* TheorySetsPropagate::propagate(TNode) */
+}/* TheorySetsPrivate::propagate(TNode) */
 
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
+
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
@@ -1138,6 +1185,7 @@ Node TheorySetsPrivate::explain(TNode literal)
 
   return mkAnd(assumptions);
 }
+
 
 void TheorySetsPrivate::preRegisterTerm(TNode node)
 {

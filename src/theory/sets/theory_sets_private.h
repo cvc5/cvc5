@@ -66,7 +66,7 @@ public:
 
   void preRegisterTerm(TNode node);
 
-  void propagate(Theory::Effort) { /* we don't depend on this call */ }
+  void propagate(Theory::Effort);
 
 private:
   TheorySets& d_external;
@@ -112,8 +112,9 @@ private:
     TheorySetsPrivate& d_theory;
     context::Context* d_context;
     eq::EqualityEngine* d_eqEngine;
-
+  public:
     CDNodeSet d_terms;
+  private:
     std::hash_map<TNode, TheorySetsTermInfo*, TNodeHashFunction> d_info;
 
     void mergeLists(CDTNodeList* la, const CDTNodeList* lb) const;
