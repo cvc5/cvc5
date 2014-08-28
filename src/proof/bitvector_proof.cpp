@@ -54,6 +54,33 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 }
 
+void BitVectorProof::startBVConflict(::BVMinisat::TCRef cr) {
+  d_satProof->startResChain(cr);
+}
+void BitVectorProof::endBVConflict(std::vector<::BVMinisat::TLit>& confl) {
+  std::vector<Expr> expr_confl;
+  for (unsigned i = 0; i < confl.size(); ++i) {
+    Assert (d_satProof->isAssumption(confl[i]));
+    Expr expr_lit = d_cnf->getAtom(lit);
+    expr_confl.push_back(expr_lit); 
+  }
+  Node conflict = Rewriter::rewrite(utils::mkAnd(expr_confl));
+  
+  Assert (d_conflictMap.find(conflict) == d_conflictMap.end());
+  // we don't need to check for uniqueness in the sat solver then        
+  ClauseId clause_id = d_satProof->registerAssumptionConflict(confl);
+  d_conflictMap[confl] = clause_id;
+  d_satProof->endResChain(clause_id);
+}
+
+void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
+  for (
+  for(unsigned i = 0; i < conflics.size(); ++i) {
+    Expr confl = concflicts[i];
+    Assert (d_lemmaMap.find(confl) != d_lemmaMap.end()); 
+  }
+}
+
 void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   Assert (Theory::theoryOf(term) == THEORY_BV);
   

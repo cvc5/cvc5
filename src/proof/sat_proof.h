@@ -87,10 +87,9 @@ protected:
   typedef std::hash_set < ClauseId >                IdHashSet;
   typedef std::vector   < ResChain<Solver>* >       ResStack;
   typedef std::hash_map <ClauseId, prop::SatClause* >     IdToSatClause;
-  typedef std::set < ClauseId >                     IdSet;
-  typedef std::vector < typename Solver::TLit >              LitVector;
+  typedef std::set < ClauseId > IdSet;
+  typedef std::vector < typename Solver::TLit > LitVector;
   typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause& > IdToMinisatClause;
-  
   typename Solver::Solver*    d_solver;
   // clauses
   IdCRefMap           d_idClause;
@@ -101,6 +100,9 @@ protected:
   IdToSatClause       d_deletedTheoryLemmas;
   IdHashSet           d_inputClauses;
   IdHashSet           d_lemmaClauses;
+  LitSet              d_assumptions; // assumption literals for bv solver
+  IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
+  
   // resolutions
   IdResMap            d_resChains;
   ResStack            d_resStack;
@@ -193,7 +195,9 @@ public:
   /// clause registration methods
   ClauseId registerClause(const typename Solver::TCRef clause, ClauseKind kind = LEARNT);
   ClauseId registerUnitClause(const typename Solver::TLit lit, ClauseKind kind = LEARNT);
-
+  ClauseId registerAssumption(const typename Solver::TLit lit);
+  ClauseId registerAssumptionConflict(const std::vector<typename Solver::TLit>& confl);
+  
   void storeUnitConflict(typename Solver::TLit lit, ClauseKind kind = LEARNT);
 
   /**

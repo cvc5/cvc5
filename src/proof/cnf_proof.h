@@ -53,6 +53,7 @@ class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
   Expr getAtom(prop::SatVariable var);
+  prop::SatVariable getSatVariable(Expr atom);
   //  friend class AtomIterator;
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);

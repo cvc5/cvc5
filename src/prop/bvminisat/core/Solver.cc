@@ -551,6 +551,8 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
         }
       } else {
         Clause& c = ca[reason(x)];
+        PROOF(ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(reason(x), trail[i]));
+
         for (int j = 1; j < c.size(); j++)
           if (level(var(c[j])) > 0)
             seen[var(c[j])] = 1;
@@ -593,9 +595,11 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
             } else {
               Clause& c = ca[reason(x)];
               // TODO add resolution step here?
+              PROOF(ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(reason(x), trail[i]));
               for (int j = 1; j < c.size(); j++)
-                if (level(var(c[j])) > 0)
+                if (level(var(c[j])) > 0) {
                   seen[var(c[j])] = 1;
+                }
             }
             seen[x] = 0;
         }
@@ -884,6 +888,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             if (learnt_clause.size() == 1) {
               // learning a unit clause
               PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(learnt_clause[0]););
+              // TODO: start new resolution chain if unit?
             }
             
             //  if the uip was an assumption we are unsat
@@ -892,10 +897,12 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 assert (level(var(learnt_clause[i])) <= decisionLevel()); 
                 seen[var(learnt_clause[i])] = 1;
               }
-              // TODO : proof for analyzeFinal
-              // TODO start resolution chain with learned clause because
-              // it is the one propagating p 
+
+              // Starting new resolution chain for bit-vector proof
+              Assert (cr != CRef_Undef); // This will probably fail
+              PROOF (ProofManager::getBitVectorProof()->startBVConflict(cr));
               analyzeFinal(p, conflict);
+              PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
@@ -910,7 +917,9 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 if (new_confl != CRef_Undef) {
                   // we have a conflict we now need to explain it
                   // TODO: proof for analyzeFinal2
-                  analyzeFinal2(p, new_confl, conflict); 
+                  PROOF (ProofManager::getBitVectorProof()->startBVConflict(new_confl););
+                  analyzeFinal2(p, new_confl, conflict);
+                  PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
                   return l_False;
                 }
               }
@@ -980,7 +989,10 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 }else if (value(p) == l_False){
                     marker[var(p)] = 2;
                     // TODO Start resolution chain with reason for var(p)?
+                    
+                    PROOF ( ProofManager::getBitVectorProof()->startBVConflict(reason(var(p))););
                     analyzeFinal(~p, conflict);
+                    PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
                 }else{
