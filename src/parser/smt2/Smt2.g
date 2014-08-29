@@ -1182,7 +1182,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
       std::vector<Expr> values;
       values.push_back( n );
-      std::string attr_name("inst-level");
+      std::string attr_name("quant-inst-max-level");
       Command* c = new SetUserAttributeCommand( attr_name, expr, values );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
@@ -1722,7 +1722,7 @@ INCLUDE_TOK : 'include';
 ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
-ATTRIBUTE_INST_LEVEL : ':inst-level';
+ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)

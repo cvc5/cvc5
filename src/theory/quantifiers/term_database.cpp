@@ -685,6 +685,10 @@ Node TermDb::mkSkolemizedBody( Node f, Node n, std::vector< TypeNode >& argTypes
     ret = NodeManager::currentNM()->mkNode( OR, nret, n_str_ind );
   }
   Trace("quantifiers-sk") << "mkSkolem body for " << f << " returns : " << ret << std::endl;
+  //if it has an instantiation level, set the skolemized body to that level
+  if( f.hasAttribute(InstLevelAttribute()) ){
+    theory::QuantifiersEngine::setInstantiationLevelAttr( ret, f.getAttribute(InstLevelAttribute()) );
+  }
   return ret;
 }
 

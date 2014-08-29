@@ -446,8 +446,11 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t lev
 }
 
 void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
-  InstLevelAttribute ila;
-  n.setAttribute(ila,level);
+  if( !n.hasAttribute(InstLevelAttribute()) ){
+    InstLevelAttribute ila;
+    n.setAttribute(ila,level);
+    Trace("inst-level-debug") << "Set instantiation level " << n << " to " << level << std::endl;
+  }
   for( int i=0; i<(int)n.getNumChildren(); i++ ){
     setInstantiationLevelAttr( n[i], level );
   }
