@@ -174,12 +174,12 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
-    PROOF (
-           if (isTheoryAtom && d_name.compare("") == 0) {
-             ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
-           }
-           // TODO: register for bit-vector theory
-           ); 
+    // PROOF (
+    //        if (isTheoryAtom && d_name.compare("") == 0) {
+    //          ProofManager::currentPM()->registerTheoryAtom(node.toExpr(), lit.getSatVariable());
+    //        }
+    //        // TODO: register for bit-vector theory
+    //        ); 
   } else {
     lit = getLiteral(node);
   }

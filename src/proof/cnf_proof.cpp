@@ -28,6 +28,9 @@ namespace CVC4 {
 
 CnfProof::CnfProof(CnfStream* stream)
   : d_cnfStream(stream)
+  , d_atomToSatVar()
+  , d_satVarToAtom()
+  , d_inputClauses()
 {}
 
 
@@ -38,17 +41,36 @@ Expr CnfProof::getAtom(prop::SatVariable var) {
   return atom;
 }
 
+void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
+  Assert (d_inputClauses.find(id) == d_inputClauses.end());
+  d_inputClauses[id] = clause;
+  for (unsigned i = 0; i < clause->size(); ++i) {
+    SatLiteral lit = clause->operator[](i);
+    SatVariable var = lit.getSatVariable();
+    Expr atom = getAtom(var);
+    Assert (d_satVarToAtom.find(var) == d_satVarToAtom.end());
+    Assert (d_atomToSatVar.find(atom) == d_atomToSatVar.end());
+    d_satVarToAtom[var] = atom;
+    d_atomToSatVar[atom] = var;
+  }
+}
+
 CnfProof::~CnfProof() {
+  IdToClause::iterator it = d_inputClauses.begin();
+  IdToClause::iterator end = d_inputClauses.end();
+  for (; it != end; ++it) {
+    delete it->second;
+  }
 }
 
 void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
-  ProofManager::var_iterator it = ProofManager::currentPM()->begin_vars();
-  ProofManager::var_iterator end = ProofManager::currentPM()->end_vars();
+  atom_iterator it = begin_atoms(); 
+  atom_iterator end = end_atoms(); 
 
   for (;it != end;  ++it) {
     os << "(decl_atom ";
-    prop::SatVariable var = it->first;
-    Expr atom = getAtom(var);
+    prop::SatVariable var = it->second;
+    Expr atom = it->first;
     //FIXME hideous
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
     pe->printTerm(atom, os);
@@ -64,8 +86,8 @@ void LFSCCnfProof::printClauses(std::ostream& os, std::ostream& paren) {
 
 void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
   os << " ;; Input Clauses \n";
-  ProofManager::clause_iterator it = ProofManager::currentPM()->begin_input_clauses();
-  ProofManager::clause_iterator end = ProofManager::currentPM()->end_input_clauses();
+  clause_iterator it = begin_input_clauses();
+  clause_iterator end = end_input_clauses();
 
   for (; it != end; ++it) {
     ClauseId id = it->first;

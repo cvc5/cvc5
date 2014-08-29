@@ -34,34 +34,30 @@ namespace prop {
 
 class CnfProof;
 
-// class AtomIterator {
-//   CnfProof& d_cnf;
-//   ProofManager::var_iterator d_it;
-
-// public:
-//   AtomIterator(CnfProof& cnf, const ProofManager::var_iterator& it)
-//     : d_cnf(cnf), d_it(it)
-//   {}
-//   inline Expr operator*();
-//   AtomIterator& operator++() { ++d_it; return *this; }
-//   AtomIterator operator++(int) { AtomIterator x = *this; ++d_it; return x; }
-//   bool operator==(const AtomIterator& it) const { return &d_cnf == &it.d_cnf && d_it == it.d_it; }
-//   bool operator!=(const AtomIterator& it) const { return !(*this == it); }
-// };/* class AtomIterator */
+typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
+typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
+typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
 
 class CnfProof {
 protected:
   CVC4::prop::CnfStream* d_cnfStream;
-  Expr getAtom(prop::SatVariable var);
-  prop::SatVariable getSatVariable(Expr atom);
-  //  friend class AtomIterator;
+  ExprToSatVar d_atomToSatVar;
+  SatVarToExpr d_satVarToAtom;
+  IdToClause d_inputClauses;
+  
 public:
   CnfProof(CVC4::prop::CnfStream* cnfStream);
 
-  //typedef AtomIterator iterator;
-  // virtual iterator begin_atom_mapping() = 0;
-  // virtual iterator end_atom_mapping() = 0;
+  typedef IdToClause::const_iterator clause_iterator;
+  clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
+  clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
+  void addInputClause(ClauseId id, const prop::SatClause* clause); 
 
+  typedef ExprToSatVar::const_iterator atom_iterator;
+  atom_iterator begin_atoms() { return d_atomToSatVar.begin(); }
+  atom_iterator end_atoms() { return d_atomToSatVar.end(); }
+  Expr getAtom(prop::SatVariable var);
+  
   virtual void printAtomMapping(std::ostream& os, std::ostream& paren) = 0;
   virtual void printClauses(std::ostream& os, std::ostream& paren) = 0;
   virtual ~CnfProof();

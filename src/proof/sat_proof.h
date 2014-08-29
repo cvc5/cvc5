@@ -31,6 +31,9 @@
 
 namespace CVC4 {
 
+
+class CnfProof;
+
 /**
  * Helper debugging functions
  */
@@ -90,7 +93,9 @@ protected:
   typedef std::set < ClauseId > IdSet;
   typedef std::vector < typename Solver::TLit > LitVector;
   typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause& > IdToMinisatClause;
+  
   typename Solver::Solver*    d_solver;
+  CnfProof* d_cnfProof; 
   // clauses
   IdCRefMap           d_idClause;
   ClauseIdMap         d_clauseId;
@@ -124,6 +129,7 @@ protected:
 public:
   TSatProof(Solver* solver, bool checkRes = false);
   virtual ~TSatProof() {}
+  void setCnfProof(CnfProof* cnf_proof);
 protected:
   void print(ClauseId id);
   void printRes(ClauseId id);
@@ -196,7 +202,7 @@ public:
   ClauseId registerClause(const typename Solver::TCRef clause, ClauseKind kind = LEARNT);
   ClauseId registerUnitClause(const typename Solver::TLit lit, ClauseKind kind = LEARNT);
   ClauseId registerAssumption(const typename Solver::TLit lit);
-  ClauseId registerAssumptionConflict(const std::vector<typename Solver::TLit>& confl);
+  ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   
   void storeUnitConflict(typename Solver::TLit lit, ClauseKind kind = LEARNT);
 
@@ -222,10 +228,13 @@ public:
 
   ProofProxy<Solver>* getProxy() {return d_proxy; }
   /**
-     Constructs the SAT proof identifying the needed lemmas
+   * Constructs the SAT proof for the given clause,
+   * by collecting the needed clauses in the d_seen
+   * data-structures, also notifying the proofmanager.
    */
-  void constructProof();
-
+  void constructProof(ClauseId id);
+  void constructProof() { constructProof(d_emptyClauseId); }
+  void collectClauses(ClauseId id);
 protected:
   IdSet              d_seenLearnt;
   IdHashSet          d_seenInput;
@@ -234,10 +243,15 @@ protected:
   std::string varName(typename Solver::TLit lit);
   std::string clauseName(ClauseId id);
 
-  void collectClauses(ClauseId id);
-  void addToProofManager(ClauseId id, ClauseKind kind);
+
+  void addToProofManager(ClauseId id);
+  void addToCnfProof(ClauseId id);
 public:
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
+  virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
+  typedef IdHashSet::const_iterator clause_iterator;
+  clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
+  clause_iterator end_input_clauses() { return d_seenInput.end(); }
 };/* class TSatProof */
 
 template<typename Solver>
@@ -263,6 +277,7 @@ public:
     : TSatProof<SatSolver>(solver, checkRes)
   {}
   virtual void printResolutions(std::ostream& out, std::ostream& paren);
+  virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren);
 };/* class LFSCSatProof */
 
 

@@ -36,12 +36,8 @@ ProofManager::ProofManager(ProofFormat format)
   : d_satProof(NULL)
   , d_cnfProof(NULL)
   , d_theoryProof(NULL)
-  , d_inputClauses()
   , d_theoryLemmas()
   , d_inputFormulas()
-  , d_atomToSatVar()
-  , d_satVarToAtom()
-  , d_propVars()
   , d_fullProof(NULL)
   , d_format(format)
 {}
@@ -52,11 +48,11 @@ ProofManager::~ProofManager() {
   delete d_theoryProof;
   delete d_fullProof;
 
-  for(IdToClause::iterator it = d_inputClauses.begin();
-      it != d_inputClauses.end();
-      ++it) {
-    delete it->second;
-  }
+  // for(IdToClause::iterator it = d_inputClauses.begin();
+  //     it != d_inputClauses.end();
+  //     ++it) {
+  //   delete it->second;
+  // }
 
   for(IdToClause::iterator it = d_theoryLemmas.begin();
       it != d_theoryLemmas.end();
@@ -121,9 +117,13 @@ void ProofManager::initSatProof(Minisat::Solver* solver) {
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
-  Assert (currentPM()->d_cnfProof == NULL);
-  Assert (currentPM()->d_format == LFSC);
-  currentPM()->d_cnfProof = new LFSCCnfProof(cnfStream);
+  ProofManager* pm = currentPM();
+  Assert (pm->d_cnfProof == NULL);
+  Assert (pm->d_format == LFSC);
+  CnfProof* cnf = new LFSCCnfProof(cnfStream);
+  pm->d_cnfProof = cnf;
+  Assert(pm-> d_satProof != NULL);
+  pm->d_satProof->setCnfProof(cnf); 
 }
 
 void ProofManager::initTheoryProofEngine() {
@@ -140,16 +140,8 @@ std::string ProofManager::getVarName(prop::SatVariable var) { return append("v",
 std::string ProofManager::getAtomName(prop::SatVariable var) { return append("a", var); }
 std::string ProofManager::getLitName(prop::SatLiteral lit) {return append("l", lit.toInt()); }
 
-void ProofManager::addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind) {
-  for (unsigned i = 0; i < clause->size(); ++i) {
-    prop::SatLiteral lit = clause->operator[](i);
-    d_propVars.insert(lit.getSatVariable());
-  }
-  if (kind == INPUT) {
-    d_inputClauses.insert(std::make_pair(id, clause));
-    return;
-  }
-  Assert (kind == THEORY_LEMMA);
+void ProofManager::addTheoryLemma(ClauseId id, const prop::SatClause* clause) {
+  Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 
   d_theoryLemmas.insert(std::make_pair(id, clause));
 }
 
@@ -157,12 +149,12 @@ void ProofManager::addAssertion(Expr formula) {
   d_inputFormulas.insert(formula);
 }
 
-void ProofManager::registerTheoryAtom(Expr atom, prop::SatVariable var) {
-  Assert (d_satVarToAtom.find(var) == d_satVarToAtom.end() &&
-          d_atomToSatVar.find(atom) == d_atomToSatVar.end());
-  d_satVarToAtom[var] = atom;
-  d_atomToSatVar[atom] = var; 
-}
+// void ProofManager::registerTheoryAtom(Expr atom, prop::SatVariable var) {
+//   Assert (d_satVarToAtom.find(var) == d_satVarToAtom.end() &&
+//           d_atomToSatVar.find(atom) == d_atomToSatVar.end());
+//   d_satVarToAtom[var] = atom;
+//   d_atomToSatVar[atom] = var; 
+// }
 
 void ProofManager::setLogic(const std::string& logic_string) {
   d_logic = logic_string;
@@ -170,8 +162,8 @@ void ProofManager::setLogic(const std::string& logic_string) {
 
 
 LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCCoreSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory)
-  : d_satProof(sat)
-  , d_cnfProof(cnf)
+  : d_cnfProof(cnf)
+  , d_satProof(sat)
   , d_theoryProof(theory)
   , d_smtEngine(smtEngine)
 {
@@ -187,9 +179,10 @@ void LFSCProof::toStream(std::ostream& out) {
   }
 
   // declare the theory atoms
-  ProofManager::atom_iterator begin = ProofManager::currentPM()->begin_atoms();
-  ProofManager::atom_iterator end = ProofManager::currentPM()->begin_atoms();
-  for(ProofManager::atom_iterator it = begin; it != end; ++it) {
+
+  CnfProof::atom_iterator begin = d_cnfProof->begin_atoms();
+  CnfProof::atom_iterator end = d_cnfProof->end_atoms();
+  for(CnfProof::atom_iterator it = begin; it != end; ++it) {
     d_theoryProof->registerTerm(it->first);
   }
   // print out the assertions
@@ -203,6 +196,7 @@ void LFSCProof::toStream(std::ostream& out) {
   d_theoryProof->printTheoryLemmas(out, paren);
   // priunt actual resolution proof
   d_satProof->printResolutions(out, paren);
+  d_satProof->printResolutionEmptyClause(out, paren);
   paren <<")))\n;;";
   out << paren.str();
   out << "\n";

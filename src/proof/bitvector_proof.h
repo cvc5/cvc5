@@ -28,18 +28,24 @@
 #include <sstream>
 #include "expr/expr.h"
 #include "proof/theory_proof.h"
+#include "prop/bvminisat/core/Solver.h"
 
-namespace BVMinisat {
-class Solver; 
-}
+// namespace BVMinisat {
+// class Solver; 
+// }
 
 namespace CVC4 {
 
+namespace prop {
+class CnfStream;
+}
 namespace theory {
 namespace bv{
 class TheoryBV;
 }
 }
+
+class CnfProof; 
 
 template <class Solver> class TSatProof;
 typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
@@ -54,24 +60,25 @@ class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations; 
   // map from Expr representing normalized lemma to ClauseId in SAT solver
-  ExprToClauseId d_lemmaMap;
+  ExprToClauseId d_conflictMap;
   BVSatProof* d_resolutionProof;
 
-  // CnfProof* d_cnfProof; 
+  CnfProof* d_cnfProof; 
   // TODO:  add proofs for all subtheories
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
   void initSatProof(::BVMinisat::Solver* solver);
+  void initCnfProof(prop::CnfStream* cnfStream);
   BVSatProof* getSatProof();
 
-  void startBVConflict(::BVMinisat::TCRef cr);
+  void startBVConflict(::BVMinisat::Solver::TCRef cr);
   /** 
    * All the 
    * 
    * @param confl a BVMinisat conflict on assumption literals
    */
-  void endBVConflict(std::vector<::BVMinisat::TLit>& confl);
+  void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
   
   /** 
    * Set up SatProof data-structures to explain all
@@ -81,7 +88,7 @@ public:
    * 
    * @param conflicts 
    */
-  void finalizeConflicts(std::vector<Expr>& conflicts);w
+  void finalizeConflicts(std::vector<Expr>& conflicts, std::ostream& os, std::ostream& paren);
   virtual void registerTerm(Expr term);
   
   virtual void printTerm(Expr term, std::ostream& os) = 0;
@@ -91,7 +98,6 @@ public:
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
-  
 };
 
 class LFSCBitVectorProof: public BitVectorProof {

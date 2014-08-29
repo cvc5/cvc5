@@ -62,7 +62,8 @@ public:
 
   typedef Lit TLit;
   typedef Clause TClause; 
-  typedef CRef TCRef; 
+  typedef CRef TCRef;
+  typedef vec<Lit> TLitVec;
 
 protected:
 

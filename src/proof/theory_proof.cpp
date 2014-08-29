@@ -95,7 +95,9 @@ void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
   if (theory_id == THEORY_BOOL ||
       theory_id == THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
-      term.getKind() == kind::EQUAL) {
+      term.getKind() == kind::EQUAL ||
+      term.getKind() == kind::VARIABLE ||
+      term.getKind() == kind::SKOLEM) {
     printCoreTerm(term, os);
     return;
   }
@@ -165,7 +167,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
-      Expr atom = pm->getAtomForSatVar(lit.getSatVariable());
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
       Expr expr_lit = lit.isNegated() ? atom.notExpr() :  atom;
       clause_expr.push_back(expr_lit);
     }

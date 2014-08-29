@@ -60,6 +60,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
     d_isCoreTheory(false),
     d_calledPreregister(false)
 {
+  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_eagerSolver = new EagerBitblastSolver(this);
@@ -91,7 +92,6 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& 
   d_subtheories.push_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 
-  PROOF (ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(this); );
 }
 
 

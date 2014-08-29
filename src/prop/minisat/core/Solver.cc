@@ -59,7 +59,6 @@ static DoubleOption  opt_garbage_frac      (_cat, "gc-frac",     "The fraction o
 CRef Solver::TCRef_Undef = CRef_Undef;
 CRef Solver::TCRef_Lazy = CRef_Lazy;
 
-
 class ScopedBool {
   bool& watch;
   bool oldValue;

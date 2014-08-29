@@ -25,6 +25,8 @@
 #include "theory/bv/options.h"
 #include "theory/theory_model.h"
 #include "theory/bv/abstraction.h"
+#include "proof/bitvector_proof.h"
+#include "proof/proof_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -53,6 +55,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
                                            false,
                                            "LazyBitblaster");
   
+  PROOF (ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream)); 
   prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);

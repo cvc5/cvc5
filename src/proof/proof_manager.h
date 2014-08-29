@@ -80,11 +80,9 @@ enum ProofFormat {
 
 std::string append(const std::string& str, uint64_t num);
 
-typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction > ExprSet;
 typedef __gnu_cxx::hash_set<prop::SatVariable> SatVarSet;
-typedef __gnu_cxx::hash_map<Expr, prop::SatVariable, ExprHashFunction > ExprToSatVar;
-typedef __gnu_cxx::hash_map<prop::SatVariable, Expr> SatVarToExpr;
+typedef __gnu_cxx::hash_map < ClauseId, const prop::SatClause* > IdToClause;
 
 typedef int ClauseId;
 
@@ -95,17 +93,14 @@ enum ClauseKind {
 };/* enum ClauseKind */
 
 class ProofManager {
-  CoreSatProof*    d_satProof;
-  CnfProof*    d_cnfProof;
+  CoreSatProof*  d_satProof;
+  CnfProof*      d_cnfProof;
   TheoryProofEngine* d_theoryProof;
 
   // information that will need to be shared across proofs
-  IdToClause d_inputClauses;
+
   IdToClause d_theoryLemmas;
   ExprSet    d_inputFormulas;
-  ExprToSatVar d_atomToSatVar;
-  SatVarToExpr d_satVarToAtom;
-  SatVarSet d_propVars;
   Proof* d_fullProof;
   ProofFormat d_format; // used for now only in debug builds
 
@@ -136,13 +131,8 @@ public:
   // iterators over data shared by proofs
   typedef IdToClause::const_iterator clause_iterator;
   typedef ExprSet::const_iterator assertions_iterator;
-  typedef ExprToSatVar::const_iterator atom_iterator;
-  typedef SatVarToExpr::const_iterator var_iterator;
 
-  // iterate over the problem clauses
-  clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
-  clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
-
+ 
   // iterate over the theory lemmas
   clause_iterator begin_lemmas() const { return d_theoryLemmas.begin(); }
   clause_iterator end_lemmas() const { return d_theoryLemmas.end(); }
@@ -151,27 +141,11 @@ public:
   assertions_iterator begin_assertions() const { return d_inputFormulas.begin(); }
   assertions_iterator end_assertions() const { return d_inputFormulas.end(); }
 
-  // iterate over all theory atoms
-  atom_iterator begin_atoms() const { return d_atomToSatVar.begin(); }
-  atom_iterator end_atoms() const { return d_atomToSatVar.end(); }
 
-  // iterate over all sat variables
-  var_iterator begin_vars() const { return d_satVarToAtom.begin(); }
-  var_iterator end_vars() const { return d_satVarToAtom.end(); }
-
-  prop::SatVariable getSatVarForAtom(Expr atom) {
-    Assert (d_atomToSatVar.find(atom) != d_atomToSatVar.end()); 
-    return d_atomToSatVar.find(atom)->second;
-  }
-  Expr getAtomForSatVar(prop::SatVariable var) {
-    Assert (d_satVarToAtom.find(var) != d_satVarToAtom.end()); 
-    return d_satVarToAtom.find(var)->second;
-  }
-
-  void registerTheoryAtom(Expr atom, prop::SatVariable var);
+  //  void registerTheoryAtom(Expr atom, prop::SatVariable var);
   
   void addAssertion(Expr formula);
-  void addClause(ClauseId id, const prop::SatClause* clause, ClauseKind kind);
+  void addTheoryLemma(ClauseId id, const prop::SatClause* clause);
 
   // variable prefixes
   static std::string getInputClauseName(ClauseId id);
@@ -189,8 +163,8 @@ public:
 };/* class ProofManager */
 
 class LFSCProof : public Proof {
-  LFSCCoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
+  LFSCCoreSatProof* d_satProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
 public:

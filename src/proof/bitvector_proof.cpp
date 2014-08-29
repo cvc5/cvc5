@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "prop/bvminisat/bvminisat.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -30,12 +31,19 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
   : TheoryProof(bv, proofEngine)
   , d_declarations()
   , d_resolutionProof(NULL)
-    //  , d_cnfProof()
+  , d_cnfProof(NULL)
 {}
 
 void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
   d_resolutionProof = new LFSCBVSatProof(solver);
+}
+
+void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream) {
+  Assert (d_cnfProof == NULL);
+  d_cnfProof = new LFSCCnfProof(cnfStream);
+  Assert (d_resolutionProof != NULL);
+  d_resolutionProof->setCnfProof(d_cnfProof); 
 }
 
 BVSatProof* BitVectorProof::getSatProof() {
@@ -54,30 +62,33 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 }
 
-void BitVectorProof::startBVConflict(::BVMinisat::TCRef cr) {
-  d_satProof->startResChain(cr);
+void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
+  d_resolutionProof->startResChain(cr);
 }
-void BitVectorProof::endBVConflict(std::vector<::BVMinisat::TLit>& confl) {
-  std::vector<Expr> expr_confl;
-  for (unsigned i = 0; i < confl.size(); ++i) {
-    Assert (d_satProof->isAssumption(confl[i]));
-    Expr expr_lit = d_cnf->getAtom(lit);
-    expr_confl.push_back(expr_lit); 
+void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
+  std::vector<Node> node_confl;
+  for (int i = 0; i < confl.size(); ++i) {
+    prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
+    Node node_lit = Node::fromExpr(d_cnfProof->getAtom(lit.getSatVariable()));
+    node_confl.push_back(node_lit); 
   }
-  Node conflict = Rewriter::rewrite(utils::mkAnd(expr_confl));
+  Expr conflict = (Rewriter::rewrite(utils::mkAnd(node_confl))).toExpr();
   
   Assert (d_conflictMap.find(conflict) == d_conflictMap.end());
   // we don't need to check for uniqueness in the sat solver then        
-  ClauseId clause_id = d_satProof->registerAssumptionConflict(confl);
-  d_conflictMap[confl] = clause_id;
-  d_satProof->endResChain(clause_id);
+  ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
+  d_conflictMap[conflict] = clause_id;
+  d_resolutionProof->endResChain(clause_id);
 }
 
-void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
-  for (
-  for(unsigned i = 0; i < conflics.size(); ++i) {
-    Expr confl = concflicts[i];
-    Assert (d_lemmaMap.find(confl) != d_lemmaMap.end()); 
+void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts,
+                                       std::ostream& os, std::ostream& paren) {
+  for(unsigned i = 0; i < conflicts.size(); ++i) {
+    Node n = Node::fromExpr(conflicts[i]); 
+    Expr confl = (Rewriter::rewrite(n)).toExpr();
+    Assert (d_conflictMap.find(confl) != d_conflictMap.end());
+    ClauseId id = d_conflictMap[confl];
+    d_resolutionProof->collectClauses(id);
   }
 }
 
