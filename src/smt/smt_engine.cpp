@@ -1299,6 +1299,11 @@ void SmtEngine::setDefaults() {
       options::intWfInduction.set( true );
     }
   }
+  if( options::dtStcInduction() ){
+    if( !options::dtForceAssignment.wasSetByUser() ){
+      options::dtForceAssignment.set( true );
+    }
+  }
   if( options::intWfInduction() ){
     if( !options::purifyTriggers.wasSetByUser() ){
       options::purifyTriggers.set( true );

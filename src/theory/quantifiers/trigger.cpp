@@ -188,19 +188,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   }
 
   //check for duplicate?
-  if( trOption==TR_MAKE_NEW ){
-    //static int trNew = 0;
-    //static int trOld = 0;
-    //Trigger* t = qe->getTermDatabase()->getTrigger( trNodes );
-    //if( t ){
-    //  trOld++;
-    //}else{
-    //  trNew++;
-    //}
-    //if( (trNew+trOld)%100==0 ){
-    //  Notice() << "Trigger new old = " << trNew << " " << trOld << std::endl;
-    //}
-  }else{
+  if( trOption!=TR_MAKE_NEW ){
     Trigger* t = qe->getTriggerDatabase()->getTrigger( trNodes );
     if( t ){
       if( trOption==TR_GET_OLD ){
@@ -215,6 +203,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
   return t;
 }
+
 Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOption, bool keepAll, int trOption, bool smartTriggers ){
   std::vector< Node > nodes;
   nodes.push_back( n );
@@ -243,11 +232,9 @@ bool Trigger::isUsable( Node n, Node f ){
       return true;
     }else{
       std::map< Node, Node > coeffs;
-      if( isArithmeticTrigger( f, n, coeffs ) ){
+      if( isBooleanTermTrigger( n ) ){
         return true;
-      }else if( isBooleanTermTrigger( n ) ){
-        return true;
-      }
+      }    
     }
     return false;
   }else{
@@ -401,6 +388,35 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
   }
 }
 
+bool Trigger::isBooleanTermTrigger( Node n ) {
+  if( n.getKind()==ITE ){
+    //check for boolean term converted to ITE
+    if( n[0].getKind()==INST_CONSTANT &&
+        n[1].getKind()==CONST_BITVECTOR &&
+        n[2].getKind()==CONST_BITVECTOR ){
+      if( ((BitVectorType)n[1].getType().toType()).getSize()==1 &&
+          n[1].getConst<BitVector>().toInteger()==1 &&
+          n[2].getConst<BitVector>().toInteger()==0 ){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Trigger::isPureTheoryTrigger( Node n ) {
+  if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){  //|| !quantifiers::TermDb::hasInstConstAttr( n ) ){
+    return false;
+  }else{
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( !isPureTheoryTrigger( n[i] ) ){
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, bool filterInst ){
   std::map< Node, bool > patMap;
   if( filterInst ){
@@ -440,67 +456,6 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       patTerms.push_back( it->first );
     }
   }
-}
-
-bool Trigger::isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs ){
-  if( n.getKind()==PLUS ){
-    Assert( coeffs.empty() );
-    NodeBuilder<> t(kind::PLUS);
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( quantifiers::TermDb::hasInstConstAttr(n[i]) ){
-        if( n[i].getKind()==INST_CONSTANT ){
-          if( quantifiers::TermDb::getInstConstAttr(n[i])==f ){
-            coeffs[ n[i] ] = Node::null();
-          }else{
-            coeffs.clear();
-            return false;
-          }
-        }else if( !isArithmeticTrigger( f, n[i], coeffs ) ){
-          coeffs.clear();
-          return false;
-        }
-      }else{
-        t << n[i];
-      }
-    }
-    if( t.getNumChildren()==0 ){
-      coeffs[ Node::null() ] = NodeManager::currentNM()->mkConst( Rational(0) );
-    }else if( t.getNumChildren()==1 ){
-      coeffs[ Node::null() ]  = t.getChild( 0 );
-    }else{
-      coeffs[ Node::null() ]  = t;
-    }
-    return true;
-  }else if( n.getKind()==MULT ){
-    if( n[0].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[0])==f ){
-      if( !quantifiers::TermDb::hasInstConstAttr(n[1]) ){
-        coeffs[ n[0] ] = n[1];
-        return true;
-      }
-    }else if( n[1].getKind()==INST_CONSTANT && quantifiers::TermDb::getInstConstAttr(n[1])==f ){
-      if( !quantifiers::TermDb::hasInstConstAttr(n[0]) ){
-        coeffs[ n[1] ] = n[0];
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool Trigger::isBooleanTermTrigger( Node n ) {
-  if( n.getKind()==ITE ){
-    //check for boolean term converted to ITE
-    if( n[0].getKind()==INST_CONSTANT &&
-        n[1].getKind()==CONST_BITVECTOR &&
-        n[2].getKind()==CONST_BITVECTOR ){
-      if( ((BitVectorType)n[1].getType().toType()).getSize()==1 &&
-          n[1].getConst<BitVector>().toInteger()==1 &&
-          n[2].getConst<BitVector>().toInteger()==0 ){
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 Node Trigger::getInversionVariable( Node n ) {

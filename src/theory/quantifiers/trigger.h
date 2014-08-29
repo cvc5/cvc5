@@ -110,9 +110,8 @@ public:
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
   static bool isSimpleTrigger( Node n );
-  /** get pattern arithmetic */
-  static bool isArithmeticTrigger( Node f, Node n, std::map< Node, Node >& coeffs );
   static bool isBooleanTermTrigger( Node n );
+  static bool isPureTheoryTrigger( Node n );
   /** return data structure for producing matches for this trigger. */
   static InstMatchGenerator* getInstMatchGenerator( Node n );
   static Node getInversionVariable( Node n );
