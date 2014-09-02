@@ -162,7 +162,8 @@ Solver::Solver(CVC4::context::Context* c) :
   , propagation_budget (-1)
   , asynch_interrupt   (false)
 {
-  PROOF(ProofManager::getBitVectorProof()->initSatProof(this);)
+  PROOF(ProofManager::getBitVectorProof()->initSatProof(this););
+  
   // Create the constant variables
   varTrue = newVar(true, false);
   varFalse = newVar(false, false);
@@ -900,9 +901,9 @@ lbool Solver::search(int nof_conflicts, UIP uip)
 
               // Starting new resolution chain for bit-vector proof
               Assert (cr != CRef_Undef); // This will probably fail
-              //PROOF (ProofManager::getBitVectorProof()->startBVConflict(cr));
+              PROOF (ProofManager::getBitVectorProof()->startBVConflict(cr));
               analyzeFinal(p, conflict);
-              //PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
+              PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
               return l_False;
             }
@@ -917,9 +918,9 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 if (new_confl != CRef_Undef) {
                   // we have a conflict we now need to explain it
                   // TODO: proof for analyzeFinal2
-                  //PROOF (ProofManager::getBitVectorProof()->startBVConflict(new_confl););
+                  PROOF (ProofManager::getBitVectorProof()->startBVConflict(new_confl););
                   analyzeFinal2(p, new_confl, conflict);
-                  //PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
+                  PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
                   return l_False;
                 }
               }
@@ -990,9 +991,9 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     marker[var(p)] = 2;
                     // TODO Start resolution chain with reason for var(p)?
                     
-                    //PROOF ( ProofManager::getBitVectorProof()->startBVConflict(reason(var(p))););
+                    PROOF ( ProofManager::getBitVectorProof()->startBVConflict(reason(var(p))););
                     analyzeFinal(~p, conflict);
-                    //PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
+                    PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
                     return l_False;
                 }else{

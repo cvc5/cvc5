@@ -55,7 +55,11 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
                                            false,
                                            "LazyBitblaster");
   
-  PROOF (ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream)); 
+  PROOF (
+         if (d_name.compare("lazy") == 0 ) {
+           ProofManager::currentPM()->getBitVectorProof()->initCnfProof(d_cnfStream);
+         }
+         ); 
   prop::BVSatSolverInterface::Notify* notify = d_emptyNotify ?
     (prop::BVSatSolverInterface::Notify*) new MinisatEmptyNotify() :
     (prop::BVSatSolverInterface::Notify*) new MinisatNotify(d_cnfStream, bv, this);
