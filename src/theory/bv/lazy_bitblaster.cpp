@@ -52,7 +52,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c, bv::TheoryBV* bv, const st
   d_cnfStream = new prop::TseitinCnfStream(d_satSolver,
                                            d_nullRegistrar,
                                            d_nullContext,
-                                           false,
+                                           options::proof(),
                                            "LazyBitblaster");
   
   PROOF (

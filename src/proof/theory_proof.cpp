@@ -22,6 +22,7 @@
 #include "proof/array_proof.h"
 #include "proof/bitvector_proof.h"
 #include "proof/cnf_proof.h"
+#include "proof/proof_utils.h"
 #include "prop/sat_solver_types.h"
 
 using namespace CVC4;
@@ -156,6 +157,33 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
   ProofManager::clause_iterator it = pm->begin_lemmas();
   ProofManager::clause_iterator end = pm->end_lemmas();
 
+  // BitVector theory is special case: must know all
+  // conflicts needed ahead of time for resolution
+  // proof lemmas
+  std::vector<Expr> bv_lemmas;
+  for (; it != end; ++it) {
+    ClauseId id = it->first;
+    TheoryId theory_id = getTheoryForLemma(id);
+    if (theory_id != THEORY_BV) continue;
+
+    const prop::SatClause* clause = it->second;
+    std::vector<Expr> conflict;
+    for(unsigned i = 0; i < clause->size(); ++i) {
+      prop::SatLiteral lit = (*clause)[i];
+      Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
+      Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
+      conflict.push_back(expr_lit);
+    }
+    bv_lemmas.push_back(utils::mkSortedExpr(kind::OR, conflict));
+  }
+  // FIXME: ugly, move into bit-vector proof by adding lemma
+  // queue inside each theory_proof
+  BitVectorProof* bv = ProofManager::getBitVectorProof(); 
+  bv->finalizeConflicts(bv_lemmas); 
+  bv->printBitblasting(os, paren);
+  
+  it = pm->begin_lemmas();
+  
   for (; it != end; ++it) {
     ClauseId id = it->first;
     const prop::SatClause* clause = it->second;
@@ -168,7 +196,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
       Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
-      Expr expr_lit = lit.isNegated() ? atom.notExpr() :  atom;
+      Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
       clause_expr.push_back(expr_lit);
     }
     

@@ -16,9 +16,9 @@
 **/
 
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/theory_bv_utils.h"
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "proof/proof_utils.h"
 #include "prop/bvminisat/bvminisat.h"
 
 using namespace CVC4;
@@ -66,26 +66,26 @@ void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
   d_resolutionProof->startResChain(cr);
 }
 void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
-  std::vector<Node> node_confl;
+  std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
     prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
-    Node node_lit = Node::fromExpr(d_cnfProof->getAtom(lit.getSatVariable()));
-    node_confl.push_back(node_lit); 
+    Expr atom = d_cnfProof->getAtom(lit.getSatVariable());
+    Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom; 
+    expr_confl.push_back(expr_lit); 
   }
-  Expr conflict = (Rewriter::rewrite(utils::mkAnd(node_confl))).toExpr();
+  Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
   
   Assert (d_conflictMap.find(conflict) == d_conflictMap.end());
   // we don't need to check for uniqueness in the sat solver then        
   ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
   d_conflictMap[conflict] = clause_id;
   d_resolutionProof->endResChain(clause_id);
+  Debug("bv-proof") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n"; 
 }
 
-void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts,
-                                       std::ostream& os, std::ostream& paren) {
+void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   for(unsigned i = 0; i < conflicts.size(); ++i) {
-    Node n = Node::fromExpr(conflicts[i]); 
-    Expr confl = (Rewriter::rewrite(n)).toExpr();
+    Expr confl = conflicts[i];
     Assert (d_conflictMap.find(confl) != d_conflictMap.end());
     ClauseId id = d_conflictMap[confl];
     d_resolutionProof->collectClauses(id);
@@ -165,10 +165,9 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   Assert (term.isConst());
   os <<"(a_bv ";
   std::ostringstream paren;
-  TNode node = Node::fromExpr(term); 
-  for (unsigned i = 0; i < utils::getSize(node); ++i) {
+  for (unsigned i = 0; i < utils::getSize(term); ++i) {
     os << "(bvc ";
-    os << (utils::getBit(node, i) ? "b1" : "b0") <<" "; 
+    os << (utils::getBit(term, i) ? "b1" : "b0") <<" "; 
     paren << ")";
   }
   os << " bvn)";
@@ -226,8 +225,8 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os) {
     os << amount; 
   }
   if (term.getKind() == kind::BITVECTOR_EXTRACT) {
-    unsigned low = utils::getExtractLow(Node::fromExpr(term));
-    unsigned high = utils::getExtractHigh(Node::fromExpr(term));
+    unsigned low = utils::getExtractLow(term);
+    unsigned high = utils::getExtractHigh(term);
     os << high <<" " << low; 
   }
   os <<" ";
@@ -246,9 +245,12 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
   for (unsigned i = 0; i < lemma.size(); ++i) {
     os << lemma[i] << " "; 
   }
-  os << "\n"; 
-
-  os << "(clausify_false trust)\n"; 
+  os << "\n";
+  Expr lem = utils::mkOr(lemma);
+  Assert (d_conflictMap.find(lem) != d_conflictMap.end()); 
+  ClauseId lemma_id = d_conflictMap[lem];
+  d_resolutionProof->printResolution(lemma_id, os, paren); 
+  // os << "(clausify_false trust)\n"; 
 }
 void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren) {
   ExprSet::const_iterator it = d_declarations.begin();
@@ -259,7 +261,11 @@ void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren
   }
 }
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
-  os << ";; TODO print bit-blasting \n";
+  // print all the bit-blasting clauses marked by finalize conflict
+  os << ";; Bit-blasting definitional clauses \n";
+  d_cnfProof->printClauses(os, paren);
+  os << ";; Bit-blasting learned clauses \n";
+  d_resolutionProof->printResolutions(os, paren);
 }
 
 std::string toLFSCBVKind(Kind kind) {

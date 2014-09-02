@@ -345,6 +345,12 @@ bool TSatProof<Solver>::isLemmaClause(ClauseId id) {
 }
 
 template <class Solver> 
+bool TSatProof<Solver>::isAssumptionConflict(ClauseId id) {
+  return d_assumptionConflicts.find(id) != d_assumptionConflicts.end();
+}
+
+
+template <class Solver> 
 void TSatProof<Solver>::print(ClauseId id) {
   if (d_deleted.find(id) != d_deleted.end()) {
     Debug("proof:sat") << "del"<<id;
@@ -439,7 +445,7 @@ ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TL
   // Uniqueness is checked in the bit-vector proof
   // should be vars
   for (int i = 0; i < confl.size(); ++i) {
-    Assert (d_assumptions.find(Solver::var(confl[i])) != d_assumptions.end());
+    Assert (d_assumptions.find(var(confl[i])) != d_assumptions.end());
   }
   ClauseId new_id = d_idCounter++;
   d_assumptionConflicts.insert(new_id);
@@ -536,6 +542,16 @@ void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
   ResChain<Solver>* res = d_resStack.back();
   res->addStep(lit, id, sign);
 }
+
+template <class Solver> 
+void TSatProof<Solver>::endResChain(ClauseId id) {
+  Assert(d_resStack.size() > 0);
+  ResChain<Solver>* res = d_resStack.back();
+  registerResolution(id, res);
+  d_resStack.pop_back();
+}
+
+
 template <class Solver> 
 void TSatProof<Solver>::endResChain(typename Solver::TCRef clause) {
   Assert(d_resStack.size() > 0);
@@ -789,7 +805,7 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
     addToProofManager(id);
     d_seenLemmas.insert(id);
     return;
-  } else {
+  } else if (!isAssumptionConflict(id)) {
     d_seenLearnt.insert(id);
   }
 

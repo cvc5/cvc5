@@ -65,20 +65,7 @@ protected:
 
   CnfProof* d_cnfProof; 
   // TODO:  add proofs for all subtheories
-public:
-  BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
-
-  void initSatProof(::BVMinisat::Solver* solver);
-  void initCnfProof(prop::CnfStream* cnfStream);
-  BVSatProof* getSatProof();
-
-  void startBVConflict(::BVMinisat::Solver::TCRef cr);
-  /** 
-   * All the 
-   * 
-   * @param confl a BVMinisat conflict on assumption literals
-   */
-  void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
+  // BitblastingProof* d_bbProof;
   
   /** 
    * Set up SatProof data-structures to explain all
@@ -88,7 +75,23 @@ public:
    * 
    * @param conflicts 
    */
-  void finalizeConflicts(std::vector<Expr>& conflicts, std::ostream& os, std::ostream& paren);
+
+public:
+  BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
+
+  void initSatProof(::BVMinisat::Solver* solver);
+  void initCnfProof(prop::CnfStream* cnfStream);
+  BVSatProof* getSatProof();
+  void finalizeConflicts(std::vector<Expr>& conflicts);
+
+  void startBVConflict(::BVMinisat::Solver::TCRef cr);
+  /** 
+   * All the 
+   * 
+   * @param confl an inconsistent set of bv literals
+   */
+  void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
+  
   virtual void registerTerm(Expr term);
   
   virtual void printTerm(Expr term, std::ostream& os) = 0;

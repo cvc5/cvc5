@@ -138,6 +138,7 @@ protected:
 
   bool isInputClause(ClauseId id);
   bool isLemmaClause(ClauseId id);
+  bool isAssumptionConflict(ClauseId id);
   bool isUnit(ClauseId id);
   bool isUnit(typename Solver::TLit lit);
   bool hasResolution(ClauseId id);
@@ -181,6 +182,7 @@ public:
    */
   void endResChain(typename Solver::TCRef clause);
   void endResChain(typename Solver::TLit lit);
+  void endResChain(ClauseId id);
   /**
    * Stores in the current derivation the redundant literals that were
    * eliminated from the conflict clause during conflict clause minimization.
@@ -248,6 +250,7 @@ protected:
   void addToProofManager(ClauseId id);
   void addToCnfProof(ClauseId id);
 public:
+  virtual void printResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
   typedef IdHashSet::const_iterator clause_iterator;
@@ -272,11 +275,12 @@ public:
 template <class SatSolver> 
 class LFSCSatProof : public TSatProof<SatSolver> {
 private:
-  void printResolution(ClauseId id, std::ostream& out, std::ostream& paren);
+
 public:
   LFSCSatProof(SatSolver* solver, bool checkRes = false)
     : TSatProof<SatSolver>(solver, checkRes)
   {}
+  virtual void printResolution(ClauseId id, std::ostream& out, std::ostream& paren);
   virtual void printResolutions(std::ostream& out, std::ostream& paren);
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren);
 };/* class LFSCSatProof */

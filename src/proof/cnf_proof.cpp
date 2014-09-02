@@ -48,10 +48,11 @@ void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
     SatLiteral lit = clause->operator[](i);
     SatVariable var = lit.getSatVariable();
     Expr atom = getAtom(var);
-    Assert (d_satVarToAtom.find(var) == d_satVarToAtom.end());
-    Assert (d_atomToSatVar.find(atom) == d_atomToSatVar.end());
-    d_satVarToAtom[var] = atom;
-    d_atomToSatVar[atom] = var;
+    if (d_satVarToAtom.find(var) == d_satVarToAtom.end()) {
+      Assert (d_atomToSatVar.find(atom) == d_atomToSatVar.end());
+      d_satVarToAtom[var] = atom;
+      d_atomToSatVar[atom] = var;
+    }
   }
 }
 

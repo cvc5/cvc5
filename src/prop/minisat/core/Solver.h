@@ -59,13 +59,13 @@ class Solver {
 public:
   static CRef TCRef_Undef;
   static CRef TCRef_Lazy;
-  
+
   typedef Var TVar;
   typedef Lit TLit;
   typedef Clause TClause; 
   typedef CRef TCRef;
   typedef vec<Lit> TLitVec;
-
+  
 protected:
 
   /** The pointer to the proxy that provides interfaces to the SMT engine */

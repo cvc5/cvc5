@@ -156,7 +156,7 @@ void TseitinCnfStream::ensureLiteral(TNode n) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << "newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
+  Debug("cnf") << d_name<<"::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node

@@ -70,7 +70,7 @@ public:
     typedef Clause TClause; 
     typedef CRef TCRef;
     typedef vec<Lit> TLitVec;
-  
+
     static CRef TCRef_Undef;
     static CRef TCRef_Lazy;
 private:
