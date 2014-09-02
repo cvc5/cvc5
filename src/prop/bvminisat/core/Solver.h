@@ -65,6 +65,7 @@ public:
 class Solver {
     friend class CVC4::TSatProof< ::BVMinisat::Solver>;
 public:
+    typedef Var TVar;
     typedef Lit TLit;
     typedef Clause TClause; 
     typedef CRef TCRef;
@@ -200,11 +201,7 @@ public:
     // Bitvector Propagations
     //
 
-    void addMarkerLiteral(Var var) {
-      // make sure it wasn't already marked 
-      Assert(marker[var] == 0); 
-      marker[var] = 1;
-    }
+    void addMarkerLiteral(Var var);
 
     bool need_to_propagate;             // true if we added new clauses, set to true in propagation 
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done

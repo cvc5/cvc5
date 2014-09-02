@@ -642,7 +642,8 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
   // it's not always unit though, but this would be useful for debugging
   
   // assert(marker[var(p)] == 1);
-  
+
+ 
   if (decisionLevel() > assumptions.size()) {
     cancelUntil(assumptions.size());
   }
@@ -669,6 +670,14 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
     return l_True;
   }
 }
+
+void Solver::addMarkerLiteral(Var var) {
+  // make sure it wasn't already marked 
+  Assert(marker[var] == 0); 
+  marker[var] = 1;
+  PROOF(ProofManager::currentPM()->getBitVectorProof()->getSatProof()->registerAssumption(var);); 
+}
+
 
 /*_________________________________________________________________________________________________
 |

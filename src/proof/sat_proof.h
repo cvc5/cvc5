@@ -82,6 +82,7 @@ template<class Solver>
 class TSatProof {
 protected:
   typedef std::set < typename Solver::TLit> LitSet;
+  typedef std::set < typename Solver::TVar> VarSet;
   typedef std::hash_map < ClauseId, typename Solver::TCRef > IdCRefMap;
   typedef std::hash_map < typename Solver::TCRef, ClauseId > ClauseIdMap;
   typedef std::hash_map < ClauseId, typename Solver::TLit>   IdUnitMap;
@@ -105,7 +106,7 @@ protected:
   IdToSatClause       d_deletedTheoryLemmas;
   IdHashSet           d_inputClauses;
   IdHashSet           d_lemmaClauses;
-  LitSet              d_assumptions; // assumption literals for bv solver
+  VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
   
   // resolutions
@@ -201,7 +202,7 @@ public:
   /// clause registration methods
   ClauseId registerClause(const typename Solver::TCRef clause, ClauseKind kind = LEARNT);
   ClauseId registerUnitClause(const typename Solver::TLit lit, ClauseKind kind = LEARNT);
-  ClauseId registerAssumption(const typename Solver::TLit lit);
+  void registerAssumption(const typename Solver::TVar var);
   ClauseId registerAssumptionConflict(const typename Solver::TLitVec& confl);
   
   void storeUnitConflict(typename Solver::TLit lit, ClauseKind kind = LEARNT);

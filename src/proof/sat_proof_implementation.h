@@ -429,19 +429,17 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit, Clause
   return d_unitId[toInt(lit)];
 }
 template <class Solver> 
-ClauseId TSatProof<Solver>::registerAssumption(const typename Solver::TLit lit) {
-  Assert (d_assumptions.find(lit) == d_assumptions.end());
-  d_assumptions.insert(lit);
-  ClauseId assump_id = registerUnitClause(lit);
-  return assump_id;
+void TSatProof<Solver>::registerAssumption(const typename Solver::TVar var) {
+  Assert (d_assumptions.find(var) == d_assumptions.end());
+  d_assumptions.insert(var);
 }
 
 template <class Solver> 
 ClauseId TSatProof<Solver>::registerAssumptionConflict(const typename Solver::TLitVec& confl) {
   // Uniqueness is checked in the bit-vector proof
   // should be vars
-  for (unsigned i = 0; i < confl.size(); ++i) {
-    Assert (d_assumptions.find(confl[i]) != d_assumptions.end());
+  for (int i = 0; i < confl.size(); ++i) {
+    Assert (d_assumptions.find(Solver::var(confl[i])) != d_assumptions.end());
   }
   ClauseId new_id = d_idCounter++;
   d_assumptionConflicts.insert(new_id);
