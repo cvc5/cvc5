@@ -550,6 +550,10 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
 
 
 void TheoryStrings::check(Effort e) {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
+
   bool polarity;
   TNode atom;
 

@@ -109,6 +109,10 @@ void TheoryQuantifiers::collectModelInfo(TheoryModel* m, bool fullModel) {
 }
 
 void TheoryQuantifiers::check(Effort e) {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
+
   CodeTimer codeTimer(d_theoryTime);
 
   Trace("quantifiers-check") << "quantifiers::check(" << e << ")" << std::endl;

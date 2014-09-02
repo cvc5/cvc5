@@ -39,6 +39,9 @@ void TheorySets::addSharedTerm(TNode n) {
 }
 
 void TheorySets::check(Effort e) {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
   d_internal->check(e);
 }
 

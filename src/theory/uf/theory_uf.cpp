@@ -89,6 +89,10 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
 }/* mkAnd() */
 
 void TheoryUF::check(Effort level) {
+  if (done() && !fullEffort(level)) {
+    return;
+  }
+
   while (!done() && !d_conflict)
   {
     // Get all the assertions

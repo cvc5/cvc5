@@ -49,6 +49,10 @@ Node TheoryIdl::ppRewrite(TNode atom) {
 }
 
 void TheoryIdl::check(Effort level) {
+  //// Not needed for now, as no code outside while() loop below.
+  // if (done() && !fullEffort(e)) {
+  //   return;
+  // }
 
   while(!done()) {
 

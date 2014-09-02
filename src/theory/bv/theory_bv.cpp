@@ -357,6 +357,9 @@ void TheoryBV::checkForLemma(TNode fact) {
 
 void TheoryBV::check(Effort e)
 {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
   Debug("bitvector") << "TheoryBV::check(" << e << ")" << std::endl;
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true); 

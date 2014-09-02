@@ -118,6 +118,10 @@ TNode TheoryDatatypes::getEqcConstructor( TNode r ) {
 }
 
 void TheoryDatatypes::check(Effort e) {
+  if (done() && !fullEffort(e)) {
+    return;
+  }
+
   Trace("datatypes-debug") << "Check effort " << e << std::endl;
   while(!done() && !d_conflict) {
     // Get all the assertions

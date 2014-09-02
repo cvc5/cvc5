@@ -377,7 +377,7 @@ public:
   /**
    * Returns true if the assertFact queue is empty
    */
-  bool done() throw() {
+  bool done() const throw() {
     return d_factsHead == d_facts.size();
   }
 
