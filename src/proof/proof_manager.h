@@ -148,13 +148,13 @@ public:
   void addTheoryLemma(ClauseId id, const prop::SatClause* clause);
 
   // variable prefixes
-  static std::string getInputClauseName(ClauseId id);
-  static std::string getLemmaClauseName(ClauseId id);
-  static std::string getLearntClauseName(ClauseId id);
+  static std::string getInputClauseName(ClauseId id, const std::string& prefix = "");
+  static std::string getLemmaClauseName(ClauseId id, const std::string& prefix = "");
+  static std::string getLearntClauseName(ClauseId id, const std::string& prefix = "");
 
-  static std::string getVarName(prop::SatVariable var);
-  static std::string getAtomName(prop::SatVariable var);
-  static std::string getLitName(prop::SatLiteral lit);
+  static std::string getVarName(prop::SatVariable var, const std::string& prefix = "");
+  static std::string getAtomName(prop::SatVariable var, const std::string& prefix = "");
+  static std::string getLitName(prop::SatLiteral lit, const std::string& prefix = "");
 
   void setLogic(const std::string& logic_string);
   const std::string getLogic() const { return d_logic; }

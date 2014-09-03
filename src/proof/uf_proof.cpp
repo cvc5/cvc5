@@ -58,6 +58,12 @@ void UFProof::registerTerm(Expr term) {
 void LFSCUFProof::printTerm(Expr term, std::ostream& os) {
   Assert (Theory::theoryOf(term) == THEORY_UF);
 
+  if (term.getKind() == kind::VARIABLE ||
+      term.getKind() == kind::SKOLEM) {
+    os << term;
+    return; 
+  }
+  
   Assert (term.getKind() == kind::APPLY_UF);
   
   if(term.getType().isBoolean()) {

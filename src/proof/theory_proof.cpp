@@ -96,9 +96,7 @@ void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
   if (theory_id == THEORY_BOOL ||
       theory_id == THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
-      term.getKind() == kind::EQUAL ||
-      term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM) {
+      term.getKind() == kind::EQUAL) {
     printCoreTerm(term, os);
     return;
   }
@@ -190,7 +188,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     // printing clause as it appears in resolution proof
     os << "(satlem _ _ ";
     std::ostringstream clause_paren;
-    LFSCCnfProof::printClause(*clause, os, clause_paren);
+    ProofManager::currentPM()->getCnfProof()->printClause(*clause, os, clause_paren);
     
     std::vector<Expr> clause_expr;
     for(unsigned i = 0; i < clause->size(); ++i) {

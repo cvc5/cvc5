@@ -592,7 +592,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
             if (reason(x) == CRef_Undef) {
               assert(marker[x] == 2);
               assert(level(x) > 0);
-              out_conflict.push(~trail[i]);
+              out_conflict.push(~trail[i]); // TODO resolve out unit here
             } else {
               Clause& c = ca[reason(x)];
               // TODO add resolution step here?

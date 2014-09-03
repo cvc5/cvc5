@@ -66,7 +66,7 @@
 
 ; a predicate to represent the n^th bit of a bitvector term
 (declare bblast (! x var_bv (! n mpz formula)))
-
+(declare bitof (! x var_bv (! n mpz formula)))
 
 ; bit blast  constant
 (program bblast_const ((v bv) (n mpz)) bblt
@@ -142,4 +142,27 @@
 		     (! a bv
                      (! b bv
                      (! u (^ (calc_bvand a b) c)
-                        (th_holds (= BitVec (bvand (a_bv a) (a_bv b)) (a_bv c))))))))                        
+                        (th_holds (= BitVec (bvand (a_bv a) (a_bv b)) (a_bv c))))))))
+
+
+; bit-blasting connections
+
+(declare intro_assump_t
+	 (! f formula
+	 (! v var
+	 (! C clause
+	 (! h (th_holds f)
+	 (! a (atom v f)
+	 (! u (! unit (holds (clc (pos v) cln))
+	      	 (holds C))
+	 (holds C))))))))
+
+(declare intro_assump_f
+	 (! f formula
+	 (! v var
+	 (! C clause
+	 (! h (th_holds (not f))
+	 (! a (atom v f)
+	 (! u (! unit (holds (clc (neg v) cln))
+	      	 (holds C))
+	 (holds C))))))))

@@ -94,6 +94,7 @@ protected:
   typedef std::set < ClauseId > IdSet;
   typedef std::vector < typename Solver::TLit > LitVector;
   typedef __gnu_cxx::hash_map<ClauseId, typename Solver::TClause& > IdToMinisatClause;
+  typedef __gnu_cxx::hash_map<ClauseId, LitVector* > IdToConflicts;
   
   typename Solver::Solver*    d_solver;
   CnfProof* d_cnfProof; 
@@ -108,6 +109,7 @@ protected:
   IdHashSet           d_lemmaClauses;
   VarSet              d_assumptions; // assumption literals for bv solver
   IdHashSet           d_assumptionConflicts; // assumption conflicts not actually added to SAT solver
+  IdToConflicts       d_assumptionConflictsDebug;
   
   // resolutions
   IdResMap            d_resChains;
@@ -127,8 +129,10 @@ protected:
   // unit conflict
   ClauseId d_unitConflictId;
   bool d_storedUnitConflict;
+  
+  std::string d_name;
 public:
-  TSatProof(Solver* solver, bool checkRes = false);
+  TSatProof(Solver* solver, const std::string& name, bool checkRes = false);
   virtual ~TSatProof() {}
   void setCnfProof(CnfProof* cnf_proof);
 protected:
@@ -151,6 +155,7 @@ protected:
   typename Solver::TLit  getUnit(ClauseId id);
   ClauseId      getUnitId(typename Solver::TLit lit);
   typename Solver::TClause& getClause(typename Solver::TCRef ref);
+  void getLitVec(ClauseId id, LitVector& vec);
   virtual void toStream(std::ostream& out);
 
   bool checkResolution(ClauseId id);
@@ -253,6 +258,7 @@ public:
   virtual void printResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
   virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren) = 0;
+  virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren) = 0;
   typedef IdHashSet::const_iterator clause_iterator;
   clause_iterator begin_input_clauses() { return d_seenInput.begin(); }
   clause_iterator end_input_clauses() { return d_seenInput.end(); }
@@ -277,12 +283,13 @@ class LFSCSatProof : public TSatProof<SatSolver> {
 private:
 
 public:
-  LFSCSatProof(SatSolver* solver, bool checkRes = false)
-    : TSatProof<SatSolver>(solver, checkRes)
+  LFSCSatProof(SatSolver* solver, const std::string& name, bool checkRes = false)
+    : TSatProof<SatSolver>(solver, name, checkRes)
   {}
   virtual void printResolution(ClauseId id, std::ostream& out, std::ostream& paren);
   virtual void printResolutions(std::ostream& out, std::ostream& paren);
   virtual void printResolutionEmptyClause(std::ostream& out, std::ostream& paren);
+  virtual void printAssumptionsResolution(ClauseId id, std::ostream& out, std::ostream& paren);
 };/* class LFSCSatProof */
 
 

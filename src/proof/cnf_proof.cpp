@@ -26,11 +26,12 @@ using namespace CVC4::prop;
 
 namespace CVC4 {
 
-CnfProof::CnfProof(CnfStream* stream)
+CnfProof::CnfProof(CnfStream* stream, const std::string& name)
   : d_cnfStream(stream)
   , d_atomToSatVar()
   , d_satVarToAtom()
   , d_inputClauses()
+  , d_name(name)
 {}
 
 
@@ -39,6 +40,11 @@ Expr CnfProof::getAtom(prop::SatVariable var) {
   Node node = d_cnfStream->getNode(lit);
   Expr atom = node.toExpr();
   return atom;
+}
+
+prop::SatLiteral CnfProof::getLiteral(Expr expr) {
+  Assert(d_cnfStream->hasLiteral(expr));
+  return d_cnfStream->getLiteral(Node::fromExpr(expr)); 
 }
 
 void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
@@ -76,7 +82,7 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
     pe->printTerm(atom, os);
     
-    os << " (\\ " << ProofManager::getVarName(var) << " (\\ " << ProofManager::getAtomName(var) << "\n";
+    os << " (\\ " << ProofManager::getVarName(var, d_name) << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
     paren << ")))";
   }
 }
@@ -97,7 +103,7 @@ void LFSCCnfProof::printInputClauses(std::ostream& os, std::ostream& paren) {
     std::ostringstream clause_paren;
     printClause(*clause, os, clause_paren);
     os << " (clausify_false trust)" << clause_paren.str();
-    os << "( \\ " << ProofManager::getInputClauseName(id) << "\n";
+    os << "( \\ " << ProofManager::getInputClauseName(id, d_name) << "\n";
     paren << "))";
   }
 }
@@ -107,10 +113,10 @@ void LFSCCnfProof::printClause(const prop::SatClause& clause, std::ostream& os, 
     prop::SatLiteral lit = clause[i];
     prop::SatVariable var = lit.getSatVariable();
     if (lit.isNegated()) {
-      os << "(ast _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
+      os << "(ast _ _ _ " << ProofManager::getAtomName(var, d_name) <<" (\\ " << ProofManager::getLitName(lit, d_name) << " ";
       paren << "))";
     } else {
-      os << "(asf _ _ _ " << ProofManager::getAtomName(var) <<" (\\ " << ProofManager::getLitName(lit) << " ";
+      os << "(asf _ _ _ " << ProofManager::getAtomName(var, d_name) <<" (\\ " << ProofManager::getLitName(lit, d_name) << " ";
       paren << "))";
     }
   }

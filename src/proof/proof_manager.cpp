@@ -113,14 +113,14 @@ ArrayProof* ProofManager::getArrayProof() {
 void ProofManager::initSatProof(Minisat::Solver* solver) {
   Assert (currentPM()->d_satProof == NULL);
   Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_satProof = new LFSCCoreSatProof(solver);
+  currentPM()->d_satProof = new LFSCCoreSatProof(solver, "");
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
   ProofManager* pm = currentPM();
   Assert (pm->d_cnfProof == NULL);
   Assert (pm->d_format == LFSC);
-  CnfProof* cnf = new LFSCCnfProof(cnfStream);
+  CnfProof* cnf = new LFSCCnfProof(cnfStream, "");
   pm->d_cnfProof = cnf;
   Assert(pm-> d_satProof != NULL);
   pm->d_satProof->setCnfProof(cnf); 
@@ -133,12 +133,30 @@ void ProofManager::initTheoryProofEngine() {
 }
 
 
-std::string ProofManager::getInputClauseName(ClauseId id) {return append("pb", id); }
-std::string ProofManager::getLemmaClauseName(ClauseId id) { return append("lem", id); }
-std::string ProofManager::getLearntClauseName(ClauseId id) { return append("cl", id); }
-std::string ProofManager::getVarName(prop::SatVariable var) { return append("v", var); }
-std::string ProofManager::getAtomName(prop::SatVariable var) { return append("a", var); }
-std::string ProofManager::getLitName(prop::SatLiteral lit) {return append("l", lit.toInt()); }
+std::string ProofManager::getInputClauseName(ClauseId id,
+                                             const std::string& prefix) {
+  return append(prefix+".pb", id);
+}
+std::string ProofManager::getLemmaClauseName(ClauseId id,
+                                             const std::string& prefix) {
+  return append(prefix+".lem", id);
+}
+std::string ProofManager::getLearntClauseName(ClauseId id,
+                                              const std::string& prefix) {
+  return append(prefix+".cl", id);
+}
+std::string ProofManager::getVarName(prop::SatVariable var,
+                                     const std::string& prefix) {
+  return append(prefix+".v", var);
+}
+std::string ProofManager::getAtomName(prop::SatVariable var,
+                                      const std::string& prefix) {
+  return append(prefix+".a", var);
+}
+std::string ProofManager::getLitName(prop::SatLiteral lit,
+                                     const std::string& prefix) {
+  return append(prefix+".l", lit.toInt());
+}
 
 void ProofManager::addTheoryLemma(ClauseId id, const prop::SatClause* clause) {
   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 

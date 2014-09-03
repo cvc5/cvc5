@@ -36,12 +36,12 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
 
 void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new LFSCBVSatProof(solver);
+  d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
 }
 
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream) {
   Assert (d_cnfProof == NULL);
-  d_cnfProof = new LFSCCnfProof(cnfStream);
+  d_cnfProof = new LFSCCnfProof(cnfStream, "bb");
   Assert (d_resolutionProof != NULL);
   d_resolutionProof->setCnfProof(d_cnfProof); 
 }
@@ -148,7 +148,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
     return;
   }
   case kind::BITVECTOR_BITOF : {
-    Unreachable("Need to figure out");
+    printBitOf(term, os); 
     return;
   }
   case kind::VARIABLE:
@@ -159,6 +159,15 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   default:
     Unreachable(); 
   }
+}
+
+void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os) {
+  Assert (term.getKind() == kind::BITVECTOR_BITOF);
+  unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
+  Expr var = term[0];
+  Assert (var.getKind() == kind::VARIABLE ||
+          var.getKind() == kind::SKOLEM); 
+  os << "(bitof " << var <<" " << bit <<")"; 
 }
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
@@ -241,15 +250,33 @@ void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {
-  os << ";; TODO print bit-vector lemma proof \n ;;";
+  std::ostringstream lemma_paren;
   for (unsigned i = 0; i < lemma.size(); ++i) {
-    os << lemma[i] << " "; 
+    Expr lit = lemma[i];
+    if (lit.getKind() == kind::NOT) {
+      os << "(intro_assump_t _ _ _ ";
+    } else {
+      os << "(intro_assump_f _ _ _ ";
+    }
+    lemma_paren <<")";
+    // print corresponding literal in main sat solver
+    ProofManager* pm = ProofManager::currentPM(); 
+    CnfProof* cnf = pm->getCnfProof(); 
+    prop::SatLiteral main_lit = cnf->getLiteral(lit); 
+    os << pm->getLitName(main_lit);
+    os <<" "; 
+    // print corresponding literal in bv sat solver
+    prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
+    os << pm->getAtomName(bb_var, "bb");
+    os <<"(\\unit"<<bb_var<<"\n"; 
+    lemma_paren <<")";
   }
-  os << "\n";
+
   Expr lem = utils::mkOr(lemma);
   Assert (d_conflictMap.find(lem) != d_conflictMap.end()); 
   ClauseId lemma_id = d_conflictMap[lem];
-  d_resolutionProof->printResolution(lemma_id, os, paren); 
+  d_resolutionProof->printAssumptionsResolution(lemma_id, os, lemma_paren);
+  os <<lemma_paren.str();
   // os << "(clausify_false trust)\n"; 
 }
 void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren) {
@@ -261,6 +288,10 @@ void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren
   }
 }
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
+  // print mapping between theory atoms and internal SAT variables
+  os << ";; BB atom mapping\n"; 
+  d_cnfProof->printAtomMapping(os, paren);
+
   // print all the bit-blasting clauses marked by finalize conflict
   os << ";; Bit-blasting definitional clauses \n";
   d_cnfProof->printClauses(os, paren);
