@@ -353,7 +353,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
 #define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    if (theory::TheoryTraits<THEORY>::hasCheck && d_logicInfo.isTheoryEnabled(THEORY)) { \
+    if (theory::TheoryTraits<THEORY>::hasCheck && !theoryOf(THEORY)->facts_empty()) { \
        theoryOf(THEORY)->check(effort); \
        if (d_inConflict) { \
          break; \
