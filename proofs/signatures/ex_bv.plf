@@ -8,10 +8,10 @@
 (% f3 (th_holds (= BitVec (a_var_bv b) (a_bv (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))))))
 (: (holds cln)
 
-(decl_bv_atom_var 5 a (\ ba1
-(decl_bv_atom_var 5 b (\ ba2
-(decl_bv_atom_const _ (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))) (\ c (\ ba3
-(decl_bv_atom_const _ (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))) (\ d (\ ba4
+(decl_bv_term_var 5 a (\ ba1
+(decl_bv_term_var 5 b (\ ba2
+(decl_bv_term_const _ (bvc b0 (bvc b0 (bvc b0 (bvc b0 (bvc b0 bvn))))) (\ c (\ ba3
+(decl_bv_term_const _ (bvc b1 (bvc b1 (bvc b1 (bvc b1 (bvc b1 bvn))))) (\ d (\ ba4
 
 (decl_atom (bblast a 4) (\ v1 (\ a1
 (decl_atom (bblast b 4) (\ v2 (\ a2

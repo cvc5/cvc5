@@ -195,7 +195,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os) {
       paren <<")";
     }
   }
-  os <<")";
+  os <<")" << paren.str();
 }
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os) {

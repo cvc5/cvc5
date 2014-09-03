@@ -30,25 +30,71 @@
                (! y (term BitVec) 
                     (term BitVec))))
 (declare bvand bvoper)
+(declare bvor bvoper)
+(declare bvor bvoper)
+(declare bvxor bvoper)
+(declare bvnand bvoper)
+(declare bvnor bvoper)
+(declare bvxnor bvoper)
+(declare bvcomp bvoper)
+(declare bvmul bvoper)
 (declare bvadd bvoper)
-;....
+(declare bvsub bvoper)
+(declare bvudiv bvoper)
+(declare bvurem bvoper)
+(declare bvsdiv bvoper)
+(declare bvsrem bvoper)
+(declare bvsmod bvoper)
+(declare bvshl bvoper)
+(declare bvlshr bvoper)
+(declare bvashr bvoper)
+(declare concat bvoper)
+(declare bvneg bvoper)
+(declare bvnot bvoper)
+(declare rotate_left  bvoper)
+(declare rotate_right bvoper)
 
-; all bit-vector terms are mapped with "bv_atom" to:
+
+; bit vector parametrized operators
+(define bvoperp (! x (term BitVec) 
+                (! y mpz	   
+                    (term BitVec))))
+
+(declare repeat bvoperp)
+(declare zero_extend bvoperp)
+(declare sign_extend bvoperp)
+
+; bit vector predicates
+(define bvpred (! x (term BitVec)
+	       (! y (term BitVec)
+	           formula)))
+		   
+(declare bvult bvpred)
+(declare bvule bvpred)
+(declare bvugt bvpred)
+(declare bvuge bvpred)
+(declare bvslt bvpred)
+(declare bvsle bvpred)
+(declare bvsgt bvpred)
+(declare bvsge bvpred)
+
+
+; all bit-vector terms are mapped with "bv_term" to:
 ;  - a simply-typed term of type "var_bv", which is necessary for bit-blasting
 ;  - a integer size
-(declare bv_atom (! x (term BitVec) (! y var_bv (! n mpz type))))
+(declare bv_term (! x (term BitVec) (! y var_bv (! n mpz type))))
 
-(declare decl_bv_atom_var (! n mpz    ; must be specified
+(declare decl_bv_term_var (! n mpz    ; must be specified
                           (! x var_bv
-                          (! p (! u (bv_atom (a_var_bv x) x n)
+                          (! p (! u (bv_term (a_var_bv x) x n)
                                  (holds cln))
                              (holds cln)))))
 
-(declare decl_bv_atom_const (! n mpz
+(declare decl_bv_term_const (! n mpz
                             (! v bv
                             (! s (^ (bv_len v) n)
                             (! p (! w var_bv
-                                 (! u (bv_atom (a_bv v) w n)
+                                 (! u (bv_term (a_bv v) w n)
                                    (holds cln)))
 			      (holds cln))))))
 
@@ -79,7 +125,7 @@
                       (! v bv
                       (! x var_bv
                       (! f bblt
-                      (! u (bv_atom (a_bv v) x n)
+                      (! u (bv_term (a_bv v) x n)
                       (! c (^ (bblast_const v (mp_add n (~ 1))) f)
                          (th_holds (bblast_term (a_bv v) f)))))))))
 
@@ -91,7 +137,7 @@
 (declare bv_bbl_var (! n mpz
                     (! x var_bv
                     (! f bblt                    
-                    (! u (bv_atom (a_var_bv x) x n)
+                    (! u (bv_term (a_var_bv x) x n)
                     (! c (^ (bblast_var x (mp_add n (~ 1))) f)
                        (th_holds (bblast_term (a_var_bv x) f))))))))
 
@@ -122,8 +168,8 @@
                     (! x' var_bv
                     (! y' var_bv
                     (! n mpz
-                    (! ux (bv_atom x x' n)
-                    (! uy (bv_atom y y' n)
+                    (! ux (bv_term x x' n)
+                    (! uy (bv_term y y' n)
                        (th_holds (= BitVec (bvadd x y) (bvadd y x)))))))))))
 
 

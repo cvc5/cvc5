@@ -909,6 +909,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               }
 
               // Starting new resolution chain for bit-vector proof
+              // FIXME: add case for conflict was unit!
               Assert (cr != CRef_Undef); // This will probably fail
               PROOF (ProofManager::getBitVectorProof()->startBVConflict(cr));
               analyzeFinal(p, conflict);
