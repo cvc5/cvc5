@@ -29,6 +29,7 @@
 #include "main/portfolio.h"
 #include "options/options.h"
 #include "smt/options.h"
+#include "printer/options.h"
 
 #include "cvc4autoconfig.h"
 
@@ -371,7 +372,9 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         Command* gp = new GetProofCommand();
         status = doCommandSingleton(gp);
       } else if( d_options[options::dumpInstantiations] &&
-                 d_result.asSatisfiabilityResult() == Result::UNSAT ) {
+                 ( ( d_options[options::instFormatMode]!=INST_FORMAT_MODE_SZS && 
+                   ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) || 
+                 res.asSatisfiabilityResult() == Result::UNSAT ) ) {
         Command* gi = new GetInstantiationsCommand();
         status = doCommandSingleton(gi);
       } else if( d_options[options::dumpUnsatCores] &&

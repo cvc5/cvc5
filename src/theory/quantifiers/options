@@ -158,5 +158,8 @@ option intWfInduction --int-wf-ind bool :read-write :default false
  apply strengthening for integers based on well-founded induction
 option conjectureGen --conjecture-gen bool :read-write :default false
  generate candidate conjectures for inductive proofs
+ 
+option conjectureGenPerRound --conjecture-gen-per-round=N int :default 1
+ number of conjectures to generate per instantiation round
 
 endmodule

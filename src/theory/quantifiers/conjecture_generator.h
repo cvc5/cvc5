@@ -81,11 +81,9 @@ public:
   int d_status_child_num;
   //children (pointers to TermGenerators)
   std::vector< unsigned > d_children;
-  //possible eqc for this term
-  //std::vector< TNode > d_eqc;
 
   //match status
-  unsigned d_match_status;
+  int d_match_status;
   int d_match_status_child_num;
   //match mode
   //1 : different variables must have different matches
@@ -213,14 +211,14 @@ private:
   void setUniversalRelevant( TNode n );
   /** ordering for universal terms */
   bool isUniversalLessThan( TNode rt1, TNode rt2 );
-  
+
   /** the nodes we have reported as canonical representative */
   std::vector< TNode > d_ue_canon;
   /** is reported canon */
   bool isReportedCanon( TNode n );
   /** mark that term has been reported as canonical rep */
   void markReportedCanon( TNode n );
-  
+
 private:  //information regarding the conjectures
   /** list of all conjectures */
   std::vector< Node > d_conjectures;
@@ -297,7 +295,6 @@ public:  //environment for term enumeration
   std::map< unsigned, TermGenerator > d_tg_alloc;
   unsigned d_tg_gdepth;
   int d_tg_gdepth_limit;
-  //std::vector< std::vector< unsigned > > d_var_eq_tg;
   //access functions
   unsigned getNumTgVars( TypeNode tn );
   bool allowVar( TypeNode tn );
@@ -308,37 +305,17 @@ public:  //environment for term enumeration
   bool considerCurrentTerm();
   bool considerTermCanon( unsigned tg_id );
   void changeContext( bool add );
-public:  //for generalization lattice
-  //id of maximal nodes
-  std::map< TypeNode, std::vector< TNode > > d_gen_lat_maximal;
-  //generalization lattice
-  std::map< TNode, std::vector< TNode > > d_gen_lat_child;
-  std::map< TNode, std::vector< TNode > > d_gen_lat_parent;
-  //generalization depth
-  std::map< TNode, int > d_gen_depth;
+public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
     std::map< TNode, TNode > subs;
     return isGeneralization( patg, pat, subs );
   }
   bool isGeneralization( TNode patg, TNode pat, std::map< TNode, TNode >& subs );
-  void addGeneralizationsOf( TNode pat, std::map< TNode, bool >& patProc );
-  
-  //from generalization depth to relevant patterns
-  std::map< TypeNode, std::map< unsigned, std::vector< TNode > > > d_rel_patterns_at_depth;
-  
-  
+
 public:  //for property enumeration
-  //conjectures to process at a particular depth
-  std::map< unsigned, std::vector< unsigned > > d_cconj_at_depth;
-  //RHS, LHS
-  std::vector< TNode > d_cconj[2];
-  // RHS paired
-  std::map< TNode, std::vector< TNode > > d_cconj_rhs_paired;
-  //add candidate conjecture
-  void addCandidateConjecture( TNode lhs, TNode rhs, unsigned depth );
-  //process candidate conjecture at depth
-  void processCandidateConjecture( unsigned cid, unsigned depth );
+  //process this candidate conjecture
+  void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );
   //whether it should be considered
   bool considerCandidateConjecture( TNode lhs, TNode rhs );
   //notified of a substitution
@@ -349,6 +326,8 @@ public:  //for property enumeration
   std::vector< TNode > d_subs_confirmWitnessRange;
   //individual witnesses (for domain)
   std::map< TNode, std::vector< TNode > > d_subs_confirmWitnessDomain;
+  //number of ground substitutions whose equality is unknown
+  unsigned d_subs_unkCount;
 public:  //for ground equivalence classes
   eq::EqualityEngine * getEqualityEngine();
   bool areDisequal( TNode n1, TNode n2 );
@@ -386,6 +365,7 @@ public:
 private:
   bool optReqDistinctVarPatterns();
   bool optFilterFalsification();
+  bool optFilterUnknown();
   bool optFilterConfirmation();
   bool optFilterConfirmationDomain();
   bool optFilterConfirmationOnlyGround();
