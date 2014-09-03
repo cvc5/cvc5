@@ -1300,6 +1300,7 @@ void SmtEngine::setDefaults() {
     }
   }
   if( options::dtStcInduction() ){
+    //leads to unfairness FIXME
     if( !options::dtForceAssignment.wasSetByUser() ){
       options::dtForceAssignment.set( true );
     }

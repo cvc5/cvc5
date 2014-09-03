@@ -2010,9 +2010,9 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
             //try to make a matches making the body false
             Trace("qcf-check-debug") << "Get next match..." << std::endl;
             while( qi->d_mg->getNextMatch( this, qi ) ){
-              Trace("qcf-check") << "*** Produced match at effort " << e << " : " << std::endl;
-              qi->debugPrintMatch("qcf-check");
-              Trace("qcf-check") << std::endl;
+              Trace("qcf-inst") << "*** Produced match at effort " << e << " : " << std::endl;
+              qi->debugPrintMatch("qcf-inst");
+              Trace("qcf-inst") << std::endl;
               std::vector< int > assigned;
               if( !qi->isMatchSpurious( this ) ){
                 if( qi->completeMatch( this, assigned ) ){
@@ -2042,7 +2042,7 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                         ++(d_statistics.d_prop_inst);
                       }
                     }else{
-                      Trace("qcf-check") << "   ... Failed to add instantiation" << std::endl;
+                      Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
                       //Assert( false );
                     }
                   }
@@ -2050,10 +2050,10 @@ void QuantConflictFind::check( Theory::Effort level, unsigned quant_e ) {
                   qi->revertMatch( assigned );
                   d_tempCache.clear();
                 }else{
-                  Trace("qcf-check") << "   ... Spurious instantiation (cannot assign unassigned variables)" << std::endl;
+                  Trace("qcf-inst") << "   ... Spurious instantiation (cannot assign unassigned variables)" << std::endl;
                 }
               }else{
-                Trace("qcf-check") << "   ... Spurious instantiation (match is inconsistent)" << std::endl;
+                Trace("qcf-inst") << "   ... Spurious instantiation (match is inconsistent)" << std::endl;
               }
             }
             if( d_conflict ){

@@ -85,10 +85,10 @@ public:
   //match status
   int d_match_status;
   int d_match_status_child_num;
-  //match mode
-  //1 : different variables must have different matches
-  //2 : variables must map to ground terms
-  //3 : both 1 and 2
+  //match mode bits
+  //0 : different variables must have different matches
+  //1 : variables must map to ground terms
+  //2 : variables must map to non-ground terms
   unsigned d_match_mode;
   //children
   std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
@@ -312,7 +312,6 @@ public:  //for generalization
     return isGeneralization( patg, pat, subs );
   }
   bool isGeneralization( TNode patg, TNode pat, std::map< TNode, TNode >& subs );
-
 public:  //for property enumeration
   //process this candidate conjecture
   void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );

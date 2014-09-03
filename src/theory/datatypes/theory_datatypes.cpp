@@ -62,6 +62,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
   d_true = NodeManager::currentNM()->mkConst( true );
+  d_dtfCounter = 0;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -190,8 +191,8 @@ void TheoryDatatypes::check(Effort e) {
                 }
               }
             }
-
-            if( !needSplit && options::dtForceAssignment() ){
+            //d_dtfCounter++;
+            if( !needSplit && options::dtForceAssignment() && d_dtfCounter%2==0 ){
               //for the sake of termination, we must choose the constructor of a ground term
               //NEED GUARENTEE: groundTerm should not contain any subterms of the same type
               // TODO: this is probably not good enough, actually need fair enumeration strategy

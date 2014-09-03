@@ -368,7 +368,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
   for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
     //Notice() << "   " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
     if( it->first.getKind()==EQUAL ){
-      if( it->second ){
+      if( it->second && options::varElimQuant() ){
         for( int i=0; i<2; i++ ){
           int j = i==0 ? 1 : 0;
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), it->first[i] );
@@ -388,14 +388,33 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
         }
       }
     }
-    /*
-    else if( options::dtVarExpandQuant() && it->first.getKind()==APPLY_TESTER && it->first[0].getKind()==BOUND_VARIABLE ){
-      if( it->second ){
+    else if( it->first.getKind()==APPLY_TESTER ){
+      if( options::dtVarExpandQuant() && it->second && it->first[0].getKind()==BOUND_VARIABLE ){
         Trace("dt-var-expand") << "Expand datatype variable based on : " << it->first << std::endl;
         std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), it->first[0] );
+        if( ita!=args.end() ){
+          vars.push_back( it->first[0] );
+          Expr testerExpr = it->first.getOperator().toExpr();
+          int index = Datatype::indexOf( testerExpr );
+          const Datatype& dt = Datatype::datatypeOf(testerExpr);
+          const DatatypeConstructor& c = dt[index];
+          std::vector< Node > newChildren;
+          newChildren.push_back( Node::fromExpr( c.getConstructor() ) );
+          std::vector< Node > newVars;
+          for( unsigned j=0; j<c.getNumArgs(); j++ ){
+            TypeNode tn = TypeNode::fromType( c[j].getSelector().getType() );
+            tn = tn[1];
+            Node v = NodeManager::currentNM()->mkBoundVar( tn );
+            newChildren.push_back( v );
+            newVars.push_back( v );
+          }
+          subs.push_back( NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, newChildren ) );
+          Trace("dt-var-expand") << "...apply substitution " << subs[0] << "/" << vars[0] << std::endl;
+          args.erase( ita );
+          args.insert( args.end(), newVars.begin(), newVars.end() );
+        }
       }
     }
-    */
   }
   if( !vars.empty() ){
     Trace("var-elim-quant") << "VE " << vars.size() << "/" << args.size() << std::endl;
@@ -933,7 +952,7 @@ bool QuantifiersRewriter::doOperation( Node f, bool isNested, int computeOption 
   }else if( computeOption==COMPUTE_PRENEX ){
     return options::prenexQuant() && !options::aggressiveMiniscopeQuant();
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
-    return options::varElimQuant();
+    return options::varElimQuant() || options::dtVarExpandQuant();
   }else if( computeOption==COMPUTE_CNF ){
     return false;//return options::cnfQuant() ; FIXME
   }else if( computeOption==COMPUTE_SPLIT ){

@@ -710,12 +710,12 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
               Trace("sg-rel-term") << std::endl;
 
               for( unsigned r=0; r<2; r++ ){
-                Trace("sg-gen-tg-eqc") << "...from equivalence classes (" << r << ") : ";
+                Trace("sg-rel-term-debug") << "...from equivalence classes (" << r << ") : ";
                 int index = d_ccand_eqc[r].size()-1;
                 for( unsigned j=0; j<d_ccand_eqc[r][index].size(); j++ ){
-                  Trace("sg-gen-tg-eqc") << "e" << d_em[d_ccand_eqc[r][index][j]] << " ";
+                  Trace("sg-rel-term-debug") << "e" << d_em[d_ccand_eqc[r][index][j]] << " ";
                 }
-                Trace("sg-gen-tg-eqc") << std::endl;
+                Trace("sg-rel-term-debug") << std::endl;
               }
               TypeNode tnn = nn.getType();
               Trace("sg-gen-tg-debug") << "...term is " << nn << std::endl;
@@ -766,7 +766,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
               int index = d_ccand_eqc[1].size()-1;
               for( unsigned j=0; j<d_ccand_eqc[1][index].size(); j++ ){
                 TNode r = d_ccand_eqc[1][index][j];
-                Trace("sg-gen-tg-eqc") << "  Matches for e" << d_em[r] << ", which is ground term " << d_ground_eqc_map[r] << ":" << std::endl;
+                Trace("sg-rel-term-debug") << "  Matches for e" << d_em[r] << ", which is ground term " << d_ground_eqc_map[r] << ":" << std::endl;
                 std::map< TypeNode, std::map< unsigned, TNode > > subs;
                 std::map< TNode, bool > rev_subs;
                 //only get ground terms
@@ -779,17 +779,17 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
                     unsigned tindex = typ_to_subs_index[it->first];
                     for( std::map< unsigned, TNode >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
                       if( !firstTime ){
-                        Trace("sg-gen-tg-eqc") << ", ";
+                        Trace("sg-rel-term-debug") << ", ";
                       }else{
                         firstTime = false;
-                        Trace("sg-gen-tg-eqc") << "    ";
+                        Trace("sg-rel-term-debug") << "    ";
                       }
-                      Trace("sg-gen-tg-eqc") << it->first << ":x" << it2->first << " -> " << it2->second;
+                      Trace("sg-rel-term-debug") << it->first << ":x" << it2->first << " -> " << it2->second;
                       Assert( tindex+it2->first<gsubs_terms.size() );
                       gsubs_terms[tindex+it2->first] = it2->second;
                     }
                   }
-                  Trace("sg-gen-tg-eqc") << std::endl;
+                  Trace("sg-rel-term-debug") << std::endl;
                   d_rel_pattern_subs_index[nn].addSubstitution( r, gsubs_vars, gsubs_terms );
                 }
               }
@@ -1000,9 +1000,10 @@ bool ConjectureGenerator::considerCurrentTerm() {
         std::map< TNode, bool > rev_subs;
         unsigned mode;
         if( r==0 ){
-          mode = optReqDistinctVarPatterns() ? 1 : 0;
+          mode = optReqDistinctVarPatterns() ? ( 1 << 0 ) : 0;
+          mode = mode | (1 << 2 );
         }else{
-          mode = (optFilterConfirmation() && optFilterConfirmationOnlyGround() ) ? 2 : 0;
+          mode = (optFilterConfirmation() && optFilterConfirmationOnlyGround() ) ? ( 1 << 1 ) : 0;
         }
         d_tg_alloc[0].resetMatching( this, d_ccand_eqc[r][i-1][j], mode );
         if( d_tg_alloc[0].getNextMatch( this, d_ccand_eqc[r][i-1][j], subs, rev_subs ) ){
@@ -1539,9 +1540,9 @@ void TermGenerator::resetMatching( ConjectureGenerator * s, TNode eqc, unsigned 
   d_match_children_end.clear();
   d_match_mode = mode;
   //if this term generalizes, it must generalize a non-ground term
-  if( mode<2 && s->isGroundEqc( eqc ) && d_status==5 ){
-    d_match_status = -1;
-  }
+  //if( (d_match_mode & ( 1 << 2 ))!=0 && s->isGroundEqc( eqc ) && d_status==5 ){
+  //  d_match_status = -1;
+  //}
 }
 
 bool TermGenerator::getNextMatch( ConjectureGenerator * s, TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs ) {
@@ -1572,13 +1573,19 @@ bool TermGenerator::getNextMatch( ConjectureGenerator * s, TNode eqc, std::map< 
     //a variable
     if( d_match_status==0 ){
       d_match_status++;
-      if( d_match_mode>=2 ){
+      if( (d_match_mode & ( 1 << 1 ))!=0 ){
         //only ground terms
         if( !s->isGroundEqc( eqc ) ){
           return false;
         }
+      }else if( (d_match_mode & ( 1 << 2 ))!=0 ){
+        //only non-ground terms
+        //if( s->isGroundEqc( eqc ) ){
+        //  return false;
+        //}
       }
-      if( d_match_mode%2==1 ){
+      //store the match : restricted if match_mode.0 = 1
+      if( (d_match_mode & ( 1 << 0 ))!=0 ){
         std::map< TNode, bool >::iterator it = rev_subs.find( eqc );
         if( it==rev_subs.end() ){
           rev_subs[eqc] = true;
@@ -1592,7 +1599,7 @@ bool TermGenerator::getNextMatch( ConjectureGenerator * s, TNode eqc, std::map< 
     }else{
       //clean up
       subs[d_typ].erase( d_status_num );
-      if( d_match_mode%2==1 ){
+      if( (d_match_mode & ( 1 << 0 ))!=0 ){
         rev_subs.erase( eqc );
       }
       return false;

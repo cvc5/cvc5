@@ -1,7 +1,7 @@
 (set-logic ALL_SUPPORTED)
 ; COMMAND-LINE: --incremental
 ; EXPECT: unknown
-; EXPECT: unknown
+; EXPECT: unsat
 ; EXPECT: unknown
 (declare-datatypes () ((OptInt0 (Some (value0 Int)) (None))))
 (declare-datatypes () ((List0 (Cons (head0 Int) (tail0 List0)) (Nil))))
