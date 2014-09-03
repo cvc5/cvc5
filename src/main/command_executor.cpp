@@ -22,6 +22,7 @@
 
 #include "main/options.h"
 #include "smt/options.h"
+#include "printer/options.h"
 
 #ifndef __WIN32__
 #  include <sys/resource.h>
@@ -132,7 +133,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
                res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetProofCommand();
     } else if( d_options[options::dumpInstantiations] &&
-               res.asSatisfiabilityResult() == Result::UNSAT ) {
+               ( ( d_options[options::instFormatMode]!=INST_FORMAT_MODE_SZS && 
+                   ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) || 
+                 res.asSatisfiabilityResult() == Result::UNSAT ) ) {
       g = new GetInstantiationsCommand();
     } else if( d_options[options::dumpUnsatCores] &&
                res.asSatisfiabilityResult() == Result::UNSAT ) {

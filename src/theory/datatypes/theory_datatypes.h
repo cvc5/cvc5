@@ -174,6 +174,8 @@ private:
   context::CDList<TNode> d_consTerms;
   /** All the selector terms that the theory has seen */
   context::CDList<TNode> d_selTerms;
+  /** counter for forcing assignments (ensures fairness) */
+  unsigned d_dtfCounter;
 private:
   /** assert fact */
   void assertFact( Node fact, Node exp );
