@@ -63,7 +63,8 @@ protected:
   ExprToClauseId d_conflictMap;
   BVSatProof* d_resolutionProof;
 
-  CnfProof* d_cnfProof; 
+  CnfProof* d_cnfProof;
+  bool d_isAssumptionConflict;
   // TODO:  add proofs for all subtheories
   // BitblastingProof* d_bbProof;
   
@@ -85,13 +86,15 @@ public:
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(::BVMinisat::Solver::TCRef cr);
+  void startBVConflict(::BVMinisat::Solver::TLit lit);
   /** 
    * All the 
    * 
    * @param confl an inconsistent set of bv literals
    */
   void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
-  
+  void markAssumptionConflict() { d_isAssumptionConflict = true; }
+  bool isAssumptionConflict() { return d_isAssumptionConflict; }
   virtual void registerTerm(Expr term);
   
   virtual void printTerm(Expr term, std::ostream& os) = 0;

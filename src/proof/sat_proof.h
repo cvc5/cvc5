@@ -178,6 +178,7 @@ protected:
   void removedDfs(typename Solver::TLit lit, LitSet* removedSet, LitVector& removeStack, LitSet& inClause, LitSet& seen);
   void removeRedundantFromRes(ResChain<Solver>* res, ClauseId id);
 public:
+  void startResChain(typename Solver::TLit start);
   void startResChain(typename Solver::TCRef start);
   void addResolutionStep(typename Solver::TLit lit, typename Solver::TCRef clause, bool sign);
   /**

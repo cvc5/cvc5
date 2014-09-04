@@ -592,11 +592,17 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
             if (reason(x) == CRef_Undef) {
               assert(marker[x] == 2);
               assert(level(x) > 0);
-              out_conflict.push(~trail[i]); // TODO resolve out unit here
+              out_conflict.push(~trail[i]);
             } else {
               Clause& c = ca[reason(x)];
-              // TODO add resolution step here?
-              PROOF(ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i])));
+              PROOF(
+                    if (ProofManager::getBitVectorProof()->isAssumptionConflict() &&
+                        trail[i] == p) {
+                      ProofManager::getBitVectorProof()->startBVConflict(reason(x));
+                    } else {
+                      ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
+                        }
+                    );
               for (int j = 1; j < c.size(); j++)
                 if (level(var(c[j])) > 0) {
                   seen[var(c[j])] = 1;
@@ -909,9 +915,14 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               }
 
               // Starting new resolution chain for bit-vector proof
-              // FIXME: add case for conflict was unit!
-              Assert (cr != CRef_Undef); // This will probably fail
-              PROOF (ProofManager::getBitVectorProof()->startBVConflict(cr));
+              PROOF (
+                     if (cr == CRef_Undef) {
+                       ProofManager::getBitVectorProof()->startBVConflict(learnt_clause[0]);
+                     }
+                     else { 
+                       ProofManager::getBitVectorProof()->startBVConflict(cr);
+                     }
+                     );
               analyzeFinal(p, conflict);
               PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
               Debug("bvminisat::search") << OUTPUT_TAG << " conflict on assumptions " << std::endl;
@@ -1001,7 +1012,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     marker[var(p)] = 2;
                     // TODO Start resolution chain with reason for var(p)?
                     
-                    PROOF ( ProofManager::getBitVectorProof()->startBVConflict(reason(var(p))););
+                    PROOF ( ProofManager::getBitVectorProof()->markAssumptionConflict(););
                     analyzeFinal(~p, conflict);
                     PROOF (ProofManager::getBitVectorProof()->endBVConflict(conflict););
                     Debug("bvminisat::search") << OUTPUT_TAG << " assumption false, we're unsat" << std::endl;
@@ -1135,36 +1146,44 @@ lbool Solver::solve_()
 // 
 
 void Solver::explain(Lit p, std::vector<Lit>& explanation) {
-  vec<Lit> queue;
-  queue.push(p);
-
   Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
 
-   __gnu_cxx::hash_set<Var> visited;
-  visited.insert(var(p));
+  seen[var(p)] = 1;
   
-  while(queue.size() > 0) {
-    Lit l = queue.last();
-
-    Debug("bvminisat::explain") << OUTPUT_TAG << "processing " << l << std::endl;
-
-    assert(value(l) == l_True);
-    queue.pop();
-    if (reason(var(l)) == CRef_Undef) {
-      if (level(var(l)) == 0) continue;
-      Assert(marker[var(l)] == 2);
-      explanation.push_back(l);
-      visited.insert(var(l));
-    } else {
-      Clause& c = ca[reason(var(l))];
-      for (int i = 1; i < c.size(); ++i) {
-        if (level(var(c[i])) > 0 && visited.count(var(c[i])) == 0) {
-          queue.push(~c[i]);
-          visited.insert(var(c[i]));
-        }
+  for (int i = trail.size()-1; i >= trail_lim[0]; i--){
+    Var x = var(trail[i]);
+    if (seen[x]) {
+      if (reason(x) == CRef_Undef) {
+        assert(marker[x] == 2);
+        assert(level(x) > 0);
+        explanation.push_back(trail[i]);
+      } else {
+        Clause& c = ca[reason(x)];
+        PROOF(
+              if (p == trail[i]) {
+                PROOF(ProofManager::currentPM()->getBitVectorProof()->startBVConflict(reason(var(p))););
+              } else {
+                ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
+              }
+              );
+        for (int j = 1; j < c.size(); j++)
+          if (level(var(c[j])) > 0) {
+            seen[var(c[j])] = 1;
+          }
       }
+      seen[x] = 0;
     }
   }
+  seen[var(p)] = 0;
+
+  PROOF (
+         vec<Lit> conflict_clause;
+         conflict_clause.push(p);
+         for(unsigned i = 0; i < explanation.size(); ++i) {
+           conflict_clause.push(~explanation[i]);
+         }
+         ProofManager::getBitVectorProof()->endBVConflict(conflict_clause);
+         ); 
 }
 
   

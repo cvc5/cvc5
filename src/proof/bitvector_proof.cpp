@@ -65,6 +65,11 @@ void BitVectorProof::registerTerm(Expr term) {
 void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
   d_resolutionProof->startResChain(cr);
 }
+
+void BitVectorProof::startBVConflict(::BVMinisat::Solver::TLit lit) {
+  d_resolutionProof->startResChain(lit);
+}
+
 void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
   std::vector<Expr> expr_confl;
   for (int i = 0; i < confl.size(); ++i) {
@@ -81,6 +86,7 @@ void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
   d_conflictMap[conflict] = clause_id;
   d_resolutionProof->endResChain(clause_id);
   Debug("bv-proof") << "BitVectorProof::endBVConflict id"<<clause_id<< " => " << conflict << "\n"; 
+  d_isAssumptionConflict = false;
 }
 
 void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {

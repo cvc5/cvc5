@@ -26,43 +26,51 @@
 
 
 ; bit vector operators
-(define bvoper (! x (term BitVec) 
+(define bvop (! x (term BitVec) 
                (! y (term BitVec) 
                     (term BitVec))))
-(declare bvand bvoper)
-(declare bvor bvoper)
-(declare bvor bvoper)
-(declare bvxor bvoper)
-(declare bvnand bvoper)
-(declare bvnor bvoper)
-(declare bvxnor bvoper)
-(declare bvcomp bvoper)
-(declare bvmul bvoper)
-(declare bvadd bvoper)
-(declare bvsub bvoper)
-(declare bvudiv bvoper)
-(declare bvurem bvoper)
-(declare bvsdiv bvoper)
-(declare bvsrem bvoper)
-(declare bvsmod bvoper)
-(declare bvshl bvoper)
-(declare bvlshr bvoper)
-(declare bvashr bvoper)
-(declare concat bvoper)
-(declare bvneg bvoper)
-(declare bvnot bvoper)
-(declare rotate_left  bvoper)
-(declare rotate_right bvoper)
+(declare bvand bvop)
+(declare bvor bvop)
+(declare bvor bvop)
+(declare bvxor bvop)
+(declare bvnand bvop)
+(declare bvnor bvop)
+(declare bvxnor bvop)
+(declare bvcomp bvop)
+(declare bvmul bvop)
+(declare bvadd bvop)
+(declare bvsub bvop)
+(declare bvudiv bvop)
+(declare bvurem bvop)
+(declare bvsdiv bvop)
+(declare bvsrem bvop)
+(declare bvsmod bvop)
+(declare bvshl bvop)
+(declare bvlshr bvop)
+(declare bvashr bvop)
+(declare concat bvop)
+(declare bvneg bvop)
+(declare bvnot bvop)
+(declare rotate_left  bvop)
+(declare rotate_right bvop)
 
 
 ; bit vector parametrized operators
-(define bvoperp (! x (term BitVec) 
+(define bvopp (! x (term BitVec) 
                 (! y mpz	   
                     (term BitVec))))
 
-(declare repeat bvoperp)
-(declare zero_extend bvoperp)
-(declare sign_extend bvoperp)
+(declare repeat bvopp)
+(declare zero_extend bvopp)
+(declare sign_extend bvopp)
+
+; bit vector parametrized operator with 2 arguments
+(define bvopp2 (! i mpz
+	       (! j mpz
+	       (! x (term BitVec) 
+                    (term BitVec)))))
+		    
+(declare extract bvopp2)
 
 ; bit vector predicates
 (define bvpred (! x (term BitVec)

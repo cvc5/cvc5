@@ -577,6 +577,15 @@ void TSatProof<Solver>::startResChain(typename Solver::TCRef start) {
   ResChain<Solver>* res = new ResChain<Solver>(id);
   d_resStack.push_back(res);
 }
+
+template <class Solver> 
+void TSatProof<Solver>::startResChain(typename Solver::TLit start) {
+  ClauseId id = getUnitId(start);
+  ResChain<Solver>* res = new ResChain<Solver>(id);
+  d_resStack.push_back(res);
+}
+
+
 template <class Solver> 
 void TSatProof<Solver>::addResolutionStep(typename Solver::TLit lit,
                                           typename Solver::TCRef clause, bool sign) {
