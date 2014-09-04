@@ -373,8 +373,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         status = doCommandSingleton(gp);
       } else if( d_options[options::dumpInstantiations] &&
                  ( ( d_options[options::instFormatMode]!=INST_FORMAT_MODE_SZS && 
-                   ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) || 
-                 res.asSatisfiabilityResult() == Result::UNSAT ) ) {
+                   ( d_result.asSatisfiabilityResult() == Result::SAT || (d_result.isUnknown() && d_result.whyUnknown() == Result::INCOMPLETE) ) ) || 
+                 d_result.asSatisfiabilityResult() == Result::UNSAT ) ) {
         Command* gi = new GetInstantiationsCommand();
         status = doCommandSingleton(gi);
       } else if( d_options[options::dumpUnsatCores] &&
