@@ -549,14 +549,24 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
           assert (marker[x] == 2);
           assert (level(x) > 0);
           out_conflict.push(~trail[i]);
+        } else {
+          PROOF(ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(~p);); 
         }
+        
+        
       } else {
         Clause& c = ca[reason(x)];
         PROOF(ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i],reason(x), sign(trail[i])););
 
-        for (int j = 1; j < c.size(); j++)
+        for (int j = 1; j < c.size(); j++) {
           if (level(var(c[j])) > 0)
             seen[var(c[j])] = 1;
+          PROOF(
+                if (level(var(c[j])) == 0) {
+                  PROOF( ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(c[j]););
+                }
+                );
+        }
       }
       seen[x] = 0;
     }
@@ -904,7 +914,6 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             if (learnt_clause.size() == 1) {
               // learning a unit clause
               PROOF( ProofManager::getBitVectorProof()->getSatProof()->endResChain(learnt_clause[0]););
-              // TODO: start new resolution chain if unit?
             }
             
             //  if the uip was an assumption we are unsat
@@ -1148,9 +1157,15 @@ lbool Solver::solve_()
 void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
 
-  seen[var(p)] = 1;
+  // top level fact, no explanation necessary
+  if (level(var(p)) == 0)
+    return;
   
-  for (int i = trail.size()-1; i >= trail_lim[0]; i--){
+  seen[var(p)] = 1;
+
+  // if we are called at decisionLevel = 0 trail_lim is empty
+  int bottom = trail_lim.size() ? trail_lim[0] : 0;
+  for (int i = trail.size()-1; i >= bottom; i--){
     Var x = var(trail[i]);
     if (seen[x]) {
       if (reason(x) == CRef_Undef) {

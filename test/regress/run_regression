@@ -300,7 +300,7 @@ if $check_models || $check_proofs; then
     check_cmdline="$check_cmdline --check-models"
   fi
   if $check_proofs; then
-    check_cmdline="$check_cmdline --check-proofs"
+    check_cmdline="$check_cmdline --check-proofs --no-bv-eq --no-bv-ineq --no-bv-algebraic"
   fi
   # at least one sat/invalid response: run an extra model/proof-checking pass
   if ! CVC4_REGRESSION_ARGS="$CVC4_REGRESSION_ARGS$check_cmdline" "$0" $wrapper "$cvc4" "$benchmark_orig"; then
