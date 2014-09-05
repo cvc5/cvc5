@@ -75,6 +75,8 @@ private:
   public:
     TimerStat d_checkTime;
     TimerStat d_getModelValueTime;
+    IntStat d_memberLemmas;
+    IntStat d_disequalityLemmas;
 
     Statistics();
     ~Statistics();

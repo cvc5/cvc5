@@ -913,15 +913,21 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 TheorySetsPrivate::Statistics::Statistics() :
   d_checkTime("theory::sets::time")
   , d_getModelValueTime("theory::sets::getModelValueTime")
+  , d_memberLemmas("theory::sets::lemmas::member", 0)
+  , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
 {
   StatisticsRegistry::registerStat(&d_checkTime);
   StatisticsRegistry::registerStat(&d_getModelValueTime);
+  StatisticsRegistry::registerStat(&d_memberLemmas);
+  StatisticsRegistry::registerStat(&d_disequalityLemmas);
 }
 
 
 TheorySetsPrivate::Statistics::~Statistics() {
   StatisticsRegistry::unregisterStat(&d_checkTime);
   StatisticsRegistry::unregisterStat(&d_getModelValueTime);
+  StatisticsRegistry::unregisterStat(&d_memberLemmas);
+  StatisticsRegistry::unregisterStat(&d_disequalityLemmas);
 }
 
 
@@ -991,11 +997,13 @@ void TheorySetsPrivate::addToPending(Node n) {
     if(n.getKind() == kind::MEMBER) {
       Debug("sets-pending") << "[sets-pending] \u2514 added to member queue"
                             << std::endl;
+      ++d_statistics.d_memberLemmas;
       d_pending.push(n);
     } else {
       Debug("sets-pending") << "[sets-pending] \u2514 added to equality queue"
                             << std::endl;
       Assert(n.getKind() == kind::EQUAL);
+      ++d_statistics.d_disequalityLemmas;
       d_pendingDisequal.push(n);
     }
     d_external.d_out->lemma(getLemma());
