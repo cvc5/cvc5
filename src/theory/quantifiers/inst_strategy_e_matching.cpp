@@ -68,12 +68,12 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
     for( int i=0; i<(int)d_user_gen[f].size(); i++ ){
       bool processTrigger = true;
       if( processTrigger ){
-        //if( d_user_gen[f][i]->isMultiTrigger() )
-          Trace("process-trigger") << "  Process (user) " << (*d_user_gen[f][i]) << "..." << std::endl;
+        Trace("process-trigger") << "  Process (user) ";
+        d_user_gen[f][i]->debugPrint("process-trigger");
+        Trace("process-trigger") << "..." << std::endl;
         InstMatch baseMatch( f );
         int numInst = d_user_gen[f][i]->addInstantiations( baseMatch );
-        //if( d_user_gen[f][i]->isMultiTrigger() )
-          Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+        Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
         d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_user_patterns += numInst;
         if( d_user_gen[f][i]->isMultiTrigger() ){
           d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
@@ -89,17 +89,22 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
 
 void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
   //add to generators
+  bool usable = true;
   std::vector< Node > nodes;
   for( int i=0; i<(int)pat.getNumChildren(); i++ ){
     nodes.push_back( pat[i] );
+    if( pat[i].getKind()!=INST_CONSTANT && !Trigger::isUsableTrigger( pat[i], f ) ){
+      Trace("trigger-warn") << "User-provided trigger is not usable : " << pat << " because of " << pat[i] << std::endl;
+      usable = false;
+      break;
+    }
   }
-  if( Trigger::isUsableTrigger( nodes, f ) ){
+  if( usable ){
     //extend to literal matching
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
     int matchOption = 0;
-    d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW,
-                                                 options::smartTriggers() ) );
+    d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, nodes, matchOption, true, Trigger::TR_MAKE_NEW, options::smartTriggers() ) );
   }
 }
 
@@ -156,14 +161,12 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
           bool processTrigger = itt->second;
           if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
             d_processed_trigger[f][tr] = true;
-            //if( tr->isMultiTrigger() )
-              Trace("process-trigger") << "  Process ";
-              tr->debugPrint("process-trigger");
-              Trace("process-trigger") << "..." << std::endl;
+            Trace("process-trigger") << "  Process ";
+            tr->debugPrint("process-trigger");
+            Trace("process-trigger") << "..." << std::endl;
             InstMatch baseMatch( f );
             int numInst = tr->addInstantiations( baseMatch );
-            //if( tr->isMultiTrigger() )
-              Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+            Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
             if( d_tr_strategy==Trigger::TS_MIN_TRIGGER ){
               d_quantEngine->getInstantiationEngine()->d_statistics.d_instantiations_auto_gen_min += numInst;
             }else{

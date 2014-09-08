@@ -195,6 +195,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
     //reset relevant information
     d_conflict = false;
     d_hasAddedLemma = false;
+
+    //flush previous lemmas (for instance, if was interupted)
+    flushLemmas();
+    if( d_hasAddedLemma ){
+      return;
+    }
+
     d_term_db->reset( e );
     d_eq_query->reset();
     if( d_rel_dom ){

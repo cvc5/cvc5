@@ -210,15 +210,6 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, int matchOpt
   return mkTrigger( qe, f, nodes, matchOption, keepAll, trOption, smartTriggers );
 }
 
-bool Trigger::isUsableTrigger( std::vector< Node >& nodes, Node f ){
-  for( int i=0; i<(int)nodes.size(); i++ ){
-    if( !isUsableTrigger( nodes[i], f ) ){
-      return false;
-    }
-  }
-  return true;
-}
-
 bool Trigger::isUsable( Node n, Node f ){
   if( quantifiers::TermDb::getInstConstAttr(n)==f ){
     if( isAtomicTrigger( n ) ){
@@ -234,7 +225,7 @@ bool Trigger::isUsable( Node n, Node f ){
       std::map< Node, Node > coeffs;
       if( isBooleanTermTrigger( n ) ){
         return true;
-      }    
+      }
     }
     return false;
   }else{

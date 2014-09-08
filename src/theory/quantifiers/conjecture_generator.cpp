@@ -700,7 +700,8 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         d_tg_alloc[0].reset( this, TypeNode::null() );
         while( d_tg_alloc[0].getNextTerm( this, depth ) ){
           Assert( d_tg_alloc[0].getGeneralizationDepth( this )==d_tg_gdepth );
-          if( d_tg_alloc[0].getDepth( this )==depth ){
+          //if( d_tg_alloc[0].getDepth( this )==depth ){
+          if( (int)d_tg_gdepth==d_tg_gdepth_limit ){
             //construct term
             Node nn = d_tg_alloc[0].getTerm( this );
             if( getUniversalRepresentative( nn )==nn ){

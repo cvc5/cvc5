@@ -105,7 +105,6 @@ public:
   static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, bool filterInst = false );
 public:
   /** is usable trigger */
-  static bool isUsableTrigger( std::vector< Node >& nodes, Node f );
   static bool isUsableTrigger( Node n, Node f );
   static bool isAtomicTrigger( Node n );
   static bool isAtomicTriggerKind( Kind k );
