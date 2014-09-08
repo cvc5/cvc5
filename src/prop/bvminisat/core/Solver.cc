@@ -217,6 +217,7 @@ bool Solver::addClause_(vec<Lit>& ps)
     if (!ok) return false;
 
     // Check if clause is satisfied and remove false/duplicate literals:
+    // TODO proof for duplicate literals removal?
     sort(ps);
     Lit p; int i, j;
     for (i = j = 0, p = lit_Undef; i < ps.size(); i++)
@@ -228,7 +229,7 @@ bool Solver::addClause_(vec<Lit>& ps)
 
     clause_added = true;
 
-    // TODO // PROOF unit conflict?
+    // TODO PROOF unit conflicts and removal of false literals
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
@@ -1165,8 +1166,17 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   Debug("bvminisat::explain") << OUTPUT_TAG << "starting explain of " << p << std::endl;
 
   // top level fact, no explanation necessary
-  if (level(var(p)) == 0)
+  if (level(var(p)) == 0) {
+    PROOF(
+          // the only way a marker variable is 
+          Assert (reason(var(p)) == CRef_Undef);
+          ProofManager::currentPM()->getBitVectorProof()->startBVConflict(p);
+          vec<Lit> confl;
+          confl.push(p);
+          ProofManager::currentPM()->getBitVectorProof()->endBVConflict(confl);
+    );
     return;
+  }
   
   seen[var(p)] = 1;
 

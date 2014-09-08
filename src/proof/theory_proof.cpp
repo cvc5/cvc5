@@ -176,6 +176,10 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
       Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
       Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
       conflict.push_back(expr_lit);
     }
@@ -201,6 +205,10 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
     for(unsigned i = 0; i < clause->size(); ++i) {
       prop::SatLiteral lit = (*clause)[i];
       Expr atom = pm->getCnfProof()->getAtom(lit.getSatVariable());
+      if (atom.isConst()) {
+        Assert (atom == utils::mkTrue());
+        continue;
+      }
       Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
       clause_expr.push_back(expr_lit);
     }

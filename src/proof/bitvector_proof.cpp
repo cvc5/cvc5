@@ -124,6 +124,8 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   case kind::BITVECTOR_SUB :
   case kind::BITVECTOR_UDIV :
   case kind::BITVECTOR_UREM :
+  case kind::BITVECTOR_UDIV_TOTAL :
+  case kind::BITVECTOR_UREM_TOTAL :
   case kind::BITVECTOR_SDIV :
   case kind::BITVECTOR_SREM :
   case kind::BITVECTOR_SMOD :
