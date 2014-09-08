@@ -591,8 +591,16 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
       out_conflict.push(p);
     }
 
-    if (decisionLevel() == 0)
-        return;
+    PROOF(
+          if (level(var(p)) == 0 && ProofManager::getBitVectorProof()->isAssumptionConflict()) {
+            Assert (reason(var(p)) == CRef_Undef && out_conflict.size()); 
+            ProofManager::getBitVectorProof()->startBVConflict(p);
+          }
+    );
+    
+    if (decisionLevel() == 0) {
+      return;
+    }
 
     seen[var(p)] = 1;
 
@@ -1019,7 +1027,6 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                     newDecisionLevel();
                 }else if (value(p) == l_False){
                     marker[var(p)] = 2;
-                    // TODO Start resolution chain with reason for var(p)?
                     
                     PROOF ( ProofManager::getBitVectorProof()->markAssumptionConflict(););
                     analyzeFinal(~p, conflict);

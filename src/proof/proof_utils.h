@@ -30,6 +30,21 @@ typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 
 namespace utils {
 
+inline std::string toLFSCCoreKind(Kind kind) {
+  switch(kind) {
+  case kind::OR : return "or";
+  case kind::AND: return "and";
+  case kind::XOR: return "xor";
+  case kind::EQUAL: return "=";
+  case kind::IFF: return "iff";
+  case kind::IMPLIES: return "impl";
+  case kind::NOT: return "not";
+  default:
+    Unreachable();
+  }
+}
+
+
 inline unsigned getExtractHigh(Expr node) {
   return node.getOperator().getConst<BitVectorExtract>().high;
 }

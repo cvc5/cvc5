@@ -50,6 +50,10 @@ prop::SatLiteral CnfProof::getLiteral(Expr expr) {
 void CnfProof::addInputClause(ClauseId id, const prop::SatClause* clause) {
   Assert (d_inputClauses.find(id) == d_inputClauses.end());
   d_inputClauses[id] = clause;
+  collectAtoms(clause);
+}
+
+void CnfProof::collectAtoms(const prop::SatClause* clause) {
   for (unsigned i = 0; i < clause->size(); ++i) {
     SatLiteral lit = clause->operator[](i);
     SatVariable var = lit.getSatVariable();

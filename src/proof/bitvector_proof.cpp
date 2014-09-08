@@ -79,8 +79,14 @@ void BitVectorProof::endBVConflict(const BVMinisat::Solver::TLitVec& confl) {
     expr_confl.push_back(expr_lit); 
   }
   Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
-  
-  Assert (d_conflictMap.find(conflict) == d_conflictMap.end());
+
+  if (d_conflictMap.find(conflict) != d_conflictMap.end()) {
+    // This can only happen when we have eager explanations in the bv solver
+    // if we don't get to propagate p before ~p is already asserted
+    d_resolutionProof->cancelResChain();
+    return;
+  }
+
   // we don't need to check for uniqueness in the sat solver then        
   ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
   d_conflictMap[conflict] = clause_id;
@@ -268,7 +274,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     // print corresponding literal in main sat solver
     ProofManager* pm = ProofManager::currentPM(); 
     CnfProof* cnf = pm->getCnfProof(); 
-    prop::SatLiteral main_lit = cnf->getLiteral(lit); 
+    prop::SatLiteral main_lit = cnf->getLiteral(lit);
     os << pm->getLitName(main_lit);
     os <<" "; 
     // print corresponding literal in bv sat solver

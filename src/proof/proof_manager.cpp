@@ -161,6 +161,7 @@ std::string ProofManager::getLitName(prop::SatLiteral lit,
 void ProofManager::addTheoryLemma(ClauseId id, const prop::SatClause* clause) {
   Assert (d_theoryLemmas.find(id) == d_theoryLemmas.end()); 
   d_theoryLemmas.insert(std::make_pair(id, clause));
+  d_cnfProof->collectAtoms(clause);
 }
 
 void ProofManager::addAssertion(Expr formula) {

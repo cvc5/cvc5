@@ -189,6 +189,12 @@ public:
   void endResChain(typename Solver::TCRef clause);
   void endResChain(typename Solver::TLit lit);
   void endResChain(ClauseId id);
+  /** 
+   * Pops the current resolution of the stack *without* storing it. 
+   * 
+   */
+  void cancelResChain();
+
   /**
    * Stores in the current derivation the redundant literals that were
    * eliminated from the conflict clause during conflict clause minimization.

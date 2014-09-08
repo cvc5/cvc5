@@ -25,41 +25,46 @@
 (declare a_var_bv (! v var_bv (term BitVec)))
 
 
-; bit vector operators
-(define bvop (! x (term BitVec) 
+; bit vector binary operators
+(define bvop2 (! x (term BitVec) 
              (! y (term BitVec) 
              	  (term BitVec))))
 
-		  // TODO parametric ITE terms!
-(declare bvand bvop)
-(declare bvor bvop)
-(declare bvor bvop)
-(declare bvxor bvop)
-(declare bvnand bvop)
-(declare bvnor bvop)
-(declare bvxnor bvop)
-(declare bvcomp bvop)
-(declare bvmul bvop)
-(declare bvadd bvop)
-(declare bvsub bvop)
-(declare bvudiv bvop)
-(declare bvurem bvop)
-(declare bvsdiv bvop)
-(declare bvsrem bvop)
-(declare bvsmod bvop)
-(declare bvshl bvop)
-(declare bvlshr bvop)
-(declare bvashr bvop)
-(declare concat bvop)
-(declare bvneg bvop)
-(declare bvnot bvop)
-(declare rotate_left  bvop)
-(declare rotate_right bvop)
+(declare bvand bvop2)
+(declare bvor bvop2)
+(declare bvor bvop2)
+(declare bvxor bvop2)
+(declare bvnand bvop2)
+(declare bvnor bvop2)
+(declare bvxnor bvop2)
+(declare bvcomp bvop2)
+(declare bvmul bvop2)
+(declare bvadd bvop2)
+(declare bvsub bvop2)
+(declare bvudiv bvop2)
+(declare bvurem bvop2)
+(declare bvsdiv bvop2)
+(declare bvsrem bvop2)
+(declare bvsmod bvop2)
+(declare bvshl bvop2)
+(declare bvlshr bvop2)
+(declare bvashr bvop2)
+(declare concat bvop2)
+
+; bit vector unary operators
+(define bvop1 (! x (term BitVec) 
+             	  (term BitVec)))
+
+
+(declare bvneg bvop1)
+(declare bvnot bvop1)
+(declare rotate_left  bvop1)
+(declare rotate_right bvop1)
 
 
 ; bit vector parametrized operators
-(define bvopp (! x (term BitVec) 
-              (! y mpz	   
+(define bvopp (! i mpz
+	      (! x (term BitVec) 
               	    (term BitVec))))
 
 (declare repeat bvopp)

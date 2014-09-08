@@ -623,6 +623,13 @@ void TSatProof<Solver>::endResChain(typename Solver::TLit lit) {
 
 
 template <class Solver> 
+void TSatProof<Solver>::cancelResChain() {
+  Assert(d_resStack.size() > 0);
+  d_resStack.pop_back();
+}
+
+
+template <class Solver> 
 void TSatProof<Solver>::storeLitRedundant(typename Solver::TLit lit) {
   Assert(d_resStack.size() > 0);
   ResChain<Solver>* res = d_resStack.back();

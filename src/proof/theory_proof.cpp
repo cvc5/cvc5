@@ -30,7 +30,10 @@ using namespace CVC4::theory;
 
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
-{}
+  , d_theoryProofTable()
+{
+  d_theoryProofTable[theory::THEORY_BOOL] = new LFSCBooleanProof(this);
+}
 
 TheoryProofEngine::~TheoryProofEngine() {
   TheoryProofTable::iterator it = d_theoryProofTable.begin();
@@ -47,11 +50,14 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
   
   if (id == THEORY_UF) {
     d_theoryProofTable[id] = new LFSCUFProof((uf::TheoryUF*)th, this);
+    return;
   }
 
   if (id == THEORY_BV) {
     d_theoryProofTable[id] = new LFSCBitVectorProof((bv::TheoryBV*)th, this);
+    return;
   }
+  
   // TODO Arrays and other theories
 }
 
@@ -68,7 +74,8 @@ void TheoryProofEngine::registerTerm(Expr term) {
   TheoryId theory_id = Theory::theoryOf(term);
 
   // don't need to register boolean terms 
-  if (theory_id == THEORY_BOOL) {
+  if (theory_id == THEORY_BUILTIN ||
+      term.getKind() == kind::ITE) {
     for (unsigned i = 0; i < term.getNumChildren(); ++i) {
       registerTerm(term[i]); 
     }
@@ -86,15 +93,15 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   
   if (pm->getLogic() == "QF_UF") return theory::THEORY_UF;
   if (pm->getLogic() == "QF_BV") return theory::THEORY_BV;
-  Unreachable(); 
+  if (pm->getLogic() == "ALL_SUPPORTED") return theory::THEORY_BV;
+  Unreachable();
 }
 
 void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
   TheoryId theory_id = Theory::theoryOf(term);
   // boolean terms and ITEs are special because they
   // are common to all theories
-  if (theory_id == THEORY_BOOL ||
-      theory_id == THEORY_BUILTIN ||
+  if (theory_id == THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
       term.getKind() == kind::EQUAL) {
     printCoreTerm(term, os);
@@ -208,35 +215,16 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
   }
 }
 
-
-std::string toLFSCCoreKind(Kind kind) {
-  switch(kind) {
-  case kind::OR : return "or";
-  case kind::AND: return "and";
-  case kind::XOR: return "xor";
-  case kind::EQUAL: return "=";
-  case kind::IFF: return "iff";
-  case kind::IMPLIES: return "impl";
-  case kind::NOT: return "not";
-  default:
-    Unreachable();
-  }
-}
-
 void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   if (term.isVariable()) {
-    if (term.getType().isBoolean()) {
-      os << "(p_app" << term <<")";
-    } else {
-      os << term; 
-    }
+    os << term;
     return;
   }
 
   Kind k = term.getKind(); 
   switch(k) {
   case kind::ITE:
-    os << (term.getType().isBoolean() ? "(ifte " : "(ite _ ");
+    os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");
     printTerm(term[0], os);
     os << " ";
     printTerm(term[1], os);
@@ -257,47 +245,12 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
 
   case kind::DISTINCT:
     os << "(not (= ";
-    os << term[0].getType() << " ";
+    printSort(term[0].getType(), os);
     printTerm(term[0], os);
     os << " ";
     printTerm(term[1], os);
     os << "))";
-    return;
-
-  case kind::OR:
-  case kind::AND:
-  case kind::XOR:
-  case kind::IFF:
-  case kind::IMPLIES:
-  case kind::NOT:
-    // print the Boolean operators
-    os << "(" << toLFSCCoreKind(k);
-    if(term.getNumChildren() > 2) {
-      // LFSC doesn't allow declarations with variable numbers of
-      // arguments, so we have to flatten these N-ary versions.
-      std::ostringstream paren;
-      os << " ";
-      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-        printTerm(term[i], os);
-        os << " ";
-        if(i < term.getNumChildren() - 2) {
-          os << "(" << toLFSCCoreKind(k) << " ";
-          paren << ")";
-        }
-      }
-      os << paren.str() << ")";
-    } else {
-      // this is for binary and unary operators
-      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-        os << " ";
-        printTerm(term[i], os);
-      }
-      os << ")";
-    }
-    return;
-
-  case kind::CONST_BOOLEAN:
-    os << (term.getConst<bool>() ? "true" : "false");
+    Assert (term.getNumChildren() == 2); 
     return;
 
   case kind::CHAIN: {
@@ -308,10 +261,10 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
     std::ostringstream paren;
     for(size_t i = 1; i < n; ++i) {
       if(i + 1 < n) {
-        os << "(" << toLFSCCoreKind(kind::AND) << " ";
+        os << "(" << utils::toLFSCCoreKind(kind::AND) << " ";
         paren << ")";
       }
-      os << "(" << toLFSCCoreKind(op) << " ";
+      os << "(" << utils::toLFSCCoreKind(op) << " ";
       printTerm(term[i - 1], os);
       os << " ";
       printTerm(term[i], os);
@@ -329,3 +282,87 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   }
  
 }
+
+BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
+  : TheoryProof(NULL, proofEngine)
+{}
+
+void BooleanProof::registerTerm(Expr term) {
+  Assert (term.getType().isBoolean());
+  
+  if (term.isVariable() && d_declarations.find(term) == d_declarations.end()) {
+    d_declarations.insert(term);
+    return;
+  }
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    d_proofEngine->registerTerm(term[i]);
+  }
+}
+
+void LFSCBooleanProof::printTerm(Expr term, std::ostream& os) {
+  Assert (term.getType().isBoolean());
+  if (term.isVariable()) {
+    os << "(p_app " << term <<")";
+    return;
+  }
+
+  Kind k = term.getKind(); 
+  switch(k) {
+  case kind::OR:
+  case kind::AND:
+  case kind::XOR:
+  case kind::IFF:
+  case kind::IMPLIES:
+  case kind::NOT:
+    // print the Boolean operators
+    os << "(" << utils::toLFSCCoreKind(k);
+    if(term.getNumChildren() > 2) {
+      // LFSC doesn't allow declarations with variable numbers of
+      // arguments, so we have to flatten these N-ary versions.
+      std::ostringstream paren;
+      os << " ";
+      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+        d_proofEngine->printTerm(term[i], os);
+        os << " ";
+        if(i < term.getNumChildren() - 2) {
+          os << "(" << utils::toLFSCCoreKind(k) << " ";
+          paren << ")";
+        }
+      }
+      os << paren.str() << ")";
+    } else {
+      // this is for binary and unary operators
+      for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+        os << " ";
+        d_proofEngine->printTerm(term[i], os);
+      }
+      os << ")";
+    }
+    return;
+
+  case kind::CONST_BOOLEAN:
+    os << (term.getConst<bool>() ? "true" : "false");
+    return;
+
+  default:
+    Unhandled(k);
+  }
+
+}
+void LFSCBooleanProof::printSort(Type type, std::ostream& os) {
+  Assert (type.isBoolean());
+  os << "Bool";
+}
+void LFSCBooleanProof::printDeclarations(std::ostream& os, std::ostream& paren) {
+  for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
+    Expr term = *it;
+    
+    os << "(% " << term << " (term ";
+    printSort(term.getType(), os);
+    os <<")\n";
+    paren <<")";
+  }
+}
+
+
+

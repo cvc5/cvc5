@@ -52,7 +52,8 @@ public:
   clause_iterator begin_input_clauses() const { return d_inputClauses.begin(); }
   clause_iterator end_input_clauses() const { return d_inputClauses.end(); }
   void addInputClause(ClauseId id, const prop::SatClause* clause); 
-
+  void collectAtoms(const prop::SatClause* clause);
+  
   typedef ExprToSatVar::const_iterator atom_iterator;
   atom_iterator begin_atoms() { return d_atomToSatVar.begin(); }
   atom_iterator end_atoms() { return d_atomToSatVar.end(); }

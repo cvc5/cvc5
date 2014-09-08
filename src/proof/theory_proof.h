@@ -152,6 +152,31 @@ public:
   virtual void registerTerm(Expr term) = 0; 
 };
 
+class BooleanProof : public TheoryProof {
+protected:
+  ExprSet d_declarations; // all the boolean variables
+public:
+  BooleanProof(TheoryProofEngine* proofEngine);
+
+  virtual void registerTerm(Expr term);
+  
+  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printSort(Type type, std::ostream& os) = 0; 
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
+  virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
+};
+
+class LFSCBooleanProof : public BooleanProof {
+public:
+  LFSCBooleanProof(TheoryProofEngine* proofEngine)
+    : BooleanProof(proofEngine)
+  {}
+  virtual void printTerm(Expr term, std::ostream& os);
+  virtual void printSort(Type type, std::ostream& os); 
+  virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) { Unreachable("No boolean lemmas yet!"); }
+  virtual void printDeclarations(std::ostream& os, std::ostream& paren);
+};
+
 
 } /* CVC4 namespace */
 
