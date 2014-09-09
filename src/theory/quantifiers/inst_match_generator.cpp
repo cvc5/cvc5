@@ -113,6 +113,9 @@ void InstMatchGenerator::initialize( QuantifiersEngine* qe, std::vector< InstMat
         d_children_types.push_back( -1 );
       }
     }
+    if( d_match_pattern.getKind()==INST_CONSTANT ){
+      d_var_num[0] = d_match_pattern.getAttribute(InstVarNumAttribute());
+    }
 
     //create candidate generator
     if( d_match_pattern.getKind()==INST_CONSTANT ){
@@ -170,7 +173,7 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
     //if t is null
     Assert( !t.isNull() );
     Assert( !quantifiers::TermDb::hasInstConstAttr(t) );
-    Assert( t.getKind()==d_match_pattern.getKind() );
+    Assert( d_match_pattern.getKind()==INST_CONSTANT || t.getKind()==d_match_pattern.getKind() );
     Assert( !Trigger::isAtomicTrigger( d_match_pattern ) || t.getOperator()==d_match_pattern.getOperator() );
     //first, check if ground arguments are not equal, or a match is in conflict
     for( int i=0; i<(int)d_match_pattern.getNumChildren(); i++ ){
@@ -195,8 +198,18 @@ bool InstMatchGenerator::getMatch( Node f, Node t, InstMatch& m, QuantifiersEngi
         }
       }
     }
+    //for variable matching
+    if( d_match_pattern.getKind()==INST_CONSTANT ){
+      bool addToPrev = m.get( d_var_num[0] ).isNull();
+      if( !m.set( qe, d_var_num[0], t ) ){
+        success = false;
+      }else{
+        if( addToPrev ){
+          prev.push_back( d_var_num[0] );
+        }
+      }
     //for relational matching
-    if( !d_eq_class.isNull() && d_eq_class.getKind()==INST_CONSTANT ){
+    }else if( !d_eq_class.isNull() && d_eq_class.getKind()==INST_CONSTANT ){
       int v = d_eq_class.getAttribute(InstVarNumAttribute());
       //also must fit match to equivalence class
       bool pol = d_pattern.getKind()!=NOT;
@@ -387,7 +400,7 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( std::vector< Node 
   return oinit;
 }
 
-VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) : 
+VarMatchGeneratorBooleanTerm::VarMatchGeneratorBooleanTerm( Node var, Node comp ) :
   InstMatchGenerator(), d_comp( comp ), d_rm_prev( false ) {
   d_var_num[0] = var.getAttribute(InstVarNumAttribute());
 }
@@ -412,7 +425,7 @@ bool VarMatchGeneratorBooleanTerm::getNextMatch( Node f, InstMatch& m, Quantifie
   return false;
 }
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) : 
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) :
   InstMatchGenerator(), d_var( var ), d_subs( subs ), d_rm_prev( false ){
   d_var_num[0] = d_var.getAttribute(InstVarNumAttribute());
 }
