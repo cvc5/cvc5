@@ -127,10 +127,10 @@ private:
   prop::SatLiteral getNextThresh(bool &stopSearch, DecisionWeight threshold);
 
   SatLiteral findSplitter(TNode node, SatValue desiredVal);
-  
-  /** 
-   * Do all the hard work. 
-   */ 
+
+  /**
+   * Do all the hard work.
+   */
   SearchResult findSplitterRec(TNode node, SatValue value);
 
   /* Helper functions */

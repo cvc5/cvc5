@@ -553,7 +553,7 @@ void TheorySetsPrivate::computeCareGraph() {
         }
 	if(Debug.isOn("sets-care")) {
 	  Debug("sets-care") << "[sets-care] Requesting split between" << a << " and "
-			     << b << "." << std::endl << "[sets-care] " 
+			     << b << "." << std::endl << "[sets-care] "
 			     << "  Both current have value "
 			     << d_external.d_valuation.getModelValue(a) << std::endl;
 	}

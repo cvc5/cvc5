@@ -124,7 +124,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
     if(Debug.isOn("decision")) {
       if(!checkJustified(curass))
-        Debug("decision") << "****** Not justified [i="<<i<<"]: " 
+        Debug("decision") << "****** Not justified [i="<<i<<"]: "
                           << d_assertions[i] << std::endl;
     }
   }
@@ -169,7 +169,7 @@ void JustificationHeuristic::addAssertions
  IteSkolemMap iteSkolemMap) {
 
   Trace("decision")
-    << "JustificationHeuristic::addAssertions()" 
+    << "JustificationHeuristic::addAssertions()"
     << " size = " << assertions.size()
     << " assertionsEnd = " << assertionsEnd
     << std::endl;
@@ -182,7 +182,7 @@ void JustificationHeuristic::addAssertions
   for(IteSkolemMap::iterator i = iteSkolemMap.begin();
       i != iteSkolemMap.end(); ++i) {
 
-    Trace("decision::jh::ite") 
+    Trace("decision::jh::ite")
       << " jh-ite: " << (i->first) << " maps to "
       << assertions[(i->second)] << std::endl;
     Assert(i->second >= assertionsEnd && i->second < assertions.size());
@@ -199,7 +199,7 @@ SatLiteral JustificationHeuristic::findSplitter(TNode node,
   d_curDecision = undefSatLiteral;
   if(findSplitterRec(node, desiredVal)) {
     ++d_helfulness;
-  } 
+  }
   return d_curDecision;
 }
 
@@ -405,9 +405,9 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
    * children to be true. this is done recursively.
    */
 
-  Trace("decision::jh") 
-    << "findSplitterRec(" << node << ", " 
-    << desiredVal << ", .. )" << std::endl; 
+  Trace("decision::jh")
+    << "findSplitterRec(" << node << ", "
+    << desiredVal << ", .. )" << std::endl;
 
   /* Handle NOT as a special case */
   while (node.getKind() == kind::NOT) {
@@ -417,7 +417,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
 
   /* Base case */
   if (checkJustified(node)) {
-    Debug("decision::jh") << "  justified, returning" << std::endl; 
+    Debug("decision::jh") << "  justified, returning" << std::endl;
     return NO_SPLITTER;
   }
   if (getExploredThreshold(node) < d_curThreshold) {
@@ -449,7 +449,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
   //       "invariant violated");
 
   /* What type of node is this */
-  Kind k = node.getKind();	
+  Kind k = node.getKind();
   theory::TheoryId tId = theory::kindToTheoryId(k);
 
   /* Some debugging stuff */
@@ -470,7 +470,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
       Assert(litVal == desiredVal);
       setJustified(node);
       return NO_SPLITTER;
-    } 
+    }
     else {
       Assert(d_decisionEngine->hasSatLiteral(node));
       if(d_curThreshold != 0 && getWeightPolarized(node, desiredVal) >= d_curThreshold)
@@ -548,7 +548,7 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
 JustificationHeuristic::SearchResult
 JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
 {
-  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or 
+  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_TRUE) );
 
   int numChildren = node.getNumChildren();
@@ -575,7 +575,7 @@ void JustificationHeuristic::saveStartIndex(TNode node, int val) {
 
 JustificationHeuristic::SearchResult JustificationHeuristic::handleAndOrHard(TNode node,
                                              SatValue desiredVal) {
-  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or 
+  Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_FALSE) );
 
   int numChildren = node.getNumChildren();
@@ -671,7 +671,7 @@ JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode nod
 
     if(findSplitterRec(node[0], ifDesiredVal) == FOUND_SPLITTER)
       return FOUND_SPLITTER;
-    
+
     Assert(d_curThreshold != 0, "No controlling input found (6)");
     return DONT_KNOW;
   } else {

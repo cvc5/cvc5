@@ -47,7 +47,7 @@ public:
                     context::UserContext* u);
 
   ~TheorySetsPrivate();
-  
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void addSharedTerm(TNode);

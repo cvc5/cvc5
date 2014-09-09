@@ -71,7 +71,7 @@ public:
   ~DecisionEngine() {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
-  
+
   // void setPropEngine(PropEngine* pe) {
   //   // setPropEngine should not be called more than once
   //   Assert(d_propEngine == NULL);
@@ -123,8 +123,8 @@ public:
            "Forgot to set satSolver for decision engine?");
 
     SatLiteral ret = undefSatLiteral;
-    for(unsigned i = 0; 
-        i < d_enabledStrategies.size() 
+    for(unsigned i = 0;
+        i < d_enabledStrategies.size()
           and ret == undefSatLiteral
           and stopSearch == false; ++i) {
       ret = d_enabledStrategies[i]->getNext(stopSearch);
@@ -137,7 +137,7 @@ public:
 
   /**
    * Try to get tell SAT solver what polarity to try for a
-   * decision. Return SAT_VALUE_UNKNOWN if it can't help 
+   * decision. Return SAT_VALUE_UNKNOWN if it can't help
    */
   SatValue getPolarity(SatVariable var);
 
@@ -193,7 +193,7 @@ public:
   // (which was possibly requested by them on initialization)
 
   /**
-   * Get the assertions. Strategies are notified when these are available. 
+   * Get the assertions. Strategies are notified when these are available.
    */
   AssertionsList& getAssertions() {
     return d_assertions;

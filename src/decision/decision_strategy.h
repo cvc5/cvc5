@@ -43,9 +43,9 @@ public:
   virtual ~DecisionStrategy() { }
 
   virtual prop::SatLiteral getNext(bool&) = 0;
-  
+
   virtual bool needIteSkolemMap() { return false; }
-  
+
   virtual void notifyAssertionsAvailable() { return; }
 };/* class DecisionStrategy */
 
