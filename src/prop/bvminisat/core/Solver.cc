@@ -623,10 +623,16 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
                       ProofManager::getBitVectorProof()->getSatProof()->addResolutionStep(trail[i], reason(x), sign(trail[i]));
                         }
                     );
-              for (int j = 1; j < c.size(); j++)
+              for (int j = 1; j < c.size(); j++) {
                 if (level(var(c[j])) > 0) {
                   seen[var(c[j])] = 1;
                 }
+                PROOF(
+                      if (level(var(c[j])) == 0) {
+                        ProofManager::getBitVectorProof()->getSatProof()->resolveOutUnit(c[j]);
+                      }
+                );
+              }
             }
             seen[x] = 0;
         }
