@@ -93,7 +93,8 @@ SMT_TESTS = \
 	calc2_sec2_shifter_mult_bmc15.atlas.delta01.smt \
 	smtcompbug.smt \
 	unsound1.smt2 \
-	unsound1-reduced.smt2
+	unsound1-reduced.smt2 \
+	bv-proof00.smt
 
 # Regression tests for SMT2 inputs
 SMT2_TESTS = divtest.smt2
