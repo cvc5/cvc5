@@ -167,7 +167,7 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& ma
   }
   case kind::VARIABLE:
   case kind::SKOLEM: {
-    os << "(a_var_bv " << term <<")";
+    os << "(a_var_bv " << utils::getSize(term)<<" " << term <<")";
     return;
   }
   default:
@@ -186,7 +186,7 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os) {
 
 void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   Assert (term.isConst());
-  os <<"(a_bv ";
+  os <<"(a_bv " << utils::getSize(term)<<" ";
   std::ostringstream paren;
   for (unsigned i = 0; i < utils::getSize(term); ++i) {
     os << "(bvc ";
@@ -200,7 +200,7 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
   std::string op = toLFSCBVKind(term.getKind());
   std::ostringstream paren;
-  os <<"("<< op <<" ";
+  os <<"("<< op <<" " << utils::getSize(term) <<" ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     d_proofEngine->printBoundTerm(term[i], os, map);
     os << " ";
@@ -214,7 +214,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind());
+  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map); 
   os <<")";
@@ -222,7 +222,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
 
 void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind());
+  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
@@ -232,7 +232,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMa
 
 void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";  
-  os << toLFSCBVKind(term.getKind()); 
+  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" "; 
   os <<" "; 
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -259,8 +259,9 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
 }
 
 void LFSCBitVectorProof::printSort(Type type, std::ostream& os) {
-  Assert (type.isBitVector()); 
-  os << "BitVec ";  
+  Assert (type.isBitVector());
+  unsigned width = utils::getSize(type);
+  os << "(BitVec "<<width<<")";  
 }
 
 void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) {

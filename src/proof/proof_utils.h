@@ -53,11 +53,17 @@ inline unsigned getExtractLow(Expr node) {
   return node.getOperator().getConst<BitVectorExtract>().low;
 }
 
-inline unsigned getSize(Expr node) {
-  Assert (node.getType().isBitVector()); 
-  BitVectorType type(node.getType()); 
-  return type.getSize();
+inline unsigned getSize(Type type) {
+  BitVectorType bv(type); 
+  return bv.getSize();
 }
+
+
+inline unsigned getSize(Expr node) {
+  Assert (node.getType().isBitVector());
+  return getSize(node.getType());
+}
+
 inline Expr mkTrue() {
   return NodeManager::currentNM()->toExprManager()->mkConst<bool>(true);
 }
