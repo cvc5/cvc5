@@ -233,8 +233,9 @@ bool Solver::addClause_(vec<Lit>& ps)
     if (ps.size() == 0)
         return ok = false;
     else if (ps.size() == 1){
-        uncheckedEnqueue(ps[0]);
         PROOF( ProofManager::getBitVectorProof()->getSatProof()->registerUnitClause(ps[0], INPUT););
+        uncheckedEnqueue(ps[0]);
+
         return ok = (propagate() == CRef_Undef);
     } else {
         CRef cr = ca.alloc(ps, false);

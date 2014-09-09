@@ -36,7 +36,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
 
 void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new LFSCBVSatProof(solver, "bb", true);
+  d_resolutionProof = new LFSCBVSatProof(solver, "bb", false);
 }
 
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream) {
@@ -104,7 +104,7 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   }
 }
 
-void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (Theory::theoryOf(term) == THEORY_BV);
   
   switch (term.getKind()) {
@@ -133,14 +133,14 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   case kind::BITVECTOR_LSHR :
   case kind::BITVECTOR_ASHR :
   case kind::BITVECTOR_CONCAT : {
-    printOperatorNary(term, os);
+    printOperatorNary(term, os, map);
     return;
   }
   case kind::BITVECTOR_NEG :
   case kind::BITVECTOR_NOT :
   case kind::BITVECTOR_ROTATE_LEFT :
   case kind::BITVECTOR_ROTATE_RIGHT : {
-    printOperatorUnary(term, os);
+    printOperatorUnary(term, os, map);
     return;
   }
   case kind::BITVECTOR_ULT :
@@ -151,14 +151,14 @@ void LFSCBitVectorProof::printTerm(Expr term, std::ostream& os) {
   case kind::BITVECTOR_SLE :
   case kind::BITVECTOR_SGT :
   case kind::BITVECTOR_SGE : {
-    printPredicate(term, os);
+    printPredicate(term, os, map);
     return;
   }
   case kind::BITVECTOR_EXTRACT :
   case kind::BITVECTOR_REPEAT :
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
-    printOperatorParametric(term, os);
+    printOperatorParametric(term, os, map);
     return;
   }
   case kind::BITVECTOR_BITOF : {
@@ -197,12 +197,12 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   os << paren.str(); 
 }
 
-void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
   std::string op = toLFSCBVKind(term.getKind());
   std::ostringstream paren;
   os <<"("<< op <<" ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->printTerm(term[i], os);
+    d_proofEngine->printBoundTerm(term[i], os, map);
     os << " ";
     if (i + 2 < term.getNumChildren()) {
       os <<"(" << op <<" ";
@@ -212,25 +212,25 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os) {
   os <<")" << paren.str();
 }
 
-void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
   os << toLFSCBVKind(term.getKind());
   os << " ";
-  d_proofEngine->printTerm(term[0], os); 
+  d_proofEngine->printBoundTerm(term[0], os, map); 
   os <<")";
 }
 
-void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
   os << toLFSCBVKind(term.getKind());
   os << " ";
-  d_proofEngine->printTerm(term[0], os);
+  d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
-  d_proofEngine->printTerm(term[1], os); 
+  d_proofEngine->printBoundTerm(term[1], os, map); 
   os <<")";
 }
 
-void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os) {
+void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";  
   os << toLFSCBVKind(term.getKind()); 
   os <<" "; 
@@ -254,7 +254,7 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os) {
   }
   os <<" ";
   Assert (term.getNumChildren() == 1); 
-  d_proofEngine->printTerm(term[0], os);
+  d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
 }
 

@@ -32,6 +32,55 @@ namespace theory {
 class Theory;
 }
 
+struct LetCount {
+  static unsigned counter;
+  static void resetCounter() { counter = 0; }
+  static unsigned newId() { return ++counter; }
+    
+  unsigned count;
+  unsigned id;
+  LetCount()
+    : count(0)
+    , id(-1)
+  {}
+    
+  void increment() { ++count; }
+  LetCount(unsigned i)
+    : count(1)
+    , id(i)
+  {}
+  LetCount(const LetCount& other)
+    : count(other.count)
+    , id (other.id)
+  {}
+  bool operator==(const LetCount &other) const {
+    return other.id == id && other.count == count;
+  }
+  LetCount& operator=(const LetCount &rhs) {
+    if (&rhs == this) return *this;
+    id = rhs.id;
+    count = rhs.count;
+    return *this;
+  }
+}; 
+
+struct LetOrderElement {
+  Expr expr;
+  unsigned id;
+  LetOrderElement(Expr e, unsigned i)
+    : expr(e)
+    , id(i)
+  {}
+
+  LetOrderElement()
+    : expr()
+    , id(-1)
+  {}
+};
+
+typedef __gnu_cxx::hash_map<Expr, LetCount, ExprHashFunction> LetMap;
+typedef std::vector<LetOrderElement> Bindings; 
+
 class TheoryProof; 
 typedef int ClauseId;
 
@@ -55,7 +104,8 @@ public:
    * 
    * @return 
    */
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printLetTerm(Expr term, std::ostream& os) = 0;
+  virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   /** 
    * Print the proof representation of the given sort.
    * 
@@ -96,10 +146,14 @@ public:
 };
 
 class LFSCTheoryProofEngine : public TheoryProofEngine {
+  LetMap d_letMap;
+  void printTheoryTerm(Expr term, std::ostream& os, const LetMap& map);
+  void bind(Expr term, LetMap& map, Bindings& let_order);
 public:
   void printDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printCoreTerm(Expr term, std::ostream& os);
-  virtual void printTerm(Expr term, std::ostream& os);
+  virtual void printCoreTerm(Expr term, std::ostream& os, const LetMap& map);
+  virtual void printLetTerm(Expr term, std::ostream& os);
+  virtual void printBoundTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printAssertions(std::ostream& os, std::ostream& paren);
   virtual void printTheoryLemmas(std::ostream& os, std::ostream& paren);
   virtual void printSort(Type type, std::ostream& os); 
@@ -122,7 +176,7 @@ public:
    * @param term expresion representing term
    * @param os output stream
    */
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   /** 
    * Print the proof representation of the given type.
    * 
@@ -160,7 +214,8 @@ public:
 
   virtual void registerTerm(Expr term);
   
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
+
   virtual void printSort(Type type, std::ostream& os) = 0; 
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
@@ -171,7 +226,7 @@ public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
     : BooleanProof(proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os);
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os); 
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) { Unreachable("No boolean lemmas yet!"); }
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);

@@ -28,6 +28,8 @@
 using namespace CVC4;
 using namespace CVC4::theory;
 
+unsigned CVC4::LetCount::counter = 0;
+
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
   , d_theoryProofTable()
@@ -97,18 +99,69 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(ClauseId id) {
   Unreachable();
 }
 
-void LFSCTheoryProofEngine::printTerm(Expr term, std::ostream& os) {
+void LFSCTheoryProofEngine::bind(Expr term, LetMap& map, Bindings& let_order) {
+  LetMap::iterator it = map.find(term); 
+  if (it != map.end()) {
+    LetCount& count = it->second;
+    count.increment();
+    return;
+  }
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    bind(term[i], map, let_order);
+  }
+  unsigned new_id = LetCount::newId(); 
+  map[term] = LetCount(new_id);
+  let_order.push_back(LetOrderElement(term, new_id));
+}
+
+void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
+  LetMap map;
+  Bindings let_order;
+  bind(term, map, let_order);
+  std::ostringstream paren;
+  for (unsigned i = 0; i < let_order.size(); ++i) {
+    Expr current_expr = let_order[i].expr;
+    unsigned let_id = let_order[i].id;
+    LetMap::const_iterator it = map.find(current_expr);
+    Assert (it != map.end());
+    unsigned let_count = it->second.count;
+    Assert(let_count);
+    // skip terms that only appear once
+    if (let_count == 1) {
+      continue;
+    }
+    
+    os << "(" << (current_expr.getType().isBoolean() ? "flet " : "let _ ");
+    os <<"(";
+    printTheoryTerm(current_expr, os, map);
+    os <<") (\\ let"<<let_id <<" ";
+    paren <<"))"; 
+  }
+  unsigned last_let_id = let_order.back().id;
+  Expr last = let_order.back().expr;
+  unsigned last_count = map.find(last)->second.count;
+  if (last_count == 1) {
+    printTheoryTerm(last, os, map);
+  }
+  else {
+    os << " let"<< last_let_id;
+  }
+  os << paren.str();
+}
+
+
+void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const LetMap& map) {
   TheoryId theory_id = Theory::theoryOf(term);
   // boolean terms and ITEs are special because they
   // are common to all theories
   if (theory_id == THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
       term.getKind() == kind::EQUAL) {
-    printCoreTerm(term, os);
+    printCoreTerm(term, os, map);
     return;
   }
   // dispatch to proper theory
-  getTheoryProof(theory_id)->printTerm(term, os);
+  getTheoryProof(theory_id)->printTerm(term, os, map);
 }
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
@@ -142,7 +195,7 @@ void LFSCTheoryProofEngine::printAssertions(std::ostream& os, std::ostream& pare
   it = ProofManager::currentPM()->begin_assertions();
   for (; it != end; ++it) {
     os << "(% A" << counter++ << " (th_holds ";
-    printTerm(*it,  os);
+    printLetTerm(*it,  os);
     os << ")\n";
     paren << ")";
   }
@@ -223,7 +276,19 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
   }
 }
 
-void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
+void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const LetMap& map) {
+  LetMap::const_iterator it = map.find(term);
+  Assert (it != map.end());
+  unsigned id = it->second.id;
+  unsigned count = it->second.count;
+  if (count > 1) {
+    os <<"let"<<id;
+    return;
+  }
+  printTheoryTerm(term, os,  map);
+}
+
+void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const LetMap& map) {
   if (term.isVariable()) {
     os << term;
     return;
@@ -233,11 +298,12 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
   switch(k) {
   case kind::ITE:
     os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");
-    printTerm(term[0], os);
+    
+    printBoundTerm(term[0], os, map);
     os << " ";
-    printTerm(term[1], os);
+    printBoundTerm(term[1], os, map);
     os << " ";
-    printTerm(term[2], os);
+    printBoundTerm(term[2], os, map);
     os << ")";
     return;
 
@@ -245,18 +311,18 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
     os << "(";
     os << "= ";
     printSort(term[0].getType(), os);
-    printTerm(term[0], os);
+    printBoundTerm(term[0], os, map);
     os << " ";
-    printTerm(term[1], os);
+    printBoundTerm(term[1], os, map);
     os << ")";
     return;
 
   case kind::DISTINCT:
     os << "(not (= ";
     printSort(term[0].getType(), os);
-    printTerm(term[0], os);
+    printBoundTerm(term[0], os, map);
     os << " ";
-    printTerm(term[1], os);
+    printBoundTerm(term[1], os, map);
     os << "))";
     Assert (term.getNumChildren() == 2); 
     return;
@@ -273,9 +339,9 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os) {
         paren << ")";
       }
       os << "(" << utils::toLFSCCoreKind(op) << " ";
-      printTerm(term[i - 1], os);
+      printBoundTerm(term[i - 1], os, map);
       os << " ";
-      printTerm(term[i], os);
+      printBoundTerm(term[i], os, map);
       os << ")";
       if(i + 1 < n) {
         os << " ";
@@ -307,7 +373,7 @@ void BooleanProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCBooleanProof::printTerm(Expr term, std::ostream& os) {
+void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (term.getType().isBoolean());
   if (term.isVariable()) {
     os << "(p_app " << term <<")";
@@ -330,7 +396,7 @@ void LFSCBooleanProof::printTerm(Expr term, std::ostream& os) {
       std::ostringstream paren;
       os << " ";
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-        d_proofEngine->printTerm(term[i], os);
+        d_proofEngine->printBoundTerm(term[i], os, map);
         os << " ";
         if(i < term.getNumChildren() - 2) {
           os << "(" << utils::toLFSCCoreKind(k) << " ";
@@ -342,7 +408,7 @@ void LFSCBooleanProof::printTerm(Expr term, std::ostream& os) {
       // this is for binary and unary operators
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         os << " ";
-        d_proofEngine->printTerm(term[i], os);
+        d_proofEngine->printBoundTerm(term[i], os, map);
       }
       os << ")";
     }

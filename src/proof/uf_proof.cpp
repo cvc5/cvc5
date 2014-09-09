@@ -55,7 +55,7 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printTerm(Expr term, std::ostream& os) {
+void LFSCUFProof::printTerm(Expr term, std::ostream& os, const LetMap& map) {
   Assert (Theory::theoryOf(term) == THEORY_UF);
 
   if (term.getKind() == kind::VARIABLE ||
@@ -75,7 +75,7 @@ void LFSCUFProof::printTerm(Expr term, std::ostream& os) {
   }
   os << func << " ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->printTerm(term[i], os);
+    d_proofEngine->printBoundTerm(term[i], os, map);
     os << ")";
   }
   if(term.getType().isBoolean()) {

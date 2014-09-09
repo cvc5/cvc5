@@ -84,7 +84,7 @@ void LFSCCnfProof::printAtomMapping(std::ostream& os, std::ostream& paren) {
     Expr atom = it->first;
     //FIXME hideous
     LFSCTheoryProofEngine* pe = (LFSCTheoryProofEngine*)ProofManager::currentPM()->getTheoryProofEngine();
-    pe->printTerm(atom, os);
+    pe->printLetTerm(atom, os);
     
     os << " (\\ " << ProofManager::getVarName(var, d_name) << " (\\ " << ProofManager::getAtomName(var, d_name) << "\n";
     paren << ")))";

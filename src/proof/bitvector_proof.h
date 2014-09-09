@@ -97,7 +97,7 @@ public:
   bool isAssumptionConflict() { return d_isAssumptionConflict; }
   virtual void registerTerm(Expr term);
   
-  virtual void printTerm(Expr term, std::ostream& os) = 0;
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   virtual void printSort(Type type, std::ostream& os) = 0;
   // TODO ask for all off the lemmas at once, to be able to compute the
   // relevant learnt clauses that we need and which we will print upfront
@@ -109,16 +109,16 @@ public:
 class LFSCBitVectorProof: public BitVectorProof {
   
   void printConstant(Expr term, std::ostream& os);
-  void printOperatorNary(Expr term, std::ostream& os);
-  void printOperatorUnary(Expr term, std::ostream& os);
-  void printPredicate(Expr term, std::ostream& os);
-  void printOperatorParametric(Expr term, std::ostream& os);
+  void printOperatorNary(Expr term, std::ostream& os, const LetMap& map);
+  void printOperatorUnary(Expr term, std::ostream& os, const LetMap& map);
+  void printPredicate(Expr term, std::ostream& os, const LetMap& map);
+  void printOperatorParametric(Expr term, std::ostream& os, const LetMap& map);
   void printBitOf(Expr term, std::ostream& os);
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  virtual void printTerm(Expr term, std::ostream& os);
+  virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
