@@ -30,6 +30,9 @@ std::string toLFSCBVKind(Kind kind);
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
+  , d_terms()
+  , d_atoms()
+  , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
 {}
@@ -52,14 +55,34 @@ BVSatProof* BitVectorProof::getSatProof() {
 }
 
 void BitVectorProof::registerTerm(Expr term) {
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM) {
+  if (Theory::isLeafOf(term, theory::THEORY_BV) &&
+      !term.isConst()) {
     d_declarations.insert(term);
   }
+
+  if (Theory::theoryOf(term) == theory::THEORY_BV) {
+    if (term.getType().isBoolean() && d_atoms.find(term) == d_atoms.end()) {
+      d_atoms[term] = newBBId(); 
+    }
+    if (term.getType().isBitVector() && d_terms.find(term) == d_terms.end()) {
+      d_terms[term] = newBBId(); 
+    }
+  }
+  
   // don't care about parametric operators for bv?
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    d_proofEngine->registerTerm(term[i]); 
+     d_proofEngine->registerTerm(term[i]); 
   }
+}
+
+unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
+
+unsigned BitVectorProof::getBBId(Expr expr) {
+  ExprToId::const_iterator it = d_atoms.find(expr);
+  if (it != d_atoms.end()) return it->second;
+  it = d_terms.find(expr);
+  Assert (it != d_terms.end());
+  return it->second;
 }
 
 void BitVectorProof::startBVConflict(::BVMinisat::Solver::TCRef cr) {
@@ -302,7 +325,162 @@ void LFSCBitVectorProof::printDeclarations(std::ostream& os, std::ostream& paren
     paren <<")"; 
   }
 }
+
+
+void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
+  // TODO: once we have the operator elimination rules remove those that we
+  // eliminated
+  Assert (term.getType().isBitVector());
+  Kind kind = term.getKind();
+  
+  if (Theory::isLeafOf(term, theory::THEORY_BV) &&
+      !term.isConst()) {
+    os << "(bv_bbl_var "<<utils::getSize(term) << " " << term <<" _ )";
+    return;
+  }
+  
+  switch(kind) {
+  case kind::CONST_BITVECTOR : {
+    os << "(bv_bbl_const "<< utils::getSize(term) <<" _ ";
+    std::ostringstream paren;
+    for (unsigned i = 0; i < utils::getSize(term); ++i) {
+      os << "(bvc ";
+      os << (utils::getBit(term, i) ? "b1" : "b0") <<" "; 
+      paren << ")";
+    }
+    os << " bvn)";
+    os << paren.str(); 
+    return; 
+  }
+  case kind::BITVECTOR_AND :
+  case kind::BITVECTOR_OR :
+  case kind::BITVECTOR_XOR :
+  case kind::BITVECTOR_NAND :
+  case kind::BITVECTOR_NOR :
+  case kind::BITVECTOR_XNOR :
+  case kind::BITVECTOR_COMP :
+  case kind::BITVECTOR_MULT :
+  case kind::BITVECTOR_PLUS :
+  case kind::BITVECTOR_SUB :
+  case kind::BITVECTOR_UDIV :
+  case kind::BITVECTOR_UREM :
+  case kind::BITVECTOR_UDIV_TOTAL :
+  case kind::BITVECTOR_UREM_TOTAL :
+  case kind::BITVECTOR_SDIV :
+  case kind::BITVECTOR_SREM :
+  case kind::BITVECTOR_SMOD :
+  case kind::BITVECTOR_SHL :
+  case kind::BITVECTOR_LSHR :
+  case kind::BITVECTOR_ASHR :
+  case kind::BITVECTOR_CONCAT : {
+    std::ostringstream paren;
+    os <<"(bv_bbl_"<< toLFSCBVKind(kind);
+    os <<" _ _ _ _ _ _ ";
+    for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+      os << "bt" << getBBId(term[i]);
+      os << " ";
+      if (i + 2 < term.getNumChildren()) {
+        os <<"(bv_bbl_"<<toLFSCBVKind(kind);
+        os <<" _ _ _ _ _ _ ";
+        paren <<")";
+      }
+    }
+    os <<")" << paren.str();
+    return;
+  }
+  case kind::BITVECTOR_NEG :
+  case kind::BITVECTOR_NOT :
+  case kind::BITVECTOR_ROTATE_LEFT :
+  case kind::BITVECTOR_ROTATE_RIGHT : {
+    os <<"(bv_bbl_"<<toLFSCBVKind(kind);
+    os <<" _ _ _ ";
+    os << "bt" << getBBId(term[0]);
+    os <<")";
+    return;
+  }
+  case kind::BITVECTOR_EXTRACT : {
+    os <<"(bv_bbl_"<<toLFSCBVKind(kind) <<" ";
+    os << utils::getExtractHigh(term) << " ";
+    os << utils::getExtractLow(term) << " ";
+    os << " _ _ _ ";
+    os << "bt" << getBBId(term[0]);
+    os <<")";
+    return;
+  }
+  case kind::BITVECTOR_REPEAT :
+  case kind::BITVECTOR_ZERO_EXTEND :
+  case kind::BITVECTOR_SIGN_EXTEND : {
+    os <<"(bv_bbl_"<<toLFSCBVKind(kind) <<" ";
+    if (term.getKind() == kind::BITVECTOR_REPEAT) {
+      unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
+      os << amount; 
+    }
+    if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
+      unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      os << amount; 
+    }
+    
+    if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
+      unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      os << amount; 
+    }
+    os <<" _ _ _ ";
+    os << "bt"<< getBBId(term[0]);
+    os <<")";
+    return;
+  }
+  default:
+    Unreachable("LFSCBitVectorProof Unknown operator"); 
+  }
+}
+
+void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
+  Kind kind = atom.getKind();
+  switch(kind) {
+  case kind::BITVECTOR_ULT :
+  case kind::BITVECTOR_ULE :
+  case kind::BITVECTOR_UGT :
+  case kind::BITVECTOR_UGE :
+  case kind::BITVECTOR_SLT :
+  case kind::BITVECTOR_SLE :
+  case kind::BITVECTOR_SGT :
+  case kind::BITVECTOR_SGE :
+  case kind::EQUAL:
+    {
+    os <<"(bv_bbl_" << toLFSCBVKind(atom.getKind()); 
+    os << " _ _ _ _ _ _ ";
+    os << "bt"<< getBBId(atom[0]) <<" bt" << getBBId(atom[1]) <<")"; 
+    return;
+  }
+  default:
+    Unreachable("LFSCBitVectorProof Unknown atom kind");
+  }
+}
+
+
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
+  // bit-blast terms
+  ExprToId::const_iterator it = d_terms.begin();
+  ExprToId::const_iterator end = d_terms.end();
+  for (; it != end; ++it) {
+    os <<"(decl_bblast _ _ _ ";
+    printTermBitblasting(it->first, os);
+    os <<"(\\ bt"<<it->second <<"\n";
+    paren <<"))";
+  }
+  // bit-blast atoms
+  it = d_atoms.begin();
+  end = d_atoms.end();
+  for (; it != end; ++it) {
+    os << "(th_let_pf _ ";
+    printAtomBitblasting(it->first, os);
+    os <<"(\\ bf"<<it->second <<"\n";
+    paren <<"))";
+  }
+
+}
+
+void LFSCBitVectorProof::printResolutionProof(std::ostream& os, std::ostream& paren) {
   // print mapping between theory atoms and internal SAT variables
   os << ";; BB atom mapping\n"; 
   d_cnfProof->printAtomMapping(os, paren);
@@ -385,7 +563,9 @@ std::string toLFSCBVKind(Kind kind) {
   case kind::BITVECTOR_ZERO_EXTEND :
     return "zero_extend";
   case kind::BITVECTOR_SIGN_EXTEND :
-    return "sign_extend"; 
+    return "sign_extend";
+  case kind::EQUAL:
+    return "eq";
   default:
     Unreachable();
   }

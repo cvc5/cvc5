@@ -55,28 +55,26 @@ typedef LFSCSatProof< ::BVMinisat::Solver> LFSCBVSatProof;
 
 typedef __gnu_cxx::hash_set<Expr, ExprHashFunction> ExprSet;
 typedef __gnu_cxx::hash_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
+typedef __gnu_cxx::hash_map<Expr, unsigned, ExprHashFunction> ExprToId;
 
 class BitVectorProof : public TheoryProof {
 protected:
-  ExprSet d_declarations; 
+  ExprSet d_declarations;
+  
+  ExprToId d_terms; // terms that need to be bit-blasted
+  ExprToId d_atoms; // atoms that need to be bit-blasted
+  unsigned d_bbIdCount;
+  
   // map from Expr representing normalized lemma to ClauseId in SAT solver
   ExprToClauseId d_conflictMap;
   BVSatProof* d_resolutionProof;
 
   CnfProof* d_cnfProof;
-  bool d_isAssumptionConflict;
-  // TODO:  add proofs for all subtheories
-  // BitblastingProof* d_bbProof;
   
-  /** 
-   * Set up SatProof data-structures to explain all
-   * conflicts beloning to this theory required by
-   * the main proof. This also enables the theory to
-   * figure out which bit-blasting lemmas are necessary. 
-   * 
-   * @param conflicts 
-   */
-
+  bool d_isAssumptionConflict;
+  
+  unsigned newBBId(); 
+  unsigned getBBId(Expr expr);
 public:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
@@ -99,11 +97,14 @@ public:
   
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map) = 0;
   virtual void printSort(Type type, std::ostream& os) = 0;
-  // TODO ask for all off the lemmas at once, to be able to compute the
-  // relevant learnt clauses that we need and which we will print upfront
+  virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
+  virtual void printAtomBitblasting(Expr term, std::ostream& os) = 0;
+
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren) = 0;
   virtual void printDeclarations(std::ostream& os, std::ostream& paren) = 0;
   virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printResolutionProof(std::ostream& os, std::ostream& paren) = 0;
+  
 };
 
 class LFSCBitVectorProof: public BitVectorProof {
@@ -120,9 +121,12 @@ public:
   {}
   virtual void printTerm(Expr term, std::ostream& os, const LetMap& map);
   virtual void printSort(Type type, std::ostream& os);
+  virtual void printTermBitblasting(Expr term, std::ostream& os);
+  virtual void printAtomBitblasting(Expr term, std::ostream& os);
   virtual void printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren);
   virtual void printDeclarations(std::ostream& os, std::ostream& paren);
-  virtual void printBitblasting(std::ostream& os, std::ostream& paren); 
+  virtual void printBitblasting(std::ostream& os, std::ostream& paren);
+  virtual void printResolutionProof(std::ostream& os, std::ostream& paren); 
 }; 
 
 }/* CVC4 namespace */

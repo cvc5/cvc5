@@ -243,6 +243,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(std::ostream& os, std::ostream& pa
   BitVectorProof* bv = ProofManager::getBitVectorProof(); 
   bv->finalizeConflicts(bv_lemmas); 
   bv->printBitblasting(os, paren);
+  bv->printResolutionProof(os, paren);
   
   it = pm->begin_lemmas();
   

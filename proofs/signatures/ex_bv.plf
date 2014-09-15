@@ -25,8 +25,8 @@
 
 ; bitblasting formulas
 (th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bt1 bt2) (\ bf1
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bt1 bt5) (\ bf2
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bf2 bt4) (\ bf3
+(th_let_pf _ (bv_bbl_bvult _ _ _ _ _ _ bt1 bt5) (\ bf2
+(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bt2 bt4) (\ bf3
 
 ; CNFication
 ; a.4 V ~b.4

@@ -227,7 +227,89 @@
 		      (! ybb (bblast_term n y yb)
                       (! c (^ (bblast_bvand xb yb ) rb)
                            (bblast_term n (bvand n x y) rb)))))))))))
-			 
+
+;; return the carry bit after adding x y			   
+;; FIXME: not the most efficient thing in the world
+(program bblast_bvadd_carry ((a bblt) (b bblt) (carry formula)) formula
+(match a
+  ( bbltn (match b (bbltn carry) (default (fail formula))))
+  ((bbltc ai a') (match b
+  	     	   (bbltn (fail formula))
+	 	   ((bbltc bi b') (or (and ai bi) (and (xor ai bi) (bblast_bvadd_carry a' b' carry))))))))
+
+;; ripple carry adder where carry is the initial carry bit		   
+(program bblast_bvadd ((a bblt) (b bblt) (carry formula)) bblt
+(match a
+  ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
+  ((bbltc ai a') (match b
+  	     	   (bbltn (fail bblt))
+	 	   ((bbltc bi b') (bbltc (xor ai (xor bi (bblast_bvadd_carry a' b' carry)))
+				  	 (bblast_bvadd a' b' carry)))))))
+				
+				
+(declare bv_bbl_bvadd (! n mpz
+                      (! x (term (BitVec n))
+		      (! y (term (BitVec n))
+		      (! xb bblt
+		      (! yb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+		      (! ybb (bblast_term n y yb)
+                      (! c (^ (bblast_bvadd xb yb false) rb)
+                           (bblast_term n (bvadd n x y) rb)))))))))))
+
+;; shift add multiplier
+
+;; (program mult_base ((a bblt) (b0 formula)) bblt
+;; (match a
+;;   (bbltn bbltn)
+;;   ((bbltc ai a') (bbltc (and b0 ai) (mult_base a' b0)))))
+
+;; return a formula representing the nth bit of a
+;; (program bblt_get_n ((a bblt) (n mpz)) formula
+;; (match a
+;;   (bbltn (fail bblt))
+;;   ((bbltc ai a') (mp_ifzero n ai (bblt_get_n a' (mp_add n (~1)))))))
+
+;; skip the first k bits of a  
+;; (program bblt_skip_k ((a bblt) (k mpz)) bblt
+;; (mp_ifneg k (fail bblt)
+;; (mp_ifzero k a
+;;   (match a (bbln (fail bblt)) ((bblc ai a') (bblt_skip_k a' (mp_add k (~1))))))))
+  
+;; return the last k bits of a assuming it has length n
+;; (program bblt_get_suffix ((a bblt) (k mpz) (n mpz)) bblt
+;; (bblt_skip k a (mp_add n
+
+;; add the bottom k bits of a anded with bk to res  
+;; (program mult_step ((res bblt) (a bblt) (bk formula) (k mpz)) bblt
+;;  (match a (bbln res) (default (fail bblt)))
+	     
+;;    ( )))
+   
+;; (match a
+;;   (bbltn bbltn)
+;;   ((bbltc ai a') (bbltc (and b0 ai) (mult_base a' b0)))))
+  
+
+;; (program bblast_bvmul ((a bblt) (b bblt) ) bblt
+;; (match a
+;;   ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
+;;   ((bbltc ai a') (match b
+;;   	     	   (bbltn (fail bblt))
+		   				
+				
+;; (declare bv_bbl_bvmul (! n mpz
+;;                       (! x (term (BitVec n))
+;; 		      (! y (term (BitVec n))
+;; 		      (! xb bblt
+;; 		      (! yb bblt
+;; 		      (! rb bblt
+;; 		      (! xbb (bblast_term n x xb)
+;; 		      (! ybb (bblast_term n y yb)
+;;                       (! c (^ (bblast_bvmul xb yb) rb)
+;;                            (bblast_term n (bvmul n x y) rb)))))))))))
+			   
 ; bit blast  x = y
 ;  for x,y of size n, it will return a conjuction (x.{n-1} = y.{n-1} ^ ( ... ^ (x.0 = y.0 ^ true)))
 (program bblast_eq ((x bblt) (y bblt)) formula
@@ -249,7 +331,32 @@
          (! c (^ (bblast_eq bx by) f)
             (th_holds (impl (= (BitVec n) x y) f))))))))))))
 
+			 
+	    
+(program bblast_bvult ((x bblt) (y bblt) (n mpz)) formula
+(match x
+  ( bbltn (fail formula))
+  ((bbltc xi x') (match y
+  	     	   (bbltn (fail formula))
+	 	   ((bbltc yi y') (mp_ifzero n
+		                    (and (not xi) yi)
+				    (or (and (iff xi yi) (bblast_bvult x' y' (mp_add n (~1)))) (and (not xi) yi))))))))
 
+(declare bv_bbl_bvult
+	 (! n mpz
+	 (! x (term (BitVec n))
+         (! y (term (BitVec n))
+         (! bx bblt
+         (! by bblt
+         (! f formula
+         (! bbx (bblast_term n x bx)
+         (! bby (bblast_term n y by)
+         (! c (^ (bblast_bvult bx by (mp_add n (~1))) f)
+            (th_holds (impl (bvult n x y) f))))))))))))
+
+	    
+
+	    
 ; rewrite rule :
 ; x + y = y + x
 (declare bvadd_symm
