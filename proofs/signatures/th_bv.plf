@@ -1,3 +1,10 @@
+; helper stuff
+(program mpz_sub ((x mpz) (y mpz)) mpz
+	 (mp_add x (mp_mul (~1) y)))
+
+(program mpz_eq ((x mpz) (y mpz)) formula
+    (mp_ifzero (mpz_sub x y) true false))
+  
 ; "bitvec" is a term of type "sort"
 ; (declare BitVec sort)
 (declare BitVec (!n mpz sort))
@@ -260,55 +267,85 @@
 
 ;; shift add multiplier
 
-;; (program mult_base ((a bblt) (b0 formula)) bblt
-;; (match a
-;;   (bbltn bbltn)
-;;   ((bbltc ai a') (bbltc (and b0 ai) (mult_base a' b0)))))
+(program reverse_help ((x bblt) (acc bblt)) bblt
+(match x
+       (bbltn acc)
+       ((bbltc xi x') (reverse_help x' (bbltc xi acc)))))
 
-;; return a formula representing the nth bit of a
-;; (program bblt_get_n ((a bblt) (n mpz)) formula
-;; (match a
-;;   (bbltn (fail bblt))
-;;   ((bbltc ai a') (mp_ifzero n ai (bblt_get_n a' (mp_add n (~1)))))))
 
-;; skip the first k bits of a  
-;; (program bblt_skip_k ((a bblt) (k mpz)) bblt
-;; (mp_ifneg k (fail bblt)
-;; (mp_ifzero k a
-;;   (match a (bbln (fail bblt)) ((bblc ai a') (bblt_skip_k a' (mp_add k (~1))))))))
-  
-;; return the last k bits of a assuming it has length n
-;; (program bblt_get_suffix ((a bblt) (k mpz) (n mpz)) bblt
-;; (bblt_skip k a (mp_add n
+(program reverseb ((x bblt)) bblt
+	 (reverse_help x bbltn))
 
-;; add the bottom k bits of a anded with bk to res  
-;; (program mult_step ((res bblt) (a bblt) (bk formula) (k mpz)) bblt
-;;  (match a (bbln res) (default (fail bblt)))
-	     
-;;    ( )))
-   
-;; (match a
-;;   (bbltn bbltn)
-;;   ((bbltc ai a') (bbltc (and b0 ai) (mult_base a' b0)))))
-  
+(program concat ((a bblt) (b bblt)) bblt
+  (match a (bbltn b)
+  	   ((bbltc ai a') (bbltc ai (concat a' b)))))
 
-;; (program bblast_bvmul ((a bblt) (b bblt) ) bblt
-;; (match a
-;;   ( bbltn (match b (bbltn bbltn) (default (fail bblt))))
-;;   ((bbltc ai a') (match b
-;;   	     	   (bbltn (fail bblt))
-		   				
-				
-;; (declare bv_bbl_bvmul (! n mpz
-;;                       (! x (term (BitVec n))
-;; 		      (! y (term (BitVec n))
-;; 		      (! xb bblt
-;; 		      (! yb bblt
-;; 		      (! rb bblt
-;; 		      (! xbb (bblast_term n x xb)
-;; 		      (! ybb (bblast_term n y yb)
-;;                       (! c (^ (bblast_bvmul xb yb) rb)
-;;                            (bblast_term n (bvmul n x y) rb)))))))))))
+	   
+(program top_k_bits ((a bblt) (k mpz)) bblt
+  (mp_ifzero k bbltn
+  	     (match a (bbltn (fail bblt))
+	     	      ((bbltc ai a') (bbltc ai (top_k_bits a' (mpz_sub k 1)))))))
+
+(program bottom_k_bits ((a bblt) (k mpz)) bblt
+ (reverseb (top_k_bits (reverseb a) k)))
+
+;; assumes the least signigicant bit is at the beginning of the list 
+(program k_bit ((a bblt) (k mpz)) formula
+(mp_ifneg k (fail formula)
+(match a (bbltn (fail formula))
+         ((bbltc ai a') (mp_ifzero k ai (k_bit a' (mpz_sub k 1)))))))
+
+(program and_with_bit ((a bblt) (bt formula)) bblt
+(match a (bbltn bbltn)
+         ((bbltc ai a') (bbltc (and bt ai) (and_with_bit a' bt)))))
+	 
+;; a is going to be the current result
+;; carry is going to false initially
+;; b is the and of a and b[k]
+;; res is going to be empty initial
+(program mult_step_k_h ((a bblt) (b bblt) (res bblt) (carry formula) (k mpz)) bblt
+(match a
+  (bbltn (match b (bbltn res) (default (fail bblt))))
+  ((bbltc ai a')
+    (match b (bbltn (fail bblt))
+             ((bbltc bi b')
+	     (mp_ifneg (mpz_sub k 1)
+	     	         (let carry_out (or (and ai bi) (and (xor ai bi) carry))
+			 (let curr (xor (xor ai bi) carry)
+			    (mult_step_k_h a' b' (bbltc curr res) carry_out (mpz_sub k 1))))
+			 (mult_step_k_h a' b (bbltc ai res) carry (mpz_sub k 1))
+))))))
+
+;; assumes that a, b and res have already been reversed
+;; to work with them easier
+(program mult_step ((a bblt) (b bblt) (res bblt) (n mpz) (k mpz)) bblt
+(let k' (mpz_sub n k )
+(let ak (top_k_bits a k')
+(let b' (and_with_bit ak (k_bit b k))
+ (mp_ifzero (mpz_sub k' 1)
+   (mult_step_k_h res b' bbltn false k)	
+   ;; res
+   ;; FIXME: there is a problem with the base case here
+   (let res' (mult_step_k_h res b' bbltn false k)
+   (mult_step a b res' n (mp_add k 1))))))))
+
+
+(program bblast_bvmul ((a bblt) (b bblt) (n mpz)) bblt
+(let ar (reverseb a) 
+(let br (reverseb b)
+(let res (and_with_bit ar (k_bit br 0))
+     (mult_step ar br res n 1)))))
+     
+(declare bv_bbl_bvmul (! n mpz
+                      (! x (term (BitVec n))
+		      (! y (term (BitVec n))
+		      (! xb bblt
+		      (! yb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+		      (! ybb (bblast_term n y yb)
+                      (! c (^ (bblast_bvmul xb yb n) rb)
+                           (bblast_term n (bvmul n x y) rb)))))))))))
 			   
 ; bit blast  x = y
 ;  for x,y of size n, it will return a conjuction (x.{n-1} = y.{n-1} ^ ( ... ^ (x.0 = y.0 ^ true)))
@@ -419,3 +456,5 @@
 	 (! u (! unit (holds (clc (neg v) cln))
 	      	 (holds C))
 	 (holds C))))))))
+
+
