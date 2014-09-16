@@ -300,9 +300,9 @@
          ((bbltc ai a') (bbltc (and bt ai) (and_with_bit a' bt)))))
 	 
 ;; a is going to be the current result
-;; carry is going to false initially
+;; carry is going to be false initially
 ;; b is the and of a and b[k]
-;; res is going to be empty initial
+;; res is going to be bbltn initially
 (program mult_step_k_h ((a bblt) (b bblt) (res bblt) (carry formula) (k mpz)) bblt
 (match a
   (bbltn (match b (bbltn res) (default (fail bblt))))
@@ -317,22 +317,19 @@
 ))))))
 
 ;; assumes that a, b and res have already been reversed
-;; to work with them easier
 (program mult_step ((a bblt) (b bblt) (res bblt) (n mpz) (k mpz)) bblt
 (let k' (mpz_sub n k )
 (let ak (top_k_bits a k')
 (let b' (and_with_bit ak (k_bit b k))
  (mp_ifzero (mpz_sub k' 1)
    (mult_step_k_h res b' bbltn false k)	
-   ;; res
-   ;; FIXME: there is a problem with the base case here
    (let res' (mult_step_k_h res b' bbltn false k)
-   (mult_step a b res' n (mp_add k 1))))))))
+   (mult_step a b (reverseb res') n (mp_add k 1))))))))
 
 
 (program bblast_bvmul ((a bblt) (b bblt) (n mpz)) bblt
-(let ar (reverseb a) 
-(let br (reverseb b)
+(let ar (reverseb a) ;; reverse a and b so that we can build the circuit 
+(let br (reverseb b) ;; from the least significant bit up
 (let res (and_with_bit ar (k_bit br 0))
      (mult_step ar br res n 1)))))
      
