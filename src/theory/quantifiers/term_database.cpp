@@ -227,6 +227,36 @@ TNode TermDb::evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRe
   }
 }
 
+TNode TermDb::evaluateTerm( TNode n ) {
+  eq::EqualityEngine * ee = d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
+  if( ee->hasTerm( n ) ){
+    return ee->getRepresentative( n );
+  }else if( n.getKind()!=BOUND_VARIABLE ){
+    if( n.hasOperator() ){
+      TNode f = getOperator( n );
+      if( !f.isNull() ){
+        std::vector< TNode > args;
+        for( unsigned i=0; i<n.getNumChildren(); i++ ){
+          TNode c = evaluateTerm( n[i] );
+          if( c.isNull() ){
+            return TNode::null();
+          }
+          args.push_back( c );
+        }
+        TNode nn = d_func_map_trie[f].existsTerm( args );
+        if( !nn.isNull() ){
+          if( ee->hasTerm( nn ) ){
+            return ee->getRepresentative( nn );
+          }else{
+            //Assert( false );
+          }
+        }
+      }
+    }
+  }
+  return TNode::null();
+}
+
 bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol ) {
   Trace("term-db-eval") << "Check entailed : " << n << ", pol = " << pol << std::endl;
   Assert( n.getType().isBoolean() );

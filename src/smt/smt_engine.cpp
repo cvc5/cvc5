@@ -1310,6 +1310,17 @@ void SmtEngine::setDefaults() {
       options::purifyTriggers.set( true );
     }
   }
+  if( options::conjectureNoFilter() ){
+    if( !options::conjectureFilterActiveTerms.wasSetByUser() ){
+      options::conjectureFilterActiveTerms.set( false );
+    }
+    if( !options::conjectureFilterCanonical.wasSetByUser() ){
+      options::conjectureFilterCanonical.set( false );
+    }
+    if( !options::conjectureFilterModel.wasSetByUser() ){
+      options::conjectureFilterModel.set( false );
+    }
+  }
 
   //until bugs 371,431 are fixed
   if( ! options::minisatUseElim.wasSetByUser()){

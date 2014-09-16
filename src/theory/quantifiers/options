@@ -160,6 +160,13 @@ option conjectureGen --conjecture-gen bool :read-write :default false
  generate candidate conjectures for inductive proofs
  
 option conjectureGenPerRound --conjecture-gen-per-round=N int :default 1
- number of conjectures to generate per instantiation round
-
+ number of conjectures to generate per instantiation round 
+option conjectureNoFilter --conjecture-no-filter bool :default false
+ do not filter conjectures
+option conjectureFilterActiveTerms --conjecture-filter-active-terms bool :read-write :default true
+ filter based on active terms
+option conjectureFilterCanonical --conjecture-filter-canonical bool :read-write :default true
+ filter based on canonicity
+option conjectureFilterModel --conjecture-filter-model bool :read-write :default true
+ filter based on model
 endmodule

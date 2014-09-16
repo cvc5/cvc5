@@ -145,6 +145,8 @@ public:
    * subsRep is whether subs contains only representatives
    */
   TNode evaluateTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep );
+  /** same as above, but without substitution */
+  TNode evaluateTerm( TNode n );
   /** is entailed (incomplete check) */
   bool isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol );
 public:

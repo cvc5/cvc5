@@ -68,6 +68,8 @@ public:
 
 class TermGenerator
 {
+private:
+  unsigned calculateGeneralizationDepth( ConjectureGenerator * s, std::map< TypeNode, std::vector< int > >& fvs );
 public:
   TermGenerator(){}
   TypeNode d_typ;
@@ -119,7 +121,7 @@ private:
                                std::map< TNode, TNode >& smap, std::vector< TNode >& vars, std::vector< TNode >& subs,
                                std::vector< Node >& terms );
 public:
-  TNode d_var;
+  std::map< TypeNode, TNode > d_var;
   std::map< TNode, TheoremIndex > d_children;
   std::vector< Node > d_terms;
 
@@ -137,7 +139,7 @@ public:
     getEquivalentTermsNode( n, nv, na, smap, vars, subs, terms );
   }
   void clear(){
-    d_var = Node::null();
+    d_var.clear();
     d_children.clear();
     d_terms.clear();
   }
@@ -199,8 +201,6 @@ private:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** add pending universal terms, merge equivalence classes */
-  void doPendingAddUniversalTerms();
   /** are universal equal */
   bool areUniversalEqual( TNode n1, TNode n2 );
   /** are universal disequal */
@@ -223,7 +223,10 @@ private:  //information regarding the conjectures
   /** list of all conjectures */
   std::vector< Node > d_conjectures;
   /** list of all waiting conjectures */
-  std::vector< Node > d_waiting_conjectures;
+  std::vector< Node > d_waiting_conjectures_lhs;
+  std::vector< Node > d_waiting_conjectures_rhs;
+  /** map of currently considered equality conjectures */
+  std::map< Node, std::vector< Node > > d_waiting_conjectures;
   /** map of equality conjectures */
   std::map< Node, std::vector< Node > > d_eq_conjectures;
   /** currently existing conjectures in equality engine */
@@ -267,7 +270,8 @@ private:  //information regarding the terms
   // # duplicated variables
   std::map< TNode, unsigned > d_pattern_var_duplicate;
   // is normal pattern?  (variables allocated in canonical way left to right)
-  std::map< TNode, bool > d_pattern_is_normal;
+  std::map< TNode, int > d_pattern_is_normal;
+  std::map< TNode, int > d_pattern_is_relevant;
   // patterns to a count of # operators (variables and functions)
   std::map< TNode, std::map< TNode, unsigned > > d_pattern_fun_id;
   // term size
@@ -278,7 +282,6 @@ private:  //information regarding the terms
   // add pattern
   void registerPattern( Node pat, TypeNode tpat );
 private: //for debugging
-  unsigned d_rel_term_count;
   std::map< TNode, unsigned > d_em;
 public:  //environment for term enumeration
   //the current number of enumerated variables per type
@@ -288,7 +291,7 @@ public:  //environment for term enumeration
   //the functions we can currently generate
   std::map< TypeNode, std::vector< TNode > > d_typ_tg_funcs;
   //the equivalence classes (if applicable) that match the currently generated term
-  bool d_use_ccand_eqc;
+  bool d_gen_relevant_terms;
   std::vector< std::vector< TNode > > d_ccand_eqc[2];
   //the term generation objects
   unsigned d_tg_id;
@@ -303,7 +306,7 @@ public:  //environment for term enumeration
   unsigned getNumTgFuncs( TypeNode tn );
   TNode getTgFunc( TypeNode tn, unsigned i );
   bool considerCurrentTerm();
-  bool considerTermCanon( unsigned tg_id );
+  bool considerCurrentTermCanon( unsigned tg_id );
   void changeContext( bool add );
 public:  //for generalization
   //generalizations
@@ -312,6 +315,8 @@ public:  //for generalization
     return isGeneralization( patg, pat, subs );
   }
   bool isGeneralization( TNode patg, TNode pat, std::map< TNode, TNode >& subs );
+  // get generalization depth
+  int calculateGeneralizationDepth( TNode n, std::vector< TNode >& fv );
 public:  //for property enumeration
   //process this candidate conjecture
   void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );
@@ -344,6 +349,7 @@ private:  //information about ground equivalence classes
   Node getGroundEqc( TNode r );
   bool isGroundEqc( TNode r );
   bool isGroundTerm( TNode n );
+  bool isRelevantFunc( Node f );
   // count of full effort checks
   unsigned d_fullEffortCount;
 public:
@@ -366,11 +372,13 @@ private:
   bool optFilterFalsification();
   bool optFilterUnknown();
   bool optFilterConfirmation();
-  bool optFilterConfirmationDomain();
+  unsigned optFilterConfirmationDomainThreshold();
   bool optFilterConfirmationOnlyGround();
   bool optFilterConfirmationNonCanonical();   //filter if all ground confirmations are non-canonical
   unsigned optFullCheckFrequency();
   unsigned optFullCheckConjectures();
+  
+  bool optStatsOnly();
 };
 
 
