@@ -436,7 +436,7 @@ bool QuantifiersEngine::addInstantiation( Node f, std::vector< Node >& vars, std
 }
 
 void QuantifiersEngine::setInstantiationLevelAttr( Node n, Node qn, uint64_t level ){
-  Trace("inst-level-debug") << "IL : " << n << " " << qn << " " << level << std::endl;
+  Trace("inst-level-debug2") << "IL : " << n << " " << qn << " " << level << std::endl;
   //if not from the vector of terms we instantiatied
   if( qn.getKind()!=BOUND_VARIABLE && n!=qn ){
     //if this is a new term, without an instantiation level

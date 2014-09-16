@@ -144,8 +144,12 @@ private:
   eq::EqClassesIterator d_eq;
   //equality you are trying to match equalities for
   Node d_match_pattern;
+  TypeNode d_match_pattern_type;
   //einstantiator pointer
   QuantifiersEngine* d_qe;
+  // quantifier/index for the variable we are matching
+  Node d_f;
+  unsigned d_index;
 public:
   CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat );
   ~CandidateGeneratorQEAll(){}

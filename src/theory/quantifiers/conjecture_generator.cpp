@@ -1250,9 +1250,15 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
           Trace("sg-conjecture-debug") << ", ";
         }
         Trace("sg-conjecture-debug") << it->first << " : " << it->second.size() << "/" << d_pattern_fun_id[lhs][it->first];
-        if( it->second.size()==1 ){
-          Trace("sg-conjecture-debug") << " (" << it->second[0] << ")";
+        //if( it->second.size()==1 ){
+        //  Trace("sg-conjecture-debug") << " (" << it->second[0] << ")";
+        //}
+        Trace("sg-conjecture-debug2") << " (";
+        for( unsigned j=0; j<it->second.size(); j++ ){
+          if( j>0 ){ Trace("sg-conjecture-debug2") << " "; }
+          Trace("sg-conjecture-debug2") << it->second[j];
         }
+        Trace("sg-conjecture-debug2") << ")";
         firstTime = false;
       }
       Trace("sg-conjecture-debug") << std::endl;

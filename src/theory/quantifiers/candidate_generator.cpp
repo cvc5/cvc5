@@ -213,7 +213,10 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
   d_match_pattern( mpat ), d_qe( qe ){
-
+  d_match_pattern_type = mpat.getType();
+  Assert( mpat.getKind()==INST_CONSTANT );
+  d_f = quantifiers::TermDb::getInstConstAttr( mpat );
+  d_index = mpat.getAttribute(InstVarNumAttribute());
 }
 
 void CandidateGeneratorQEAll::resetInstantiationRound() {
@@ -227,6 +230,9 @@ void CandidateGeneratorQEAll::reset( Node eqc ) {
 Node CandidateGeneratorQEAll::getNextCandidate() {
   while( !d_eq.isFinished() ){
     Node n = (*d_eq);
+    if( options::instMaxLevel()!=-1 ){
+      n = d_qe->getEqualityQuery()->getInternalRepresentative( n, d_f, d_index );
+    }
     ++d_eq;
     if( n.getType().isSubtypeOf( d_match_pattern.getType() ) ){
       //an equivalence class with the same type as the pattern, return it
