@@ -990,7 +990,9 @@ void TheoryArrays::check(Effort e) {
   if(!options::arraysEagerLemmas() && fullEffort(e) && !d_conflict && !options::arraysModelBased()) {
     // generate the lemmas on the worklist
     Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
-    dischargeLemmas();
+    while (d_RowQueue.size() > 0 && !d_conflict) {
+      dischargeLemmas();
+    }
   }
 
   Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
