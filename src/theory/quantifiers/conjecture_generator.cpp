@@ -26,9 +26,14 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace std;
 
-
 namespace CVC4 {
 
+struct sortConjectureScore {
+  std::vector< int > d_scores;
+  bool operator() (unsigned i, unsigned j) { return d_scores[i]>d_scores[j]; }
+};
+  
+  
 void OpArgIndex::addTerm( ConjectureGenerator * s, TNode n, unsigned index ){
   if( index==n.getNumChildren() ){
     Assert( n.hasOperator() );
@@ -385,7 +390,11 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
     d_fullEffortCount++;
     if( d_fullEffortCount%optFullCheckFrequency()==0 ){
       d_tge.d_cg = this;
-      Trace("sg-engine") << "---Conjecture generator, effort = " << e << "--- " << std::endl;
+      double clSet = 0;
+      if( Trace.isOn("sg-engine") ){
+        clSet = double(clock())/double(CLOCKS_PER_SEC);
+        Trace("sg-engine") << "---Instantiation Engine Round, effort = " << e << "---" << std::endl;
+      }
       eq::EqualityEngine * ee = getEqualityEngine();
 
       Trace("sg-proc") << "Get eq classes..." << std::endl;
@@ -641,6 +650,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
       std::map< TypeNode, unsigned > rt_var_max;
       std::vector< TypeNode > rt_types;
       std::map< TypeNode, std::map< int, std::vector< Node > > > conj_lhs;
+      unsigned addedLemmas = 0;
       for( unsigned depth=1; depth<=3; depth++ ){
         Trace("sg-proc") << "Generate relevant LHS at depth " << depth << "..." << std::endl;
         Trace("sg-rel-term") << "Relevant terms of depth " << depth << " : " << std::endl;
@@ -651,7 +661,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         while( d_tge.getNextTerm() ){
           //construct term
           Node nn = d_tge.getTerm();
-          if( !options::conjectureFilterCanonical() || getUniversalRepresentative( nn )==nn ){
+          if( !options::conjectureFilterCanonical() || considerTermCanon( nn, true ) ){
             rel_term_count++;
             Trace("sg-rel-term") << "*** Relevant term : ";
             d_tge.debugPrint( "sg-rel-term", "sg-rel-term-debug2" );
@@ -718,7 +728,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
               std::map< TypeNode, std::map< unsigned, TNode > > subs;
               std::map< TNode, bool > rev_subs;
               //only get ground terms
-              unsigned mode = optFilterConfirmationOnlyGround() ? 2 : 0;
+              unsigned mode = 2;
               d_tge.resetMatching( r, mode );
               while( d_tge.getNextMatch( r, subs, rev_subs ) ){
                 //we will be building substitutions
@@ -769,83 +779,43 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
             
             while( d_tge.getNextTerm() ){
               Node rhs = d_tge.getTerm();
-              Trace("sg-rel-prop") << "Relevant RHS : " << rhs << std::endl;
-              //register pattern
-              Assert( rhs.getType()==rt_types[i] );
-              registerPattern( rhs, rt_types[i] );
-              if( rdepth<depth ){
-                //consider against all LHS at depth
-                for( unsigned j=0; j<conj_lhs[rt_types[i]][depth].size(); j++ ){
-                  processCandidateConjecture( conj_lhs[rt_types[i]][depth][j], rhs, depth, rdepth );
+              if( considerTermCanon( rhs, false ) ){
+                Trace("sg-rel-prop") << "Relevant RHS : " << rhs << std::endl;
+                //register pattern
+                Assert( rhs.getType()==rt_types[i] );
+                registerPattern( rhs, rt_types[i] );
+                if( rdepth<depth ){
+                  //consider against all LHS at depth
+                  for( unsigned j=0; j<conj_lhs[rt_types[i]][depth].size(); j++ ){
+                    processCandidateConjecture( conj_lhs[rt_types[i]][depth][j], rhs, depth, rdepth );
+                  }
+                }else{
+                  conj_rhs[rt_types[i]].push_back( rhs );
                 }
-              }else{
-                conj_rhs[rt_types[i]].push_back( rhs );
               }
             }
           }
+          flushWaitingConjectures( addedLemmas, depth, rdepth );
           //consider against all LHS up to depth
           if( rdepth==depth ){
             for( unsigned lhs_depth = 1; lhs_depth<=depth; lhs_depth++ ){
-              if( !optStatsOnly() && d_waiting_conjectures_lhs.size()>=optFullCheckConjectures() ){
-                break;
-              }
-              Trace("sg-proc") << "Consider conjectures at depth (" << lhs_depth << ", " << rdepth << ")..." << std::endl;
-              for( std::map< TypeNode, std::vector< Node > >::iterator it = conj_rhs.begin(); it != conj_rhs.end(); ++it ){
-                for( unsigned j=0; j<it->second.size(); j++ ){
-                  for( unsigned k=0; k<conj_lhs[it->first][lhs_depth].size(); k++ ){
-                    processCandidateConjecture( conj_lhs[it->first][lhs_depth][k], it->second[j], lhs_depth, rdepth );
+              if( (int)addedLemmas<options::conjectureGenPerRound() ){
+                Trace("sg-proc") << "Consider conjectures at depth (" << lhs_depth << ", " << rdepth << ")..." << std::endl;
+                for( std::map< TypeNode, std::vector< Node > >::iterator it = conj_rhs.begin(); it != conj_rhs.end(); ++it ){
+                  for( unsigned j=0; j<it->second.size(); j++ ){
+                    for( unsigned k=0; k<conj_lhs[it->first][lhs_depth].size(); k++ ){
+                      processCandidateConjecture( conj_lhs[it->first][lhs_depth][k], it->second[j], lhs_depth, rdepth );
+                    }
                   }
                 }
+                flushWaitingConjectures( addedLemmas, lhs_depth, depth );
               }
             }
           }
         }
-        if( optStatsOnly() ){
-          Trace("conjecture-count") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures for depth " << depth << "." << std::endl;
-          d_waiting_conjectures_lhs.clear();
-          d_waiting_conjectures_rhs.clear();
-        }else if( d_waiting_conjectures_lhs.size()>=optFullCheckConjectures() ){
+        if( (int)addedLemmas>=options::conjectureGenPerRound() ){
           break;
         }
-      }
-
-      if( !d_waiting_conjectures_lhs.empty() ){
-        Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures." << std::endl;
-        //TODO: prune conjectures in a smart way
-        for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
-          if( i>optFullCheckConjectures() ){
-            break;
-          }else{
-            //we have determined a relevant subgoal
-            Node lhs = d_waiting_conjectures_lhs[i];
-            Node rhs = d_waiting_conjectures_rhs[i];
-            std::vector< Node > bvs;
-            for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-              for( unsigned i=0; i<=it->second; i++ ){
-                bvs.push_back( getFreeVar( it->first, i ) );
-              }
-            }
-            Node rsg;
-            if( !bvs.empty() ){
-              Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
-              rsg = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
-            }else{
-              rsg = lhs.eqNode( rhs );
-            }
-            rsg = Rewriter::rewrite( rsg );
-            Trace("sg-lemma") << "Constructed : " << rsg << std::endl;
-            d_conjectures.push_back( rsg );
-            d_eq_conjectures[lhs].push_back( rhs );
-            d_eq_conjectures[rhs].push_back( lhs );
-
-            Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-            d_quantEngine->addLemma( lem, false );
-            d_quantEngine->addRequirePhase( rsg, false );
-          }
-        }
-        d_waiting_conjectures_lhs.clear();
-        d_waiting_conjectures_rhs.clear();
-        d_waiting_conjectures.clear();
       }
 
       if( Trace.isOn("thm-ee") ){
@@ -876,8 +846,81 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         }
         Trace("thm-ee") << std::endl;
       }
+      if( Trace.isOn("sg-engine") ){
+        double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+        Trace("sg-engine") << "Finished conjecture generator, time = " << (clSet2-clSet) << std::endl;
+      }
     }
   }
+}
+
+unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
+  if( !d_waiting_conjectures_lhs.empty() ){
+    Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;
+    if( !optStatsOnly() && (int)addedLemmas<options::conjectureGenPerRound() ){
+      std::vector< unsigned > indices;
+      for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
+        indices.push_back( i );
+      }
+      bool doSort = false;
+      if( doSort ){
+        //sort them based on score
+        sortConjectureScore scs;
+        scs.d_scores.insert( scs.d_scores.begin(), d_waiting_conjectures_score.begin(), d_waiting_conjectures_score.end() );
+        std::sort( indices.begin(), indices.end(), scs );
+      }
+      if( doSort && d_waiting_conjectures_score[indices[0]]<optFilterScoreThreshold() ){
+        //do splitting on demand (TODO)
+        
+      }else{
+        for( unsigned i=0; i<indices.size(); i++ ){
+          //if( d_waiting_conjectures_score[indices[i]]<optFilterScoreThreshold() ){
+          if( d_waiting_conjectures_score[indices[i]]>=optFilterScoreThreshold() ){
+            //we have determined a relevant subgoal
+            Node lhs = d_waiting_conjectures_lhs[indices[i]];
+            Node rhs = d_waiting_conjectures_rhs[indices[i]];
+            Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
+            Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[indices[i]] << std::endl;
+            std::vector< Node > bvs;
+            for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
+              for( unsigned i=0; i<=it->second; i++ ){
+                bvs.push_back( getFreeVar( it->first, i ) );
+              }
+            }
+            Node rsg;
+            if( !bvs.empty() ){
+              Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
+              rsg = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
+            }else{
+              rsg = lhs.eqNode( rhs );
+            }
+            rsg = Rewriter::rewrite( rsg );
+            d_conjectures.push_back( rsg );
+            d_eq_conjectures[lhs].push_back( rhs );
+            d_eq_conjectures[rhs].push_back( lhs );
+
+            Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
+            d_quantEngine->addLemma( lem, false );
+            d_quantEngine->addRequirePhase( rsg, false );
+            addedLemmas++;
+            if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+              break;
+            }
+          }else{
+            if( doSort ){
+              break;
+            }
+          }
+        }
+      }
+      Trace("sg-proc") << "...have now added " << addedLemmas << " conjecture lemmas." << std::endl;
+    }
+    d_waiting_conjectures_lhs.clear();
+    d_waiting_conjectures_rhs.clear();
+    d_waiting_conjectures_score.clear();
+    d_waiting_conjectures.clear();
+  }
+  return addedLemmas;
 }
 
 void ConjectureGenerator::registerQuantifier( Node q ) {
@@ -888,7 +931,7 @@ void ConjectureGenerator::assertNode( Node n ) {
 
 }
 
-bool ConjectureGenerator::considerCurrentTermCanon( Node ln, bool genRelevant ){
+bool ConjectureGenerator::considerTermCanon( Node ln, bool genRelevant ){
   if( !ln.isNull() ){
     //do not consider if it is non-canonical, and either:
     //  (1) we are not generating relevant terms, or
@@ -1017,53 +1060,52 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 }
 
 void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth ) {
-  if( considerCandidateConjecture( lhs, rhs ) ){
+  int score = considerCandidateConjecture( lhs, rhs ); 
+  if( score>0 ){
     Trace("sg-conjecture") << "* Candidate conjecture : " << lhs << " == " << rhs << std::endl;
     Trace("sg-conjecture-debug") << "     LHS, RHS generalization depth : " << lhs_depth << ", " << rhs_depth << std::endl;
-    if( optFilterConfirmation() || optFilterFalsification() ){
-      Trace("sg-conjecture-debug") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
-      Trace("sg-conjecture-debug") << "     #witnesses for ";
-      bool firstTime = true;
-      for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
-        if( !firstTime ){
-          Trace("sg-conjecture-debug") << ", ";
-        }
-        Trace("sg-conjecture-debug") << it->first << " : " << it->second.size() << "/" << d_pattern_fun_id[lhs][it->first];
-        //if( it->second.size()==1 ){
-        //  Trace("sg-conjecture-debug") << " (" << it->second[0] << ")";
-        //}
-        Trace("sg-conjecture-debug2") << " (";
-        for( unsigned j=0; j<it->second.size(); j++ ){
-          if( j>0 ){ Trace("sg-conjecture-debug2") << " "; }
-          Trace("sg-conjecture-debug2") << it->second[j];
-        }
-        Trace("sg-conjecture-debug2") << ")";
-        firstTime = false;
+    Trace("sg-conjecture-debug") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
+    Trace("sg-conjecture-debug") << "     #witnesses for ";
+    bool firstTime = true;
+    for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
+      if( !firstTime ){
+        Trace("sg-conjecture-debug") << ", ";
       }
-      Trace("sg-conjecture-debug") << std::endl;
-      Trace("sg-conjecture-debug") << "     unknown = " << d_subs_unkCount << std::endl;
+      Trace("sg-conjecture-debug") << it->first << " : " << it->second.size();
+      //if( it->second.size()==1 ){
+      //  Trace("sg-conjecture-debug") << " (" << it->second[0] << ")";
+      //}
+      Trace("sg-conjecture-debug2") << " (";
+      for( unsigned j=0; j<it->second.size(); j++ ){
+        if( j>0 ){ Trace("sg-conjecture-debug2") << " "; }
+        Trace("sg-conjecture-debug2") << d_ground_eqc_map[it->second[j]];
+      }
+      Trace("sg-conjecture-debug2") << ")";
+      firstTime = false;
     }
+    Trace("sg-conjecture-debug") << std::endl;
+    Trace("sg-conjecture-debug") << "     unknown = " << d_subs_unkCount << std::endl;
     //Assert( getUniversalRepresentative( rhs )==rhs );
     //Assert( getUniversalRepresentative( lhs )==lhs );
     d_waiting_conjectures_lhs.push_back( lhs );
     d_waiting_conjectures_rhs.push_back( rhs );
+    d_waiting_conjectures_score.push_back( score );
     d_waiting_conjectures[lhs].push_back( rhs );
     d_waiting_conjectures[rhs].push_back( lhs );
   }
 }
 
-bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
-  if( lhs.getType()!=rhs.getType() ){
-    std::cout << "BAD TYPE" << std::endl;
-  }
+int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
+  Assert( lhs.getType()==rhs.getType() );
+  
   Trace("sg-cconj-debug") << "Consider candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
   if( lhs==rhs ){
     Trace("sg-cconj-debug") << "  -> trivial." << std::endl;
-    return false;
+    return -1;
   }else{
     if( lhs.getKind()==APPLY_CONSTRUCTOR && rhs.getKind()==APPLY_CONSTRUCTOR ){
       Trace("sg-cconj-debug") << "  -> irrelevant by syntactic analysis." << std::endl;
-      return false;
+      return -1;
     }
     //variables of LHS must subsume variables of RHS
     for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[rhs].begin(); it != d_pattern_var_id[rhs].end(); ++it ){
@@ -1071,13 +1113,13 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
       if( itl!=d_pattern_var_id[lhs].end() ){
         if( itl->second<it->second ){
           Trace("sg-cconj-debug") << "  -> variables of sort " << it->first << " are not subsumed." << std::endl;
-          return false;
+          return -1;
         }else{
           Trace("sg-cconj-debug2") << "  variables of sort " << it->first << " are : " << itl->second << " vs " << it->second << std::endl;
         }
       }else{
         Trace("sg-cconj-debug") << "  -> has no variables of sort " << it->first << "." << std::endl;
-        return false;
+        return -1;
       }
     }
 
@@ -1086,7 +1128,7 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     if( iteq!=d_eq_conjectures.end() ){
       if( std::find( iteq->second.begin(), iteq->second.end(), rhs )!=iteq->second.end() ){
         Trace("sg-cconj-debug") << "  -> this conjecture is already active." << std::endl;
-        return false;
+        return -1;
       }
     }
     //current a waiting conjecture?
@@ -1094,14 +1136,21 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     if( itw!=d_waiting_conjectures.end() ){
       if( std::find( itw->second.begin(), itw->second.end(), rhs )!=itw->second.end() ){
         Trace("sg-cconj-debug") << "  -> already are considering this conjecture." << std::endl;
-        return false;
+        return -1;
       }
     }
-
+    //check if canonical representation (should be, but for efficiency this is not guarenteed)
+    //if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
+    //  Trace("sg-cconj") << "  -> after processing, not canonical." << std::endl;
+    //  return -1;
+    //}
+    
+    int score;
+    bool scoreSet = false;
 
     Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
     //find witness for counterexample, if possible
-    if( options::conjectureFilterModel() && ( optFilterConfirmation() || optFilterFalsification() ) ){
+    if( options::conjectureFilterModel() ){
       Assert( d_rel_pattern_var_sum.find( lhs )!=d_rel_pattern_var_sum.end() );
       Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
       std::map< TNode, TNode > subs;
@@ -1111,48 +1160,31 @@ bool ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
       d_subs_unkCount = 0;
       if( !d_rel_pattern_subs_index[lhs].notifySubstitutions( this, subs, rhs, d_rel_pattern_var_sum[lhs] ) ){
         Trace("sg-cconj") << "  -> found witness that falsifies the conjecture." << std::endl;
-        return false;
+        return -1;
       }
-      if( optFilterConfirmation() ){
-        if( d_subs_confirmCount==0 ){
-          Trace("sg-cconj") << "  -> not confirmed by a ground substitutions." << std::endl;
-          return false;
+      //score is the minimum number of distinct substitutions for a variable
+      for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
+        int num = (int)it->second.size();
+        if( !scoreSet || num<score ){
+          score = num;
+          scoreSet = true;
         }
       }
-      if( optFilterConfirmationDomainThreshold()>0 ){
-        std::vector< TNode > vars;
-        std::vector< TNode > subs;
-        for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
-          Assert( d_pattern_fun_id[lhs].find( it->first )!=d_pattern_fun_id[lhs].end() );
-          unsigned req = optFilterConfirmationDomainThreshold() + (d_pattern_fun_id[lhs][it->first]-1);
-          std::map< TNode, unsigned >::iterator itrf = d_pattern_fun_id[rhs].find( it->first );
-          if( itrf!=d_pattern_fun_id[rhs].end() ){
-            req = itrf->second>req ? itrf->second : req;
-          }
-          if( it->second.size()<req ){
-            Trace("sg-cconj") << "  -> did not find at least " << d_pattern_fun_id[lhs][it->first] << " different values in ground substitutions for variable " << it->first << "." << std::endl;
-            return false;
-          }
-          if( it->second.size()==1 ){
-            vars.push_back( it->first );
-            subs.push_back( it->second[0] );
-          }
-        }
+      if( !scoreSet ){
+        score = 0;
       }
-      Trace("sg-cconj") << "  -> SUCCESS." << std::endl;
       Trace("sg-cconj") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
       for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
         Trace("sg-cconj") << "     #witnesses for " << it->first << " : " << it->second.size() << std::endl;
       }
+    }else{
+      score = 0;
     }
 
-    //check if still canonical representation (should be, but for efficiency this is not guarenteed)
-    if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
-      Trace("sg-cconj") << "  -> after processing, not canonical." << std::endl;
-      return false;
-    }
-
-    return true;
+    Trace("sg-cconj") << "  -> SUCCESS." << std::endl;
+    Trace("sg-cconj") << "     score : " << score << std::endl;
+    
+    return score;
   }
 }
 
@@ -1170,44 +1202,52 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){
-      if( optFilterFalsification() ){
-        Trace("sg-cconj-debug") << "Ground eqc for RHS : " << grhs << std::endl;
-        //check based on ground terms
-        std::map< TNode, Node >::iterator itl = d_ground_eqc_map.find( glhs );
-        if( itl!=d_ground_eqc_map.end() ){
-          std::map< TNode, Node >::iterator itr = d_ground_eqc_map.find( grhs );
-          if( itr!=d_ground_eqc_map.end() ){
-            Trace("sg-cconj-debug") << "We have ground terms " << itl->second << " and " << itr->second << "." << std::endl;
-            if( itl->second.isConst() && itr->second.isConst() ){
-              Trace("sg-cconj-debug") << "...disequal constants." << std::endl;
-              Trace("sg-cconj-witness") << "  Witness of falsification : " << itl->second << " != " << itr->second << ", substutition is : " << std::endl;
-              for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
-                Trace("sg-cconj-witness") << "    " << it->first << " -> " << it->second << std::endl;
-              }
-              return false;
-            }else{
-              d_subs_unkCount++;
-              if( optFilterUnknown() ){
-                Trace("sg-cconj-debug") << "...ground substitution giving terms that are neither equal nor disequal." << std::endl;
-                return false;
-              }
+      Trace("sg-cconj-debug") << "Ground eqc for RHS : " << grhs << std::endl;
+      //check based on ground terms
+      std::map< TNode, Node >::iterator itl = d_ground_eqc_map.find( glhs );
+      if( itl!=d_ground_eqc_map.end() ){
+        std::map< TNode, Node >::iterator itr = d_ground_eqc_map.find( grhs );
+        if( itr!=d_ground_eqc_map.end() ){
+          Trace("sg-cconj-debug") << "We have ground terms " << itl->second << " and " << itr->second << "." << std::endl;
+          if( itl->second.isConst() && itr->second.isConst() ){
+            Trace("sg-cconj-debug") << "...disequal constants." << std::endl;
+            Trace("sg-cconj-witness") << "  Witness of falsification : " << itl->second << " != " << itr->second << ", substutition is : " << std::endl;
+            for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
+              Trace("sg-cconj-witness") << "    " << it->first << " -> " << it->second << std::endl;
             }
+            return false;
           }
         }
       }
-    }else{
-      Trace("sg-cconj-witness") << "  Witnessed " << glhs << " == " << grhs << ", substutition is : " << std::endl;
-      for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
-        Trace("sg-cconj-witness") << "    " << it->first << " -> " << it->second << std::endl;
-        if( std::find( d_subs_confirmWitnessDomain[it->first].begin(), d_subs_confirmWitnessDomain[it->first].end(), it->second )==d_subs_confirmWitnessDomain[it->first].end() ){
-          d_subs_confirmWitnessDomain[it->first].push_back( it->second );
+    }
+    Trace("sg-cconj-debug") << "RHS is identical." << std::endl;
+    bool isGroundSubs = true;
+    for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
+      std::map< TNode, Node >::iterator git = d_ground_eqc_map.find( it->second );
+      if( git==d_ground_eqc_map.end() ){
+        isGroundSubs = false;
+        break;
+      }
+    }
+    if( isGroundSubs ){
+      if( glhs==grhs ){
+        Trace("sg-cconj-witness") << "  Witnessed " << glhs << " == " << grhs << ", substutition is : " << std::endl;
+        for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
+          Trace("sg-cconj-witness") << "    " << it->first << " -> " << it->second << std::endl;
+          if( std::find( d_subs_confirmWitnessDomain[it->first].begin(), d_subs_confirmWitnessDomain[it->first].end(), it->second )==d_subs_confirmWitnessDomain[it->first].end() ){
+            d_subs_confirmWitnessDomain[it->first].push_back( it->second );
+          }
+        }
+        d_subs_confirmCount++;
+        if( std::find( d_subs_confirmWitnessRange.begin(), d_subs_confirmWitnessRange.end(), glhs )==d_subs_confirmWitnessRange.end() ){
+          d_subs_confirmWitnessRange.push_back( glhs );
+        }
+      }else{
+        if( optFilterUnknown() ){
+          Trace("sg-cconj-debug") << "...ground substitution giving terms that are neither equal nor disequal." << std::endl;
+          return false;
         }
       }
-      d_subs_confirmCount++;
-      if( std::find( d_subs_confirmWitnessRange.begin(), d_subs_confirmWitnessRange.end(), glhs )==d_subs_confirmWitnessRange.end() ){
-        d_subs_confirmWitnessRange.push_back( glhs );
-      }
-      Trace("sg-cconj-debug") << "RHS is identical." << std::endl;
     }
   }else{
     Trace("sg-cconj-debug") << "(could not ground eqc for RHS)." << std::endl;
@@ -1773,7 +1813,7 @@ bool TermGenEnv::considerCurrentTerm() {
           mode = d_cg->optReqDistinctVarPatterns() ? ( 1 << 0 ) : 0;
           mode = mode | (1 << 2 );
         }else{
-          mode = (d_cg->optFilterConfirmation() && d_cg->optFilterConfirmationOnlyGround() ) ? ( 1 << 1 ) : 0;
+          mode =  1 << 1;
         }
         d_tg_alloc[0].resetMatching( this, d_ccand_eqc[r][i-1][j], mode );
         if( d_tg_alloc[0].getNextMatch( this, d_ccand_eqc[r][i-1][j], subs, rev_subs ) ){
@@ -1794,7 +1834,7 @@ bool TermGenEnv::considerCurrentTerm() {
       Trace("sg-gen-consider-term") << " since no relevant EQC matches it." << std::endl;
       return false;
     }
-    if( options::conjectureFilterModel() && d_ccand_eqc[1][i].empty() && d_cg->optFilterConfirmation() ){
+    if( options::conjectureFilterModel() && d_ccand_eqc[1][i].empty() ){
       Trace("sg-gen-consider-term") << "Do not consider term of form ";
       d_tg_alloc[0].debugPrint( this, "sg-gen-consider-term", "sg-gen-consider-term-debug" );
       Trace("sg-gen-consider-term") << " since no ground EQC matches it." << std::endl;
@@ -1834,7 +1874,7 @@ bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
 
     Node ln = d_tg_alloc[tg_id].getTerm( this );
     Trace("sg-gen-tg-debug") << "Term is " << ln << std::endl;
-    return d_cg->considerCurrentTermCanon( ln, d_gen_relevant_terms );
+    return d_cg->considerTermCanon( ln, d_gen_relevant_terms );
   }
   return true;
 }
@@ -2002,14 +2042,9 @@ void TheoremIndex::debugPrint( const char * c, unsigned ind ) {
 }
 
 bool ConjectureGenerator::optReqDistinctVarPatterns() { return false; }
-bool ConjectureGenerator::optFilterFalsification() { return true; }
 bool ConjectureGenerator::optFilterUnknown() { return true; }  //may change
-bool ConjectureGenerator::optFilterConfirmation() { return true; }
-unsigned ConjectureGenerator::optFilterConfirmationDomainThreshold() { return 1; }
-bool ConjectureGenerator::optFilterConfirmationOnlyGround() { return true; }
-bool ConjectureGenerator::optFilterConfirmationNonCanonical() { return false; }
+int ConjectureGenerator::optFilterScoreThreshold() { return 1; }
 unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
-unsigned ConjectureGenerator::optFullCheckConjectures() { return options::conjectureGenPerRound(); }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 

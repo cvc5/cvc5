@@ -294,6 +294,7 @@ private:  //information regarding the conjectures
   /** list of all waiting conjectures */
   std::vector< Node > d_waiting_conjectures_lhs;
   std::vector< Node > d_waiting_conjectures_rhs;
+  std::vector< int > d_waiting_conjectures_score;
   /** map of currently considered equality conjectures */
   std::map< Node, std::vector< Node > > d_waiting_conjectures;
   /** map of equality conjectures */
@@ -344,7 +345,7 @@ public:
   //term generation environment
   TermGenEnv d_tge;
   //consider term canon
-  bool considerCurrentTermCanon( Node ln, bool genRelevant );
+  bool considerTermCanon( Node ln, bool genRelevant );
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
@@ -357,8 +358,8 @@ public:  //for generalization
 public:  //for property enumeration
   //process this candidate conjecture
   void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );
-  //whether it should be considered
-  bool considerCandidateConjecture( TNode lhs, TNode rhs );
+  //whether it should be considered, negative : no, positive returns score
+  int considerCandidateConjecture( TNode lhs, TNode rhs );
   //notified of a substitution
   bool notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs );
   //confirmation count
@@ -388,6 +389,8 @@ private:  //information about ground equivalence classes
   bool isGroundTerm( TNode n );
   // count of full effort checks
   unsigned d_fullEffortCount;
+  //flush the waiting conjectures
+  unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 public:
   ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
   /* needs check */
@@ -405,12 +408,8 @@ public:
 //options
 private:
   bool optReqDistinctVarPatterns();
-  bool optFilterFalsification();
   bool optFilterUnknown();
-  bool optFilterConfirmation();
-  unsigned optFilterConfirmationDomainThreshold();
-  bool optFilterConfirmationOnlyGround();
-  bool optFilterConfirmationNonCanonical();   //filter if all ground confirmations are non-canonical
+  int optFilterScoreThreshold();
   unsigned optFullCheckFrequency();
   unsigned optFullCheckConjectures();
   
