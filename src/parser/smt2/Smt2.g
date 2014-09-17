@@ -421,7 +421,6 @@ command returns [CVC4::Command* cmd = NULL]
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to PUSH.  Maybe you want (push 1)?");
         } else {
           PARSER_STATE->pushScope();
-          PARSER_STATE->pushUnsatCoreNameScope();
           cmd = new PushCommand();
         }
       } )
@@ -450,7 +449,6 @@ command returns [CVC4::Command* cmd = NULL]
     | { if(PARSER_STATE->strictModeEnabled()) {
           PARSER_STATE->parseError("Strict compliance mode demands an integer to be provided to POP.  Maybe you want (pop 1)?");
         } else {
-          PARSER_STATE->popUnsatCoreNameScope();
           PARSER_STATE->popScope();
           cmd = new PopCommand();
         }
