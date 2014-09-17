@@ -66,10 +66,12 @@ public:
   bool notifySubstitutions( ConjectureGenerator * s, std::map< TNode, TNode >& subs, TNode rhs, unsigned numVars, unsigned i = 0 );
 };
 
+class TermGenEnv;
+
 class TermGenerator
 {
 private:
-  unsigned calculateGeneralizationDepth( ConjectureGenerator * s, std::map< TypeNode, std::vector< int > >& fvs );
+  unsigned calculateGeneralizationDepth( TermGenEnv * s, std::map< TypeNode, std::vector< int > >& fvs );
 public:
   TermGenerator(){}
   TypeNode d_typ;
@@ -96,17 +98,83 @@ public:
   std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
   std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children_end;
 
-  void reset( ConjectureGenerator * s, TypeNode tn );
-  bool getNextTerm( ConjectureGenerator * s, unsigned depth );
-  void resetMatching( ConjectureGenerator * s, TNode eqc, unsigned mode );
-  bool getNextMatch( ConjectureGenerator * s, TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs );
+  void reset( TermGenEnv * s, TypeNode tn );
+  bool getNextTerm( TermGenEnv * s, unsigned depth );
+  void resetMatching( TermGenEnv * s, TNode eqc, unsigned mode );
+  bool getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs );
 
-  unsigned getDepth( ConjectureGenerator * s );
-  unsigned getGeneralizationDepth( ConjectureGenerator * s );
-  Node getTerm( ConjectureGenerator * s );
+  unsigned getDepth( TermGenEnv * s );
+  unsigned getGeneralizationDepth( TermGenEnv * s );
+  Node getTerm( TermGenEnv * s );
 
-  void debugPrint( ConjectureGenerator * s, const char * c, const char * cd );
+  void debugPrint( TermGenEnv * s, const char * c, const char * cd );
 };
+
+
+class TermGenEnv
+{
+public:
+  //collect signature information
+  void collectSignatureInformation();
+  //reset function
+  void reset( unsigned gdepth, bool genRelevant, TypeNode tgen );
+  //get next term
+  bool getNextTerm();
+  //reset matching
+  void resetMatching( TNode eqc, unsigned mode );
+  //get next match
+  bool getNextMatch( TNode eqc, std::map< TypeNode, std::map< unsigned, TNode > >& subs, std::map< TNode, bool >& rev_subs );
+  //get term
+  Node getTerm();
+  //debug print
+  void debugPrint( const char * c, const char * cd );
+  
+  //conjecture generation
+  ConjectureGenerator * d_cg;
+  //the current number of enumerated variables per type
+  std::map< TypeNode, unsigned > d_var_id;
+  //the limit of number of variables per type to enumerate
+  std::map< TypeNode, unsigned > d_var_limit;
+  //the functions we can currently generate
+  std::map< TypeNode, std::vector< TNode > > d_typ_tg_funcs;
+  //the equivalence classes (if applicable) that match the currently generated term
+  bool d_gen_relevant_terms;
+  //relevant equivalence classes
+  std::vector< TNode > d_relevant_eqc[2];
+  //candidate equivalence classes
+  std::vector< std::vector< TNode > > d_ccand_eqc[2];
+  //the term generation objects
+  unsigned d_tg_id;
+  std::map< unsigned, TermGenerator > d_tg_alloc;
+  unsigned d_tg_gdepth;
+  int d_tg_gdepth_limit;
+  
+  //all functions
+  std::vector< TNode > d_funcs;
+  //function to kind map
+  std::map< TNode, Kind > d_func_kind;
+  //type of each argument of the function
+  std::map< TNode, std::vector< TypeNode > > d_func_args;
+  
+  //access functions
+  unsigned getNumTgVars( TypeNode tn );
+  bool allowVar( TypeNode tn );
+  void addVar( TypeNode tn );
+  void removeVar( TypeNode tn );
+  unsigned getNumTgFuncs( TypeNode tn );
+  TNode getTgFunc( TypeNode tn, unsigned i );
+  Node getFreeVar( TypeNode tn, unsigned i );
+  bool considerCurrentTerm();
+  bool considerCurrentTermCanon( unsigned tg_id );
+  void changeContext( bool add );
+  bool isRelevantFunc( Node f );
+  //carry
+  TermDb * getTermDatabase();
+  Node getGroundEqc( TNode r );
+  bool isGroundEqc( TNode r );
+  bool isGroundTerm( TNode n );
+};
+
 
 
 class TheoremIndex
@@ -156,6 +224,7 @@ class ConjectureGenerator : public QuantifiersModule
   friend class PatternGen;
   friend class SubsEqcIndex;
   friend class TermGenerator;
+  friend class TermGenEnv;
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -233,25 +302,13 @@ private:  //information regarding the conjectures
   BoolMap d_ee_conjectures;
   /** conjecture index */
   TheoremIndex d_thm_index;
-  /** the relevant equivalence classes based on the conjectures */
-  std::vector< TNode > d_relevant_eqc[2];
-private:  //information regarding the signature we are enumerating conjectures for
-  //all functions
-  std::vector< TNode > d_funcs;
-  //functions per type
-  std::map< TypeNode, std::vector< TNode > > d_typ_funcs;
-  //function to kind map
-  std::map< TNode, Kind > d_func_kind;
-  //type of each argument of the function
-  std::map< TNode, std::vector< TypeNode > > d_func_args;
+private:  //free variable list
   //free variables
   std::map< TypeNode, std::vector< Node > > d_free_var;
   //map from free variable to FV#
   std::map< TNode, unsigned > d_free_var_num;
   // get canonical free variable #i of type tn
   Node getFreeVar( TypeNode tn, unsigned i );
-  // get maximum free variable numbers
-  void getMaxFreeVarNum( TNode n, std::map< TypeNode, unsigned >& mvn );
   // get canonical term, return null if it contains a term apart from handled signature
   Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs );
 private:  //information regarding the terms
@@ -283,31 +340,11 @@ private:  //information regarding the terms
   void registerPattern( Node pat, TypeNode tpat );
 private: //for debugging
   std::map< TNode, unsigned > d_em;
-public:  //environment for term enumeration
-  //the current number of enumerated variables per type
-  std::map< TypeNode, unsigned > d_var_id;
-  //the limit of number of variables per type to enumerate
-  std::map< TypeNode, unsigned > d_var_limit;
-  //the functions we can currently generate
-  std::map< TypeNode, std::vector< TNode > > d_typ_tg_funcs;
-  //the equivalence classes (if applicable) that match the currently generated term
-  bool d_gen_relevant_terms;
-  std::vector< std::vector< TNode > > d_ccand_eqc[2];
-  //the term generation objects
-  unsigned d_tg_id;
-  std::map< unsigned, TermGenerator > d_tg_alloc;
-  unsigned d_tg_gdepth;
-  int d_tg_gdepth_limit;
-  //access functions
-  unsigned getNumTgVars( TypeNode tn );
-  bool allowVar( TypeNode tn );
-  void addVar( TypeNode tn );
-  void removeVar( TypeNode tn );
-  unsigned getNumTgFuncs( TypeNode tn );
-  TNode getTgFunc( TypeNode tn, unsigned i );
-  bool considerCurrentTerm();
-  bool considerCurrentTermCanon( unsigned tg_id );
-  void changeContext( bool add );
+public:
+  //term generation environment
+  TermGenEnv d_tge;
+  //consider term canon
+  bool considerCurrentTermCanon( Node ln, bool genRelevant );
 public:  //for generalization
   //generalizations
   bool isGeneralization( TNode patg, TNode pat ) {
@@ -349,7 +386,6 @@ private:  //information about ground equivalence classes
   Node getGroundEqc( TNode r );
   bool isGroundEqc( TNode r );
   bool isGroundTerm( TNode n );
-  bool isRelevantFunc( Node f );
   // count of full effort checks
   unsigned d_fullEffortCount;
 public:
