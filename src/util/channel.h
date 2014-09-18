@@ -4,10 +4,15 @@
  ** Original author: Morgan Deters
  ** Major contributors: none
  ** Minor contributors (to current version): none
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2014  New York University and The University of Iowa
- ** See the file COPYING in the top-level source directory for licensing
- ** information.\endverbatim
+ ** This file is part of the CVC4 project but is excluded from the
+ ** standard CVC4 licensing because it is a derivative work of
+ ** circular_buffer.hpp in the BOOST 1.46.1 distribution.
+ ** Thus this file is covered by the Boost Software License, version 1.0.
+ ** See below.
+ **
+ ** The combined work is:
+ **   Copyright (c) 2009-2014  New York University and The University of Iowa
+ **   Copyright (c) 2003-2008  Jan Gaspar
  **
  ** \brief [[ Add one-line brief description here ]]
  **
