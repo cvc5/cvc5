@@ -199,6 +199,7 @@ void cvc4unexpected() {
 }
 
 void cvc4terminate() {
+  set_terminate(default_terminator);
 #ifdef CVC4_DEBUG
   fprintf(stderr, "\n"
           "CVC4 was terminated by the C++ runtime.\n"
