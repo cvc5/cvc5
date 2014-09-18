@@ -577,6 +577,9 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
+  // For resource-limiting (also does a time check).
+  getOutputChannel().spendResource();
+
   if( doCache ){
     Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
     lem = Rewriter::rewrite(lem);

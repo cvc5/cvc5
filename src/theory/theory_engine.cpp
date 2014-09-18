@@ -1341,6 +1341,8 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 theory::LemmaStatus TheoryEngine::lemma(TNode node, bool negated, bool removable, bool preprocess, theory::TheoryId atomsTo) {
+  // For resource-limiting (also does a time check).
+  spendResource();
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {

@@ -284,7 +284,7 @@ void PropEngine::interrupt() throw(ModalException) {
 }
 
 void PropEngine::spendResource() throw() {
-  // TODO implement me
+  d_satSolver->spendResource();
   checkTime();
 }
 
