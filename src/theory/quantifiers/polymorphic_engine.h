@@ -31,9 +31,28 @@ namespace quantifiers {
 
 class QuantInfo;
 
+class paralemma {
+public:
+  Node bv;
+  Node body;      /* possibly generalized */
+  Node origlemma; /* given by assert */
+  paralemma(Node lemma);
+};
+
 class PolymorphicEngine : public QuantifiersModule
 {
-  std::vector< Node > d_lemma;
+  std::vector<paralemma> d_lemma;
+  std::hash_set<TypeNode, TypeNode::HashFunction> d_doneType;
+
+  void instantiate(paralemma& lemma,
+                   std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& ty_subst,
+                   size_t v_id,
+                   bool todo_used,
+                   std::hash_set<TypeNode, TypeNode::HashFunction>& doneType,
+                   std::hash_set<TypeNode, TypeNode::HashFunction>& todoType
+                   );
+
+
 public:
   PolymorphicEngine( context::Context* c, QuantifiersEngine* qe );
   /** Quantifiers Module intereface */

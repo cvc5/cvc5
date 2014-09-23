@@ -102,62 +102,174 @@ Node substituteAll(TNode n,
   }
 }
 
+void PolymorphicEngine::instantiate(paralemma& lemma,
+                                   std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction>& ty_subst,
+                                   size_t v_id,
+                                   bool todo_used,
+                                   std::hash_set<TypeNode, TypeNode::HashFunction>& doneType,
+                                   std::hash_set<TypeNode, TypeNode::HashFunction>& todoType
+                                   ){
+  Assert( v_id < lemma.bv.getNumChildren() );
+
+  std::hash_set<TypeNode, TypeNode::HashFunction>* iterType = &doneType;
+  for(int i=0; i<=1; i++){
+
+    if(!todo_used && i==0 && v_id + 1 == lemma.bv.getNumChildren()) continue;
+
+    if(i==0){
+      iterType = &doneType;
+    } else {
+      iterType = &todoType;
+      todo_used = true;
+    }
+
+    for(std::hash_set<TypeNode, TypeNode::HashFunction>::const_iterator next_ty = iterType->begin();
+        next_ty != iterType->end(); next_ty++){
+
+      ty_subst[ lemma.bv[v_id].getType() ] = *next_ty;
+      Trace("para") << lemma.bv[v_id].getType() << (i==0? "->" : ">>") << *next_ty << ", ";
+
+      if ( v_id + 1 == lemma.bv.getNumChildren() ){
+        Assert( todo_used );
+        Trace("para") << std::endl;
+
+        std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> ty_subst2 = ty_subst;
+        std::hash_map<TNode, TNode, TNodeHashFunction> subst;
+
+        Node lem = substituteAll(lemma.body,ty_subst2,subst);
+        Trace("para") << "  -instantiated to:" << lem << std::endl;
+        lem = NodeManager::currentNM()->mkNode( OR, lemma.origlemma.negate(), lem );
+        Assert ( lem.getType(true).isBoolean());
+        d_quantEngine->addLemma(lem);
+      } else {
+        instantiate(lemma, ty_subst, v_id+1, todo_used, doneType, todoType);
+      }
+    }
+  }
+}
+
 void PolymorphicEngine::check( Theory::Effort e, unsigned quant_e ){
+
+  std::hash_set<TypeNode, TypeNode::HashFunction> todoType;
+
+  Trace("para") << "[Para] TODO(" << d_lemma.size() << "):";
+
+  for( std::map< TypeNode, std::vector< Node > >::const_iterator ty = d_quantEngine->getTermDatabase()->d_type_map.begin(),
+         end = d_quantEngine->getTermDatabase()->d_type_map.end(); ty !=end; ty++){
+    if( d_doneType.find(ty->first) == d_doneType.end() ){
+      Trace("para") << " " << ty->first;
+      todoType.insert(ty->first);
+    }
+  }
+
+  Trace("para") << std::endl;
+
+  if(todoType.size() == 0) return;
 
   std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> ty_subst = ty_subst;
 
-  for(std::vector< Node >::const_iterator lemma = d_lemma.begin(); lemma != d_lemma.end(); ++lemma){
-          Trace("para") << "try instantiate lemma:" << *lemma << std::endl;
-          TNode bv = (*lemma)[0];
-          TNode body = (*lemma)[1];
+  for(size_t i = 0; i < d_lemma.size(); i++){
+          Trace("para") << "try instantiate lemma:" << d_lemma[i].origlemma << std::endl;
 
-          std::map< TypeNode, std::vector< Node > >& type_map = d_quantEngine->getTermDatabase()->d_type_map;
+          ty_subst.clear();
 
-          std::vector< std::map< TypeNode, std::vector< Node > >::const_iterator > next_ty(bv.getNumChildren());
-
-          size_t v_id=0;
-          next_ty[0] = type_map.begin();
-          while (true){
-            Assert( v_id < bv.getNumChildren() );
-            if(v_id == 0){ ty_subst.clear(); }
-
-            if ( next_ty[v_id] == type_map.end () ) {
-              if(v_id == 0) break;
-              --v_id;
-            } else {
-
-              ty_subst[ bv[v_id].getType() ] = next_ty[v_id]->first;
-              Trace("para") << bv[v_id].getType() << "->" << next_ty[v_id]->first << ", ";
-
-              ++next_ty[v_id];
-
-              if ( v_id + 1 == bv.getNumChildren() ){
-                Trace("para") << std::endl;
-
-                std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> ty_subst2 = ty_subst;
-                std::hash_map<TNode, TNode, TNodeHashFunction> subst;
-
-                Node lem = substituteAll(body,ty_subst2,subst);
-                Trace("para") << "  -instantiated to:" << lem << std::endl;
-                lem = NodeManager::currentNM()->mkNode( OR, (*lemma).negate(), lem );
-                d_quantEngine->addLemma(lem);
-              } else {
-                ++v_id;
-                next_ty[v_id] = type_map.begin();
-              }
-            }
-
-          }
+          instantiate(d_lemma[i], ty_subst, 0, false, d_doneType, todoType);
   }
+
+
+  d_doneType.insert(todoType.begin(),todoType.end());
+
 };
+
+bool hasQuantifiersBeforeTypeVariable(const TypeNode& type) {
+
+  // otherwise compute
+  for(TypeNode::const_iterator i = type.begin(),
+        iend = type.end(); i != iend; ++i) {
+    if(NodeManager::currentNM()->isPolymorphicTypeVar(*i) ||
+       !hasQuantifiersBeforeTypeVariable(*i) ){
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Test if any polymorphic function is under quantifiers (usual one, which bind term variable) */
+bool hasQuantifiersBeforeTypeVariable(TNode n){
+
+  // otherwise compute
+  /** Bound variable */
+  if(n.getKind() == kind::FORALL){
+    return true;
+  } else if(n.getKind() == kind::BOUND_VARIABLE){
+    return hasQuantifiersBeforeTypeVariable(n.getType());
+  } else if (n.getKind() == kind::ASCRIPTION_TYPE) {
+    TypeNode ty = TypeNode::fromType(n.getConst<AscriptionType>().getType());
+    return hasQuantifiersBeforeTypeVariable(ty);
+    /** After this point we should be able to take the type of the node */
+    /** polymorphic function */
+  } else if (n.getType().isFunction() &&
+             NodeManager::currentNM()->isPolymorphicFunctionInstance(n)){
+    return hasQuantifiersBeforeTypeVariable(n.getType());
+  } else if ( n.getNumChildren() == 0 &&
+              n.getMetaKind() != kind::metakind::PARAMETERIZED
+              ){
+    return true;
+  } else {
+
+    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      // push the operator
+      if(!hasQuantifiersBeforeTypeVariable(n.getOperator()))
+        return false;
+    }
+    for(TNode::const_iterator i = n.begin(),
+          iend = n.end();
+        i != iend;
+        ++i) {
+      if(!hasQuantifiersBeforeTypeVariable(*i))
+        return false;
+    }
+    return true;
+  }
+}
+
+
+paralemma::paralemma(Node lemma) {
+  assert( TermDb::isPolymorphic(lemma) );
+
+  bv = lemma[0];
+  origlemma = lemma;
+  body = lemma[1];
+
+  if(!hasQuantifiersBeforeTypeVariable(body)){
+    /* Generalize the formula on the constant used for polymorphic constant */
+    Trace("para") << " generalize polymorphic constant" << std::endl;
+    TNode paraConst = NodeManager::currentNM()->getPolymorphicConstantArg();
+    Node var = NodeManager::currentNM()->mkBoundVar(paraConst.getType());
+    body = body.substitute(paraConst,var);
+    body = NodeManager::currentNM()->
+      mkNode(kind::FORALL,
+             NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,var),
+             body);
+  }
+}
+
+
 
 /* Called for new quantifiers */
 void PolymorphicEngine::registerQuantifier( Node q ){
   if(TermDb::isPolymorphic(q)){
-      Trace("para") << "register new lemma:" << q << std::endl;
-      d_lemma.push_back(q);
+    Trace("para") << "[Para] register new lemma:" << q << std::endl;
+    d_lemma.push_back(paralemma(q));
+
+    if(d_doneType.size() != 0) {
+      std::hash_map<TypeNode, TypeNode, TypeNode::HashFunction> ty_subst = ty_subst;
+      std::hash_set<TypeNode, TypeNode::HashFunction> empty;
+      instantiate(d_lemma.back(), ty_subst, 0, false, empty, d_doneType);
     }
+  }
 
 };
+
 void PolymorphicEngine::assertNode( Node n ){};
 

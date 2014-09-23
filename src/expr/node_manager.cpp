@@ -809,7 +809,10 @@ TNode NodeManager::instanciatePolymorphicFunction(TNode n,
     Node ni;
     string name;
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      ni = mkVar(name,ty);
+      std::stringstream ss;
+      ss << name << "_";
+      ss << d_instanceFunction.size() + d_polymorphicFunction.size();
+      ni = mkVar(ss.str(),ty);
     } else {
       ni = mkVar(ty);
     };
