@@ -325,7 +325,7 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 
-bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, bool pol, bool hasPol ){
+bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol ){
   if( patMap.find( n )==patMap.end() ){
     patMap[ n ] = false;
     bool newHasPol = n.getKind()==IFF ? false : hasPol;
@@ -337,14 +337,17 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
         bool retVal = false;
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, newPol, newHasPol2 ) ){
+          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
             retVal = true;
           }
         }
         if( retVal ){
           return true;
         }else{
-          Node nu = getIsUsableTrigger( n, f, pol, hasPol );
+          Node nu;
+          if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
+            nu = getIsUsableTrigger( n, f, pol, hasPol );
+          }
           if( !nu.isNull() ){
             patMap[ nu ] = true;
             return true;
@@ -355,7 +358,10 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
       }
     }else{
       bool retVal = false;
-      Node nu = getIsUsableTrigger( n, f, pol, hasPol );
+      Node nu;
+      if( std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
+        nu = getIsUsableTrigger( n, f, pol, hasPol );
+      }
       if( !nu.isNull() ){
         patMap[ nu ] = true;
         if( tstrt==TS_MAX_TRIGGER ){
@@ -367,7 +373,7 @@ bool Trigger::collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map<
       if( n.getKind()!=FORALL ){
         for( int i=0; i<(int)n.getNumChildren(); i++ ){
           bool newHasPol2 = (n.getKind()==ITE && i==0) ? false : newHasPol;
-          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, newPol, newHasPol2 ) ){
+          if( collectPatTerms2( qe, f, n[i], patMap, tstrt, exclude, newPol, newHasPol2 ) ){
             retVal = true;
           }
         }
@@ -408,12 +414,12 @@ bool Trigger::isPureTheoryTrigger( Node n ) {
   }
 }
 
-void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, bool filterInst ){
+void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst ){
   std::map< Node, bool > patMap;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
-    collectPatTerms( qe, f, n, patTerms2, TS_ALL, false );
+    collectPatTerms( qe, f, n, patTerms2, TS_ALL, exclude, false );
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     qe->getTermDatabase()->filterInstances( temp );
@@ -441,7 +447,7 @@ void Trigger::collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vecto
       }
     }
   }
-  collectPatTerms2( qe, f, n, patMap, tstrt, true, true );
+  collectPatTerms2( qe, f, n, patMap, tstrt, exclude, true, true );
   for( std::map< Node, bool >::iterator it = patMap.begin(); it != patMap.end(); ++it ){
     if( it->second ){
       patTerms.push_back( it->first );

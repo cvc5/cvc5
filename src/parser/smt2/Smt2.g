@@ -1050,7 +1050,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
     ( attribute[expr, attexpr, attr]
-      { if(attr == ":pattern" && ! attexpr.isNull()) {
+      { if( ( attr == ":pattern" || attr == ":no-pattern" ) && ! attexpr.isNull()) {
           patexprs.push_back( attexpr );
         }
       }
@@ -1084,7 +1084,13 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
-            patexprs.push_back( f2[i] );
+            if( f2[i].getKind()==kind::INST_PATTERN ){
+              patexprs.push_back( f2[i] );
+            }else{
+              std::stringstream ss;
+              ss << "warning: rewrite rules do not support " << f2[i] << " within instantiation pattern list";
+              PARSER_STATE->warning(ss.str());
+            }
           }
         }
         expr2 = MK_EXPR(kind::INST_PATTERN_LIST, patexprs);
@@ -1176,10 +1182,10 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       attr = std::string(":pattern");
       retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
     }
-  | ATTRIBUTE_NO_PATTERN_TOK LPAREN_TOK term[patexpr, e2]+ RPAREN_TOK
+  | ATTRIBUTE_NO_PATTERN_TOK term[patexpr, e2]
     {
       attr = std::string(":no-pattern");
-      PARSER_STATE->attributeNotSupported(attr);
+      retExpr = MK_EXPR(kind::INST_NO_PATTERN, patexpr);
     }
   | ATTRIBUTE_INST_LEVEL INTEGER_LITERAL
     {

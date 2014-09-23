@@ -315,7 +315,11 @@ void InstantiationEngine::registerQuantifier( Node f ){
       //add patterns
       for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
         //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
-        addUserPattern( f, subsPat[i] );
+        if( subsPat[i].getKind()==INST_PATTERN ){
+          addUserPattern( f, subsPat[i] );
+        }else if( subsPat[i].getKind()==INST_NO_PATTERN ){
+          addUserNoPattern( f, subsPat[i] );
+        }
       }
     }
   }
@@ -429,6 +433,12 @@ Node InstantiationEngine::getNextDecisionRequest(){
 void InstantiationEngine::addUserPattern( Node f, Node pat ){
   if( d_isup ){
     d_isup->addUserPattern( f, pat );
+  }
+}
+
+void InstantiationEngine::addUserNoPattern( Node f, Node pat ){
+  if( d_i_ag ){
+    d_i_ag->addUserNoPattern( f, pat );
   }
 }
 

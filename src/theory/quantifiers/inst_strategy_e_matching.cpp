@@ -88,6 +88,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
 }
 
 void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
+  Assert( pat.getKind()==INST_PATTERN );
   //add to generators
   bool usable = true;
   std::vector< Node > nodes;
@@ -100,6 +101,7 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
     }
   }
   if( usable ){
+    Trace("user-pat") << "Add user pattern: " << pat << " for " << f << std::endl;
     //extend to literal matching
     d_quantEngine->getPhaseReqTerms( f, nodes );
     //check match option
@@ -196,8 +198,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
-    Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, true );
-    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << std::endl;
+    Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << ", no-patterns : " << d_user_no_gen.size() << std::endl;
     Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){
       Trace("auto-gen-trigger") << patTermsF[i] << " ";
@@ -342,6 +344,14 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
         }
       }
     }
+  }
+}
+
+void InstStrategyAutoGenTriggers::addUserNoPattern( Node f, Node pat ) {
+  Assert( pat.getKind()==INST_NO_PATTERN && pat.getNumChildren()==1 );
+  if( std::find( d_user_no_gen[f].begin(), d_user_no_gen[f].end(), pat[0] )==d_user_no_gen[f].end() ){
+    Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << f << std::endl;
+    d_user_no_gen[f].push_back( pat[0] );
   }
 }
 

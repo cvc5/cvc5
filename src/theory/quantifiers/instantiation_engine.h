@@ -137,6 +137,7 @@ public:
   Node getNextDecisionRequest();
   /** add user pattern */
   void addUserPattern( Node f, Node pat );
+  void addUserNoPattern( Node f, Node pat );
 public:
   /** statistics class */
   class Statistics {

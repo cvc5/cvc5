@@ -94,7 +94,7 @@ private:
   static bool isUsable( Node n, Node f );
   static Node getIsUsableTrigger( Node n, Node f, bool pol = true, bool hasPol = false );
   /** collect all APPLY_UF pattern terms for f in n */
-  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, bool pol, bool hasPol );
+  static bool collectPatTerms2( QuantifiersEngine* qe, Node f, Node n, std::map< Node, bool >& patMap, int tstrt, std::vector< Node >& exclude, bool pol, bool hasPol );
 public:
   //different strategies for choosing trigger terms
   enum {
@@ -102,7 +102,7 @@ public:
     TS_MIN_TRIGGER,
     TS_ALL,
   };
-  static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, bool filterInst = false );
+  static void collectPatTerms( QuantifiersEngine* qe, Node f, Node n, std::vector< Node >& patTerms, int tstrt, std::vector< Node >& exclude, bool filterInst = false );
 public:
   /** is usable trigger */
   static bool isUsableTrigger( Node n, Node f );

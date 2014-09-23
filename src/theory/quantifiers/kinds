@@ -33,6 +33,7 @@ sort INST_PATTERN_TYPE \
 # This node is used for specifying hints for quantifier instantiation.
 # An instantiation pattern may have more than 1 child, in which case it specifies a multi-trigger.
 operator INST_PATTERN 1: "instantiation pattern"
+operator INST_NO_PATTERN 1 "instantiation no-pattern"
 
 sort INST_PATTERN_LIST_TYPE \
     Cardinality::INTEGERS \
@@ -46,6 +47,7 @@ typerule FORALL ::CVC4::theory::quantifiers::QuantifierForallTypeRule
 typerule EXISTS ::CVC4::theory::quantifiers::QuantifierExistsTypeRule 
 typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule 
 typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
+typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
 
 # for rewrite rules

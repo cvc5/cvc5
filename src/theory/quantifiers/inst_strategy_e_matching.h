@@ -80,6 +80,8 @@ private:
   std::map< Node, bool > d_made_multi_trigger;
   //processed trigger this round
   std::map< Node, std::map< inst::Trigger*, bool > > d_processed_trigger;
+  //instantiation no patterns
+  std::map< Node, std::vector< Node > > d_user_no_gen;
 private:
   /** process functions */
   void processResetInstantiationRound( Theory::Effort effort );
@@ -111,6 +113,8 @@ public:
   }
   /** set generate additional */
   void setGenerateAdditional( bool val ) { d_generate_additional = val; }
+  /** add pattern */
+  void addUserNoPattern( Node f, Node pat );
 };/* class InstStrategyAutoGenTriggers */
 
 class InstStrategyFreeVariable : public InstStrategy{

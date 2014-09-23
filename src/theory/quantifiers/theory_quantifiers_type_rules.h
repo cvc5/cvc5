@@ -88,6 +88,13 @@ struct QuantifierInstPatternTypeRule {
   }
 };/* struct QuantifierInstPatternTypeRule */
 
+struct QuantifierInstNoPatternTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw(TypeCheckingExceptionPrivate) {
+    Assert(n.getKind() == kind::INST_NO_PATTERN );
+    return nodeManager->instPatternType();
+  }
+};/* struct QuantifierInstNoPatternTypeRule */
 
 struct QuantifierInstPatternListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -95,7 +102,7 @@ struct QuantifierInstPatternListTypeRule {
     Assert(n.getKind() == kind::INST_PATTERN_LIST );
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        if( n[i].getKind()!=kind::INST_PATTERN ){
+        if( n[i].getKind()!=kind::INST_PATTERN && n[i].getKind()!=kind::INST_NO_PATTERN ){
           throw TypeCheckingExceptionPrivate(n, "argument of inst pattern list is not inst pattern");
         }
       }
