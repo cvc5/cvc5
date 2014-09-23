@@ -186,6 +186,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << std::endl;
     Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
+    Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
 
     if( !getMasterEqualityEngine()->consistent() ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
@@ -229,7 +230,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
       for( int i=0; i<(int)qm.size(); i++ ){
-        Trace("quant-engine-debug") << "Check " << d_modules[i]->identify().c_str() << "..." << std::endl;
+        Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
         qm[i]->check( e, quant_e );
       }
       //flush all current lemmas

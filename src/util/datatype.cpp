@@ -299,8 +299,12 @@ Expr Datatype::mkGroundTerm( Type t ) const throw(IllegalArgumentException) {
     }
   }
   if( groundTerm.isNull() ){
-    // if we get all the way here, we aren't well-founded
-    CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+    if( !d_isCo ){
+      // if we get all the way here, we aren't well-founded
+      CheckArgument(false, *this, "this datatype is not well-founded, cannot construct a ground term!");
+    }else{
+      return groundTerm;
+    }
   }else{
     return groundTerm;
   }

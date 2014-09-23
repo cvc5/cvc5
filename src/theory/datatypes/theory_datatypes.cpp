@@ -1501,7 +1501,7 @@ void TheoryDatatypes::checkCycles() {
     ++eqcs_i;
   }
   //process codatatypes
-  if( cod_eqc.size()>1 ){
+  if( cod_eqc.size()>1 && options::cdtBisimilar() ){
     Trace("dt-cod-debug") << "Process " << cod_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
     std::vector< TNode > exp;
