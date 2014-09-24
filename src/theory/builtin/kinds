@@ -302,9 +302,6 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-## for co-datatypes, not yet supported
-# operator MU 2 "mu"
-
 parameterized CHAIN CHAIN_OP 2: "chained operator (N-ary), turned into a conjuction of binary applications of the operator on adjoining parameters; first parameter is a CHAIN_OP representing a binary operator, rest are arguments to that operator"
 constant CHAIN_OP \
     ::CVC4::Chain \
@@ -336,7 +333,6 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-#typerule MU ::CVC4::theory::builtin::MuTypeRule
 typerule CHAIN ::CVC4::theory::builtin::ChainTypeRule
 typerule CHAIN_OP ::CVC4::theory::builtin::ChainedOperatorTypeRule
 

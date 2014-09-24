@@ -1321,32 +1321,44 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     const Datatype& dt = ((DatatypeType)(eqc.getType()).toType()).getDatatype();
     if( dt.isCodatatype() ){
       std::map< Node, Node > vmap;
-      Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap );
-      Trace("dt-cmi-cod") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << std::endl;
+      std::vector< Node > fv;
+      Node v = getCodatatypesValue( it->first, eqc_cons, eqc_mu, vmap, fv );
+      Trace("dt-cmi-cdt") << "  EQC(" << it->first << "), constructor is " << it->second << ", value is " << v << ", const = " << v.isConst() << std::endl;
+      m->assertEquality( eqc, v, true );
     }
   }
 }
 
 
-Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap ){
+Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_cons, std::map< Node, Node >& eqc_mu, std::map< Node, Node >& vmap, std::vector< Node >& fv ){
   std::map< Node, Node >::iterator itv = vmap.find( n );
   if( itv!=vmap.end() ){
+    if( std::find( fv.begin(), fv.end(), itv->second )==fv.end() ){
+      fv.push_back( itv->second );
+    }
     return itv->second;
   }else if( DatatypesRewriter::isTermDatatype( n ) ){
-    Node nv = NodeManager::currentNM()->mkBoundVar( n.getType() );
+    std::stringstream ss;
+    ss << "$x" << vmap.size();
+    Node nv = NodeManager::currentNM()->mkBoundVar( ss.str().c_str(), n.getType() );
     vmap[n] = nv;
-    Trace("dt-cmi-cod-debug") << "    map " << n << " -> " << nv << std::endl;
+    Trace("dt-cmi-cdt-debug") << "    map " << n << " -> " << nv << std::endl;
     Node nc = eqc_cons[n];
     Assert( nc.getKind()==APPLY_CONSTRUCTOR );
     std::vector< Node > children;
     children.push_back( nc.getOperator() );
     for( unsigned i=0; i<nc.getNumChildren(); i++ ){
       Node r = getRepresentative( nc[i] );
-      Node rv = getCodatatypesValue( r, eqc_cons, eqc_mu, vmap );
+      Node rv = getCodatatypesValue( r, eqc_cons, eqc_mu, vmap, fv );
       children.push_back( rv );
     }
     vmap.erase( n );
-    return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+    Node v = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+    //add mu if we found a circular reference
+    if( std::find( fv.begin(), fv.end(), nv )!=fv.end() ){
+      v = NodeManager::currentNM()->mkNode( MU, nv, v );
+    }
+    return v;
   }else{
     return n;
   }
@@ -1464,7 +1476,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
 
 void TheoryDatatypes::checkCycles() {
   Debug("datatypes-cycle-check") << "Check cycles" << std::endl;
-  std::vector< Node > cod_eqc;
+  std::vector< Node > cdt_eqc;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
@@ -1495,30 +1507,30 @@ void TheoryDatatypes::checkCycles() {
         }
       }else{
         //indexing
-        cod_eqc.push_back( eqc );
+        cdt_eqc.push_back( eqc );
       }
     }
     ++eqcs_i;
   }
   //process codatatypes
-  if( cod_eqc.size()>1 && options::cdtBisimilar() ){
-    Trace("dt-cod-debug") << "Process " << cod_eqc.size() << " co-datatypes" << std::endl;
+  if( cdt_eqc.size()>1 && options::cdtBisimilar() ){
+    Trace("dt-cdt-debug") << "Process " << cdt_eqc.size() << " co-datatypes" << std::endl;
     std::vector< std::vector< Node > > part_out;
     std::vector< TNode > exp;
     std::map< Node, Node > cn;
     std::map< Node, std::map< Node, int > > dni;
-    for( unsigned i=0; i<cod_eqc.size(); i++ ){
-      cn[cod_eqc[i]] = cod_eqc[i];
+    for( unsigned i=0; i<cdt_eqc.size(); i++ ){
+      cn[cdt_eqc[i]] = cdt_eqc[i];
     }
-    separateBisimilar( cod_eqc, part_out, exp, cn, dni, 0, false );
-    Trace("dt-cod-debug") << "Done separate bisimilar." << std::endl;
+    separateBisimilar( cdt_eqc, part_out, exp, cn, dni, 0, false );
+    Trace("dt-cdt-debug") << "Done separate bisimilar." << std::endl;
     if( !part_out.empty() ){
-      Trace("dt-cod-debug") << "Process partition size " << part_out.size() << std::endl;
+      Trace("dt-cdt-debug") << "Process partition size " << part_out.size() << std::endl;
       for( unsigned i=0; i<part_out.size(); i++ ){
         std::vector< Node > part;
         part.push_back( part_out[i][0] );
         for( unsigned j=1; j<part_out[i].size(); j++ ){
-          Trace("dt-cod") << "Codatatypes : " << part_out[i][0] << " and " << part_out[i][j] << " must be equal!!" << std::endl;
+          Trace("dt-cdt") << "Codatatypes : " << part_out[i][0] << " and " << part_out[i][j] << " must be equal!!" << std::endl;
           part.push_back( part_out[i][j] );
           std::vector< std::vector< Node > > tpart_out;
           exp.clear();
@@ -1530,16 +1542,16 @@ void TheoryDatatypes::checkCycles() {
           Assert( tpart_out.size()==1 && tpart_out[0].size()==2 );
           part.pop_back();
           //merge based on explanation
-          Trace("dt-cod") << "  exp is : ";
+          Trace("dt-cdt") << "  exp is : ";
           for( unsigned k=0; k<exp.size(); k++ ){
-            Trace("dt-cod") << exp[k] << " ";
+            Trace("dt-cdt") << exp[k] << " ";
           }
-          Trace("dt-cod") << std::endl;
+          Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
           Node eqExp = mkAnd( exp );
           d_pending.push_back( eq );
           d_pending_exp[ eq ] = eqExp;
-          Trace("datatypes-infer") << "DtInfer : cod-bisimilar : " << eq << " by " << eqExp << std::endl;
+          Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
           d_infer.push_back( eq );
           d_infer_exp.push_back( eqExp );
         }
@@ -1554,9 +1566,9 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
                                          std::map< Node, Node >& cn,
                                          std::map< Node, std::map< Node, int > >& dni, int dniLvl, bool mkExp ){
   if( !mkExp ){
-    Trace("dt-cod-debug") << "Separate bisimilar : " << std::endl;
+    Trace("dt-cdt-debug") << "Separate bisimilar : " << std::endl;
     for( unsigned i=0; i<part.size(); i++ ){
-      Trace("dt-cod-debug") << "   " << part[i] << ", current = " << cn[part[i]] << std::endl;
+      Trace("dt-cdt-debug") << "   " << part[i] << ", current = " << cn[part[i]] << std::endl;
     }
   }
   Assert( part.size()>1 );
@@ -1570,7 +1582,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
     std::map< Node, int >::iterator it_rec = dni[part[j]].find( c );
     if( it_rec!=dni[part[j]].end() ){
       //looped
-      if( !mkExp ){ Trace("dt-cod-debug") << "  - " << part[j] << " is looping at index " << it_rec->second << std::endl; }
+      if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is looping at index " << it_rec->second << std::endl; }
       new_part_rec[ it_rec->second ].push_back( part[j] );
     }else{
       if( DatatypesRewriter::isTermDatatype( c ) ){
@@ -1582,14 +1594,14 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
             explainEquality( c, ncons, true, exp );
           }
           new_part[cc].push_back( part[j] );
-          if( !mkExp ){ Trace("dt-cod-debug") << "  - " << part[j] << " is datatype " << ncons << "." << std::endl; }
+          if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is datatype " << ncons << "." << std::endl; }
         }else{
           new_part_c[c].push_back( part[j] );
-          if( !mkExp ){ Trace("dt-cod-debug") << "  - " << part[j] << " is unspecified datatype." << std::endl; }
+          if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is unspecified datatype." << std::endl; }
         }
       }else{
         //add equivalences
-        if( !mkExp ){ Trace("dt-cod-debug") << "  - " << part[j] << " is term " << c << "." << std::endl; }
+        if( !mkExp ){ Trace("dt-cdt-debug") << "  - " << part[j] << " is term " << c << "." << std::endl; }
         new_part_c[c].push_back( part[j] );
       }
     }
@@ -1631,7 +1643,7 @@ void TheoryDatatypes::separateBisimilar( std::vector< Node >& part, std::vector<
       //for each child of constructor
       unsigned cindex = 0;
       while( cindex<nChildren && !split_new_part.empty() ){
-        if( !mkExp ){ Trace("dt-cod-debug") << "Split argument #" << cindex << " of " << it->first << "..." << std::endl; }
+        if( !mkExp ){ Trace("dt-cdt-debug") << "Split argument #" << cindex << " of " << it->first << "..." << std::endl; }
         std::vector< std::vector< Node > > next_split_new_part;
         for( unsigned j=0; j<split_new_part.size(); j++ ){
           //set current node
