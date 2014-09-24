@@ -757,9 +757,18 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           }
         }
         Trace("sg-proc") << "...done generate terms at depth " << depth << std::endl;
-        Trace("sg-stats") << "--------> Total LHS of depth : " << rel_term_count << std::endl;
+        Trace("sg-stats") << "--------> Total LHS of depth " << depth << " : " << rel_term_count << std::endl;
         //Trace("conjecture-count") << "Total LHS of depth " << depth << " : " << conj_lhs[depth].size() << std::endl;
-        //now generate right hand sides
+        
+        /* test...
+        for( unsigned i=0; i<rt_types.size(); i++ ){
+          Trace("sg-term-enum") << "Term enumeration for " << rt_types[i] << " : " << std::endl;
+          Trace("sg-term-enum") << "Ground term : " << rt_types[i].mkGroundTerm() << std::endl;
+          for( unsigned j=0; j<10; j++ ){
+            Trace("sg-term-enum") << "  " << getEnumerateTerm( rt_types[i], j ) << std::endl;
+          }
+        }
+        */
 
         //consider types from relevant terms
         for( unsigned rdepth=0; rdepth<=depth; rdepth++ ){
@@ -812,6 +821,9 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
               }
             }
           }
+          if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+            break;
+          }
         }
         if( (int)addedLemmas>=options::conjectureGenPerRound() ){
           break;
@@ -825,13 +837,12 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           TNode r = (*ueqcs_i);
           bool firstTime = true;
           TNode rr = getUniversalRepresentative( r );
-          Trace("thm-ee") << "  " << r;
-          if( rr!=r ){ Trace("thm-ee") << " [" << rr << "]"; }
+          Trace("thm-ee") << "  " << rr;
           Trace("thm-ee") << " : { ";
           eq::EqClassIterator ueqc_i = eq::EqClassIterator( r, &d_uequalityEngine );
           while( !ueqc_i.isFinished() ){
             TNode n = (*ueqc_i);
-            if( r!=n ){
+            if( rr!=n ){
               if( firstTime ){
                 Trace("thm-ee") << std::endl;
                 firstTime = false;
@@ -879,32 +890,36 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
             //we have determined a relevant subgoal
             Node lhs = d_waiting_conjectures_lhs[indices[i]];
             Node rhs = d_waiting_conjectures_rhs[indices[i]];
-            Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
-            Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[indices[i]] << std::endl;
-            std::vector< Node > bvs;
-            for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-              for( unsigned i=0; i<=it->second; i++ ){
-                bvs.push_back( getFreeVar( it->first, i ) );
-              }
-            }
-            Node rsg;
-            if( !bvs.empty() ){
-              Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
-              rsg = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
+            if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
+              //skip
             }else{
-              rsg = lhs.eqNode( rhs );
-            }
-            rsg = Rewriter::rewrite( rsg );
-            d_conjectures.push_back( rsg );
-            d_eq_conjectures[lhs].push_back( rhs );
-            d_eq_conjectures[rhs].push_back( lhs );
+              Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
+              Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[indices[i]] << std::endl;
+              std::vector< Node > bvs;
+              for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
+                for( unsigned i=0; i<=it->second; i++ ){
+                  bvs.push_back( getFreeVar( it->first, i ) );
+                }
+              }
+              Node rsg;
+              if( !bvs.empty() ){
+                Node bvl = NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs );
+                rsg = NodeManager::currentNM()->mkNode( FORALL, bvl, lhs.eqNode( rhs ) );
+              }else{
+                rsg = lhs.eqNode( rhs );
+              }
+              rsg = Rewriter::rewrite( rsg );
+              d_conjectures.push_back( rsg );
+              d_eq_conjectures[lhs].push_back( rhs );
+              d_eq_conjectures[rhs].push_back( lhs );
 
-            Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-            d_quantEngine->addLemma( lem, false );
-            d_quantEngine->addRequirePhase( rsg, false );
-            addedLemmas++;
-            if( (int)addedLemmas>=options::conjectureGenPerRound() ){
-              break;
+              Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
+              d_quantEngine->addLemma( lem, false );
+              d_quantEngine->addRequirePhase( rsg, false );
+              addedLemmas++;
+              if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+                break;
+              }
             }
           }else{
             if( doSort ){
@@ -1057,6 +1072,26 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
     }
     return depth;
   }
+}
+
+Node ConjectureGenerator::getEnumerateTerm( TypeNode tn, unsigned index ) {
+  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
+  unsigned teIndex;
+  if( it==d_typ_enum_map.end() ){
+    teIndex = (int)d_typ_enum.size();
+    d_typ_enum_map[tn] = teIndex;
+    d_typ_enum.push_back( TypeEnumerator(tn) );
+  }else{
+    teIndex = it->second;
+  }
+  while( index>=d_enum_terms[tn].size() ){
+    if( d_typ_enum[teIndex].isFinished() ){
+      return Node::null();
+    }
+    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
+    ++d_typ_enum[teIndex];
+  }
+  return d_enum_terms[tn][index];
 }
 
 void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth ) {

@@ -58,7 +58,8 @@ TESTS =	\
 	bug286.cvc \
 	bug438.cvc \
 	bug438b.cvc \
-	wrong-sel-simp.cvc
+	wrong-sel-simp.cvc \
+	tenum-bug.smt2
 
 FAILING_TESTS = \
 	datatype-dump.cvc

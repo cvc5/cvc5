@@ -20,6 +20,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdchunk_list.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -355,6 +356,14 @@ public:  //for generalization
   bool isGeneralization( TNode patg, TNode pat, std::map< TNode, TNode >& subs );
   // get generalization depth
   int calculateGeneralizationDepth( TNode n, std::vector< TNode >& fv );
+private:
+  //ground term enumeration
+  std::map< TypeNode, std::vector< Node > > d_enum_terms;
+  //type enumerators
+  std::map< TypeNode, unsigned > d_typ_enum_map;
+  std::vector< TypeEnumerator > d_typ_enum;
+  //get nth term for type
+  Node getEnumerateTerm( TypeNode tn, unsigned index );
 public:  //for property enumeration
   //process this candidate conjecture
   void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );
@@ -404,7 +413,6 @@ public:
   void assertNode( Node n );
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const { return "ConjectureGenerator"; }
-
 //options
 private:
   bool optReqDistinctVarPatterns();

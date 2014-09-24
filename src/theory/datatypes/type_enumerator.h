@@ -75,31 +75,10 @@ public:
     Debug("te") << "datatype is kind " << type.getKind() << std::endl;
     Debug("te") << "datatype is " << type << std::endl;
 
-    /* find the "zero" constructor (the first non-recursive one) */
-    /* FIXME: this isn't sufficient for mutually-recursive datatypes! */
-    while(d_zeroCtor < d_datatype.getNumConstructors()) {
-      bool recursive = false;
-      if( d_datatype.isParametric() ){
-        TypeNode tn = TypeNode::fromType( d_datatype[d_zeroCtor].getSpecializedConstructorType(d_type.toType()) );
-        for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
-          if( tn[i]==type ){
-            recursive = true;
-            break;
-          }
-        }
-      }else{
-        for(size_t a = 0; a < d_datatype[d_zeroCtor].getNumArgs() && !recursive; ++a) {
-          if(Node::fromExpr(d_datatype[d_zeroCtor][a].getSelector()).getType()[1] == type) {
-            recursive = true;
-            break;
-          }
-        }
-      }
-      if(!recursive) {
-        break;
-      }
-      ++d_zeroCtor;
-    }
+    /* find the "zero" constructor via mkGroundTerm */
+    Node t = type.mkGroundTerm();
+    Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
+    d_zeroCtor = Datatype::indexOf( t.getOperator().toExpr() );
 
     /* start with the non-recursive constructor */
     d_ctor = d_zeroCtor;
