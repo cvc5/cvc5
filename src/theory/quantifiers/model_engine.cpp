@@ -103,7 +103,8 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
             Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
             //let the strong solver verify that the model is minimal
             //for debugging, this will if there are terms in the model that the strong solver was not notified of
-            if( ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->debugModel( fm ) ){
+            uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+            if( !ufss || ufss->debugModel( fm ) ){
               Trace("model-engine-debug") << "Check model..." << std::endl;
               d_incomplete_check = false;
               //print debug

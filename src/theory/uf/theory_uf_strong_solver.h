@@ -146,8 +146,6 @@ public:
       bool getMustCombine( int cardinality );
       /** has splits */
       bool hasSplits() { return d_splitsSize>0; }
-      /** get representatives */
-      void getRepresentatives( std::vector< Node >& reps );
       /** get external disequalities */
       void getNumExternalDisequalities( std::map< Node, int >& num_ext_disequalities );
     public:
@@ -280,8 +278,6 @@ public:
     bool isConflict() { return d_conflict; }
     /** get cardinality */
     int getCardinality() { return d_cardinality; }
-    /** get representatives */
-    void getRepresentatives( std::vector< Node >& reps );
     /** has cardinality */
     bool hasCardinalityAsserted() { return d_hasCard; }
     /** get cardinality term */
@@ -381,8 +377,6 @@ public:
   int getCardinality( Node n );
   /** get cardinality for type */
   int getCardinality( TypeNode tn );
-  /** get representatives */
-  //void getRepresentatives( Node n, std::vector< Node >& reps );
   /** minimize */
   bool minimize( TheoryModel* m = NULL );
 

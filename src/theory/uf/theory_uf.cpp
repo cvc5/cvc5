@@ -61,7 +61,7 @@ void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheoryUF::finishInit() {
   // initialize the strong solver
-  if (options::finiteModelFind()) {
+  if (options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
   }
 }

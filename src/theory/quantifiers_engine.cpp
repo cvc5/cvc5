@@ -215,12 +215,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      //if effort is last call, try to minimize model first
-      if( options::finiteModelFind() ){
-        //first, check if we can minimize the model further  FIXME: remove?
-        if( !((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver()->minimize() ){
-          return;
-        }
+      //if effort is last call, try to minimize model first FIXME: remove?
+      uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+      if( ufss && !ufss->minimize() ){
+        return;
       }
       ++(d_statistics.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){

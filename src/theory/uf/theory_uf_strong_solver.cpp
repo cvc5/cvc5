@@ -339,16 +339,6 @@ bool StrongSolverTheoryUF::SortModel::Region::getCandidateClique( int cardinalit
   return false;
 }
 
-
-void StrongSolverTheoryUF::SortModel::Region::getRepresentatives( std::vector< Node >& reps ){
-  for( std::map< Node, RegionNodeInfo* >::iterator it = d_nodes.begin(); it != d_nodes.end(); ++it ){
-    RegionNodeInfo* rni = it->second;
-    if( rni->d_valid ){
-      reps.push_back( it->first );
-    }
-  }
-}
-
 void StrongSolverTheoryUF::SortModel::Region::getNumExternalDisequalities( std::map< Node, int >& num_ext_disequalities ){
   for( std::map< Node, RegionNodeInfo* >::iterator it = d_nodes.begin(); it != d_nodes.end(); ++it ){
     RegionNodeInfo* rni = it->second;
@@ -624,7 +614,7 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
           if( d_regions[i]->d_valid ){
             std::vector< Node > clique;
             if( d_regions[i]->check( level, d_cardinality, clique ) ){
-              if( options::ufssMinimalModel() ){
+              if( options::ufssMode()==UF_SS_FULL ){
                 //add clique lemma
                 addCliqueLemma( clique, out );
                 return;
@@ -695,7 +685,7 @@ void StrongSolverTheoryUF::SortModel::check( Theory::Effort level, OutputChannel
                 if( d_regions[i]->d_valid ){
                   int fcr = forceCombineRegion( i, false );
                   Trace("uf-ss-debug") << "Combined regions " << i << " " << fcr << std::endl;
-                  if( options::ufssMinimalModel() || fcr!=-1 ){
+                  if( options::ufssMode()==UF_SS_FULL || fcr!=-1 ){
                     recheck = true;
                     break;
                   }
@@ -921,7 +911,7 @@ void StrongSolverTheoryUF::SortModel::checkRegion( int ri, bool checkCombine ){
     //now check if region is in conflict
     std::vector< Node > clique;
     if( d_regions[ri]->check( Theory::EFFORT_STANDARD, d_cardinality, clique ) ){
-      if( options::ufssMinimalModel() ){
+      if( options::ufssMode()==UF_SS_FULL ){
         //explain clique
         addCliqueLemma( clique, &d_thss->getOutputChannel() );
       }
@@ -1085,7 +1075,7 @@ int StrongSolverTheoryUF::SortModel::addSplit( Region* r, OutputChannel* out ){
     }
     Assert( s!=Node::null() );
   }else{
-    if( !options::ufssMinimalModel() ){
+    if( options::ufssMode()!=UF_SS_FULL ){
       //since candidate clique is not reported, we may need to find splits manually
       for ( std::map< Node, Region::RegionNodeInfo* >::iterator it = r->d_nodes.begin(); it != r->d_nodes.end(); ++it ){
         if ( it->second->d_valid ){
@@ -1480,19 +1470,6 @@ int StrongSolverTheoryUF::SortModel::getNumRegions(){
   return count;
 }
 
-void StrongSolverTheoryUF::SortModel::getRepresentatives( std::vector< Node >& reps ){
-  for( int i=0; i<(int)d_regions_index; i++ ){
-    //should not have multiple regions at this point
-    //if( foundRegion ){
-    //  Assert( !d_regions[i]->d_valid );
-    //}
-    if( d_regions[i]->d_valid ){
-      //this is the only valid region
-      d_regions[i]->getRepresentatives( reps );
-    }
-  }
-}
-
 Node StrongSolverTheoryUF::SortModel::getCardinalityLiteral( int c ) {
   if( d_cardinality_literal.find( c )==d_cardinality_literal.end() ){
     d_cardinality_literal[c] = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, d_cardinality_term,
@@ -1661,7 +1638,7 @@ bool StrongSolverTheoryUF::areDisequal( Node a, Node b ) {
 void StrongSolverTheoryUF::check( Theory::Effort level ){
   if( !d_conflict ){
     Trace("uf-ss-solver") << "StrongSolverTheoryUF: check " << level << std::endl;
-    if( level==Theory::EFFORT_FULL ){
+    if( level==Theory::EFFORT_FULL && Debug.isOn( "uf-ss-debug" ) ){
       debugPrint( "uf-ss-debug" );
     }
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
@@ -1800,19 +1777,6 @@ int StrongSolverTheoryUF::getCardinality( TypeNode tn ) {
   }
   return -1;
 }
-
-/*
-void StrongSolverTheoryUF::getRepresentatives( Node n, std::vector< Node >& reps ){
-  SortModel* c = getSortModel( n );
-  if( c ){
-    c->getRepresentatives( reps );
-    if( (int)reps.size()!=c->getCardinality() ){
-      Trace("uf-ss-warn") << "Sort " << n.getType() << " has cardinality " << c->getCardinality();
-      Trace("uf-ss-warn") << ", but provided " << reps.size() << " representatives!!!" << std::endl;
-    }
-  }
-}
-*/
 
 bool StrongSolverTheoryUF::minimize( TheoryModel* m ){
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
