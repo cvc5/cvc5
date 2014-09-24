@@ -1,0 +1,21 @@
+# kinds                                                               -*- sh -*-
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.
+#
+
+theory THEORY_FP ::CVC4::theory::fp::TheoryFp "theory/fp/theory_fp.h"
+typechecker "theory/fp/theory_fp_type_rules.h"
+rewriter ::CVC4::theory::fp::TheoryFpRewriter "theory/fp/theory_fp_rewriter.h"
+
+properties check
+
+# Theory content goes here.
+
+# constants...
+
+# types...
+
+# operators...
+
+endtheory
