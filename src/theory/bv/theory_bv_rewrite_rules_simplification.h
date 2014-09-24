@@ -488,7 +488,7 @@ bool RewriteRule<NotIdemp>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<NotIdemp>::apply(TNode node) {
-  Debug("bv-rewrite") << "RewriteRule<XorIdemp>(" << node << ")" << std::endl;
+  Debug("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
   return node[0][0];
 }
 

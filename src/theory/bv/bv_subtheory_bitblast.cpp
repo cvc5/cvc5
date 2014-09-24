@@ -23,7 +23,8 @@
 #include "theory/bv/abstraction.h"
 #include "theory/decision_attributes.h"
 #include "decision/options.h"
-
+#include "proof/proof_manager.h"
+#include "proof/bitvector_proof.h"
 
 using namespace std;
 using namespace CVC4;
@@ -43,7 +44,9 @@ BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
     d_abstractionModule(NULL),
     d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
     d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
-{}
+{
+  PROOF(ProofManager::currentPM()->getBitVectorProof()->setBitblaster(d_bitblaster)); 
+}
 
 BitblastSolver::~BitblastSolver() {
   delete d_quickXplain;

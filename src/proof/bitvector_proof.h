@@ -42,6 +42,7 @@ class CnfStream;
 namespace theory {
 namespace bv{
 class TheoryBV;
+class TLazyBitblaster;
 }
 }
 
@@ -61,8 +62,12 @@ class BitVectorProof : public TheoryProof {
 protected:
   ExprSet d_declarations;
   
-  ExprToId d_terms; // terms that need to be bit-blasted
-  ExprToId d_atoms; // atoms that need to be bit-blasted
+  ExprToId d_terms; // bit-vector terms appearing in the problem 
+  ExprToId d_atoms; // bit-vector atoms appearing in the problem 
+
+  ExprToId d_bb_terms; // terms that need to be bit-blasted
+  ExprToId d_bb_atoms; // atoms that need to be bit-blasted
+
   unsigned d_bbIdCount;
   
   // map from Expr representing normalized lemma to ClauseId in SAT solver
@@ -72,7 +77,7 @@ protected:
   CnfProof* d_cnfProof;
   
   bool d_isAssumptionConflict;
-  
+  theory::bv::TLazyBitblaster* d_lazyBB;
   unsigned newBBId(); 
   unsigned getBBId(Expr expr);
 public:
@@ -80,6 +85,8 @@ public:
 
   void initSatProof(::BVMinisat::Solver* solver);
   void initCnfProof(prop::CnfStream* cnfStream);
+  void setBitblaster(theory::bv::TLazyBitblaster* lazyBB);
+  
   BVSatProof* getSatProof();
   void finalizeConflicts(std::vector<Expr>& conflicts);
 

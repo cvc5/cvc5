@@ -29,6 +29,7 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 unsigned CVC4::LetCount::counter = 0;
+static unsigned LET_COUNT = 3;
 
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
@@ -127,7 +128,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
     unsigned let_count = it->second.count;
     Assert(let_count);
     // skip terms that only appear once
-    if (let_count == 1) {
+    if (let_count <= LET_COUNT) {
       continue;
     }
     
@@ -140,7 +141,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
   unsigned last_let_id = let_order.back().id;
   Expr last = let_order.back().expr;
   unsigned last_count = map.find(last)->second.count;
-  if (last_count == 1) {
+  if (last_count <= LET_COUNT) {
     printTheoryTerm(last, os, map);
   }
   else {
@@ -282,7 +283,7 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Le
   Assert (it != map.end());
   unsigned id = it->second.id;
   unsigned count = it->second.count;
-  if (count > 1) {
+  if (count > LET_COUNT) {
     os <<"let"<<id;
     return;
   }

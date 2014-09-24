@@ -209,13 +209,6 @@
                     (! c (^ (bblast_var x (mp_add n (~ 1))) f)
                          (bblast_term n (a_var_bv n x) f))))))
 
-; bit blast bvand
-;; (program bblast_bvand ((x bblt) (y bblt) (n mpz)) bblt
-;;   (match x
-;;   	(bbltn (match y (bbltn bbltn) (default (fail bblt))))
-;; 	((bbltc xn x') (match y (bbltn (fail bblt))
-;; 			        ((bbltc yn y') (bbltc (and xn yn) (bblast_bvand x' y' (mp_add n (~ 1)))))))))
-
 (program bblast_bvand ((x bblt) (y bblt)) bblt
   (match x 
     (bbltn (match y (bbltn bbltn) (default (fail bblt))))
@@ -235,6 +228,59 @@
                       (! c (^ (bblast_bvand xb yb ) rb)
                            (bblast_term n (bvand n x y) rb)))))))))))
 
+(program bblast_bvnot ((x bblt)) bblt
+  (match x 
+    (bbltn bbltn) 
+    ((bbltc bx x') (bbltc (not bx) (bblast_bvnot x')))))
+				
+				
+(declare bv_bbl_bvnot (! n mpz
+                      (! x (term (BitVec n))
+		      (! xb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+                      (! c (^ (bblast_bvnot xb ) rb)
+                           (bblast_term n (bvnot n x) rb))))))))
+			   
+(program bblast_bvor ((x bblt) (y bblt)) bblt
+  (match x 
+    (bbltn (match y (bbltn bbltn) (default (fail bblt))))
+    ((bbltc bx x') (match y 
+                      (bbltn (fail bblt))
+                      ((bbltc by y') (bbltc (or bx by) (bblast_bvor x' y')))))))
+				
+				
+(declare bv_bbl_bvor (! n mpz
+                      (! x (term (BitVec n))
+		      (! y (term (BitVec n))
+		      (! xb bblt
+		      (! yb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+		      (! ybb (bblast_term n y yb)
+                      (! c (^ (bblast_bvor xb yb ) rb)
+                           (bblast_term n (bvor n x y) rb)))))))))))
+
+(program bblast_bvxor ((x bblt) (y bblt)) bblt
+  (match x 
+    (bbltn (match y (bbltn bbltn) (default (fail bblt))))
+    ((bbltc bx x') (match y 
+                      (bbltn (fail bblt))
+                      ((bbltc by y') (bbltc (xor bx by) (bblast_bvxor x' y')))))))
+				
+				
+(declare bv_bbl_bvxor (! n mpz
+                      (! x (term (BitVec n))
+		      (! y (term (BitVec n))
+		      (! xb bblt
+		      (! yb bblt
+		      (! rb bblt
+		      (! xbb (bblast_term n x xb)
+		      (! ybb (bblast_term n y yb)
+                      (! c (^ (bblast_bvxor xb yb ) rb)
+                           (bblast_term n (bvxor n x y) rb)))))))))))
+
+			   
 ;; return the carry bit after adding x y			   
 ;; FIXME: not the most efficient thing in the world
 (program bblast_bvadd_carry ((a bblt) (b bblt) (carry formula)) formula
@@ -455,3 +501,179 @@
 	 (holds C))))))))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;; Rewrite rules
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; t rewrites to t'
+(declare rw_term
+	 (! n mpz
+	 (! t (term (BitVec n))
+	 (! t' (term (BitVec n))
+	 type))))
+
+(declare rw_formula
+	 (! f formula
+	 (! f' formula
+	 type)))
+
+(declare apply_rw_formula
+	 (! f formula
+	 (! f' formula
+	 (! rw (rw_formula f f')
+	 (! fh (th_holds f)
+	 (th_holds f'))))))
+	 
+;; (declare let_rwt
+;; 	 (!n mpz
+;; 	 (!a (term (BitVec n))
+;; 	 (!a' (term (BitVec n))
+;; 	 (! f formula
+;; 	 (!rw (rw_term _ a a')
+;; 	 (! u (! r (rw_term _ a a') (th_holds f))
+;; 	      (th_holds f))))))))
+
+;; (declare let_rwf
+;; 	 (!f formula
+;; 	 (!f' formula
+;; 	 (!fh formula
+;; 	 (!rw (rw_formula f f')
+;; 	 (!u (! r (rw_formula f f') (th_holds fh))
+;; 	      (th_holds fh)))))))
+	      
+;; Identity rewrite rules	 
+(declare rw_term_id
+	 (! n mpz
+	 (! t (term (BitVec n))
+	 (rw_term n t t))))
+
+(declare rw_term_trans
+	 (! n mpz
+	 (! t1 (term (BitVec n))
+	 (! t2 (term (BitVec n))
+	 (! t3 (term (BitVec n))
+	 (! rw12 (rw_term _ t1 t2)
+	 (! rw23 (rw_term _ t2 t3)
+	 (rw_term n t1 t3))))))))
+
+	 
+(declare rw_formula_id
+	 (! f formula
+	 (rw_formula f f)))
+
+
+(declare rw_bvop1_id
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! rw (rw_term _ a a')
+	 (! op bvop1
+	    (rw_term _ (op _ a) (op _ a'))))))))
+
+(declare rw_bvop2_id
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! b' (term (BitVec n))
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	 (! op bvop2
+	    (rw_term _ (op _ a b) (op _ a' b')))))))))))
+	    
+(declare rw_bvpred_id
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! b' (term (BitVec n))
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	 (! op bvpred
+	    (rw_formula (op _ a b) (op _ a' b')))))))))))
+
+(declare rw_eq_id
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! b' (term (BitVec n))
+	 (! rw (rw_term _ a a')
+	 (! rw (rw_term _ b b')
+	    (rw_formula (= (BitVec n) a b) (= (BitVec n) a' b'))))))))))
+
+	    
+;; making constant bit-vectors	 
+(program mk_ones ((n mpz)) bv
+	(mp_ifzero n bvn (bvc b1 (mk_ones (mpz_sub n 1)))))
+
+(program mk_zero ((n mpz)) bv
+	(mp_ifzero n bvn (bvc b0 (mk_ones (mpz_sub n 1)))))
+
+
+	
+;; (bvxnor a b) => (bvnot (bvxor a b))
+(declare xnor_elim
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! b' (term (BitVec n))
+	 (! rwa (rw_term _ a a')
+	 (! rwb (rw_term _ b b')
+	 (rw_term n (bvxnor _ a b)
+	 	  (bvnot _ (bvxor _ a' b')))))))))))
+
+
+
+;; (bvxor a 0) => a
+(declare xor_zero
+	 (! n mpz
+	 (! zero_bits bv
+	 (! sc (^ (mk_zero n)  zero_bits)
+	 (! a (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! rwa (rw_term _  a a')
+	 (! rwb (rw_term _ b (a_bv _ zero_bits))
+	 (rw_term _  (bvxor _ a b)
+	 	  a'))))))))))
+		  
+;; (bvxor a 11) => (bvnot a)
+(declare xor_one
+	 (! n mpz
+	 (! one_bits bv
+	 (! sc (^ (mk_ones n)  one_bits)
+	 (! a (term (BitVec n))
+	 (! b (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! rwa (rw_term _  a a')
+	 (! rwb (rw_term _  b (a_bv _ one_bits))
+	 (rw_term _ (bvxor _ a b)
+	 	  (bvnot _ a')))))))))))
+
+		  
+;; (bvnot (bvnot a)) => a
+(declare not_idemp
+	 (! n mpz
+	 (! a (term (BitVec n))
+	 (! a' (term (BitVec n))
+	 (! rwa (rw_term _  a a')
+	 (rw_term _ (bvnot _ (bvnot _ a))
+	 	  a'))))))
+
+
+;; (program subst_in_term ((t BitVec) (t' BitVec) (f term)) term
+;; (program subst_in_form ((t BitVec) (t' BitVec) (f formula)) formula
+;; 	 f)
+;; ;; substitution in formula
+;; (declare subt_form
+;; 	 (! n mpz
+;; 	 (! t (term BitVec n)
+;; 	 (! t' (term BitVec n)
+;; 	 (! rw (rw_term t t')
+;; 	 (! f formula
+;; 	 (! f' formula
+;; 	 (! fh (th_holds f)
+;; 	 (! sc (^ (subst_in t t' f) f')
+;; 	    (th_holds f'))))))))))

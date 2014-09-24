@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file uf_proof.cpp
+/*! \file bitvector_proof.cpp
 ** \verbatim
 ** Original author: Liana Hadarean
 ** Major contributors: none
@@ -16,6 +16,8 @@
 **/
 
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/bitblaster_template.h"
+
 #include "proof/bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "proof/proof_utils.h"
@@ -32,9 +34,12 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proo
   , d_declarations()
   , d_terms()
   , d_atoms()
+  , d_bb_terms()
+  , d_bb_atoms()
   , d_bbIdCount(0)
   , d_resolutionProof(NULL)
   , d_cnfProof(NULL)
+  , d_lazyBB(NULL)
 {}
 
 void BitVectorProof::initSatProof(::BVMinisat::Solver* solver) {
@@ -49,6 +54,11 @@ void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream) {
   d_resolutionProof->setCnfProof(d_cnfProof); 
 }
 
+void BitVectorProof::setBitblaster(bv::TLazyBitblaster* lazyBB) {
+  Assert (d_lazyBB == NULL);
+  d_lazyBB = lazyBB;
+}
+
 BVSatProof* BitVectorProof::getSatProof() {
   Assert (d_resolutionProof != NULL);
   return d_resolutionProof;
@@ -61,11 +71,20 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 
   if (Theory::theoryOf(term) == theory::THEORY_BV) {
-    if (term.getType().isBoolean() && d_atoms.find(term) == d_atoms.end()) {
-      d_atoms[term] = newBBId(); 
+    if (term.getType().isBoolean()) {
+      if (d_atoms.find(term) == d_atoms.end())
+        d_atoms[term] = newBBId();
+
+      if (d_lazyBB->hasBBAtom(term) && d_bb_atoms.find(term) == d_bb_atoms.end())
+        d_bb_atoms[term] = newBBId();
+
     }
-    if (term.getType().isBitVector() && d_terms.find(term) == d_terms.end()) {
-      d_terms[term] = newBBId(); 
+    if (term.getType().isBitVector()) {
+      if (d_terms.find(term) == d_terms.end())
+        d_terms[term] = newBBId();
+
+      if (d_lazyBB->hasBBTerm(term) && d_bb_terms.find(term) == d_bb_terms.end())
+        d_bb_terms[term] = newBBId();
     }
   }
   
@@ -78,10 +97,10 @@ void BitVectorProof::registerTerm(Expr term) {
 unsigned BitVectorProof::newBBId() { return d_bbIdCount++; }
 
 unsigned BitVectorProof::getBBId(Expr expr) {
-  ExprToId::const_iterator it = d_atoms.find(expr);
-  if (it != d_atoms.end()) return it->second;
-  it = d_terms.find(expr);
-  Assert (it != d_terms.end());
+  ExprToId::const_iterator it = d_bb_atoms.find(expr);
+  if (it != d_bb_atoms.end()) return it->second;
+  it = d_bb_terms.find(expr);
+  Assert (it != d_bb_terms.end());
   return it->second;
 }
 
@@ -237,7 +256,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" ";
+  os << toLFSCBVKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map); 
   os <<")";
@@ -245,7 +264,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
 
 void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" ";
+  os << toLFSCBVKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
@@ -393,7 +412,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_ROTATE_LEFT :
   case kind::BITVECTOR_ROTATE_RIGHT : {
     os <<"(bv_bbl_"<<toLFSCBVKind(kind);
-    os <<" _ _ _ ";
+    os <<" _ _ _ _ ";
     os << "bt" << getBBId(term[0]);
     os <<")";
     return;
@@ -402,7 +421,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     os <<"(bv_bbl_"<<toLFSCBVKind(kind) <<" ";
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
-    os << " _ _ _ ";
+    os << " _ _ _ _ ";
     os << "bt" << getBBId(term[0]);
     os <<")";
     return;
@@ -424,7 +443,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
       unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
       os << amount; 
     }
-    os <<" _ _ _ ";
+    os <<" _ _ _ _ ";
     os << "bt"<< getBBId(term[0]);
     os <<")";
     return;
@@ -460,8 +479,8 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
 
 void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
   // bit-blast terms
-  ExprToId::const_iterator it = d_terms.begin();
-  ExprToId::const_iterator end = d_terms.end();
+  ExprToId::const_iterator it = d_bb_terms.begin();
+  ExprToId::const_iterator end = d_bb_terms.end();
   for (; it != end; ++it) {
     os <<"(decl_bblast _ _ _ ";
     printTermBitblasting(it->first, os);
@@ -469,8 +488,8 @@ void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
     paren <<"))";
   }
   // bit-blast atoms
-  it = d_atoms.begin();
-  end = d_atoms.end();
+  it = d_bb_atoms.begin();
+  end = d_bb_atoms.end();
   for (; it != end; ++it) {
     os << "(th_let_pf _ ";
     printAtomBitblasting(it->first, os);
