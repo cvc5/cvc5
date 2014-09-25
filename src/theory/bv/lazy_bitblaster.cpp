@@ -132,9 +132,9 @@ void TLazyBitblaster::bbAtom(TNode node) {
   Node atom_bb = normalized.getKind() != kind::CONST_BOOLEAN ?
                  d_atomBBStrategies[normalized.getKind()](normalized, this) : normalized;
 
-  //  if (!options::proof()) {
-  atom_bb = Rewriter::rewrite(atom_bb);
-  //}
+  if (!options::proof()) {
+    atom_bb = Rewriter::rewrite(atom_bb);
+  }
       
   // asserting that the atom is true iff the definition holds
   Node atom_definition = utils::mkNode(kind::IFF, node, atom_bb);

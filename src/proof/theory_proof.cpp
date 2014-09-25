@@ -29,7 +29,7 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 unsigned CVC4::LetCount::counter = 0;
-static unsigned LET_COUNT = 3;
+static unsigned LET_COUNT = 1;
 
 TheoryProofEngine::TheoryProofEngine()
   : d_registrationCache()
@@ -132,11 +132,9 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
       continue;
     }
     
-    os << "(" << (current_expr.getType().isBoolean() ? "flet " : "let _ ");
-    os <<"(";
+    os << "(@ let"<<let_id << " ";
     printTheoryTerm(current_expr, os, map);
-    os <<") (\\ let"<<let_id <<" ";
-    paren <<"))"; 
+    paren <<")"; 
   }
   unsigned last_let_id = let_order.back().id;
   Expr last = let_order.back().expr;

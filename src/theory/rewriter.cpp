@@ -18,6 +18,7 @@
 #include "theory/theory.h"
 #include "theory/rewriter.h"
 #include "theory/rewriter_tables.h"
+#include "proof/proof_manager.h"
 
 using namespace std;
 
@@ -120,6 +121,12 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
+          PROOF(
+                if(rewriteStackTop.node != response.node) {
+                  std::cout<< "Rewrite " << rewriteStackTop.node <<" => " << response.node<<"\n"; 
+                }
+          );
+
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);
@@ -173,7 +180,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
       // Incorporate the children if necessary
       if (rewriteStackTop.node.getNumChildren() > 0) {
-        rewriteStackTop.node = rewriteStackTop.builder;
+        Node rewritten = rewriteStackTop.builder;
+        PROOF(
+              // TODO store the fact that the node rewrites to builder
+              if (rewritten != rewriteStackTop.node) {
+                std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << rewritten<<"\n";
+              }
+              );
+        rewriteStackTop.node = rewritten;
         rewriteStackTop.theoryId = theoryOf(rewriteStackTop.node);
       }
 
@@ -183,6 +197,13 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         RewriteResponse response = Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
+        PROOF(
+              // TODO store the fact that the node rewrites to builder
+              if (rewriteStackTop.node != response.node) {
+                std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << response.node <<"\n";
+              }
+              );
+
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.node != rewriteStackTop.node);
@@ -191,7 +212,13 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Assert(s_rewriteStack->find(response.node) == s_rewriteStack->end());
           s_rewriteStack->insert(response.node);
 #endif
-          rewriteStackTop.node = rewriteTo(newTheoryId, response.node);
+          Node rewritten = rewriteTo(newTheoryId, response.node);
+          PROOF (
+                 if (rewriteStackTop.node != rewritten) {
+                   std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << rewritten <<"\n";
+                 }
+                 );
+          rewriteStackTop.node = rewritten;
 #ifdef CVC4_ASSERTIONS
           s_rewriteStack->erase(response.node);
 #endif

@@ -11,13 +11,29 @@
 ; standard logic definitions
 (declare true formula)
 (declare false formula)
-(declare not (! f formula formula))
-(declare and (! f1 formula (! f2 formula formula)))
-(declare or (! f1 formula (! f2 formula formula)))
-(declare impl (! f1 formula (! f2 formula formula)))
-(declare iff (! f1 formula (! f2 formula formula)))
-(declare xor (! f1 formula (! f2 formula formula)))
-(declare ifte (! b formula (! f1 formula (! f2 formula formula))))
+
+(define formula_op1
+	(! f formula
+	formula))
+
+(define formula_op2
+	(! f1 formula
+	(! f2 formula
+	   formula)))
+	
+(define formula_op3
+	(! f1 formula
+	(! f2 formula
+	(! f3 formula
+	   formula))))
+	   
+(declare not formula_op1)
+(declare and formula_op2)
+(declare or formula_op2)
+(declare impl formula_op2)
+(declare iff formula_op2)
+(declare xor formula_op2)
+(declare ifte formula_op3)
 
 ; terms
 (declare sort type)
