@@ -26,7 +26,7 @@ CVC4 contains the doxygen.m4 autoconf module by Oren Ben-Kiki.
 CVC4 contains the pkg.m4 autoconf module by Scott James Remnant.
 
 CVC4 contains the ax_tls.m4 autoconf module by Alan Woodland and Diego Elio
-Petteno.
+Petteno`.
 
 CVC4 contains the boost.m4 autoconf module by Benoit Sigoure.
 

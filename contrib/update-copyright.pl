@@ -35,7 +35,7 @@
 #
 
 my $excluded_directories = '^(minisat|bvminisat|CVS|generated)$';
-my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*)$';
+my $excluded_paths = '^(src/parser/antlr_input_imports.cpp|src/bindings/compat/.*|src/util/channel.h)$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
