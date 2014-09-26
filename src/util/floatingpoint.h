@@ -4,7 +4,7 @@
  ** Original author: Martin Brain
  ** Major contributors: 
  ** Minor contributors (to current version): 
- ** This file is *NOT* part of the CVC4 project.
+ ** This file is part of the CVC4 project.
  ** Copyright (c) 2013  University of Oxford
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
@@ -15,20 +15,22 @@
  **    parametric types of the floating point theory. ]]
  **/
 
-#include <assert.h>
+#include <fenv.h>
 
 #include "cvc4_public.h"
-
-
-#include "trp/datatypes/floatingPoint.h"
-
-#ifndef __CVC4__FLOATINGPOINT_H
-#define __CVC4__FLOATINGPOINT_H
 
 #include "util/bitvector.h"
 
 
+#ifndef __CVC4__FLOATINGPOINT_H
+#define __CVC4__FLOATINGPOINT_H
+
+
+
 namespace CVC4 {
+
+#define VALIDEXPONENTSIZE(e) ((e) >= 2)
+#define VALIDSIGNIFICANDSIZE(s) ((s) >= 2)
 
   /**
    * Floating point sorts are parameterised by two non-zero constants
@@ -114,8 +116,26 @@ namespace CVC4 {
    * A concrete floating point number
    */
 
-  // We used the wrapped multi-precision floats from TRP
-  typedef TRP::primitiveLiteral<double> FloatingPointLiteral;
+  class FloatingPointLiteral {
+  public :
+    // This intentional left unfinished as the choice of literal
+    // representation is solver specific.
+    void unfinished (void) const;
+
+    FloatingPointLiteral(unsigned, unsigned, double) { unfinished(); }
+    FloatingPointLiteral(unsigned, unsigned, const std::string &) { unfinished(); }
+    FloatingPointLiteral(const FloatingPointLiteral &) { unfinished(); }
+
+    bool operator == (const FloatingPointLiteral &op) const {
+      unfinished();
+      return false;
+    }
+
+    size_t hash (void) const {
+      unfinished();
+      return 23;
+    }
+  };
 
   class CVC4_PUBLIC FloatingPoint {
   protected :
@@ -241,6 +261,12 @@ namespace CVC4 {
 
 
 
+
+  inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) CVC4_PUBLIC;
+  inline std::ostream& operator <<(std::ostream& os, const FloatingPointLiteral& fp) {
+    fp.unfinished();
+    return os;
+  }
 
   inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
   inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) {

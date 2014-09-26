@@ -102,7 +102,9 @@ libutil_la_SOURCES = \
 	unsat_core.cpp \
 	resource_manager.h \
 	resource_manager.cpp \
-	unsafe_interrupt_exception.h
+	unsafe_interrupt_exception.h \
+	floatingpoint.h \
+	floatingpoint.cpp
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \

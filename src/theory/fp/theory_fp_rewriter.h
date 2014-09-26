@@ -9,51 +9,18 @@ namespace CVC4 {
 namespace theory {
 namespace fp {
 
+typedef RewriteResponse (*RewriteFunction) (TNode, bool);
+
 class TheoryFpRewriter {
-public:
+ protected :
+  static RewriteFunction preRewriteTable[kind::LAST_KIND];
+  static RewriteFunction postRewriteTable[kind::LAST_KIND];
 
-  /**
-   * Rewrite a node into the normal form for the theory of fp.
-   * Called in post-order (really reverse-topological order) when
-   * traversing the expression DAG during rewriting.  This is the
-   * main function of the rewriter, and because of the ordering,
-   * it can assume its children are all rewritten already.
-   *
-   * This function can return one of three rewrite response codes
-   * along with the rewritten node:
-   *
-   *   REWRITE_DONE indicates that no more rewriting is needed.
-   *   REWRITE_AGAIN means that the top-level expression should be
-   *     rewritten again, but that its children are in final form.
-   *   REWRITE_AGAIN_FULL means that the entire returned expression
-   *     should be rewritten again (top-down with preRewrite(), then
-   *     bottom-up with postRewrite()).
-   *
-   * Even if this function returns REWRITE_DONE, if the returned
-   * expression belongs to a different theory, it will be fully
-   * rewritten by that theory's rewriter.
-   */
-  static RewriteResponse postRewrite(TNode node) {
+ public:
 
-    // Implement me!
+  static RewriteResponse preRewrite(TNode node);
+  static RewriteResponse postRewrite(TNode node);
 
-    // This default implementation
-    return RewriteResponse(REWRITE_DONE, node);
-  }
-
-  /**
-   * Rewrite a node into the normal form for the theory of fp
-   * in pre-order (really topological order)---meaning that the
-   * children may not be in the normal form.  This is an optimization
-   * for theories with cancelling terms (e.g., 0 * (big-nasty-expression)
-   * in arithmetic rewrites to 0 without the need to look at the big
-   * nasty expression).  Since it's only an optimization, the
-   * implementation here can do nothing.
-   */
-  static RewriteResponse preRewrite(TNode node) {
-    // do nothing
-    return RewriteResponse(REWRITE_DONE, node);
-  }
 
   /**
    * Rewrite an equality, in case special handling is required.
@@ -63,12 +30,7 @@ public:
     return postRewrite(equality).node;
   }
 
-  /**
-   * Initialize the rewriter.
-   */
-  static inline void init() {
-    // nothing to do
-  }
+  static void init();
 
   /**
    * Shut down the rewriter.

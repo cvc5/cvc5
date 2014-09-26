@@ -154,6 +154,12 @@ IntegerType ExprManager::integerType() const {
   return IntegerType(Type(d_nodeManager, new TypeNode(d_nodeManager->integerType())));
 }
 
+RoundingModeType ExprManager::roundingModeType() const {
+  NodeManagerScope nms(d_nodeManager);
+  return RoundingModeType(Type(d_nodeManager, new TypeNode(d_nodeManager->roundingModeType())));
+}
+
+
 Expr ExprManager::mkExpr(Kind kind, Expr child1) {
   const kind::MetaKind mk = kind::metaKindOf(kind);
   const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
@@ -571,6 +577,11 @@ SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
      typeNodes.push_back(*types[i].d_typeNode);
   }
   return SExprType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSExprType(typeNodes))));
+}
+
+FloatingPointType ExprManager::mkFloatingPointType(unsigned exp, unsigned sig) const {
+  NodeManagerScope nms(d_nodeManager);
+  return FloatingPointType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkFloatingPointType(exp,sig))));
 }
 
 BitVectorType ExprManager::mkBitVectorType(unsigned size) const {
