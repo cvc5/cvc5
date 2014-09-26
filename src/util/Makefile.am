@@ -99,7 +99,9 @@ libutil_la_SOURCES = \
 	didyoumean.h \
 	didyoumean.cpp \
 	unsat_core.h \
-	unsat_core.cpp
+	unsat_core.cpp \
+	floatingpoint.h \
+	floatingpoint.cpp
 
 libstatistics_la_SOURCES = \
 	statistics_registry.h \

@@ -4,7 +4,7 @@
  ** Original author: Martin Brain
  ** Major contributors: 
  ** Minor contributors (to current version): 
- ** This file is *NOT* part of the CVC4 project.
+ ** This file is part of the CVC4 project.
  ** Copyright (c) 2013  University of Oxford
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim

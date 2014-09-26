@@ -4,7 +4,7 @@
  ** Original author: Martin Brain
  ** Major contributors: 
  ** Minor contributors (to current version): 
- ** This file is *NOT* part of the CVC4 project.
+ ** This file is part of the CVC4 project.
  ** Copyright (c) 2013  University of Oxford
  ** See the file COPYING in the top-level source directory for licensing
  ** information.\endverbatim
@@ -28,6 +28,10 @@ namespace CVC4 {
   {
     CheckArgument(VALIDEXPONENTSIZE(e),e,"Invalid exponent size : %d",e);
     CheckArgument(VALIDSIGNIFICANDSIZE(s),s,"Invalid significand size : %d",s);
+  }
+
+  void FloatingPointLiteral::unfinished (void) const {
+    Unimplemented("Floating-point literals not yet implemented.");
   }
 
 }/* CVC4 namespace */

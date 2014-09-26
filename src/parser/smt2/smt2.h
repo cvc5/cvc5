@@ -51,7 +51,8 @@ public:
     THEORY_QUANTIFIERS,
     THEORY_SETS,
     THEORY_STRINGS,
-    THEORY_UF
+    THEORY_UF,
+    THEORY_FP
   };
 
 private:
@@ -218,6 +219,8 @@ private:
   void addBitvectorOperators();
 
   void addStringOperators();
+
+  void addFloatingPointOperators();
 
 };/* class Smt2 */
 

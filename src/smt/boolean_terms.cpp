@@ -812,7 +812,17 @@ Node BooleanTermConverter::rewriteBooleanTermsRec(TNode top, theory::TheoryId pa
                     k != kind::TUPLE_UPDATE &&
                     k != kind::RECORD_SELECT &&
                     k != kind::RECORD_UPDATE &&
-                    k != kind::DIVISIBLE) {
+                    k != kind::DIVISIBLE &&
+		    // Theory parametric functions go here
+		    k != kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR &&
+		    k != kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT &&
+		    k != kind::FLOATINGPOINT_TO_FP_REAL &&
+		    k != kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR &&
+		    k != kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR &&
+		    k != kind::FLOATINGPOINT_TO_UBV &&
+		    k != kind::FLOATINGPOINT_TO_SBV &&
+		    k != kind::FLOATINGPOINT_TO_REAL
+		    ) {
             Debug("bt") << "rewriting: " << top.getOperator() << endl;
             result.top() << rewriteBooleanTermsRec(top.getOperator(), theory::THEORY_BUILTIN, quantBoolVars);
             Debug("bt") << "got: " << result.top().getOperator() << endl;

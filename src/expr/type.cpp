@@ -223,10 +223,22 @@ bool Type::isString() const {
   return d_typeNode->isString();
 }
 
+/** Is this the rounding mode type? */
+bool Type::isRoundingMode() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isRoundingMode();
+}
+
 /** Is this the bit-vector type? */
 bool Type::isBitVector() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isBitVector();
+}
+
+/** Is this the floating-point type? */
+bool Type::isFloatingPoint() const {
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFloatingPoint();
 }
 
 /** Is this a datatype type? */
@@ -436,9 +448,19 @@ StringType::StringType(const Type& t) throw(IllegalArgumentException) :
   CheckArgument(isNull() || isString(), this);
 }
 
+RoundingModeType::RoundingModeType(const Type& t) throw(IllegalArgumentException) :
+  Type(t) {
+  CheckArgument(isNull() || isRoundingMode(), this);
+}
+
 BitVectorType::BitVectorType(const Type& t) throw(IllegalArgumentException) :
   Type(t) {
   CheckArgument(isNull() || isBitVector(), this);
+}
+
+FloatingPointType::FloatingPointType(const Type& t) throw(IllegalArgumentException) :
+  Type(t) {
+  CheckArgument(isNull() || isFloatingPoint(), this);
 }
 
 DatatypeType::DatatypeType(const Type& t) throw(IllegalArgumentException) :
@@ -518,6 +540,14 @@ SubrangeType::SubrangeType(const Type& t)
 
 unsigned BitVectorType::getSize() const {
   return d_typeNode->getBitVectorSize();
+}
+
+unsigned FloatingPointType::getExponentSize() const {
+  return d_typeNode->getFloatingPointExponentSize();
+}
+
+unsigned FloatingPointType::getSignificandSize() const {
+  return d_typeNode->getFloatingPointSignificandSize();
 }
 
 Type ArrayType::getIndexType() const {

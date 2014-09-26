@@ -95,6 +95,41 @@ void Smt2::addStringOperators() {
   Parser::addOperator(kind::STRING_LENGTH);
 }
 
+void Smt2::addFloatingPointOperators() {
+  Parser::addOperator(kind::FLOATINGPOINT_FP);
+  Parser::addOperator(kind::FLOATINGPOINT_EQ);
+  Parser::addOperator(kind::FLOATINGPOINT_ABS);
+  Parser::addOperator(kind::FLOATINGPOINT_NEG);
+  Parser::addOperator(kind::FLOATINGPOINT_PLUS);
+  Parser::addOperator(kind::FLOATINGPOINT_SUB);
+  Parser::addOperator(kind::FLOATINGPOINT_MULT);
+  Parser::addOperator(kind::FLOATINGPOINT_DIV);
+  Parser::addOperator(kind::FLOATINGPOINT_FMA);
+  Parser::addOperator(kind::FLOATINGPOINT_SQRT);
+  Parser::addOperator(kind::FLOATINGPOINT_REM);
+  Parser::addOperator(kind::FLOATINGPOINT_RTI);
+  Parser::addOperator(kind::FLOATINGPOINT_MIN);
+  Parser::addOperator(kind::FLOATINGPOINT_MAX);
+  Parser::addOperator(kind::FLOATINGPOINT_LEQ);
+  Parser::addOperator(kind::FLOATINGPOINT_LT);
+  Parser::addOperator(kind::FLOATINGPOINT_GEQ);
+  Parser::addOperator(kind::FLOATINGPOINT_GT);
+  Parser::addOperator(kind::FLOATINGPOINT_ISN);
+  Parser::addOperator(kind::FLOATINGPOINT_ISSN);
+  Parser::addOperator(kind::FLOATINGPOINT_ISZ);  
+  Parser::addOperator(kind::FLOATINGPOINT_ISINF);
+  Parser::addOperator(kind::FLOATINGPOINT_ISNAN);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_UBV);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
+  Parser::addOperator(kind::FLOATINGPOINT_TO_REAL);
+}
+
+
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_ARRAYS:
@@ -172,6 +207,11 @@ void Smt2::addTheory(Theory theory) {
     Parser::addOperator(kind::APPLY_UF);
     break;
 
+  case THEORY_FP:
+    defineType("RoundingMode", getExprManager()->roundingModeType());
+    addFloatingPointOperators();
+    break;
+
   default:
     std::stringstream ss;
     ss << "internal error: unsupported theory " << theory;
@@ -222,6 +262,8 @@ bool Smt2::isTheoryEnabled(Theory theory) const {
     return d_logic.isTheoryEnabled(theory::THEORY_STRINGS);
   case THEORY_UF:
     return d_logic.isTheoryEnabled(theory::THEORY_UF);
+  case THEORY_FP:
+    return d_logic.isTheoryEnabled(theory::THEORY_FP);
   default:
     std::stringstream ss;
     ss << "internal error: unsupported theory " << theory;
@@ -301,6 +343,11 @@ void Smt2::setLogic(const std::string& name) {
   if(d_logic.isQuantified()) {
     addTheory(THEORY_QUANTIFIERS);
   }
+
+  if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
+    addTheory(THEORY_FP);
+  }
+
 }/* Smt2::setLogic() */
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
