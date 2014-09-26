@@ -576,9 +576,6 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache ){
-  // For resource-limiting (also does a time check).
-  getOutputChannel().spendResource();
-
   if( doCache ){
     Debug("inst-engine-debug") << "Adding lemma : " << lem << std::endl;
     lem = Rewriter::rewrite(lem);
@@ -603,6 +600,9 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 }
 
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst ){
+  // For resource-limiting (also does a time check).
+  getOutputChannel().spendResource();
+
   std::vector< Node > terms;
   //make sure there are values for each variable we are instantiating
   for( size_t i=0; i<f[0].getNumChildren(); i++ ){
