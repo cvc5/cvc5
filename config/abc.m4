@@ -9,7 +9,7 @@ ABC_LIBS=
 ABC_LDFLAGS=
 if test "$with_abc" = no; then
   AC_MSG_RESULT([no, abc disabled by user])
-elif test "$with_abc" = yes; then
+elif test -n "$with_abc"; then
   AC_MSG_RESULT([yes, abc requested by user])
 
   # Get the location of all the ABC stuff
