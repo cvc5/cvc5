@@ -35,6 +35,7 @@ std::string append(const std::string& str, uint64_t num) {
 ProofManager::ProofManager(ProofFormat format)
   : d_satProof(NULL)
   , d_cnfProof(NULL)
+  , d_rewriterProof(NULL)
   , d_theoryProof(NULL)
   , d_theoryLemmas()
   , d_inputFormulas()
@@ -45,14 +46,9 @@ ProofManager::ProofManager(ProofFormat format)
 ProofManager::~ProofManager() {
   delete d_satProof;
   delete d_cnfProof;
+  delete d_rewriterProof;
   delete d_theoryProof;
   delete d_fullProof;
-
-  // for(IdToClause::iterator it = d_inputClauses.begin();
-  //     it != d_inputClauses.end();
-  //     ++it) {
-  //   delete it->second;
-  // }
 
   for(IdToClause::iterator it = d_theoryLemmas.begin();
       it != d_theoryLemmas.end();
@@ -77,6 +73,7 @@ Proof* ProofManager::getProof(SmtEngine* smt) {
   currentPM()->d_fullProof = new LFSCProof(smt,
                                            (LFSCCoreSatProof*)getSatProof(),
                                            (LFSCCnfProof*)getCnfProof(),
+                                           (LFSCRewriterProof*)getRewriterProof(),
                                            (LFSCTheoryProofEngine*)getTheoryProofEngine());
   return currentPM()->d_fullProof;
 }
@@ -89,6 +86,10 @@ CoreSatProof* ProofManager::getSatProof() {
 CnfProof* ProofManager::getCnfProof() {
   Assert (currentPM()->d_cnfProof);
   return currentPM()->d_cnfProof;
+}
+RewriterProof* ProofManager::getRewriterProof() {
+  Assert (currentPM()->d_rewriterProof);
+  return currentPM()->d_rewriterProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
@@ -125,6 +126,14 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream) {
   Assert(pm-> d_satProof != NULL);
   pm->d_satProof->setCnfProof(cnf); 
 }
+
+void ProofManager::initRewriterProof() {
+  ProofManager* pm = currentPM();
+  Assert (pm->d_rewriterProof == NULL);
+  Assert (pm->d_format == LFSC);
+  pm->d_rewriterProof = new LFSCRewriterProof();
+}
+
 
 void ProofManager::initTheoryProofEngine() {
   Assert (currentPM()->d_theoryProof == NULL);
@@ -180,9 +189,14 @@ void ProofManager::setLogic(const std::string& logic_string) {
 }
 
 
-LFSCProof::LFSCProof(SmtEngine* smtEngine, LFSCCoreSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory)
+LFSCProof::LFSCProof(SmtEngine* smtEngine,
+                     LFSCCoreSatProof* sat,
+                     LFSCCnfProof* cnf,
+                     LFSCRewriterProof* rwr,
+                     LFSCTheoryProofEngine* theory)
   : d_cnfProof(cnf)
   , d_satProof(sat)
+  , d_rewriterProof(rwr)
   , d_theoryProof(theory)
   , d_smtEngine(smtEngine)
 {
@@ -206,6 +220,9 @@ void LFSCProof::toStream(std::ostream& out) {
   }
   // print out the assertions
   d_theoryProof->printAssertions(out, paren);
+
+  d_rewriterProof->printRewrittenAssertios(out, paren);
+  
   out << "(: (holds cln)\n";
   // print mapping between theory atoms and internal SAT variables
   d_cnfProof->printAtomMapping(out, paren);

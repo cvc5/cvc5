@@ -335,10 +335,10 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Let
     std::ostringstream paren;
     for(size_t i = 1; i < n; ++i) {
       if(i + 1 < n) {
-        os << "(" << utils::toLFSCCoreKind(kind::AND) << " ";
+        os << "(" << utils::toLFSCKind(kind::AND) << " ";
         paren << ")";
       }
-      os << "(" << utils::toLFSCCoreKind(op) << " ";
+      os << "(" << utils::toLFSCKind(op) << " ";
       printBoundTerm(term[i - 1], os, map);
       os << " ";
       printBoundTerm(term[i], os, map);
@@ -389,7 +389,7 @@ void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map)
   case kind::IMPLIES:
   case kind::NOT:
     // print the Boolean operators
-    os << "(" << utils::toLFSCCoreKind(k);
+    os << "(" << utils::toLFSCKind(k);
     if(term.getNumChildren() > 2) {
       // LFSC doesn't allow declarations with variable numbers of
       // arguments, so we have to flatten these N-ary versions.
@@ -399,7 +399,7 @@ void LFSCBooleanProof::printTerm(Expr term, std::ostream& os, const LetMap& map)
         d_proofEngine->printBoundTerm(term[i], os, map);
         os << " ";
         if(i < term.getNumChildren() - 2) {
-          os << "(" << utils::toLFSCCoreKind(k) << " ";
+          os << "(" << utils::toLFSCKind(k) << " ";
           paren << ")";
         }
       }

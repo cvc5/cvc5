@@ -85,6 +85,8 @@ libcvc4_la_SOURCES = \
 	proof/sat_proof_implementation.h \
 	proof/cnf_proof.h \
 	proof/cnf_proof.cpp \
+	proof/rewriter_proof.h \
+	proof/rewriter_proof.cpp \
 	proof/theory_proof.h \
 	proof/theory_proof.cpp \
 	proof/uf_proof.h \

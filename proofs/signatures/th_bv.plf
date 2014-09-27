@@ -505,104 +505,6 @@
 ;;;;;;;;;;;;; BitVector Rewrite rules
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ;; t rewrites to t'
-;; (declare rw_term
-;; 	 (! n mpz
-;; 	 (! t (term (BitVec n))
-;; 	 (! t' (term (BitVec n))
-;; 	 type))))
-
-;; (declare rw_formula
-;; 	 (! f formula
-;; 	 (! f' formula
-;; 	 type)))
-
-;; (declare apply_rw_formula
-;; 	 (! f formula
-;; 	 (! f' formula
-;; 	 (! rw (rw_formula f f')
-;; 	 (! fh (th_holds f)
-;; 	 (th_holds f'))))))
-	 
-;; ;; (declare let_rwt
-;; ;; 	 (!n mpz
-;; ;; 	 (!a (term (BitVec n))
-;; ;; 	 (!a' (term (BitVec n))
-;; ;; 	 (! f formula
-;; ;; 	 (!rw (rw_term _ a a')
-;; ;; 	 (! u (! r (rw_term _ a a') (th_holds f))
-;; ;; 	      (th_holds f))))))))
-
-;; ;; (declare let_rwf
-;; ;; 	 (!f formula
-;; ;; 	 (!f' formula
-;; ;; 	 (!fh formula
-;; ;; 	 (!rw (rw_formula f f')
-;; ;; 	 (!u (! r (rw_formula f f') (th_holds fh))
-;; ;; 	      (th_holds fh)))))))
-	      
-;; ;; Identity rewrite rules	 
-;; (declare rw_term_id
-;; 	 (! n mpz
-;; 	 (! t (term (BitVec n))
-;; 	 (rw_term n t t))))
-
-;; (declare rw_term_trans
-;; 	 (! n mpz
-;; 	 (! t1 (term (BitVec n))
-;; 	 (! t2 (term (BitVec n))
-;; 	 (! t3 (term (BitVec n))
-;; 	 (! rw12 (rw_term _ t1 t2)
-;; 	 (! rw23 (rw_term _ t2 t3)
-;; 	 (rw_term n t1 t3))))))))
-
-	 
-;; (declare rw_formula_id
-;; 	 (! f formula
-;; 	 (rw_formula f f)))
-
-
-;; (declare rw_bvop1_id
-;; 	 (! n mpz
-;; 	 (! a (term (BitVec n))
-;; 	 (! a' (term (BitVec n))
-;; 	 (! rw (rw_term _ a a')
-;; 	 (! op bvop1
-;; 	    (rw_term _ (op _ a) (op _ a'))))))))
-
-;; (declare rw_bvop2_id
-;; 	 (! n mpz
-;; 	 (! a (term (BitVec n))
-;; 	 (! a' (term (BitVec n))
-;; 	 (! b (term (BitVec n))
-;; 	 (! b' (term (BitVec n))
-;; 	 (! rw (rw_term _ a a')
-;; 	 (! rw (rw_term _ b b')
-;; 	 (! op bvop2
-;; 	    (rw_term _ (op _ a b) (op _ a' b')))))))))))
-	    
-;; (declare rw_bvpred_id
-;; 	 (! n mpz
-;; 	 (! a (term (BitVec n))
-;; 	 (! a' (term (BitVec n))
-;; 	 (! b (term (BitVec n))
-;; 	 (! b' (term (BitVec n))
-;; 	 (! rw (rw_term _ a a')
-;; 	 (! rw (rw_term _ b b')
-;; 	 (! op bvpred
-;; 	    (rw_formula (op _ a b) (op _ a' b')))))))))))
-
-;; (declare rw_eq_id
-;; 	 (! n mpz
-;; 	 (! a (term (BitVec n))
-;; 	 (! a' (term (BitVec n))
-;; 	 (! b (term (BitVec n))
-;; 	 (! b' (term (BitVec n))
-;; 	 (! rw (rw_term _ a a')
-;; 	 (! rw (rw_term _ b b')
-;; 	    (rw_formula (= (BitVec n) a b) (= (BitVec n) a' b'))))))))))
-
-	    
 ;; making constant bit-vectors	 
 (program mk_ones ((n mpz)) bv
 	(mp_ifzero n bvn (bvc b1 (mk_ones (mpz_sub n 1)))))
@@ -613,7 +515,7 @@
 
 	
 ;; (bvxnor a b) => (bvnot (bvxor a b))
-(declare xnor_elim
+(declare bvxnor_elim
 	 (! n mpz
 	 (! a (term (BitVec n))
 	 (! b (term (BitVec n))
@@ -627,7 +529,7 @@
 
 
 ;; (bvxor a 0) => a
-(declare xor_zero
+(declare bvxor_zero
 	 (! n mpz
 	 (! zero_bits bv
 	 (! sc (^ (mk_zero n)  zero_bits)
@@ -640,7 +542,7 @@
 	 	  a'))))))))))
 		  
 ;; (bvxor a 11) => (bvnot a)
-(declare xor_one
+(declare bvxor_one
 	 (! n mpz
 	 (! one_bits bv
 	 (! sc (^ (mk_ones n)  one_bits)
@@ -654,7 +556,7 @@
 
 		  
 ;; (bvnot (bvnot a)) => a
-(declare not_idemp
+(declare bvnot_idemp
 	 (! n mpz
 	 (! a (term (BitVec n))
 	 (! a' (term (BitVec n))
@@ -662,18 +564,3 @@
 	 (rw_term _ (bvnot _ (bvnot _ a))
 	 	  a'))))))
 
-
-;; (program subst_in_term ((t BitVec) (t' BitVec) (f term)) term
-;; (program subst_in_form ((t BitVec) (t' BitVec) (f formula)) formula
-;; 	 f)
-;; ;; substitution in formula
-;; (declare subt_form
-;; 	 (! n mpz
-;; 	 (! t (term BitVec n)
-;; 	 (! t' (term BitVec n)
-;; 	 (! rw (rw_term t t')
-;; 	 (! f formula
-;; 	 (! f' formula
-;; 	 (! fh (th_holds f)
-;; 	 (! sc (^ (subst_in t t' f) f')
-;; 	    (th_holds f'))))))))))

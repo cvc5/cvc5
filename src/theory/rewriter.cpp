@@ -19,6 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/rewriter_tables.h"
 #include "proof/proof_manager.h"
+#include "proof/rewriter_proof.h"
 
 using namespace std;
 
@@ -35,7 +36,10 @@ static CVC4_THREADLOCAL(std::hash_set<Node, NodeHashFunction>*) s_rewriteStack =
 
 class RewriterInitializer {
   static RewriterInitializer s_rewriterInitializer;
-  RewriterInitializer() { Rewriter::init(); }
+  RewriterInitializer() {
+    Rewriter::init();
+    PROOF(ProofManager::currentPM()->initRewriterProof(); ); 
+  }
   ~RewriterInitializer() { Rewriter::shutdown(); }
 };/* class RewriterInitializer */
 
@@ -123,9 +127,11 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           RewriteResponse response = Rewriter::callPreRewrite((TheoryId) rewriteStackTop.theoryId, rewriteStackTop.node);
           PROOF(
                 if(rewriteStackTop.node != response.node) {
-                  std::cout<< "Rewrite " << rewriteStackTop.node <<" => " << response.node<<"\n"; 
+                  Expr from = Node::toExpr(rewriteStackTop.node);
+                  Expr to = Node::toExpr(response.node);
+                  ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
                 }
-          );
+                );
 
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
@@ -182,9 +188,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       if (rewriteStackTop.node.getNumChildren() > 0) {
         Node rewritten = rewriteStackTop.builder;
         PROOF(
-              // TODO store the fact that the node rewrites to builder
               if (rewritten != rewriteStackTop.node) {
-                std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << rewritten<<"\n";
+                  Expr from = Node::toExpr(rewriteStackTop.node);
+                  Expr to = Node::toExpr(rewritten);
+                  ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
               }
               );
         rewriteStackTop.node = rewritten;
@@ -198,9 +205,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
         PROOF(
-              // TODO store the fact that the node rewrites to builder
               if (rewriteStackTop.node != response.node) {
-                std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << response.node <<"\n";
+                Expr from = Node::toExpr(rewriteStackTop.node);
+                Expr to = Node::toExpr(response.node);
+                ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
               }
               );
 
@@ -215,7 +223,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           Node rewritten = rewriteTo(newTheoryId, response.node);
           PROOF (
                  if (rewriteStackTop.node != rewritten) {
-                   std::cout << "Rewrite "<< rewriteStackTop.node <<" => " << rewritten <<"\n";
+                   Expr from = Node::toExpr(rewriteStackTop.node);
+                   Expr to = Node::toExpr(rewritten);
+                   ProofManager::currentPM()->getRewriterProof()->finalizeRewrite(from, to);
                  }
                  );
           rewriteStackTop.node = rewritten;

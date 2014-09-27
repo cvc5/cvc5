@@ -49,6 +49,7 @@ template <class Solver> class TSatProof;
 typedef TSatProof< ::Minisat::Solver> CoreSatProof;
 //typedef TSatProof< ::BVMinisat::Solver> BVSatProof;
 class CnfProof;
+class RewriterProof;
 class TheoryProofEngine;
 class UFProof;
 class ArrayProof;
@@ -61,6 +62,7 @@ class LFSCCnfProof;
 class LFSCTheoryProofEngine;
 class LFSCUFProof;
 class LFSCBitVectorProof;
+class LFSCRewriterProof;
 
 template <class Solver> class ProofProxy;
 typedef ProofProxy< ::Minisat::Solver> CoreProofProxy;
@@ -95,6 +97,7 @@ enum ClauseKind {
 class ProofManager {
   CoreSatProof*  d_satProof;
   CnfProof*      d_cnfProof;
+  RewriterProof* d_rewriterProof;
   TheoryProofEngine* d_theoryProof;
 
   // information that will need to be shared across proofs
@@ -117,13 +120,13 @@ public:
   static void         initSatProof(Minisat::Solver* solver);
   static void         initCnfProof(CVC4::prop::CnfStream* cnfStream);
   static void         initTheoryProofEngine();
-
+  static void         initRewriterProof();
   // getting various proofs
   static Proof*         getProof(SmtEngine* smt);
   static CoreSatProof*  getSatProof();
   static CnfProof*      getCnfProof();
   static TheoryProofEngine* getTheoryProofEngine();
-  
+  static RewriterProof* getRewriterProof();
   static UFProof* getUfProof();
   static BitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
@@ -165,10 +168,15 @@ public:
 class LFSCProof : public Proof {
   LFSCCnfProof* d_cnfProof;
   LFSCCoreSatProof* d_satProof;
+  LFSCRewriterProof* d_rewriterProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;
 public:
-  LFSCProof(SmtEngine* smtEngine, LFSCCoreSatProof* sat, LFSCCnfProof* cnf, LFSCTheoryProofEngine* theory);
+  LFSCProof(SmtEngine* smtEngine,
+            LFSCCoreSatProof* sat,
+            LFSCCnfProof* cnf,
+            LFSCRewriterProof* rwr,
+            LFSCTheoryProofEngine* theory);
   virtual void toStream(std::ostream& out);
   virtual ~LFSCProof() {}
 };/* class LFSCProof */

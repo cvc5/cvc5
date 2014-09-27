@@ -27,7 +27,7 @@
 (declare rw_term_id
 	 (! s sort
 	 (! t (term s)
-	 (rw_term n t t))))
+	 (rw_term s t t))))
 
 (declare rw_term_trans
 	 (! s sort
@@ -37,6 +37,16 @@
 	 (! rw12 (rw_term _ t1 t2)
 	 (! rw23 (rw_term _ t2 t3)
 	 (rw_term s t1 t3))))))))
+	 
+;; rw_symmetry
+	 
+(declare rw_formula_trans
+	 (! f1 formula
+ 	 (! f2 formula
+	 (! f3 formula
+	 (! rw1 (rw_formula f1 f2)
+	 (! rw2 (rw_formula f2 f3)
+	 (rw_formula f1 f3)))))))
 
 	 
 (declare rw_op1_id
@@ -44,7 +54,7 @@
 	 (! a (term s)
 	 (! a' (term s)
 	 (! rw (rw_term _ a a')
-	 (! op bvop1
+	 (! op term_op1
 	    (rw_term _ (op _ a) (op _ a'))))))))
 
 (declare rw_op2_id
@@ -55,7 +65,7 @@
 	 (! b' (term s)
 	 (! rw (rw_term _ a a')
 	 (! rw (rw_term _ b b')
-	 (! op bvop2
+	 (! op term_op2
 	    (rw_term _ (op _ a b) (op _ a' b')))))))))))
 
 (declare rw_pred1_id
@@ -63,7 +73,7 @@
 	 (! a (term s)
 	 (! a' (term s)
 	 (! rw (rw_term _ a a')
-	 (! op bvpred
+	 (! op op_pred1
 	    (rw_formula (op _ a) (op _ a'))))))))
 	    
 (declare rw_pred2_id
@@ -74,7 +84,7 @@
 	 (! b' (term s)
 	 (! rw (rw_term _ a a')
 	 (! rw (rw_term _ b b')
-	 (! op bvpred
+	 (! op op_pred2
 	    (rw_formula (op _ a b) (op _ a' b')))))))))))
 
 (declare rw_eq_id

@@ -342,6 +342,13 @@ Node RewriteRule<XorOne>::apply(TNode node) {
   Node result = utils::mkNode(kind::BITVECTOR_XOR, children);
   if (found_ones) {
     result = utils::mkNode(kind::BITVECTOR_NOT, result);
+    PROOF(
+          Expr from = Node::toExpr(node);
+          Expr to = Node::toExpr(res);
+          ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXorOne);
+          return res;
+          );
+    
   }
   return result;
 }
@@ -379,8 +386,13 @@ Node RewriteRule<XorZero>::apply(TNode node) {
       children.push_back(node[i]); 
     }
   }
-
-  return utils::mkNode(kind::BITVECTOR_XOR, children); 
+  Node res = utils::mkNode(kind::BITVECTOR_XOR, children); 
+  PROOF(
+        Expr from = Node::toExpr(node);
+        Expr to = Node::toExpr(res);
+        ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXorZero);
+        return res;
+        );
 }
 
 
@@ -489,6 +501,13 @@ bool RewriteRule<NotIdemp>::applies(TNode node) {
 template<> inline
 Node RewriteRule<NotIdemp>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<NotIdemp>(" << node << ")" << std::endl;
+  PROOF(
+        Expr from = Node::toExpr(node);
+        Expr to = Node::toExpr(node[0][0]);
+        ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvNotIdemp);
+        return res;
+        );
+  
   return node[0][0];
 }
 

@@ -27,8 +27,6 @@ using namespace CVC4;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-std::string toLFSCBVKind(Kind kind);
-
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
   : TheoryProof(bv, proofEngine)
   , d_declarations()
@@ -240,7 +238,7 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
 }
 
 void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const LetMap& map) {
-  std::string op = toLFSCBVKind(term.getKind());
+  std::string op = utils::toLFSCKind(term.getKind());
   std::ostringstream paren;
   os <<"("<< op <<" " << utils::getSize(term) <<" ";
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
@@ -256,7 +254,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Le
 
 void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map); 
   os <<")";
@@ -264,7 +262,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const L
 
 void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";
-  os << toLFSCBVKind(term.getKind()) << " " << utils::getSize(term) <<" ";
+  os << utils::toLFSCKind(term.getKind()) << " " << utils::getSize(term) <<" ";
   os << " ";
   d_proofEngine->printBoundTerm(term[0], os, map);
   os << " ";
@@ -274,7 +272,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const LetMa
 
 void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const LetMap& map) {
   os <<"(";  
-  os << toLFSCBVKind(term.getKind()) << utils::getSize(term) <<" "; 
+  os << utils::toLFSCKind(term.getKind()) << utils::getSize(term) <<" "; 
   os <<" "; 
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
     unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -393,13 +391,13 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_ASHR :
   case kind::BITVECTOR_CONCAT : {
     std::ostringstream paren;
-    os <<"(bv_bbl_"<< toLFSCBVKind(kind);
+    os <<"(bv_bbl_"<< utils::toLFSCKind(kind);
     os <<" _ _ _ _ _ _ ";
     for (unsigned i = 0; i < term.getNumChildren(); ++i) {
       os << "bt" << getBBId(term[i]);
       os << " ";
       if (i + 2 < term.getNumChildren()) {
-        os <<"(bv_bbl_"<<toLFSCBVKind(kind);
+        os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
         os <<" _ _ _ _ _ _ ";
         paren <<")";
       }
@@ -411,14 +409,14 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_NOT :
   case kind::BITVECTOR_ROTATE_LEFT :
   case kind::BITVECTOR_ROTATE_RIGHT : {
-    os <<"(bv_bbl_"<<toLFSCBVKind(kind);
+    os <<"(bv_bbl_"<<utils::toLFSCKind(kind);
     os <<" _ _ _ _ ";
     os << "bt" << getBBId(term[0]);
     os <<")";
     return;
   }
   case kind::BITVECTOR_EXTRACT : {
-    os <<"(bv_bbl_"<<toLFSCBVKind(kind) <<" ";
+    os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
     os << utils::getExtractHigh(term) << " ";
     os << utils::getExtractLow(term) << " ";
     os << " _ _ _ _ ";
@@ -429,7 +427,7 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   case kind::BITVECTOR_REPEAT :
   case kind::BITVECTOR_ZERO_EXTEND :
   case kind::BITVECTOR_SIGN_EXTEND : {
-    os <<"(bv_bbl_"<<toLFSCBVKind(kind) <<" ";
+    os <<"(bv_bbl_"<<utils::toLFSCKind(kind) <<" ";
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
       unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
       os << amount; 
@@ -466,7 +464,7 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os) {
   case kind::BITVECTOR_SGE :
   case kind::EQUAL:
     {
-    os <<"(bv_bbl_" << toLFSCBVKind(atom.getKind()); 
+    os <<"(bv_bbl_" << utils::toLFSCKind(atom.getKind()); 
     os << " _ _ _ _ _ _ ";
     os << "bt"<< getBBId(atom[0]) <<" bt" << getBBId(atom[1]) <<")"; 
     return;
@@ -511,81 +509,3 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os, std::ostream& pa
   d_resolutionProof->printResolutions(os, paren);
 }
 
-std::string toLFSCBVKind(Kind kind) {
-  switch(kind) {
-  case kind::BITVECTOR_AND :
-    return "bvand"; 
-  case kind::BITVECTOR_OR :
-    return "bvor"; 
-  case kind::BITVECTOR_XOR :
-    return "bvxor"; 
-  case kind::BITVECTOR_NAND :
-    return "bvnand"; 
-  case kind::BITVECTOR_NOR :
-    return "bvnor"; 
-  case kind::BITVECTOR_XNOR :
-    return "bvxnor"; 
-  case kind::BITVECTOR_COMP :
-    return "bvcomp"; 
-  case kind::BITVECTOR_MULT :
-    return "bvmul";
-  case kind::BITVECTOR_PLUS :
-    return "bvadd"; 
-  case kind::BITVECTOR_SUB :
-    return "bvsub";
-  case kind::BITVECTOR_UDIV :
-    return "bvudiv";
-  case kind::BITVECTOR_UREM :
-    return "bvurem"; 
-  case kind::BITVECTOR_SDIV :
-    return "bvsdiv"; 
-  case kind::BITVECTOR_SREM :
-    return "bvsrem";
-  case kind::BITVECTOR_SMOD :
-    return "bvsmod"; 
-  case kind::BITVECTOR_SHL :
-    return "bvshl"; 
-  case kind::BITVECTOR_LSHR :
-    return "bvlshr";
-  case kind::BITVECTOR_ASHR :
-    return "bvashr";
-  case kind::BITVECTOR_CONCAT :
-    return "concat"; 
-  case kind::BITVECTOR_NEG :
-    return "bvneg"; 
-  case kind::BITVECTOR_NOT :
-    return "bvnot"; 
-  case kind::BITVECTOR_ROTATE_LEFT :
-    return "rotate_left"; 
-  case kind::BITVECTOR_ROTATE_RIGHT :
-    return "rotate_right";
-  case kind::BITVECTOR_ULT :
-    return "bvult"; 
-  case kind::BITVECTOR_ULE :
-    return "bvule"; 
-  case kind::BITVECTOR_UGT :
-    return "bvugt";
-  case kind::BITVECTOR_UGE :
-    return "bvuge";
-  case kind::BITVECTOR_SLT :
-    return "bvslt"; 
-  case kind::BITVECTOR_SLE :
-    return "bvsle"; 
-  case kind::BITVECTOR_SGT :
-    return "bvsgt"; 
-  case kind::BITVECTOR_SGE :
-    return "bvsge"; 
-  case kind::BITVECTOR_EXTRACT :
-    return "extract"; 
-  case kind::BITVECTOR_REPEAT :
-    return "repeat"; 
-  case kind::BITVECTOR_ZERO_EXTEND :
-    return "zero_extend";
-  case kind::BITVECTOR_SIGN_EXTEND :
-    return "sign_extend";
-  case kind::EQUAL:
-    return "eq";
-  default:
-    Unreachable();
-  }
-}
