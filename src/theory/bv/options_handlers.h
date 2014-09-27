@@ -46,7 +46,6 @@ inline void abcEnabledBuild(std::string option, std::string value, SmtEngine* sm
 #endif /* CVC4_USE_ABC */
 }
 
-
 static const std::string bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -136,6 +135,21 @@ inline BvSlicerMode stringToBvSlicerMode(std::string option, std::string optarg,
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
                           optarg + "'.  Try --bv-eq-slicer=help.");
+  }
+}
+
+inline void setBitblastAig(std::string option, bool arg, SmtEngine* smt) throw(OptionException) {
+  if(arg) {
+    if(options::bitblastMode.wasSetByUser()) {
+      if(options::bitblastMode() != BITBLAST_MODE_EAGER) {
+        throw OptionException("bitblast-aig must be used with eager bitblaster");
+      }
+    } else {
+      options::bitblastMode.set(stringToBitblastMode("", "eager", smt));
+    }
+    if(!options::bitvectorAigSimplifications.wasSetByUser()) {
+      options::bitvectorAigSimplifications.set("balance;drw");
+    }
   }
 }
 
