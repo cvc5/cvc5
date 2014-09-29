@@ -129,7 +129,7 @@ public:
   Node getTerm();
   //debug print
   void debugPrint( const char * c, const char * cd );
-  
+
   //conjecture generation
   ConjectureGenerator * d_cg;
   //the current number of enumerated variables per type
@@ -149,14 +149,14 @@ public:
   std::map< unsigned, TermGenerator > d_tg_alloc;
   unsigned d_tg_gdepth;
   int d_tg_gdepth_limit;
-  
+
   //all functions
   std::vector< TNode > d_funcs;
   //function to kind map
   std::map< TNode, Kind > d_func_kind;
   //type of each argument of the function
   std::map< TNode, std::vector< TypeNode > > d_func_args;
-  
+
   //access functions
   unsigned getNumTgVars( TypeNode tn );
   bool allowVar( TypeNode tn );
@@ -364,6 +364,16 @@ private:
   std::vector< TypeEnumerator > d_typ_enum;
   //get nth term for type
   Node getEnumerateTerm( TypeNode tn, unsigned index );
+  //predicate for type
+  std::map< TypeNode, Node > d_typ_pred;
+  //get predicate for type
+  Node getPredicateForType( TypeNode tn );
+  //
+  void getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms );
+  //
+  void getEnumeratePredUfTerm( Node n, unsigned num, std::vector< Node >& terms );
+  // uf operators enumerated
+  std::map< Node, bool > d_uf_enum;
 public:  //for property enumeration
   //process this candidate conjecture
   void processCandidateConjecture( TNode lhs, TNode rhs, unsigned lhs_depth, unsigned rhs_depth );
@@ -396,8 +406,12 @@ private:  //information about ground equivalence classes
   Node getGroundEqc( TNode r );
   bool isGroundEqc( TNode r );
   bool isGroundTerm( TNode n );
+  //has enumerated UF
+  bool hasEnumeratedUf( Node n );
   // count of full effort checks
   unsigned d_fullEffortCount;
+  // has added lemma
+  bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 public:
@@ -420,7 +434,7 @@ private:
   int optFilterScoreThreshold();
   unsigned optFullCheckFrequency();
   unsigned optFullCheckConjectures();
-  
+
   bool optStatsOnly();
 };
 

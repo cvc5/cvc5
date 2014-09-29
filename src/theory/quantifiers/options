@@ -169,4 +169,6 @@ option conjectureFilterCanonical --conjecture-filter-canonical bool :read-write 
  filter based on canonicity
 option conjectureFilterModel --conjecture-filter-model bool :read-write :default true
  filter based on model
+option conjectureGenGtEnum --conjecture-gen-gt-enum=N int :default 0
+ number of ground terms to generate for model filtering
 endmodule
