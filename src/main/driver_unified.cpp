@@ -40,7 +40,6 @@
 # endif
 #include "main/options.h"
 #include "smt/options.h"
-#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
@@ -375,8 +374,18 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           status = pExecutor->doCommand(cmd);
           needReset = true;
         } else {
-          Command* copy = cmd->clone();
-          allCommands.back().push_back(copy);
+          // We shouldn't copy certain commands, because they can cause
+          // an error on replay since there's no associated sat/unsat check
+          // preceding them.
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == NULL &&
+             dynamic_cast<GetProofCommand*>(cmd) == NULL &&
+             dynamic_cast<GetValueCommand*>(cmd) == NULL &&
+             dynamic_cast<GetModelCommand*>(cmd) == NULL &&
+             dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL) {
+            Command* copy = cmd->clone();
+            allCommands.back().push_back(copy);
+          }
           status = pExecutor->doCommand(cmd);
           if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
             delete cmd;
