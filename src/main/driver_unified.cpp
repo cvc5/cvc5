@@ -40,7 +40,6 @@
 # endif
 #include "main/options.h"
 #include "smt/options.h"
-#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
