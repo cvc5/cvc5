@@ -268,15 +268,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     Command* cmd;
     bool status = true;
     if(opts[options::interactive] && inputFromStdin) {
-      if(opts[options::tearDownIncremental] && opts[options::incrementalSolving]) {
-        if(opts.wasSetByUser(options::incrementalSolving)) {
-          throw OptionException("--tear-down-incremental incompatible with --incremental");
-        }
-
-        cmd = new SetOptionCommand("incremental", false);
-        cmd->setMuted(true);
-        pExecutor->doCommand(cmd);
-        delete cmd;
+      if(opts[options::tearDownIncremental]) {
+        throw OptionException("--tear-down-incremental doesn't work in interactive mode");
       }
 #ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUser(options::incrementalSolving)) {

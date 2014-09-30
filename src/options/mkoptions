@@ -352,6 +352,10 @@ function handle_option {
       WARN "$internal is inaccessible via SmtEngine (no smt name for option) but can be set via command-line: $long_option $short_option $long_option_alternate $short_option_alternate"
     fi
   fi
+  # in options files, use an smt name of ":" to force there not to be one
+  if [ "$smtname" = : ]; then
+    smtname=
+  fi
 
   # check for duplicates
   if [ "$internal" != - ]; then

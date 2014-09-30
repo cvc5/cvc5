@@ -65,6 +65,8 @@ using namespace CVC4;
 using namespace CVC4::theory;
 
 void TheoryEngine::finishInit() {
+  PROOF (ProofManager::initTheoryProof(); );
+
   // initialize the quantifiers engine
   d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
 
@@ -169,8 +171,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   StatisticsRegistry::registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-
-  PROOF (ProofManager::initTheoryProof(); );
 
   d_iteUtilities = new ITEUtilities(d_iteRemover.getContainsVisitor());
 
