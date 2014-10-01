@@ -171,4 +171,6 @@ option conjectureFilterModel --conjecture-filter-model bool :read-write :default
  filter based on model
 option conjectureGenGtEnum --conjecture-gen-gt-enum=N int :default 0
  number of ground terms to generate for model filtering
+option conjectureUeeIntro --conjecture-gen-uee-intro bool :default false
+ more aggressive merging for universal equality engine, introduces terms
 endmodule

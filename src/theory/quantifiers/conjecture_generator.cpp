@@ -247,7 +247,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
               }else{
                 Assert( eq_terms[i].getType()==tn );
                 registerPattern( eq_terms[i], tn );
-                if( isUniversalLessThan( eq_terms[i], t ) ){
+                if( isUniversalLessThan( eq_terms[i], t ) || ( options::conjectureUeeIntro() && d_pattern_fun_sum[t]>=d_pattern_fun_sum[eq_terms[i]] ) ){
                   setUniversalRelevant( eq_terms[i] );
                   assertEq = true;
                 }
@@ -255,6 +255,8 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
               if( assertEq ){
                 Node exp;
                 d_uequalityEngine.assertEquality( t.eqNode( eq_terms[i] ), true, exp );
+              }else{
+                Trace("thm-ee-no-add") << "Do not add : " << t << " == " << eq_terms[i] << std::endl;
               }
             }
           }else{
@@ -322,7 +324,6 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 
 
 Node ConjectureGenerator::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs ) {
-  Trace("ajr-temp") << "get canonical term " << n << " " << n.getKind() << " " << n.hasOperator() << std::endl;
   if( n.getKind()==BOUND_VARIABLE ){
     std::map< TNode, TNode >::iterator it = subs.find( n );
     if( it==subs.end() ){
@@ -1539,7 +1540,6 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
       //check if there is only one feasible equivalence class.  if so, don't make pattern any more specific.
       //unsigned i = s->d_ccand_eqc[0].size()-1;
       //if( s->d_ccand_eqc[0][i].size()==1 && s->d_ccand_eqc[1][i].empty() ){
-      //  Trace("ajr-temp") << "Apply this!" << std::endl;
       //  d_status = 6;
       //  return getNextTerm( s, depth );
       //}
