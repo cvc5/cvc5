@@ -29,8 +29,10 @@
 
 namespace CVC4 {
 
-#define VALIDEXPONENTSIZE(e) ((e) >= 2)
-#define VALIDSIGNIFICANDSIZE(s) ((s) >= 2)
+  
+  // Inline these!
+  inline bool CVC4_PUBLIC validExponentSize (unsigned e) { return e >= 2; }
+  inline bool CVC4_PUBLIC validSignificandSize (unsigned s) { return s >= 2; }
 
   /**
    * Floating point sorts are parameterised by two non-zero constants
@@ -116,7 +118,7 @@ namespace CVC4 {
    * A concrete floating point number
    */
 
-  class FloatingPointLiteral {
+  class CVC4_PUBLIC FloatingPointLiteral {
   public :
     // This intentional left unfinished as the choice of literal
     // representation is solver specific.

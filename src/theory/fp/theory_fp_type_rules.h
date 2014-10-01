@@ -19,10 +19,10 @@ public:
     const FloatingPoint &f = n.getConst<FloatingPoint>();
     
     if (check) {
-      if (!(VALIDEXPONENTSIZE(f.t.exponent()))) {
+      if (!(validExponentSize(f.t.exponent()))) {
         throw TypeCheckingExceptionPrivate(n, "constant with invalid exponent size");
       }
-      if (!(VALIDSIGNIFICANDSIZE(f.t.significand()))) {
+      if (!(validSignificandSize(f.t.significand()))) {
         throw TypeCheckingExceptionPrivate(n, "constant with invalid significand size");
       }
     }
@@ -68,9 +68,9 @@ public:
 
       if (signBits != 1) {
 	throw TypeCheckingExceptionPrivate(n, "sign bit vector in fp must be 1 bit long");
-      } else if (!(VALIDEXPONENTSIZE(exponentBits))) {
+      } else if (!(validExponentSize(exponentBits))) {
 	throw TypeCheckingExceptionPrivate(n, "exponent bit vector in fp is an invalid size");
-      } else if (!(VALIDSIGNIFICANDSIZE(significandBits))) {
+      } else if (!(validSignificandSize(significandBits))) {
 	throw TypeCheckingExceptionPrivate(n, "significand bit vector in fp is an invalid size");
       }
     }
