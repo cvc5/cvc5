@@ -20,14 +20,14 @@ namespace CVC4 {
 
   FloatingPointSize::FloatingPointSize (unsigned _e, unsigned _s) : e(_e), s(_s)
   {
-    CheckArgument(VALIDEXPONENTSIZE(_e),_e,"Invalid exponent size : %d",_e);
-    CheckArgument(VALIDSIGNIFICANDSIZE(_s),_s,"Invalid significand size : %d",_s);
+    CheckArgument(validExponentSize(_e),_e,"Invalid exponent size : %d",_e);
+    CheckArgument(validSignificandSize(_s),_s,"Invalid significand size : %d",_s);
   }
 
   FloatingPointSize::FloatingPointSize (const FloatingPointSize &old) : e(old.e), s(old.s)
   {
-    CheckArgument(VALIDEXPONENTSIZE(e),e,"Invalid exponent size : %d",e);
-    CheckArgument(VALIDSIGNIFICANDSIZE(s),s,"Invalid significand size : %d",s);
+    CheckArgument(validExponentSize(e),e,"Invalid exponent size : %d",e);
+    CheckArgument(validSignificandSize(s),s,"Invalid significand size : %d",s);
   }
 
   void FloatingPointLiteral::unfinished (void) const {
