@@ -20,4 +20,7 @@ option arraysEagerIndexSplitting --arrays-eager-index bool :default true :read-w
 option arraysEagerLemmas --arrays-eager-lemmas bool :default false :read-write
  turn on eager lemma generation for arrays
 
+option arraysConfig --arrays-config int :default 0 :read-write
+ set different array option configurations - for developers only
+
 endmodule
