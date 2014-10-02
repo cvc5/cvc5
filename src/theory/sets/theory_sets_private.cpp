@@ -1437,6 +1437,9 @@ void TheorySetsPrivate::TermInfoManager::mergeTerms(TNode a, TNode b) {
 
 Node TheorySetsPrivate::TermInfoManager::getModelValue(TNode n)
 {
+  if(d_terms.find(n) == d_terms.end()) {
+    return Node();
+  }
   Assert(n.getType().isSet());
   set<Node> elements, elements_const;
   Node S = d_eqEngine->getRepresentative(n);
