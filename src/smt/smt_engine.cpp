@@ -4003,8 +4003,6 @@ void SmtEngine::pop() throw(ModalException) {
                        << d_userContext->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
-  // Still, we want the right exit status after any final sequence
-  // of pops... hm.
 }
 
 void SmtEngine::internalPush() {
