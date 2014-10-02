@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file floatingpoint.cpp
+/*! \file theory_fp_rewriter.cpp
  ** \verbatim
  ** Original author: Martin Brain
  ** Major contributors: 
