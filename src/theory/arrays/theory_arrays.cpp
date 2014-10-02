@@ -40,11 +40,11 @@ namespace arrays {
 const bool d_ccStore = false;
 const bool d_useArrTable = false;
   //const bool d_eagerLemmas = false;
-const bool d_propagateLemmas = true;
 const bool d_preprocess = true;
 const bool d_solveWrite = true;
 const bool d_solveWrite2 = false;
   // These are now options
+  //const bool d_propagateLemmas = true;
   //bool d_useNonLinearOpt = true;
   //bool d_lazyRIntro1 = true;
   //bool d_eagerIndexSplitting = false;
@@ -87,6 +87,7 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_permRef(c),
   d_modelConstraints(c),
   d_lemmasSaved(c),
+  d_defValues(c),
   d_inCheckModel(false)
 {
   StatisticsRegistry::registerStat(&d_numRow);
@@ -449,6 +450,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     if (node.getType().isArray()) {
       d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+      d_mayEqualEqualityEngine.addTerm(node);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -468,7 +470,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE: {
-    // Invariant: array terms should be preregistered before being added to the equality engine
     if (d_equalityEngine.hasTerm(node)) {
       break;
     }
@@ -499,13 +500,28 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     break;
   }
   case kind::STORE_ALL: {
-    throw LogicException("Array theory solver does not yet support assertions using constant array value");
+    if (d_equalityEngine.hasTerm(node)) {
+      break;
+    }
+    ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
+    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    if (!defaultValue.isConst()) {
+      throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
+    }
+    d_infoMap.setConstArr(node, node);
+    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+    d_mayEqualEqualityEngine.addTerm(node);
+    Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+    d_defValues[node] = defaultValue;
+    break;
   }
   default:
     // Variables etc
     if (node.getType().isArray()) {
       d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
       Assert(d_equalityEngine.getSize(node) == 1);
+      // The may equal needs the node
+      d_mayEqualEqualityEngine.addTerm(node);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -674,7 +690,9 @@ void TheoryArrays::computeCareGraph()
           case EQUALITY_FALSE:
           case EQUALITY_FALSE_IN_MODEL:
             // Don't need to include this pair
-            continue;
+            if (options::arraysReduceSharing()) {
+              continue;
+            }
           default:
             break;
         }
@@ -809,9 +827,21 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
   }
 
   Node rep;
-  map<Node, Node> defValues;
-  map<Node, Node>::iterator it;
+  DefValMap::iterator it;
   TypeSet defaultValuesSet;
+
+  // Compute all default values already in use
+  if (fullModel) {
+    for (size_t i=0; i<arrays.size(); ++i) {
+      TNode nrep = d_equalityEngine.getRepresentative(arrays[i]);
+      d_mayEqualEqualityEngine.addTerm(nrep); // add the term in case it isn't there already
+      TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
+      it = d_defValues.find(mayRep);
+      if (it != d_defValues.end()) {
+        defaultValuesSet.add(nrep.getType().getArrayConstituentType(), (*it).second);
+      }
+    }
+  }
 
   // Loop through all array equivalence classes that need a representative computed
   for (size_t i=0; i<arrays.size(); ++i) {
@@ -820,11 +850,10 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
 
     if (fullModel) {
       // Compute default value for this array - there is one default value for every mayEqual equivalence class
-      d_mayEqualEqualityEngine.addTerm(nrep); // add the term in case it isn't there already
       TNode mayRep = d_mayEqualEqualityEngine.getRepresentative(nrep);
-      it = defValues.find(mayRep);
+      it = d_defValues.find(mayRep);
       // If this mayEqual EC doesn't have a default value associated, get the next available default value for the associated array element type
-      if (it == defValues.end()) {
+      if (it == d_defValues.end()) {
         TypeNode valueType = nrep.getType().getArrayConstituentType();
         rep = defaultValuesSet.nextTypeEnum(valueType);
         if (rep.isNull()) {
@@ -832,7 +861,7 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
           rep = *(defaultValuesSet.getSet(valueType)->begin());
         }
         Trace("arrays-models") << "New default value = " << rep << endl;
-        defValues[mayRep] = rep;
+        d_defValues[mayRep] = rep;
       }
       else {
         rep = (*it).second;
@@ -2036,7 +2065,42 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
       }
     }
 
+    TNode constArrA = d_infoMap.getConstArr(a);
+    TNode constArrB = d_infoMap.getConstArr(b);
+    if (constArrA.isNull()) {
+      if (!constArrB.isNull()) {
+        d_infoMap.setConstArr(a,constArrB);
+      }
+    }
+    else if (!constArrB.isNull()) {
+      if (constArrA != constArrB) {
+        conflict(constArrA,constArrB);
+      }
+    }
+
+    // If a and b have different default values associated with their mayequal equivalence classes,
+    // things get complicated - disallow this for now.  -Clark
+    TNode mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
+    TNode mayRepB = d_mayEqualEqualityEngine.getRepresentative(b);
+
+    DefValMap::iterator it = d_defValues.find(mayRepA);
+    DefValMap::iterator it2 = d_defValues.find(mayRepB);
+    TNode defValue;
+
+    if (it != d_defValues.end()) {
+      defValue = (*it).second;
+      if (it2 != d_defValues.end() && (defValue != (*it2).second)) {
+        throw LogicException("Array theory solver does not yet support write-chains connecting two different constant arrays");
+      }
+    }
+    else if (it2 != d_defValues.end()) {
+      defValue = (*it2).second;
+    }
     d_mayEqualEqualityEngine.assertEquality(a.eqNode(b), true, d_true);
+    if (!defValue.isNull()) {
+      mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
+      d_defValues[mayRepA] = defValue;
+    }
 
     checkRowLemmas(a,b);
     checkRowLemmas(b,a);
@@ -2168,6 +2232,17 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   Assert(a.getType().isArray());
   Assert(d_equalityEngine.getRepresentative(a) == a);
 
+  TNode constArr = d_infoMap.getConstArr(a);
+  if (!constArr.isNull()) {
+    ArrayStoreAll storeAll = constArr.getConst<ArrayStoreAll>();
+    Node defValue = Node::fromExpr(storeAll.getExpr());
+    Node selConst = NodeManager::currentNM()->mkNode(kind::SELECT, constArr, i);
+    if (!d_equalityEngine.hasTerm(selConst)) {
+      preRegisterTermInternal(selConst);
+    }
+    d_equalityEngine.assertEquality(selConst.eqNode(defValue), true, d_true);
+  }
+
   const CTNodeList* stores = d_infoMap.getStores(a);
   const CTNodeList* instores = d_infoMap.getInStores(a);
   size_t it = 0;
@@ -2211,15 +2286,25 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
     d_infoMap.getInfo(b)->print();
 
   const CTNodeList* i_a = d_infoMap.getIndices(a);
+  size_t it = 0;
+  TNode constArr = d_infoMap.getConstArr(b);
+  if (!constArr.isNull()) {
+    for( ; it < i_a->size(); ++it) {
+      TNode i = (*i_a)[it];
+      Node selConst = NodeManager::currentNM()->mkNode(kind::SELECT, constArr, i);
+      if (!d_equalityEngine.hasTerm(selConst)) {
+        preRegisterTermInternal(selConst);
+      }
+    }
+  }
+
   const CTNodeList* st_b = d_infoMap.getStores(b);
   const CTNodeList* inst_b = d_infoMap.getInStores(b);
-
-  size_t it = 0;
   size_t its;
 
   RowLemmaType lem;
 
-  for( ; it < i_a->size(); ++it) {
+  for(it = 0 ; it < i_a->size(); ++it) {
     TNode i = (*i_a)[it];
     its = 0;
     for ( ; its < st_b->size(); ++its) {
@@ -2277,8 +2362,9 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   bool bothExist = ajExists && bjExists;
 
   // If propagating, check propagations
-  if (d_propagateLemmas) {
-    if (d_equalityEngine.areDisequal(i,j,true)) {
+  int prop = options::arraysPropagate();
+  if (prop > 0) {
+    if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
       Node i_eq_j = i.eqNode(j);

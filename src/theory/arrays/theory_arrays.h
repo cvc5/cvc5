@@ -361,6 +361,10 @@ class TheoryArrays : public Theory {
   context::CDHashSet<Node, NodeHashFunction > d_lemmasSaved;
   std::vector<Node> d_lemmas;
 
+  // Default values for each mayEqual equivalence class
+  typedef context::CDHashMap<Node,Node,NodeHashFunction> DefValMap;
+  DefValMap d_defValues;
+
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);

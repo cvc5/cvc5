@@ -23,4 +23,10 @@ option arraysEagerLemmas --arrays-eager-lemmas bool :default false :read-write
 option arraysConfig --arrays-config int :default 0 :read-write
  set different array option configurations - for developers only
 
+option arraysReduceSharing --arrays-reduce-sharing bool :default false :read-write
+ use model information to reduce size of care graph for arrays
+
+option arraysPropagate --arrays-prop int :default 2 :read-write
+ propagation effort for arrays: 0 is none, 1 is some, 2 is full
+
 endmodule

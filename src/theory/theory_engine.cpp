@@ -501,16 +501,18 @@ void TheoryEngine::combineTheories() {
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
     lemma(equality.orNode(equality.notNode()), false, false, false, carePair.theory);
-    if (true) {
-      if (es == EQUALITY_TRUE || es == EQUALITY_TRUE_IN_MODEL) {
-        Node e = ensureLiteral(equality);
-        d_propEngine->requirePhase(e, true);
-      }
-      else if (es == EQUALITY_FALSE_IN_MODEL) {
-        Node e = ensureLiteral(equality);
-        d_propEngine->requirePhase(e, false);
-      }
-    }
+    // This code is supposed to force preference to follow what the theory models already have
+    // but it doesn't seem to make a big difference - need to explore more -Clark
+    // if (true) {
+    //   if (es == EQUALITY_TRUE || es == EQUALITY_TRUE_IN_MODEL) {
+    //     Node e = ensureLiteral(equality);
+    //     d_propEngine->requirePhase(e, true);
+    //   }
+    //   else if (es == EQUALITY_FALSE_IN_MODEL) {
+    //     Node e = ensureLiteral(equality);
+    //     d_propEngine->requirePhase(e, false);
+    //   }
+    // }
   }
 }
 
