@@ -114,7 +114,7 @@ ExprManager* Expr::getExprManager() const {
 
 namespace expr {
 
-static Node exportConstant(TNode n, NodeManager* to);
+static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& vmap);
 
 class ExportPrivate {
 private:
@@ -139,7 +139,7 @@ public:
         Type type = from->exportType(n.getConst< ::CVC4::EmptySet >().getType(), to, vmap);
         return to->mkConst(::CVC4::EmptySet(type));
       }
-      return exportConstant(n, NodeManager::fromExprManager(to));
+      return exportConstant(n, NodeManager::fromExprManager(to), vmap);
     } else if(n.isVar()) {
       Expr from_e(from, new Node(n));
       Expr& to_e = vmap.d_typeMap[from_e];
@@ -574,14 +574,29 @@ ${getConst_implementations}
 
 namespace expr {
 
-static Node exportConstant(TNode n, NodeManager* to) {
+static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& vmap) {
   Assert(n.isConst());
   Debug("export") << "constant: " << n << std::endl;
+
+  if(n.getKind() == kind::STORE_ALL) {
+    // Special export for ArrayStoreAll.
+    //
+    // Ultimately we'll need special cases also for RecordUpdate,
+    // TupleUpdate, AscriptionType, and other constant-metakinded
+    // expressions that embed types.  For now datatypes aren't supported
+    // for export so those don't matter.
+    ExprManager* toEm = to->toExprManager();
+    const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
+    return to->mkConst(ArrayStoreAll(asa.getType().exportTo(toEm, vmap),
+                                     asa.getExpr().exportTo(toEm, vmap)));
+  }
+
   switch(n.getKind()) {
 ${exportConstant_cases}
 
   default: Unhandled(n.getKind());
   }
+
 }/* exportConstant() */
 
 }/* CVC4::expr namespace */
