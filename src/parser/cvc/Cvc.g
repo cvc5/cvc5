@@ -1368,14 +1368,6 @@ prefixFormula[CVC4::Expr& f]
       PARSER_STATE->preemptCommand(cmd);
       f = func;
     }
-
-    /* array literals */
-  | ARRAY_TOK { PARSER_STATE->pushScope(); } LPAREN
-    boundVarDecl[ids,t] RPAREN COLON formula[f]
-    { PARSER_STATE->popScope();
-      UNSUPPORTED("array literals not supported yet");
-      f = EXPR_MANAGER->mkVar(EXPR_MANAGER->mkArrayType(t, f.getType()), ExprManager::VAR_FLAG_GLOBAL);
-    }
   ;
 
 instantiationPatterns[ CVC4::Expr& expr ]
@@ -1898,7 +1890,7 @@ simpleTerm[CVC4::Expr& f]
   std::vector<std::string> names;
   Expr e;
   Debug("parser-extra") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  Type t;
+  Type t, t2;
 }
     /* if-then-else */
   : iteTerm[f]
@@ -1928,7 +1920,6 @@ simpleTerm[CVC4::Expr& f]
       f = MK_EXPR(kind::RECORD, MK_CONST(t.getRecord()), std::vector<Expr>());
     }
 
-
     /* empty set literal */
   | LBRACE RBRACE
     { f = MK_CONST(EmptySet(Type())); }
@@ -1940,6 +1931,32 @@ simpleTerm[CVC4::Expr& f]
       for(size_t i = 1; i < args.size(); ++i) {
         f = MK_EXPR(kind::UNION, f, MK_EXPR(kind::SINGLETON, args[i]));
       }
+    }
+
+    /* array literals */
+  | ARRAY_TOK /* { PARSER_STATE->pushScope(); } */ LPAREN
+    restrictedType[t, CHECK_DECLARED] OF_TOK restrictedType[t2, CHECK_DECLARED]
+    RPAREN COLON simpleTerm[f]
+    { /* Eventually if we support a bound var (like a lambda) for array
+       * literals, we can use the push/pop scope. */
+      /* PARSER_STATE->popScope(); */
+      t = EXPR_MANAGER->mkArrayType(t, t2);
+      if(!f.isConst()) {
+        std::stringstream ss;
+        ss << "expected constant term inside array constant, but found "
+           << "nonconstant term" << std::endl
+           << "the term: " << f;
+        PARSER_STATE->parseError(ss.str());
+      }
+      if(!t2.isComparableTo(f.getType())) {
+        std::stringstream ss;
+        ss << "type mismatch inside array constant term:" << std::endl
+           << "array type:          " << t << std::endl
+           << "expected const type: " << t2 << std::endl
+           << "computed const type: " << f.getType();
+        PARSER_STATE->parseError(ss.str());
+      }
+      f = MK_CONST( ArrayStoreAll(t, f) );
     }
 
     /* boolean literals */
@@ -1986,7 +2003,7 @@ simpleTerm[CVC4::Expr& f]
   ;
 
 /**
- * Matches (and performs) a type ascription.
+ * Matches a type ascription.
  * The f arg is the term to check (it is an input-only argument).
  */
 typeAscription[const CVC4::Expr& f, CVC4::Type& t]

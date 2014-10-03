@@ -1010,10 +1010,25 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       RPAREN_TOK term[f, f2] RPAREN_TOK
       {
         if(!type.isArray()) {
-          PARSER_STATE->parseError("(as const...) type ascription can only be used for array sorts.");
+          std::stringstream ss;
+          ss << "expected array constant term, but cast is not of array type" << std::endl
+             << "cast type: " << type;
+          PARSER_STATE->parseError(ss.str());
+        }
+        if(!f.isConst()) {
+          std::stringstream ss;
+          ss << "expected constant term inside array constant, but found "
+             << "nonconstant term:" << std::endl
+             << "the term: " << f;
+          PARSER_STATE->parseError(ss.str());
         }
         if(!ArrayType(type).getConstituentType().isComparableTo(f.getType())) {
-          PARSER_STATE->parseError("type of the array cast is not compatible with term.");
+          std::stringstream ss;
+          ss << "type mismatch inside array constant term:" << std::endl
+             << "array type:          " << type << std::endl
+             << "expected const type: " << ArrayType(type).getConstituentType() << std::endl
+             << "computed const type: " << f.getType();
+          PARSER_STATE->parseError(ss.str());
         }
         expr = MK_CONST( ::CVC4::ArrayStoreAll(type, f) );
       }

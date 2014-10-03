@@ -168,6 +168,13 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       break;
     }
 
+    case kind::STORE_ALL: {
+      const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
+      out << "ARRAY(" << asa.getType().getIndexType() << " OF "
+          << asa.getType().getConstituentType() << ") : " << asa.getExpr();
+      break;
+    }
+
     default:
       // fall back on whatever operator<< does on underlying type; we
       // might luck out and print something reasonable
