@@ -7,6 +7,8 @@ Changes since 1.4
 * Simplification mode "incremental" no longer supported.
 * Support for array constants in constraints.
 * Syntax for array models have changed in some language front-ends.
+* In SMT-LIB model output, real-sorted but integer-valued constants are
+  now printed in accordance with the standard (e.g. "1.0").
 
 Changes since 1.3
 =================

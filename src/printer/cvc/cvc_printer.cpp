@@ -152,6 +152,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       case BOOLEAN_TYPE:
         out << "BOOLEAN";
         break;
+      case STRING_TYPE:
+        out << "STRING";
+        break;
       default:
         out << tc;
         break;
@@ -162,11 +165,9 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
       out << n.getConst<Datatype>().getName();
       break;
 
-    case kind::EMPTYSET: {
+    case kind::EMPTYSET:
       out << "{} :: " << n.getConst<EmptySet>().getType();
-      return;
       break;
-    }
 
     case kind::STORE_ALL: {
       const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
@@ -176,8 +177,8 @@ void CvcPrinter::toStream(std::ostream& out, TNode n, int depth, bool types, boo
     }
 
     default:
-      // fall back on whatever operator<< does on underlying type; we
-      // might luck out and print something reasonable
+      // Fall back to whatever operator<< does on underlying type; we
+      // might luck out and print something reasonable.
       kind::metakind::NodeValueConstPrinter::toStream(out, n);
     }
 
