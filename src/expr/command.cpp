@@ -896,6 +896,13 @@ void GetValueCommand::invoke(SmtEngine* smtEngine) throw() {
       smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(options::expandDefinitions() ? smtEngine->expandDefinitions(*i) : *i);
       Node value = Node::fromExpr(smtEngine->getValue(*i));
+      if(value.getType().isInteger() && request.getType() == nm->realType()) {
+        // Need to wrap in special marker so that output printers know this
+        // is an integer-looking constant that really should be output as
+        // a rational.  Necessary for SMT-LIB standards compliance, but ugly.
+        value = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                           nm->mkConst(AscriptionType(em->realType())), value);
+      }
       result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
     }
     d_result = em->mkExpr(kind::SEXPR, result);

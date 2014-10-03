@@ -245,7 +245,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   bool stillNeedToPrintParams = true;
   bool forceBinary = false; // force N-ary to binary when outputing children
   // operator
-  if(n.getNumChildren() != 0 && n.getKind()!=kind::INST_PATTERN_LIST) out << '(';
+  if(n.getNumChildren() != 0 &&
+     n.getKind() != kind::INST_PATTERN_LIST &&
+     n.getKind() != kind::APPLY_TYPE_ASCRIPTION) {
+    out << '(';
+  }
   switch(Kind k = n.getKind()) {
     // builtin theory
   case kind::APPLY: break;
@@ -307,7 +311,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::STORE:
   case kind::ARRAY_TYPE: out << smtKindString(k) << " "; break;
 
-  // string theory
+    // string theory
   case kind::STRING_CONCAT:
     if(d_variant == z3str_variant) {
       out << "Concat ";
@@ -425,12 +429,19 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
    // datatypes
   case kind::APPLY_TYPE_ASCRIPTION: {
-      out << "as ";
-      toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types);
-      out << ' ';
       TypeNode t = TypeNode::fromType(n.getOperator().getConst<AscriptionType>().getType());
-      out << (t.isFunctionLike() ? t.getRangeType() : t);
-      out << ')';
+      if(t.getKind() == kind::TYPE_CONSTANT &&
+         t.getConst<TypeConstant>() == REAL_TYPE &&
+         n[0].getType().isInteger()) {
+        // Special case, in model output integer constants that should be
+        // Real-sorted are wrapped in a type ascription.  Handle that here.
+        toStream(out, n[0], -1, false);
+        out << ".0";
+        return;
+      }
+      out << "(as ";
+      toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1, types);
+      out << ' ' << (t.isFunctionLike() ? t.getRangeType() : t) << ')';
       return;
     }
     break;
@@ -812,11 +823,11 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
   } else if(dynamic_cast<const DeclareFunctionCommand*>(c) != NULL) {
     const DeclareFunctionCommand* dfc = (const DeclareFunctionCommand*)c; 
     Node n = Node::fromExpr( dfc->getFunction() );
-    if(dfc->getPrintInModelSetByUser()){
-      if(!dfc->getPrintInModel()){
+    if(dfc->getPrintInModelSetByUser()) {
+      if(!dfc->getPrintInModel()) {
         return;
       }
-    }else if(n.getKind() == kind::SKOLEM) {
+    } else if(n.getKind() == kind::SKOLEM) {
       // don't print out internal stuff
       return;
     }
@@ -834,7 +845,13 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
         }
       }
       out << "(define-fun " << n << " () "
-          << n.getType() << " " << val << ")" << endl;
+          << n.getType() << " ";
+      if(val.getType().isInteger() && n.getType().isReal() && !n.getType().isInteger()) {
+        out << val << ".0";
+      } else {
+        out << val;
+      }
+      out << ")" << endl;
     }
 /*
     //for table format (work in progress)
@@ -859,7 +876,7 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m, const Command* c) 
       }
     }
 */
-  }else{
+  } else {
     out << c << endl;
   }
 }

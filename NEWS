@@ -3,7 +3,8 @@ This file contains a summary of important user-visible changes.
 Changes since 1.4
 =================
 
-* nothing yet
+* In SMT-LIB model output, real-sorted but integer-valued constants are
+  now printed in accordance with the standard (e.g. "1.0").
 
 Changes since 1.3
 =================
