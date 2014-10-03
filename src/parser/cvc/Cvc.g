@@ -635,6 +635,13 @@ command returns [CVC4::Command* cmd = NULL]
         cmd = new EmptyCommand();
       }
     }
+  | IDENTIFIER SEMICOLON
+    { std::stringstream ss;
+      ss << "Unrecognized command `"
+         << AntlrInput::tokenText($IDENTIFIER)
+         << "'";
+      PARSER_STATE->parseError(ss.str());
+    }
   ;
 
 typeOrVarLetDecl[CVC4::parser::DeclarationCheck check]
