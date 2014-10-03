@@ -1,0 +1,7 @@
+% EXPECT: unsat
+all1, all2 : ARRAY INT OF INT;
+a, i : INT;
+ASSERT all1 = ARRAY(INT OF INT) : 1;
+ASSERT all2 = ARRAY(INT OF INT) : 2;
+ASSERT all1 = all2;
+CHECKSAT;

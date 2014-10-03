@@ -39,7 +39,13 @@ TESTS =	\
 	incorrect11.smt \
 	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
-	x3.smt
+	x3.smt \
+	constarr.smt2 \
+	constarr2.smt2 \
+	constarr3.smt2 \
+	constarr.cvc \
+	constarr2.cvc \
+	constarr3.cvc
 
 EXTRA_DIST = $(TESTS) \
 	bug272.smt \

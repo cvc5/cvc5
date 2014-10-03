@@ -1,0 +1,12 @@
+% EXIT: 1
+% EXPECT: Array theory solver does not yet support write-chains connecting two different constant arrays
+% should be unsat
+all1, all2 : ARRAY INT OF INT;
+aa, bb : ARRAY INT OF INT;
+a, i : INT;
+ASSERT all1 = ARRAY(INT OF INT) : 1;
+ASSERT aa = all1 WITH [i] := 0;
+ASSERT all2 = ARRAY(INT OF INT) : 2;
+ASSERT bb = all2 WITH [i] := 0;
+ASSERT aa = bb;
+CHECKSAT;
