@@ -55,9 +55,7 @@ public:
     TS_ASSERT_THROWS_ANYTHING( ArrayStoreAll(d_em->integerType(), d_em->mkConst(UninterpretedConstant(d_em->mkSort("U"), 0))) );
     TS_ASSERT_THROWS_ANYTHING( ArrayStoreAll(d_em->integerType(), d_em->mkConst(Rational(9, 2))) );
 
-    TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->integerType()), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
     TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->mkSort("U")), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
-    TS_ASSERT_THROWS( ArrayStoreAll(d_em->mkArrayType(d_em->realType(), d_em->integerType()), d_em->mkConst(Rational(9, 2))), IllegalArgumentException );
   }
 
   void testConstError() {

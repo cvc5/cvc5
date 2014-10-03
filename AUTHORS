@@ -2,14 +2,15 @@ The core authors and designers of CVC4 are:
 
   Kshitij Bansal <kshitij@cs.nyu.edu>, New York University
   Clark Barrett <barrett@cs.nyu.edu>, New York University
-  Francois Bobot <bobot@lri.fr>, Paris-Sud University
-  Christopher Conway <cconway@cs.nyu.edu>, New York University
+  Francois Bobot <bobot@lri.fr>, Commissariat a l'Energie Atomique (CEA)
+  Martin Brain <martin.brain@cs.ox.ac.uk>, University of Oxford
+  Christopher Conway <cconway@cs.nyu.edu>, Google
   Morgan Deters <mdeters@cs.nyu.edu>, New York University
   Liana Hadarean <lianah@cs.nyu.edu>, New York University
-  Dejan Jovanovic <dejan@cs.nyu.edu>, New York University
+  Dejan Jovanovic <dejan@cs.nyu.edu>, SRI International
   Tim King <taking@cs.nyu.edu>, New York University
   Tianyi Liang <tianyi-liang@uiowa.edu>, The University of Iowa
-  Andrew Reynolds <andrew.j.reynolds@gmail.com>, The University of Iowa
+  Andrew Reynolds <andrew.j.reynolds@gmail.com>, EPFL
   Cesare Tinelli <tinelli@cs.uiowa.edu>, The University of Iowa
 
 CVC4 is the fourth in the CVC series of tools (CVC, CVC Lite, CVC3) but does
