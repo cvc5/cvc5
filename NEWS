@@ -5,6 +5,7 @@ Changes since 1.4
 
 * Support for unsat cores.
 * Simplification mode "incremental" no longer supported.
+* Support for array constants in constraints.
 
 Changes since 1.3
 =================
