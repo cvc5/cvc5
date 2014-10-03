@@ -999,11 +999,25 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
       expr = MK_EXPR(kind, args); }
 
-  | /* An indexed function application */
-    LPAREN_TOK indexedFunctionName[op] termList[args,expr] RPAREN_TOK
-    { expr = MK_EXPR(op, args);
-      PARSER_STATE->checkOperator(expr.getKind(), args.size());
-    }
+  | LPAREN_TOK
+    ( /* An indexed function application */
+      indexedFunctionName[op] termList[args,expr] RPAREN_TOK
+      { expr = MK_EXPR(op, args);
+        PARSER_STATE->checkOperator(expr.getKind(), args.size());
+      }
+    | /* Array constant (in Z3 syntax) */
+      LPAREN_TOK AS_TOK CONST_TOK sortSymbol[type, CHECK_DECLARED]
+      RPAREN_TOK term[f, f2] RPAREN_TOK
+      {
+        if(!type.isArray()) {
+          PARSER_STATE->parseError("(as const...) type ascription can only be used for array sorts.");
+        }
+        if(!ArrayType(type).getConstituentType().isComparableTo(f.getType())) {
+          PARSER_STATE->parseError("type of the array cast is not compatible with term.");
+        }
+        expr = MK_CONST( ::CVC4::ArrayStoreAll(type, f) );
+      }
+    )
   | /* a let binding */
     LPAREN_TOK LET_TOK LPAREN_TOK
     { PARSER_STATE->pushScope(true); }
@@ -1710,6 +1724,7 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
+CONST_TOK : 'const';
 
 // extended commands
 DECLARE_DATATYPES_TOK : 'declare-datatypes';
