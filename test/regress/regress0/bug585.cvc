@@ -1,0 +1,9 @@
+% EXPECT: sat
+
+Cache: TYPE = ARRAY [0..100] OF [# addr: INT, data: REAL #];
+State: TYPE = [# pc: INT, cache: Cache #];
+
+s0: State;
+s1: State = s0 WITH .cache[10].data := 2/3;
+
+CHECKSAT;

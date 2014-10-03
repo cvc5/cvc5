@@ -163,9 +163,10 @@ BUG_TESTS = \
 	bug567.smt2 \
 	bug576.smt2 \
 	bug576a.smt2 \
-	bug578.smt2
+	bug578.smt2 \
+	bug585.cvc
 
-TESTS =	$(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
+TESTS = $(SMT_TESTS) $(SMT2_TESTS) $(CVC_TESTS) $(TPTP_TESTS) $(BUG_TESTS)
 
 # bug512 -- taking too long, --time-per not working perhaps? in any case,
 # we have a minimized version still getting tested

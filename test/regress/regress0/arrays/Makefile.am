@@ -39,7 +39,8 @@ TESTS =	\
 	incorrect11.smt \
 	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
-	x3.smt
+	x3.smt \
+	parsing_ringer.cvc
 
 EXTRA_DIST = $(TESTS) \
 	bug272.smt \
