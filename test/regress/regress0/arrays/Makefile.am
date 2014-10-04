@@ -40,6 +40,8 @@ TESTS =	\
 	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
 	x3.smt \
+	bug272.smt \
+	bug272.minimized.smt \
 	constarr.smt2 \
 	constarr2.smt2 \
 	constarr3.smt2 \
@@ -47,9 +49,7 @@ TESTS =	\
 	constarr2.cvc \
 	constarr3.cvc
 
-EXTRA_DIST = $(TESTS) \
-	bug272.smt \
-	bug272.minimized.smt
+EXTRA_DIST = $(TESTS)
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else
