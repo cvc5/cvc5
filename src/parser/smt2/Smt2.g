@@ -1830,10 +1830,10 @@ sortSymbol[CVC4::Type& t, CVC4::parser::DeclarationCheck check]
         if( numerals.size() != 2 ) {
           PARSER_STATE->parseError("Illegal floating-point type.");
         }
-        if(!VALIDEXPONENTSIZE(numerals[0])) {
+        if(!validExponentSize(numerals[0])) {
           PARSER_STATE->parseError("Illegal floating-point exponent size");
         }
-        if(!VALIDSIGNIFICANDSIZE(numerals[1])) {
+        if(!validSignificandSize(numerals[1])) {
           PARSER_STATE->parseError("Illegal floating-point significand size");
         }
         t = EXPR_MANAGER->mkFloatingPointType(numerals[0],numerals[1]);
