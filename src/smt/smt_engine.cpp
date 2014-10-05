@@ -4162,6 +4162,33 @@ void SmtEngine::doPendingPops() {
   }
 }
 
+void SmtEngine::reset() throw() {
+  SmtScope smts(this);
+  ExprManager *em = d_exprManager;
+  Trace("smt") << "SMT reset()" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << ResetCommand();
+  }
+  this->~SmtEngine();
+  new(this) SmtEngine(em);
+}
+
+void SmtEngine::resetAssertions() throw() {
+  SmtScope smts(this);
+
+  while(!d_userLevels.empty()) {
+    pop();
+  }
+
+  // Also remember the global push/pop around everything.
+  Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
+  d_context->popto(0);
+  d_userContext->popto(0);
+  d_modelGlobalCommands.clear();
+  d_userContext->push();
+  d_context->push();
+}
+
 void SmtEngine::interrupt() throw(ModalException) {
   if(!d_fullyInited) {
     return;

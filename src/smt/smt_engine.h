@@ -533,6 +533,18 @@ public:
   void pop() throw(ModalException);
 
   /**
+   * Completely reset the state of the solver, as though destroyed and
+   * recreated.  The result is as if newly constructed (so it still
+   * retains the same options structure and ExprManager).
+   */
+  void reset() throw();
+
+  /**
+   * Reset all assertions, global declarations, etc.
+   */
+  void resetAssertions() throw();
+
+  /**
    * Interrupt a running query.  This can be called from another thread
    * or from a signal handler.  Throws a ModalException if the SmtEngine
    * isn't currently in a query.

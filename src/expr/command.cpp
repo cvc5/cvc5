@@ -362,10 +362,30 @@ std::string QueryCommand::getCommandName() const throw() {
   return "query";
 }
 
-/* class QuitCommand */
+/* class ResetCommand */
 
-QuitCommand::QuitCommand() throw() {
+void ResetCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    smtEngine->reset();
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
 }
+
+Command* ResetCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  return new ResetCommand();
+}
+
+Command* ResetCommand::clone() const {
+  return new ResetCommand();
+}
+
+std::string ResetCommand::getCommandName() const throw() {
+  return "reset";
+}
+
+/* class QuitCommand */
 
 void QuitCommand::invoke(SmtEngine* smtEngine) throw() {
   Dump("benchmark") << *this;

@@ -699,6 +699,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<PopCommand>(out, c) ||
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
+     tryToStream<ResetCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
      tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
@@ -938,6 +939,10 @@ static void toStream(std::ostream& out, const QueryCommand* c) throw() {
   } else {
     out << "(check-sat)";
   }
+}
+
+static void toStream(std::ostream& out, const ResetCommand* c) throw() {
+  out << "(reset)";
 }
 
 static void toStream(std::ostream& out, const QuitCommand* c) throw() {

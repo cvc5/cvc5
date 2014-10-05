@@ -697,7 +697,7 @@ mainCommand[CVC4::Command*& cmd]
     { UNSUPPORTED("POPTO_SCOPE command"); }
 
   | RESET_TOK
-    { UNSUPPORTED("RESET command"); }
+    { cmd = new ResetCommand(); }
 
     // Datatypes can be mututally-recursive if they're in the same
     // definition block, separated by a comma.  So we parse everything

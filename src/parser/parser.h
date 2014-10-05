@@ -561,6 +561,10 @@ public:
     }
   }
 
+  inline void reset() {
+    d_symtab->reset();
+  }
+
   /**
    * Set the current symbol table used by this parser.
    * From now on, this parser will perform its definitions and

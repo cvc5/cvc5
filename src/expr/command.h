@@ -454,7 +454,6 @@ public:
   std::string getCommandName() const throw();
 };/* class SetUserAttributeCommand */
 
-
 class CVC4_PUBLIC CheckSatCommand : public Command {
 protected:
   Expr d_expr;
@@ -798,10 +797,19 @@ public:
   std::string getCommandName() const throw();
 };/* class PropagateRuleCommand */
 
+class CVC4_PUBLIC ResetCommand : public Command {
+public:
+  ResetCommand() throw() {}
+  ~ResetCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class ResetCommand */
 
 class CVC4_PUBLIC QuitCommand : public Command {
 public:
-  QuitCommand() throw();
+  QuitCommand() throw() {}
   ~QuitCommand() throw() {}
   void invoke(SmtEngine* smtEngine) throw();
   Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
