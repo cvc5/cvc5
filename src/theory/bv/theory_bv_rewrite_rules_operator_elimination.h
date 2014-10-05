@@ -21,6 +21,9 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "expr/expr.h"
+#include "proof/proof_manager.h"
+#include "proof/rewriter_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -326,12 +329,11 @@ Node RewriteRule<XnorEliminate>::apply(TNode node) {
   TNode b = node[1]; 
   Node xorNode = utils::mkNode(kind::BITVECTOR_XOR, a, b);
   Node result = utils::mkNode(kind::BITVECTOR_NOT, xorNode);
-  PROOF(
+    PROOF(
         Expr from = Node::toExpr(node);
         Expr to = Node::toExpr(result);
         ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXnorEliminate);
-        return res;
-        );
+	);
   return result;
 }
 

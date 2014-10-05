@@ -92,7 +92,7 @@ void TSatProof<Solver>::createLitSet(ClauseId id, LitSet& set) {
   // if it's an assumption
   if (d_assumptionConflictsDebug.find(id) != d_assumptionConflictsDebug.end()) {
     LitVector* clause = d_assumptionConflictsDebug[id];
-    for (int i = 0; i < clause->size(); ++i) {
+    for (unsigned i = 0; i < clause->size(); ++i) {
       set.insert(clause->operator[](i)); 
     }
     return;

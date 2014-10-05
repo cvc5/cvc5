@@ -20,6 +20,8 @@
 #include "proof/sat_proof_implementation.h"
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
+#include "proof/rewriter_proof.h"
+
 #include "util/cvc4_assert.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"

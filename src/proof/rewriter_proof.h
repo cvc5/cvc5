@@ -99,6 +99,7 @@ typedef std::vector<RewriteProof*> IdToRewriteProof;
 typedef std::vector<RewriteProof*> RewriteStack;
 
 class RewriterProof {
+protected:
   static unsigned d_rewriteIdCount;
   friend class RewriteProof;
   
@@ -106,47 +107,30 @@ class RewriterProof {
   RewriteStack d_rewriteStack;
   IdToRewriteProof d_rewriteProofs;
   
-  RewriteProof* getRewrite(RewriteId id);
-  RewriteProof* getRewrite(Expr from, Expr to);
-  bool hasRewrite(Expr from, Expr to);
-  /** 
-   * If it doesn't already exist, creates an identity
-   * rewrite (Rewrite t t)
-   * 
-   * @param from 
-   * 
-   * @return the rewrite id
-   */
-  RewriteId addIdentityRewrite(Expr from);
-  /** 
-   * If it doesn't already exist, create a rewrite
-   * that assuming each child rewrites to t' establishes
-   * the operation rewrites to the op over t'
-   * 
-   * @param from 
-   * 
-   * @return 
-   */
-  RewriteId addIdentityOpRewrite(Expr from);
   void registerRewriteProof(RewriteProof* proof);
   static unsigned newId() { return d_rewriteIdCount++; }
-  static std::string rewriteName(unsigned id);
+
 public:
   RewriterProof();
   ~RewriterProof();
   void finalizeRewrite(Expr from, Expr to);
   void pushRewriteRule(Expr from, Expr to, RewriteTag tag);
   virtual void printRewrittenAssertios(std::ostream& os, std::ostream& paren) = 0;
+  static std::string rewriteName(unsigned id);
+  RewriteProof* getRewrite(RewriteId id);
+  RewriteProof* getRewrite(Expr from, Expr to);
+  bool hasRewrite(Expr from, Expr to);
+
 };
 
 class LFSCRewriterProof: public RewriterProof {
-  static std::string rewriteTagToString(RewriteTag tag);
   void printRewriteProof(Expr formula, std::ostream& os, std::ostream& paren) {}
 public:
   LFSCRewriterProof()
     : RewriterProof()
   {}
-  void printRewrittenAssertios(std::ostream& os, std::ostream& paren);
+  virtual void printRewrittenAssertios(std::ostream& os, std::ostream& paren);
+  static std::string rewriteTagToString(RewriteTag tag);
 }; 
 
 class IdentityRewriteProof : public RewriteProof {

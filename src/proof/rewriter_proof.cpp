@@ -17,6 +17,8 @@
 
 #include "proof/rewriter_proof.h"
 #include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
+#include "proof/proof_utils.h"
 
 using namespace CVC4;
 
@@ -139,9 +141,14 @@ std::string LFSCRewriterProof::rewriteTagToString(RewriteTag tag) {
     return "bv_not_idemp";
   case BvXnorEliminate:
     return "bv_xnor_eliminate";
+  default:
+    Unreachable("Unknown rewrite rule", tag);    
   }
-  
   Unreachable("Unknown rewrite rule", tag);
+}
+
+void LFSCRewriterProof::printRewrittenAssertios(std::ostream& os, std::ostream& paren) {
+  
 }
 
 RewriteProof::RewriteProof(RewriteTag tag, Expr from, Expr to)
@@ -164,15 +171,15 @@ void IdentityRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
   ProofManager* pm = ProofManager::currentPM();
   Assert (d_to == d_from);
   os << "(@ "<<RewriterProof::rewriteName(d_id) <<" ";
-  if (d_from.isBoolean()) {
+  if (d_from.getType().isBoolean()) {
     os << " (rw_formula_id ";
   } else {
     os << " (rw_term_id ";
-    pm->getTheoryProof()->printSort(d_from.getType(), os);
+    pm->getTheoryProofEngine()->printSort(d_from.getType(), os);
     os <<" ";
   }
 
-  pm->getTheoryProof()->printLetTerm(from, os);
+  pm->getTheoryProofEngine()->printLetTerm(d_from, os);
   paren<<")";
 }
 
@@ -185,7 +192,7 @@ void IdentityOpRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
   RewriterProof* rp = pm->getRewriterProof();
   
   if (d_from.getNumChildren() == 1) {
-    os << "(@ " << RewriterProof::rewriteName(id);
+    os << "(@ " << RewriterProof::rewriteName(d_id);
     if (d_from.getType().isBoolean()) {
       // if it's boolean it's either a predicate or a formula
       if (d_from[0].getType().isBoolean()) {
@@ -196,10 +203,10 @@ void IdentityOpRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
     } else {
       os <<" (rw_op1_id ";
     }
-    RewriteId t_id = getRewriteId(d_from[0], d_to[0]);
-    pm->getTheoryProof()->printSort(d_from.getType(), os);
+    RewriteId t_id = rp->getRewrite(d_from[0], d_to[0])->id();
+    pm->getTheoryProofEngine()->printSort(d_from.getType(), os);
     os << " _ _ ";
-    os << << RewriterProof::rewriteName(t_id) << toLFSCKind(d_from.getKind()) <<")";
+    os << RewriterProof::rewriteName(t_id) << utils::toLFSCKind(d_from.getKind()) <<")";
     return;
   }
 
@@ -207,8 +214,8 @@ void IdentityOpRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
   Assert (d_from.getNumChildren() == 2);
 
   
-  RewriteId t1_id = rp->getRewriteId(d_from[0], d_to[0]);
-  RewriteId t2_id = rp->getRewriteId(d_from[1], d_to[1]);
+  RewriteId t1_id = rp->getRewrite(d_from[0], d_to[0])->id();
+  RewriteId t2_id = rp->getRewrite(d_from[1], d_to[1])->id();
   
   os << "(@ " << RewriterProof::rewriteName(d_id);
 
@@ -225,11 +232,11 @@ void IdentityOpRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) {
     os <<" (rw_op2_id ";
   }
   
-  pm->getTheoryProof()->printSort(d_from.getType(), os);
+  pm->getTheoryProofEngine()->printSort(d_from.getType(), os);
   os << " _ _ _ _ ";
   os << RewriterProof::rewriteName(t1_id) <<" ";
   os << RewriterProof::rewriteName(t2_id) <<" ";
-  os << toLFSCKind(d_from.getKind()) <<")";
+  os << utils::toLFSCKind(d_from.getKind()) <<")";
 
   paren <<")";
 }
@@ -244,17 +251,17 @@ BvRewriteOp2Proof::BvRewriteOp2Proof(RewriteTag tag, RewriteProof* p1, RewritePr
   // this is mostly for debugging purposes
   switch(tag) {
   case BvXorOne: 
-    from = utils::mkExpr(kind::BITVECTOR_XOR, pf1->from(), pf2->from());
-    to = utils::mkExpr(kind::BITVECTOR_NOT, pf1->to());
+    d_from = utils::mkExpr(kind::BITVECTOR_XOR, pf1->from(), pf2->from());
+    d_to = utils::mkExpr(kind::BITVECTOR_NOT, pf1->to());
     break;
   case BvXorZero:
-    from = utils::mkExpr(kind::BITVECTOR_XOR, pf1->from(), pf2->from());
-    to = pf1->to();
+    d_from = utils::mkExpr(kind::BITVECTOR_XOR, pf1->from(), pf2->from());
+    d_to = pf1->to();
     break;
 
   case BvXnorEliminate:
-    from = utils::mkExpr(kind::BITVECTOR_XNOR, pf1->from(), pf2->from());
-    to = utils::mkExpr(kind::BITVECTOR_NOT, utils::mkExpr(kind::BITVECTOR_XOR, pf1->to(), pf2->to()));
+    d_from = utils::mkExpr(kind::BITVECTOR_XNOR, pf1->from(), pf2->from());
+    d_to = utils::mkExpr(kind::BITVECTOR_NOT, utils::mkExpr(kind::BITVECTOR_XOR, pf1->to(), pf2->to()));
     break;
   default:
     Unreachable("Unknown rewrite tag", tag);
@@ -262,15 +269,15 @@ BvRewriteOp2Proof::BvRewriteOp2Proof(RewriteTag tag, RewriteProof* p1, RewritePr
 }
 
 void BvRewriteOp2Proof::printLFSC(std::ostream& os, std::ostream& paren) {
-  Assert (from.getKind() == kind::BITVECTOR_XOR);
-  RewriteId t1_id = pf1->id;
-  RewriteId t2_id = pf2->id;
-  unsigned size = utils::getSize(from);
-  os <<"(@ " << RewriterProof::rewriteName(d_id) <<" "<< LFSCRewriterProof::rewriteTagToString(tag) << " " << size <<" _ _ _ _ "<<RewriterProof::rewriteName(t1_id) <<" " << RewriterProof::rewriteName(t2_id) <<")";
-  paren <<")"
+  Assert (d_from.getKind() == kind::BITVECTOR_XOR);
+  RewriteId t1_id = pf1->id();
+  RewriteId t2_id = pf2->id();
+  unsigned size = utils::getSize(d_from);
+  os <<"(@ " << RewriterProof::rewriteName(d_id) <<" "<< LFSCRewriterProof::rewriteTagToString(d_tag) << " " << size <<" _ _ _ _ "<<RewriterProof::rewriteName(t1_id) <<" " << RewriterProof::rewriteName(t2_id) <<")";
+  paren <<")";
 }
 
-BvRewriteOp1Proof::BvRewriteOp1Proof(RewriteTag tag, RewriteProof* p1, RewriteProof* p2)
+BvRewriteOp1Proof::BvRewriteOp1Proof(RewriteTag tag, RewriteProof* p1)
   : RewriteProof(tag)
   , pf1(p1)
 {
@@ -286,9 +293,9 @@ BvRewriteOp1Proof::BvRewriteOp1Proof(RewriteTag tag, RewriteProof* p1, RewritePr
 
 void BvRewriteOp1Proof::printLFSC(std::ostream& os, std::ostream& paren) {
   RewriteId rw1_id = pf1->id();
-  unsigned size = utils::getSize(from);
-  os <<"(@ " << RewriterProof::rewriteName(d_id) <<" "<< LFSCRewriterProof::rewriteTagToString(tag) <<" "<< size <<" _ _ "<<RewriterProof::rewriteName(rw1_id) <<")";
-  paren <<")"
+  unsigned size = utils::getSize(d_from);
+  os <<"(@ " << RewriterProof::rewriteName(d_id) <<" "<< LFSCRewriterProof::rewriteTagToString(d_tag) <<" "<< size <<" _ _ "<<RewriterProof::rewriteName(rw1_id) <<")";
+  paren <<")";
 }
 
         
@@ -308,7 +315,7 @@ void TransitivityRewriteProof::printLFSC(std::ostream& os, std::ostream& paren) 
     os << " (rw_formula_trans _ _ _ ";
   } else {
     os << " (rw_term_trans ";
-    ProofManager::currentPM()->getTheoryProof()->printSort(d_from.getType(), os);
+    ProofManager::currentPM()->getTheoryProofEngine()->printSort(d_from.getType(), os);
     os <<" _ _ _ ";
   }
   RewriteId id1 = pf1->id();

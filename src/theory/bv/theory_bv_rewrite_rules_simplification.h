@@ -21,6 +21,8 @@
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "proof/proof_manager.h"
+#include "proof/rewriter_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -344,9 +346,8 @@ Node RewriteRule<XorOne>::apply(TNode node) {
     result = utils::mkNode(kind::BITVECTOR_NOT, result);
     PROOF(
           Expr from = Node::toExpr(node);
-          Expr to = Node::toExpr(res);
+          Expr to = Node::toExpr(result);
           ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXorOne);
-          return res;
           );
     
   }
@@ -391,8 +392,8 @@ Node RewriteRule<XorZero>::apply(TNode node) {
         Expr from = Node::toExpr(node);
         Expr to = Node::toExpr(res);
         ProofManager::currentPM()->getRewriterProof()->pushRewriteRule(from, to, BvXorZero);
-        return res;
         );
+  return res;
 }
 
 

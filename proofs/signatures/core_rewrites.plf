@@ -113,4 +113,11 @@
  	 (! frw2 (rw_formula f2 f2')	
 	 (! op formula_op2
 	    (rw_formula (op f1 f2) (op f1' f2'))))))))))
-	    	    
+
+
+(apply_rw_formula
+	(! f formula
+	(! f' formula
+	(! r (rw_formula f f')
+	(! h (th_holds f)
+	   (th_holds f'))))))
