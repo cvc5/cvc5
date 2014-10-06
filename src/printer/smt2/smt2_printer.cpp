@@ -194,7 +194,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
 
     case kind::STORE_ALL: {
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
-      out << "(__array_store_all__ " << asa.getType() << " " << asa.getExpr() << ")";
+      out << "((as const " << asa.getType() << ") " << asa.getExpr() << ")";
       break;
     }
 
@@ -588,7 +588,6 @@ static string smtKindString(Kind k) throw() {
     // arrays theory
   case kind::SELECT: return "select";
   case kind::STORE: return "store";
-  case kind::STORE_ALL: return "__array_store_all__";
   case kind::ARRAY_TYPE: return "Array";
 
     // bv theory
