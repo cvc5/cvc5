@@ -697,7 +697,9 @@ mainCommand[CVC4::Command*& cmd]
     { UNSUPPORTED("POPTO_SCOPE command"); }
 
   | RESET_TOK
-    { cmd = new ResetCommand(); }
+    { cmd = new ResetCommand();
+      PARSER_STATE->reset();
+    }
 
     // Datatypes can be mututally-recursive if they're in the same
     // definition block, separated by a comma.  So we parse everything
