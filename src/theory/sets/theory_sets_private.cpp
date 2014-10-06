@@ -455,33 +455,38 @@ const TheorySetsPrivate::Elements& TheorySetsPrivate::getElements
   if( !alreadyCalculated ) {
 
     Kind k = setterm.getKind();
-    unsigned numChildren = setterm.getNumChildren();
     Elements cur;
-    if(numChildren == 2) {
+
+    switch(k) {
+    case kind::UNION: {
       const Elements& left = getElements(setterm[0], settermElementsMap);
       const Elements& right = getElements(setterm[1], settermElementsMap);
-      switch(k) {
-      case kind::UNION:
-        if(left.size() >= right.size()) {
-          cur = left; cur.insert(right.begin(), right.end());
-        } else {
-          cur = right; cur.insert(left.begin(), left.end());
-        }
-        break;
-      case kind::INTERSECTION:
-        std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
-                              std::inserter(cur, cur.begin()) );
-        break;
-      case kind::SETMINUS:
-        std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
-                            std::inserter(cur, cur.begin()) );
-        break;
-      default:
-        Unhandled();
+      if(left.size() >= right.size()) {
+        cur = left; cur.insert(right.begin(), right.end());
+      } else {
+        cur = right; cur.insert(left.begin(), left.end());
       }
-    } else {
-      Assert(k == kind::VARIABLE || k == kind::APPLY_UF || k == kind::SKOLEM,
-             (std::string("Expect variable or UF got ") + kindToString(k)).c_str() );
+      break;
+    }
+    case kind::INTERSECTION: {
+      const Elements& left = getElements(setterm[0], settermElementsMap);
+      const Elements& right = getElements(setterm[1], settermElementsMap);
+      std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
+                            std::inserter(cur, cur.begin()) );
+      break;
+    }
+    case kind::SETMINUS: {
+      const Elements& left = getElements(setterm[0], settermElementsMap);
+      const Elements& right = getElements(setterm[1], settermElementsMap);
+      std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
+                          std::inserter(cur, cur.begin()) );
+      break;
+    }
+    default:
+      Assert(theory::kindToTheoryId(k) != theory::THEORY_SETS,
+             (std::string("Kind belonging to set theory not explicitly handled: ") + kindToString(k)).c_str());
+      // Assert(k == kind::VARIABLE || k == kind::APPLY_UF || k == kind::SKOLEM,
+      //        (std::string("Expect variable or UF got ") + kindToString(k)).c_str() );
       /* assign emptyset, which is default */
     }
 

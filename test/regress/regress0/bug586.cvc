@@ -1,0 +1,26 @@
+% EXPECT: sat
+%%%
+%%% DATA TYPES DEFINITIONS
+%%%
+
+%%% the roles
+DATATYPE
+	role = r1 | r2 | r3
+	%%% adding two more roles ( | r4 | r5 ) to the type, but never referring to them make things work
+END;
+
+%%% structured datatypes
+roleSet: TYPE = SET OF role;
+roleGammaSet: TYPE = [# pos: roleSet, neg: roleSet #];
+delta: TYPE = ARRAY role OF roleGammaSet;
+
+emptyRoleSet : roleSet;
+ASSERT emptyRoleSet = {} :: SET OF role;
+
+d: delta;
+ASSERT d[r3].pos = {r1};
+ASSERT d[r2].pos = {r2,r3};
+ASSERT d[r2].neg = {r1};
+
+CHECKSAT;
+%COUNTEREXAMPLE;
