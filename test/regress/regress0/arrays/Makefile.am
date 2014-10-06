@@ -40,6 +40,7 @@ TESTS =	\
 	swap_t1_np_nf_ai_00005_007.cvc.smt \
 	x2.smt \
 	x3.smt \
+	parsing_ringer.cvc \
 	bug272.smt \
 	bug272.minimized.smt \
 	constarr.smt2 \
