@@ -1,0 +1,20 @@
+% EXPECT: invalid
+
+Mem_0 : TYPE = ARRAY INT OF INT;
+
+MEMORY : TYPE = [# int : Mem_0, queries : Mem_0 #];
+
+x : INT;
+
+foo : MEMORY -> MEMORY
+    = LAMBDA (x : MEMORY) : LET y = x WITH .int := x.int IN y;
+
+m : MEMORY;
+
+w : [MEMORY,INT] =
+        IF x = 0
+        THEN (foo(m),0)
+        ELSE (m, 0)
+        ENDIF;
+
+QUERY w.1 = 1;

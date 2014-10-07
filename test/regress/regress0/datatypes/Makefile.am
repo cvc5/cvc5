@@ -23,6 +23,7 @@ MAKEFLAGS = -k
 TESTS =	\
 	tuple.cvc \
 	tuple-model.cvc \
+	tuple-record-bug.cvc \
 	rec1.cvc \
 	rec2.cvc \
 	rec4.cvc \

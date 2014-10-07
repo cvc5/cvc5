@@ -397,6 +397,44 @@ TypeNode NodeManager::mkSubrangeType(const SubrangeBounds& bounds)
 TypeNode NodeManager::getDatatypeForTupleRecord(TypeNode t) {
   Assert(t.isTuple() || t.isRecord());
 
+  TypeNode tOrig = t;
+  if(t.isTuple()) {
+    vector<TypeNode> v;
+    bool changed = false;
+    for(size_t i = 0; i < t.getNumChildren(); ++i) {
+      TypeNode tn = t[i];
+      TypeNode base;
+      if(tn.isTuple() || tn.isRecord()) {
+        base = getDatatypeForTupleRecord(tn);
+      } else {
+        base = tn.getBaseType();
+      }
+      changed = changed || (tn != base);
+      v.push_back(base);
+    }
+    if(changed) {
+      t = mkTupleType(v);
+    }
+  } else {
+    const Record& r = t.getRecord();
+    std::vector< std::pair<std::string, Type> > v;
+    bool changed = false;
+    for(Record::iterator i = r.begin(); i != r.end(); ++i) {
+      Type tn = (*i).second;
+      Type base;
+      if(tn.isTuple() || tn.isRecord()) {
+        base = getDatatypeForTupleRecord(TypeNode::fromType(tn)).toType();
+      } else {
+        base = tn.getBaseType();
+      }
+      changed = changed || (tn != base);
+      v.push_back(std::make_pair((*i).first, base));
+    }
+    if(changed) {
+      t = mkRecordType(Record(v));
+    }
+  }
+
   // if the type doesn't have an associated datatype, then make one for it
   TypeNode& dtt = d_tupleAndRecordTypes[t];
   if(dtt.isNull()) {
