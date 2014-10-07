@@ -11,10 +11,10 @@ option setsPropagate --sets-propagate bool :default true
 option setsEagerLemmas --sets-eager-lemmas bool :default true
  add lemmas even at regular effort
 
-option setsCare1 --sets-care1 bool :default false
+expert-option setsCare1 --sets-care1 bool :default false
  generate one lemma at a time for care graph
 
-option setsPropFull --sets-prop-full bool :default false
- agressive propagation
+option setsPropFull --sets-prop-full bool :default true
+ additional propagation at full effort
 
 endmodule
