@@ -122,10 +122,10 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  if( f.getNumChildren()==3 && options::userPatternsQuant()==USER_PAT_MODE_TRUST ){
+  if( hasUserPatterns( f ) && options::userPatternsQuant()==USER_PAT_MODE_TRUST ){
     return STATUS_UNKNOWN;
   }else{
-    int peffort = ( f.getNumChildren()==3 && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ) ? 2 : 1;
+    int peffort = ( hasUserPatterns( f ) && options::userPatternsQuant()!=USER_PAT_MODE_IGNORE ) ? 2 : 1;
     //int peffort = 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
@@ -344,6 +344,27 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
         }
       }
     }
+  }
+}
+
+bool InstStrategyAutoGenTriggers::hasUserPatterns( Node f ) {
+  if( f.getNumChildren()==3 ){
+    std::map< Node, bool >::iterator it = d_hasUserPatterns.find( f );
+    if( it==d_hasUserPatterns.end() ){
+      bool hasPat = false;
+      for( unsigned i=0; i<f[2].getNumChildren(); i++ ){
+        if( f[2][i].getKind()==INST_PATTERN ){
+          hasPat = true;
+          break;
+        }
+      }
+      d_hasUserPatterns[f] = hasPat;
+      return hasPat;
+    }else{
+      return it->second;
+    }
+  }else{
+    return false;
   }
 }
 

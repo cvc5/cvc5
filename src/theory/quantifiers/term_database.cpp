@@ -976,3 +976,66 @@ Node TermDb::getRewriteRule( Node q ) {
     return Node::null();
   }
 }
+
+
+void TermDb::computeAttributes( Node q ) {
+  if( q.getNumChildren()==3 ){
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_ATTRIBUTE ){
+        Node avar = q[2][i][0];
+        if( avar.getAttribute(AxiomAttribute()) ){
+          Trace("quant-attr") << "Attribute : axiom : " << q << std::endl;
+          d_qattr_axiom[q] = true;
+        }
+        if( avar.getAttribute(ConjectureAttribute()) ){
+          Trace("quant-attr") << "Attribute : conjecture : " << q << std::endl;
+          d_qattr_conjecture[q] = true;
+        }
+        if( avar.hasAttribute(QuantInstLevelAttribute()) ){
+          d_qattr_qinstLevel[q] = avar.getAttribute(QuantInstLevelAttribute());
+          Trace("quant-attr") << "Attribute : quant inst level " << d_qattr_qinstLevel[q] << " : " << q << std::endl;
+        }
+        if( avar.hasAttribute(RrPriorityAttribute()) ){
+          d_qattr_rr_priority[q] = avar.getAttribute(RrPriorityAttribute());
+          Trace("quant-attr") << "Attribute : rr priority " << d_qattr_rr_priority[q] << " : " << q << std::endl;
+        }
+      }
+    }
+  }
+}
+
+bool TermDb::isQAttrConjecture( Node q ) {
+  std::map< Node, bool >::iterator it = d_qattr_conjecture.find( q );
+  if( it==d_qattr_conjecture.end() ){
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
+bool TermDb::isQAttrAxiom( Node q ) {
+  std::map< Node, bool >::iterator it = d_qattr_axiom.find( q );
+  if( it==d_qattr_axiom.end() ){
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
+int TermDb::getQAttrQuantInstLevel( Node q ) {
+  std::map< Node, int >::iterator it = d_qattr_qinstLevel.find( q );
+  if( it==d_qattr_qinstLevel.end() ){
+    return -1;
+  }else{
+    return it->second;
+  }
+}
+
+int TermDb::getQAttrRewriteRulePriority( Node q ) {
+  std::map< Node, int >::iterator it = d_qattr_rr_priority.find( q );
+  if( it==d_qattr_rr_priority.end() ){
+    return -1;
+  }else{
+    return it->second;
+  }
+}

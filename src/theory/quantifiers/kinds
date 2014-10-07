@@ -34,6 +34,7 @@ sort INST_PATTERN_TYPE \
 # An instantiation pattern may have more than 1 child, in which case it specifies a multi-trigger.
 operator INST_PATTERN 1: "instantiation pattern"
 operator INST_NO_PATTERN 1 "instantiation no-pattern"
+operator INST_ATTRIBUTE 1 "instantiation attribute"
 
 sort INST_PATTERN_LIST_TYPE \
     Cardinality::INTEGERS \
@@ -48,6 +49,7 @@ typerule EXISTS ::CVC4::theory::quantifiers::QuantifierExistsTypeRule
 typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule 
 typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
 typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
+typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeTypeRule 
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
 
 # for rewrite rules

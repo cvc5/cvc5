@@ -25,6 +25,14 @@
 namespace CVC4 {
 namespace theory {
 
+/** Attribute true for quantifiers that are axioms */
+struct AxiomAttributeId {};
+typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
+
+/** Attribute true for quantifiers that are conjecture */
+struct ConjectureAttributeId {};
+typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
+  
 /** Attribute true for nodes that should not be used for matching */
 struct NoMatchAttributeId {};
 /** use the special for boolean flag */
@@ -284,6 +292,24 @@ public: //general queries concerning quantified formulas wrt modules
   static bool isRewriteRule( Node q );
   /** get the rewrite rule associated with the quanfied formula */
   static Node getRewriteRule( Node q );
+  
+//attributes
+private:
+  std::map< Node, bool > d_qattr_conjecture;
+  std::map< Node, bool > d_qattr_axiom;
+  std::map< Node, int > d_qattr_rr_priority;
+  std::map< Node, int > d_qattr_qinstLevel;
+  //record attributes
+  void computeAttributes( Node q );
+public:
+  /** is conjecture */
+  bool isQAttrConjecture( Node q );
+  /** is axiom */
+  bool isQAttrAxiom( Node q );
+  /** get instantiation level */
+  int getQAttrQuantInstLevel( Node q );
+  /** get rewrite rule priority */
+  int getQAttrRewriteRulePriority( Node q );
   
 };/* class TermDb */
 

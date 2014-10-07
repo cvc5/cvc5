@@ -286,6 +286,7 @@ void QuantifiersEngine::registerQuantifier( Node f ){
     Assert( f.getKind()==FORALL );
     //make instantiation constants for f
     d_term_db->makeInstantiationConstantsFor( f );
+    d_term_db->computeAttributes( f );
     //register with quantifier relevance
     if( d_quant_rel ){
       d_quant_rel->registerQuantifier( f );
@@ -464,10 +465,9 @@ void QuantifiersEngine::setInstantiationLevelAttr( Node n, uint64_t level ){
 
 bool QuantifiersEngine::isTermEligibleForInstantiation( Node n, Node f, bool print ) {
   if( n.hasAttribute(InstLevelAttribute()) ){
-    unsigned ml = options::instMaxLevel();
-    if( f.hasAttribute(QuantInstLevelAttribute()) ){
-      ml = f.getAttribute(QuantInstLevelAttribute());
-    }
+    int fml = d_term_db->getQAttrQuantInstLevel( f );
+    unsigned ml = fml>=0 ? fml : options::instMaxLevel();
+
     if( n.getAttribute(InstLevelAttribute())>ml ){
       Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
       Trace("inst-add-debug") << ", which is more than maximum allowed level " << ml << " for this quantified formula." << std::endl;

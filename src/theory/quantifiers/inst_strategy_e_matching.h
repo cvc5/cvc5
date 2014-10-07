@@ -88,6 +88,10 @@ private:
   int process( Node f, Theory::Effort effort, int e );
   /** generate triggers */
   void generateTriggers( Node f, Theory::Effort effort, int e, int & status );
+  /** has user patterns */
+  bool hasUserPatterns( Node f );
+  /** has user patterns */
+  std::map< Node, bool > d_hasUserPatterns;
 public:
   /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
       rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)

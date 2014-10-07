@@ -1079,7 +1079,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     /* attributed expressions */
   | LPAREN_TOK ATTRIBUTE_TOK term[expr, f2]
     ( attribute[expr, attexpr, attr]
-      { if( ( attr == ":pattern" || attr == ":no-pattern" ) && ! attexpr.isNull()) {
+      { if( ! attexpr.isNull()) {
           patexprs.push_back( attexpr );
         }
       }
@@ -1199,7 +1199,11 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       }
       std::string attr_name = attr;
       attr_name.erase( attr_name.begin() );
-      Command* c = new SetUserAttributeCommand( attr_name, expr );
+      //will set the attribute on auxiliary var (preserves attribute on formula through rewriting)
+      Type t = EXPR_MANAGER->booleanType();
+      Expr avar = PARSER_STATE->mkVar(attr_name, t);
+      retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+      Command* c = new SetUserAttributeCommand( attr_name, avar );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     } else {
@@ -1216,23 +1220,17 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
       attr = std::string(":no-pattern");
       retExpr = MK_EXPR(kind::INST_NO_PATTERN, patexpr);
     }
-  | ATTRIBUTE_INST_LEVEL INTEGER_LITERAL
+  | tok=( ATTRIBUTE_INST_LEVEL | ATTRIBUTE_RR_PRIORITY ) INTEGER_LITERAL
     {
       Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
       std::vector<Expr> values;
       values.push_back( n );
-      std::string attr_name("quant-inst-max-level");
-      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
-    }
-  | ATTRIBUTE_RR_PRIORITY_LEVEL INTEGER_LITERAL
-    {
-      Expr n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
-      std::vector<Expr> values;
-      values.push_back( n );
-      std::string attr_name("rr-priority");
-      Command* c = new SetUserAttributeCommand( attr_name, expr, values );
+      std::string attr_name(AntlrInput::tokenText($tok));
+      attr_name.erase( attr_name.begin() );
+      Type t = EXPR_MANAGER->booleanType();
+      Expr avar = PARSER_STATE->mkVar(attr_name, t);
+      retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+      Command* c = new SetUserAttributeCommand( attr_name, avar, values );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }

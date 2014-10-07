@@ -383,7 +383,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){
   return !TermDb::isRewriteRule( f ) &&
-         ( d_considerAxioms || !f.getAttribute(AxiomAttribute()) ) && d_quant_sat.find( f )==d_quant_sat.end();
+         ( d_considerAxioms || !d_qe->getTermDatabase()->isQAttrAxiom( f ) ) && d_quant_sat.find( f )==d_quant_sat.end();
 }
 
 bool QModelBuilderIG::isTermActive( Node n ){
