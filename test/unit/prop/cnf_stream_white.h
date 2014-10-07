@@ -93,7 +93,8 @@ public:
   void renewVar(SatLiteral lit, int level = -1) {
   }
 
-  void spendResource() {
+  bool spendResource() {
+    return false;
   }
 
   void interrupt() {
