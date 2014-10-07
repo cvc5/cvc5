@@ -815,7 +815,8 @@ CRef Solver::propagate(TheoryCheckType type)
     if (type == CHECK_FINAL) {
       // Do the theory check
       theoryCheck(CVC4::theory::Theory::EFFORT_FULL);
-      // Pick up the theory propagated literals (there could be some, if new lemmas are added)
+      // Pick up the theory propagated literals (there could be some,
+      // if new lemmas are added)
       propagateTheory();
       // If there are lemmas (or conflicts) update them
       if (lemmas.size() > 0) {

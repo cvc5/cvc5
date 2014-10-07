@@ -97,8 +97,9 @@ void BVMinisatSatSolver::markUnremovable(SatLiteral lit){
   d_minisat->setFrozen(BVMinisat::var(toMinisatLit(lit)), true);
 }
 
-void BVMinisatSatSolver::spendResource(){
-  // do nothing for the BV solver
+bool BVMinisatSatSolver::spendResource(){
+  // Do nothing for the BV solver.
+  return false;
 }
 
 void BVMinisatSatSolver::interrupt(){

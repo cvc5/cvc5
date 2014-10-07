@@ -87,7 +87,7 @@ public:
 
   void markUnremovable(SatLiteral lit);
 
-  void spendResource();
+  bool spendResource();
 
   void interrupt();
   

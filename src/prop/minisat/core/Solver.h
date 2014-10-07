@@ -423,7 +423,9 @@ protected:
     int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
+public:
     bool     withinBudget     ()      const;
+protected:
 
     // Static helpers:
     //

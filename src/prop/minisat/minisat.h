@@ -62,7 +62,7 @@ public:
   SatValue solve();
   SatValue solve(long unsigned int&);
 
-  void spendResource();
+  bool spendResource();
   void interrupt();
 
   SatValue value(SatLiteral l);

@@ -601,7 +601,7 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 
 bool QuantifiersEngine::addInstantiation( Node f, InstMatch& m, bool mkRep, bool modEq, bool modInst ){
   // For resource-limiting (also does a time check).
-  getOutputChannel().spendResource();
+  getOutputChannel().safePoint();
 
   std::vector< Node > terms;
   //make sure there are values for each variable we are instantiating
