@@ -297,7 +297,7 @@ private:
   bool d_liberal;
 private:
   /** node contains */
-  Node getInstance( Node n, std::vector< Node >& eqc );
+  Node getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
   int getRepScore( Node n, Node f, int index );
 public:
