@@ -337,7 +337,7 @@ int InstMatchGenerator::addInstantiations( Node f, InstMatch& baseMatch, Quantif
   while( getNextMatch( f, m, qe ) ){
     if( !d_active_add ){
       m.add( baseMatch );
-      if( qe->addInstantiation( f, m ) ){
+      if( qe->addInstantiation( f, m, false ) ){
         addedLemmas++;
       }
     }else{
@@ -354,7 +354,7 @@ int InstMatchGenerator::addTerm( Node f, Node t, QuantifiersEngine* qe ){
   if( !d_match_pattern.isNull() ){
     InstMatch m( f );
     if( getMatch( f, t, m, qe ) ){
-      if( qe->addInstantiation( f, m ) ){
+      if( qe->addInstantiation( f, m, false ) ){
         return 1;
       }
     }
@@ -647,7 +647,7 @@ void InstMatchGeneratorMulti::processNewInstantiations2( QuantifiersEngine* qe, 
     }
   }else{
     //m is an instantiation
-    if( qe->addInstantiation( d_f, m ) ){
+    if( qe->addInstantiation( d_f, m, false ) ){
       addedLemmas++;
       Debug("smart-multi-trigger") << "-> Produced instantiation " << m << std::endl;
     }
@@ -739,7 +739,7 @@ int InstMatchGeneratorSimple::addTerm( Node f, Node t, QuantifiersEngine* qe ){
       return 0;
     }
   }
-  return qe->addInstantiation( f, m ) ? 1 : 0;
+  return qe->addInstantiation( f, m, false ) ? 1 : 0;
 }
 
 }/* CVC4::theory::inst namespace */

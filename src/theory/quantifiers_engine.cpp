@@ -911,7 +911,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative( Node a, Node f, 
         }
       }
       //now, make sure that no other member of the class is an instance
-      r_best = getInstance( r_best, eqc );
+      std::hash_map<TNode, Node, TNodeHashFunction> cache;
+      r_best = getInstance( r_best, eqc, cache );
       //store that this representative was chosen at this point
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
@@ -1018,17 +1019,20 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
 
 //helper functions
 
-Node EqualityQueryQuantifiersEngine::getInstance( Node n, std::vector< Node >& eqc ){
+Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Node >& eqc, std::hash_map<TNode, Node, TNodeHashFunction>& cache ){
+  if(cache.find(n) != cache.end()) {
+    return cache[n];
+  }
   for( size_t i=0; i<n.getNumChildren(); i++ ){
-    Node nn = getInstance( n[i], eqc );
+    Node nn = getInstance( n[i], eqc, cache );
     if( !nn.isNull() ){
-      return nn;
+      return cache[n] = nn;
     }
   }
   if( std::find( eqc.begin(), eqc.end(), n )!=eqc.end() ){
-    return n;
+    return cache[n] = n;
   }else{
-    return Node::null();
+    return cache[n] = Node::null();
   }
 }
 
