@@ -163,7 +163,10 @@ void ModelPostprocessor::visit(TNode current, TNode parent) {
     Assert(t == expectType.end());
     d_nodes[current] = b;
     Debug("tuprec") << "returning " << d_nodes[current] << endl;
-    Assert(d_nodes[current].getType() == expectType);
+    // The assert below is too strong---we might be returning a model value but
+    // expect a type that still uses datatypes for tuples/records.  If it's
+    // really not the right type we should catch it in SmtEngine anyway.
+    // Assert(d_nodes[current].getType() == expectType);
   } else if(current.getType().hasAttribute(expr::DatatypeRecordAttr())) {
     Assert(current.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode expectType = current.getType().getAttribute(expr::DatatypeRecordAttr());
