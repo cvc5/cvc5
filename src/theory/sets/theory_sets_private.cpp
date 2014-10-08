@@ -420,6 +420,10 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
 void TheorySetsPrivate::dumpAssertionsHumanified() const
 {
     std::string tag = "sets-assertions";
+
+    if(Trace.isOn(tag)) { /* condition can't be !Trace.isOn, that's why this empty block */ }
+    else { return; }
+
     context::CDList<Assertion>::const_iterator it = d_external.facts_begin(), it_end = d_external.facts_end();
 
     std::map<TNode, std::set<TNode> > equalities;
@@ -1104,7 +1108,9 @@ void TheorySetsPrivate::propagate(Theory::Effort effort) {
 
   // build a model
   Trace("sets-prop-full") << "[sets-prop-full] propagate(FULL_EFFORT)" << std::endl;
-  dumpAssertionsHumanified();
+  if(Trace.isOn("sets-assertions")) {
+    dumpAssertionsHumanified();
+  }
 
   const CDNodeSet& terms = (d_termInfoManager->d_terms);
   for(typeof(terms.begin()) it = terms.begin(); it != terms.end(); ++it) {
