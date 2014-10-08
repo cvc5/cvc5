@@ -47,7 +47,6 @@ void setNoLimitCPU() {
 #endif /* ! __WIN32__ */
 }
 
-
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
 CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
@@ -128,17 +127,19 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
         ( res.asSatisfiabilityResult() == Result::SAT ||
           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) {
       g = new GetModelCommand();
-    } else if( d_options[options::proof] &&
-               d_options[options::dumpProofs] &&
-               res.asSatisfiabilityResult() == Result::UNSAT ) {
+    }
+    if( d_options[options::proof] &&
+        d_options[options::dumpProofs] &&
+        res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetProofCommand();
-    } else if( d_options[options::dumpInstantiations] &&
-               ( ( d_options[options::instFormatMode]!=INST_FORMAT_MODE_SZS && 
-                   ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) || 
-                 res.asSatisfiabilityResult() == Result::UNSAT ) ) {
+    }
+    if( d_options[options::dumpInstantiations] &&
+        ( ( d_options[options::instFormatMode] != INST_FORMAT_MODE_SZS &&
+            ( res.asSatisfiabilityResult() == Result::SAT || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE) ) ) ||
+          res.asSatisfiabilityResult() == Result::UNSAT ) ) {
       g = new GetInstantiationsCommand();
-    } else if( d_options[options::dumpUnsatCores] &&
-               res.asSatisfiabilityResult() == Result::UNSAT ) {
+    }
+    if( d_options[options::dumpUnsatCores] && res.asSatisfiabilityResult() == Result::UNSAT ) {
       g = new GetUnsatCoreCommand();
     }
     if(g != NULL) {

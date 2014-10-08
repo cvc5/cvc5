@@ -11,7 +11,7 @@
  **
  ** \brief An additional layer between commands and invoking them.
  **
- ** The portfolio executer branches check-sat queries to several
+ ** The portfolio executor branches check-sat queries to several
  ** threads.
  **/
 
