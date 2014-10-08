@@ -20,7 +20,7 @@ AM_CPPFLAGS = \
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
 SUBDIRS = lib options expr util prop/minisat prop/bvminisat . parser compat bindings main
-THEORIES = builtin booleans uf arith fp bv arrays datatypes sets strings quantifiers idl
+THEORIES = builtin booleans uf arith bv fp arrays datatypes sets strings quantifiers idl
 
 lib_LTLIBRARIES = libcvc4.la
 
