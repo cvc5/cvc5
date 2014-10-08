@@ -33,7 +33,6 @@
 #include "expr/command.h"
 #include "util/configuration.h"
 #include "main/options.h"
-#include "theory/uf/options.h"
 #include "util/output.h"
 #include "util/result.h"
 #include "util/statistics.h"
