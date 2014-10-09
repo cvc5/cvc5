@@ -13,10 +13,9 @@
  **
  ** \todo [[ Constant folding
  **          Push negations up through arithmetic operators (include max and min? maybe not due to +0/-0)
- **          classifications to normal tests
+ **          classifications to normal tests (maybe)
  **          (= x (fp.neg x)) --> (isNaN x)
- **          (fp.eq x (fp.neg x)) --> (isZero x) 
- **          (fp.eq x x) --> (not (isNaN x))
+ **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
  **          (fp.eq x const) --> various = depending on const ]]
  **/
 
@@ -61,6 +60,27 @@ namespace rewrite {
     Node addition = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_PLUS,node[0],node[1],negation);
     return RewriteResponse(REWRITE_DONE, addition);
   }
+
+
+  /* Implies (fp.eq x x) --> (not (isNaN x))
+   */
+
+  RewriteResponse ieeeEqToEq (TNode node, bool) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_EQ);
+    NodeManager *nm = NodeManager::currentNM();
+
+    return RewriteResponse(REWRITE_DONE,
+			   nm->mkNode(kind::AND,
+				      nm->mkNode(kind::AND,
+						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[0])),
+						 nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_ISNAN, node[1]))),
+				      nm->mkNode(kind::OR,
+						 nm->mkNode(kind::EQUAL, node[0], node[1]),
+						 nm->mkNode(kind::AND,
+							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[0]),
+							    nm->mkNode(kind::FLOATINGPOINT_ISZ, node[1])))));
+  }
+
 
   RewriteResponse geqToleq (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_GEQ);
@@ -253,7 +273,6 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
       
     /******** Operations ********/
     preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
     preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
@@ -268,6 +287,7 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
 
     /******** Comparisons ********/
+    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::ieeeEqToEq;
     preRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::geqToleq;
@@ -279,6 +299,8 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     preRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;  
     preRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
 
     /******** Conversions ********/
     preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::identity;
@@ -316,7 +338,6 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
       
     /******** Operations ********/
     postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::convertFromLiteral;
-    postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::reorderFPEquality;
     postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
     postRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::reorderBinaryOperation;
@@ -331,6 +352,7 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
 
     /******** Comparisons ********/
+    postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
     postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
@@ -342,6 +364,8 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;  
     postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
 
     /******** Conversions ********/
     postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::convertFromIEEEBitVectorLiteral;

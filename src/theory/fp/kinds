@@ -123,6 +123,13 @@ typerule FLOATINGPOINT_ISINF   ::CVC4::theory::fp::FloatingPointTestTypeRule
 operator FLOATINGPOINT_ISNAN 1 "floating-point is NaN"
 typerule FLOATINGPOINT_ISNAN   ::CVC4::theory::fp::FloatingPointTestTypeRule
 
+operator FLOATINGPOINT_ISNEG 1 "floating-point is negative"
+typerule FLOATINGPOINT_ISNEG   ::CVC4::theory::fp::FloatingPointTestTypeRule
+
+operator FLOATINGPOINT_ISPOS 1 "floating-point is positive"
+typerule FLOATINGPOINT_ISPOS   ::CVC4::theory::fp::FloatingPointTestTypeRule
+
+
 
 constant FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP \
     ::CVC4::FloatingPointToFPIEEEBitVector \
@@ -202,15 +209,8 @@ parameterized FLOATINGPOINT_TO_SBV FLOATINGPOINT_TO_SBV_OP 2 "convert a floating
 typerule FLOATINGPOINT_TO_SBV   ::CVC4::theory::fp::FloatingPointToSBVTypeRule
 
 
-constant FLOATINGPOINT_TO_REAL_OP \
-    ::CVC4::FloatingPointToReal \
-    "::CVC4::FloatingPointConvertSortHashFunction<0x20>" \
-    "util/floatingpoint.h" \
-    "operator for converting from floating_point to real"
-
-parameterized FLOATINGPOINT_TO_REAL FLOATINGPOINT_TO_REAL_OP 1 "convert a floating-point value to a real"
+operator FLOATINGPOINT_TO_REAL 1 "floating-point to real"
 typerule FLOATINGPOINT_TO_REAL   ::CVC4::theory::fp::FloatingPointToRealTypeRule
-
 
 
 endtheory
