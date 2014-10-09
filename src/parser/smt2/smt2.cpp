@@ -209,6 +209,10 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_FP:
     defineType("RoundingMode", getExprManager()->roundingModeType());
+    defineType("Float16", getExprManager()->mkFloatingPointType(5, 11));
+    defineType("Float32", getExprManager()->mkFloatingPointType(8, 24));
+    defineType("Float64", getExprManager()->mkFloatingPointType(11, 53));
+    defineType("Float128", getExprManager()->mkFloatingPointType(15, 113));
     addFloatingPointOperators();
     break;
 

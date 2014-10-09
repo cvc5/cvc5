@@ -367,18 +367,17 @@ public :
       throw (TypeCheckingExceptionPrivate, AssertionException) {
     TRACE("FloatingPointToRealTypeRule");
 
-    FloatingPointToReal info = n.getOperator().getConst<FloatingPointToReal>();
-    TypeNode inputType = nodeManager->mkFloatingPointType(info.t);
-
     if (check) {
-      TypeNode operandType = n[0].getType(check);
-      
-      if (!(operandType.isFloatingPoint())) {
-	throw TypeCheckingExceptionPrivate(n, "conversion to real used with a sort other than floating-point");
+      TypeNode roundingModeType = n[0].getType(check);
+
+      if (!roundingModeType.isRoundingMode()) {
+	throw TypeCheckingExceptionPrivate(n, "first argument must be a rounding mode");
       }
 
-      if (!(operandType == inputType)) {
-	throw TypeCheckingExceptionPrivate(n, "operand type does not match parameter type");
+      TypeNode operand = n[1].getType(check);
+
+      if (!operand.isFloatingPoint()) {
+	throw TypeCheckingExceptionPrivate(n, "floating-point to real applied to a non floating-point sort");
       }
     }
 

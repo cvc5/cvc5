@@ -494,6 +494,9 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::FLOATINGPOINT_ISZ:
   case kind::FLOATINGPOINT_ISINF:
   case kind::FLOATINGPOINT_ISNAN:
+  case kind::FLOATINGPOINT_ISNEG:
+  case kind::FLOATINGPOINT_ISPOS:
+  case kind::FLOATINGPOINT_TO_REAL:
     out << smtKindString(k) << ' '; break;
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
@@ -503,7 +506,6 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
   case kind::FLOATINGPOINT_TO_UBV:
   case kind::FLOATINGPOINT_TO_SBV:
-  case kind::FLOATINGPOINT_TO_REAL:
     printFpParameterizedOp(out, n);
     out << ' ';
     stillNeedToPrintParams = false;
@@ -731,7 +733,7 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_FMA: return "fp.fma";
   case kind::FLOATINGPOINT_SQRT: return "fp.sqrt";
   case kind::FLOATINGPOINT_REM: return "fp.rem";
-  case kind::FLOATINGPOINT_RTI: return "roundToIntegral";
+  case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
   case kind::FLOATINGPOINT_MIN: return "fp.min";
   case kind::FLOATINGPOINT_MAX: return "fp.max";
 
@@ -745,6 +747,8 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_ISZ: return "fp.isZero";  
   case kind::FLOATINGPOINT_ISINF: return "fp.isInfinite";
   case kind::FLOATINGPOINT_ISNAN: return "fp.isNaN";
+  case kind::FLOATINGPOINT_ISNEG: return "fp.isNegative";
+  case kind::FLOATINGPOINT_ISPOS: return "fp.isPositive";
 
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT: return "to_fp";
@@ -836,11 +840,6 @@ static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
   case kind::FLOATINGPOINT_TO_SBV:
     out << "fp.to_sbv "
         << n.getOperator().getConst<FloatingPointToSBV>().bvs.size;
-    break;
-  case kind::FLOATINGPOINT_TO_REAL:
-    out << "fp.to_real "
-        << n.getOperator().getConst<FloatingPointToReal>().t.exponent() << ' '
-        << n.getOperator().getConst<FloatingPointToReal>().t.significand();
     break;
   default:
     out << n.getKind();
