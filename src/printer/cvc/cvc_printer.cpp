@@ -874,6 +874,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssignmentCommand>(out, c, d_cvc3Mode) ||
      tryToStream<GetAssertionsCommand>(out, c, d_cvc3Mode) ||
      tryToStream<GetProofCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<GetUnsatCoreCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetBenchmarkStatusCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c, d_cvc3Mode) ||
      tryToStream<SetInfoCommand>(out, c, d_cvc3Mode) ||
@@ -1147,6 +1148,10 @@ static void toStream(std::ostream& out, const GetAssertionsCommand* c, bool cvc3
 
 static void toStream(std::ostream& out, const GetProofCommand* c, bool cvc3Mode) throw() {
   out << "DUMP_PROOF;";
+}
+
+static void toStream(std::ostream& out, const GetUnsatCoreCommand* c, bool cvc3Mode) throw() {
+  out << "DUMP_UNSAT_CORE;";
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c, bool cvc3Mode) throw() {

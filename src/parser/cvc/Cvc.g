@@ -65,6 +65,7 @@ tokens {
   EXIT_TOK = 'EXIT';
   INCLUDE_TOK = 'INCLUDE';
   DUMP_PROOF_TOK = 'DUMP_PROOF';
+  DUMP_UNSAT_CORE_TOK = 'DUMP_UNSAT_CORE';
   DUMP_ASSUMPTIONS_TOK = 'DUMP_ASSUMPTIONS';
   DUMP_SIG_TOK = 'DUMP_SIG';
   DUMP_TCC_TOK = 'DUMP_TCC';
@@ -794,6 +795,9 @@ mainCommand[CVC4::Command*& cmd]
 
   | DUMP_PROOF_TOK
     { cmd = new GetProofCommand(); }
+
+  | DUMP_UNSAT_CORE_TOK
+    { cmd = new GetUnsatCoreCommand(); }
 
   | ( DUMP_ASSUMPTIONS_TOK
     | DUMP_SIG_TOK
