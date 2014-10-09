@@ -116,6 +116,16 @@ typedef enum {
   TRIGGER_SEL_MAX,
 } TriggerSelMode;
 
+typedef enum {
+  /** default : prenex quantifiers without user patterns */
+  PRENEX_NO_USER_PAT,
+  /** prenex all */
+  PRENEX_ALL,
+  /** prenex none */
+  PRENEX_NONE,
+} PrenexQuantMode;
+
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

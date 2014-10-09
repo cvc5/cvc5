@@ -165,6 +165,19 @@ max \n\
 + Consider only maximal subterms that meet criteria for triggers. \n\
 \n\
 ";
+static const std::string prenexQuantModeHelp = "\
+Prenex quantifiers modes currently supported by the --prenex-quant option:\n\
+\n\
+default \n\
++ Default, prenex all nested quantifiers except those with user patterns.\n\
+\n\
+all \n\
++ Prenex all nested quantifiers.\n\
+\n\
+none \n\
++ Do no prenex nested quantifiers. \n\
+\n\
+";
 inline InstWhenMode stringToInstWhenMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg == "pre-full") {
     return INST_WHEN_PRE_FULL;
@@ -309,6 +322,7 @@ inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, S
                           optarg + "'.  Try --user-pat help.");
   }
 }
+
 inline TriggerSelMode stringToTriggerSelMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
   if(optarg ==  "default" || optarg == "all" ) {
     return TRIGGER_SEL_DEFAULT;
@@ -324,6 +338,23 @@ inline TriggerSelMode stringToTriggerSelMode(std::string option, std::string opt
                           optarg + "'.  Try --trigger-sel help.");
   }
 }
+
+inline PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
+  if(optarg ==  "default" ) {
+    return PRENEX_NO_USER_PAT;
+  } else if(optarg == "all") {
+    return PRENEX_ALL;
+  } else if(optarg == "none") {
+    return PRENEX_NONE;
+  } else if(optarg ==  "help") {
+    puts(prenexQuantModeHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --prenex-quant: `") +
+                          optarg + "'.  Try --prenex-quant help.");
+  }
+}
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

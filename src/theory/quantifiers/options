@@ -18,7 +18,7 @@ option miniscopeQuantFreeVar /--disable-miniscope-quant-fv bool :default true
  disable miniscope quantifiers for ground subformulas
 
 # Whether to prenex (nested universal) quantifiers
-option prenexQuant /--disable-prenex-quant bool :default true
+option prenexQuant --prenex-quant=MODE CVC4::theory::quantifiers::PrenexQuantMode :default CVC4::theory::quantifiers::PRENEX_NO_USER_PAT :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToPrenexQuantMode :handler-include "theory/quantifiers/options_handlers.h"
  disable prenexing of quantified formulas
 
 # Whether to variable-eliminate quantifiers.
