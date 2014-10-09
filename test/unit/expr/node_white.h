@@ -22,33 +22,28 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node.h"
-#include "context/context.h"
 #include "util/cvc4_assert.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 using namespace CVC4::expr;
 using namespace std;
 
 class NodeWhite : public CxxTest::TestSuite {
 
-  Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
 
 public:
 
   void setUp() {
-    d_ctxt = new Context();
-    d_nm = new NodeManager(d_ctxt, NULL);
+    d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
   }
 
   void tearDown() {
     delete d_scope;
     delete d_nm;
-    delete d_ctxt;
   }
 
   void testNull() {

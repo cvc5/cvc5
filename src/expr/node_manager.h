@@ -35,7 +35,6 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "context/context.h"
 #include "util/subrange_bound.h"
 #include "util/tls.h"
 #include "options/options.h"
@@ -66,6 +65,11 @@ public:
   virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes) { }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) { }
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment, uint32_t flags) { }
+  /**
+   * Notify a listener of a Node that's being GCed.  If this function stores a reference
+   * to the Node somewhere, very bad things will happen.
+   */
+  virtual void nmNotifyDeleteNode(TNode n) { }
 };/* class NodeManagerListener */
 
 class NodeManager {
@@ -307,8 +311,8 @@ class NodeManager {
 
 public:
 
-  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager);
-  explicit NodeManager(context::Context* ctxt, ExprManager* exprManager, const Options& options);
+  explicit NodeManager(ExprManager* exprManager);
+  explicit NodeManager(ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */

@@ -17,7 +17,6 @@
 #include "expr/node_manager.h"
 #include "expr/expr_manager.h"
 #include "expr/variable_type_map.h"
-#include "context/context.h"
 #include "options/options.h"
 #include "util/statistics_registry.h"
 
@@ -29,7 +28,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 33 "${template}"
+#line 32 "${template}"
 
 #ifdef CVC4_STATISTICS_ON
   #define INC_STAT(kind) \
@@ -64,14 +63,12 @@ ${includes}
 #endif
 
 using namespace std;
-using namespace CVC4::context;
 using namespace CVC4::kind;
 
 namespace CVC4 {
 
 ExprManager::ExprManager() :
-  d_ctxt(new Context()),
-  d_nodeManager(new NodeManager(d_ctxt, this)) {
+  d_nodeManager(new NodeManager(this)) {
 #ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
     d_exprStatistics[i] = NULL;
@@ -83,8 +80,7 @@ ExprManager::ExprManager() :
 }
 
 ExprManager::ExprManager(const Options& options) :
-  d_ctxt(new Context()),
-  d_nodeManager(new NodeManager(d_ctxt, this, options)) {
+  d_nodeManager(new NodeManager(this, options)) {
 #ifdef CVC4_STATISTICS_ON
   for (unsigned i = 0; i < LAST_TYPE; ++ i) {
     d_exprStatisticsVars[i] = NULL;
@@ -119,8 +115,6 @@ ExprManager::~ExprManager() throw() {
 
     delete d_nodeManager;
     d_nodeManager = NULL;
-    delete d_ctxt;
-    d_ctxt = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
@@ -960,10 +954,6 @@ unsigned ExprManager::maxArity(Kind kind) {
 
 NodeManager* ExprManager::getNodeManager() const {
   return d_nodeManager;
-}
-
-Context* ExprManager::getContext() const {
-  return d_ctxt;
 }
 
 Statistics ExprManager::getStatistics() const throw() {

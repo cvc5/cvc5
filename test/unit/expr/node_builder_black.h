@@ -25,19 +25,16 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/kind.h"
-#include "context/context.h"
 #include "util/cvc4_assert.h"
 #include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 using namespace std;
 
 class NodeBuilderBlack : public CxxTest::TestSuite {
 private:
 
-  Context* d_ctxt;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
@@ -47,8 +44,7 @@ private:
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nm = new NodeManager(d_ctxt, NULL);
+    d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
 
     specKind = AND;
@@ -63,7 +59,6 @@ public:
     delete d_realType;
     delete d_scope;
     delete d_nm;
-    delete d_ctxt;
   }
 
 
