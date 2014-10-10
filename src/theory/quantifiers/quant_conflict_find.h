@@ -187,11 +187,6 @@ private:
   NodeList d_qassert;
   std::map< Node, QuantInfo > d_qinfo;
 private:  //for equivalence classes
-  eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( Node n1, Node n2 );
-  bool areEqual( Node n1, Node n2 );
-  Node getRepresentative( Node n );
-  TermDb* getTermDatabase();
   // type -> list(eqc)
   std::map< TypeNode, std::vector< TNode > > d_eqcs;
   std::map< TypeNode, Node > d_model_basis;

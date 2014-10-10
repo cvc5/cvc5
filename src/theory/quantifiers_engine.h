@@ -37,6 +37,10 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace quantifiers {
+  class TermDb;
+}
+
 class QuantifiersModule {
 protected:
   QuantifiersEngine* d_quantEngine;
@@ -61,10 +65,15 @@ public:
   virtual Node explain(TNode n) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
+public:
+  eq::EqualityEngine * getEqualityEngine();
+  bool areDisequal( TNode n1, TNode n2 );
+  bool areEqual( TNode n1, TNode n2 );
+  TNode getRepresentative( TNode n );
+  quantifiers::TermDb * getTermDatabase();
 };/* class QuantifiersModule */
 
 namespace quantifiers {
-  class TermDb;
   class FirstOrderModel;
   //modules
   class InstantiationEngine;

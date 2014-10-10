@@ -1851,27 +1851,6 @@ void QuantConflictFind::assertNode( Node q ) {
   }
 }
 
-eq::EqualityEngine * QuantConflictFind::getEqualityEngine() {
-  //return ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( theory::THEORY_UF ))->getEqualityEngine();
-  return d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-}
-bool QuantConflictFind::areEqual( Node n1, Node n2 ) {
-  return getEqualityEngine()->hasTerm( n1 ) && getEqualityEngine()->hasTerm( n2 ) && getEqualityEngine()->areEqual( n1,n2 );
-}
-bool QuantConflictFind::areDisequal( Node n1, Node n2 ) {
-  return n1!=n2 && getEqualityEngine()->hasTerm( n1 ) && getEqualityEngine()->hasTerm( n2 ) && getEqualityEngine()->areDisequal( n1,n2, false );
-}
-Node QuantConflictFind::getRepresentative( Node n ) {
-  if( getEqualityEngine()->hasTerm( n ) ){
-    return getEqualityEngine()->getRepresentative( n );
-  }else{
-    return n;
-  }
-}
-TermDb* QuantConflictFind::getTermDatabase() { 
-  return d_quantEngine->getTermDatabase();
-}
-
 Node QuantConflictFind::evaluateTerm( Node n ) {
   if( MatchGen::isHandledUfTerm( n ) ){
     Node f = MatchGen::getOperator( this, n );

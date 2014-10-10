@@ -357,13 +357,6 @@ public:  //for generalization
   // get generalization depth
   int calculateGeneralizationDepth( TNode n, std::vector< TNode >& fv );
 private:
-  //ground term enumeration
-  std::map< TypeNode, std::vector< Node > > d_enum_terms;
-  //type enumerators
-  std::map< TypeNode, unsigned > d_typ_enum_map;
-  std::vector< TypeEnumerator > d_typ_enum;
-  //get nth term for type
-  Node getEnumerateTerm( TypeNode tn, unsigned index );
   //predicate for type
   std::map< TypeNode, Node > d_typ_pred;
   //get predicate for type
@@ -389,12 +382,6 @@ public:  //for property enumeration
   std::map< TNode, std::vector< TNode > > d_subs_confirmWitnessDomain;
   //number of ground substitutions whose equality is unknown
   unsigned d_subs_unkCount;
-public:  //for ground equivalence classes
-  eq::EqualityEngine * getEqualityEngine();
-  bool areDisequal( TNode n1, TNode n2 );
-  bool areEqual( TNode n1, TNode n2 );
-  TNode getRepresentative( TNode n );
-  TermDb * getTermDatabase();
 private:  //information about ground equivalence classes
   TNode d_bool_eqc[2];
   std::map< TNode, Node > d_ground_eqc_map;

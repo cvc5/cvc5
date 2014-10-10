@@ -19,6 +19,7 @@
 
 #include "expr/attribute.h"
 #include "theory/theory.h"
+#include "theory/type_enumerator.h"
 
 #include <map>
 
@@ -241,6 +242,8 @@ public:
 public:
   //get bound variables in n
   static void getBoundVars( Node n, std::vector< Node >& bvs);
+  
+  
 //for skolem
 private:
   /** map from universal quantifiers to their skolemized body */
@@ -253,7 +256,20 @@ public:
                                 std::vector< Node >& sk, Node& sub, std::vector< unsigned >& sub_vars );
   /** get the skolemized body */
   Node getSkolemizedBody( Node f);
-
+  /** is induction variable */
+  static bool isInductionTerm( Node n );
+  
+//for ground term enumeration
+private:  
+  /** ground terms enumerated for types */
+  std::map< TypeNode, std::vector< Node > > d_enum_terms;
+  //type enumerators
+  std::map< TypeNode, unsigned > d_typ_enum_map;
+  std::vector< TypeEnumerator > d_typ_enum;
+public:
+  //get nth term for type
+  Node getEnumerateTerm( TypeNode tn, unsigned index );  
+  
 //miscellaneous
 public:
   /** map from universal quantifiers to the list of variables */
@@ -289,11 +305,7 @@ public:
   int isInstanceOf( Node n1, Node n2 );
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
-  
-public: //for induction
-  /** is induction variable */
-  static bool isInductionTerm( Node n );
-  
+
   
 public: //general queries concerning quantified formulas wrt modules
   /** is quantifier treated as a rewrite rule? */

@@ -280,33 +280,6 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
   }
 }
 
-eq::EqualityEngine * ConjectureGenerator::getEqualityEngine() {
-  return d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
-}
-
-bool ConjectureGenerator::areEqual( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1==n2 || ( ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areEqual( n1, n2 ) );
-}
-
-bool ConjectureGenerator::areDisequal( TNode n1, TNode n2 ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  return n1!=n2 && ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areDisequal( n1, n2, false );
-}
-
-TNode ConjectureGenerator::getRepresentative( TNode n ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  if( ee->hasTerm( n ) ){
-    return ee->getRepresentative( n );
-  }else{
-    return n;
-  }
-}
-
-TermDb * ConjectureGenerator::getTermDatabase() {
-  return d_quantEngine->getTermDatabase();
-}
-
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
   Assert( !tn.isNull() );
   while( d_free_var[tn].size()<=i ){
@@ -1098,27 +1071,6 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
   }
 }
 
-Node ConjectureGenerator::getEnumerateTerm( TypeNode tn, unsigned index ) {
-  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
-  unsigned teIndex;
-  if( it==d_typ_enum_map.end() ){
-    teIndex = (int)d_typ_enum.size();
-    d_typ_enum_map[tn] = teIndex;
-    d_typ_enum.push_back( TypeEnumerator(tn) );
-  }else{
-    teIndex = it->second;
-  }
-  while( index>=d_enum_terms[tn].size() ){
-    if( d_typ_enum[teIndex].isFinished() ){
-      return Node::null();
-    }
-    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
-    ++d_typ_enum[teIndex];
-  }
-  return d_enum_terms[tn][index];
-}
-
-
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
@@ -1149,7 +1101,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         vec.push_back( size_limit );
       }else{
         //see if we can iterate current
-        if( vec_sum<size_limit && !getEnumerateTerm( n[index].getType(), vec[index]+1 ).isNull() ){
+        if( vec_sum<size_limit && !getTermDatabase()->getEnumerateTerm( n[index].getType(), vec[index]+1 ).isNull() ){
           vec[index]++;
           vec_sum++;
           vec.push_back( size_limit - vec_sum );
@@ -1164,7 +1116,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       if( success ){
         if( vec.size()==n.getNumChildren() ){
-          Node lc = getEnumerateTerm( n[vec.size()-1].getType(), vec[vec.size()-1] );
+          Node lc = getTermDatabase()->getEnumerateTerm( n[vec.size()-1].getType(), vec[vec.size()-1] );
           if( !lc.isNull() ){
             for( unsigned i=0; i<vec.size(); i++ ){
               Trace("sg-gt-enum-debug") << vec[i] << " ";
@@ -1177,7 +1129,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             std::vector< Node > children;
             children.push_back( n.getOperator() );
             for( unsigned i=0; i<(vec.size()-1); i++ ){
-              Node nn = getEnumerateTerm( n[i].getType(), vec[i] );
+              Node nn = getTermDatabase()->getEnumerateTerm( n[i].getType(), vec[i] );
               Assert( !nn.isNull() );
               Assert( nn.getType()==n[i].getType() );
               children.push_back( nn );

@@ -43,6 +43,34 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
+
+eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
+  return d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
+}
+
+bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  return n1==n2 || ( ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areEqual( n1, n2 ) );
+}
+
+bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  return n1!=n2 && ee->hasTerm( n1 ) && ee->hasTerm( n2 ) && ee->areDisequal( n1, n2, false );
+}
+
+TNode QuantifiersModule::getRepresentative( TNode n ) {
+  eq::EqualityEngine * ee = getEqualityEngine();
+  if( ee->hasTerm( n ) ){
+    return ee->getRepresentative( n );
+  }else{
+    return n;
+  }
+}
+
+quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
+  return d_quantEngine->getTermDatabase();
+}
+
 QuantifiersEngine::QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te):
 d_te( te ),
 d_lemmas_produced_c(u){
@@ -184,7 +212,7 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
   QuantifiersModule * mo = getOwner( q );
   if( mo!=m ){
     if( mo!=NULL ){
-      Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << m->identify() << ", but already has owner " << mo->identify() << "!" << std::endl;
+      Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << "!" << std::endl;
     }
     d_owner[q] = m; 
   }

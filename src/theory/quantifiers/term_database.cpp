@@ -751,6 +751,27 @@ Node TermDb::getSkolemizedBody( Node f ){
   return d_skolem_body[ f ];
 }
 
+Node TermDb::getEnumerateTerm( TypeNode tn, unsigned index ) {
+  std::map< TypeNode, unsigned >::iterator it = d_typ_enum_map.find( tn );
+  unsigned teIndex;
+  if( it==d_typ_enum_map.end() ){
+    teIndex = (int)d_typ_enum.size();
+    d_typ_enum_map[tn] = teIndex;
+    d_typ_enum.push_back( TypeEnumerator(tn) );
+  }else{
+    teIndex = it->second;
+  }
+  while( index>=d_enum_terms[tn].size() ){
+    if( d_typ_enum[teIndex].isFinished() ){
+      return Node::null();
+    }
+    d_enum_terms[tn].push_back( *d_typ_enum[teIndex] );
+    ++d_typ_enum[teIndex];
+  }
+  return d_enum_terms[tn][index];
+}
+
+
 Node TermDb::getFreeVariableForInstConstant( Node n ){
   TypeNode tn = n.getType();
   if( d_free_vars.find( tn )==d_free_vars.end() ){
@@ -983,6 +1004,7 @@ Node TermDb::getRewriteRule( Node q ) {
 void TermDb::computeAttributes( Node q ) {
   if( q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      Trace("quant-attr-debug") << "Check : " << q[2][i] << " " << q[2][i].getKind() << std::endl;
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
         Node avar = q[2][i][0];
         if( avar.getAttribute(AxiomAttribute()) ){
@@ -994,13 +1016,22 @@ void TermDb::computeAttributes( Node q ) {
           d_qattr_conjecture[q] = true;
         }
         if( avar.getAttribute(SygusAttribute()) ){
+          //should be nested existential
+          Assert( q[1].getKind()==NOT );
+          Assert( q[1][0].getKind()==FORALL );
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           d_qattr_sygus[q] = true;
+          if( d_quantEngine->getCegInstantiation()==NULL ){
+            Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
+          }
           d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
         }
         if( avar.getAttribute(SynthesisAttribute()) ){
           Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;
           d_qattr_synthesis[q] = true;
+          if( d_quantEngine->getCegInstantiation()==NULL ){
+            Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
+          }
           d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
@@ -1012,7 +1043,11 @@ void TermDb::computeAttributes( Node q ) {
           Trace("quant-attr") << "Attribute : rr priority " << d_qattr_rr_priority[q] << " : " << q << std::endl;
         }
         if( avar.getKind()==REWRITE_RULE ){
+          Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
           Assert( i==0 );
+          if( d_quantEngine->getRewriteEngine()==NULL ){
+            Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
+          }
           //set rewrite engine as owner
           d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
         }
