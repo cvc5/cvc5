@@ -106,7 +106,8 @@ CVC_TESTS = \
 	wiki.20.cvc \
 	wiki.21.cvc \
 	queries0.cvc \
-	print_lambda.cvc
+	print_lambda.cvc \
+	trim.cvc
 
 # Regression tests for TPTP inputs
 TPTP_TESTS =
