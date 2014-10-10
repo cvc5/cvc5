@@ -1465,10 +1465,6 @@ arithmeticBinop[unsigned& op]
   | EXP_TOK
   ;
 
-moreArrayStores[CVC4::Expr& f]
-  : COMMA arrayStore[f]
-  ;
-
 /** Parses an array/tuple/record assignment term. */
 term[CVC4::Expr& f]
 @init {
