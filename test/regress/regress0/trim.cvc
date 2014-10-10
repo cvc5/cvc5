@@ -1,0 +1,36 @@
+% COMMAND-LINE: --finite-model-find
+% EXPECT: sat
+DATATYPE
+	myType = A | B
+END;
+%%% structured datatypes
+myTypeSet: TYPE = SET OF myType;
+myTypeGammaSet: TYPE = [# pos: myTypeSet, neg: myTypeSet #];
+delta: TYPE = ARRAY myType OF myTypeGammaSet;
+labels: TYPE = ARRAY myType OF SET OF STRING;
+
+%%% the empty myTypes set
+emptymyTypeSet : SET OF myType;
+ASSERT emptymyTypeSet = {} :: SET OF myType;
+
+d: delta;
+l: labels;
+
+ASSERT (l[A] = {"L","H"});
+ASSERT (l[B] = {"L"});
+
+ic0_i : myTypeSet;
+ic0_c : myTypeSet;
+ASSERT FORALL (r:myType):
+	(r IS_IN ic0_i) => FORALL (r2: myType): (r2 IS_IN d[r].neg) => r2 IS_IN ic0_c;
+ASSERT {A} <= ic0_i;
+ASSERT ((EXISTS (e0 : myType): (e0 IS_IN ic0_i) => (l[A] <= l[e0]))) OR ((ic0_i & ic0_c) <= emptymyTypeSet);
+
+ic1_i : myTypeSet;
+ic1_c : myTypeSet;
+ASSERT FORALL (r:myType):
+	(r IS_IN d[B].pos) => r IS_IN ic1_i;
+ASSERT ((EXISTS (e1 : myType): (e1 IS_IN ic1_i) => (l[B] <= l[e1]))) OR ((ic1_i & ic1_c) <= emptymyTypeSet);
+
+CHECKSAT;
+%COUNTEREXAMPLE;
