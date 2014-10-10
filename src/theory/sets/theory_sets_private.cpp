@@ -414,6 +414,7 @@ void TheorySetsPrivate::learnLiteral(TNode atom, bool polarity, Node reason) {
 
 void TheorySetsPrivate::addSharedTerm(TNode n) {
   Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  d_termInfoManager->addTerm(n);
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
@@ -513,7 +514,7 @@ bool TheorySetsPrivate::checkModel(const SettermElementsMap& settermElementsMap,
   BOOST_FOREACH(TNode element, saved) { Debug("sets-model") << element << ", "; }
   Debug("sets-model") << " }" << std::endl;
 
-  if(S.getNumChildren() == 2) {
+  if(theory::kindToTheoryId(S.getKind()) == THEORY_SETS && S.getNumChildren() == 2) {
 
     Elements cur;
 
