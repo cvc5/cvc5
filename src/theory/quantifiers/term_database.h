@@ -33,6 +33,14 @@ typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
 struct ConjectureAttributeId {};
 typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
   
+/** Attribute true for quantifiers that are SyGus conjectures */
+struct SygusAttributeId {};
+typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
+
+/** Attribute true for quantifiers that are synthesis conjectures */
+struct SynthesisAttributeId {};
+typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
+
 /** Attribute true for nodes that should not be used for matching */
 struct NoMatchAttributeId {};
 /** use the special for boolean flag */
@@ -297,6 +305,8 @@ public: //general queries concerning quantified formulas wrt modules
 private:
   std::map< Node, bool > d_qattr_conjecture;
   std::map< Node, bool > d_qattr_axiom;
+  std::map< Node, bool > d_qattr_sygus;
+  std::map< Node, bool > d_qattr_synthesis;
   std::map< Node, int > d_qattr_rr_priority;
   std::map< Node, int > d_qattr_qinstLevel;
   //record attributes
@@ -306,6 +316,10 @@ public:
   bool isQAttrConjecture( Node q );
   /** is axiom */
   bool isQAttrAxiom( Node q );
+  /** is sygus conjecture */
+  bool isQAttrSygus( Node q );
+  /** is synthesis conjecture */
+  bool isQAttrSynthesis( Node q );
   /** get instantiation level */
   int getQAttrQuantInstLevel( Node q );
   /** get rewrite rule priority */

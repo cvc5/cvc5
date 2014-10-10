@@ -74,6 +74,7 @@ namespace quantifiers {
   class RewriteEngine;
   class RelevantDomain;
   class ConjectureGenerator;
+  class CegInstantiation;
 }/* CVC4::theory::quantifiers */
 
 namespace inst {
@@ -115,6 +116,8 @@ private:
   quantifiers::RewriteEngine * d_rr_engine;
   /** subgoal generator */
   quantifiers::ConjectureGenerator * d_sg_gen;
+  /** ceg instantiation */
+  quantifiers::CegInstantiation * d_ceg_inst;
 public: //effort levels
   enum {
     QEFFORT_CONFLICT,
@@ -160,10 +163,6 @@ public:
   /** get equality query object for the given type. The default is the
       generic one */
   EqualityQueryQuantifiersEngine* getEqualityQuery();
-  /** get instantiation engine */
-  quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
-  /** get model engine */
-  quantifiers::ModelEngine* getModelEngine() { return d_model_engine; }
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -180,10 +179,31 @@ public:
   QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
   /** get phase requirement terms */
   void getPhaseReqTerms( Node f, std::vector< Node >& nodes );
+public:  //modules
+  /** get instantiation engine */
+  quantifiers::InstantiationEngine* getInstantiationEngine() { return d_inst_engine; }
+  /** get model engine */
+  quantifiers::ModelEngine* getModelEngine() { return d_model_engine; }
   /** get bounded integers utility */
   quantifiers::BoundedIntegers * getBoundedIntegers() { return d_bint; }
   /** Conflict find mechanism for quantifiers */
   quantifiers::QuantConflictFind* getConflictFind() { return d_qcf; }
+  /** rewrite rules utility */
+  quantifiers::RewriteEngine * getRewriteEngine() { return d_rr_engine; }
+  /** subgoal generator */
+  quantifiers::ConjectureGenerator * getConjectureGenerator() { return d_sg_gen; }
+  /** ceg instantiation */
+  quantifiers::CegInstantiation * getCegInstantiation() { return d_ceg_inst; }
+private:
+  /** owner of quantified formulas */
+  std::map< Node, QuantifiersModule * > d_owner;
+public:
+  /** get owner */
+  QuantifiersModule * getOwner( Node q );
+  /** set owner */
+  void setOwner( Node q, QuantifiersModule * m );
+  /** considers */
+  bool hasOwnership( Node q, QuantifiersModule * m = NULL );
 public:
   /** initialize */
   void finishInit();

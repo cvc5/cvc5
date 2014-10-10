@@ -1191,7 +1191,7 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         PARSER_STATE->warning(ss.str());
       }
       // do nothing
-    } else if(attr == ":axiom" || attr == ":conjecture") {
+    } else if(attr==":axiom" || attr==":conjecture" || attr==":sygus" || attr==":synthesis") {
       if(hasValue) {
         std::stringstream ss;
         ss << "warning: Attribute " << attr << " does not take a value (ignoring)";

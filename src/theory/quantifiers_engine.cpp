@@ -31,6 +31,7 @@
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/conjecture_generator.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
@@ -116,6 +117,12 @@ d_lemmas_produced_c(u){
   }else{
     d_rr_engine = NULL;
   }
+  if( options::ceGuidedInst() ){
+    d_ceg_inst = new quantifiers::CegInstantiation( this, c );
+    d_modules.push_back( d_ceg_inst );
+  }else{
+    d_ceg_inst = NULL;
+  }
 
   //options
   d_total_inst_count_debug = 0;
@@ -162,6 +169,30 @@ void QuantifiersEngine::finishInit(){
   for( int i=0; i<(int)d_modules.size(); i++ ){
     d_modules[i]->finishInit();
   }
+}
+
+QuantifiersModule * QuantifiersEngine::getOwner( Node q ) { 
+  std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
+  if( it==d_owner.end() ){
+    return NULL;
+  }else{
+    return it->second;
+  }
+}
+
+void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
+  QuantifiersModule * mo = getOwner( q );
+  if( mo!=m ){
+    if( mo!=NULL ){
+      Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << m->identify() << ", but already has owner " << mo->identify() << "!" << std::endl;
+    }
+    d_owner[q] = m; 
+  }
+}
+
+bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
+  QuantifiersModule * mo = getOwner( q );
+  return mo==m || mo==NULL;
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
@@ -276,9 +307,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
 void QuantifiersEngine::registerQuantifier( Node f ){
   if( std::find( d_quants.begin(), d_quants.end(), f )==d_quants.end() ){
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
-    if( d_term_db->isRewriteRule( f ) ){
-      Trace("quant") << " (rewrite rule)";
-    }
     Trace("quant") << " : " << f << std::endl;
     d_quants.push_back( f );
 
@@ -287,6 +315,10 @@ void QuantifiersEngine::registerQuantifier( Node f ){
     //make instantiation constants for f
     d_term_db->makeInstantiationConstantsFor( f );
     d_term_db->computeAttributes( f );
+    QuantifiersModule * qm = getOwner( f );
+    if( qm!=NULL ){
+      Trace("quant") << "   Owner : " << qm->identify() << std::endl;
+    }
     //register with quantifier relevance
     if( d_quant_rel ){
       d_quant_rel->registerQuantifier( f );

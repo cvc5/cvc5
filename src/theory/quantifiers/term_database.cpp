@@ -21,6 +21,8 @@
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "util/datatype.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/ce_guided_instantiation.h"
+#include "theory/quantifiers/rewrite_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -991,6 +993,16 @@ void TermDb::computeAttributes( Node q ) {
           Trace("quant-attr") << "Attribute : conjecture : " << q << std::endl;
           d_qattr_conjecture[q] = true;
         }
+        if( avar.getAttribute(SygusAttribute()) ){
+          Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
+          d_qattr_sygus[q] = true;
+          d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+        }
+        if( avar.getAttribute(SynthesisAttribute()) ){
+          Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;
+          d_qattr_synthesis[q] = true;
+          d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation() );
+        }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           d_qattr_qinstLevel[q] = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << d_qattr_qinstLevel[q] << " : " << q << std::endl;
@@ -998,6 +1010,11 @@ void TermDb::computeAttributes( Node q ) {
         if( avar.hasAttribute(RrPriorityAttribute()) ){
           d_qattr_rr_priority[q] = avar.getAttribute(RrPriorityAttribute());
           Trace("quant-attr") << "Attribute : rr priority " << d_qattr_rr_priority[q] << " : " << q << std::endl;
+        }
+        if( avar.getKind()==REWRITE_RULE ){
+          Assert( i==0 );
+          //set rewrite engine as owner
+          d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine() );
         }
       }
     }
@@ -1016,6 +1033,24 @@ bool TermDb::isQAttrConjecture( Node q ) {
 bool TermDb::isQAttrAxiom( Node q ) {
   std::map< Node, bool >::iterator it = d_qattr_axiom.find( q );
   if( it==d_qattr_axiom.end() ){
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
+bool TermDb::isQAttrSygus( Node q ) {
+  std::map< Node, bool >::iterator it = d_qattr_sygus.find( q );
+  if( it==d_qattr_sygus.end() ){
+    return false;
+  }else{
+    return it->second;
+  }
+}
+
+bool TermDb::isQAttrSynthesis( Node q ) {
+  std::map< Node, bool >::iterator it = d_qattr_synthesis.find( q );
+  if( it==d_qattr_synthesis.end() ){
     return false;
   }else{
     return it->second;

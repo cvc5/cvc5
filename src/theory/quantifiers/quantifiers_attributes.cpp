@@ -33,6 +33,14 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, s
     Trace("quant-attr-debug") << "Set conjecture " << n << std::endl;
     ConjectureAttribute ca;
     n.setAttribute( ca, true );
+  }else if( attr=="sygus" ){
+    Trace("quant-attr-debug") << "Set sygus " << n << std::endl;
+    SygusAttribute ca;
+    n.setAttribute( ca, true );
+  }else if( attr=="synthesis" ){
+    Trace("quant-attr-debug") << "Set synthesis " << n << std::endl;
+    SynthesisAttribute ca;
+    n.setAttribute( ca, true );
   }else if( attr=="quant-inst-max-level" ){
     Assert( node_values.size()==1 );
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();

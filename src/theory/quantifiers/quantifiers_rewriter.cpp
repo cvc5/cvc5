@@ -1117,7 +1117,7 @@ Node QuantifiersRewriter::rewriteRewriteRule( Node r ) {
   NodeBuilder<> patternListB(kind::INST_PATTERN_LIST);
   //the entire rewrite rule is the first pattern
   if( options::quantRewriteRules() ){
-    patternListB << NodeManager::currentNM()->mkNode( INST_PATTERN, r );
+    patternListB << NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, r );
   }
   patternListB << static_cast<Node>(patternB);
   forallB << static_cast<Node>(patternListB);

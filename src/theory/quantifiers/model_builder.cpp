@@ -40,7 +40,7 @@ TheoryEngineModelBuilder( qe->getTheoryEngine() ), d_curr_model( c, NULL ), d_qe
 }
 
 bool QModelBuilder::isQuantifierActive( Node f ) {
-  return !TermDb::isRewriteRule( f );
+  return d_qe->hasOwnership( f );
 }
 
 
@@ -382,8 +382,7 @@ QModelBuilderIG::Statistics::~Statistics(){
 }
 
 bool QModelBuilderIG::isQuantifierActive( Node f ){
-  return !TermDb::isRewriteRule( f ) &&
-         ( d_considerAxioms || !d_qe->getTermDatabase()->isQAttrAxiom( f ) ) && d_quant_sat.find( f )==d_quant_sat.end();
+  return d_qe->hasOwnership( f ) && ( d_considerAxioms || !d_qe->getTermDatabase()->isQAttrAxiom( f ) ) && d_quant_sat.find( f )==d_quant_sat.end();
 }
 
 bool QModelBuilderIG::isTermActive( Node n ){
