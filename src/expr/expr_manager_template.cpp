@@ -105,18 +105,22 @@ ExprManager::~ExprManager() throw() {
       if (d_exprStatistics[i] != NULL) {
         d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatistics[i]);
         delete d_exprStatistics[i];
+        d_exprStatistics[i] = NULL;
       }
     }
     for (unsigned i = 0; i < LAST_TYPE; ++ i) {
       if (d_exprStatisticsVars[i] != NULL) {
         d_nodeManager->getStatisticsRegistry()->unregisterStat_(d_exprStatisticsVars[i]);
         delete d_exprStatisticsVars[i];
+        d_exprStatisticsVars[i] = NULL;
       }
     }
 #endif
 
     delete d_nodeManager;
+    d_nodeManager = NULL;
     delete d_ctxt;
+    d_ctxt = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl

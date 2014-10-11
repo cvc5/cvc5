@@ -837,6 +837,7 @@ SmtEngine::~SmtEngine() throw() {
 
     for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
       delete d_dumpCommands[i];
+      d_dumpCommands[i] = NULL;
     }
     d_dumpCommands.clear();
 
@@ -847,15 +848,22 @@ SmtEngine::~SmtEngine() throw() {
     d_definedFunctions->deleteSelf();
 
     delete d_theoryEngine;
+    d_theoryEngine = NULL;
     delete d_propEngine;
+    d_propEngine = NULL;
     delete d_decisionEngine;
+    d_decisionEngine = NULL;
 
     delete d_stats;
+    d_stats = NULL;
     delete d_statisticsRegistry;
+    d_statisticsRegistry = NULL;
 
     delete d_private;
+    d_private = NULL;
 
     delete d_userContext;
+    d_userContext = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
