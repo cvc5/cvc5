@@ -136,6 +136,8 @@ NodeManager::~NodeManager() {
     d_operators[i] = Node::null();
   }
 
+  d_tupleAndRecordTypes.clear();
+
   Assert(!d_attrManager->inGarbageCollection() );
   while(!d_zombies.empty()) {
     reclaimZombies();
@@ -157,9 +159,13 @@ NodeManager::~NodeManager() {
     Debug("gc:leaks") << ":end:" << endl;
   }
 
+  // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_statisticsRegistry;
+  d_statisticsRegistry = NULL;
   delete d_attrManager;
+  d_attrManager = NULL;
   delete d_options;
+  d_options = NULL;
 }
 
 void NodeManager::reclaimZombies() {
