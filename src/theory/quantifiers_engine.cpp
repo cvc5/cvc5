@@ -256,7 +256,7 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_time);
   bool needsCheck = false;
-  bool needsBuildModel = false;
+  bool needsModel = false;
   std::vector< QuantifiersModule* > qm;
   if( d_model->getNumAssertedQuantifiers()>0 ){
     needsCheck = e>=Theory::EFFORT_LAST_CALL;  //always need to check at or above last call
@@ -264,9 +264,13 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_modules[i]->needsCheck( e ) ){
         qm.push_back( d_modules[i] );
         needsCheck = true;
+        if( d_modules[i]->needsModel( e ) ){
+          needsModel = true;
+        }
       }
     }
   }
+  bool defaultBuildModel = false;
   if( needsCheck ){
     Trace("quant-engine") << "Quantifiers Engine check, level = " << e << std::endl;
     Trace("quant-engine-debug") << "  modules to check : ";
@@ -319,15 +323,34 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     Trace("quant-engine-debug") << "Check modules that needed check..." << std::endl;
     for( unsigned quant_e = QEFFORT_CONFLICT; quant_e<=QEFFORT_MODEL; quant_e++ ){
-      for( int i=0; i<(int)qm.size(); i++ ){
-        Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
-        qm[i]->check( e, quant_e );
+      bool success = true;
+      //build the model if any module requested it
+      if( quant_e==QEFFORT_MODEL && needsModel ){
+        Assert( d_builder!=NULL );
+        Trace("quant-engine-debug") << "Build model, fullModel = " <<  d_builder->optBuildAtFullModel() << "..." << std::endl;
+        d_builder->d_addedLemmas = 0;
+        d_builder->buildModel( d_model, d_builder->optBuildAtFullModel() );
+        //we are done if model building was unsuccessful
+        if( d_builder->d_addedLemmas>0 ){
+          success = false;
+        }
+      }
+      if( success ){
+        //check each module
+        for( int i=0; i<(int)qm.size(); i++ ){
+          Trace("quant-engine-debug") << "Check " << qm[i]->identify().c_str() << " at effort " << quant_e << "..." << std::endl;
+          qm[i]->check( e, quant_e );
+        }
       }
       //flush all current lemmas
       flushLemmas();
       //if we have added one, stop
       if( d_hasAddedLemma ){
         break;
+      //otherwise, complete the model generation if necessary
+      }else if( quant_e==QEFFORT_MODEL && needsModel && options::produceModels() && !d_builder->optBuildAtFullModel() ){
+        Trace("quant-engine-debug") << "Build completed model..." << std::endl;
+        d_builder->buildModel( d_model, true );
       }
     }
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
@@ -336,7 +359,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     //  this happens if no quantifiers are currently asserted and no model-building module is enabled
     if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
       if( options::produceModels() && !d_model->isModelSet() ){
-        needsBuildModel = true;
+        defaultBuildModel = true;
       }
       if( Trace.isOn("inst-per-quant") ){
         for( std::map< Node, int >::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it ){
@@ -354,11 +377,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine") << "Finished quantifiers engine check." << std::endl;
   }else{
     if( e==Theory::EFFORT_LAST_CALL && options::produceModels() ){
-      needsBuildModel = true;
+      defaultBuildModel = true;
     }
   }
 
-  if( needsBuildModel ){
+  if( defaultBuildModel ){
     Trace("quant-engine-debug") << "Build the model..." << std::endl;
     d_te->getModelBuilder()->buildModel( d_model, true );
     Trace("quant-engine-debug") << "Done building the model." << std::endl;

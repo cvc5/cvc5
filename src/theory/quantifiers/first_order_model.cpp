@@ -74,7 +74,7 @@ Node FirstOrderModel::getCurrentModelValue( Node n, bool partial ) {
   }
 }
 
-void FirstOrderModel::initialize( bool considerAxioms ) {
+void FirstOrderModel::initialize() {
   processInitialize( true );
   //this is called after representatives have been chosen and the equality engine has been built
   //for each quantifier, collect all operators we care about
@@ -86,10 +86,8 @@ void FirstOrderModel::initialize( bool considerAxioms ) {
       }
     }
     processInitializeQuantifier( f );
-    if( considerAxioms || !f.hasAttribute(AxiomAttribute()) ){
-      //initialize relevant models within bodies of all quantifiers
-      initializeModelForTerm( f[1] );
-    }
+    //initialize relevant models within bodies of all quantifiers
+    initializeModelForTerm( f[1] );
   }
   processInitialize( false );
 }

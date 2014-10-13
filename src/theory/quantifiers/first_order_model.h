@@ -78,7 +78,7 @@ public:
   virtual FirstOrderModelQInt * asFirstOrderModelQInt() { return NULL; }
   virtual FirstOrderModelAbs * asFirstOrderModelAbs() { return NULL; }
   // initialize the model
-  void initialize( bool considerAxioms = true );
+  void initialize();
   virtual void processInitialize( bool ispre ) = 0;
   /** mark model set */
   void markModelSet() { d_isModelSet = true; }

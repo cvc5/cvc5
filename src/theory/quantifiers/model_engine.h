@@ -48,6 +48,7 @@ public:
   virtual ~ModelEngine();
 public:
   bool needsCheck( Theory::Effort e );
+  bool needsModel( Theory::Effort e );
   void check( Theory::Effort e, unsigned quant_e );
   void registerQuantifier( Node f );
   void assertNode( Node f );

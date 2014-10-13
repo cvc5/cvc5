@@ -44,8 +44,6 @@ public:
   virtual bool optUseModel();
   //whether to construct model at fullModel = true
   virtual bool optBuildAtFullModel() { return false; }
-  //consider axioms
-  bool d_considerAxioms;
   /** number of lemmas generated while building model */
   //is the exhaustive instantiation incomplete?
   bool d_incomplete_check;

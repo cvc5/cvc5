@@ -52,86 +52,50 @@ bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
 
+bool ModelEngine::needsModel( Theory::Effort e ) {
+  return true;  
+}
+
 void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
   if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
     int addedLemmas = 0;
-    bool needsBuild = true;
     FirstOrderModel* fm = d_quantEngine->getModel();
-    quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
-    if( fm->getNumAssertedQuantifiers()>0 ){
-      //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
-      //quantifiers are initialized, we begin an instantiation round
-      double clSet = 0;
-      if( Trace.isOn("model-engine") ){
-        clSet = double(clock())/double(CLOCKS_PER_SEC);
-      }
-      ++(d_statistics.d_inst_rounds);
-      Assert( mb!=NULL );
-      bool buildAtFullModel = mb->optBuildAtFullModel();
-      needsBuild = !buildAtFullModel;
-      //two effort levels: first try exhaustive instantiation without axioms, then with.
-      int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
-      for( int effort=startEffort; effort<2; effort++ ){
-        // for effort = 0, we only instantiate non-axioms
-        // for effort = 1, we instantiate everything
-        if( addedLemmas==0 ){
-          Trace("model-engine") << "---Model Engine Round---" << std::endl;
-          //initialize the model
-          Trace("model-engine-debug") << "Build model..." << std::endl;
-          mb->d_considerAxioms = effort>=1;
-          mb->d_addedLemmas = 0;
-          mb->buildModel( fm, buildAtFullModel );
-          addedLemmas += (int)mb->d_addedLemmas;
-          //if builder has lemmas, add and return
-          if( addedLemmas==0 ){
-            Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-            //let the strong solver verify that the model is minimal
-            //for debugging, this will if there are terms in the model that the strong solver was not notified of
-            uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-            if( !ufss || ufss->debugModel( fm ) ){
-              Trace("model-engine-debug") << "Check model..." << std::endl;
-              d_incomplete_check = false;
-              //print debug
-              Debug("fmf-model-complete") << std::endl;
-              debugPrint("fmf-model-complete");
-              //successfully built an acceptable model, now check it
-              addedLemmas += checkModel();
-            }else{
-              addedLemmas++;
-            }
-          }
-        }
-        if( addedLemmas==0 ){
-          //if we have not added lemmas yet and axiomInstMode=trust, then we are done
-          if( options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
-            //we must return unknown if an axiom is asserted
-            if( effort==0 ){
-              d_incomplete_check = true;
-            }
-            break;
-          }
-        }
-      }
-      if( Trace.isOn("model-engine") ){
-        double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-        Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
-      }
-    }else{
-      Trace("model-engine-debug") << "No quantified formulas asserted." << std::endl;
+
+    //the following will test that the model satisfies all asserted universal quantifiers by 
+    // (model-based) exhaustive instantiation.
+    double clSet = 0;
+    if( Trace.isOn("model-engine") ){
+      Trace("model-engine") << "---Model Engine Round---" << std::endl;
+      clSet = double(clock())/double(CLOCKS_PER_SEC);
     }
+    ++(d_statistics.d_inst_rounds);
+
+    Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
+    //let the strong solver verify that the model is minimal
+    //for debugging, this will if there are terms in the model that the strong solver was not notified of
+    uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+    if( !ufss || ufss->debugModel( fm ) ){
+      Trace("model-engine-debug") << "Check model..." << std::endl;
+      d_incomplete_check = false;
+      //print debug
+      Debug("fmf-model-complete") << std::endl;
+      debugPrint("fmf-model-complete");
+      //successfully built an acceptable model, now check it
+      addedLemmas += checkModel();
+    }else{
+      addedLemmas++;
+    }
+      
+    if( Trace.isOn("model-engine") ){
+      double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
+      Trace("model-engine") << "Finished model engine, time = " << (clSet2-clSet) << std::endl;
+    }
+
     if( addedLemmas==0 ){
       Trace("model-engine-debug") << "No lemmas added, incomplete = " << d_incomplete_check << std::endl;
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
-      if( options::produceModels() && needsBuild ){
-        // finish building the model
-        mb->buildModel( fm, true );
-      }
-      //if the check was incomplete, we must set incomplete flag
-      if( d_incomplete_check ){
-        d_quantEngine->getOutputChannel().setIncomplete();
-      }
     }else{
       //otherwise, the search will continue
     }
@@ -173,6 +137,7 @@ bool ModelEngine::optOneQuantPerRound(){
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
   quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
+  Assert( mb!=NULL );
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
@@ -216,32 +181,46 @@ int ModelEngine::checkModel(){
   }
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
-  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
-  for( int e=0; e<e_max; e++) {
-    if (d_addedLemmas==0) {
-      for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
-        Node f = fm->getAssertedQuantifier( i );
-        //determine if we should check this quantifier
-        if( mb->isQuantifierActive( f ) ){
-          exhaustiveInstantiate( f, e );
-          if( Trace.isOn("model-engine-warn") ){
-            if( d_addedLemmas>10000 ){
-              Debug("fmf-exit") << std::endl;
-              debugPrint("fmf-exit");
-              exit( 0 );
+  //default : 1 : conj,axiom
+  //priority : 0 : conj, 1 : axiom
+  //trust : 0 : conj
+  int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
+  for( int effort=startEffort; effort<2; effort++ ){
+    // FMC uses two sub-effort levels
+    int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
+    for( int e=0; e<e_max; e++) {
+      if (d_addedLemmas==0) {
+        for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
+          Node f = fm->getAssertedQuantifier( i );
+          bool isAx = getTermDatabase()->isQAttrAxiom( f );
+          //determine if we should check this quantifier
+          if( ( ( effort==1 && ( options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT || isAx ) ) || ( effort==0 && !isAx ) ) && mb->isQuantifierActive( f ) ){
+            exhaustiveInstantiate( f, e );
+            if( Trace.isOn("model-engine-warn") ){
+              if( d_addedLemmas>10000 ){
+                Debug("fmf-exit") << std::endl;
+                debugPrint("fmf-exit");
+                exit( 0 );
+              }
             }
+            if( optOneQuantPerRound() && d_addedLemmas>0 ){
+              break;
+            }
+          }else{
+            Trace("inst-fmf-ei") << "-> Inactive : " << f << std::endl;
           }
-          if( optOneQuantPerRound() && d_addedLemmas>0 ){
-            break;
-          }
-        }else{
-          Trace("inst-fmf-ei") << "-> Inactive : " << f << std::endl;
         }
       }
     }
+    if( d_addedLemmas==0 && options::axiomInstMode()==AXIOM_INST_MODE_TRUST ){
+      //set incomplete
+      if( effort==0 ){
+        d_quantEngine->getOutputChannel().setIncomplete();
+      }
+      break;
+    }
   }
   //print debug information
-  Trace("model-engine-debug") << "Instantiate axioms : " << ( mb->d_considerAxioms ? "yes" : "no" ) << std::endl;
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
   return d_addedLemmas;

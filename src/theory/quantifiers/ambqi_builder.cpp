@@ -740,7 +740,7 @@ void AbsMbqiBuilder::processBuildModel(TheoryModel* m, bool fullModel) {
     //debug the model
     debugModel( fm );
   }else{
-    fm->initialize( d_considerAxioms );
+    fm->initialize();
     //process representatives
     fm->d_rep_id.clear();
     fm->d_domain.clear();

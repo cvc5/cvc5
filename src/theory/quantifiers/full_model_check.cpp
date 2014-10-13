@@ -335,7 +335,7 @@ void FullModelChecker::processBuildModel(TheoryModel* m, bool fullModel){
   FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
   if( fullModel==optBuildAtFullModel() ){
     Trace("fmc") << "---Full Model Check reset() " << std::endl;
-    fm->initialize( d_considerAxioms );
+    fm->initialize();
     d_quant_models.clear();
     d_rep_ids.clear();
     d_star_insts.clear();
