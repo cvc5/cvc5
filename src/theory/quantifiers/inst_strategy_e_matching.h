@@ -96,27 +96,13 @@ public:
   /** tstrt is the type of triggers to use (maximum depth, minimum depth, or all)
       rstrt is the relevance setting for trigger (use only relevant triggers vs. use all)
       rgfr is the frequency at which triggers are generated */
-  InstStrategyAutoGenTriggers( QuantifiersEngine* qe, int tstrt,  int rgfr = -1 ) :
-      InstStrategy( qe ), d_tr_strategy( tstrt ), d_generate_additional( false ){
-    setRegenerateFrequency( rgfr );
-  }
+  InstStrategyAutoGenTriggers( QuantifiersEngine* qe, int tstrt,  int rgfr = -1 );
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger( Node f );
   /** identify */
   std::string identify() const { return std::string("AutoGenTriggers"); }
-  /** set regenerate frequency, if fr<0, turn off regenerate */
-  void setRegenerateFrequency( int fr ){
-    if( fr<0 ){
-      d_regenerate = false;
-    }else{
-      d_regenerate_frequency = fr;
-      d_regenerate = true;
-    }
-  }
-  /** set generate additional */
-  void setGenerateAdditional( bool val ) { d_generate_additional = val; }
   /** add pattern */
   void addUserNoPattern( Node f, Node pat );
 };/* class InstStrategyAutoGenTriggers */

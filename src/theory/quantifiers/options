@@ -67,6 +67,8 @@ option relationalTriggers --relational-triggers bool :default false
  choose relational triggers such as x = f(y), x >= f(y)
 option purifyTriggers --purify-triggers bool :default false :read-write
  purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1
+option multiTriggerWhenSingle --multi-trigger-when-single bool :default true
+ never select multi-triggers when single triggers exist
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
  selection mode for triggers
 

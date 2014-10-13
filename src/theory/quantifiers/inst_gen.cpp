@@ -51,7 +51,7 @@ void InstGenProcess::addMatchValue( QuantifiersEngine* qe, Node f, Node val, Ins
     if( d_inst_trie[val].addInstMatch( qe, f, m, true ) ){
       d_match_values.push_back( val );
       d_matches.push_back( InstMatch( &m ) );
-      ((QModelBuilderIG*)qe->getModelEngine()->getModelBuilder())->d_instGenMatches++;
+      ((QModelBuilderIG*)qe->getModelBuilder())->d_instGenMatches++;
     }
   }
 }
@@ -96,7 +96,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
     //for each term we consider, calculate a current match
     for( size_t i=0; i<considerTerms.size(); i++ ){
       Node n = considerTerms[i];
-      bool isSelected = ((QModelBuilderIG*)qe->getModelEngine()->getModelBuilder())->isTermSelected( n );
+      bool isSelected = ((QModelBuilderIG*)qe->getModelBuilder())->isTermSelected( n );
       bool hadSuccess CVC4_UNUSED = false;
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         if( t==0 || !n.getAttribute(NoMatchAttribute()) ){
@@ -197,7 +197,7 @@ void InstGenProcess::calculateMatches( QuantifiersEngine* qe, Node f, std::vecto
     //process all values
     for( size_t i=0; i<considerTerms.size(); i++ ){
       Node n = considerTerms[i];
-      bool isSelected = ((QModelBuilderIG*)qe->getModelEngine()->getModelBuilder())->isTermSelected( n );
+      bool isSelected = ((QModelBuilderIG*)qe->getModelBuilder())->isTermSelected( n );
       for( int t=(isSelected ? 0 : 1); t<2; t++ ){
         //do not consider ground case if it is already congruent to another ground term
         if( t==0 || !n.getAttribute(NoMatchAttribute()) ){

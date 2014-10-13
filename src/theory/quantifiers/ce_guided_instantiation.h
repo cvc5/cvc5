@@ -25,15 +25,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
-
 class CegInstantiation : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
   class CegConjecture {
   public:
-    CegConjecture();
+    CegConjecture( context::Context* c );
+    /** is conjecture active */
+    context::CDO< bool > d_active;
+    /** is conjecture infeasible */
+    context::CDO< bool > d_infeasible;
     /** quantified formula */
     Node d_quant;
     /** guard */
@@ -46,24 +48,52 @@ private:
     std::vector< Node > d_candidates;
     /** list of variables on inner quantification */
     std::vector< Node > d_inner_vars;
-    /** is assigned */
-    bool isAssigned() { return !d_quant.isNull(); }
-    /** assign */
-    void assign( Node q );
     /** initialize guard */
     void initializeGuard( QuantifiersEngine * qe );
+    /** measure term */
+    Node d_measure_term;
+    /** measure sum size */
+    int d_measure_term_size;
+    /** assign */
+    void assign( Node q );
+    /** is assigned */
+    bool isAssigned() { return !d_quant.isNull(); }
+    /** current extential quantifeirs whose couterexamples we must refine */
+    std::vector< Node > d_ce_sk;
+  public:  //for fairness
+    /** the cardinality literals */
+    std::map< int, Node > d_lits;
+    /** current cardinality */
+    context::CDO< int > d_curr_lit;
+    /** allocate literal */
+    Node getLiteral( QuantifiersEngine * qe, int i );
+  };
+  class CegFairness {
+  public:
+    CegFairness( context::Context* c );
+    /** which conjecture we are looking at */
+    CegConjecture * d_conj;
+    /** the cardinality literals */
+    std::map< int, Node > d_lits;
+    /** current cardinality */
+    context::CDO< int > d_curr_lit;
+    /** allocate literal */
+    Node getLiteral( int i );
   };
   /** the quantified formula stating the synthesis conjecture */
-  CegConjecture d_conj;
-  /** is conjecture active */
-  context::CDO< bool > d_conj_active;
-  /** is conjecture infeasible */
-  context::CDO< bool > d_conj_infeasible;
+  CegConjecture * d_conj;
   /** assertions for guards */
-  NodeBoolMap d_guard_assertions;
+  //NodeBoolMap d_guard_assertions;
+private: //for enforcing fairness
+  /** measure functions */
+  std::map< TypeNode, Node > d_uf_measure;
+  /** register measured type */
+  void registerMeasuredType( TypeNode tn );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
+  /** get model values */
+  bool getModelValues( std::vector< Node >& n, std::vector< Node >& v );
   /** get model value */
   Node getModelValue( Node n );
   /** get model term */

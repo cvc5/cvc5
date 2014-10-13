@@ -25,8 +25,6 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/trigger.h"
-//#include "theory/rewriterules/efficient_e_matching.h"
-//#include "theory/rewriterules/rr_trigger.h"
 #include "theory/quantifiers/bounded_integers.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
@@ -35,6 +33,9 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/uf/options.h"
 #include "theory/uf/theory_uf.h"
+#include "theory/quantifiers/full_model_check.h"
+#include "theory/quantifiers/qinterval_builder.h"
+#include "theory/quantifiers/ambqi_builder.h"
 
 using namespace std;
 using namespace CVC4;
@@ -45,7 +46,7 @@ using namespace CVC4::theory::inst;
 
 
 eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
-  return d_quantEngine->getTheoryEngine()->getMasterEqualityEngine();
+  return d_quantEngine->getMasterEqualityEngine();
 }
 
 bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
@@ -80,7 +81,9 @@ d_lemmas_produced_c(u){
   //d_rr_tr_trie = new rrinst::TriggerTrie;
   //d_eem = new EfficientEMatcher( this );
   d_hasAddedLemma = false;
-
+  
+  bool needsBuilder = false;
+  
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   //the model object
@@ -135,6 +138,7 @@ d_lemmas_produced_c(u){
     }
     d_model_engine = new quantifiers::ModelEngine( c, this );
     d_modules.push_back( d_model_engine );
+    needsBuilder = true;
   }else{
     d_model_engine = NULL;
     d_bint = NULL;
@@ -151,12 +155,36 @@ d_lemmas_produced_c(u){
   }else{
     d_ceg_inst = NULL;
   }
+  
+  if( needsBuilder ){
+    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
+    if( options::mbqiMode()==quantifiers::MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
+        options::mbqiMode()==quantifiers::MBQI_TRUST || options::fmfBoundInt() ){
+      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
+      d_builder = new quantifiers::fmcheck::FullModelChecker( c, this );
+    }else if( options::mbqiMode()==quantifiers::MBQI_INTERVAL ){
+      Trace("quant-engine-debug") << "...make interval builder." << std::endl;
+      d_builder = new quantifiers::QIntervalBuilder( c, this );
+    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
+      Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
+      d_builder = new quantifiers::AbsMbqiBuilder( c, this );
+    }else if( options::mbqiMode()==quantifiers::MBQI_INST_GEN ){
+      Trace("quant-engine-debug") << "...make inst-gen builder." << std::endl;
+      d_builder = new quantifiers::QModelBuilderInstGen( c, this );
+    }else{
+      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
+      d_builder = new quantifiers::QModelBuilderDefault( c, this );
+    }
+  }else{
+    d_builder = NULL;
+  }
 
   //options
   d_total_inst_count_debug = 0;
 }
 
 QuantifiersEngine::~QuantifiersEngine(){
+  delete d_builder;
   delete d_rr_engine;
   delete d_bint;
   delete d_model_engine;
@@ -168,6 +196,8 @@ QuantifiersEngine::~QuantifiersEngine(){
   delete d_tr_trie;
   delete d_term_db;
   delete d_eq_query;
+  delete d_sg_gen;
+  delete d_ceg_inst;
   for(std::map< Node, QuantPhaseReq* >::iterator i = d_phase_reqs.begin(); i != d_phase_reqs.end(); ++i) {
     delete (*i).second;
   }
@@ -199,7 +229,7 @@ void QuantifiersEngine::finishInit(){
   }
 }
 
-QuantifiersModule * QuantifiersEngine::getOwner( Node q ) { 
+QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
   std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
   if( it==d_owner.end() ){
     return NULL;
@@ -214,7 +244,7 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m ) {
     if( mo!=NULL ){
       Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << "!" << std::endl;
     }
-    d_owner[q] = m; 
+    d_owner[q] = m;
   }
 }
 
@@ -246,6 +276,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << std::endl;
     Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
     Trace("quant-engine-debug") << "  Theory engine finished : " << !d_te->needCheck() << std::endl;
+
+    Trace("quant-engine-ee") << "Equality engine : " << std::endl;
+    debugPrintEqualityEngine( "quant-engine-ee" );
 
     if( !getMasterEqualityEngine()->consistent() ){
       Trace("quant-engine") << "Master equality engine not consistent, return." << std::endl;
@@ -628,8 +661,8 @@ bool QuantifiersEngine::existsInstantiation( Node f, InstMatch& m, bool modEq, b
       }
     }
   }
-  //also check model engine (it may contain instantiations internally)
-  if( d_model_engine->getModelBuilder()->existsInstantiation( f, m, modEq, modInst ) ){
+  //also check model builder (it may contain instantiations internally)
+  if( d_builder && d_builder->existsInstantiation( f, m, modEq, modInst ) ){
     return true;
   }
   return false;
@@ -881,7 +914,34 @@ QuantifiersEngine::Statistics::~Statistics(){
 }
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine(){
-  return ((quantifiers::TheoryQuantifiers*)getTheoryEngine()->theoryOf( THEORY_QUANTIFIERS ))->getMasterEqualityEngine();
+  return getTheoryEngine()->getMasterEqualityEngine();
+}
+
+void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
+  eq::EqualityEngine* ee = getMasterEqualityEngine();
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    TNode r = (*eqcs_i);
+    bool firstTime = true;
+    Trace(c) << "  " << r;
+    Trace(c) << " : { ";
+    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+    while( !eqc_i.isFinished() ){
+      TNode n = (*eqc_i);
+      if( r!=n ){
+        if( firstTime ){
+          Trace(c) << std::endl;
+          firstTime = false;
+        }
+        Trace(c) << "    " << n << std::endl;
+      }
+      ++eqc_i;
+    }
+    if( !firstTime ){ Trace(c) << "  "; }
+    Trace(c) << "}" << std::endl;
+    ++eqcs_i;
+  }
+  Trace(c) << std::endl;
 }
 
 void EqualityQueryQuantifiersEngine::reset(){

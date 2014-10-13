@@ -61,7 +61,6 @@ void InstantiationEngine::finishInit(){
       tstrt = Trigger::TS_MAX_TRIGGER;
     }
     d_i_ag = new InstStrategyAutoGenTriggers( d_quantEngine, tstrt, 3 );
-    d_i_ag->setGenerateAdditional( true );
     addInstStrategy( d_i_ag );
     
     //full saturation : instantiate from relevant domain, then arbitrary terms

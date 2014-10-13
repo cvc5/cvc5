@@ -110,6 +110,17 @@ void InstStrategyUserPatterns::addUserPattern( Node f, Node pat ){
   }
 }
 
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe, int tstrt,  int rgfr ) :
+                                                          InstStrategy( qe ), d_tr_strategy( tstrt ){
+  if( rgfr<0 ){
+    d_regenerate = false;
+  }else{
+    d_regenerate_frequency = rgfr;
+    d_regenerate = true;
+  }
+  d_generate_additional = true;
+}
+
 void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort effort ){
   //reset triggers
   for( std::map< Node, std::map< Trigger*, bool > >::iterator it = d_auto_gen_trigger.begin(); it != d_auto_gen_trigger.end(); ++it ){
@@ -199,7 +210,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
     Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, d_user_no_gen[f], true );
-    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << ", no-patterns : " << d_user_no_gen.size() << std::endl;
+    Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
     Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){
       Trace("auto-gen-trigger") << patTermsF[i] << " ";
@@ -238,12 +249,12 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
   std::vector< Node > patTerms;
   //try to add single triggers first
   for( int i=0; i<(int)d_patTerms[0][f].size(); i++ ){
-    if( !d_single_trigger_gen[d_patTerms[0][f][i]] ){
+    if( d_single_trigger_gen.find( d_patTerms[0][f][i] )==d_single_trigger_gen.end() ){
       patTerms.push_back( d_patTerms[0][f][i] );
     }
   }
   //if no single triggers exist, add multi trigger terms
-  if( patTerms.empty() ){
+  if( patTerms.empty() && ( options::multiTriggerWhenSingle() || d_single_trigger_gen.empty() ) ){
     patTerms.insert( patTerms.begin(), d_patTerms[1][f].begin(), d_patTerms[1][f].end() );
   }
 

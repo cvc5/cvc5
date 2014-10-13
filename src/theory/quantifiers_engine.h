@@ -82,6 +82,7 @@ namespace quantifiers {
   class QuantConflictFind;
   class RewriteEngine;
   class RelevantDomain;
+  class QModelBuilder;
   class ConjectureGenerator;
   class CegInstantiation;
 }/* CVC4::theory::quantifiers */
@@ -111,6 +112,8 @@ private:
   QuantRelevance * d_quant_rel;
   /** relevant domain */
   quantifiers::RelevantDomain* d_rel_dom;
+  /** model builder */
+  quantifiers::QModelBuilder* d_builder;
   /** phase requirements for each quantifier for each instantiation literal */
   std::map< Node, QuantPhaseReq* > d_phase_reqs;
   /** instantiation engine */
@@ -184,6 +187,8 @@ public:
   quantifiers::RelevantDomain* getRelevantDomain() { return d_rel_dom; }
   /** get quantifier relevance */
   QuantRelevance* getQuantifierRelevance() { return d_quant_rel; }
+  /** get the model builder */
+  quantifiers::QModelBuilder* getModelBuilder() { return d_builder; }
   /** get phase requirement information */
   QuantPhaseReq* getPhaseRequirements( Node f ) { return d_phase_reqs.find( f )==d_phase_reqs.end() ? NULL : d_phase_reqs[f]; }
   /** get phase requirement terms */
@@ -284,6 +289,8 @@ public:
   void addTermToDatabase( Node n, bool withinQuant = false );
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() ;
+  /** debug print equality engine */
+  void debugPrintEqualityEngine( const char * c );
 public:
   /** print instantiations */
   void printInstantiations( std::ostream& out );

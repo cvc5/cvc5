@@ -42,28 +42,10 @@ d_triedLemmas(0),
 d_totalLemmas(0)
 {
 
-  Trace("model-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBoundInt() << std::endl;
-  if( options::mbqiMode()==MBQI_FMC || options::mbqiMode()==quantifiers::MBQI_FMC_INTERVAL ||
-      options::mbqiMode()==MBQI_TRUST || options::fmfBoundInt() ){
-    Trace("model-engine-debug") << "...make fmc builder." << std::endl;
-    d_builder = new fmcheck::FullModelChecker( c, qe );
-  }else if( options::mbqiMode()==MBQI_INTERVAL ){
-    Trace("model-engine-debug") << "...make interval builder." << std::endl;
-    d_builder = new QIntervalBuilder( c, qe );
-  }else if( options::mbqiMode()==MBQI_ABS ){
-    Trace("model-engine-debug") << "...make abs mbqi builder." << std::endl;
-    d_builder = new AbsMbqiBuilder( c, qe );
-  }else if( options::mbqiMode()==MBQI_INST_GEN ){
-    Trace("model-engine-debug") << "...make inst-gen builder." << std::endl;
-    d_builder = new QModelBuilderInstGen( c, qe );
-  }else{
-    Trace("model-engine-debug") << "...make default model builder." << std::endl;
-    d_builder = new QModelBuilderDefault( c, qe );
-  }
 }
 
 ModelEngine::~ModelEngine() {
-  delete d_builder;
+
 }
 
 bool ModelEngine::needsCheck( Theory::Effort e ) {
@@ -75,6 +57,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
     int addedLemmas = 0;
     bool needsBuild = true;
     FirstOrderModel* fm = d_quantEngine->getModel();
+    quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
     if( fm->getNumAssertedQuantifiers()>0 ){
       //the following will attempt to build a model and test that it satisfies all asserted universal quantifiers
       //quantifiers are initialized, we begin an instantiation round
@@ -83,7 +66,8 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
         clSet = double(clock())/double(CLOCKS_PER_SEC);
       }
       ++(d_statistics.d_inst_rounds);
-      bool buildAtFullModel = d_builder->optBuildAtFullModel();
+      Assert( mb!=NULL );
+      bool buildAtFullModel = mb->optBuildAtFullModel();
       needsBuild = !buildAtFullModel;
       //two effort levels: first try exhaustive instantiation without axioms, then with.
       int startEffort = ( !fm->isAxiomAsserted() || options::axiomInstMode()==AXIOM_INST_MODE_DEFAULT ) ? 1 : 0;
@@ -94,10 +78,10 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
           Trace("model-engine") << "---Model Engine Round---" << std::endl;
           //initialize the model
           Trace("model-engine-debug") << "Build model..." << std::endl;
-          d_builder->d_considerAxioms = effort>=1;
-          d_builder->d_addedLemmas = 0;
-          d_builder->buildModel( fm, buildAtFullModel );
-          addedLemmas += (int)d_builder->d_addedLemmas;
+          mb->d_considerAxioms = effort>=1;
+          mb->d_addedLemmas = 0;
+          mb->buildModel( fm, buildAtFullModel );
+          addedLemmas += (int)mb->d_addedLemmas;
           //if builder has lemmas, add and return
           if( addedLemmas==0 ){
             Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
@@ -142,7 +126,7 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       debugPrint("fmf-consistent");
       if( options::produceModels() && needsBuild ){
         // finish building the model
-        d_builder->buildModel( fm, true );
+        mb->buildModel( fm, true );
       }
       //if the check was incomplete, we must set incomplete flag
       if( d_incomplete_check ){
@@ -188,6 +172,7 @@ bool ModelEngine::optOneQuantPerRound(){
 
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
+  quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
 
   //flatten the representatives
   //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
@@ -237,7 +222,7 @@ int ModelEngine::checkModel(){
       for( int i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
         Node f = fm->getAssertedQuantifier( i );
         //determine if we should check this quantifier
-        if( d_builder->isQuantifierActive( f ) ){
+        if( mb->isQuantifierActive( f ) ){
           exhaustiveInstantiate( f, e );
           if( Trace.isOn("model-engine-warn") ){
             if( d_addedLemmas>10000 ){
@@ -256,7 +241,7 @@ int ModelEngine::checkModel(){
     }
   }
   //print debug information
-  Trace("model-engine-debug") << "Instantiate axioms : " << ( d_builder->d_considerAxioms ? "yes" : "no" ) << std::endl;
+  Trace("model-engine-debug") << "Instantiate axioms : " << ( mb->d_considerAxioms ? "yes" : "no" ) << std::endl;
   Trace("model-engine") << "Added Lemmas = " << d_addedLemmas << " / " << d_triedLemmas << " / ";
   Trace("model-engine") << d_totalLemmas << std::endl;
   return d_addedLemmas;
@@ -264,15 +249,16 @@ int ModelEngine::checkModel(){
 
 void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   //first check if the builder can do the exhaustive instantiation
-  d_builder->d_triedLemmas = 0;
-  d_builder->d_addedLemmas = 0;
-  d_builder->d_incomplete_check = false;
-  if( d_builder->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort ) ){
+  quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
+  mb->d_triedLemmas = 0;
+  mb->d_addedLemmas = 0;
+  mb->d_incomplete_check = false;
+  if( mb->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort ) ){
     Trace("inst-fmf-ei") << "-> Builder determined instantiation(s)." << std::endl;
-    d_triedLemmas += d_builder->d_triedLemmas;
-    d_addedLemmas += d_builder->d_addedLemmas;
-    d_incomplete_check = d_incomplete_check || d_builder->d_incomplete_check;
-    d_statistics.d_mbqi_inst_lemmas += d_builder->d_addedLemmas;
+    d_triedLemmas += mb->d_triedLemmas;
+    d_addedLemmas += mb->d_addedLemmas;
+    d_incomplete_check = d_incomplete_check || mb->d_incomplete_check;
+    d_statistics.d_mbqi_inst_lemmas += mb->d_addedLemmas;
   }else{
     Trace("inst-fmf-ei") << "-> Exhaustive instantiate " << f << ", effort = " << effort << "..." << std::endl;
     Debug("inst-fmf-ei") << "   Instantiation Constants: ";
@@ -316,7 +302,7 @@ void ModelEngine::debugPrint( const char* c ){
   for( int i=0; i<(int)d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node f = d_quantEngine->getModel()->getAssertedQuantifier( i );
     Trace( c ) << "   ";
-    if( !d_builder->isQuantifierActive( f ) ){
+    if( !d_quantEngine->getModelBuilder()->isQuantifierActive( f ) ){
       Trace( c ) << "*Inactive* ";
     }else{
       Trace( c ) << "           ";
