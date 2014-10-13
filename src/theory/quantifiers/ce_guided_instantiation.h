@@ -82,13 +82,19 @@ private:
   };
   /** the quantified formula stating the synthesis conjecture */
   CegConjecture * d_conj;
-  /** assertions for guards */
-  //NodeBoolMap d_guard_assertions;
 private: //for enforcing fairness
   /** measure functions */
   std::map< TypeNode, Node > d_uf_measure;
   /** register measured type */
   void registerMeasuredType( TypeNode tn );
+  /** term -> size term */
+  std::map< Node, Node > d_size_term;
+  /** get size term */
+  Node getSizeTerm( Node n, TypeNode tn, std::vector< Node >& lems );
+  /** term x constructor -> lemma */
+  std::map< Node, std::map< int, Node > > d_size_term_lemma;
+  /** get measure lemmas */
+  void getMeasureLemmas( Node n, Node v, std::vector< Node >& lems );
 private:
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
@@ -102,6 +108,7 @@ public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
 public:
   bool needsCheck( Theory::Effort e );
+  bool needsModel( Theory::Effort e );
   /* Call during quantifier engine's check */
   void check( Theory::Effort e, unsigned quant_e );
   /* Called for new quantifiers */

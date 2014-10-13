@@ -152,6 +152,7 @@ d_lemmas_produced_c(u){
   if( options::ceGuidedInst() ){
     d_ceg_inst = new quantifiers::CegInstantiation( this, c );
     d_modules.push_back( d_ceg_inst );
+    needsBuilder = true;
   }else{
     d_ceg_inst = NULL;
   }
