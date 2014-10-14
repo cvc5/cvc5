@@ -477,7 +477,10 @@ JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
         return DONT_KNOW;
       SatVariable v =
         d_decisionEngine->getSatLiteral(node).getSatVariable();
-      d_curDecision = SatLiteral(v, desiredVal != SAT_VALUE_TRUE );
+      d_curDecision = SatLiteral(v, /* negated = */ desiredVal != SAT_VALUE_TRUE );
+      Trace("decision-node") << "[decision-node] requesting split on " << d_curDecision
+                             << ", node: " << node
+                             << ", polarity: " << (desiredVal ? "true" : "false") << std::endl;
       return FOUND_SPLITTER;
     }
   }
