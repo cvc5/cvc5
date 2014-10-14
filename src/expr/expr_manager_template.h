@@ -52,19 +52,12 @@ namespace expr {
   }/* CVC4::expr::pickle namespace */
 }/* CVC4::expr namespace */
 
-namespace context {
-  class Context;
-}/* CVC4::context namespace */
-
 namespace stats {
   StatisticsRegistry* getStatisticsRegistry(ExprManager*);
 }/* CVC4::stats namespace */
 
 class CVC4_PUBLIC ExprManager {
 private:
-  /** The context */
-  context::Context* d_ctxt;
-
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
@@ -77,12 +70,6 @@ private:
    * internal users, i.e. the friend classes.
    */
   NodeManager* getNodeManager() const;
-
-  /**
-   * Returns the internal Context.  Used by internal users, i.e. the
-   * friend classes.
-   */
-  context::Context* getContext() const;
 
   /**
    * Check some things about a newly-created DatatypeType.

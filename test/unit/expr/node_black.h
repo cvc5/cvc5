@@ -28,14 +28,12 @@
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 using namespace std;
 
 class NodeBlack : public CxxTest::TestSuite {
 private:
 
   Options opts;
-  Context* d_ctxt;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
@@ -51,8 +49,7 @@ public:
     free(argv[0]);
     free(argv[1]);
 
-    d_ctxt = new Context();
-    d_nodeManager = new NodeManager(d_ctxt, NULL, opts);
+    d_nodeManager = new NodeManager(NULL, opts);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());
@@ -62,7 +59,6 @@ public:
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;
-    delete d_ctxt;
   }
 
   bool imp(bool a, bool b) const {

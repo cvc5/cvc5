@@ -80,12 +80,11 @@ struct NVReclaim {
   }
 };
 
-NodeManager::NodeManager(context::Context* ctxt,
-                         ExprManager* exprManager) :
+NodeManager::NodeManager(ExprManager* exprManager) :
   d_options(new Options()),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
-  d_attrManager(new expr::attr::AttributeManager(ctxt)),
+  d_attrManager(new expr::attr::AttributeManager()),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
@@ -94,13 +93,12 @@ NodeManager::NodeManager(context::Context* ctxt,
   init();
 }
 
-NodeManager::NodeManager(context::Context* ctxt,
-                         ExprManager* exprManager,
+NodeManager::NodeManager(ExprManager* exprManager,
                          const Options& options) :
   d_options(new Options(options)),
   d_statisticsRegistry(new StatisticsRegistry()),
   next_id(0),
-  d_attrManager(new expr::attr::AttributeManager(ctxt)),
+  d_attrManager(new expr::attr::AttributeManager()),
   d_exprManager(exprManager),
   d_nodeUnderDeletion(NULL),
   d_inReclaimZombies(false),
@@ -129,6 +127,8 @@ NodeManager::~NodeManager() {
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
+    // hopefully by this point all SmtEngines have been deleted
+    // already, along with all their attributes
     d_attrManager->deleteAllAttributes();
   }
 
@@ -229,6 +229,18 @@ void NodeManager::reclaimZombies() {
       d_nodeUnderDeletion = nv;
 
       // remove attributes
+      { // notify listeners of deleted node
+        TNode n;
+        n.d_nv = nv;
+        nv->d_rc = 1; // so that TNode doesn't assert-fail
+        for(vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
+          (*i)->nmNotifyDeleteNode(n);
+        }
+        // this would mean that one of the listeners stowed away
+        // a reference to this node!
+        Assert(nv->d_rc == 1);
+      }
+      nv->d_rc = 0;
       d_attrManager->deleteAllAttributes(nv);
 
       // decr ref counts of children

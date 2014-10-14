@@ -24,7 +24,6 @@ using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){

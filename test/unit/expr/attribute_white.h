@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include "context/context.h"
 #include "expr/node_value.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
@@ -29,10 +28,12 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "util/cvc4_assert.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC4::smt;
 using namespace CVC4::expr;
 using namespace CVC4::expr::attr;
 using namespace std;
@@ -60,26 +61,27 @@ typedef CDAttribute<Test2, bool> TestFlag2cd;
 
 class AttributeWhite : public CxxTest::TestSuite {
 
-  Context* d_ctxt;
+  ExprManager* d_em;
   NodeManager* d_nm;
-  NodeManagerScope* d_scope;
+  SmtScope* d_scope;
   TypeNode* d_booleanType;
+  SmtEngine* d_smtEngine;
 
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nm = new NodeManager(d_ctxt, NULL);
-    d_scope = new NodeManagerScope(d_nm);
-
+    d_em = new ExprManager();
+    d_nm = NodeManager::fromExprManager(d_em);
+    d_smtEngine = new SmtEngine(d_em);
+    d_scope = new SmtScope(d_smtEngine);
     d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
   void tearDown() {
     delete d_booleanType;
     delete d_scope;
-    delete d_nm;
-    delete d_ctxt;
+    delete d_smtEngine;
+    delete d_em;
   }
 
   void testAttributeIds() {
@@ -145,7 +147,6 @@ public:
 
     lastId = attr::LastAttributeId<TypeNode, false>::getId();
     TS_ASSERT_LESS_THAN(TypeAttr::s_id, lastId);
-
   }
 
   void testCDAttributes() {
@@ -162,7 +163,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->push(); // level 1
+    d_smtEngine->push(); // level 1
 
     // test that all boolean flags are FALSE to start
     Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
@@ -204,7 +205,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->push(); // level 2
+    d_smtEngine->push(); // level 2
 
     Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd()));
@@ -225,7 +226,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->push(); // level 3
+    d_smtEngine->push(); // level 3
 
     Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
@@ -244,7 +245,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be T)\n";
     TS_ASSERT(c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->pop(); // level 2
+    d_smtEngine->pop(); // level 2
 
     Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
@@ -253,7 +254,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->pop(); // level 1
+    d_smtEngine->pop(); // level 1
 
     Debug("cdboolattr") << "get flag 1 on a (should be T)\n";
     TS_ASSERT(a.getAttribute(TestFlag1cd()));
@@ -262,7 +263,7 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-    d_ctxt->pop(); // level 0
+    d_smtEngine->pop(); // level 0
 
     Debug("cdboolattr") << "get flag 1 on a (should be F)\n";
     TS_ASSERT(! a.getAttribute(TestFlag1cd()));
@@ -271,13 +272,11 @@ public:
     Debug("cdboolattr") << "get flag 1 on c (should be F)\n";
     TS_ASSERT(! c.getAttribute(TestFlag1cd()));
 
-#ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( d_ctxt->pop(), AssertionException );
-#endif /* CVC4_ASSERTIONS */
+    TS_ASSERT_THROWS( d_smtEngine->pop(), ModalException );
   }
 
   void testAttributes() {
-    //Debug.on("bootattr");
+    //Debug.on("boolattr");
 
     Node a = d_nm->mkVar(*d_booleanType);
     Node b = d_nm->mkVar(*d_booleanType);

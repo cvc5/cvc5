@@ -26,31 +26,35 @@
 #include "expr/node_manager.h"
 #include "expr/node.h"
 #include "expr/attribute.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace CVC4::smt;
 using namespace std;
 
 class AttributeBlack : public CxxTest::TestSuite {
 private:
 
-  Context* d_ctxt;
+  ExprManager* d_exprManager;
   NodeManager* d_nodeManager;
-  NodeManagerScope* d_scope;
+  SmtEngine* d_smtEngine;
+  SmtScope* d_scope;
 
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nodeManager = new NodeManager(d_ctxt, NULL);
-    d_scope = new NodeManagerScope(d_nodeManager);
+    d_exprManager = new ExprManager();
+    d_nodeManager = NodeManager::fromExprManager(d_exprManager);
+    d_smtEngine = new SmtEngine(d_exprManager);
+    d_scope = new SmtScope(d_smtEngine);
   }
 
   void tearDown() {
     delete d_scope;
-    delete d_nodeManager;
-    delete d_ctxt;
+    delete d_smtEngine;
+    delete d_exprManager;
   }
 
   class MyData {

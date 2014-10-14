@@ -14,7 +14,6 @@
  ** Black box testing of CVC4::BooleanSimplification.
  **/
 
-#include "context/context.h"
 #include "util/language.h"
 #include "expr/node.h"
 #include "expr/kind.h"
@@ -26,12 +25,10 @@
 #include <set>
 
 using namespace CVC4;
-using namespace CVC4::context;
 using namespace std;
 
 class BooleanSimplificationBlack : public CxxTest::TestSuite {
 
-  Context* d_context;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
 
@@ -70,8 +67,7 @@ class BooleanSimplificationBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_context = new Context();
-    d_nm = new NodeManager(d_context, NULL);
+    d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
 
     a = d_nm->mkSkolem("a", d_nm->booleanType());
@@ -116,7 +112,6 @@ public:
 
     delete d_scope;
     delete d_nm;
-    delete d_context;
   }
 
   void testNegate() {

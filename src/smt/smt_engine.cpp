@@ -37,6 +37,7 @@
 #include "expr/node_builder.h"
 #include "expr/node.h"
 #include "expr/node_self_iterator.h"
+#include "expr/attribute.h"
 #include "prop/prop_engine.h"
 #include "proof/theory_proof.h"
 #include "smt/modal_exception.h"
@@ -521,6 +522,10 @@ public:
     }
   }
 
+  void nmNotifyDeleteNode(TNode n) {
+    d_smt.d_smtAttributes->deleteAllAttributes(n);
+  }
+
   Node applySubstitutions(TNode node) const {
     return Rewriter::rewrite(d_topLevelSubstitutions.apply(node));
   }
@@ -654,7 +659,7 @@ public:
 }/* namespace CVC4::smt */
 
 SmtEngine::SmtEngine(ExprManager* em) throw() :
-  d_context(em->getContext()),
+  d_context(new Context()),
   d_userLevels(),
   d_userContext(new UserContext()),
   d_exprManager(em),
@@ -684,10 +689,12 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_cumulativeResourceUsed(0),
   d_status(),
   d_private(NULL),
+  d_smtAttributes(NULL),
   d_statisticsRegistry(NULL),
   d_stats(NULL) {
 
   SmtScope smts(this);
+  d_smtAttributes = new expr::attr::SmtAttributes(d_context);
   d_private = new smt::SmtEnginePrivate(*this);
   d_statisticsRegistry = new StatisticsRegistry();
   d_stats = new SmtEngineStatistics();
@@ -862,8 +869,13 @@ SmtEngine::~SmtEngine() throw() {
     delete d_private;
     d_private = NULL;
 
+    delete d_smtAttributes;
+    d_smtAttributes = NULL;
+
     delete d_userContext;
     d_userContext = NULL;
+    delete d_context;
+    d_context = NULL;
 
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl

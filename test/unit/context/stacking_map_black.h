@@ -39,8 +39,8 @@ class StackingMapBlack : public CxxTest::TestSuite {
 public:
 
   void setUp() {
-    d_ctxt = new Context;
-    d_nm = new NodeManager(d_ctxt, NULL);
+    d_ctxt = new Context();
+    d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
     d_mapPtr = new StackingMap<TNode, TNode, TNodeHashFunction>(d_ctxt);
 
