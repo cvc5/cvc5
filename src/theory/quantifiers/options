@@ -178,5 +178,7 @@ option conjectureUeeIntro --conjecture-gen-uee-intro bool :default false
  
 option ceGuidedInst --cegqi bool :default false
   counterexample guided quantifier instantiation
+option ceGuidedInstFair --cegqi-fair=MODE CVC4::theory::quantifiers::CegqiFairMode :default CVC4::theory::quantifiers::CEGQI_FAIR_UF_DT_SIZE :include "theory/quantifiers/modes.h" :handler CVC4::theory::quantifiers::stringToCegqiFairMode :handler-include "theory/quantifiers/options_handlers.h"
+  if and how to apply fairness for cegqi
  
 endmodule

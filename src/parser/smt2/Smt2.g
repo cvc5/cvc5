@@ -1459,6 +1459,8 @@ builtinOp[CVC4::Kind& kind]
   | RERANGE_TOK    { $kind = CVC4::kind::REGEXP_RANGE; }
   | RELOOP_TOK    { $kind = CVC4::kind::REGEXP_LOOP; }
   
+  | DTSIZE_TOK     { $kind = CVC4::kind::DT_SIZE; }
+  
   | FMFCARD_TOK    { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
 
   // NOTE: Theory operators go here
@@ -1857,6 +1859,8 @@ RERANGE_TOK : 're.range';
 RELOOP_TOK : 're.loop';
 RENOSTR_TOK : 're.nostr';
 REALLCHAR_TOK : 're.allchar';
+
+DTSIZE_TOK : 'dt.size';
 
 FMFCARD_TOK : 'fmf.card';
 

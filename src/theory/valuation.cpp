@@ -103,5 +103,9 @@ std::pair<bool, Node> Valuation::entailmentCheck(theory::TheoryOfMode mode, TNod
   return d_engine->entailmentCheck(mode, lit, params, out);
 }
 
+bool Valuation::needCheck() const{
+  return d_engine->needCheck();
+}
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -50,19 +50,23 @@ void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
 }
 
 Node CegInstantiation::CegConjecture::getLiteral( QuantifiersEngine * qe, int i ) {
-  std::map< int, Node >::iterator it = d_lits.find( i );
-  if( it==d_lits.end() ){
-    Node lit = NodeManager::currentNM()->mkNode( LEQ, d_measure_term, NodeManager::currentNM()->mkConst( Rational( i ) ) );
-    lit = Rewriter::rewrite( lit );
-    d_lits[i] = lit;
-
-    Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
-    Trace("cegqi-lemma") << "Fairness split : " << lem << std::endl;
-    qe->getOutputChannel().lemma( lem );
-    qe->getOutputChannel().requirePhase( lit, true );
-    return lit;
+  if( d_measure_term.isNull() ){
+    return Node::null();
   }else{
-    return it->second;
+    std::map< int, Node >::iterator it = d_lits.find( i );
+    if( it==d_lits.end() ){
+      Node lit = NodeManager::currentNM()->mkNode( LEQ, d_measure_term, NodeManager::currentNM()->mkConst( Rational( i ) ) );
+      lit = Rewriter::rewrite( lit );
+      d_lits[i] = lit;
+
+      Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
+      Trace("cegqi-lemma") << "Fairness split : " << lem << std::endl;
+      qe->getOutputChannel().lemma( lem );
+      qe->getOutputChannel().requirePhase( lit, true );
+      return lit;
+    }else{
+      return it->second;
+    }
   }
 }
 
@@ -110,18 +114,26 @@ void CegInstantiation::registerQuantifier( Node q ) {
         d_quantEngine->getOutputChannel().lemma( lem );
       }
       //fairness
-      std::vector< Node > mc;
-      for( unsigned j=0; j<d_conj->d_candidates.size(); j++ ){
-        TypeNode tn = d_conj->d_candidates[j].getType();
-        registerMeasuredType( tn );
-        std::map< TypeNode, Node >::iterator it = d_uf_measure.find( tn );
-        if( it!=d_uf_measure.end() ){
-          mc.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, it->second, d_conj->d_candidates[j] ) );
+      if( options::ceGuidedInstFair()!=CEGQI_FAIR_NONE ){
+        std::vector< Node > mc;
+        for( unsigned j=0; j<d_conj->d_candidates.size(); j++ ){
+          TypeNode tn = d_conj->d_candidates[j].getType();
+          if( options::ceGuidedInstFair()==CEGQI_FAIR_DT_SIZE ){
+            if( tn.isDatatype() ){
+              mc.push_back( NodeManager::currentNM()->mkNode( DT_SIZE, d_conj->d_candidates[j] ) );
+            }
+          }else if( options::ceGuidedInstFair()==CEGQI_FAIR_UF_DT_SIZE ){
+            registerMeasuredType( tn );
+            std::map< TypeNode, Node >::iterator it = d_uf_measure.find( tn );
+            if( it!=d_uf_measure.end() ){
+              mc.push_back( NodeManager::currentNM()->mkNode( APPLY_UF, it->second, d_conj->d_candidates[j] ) );
+            }
+          }
         }
-      }
-      if( !mc.empty() ){
-        d_conj->d_measure_term = mc.size()==1 ? mc[0] : NodeManager::currentNM()->mkNode( PLUS, mc );
-        Trace("cegqi") << "Measure term is : " << d_conj->d_measure_term << std::endl;
+        if( !mc.empty() ){
+          d_conj->d_measure_term = mc.size()==1 ? mc[0] : NodeManager::currentNM()->mkNode( PLUS, mc );
+          Trace("cegqi") << "Measure term is : " << d_conj->d_measure_term << std::endl;
+        }
       }
     }else{
       Assert( d_conj->d_quant==q );
@@ -154,7 +166,7 @@ Node CegInstantiation::getNextDecisionRequest() {
     return d_conj->d_guard;
   }
   //enforce fairness
-  if( d_conj->isAssigned() ){
+  if( d_conj->isAssigned() && options::ceGuidedInstFair()!=CEGQI_FAIR_NONE ){
     Node lit = d_conj->getLiteral( d_quantEngine, d_conj->d_curr_lit.get() );
     if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
       if( !value ){
@@ -180,7 +192,9 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
     Trace("cegqi-engine") << conj->d_candidates[i] << " ";
   }
   Trace("cegqi-engine") << std::endl;
-  Trace("cegqi-engine") << "  * Current term size : " << conj->d_curr_lit.get() << std::endl;
+  if( options::ceGuidedInstFair()!=CEGQI_FAIR_NONE ){
+    Trace("cegqi-engine") << "  * Current term size : " << conj->d_curr_lit.get() << std::endl;
+  }
 
   if( conj->d_ce_sk.empty() ){
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
@@ -190,14 +204,17 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       if( getModelValues( conj->d_candidates, model_values ) ){
         //check if we must apply fairness lemmas
         std::vector< Node > lems;
-        for( unsigned j=0; j<conj->d_candidates.size(); j++ ){
-          getMeasureLemmas( conj->d_candidates[j], model_values[j], lems );
+        if( options::ceGuidedInstFair()==CEGQI_FAIR_UF_DT_SIZE ){
+          for( unsigned j=0; j<conj->d_candidates.size(); j++ ){
+            getMeasureLemmas( conj->d_candidates[j], model_values[j], lems );
+          }
         }
         if( !lems.empty() ){
           for( unsigned j=0; j<lems.size(); j++ ){
             Trace("cegqi-lemma") << "Measure lemma : " << lems[j] << std::endl;
             d_quantEngine->addLemma( lems[j] );
           }
+          Trace("cegqi-engine") << "  ...refine size." << std::endl;
         }else{
           //must get a counterexample to the value of the current candidate
           Node inst = conj->d_base_inst.substitute( conj->d_candidates.begin(), conj->d_candidates.end(), model_values.begin(), model_values.end() );
@@ -210,6 +227,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
           Trace("cegqi-lemma") << "Counterexample lemma : " << inst_sk << std::endl;
           d_quantEngine->addLemma( NodeManager::currentNM()->mkNode( OR, q.negate(), inst_sk.negate() ) );
           conj->d_ce_sk.push_back( inst[0] );
+          Trace("cegqi-engine") << "  ...find counterexample." << std::endl;
         }
       }
 
@@ -233,6 +251,7 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
                                                                   model_values.begin(), model_values.end() );
         Node lem = NodeManager::currentNM()->mkNode( OR, conj->d_guard.negate(), inst_ce_refine );
         Trace("cegqi-lemma") << "Candidate refinement lemma : " << lem << std::endl;
+        Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
         d_quantEngine->addLemma( lem );
       }
     }

@@ -135,6 +135,9 @@ public:
    */
   std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
 
+  /** need check ? */
+  bool needCheck() const;
+  
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

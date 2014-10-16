@@ -58,6 +58,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine.addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine.addFunctionKind(kind::DT_SIZE);
   d_equalityEngine.addFunctionKind(kind::APPLY_TESTER);
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 
@@ -147,7 +148,7 @@ void TheoryDatatypes::check(Effort e) {
     flushPendingFacts();
   }
 
-  if( e == EFFORT_FULL && !d_conflict ) {
+  if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
     //check for cycles
     bool addedFact;
     do {
@@ -286,7 +287,7 @@ void TheoryDatatypes::flushPendingFacts(){
           Trace("dt-lemma-debug") << "Get explanation..." << std::endl;
           Node ee_exp = explain( exp );
           Trace("dt-lemma-debug") << "Explanation : " << ee_exp << std::endl;
-          lem = NodeManager::currentNM()->mkNode( IMPLIES, ee_exp, fact );
+          lem = NodeManager::currentNM()->mkNode( OR, ee_exp.negate(), fact );
           lem = Rewriter::rewrite( lem );
         }
         Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
@@ -1027,19 +1028,20 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
 }
 
 void TheoryDatatypes::collapseSelector( Node s, Node c ) {
-  Node r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
+  Node r;
+  if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+    r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
+  }else if( s.getKind()==kind::DT_SIZE ){
+    r = NodeManager::currentNM()->mkNode( kind::DT_SIZE, c );
+  }
   Node rr = Rewriter::rewrite( r );
-  //if( r!=rr ){
-    //Node eq_exp = NodeManager::currentNM()->mkConst(true);
-    //Node eq = r.getType().isBoolean() ? r.iffNode( rr ) : r.eqNode( rr );
-  if( s!=rr ){::
+  if( s!=rr ){
     Node eq_exp = c.eqNode( s[0] );
     Node eq = rr.getType().isBoolean() ? s.iffNode( rr ) : s.eqNode( rr );
-
-
+    Trace("datatypes-infer") << "DtInfer : collapse sel : " << eq << " by " << eq_exp << std::endl;
+    
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = eq_exp;
-    Trace("datatypes-infer") << "DtInfer : collapse sel : " << eq << " by " << eq_exp << std::endl;
     d_infer.push_back( eq );
     d_infer_exp.push_back( eq_exp );
   }
@@ -1056,7 +1058,7 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
       return EQUALITY_FALSE;
     }
   }
-  return EQUALITY_UNKNOWN;
+  return EQUALITY_FALSE_IN_MODEL;
 }
 
 void TheoryDatatypes::computeCareGraph(){
@@ -1386,7 +1388,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
         //eqc->d_selectors = true;
       }
       */
-    }else if( n.getKind() == APPLY_SELECTOR_TOTAL ){
+    }else if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE ){
       d_selTerms.push_back( n );
       //we must also record which selectors exist
       Debug("datatypes") << "  Found selector " << n << endl;
@@ -1400,6 +1402,15 @@ void TheoryDatatypes::collectTerms( Node n ) {
       EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
       //add it to the eqc info
       addSelector( n, eqc, rep );
+      
+      if( n.getKind() == DT_SIZE ){
+        Node conc = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkConst( Rational(0) ), n );
+        //must be non-negative
+        Trace("datatypes-infer") << "DtInfer : non-negative size : " << conc << std::endl;
+        d_pending.push_back( conc );
+        d_pending_exp[ conc ] = d_true;
+        d_infer.push_back( conc );
+      }
     }
   }
 }
@@ -1731,35 +1742,39 @@ bool TheoryDatatypes::mustSpecifyAssignment(){
 }
 
 bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
-  //the datatypes decision procedure makes 3 "internal" inferences apart from the equality engine :
+  //the datatypes decision procedure makes 5 "internal" inferences apart from the equality engine :
   //  (1) Unification : C( t1...tn ) = C( s1...sn ) => ti = si
   //  (2) Label : ~is_C1( t ) ... ~is_C{i-1}( t ) ~is_C{i+1}( t ) ... ~is_Cn( t ) => is_Ci( t )
   //  (3) Instantiate : is_C( t ) => t = C( sel_1( t ) ... sel_n( t ) )
-  //We may need to communicate (3) outwards if the conclusions involve other theories
+  //  (4) collapse selector : S( C( t1...tn ) ) = t'
+  //  (5) collapse term size : size( C( t1...tn ) ) = 1 + size( t1 ) + ... + size( tn )
+  //  (6) non-negative size : 0 <= size( t )
+  //We may need to communicate (3) outwards if the conclusions involve other theories.  Also communicate (5) and (6).
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
   if( ( n.getKind()==EQUAL || n.getKind()==IFF) && n[1].getKind()==APPLY_CONSTRUCTOR && exp.getKind()!=EQUAL  ){
-#if 1
     const Datatype& dt = ((DatatypeType)(n[1].getType()).toType()).getDatatype();
     addLemma = dt.involvesExternalType();
-#else
-    for( int j=0; j<(int)n[1].getNumChildren(); j++ ){
-      if( !DatatypesRewriter::isTermDatatype( n[1][j] ) ){
-        addLemma = true;
-        break;
-      }
-    }
-#endif
-    if( addLemma ){
-      //check if we have already added this lemma
-      if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
-        d_inst_lemmas[ n[0] ].push_back( n[1] );
-        Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
-        return true;
-      }else{
-        Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
-        return false;
-      }
+    //for( int j=0; j<(int)n[1].getNumChildren(); j++ ){
+    //  if( !DatatypesRewriter::isTermDatatype( n[1][j] ) ){
+    //    addLemma = true;
+    //    break;
+    //  }
+    //}
+  }else if( n.getKind()==EQUAL && ( n[0].getKind()==DT_SIZE || n[1].getKind()==DT_SIZE ) ){
+    addLemma = true;
+  }else if( n.getKind()==LEQ ){
+    addLemma = true;
+  }
+  if( addLemma ){
+    //check if we have already added this lemma
+    if( std::find( d_inst_lemmas[ n[0] ].begin(), d_inst_lemmas[ n[0] ].end(), n[1] )==d_inst_lemmas[ n[0] ].end() ){
+      d_inst_lemmas[ n[0] ].push_back( n[1] );
+      Trace("dt-lemma-debug") << "Communicate " << n << std::endl;
+      return true;
+    }else{
+      Trace("dt-lemma-debug") << "Already communicated " << n << std::endl;
+      return false;
     }
   }
   //else if( exp.getKind()==APPLY_TESTER ){

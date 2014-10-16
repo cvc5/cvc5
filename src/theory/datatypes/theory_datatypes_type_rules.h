@@ -551,6 +551,21 @@ struct RecordProperties {
   }
 };/* struct RecordProperties */
 
+class DtSizeTypeRule {
+public:
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+    throw (TypeCheckingExceptionPrivate, AssertionException) {
+    if( check ) {
+      TypeNode t = n[0].getType(check);
+      if (!t.isDatatype()) {
+        throw TypeCheckingExceptionPrivate(n, "expecting datatype size term to have datatype argument.");
+      }
+    }
+    return nodeManager->integerType();
+  }
+};/* class DtSizeTypeRule */
+
+
 }/* CVC4::theory::datatypes namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

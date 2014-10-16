@@ -68,18 +68,6 @@ private:
     /** allocate literal */
     Node getLiteral( QuantifiersEngine * qe, int i );
   };
-  class CegFairness {
-  public:
-    CegFairness( context::Context* c );
-    /** which conjecture we are looking at */
-    CegConjecture * d_conj;
-    /** the cardinality literals */
-    std::map< int, Node > d_lits;
-    /** current cardinality */
-    context::CDO< int > d_curr_lit;
-    /** allocate literal */
-    Node getLiteral( int i );
-  };
   /** the quantified formula stating the synthesis conjecture */
   CegConjecture * d_conj;
 private: //for enforcing fairness

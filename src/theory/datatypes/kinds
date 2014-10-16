@@ -163,4 +163,8 @@ constant RECORD_UPDATE_OP \
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
 typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
 
+
+operator DT_SIZE 1 "datatypes size"
+typerule DT_SIZE ::CVC4::theory::datatypes::DtSizeTypeRule
+
 endtheory

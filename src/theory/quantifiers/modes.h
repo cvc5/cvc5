@@ -125,6 +125,15 @@ typedef enum {
   PRENEX_NONE,
 } PrenexQuantMode;
 
+typedef enum {
+  /** enforce fairness by UF corresponding to datatypes size */
+  CEGQI_FAIR_UF_DT_SIZE,
+  /** enforce fairness by datatypes size */
+  CEGQI_FAIR_DT_SIZE,
+  /** do not use fair strategy for CEGQI */
+  CEGQI_FAIR_NONE,
+} CegqiFairMode;
+
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
