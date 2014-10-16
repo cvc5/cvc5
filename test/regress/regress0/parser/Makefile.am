@@ -19,7 +19,8 @@ MAKEFLAGS = -k
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
 TESTS =	\
-	declarefun-emptyset-uf.smt2
+	declarefun-emptyset-uf.smt2 \
+	as.smt2
 
 EXTRA_DIST = $(TESTS)
 
