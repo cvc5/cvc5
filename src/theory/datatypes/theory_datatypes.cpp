@@ -222,15 +222,15 @@ void TheoryDatatypes::check(Effort e) {
                 Trace("datatypes-infer") << "DtInfer : 1-cons : " << t << std::endl;
                 d_infer.push_back( t );
               }else{
-                  Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[consIndex].getTester() ), n );
-                  Trace("dt-split") << "*************Split for possible constructor " << dt[consIndex] << " for " << n <<  endl;
-                  test = Rewriter::rewrite( test );
-                  NodeBuilder<> nb(kind::OR);
-                  nb << test << test.notNode();
-                  Node lemma = nb;
-                  d_out->lemma( lemma );
-                  d_out->requirePhase( test, true );
-                  return;
+                Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
+                std::vector< Node > children;
+                for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+                  Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n );
+                  children.push_back( test );
+                }
+                Node lemma = NodeManager::currentNM()->mkNode( kind::OR, children );
+                d_out->lemma( lemma );
+                return;
               }
             }else{
               Trace("dt-split-debug") << "Do not split constructor for " << n << " : " << n.getType() << " " << dt.getNumConstructors() << std::endl;
