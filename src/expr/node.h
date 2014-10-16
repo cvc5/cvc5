@@ -149,7 +149,7 @@ class NodeValue;
 
   namespace attr {
     class AttributeManager;
-    class SmtAttributes;
+    struct SmtAttributes;
   }/* CVC4::expr::attr namespace */
 
   class ExprSetDepth;
@@ -215,7 +215,7 @@ class NodeTemplate {
   friend class NodeBuilder;
 
   friend class ::CVC4::expr::attr::AttributeManager;
-  friend class ::CVC4::expr::attr::SmtAttributes;
+  friend struct ::CVC4::expr::attr::SmtAttributes;
 
   friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
 
