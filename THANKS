@@ -3,6 +3,9 @@ at Imperial College London, headed by Alastair Donaldson) for developing and
 submitting a number of patches in September 2012 related to SMT-LIBv2
 compliance.
 
+Thanks to Thomas Hunger for some important patches to CVC4's SWIG interfaces
+in March 2014.
+
 Thanks to David Cok of GrammaTech, Inc., for suggesting numerous improvements
 in CVC4's SMT-LIBv2 compliance in 2013 and 2014.
 
