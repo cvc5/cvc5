@@ -141,12 +141,12 @@ mc \n\
 static const std::string userPatModeHelp = "\
 User pattern modes currently supported by the --user-pat option:\n\
 \n\
-default \n\
-+ Default, use both user-provided and auto-generated patterns when patterns\n\
-  are provided for a quantified formula.\n\
-\n\
 trust \n\
 + When provided, use only user-provided patterns for a quantified formula.\n\
+\n\
+use \n\
++ Use both user-provided and auto-generated patterns when patterns\n\
+  are provided for a quantified formula.\n\
 \n\
 ignore \n\
 + Ignore user-provided patterns. \n\
@@ -322,9 +322,9 @@ inline QcfMode stringToQcfMode(std::string option, std::string optarg, SmtEngine
 }
 
 inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg ==  "default") {
-    return USER_PAT_MODE_DEFAULT;
-  } else if(optarg == "trust") {
+  if(optarg == "use") {
+    return USER_PAT_MODE_USE;
+  } else if(optarg ==  "default" || optarg == "trust") {
     return USER_PAT_MODE_TRUST;
   } else if(optarg == "ignore") {
     return USER_PAT_MODE_IGNORE;

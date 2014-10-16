@@ -1655,7 +1655,7 @@ bool MatchGen::isHandledBoolConnective( TNode n ) {
 bool MatchGen::isHandledUfTerm( TNode n ) {
   //return n.getKind()==APPLY_UF || n.getKind()==STORE || n.getKind()==SELECT ||
   //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
-  return inst::Trigger::isAtomicTriggerKind( n.getKind() );  
+  return inst::Trigger::isAtomicTriggerKind( n.getKind() );
 }
 
 Node MatchGen::getOperator( QuantConflictFind * p, Node n ) {
@@ -1683,7 +1683,6 @@ bool MatchGen::isHandled( TNode n ) {
 
 QuantConflictFind::QuantConflictFind( QuantifiersEngine * qe, context::Context* c ) :
 QuantifiersModule( qe ),
-d_c( c ),
 d_conflict( c, false ),
 d_qassert( c ) {
   d_fid_count = 0;

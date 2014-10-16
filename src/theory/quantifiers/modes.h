@@ -99,9 +99,9 @@ typedef enum {
 } QcfMode;
 
 typedef enum {
-  /** default, use but do not trust */
-  USER_PAT_MODE_DEFAULT,
-  /** if patterns are supplied for a quantifier, use only those */
+  /** use but do not trust */
+  USER_PAT_MODE_USE,
+  /** default, if patterns are supplied for a quantifier, use only those */
   USER_PAT_MODE_TRUST,
   /** ignore user patterns */
   USER_PAT_MODE_IGNORE,

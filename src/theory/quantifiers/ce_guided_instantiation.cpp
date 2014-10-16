@@ -44,7 +44,8 @@ void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
   if( d_guard.isNull() ){
     d_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
     //specify guard behavior
-    qe->getValuation().ensureLiteral( d_guard );
+    d_guard = qe->getValuation().ensureLiteral( d_guard );
+    AlwaysAssert( !d_guard.isNull() );
     qe->getOutputChannel().requirePhase( d_guard, true );
   }
 }
@@ -338,7 +339,7 @@ void CegInstantiation::getMeasureLemmas( Node n, Node v, std::vector< Node >& le
       Node lem = lhs.eqNode( rhs );
       Node cond = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[index].getTester() ), n );
       lem = NodeManager::currentNM()->mkNode( OR, cond.negate(), lem );
-      
+
       d_size_term_lemma[n][index] = lem;
       Trace("cegqi-lemma-debug") << "...constructed lemma " << lem << std::endl;
       lems.push_back( lem );

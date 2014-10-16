@@ -164,7 +164,6 @@ class QuantConflictFind : public QuantifiersModule
   typedef context::CDChunkList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 private:
-  context::Context* d_c;
   context::CDO< bool > d_conflict;
   std::vector< Node > d_quant_order;
   std::map< Kind, Node > d_zero;
