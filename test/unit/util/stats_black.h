@@ -91,12 +91,6 @@ public:
     sstr.str("");
     sTimer.flushInformation(sstr);
     TS_ASSERT_EQUALS(sstr.str(), "0.000000000");
-
-    sTimer.start();
-    timespec zero = { 0, 0 };
-    //TS_ASSERT_EQUALS(zero, sTimer.getData());
-    sTimer.stop();
-    TS_ASSERT_LESS_THAN(zero, sTimer.getData());
 #endif /* CVC4_STATISTICS_ON */
   }
 
