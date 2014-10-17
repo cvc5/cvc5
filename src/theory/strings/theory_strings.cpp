@@ -600,7 +600,7 @@ void TheoryStrings::check(Effort e) {
 
 
   bool addedLemma = false;
-  if( e == EFFORT_FULL && !d_conflict ) {
+  if( e == EFFORT_FULL && !d_conflict && !d_valuation.needCheck() ) {
     //addedLemma = checkSimple();
     //Trace("strings-process") << "Done simple checking, addedLemma = " << addedLemma << ", d_conflict = " << d_conflict << std::endl;
     //if( !addedLemma ) {
