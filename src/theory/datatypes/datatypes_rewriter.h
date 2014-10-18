@@ -320,7 +320,7 @@ public:
     return false;
   }
   static bool isNullaryApplyConstructor( Node n ){
-    Assert( n.getKind()==APPLY_CONSTRUCTOR );
+    Assert( n.getKind()==kind::APPLY_CONSTRUCTOR );
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( n[i].getType().isDatatype() ){
         return false;
