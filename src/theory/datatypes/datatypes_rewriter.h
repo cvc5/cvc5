@@ -260,7 +260,7 @@ public:
       }
     }else if( n1!=n2 ){
       if( n1.isConst() && n2.isConst() ){
-        return true;        
+        return true;
       }else{
         Node eq = NodeManager::currentNM()->mkNode( n1.getType().isBoolean() ? kind::IFF : kind::EQUAL, n1, n2 );
         rew.push_back( eq );
@@ -318,6 +318,23 @@ public:
       }
     }
     return false;
+  }
+  static bool isNullaryApplyConstructor( Node n ){
+    Assert( n.getKind()==APPLY_CONSTRUCTOR );
+    for( unsigned i=0; i<n.getNumChildren(); i++ ){
+      if( n[i].getType().isDatatype() ){
+        return false;
+      }
+    }
+    return true;
+  }
+  static bool isNullaryConstructor( const DatatypeConstructor& c ){
+    for( unsigned j=0; j<c.getNumArgs(); j++ ){
+      if( c[j].getType().getRangeType().isDatatype() ){
+        return false;
+      }
+    }
+    return true;
   }
 
   /** is this term a datatype */

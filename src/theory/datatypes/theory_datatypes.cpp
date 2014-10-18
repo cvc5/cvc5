@@ -1050,7 +1050,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     Node eq_exp = c.eqNode( s[0] );
     Node eq = rr.getType().isBoolean() ? s.iffNode( rr ) : s.eqNode( rr );
     Trace("datatypes-infer") << "DtInfer : collapse sel : " << eq << " by " << eq_exp << std::endl;
-    
+
     d_pending.push_back( eq );
     d_pending_exp[ eq ] = eq_exp;
     d_infer.push_back( eq );
@@ -1385,20 +1385,6 @@ void TheoryDatatypes::collectTerms( Node n ) {
     }
     if( n.getKind() == APPLY_CONSTRUCTOR ){
       d_consTerms.push_back( n );
-      /*
-      //we must take into account subterm relation when checking for cycles
-      for( int i=0; i<(int)n.getNumChildren(); i++ ) {
-        bool result = d_cycle_check.addEdgeNode( n, n[i] );
-        Debug("datatypes-cycles") << "DtCyc: Subterm " << n << " -> " << n[i] << " " << result << endl;
-        if( result && !d_hasSeenCycle.get() ){
-          Debug("datatypes-cycles") << "FOUND CYCLE" << std::endl;
-        }
-        d_hasSeenCycle.set( d_hasSeenCycle.get() || result );
-        //Node r = getRepresentative( n[i] );
-        //EqcInfo* eqc = getOrMakeEqcInfo( r, true );
-        //eqc->d_selectors = true;
-      }
-      */
     }else if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE ){
       d_selTerms.push_back( n );
       //we must also record which selectors exist
@@ -1413,11 +1399,28 @@ void TheoryDatatypes::collectTerms( Node n ) {
       EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
       //add it to the eqc info
       addSelector( n, eqc, rep );
-      
+
       if( n.getKind() == DT_SIZE ){
         Node conc = NodeManager::currentNM()->mkNode( LEQ, NodeManager::currentNM()->mkConst( Rational(0) ), n );
         //must be non-negative
         Trace("datatypes-infer") << "DtInfer : non-negative size : " << conc << std::endl;
+        d_pending.push_back( conc );
+        d_pending_exp[ conc ] = d_true;
+        d_infer.push_back( conc );
+
+        //add size = 0 lemma
+        Node nn = n.eqNode( NodeManager::currentNM()->mkConst( Rational(0) ) );
+        std::vector< Node > children;
+        children.push_back( nn.negate() );
+        const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+        for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
+          if( DatatypesRewriter::isNullaryConstructor( dt[i] ) ){
+            Node test = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n[0] );
+            children.push_back( test );
+          }
+        }
+        conc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
+        Trace("datatypes-infer") << "DtInfer : zero size : " << conc << std::endl;
         d_pending.push_back( conc );
         d_pending_exp[ conc ] = d_true;
         d_infer.push_back( conc );
@@ -1775,6 +1778,8 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   }else if( n.getKind()==EQUAL && ( n[0].getKind()==DT_SIZE || n[1].getKind()==DT_SIZE ) ){
     addLemma = true;
   }else if( n.getKind()==LEQ ){
+    addLemma = true;
+  }else if( n.getKind()==OR ){
     addLemma = true;
   }
   if( addLemma ){
