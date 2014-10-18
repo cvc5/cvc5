@@ -28,8 +28,8 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 
-BoundedIntegers::RangeModel::RangeModel(BoundedIntegers * bi, Node r, context::Context* c, bool isProxy) : d_bi(bi),
-      d_range(r), d_curr_max(-1), d_range_assertions(c), d_has_range(c,false), d_curr_range(c,-1) { 
+BoundedIntegers::RangeModel::RangeModel(BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy) : d_bi(bi),
+      d_range(r), d_curr_max(-1), d_lit_to_range(u), d_range_assertions(c), d_has_range(c,false), d_curr_range(c,-1), d_ranges_proxied(u) { 
   if( options::fmfBoundIntLazy() ){
     d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
   }else{
@@ -59,17 +59,18 @@ void BoundedIntegers::RangeModel::assertNode(Node n) {
   bool pol = n.getKind()!=NOT;
   Node nlit = n.getKind()==NOT ? n[0] : n;
   if( d_lit_to_range.find( nlit )!=d_lit_to_range.end() ){
+    int vrange = d_lit_to_range[nlit];
     Trace("bound-int-assert") << "With polarity = " << pol << " (req "<< d_lit_to_pol[nlit] << ")";
     Trace("bound-int-assert") << ", found literal " << nlit;
-    Trace("bound-int-assert") << ", it is bound literal " << d_lit_to_range[nlit] << " for " << d_range << std::endl;
+    Trace("bound-int-assert") << ", it is bound literal " << vrange << " for " << d_range << std::endl;
     d_range_assertions[nlit] = (pol==d_lit_to_pol[nlit]);
     if( pol!=d_lit_to_pol[nlit] ){
       //check if we need a new split?
       if( !d_has_range ){
         bool needsRange = true;
-        for( std::map< Node, int >::iterator it = d_lit_to_range.begin(); it != d_lit_to_range.end(); ++it ){
-          if( d_range_assertions.find( it->first )==d_range_assertions.end() ){
-            Trace("bound-int-debug") << "Does not need range because of " << it->first << std::endl;
+        for( NodeIntMap::iterator it = d_lit_to_range.begin(); it != d_lit_to_range.end(); ++it ){
+          if( d_range_assertions.find( (*it).first )==d_range_assertions.end() ){
+            Trace("bound-int-debug") << "Does not need range because of " << (*it).first << std::endl;
             needsRange = false;
             break;
           }
@@ -79,9 +80,9 @@ void BoundedIntegers::RangeModel::assertNode(Node n) {
         }
       }
     }else{
-      if (!d_has_range || d_lit_to_range[nlit]<d_curr_range ){
-        Trace("bound-int-bound") << "Successfully bound " << d_range << " to " << d_lit_to_range[nlit] << std::endl;
-        d_curr_range = d_lit_to_range[nlit];
+      if (!d_has_range || vrange<d_curr_range ){
+        Trace("bound-int-bound") << "Successfully bound " << d_range << " to " << vrange << std::endl;
+        d_curr_range = vrange;
       }
       //set the range
       d_has_range = true;
@@ -111,13 +112,13 @@ void BoundedIntegers::RangeModel::allocateRange() {
 
 Node BoundedIntegers::RangeModel::getNextDecisionRequest() {
   //request the current cardinality as a decision literal, if not already asserted
-  for( std::map< Node, int >::iterator it = d_lit_to_range.begin(); it != d_lit_to_range.end(); ++it ){
-    int i = it->second;
+  for( NodeIntMap::iterator it = d_lit_to_range.begin(); it != d_lit_to_range.end(); ++it ){
+    int i = (*it).second;
     if( !d_has_range || i<d_curr_range ){
-      Node rn = it->first;
+      Node rn = (*it).first;
       Assert( !rn.isNull() );
       if( d_range_assertions.find( rn )==d_range_assertions.end() ){
-        if (!d_lit_to_pol[it->first]) {
+        if (!d_lit_to_pol[rn]) {
           rn = rn.negate();
         }
         Trace("bound-int-dec-debug") << "For " << d_range << ", make decision " << rn << " to make range " << i << std::endl;
@@ -335,7 +336,7 @@ void BoundedIntegers::registerQuantifier( Node f ) {
           if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << " " << r.getKind() << std::endl;
             d_ranges.push_back( r );
-            d_rms[r] = new RangeModel(this, r, d_quantEngine->getSatContext(), isProxy );
+            d_rms[r] = new RangeModel(this, r, d_quantEngine->getSatContext(), d_quantEngine->getUserContext(), isProxy );
             d_rms[r]->initialize();
           }
         }

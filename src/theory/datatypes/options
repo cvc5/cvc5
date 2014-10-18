@@ -13,6 +13,8 @@ expert-option dtRewriteErrorSel --dt-rewrite-error-sel bool :default false
  rewrite incorrectly applied selectors to arbitrary ground term
 option dtForceAssignment --dt-force-assignment bool :default false :read-write
  force the datatypes solver to give specific values to all datatypes terms before answering sat
+option dtBinarySplit --dt-binary-split bool :default false
+ do binary splits for datatype constructor types
 option cdtBisimilar --cdt-bisimilar bool :default true
  do bisimilarity check for co-datatypes
  

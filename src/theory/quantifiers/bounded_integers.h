@@ -38,6 +38,7 @@ class BoundedIntegers : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashMap<int, bool> IntBoolMap;
 private:
   //for determining bounds
   bool isBound( Node f, Node v );
@@ -62,16 +63,16 @@ private:
     void allocateRange();
     Node d_proxy_range;
   public:
-    RangeModel(BoundedIntegers * bi, Node r, context::Context* c, bool isProxy);
+    RangeModel(BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy);
     Node d_range;
     int d_curr_max;
     std::map< int, Node > d_range_literal;
     std::map< Node, bool > d_lit_to_pol;
-    std::map< Node, int > d_lit_to_range;
+    NodeIntMap d_lit_to_range;
     NodeBoolMap d_range_assertions;
     context::CDO< bool > d_has_range;
     context::CDO< int > d_curr_range;
-    std::map< int, bool > d_ranges_proxied;
+    IntBoolMap d_ranges_proxied;
     void initialize();
     void assertNode(Node n);
     Node getNextDecisionRequest();
