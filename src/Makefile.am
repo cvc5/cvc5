@@ -239,6 +239,7 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/datatypes_rewriter.h \
 	theory/datatypes/theory_datatypes.cpp \
 	theory/sets/expr_patterns.h \
+	theory/sets/normal_form.h \
 	theory/sets/options_handlers.h \
 	theory/sets/scrutinize.h \
 	theory/sets/term_info.h \

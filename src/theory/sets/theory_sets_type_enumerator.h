@@ -25,6 +25,7 @@
 #include "expr/type_node.h"
 #include "expr/kind.h"
 #include "theory/rewriter.h"
+#include "theory/sets/normal_form.h"
 
 namespace CVC4 {
 namespace theory {
@@ -87,21 +88,17 @@ public:
     if (d_finished) {
       throw NoMoreValuesException(getType());
     }
-    Node n = d_setConst;
 
-    // For now only support only sets of size 1
-    Assert(d_index == 0 || d_index == 1);
-
-    if(d_index == 1) {
-      n = d_nm->mkNode(kind::SINGLETON, *(*(d_constituentVec[0])));
+    std::vector<Node> elements;
+    for(unsigned i = 0; i < d_constituentVec.size(); ++i) {
+      elements.push_back(*(*(d_constituentVec[i])));
     }
 
-    // for (unsigned i = 0; i < d_indexVec.size(); ++i) {
-    //   n = d_nm->mkNode(kind::STORE, n, d_indexVec[d_indexVec.size() - 1 - i], *(*(d_constituentVec[i])));
-    // }
-    Trace("set-type-enum") << "operator * prerewrite: " << n << std::endl;
-    n = Rewriter::rewrite(n);
-    Trace("set-type-enum") << "operator * returning: " << n << std::endl;
+    Node n = NormalForm::elementsToSet(std::set<TNode>(elements.begin(), elements.end()),
+                                       getType());
+
+    Assert(n == Rewriter::rewrite(n));
+
     return n;
   }
 

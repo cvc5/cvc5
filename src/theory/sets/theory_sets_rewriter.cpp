@@ -15,6 +15,7 @@
  **/
 
 #include "theory/sets/theory_sets_rewriter.h"
+#include "theory/sets/normal_form.h"
 
 namespace CVC4 {
 namespace theory {
@@ -210,25 +211,6 @@ const Elements& collectConstantElements(TNode setterm, SettermElementsMap& sette
   return it->second;
 }
 
-Node elementsToNormalConstant(Elements elements,
-                              TypeNode setType)
-{
-  NodeManager* nm = NodeManager::currentNM();
-
-  if(elements.size() == 0) {
-    return nm->mkConst(EmptySet(nm->toType(setType)));
-  } else {
-
-    Elements::iterator it = elements.begin();
-    Node cur = nm->mkNode(kind::SINGLETON, *it);
-    while( ++it != elements.end() ) {
-      cur = nm->mkNode(kind::UNION, cur,
-                       nm->mkNode(kind::SINGLETON, *it));
-    }
-    return cur;
-  }
-}
-
 
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
@@ -252,7 +234,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
     //rewrite set to normal form
     SettermElementsMap setTermElementsMap;   // cache
     const Elements& elements = collectConstantElements(node, setTermElementsMap);
-    RewriteResponse response(REWRITE_DONE, elementsToNormalConstant(elements, node.getType()));
+    RewriteResponse response(REWRITE_DONE, NormalForm::elementsToSet(elements, node.getType()));
     Debug("sets-rewrite-constant") << "[sets-rewrite-constant] Rewriting " << node << std::endl
                                    << "[sets-rewrite-constant]        to " << response.node << std::endl;
     return response;
