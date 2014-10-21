@@ -477,7 +477,21 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     TNode a = d_equalityEngine.getRepresentative(node[0]);
 
-    d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
+    if (node.isConst()) {
+      // Can't use d_mayEqualEqualityEngine to merge node with a because they are both constants,
+      // so just set the default value manually for node.
+      Assert(a == node[0]);
+      d_mayEqualEqualityEngine.addTerm(node);
+      Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+      Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
+      DefValMap::iterator it = d_defValues.find(a);
+      Assert(it != d_defValues.end());
+      d_defValues[node] = (*it).second;
+    }
+    else {
+      d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
+      Assert(d_mayEqualEqualityEngine.consistent());
+    }
 
     if (!options::arraysLazyRIntro1()) {
       TNode i = node[1];
@@ -887,7 +901,9 @@ void TheoryArrays::collectModelInfo( TheoryModel* m, bool fullModel )
       rep = nm->mkNode(kind::STORE, rep, reads[j][1], reads[j]);
     }
     m->assertEquality(n, rep, true);
-    m->assertRepresentative(rep);
+    if (!n.isConst()) {
+      m->assertRepresentative(rep);
+    }
   }
 }
 
@@ -2097,6 +2113,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
       defValue = (*it2).second;
     }
     d_mayEqualEqualityEngine.assertEquality(a.eqNode(b), true, d_true);
+    Assert(d_mayEqualEqualityEngine.consistent());
     if (!defValue.isNull()) {
       mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
       d_defValues[mayRepA] = defValue;
