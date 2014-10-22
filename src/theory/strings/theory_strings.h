@@ -27,6 +27,8 @@
 #include "context/cdchunk_list.h"
 #include "context/cdhashset.h"
 
+#include <climits>
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -125,6 +127,7 @@ private:
   Node d_false;
   Node d_zero;
   Node d_one;
+  CVC4::Rational RMAXINT;
   // Options
   bool d_opt_fmf;
   bool d_opt_regexp_gcd;

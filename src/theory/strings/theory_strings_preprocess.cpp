@@ -126,7 +126,7 @@ int StringsPreprocess::checkFixLenVar( Node t ) {
     }
   }
   if(ret != 2) {
-    int len = t[ret].getConst<Rational>().getNumerator().toUnsignedInt();
+    unsigned len = t[ret].getConst<Rational>().getNumerator().toUnsignedInt();
     if(len < 2) {
       ret = 2;
     }

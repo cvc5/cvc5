@@ -24,8 +24,9 @@
 #include <string>
 #include <set>
 #include <sstream>
-#include "util/exception.h"
+#include <cassert>
 //#include "util/integer.h"
+#include "util/exception.h"
 #include "util/hash.h"
 
 namespace CVC4 {
@@ -65,7 +66,7 @@ private:
     } else if (c >= 'a' && c <= 'f') {
       return c - 'a' + 10;
     } else {
-      //Assert(c >= 'A' && c <= 'F');
+      assert(c >= 'A' && c <= 'F');
       return c - 'A' + 10;
     }
   }
@@ -151,14 +152,34 @@ public:
     }
   }
 
-  bool strncmp(const String &y, unsigned int n) const {
-    for(unsigned int i=0; i<n; ++i)
+  bool strncmp(const String &y, const std::size_t np) const {
+    std::size_t n = np;
+    std::size_t b = (d_str.size() >= y.d_str.size()) ? d_str.size() : y.d_str.size();
+    std::size_t s = (d_str.size() <= y.d_str.size()) ? d_str.size() : y.d_str.size();
+    if(n > s) {
+      if(b == s) {
+        n = s;
+      } else {
+        return false;
+      }
+    }
+    for(std::size_t i=0; i<n; ++i)
       if(d_str[i] != y.d_str[i]) return false;
     return true;
   }
 
-  bool rstrncmp(const String &y, unsigned int n) const {
-    for(unsigned int i=0; i<n; ++i)
+  bool rstrncmp(const String &y, const std::size_t np) const {
+    std::size_t n = np;
+    std::size_t b = (d_str.size() >= y.d_str.size()) ? d_str.size() : y.d_str.size();
+    std::size_t s = (d_str.size() <= y.d_str.size()) ? d_str.size() : y.d_str.size();
+    if(n > s) {
+      if(b == s) {
+        n = s;
+      } else {
+        return false;
+      }
+    }
+    for(std::size_t i=0; i<n; ++i)
       if(d_str[d_str.size() - i - 1] != y.d_str[y.d_str.size() - i - 1]) return false;
     return true;
   }
@@ -167,8 +188,8 @@ public:
     return ( d_str.size() == 0 );
   }
 
-  unsigned int operator[] (const unsigned int i) const {
-  //Assert( i < d_str.size() && i >= 0);
+  unsigned int operator[] (const std::size_t i) const {
+    assert( i < d_str.size() );
     return d_str[i];
   }
   /*
@@ -208,19 +229,19 @@ public:
     return true;
   }
 
-  std::size_t find(const String &y, const int start = 0) const {
-    if(d_str.size() < y.d_str.size() + (std::size_t) start) return std::string::npos;
-    if(y.d_str.size() == 0) return (std::size_t) start;
+  std::size_t find(const String &y, const std::size_t start = 0) const {
+    if(d_str.size() < y.d_str.size() + start) return std::string::npos;
+    if(y.d_str.size() == 0) return start;
     if(d_str.size() == 0) return std::string::npos;
     std::size_t ret = std::string::npos;
-    for(int i = start; i <= (int) d_str.size() - (int) y.d_str.size(); i++) {
+    for(std::size_t i = start; i <= d_str.size() - y.d_str.size(); i++) {
       if(d_str[i] == y.d_str[0]) {
         std::size_t j=0;
         for(; j<y.d_str.size(); j++) {
           if(d_str[i+j] != y.d_str[j]) break;
         }
         if(j == y.d_str.size()) {
-          ret = (std::size_t) i;
+          ret = i;
           break;
         }
       }
@@ -241,23 +262,25 @@ public:
     }
   }
 
-  String substr(unsigned i) const {
+  String substr(std::size_t i) const {
+    assert(i <= d_str.size());
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
     ret_vec.insert(ret_vec.end(), itr, d_str.end());
     return String(ret_vec);
   }
-  String substr(unsigned i, unsigned j) const {
+  String substr(std::size_t i, std::size_t j) const {
+    assert(i+j <= d_str.size());
     std::vector<unsigned int> ret_vec;
     std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
     ret_vec.insert( ret_vec.end(), itr, itr + j );
     return String(ret_vec);
   }
 
-  String prefix(unsigned i) const {
+  String prefix(std::size_t i) const {
     return substr(0, i);
   }
-  String suffix(unsigned i) const {
+  String suffix(std::size_t i) const {
     return substr(d_str.size() - i, i);
   }
   std::size_t overlap(String &y) const;

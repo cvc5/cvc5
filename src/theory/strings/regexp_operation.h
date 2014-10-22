@@ -22,6 +22,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <climits>
 #include "util/hash.h"
 #include "util/regexp.h"
 #include "theory/theory.h"
@@ -46,6 +47,7 @@ private:
   Node d_emptyRegexp;
   Node d_zero;
   Node d_one;
+  CVC4::Rational RMAXINT;
 
   char d_char_start;
   char d_char_end;

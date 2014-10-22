@@ -23,6 +23,7 @@
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 #include "expr/attribute.h"
+#include <climits>
 
 namespace CVC4 {
 namespace theory {

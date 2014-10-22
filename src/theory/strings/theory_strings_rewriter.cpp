@@ -382,16 +382,23 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
     } else if( node[1].isConst() && node[2].isConst() ) {
       if(node[1].getConst<Rational>().sgn()>=0 && node[2].getConst<Rational>().sgn()>=0) {
-        int i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-        int j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+        CVC4::Rational sum(node[1].getConst<Rational>() + node[2].getConst<Rational>());
         if( node[0].isConst() ) {
-          if( node[0].getConst<String>().size() >= (unsigned) (i + j) ) {
+          CVC4::Rational size(node[0].getConst<String>().size());
+          if( size >= sum ) {
+            //because size is smaller than MAX_INT
+            size_t i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+            size_t j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
             retNode = NodeManager::currentNM()->mkConst( node[0].getConst<String>().substr(i, j) );
           } else {
             retNode = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
           }
         } else if(node[0].getKind() == kind::STRING_CONCAT && node[0][0].isConst()) {
-          if( node[0][0].getConst<String>().size() >= (unsigned) (i + j) ) {
+          CVC4::Rational size2(node[0][0].getConst<String>().size());
+          if( size2 >= sum ) {
+            //because size2 is smaller than MAX_INT
+            size_t i = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+            size_t j = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
             retNode = NodeManager::currentNM()->mkConst( node[0][0].getConst<String>().substr(i, j) );
           }
         }
@@ -451,10 +458,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
     if( node[0].isConst() && node[1].isConst() && node[2].isConst() ) {
       CVC4::String s = node[0].getConst<String>();
       CVC4::String t = node[1].getConst<String>();
-      int i = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
+      CVC4::Rational RMAXINT(LONG_MAX);
+      Assert(node[2].getConst<Rational>() <= RMAXINT, "Number exceeds LONG_MAX in string index_of");
+      std::size_t i = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
       std::size_t ret = s.find(t, i);
       if( ret != std::string::npos ) {
-        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational((int) ret) );
+        retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational((unsigned) ret) );
       } else {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
       }
@@ -634,6 +643,8 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
     if(r.getKind() == kind::REGEXP_STAR) {
       retNode = r;
     } else {
+      CVC4::Rational RMAXINT(LONG_MAX);
+      Assert(node[1].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
       unsigned l = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
       std::vector< Node > vec_nodes;
       for(unsigned i=0; i<l; i++) {
@@ -642,6 +653,7 @@ RewriteResponse TheoryStringsRewriter::preRewrite(TNode node) {
       if(node.getNumChildren() == 3) {
         Node n = vec_nodes.size()==0 ? NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, NodeManager::currentNM()->mkConst(CVC4::String("")))
           : vec_nodes.size()==1 ? r : prerewriteConcatRegExp(NodeManager::currentNM()->mkNode(kind::REGEXP_CONCAT, vec_nodes));
+        Assert(node[2].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
         unsigned u = node[2].getConst<Rational>().getNumerator().toUnsignedInt();
         if(u <= l) {
           retNode = n;

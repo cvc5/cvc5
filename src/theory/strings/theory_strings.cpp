@@ -35,6 +35,7 @@ namespace strings {
 
 TheoryStrings::TheoryStrings(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo)
   : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
+  RMAXINT(LONG_MAX),
   d_notify( *this ),
   d_equalityEngine(d_notify, c, "theory::strings::TheoryStrings"),
   d_conflict(c, false),
@@ -284,6 +285,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     if( lts[i].isConst() ) {
       lts_values.push_back( lts[i] );
+      Assert(lts[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
       unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
       values_used[ lvalue ] = true;
     }else{
@@ -292,6 +294,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
         Node v = d_valuation.getModelValue(lts[i]);
         Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
         lts_values.push_back( v );
+        Assert(v.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
         unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
         values_used[ lvalue ] = true;
       }else{
@@ -346,6 +349,7 @@ void TheoryStrings::collectModelInfo( TheoryModel* m, bool fullModel ) {
 
 
       //use type enumerator
+      Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for( unsigned j=0; j<pure_eq.size(); j++ ){
         Assert( !sel.isFinished() );

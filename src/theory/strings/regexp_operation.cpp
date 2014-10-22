@@ -21,18 +21,20 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-RegExpOpr::RegExpOpr() {
+RegExpOpr::RegExpOpr()
+  : d_card( 256 ),
+  RMAXINT( LONG_MAX )
+{
   d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+  d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
   d_zero = NodeManager::currentNM()->mkConst( ::CVC4::Rational(0) );
   d_one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-  d_emptySingleton = NodeManager::currentNM()->mkNode( kind::STRING_TO_REGEXP, d_emptyString );
   std::vector< Node > nvec;
   d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
   d_sigma = NodeManager::currentNM()->mkNode( kind::REGEXP_SIGMA, nvec );
   d_sigma_star = NodeManager::currentNM()->mkNode( kind::REGEXP_STAR, d_sigma );
-  d_card = 256;
 }
 
 int RegExpOpr::gcd ( int a, int b ) {
@@ -1284,6 +1286,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< unsigned, std::se
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
+    Assert(n[0].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in RegExpOpr::containC2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
@@ -1322,6 +1325,7 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
   } else if(n.getKind() == kind::REGEXP_RV) {
+    Assert(n[0].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in RegExpOpr::containC2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
