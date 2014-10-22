@@ -177,7 +177,8 @@ DISABLED_TESTS = \
 
 EXTRA_DIST = $(TESTS) \
 	simplification_bug4.smt2.expect \
-	bug216.smt2.expect
+	bug216.smt2.expect \
+	bug590.smt2.expect
 
 if CVC4_BUILD_PROFILE_COMPETITION
 else
