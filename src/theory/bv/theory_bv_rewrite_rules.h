@@ -152,6 +152,7 @@ enum RewriteRuleId {
   NotOr,  // not sure why this would help (not done)
   NotXor, // not sure why this would help (not done)
   FlattenAssocCommut,
+  FlattenAssocCommutNoDuplicates,
   PlusCombineLikeTerms,
   MultSimplify,
   MultDistribConst,
@@ -270,7 +271,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
   case NotIdemp :                  out << "NotIdemp"; return out;
   case UleSelf:                    out << "UleSelf"; return out; 
-  case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out; 
+  case FlattenAssocCommut:     out << "FlattenAssocCommut"; return out;
+  case FlattenAssocCommutNoDuplicates:     out << "FlattenAssocCommutNoDuplicates"; return out; 
   case PlusCombineLikeTerms: out << "PlusCombineLikeTerms"; return out;
   case MultSimplify: out << "MultSimplify"; return out;
   case MultDistribConst: out << "MultDistribConst"; return out;
@@ -485,8 +487,9 @@ struct AllRewriteRules {
   RewriteRule<SubEliminate> rule82; 
   RewriteRule<XorOne> rule83;
   RewriteRule<XorZero> rule84;
-  RewriteRule<MultPow2> rule87;
   RewriteRule<MultSlice> rule85;
+  RewriteRule<FlattenAssocCommutNoDuplicates> rule86;
+  RewriteRule<MultPow2> rule87;
   RewriteRule<ExtractMultLeadingBit> rule88;
   RewriteRule<NegIdemp> rule91;
   RewriteRule<UdivPow2> rule92;

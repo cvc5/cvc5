@@ -214,7 +214,7 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite) {
   Node resultNode = node;
   resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
+    < RewriteRule<FlattenAssocCommutNoDuplicates>,
       RewriteRule<AndSimplify>
       >::apply(node);
 
@@ -234,7 +234,7 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite){
   Node resultNode = node;
   resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommut>,
+    < RewriteRule<FlattenAssocCommutNoDuplicates>,
       RewriteRule<OrSimplify>
       >::apply(node);
 
