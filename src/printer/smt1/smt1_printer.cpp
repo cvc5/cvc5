@@ -33,24 +33,24 @@ namespace smt1 {
 
 void Smt1Printer::toStream(std::ostream& out, TNode n,
                            int toDepth, bool types, size_t dag) const throw() {
-  n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
+  n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
 void Smt1Printer::toStream(std::ostream& out, const Command* c,
                            int toDepth, bool types, size_t dag) const throw() {
-  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2);
+  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
 void Smt1Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
-  s->toStream(out, language::output::LANG_SMTLIB_V2);
+  s->toStream(out, language::output::LANG_SMTLIB_V2_5);
 }/* Smt1Printer::toStream() */
 
 void Smt1Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() {
-  Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
+  Printer::getPrinter(language::output::LANG_SMTLIB_V2_5)->toStream(out, sexpr);
 }/* Smt1Printer::toStream() */
 
 void Smt1Printer::toStream(std::ostream& out, const Model& m) const throw() {
-  Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, m);
+  Printer::getPrinter(language::output::LANG_SMTLIB_V2_5)->toStream(out, m);
 }
 
 void Smt1Printer::toStream(std::ostream& out, const Model& m, const Command* c) const throw() {

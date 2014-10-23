@@ -807,6 +807,16 @@ public:
   std::string getCommandName() const throw();
 };/* class ResetCommand */
 
+class CVC4_PUBLIC ResetAssertionsCommand : public Command {
+public:
+  ResetAssertionsCommand() throw() {}
+  ~ResetAssertionsCommand() throw() {}
+  void invoke(SmtEngine* smtEngine) throw();
+  Command* exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap);
+  Command* clone() const;
+  std::string getCommandName() const throw();
+};/* class ResetAssertionsCommand */
+
 class CVC4_PUBLIC QuitCommand : public Command {
 public:
   QuitCommand() throw() {}

@@ -65,7 +65,8 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts[options::out] << "unknown" << endl;
 #endif
-    if(opts[options::outputLanguage] == output::LANG_SMTLIB_V2) {
+    if(opts[options::outputLanguage] == output::LANG_SMTLIB_V2_0 ||
+       opts[options::outputLanguage] == output::LANG_SMTLIB_V2_5) {
       *opts[options::err] << "(error \"" << e << "\")" << endl;
     } else {
       *opts[options::err] << "CVC4 Error:" << endl << e << endl;

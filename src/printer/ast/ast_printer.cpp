@@ -141,6 +141,7 @@ void AstPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<ResetCommand>(out, c) ||
+     tryToStream<ResetAssertionsCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
      tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
@@ -227,6 +228,10 @@ static void toStream(std::ostream& out, const QueryCommand* c) throw() {
 
 static void toStream(std::ostream& out, const ResetCommand* c) throw() {
   out << "Reset()";
+}
+
+static void toStream(std::ostream& out, const ResetAssertionsCommand* c) throw() {
+  out << "ResetAssertions()";
 }
 
 static void toStream(std::ostream& out, const QuitCommand* c) throw() {

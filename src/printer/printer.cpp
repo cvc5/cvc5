@@ -40,7 +40,10 @@ Printer* Printer::makePrinter(OutputLanguage lang) throw() {
   case LANG_SMTLIB_V1: // TODO the printer
     return new printer::smt1::Smt1Printer();
 
-  case LANG_SMTLIB_V2:
+  case LANG_SMTLIB_V2_0:
+    return new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant);
+
+  case LANG_SMTLIB_V2_5:
     return new printer::smt2::Smt2Printer();
 
   case LANG_TPTP:

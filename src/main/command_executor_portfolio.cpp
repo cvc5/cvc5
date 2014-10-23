@@ -63,7 +63,7 @@ CommandExecutorPortfolio::CommandExecutorPortfolio
   d_stats.registerStat_(&d_statLastWinner);
   d_stats.registerStat_(&d_statWaitTime);
 
-  /* Duplication, Individualisation */
+  /* Duplication, individualization */
   d_exprMgrs.push_back(&d_exprMgr);
   for(unsigned i = 1; i < d_numThreads; ++i) {
     d_exprMgrs.push_back(new ExprManager(d_threadOptions[i]));
@@ -202,6 +202,7 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
             dynamic_cast<GetAssignmentCommand*>(cmd) != NULL ||
             dynamic_cast<GetModelCommand*>(cmd) != NULL ||
             dynamic_cast<GetProofCommand*>(cmd) != NULL ||
+            dynamic_cast<GetInstantiationsCommand*>(cmd) != NULL ||
             dynamic_cast<GetUnsatCoreCommand*>(cmd) != NULL ||
             dynamic_cast<GetAssertionsCommand*>(cmd) != NULL ||
             dynamic_cast<GetInfoCommand*>(cmd) != NULL ||

@@ -702,6 +702,11 @@ mainCommand[CVC4::Command*& cmd]
       PARSER_STATE->reset();
     }
 
+  | RESET_TOK ASSERTIONS_TOK
+    { cmd = new ResetAssertionsCommand();
+      PARSER_STATE->reset();
+    }
+
     // Datatypes can be mututally-recursive if they're in the same
     // definition block, separated by a comma.  So we parse everything
     // and then ask the ExprManager to resolve everything in one go.

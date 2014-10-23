@@ -25,7 +25,7 @@ option expandDefinitions expand-definitions bool :default false
  always expand symbol definitions in output
 common-option produceModels produce-models -m --produce-models bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/smt_engine.h"
  support the get-value and get-model commands
-option checkModels check-models --check-models bool :link --produce-models --interactive :link-smt produce-models :link-smt interactive-mode :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
+option checkModels check-models --check-models bool :link --produce-models --produce-assertions :link-smt produce-models :link-smt produce-assertions :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions
 option dumpModels --dump-models bool :default false :link --produce-models
  output models after every SAT/INVALID/UNKNOWN response
@@ -45,10 +45,10 @@ option dumpUnsatCores --dump-unsat-cores bool :default false :link --produce-uns
 option produceAssignments produce-assignments --produce-assignments bool :default false :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h"
  support the get-assignment command
 
-# This could go in src/main/options, but by SMT-LIBv2 spec, "interactive"
-# is a mode in which the assertion list must be kept.  So it belongs here.
-common-option interactive interactive-mode --interactive bool :predicate CVC4::smt::beforeSearch :predicate-include "smt/options_handlers.h" :read-write
- force interactive mode
+undocumented-option interactiveMode interactive-mode bool :predicate CVC4::smt::beforeSearch CVC4::smt::setProduceAssertions :predicate-include "smt/options_handlers.h" :read-write
+ deprecated name for produce-assertions
+common-option produceAssertions produce-assertions --produce-assertions bool :predicate CVC4::smt::beforeSearch CVC4::smt::setProduceAssertions :predicate-include "smt/options_handlers.h" :read-write
+ keep an assertions list (enables get-assertions command)
 
 option doITESimp --ite-simp bool :read-write
  turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)
@@ -93,7 +93,7 @@ common-option perCallMillisecondLimit  tlimit-per --tlimit-per=MS "unsigned long
  enable time limiting per query (give milliseconds)
 common-option cumulativeResourceLimit rlimit --rlimit=N "unsigned long"
  enable resource limiting (currently, roughly the number of SAT conflicts)
-common-option perCallResourceLimit rlimit-per --rlimit-per=N "unsigned long"
+common-option perCallResourceLimit reproducible-resource-limit --rlimit-per=N "unsigned long"
  enable resource limiting per query
 
 expert-option rewriteApplyToConst rewrite-apply-to-const --rewrite-apply-to-const bool :default false

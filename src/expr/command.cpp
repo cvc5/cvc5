@@ -385,6 +385,29 @@ std::string ResetCommand::getCommandName() const throw() {
   return "reset";
 }
 
+/* class ResetAssertionsCommand */
+
+void ResetAssertionsCommand::invoke(SmtEngine* smtEngine) throw() {
+  try {
+    smtEngine->resetAssertions();
+    d_commandStatus = CommandSuccess::instance();
+  } catch(exception& e) {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* ResetAssertionsCommand::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap) {
+  return new ResetAssertionsCommand();
+}
+
+Command* ResetAssertionsCommand::clone() const {
+  return new ResetAssertionsCommand();
+}
+
+std::string ResetAssertionsCommand::getCommandName() const throw() {
+  return "reset-assertions";
+}
+
 /* class QuitCommand */
 
 void QuitCommand::invoke(SmtEngine* smtEngine) throw() {

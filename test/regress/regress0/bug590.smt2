@@ -1,6 +1,7 @@
 (set-logic QF_ALL_SUPPORTED)
 (set-option :strings-exp true)
 (set-option :produce-models true)
+(set-info :smt-lib-version 2.0)
 (set-info :status sat)
 
 (declare-fun text () String)

@@ -23,6 +23,7 @@
 #include "parser/smt1/smt1.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
+#include "parser/smt2/smt2_input.h"
 
 #include <string>
 #include <sstream>
@@ -82,6 +83,10 @@ public:
 
   bool logicIsSet();
 
+  void reset();
+
+  void resetAssertions();
+
   /**
    * Sets the logic for the current benchmark. Declares any logic and
    * theory symbols.
@@ -94,6 +99,17 @@ public:
    * Get the logic.
    */
   const LogicInfo& getLogic() const { return d_logic; }
+
+  bool v2_0() const {
+    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_0;
+  }
+  bool v2_5() const {
+    return getInput()->getLanguage() == language::input::LANG_SMTLIB_V2_5;
+  }
+
+  void setLanguage(InputLanguage lang) {
+    ((Smt2Input*) getInput())->setLanguage(lang);
+  }
 
   void setInfo(const std::string& flag, const SExpr& sexpr);
 

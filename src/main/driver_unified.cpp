@@ -35,9 +35,11 @@
 #include "util/configuration.h"
 #include "options/options.h"
 #include "main/command_executor.h"
-# ifdef PORTFOLIO_BUILD
-#    include "main/command_executor_portfolio.h"
-# endif
+
+#ifdef PORTFOLIO_BUILD
+#  include "main/command_executor_portfolio.h"
+#endif
+
 #include "main/options.h"
 #include "smt/options.h"
 #include "util/output.h"
@@ -185,7 +187,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     } else {
       unsigned len = strlen(filename);
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
-        opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2);
+        opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V2_5);
       } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
         opts.set(options::inputLanguage, language::input::LANG_SMTLIB_V1);
       } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
@@ -373,6 +375,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           }
           status = pExecutor->doCommand(cmd);
           needReset = true;
+        } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
+          pExecutor->doCommand(cmd);
+          allCommands.clear();
+          allCommands.push_back(vector<Command*>());
         } else {
           // We shouldn't copy certain commands, because they can cause
           // an error on replay since there's no associated sat/unsat check
@@ -382,7 +388,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
              dynamic_cast<GetValueCommand*>(cmd) == NULL &&
              dynamic_cast<GetModelCommand*>(cmd) == NULL &&
              dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL) {
+             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
+             dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
+             dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
+             dynamic_cast<GetOptionCommand*>(cmd) == NULL) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }

@@ -7,6 +7,12 @@ Changes since 1.4
 * Simplification mode "incremental" no longer supported.
 * Support for array constants in constraints.
 * Syntax for array models have changed in some language front-ends.
+* New input/output languages supported: "smt2.0" and "smtlib2.0" to
+  force SMT-LIB v2.0; "smt2.5" and "smtlib2.5" to force SMT-LIB v2.5.
+  "smt", "smtlib", "smt2", and "smtlib2" all refer to the current standard
+  version 2.0.  If an :smt-lib-version is set in the input, that overrides
+  the command line.
+* Abstract values in SMT-LIB models are now ascribed types (with "as").
 * In SMT-LIB model output, real-sorted but integer-valued constants are
   now printed in accordance with the standard (e.g. "1.0").
 

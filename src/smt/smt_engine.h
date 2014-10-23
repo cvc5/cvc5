@@ -190,6 +190,11 @@ class CVC4_PUBLIC SmtEngine {
   LogicInfo d_logic;
 
   /**
+   * Keep a copy of the original option settings (for reset()).
+   */
+  Options d_originalOptions;
+
+  /**
    * Number of internal pops that have been deferred.
    */
   unsigned d_pendingPops;

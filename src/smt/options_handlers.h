@@ -299,6 +299,11 @@ inline void beforeSearch(std::string option, bool value, SmtEngine* smt) throw(M
   }
 }
 
+inline void setProduceAssertions(std::string option, bool value, SmtEngine* smt) throw() {
+  options::produceAssertions.set(value);
+  options::interactiveMode.set(value);
+}
+
 // ensure we are a proof-enabled build of CVC4
 inline void proofEnabledBuild(std::string option, bool value, SmtEngine* smt) throw(OptionException) {
 #ifndef CVC4_PROOF

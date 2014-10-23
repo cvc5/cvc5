@@ -603,7 +603,9 @@ public:
       val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
       d_abstractValueMap.addSubstitution(val, n);
     }
-    return val;
+    // We are supposed to ascribe types to all abstract values that go out.
+    Node retval = d_smt.d_nodeManager->mkNode(kind::APPLY_TYPE_ASCRIPTION, d_smt.d_nodeManager->mkConst(AscriptionType(n.getType().toType())), val);
+    return retval;
   }
 
   std::hash_map<Node, Node, NodeHashFunction> rewriteApplyToConstCache;
@@ -675,6 +677,7 @@ SmtEngine::SmtEngine(ExprManager* em) throw() :
   d_modelCommands(NULL),
   d_dumpCommands(),
   d_logic(),
+  d_originalOptions(em->getOptions()),
   d_pendingPops(0),
   d_fullyInited(false),
   d_problemExtended(false),
@@ -737,7 +740,7 @@ void SmtEngine::finishInit() {
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
   // with rc == 0.
-  if(options::interactive() ||
+  if(options::produceAssertions() ||
      options::incrementalSolving()) {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
@@ -961,9 +964,9 @@ void SmtEngine::setDefaults() {
   }
 
   if(options::checkModels()) {
-    if(! options::interactive()) {
-      Notice() << "SmtEngine: turning on interactive-mode to support check-models" << endl;
-      setOption("interactive-mode", SExpr("true"));
+    if(! options::produceAssertions()) {
+      Notice() << "SmtEngine: turning on produce-assertions to support check-models" << endl;
+      setOption("produce-assertions", SExpr("true"));
     }
   }
 
@@ -1450,8 +1453,23 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   } else if(key == "smt-lib-version") {
     if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
         (value.isRational() && value.getRationalValue() == Rational(2)) ||
-        (value.getValue() == "2") ) {
+        value.getValue() == "2" ||
+        value.getValue() == "2.0" ) {
       // supported SMT-LIB version
+      if(!options::outputLanguage.wasSetByUser() &&
+         options::outputLanguage() == language::output::LANG_SMTLIB_V2_5) {
+        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_0);
+        *options::out() << Expr::setlanguage(language::output::LANG_SMTLIB_V2_0);
+      }
+      return;
+    } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
+               value.getValue() == "2.5" ) {
+      // supported SMT-LIB version
+      if(!options::outputLanguage.wasSetByUser() &&
+         options::outputLanguage() == language::output::LANG_SMTLIB_V2_0) {
+        options::outputLanguage.set(language::output::LANG_SMTLIB_V2_5);
+        *options::out() << Expr::setlanguage(language::output::LANG_SMTLIB_V2_5);
+      }
       return;
     }
     Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
@@ -1530,6 +1548,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       throw ModalException("Can't get-info :reason-unknown when the "
                            "last result wasn't unknown!");
     }
+  } else if(key == "assertion-stack-levels") {
+    return SExpr(d_userLevels.size());
   } else if(key == "all-options") {
     // get the options, like all-statistics
     return Options::current().getOptions();
@@ -3660,6 +3680,7 @@ Expr SmtEngine::getValue(const Expr& ex) const throw(ModalException, TypeCheckin
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
+    Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
   return resultNode.toExpr();
@@ -3824,8 +3845,8 @@ Model* SmtEngine::getModel() throw(ModalException) {
 }
 
 void SmtEngine::checkModel(bool hardFailure) {
-  // --check-model implies --interactive, which enables the assertion list,
-  // so we should be ok.
+  // --check-model implies --produce-assertions, which enables the
+  // assertion list, so we should be ok.
   Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
@@ -4070,9 +4091,9 @@ vector<Expr> SmtEngine::getAssertions() throw(ModalException) {
     Dump("benchmark") << GetAssertionsCommand();
   }
   Trace("smt") << "SMT getAssertions()" << endl;
-  if(!options::interactive()) {
+  if(!options::produceAssertions()) {
     const char* msg =
-      "Cannot query the current assertion list when not in interactive mode.";
+      "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
   Assert(d_assertionList != NULL);
@@ -4196,12 +4217,19 @@ void SmtEngine::reset() throw() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << ResetCommand();
   }
+  Options opts = d_originalOptions;
   this->~SmtEngine();
+  NodeManager::fromExprManager(em)->getOptions() = opts;
   new(this) SmtEngine(em);
 }
 
 void SmtEngine::resetAssertions() throw() {
   SmtScope smts(this);
+
+  Trace("smt") << "SMT resetAssertions()" << endl;
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << ResetAssertionsCommand();
+  }
 
   while(!d_userLevels.empty()) {
     pop();

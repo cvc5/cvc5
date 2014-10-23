@@ -14,6 +14,9 @@ option memoryMap --mmap bool
 option semanticChecks /--no-checking bool :default DO_SEMANTIC_CHECKS_BY_DEFAULT :link /--no-type-checking
  disable ALL semantic checks, including type checks
 
+option globalDeclarations global-declarations bool :default false
+ force all declarations and definitions to be global
+
 # this is to support security in the online version, and in other similar contexts
 # (--no-include-file disables filesystem access in TPTP and SMT2 parsers)
 # the name --no-include-file is legacy: it also now limits any filesystem access

@@ -233,6 +233,24 @@ bool Smt2::logicIsSet() {
   return d_logicSet;
 }
 
+void Smt2::reset() {
+  d_logicSet = false;
+  d_logic = LogicInfo();
+  operatorKindMap.clear();
+  d_lastNamedTerm = std::pair<Expr, std::string>();
+  d_unsatCoreNames = std::stack< std::map<Expr, std::string> >();
+  this->Parser::reset();
+
+  d_unsatCoreNames.push(std::map<Expr, std::string>());
+  if( !strictModeEnabled() ) {
+    addTheory(Smt2::THEORY_CORE);
+  }
+}
+
+void Smt2::resetAssertions() {
+  this->Parser::reset();
+}
+
 void Smt2::setLogic(const std::string& name) {
   d_logicSet = true;
   if(logicIsForced()) {

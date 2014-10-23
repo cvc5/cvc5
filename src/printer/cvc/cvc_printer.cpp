@@ -860,6 +860,7 @@ void CvcPrinter::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
      tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
+     tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
      tryToStream<QuitCommand>(out, c, d_cvc3Mode) ||
      tryToStream<DeclarationSequence>(out, c, d_cvc3Mode) ||
      tryToStream<CommandSequence>(out, c, d_cvc3Mode) ||
@@ -1049,6 +1050,10 @@ static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode) th
 
 static void toStream(std::ostream& out, const ResetCommand* c, bool cvc3Mode) throw() {
   out << "RESET;";
+}
+
+static void toStream(std::ostream& out, const ResetAssertionsCommand* c, bool cvc3Mode) throw() {
+  out << "RESET ASSERTIONS;";
 }
 
 static void toStream(std::ostream& out, const QuitCommand* c, bool cvc3Mode) throw() {

@@ -41,6 +41,8 @@ option fallbackSequential  --fallback-sequential bool :default false
 option incrementalParallel --incremental-parallel bool :default false :link --incremental
  Use parallel solver even in incremental mode (may print 'unknown's at times)
 
+option interactive : --interactive bool :read-write
+ force interactive/non-interactive mode
 undocumented-option interactivePrompt /--no-interactive-prompt bool :default true
  turn off interactive prompting while in interactive mode
 

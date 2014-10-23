@@ -22,7 +22,8 @@ namespace language {
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
   case output::LANG_SMTLIB_V1:
-  case output::LANG_SMTLIB_V2:
+  case output::LANG_SMTLIB_V2_0:
+  case output::LANG_SMTLIB_V2_5:
   case output::LANG_TPTP:
   case output::LANG_CVC4:
   case output::LANG_Z3STR:
@@ -41,7 +42,8 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
   case input::LANG_SMTLIB_V1:
-  case input::LANG_SMTLIB_V2:
+  case input::LANG_SMTLIB_V2_0:
+  case input::LANG_SMTLIB_V2_5:
   case input::LANG_TPTP:
   case input::LANG_CVC4:
   case input::LANG_Z3STR:
@@ -75,8 +77,12 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_SMTLIB_V1;
   } else if(language == "smtlib" || language == "smt" ||
             language == "smtlib2" || language == "smt2" ||
-            language == "LANG_SMTLIB_V2") {
-    return output::LANG_SMTLIB_V2;
+            language == "smtlib2.0" || language == "smt2.0" ||
+            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+    return output::LANG_SMTLIB_V2_0;
+  } else if(language == "smtlib2.5" || language == "smt2.5" ||
+            language == "LANG_SMTLIB_V2_5") {
+    return output::LANG_SMTLIB_V2_5;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return output::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||
@@ -101,8 +107,12 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_SMTLIB_V1;
   } else if(language == "smtlib" || language == "smt" ||
             language == "smtlib2" || language == "smt2" ||
-            language == "LANG_SMTLIB_V2") {
-    return input::LANG_SMTLIB_V2;
+            language == "smtlib2.0" || language == "smt2.0" ||
+            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+    return input::LANG_SMTLIB_V2_0;
+  } else if(language == "smtlib2.5" || language == "smt2.5" ||
+            language == "LANG_SMTLIB_V2_5") {
+    return input::LANG_SMTLIB_V2_5;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||

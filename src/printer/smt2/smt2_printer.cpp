@@ -125,7 +125,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
     if(types) {
       // print the whole type, but not *its* type
       out << ":";
-      n.getType().toStream(out, language::output::LANG_SMTLIB_V2);
+      n.getType().toStream(out, language::output::LANG_SMTLIB_V2_5);
     }
 
     return;
@@ -189,6 +189,27 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
           out << "(/ " << r.getNumerator() << ' ' << r.getDenominator() << ')';
         }
       }
+      break;
+    }
+
+    case kind::CONST_STRING: {
+      const String& s = n.getConst<String>();
+      out << '"';
+      for(size_t i = 0; i < s.size(); ++i) {
+        char c = String::convertUnsignedIntToChar(s[i]);
+        if(c == '"') {
+          if(d_variant == z3str_variant || d_variant == smt2_0_variant) {
+            out << "\\\"";
+          } else {
+            out << "\"\"";
+          }
+        } else if(c == '\\' && (d_variant == z3str_variant || d_variant == smt2_0_variant)) {
+          out << "\\\\";
+        } else {
+          out << c;
+        }
+      }
+      out << '"';
       break;
     }
 
@@ -483,7 +504,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
       out << (*i).getType();
       // The following code do stange things
       // (*i).getType().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-      //                         false, language::output::LANG_SMTLIB_V2);
+      //                         false, language::output::LANG_SMTLIB_V2_5);
       out << ')';
       if(++i != iend) {
         out << ' ';
@@ -699,6 +720,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<CheckSatCommand>(out, c) ||
      tryToStream<QueryCommand>(out, c) ||
      tryToStream<ResetCommand>(out, c) ||
+     tryToStream<ResetAssertionsCommand>(out, c) ||
      tryToStream<QuitCommand>(out, c) ||
      tryToStream<DeclarationSequence>(out, c) ||
      tryToStream<CommandSequence>(out, c) ||
@@ -714,16 +736,16 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
      tryToStream<GetAssertionsCommand>(out, c) ||
      tryToStream<GetProofCommand>(out, c) ||
      tryToStream<GetUnsatCoreCommand>(out, c) ||
-     tryToStream<SetBenchmarkStatusCommand>(out, c) ||
+     tryToStream<SetBenchmarkStatusCommand>(out, c, d_variant) ||
      tryToStream<SetBenchmarkLogicCommand>(out, c, d_variant) ||
-     tryToStream<SetInfoCommand>(out, c) ||
+     tryToStream<SetInfoCommand>(out, c, d_variant) ||
      tryToStream<GetInfoCommand>(out, c) ||
      tryToStream<SetOptionCommand>(out, c) ||
      tryToStream<GetOptionCommand>(out, c) ||
      tryToStream<DatatypeDeclarationCommand>(out, c) ||
-     tryToStream<CommentCommand>(out, c) ||
+     tryToStream<CommentCommand>(out, c, d_variant) ||
      tryToStream<EmptyCommand>(out, c) ||
-     tryToStream<EchoCommand>(out, c)) {
+     tryToStream<EchoCommand>(out, c, d_variant)) {
     return;
   }
 
@@ -733,7 +755,7 @@ void Smt2Printer::toStream(std::ostream& out, const Command* c,
 }/* Smt2Printer::toStream(Command*) */
 
 static inline void toStream(std::ostream& out, const SExpr& sexpr) throw() {
-  Printer::getPrinter(language::output::LANG_SMTLIB_V2)->toStream(out, sexpr);
+  Printer::getPrinter(language::output::LANG_SMTLIB_V2_5)->toStream(out, sexpr);
 }
 
 // SMT-LIB quoting for symbols
@@ -753,7 +775,7 @@ static std::string quoteSymbol(std::string s) {
 
 static std::string quoteSymbol(TNode n) {
   std::stringstream ss;
-  ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2);
+  ss << Expr::setlanguage(language::output::LANG_SMTLIB_V2_5);
   return quoteSymbol(ss.str());
 }
 
@@ -766,13 +788,13 @@ void Smt2Printer::toStream(std::ostream& out, const SExpr& sexpr) const throw() 
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s) throw();
+static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v) throw();
 
 void Smt2Printer::toStream(std::ostream& out, const CommandStatus* s) const throw() {
 
-  if(tryToStream<CommandSuccess>(out, s) ||
-     tryToStream<CommandFailure>(out, s) ||
-     tryToStream<CommandUnsupported>(out, s)) {
+  if(tryToStream<CommandSuccess>(out, s, d_variant) ||
+     tryToStream<CommandFailure>(out, s, d_variant) ||
+     tryToStream<CommandUnsupported>(out, s, d_variant)) {
     return;
   }
 
@@ -944,6 +966,10 @@ static void toStream(std::ostream& out, const ResetCommand* c) throw() {
   out << "(reset)";
 }
 
+static void toStream(std::ostream& out, const ResetAssertionsCommand* c) throw() {
+  out << "(reset-assertions)";
+}
+
 static void toStream(std::ostream& out, const QuitCommand* c) throw() {
   out << "(exit)";
 }
@@ -1065,8 +1091,12 @@ static void toStream(std::ostream& out, const GetUnsatCoreCommand* c) throw() {
   out << "(get-unsat-core)";
 }
 
-static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c) throw() {
-  out << "(set-info :status " << c->getStatus() << ")";
+static void toStream(std::ostream& out, const SetBenchmarkStatusCommand* c, Variant v) throw() {
+  if(v == z3str_variant || v == smt2_0_variant) {
+    out << "(set-info :status " << c->getStatus() << ")";
+  } else {
+    out << "(meta-info :status " << c->getStatus() << ")";
+  }
 }
 
 static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, Variant v) throw() {
@@ -1078,8 +1108,12 @@ static void toStream(std::ostream& out, const SetBenchmarkLogicCommand* c, Varia
   }
 }
 
-static void toStream(std::ostream& out, const SetInfoCommand* c) throw() {
-  out << "(set-info :" << c->getFlag() << " ";
+static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v) throw() {
+  if(v == z3str_variant || v == smt2_0_variant) {
+    out << "(set-info :" << c->getFlag() << " ";
+  } else {
+    out << "(meta-info :" << c->getFlag() << " ";
+  }
   toStream(out, c->getSExpr());
   out << ")";
 }
@@ -1126,11 +1160,11 @@ static void toStream(std::ostream& out, const DatatypeDeclarationCommand* c) thr
   out << "))";
 }
 
-static void toStream(std::ostream& out, const CommentCommand* c) throw() {
+static void toStream(std::ostream& out, const CommentCommand* c, Variant v) throw() {
   string s = c->getComment();
   size_t pos = 0;
   while((pos = s.find_first_of('"', pos)) != string::npos) {
-    s.replace(pos, 1, "\\\"");
+    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(set-info :notes \"" << s << "\")";
@@ -1139,8 +1173,15 @@ static void toStream(std::ostream& out, const CommentCommand* c) throw() {
 static void toStream(std::ostream& out, const EmptyCommand* c) throw() {
 }
 
-static void toStream(std::ostream& out, const EchoCommand* c) throw() {
-  out << "(echo \"" << c->getOutput() << "\")";
+static void toStream(std::ostream& out, const EchoCommand* c, Variant v) throw() {
+  std::string s = c->getOutput();
+  // escape all double-quotes
+  size_t pos = 0;
+  while((pos = s.find('"', pos)) != string::npos) {
+    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    pos += 2;
+  }
+  out << "(echo \"" << s << "\")";
 }
 
 template <class T>
@@ -1161,13 +1202,13 @@ static bool tryToStream(std::ostream& out, const Command* c, Variant v) throw() 
   return false;
 }
 
-static void toStream(std::ostream& out, const CommandSuccess* s) throw() {
+static void toStream(std::ostream& out, const CommandSuccess* s, Variant v) throw() {
   if(Command::printsuccess::getPrintSuccess(out)) {
     out << "success" << endl;
   }
 }
 
-static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {
+static void toStream(std::ostream& out, const CommandUnsupported* s, Variant v) throw() {
 #ifdef CVC4_COMPETITION_MODE
   // if in competition mode, lie and say we're ok
   // (we have nothing to lose by saying success, and everything to lose
@@ -1178,21 +1219,21 @@ static void toStream(std::ostream& out, const CommandUnsupported* s) throw() {
 #endif /* CVC4_COMPETITION_MODE */
 }
 
-static void toStream(std::ostream& out, const CommandFailure* s) throw() {
+static void toStream(std::ostream& out, const CommandFailure* s, Variant v) throw() {
   string message = s->getMessage();
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
-    message = message.replace(pos, 1, "\\\"");
+    message.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
 }
 
 template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s) throw() {
+static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v) throw() {
   if(typeid(*s) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(s));
+    toStream(out, dynamic_cast<const T*>(s), v);
     return true;
   }
   return false;

@@ -985,7 +985,7 @@ inline std::ostream& operator<<(std::ostream& out, ExprDag d) {
  * Use like this:
  *
  *   // let out be an ostream, e an Expr
- *   out << Expr::setlanguage(LANG_SMTLIB_V2) << e << endl;
+ *   out << Expr::setlanguage(LANG_SMTLIB_V2_5) << e << endl;
  *
  * The setting stays permanently (until set again) with the stream.
  */

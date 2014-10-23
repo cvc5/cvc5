@@ -23,6 +23,7 @@ TESTS =	\
   bug001.smt2 \
   cardinality.smt2 \
   escchar.smt2 \
+  escchar_25.smt2 \
   str001.smt2 \
   str002.smt2 \
   str003.smt2 \
