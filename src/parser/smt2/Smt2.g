@@ -133,7 +133,7 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
-static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
+static bool isClosed(const Expr& e, std::set<Expr>& free, std::hash_set<Expr, ExprHashFunction>& closedCache) {
   if(closedCache.find(e) != closedCache.end()) {
     return true;
   }
@@ -163,7 +163,7 @@ static bool isClosed(Expr e, std::set<Expr>& free, std::hash_set<Expr, ExprHashF
   }
 }
 
-static inline bool isClosed(Expr e, std::set<Expr>& free) {
+static inline bool isClosed(const Expr& e, std::set<Expr>& free) {
   std::hash_set<Expr, ExprHashFunction> cache;
   return isClosed(e, free, cache);
 }
@@ -224,7 +224,6 @@ command returns [CVC4::Command* cmd = NULL]
   std::vector<Expr> terms;
   std::vector<Type> sorts;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
-  SExpr sexpr;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -240,16 +239,7 @@ command returns [CVC4::Command* cmd = NULL]
     GET_INFO_TOK KEYWORD
     { cmd = new GetInfoCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
   | /* set-option */
-    SET_OPTION_TOK keyword[name] symbolicExpr[sexpr]
-    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
-      cmd = new SetOptionCommand(name.c_str() + 1, sexpr);
-      // Ugly that this changes the state of the parser; but
-      // global-declarations affects parsing, so we can't hold off
-      // on this until some SmtEngine eventually (if ever) executes it.
-      if(name == ":global-declarations") {
-        PARSER_STATE->setGlobalDeclarations(sexpr.getValue() == "true");
-      }
-    }
+    SET_OPTION_TOK setOptionInternal[cmd]
   | /* get-option */
     GET_OPTION_TOK KEYWORD
     { cmd = new GetOptionCommand(AntlrInput::tokenText($KEYWORD).c_str() + 1); }
@@ -498,6 +488,23 @@ metaInfoInternal[CVC4::Command*& cmd]
       }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd = new SetInfoCommand(name.c_str() + 1, sexpr);
+    }
+  ;
+
+setOptionInternal[CVC4::Command*& cmd]
+@init {
+  std::string name;
+  SExpr sexpr;
+}
+  : keyword[name] symbolicExpr[sexpr]
+    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
+      cmd = new SetOptionCommand(name.c_str() + 1, sexpr);
+      // Ugly that this changes the state of the parser; but
+      // global-declarations affects parsing, so we can't hold off
+      // on this until some SmtEngine eventually (if ever) executes it.
+      if(name == ":global-declarations") {
+        PARSER_STATE->setGlobalDeclarations(sexpr.getValue() == "true");
+      }
     }
   ;
 
@@ -855,8 +862,7 @@ rewriterulesCommand[CVC4::Command*& cmd]
   ;
 
 rewritePropaKind[CVC4::Kind& kind]
-  :
-  REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
+  : REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
   | PROPAGATION_RULE_TOK  { $kind = CVC4::kind::RR_DEDUCTION; }
   ;
 
@@ -942,7 +948,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Expr op;
   std::string name;
   std::vector<Expr> args;
-  SExpr sexpr;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
   Expr f, f2;
   std::string attr;
