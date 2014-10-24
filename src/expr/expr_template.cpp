@@ -89,7 +89,7 @@ Expr TypeCheckingException::getExpression() const throw() {
 }
 
 Expr::Expr() :
-  d_node(new Node),
+  d_node(NULL),
   d_exprManager(NULL) {
 }
 
@@ -99,13 +99,15 @@ Expr::Expr(ExprManager* em, Node* node) :
 }
 
 Expr::Expr(const Expr& e) :
-  d_node(new Node(*e.d_node)),
+  d_node(e.isNull() ? NULL : new Node(*e.d_node)),
   d_exprManager(e.d_exprManager) {
 }
 
 Expr::~Expr() {
-  ExprManagerScope ems(*this);
-  delete d_node;
+  if(d_node != NULL) {
+    ExprManagerScope ems(*this);
+    delete d_node;
+  }
 }
 
 ExprManager* Expr::getExprManager() const {
@@ -231,14 +233,22 @@ Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variable
   Assert(d_exprManager != exprManager,
          "No sense in cloning an Expr in the same ExprManager");
   ExprManagerScope ems(*this);
-  return Expr(exprManager, new Node(expr::ExportPrivate(d_exprManager, exprManager, variableMap, flags).exportInternal(*d_node)));
+  return Expr(exprManager, d_node ? new Node(expr::ExportPrivate(d_exprManager, exprManager, variableMap, flags).exportInternal(*d_node)) : NULL);
 }
 
 Expr& Expr::operator=(const Expr& e) {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-
+  if(e.isNull()) {
+    if(d_node) {
+      delete d_node;
+    }
+    d_node = NULL;
+    d_exprManager = e.d_exprManager;
+    return *this;
+  }
   if(this != &e) {
+    if(!d_node) {
+      d_node = new Node;
+    }
     if(d_exprManager == e.d_exprManager) {
       ExprManagerScope ems(*this);
       *d_node = *e.d_node;
@@ -264,9 +274,7 @@ bool Expr::operator==(const Expr& e) const {
     return false;
   }
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
-  return *d_node == *e.d_node;
+  return d_node && e.d_node ? *d_node == *e.d_node : d_node == e.d_node;
 }
 
 bool Expr::operator!=(const Expr& e) const {
@@ -274,41 +282,34 @@ bool Expr::operator!=(const Expr& e) const {
 }
 
 bool Expr::operator<(const Expr& e) const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
   if(isNull() && !e.isNull()) {
     return true;
   }
   ExprManagerScope ems(*this);
-  return *d_node < *e.d_node;
+  return d_node && e.d_node ? *d_node < *e.d_node : !d_node && e.d_node;
 }
 
 bool Expr::operator>(const Expr& e) const {
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  Assert(e.d_node != NULL, "Unexpected NULL expression pointer!");
   if(isNull() && !e.isNull()) {
     return true;
   }
   ExprManagerScope ems(*this);
-  return *d_node > *e.d_node;
+  return d_node && e.d_node ? *d_node > *e.d_node : d_node && !e.d_node;
 }
 
 unsigned long Expr::getId() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getId();
+  return d_node ? d_node->getId() : 0;
 }
 
 Kind Expr::getKind() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getKind();
+  return d_node ? d_node->getKind() : kind::NULL_EXPR;
 }
 
 size_t Expr::getNumChildren() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getNumChildren();
+  return d_node ? d_node->getNumChildren() : 0;
 }
 
 Expr Expr::operator[](unsigned i) const {
@@ -320,14 +321,13 @@ Expr Expr::operator[](unsigned i) const {
 
 bool Expr::hasOperator() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->hasOperator();
+  return d_node != NULL && d_node->hasOperator();
 }
 
 Expr Expr::getOperator() const {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  CheckArgument(d_node->hasOperator(), *this,
+  CheckArgument(d_node != NULL && d_node->hasOperator(), *this,
                 "Expr::getOperator() called on an Expr with no operator");
   return Expr(d_exprManager, new Node(d_node->getOperator()));
 }
@@ -335,12 +335,13 @@ Expr Expr::getOperator() const {
 Type Expr::getType(bool check) const throw (TypeCheckingException) {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  CheckArgument(!d_node->isNull(), this, "Can't get type of null expression!");
+  CheckArgument(d_node != NULL && !d_node->isNull(), this, "Can't get type of null expression!");
   return d_exprManager->getType(*this, check);
 }
 
 Expr Expr::substitute(Expr e, Expr replacement) const {
   ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return Expr(d_exprManager, new Node(d_node->substitute(TNode(*e.d_node), TNode(*replacement.d_node))));
 }
 
@@ -365,6 +366,7 @@ static inline NodeIteratorAdaptor<Iterator> mkNodeIteratorAdaptor(Iterator i) {
 Expr Expr::substitute(const std::vector<Expr> exes,
                       const std::vector<Expr>& replacements) const {
   ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return Expr(d_exprManager,
               new Node(d_node->substitute(mkNodeIteratorAdaptor(exes.begin()),
                                           mkNodeIteratorAdaptor(exes.end()),
@@ -465,40 +467,40 @@ Expr::const_iterator Expr::end() const {
 
 std::string Expr::toString() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->toString();
+  return d_node ? d_node->toString() : std::string("null");
 }
 
 bool Expr::isNull() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->isNull();
+  return d_node == NULL || d_node->isNull();
 }
 
 bool Expr::isVariable() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getMetaKind() == kind::metakind::VARIABLE;
+  return d_node && d_node->getMetaKind() == kind::metakind::VARIABLE;
 }
 
 bool Expr::isConst() const {
   ExprManagerScope ems(*this);
-  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->isConst();
+  return d_node && d_node->isConst();
 }
 
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
                     OutputLanguage language) const {
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types, dag, language);
+  if(!d_node) {
+    Node::null().toStream(out, depth, types, dag, language);
+  } else {
+    d_node->toStream(out, depth, types, dag, language);
+  }
 }
 
 Node Expr::getNode() const throw() {
-  return *d_node;
+  return d_node ? *d_node : Node::null();
 }
 
 TNode Expr::getTNode() const throw() {
-  return *d_node;
+  return d_node ? *d_node : Node::null();
 }
 
 Expr Expr::notExpr() const {
