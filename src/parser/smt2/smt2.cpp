@@ -30,7 +30,8 @@ namespace parser {
 
 Smt2::Smt2(ExprManager* exprManager, Input* input, bool strictMode, bool parseOnly) :
   Parser(exprManager,input,strictMode,parseOnly),
-  d_logicSet(false) {
+  d_logicSet(false),
+  d_nextSygusFun(0) {
   d_unsatCoreNames.push(std::map<Expr, std::string>());
   if( !strictModeEnabled() ) {
     addTheory(Smt2::THEORY_CORE);
@@ -116,7 +117,7 @@ void Smt2::addFloatingPointOperators() {
   Parser::addOperator(kind::FLOATINGPOINT_GT);
   Parser::addOperator(kind::FLOATINGPOINT_ISN);
   Parser::addOperator(kind::FLOATINGPOINT_ISSN);
-  Parser::addOperator(kind::FLOATINGPOINT_ISZ);  
+  Parser::addOperator(kind::FLOATINGPOINT_ISZ);
   Parser::addOperator(kind::FLOATINGPOINT_ISINF);
   Parser::addOperator(kind::FLOATINGPOINT_ISNAN);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
@@ -297,7 +298,23 @@ void Smt2::resetAssertions() {
   this->Parser::reset();
 }
 
-void Smt2::setLogic(const std::string& name) {
+void Smt2::setLogic(std::string name) {
+  if(sygus()) {
+    if(name == "Arrays") {
+      name = "AUF";
+    } else if(name == "Reals") {
+      name = "UFLRA";
+    } else if(name == "LIA") {
+      name = "UFLIA";
+    } else if(name == "BV") {
+      name = "UFBV";
+    } else {
+      std::stringstream ss;
+      ss << "Unknown SyGuS background logic `" << name << "'";
+      parseError(ss.str());
+    }
+  }
+
   d_logicSet = true;
   if(logicIsForced()) {
     d_logic = getForcedLogic();
@@ -364,15 +381,19 @@ void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
 
 void Smt2::checkThatLogicIsSet() {
   if( ! logicIsSet() ) {
-    if( strictModeEnabled() ) {
+    if(strictModeEnabled()) {
       parseError("set-logic must appear before this point.");
     } else {
-      warning("No set-logic command was given before this point.");
-      warning("CVC4 will assume the non-standard ALL_SUPPORTED logic.");
-      warning("Consider setting a stricter logic for (likely) better performance.");
-      warning("To suppress this warning in the future use (set-logic ALL_SUPPORTED).");
+      if(sygus()) {
+        setLogic("LIA");
+      } else {
+        warning("No set-logic command was given before this point.");
+        warning("CVC4 will assume the non-standard ALL_SUPPORTED logic.");
+        warning("Consider setting a stricter logic for (likely) better performance.");
+        warning("To suppress this warning in the future use (set-logic ALL_SUPPORTED).");
 
-      setLogic("ALL_SUPPORTED");
+        setLogic("ALL_SUPPORTED");
+      }
 
       Command* c = new SetBenchmarkLogicCommand("ALL_SUPPORTED");
       c->setMuted(true);

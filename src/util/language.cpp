@@ -113,6 +113,8 @@ InputLanguage toInputLanguage(std::string language) {
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return input::LANG_SMTLIB_V2_5;
+  } else if(language == "sygus" || language == "LANG_SYGUS") {
+    return input::LANG_SYGUS;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
   } else if(language == "z3str" || language == "z3-str" ||

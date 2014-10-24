@@ -265,6 +265,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
     smt2.0 | smtlib2 | smtlib2.0 SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   tptp                           TPTP format (cnf and fof)\n\
+  sygus                          SyGuS format\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
@@ -274,8 +275,8 @@ Languages currently supported as arguments to the --output-lang option:\n\
   smt | smtlib | smt2 |\n\
     smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
-  z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   tptp                           TPTP format\n\
+  z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   ast                            internal format (simple syntax trees)\n\
 ";
 

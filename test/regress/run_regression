@@ -179,8 +179,29 @@ elif expr "$benchmark" : '.*\.p$' &>/dev/null; then
   if grep -q '^% COMMAND-LINE: ' "$benchmark"; then
     command_line=`grep '^% COMMAND-LINE: ' "$benchmark" | sed 's,^% COMMAND-LINE: ,,'`
   fi
+elif expr "$benchmark" : '.*\.sy$' &>/dev/null; then
+  lang=sygus
+  if test -e "$benchmark.expect"; then
+    expected_output=`grep '^% EXPECT: ' "$benchmark.expect" | sed 's,^% EXPECT: ,,'`
+    expected_error=`grep '^% EXPECT-ERROR: ' "$benchmark.expect" | sed 's,^% EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^% EXIT: ' "$benchmark.expect" | perl -pe 's,^% EXIT: ,,;s,\r,,'`
+    command_line=`grep '^% COMMAND-LINE: ' "$benchmark.expect" | sed 's,^% COMMAND-LINE: ,,'`
+    if [ -z "$expected_exit_status" ]; then
+      expected_exit_status=0
+    fi
+  elif grep '^; \(EXPECT\|EXPECT-ERROR\|EXIT\|COMMAND-LINE\): ' "$benchmark" "$benchmark" &>/dev/null; then
+    expected_output=`grep '^; EXPECT: ' "$benchmark" | sed 's,^; EXPECT: ,,'`
+    expected_error=`grep '^; EXPECT-ERROR: ' "$benchmark" | sed 's,^; EXPECT-ERROR: ,,'`
+    expected_exit_status=`grep -m 1 '^; EXIT: ' "$benchmark" | perl -pe 's,^; EXIT: ,,;s,\r,,'`
+    command_line=`grep '^; COMMAND-LINE: ' "$benchmark" | sed 's,^; COMMAND-LINE: ,,'`
+    if [ -z "$expected_exit_status" ]; then
+      expected_exit_status=0
+    fi
+  else
+    error "cannot determine expected output of \`$benchmark'"
+  fi
 else
-  error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2 or *.p"
+  error "benchmark \`$benchmark' must be *.cvc or *.smt or *.smt2 or *.p or *.sy"
 fi
 
 command_line="${command_line:+$command_line }--lang=$lang"

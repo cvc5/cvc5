@@ -93,6 +93,9 @@ Parser* ParserBuilder::build()
   case language::input::LANG_SMTLIB_V2_5:
     parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
     break;
+  case language::input::LANG_SYGUS:
+    parser = new Smt2(d_exprManager, input, d_strictMode, d_parseOnly);
+    break;
   case language::input::LANG_TPTP:
     parser = new Tptp(d_exprManager, input, d_strictMode, d_parseOnly);
     break;

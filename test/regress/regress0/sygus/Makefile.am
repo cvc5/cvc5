@@ -18,13 +18,13 @@ MAKEFLAGS = -k
 # These are run for all build profiles.
 # If a test shouldn't be run in e.g. competition mode,
 # put it below in "TESTS +="
-TESTS =	\
-	declarefun-emptyset-uf.smt2 \
-	constraint.smt2 \
-	strings20.smt2 \
-	strings25.smt2
+TESTS =
 
-EXTRA_DIST = $(TESTS)
+# sygus tests currently taking too long for make regress
+EXTRA_DIST = $(TESTS) \
+	max.sl \
+	max.smt2 \
+	sygus-uf.sl
 
 #if CVC4_BUILD_PROFILE_COMPETITION
 #else

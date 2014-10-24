@@ -60,6 +60,8 @@ enum CVC4_PUBLIC Language {
 
   // START INPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE OUTPUT LANGUAGES
+  /** The SyGuS input language */
+  LANG_SYGUS,
 
   /** LANG_MAX is > any valid InputLanguage id */
   LANG_MAX
@@ -88,6 +90,9 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
     break;
   case LANG_Z3STR:
     out << "LANG_Z3STR";
+    break;
+  case LANG_SYGUS:
+    out << "LANG_SYGUS";
     break;
   default:
     out << "undefined_input_language";
