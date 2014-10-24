@@ -85,13 +85,13 @@ bool CegInstantiation::needsModel( Theory::Effort e ) {
 
 void CegInstantiation::check( Theory::Effort e, unsigned quant_e ) {
   if( quant_e==QuantifiersEngine::QEFFORT_MODEL ){
-    Trace("cegqi-engine") << "---Countexample Guided Instantiation Engine---" << std::endl;
+    Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
     Trace("cegqi-engine-debug") << std::endl;
     Trace("cegqi-engine-debug") << "Current conjecture status : active : " << d_conj->d_active << " feasible : " << !d_conj->d_infeasible << std::endl;
     if( d_conj->d_active && !d_conj->d_infeasible ){
       checkCegConjecture( d_conj );
     }
-    Trace("cegqi-engine") << "Finished Countexample Guided Instantiation engine." << std::endl;
+    Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
   }
 }
 
