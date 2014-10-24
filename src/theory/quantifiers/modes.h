@@ -103,6 +103,8 @@ typedef enum {
   USER_PAT_MODE_USE,
   /** default, if patterns are supplied for a quantifier, use only those */
   USER_PAT_MODE_TRUST,
+  /** resort to user patterns only when necessary */
+  USER_PAT_MODE_RESORT,
   /** ignore user patterns */
   USER_PAT_MODE_IGNORE,
 } UserPatMode;

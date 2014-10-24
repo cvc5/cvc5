@@ -36,6 +36,8 @@ class InstStrategyUserPatterns : public InstStrategy{
 private:
   /** explicitly provided patterns */
   std::map< Node, std::vector< inst::Trigger* > > d_user_gen;
+  /** waiting to be generated patterns */
+  std::map< Node, std::vector< std::vector< Node > > > d_user_gen_wait;
   /** counter for quantifiers */
   std::map< Node, int > d_counter;
   /** process functions */

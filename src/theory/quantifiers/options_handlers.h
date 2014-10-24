@@ -148,6 +148,9 @@ use \n\
 + Use both user-provided and auto-generated patterns when patterns\n\
   are provided for a quantified formula.\n\
 \n\
+resort \n\
++ Use user-provided patterns only after auto-generated patterns saturate.\n\
+\n\
 ignore \n\
 + Ignore user-provided patterns. \n\
 \n\
@@ -181,11 +184,11 @@ none \n\
 static const std::string cegqiFairModeHelp = "\
 Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --cegqi-fair:\n\
 \n\
-default \n\
-+ Default, enforce fairness using an uninterpreted function for datatypes size.\n\
+uf-dt-size \n\
++ Enforce fairness using an uninterpreted function for datatypes size.\n\
 \n\
-dt-size \n\
-+ Enforce fairness using size theory operator.\n\
+default | dt-size \n\
++ Default, enforce fairness using size theory operator.\n\
 \n\
 none \n\
 + Do not enforce fairness. \n\
@@ -326,6 +329,8 @@ inline UserPatMode stringToUserPatMode(std::string option, std::string optarg, S
     return USER_PAT_MODE_USE;
   } else if(optarg ==  "default" || optarg == "trust") {
     return USER_PAT_MODE_TRUST;
+  } else if(optarg == "resort") {
+    return USER_PAT_MODE_RESORT;
   } else if(optarg == "ignore") {
     return USER_PAT_MODE_IGNORE;
   } else if(optarg ==  "help") {
@@ -370,9 +375,9 @@ inline PrenexQuantMode stringToPrenexQuantMode(std::string option, std::string o
 }
 
 inline CegqiFairMode stringToCegqiFairMode(std::string option, std::string optarg, SmtEngine* smt) throw(OptionException) {
-  if(optarg == "default" || optarg == "uf-dt-size" ) {
+  if(optarg == "uf-dt-size" ) {
     return CEGQI_FAIR_UF_DT_SIZE;
-  } else if(optarg == "dt-size") {
+  } else if(optarg == "default" || optarg == "dt-size") {
     return CEGQI_FAIR_DT_SIZE;
   } else if(optarg == "none") {
     return CEGQI_FAIR_NONE;
