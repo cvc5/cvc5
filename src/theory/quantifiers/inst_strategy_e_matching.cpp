@@ -65,16 +65,19 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
       return STATUS_UNFINISHED;
     }else if( e==peffort ){
       d_counter[f]++;
-      
+
       Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
       if( options::userPatternsQuant()==USER_PAT_MODE_RESORT  ){
         int matchOption = 0;
         for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
-          d_user_gen[f].push_back( Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], matchOption, true, Trigger::TR_RETURN_NULL, options::smartTriggers() ) );
+          Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], matchOption, true, Trigger::TR_RETURN_NULL, options::smartTriggers() );
+          if( t ){
+            d_user_gen[f].push_back( t );
+          }
         }
         d_user_gen_wait[f].clear();
       }
-      
+
       for( unsigned i=0; i<d_user_gen[f].size(); i++ ){
         bool processTrigger = true;
         if( processTrigger ){
