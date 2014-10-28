@@ -33,6 +33,10 @@ void QuantifiersAttributes::setUserAttribute( const std::string& attr, Node n, s
     Trace("quant-attr-debug") << "Set conjecture " << n << std::endl;
     ConjectureAttribute ca;
     n.setAttribute( ca, true );
+  }else if( attr=="fun-def" ){
+    Trace("quant-attr-debug") << "Set function definition " << n << std::endl;
+    FunDefAttribute fda;
+    n.setAttribute( fda, true );
   }else if( attr=="sygus" ){
     Trace("quant-attr-debug") << "Set sygus " << n << std::endl;
     SygusAttribute ca;

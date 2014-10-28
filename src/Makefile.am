@@ -332,6 +332,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/ce_guided_instantiation.h \
 	theory/quantifiers/ce_guided_instantiation.cpp \
+	theory/quantifiers/fun_def_process.h \
+	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/options_handlers.h \
 	theory/arith/theory_arith_type_rules.h \
 	theory/arith/type_enumerator.h \

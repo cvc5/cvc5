@@ -34,6 +34,10 @@ typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
 struct ConjectureAttributeId {};
 typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
   
+/** Attribute true for function definition quantifiers */
+struct FunDefAttributeId {};
+typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
+
 /** Attribute true for quantifiers that are SyGus conjectures */
 struct SygusAttributeId {};
 typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
@@ -317,6 +321,7 @@ public: //general queries concerning quantified formulas wrt modules
 private:
   std::map< Node, bool > d_qattr_conjecture;
   std::map< Node, bool > d_qattr_axiom;
+  std::map< Node, bool > d_qattr_fundef;
   std::map< Node, bool > d_qattr_sygus;
   std::map< Node, bool > d_qattr_synthesis;
   std::map< Node, int > d_qattr_rr_priority;
@@ -328,6 +333,8 @@ public:
   bool isQAttrConjecture( Node q );
   /** is axiom */
   bool isQAttrAxiom( Node q );
+  /** is function definition */
+  bool isQAttrFunDef( Node q );
   /** is sygus conjecture */
   bool isQAttrSygus( Node q );
   /** is synthesis conjecture */

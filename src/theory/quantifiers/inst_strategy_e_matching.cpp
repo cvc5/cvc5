@@ -220,7 +220,14 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f, Theory::Effort effor
     d_patTerms[0][f].clear();
     d_patTerms[1][f].clear();
     std::vector< Node > patTermsF;
-    Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+    if( d_quantEngine->getTermDatabase()->isQAttrFunDef( f ) && options::quantFunWellDefined() ){
+      Node bd = d_quantEngine->getTermDatabase()->getInstConstantBody( f );
+      Assert( bd.getKind()==EQUAL || bd.getKind()==IFF );
+      Assert( bd[0].getKind()==APPLY_UF );
+      patTermsF.push_back( bd[0] );
+    }else{
+      Trigger::collectPatTerms( d_quantEngine, f, d_quantEngine->getTermDatabase()->getInstConstantBody( f ), patTermsF, d_tr_strategy, d_user_no_gen[f], true );
+    }
     Trace("auto-gen-trigger") << "Collected pat terms for " << d_quantEngine->getTermDatabase()->getInstConstantBody( f ) << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
     Trace("auto-gen-trigger") << "   ";
     for( int i=0; i<(int)patTermsF.size(); i++ ){

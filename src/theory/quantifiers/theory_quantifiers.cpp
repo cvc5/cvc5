@@ -42,6 +42,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   d_baseDecLevel = -1;
   out.handleUserAttribute( "axiom", this );
   out.handleUserAttribute( "conjecture", this );
+  out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
   out.handleUserAttribute( "synthesis", this );
   out.handleUserAttribute( "quant-inst-max-level", this );

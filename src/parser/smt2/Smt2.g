@@ -1298,21 +1298,40 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         PARSER_STATE->warning(ss.str());
       }
       // do nothing
-    } else if(attr==":axiom" || attr==":conjecture" || attr==":sygus" || attr==":synthesis") {
+    } else if(attr==":axiom" || attr==":conjecture" || attr==":fun-def" || attr==":sygus" || attr==":synthesis") {
       if(hasValue) {
         std::stringstream ss;
         ss << "warning: Attribute " << attr << " does not take a value (ignoring)";
         PARSER_STATE->warning(ss.str());
       }
-      std::string attr_name = attr;
-      attr_name.erase( attr_name.begin() );
-      //will set the attribute on auxiliary var (preserves attribute on formula through rewriting)
-      Type t = EXPR_MANAGER->booleanType();
-      Expr avar = PARSER_STATE->mkVar(attr_name, t);
-      retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand( attr_name, avar );
-      c->setMuted(true);
-      PARSER_STATE->preemptCommand(c);
+      bool success = true;
+      if( attr==":fun-def" ){
+        if( ( expr.getKind()!=kind::EQUAL && expr.getKind()!=kind::IFF ) || expr[0].getKind()!=kind::APPLY_UF ){
+          success = false;
+        }else{
+          for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
+            if( expr[0][i].getKind()!=kind::BOUND_VARIABLE ){
+              success = false;
+            }
+          }
+        }
+        if( !success ){
+          std::stringstream ss;
+          ss << "warning: Function definition should be an equality whose LHS is an uninterpreted function applied to variables.";
+          PARSER_STATE->warning(ss.str());
+        }
+      }
+      if( success ){
+        std::string attr_name = attr;
+        attr_name.erase( attr_name.begin() );
+        //will set the attribute on auxiliary var (preserves attribute on formula through rewriting)
+        Type t = EXPR_MANAGER->booleanType();
+        Expr avar = PARSER_STATE->mkVar(attr_name, t);
+        retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+        Command* c = new SetUserAttributeCommand( attr_name, avar );
+        c->setMuted(true);
+        PARSER_STATE->preemptCommand(c);
+      }
     } else {
       PARSER_STATE->attributeNotSupported(attr);
     }

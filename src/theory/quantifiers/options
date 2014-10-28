@@ -72,6 +72,9 @@ option multiTriggerWhenSingle --multi-trigger-when-single bool :default true
 option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :default CVC4::theory::quantifiers::TRIGGER_SEL_DEFAULT :read-write :include "theory/quantifiers/modes.h" :handler  CVC4::theory::quantifiers::stringToTriggerSelMode :handler-include "theory/quantifiers/options_handlers.h"
  selection mode for triggers
 
+option quantFunWellDefined --quant-fun-wd bool :default false
+ assume that function defined by quantifiers are well defined
+ 
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false
  consider ground terms within bodies of quantified formulas for matching
