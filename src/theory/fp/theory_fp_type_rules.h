@@ -168,6 +168,15 @@ public :
   }
 };
 
+class FloatingPointParametricOpTypeRule {
+public :
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TRACE("FloatingPointParametricOpTypeRule");
+
+    return nodeManager->builtinOperatorType();
+  }
+};
 
 class FloatingPointToFPIEEEBitVectorTypeRule {
 public :
