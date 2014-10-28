@@ -136,6 +136,7 @@ constant FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP \
     "::CVC4::FloatingPointConvertSortHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_fp from bit vector"
+typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_IEEE_BITVECTOR FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP 1 "convert an IEEE-754 bit vector to floating-point"
 typerule FLOATINGPOINT_TO_FP_IEEE_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPIEEEBitVectorTypeRule
@@ -147,6 +148,7 @@ constant FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP \
     "::CVC4::FloatingPointConvertSortHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_fp from floating point"
+typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_FLOATINGPOINT FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP 2 "convert between floating-point sorts"
 typerule FLOATINGPOINT_TO_FP_FLOATINGPOINT   ::CVC4::theory::fp::FloatingPointToFPFloatingPointTypeRule
@@ -159,6 +161,7 @@ constant FLOATINGPOINT_TO_FP_REAL_OP \
     "::CVC4::FloatingPointConvertSortHashFunction<0x4>" \
     "util/floatingpoint.h" \
     "operator for to_fp from real"
+typerule FLOATINGPOINT_TO_FP_REAL_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_REAL FLOATINGPOINT_TO_FP_REAL_OP 2 "convert a real to floating-point"
 typerule FLOATINGPOINT_TO_FP_REAL   ::CVC4::theory::fp::FloatingPointToFPRealTypeRule
@@ -170,6 +173,7 @@ constant FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP \
     "::CVC4::FloatingPointConvertSortHashFunction<0x8>" \
     "util/floatingpoint.h" \
     "operator for to_fp from signed bit vector"
+typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP 2 "convert a signed bit vector to floating-point"
 typerule FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPSignedBitVectorTypeRule
@@ -181,6 +185,8 @@ constant FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP \
     "::CVC4::FloatingPointConvertSortHashFunction<0x10>" \
     "util/floatingpoint.h" \
     "operator for to_fp from unsigned bit vector"
+typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+
 
 parameterized FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP 2 "convert an unsigned bit vector to floating-point"
 typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::CVC4::theory::fp::FloatingPointToFPUnsignedBitVectorTypeRule
@@ -193,6 +199,7 @@ constant FLOATINGPOINT_TO_UBV_OP \
     "::CVC4::FloatingPointToBVHashFunction<0x1>" \
     "util/floatingpoint.h" \
     "operator for to_ubv"
+typerule FLOATINGPOINT_TO_UBV_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_UBV FLOATINGPOINT_TO_UBV_OP 2 "convert a floating-point value to an unsigned bit vector"
 typerule FLOATINGPOINT_TO_UBV   ::CVC4::theory::fp::FloatingPointToUBVTypeRule
@@ -204,6 +211,7 @@ constant FLOATINGPOINT_TO_SBV_OP \
     "::CVC4::FloatingPointToBVHashFunction<0x2>" \
     "util/floatingpoint.h" \
     "operator for to_sbv"
+typerule FLOATINGPOINT_TO_SBV_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
 
 parameterized FLOATINGPOINT_TO_SBV FLOATINGPOINT_TO_SBV_OP 2 "convert a floating-point value to a signed bit vector"
 typerule FLOATINGPOINT_TO_SBV   ::CVC4::theory::fp::FloatingPointToSBVTypeRule
