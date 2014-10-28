@@ -16,7 +16,13 @@
  **          classifications to normal tests (maybe)
  **          (= x (fp.neg x)) --> (isNaN x)
  **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
- **          (fp.eq x const) --> various = depending on const ]]
+ **          (fp.eq x const) --> various = depending on const 
+ **          (fp.abs (fp.neg x)) --> (fp.abs x)
+ **          (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ **          (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ **          (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ **          (fp.isNegative (fp.abs x)) --> false
+ **       ]]
  **/
 
 #include "theory/fp/theory_fp_rewriter.h"
@@ -48,7 +54,7 @@ namespace rewrite {
   RewriteResponse removeDoubleNegation (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_NEG);
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG) {
-      RewriteResponse(REWRITE_DONE, node[0][0]);
+      RewriteResponse(REWRITE_AGAIN, node[0][0]);
     }
 
     return RewriteResponse(REWRITE_DONE, node);
@@ -245,6 +251,26 @@ namespace rewrite {
     } 
   }
 
+  RewriteResponse removeSignOperations (TNode node, bool isPreRewrite) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_ISN   ||
+	   node.getKind() == kind::FLOATINGPOINT_ISSN  ||
+	   node.getKind() == kind::FLOATINGPOINT_ISZ   ||
+	   node.getKind() == kind::FLOATINGPOINT_ISINF ||
+	   node.getKind() == kind::FLOATINGPOINT_ISNAN);
+    Assert(node.getNumChildren() == 1);
+
+    Kind childKind(node[0].getKind());
+
+    if ((childKind == kind::FLOATINGPOINT_NEG) ||
+	(childKind == kind::FLOATINGPOINT_ABS)) {
+
+      Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN, rewritten);
+    } else {
+      return RewriteResponse(REWRITE_DONE, node);
+    } 
+  }
+
 }; /* CVC4::theory::fp::rewrite */
 
 RewriteFunction TheoryFpRewriter::preRewriteTable[kind::LAST_KIND]; 
@@ -359,11 +385,11 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
 
     /******** Classifications ********/
-    postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;  
-    postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
+    postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::removeSignOperations;
+    postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::removeSignOperations;
+    postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::removeSignOperations;
+    postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::removeSignOperations;
     postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
 
