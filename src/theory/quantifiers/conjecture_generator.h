@@ -342,6 +342,7 @@ private:  //information regarding the terms
   void registerPattern( Node pat, TypeNode tpat );
 private: //for debugging
   std::map< TNode, unsigned > d_em;
+  unsigned d_conj_count;
 public:
   //term generation environment
   TermGenEnv d_tge;

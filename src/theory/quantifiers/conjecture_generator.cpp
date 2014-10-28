@@ -390,6 +390,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
         Trace("sg-engine") << "---Conjecture Engine Round, effort = " << e << "---" << std::endl;
       }
       eq::EqualityEngine * ee = getEqualityEngine();
+      d_conj_count = 0;
 
       Trace("sg-proc") << "Get eq classes..." << std::endl;
       d_op_arg_index.clear();
@@ -826,7 +827,7 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
           break;
         }
       }
-
+      Trace("sg-stats") << "Total conjectures considered : " << d_conj_count << std::endl;
       if( Trace.isOn("thm-ee") ){
         Trace("thm-ee") << "Universal equality engine is : " << std::endl;
         eq::EqClassesIterator ueqcs_i = eq::EqClassesIterator( &d_uequalityEngine );
@@ -865,7 +866,8 @@ void ConjectureGenerator::check( Theory::Effort e, unsigned quant_e ) {
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){
     Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;
-    if( !optStatsOnly() && (int)addedLemmas<options::conjectureGenPerRound() ){
+    if( (int)addedLemmas<options::conjectureGenPerRound() ){
+      /*
       std::vector< unsigned > indices;
       for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
         indices.push_back( i );
@@ -877,21 +879,22 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
         scs.d_scores.insert( scs.d_scores.begin(), d_waiting_conjectures_score.begin(), d_waiting_conjectures_score.end() );
         std::sort( indices.begin(), indices.end(), scs );
       }
-      if( doSort && d_waiting_conjectures_score[indices[0]]<optFilterScoreThreshold() ){
-        //do splitting on demand (TODO)
-
-      }else{
-        for( unsigned i=0; i<indices.size(); i++ ){
-          //if( d_waiting_conjectures_score[indices[i]]<optFilterScoreThreshold() ){
-          if( d_waiting_conjectures_score[indices[i]]>=optFilterScoreThreshold() ){
-            //we have determined a relevant subgoal
-            Node lhs = d_waiting_conjectures_lhs[indices[i]];
-            Node rhs = d_waiting_conjectures_rhs[indices[i]];
-            if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
-              //skip
+      //if( doSort && d_waiting_conjectures_score[indices[0]]<optFilterScoreThreshold() ){
+      */
+      unsigned prevCount = d_conj_count;
+      for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
+        if( d_waiting_conjectures_score[i]>=optFilterScoreThreshold() ){
+          //we have determined a relevant subgoal
+          Node lhs = d_waiting_conjectures_lhs[i];
+          Node rhs = d_waiting_conjectures_rhs[i];
+          if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
+            //skip
+          }else{
+            Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
+            Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[i] << std::endl;
+            if( optStatsOnly() ){
+              d_conj_count++;
             }else{
-              Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
-              Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[indices[i]] << std::endl;
               std::vector< Node > bvs;
               for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
                 for( unsigned i=0; i<=it->second; i++ ){
@@ -918,14 +921,13 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
                 break;
               }
             }
-          }else{
-            if( doSort ){
-              break;
-            }
           }
         }
       }
       Trace("sg-proc") << "...have now added " << addedLemmas << " conjecture lemmas." << std::endl;
+      if( optStatsOnly() ){
+        Trace("sg-stats") << "Generated " << (d_conj_count-prevCount) << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;
+      }
     }
     d_waiting_conjectures_lhs.clear();
     d_waiting_conjectures_rhs.clear();
@@ -1286,7 +1288,7 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
         Trace("sg-cconj") << "     #witnesses for " << it->first << " : " << it->second.size() << std::endl;
       }
     }else{
-      score = 0;
+      score = 1;
     }
 
     Trace("sg-cconj") << "  -> SUCCESS." << std::endl;
