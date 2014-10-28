@@ -316,7 +316,8 @@ public: //general queries concerning quantified formulas wrt modules
   static bool isRewriteRule( Node q );
   /** get the rewrite rule associated with the quanfied formula */
   static Node getRewriteRule( Node q );
-  
+  /** is fun def */
+  static bool isFunDef( Node q );
 //attributes
 private:
   std::map< Node, bool > d_qattr_conjecture;

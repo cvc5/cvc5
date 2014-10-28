@@ -74,6 +74,8 @@ option triggerSelMode --trigger-sel CVC4::theory::quantifiers::TriggerSelMode :d
 
 option quantFunWellDefined --quant-fun-wd bool :default false
  assume that function defined by quantifiers are well defined
+option fmfFunWellDefined --fmf-fun bool :default false
+ find models for finite runs of defined functions, assumes functions are well-defined
  
 # Whether to consider terms in the bodies of quantifiers for matching
 option registerQuantBodyTerms --register-quant-body-terms bool :default false

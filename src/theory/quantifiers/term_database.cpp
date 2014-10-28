@@ -1000,6 +1000,19 @@ Node TermDb::getRewriteRule( Node q ) {
   }
 }
 
+bool TermDb::isFunDef( Node q ) {
+  if( q.getKind()==FORALL && ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF ){
+    for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
+      if( q[2][i].getKind()==INST_ATTRIBUTE ){
+        if( q[2][i][0].getAttribute(FunDefAttribute()) ){
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 
 void TermDb::computeAttributes( Node q ) {
   if( q.getNumChildren()==3 ){

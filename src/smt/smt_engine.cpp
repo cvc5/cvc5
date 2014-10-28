@@ -83,6 +83,7 @@
 #include "util/sort_inference.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/macros.h"
+#include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/first_order_reasoning.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/options.h"
@@ -1350,6 +1351,11 @@ void SmtEngine::setDefaults() {
       options::conjectureGen.set( true );
     }else{
       options::conjectureGen.set( false );
+    }
+  }
+  if( options::fmfFunWellDefined() ){
+    if( !options::finiteModelFind.wasSetByUser() ){
+      options::finiteModelFind.set( true );
     }
   }
 
@@ -3131,6 +3137,10 @@ void SmtEnginePrivate::processAssertions() {
         quantifiers::QuantifierMacros qm;
         success = qm.simplify( d_assertions.ref(), true );
       }while( success );
+    }
+    if( options::fmfFunWellDefined() ){
+      quantifiers::FunDefFmf fdf;
+      fdf.simplify( d_assertions.ref() );
     }
 
     Trace("fo-rsn-enable") << std::endl;

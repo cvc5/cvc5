@@ -1309,15 +1309,24 @@ attribute[CVC4::Expr& expr,CVC4::Expr& retExpr, std::string& attr]
         if( ( expr.getKind()!=kind::EQUAL && expr.getKind()!=kind::IFF ) || expr[0].getKind()!=kind::APPLY_UF ){
           success = false;
         }else{
+          FunctionType t = (FunctionType)expr[0].getOperator().getType();
           for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
-            if( expr[0][i].getKind()!=kind::BOUND_VARIABLE ){
+            if( expr[0][i].getKind()!=kind::BOUND_VARIABLE || expr[0][i].getType()!=t.getArgTypes()[i] ){
               success = false;
+              break;
+            }else{
+              for( unsigned j=0; j<i; j++ ){
+                if( expr[0][j]==expr[0][i] ){
+                  success = false;
+                  break;
+                }
+              }
             }
           }
         }
         if( !success ){
           std::stringstream ss;
-          ss << "warning: Function definition should be an equality whose LHS is an uninterpreted function applied to variables.";
+          ss << "warning: Function definition should be an equality whose LHS is an uninterpreted function applied to unique variables.";
           PARSER_STATE->warning(ss.str());
         }
       }
