@@ -1294,38 +1294,6 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
   | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
 
-/*
-    // Nice context free language you got there, be a shame if something happened to it...
-  | LPAREN_TOK LPAREN_TOK INDEX_TOK FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL RPAREN_TOK term[f,f2] RPAREN_TOK
-      { op = MK_CONST(FloatingPointToFPIEEEBitVector(AntlrInput::tokenToUnsigned($eb),
-                                                     AntlrInput::tokenToUnsigned($sb)));
-        expr = MK_EXPR(op, f);
-        PARSER_STATE->checkOperator(expr.getKind(), 1);
-      }
-  | LPAREN_TOK LPAREN_TOK INDEX_TOK FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL RPAREN_TOK term[f,f2] term[f3, f4] RPAREN_TOK
-      { 
-        // First arg should be the rounding mode, second argument determines which kind to build
-        TypeNode secondOperand = f3.getType(check);
-
-        if (secondOperand.isFloatingPoint()) {
-            op = MK_CONST(FloatingPointToFPFloatingPoint(AntlrInput::tokenToUnsigned($eb),
-                                                         AntlrInput::tokenToUnsigned($sb)));
-
-        } else if (secondOperand.isReal()) {
-            op = MK_CONST(FloatingPointToFPReal(AntlrInput::tokenToUnsigned($eb),
-                                                AntlrInput::tokenToUnsigned($sb)));
-
-        } else if (secondOperand.isBitVector()) {
-            op = MK_CONST(FloatingPointToFPSignedBitVector(AntlrInput::tokenToUnsigned($eb),
-                                                           AntlrInput::tokenToUnsigned($sb)));
-        } else {
-            PARSER_STATE->parseError("Unexpected type in argument to to_fp `" + secondOperand.toString() + "'");
-        }
-        expr = MK_EXPR(op, f);
-        PARSER_STATE->checkOperator(expr.getKind(), 2);
-      }
-*/
-
   | RENOSTR_TOK
     { std::vector< Expr > nvec; expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec ); }
 
@@ -1509,9 +1477,9 @@ indexedFunctionName[CVC4::Expr& op]
       { op = MK_CONST(FloatingPoint(AntlrInput::tokenToUnsigned($eb),
                                     AntlrInput::tokenToUnsigned($sb),
                                     -0.0)); }
-//    | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-//      { op = MK_CONST(FloatingPointToFPUnsignedBitVector(AntlrInput::tokenToUnsigned($eb),
-//                                                         AntlrInput::tokenToUnsigned($sb))); }
+    | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      { op = MK_CONST(FloatingPointToFPGeneric(AntlrInput::tokenToUnsigned($eb),
+                                               AntlrInput::tokenToUnsigned($sb))); }
     | FP_TO_FPBV_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
       { op = MK_CONST(FloatingPointToFPIEEEBitVector(AntlrInput::tokenToUnsigned($eb),
                                                      AntlrInput::tokenToUnsigned($sb))); }
