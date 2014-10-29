@@ -193,6 +193,20 @@ typerule FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR   ::CVC4::theory::fp::FloatingPo
 
 
 
+constant FLOATINGPOINT_TO_FP_GENERIC_OP \
+    ::CVC4::FloatingPointToFPGeneric \
+    "::CVC4::FloatingPointConvertSortHashFunction<0x11>" \
+    "util/floatingpoint.h" \
+    "operator for a generic to_fp"
+typerule FLOATINGPOINT_TO_FP_GENERIC_OP ::CVC4::theory::fp::FloatingPointParametricOpTypeRule
+
+
+parameterized FLOATINGPOINT_TO_FP_GENERIC FLOATINGPOINT_TO_FP_GENERIC_OP 1:2 "a generic conversion to floating-point, used in parsing only"
+typerule FLOATINGPOINT_TO_FP_GENERIC   ::CVC4::theory::fp::FloatingPointToFPGenericTypeRule
+
+
+
+
 
 constant FLOATINGPOINT_TO_UBV_OP \
     ::CVC4::FloatingPointToUBV \

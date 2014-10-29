@@ -271,6 +271,49 @@ namespace rewrite {
     } 
   }
 
+  RewriteResponse removeToFPGeneric (TNode node, bool isPreRewrite) {
+    Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
+    Assert(isPreRewrite);
+
+    FloatingPointToFPGeneric info = node.getOperator().getConst<FloatingPointToFPGeneric>();
+
+    size_t children = node.getNumChildren();
+
+    Node op;
+
+
+    if (children == 1) {
+      op = NodeManager::currentNM()->mkConst(FloatingPointToFPIEEEBitVector(info.t.exponent(),
+										       info.t.significand()));
+      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(op, node[0]));
+
+    } else {
+      Assert(children == 2);
+      Assert(node[0].getType().isRoundingMode());
+
+      TypeNode t = node[1].getType();
+
+      if (t.isFloatingPoint()) {
+	op = NodeManager::currentNM()->mkConst(FloatingPointToFPFloatingPoint(info.t.exponent(),
+									      info.t.significand()));
+      } else if (t.isReal()) {
+	op = NodeManager::currentNM()->mkConst(FloatingPointToFPReal(info.t.exponent(),
+								     info.t.significand()));
+      } else if (t.isBitVector()) {
+	op = NodeManager::currentNM()->mkConst(FloatingPointToFPSignedBitVector(info.t.exponent(),
+										info.t.significand()));
+
+      } else {
+	throw TypeCheckingExceptionPrivate(node, "cannot rewrite to_fp generic due to incorrect type of second argument");
+      }
+
+      return RewriteResponse(REWRITE_AGAIN,
+			     NodeManager::currentNM()->mkNode(op, node[0], node[1]));
+    }
+
+    Unreachable("to_fp generic not rewritten");
+  }
+
 }; /* CVC4::theory::fp::rewrite */
 
 RewriteFunction TheoryFpRewriter::preRewriteTable[kind::LAST_KIND]; 
@@ -334,6 +377,7 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
+    preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removeToFPGeneric;
     preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
     preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -399,6 +443,7 @@ RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND];
     postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::convertFromRealLiteral;
     postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
+    postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
     postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
     postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;

@@ -210,6 +210,9 @@ namespace CVC4 {
   class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort {
   public : FloatingPointToFPUnsignedBitVector (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
   };
+  class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort {
+  public : FloatingPointToFPGeneric (unsigned _e, unsigned _s) : FloatingPointConvertSort(_e,_s) {}
+  };
 
 
 

@@ -504,6 +504,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n,
   case kind::FLOATINGPOINT_TO_FP_REAL:
   case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
   case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR:
+  case kind::FLOATINGPOINT_TO_FP_GENERIC:
   case kind::FLOATINGPOINT_TO_UBV:
   case kind::FLOATINGPOINT_TO_SBV:
     printFpParameterizedOp(out, n);
@@ -755,6 +756,7 @@ static string smtKindString(Kind k) throw() {
   case kind::FLOATINGPOINT_TO_FP_REAL: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR: return "to_fp";
   case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR: return "to_fp_unsigned";
+  case kind::FLOATINGPOINT_TO_FP_GENERIC: return "to_fp_unsigned";
   case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
   case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
   case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
@@ -809,21 +811,25 @@ static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
   out << "(_ ";
   switch(n.getKind()) {
   case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR:
+    //out << "to_fp_bv "
     out << "to_fp "
         << n.getOperator().getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
         << n.getOperator().getConst<FloatingPointToFPIEEEBitVector>().t.significand();
     break;
   case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT:
+    //out << "to_fp_fp "
     out << "to_fp "
         << n.getOperator().getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
         << n.getOperator().getConst<FloatingPointToFPFloatingPoint>().t.significand();
     break;
   case kind::FLOATINGPOINT_TO_FP_REAL:
+    //out << "to_fp_real "
     out << "to_fp "
         << n.getOperator().getConst<FloatingPointToFPReal>().t.exponent() << ' '
         << n.getOperator().getConst<FloatingPointToFPReal>().t.significand();
     break;
   case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR:
+    //out << "to_fp_signed "
     out << "to_fp "
         << n.getOperator().getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
         << n.getOperator().getConst<FloatingPointToFPSignedBitVector>().t.significand();
@@ -832,6 +838,11 @@ static void printFpParameterizedOp(std::ostream& out, TNode n) throw() {
     out << "to_fp_unsigned "
         << n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>().t.exponent() << ' '
         << n.getOperator().getConst<FloatingPointToFPUnsignedBitVector>().t.significand();
+    break;
+  case kind::FLOATINGPOINT_TO_FP_GENERIC:
+    out << "to_fp "
+        << n.getOperator().getConst<FloatingPointToFPGeneric>().t.exponent() << ' '
+        << n.getOperator().getConst<FloatingPointToFPGeneric>().t.significand();
     break;
   case kind::FLOATINGPOINT_TO_UBV:
     out << "fp.to_ubv "

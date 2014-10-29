@@ -313,6 +313,33 @@ public :
 };
 
 
+
+class FloatingPointToFPGenericTypeRule {
+public :
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+      throw (TypeCheckingExceptionPrivate, AssertionException) {
+    TRACE("FloatingPointToFPGenericTypeRule");
+
+    FloatingPointToFPGeneric info = n.getOperator().getConst<FloatingPointToFPGeneric>();
+
+    if (check) {
+      /* As this is a generic kind intended only for parsing,
+       * the checking here is light.  For better checking, use
+       * expandDefinitions first.
+       */
+
+      size_t children = n.getNumChildren();
+      for (size_t i = 0; i < children; ++i) {
+	n[i].getType(check);
+      }
+    }
+
+    return nodeManager->mkFloatingPointType(info.t);
+  }
+};
+
+
+
 class FloatingPointToUBVTypeRule {
 public :
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
