@@ -455,8 +455,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     }
 
     if (node.getType().isArray()) {
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
       d_mayEqualEqualityEngine.addTerm(node);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -554,19 +554,19 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
     d_infoMap.setConstArr(node, node);
-    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
     d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+    d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
     d_defValues[node] = defaultValue;
     break;
   }
   default:
     // Variables etc
     if (node.getType().isArray()) {
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
-      Assert(d_equalityEngine.getSize(node) == 1);
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAY);
+      Assert(d_equalityEngine.getSize(node) == 1);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -1113,7 +1113,9 @@ void TheoryArrays::check(Effort e) {
     // generate the lemmas on the worklist
     Trace("arrays-lem")<<"Arrays::discharging lemmas: "<<d_RowQueue.size()<<"\n";
     while (d_RowQueue.size() > 0 && !d_conflict) {
-      dischargeLemmas();
+      if (dischargeLemmas()) {
+        break;
+      }
     }
   }
 
@@ -2575,8 +2577,9 @@ Node TheoryArrays::getNextDecisionRequest() {
 }
 
 
-void TheoryArrays::dischargeLemmas()
+bool TheoryArrays::dischargeLemmas()
 {
+  bool lemmasAdded = false;
   size_t sz = d_RowQueue.size();
   for (unsigned count = 0; count < sz; ++count) {
     RowLemmaType l = d_RowQueue.front();
@@ -2657,7 +2660,12 @@ void TheoryArrays::dischargeLemmas()
     d_RowAlreadyAdded.insert(l);
     d_out->lemma(lem);
     ++d_numRow;
+    lemmasAdded = true;
+    if (options::arraysReduceSharing()) {
+      return true;
+    }
   }
+  return lemmasAdded;
 }
 
 void TheoryArrays::conflict(TNode a, TNode b) {

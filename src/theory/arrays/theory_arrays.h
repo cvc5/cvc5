@@ -407,7 +407,7 @@ class TheoryArrays : public Theory {
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
   void queueRowLemma(RowLemmaType lem);
-  void dischargeLemmas();
+  bool dischargeLemmas();
 
   std::vector<Node> d_decisions;
   bool d_inCheckModel;
