@@ -215,6 +215,9 @@ class TheoryArrays : public Theory {
   /** Equaltity engine for determining if two arrays might be equal */
   eq::EqualityEngine d_mayEqualEqualityEngine;
 
+  // Helper for computeCareGraph
+  void checkPair(TNode r1, TNode r2);
+
   public:
 
   void addSharedTerm(TNode t);
@@ -347,7 +350,35 @@ class TheoryArrays : public Theory {
   CDNodeSet d_sharedArrays;
   CDNodeSet d_sharedOther;
   context::CDO<bool> d_sharedTerms;
+
+  // Map from constant values to read terms that read from that values equal to that constant value in the current model
+  // When a new read term is created, we check the index to see if we know the model value.  If so, we add it to d_constReads (and d_constReadsList)
+  // If not, we push it onto d_reads and figure out where it goes at computeCareGraph time.
+  // d_constReadsList is used as a backup in case we can't compute the model at computeCareGraph time.
+  typedef std::hash_map<Node, CTNodeList*, NodeHashFunction> CNodeNListMap;
+  CNodeNListMap d_constReads;
   context::CDList<TNode> d_reads;
+  context::CDList<TNode> d_constReadsList;
+  context::Context* d_constReadsContext;
+  /** Helper class to keep d_constReadsContext in sync with satContext */
+  class ContextPopper : public context::ContextNotifyObj {
+    context::Context* d_satContext;
+    context::Context* d_contextToPop;
+  protected:
+    void contextNotifyPop() {
+      if (d_contextToPop->getLevel() > d_satContext->getLevel()) {
+        d_contextToPop->pop();
+      }
+    }
+  public:
+    ContextPopper(context::Context* context, context::Context* contextToPop)
+      :context::ContextNotifyObj(context), d_satContext(context),
+       d_contextToPop(contextToPop)
+    {}
+
+  };/* class ContextPopper */
+  ContextPopper d_contextPopper;
+
   std::hash_map<Node, Node, NodeHashFunction> d_skolemCache;
   context::CDO<unsigned> d_skolemIndex;
   std::vector<Node> d_skolemAssertions;

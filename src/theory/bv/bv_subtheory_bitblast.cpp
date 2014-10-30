@@ -219,7 +219,11 @@ void BitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel) {
 
 Node BitblastSolver::getModelValue(TNode node)
 {
-  Node val = d_bitblaster->getTermModel(node, false);
+  if (d_bv->d_invalidateModelCache.get()) {
+    d_bitblaster->invalidateModelCache(); 
+  }
+  d_bv->d_invalidateModelCache.set(false); 
+  Node val = d_bitblaster->getTermModel(node, true);
   return val;
 }
 

@@ -82,6 +82,9 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
   d_sharedOther(c),
   d_sharedTerms(c, false),
   d_reads(c),
+  d_constReadsList(c),
+  d_constReadsContext(new context::Context()),
+  d_contextPopper(c, d_constReadsContext),
   d_skolemIndex(c, 0),
   d_decisionRequests(c),
   d_permRef(c),
@@ -124,7 +127,11 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u, OutputC
 }
 
 TheoryArrays::~TheoryArrays() {
-
+  CNodeNListMap::iterator it = d_constReads.begin();
+  for( ; it != d_constReads.end(); ++it ) {
+    (*it).second->deleteSelf();
+  }
+  delete d_constReadsContext;
   StatisticsRegistry::unregisterStat(&d_numRow);
   StatisticsRegistry::unregisterStat(&d_numExt);
   StatisticsRegistry::unregisterStat(&d_numProp);
@@ -136,7 +143,6 @@ TheoryArrays::~TheoryArrays() {
   StatisticsRegistry::unregisterStat(&d_numSetModelValSplits);
   StatisticsRegistry::unregisterStat(&d_numSetModelValConflicts);
   StatisticsRegistry::unregisterStat(&d_checkTimer);
-
 }
 
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -464,7 +470,32 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
-    d_reads.push_back(node);
+
+    // Synchronize d_constReadsContext with SAT context
+    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+    while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
+      d_constReadsContext->push();
+    }
+
+    // Record read in sharing data structure
+    TNode index = d_equalityEngine.getRepresentative(node[1]);
+    if (index.isConst()) {
+      CTNodeList* temp;
+      CNodeNListMap::iterator it = d_constReads.find(index);
+      if (it == d_constReads.end()) {
+        temp = new(true) CTNodeList(d_constReadsContext);
+        d_constReads[index] = temp;
+      }
+      else {
+        temp = (*it).second;
+      }
+      temp->push_back(node);
+      d_constReadsList.push_back(node);
+    }
+    else {
+      d_reads.push_back(node);
+    }
+
     Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
     break;
@@ -604,6 +635,76 @@ EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
 }
 
 
+void TheoryArrays::checkPair(TNode r1, TNode r2)
+{
+  Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checking reads " << r1 << " and " << r2 << std::endl;
+
+  TNode x = r1[1];
+  TNode y = r2[1];
+  Assert(d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY));
+
+  if (d_equalityEngine.hasTerm(x) && d_equalityEngine.hasTerm(y) &&
+      (d_equalityEngine.areEqual(x,y) || d_equalityEngine.areDisequal(x,y,false))) {
+    Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): equality known, skipping" << std::endl;
+    return;
+  }
+
+  // If the terms are already known to be equal, we are also in good shape
+  if (d_equalityEngine.areEqual(r1, r2)) {
+    Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): equal, skipping" << std::endl;
+    return;
+  }
+
+  if (r1[0] != r2[0]) {
+    // If arrays are known to be disequal, or cannot become equal, we can continue
+    Assert(d_mayEqualEqualityEngine.hasTerm(r1[0]) && d_mayEqualEqualityEngine.hasTerm(r2[0]));
+    if (r1[0].getType() != r2[0].getType() ||
+        d_equalityEngine.areDisequal(r1[0], r2[0], false)) {
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
+      return;
+    }
+    else if (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0])) {
+      return;
+    }
+  }
+
+  if (!d_equalityEngine.isTriggerTerm(y, THEORY_ARRAY)) {
+    Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
+    return;
+  }
+
+  // Get representative trigger terms
+  TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
+  TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAY);
+  EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
+  switch (eqStatusDomain) {
+    case EQUALITY_TRUE_AND_PROPAGATED:
+      // Should have been propagated to us
+      Assert(false);
+      break;
+    case EQUALITY_TRUE:
+      // Missed propagation - need to add the pair so that theory engine can force propagation
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
+      break;
+    case EQUALITY_FALSE_AND_PROPAGATED:
+      // Should have been propagated to us
+      Assert(false);
+    case EQUALITY_FALSE:
+    case EQUALITY_FALSE_IN_MODEL:
+      // This is unlikely, but I think it could happen
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair called when false in model" << std::endl;
+      return;
+    default:
+      // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
+      break;
+  }
+
+  // Add this pair
+  Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): adding to care-graph" << std::endl;
+  addCarePair(x_shared, y_shared);
+}
+
+
 void TheoryArrays::computeCareGraph()
 {
   if (d_sharedArrays.size() > 0) {
@@ -630,93 +731,69 @@ void TheoryArrays::computeCareGraph()
   }
   if (d_sharedTerms) {
 
-    vector< pair<TNode, TNode> > currentPairs;
+    // Synchronize d_constReadsContext with SAT context
+    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+    while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
+      d_constReadsContext->push();
+    }
 
     // Go through the read terms and see if there are any to split on
+
+    // Give constReadsContext a push so that all the work it does here is erased - models can change if context changes at all
+    // The context is popped at the end.  If this loop is interrupted for some reason, we have to make sure the context still
+    // gets popped or the solver will be in an inconsistent state
+    d_constReadsContext->push();
     unsigned size = d_reads.size();
     for (unsigned i = 0; i < size; ++ i) {
       TNode r1 = d_reads[i];
 
-      // Make sure shared terms were identified correctly
-      // Assert(theoryOf(r1[0]) == THEORY_ARRAY || isShared(r1[0]));
-      // Assert(theoryOf(r1[1]) == THEORY_ARRAY ||
-      //        d_sharedOther.find(r1[1]) != d_sharedOther.end());
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checking read " << r1 << std::endl;
+      Assert(d_equalityEngine.hasTerm(r1));
+      TNode x = r1[1];
 
-      for (unsigned j = i + 1; j < size; ++ j) {
-        TNode r2 = d_reads[j];
+      if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY)) {
+        Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
+        continue;
+      }
+      Node x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
 
-        Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checking reads " << r1 << " and " << r2 << std::endl;
-
-        // If the terms are already known to be equal, we are also in good shape
-        if (d_equalityEngine.hasTerm(r1) && d_equalityEngine.hasTerm(r2) && d_equalityEngine.areEqual(r1, r2)) {
-          Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): equal, skipping" << std::endl;
-          continue;
+      // Get the model value of index and find all reads that read from that same model value: these are the pairs we have to check
+      // Also, insert this read in the list at the proper index
+      
+      if (!x_shared.isConst()) {
+        x_shared = d_valuation.getModelValue(x_shared);
+      }
+      if (!x_shared.isNull()) {
+        CTNodeList* temp;
+        CNodeNListMap::iterator it = d_constReads.find(x_shared);
+        if (it == d_constReads.end()) {
+          // This is the only x_shared with this model value - no need to create any splits
+          temp = new(true) CTNodeList(d_constReadsContext);
+          d_constReads[x_shared] = temp;
         }
-
-        if (r1[0] != r2[0]) {
-          // If arrays are known to be disequal, or cannot become equal, we can continue
-          Assert(d_mayEqualEqualityEngine.hasTerm(r1[0]) && d_mayEqualEqualityEngine.hasTerm(r2[0]));
-          if (r1[0].getType() != r2[0].getType() ||
-              d_equalityEngine.areDisequal(r1[0], r2[0], false)) {
-            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
-            continue;
-          }
-          else if (!d_mayEqualEqualityEngine.areEqual(r1[0], r2[0])) {
-            if (r2.getType().getCardinality().isInfinite()) {
-              continue;
-            }
-            // TODO: add a disequality split for these two arrays
-            continue;
+        else {
+          temp = (*it).second;
+          for (size_t j = 0; j < temp->size(); ++j) {
+            checkPair(r1, (*temp)[j]);
           }
         }
-
-        TNode x = r1[1];
-        TNode y = r2[1];
-
-        if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAY) || !d_equalityEngine.isTriggerTerm(y, THEORY_ARRAY)) {
-          Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): not connected to shared terms, skipping" << std::endl;
-          continue;
+        temp->push_back(r1);
+      }
+      else {
+        // We don't know the model value for x.  Just do brute force examination of all pairs of reads
+        for (unsigned j = 0; j < size; ++j) {
+          TNode r2 = d_reads[j];
+          Assert(d_equalityEngine.hasTerm(r2));
+          checkPair(r1,r2);
         }
-
-        EqualityStatus eqStatus = getEqualityStatus(x, y);
-
-        if (eqStatus != EQUALITY_UNKNOWN) {
-          Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): equality status known, skipping" << std::endl;
-          continue;
+        for (unsigned j = 0; j < d_constReadsList.size(); ++j) {
+          TNode r2 = d_constReadsList[j];
+          Assert(d_equalityEngine.hasTerm(r2));
+          checkPair(r1,r2);
         }
-
-        // Get representative trigger terms
-        TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_ARRAY);
-        TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_ARRAY);
-        EqualityStatus eqStatusDomain = d_valuation.getEqualityStatus(x_shared, y_shared);
-        switch (eqStatusDomain) {
-          case EQUALITY_TRUE_AND_PROPAGATED:
-            // Should have been propagated to us
-            Assert(false);
-            break;
-          case EQUALITY_TRUE:
-            // Missed propagation - need to add the pair so that theory engine can force propagation
-            Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
-            break;
-          case EQUALITY_FALSE_AND_PROPAGATED:
-            // Should have been propagated to us
-            Assert(false);
-          case EQUALITY_FALSE:
-          case EQUALITY_FALSE_IN_MODEL:
-            // Don't need to include this pair
-            if (options::arraysReduceSharing()) {
-              continue;
-            }
-          default:
-            break;
-        }
-
-
-        // Otherwise, add this pair
-        Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): adding to care-graph" << std::endl;
-        addCarePair(x_shared, y_shared);
       }
     }
+    d_constReadsContext->pop();
   }
 }
 

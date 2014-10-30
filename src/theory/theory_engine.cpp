@@ -487,16 +487,16 @@ void TheoryEngine::combineTheories() {
 
     // The equality in question (order for no repetition)
     Node equality = carePair.a.eqNode(carePair.b);
-    EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
-    Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
-      (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
-      es == EQUALITY_FALSE_AND_PROPAGATED ? "EQUALITY_FALSE_AND_PROPAGATED" :
-      es == EQUALITY_TRUE ? "EQUALITY_TRUE" :
-      es == EQUALITY_FALSE ? "EQUALITY_FALSE" :
-      es == EQUALITY_TRUE_IN_MODEL ? "EQUALITY_TRUE_IN_MODEL" :
-      es == EQUALITY_FALSE_IN_MODEL ? "EQUALITY_FALSE_IN_MODEL" :
-      es == EQUALITY_UNKNOWN ? "EQUALITY_UNKNOWN" :
-       "Unexpected case") << endl;
+    // EqualityStatus es = getEqualityStatus(carePair.a, carePair.b);
+    // Debug("combineTheories") << "TheoryEngine::combineTheories(): " <<
+    //   (es == EQUALITY_TRUE_AND_PROPAGATED ? "EQUALITY_TRUE_AND_PROPAGATED" :
+    //   es == EQUALITY_FALSE_AND_PROPAGATED ? "EQUALITY_FALSE_AND_PROPAGATED" :
+    //   es == EQUALITY_TRUE ? "EQUALITY_TRUE" :
+    //   es == EQUALITY_FALSE ? "EQUALITY_FALSE" :
+    //   es == EQUALITY_TRUE_IN_MODEL ? "EQUALITY_TRUE_IN_MODEL" :
+    //   es == EQUALITY_FALSE_IN_MODEL ? "EQUALITY_FALSE_IN_MODEL" :
+    //   es == EQUALITY_UNKNOWN ? "EQUALITY_UNKNOWN" :
+    //    "Unexpected case") << endl;
 
     // We need to split on it
     Debug("combineTheories") << "TheoryEngine::combineTheories(): requesting a split " << endl;
@@ -505,8 +505,8 @@ void TheoryEngine::combineTheories() {
     // but it doesn't seem to make a big difference - need to explore more -Clark
     // if (true) {
     //   if (es == EQUALITY_TRUE || es == EQUALITY_TRUE_IN_MODEL) {
-    //     Node e = ensureLiteral(equality);
-    //     d_propEngine->requirePhase(e, true);
+    Node e = ensureLiteral(equality);
+    d_propEngine->requirePhase(e, true);
     //   }
     //   else if (es == EQUALITY_FALSE_IN_MODEL) {
     //     Node e = ensureLiteral(equality);
