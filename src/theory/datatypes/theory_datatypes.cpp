@@ -1142,7 +1142,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     }
   }
   Assert( !eq_merged );
-  */
+  //*/
 
   //combine the equality engine
   m->assertEqualityEngine( &d_equalityEngine );
@@ -1158,7 +1158,7 @@ void TheoryDatatypes::collectModelInfo( TheoryModel* m, bool fullModel ){
     }
   }
   Assert( !eq_merged );
-  */
+  //*/
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator( &d_equalityEngine );

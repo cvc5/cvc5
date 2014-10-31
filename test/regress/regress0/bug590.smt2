@@ -2,7 +2,7 @@
 (set-option :strings-exp true)
 (set-option :produce-models true)
 (set-info :smt-lib-version 2.0)
-(set-info :status sat)
+(set-info :status unknown)
 
 (declare-fun text () String)
 (declare-fun output () String)

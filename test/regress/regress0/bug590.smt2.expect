@@ -1,2 +1,2 @@
-% EXPECT: sat
+% EXPECT: unknown
 % EXPECT: ((charlst2 (store ((as const (Array Int String)) "C") 0 "&lt;")))

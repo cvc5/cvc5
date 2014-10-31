@@ -35,8 +35,6 @@ private:
   std::map< Node, TypeNode > d_sorts;
   //defined functions to injections input -> argument elements
   std::map< Node, std::vector< Node > > d_input_arg_inj;
-  //flatten ITE
-  void flattenITE( Node lhs, Node n, std::vector< std::vector< Node > >& conds, std::vector< Node >& terms );
   //simplify
   Node simplify( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, bool is_fun_def = false );
   //simplify term

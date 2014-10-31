@@ -96,6 +96,10 @@ void ModelEngine::check( Theory::Effort e, unsigned quant_e ){
       //CVC4 will answer SAT or unknown
       Trace("fmf-consistent") << std::endl;
       debugPrint("fmf-consistent");
+      //if the check was incomplete, we must set incomplete flag
+      if( d_incomplete_check ){
+        d_quantEngine->getOutputChannel().setIncomplete();
+      }
     }else{
       //otherwise, the search will continue
     }

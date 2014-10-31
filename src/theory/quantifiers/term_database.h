@@ -310,7 +310,8 @@ public:
   /** filter all nodes that have instances */
   void filterInstances( std::vector< Node >& nodes );
 
-  
+private:
+  std::map< Node, bool > d_fun_defs;
 public: //general queries concerning quantified formulas wrt modules
   /** is quantifier treated as a rewrite rule? */
   static bool isRewriteRule( Node q );

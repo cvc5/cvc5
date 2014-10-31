@@ -1031,6 +1031,14 @@ void TermDb::computeAttributes( Node q ) {
         if( avar.getAttribute(FunDefAttribute()) ){
           Trace("quant-attr") << "Attribute : function definition : " << q << std::endl;
           d_qattr_fundef[q] = true;
+          Assert( q[1].getKind()==EQUAL || q[1].getKind()==IFF );
+          Assert( q[1][0].getKind()==APPLY_UF );
+          Node f = q[1][0].getOperator();
+          if( d_fun_defs.find( f )!=d_fun_defs.end() ){
+            Message() << "Cannot define function " << f << " more than once." << std::endl;
+            exit( 0 );
+          }
+          d_fun_defs[f] = true;
         }
         if( avar.getAttribute(SygusAttribute()) ){
           //should be nested existential

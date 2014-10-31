@@ -39,6 +39,12 @@ void FunDefFmf::simplify( std::vector< Node >& assertions, bool doRewrite ) {
         Assert( n.getKind()==APPLY_UF );
         Node f = n.getOperator();
         
+        //check if already defined, if so, throw error
+        if( d_sorts.find( f )!=d_sorts.end() ){
+          Message() << "Cannot define function " << f << " more than once." << std::endl;
+          exit( 0 );
+        }
+        
         //create a sort S that represents the inputs of the function
         std::stringstream ss;
         ss << "I_" << f;
