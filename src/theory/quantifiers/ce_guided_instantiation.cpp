@@ -47,6 +47,12 @@ void CegInstantiation::CegConjecture::initializeGuard( QuantifiersEngine * qe ){
     d_guard = qe->getValuation().ensureLiteral( d_guard );
     AlwaysAssert( !d_guard.isNull() );
     qe->getOutputChannel().requirePhase( d_guard, true );
+    if( !d_syntax_guided ){
+      //add immediate lemma
+      Node lem = NodeManager::currentNM()->mkNode( OR, d_guard.negate(), d_base_inst.negate() );
+      Trace("cegqi") << "Add candidate lemma : " << lem << std::endl;
+      qe->getOutputChannel().lemma( lem );
+    }
   }
 }
 
@@ -109,10 +115,11 @@ void CegInstantiation::registerQuantifier( Node q ) {
         for( unsigned j=0; j<d_conj->d_base_inst[0][0].getNumChildren(); j++ ){
           d_conj->d_inner_vars.push_back( d_conj->d_base_inst[0][0][j] );
         }
+        d_conj->d_syntax_guided = true;
       }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
-        //add immediate lemma
-        Node lem = NodeManager::currentNM()->mkNode( OR, d_conj->d_guard.negate(), d_conj->d_base_inst );
-        d_quantEngine->getOutputChannel().lemma( lem );
+        d_conj->d_syntax_guided = false;
+      }else{
+        Assert( false );
       }
       //fairness
       if( options::ceGuidedInstFair()!=CEGQI_FAIR_NONE ){
@@ -233,11 +240,14 @@ void CegInstantiation::checkCegConjecture( CegConjecture * conj ) {
       }
 
     }else if( getTermDatabase()->isQAttrSynthesis( q ) ){
+      Trace("cegqi-engine") << "  * Value is : ";
       std::vector< Node > model_terms;
       for( unsigned i=0; i<conj->d_candidates.size(); i++ ){
         Node t = getModelTerm( conj->d_candidates[i] );
         model_terms.push_back( t );
+        Trace("cegqi-engine") << t << " ";
       }
+      Trace("cegqi-engine") << std::endl;
       d_quantEngine->addInstantiation( q, model_terms, false );
     }
   }else{

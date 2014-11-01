@@ -44,6 +44,8 @@ private:
     Node d_base_inst;
     /** guard split */
     Node d_guard_split;
+    /** is syntax-guided */
+    bool d_syntax_guided;
     /** list of constants for quantified formula */
     std::vector< Node > d_candidates;
     /** list of variables on inner quantification */
