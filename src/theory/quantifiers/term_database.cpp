@@ -1001,7 +1001,7 @@ Node TermDb::getRewriteRule( Node q ) {
 }
 
 bool TermDb::isFunDef( Node q ) {
-  if( q.getKind()==FORALL && ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF ){
+  if( q.getKind()==FORALL && ( q[1].getKind()==EQUAL || q[1].getKind()==IFF ) && q[1][0].getKind()==APPLY_UF && q.getNumChildren()==3 ){
     for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
       if( q[2][i].getKind()==INST_ATTRIBUTE ){
         if( q[2][i][0].getAttribute(FunDefAttribute()) ){

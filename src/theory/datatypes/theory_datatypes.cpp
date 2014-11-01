@@ -532,11 +532,11 @@ Node TheoryDatatypes::ppRewrite(TNode in) {
 void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
-  if( t.getType().isBoolean() ){
+  //if( t.getType().isBoolean() ){
     //d_equalityEngine.addTriggerPredicate(t, THEORY_DATATYPES);
-  }else{
-    d_equalityEngine.addTriggerTerm(t, THEORY_DATATYPES);
-  }
+  //}else{
+  d_equalityEngine.addTriggerTerm(t, THEORY_DATATYPES);
+  //}
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
 }
 
@@ -1059,15 +1059,14 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
 }
 
 EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
-  if( d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b) ){
-    if (d_equalityEngine.areEqual(a, b)) {
-      // The terms are implied to be equal
-      return EQUALITY_TRUE;
-    }
-    if (d_equalityEngine.areDisequal(a, b, false)) {
-      // The terms are implied to be dis-equal
-      return EQUALITY_FALSE;
-    }
+  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
+  if (d_equalityEngine.areEqual(a, b)) {
+    // The terms are implied to be equal
+    return EQUALITY_TRUE;
+  }
+  if (d_equalityEngine.areDisequal(a, b, false)) {
+    // The terms are implied to be dis-equal
+    return EQUALITY_FALSE;
   }
   return EQUALITY_FALSE_IN_MODEL;
 }
@@ -1088,12 +1087,14 @@ void TheoryDatatypes::computeCareGraph(){
           for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
             TNode x = f1[k];
             TNode y = f2[k];
+            Assert(d_equalityEngine.hasTerm(x));
+            Assert(d_equalityEngine.hasTerm(y));            
             if( areDisequal(x, y) ){
               somePairIsDisequal = true;
               break;
-            }else if( !areEqual( x, y ) ){
+            }else if( !d_equalityEngine.areEqual( x, y ) ){
               Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
-              if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
+              if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
                 EqualityStatus eqStatus = d_valuation.getEqualityStatus(x, y);
                 if( eqStatus!=EQUALITY_UNKNOWN ){
                   TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
