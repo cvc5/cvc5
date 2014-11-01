@@ -1096,7 +1096,10 @@ void TheoryDatatypes::computeCareGraph(){
               Trace("dt-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
               if( d_equalityEngine.isTriggerTerm(x, THEORY_DATATYPES) && d_equalityEngine.isTriggerTerm(y, THEORY_DATATYPES) ){
                 EqualityStatus eqStatus = d_valuation.getEqualityStatus(x, y);
-                if( eqStatus!=EQUALITY_UNKNOWN ){
+                if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_UNKNOWN ){
+                  somePairIsDisequal = true;
+                  break;
+                }else{
                   TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_DATATYPES);
                   TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_DATATYPES);
                   Trace("dt-cg") << "Arg #" << k << " shared term is " << x_shared << " " << y_shared << std::endl;
@@ -1433,10 +1436,19 @@ Node TheoryDatatypes::getInstantiateCons( Node n, const Datatype& dt, int index,
     return it->second;
   }else{
     //add constructor to equivalence class
-    Node n_ic = DatatypesRewriter::getInstCons( n, dt, index );
+    Node k = n;
+    if( n.getKind()==APPLY_CONSTRUCTOR ){
+      //must construct variable to refer to n, add lemma immediately
+      k = NodeManager::currentNM()->mkSkolem( "k", n.getType(), "for dt instantiation" );
+      Node eq = k.eqNode( n );
+      Trace("datatypes-infer") << "DtInfer : instantiation ref : " << eq << std::endl;
+      d_out->lemma( eq );
+    }
+    Node n_ic = DatatypesRewriter::getInstCons( k, dt, index );
     if( isActive ){
       for( unsigned i = 0; i<n_ic.getNumChildren(); i++ ){
-        processNewTerm( n_ic[i] );
+        Assert( n_ic[i]==Rewriter::rewrite( n_ic[i] ) );
+        //processNewTerm( n_ic[i] );
       }
       collectTerms( n_ic );
     }
@@ -1760,7 +1772,7 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
     //    break;
     //  }
     //}
-  }else if( n.getKind()==EQUAL && ( n[0].getKind()==DT_SIZE || n[1].getKind()==DT_SIZE ) ){
+  }else if( n.getKind()==EQUAL && !n[0].getType().isDatatype() ){
     addLemma = true;
   }else if( n.getKind()==LEQ ){
     addLemma = true;
