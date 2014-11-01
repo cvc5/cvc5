@@ -1760,20 +1760,23 @@ bool TheoryDatatypes::mustCommunicateFact( Node n, Node exp ){
   //  (4) collapse selector : S( C( t1...tn ) ) = t'
   //  (5) collapse term size : size( C( t1...tn ) ) = 1 + size( t1 ) + ... + size( tn )
   //  (6) non-negative size : 0 <= size( t )
-  //We may need to communicate (3) outwards if the conclusions involve other theories.  Also communicate (5), (6), and OR conclusions.
+  //We may need to communicate outwards if the conclusions involve other theories.  Also communicate (6) and OR conclusions.
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
-  if( ( n.getKind()==EQUAL || n.getKind()==IFF) && n[1].getKind()==APPLY_CONSTRUCTOR && exp.getKind()!=EQUAL  ){
-    const Datatype& dt = ((DatatypeType)(n[1].getType()).toType()).getDatatype();
-    addLemma = dt.involvesExternalType();
+  if( n.getKind()==EQUAL || n.getKind()==IFF ){
+    TypeNode tn = n[0].getType();
+    if( !tn.isDatatype() ){
+      addLemma = true;
+    }else{
+      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      addLemma = dt.involvesExternalType();
+    }
     //for( int j=0; j<(int)n[1].getNumChildren(); j++ ){
     //  if( !DatatypesRewriter::isTermDatatype( n[1][j] ) ){
     //    addLemma = true;
     //    break;
     //  }
     //}
-  }else if( n.getKind()==EQUAL && !n[0].getType().isDatatype() ){
-    addLemma = true;
   }else if( n.getKind()==LEQ ){
     addLemma = true;
   }else if( n.getKind()==OR ){
