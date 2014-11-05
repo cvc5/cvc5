@@ -19,6 +19,8 @@ public:
                Valuation valuation,
                const LogicInfo& logicInfo);
 
+  Node expandDefinition(LogicRequest &, Node node);
+
   void check(Effort);
 
   std::string identify() const {
